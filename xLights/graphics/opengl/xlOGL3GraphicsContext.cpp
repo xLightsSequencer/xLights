@@ -2110,7 +2110,6 @@ xlGraphicsContext* xlOGL3GraphicsContext::SetViewport(int topleft_x, int topleft
         frameData.MVP = m;
         frameData.perspectiveMatrix = frameData.MVP;
 
-        LOG_GL_ERRORV(glClearColor(0,0,0,0));   // background color
         LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);

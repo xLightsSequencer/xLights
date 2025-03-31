@@ -38,21 +38,22 @@ class RemapDMXChannelsDialog: public wxDialog
 		double GetChanScale(int idx);
 		int GetChanOffset(int idx);
 		int GetToChannel(int idx);
+        wxString GetChanInvert(int idx);
 
 	protected:
 
 		//(*Identifiers(RemapDMXChannelsDialog)
-		static const long ID_GRID1;
-		static const long ID_SCROLLEDWINDOW1;
-		static const long ID_BUTTON_OK;
-		static const long ID_BUTTON_CANCEL;
-		static const long ID_BUTTON_SAVE_MAPPING;
-		static const long ID_BUTTON_LOAD_MAPPING;
+		static const wxWindowID ID_GRID1;
+		static const wxWindowID ID_SCROLLEDWINDOW1;
+		static const wxWindowID ID_BUTTON_OK;
+		static const wxWindowID ID_BUTTON_CANCEL;
+		static const wxWindowID ID_BUTTON_SAVE_MAPPING;
+		static const wxWindowID ID_BUTTON_LOAD_MAPPING;
 		//*)
 
 	private:
 
-		enum DMXMappingColumns { From, To, Scale, Offset };
+		enum DMXMappingColumns { From, To, Scale, Offset, Invert };
 
 		//(*Handlers(RemapDMXChannelsDialog)
 		void OnButton_OkClick(wxCommandEvent& event);

@@ -22,6 +22,7 @@
 
 #include "DissolveTransitionPattern.h"
 #include "GPURenderUtils.h"
+#include "effects/ispc/ISPCComputeUtilities.h"
 #include "Parallel.h"
 #include "UtilFunctions.h"
 #include <cmath>
@@ -963,6 +964,7 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, i
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
         GPURenderUtils::setupRenderBuffer(this, buf, layer);
+        buf->perModelIndex = layers[layer]->shallowModelBuffers.size();
         layers[layer]->shallowModelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
 }
@@ -976,6 +978,7 @@ void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int laye
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
         GPURenderUtils::setupRenderBuffer(this, buf, layer);
+        buf->perModelIndex = layers[layer]->deepModelBuffers.size();
         layers[layer]->deepModelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
 }
@@ -1359,189 +1362,6 @@ void PixelBufferClass::mixColors(const wxCoord& x, const wxCoord& y, xlColor& fg
         int b = fg.blue * bg.blue / 255 * alpha;
         bg.Set(r, g, b);
     } break;
-    }
-}
-
-void PixelBufferClass::GetMixedColor(int node, const std::vector<bool>& validLayers, int EffectPeriod, int saveLayer, bool saveToPixels) {
-    int cnt = 0;
-    xlColor c(xlBLACK);
-    xlColor color;
-
-    for (int layer = numLayers - 1; layer >= 0; layer--) {
-        if (validLayers[layer]) {
-            auto thelayer = layers[layer];
-            if (node >= thelayer->buffer.Nodes.size()) {
-                // logger_base.crit("PixelBufferClass::GetMixedColor thelayer->buffer.Nodes does not contain node %d as it is only %d in size ... this was going to crash.", node, thelayer->buffer.Nodes.size());
-            } else {
-                int x = 0;
-                int y = 0;
-                if (thelayer->buffer.Nodes[node]->Coords.size() > 1) {
-                    color.Set(0, 0, 0, 0);
-                    xlColor c2;
-                    bool found = false;
-                    for (auto it = thelayer->buffer.Nodes[node]->Coords.begin(); it != thelayer->buffer.Nodes[node]->Coords.end(); ++it) {
-                        // find the last coordinate with a color, compatibility with older xLights that only allowed a
-                        // node to exist once in the submodel and would use the coord of the last appearance
-                        auto coord = *it;
-                        int x1 = coord.bufX;
-                        int y1 = coord.bufY;
-
-                        if (!thelayer->isMasked(x1, y1)) {
-                            thelayer->buffer.GetPixel(x1, y1, c2);
-                            if (c2.alpha != 0) {
-                                found = true;
-                                color = c2;
-                                x = x1;
-                                y = y1;
-                                break;
-                            }
-                        }
-                    }
-                    if (!found) {
-                        auto& coord = thelayer->buffer.Nodes[node]->Coords[0];
-                        x = coord.bufX;
-                        y = coord.bufY;
-                    }
-                } else {
-                    auto& coord = thelayer->buffer.Nodes[node]->Coords[0];
-                    x = coord.bufX;
-                    y = coord.bufY;
-
-                    if (thelayer->isMasked(x, y) || x < 0 || y < 0 || x >= thelayer->BufferWi || y >= thelayer->BufferHt) {
-                        color.Set(0, 0, 0, 0);
-                    } else {
-                        thelayer->buffer.GetPixel(x, y, color);
-                    }
-                }
-                // adjust for HSV adjustments
-                if (thelayer->needsHSVAdjust) {
-                    HSVValue hsv = color.asHSV();
-
-                    if (thelayer->outputHueAdjust != 0) {
-                        hsv.hue += thelayer->outputHueAdjust;
-                        if (hsv.hue < 0) {
-                            hsv.hue += 1.0;
-                        } else if (hsv.hue > 1) {
-                            hsv.hue -= 1.0;
-                        }
-                    }
-
-                    if (thelayer->outputSaturationAdjust != 0) {
-                        hsv.saturation += thelayer->outputSaturationAdjust;
-                        if (hsv.saturation < 0) {
-                            hsv.saturation = 0.0;
-                        } else if (hsv.saturation > 1) {
-                            hsv.saturation = 1.0;
-                        }
-                    }
-
-                    if (thelayer->outputValueAdjust != 0) {
-                        hsv.value += thelayer->outputValueAdjust;
-                        if (hsv.value < 0) {
-                            hsv.value = 0.0;
-                        } else if (hsv.value > 1) {
-                            hsv.value = 1.0;
-                        }
-                    }
-
-                    unsigned char alpha = color.Alpha();
-                    color = hsv;
-                    color.alpha = alpha;
-                }
-
-                // add sparkles
-                if (color != xlBLACK &&
-                    (thelayer->use_music_sparkle_count ||
-                     thelayer->sparkle_count > 0 ||
-                     thelayer->outputSparkleCount > 0)) {
-                    int sc = thelayer->outputSparkleCount;
-                    auto& sparkle = sparkles[node];
-
-                    switch (sparkle % (208 - sc)) {
-                    case 1:
-                    case 7:
-                        // too dim
-                        // color.Set("#444444");
-                        break;
-                    case 2:
-                    case 6:
-                        color = thelayer->sparklesColour.ApplyBrightness(0.53f);
-                        break;
-                    case 3:
-                    case 5:
-                        color = thelayer->sparklesColour.ApplyBrightness(0.75f);
-                        break;
-                    case 4:
-                        color = thelayer->sparklesColour;
-                        break;
-                    default:
-                        break;
-                    }
-                    sparkle++;
-                }
-                int b = thelayer->outputBrightnessAdjust;
-                if (thelayer->contrast != 0) {
-                    // contrast is not 0, can handle brightness change at same time
-                    HSVValue hsv = color.asHSV();
-                    hsv.value = hsv.value * ((double)b / 100.0);
-
-                    // Apply Contrast
-                    if (hsv.value < 0.5) {
-                        // reduce brightness when below 0.5 in the V value or increase if > 0.5
-                        hsv.value = hsv.value - (hsv.value * ((double)thelayer->contrast / 100.0));
-                    } else {
-                        hsv.value = hsv.value + (hsv.value * ((double)thelayer->contrast / 100.0));
-                    }
-
-                    if (hsv.value < 0.0)
-                        hsv.value = 0.0;
-                    if (hsv.value > 1.0)
-                        hsv.value = 1.0;
-                    unsigned char alpha = color.Alpha();
-                    color = hsv;
-                    color.alpha = alpha;
-                } else if (b != 100) {
-                    // just brightness
-                    float ba = b;
-                    ba /= 100.0f;
-                    float f = color.red * ba;
-                    color.red = std::min((int)f, 255);
-                    f = color.green * ba;
-                    color.green = std::min((int)f, 255);
-                    f = color.blue * ba;
-                    color.blue = std::min((int)f, 255);
-                }
-
-                // This adjusts the colour down so each pixel is emitting the same amount of light while respecting brightness.
-                if (layers[saveLayer]->brightnessLevel) {
-                    color.LevelColorBrightness();
-                }
-
-                if (cnt > 0) {
-                    mixColors(x, y, color, c, layer);
-                } else if (thelayer->fadeFactor != 1.0) {
-                    // need to fade the first here as we're not mixing anything
-                    HSVValue hsv = color.asHSV();
-                    hsv.value *= thelayer->fadeFactor;
-                    if (color.alpha != 255) {
-                        hsv.value *= color.alpha;
-                        hsv.value /= 255.0f;
-                    }
-                    c = hsv;
-                } else {
-                    c.AlphaBlendForgroundOnto(color);
-                }
-
-                cnt++;
-            }
-        }
-    }
-    // set color for physical output
-    layers[saveLayer]->buffer.Nodes[node]->SetColor(c);
-    if (saveToPixels) {
-        for (auto& n : layers[saveLayer]->buffer.Nodes[node]->Coords) {
-            layers[saveLayer]->buffer.SetPixel(n.bufX, n.bufY, c, false, false, true);
-        }
     }
 }
 
@@ -3049,7 +2869,6 @@ void PixelBufferClass::HandleLayerTransitions(int EffectPeriod, int ii) {
 void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels ) {
 
     // layer calculation and map to output
-    size_t NodeCount = layers[0]->buffer.Nodes.size();
     int countValid = 0;
     bool hasSparkles = false;
     for (int ii = (numLayers - 1); ii >= 0; --ii) {
@@ -3083,48 +2902,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool>& val
             }
             GPURenderUtils::waitForRenderCompletion(&layers[ii]->buffer);
         }
-        
-        int blockSize = std::max(5000 / std::max(countValid, 1), 500);
-        /*
-        //bunch of test code to test the timing of various block sizes to see what impact
-        //the block size has
-        static int test = 2;
-        if (countValid == test) {
-            for (int vvv = 1000; vvv < (NodeCount + 1000); vvv += 1000) {
-                wxStopWatch timer;
-                parallel_for(0, NodeCount, [this, saveLayer, &validLayers, EffectPeriod] (int i) {
-                    if (!layers[saveLayer]->buffer.Nodes[i]->IsVisible()) {
-                        // unmapped pixel - set to black
-                        layers[saveLayer]->buffer.Nodes[i]->SetColor(xlBLACK);
-                    } else {
-                        // get blend of two effects
-                        xlColor color;
-                        GetMixedColor(i,
-                                      color,
-                                      validLayers, EffectPeriod);
-
-                        // set color for physical output
-                        layers[saveLayer]->buffer.Nodes[i]->SetColor(color);
-                    }
-                }, vvv);
-                printf("%d\t%d\t%lld\n", test, vvv, timer.TimeInMicro());
-            }
-            test++;
-        }
-        */
-
-        std::vector<NodeBaseClassPtr>& Nodes = layers[saveLayer]->buffer.Nodes;
-        parallel_for(
-            0, NodeCount, [this, &Nodes, &validLayers, saveLayer, saveToPixels, EffectPeriod](int i) {
-                if (!Nodes[i]->IsVisible()) {
-                    // unmapped pixel - set to black
-                    Nodes[i]->SetColor(xlBLACK);
-                } else {
-                    // get blend of two effects
-                    GetMixedColor(i, validLayers, EffectPeriod, saveLayer, saveToPixels);
-                }
-            },
-            blockSize);
+        ISPCComputeUtilities::INSTANCE.blendLayers(this, EffectPeriod, validLayers, saveLayer, saveToPixels);
     }
 }
 

@@ -315,10 +315,10 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
         DisplayError("Getting HinksPix Input Mode FAILED.");
         return false;
     }
-    wxString const cur_mode = data.ItemAt("MODE").AsString();
 
     //Set Controller Input mode
-    if (cur_mode != type) {
+    //if (data.ItemAt("MODE").AsString() != type) //send mode every time
+    {
         auto const ret = GetJSONControllerData(GetJSONPostURL(), cmd);
         if (ret.find("\"OK\"") == std::string::npos) {
             logger_base.error("Failed Return %s", (const char*)ret.c_str());

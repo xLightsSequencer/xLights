@@ -24,6 +24,13 @@ enum class FPP_TYPE { FPP,
                       ESPIXELSTICK,
                       GENIUS };
 
+enum class ReceiverType {
+    Standard = 0,
+    v1 = 1,
+    v2 = 2,
+    FalconV5 = 3
+};
+
 class FPP : public BaseController
 {
     public:
@@ -52,6 +59,8 @@ class FPP : public BaseController
 
     std::string proxy;
     std::set<std::string> proxies;
+    bool isaProxy = false;
+    bool solePlayer = false;
 
     std::string username;
     std::string password;
@@ -60,6 +69,8 @@ class FPP : public BaseController
     std::string controllerVendor;
     std::string controllerModel;
     std::string controllerVariant;
+    bool upload;
+    bool canZipUpload = false;
 
     wxWindow *parent = nullptr;
     void setProgress(FPPUploadProgressDialog*d, wxGauge *g) { progressDialog = d; progress = g; }
@@ -67,6 +78,7 @@ class FPP : public BaseController
 
     
     std::list<std::string> messages;
+    std::list<std::string> faileduploads;
     int defaultConnectTimeout = 2000;
 
     std::map<int, int> GetExpansionPorts(ControllerCaps* caps) const;
@@ -135,6 +147,9 @@ class FPP : public BaseController
     static void TypeIDtoControllerType(int typeId, FPP* inst);
     static std::list<FPP*> GetInstances(wxWindow* frame, OutputManager* outputManager);
 
+    static ReceiverType DecodeReceiverType(const std::string& type, bool supportsV5);
+    static ReceiverType DecodeReceiverType(int type, bool supportsV5);
+
 #ifndef DISCOVERYONLY
     wxJSONValue CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel);
     static std::string CreateVirtualDisplayMap(ModelManager* allmodels, int previewWi, int previewHi);
@@ -187,7 +202,7 @@ private:
 
     bool IsCompatible(const ControllerCaps *rules,
                       std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId,
-                      std::string &driver);
+                      std::string& driver, bool& supportsV5Receivers);
 
     class PlaylistEntry {
     public:
@@ -222,10 +237,22 @@ static inline int case_insensitive_match(std::string s1, std::string s2)
 
 static inline bool sortByName(const FPP* i, const FPP* j)
 {
-    return i->hostName < j->hostName;
+    std::string lowerI = i->hostName;
+    std::string lowerJ = j->hostName;
+
+    std::transform(lowerI.begin(), lowerI.end(), lowerI.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+    std::transform(lowerJ.begin(), lowerJ.end(), lowerJ.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+
+    return lowerI < lowerJ;
 }
 
 static inline bool sortByIP(const FPP* i, const FPP* j)
 {
     return i->ipAddress < j->ipAddress;
+}
+
+static inline bool sortByUpload(const FPP* i, const FPP* j) {
+    return i->upload > j->upload;
 }

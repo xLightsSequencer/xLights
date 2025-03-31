@@ -17,6 +17,8 @@ struct ButterflyData
     uint16_t height;
     uint16_t numColors;
 
+    float plasmaTime;
+    int plasmaStyle;
 };
 
 

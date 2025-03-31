@@ -22,7 +22,7 @@ class wxGridCellButtonRenderer : public wxGridCellRenderer
 {
 public:
    wxGridCellButtonRenderer(wxString label);
-   virtual ~wxGridCellButtonRenderer(void);
+   virtual ~wxGridCellButtonRenderer();
 
     virtual void Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc, const wxRect &rect, int row, int col, bool isSelected);
     virtual wxSize GetBestSize(wxGrid &grid, wxGridCellAttr& attr, wxDC &dc, int row, int col);
@@ -38,7 +38,7 @@ class wxGridCellButtonEditor : public wxEvtHandler, public wxGridCellEditor
 {
 public:
     wxGridCellButtonEditor(wxString label);
-   virtual ~wxGridCellButtonEditor(void);
+   virtual ~wxGridCellButtonEditor();
 
     virtual void Create(wxWindow *parent, wxWindowID id, wxEvtHandler* pEvtHandler);
    void OnButton(wxCommandEvent &evt);

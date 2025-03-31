@@ -13,6 +13,7 @@
 #include <wx/clipbrd.h>
 #include <wx/xml/xml.h>
 #include <wx/config.h>
+#include <wx/wfstream.h>
 
 #include "xLightsMain.h"
 #include "SeqSettingsDialog.h"
@@ -713,7 +714,20 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
         effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
     }
 
-    if (!EffectsXml.Save(effectsFile.GetFullPath())) {
+    wxFileOutputStream fout(effectsFile.GetFullPath());
+    wxBufferedOutputStream *bout = new wxBufferedOutputStream(fout, 2 * 1024 * 1024);
+
+    if (!EffectsXml.Save(*bout)) {
+        if (backup) {
+            logger_base.warn("Unable to save backup of RGB effects file");
+        } else {
+            DisplayError("Unable to save RGB effects file", this);
+        }
+        delete bout;
+        return false;
+    }
+    delete bout;
+    if (!fout.Close()) {
         if (backup) {
             logger_base.warn("Unable to save backup of RGB effects file");
         } else {
@@ -721,7 +735,7 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
         }
         return false;
     }
-
+    
     if (!backup) {
 #ifndef __WXOSX__
         SaveModelsFile();
@@ -1129,6 +1143,19 @@ void xLightsFrame::OpenAndCheckSequence(const wxArrayString& origFilenames, bool
         logger_base.debug("Batch render cancelled.");
         EnableSequenceControls(true);
         printf("Batch render cancelled.\n");
+
+        wxConfigBase* config = wxConfigBase::Get();
+        if (config != nullptr) {
+            auto selectGridIcon = config->ReadBool("BatchRendererGridIconBackgrounds", false);
+            if (selectGridIcon) {
+                SetGridIconBackgrounds(selectGridIcon);
+            }
+            auto selectGroupEffect = config->ReadBool("BatchRendererGroupEffectBackgrounds", false);
+            if (selectGroupEffect) {
+                SetShowGroupEffectIndicator(selectGroupEffect);
+            }
+        }
+
         if (exitOnDone) {
             Destroy();
         }
@@ -1182,6 +1209,19 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         logger_base.debug("Batch render done.");
         printf("Done All Files\n");
         wxBell();
+
+        wxConfigBase* config = wxConfigBase::Get();
+        if (config != nullptr) {
+            auto selectGridIcon = config->ReadBool("BatchRendererGridIconBackgrounds", false);
+            if (selectGridIcon) {
+                SetGridIconBackgrounds(selectGridIcon);
+            }
+            auto selectGroupEffect = config->ReadBool("BatchRendererGroupEffectBackgrounds", false);
+            if (selectGroupEffect) {
+                SetShowGroupEffectIndicator(selectGroupEffect);
+            }
+        }
+
         if (exitOnDone) {
             Destroy();
         } else {
@@ -1196,6 +1236,19 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         logger_base.debug("Batch render cancelled.");
         EnableSequenceControls(true);
         printf("Batch render cancelled.\n");
+
+        wxConfigBase* config = wxConfigBase::Get();
+        if (config != nullptr) {
+            auto selectGridIcon = config->ReadBool("BatchRendererGridIconBackgrounds", false);
+            if (selectGridIcon) {
+                SetGridIconBackgrounds(selectGridIcon);
+            }
+            auto selectGroupEffect = config->ReadBool("BatchRendererGroupEffectBackgrounds", false);
+            if (selectGroupEffect) {
+                SetShowGroupEffectIndicator(selectGroupEffect);
+            }
+        }
+
         if (exitOnDone) {
             Destroy();
         }
@@ -1213,11 +1266,10 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
 
     auto b = _renderMode;
     _renderMode = false;
-    if (fileNames.size() == 1)
-    {
-        SetStatusText(_("Batch Rendering " + seq + ". Last sequence."));
+    if (fileNames.size() == 1) {
+        SetStatusText("Batch Rendering " + seq + ". Last sequence.");
     } else {
-        SetStatusText(_("Batch Rendering " + seq + ". " + wxString::Format("%d", (int)fileNames.size() - 1) + " sequences left to render."));
+        SetStatusText("Batch Rendering " + seq + ". " + wxString::Format("%d", (int)fileNames.size() - 1) + " sequences left to render.");
     }
     _renderMode = b;
 
@@ -1661,6 +1713,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
         MenuItem_ImportEffects->Enable(false);
         MenuItemShiftEffects->Enable(false);
         MenuItemShiftSelectedEffects->Enable(false);
+        MenuItemShiftEffectsAndTiming->Enable(false);
         MenuItem_ColorReplace->Enable(false);
         if (revertToMenuItem) revertToMenuItem->Enable(false);
     }

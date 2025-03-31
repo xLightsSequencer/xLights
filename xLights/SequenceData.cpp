@@ -263,12 +263,12 @@ unsigned char *SequenceData::checkBlockPtr(unsigned char *block, size_t sizeRema
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxASSERT(block != nullptr); // if this fails then we have a memory allocation error
     if (block == nullptr) {
-        logger_base.crit("Error allocating memory for frame data. Frames=%d, Channels=%d, Memory=%ld.", _numFrames, _numChannels, sizeRemaining);
+        logger_base.crit("Error allocating memory for frame data. Frames=%d, Channels=%d, Memory=%zu.", _numFrames, _numChannels, sizeRemaining);
         logger_base.crit("***** THIS IS GOING TO CRASH *****");
         wxString settings = wxString::Format("Frames=%d, Channels=%d, Memory=%ld.", _numFrames, _numChannels, sizeRemaining);
         DisplayError("Bad news ... xLights is about to crash because it could not get memory it needed. If you are running 32 bit xLights then moving to 64 bit will probably fix this. Alternatively look to reduce memory usage by shortening sequences and/or reducing channels.\n" + settings);
     } else {
-        logger_base.debug("Memory allocated for frame data. Block=%d, Frames=%d, Channels=%d, Memory=%ld.", _dataBlocks.size(), _numFrames, _numChannels, sizeRemaining);
+        logger_base.debug("Memory allocated for frame data. Block=%d, Frames=%d, Channels=%d, Memory=%zu.", _dataBlocks.size(), _numFrames, _numChannels, sizeRemaining);
     }
     return block;
 }

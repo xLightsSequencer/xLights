@@ -1189,6 +1189,11 @@
 					<bitmap code='GetMenuItemBitmapBundle(&quot;wxART_PASTE&quot;)' />
 				</object>
 				<object class="separator" />
+				<object class="wxMenuItem" name="ID_SHIFT_EFFECTS_AND_TIMING" variable="MenuItemShiftEffectsAndTiming" member="yes">
+					<label>Shift Effects And Timing</label>
+					<help>Use this options to shift all timing and effects in the sequence.</help>
+					<handler function="OnMenuItemShiftEffectsAndTimingSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_SHIFT_EFFECTS" variable="MenuItemShiftEffects" member="yes">
 					<label>Shift Effects</label>
 					<help>Use this options to shift all effects in the sequence.</help>
@@ -1317,6 +1322,10 @@
 				<object class="wxMenuItem" name="ID_MENU_USER_DICT" variable="MenuItemUserDict" member="yes">
 					<label>User Lyric Dictionary</label>
 					<handler function="OnMenuItemUserDictSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MENU_FIND_SHOW_FOLDER" variable="MenuItemFindShowFolder" member="yes">
+					<label>Search for Show Folders</label>
+					<handler function="OnMenuItemFindShowFolderSelected" entry="EVT_MENU" />
 				</object>
 				<object class="separator" />
 				<object class="wxMenuItem" name="ID_MNU_XSCHEDULE" variable="MenuItem_xSchedule" member="yes">
@@ -1578,7 +1587,8 @@
 					<handler function="OnMenuItem_UserManualSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_MNU_ZOOM" variable="MenuItem_Zoom" member="yes">
-					<label>Zoom</label>
+					<label>Zoom Room Help</label>
+					<help>Access the free Zoom Room for Help.</help>
 					<handler function="OnMenuItem_ZoomSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_MENUITEM1" variable="MenuItem_ShowKeyBindings" member="yes">

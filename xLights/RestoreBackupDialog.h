@@ -56,17 +56,17 @@ class RestoreBackupDialog: public wxDialog
 	protected:
 
 		//(*Identifiers(RestoreBackupDialog)
-		static const long ID_STATICTEXT1;
-		static const long ID_LISTBOX_BACKUPS;
-		static const long ID_PANEL1;
-		static const long ID_CHECKLISTBOX_LAYOUT;
-		static const long ID_TREECTRL_LAYOUT;
-		static const long ID_SPLITTERWINDOW2;
-		static const long ID_CHECKLISTBOX_SEQUENCES;
-		static const long ID_NOTEBOOK1;
-		static const long ID_SPLITTERWINDOW1;
-		static const long ID_STATICTEXT_BACKUPFOLDER;
-		static const long ID_BUTTON_RUN;
+		static const wxWindowID ID_STATICTEXT1;
+		static const wxWindowID ID_LISTBOX_BACKUPS;
+		static const wxWindowID ID_PANEL1;
+		static const wxWindowID ID_CHECKLISTBOX_LAYOUT;
+		static const wxWindowID ID_TREECTRL_LAYOUT;
+		static const wxWindowID ID_SPLITTERWINDOW2;
+		static const wxWindowID ID_CHECKLISTBOX_SEQUENCES;
+		static const wxWindowID ID_NOTEBOOK1;
+		static const wxWindowID ID_SPLITTERWINDOW1;
+		static const wxWindowID ID_STATICTEXT_BACKUPFOLDER;
+		static const wxWindowID ID_BUTTON_RUN;
 		//*)
 
 	private:

@@ -11,7 +11,6 @@
 	<vendor>
 		<name>EFL</name>
         <link>https://www.dropbox.com/s/7sxrga8z6y3eva1/Vendor.xml?dl=1</link>
-        <maxmodels>70</maxmodels>
     </vendor>
 	<vendor>
 		<name>Custom Christmas Creations</name>
@@ -31,6 +30,11 @@
     <vendor>
         <name>Mattos Designs</name>
         <link>https://models.mattosdesigns.com/xlights/mattos.xml</link>
+        <maxmodels>50</maxmodels>
+    </vendor>
+    <vendor>
+        <name>Wired Watts</name>
+        <link>https://wiredwatts.com/xmodels</link>
         <maxmodels>50</maxmodels>
     </vendor>
 	<vendor>

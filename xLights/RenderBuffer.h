@@ -266,6 +266,12 @@ public:
         return (cc[idx].IsActive() && cc[idx].GetTimeCurve() != TC_TIME);
     }
 
+    bool IsGradient(size_t idx) const {
+        if (idx >= color.size())
+            return false;
+        return (cc[idx].IsActive() && cc[idx].GetTimeCurve() == TC_TIME);
+    }
+
     bool IsRadial(size_t idx) const
     {
         if (idx >= color.size())
@@ -553,7 +559,9 @@ private:
     xlColor *pixels = nullptr;
     xlColor *tempbuf = nullptr;
 
-    friend class MetalRenderBufferComputeData;
+    std::vector<uint32_t> blendBuffer;
+    std::vector<uint32_t> indexVector;
+    bool allSimpleIndex = true;
 public:
     uint32_t GetPixelCount() { return pixelVector.size(); }
     xlColor *GetPixels() { return pixels; }
@@ -589,6 +597,7 @@ public:
     //place for GPU Renderers to attach extra data/objects it needs
     void *gpuRenderData = nullptr;
 
+    uint32_t perModelIndex = 0;
 private:
     PixelBufferClass *parent;
     const Model *model;
@@ -601,4 +610,6 @@ private:
     void Forget();
     
     friend class MetalPixelBufferComputeData;
+    friend class MetalRenderBufferComputeData;
+    friend class ISPCComputeUtilities;
 };

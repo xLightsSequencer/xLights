@@ -162,9 +162,8 @@ void PaletteMgmtDialog::OnButtonLoadPalette2Click(wxCommandEvent& event)
 
 void PaletteMgmtDialog::OnButtonCopyClick(wxCommandEvent& event)
 {
-    wxColour c;
     for (int i=1; i<=6; i++) {
-//~        c=panel1->GetPaletteColor(i);
+//~        wxColour c=panel1->GetPaletteColor(i);
 //~        panel2->SetPaletteColor(i,&c);
     }
 }

@@ -108,6 +108,24 @@ void FanEffect::SetDefaultParameters() {
 
     SetCheckBoxValue(fp->CheckBox_Fan_Blend_Edges, true);
     SetCheckBoxValue(fp->CheckBox_Fan_Reverse, false);
+    SetCheckBoxValue(fp->CheckBox_Fan_Scale, true);
+}
+
+bool FanEffect::needToAdjustSettings(const std::string& version) {
+    return IsVersionOlder("2025.04", version);
+}
+
+void FanEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) {
+    // give the base class a chance to adjust any settings
+    if (RenderableEffect::needToAdjustSettings(version)) {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
+    }
+
+    SettingsMap& settings = effect->GetSettings();
+
+    if (IsVersionOlder("2025.04", version)) {
+        settings["CHECKBOX_Fan_Scale"] = "0";
+    }
 }
 
 void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -127,7 +145,7 @@ void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
     int acceleration = GetValueCurveInt("Fan_Accel", 0, SettingsMap, eff_pos, FAN_ACCEL_MIN, FAN_ACCEL_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool reverse_dir = SettingsMap.GetBool("CHECKBOX_Fan_Reverse");
     bool blend_edges = SettingsMap.GetBool("CHECKBOX_Fan_Blend_Edges");
-    bool scale = SettingsMap.GetBool("CHECKBOX_Fan_Scale");
+    bool scale = SettingsMap.GetBool("CHECKBOX_Fan_Scale", true);
 
     HSVValue hsv, hsv1;
     int num_colors = buffer.palette.Size();

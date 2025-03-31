@@ -44,10 +44,10 @@ class ColorManagerSettingsPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(ColorManagerSettingsPanel)
-		static const long ID_CHECKBOX1;
-		static const long ID_BUTTON_IMPORT;
-		static const long ID_BUTTON_EXPORT;
-		static const long ID_BUTTON_RESET;
+		static const wxWindowID ID_CHECKBOX1;
+		static const wxWindowID ID_BUTTON_IMPORT;
+		static const wxWindowID ID_BUTTON_EXPORT;
+		static const wxWindowID ID_BUTTON_RESET;
 		//*)
 
 	private:

@@ -312,7 +312,7 @@ FanPanel::FanPanel(wxWindow* parent) : xlEffectPanel(parent)
 	CheckBox_Fan_Blend_Edges->SetValue(true);
 	FlexGridSizer103->Add(CheckBox_Fan_Blend_Edges, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_Fan_Scale = new BulkEditCheckBox(Panel11, ID_CHECKBOX_Fan_Scale, _("Scale to Buffer:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, wxDefaultValidator, _T("ID_CHECKBOX_Fan_Scale"));
-	CheckBox_Fan_Scale->SetValue(false);
+	CheckBox_Fan_Scale->SetValue(true);
 	FlexGridSizer103->Add(CheckBox_Fan_Scale, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	GridBagSizerFanOptions->Add(FlexGridSizer103, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel11->SetSizer(GridBagSizerFanOptions);

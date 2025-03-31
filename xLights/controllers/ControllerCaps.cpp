@@ -290,7 +290,14 @@ ControllerCaps* ControllerCaps::GetControllerConfigByID(const std::string& ID) {
     }
     return nullptr;
 }
-
+ControllerCaps* ControllerCaps::GetControllerConfigByVendor(const std::string& vendor) {
+    LoadControllers();
+    auto v = __controllers.find(vendor);
+    if (v != __controllers.end()) {
+            return v->second.begin()->second.front();
+    }
+    return nullptr;
+}
 ControllerCaps* ControllerCaps::GetControllerConfigByModel( const std::string& model, const std::string& variant)
 {
     LoadControllers();
@@ -722,11 +729,18 @@ std::string ControllerCaps::GetPreferredInputProtocol() const
     return GetXmlNodeContent(_config, "PreferredInputProtocol", "");
 }
 
+std::string ControllerCaps::GetPreferredState() const {
+    return GetXmlNodeContent(_config, "PreferredState", "");
+}
+
 std::string ControllerCaps::GetConfigDriver() const
 {
     return GetXmlNodeContent(_config, "ConfigDriver", "");
 }
 
+bool ControllerCaps::DisableMonitoring() const {
+    return DoesXmlNodeExist(_config, "DisableMonitoring");
+}
 
 std::vector<std::string> ControllerCaps::GetSmartRemoteTypes() const {
     if (!SupportsSmartRemotes()) {

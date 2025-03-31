@@ -27,6 +27,7 @@ class wxStaticText;
 #include "wxCheckedListCtrl.h"
 #include <wx/treelist.h>
 #include <wx/treectrl.h>
+#include <wx/dataview.h>
 #include <wx/xml/xml.h>
 #include <glm/glm.hpp>
 
@@ -118,6 +119,9 @@ class LayoutPanel: public wxPanel
 		wxScrolledWindow* ViewObjectWindow = nullptr;
 		wxScrolledWindow* ModelGroupWindow = nullptr;
 		wxTreeListCtrl* TreeListViewModels = nullptr;
+        wxDataViewModel* TreeListMiewInternalModel = nullptr;
+        bool ctrlFPressed = false;
+        bool ctrlshiftFPressed = false;
 
 	protected:
 
@@ -321,7 +325,7 @@ class LayoutPanel: public wxPanel
         void updatePropertyGrid();
         void ClearSelectedModelGroup();
 
-        void ModelGroupUpdated(ModelGroup *group, bool full_refresh);
+        void ModelGroupUpdated(ModelGroup *group);
         bool HandleLayoutKeyBinding(wxKeyEvent& event);
 
         void OnListCharHook(wxKeyEvent& event);
@@ -331,7 +335,7 @@ class LayoutPanel: public wxPanel
 
     protected:
         void FreezeTreeListView();
-        void ThawTreeListView();
+        void ThawTreeListView(const std::list<wxTreeListItem> &toExpand);
         void SetTreeListViewItemText(wxTreeListItem &item, int col, const wxString &txt);
 
         void SaveModelsListColumns();
@@ -340,6 +344,7 @@ class LayoutPanel: public wxPanel
         void UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering );
         void CreateModelGroupFromSelected();
         void AddSelectedToExistingGroups();
+        void RemoveSelectedFromExistingGroups();
         void BulkEditControllerName();
         void BulkEditActive(bool active);
         void BulkEditTagColour();
@@ -529,6 +534,7 @@ class LayoutPanel: public wxPanel
         static const long ID_MNU_DELETE_MODEL;
         static const long ID_MNU_DELETE_MODEL_GROUP;
         static const long ID_MNU_DELETE_EMPTY_MODEL_GROUPS;
+        static const long ID_MNU_DELETE_ALL_ALIASES;
         static const long ID_MNU_RENAME_MODEL_GROUP;
         static const long ID_MNU_CLONE_MODEL_GROUP;
         static const long ID_MNU_MAKESCVALID;
@@ -536,6 +542,7 @@ class LayoutPanel: public wxPanel
         static const long ID_MNU_MAKEALLSCNOTOVERLAPPING;
         static const long ID_MNU_ADD_MODEL_GROUP;
         static const long ID_MNU_ADD_TO_EXISTING_GROUPS;
+        static const long ID_MNU_REMOVE_FROM_EXISTING_GROUPS;
         static const long ID_MNU_BULKEDIT_GROUP_TAGCOLOR;
         static const long ID_MNU_BULKEDIT_GROUP_PREVIEW;
         static const long ID_MNU_EDIT_SUBMODEL_ALIAS;
@@ -551,7 +558,7 @@ class LayoutPanel: public wxPanel
         void SelectBaseObject3D();
         void ProcessLeftMouseClick3D(wxMouseEvent& event);
         wxTreeListCtrl* CreateTreeListCtrl(long style, wxPanel* panel);
-        int AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName = false);
+        int AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, std::list<wxTreeListItem> &toExpand, int nativeOrder, bool fullName = false);
         void RenameModelInTree(Model* model, const std::string& new_name);
         void DisplayAddObjectPopup();
         void OnAddObjectPopup(wxCommandEvent& event);

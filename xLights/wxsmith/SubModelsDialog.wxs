@@ -137,6 +137,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
+							<minsize>100</minsize>
 							<orientation>vertical</orientation>
 							<style>wxSP_3D|wxSP_LIVE_UPDATE</style>
 							<handler function="OnSplitterSashPosChanging" entry="EVT_SPLITTER_SASH_POS_CHANGING" />
@@ -221,16 +222,18 @@
 																</object>
 																<object class="sizeritem">
 																	<object class="wxGrid" name="ID_GRID1" variable="NodesGrid" member="yes">
-																		<cols>1</cols>
+																		<cols>2</cols>
 																		<rows>5</rows>
 																		<labelrowheight>18</labelrowheight>
 																		<defaultcolsize>160</defaultcolsize>
 																		<collabels>
 																			<item>Node Ranges</item>
+																			<item>Node Count</item>
 																		</collabels>
 																		<rowlabels>
 																			<item>Strand   1</item>
 																		</rowlabels>
+																		<maxsize>400,-1</maxsize>
 																		<style>wxVSCROLL</style>
 																		<handler function="OnNodesGridCellRightClick" entry="EVT_CMD_GRID_CELL_RIGHT_CLICK" />
 																		<handler function="OnNodesGridCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />

@@ -395,6 +395,9 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
         delete oldoutputs.front();
         oldoutputs.pop_front();
     }
+
+    if (_outputManager != nullptr)
+        _outputManager->UpdateUnmanaged();
 }
 
 std::string ControllerEthernet::GetForceLocalIP() const
@@ -696,23 +699,33 @@ void ControllerEthernet::VMVChanged(wxPropertyGrid *grid)
     auto c = ControllerCaps::GetControllerConfig(_vendor, _model, _variant);
     if (c != nullptr) {
         auto const& prefer = c->GetPreferredInputProtocol();
-        bool autoLayout = IsAutoLayout();
-        if (!prefer.empty() && autoLayout) {
-            #ifndef EXCLUDENETWORKUI
-            if (grid && GetProtocol() != prefer) {
-                if (_outputs.size() > 0) {
-                    _outputs.front()->RemoveProperties(grid);
+        bool const autoLayout = IsAutoLayout();
+        auto const& disable_monitor = c->DisableMonitoring();
+        if (disable_monitor) {
+            SetMonitoring(false);
+        }
+        if (autoLayout) {
+            if (!prefer.empty()) {
+#ifndef EXCLUDENETWORKUI
+                if (grid && GetProtocol() != prefer) {
+                    if (_outputs.size() > 0) {
+                        _outputs.front()->RemoveProperties(grid);
+                    }
+                    SetProtocol(prefer);
+                    if (_outputs.size() > 0) {
+                        std::list<wxPGProperty*> expandProperties;
+                        auto before = grid->GetProperty("Managed");
+                        _outputs.front()->AddProperties(grid, before, this, AllSameSize(), expandProperties);
+                    }
+                } else
+#endif
+                {
+                    SetProtocol(prefer);
                 }
-                SetProtocol(prefer);
-                if (_outputs.size() > 0) {
-                    std::list<wxPGProperty *> expandProperties;
-                    auto before = grid->GetProperty("Managed");
-                    _outputs.front()->AddProperties(grid, before, this, AllSameSize(), expandProperties);
-                }
-            } else 
-            #endif
-            {
-                SetProtocol(prefer);
+            }
+            auto const& state = c->GetPreferredState();
+            if (!state.empty()) {
+                SetActive(state);
             }
         }
     }
@@ -1019,7 +1032,7 @@ void ControllerEthernet::UpdateProperties(wxPropertyGrid* propertyGrid, ModelMan
     }
     p = propertyGrid->GetProperty("Managed");
     if (p) {
-        if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET || _type == OUTPUT_OPC || _type == OUTPUT_KINET) {
+        // if (_type == OUTPUT_E131 || _type == OUTPUT_ARTNET || _type == OUTPUT_xxxETHERNET || _type == OUTPUT_OPC || _type == OUTPUT_KINET) {
             p->Hide(false);
             p->SetValue(_managed);
             if (!_managed) {
@@ -1027,9 +1040,9 @@ void ControllerEthernet::UpdateProperties(wxPropertyGrid* propertyGrid, ModelMan
             } else {
                 p->SetHelpString("");
             }
-        } else {
-            p->Hide(true);
-        }
+        // } else {
+        //     p->Hide(true);
+        // }
     }
     p = propertyGrid->GetProperty("FPPProxy");
     if (p) {

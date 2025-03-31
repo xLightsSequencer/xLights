@@ -14,7 +14,7 @@
 #include <wx/panel.h>
 class wxCheckBox;
 class wxChoice;
-class wxGridBagSizer;
+class wxFlexGridSizer;
 class wxStaticText;
 //*)
 
@@ -28,8 +28,10 @@ class EffectsGridSettingsPanel: public wxPanel
 
 		//(*Declarations(EffectsGridSettingsPanel)
 		wxCheckBox* ColorUpdateWarnCheckBox;
+		wxCheckBox* GroupEffectIndicator;
 		wxCheckBox* IconBackgroundsCheckBox;
 		wxCheckBox* NodeValuesCheckBox;
+		wxCheckBox* ShowAlternateTimingFormatCheckBox;
 		wxCheckBox* SmallWaveformCheckBox;
 		wxCheckBox* SnapToTimingCheckBox;
 		wxCheckBox* TransistionMarksCheckBox;
@@ -44,15 +46,17 @@ class EffectsGridSettingsPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(EffectsGridSettingsPanel)
-		static const long ID_CHOICE1;
-		static const long ID_CHECKBOX1;
-		static const long ID_CHECKBOX2;
-		static const long ID_CHECKBOX3;
-		static const long ID_STATICTEXT1;
-		static const long ID_CHECKBOX4;
-		static const long ID_CHECKBOX6;
-		static const long ID_CHECKBOX5;
-		static const long ID_CHOICE2;
+		static const wxWindowID ID_CHOICE1;
+		static const wxWindowID ID_CHECKBOX1;
+		static const wxWindowID ID_CHECKBOX2;
+		static const wxWindowID ID_CHECKBOX7;
+		static const wxWindowID ID_CHECKBOX3;
+		static const wxWindowID ID_STATICTEXT1;
+		static const wxWindowID ID_CHOICE2;
+		static const wxWindowID ID_CHECKBOX4;
+		static const wxWindowID ID_CHECKBOX6;
+		static const wxWindowID ID_CHECKBOX5;
+		static const wxWindowID ID_CHECKBOX8;
 		//*)
 
 	private:
@@ -68,6 +72,9 @@ class EffectsGridSettingsPanel: public wxPanel
 		void OnTransistionMarksCheckBoxClick(wxCommandEvent& event);
 		void OnDoubleClickChoiceSelect(wxCommandEvent& event);
 		void OnColorUpdateWarnCheckBoxClick(wxCommandEvent& event);
+		void OnGroupEffectIndicatorClick(wxCommandEvent& event);
+		void OnPaint(wxPaintEvent& event);
+		void OnAlternateTimingFormatCheckBoxClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

@@ -18,6 +18,9 @@ mkdir -p $CI_DERIVED_DATA_PATH
 cd $CI_DERIVED_DATA_PATH
 ls -lart
 
+#install zstd so we can decompress the deps
+brew install zstd
+
 # This will do a full clone which is huge and consumes a lot of bandwidth from GitHub LFS costing money
 #if [ ! -d xLights-macOS-dependencies ]; then
 #    git clone --depth 1 https://github.com/xLightsSequencer/xLights-macOS-dependencies.git xLights-macOS-dependencies
@@ -30,7 +33,7 @@ ls -lart
 #instead, grab the release tgz
 rm -rf xLights-macOS-dependencies
 export TAG=$(cat ${CI_PRIMARY_REPOSITORY_PATH}/macOS/README.macOS | grep recurse-submodules | cut -d "_" -f 2 | cut -d " "  -f 1)
-curl -L https://github.com/xLightsSequencer/xLights-macOS-dependencies/releases/download/xlights_${TAG}/xLights-macOS-dependencies-${TAG}.tgz --output - | tar -xz
+curl -L https://github.com/xLightsSequencer/xLights-macOS-dependencies/releases/download/xlights_${TAG}/xLights-macOS-dependencies.tar.zst --output - | tar -xz
 echo ""
 echo "Post update"
 ls -lart

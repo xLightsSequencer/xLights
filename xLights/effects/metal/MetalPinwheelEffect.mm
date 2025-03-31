@@ -85,7 +85,7 @@ MetalPinwheelEffect::~MetalPinwheelEffect() {
 void MetalPinwheelEffect::RenderNewArms(RenderBuffer& buffer, PinwheelEffect::PinwheelData &data) {
         
     MetalRenderBufferComputeData * rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
-    if (rbcd == nullptr || ((buffer.BufferWi * buffer.BufferHt) < 1024) || data.hasSpacial || (data.colorsAsColor.size() >= MAX_METAL_PINWHEEL_ARMS)) {
+    if (rbcd == nullptr || ((buffer.BufferWi * buffer.BufferHt) < 2048) || data.hasSpacial || (data.colorsAsColor.size() >= MAX_METAL_PINWHEEL_ARMS)) {
         PinwheelEffect::RenderNewArms(buffer, data);
         return;
     }

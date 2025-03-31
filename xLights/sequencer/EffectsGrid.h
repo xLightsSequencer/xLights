@@ -135,7 +135,7 @@ public:
     bool AreAllSelectedEffectsOnTheSameElement() const;
     void ApplyEffectSettingToSelected(const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid);
     void ApplyButtonPressToSelected(const std::string& effectName, const std::string id);
-    void RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int>>& dmxmappings);
+    void RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int, wxString>>& dmxmappings);
     void ConvertSelectedEffectsTo(const std::string& effectName);
     void DuplicateSelectedEffects();
     void CreateTimingFromSelectedEffects();
@@ -151,6 +151,7 @@ public:
 
     void AlignSelectedEffects(EFF_ALIGN_MODE align_mode);
     void AlignSelectedEffectsToTimingMark();
+    void CloseGap();
 
     int GetEffectRow(Effect* ef);
     Effect* OldPaste(const wxString &data, const wxString &pasteDataVer);
@@ -387,6 +388,7 @@ private:
     static const long ID_GRID_MNU_ALIGN_START_TIMES_SHIFT;
     static const long ID_GRID_MNU_ALIGN_END_TIMES_SHIFT;
     static const long ID_GRID_MNU_ALIGN_TO_TIMING_MARK;
+    static const long ID_GRID_MNU_CLOSE_GAP;
     static const long ID_GRID_MNU_SPLIT_EFFECT;
     static const long ID_GRID_MNU_DUPLICATE_EFFECT;
     static const long ID_GRID_MNU_CREATE_TIMING_FROM_EFFECT;

@@ -117,21 +117,21 @@ void DmxMotor::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 180);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxFloatProperty("Range of Motion", base_name + "RangeOfMotion", range_of_motion));
+    p = grid->Append(new wxFloatProperty("Range of Motion (deg)", base_name + "RangeOfMotion", range_of_motion));
     p->SetAttribute("Precision", 1);
     p->SetAttribute("Step", 1.0);
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 65535);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxIntProperty("Orient to Zero", base_name + "OrientZero", orient_zero));
+    p = grid->Append(new wxIntProperty("Orient to Zero (deg)", base_name + "OrientZero", orient_zero));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 360);
     p->SetEditor("SpinCtrl");
 
-    std::string label = "Orient Up";
+    std::string label = "Orient Up (deg)";
     if( base_name == "PanMotor" ) {
-        label = "Orient Forward";
+        label = "Orient Forward (deg)";
     }
     p = grid->Append(new wxIntProperty(label, base_name + "OrientHome", orient_home));
     p->SetAttribute("Min", 0);
@@ -145,7 +145,7 @@ void DmxMotor::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxBoolProperty("Reverse", base_name + "Reverse", reverse));
+    p = grid->Append(new wxBoolProperty("Reverse (CCW Rotation)", base_name + "Reverse", reverse));
     p->SetAttribute("UseCheckbox", true);
 
     p = grid->Append(new wxBoolProperty("Upside Down", base_name + "UpsideDown", upside_down));

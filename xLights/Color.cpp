@@ -171,7 +171,6 @@ void xlColor::SetFromString(const std::string &str) {
             blue = c->second.blue;
             alpha = c->second.alpha;
         } else {
-        
             //need to do the slower lookups
             wxColor c(str);
             red = c.Red();
@@ -182,53 +181,55 @@ void xlColor::SetFromString(const std::string &str) {
 }
 static void fromHSV(xlColor & rgb, const HSVValue &hsv) {
     double red, green, blue;
-
-    if (0.0f == hsv.saturation) {
+    double value = std::clamp(hsv.value, 0.0, 1.0);
+    double saturation = std::clamp(hsv.saturation, 0.0, 1.0);
+    if (0.0f == saturation) {
         // Grey
-        red = hsv.value;
-        green = hsv.value;
-        blue = hsv.value;
+        red = value;
+        green = value;
+        blue = value;
     } else { // not grey
-        double hue = hsv.hue * 6.0;      // sector 0 to 5
+        double hue = std::clamp(hsv.hue, 0.0, 1.0) * 6.0;      // sector 0 to 5
         int i = (int)std::floor(hue);
         double f = hue - i;          // fractional part of h
-        double p = hsv.value * (1.0 - hsv.saturation);
+        double p = value * (1.0 - saturation);
 
         switch (i) {
+            case 6:
             case 0:
-                red = hsv.value;
-                green = hsv.value * (1.0 - hsv.saturation * (1.0 - f));
+                red = value;
+                green = value * (1.0 - saturation * (1.0 - f));
                 blue = p;
                 break;
 
             case 1:
-                red = hsv.value * (1.0 - hsv.saturation * f);
-                green = hsv.value;
+                red = value * (1.0 - saturation * f);
+                green = value;
                 blue = p;
                 break;
 
             case 2:
                 red = p;
-                green = hsv.value;
-                blue = hsv.value * (1.0 - hsv.saturation * (1.0 - f));
+                green = value;
+                blue = value * (1.0 - saturation * (1.0 - f));
                 break;
 
             case 3:
                 red = p;
-                green = hsv.value * (1.0 - hsv.saturation * f);
-                blue = hsv.value;
+                green = value * (1.0 - saturation * f);
+                blue = value;
                 break;
 
             case 4:
-                red = hsv.value * (1.0 - hsv.saturation * (1.0 - f));
+                red = value * (1.0 - saturation * (1.0 - f));
                 green = p;
                 blue = hsv.value;
                 break;
 
             default:    // case 5:
-                red = hsv.value;
+                red = value;
                 green = p;
-                blue = hsv.value * (1.0 - hsv.saturation * f);
+                blue = value * (1.0 - saturation * f);
                 break;
         }
     }

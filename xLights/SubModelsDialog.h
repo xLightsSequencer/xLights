@@ -230,6 +230,8 @@ protected:
     static const long SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR;
     static const long SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB;
     static const long SUBMODEL_DIALOG_EVEN_ROWS;
+    static const long SUBMODEL_DIALOG_EVEN_ROWS_FRONT;
+    static const long SUBMODEL_DIALOG_EVEN_ROWS_REAR;
     static const long SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS;
     static const long SUBMODEL_DIALOG_SYMMETRIZE;
     static const long SUBMODEL_DIALOG_SORT_POINTS_ALL;
@@ -273,6 +275,8 @@ protected:
     void RemoveDuplicates(bool suppress);
     void RemoveAllDuplicates(bool leftright, bool suppress);
     void MakeRowsUniform();
+    void MakeRowsUniformFront();
+    void MakeRowsUniformRear();
     void PivotRowsColumns();
     void CombineStrands();
     void OrderPoints(bool wholemodel);
@@ -299,6 +303,7 @@ protected:
     void Symmetrize();
 
     void processAllStrands(wxString (*func)(wxString));
+    int CountNodesInRange(const wxString& range);
 
 private:
 

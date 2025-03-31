@@ -2861,9 +2861,17 @@ bool xLightsXmlFile::Save(SequenceElements& seq_elements)
     }
 #endif
 
-    if (!seqDocument.Save(GetFullPath())) {
+    wxFileOutputStream fout(GetFullPath());
+    wxBufferedOutputStream *bout = new wxBufferedOutputStream(fout, 2 * 1024 * 1024);
+    if (!seqDocument.Save(*bout)) {
+        delete bout;
         return false;
     }
+    delete bout;
+    if (!fout.Close()) {
+        return false;
+    }
+
     MarkNewFileRevision(GetFullPath());
     return true;
 }

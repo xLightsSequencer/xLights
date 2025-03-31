@@ -674,6 +674,7 @@ void ModelPreview::DrawGroupCentre(float x, float y)
 {
     auto acc = solidProgram->getAccumulator();
     int start = acc->getCount();
+    int crosshairChoice = xlights->GetCrosshairSize();
 
     float factor = 1;
     if (!Is3D()) {
@@ -688,9 +689,30 @@ void ModelPreview::DrawGroupCentre(float x, float y)
         float center_width = std::max(CENTER_MARK_WIDTH, CENTER_MARK_WIDTH * zoom * rs);
         factor = center_width * 0.40; // adjust this for ideal size.
         factor = MIN(MAX(factor, 1), 10); // sanity check
+        switch (crosshairChoice) {
+        case 0:
+            factor *= 1.25;
+            break;
+        case 1:
+            // No changes needed
+            break;
+        case 2:
+            factor *= 0.5;
+            break;
+        case 3:
+            factor *= 0.20;
+            break;
+        case 4:
+            factor = 0;
+            break;
+        default:
+            break;
+        }
     }
-    acc->AddRectAsTriangles(x - 20.5 * factor, y - 1.5 * factor, x + 20.5 * factor, y + 1.5 * factor, xlREDTRANSLUCENT);
-    acc->AddRectAsTriangles(x - 1.5 * factor, y - 20.5 * factor, x + 1.5 * factor, y + 20.5 * factor, xlREDTRANSLUCENT);
+    if (factor > 0) {
+        acc->AddRectAsTriangles(x - 20.5 * factor, y - 1.5 * factor, x + 20.5 * factor, y + 1.5 * factor, xlREDTRANSLUCENT);
+        acc->AddRectAsTriangles(x - 1.5 * factor, y - 20.5 * factor, x + 1.5 * factor, y + 20.5 * factor, xlREDTRANSLUCENT);
+    }
 
     int end = acc->getCount();
     solidProgram->addStep([start, end, this, acc](xlGraphicsContext* ctx) {
@@ -1110,7 +1132,7 @@ float ModelPreview::GetCameraZoomForHandles() const
 
 int ModelPreview::GetHandleScale() const
 {
-    return xlights->GetModelHandleScale();
+    return xlights->GetModelHandleSize();
 }
 
 void ModelPreview::SetZoomDelta(float delta)

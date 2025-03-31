@@ -357,6 +357,10 @@ void MainSequencer::SetSequenceElements(SequenceElements* elements)
     mSequenceElements = elements;
 }
 
+void MainSequencer::SetShowAlternateTimingMark(bool b) {
+    mShowAlternateTimingFormat = b;
+}
+
 void MainSequencer::UpdateEffectGridVerticalScrollBar()
 {
     int position = mSequenceElements->GetFirstVisibleModelRow();
@@ -377,6 +381,10 @@ bool MainSequencer::UpdateTimeDisplay(int time_ms, const std::vector<float> &fps
     int minutes = seconds / 60;
     seconds = seconds % 60;
     wxString play_time = wxString::Format("Time: %d:%02d.%02d", minutes, seconds, msec);
+    if(mShowAlternateTimingFormat) {
+        int totalSeconds = (minutes * 60) + seconds;
+        play_time = wxString::Format("Time: %d.%02ds", totalSeconds, msec);
+    }
     wxString fpsStr;
     if (!fps.empty()) {
         fpsStr = wxString::Format("FPS: ");
@@ -395,9 +403,16 @@ void MainSequencer::UpdateSelectedDisplay(int selected)
     if (selected == 0) {
         timeDisplay->SetSelected("");
     } else {
-        timeDisplay->SetSelected(wxString::Format("Selected: %s", FORMATTIME(selected)));
+        if(mShowAlternateTimingFormat) {
+            int seconds = selected / 1000;
+            int milliseconds = selected % 1000;
+            timeDisplay->SetSelected(wxString::Format("Selected: %d.%02ds", seconds, milliseconds));
+        } else {
+            timeDisplay->SetSelected(wxString::Format("Selected: %s", FORMATTIME(selected)));
+        }
     }
 }
+
 void MainSequencer::OnScrollBarEffectGridHorzScroll(wxScrollEvent& event)
 {
     int position = ScrollBarEffectsHorizontal->GetThumbPosition();
@@ -1583,8 +1598,7 @@ void MainSequencer::ApplyButtonPressToSelected(const std::string& effectName, co
     return PanelEffectGrid->ApplyButtonPressToSelected(effectName, id);
 }
 
-void MainSequencer::RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int>>& dmxmappings)
-{
+void MainSequencer::RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int, wxString>>& dmxmappings) {
     return PanelEffectGrid->RemapSelectedDMXEffectValues(dmxmappings);
 }
 

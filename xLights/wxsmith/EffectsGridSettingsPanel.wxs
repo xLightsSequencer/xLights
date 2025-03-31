@@ -2,13 +2,13 @@
 <wxsmith>
 	<object class="wxPanel" name="EffectsGridSettingsPanel">
 		<id_arg>0</id_arg>
-		<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
+		<object class="wxFlexGridSizer" variable="GridSizer1" member="no">
+			<cols>3</cols>
+			<growablecols>2</growablecols>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="wxID_ANY" variable="StaticText5" member="no">
 					<label>Spacing</label>
 				</object>
-				<col>0</col>
-				<row>0</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -25,21 +25,32 @@
 					<selection>2</selection>
 					<handler function="OnGridSpacingChoiceSelect" entry="EVT_CHOICE" />
 				</object>
-				<col>1</col>
-				<row>0</row>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="IconBackgroundsCheckBox" member="yes">
-					<label>Icon Backgrounds</label>
+					<label>Effect Backgrounds</label>
+					<tooltip>Show gif backgrounds for most effects</tooltip>
 					<handler function="OnIconBackgroundsCheckBoxClick" entry="EVT_CHECKBOX" />
 				</object>
-				<colspan>2</colspan>
-				<col>0</col>
-				<row>1</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -48,10 +59,38 @@
 					<label>Node Values</label>
 					<handler function="OnNodeValuesCheckBoxClick" entry="EVT_CHECKBOX" />
 				</object>
-				<colspan>2</colspan>
-				<col>0</col>
-				<row>2</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX7" variable="GroupEffectIndicator" member="yes">
+					<label>Group Effect Indicator</label>
+					<checked>1</checked>
+					<tooltip>Show bar on model box to indicate presence of an effect</tooltip>
+					<handler function="OnGroupEffectIndicatorClick" entry="EVT_CHECKBOX" />
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -60,10 +99,17 @@
 					<label>Snap to Timing Marks</label>
 					<handler function="OnSnapToTimingCheckBoxClick" entry="EVT_CHECKBOX" />
 				</object>
-				<colspan>2</colspan>
-				<col>0</col>
-				<row>3</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -71,44 +117,6 @@
 				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 					<label>Double Click Mode</label>
 				</object>
-				<col>0</col>
-				<row>4</row>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX4" variable="SmallWaveformCheckBox" member="yes">
-					<label>Small Waveform</label>
-					<handler function="OnSmallWaveformCheckBoxClick" entry="EVT_CHECKBOX" />
-				</object>
-				<colspan>2</colspan>
-				<col>0</col>
-				<row>5</row>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX6" variable="TransistionMarksCheckBox" member="yes">
-					<label>Display Transition Marks</label>
-					<checked>1</checked>
-					<handler function="OnTransistionMarksCheckBoxClick" entry="EVT_CHECKBOX" />
-				</object>
-				<colspan>2</colspan>
-				<col>0</col>
-				<row>6</row>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX5" variable="ColorUpdateWarnCheckBox" member="yes">
-					<label>Hide Color Update Warning</label>
-					<handler function="OnColorUpdateWarnCheckBoxClick" entry="EVT_CHECKBOX" />
-				</object>
-				<col>0</col>
-				<row>7</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
@@ -122,8 +130,89 @@
 					<selection>1</selection>
 					<handler function="OnDoubleClickChoiceSelect" entry="EVT_CHOICE" />
 				</object>
-				<col>1</col>
-				<row>4</row>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX4" variable="SmallWaveformCheckBox" member="yes">
+					<label>Small Waveform</label>
+					<tooltip>Reduce the vertical size of the waveform</tooltip>
+					<handler function="OnSmallWaveformCheckBoxClick" entry="EVT_CHECKBOX" />
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX6" variable="TransistionMarksCheckBox" member="yes">
+					<label>Display Transition Marks</label>
+					<checked>1</checked>
+					<handler function="OnTransistionMarksCheckBoxClick" entry="EVT_CHECKBOX" />
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX5" variable="ColorUpdateWarnCheckBox" member="yes">
+					<label>Hide Color Update Warning</label>
+					<handler function="OnColorUpdateWarnCheckBoxClick" entry="EVT_CHECKBOX" />
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX8" variable="ShowAlternateTimingFormatCheckBox" member="yes">
+					<label>Show Alternate Timing Format</label>
+					<tooltip>Sequencer timing will be displayed in seconds and milliseconds</tooltip>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
