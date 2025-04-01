@@ -1309,14 +1309,16 @@ void xLightsFrame::UpdateRenderStatus() {
             delete rpi;
             rpi = nullptr;
             it = renderProgressInfo.erase(it);
+            if (!_renderMode) {
+                wxBell();
+            }
         } else {
             ++it;
         }
     }
 }
 
-void xLightsFrame::RenderDone()
-{
+void xLightsFrame::RenderDone() {
     mainSequencer->PanelEffectGrid->Refresh();
 }
 
@@ -1602,7 +1604,6 @@ void xLightsFrame::Render(SequenceElements& seqElements,
 
     if (count) {
         if (progressDialog) {
-            renderProgressDialog->SetSize(450, 400);
             renderProgressDialog->scrolledWindow->SetSizer(renderProgressDialog->scrolledWindowSizer);
             renderProgressDialog->scrolledWindow->FitInside();
             renderProgressDialog->scrolledWindow->SetScrollRate(5, 5);
