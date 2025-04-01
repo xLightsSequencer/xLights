@@ -321,9 +321,9 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
             startUniverse = outputs.front()->GetUniverse();
             chanPerUniverse = outputs.front()->GetChannels();
         }
-        std::string origTypeIdx = std::to_string(inputConfig["channels"]["0"]["type"].AsInt());
-        std::string origType = inputConfig["channels"]["0"][origTypeIdx]["type"].AsString();
-        if (origType != type) {
+        std::string s_origTypeIdx = std::to_string(inputConfig["channels"]["0"]["type"].AsInt());
+        std::string s_origType = inputConfig["channels"]["0"][s_origTypeIdx]["type"].AsString();
+        if (s_origType != type) {
             changed = true;
             for (int x = 0; x < 10; x++) {
                 std::string idx = std::to_string(x);
@@ -333,7 +333,7 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
                 if (inputConfig["channels"]["0"][idx]["type"].AsString() == type) {
                     //found the new element, flip over to using that protocol
                     inputConfig["channels"]["0"]["type"] = x;
-                    origTypeIdx = idx;
+                    s_origTypeIdx = idx;
                     break;
                 }
             }
@@ -343,15 +343,15 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
             std::string sizeString = std::to_string(chanPerUniverse);
 
             //{"type":"E1.31","universe":1,"universe_limit":512,"channel_start":1}
-            if (inputConfig["channels"]["0"][origTypeIdx]["universe"].AsString() != univString) {
-                inputConfig["channels"]["0"][origTypeIdx]["universe"] = univString;
+            if (inputConfig["channels"]["0"][s_origTypeIdx]["universe"].AsString() != univString) {
+                inputConfig["channels"]["0"][s_origTypeIdx]["universe"] = startUniverse;
                 changed = true;
             }
-            if (inputConfig["channels"]["0"][origTypeIdx]["universe_limit"].AsString() != sizeString) {
-                inputConfig["channels"]["0"][origTypeIdx]["universe_limit"] = sizeString;
+            if (inputConfig["channels"]["0"][s_origTypeIdx]["universe_limit"].AsString() != sizeString) {
+                inputConfig["channels"]["0"][s_origTypeIdx]["universe_limit"] = chanPerUniverse;
                 changed = true;
             }
-            //inputConfig["channels"]["0"][origTypeIdx]["channel_start"] = channel_start;
+            //inputConfig["channels"]["0"][s_origTypeIdx]["channel_start"] = channel_start;
         } else if (type == "DDP") {
             //nothing to do for DDP
             if (outputs.front()->GetType() == OUTPUT_DDP)
@@ -480,7 +480,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
             if (cud.HasPixelPort(x + 1)) {
                 UDControllerPort* port = cud.GetControllerPixelPort(x + 1);
                 std::string const proto = MapV4Type(port->GetProtocol());
-                std::string const pixels = std::to_string(port->Pixels());
+                int pixels = port->Pixels();
                 int brightness{ -1 };
                 float gamma{ -1.0F };
                 std::string colorOrder;
@@ -537,7 +537,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                         std::string const s_gamma = std::to_string(gamma);
                         if (s_gamma != outputConfig["channels"][outidx][curIdx]["gamma"].AsString()) {
                             changed = true;
-                            outputConfig["channels"][outidx][curIdx]["gamma"] = s_gamma;
+                            outputConfig["channels"][outidx][curIdx]["gamma"] = gamma;
                         }
                     }
                     if (brightness != -1) {
@@ -549,7 +549,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                         std::string const b2 = std::to_string(b);
                         if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].AsString()) {
                             changed = true;
-                            outputConfig["channels"][outidx][curIdx]["brightness"] = b2;
+                            outputConfig["channels"][outidx][curIdx]["brightness"] = b;
                         }
                     }
                     if (!colorOrder.empty() && colorOrder != outputConfig["channels"][outidx][curIdx]["color_order"].AsString()) {
@@ -560,31 +560,32 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                         std::string const s_groupCount = std::to_string(groupCount);
                         if (s_groupCount != outputConfig["channels"][outidx][curIdx]["group_size"].AsString()) {
                             changed = true;
-                            outputConfig["channels"][outidx][curIdx]["group_size"] = s_groupCount;
+                            outputConfig["channels"][outidx][curIdx]["group_size"] = groupCount;
                         }
                     }
                     if (zigzag != -1) {
 						std::string const s_zigzag = std::to_string(zigzag);
                         if (s_zigzag != outputConfig["channels"][outidx][curIdx]["zig_size"].AsString()) {
 							changed = true;
-							outputConfig["channels"][outidx][curIdx]["zig_size"] = s_zigzag;
+							outputConfig["channels"][outidx][curIdx]["zig_size"] = zigzag;
 						}
 					}
                     if (startNulls != -1) {
                         std::string const s_startNulls = std::to_string(startNulls);
                         if (s_startNulls != outputConfig["channels"][outidx][curIdx]["prependnullcount"].AsString()) {
                             changed = true;
-                            outputConfig["channels"][outidx][curIdx]["prependnullcount"] = s_startNulls;
+                            outputConfig["channels"][outidx][curIdx]["prependnullcount"] = startNulls;
                         }
                     }
                     if (endNulls != -1) {
                         std::string const s_endNulls = std::to_string(endNulls);
                         if (s_endNulls != outputConfig["channels"][outidx][curIdx]["appendnullcount"].AsString()) {
                             changed = true;
-                            outputConfig["channels"][outidx][curIdx]["appendnullcount"] = s_endNulls;
+                            outputConfig["channels"][outidx][curIdx]["appendnullcount"] = endNulls;
                         }
                     }
-                    if (pixels != outputConfig["channels"][outidx][curIdx]["pixel_count"].AsString()) {
+                    std::string const s_pixels = std::to_string(pixels);
+                    if (s_pixels != outputConfig["channels"][outidx][curIdx]["pixel_count"].AsString()) {
                         changed = true;
                         outputConfig["channels"][outidx][curIdx]["pixel_count"] = pixels;
                     }
@@ -597,11 +598,11 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                         std::string const b2 = std::to_string(b);
                         if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].AsString()) {
                             changed = true;
-                            outputConfig["channels"][outidx][curIdx]["brightness"] = b2;
+                            outputConfig["channels"][outidx][curIdx]["brightness"] = b;
                         }
                     }
-
-                    if (pixels != outputConfig["channels"][outidx][curIdx]["pixel_count"].AsString()) {
+                    std::string const s_pixels = std::to_string(pixels);
+                    if (s_pixels != outputConfig["channels"][outidx][curIdx]["pixel_count"].AsString()) {
                         changed = true;
                         outputConfig["channels"][outidx][curIdx]["pixel_count"] = pixels;
                     }
