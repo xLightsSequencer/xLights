@@ -4436,7 +4436,7 @@ void SubModelsDialog::ExportSubmodelToOtherModels()
     xLightsFrame* xlights = xLightsApp::GetFrame();
     wxArrayString choices = getModelList(&xlights->AllModels);
 
-    wxMultiChoiceDialog dlg(this, "Export SubModels to Other Models", "Export SubModels", choices);
+    wxMultiChoiceDialog dlg(this, "Export SubModels to Other Models", "Choose Model(s)", choices);
     OptimiseDialogPosition(&dlg);
 
     if (dlg.ShowModal() == wxID_OK) {
