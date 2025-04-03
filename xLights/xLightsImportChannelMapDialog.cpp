@@ -328,12 +328,15 @@ void xLightsImportTreeModel::GetValue(wxVariant &variant,
             }
             break;
         case 1:
-            variant = wxVariant(node->_mapping);
+            variant = wxVariant(node->_effectCount > 0 ? wxString::Format("%d", node->_effectCount) : "");
             break;
         case 2:
-            variant = wxVariant(node->_mappingModelType);
+            variant = wxVariant(node->_mapping);
             break;
         case 3:
+            variant = wxVariant(node->_mappingModelType);
+            break;
+        case 4:
             variant = wxVariant(node->_color.GetAsString());
             break;
         default:
@@ -351,17 +354,20 @@ bool xLightsImportTreeModel::SetValue(const wxVariant &variant,
     wxASSERT(item.IsOk());
 
     xLightsImportModelNode *node = (xLightsImportModelNode*)item.GetID();
-    if (col == 1) {
+    if (col == 2) {
         node->_mapping = variant.GetString();
         node->_mappingExists = false;
         return true;
-    } else if (col == 2) {
+    } else if (col == 3) {
         node->_mappingModelType = variant.GetString();
         return true;
-    } else if (col == 3) {
+    } else if (col == 4) {
         node->_color = wxColour(variant.GetString());
         return true;
     }
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.warn("xLightsImportTreeModel::SetValue: wrong column %d", col);
+    wxLogError("xLightsImportTreeModel::SetValue: wrong column %d", col);
     return false;
 }
 
@@ -874,10 +880,11 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     TreeListCtrl_Mapping->AssociateModel(_dataModel);
     TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT, wxALIGN_LEFT), 0, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE));
     TreeListCtrl_Mapping->GetColumn(0)->SetSortOrder(true);
-    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Map To", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_ACTIVATABLE, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL), 1, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
-    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model Type", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_ACTIVATABLE, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL), 2, 50, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("# Effects", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_ACTIVATABLE, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL), 1, wxCOL_WIDTH_AUTOSIZE, wxALIGN_RIGHT, wxDATAVIEW_COL_RESIZABLE));
+    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Map To", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_ACTIVATABLE, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL), 2, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model Type", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_ACTIVATABLE, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL), 3, wxCOL_WIDTH_AUTOSIZE, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
     if (_allowColorChoice) {
-        TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Color", new ColorRenderer(), 3, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+        TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Color", new ColorRenderer(), 4, 100, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
     }
 
     TreeListCtrl_Mapping->SetMinSize(wxSize(0, 300));
@@ -968,7 +975,12 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
     } else {
         int j{0};
 
-        ListCtrl_Available->AppendColumn("# Effects");
+        int colIndex = ListCtrl_Available->AppendColumn("# Effects");
+        wxListItem column;
+        column.SetId(colIndex);
+        column.SetAlign(wxLIST_FORMAT_CENTER);
+        ListCtrl_Available->SetColumn(colIndex, column);
+
         bool countEnabled{false};
         for (auto const& m : importChannels) {
             ListCtrl_Available->InsertItem(j, m->name);
@@ -1040,16 +1052,41 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         m->GetModelXml()->GetAttribute("CandyCaneSticks", "false") == "true", 
         m->GetModelXml()->GetAttribute("DropPattern", ""));
 
-    xLightsImportModelNode* lastmodel = new xLightsImportModelNode(nullptr, m->GetName(), std::string(""), true, m->GetAliases(), m->GetDisplayAs(), groupModels, false, modelClass, m->GetNodeCount(), *wxWHITE, (m->GetDisplayAs() == "ModelGroup"));
+    int effectCount = 0;
+    Element* em = xlights->GetSequenceElements().GetElement(m->GetName());
+    if (em != nullptr) {
+        for (auto* layer : em->GetEffectLayers()) {
+            if (layer != nullptr) {
+                effectCount += layer->GetEffectCount();
+            }
+        }
+    }
+
+    xLightsImportModelNode* lastmodel = new xLightsImportModelNode(nullptr, m->GetName(), std::string(""), true, m->GetAliases(), m->GetDisplayAs(), groupModels, false, modelClass, m->GetNodeCount(), *wxWHITE, (m->GetDisplayAs() == "ModelGroup"), wxString(""), effectCount);
     _dataModel->BulkInsert(lastmodel, ms++);
-    for (int s = 0; s < m->GetNumSubModels(); ++s) {
+
+     for (int s = 0; s < m->GetNumSubModels(); ++s) {
+        effectCount = 0;
+        if (em != nullptr) {
+            ModelElement* el = dynamic_cast<ModelElement*>(em);
+            if (el != nullptr) {
+                SubModelElement* sme = el->GetSubModel(s);
+                if (sme != nullptr) {
+                    for (auto* layer : sme->GetEffectLayers()) {
+                        if (layer != nullptr) {
+                            effectCount += layer->GetEffectCount();
+                        }
+                    }
+                }
+            }
+        }
         Model *subModel = m->GetSubModel(s);
         xLightsImportModelNode* laststrand;
-        // nore we deliberately passing in the models node count ... as this is most relevant
+        // note we deliberately passing in the models node count ... as this is most relevant
         if (channelColors.find(subModel->GetName()) != channelColors.end()) {
-            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), subModel->GetName(), std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", true, "", m->GetNodeCount(), channelColors.find(subModel->GetName())->second.asWxColor());
+            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), wxString(subModel->GetName()), std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", true, "", m->GetNodeCount(), channelColors.find(subModel->GetName())->second.asWxColor(), wxString(""), effectCount);
         } else {
-            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), subModel->GetName(), std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", true, "", m->GetNodeCount(), *wxWHITE);
+            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), wxString(subModel->GetName()), std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", true, "", m->GetNodeCount(), *wxWHITE, wxString(""), effectCount);
         }
         lastmodel->Append(laststrand);
     }
@@ -1059,12 +1096,13 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         if (sn == "") {
             sn = wxString::Format("Strand %d", s + 1);
         }
+        effectCount = 0;
         xLightsImportModelNode* laststrand;
-        // nore we deliberately passing in the models node count ... as this is most relevant
+        // note we deliberately passing in the models node count ... as this is most relevant
         if (channelColors.find(sn.ToStdString()) != channelColors.end()) {
-            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), sn, std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, "", m->GetNodeCount(), channelColors.find(sn.ToStdString())->second.asWxColor());
+            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), sn, wxString(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, "", m->GetNodeCount(), channelColors.find(sn.ToStdString())->second.asWxColor(), wxString(""), effectCount);
         } else {
-            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), sn, std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, "", m->GetNodeCount(), *wxWHITE);
+            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), sn, wxString(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, "", m->GetNodeCount(), *wxWHITE, wxString(""), effectCount);
         }
         lastmodel->Append(laststrand);
         for (int n = 0; n < m->GetStrandLength(s); ++n) {
@@ -1072,11 +1110,12 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
             if (nn == "") {
                 nn = wxString::Format("Node %d", n + 1);
             }
+            effectCount = 0;
             xLightsImportModelNode* lastnode;
             if (channelColors.find(nn.ToStdString()) != channelColors.end()) {
-                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, "", m->GetNodeCount(), "Node", channelColors.find(nn.ToStdString())->second.asWxColor());
+                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, "", m->GetNodeCount(), channelColors.find(nn.ToStdString())->second.asWxColor(), wxString(""), effectCount);
             } else {
-                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, "", m->GetNodeCount(), "Node", *wxWHITE);
+                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, "", m->GetNodeCount(), *wxWHITE, wxString(""), effectCount);
             }
             laststrand->Insert(lastnode, n);
         }
@@ -1123,7 +1162,7 @@ void xLightsImportChannelMapDialog::OnItemActivated(wxDataViewEvent& event)
 {
     if (event.GetItem().IsOk()) {
         wxVariant vvalue;
-        event.GetModel()->GetValue(vvalue, event.GetItem(), 1);
+        event.GetModel()->GetValue(vvalue, event.GetItem(), 2);
         std::string mapped = vvalue.GetString().ToStdString();
         TreeListCtrl_Mapping->UnselectAll();
         TreeListCtrl_Mapping->Select(event.GetItem());
@@ -1140,8 +1179,8 @@ void xLightsImportChannelMapDialog::OnItemActivated(wxDataViewEvent& event)
 void xLightsImportChannelMapDialog::Map(const wxDataViewItem& item, const wxString& mapping, const wxString& mappingModelType)
 {
     _dirty = true;
-    TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 1);
-    TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mappingModelType), item, 2);
+    TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 2);
+    TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mappingModelType), item, 3);
     ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, true);
     MarkUsed();
 }
@@ -1149,9 +1188,12 @@ void xLightsImportChannelMapDialog::Map(const wxDataViewItem& item, const wxStri
 void xLightsImportChannelMapDialog::Unmap(const wxDataViewItem& item)
 {
     _dirty = true;
-    TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(""), item, 1);
     TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(""), item, 2);
+    TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(""), item, 3);
     ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, true);
+    if (_allowColorChoice) {
+        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(wxWHITE->GetAsString()), item, 4);
+    }
     MarkUsed();
 }
 
@@ -1164,12 +1206,12 @@ void xLightsImportChannelMapDialog::OnValueChanged(wxDataViewEvent& event)
     _dirty = true;
     if (_allowColorChoice) {
         if (event.GetItem().IsOk()) {
-            if (event.GetColumn() == 1) {
+            if (event.GetColumn() == 2) {
                 wxVariant vvalue;
-                event.GetModel()->GetValue(vvalue, event.GetItem(), 1);
+                event.GetModel()->GetValue(vvalue, event.GetItem(), 2);
                 std::string value = vvalue.GetString().ToStdString();
                 if (channelColors.find(value) != channelColors.end()) {
-                    event.GetModel()->SetValue(wxVariant(channelColors.find(value)->second.asWxColor().GetAsString()), event.GetItem(), 3);
+                    event.GetModel()->SetValue(wxVariant(channelColors.find(value)->second.asWxColor().GetAsString()), event.GetItem(), 4);
                 }
             }
         }
@@ -1385,10 +1427,10 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
         }
 
         auto SetMapping = [&](wxString const& mapping, wxDataViewItem item, wxColor const& color) {
-            TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 1);
+            TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 2);
             ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, ListCtrl_Available->FindItem(0, mapping) >= 0);
-            TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 3);
-            TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(findModelType(mapping)), item, 2);
+            TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 4);
+            TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(findModelType(mapping)), item, 3);
         };
 
         //mappings
@@ -1546,22 +1588,22 @@ void xLightsImportChannelMapDialog::LoadXMapMapping(wxString const& filename, bo
                 if (mapping != "") {
                     if (mni != nullptr) {
                         wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString(), node.ToStdString());
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 1);
+                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 2);
                         ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, ListCtrl_Available->FindItem(0, mapping) >= 0);
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 3);
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant( findModelType(mapping)), item, 2);
+                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 4);
+                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant( findModelType(mapping)), item, 3);
                     } else if (msi != nullptr) {
                         wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString());
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 1);
+                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 2);
                         ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, ListCtrl_Available->FindItem(0, mapping) >= 0);
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 3);
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(findModelType(mapping)), item, 2);
+                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 4);
+                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(findModelType(mapping)), item, 3);
                     } else {
                         wxDataViewItem item = FindItem(model.ToStdString());
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 1);
+                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 2);
                         ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, ListCtrl_Available->FindItem(0, mapping) >= 0);
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 3);
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(findModelType(mapping)), item, 2);
+                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 4);
+                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(findModelType(mapping)), item, 3);
                     }
                 }
             }
@@ -2324,7 +2366,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
     // go through each tree row where mapping is not blank
     for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i) {
         auto model = _dataModel->GetNthChild(i);
-        if (model->_mapping != "") {
+        if (!model->_mapping.empty()) {
             std::string lowerMapping = ::Lower(model->_mapping);
             if (std::find(used.begin(), used.end(), lowerMapping) == used.end()) {
                 used.push_back(lowerMapping);
@@ -2333,7 +2375,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
 
         for (unsigned int j = 0; j < model->GetChildCount(); ++j) {
             auto strand = model->GetNthChild(j);
-            if (strand->_mapping != "") {
+            if (!strand->_mapping.empty()) {
                 std::string lowerMapping = ::Lower(strand->_mapping);
                 if (std::find(used.begin(), used.end(), lowerMapping) == used.end()) {
                     used.push_back(lowerMapping);
@@ -2342,7 +2384,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
 
             for (unsigned int k = 0; k < strand->GetChildCount(); ++k) {
                 auto node = strand->GetNthChild(k);
-                if (node->_mapping != "") {
+                if (!node->_mapping.empty()) {
                     std::string lowerMapping = ::Lower(node->_mapping);
                     if (std::find(used.begin(), used.end(), lowerMapping) == used.end()) {
                         used.push_back(lowerMapping);
@@ -2979,6 +3021,7 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
     if (_dataModel == nullptr) return;
 
     _dirty = true;
+    TreeListCtrl_Mapping->Freeze();
     DoAutoMap(norm, norm, norm, "", "", "B", false);
     DoAutoMap(aggressive, aggressive, aggressive, "", "", "B", false);
 
@@ -2992,8 +3035,7 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
             }
         }
     }
-
-    TreeListCtrl_Mapping->Refresh();
+    TreeListCtrl_Mapping->Thaw();
     MarkUsed();
 }
 
