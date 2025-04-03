@@ -104,9 +104,12 @@ export void PinwheelEffectStyle0(const uniform PinwheelData &data,
         
         
         float<3> hsv;
-        if (r <= data.max_radius) {
+        if (r <= data.max_radius && r > 0) {
             float degrees_twist = (r / data.max_radius) * data.pinwheel_twist;
             float theta = (atan2(x1, y1) * 180 / 3.14159) + degrees_twist;
+            if (isnan(theta)) {
+                theta = 0.0f;
+            }
             if (data.pinwheel_rotation == 1) { // do we have CW rotation
                 theta = data.pos + theta + (data.tmax / 2) + data.poffset;
             } else {
