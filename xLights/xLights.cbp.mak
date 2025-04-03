@@ -18,7 +18,7 @@ LIBDIR =
 LIB = 
 LDFLAGS = 
 
-INC_LINUX_DEBUG = $(INC) -Iinclude -Isequencer -I../xLights -Ieffects -Ieffects/ -Imodels -Ieffects/assist -I../include -Imodels/ -Isupport -Ioutputs -IxLights -IxLights/models -I../dependencies/libxlsxwriter/include -I../include/sol2-3.2.2 -I../dependencies
+INC_LINUX_DEBUG = $(INC) -Iinclude -Isequencer -I../xLights -Ieffects -Ieffects/ -Imodels -Ieffects/assist -I../include -Imodels/ -Isupport -Ioutputs -IxLights -IxLights/models -I../dependencies/libxlsxwriter/include -I../include/sol2-3.5.0 -I../dependencies
 CFLAGS_LINUX_DEBUG =  -Wall -g -std=gnu++20 `wx-config --version=3.3 --cflags` `pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` `pkg-config --cflags lua53` -Winvalid-pch -DWX_PRECOMP -DLINUX -D__WXDEBUG__ -D__cdecl=""
 RESINC_LINUX_DEBUG = $(RESINC)
 RCFLAGS_LINUX_DEBUG = $(RCFLAGS)
@@ -29,7 +29,7 @@ OBJDIR_LINUX_DEBUG = .objs_debug
 DEP_LINUX_DEBUG = 
 OUT_LINUX_DEBUG = ../bin/xLights
 
-INC_LINUX_RELEASE = $(INC) -Iinclude -Isequencer -I../xLights -Ieffects -Ieffects/ -Imodels -Ieffects/assist -I../include -Imodels/ -Isupport -Ioutputs -IxLights -IxLights/models -I../dependencies/libxlsxwriter/include -I../include/sol2-3.2.2 -I../dependencies
+INC_LINUX_RELEASE = $(INC) -Iinclude -Isequencer -I../xLights -Ieffects -Ieffects/ -Imodels -Ieffects/assist -I../include -Imodels/ -Isupport -Ioutputs -IxLights -IxLights/models -I../dependencies/libxlsxwriter/include -I../include/sol2-3.5.0 -I../dependencies
 CFLAGS_LINUX_RELEASE = $(CFLAGS) -O2 -Wall -std=gnu++20 `wx-config --version=3.3 --cflags` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` `pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --cflags lua53` -Winvalid-pch -DWX_PRECOMP -DLINUX -DNDEBUG -D__cdecl='' -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
 RESINC_LINUX_RELEASE = $(RESINC)
 RCFLAGS_LINUX_RELEASE = $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas

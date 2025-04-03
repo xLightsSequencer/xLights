@@ -41,7 +41,7 @@
 					<Add directory="xLights" />
 					<Add directory="xLights/models" />
 					<Add directory="../dependencies/libxlsxwriter/include" />
-					<Add directory="../include/sol2-3.2.2" />
+					<Add directory="../include/sol2-3.5.0" />
 					<Add directory="../dependencies" />
 				</Compiler>
 				<Linker>
@@ -97,7 +97,7 @@
 					<Add directory="xLights" />
 					<Add directory="xLights/models" />
 					<Add directory="../dependencies/libxlsxwriter/include" />
-					<Add directory="../include/sol2-3.2.2" />
+					<Add directory="../include/sol2-3.5.0" />
 					<Add directory="../dependencies" />
 				</Compiler>
 				<Linker>
