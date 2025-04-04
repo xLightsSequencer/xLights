@@ -718,12 +718,9 @@ void DownloadVamp() {
     } else {
         ::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/attachments/download/2621/qm-vamp-plugins-1.8.0-win32.zip");
     }
-#elif defined(__WXOSX__) && defined(__aarch64__)
-    // plugin pack is only for x86_64 and won't run native on M1 macs, download build of QM
-    ::wxLaunchDefaultBrowser("https://dankulp.com/xlights/archive/qm-vamp-plugins-1.8.dmg");
 #else
     // likely can/should be used for all platforms
-    ::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/projects/vamp-plugin-pack");
+    ::wxLaunchDefaultBrowser("https://www.vamp-plugins.org/pack.html");
 #endif
 }
 
