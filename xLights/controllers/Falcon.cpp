@@ -2222,6 +2222,7 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) :
                 p = wxAtoi(node->GetNodeContent());
                 DecodeModelVersion(p, _modelnum, _versionnum);
                 _model = wxString::Format("F%dv%d", _modelnum, _versionnum).ToStdString();
+                if (_model == "F48v3") _model = "F48";
             }
             _status[node->GetName()] = node->GetNodeContent();
             node = node->GetNext();
