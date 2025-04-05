@@ -1610,12 +1610,12 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <CustomBuild Include="effects\ispc\VideoFunctions.ispc">
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -h "effects\\ispc\\%(Filename).ispc.h" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64
-ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" -h "effects\\ispc\\%(Filename).ispc.h" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64
+findstr /v ".ispc.h" "effects\\ispc\\%(Filename).ispc.h" &gt; temp.txt &amp;&amp; move /y temp.txt "effects\\ispc\\%(Filename).ispc.h"</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -h "effects\\ispc\\%(Filename).ispc.h" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64
-ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" -h "effects\\ispc\\%(Filename).ispc.h" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64
+findstr /v ".ispc.h" "effects\\ispc\\%(Filename).ispc.h" &gt; temp.txt &amp;&amp; move /y temp.txt "effects\\ispc\\%(Filename).ispc.h"</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
     </CustomBuild>
