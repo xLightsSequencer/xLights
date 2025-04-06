@@ -106,6 +106,7 @@ protected:
     static const long STATE_DIALOG_REVERSE;
     static const long STATE_DIALOG_CLEAR_SELECTED_ROWS;
     static const long STATE_DIALOG_CLEAR_STATES;
+    static const long STATE_DIALOG_EXPORT_TOOTHERS;
 
 private:
     //(*Handlers(ModelStateDialog)
@@ -177,6 +178,7 @@ private:
     void ImportStates(const wxString& filename);
     void ImportStatesFromModel();
     void ImportStatesFromSubModels();
+    void ExportStatesToOtherModels();
     std::string cleanSubName(std::string name);
     void AddStates(std::map<std::string, std::map<std::string, std::string>> const& states);
     wxArrayString getModelList(ModelManager* modelManager);
