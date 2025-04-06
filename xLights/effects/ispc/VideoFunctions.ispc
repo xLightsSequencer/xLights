@@ -36,7 +36,6 @@ export void VideoEffectProcess(const uniform VideoData &data,
 
     uniform int ch = data.ch;
 
-
     foreach (index = startIdx...endIdx) {
         float fidx = index;
         float y = (floor)(fidx / data.buffer_width);
@@ -47,9 +46,6 @@ export void VideoEffectProcess(const uniform VideoData &data,
         }
 
         int newIndex = x + data.startx + ((y + data.starty) * data.buffer_width);
-        if (newIndex < 0 || newIndex >= (data.buffer_width * data.buffer_height)) {
-            continue;
-        }
 
         int row = (int)(data.image_height - 1 - y - data.yoffset);
         if (row < 0 || row >= data.image_height) {
