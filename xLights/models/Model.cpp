@@ -5195,48 +5195,30 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
     }
     html += "</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
 
-    if (BufferHt == 1) {
-        // single line or arch or cane
+   for (size_t i = 0; i < NodeCount; ++i) {
+        size_t idx = Nodes[i]->Coords[0].bufY * BufferWi + Nodes[i]->Coords[0].bufX;
+        if (idx < chmap.size()) {
+            chmap[idx] = i + 1;
+        }
+    }
+    for (int y = BufferHt - 1; y >= 0; y--) {
         html += "<tr>";
-        for (size_t i = 1; i <= NodeCount; ++i) {
-            int n = IsLtoR ? i : NodeCount - i + 1;
-            int s = Nodes[n - 1]->StringNum + 1;
-            wxString bgcolor = s % 2 == 1 ? "#ADD8E6" : "#90EE90";
-            while (n > NodesPerString()) {
-                n -= NodesPerString();
+        for (int x = 0; x < BufferWi; ++x) {
+            int n = chmap[y * BufferWi + x];
+            if (n == 0) {
+                html += "<td></td>";
+            } else {
+                int s = Nodes[n - 1]->StringNum + 1;
+                wxString bgcolor = (s % 2 == 1) ? "#ADD8E6" : "#90EE90";
+                if (IsDarkMode())
+                    bgcolor = (s % 2 == 1) ? "#3F7C85" : "#962B09";
+                while (n > NodesPerString()) {
+                    n -= NodesPerString();
+                }
+                html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ds%d</td>", n, s);
             }
-            html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ds%d</td>", n, s);
         }
         html += "</tr>";
-    } else if (BufferHt > 1) {
-        // horizontal or vertical matrix or frame
-        for (size_t i = 0; i < NodeCount; ++i) {
-            size_t idx = Nodes[i]->Coords[0].bufY * BufferWi + Nodes[i]->Coords[0].bufX;
-            if (idx < chmap.size()) {
-                chmap[idx] = i + 1;
-            }
-        }
-        for (int y = BufferHt - 1; y >= 0; y--) {
-            html += "<tr>";
-            for (int x = 0; x < BufferWi; ++x) {
-                int n = chmap[y * BufferWi + x];
-                if (n == 0) {
-                    html += "<td></td>";
-                } else {
-                    int s = Nodes[n - 1]->StringNum + 1;
-                    wxString bgcolor = (s % 2 == 1) ? "#ADD8E6" : "#90EE90";
-                    if( IsDarkMode() )
-                        bgcolor = (s % 2 == 1) ? "#3F7C85" : "#962B09";
-                    while (n > NodesPerString()) {
-                        n -= NodesPerString();
-                    }
-                    html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ds%d</td>", n, s);
-                }
-            }
-            html += "</tr>";
-        }
-    } else {
-        html += "<tr><td>Error - invalid height</td></tr>";
     }
     html += "</table></body></html>";
     return html;
