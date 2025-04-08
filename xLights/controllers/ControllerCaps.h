@@ -75,6 +75,7 @@ public:
     bool SupportsAutoUpload() const;
     bool DDPStartsAtOne() const;
     bool SupportsUniversePerString() const;
+    bool SupportsModifyFseqFrame() const;
     bool SupportsMultipleSimultaneousOutputProtocols() const;
     bool SupportsMultipleSimultaneousInputProtocols() const;
     bool MergeConsecutiveVirtualStrings() const;

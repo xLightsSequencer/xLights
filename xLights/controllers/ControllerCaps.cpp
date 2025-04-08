@@ -402,6 +402,10 @@ bool ControllerCaps::SupportsUniversePerString() const
     return DoesXmlNodeExist(_config, "SupportsUniversePerString");
 }
 
+bool ControllerCaps::SupportsModifyFseqFrame() const {
+    return DoesXmlNodeExist(_config, "SupportsModifyFseqFrame");
+}
+
 bool ControllerCaps::DMXAfterPixels() const
 {
     return DoesXmlNodeExist(_config, "DMXAfterPixels");

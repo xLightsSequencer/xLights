@@ -202,6 +202,7 @@ class UDControllerPort
     std::list<UDVirtualString*> _virtualStrings;
     std::string _type;
     bool _separateUniverses = false;
+    bool _separateUniverses_Allowed = false;  
     OutputManager* _om = nullptr;
     bool _isSmartRemotePort = false;
     #pragma endregion
@@ -310,6 +311,7 @@ class UDControllerPort
     [[nodiscard]] std::string GetSmartRemoteType(int smartRemote) const;
 
     void SetSeparateUniverses(bool sep) { _separateUniverses = sep; }
+    void SetSeparateUniverses_Allowed(bool sep) {_separateUniverses_Allowed = sep; }    
 
     void Dump() const;
     bool Check(Controller* c, bool pixel, const ControllerCaps* rules, std::string& res) const;

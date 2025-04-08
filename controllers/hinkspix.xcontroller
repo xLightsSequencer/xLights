@@ -6,7 +6,6 @@
 			<SupportsPixelPortNullPixels/>
 			<SupportsPixelPortDirection/>
 			<SupportsPixelPortColourOrder/>
-			<SupportsUniversePerString/>
 			<DMXAfterPixels/>
 			<SupportsUpload/>
 			<SupportsRemotes/>
@@ -45,6 +44,7 @@
 			<SupportsPixelPortDirection/>
 			<SupportsPixelPortColourOrder/>
 			<SupportsUniversePerString/>
+			<SupportsModifyFseqFrame/>
 			<DMXAfterPixels/>
 			<SupportsRemotes/>
 			<SupportsSmartRemotes>16</SupportsSmartRemotes>
@@ -60,9 +60,6 @@
 			<DisableMonitoring/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>tls3001</Protocol>
-				<Protocol>apa102</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>dmx</Protocol>
@@ -92,6 +89,7 @@
 			<SupportsPixelPortDirection/>
 			<SupportsPixelPortColourOrder/>
 			<SupportsUniversePerString/>
+			<SupportsModifyFseqFrame/>
 			<DMXAfterPixels/>
 			<SupportsRemotes/>
 			<SupportsSmartRemotes>16</SupportsSmartRemotes>
@@ -107,9 +105,6 @@
 			<DisableMonitoring/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
-				<Protocol>ws2801</Protocol>
-				<Protocol>tls3001</Protocol>
-				<Protocol>apa102</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
 				<Protocol>dmx</Protocol>

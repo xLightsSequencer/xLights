@@ -15,6 +15,7 @@
 
 #include "ControllerUploadData.h"
 #include "../UtilClasses.h"
+#include "OutputModelManager.h"
 
 class ModelManager;
 class OutputManager;

@@ -872,8 +872,16 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
                 }
             }
         }
-        else {
+        else 
+        {
+            if(SupportsUniversePerString())
+            {
+                if (_outputs.size() != 0) channels_per_universe = universeSize;
+            } 
+            else {
+
             if (_outputs.size() != 0) channels_per_universe = _outputs.front()->GetChannels();
+            }
 
             //calculate required universes
             universes = (channels + channels_per_universe - 1) / channels_per_universe;
@@ -886,6 +894,16 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
 
         auto const oldIP = _outputs.front()->GetIP();
 
+        int HinksPix_DMX_channels = 0;
+
+        if (IsUniversePerString() == false && SupportsUniversePerString())
+        {
+            while (_outputs.size()) {
+            delete _outputs.back();
+            _outputs.pop_back();
+            }
+         }
+
         //if required universes is less than num of outputs, remove unneeded universes
         while (universes < _outputs.size()) {
             delete _outputs.back();
@@ -895,7 +913,11 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
         //if required universes is greater than  num of outputs, add needed universes
         int diff = universes - _outputs.size();
         for (int i = 0; i < diff; i++) {
-            auto const lastUsedUniverse = _outputs.back()->GetUniverse();
+            auto lastUsedUniverse = 0;
+
+            if(_outputs.size())
+                lastUsedUniverse = _outputs.back()->GetUniverse();
+
             if (_type == OUTPUT_E131) {
                 _outputs.push_back(new E131Output());
                 if (dynamic_cast<E131Output*>(_outputs.back()) != nullptr) {
@@ -987,6 +1009,22 @@ bool ControllerEthernet::SupportsUniversePerString() const
     }
     return false;
 }
+
+bool ControllerEthernet::SupportsModifyFseqFrame() const {
+    auto eth = dynamic_cast<const ControllerEthernet*>(this);
+
+    if (eth == nullptr)
+        return false;
+
+    auto caps = GetControllerCaps();
+    if (caps != nullptr) {
+        return caps->SupportsModifyFseqFrame();
+    }
+    return false;
+}
+
+
+
 
 void ControllerEthernet::UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties, OutputModelManager* outputModelManager) {
     Controller::UpdateProperties(propertyGrid, modelManager, expandProperties, outputModelManager);

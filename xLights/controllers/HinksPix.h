@@ -25,7 +25,7 @@ class HinksPix;
 class wxJSONValue;
 
 struct HinksPixOutput {
-    HinksPixOutput(int output_ ,int defaultBrightness_) :
+    HinksPixOutput(int output_, int defaultBrightness_) :
         output(output_),
         universe(1),
         startChannel(1),
@@ -205,12 +205,57 @@ public:
 #pragma region Constructors and Destructors
     HinksPix(const std::string& ip, const std::string& fppProxy);
     virtual ~HinksPix();
+
 #pragma endregion
 
 #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
+
 #endif
     virtual bool UsesHTTP() const override { return true; }
 #pragma endregion
 };
+
+#define H_Fseq_IP_Size 30
+#define H_Num_Port_Strings (80 * 10)    // 80 ports on V3 with 10 per port max
+
+struct Tag_FseqFrame_PortString {
+    int32_t Port;
+    int32_t Start_Channel;
+    int32_t Num_Channels;
+    int32_t Brightness;
+    int32_t StringColor;
+
+};
+
+struct Tag_StringColor {
+    const char* Color;
+    int Value;
+};
+
+
+struct Tag_FseqFrame_Controller {
+    struct Tag_FseqFrame_Controller* next;
+
+    char IP[H_Fseq_IP_Size];
+
+    int32_t Start_Channel;
+    int32_t End_Channel;
+    int32_t Num_Channels;
+
+    int32_t Num_Port_Strings;
+    int32_t Port_String_Index;
+
+    bool UniversePerString_Active;
+
+    struct Tag_StringColor StringColor[6];
+    struct Tag_FseqFrame_PortString Ports[H_Num_Port_Strings];
+
+    uint8_t* Buff; // holds controller Frame
+};
+
+
+
+void HinksPix_ModifyFseqFrame(UDController *cud, uint8_t* data, int datasize);
+int Convert_ColorOrder_to_INT(struct Tag_FseqFrame_Controller* FFC, const char* C);

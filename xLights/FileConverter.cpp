@@ -24,6 +24,8 @@
 #include "FileConverter.h"
 #include "UtilFunctions.h"
 #include "outputs/OutputManager.h"
+#include "Controllers/BaseController.h"
+#include "Controllers/ControllerCaps.h"
 #include "outputs/Controller.h"
 #ifndef FPP
     #include "xLightsMain.h"
@@ -35,6 +37,12 @@
 #include "xLightsVersion.h"
 #include "ExternalHooks.h"
 #include <log4cpp/Category.hh>
+#include "outputs/ControllerEthernet.h"
+
+
+void PackUniverse_FseqFrame_Init(ConvertParameters* params);
+void PackUniverse_FseqFrame_Release(void);
+void PackUniverse_ModifyFseqFrame(uint8_t* data, int datasize);
 
 static const int MAX_READ_BLOCK_SIZE = 4096 * 1024;
 
@@ -1624,6 +1632,7 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
     delete file;
 }
 
+
 void FileConverter::WriteFalconPiFile(ConvertParameters& params)
 {
     static log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
@@ -1752,14 +1761,19 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
             }
         }
     }
-    
+
+    PackUniverse_FseqFrame_Init(&params);
 
     file->writeHeader();
+
     size_t size = params.seq_data.NumFrames();
     for (int x = 0; x < size; x++) {
+        PackUniverse_ModifyFseqFrame(&params.seq_data[x][0], stepSize);
         file->addFrame(x, &params.seq_data[x][0]);
     }
     file->finalize();
     delete file;
     logger_conversion.debug("End fseq write");
+
+    PackUniverse_FseqFrame_Release();
 }

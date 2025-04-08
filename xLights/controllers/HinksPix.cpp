@@ -26,6 +26,16 @@
 
 #include <log4cpp/Category.hh>
 
+#include "../FSEQFile.h"
+#include "../FileConverter.h"
+#include "../outputs/Controller.h"
+#include "../outputs/OutputManager.h"
+#include "../outputs/ControllerEthernet.h"
+#include "../xLightsApp.h"
+#include "../xLightsMain.h"
+#include "../xLightsVersion.h"
+
+
 static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
 
     if (data == nullptr) return 0;
@@ -315,9 +325,10 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
         DisplayError("Getting HinksPix Input Mode FAILED.");
         return false;
     }
+    wxString const cur_mode = data.ItemAt("MODE").AsString();
 
     //Set Controller Input mode
-    //if (data.ItemAt("MODE").AsString() != type) //send mode every time
+    //if (cur_mode != type) //send mode every time
     {
         auto const ret = GetJSONControllerData(GetJSONPostURL(), cmd);
         if (ret.find("\"OK\"") == std::string::npos) {
@@ -1030,6 +1041,8 @@ HinksPix::~HinksPix() {
 #pragma endregion
 
 #pragma region Getters and Setters
+
+
 bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* c, wxWindow* parent) {
     ControllerEthernet* controller = dynamic_cast<ControllerEthernet*>(c);
     if (controller == nullptr) {
@@ -1345,4 +1358,378 @@ bool HinksPix::CheckSmartReceivers(std::string& message)
         }
     }
     return true;
+}
+
+
+// FSEQ Frame Align code
+
+//#define Log_FseqFram
+
+struct Tag_FseqFrame_Controller* H_FseqFrame_Head = 0;
+
+// Return NZ if this fseq is to be packed 
+void PackUniverse_FseqFrame_Init(ConvertParameters* params) {
+
+    struct Tag_FseqFrame_Controller* FFC;
+    //std::vector<UDController*> OutControllers;
+    int KeepCUD = 0;
+    int From_IDX, To_IDX, dirty, IDX;
+    auto const controllers = params->_outputManager->GetControllers();
+
+    // make sure we are clean if aborted fseq somehow
+
+    while(H_FseqFrame_Head) {
+        FFC = H_FseqFrame_Head;
+        H_FseqFrame_Head = FFC->next;
+
+        if (FFC->Buff)
+            free(FFC->Buff);
+
+        free(FFC);
+    }
+
+    // check controllers for HinksPix that require re-packing of FSEQ
+
+    for (const auto& it : controllers) {
+        auto* eth = dynamic_cast<ControllerEthernet*>(it);
+        ControllerCaps* rules = ControllerCaps::GetControllerConfig(it);
+        bool fullControl = rules->SupportsFullxLightsControl() && it->IsFullxLightsControl();
+
+        dirty = 0;
+        IDX = 0;
+
+        if (fullControl && eth != nullptr && eth->GetIP() != "MULTICAST" && eth->GetProtocol() != OUTPUT_ZCPP && eth->IsManaged()) {
+            if (eth->SupportsModifyFseqFrame()) {
+                std::string V = it->GetVendor();
+                std::string M = it->GetModel();
+                if (V == "HinksPix" && (M == "PRO V1/V2" || M == "PRO V3")) {
+                    UDController* cud = new UDController(it, &params->xLightsFrm->_outputManager, &params->xLightsFrm->AllModels, false);
+
+
+#if 0   // this just tests for packing to decide to keep and ignores brightness and color order  .. we WANT Brightness and color order without packing so gone
+
+                    // pixels first ... just looking to see if we have multiple string on a port
+
+                    for (int port = 1; port <= cud->GetMaxPixelPort(); port++) {
+                        if (cud->HasPixelPort(port)) {
+                            UDControllerPort* portData = cud->GetControllerPixelPort(port);
+                            if (portData->GetModelCount() > 1) {
+                                KeepCUD++;
+                                break;
+                            }
+                        }
+                    }
+
+                    // serial second
+                    if (KeepCUD == 0) {
+                        if (cud->HasSerialPort(1)) {
+                            UDControllerPort* portData = cud->GetControllerSerialPort(1);
+                            if (portData->GetModelCount() > 1) {
+                                KeepCUD++;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (KeepCUD == 0) {
+                        delete cud;
+                        continue;
+                    }
+#endif
+
+                    // we have a controller - add to link list
+
+                    FFC = (struct Tag_FseqFrame_Controller*)malloc(sizeof(struct Tag_FseqFrame_Controller));
+                    memset(FFC, 0, sizeof(struct Tag_FseqFrame_Controller));
+
+                    strncpy(FFC->IP, it->GetIP().c_str(), (H_Fseq_IP_Size - 1));
+                    FFC->Start_Channel = it->GetStartChannel() - 1;
+                    FFC->End_Channel = it->GetEndChannel() - 1;
+                    FFC->Num_Channels = it->GetChannels();
+
+                    FFC->UniversePerString_Active = eth->IsUniversePerString();
+
+                    FFC->Buff = (uint8_t*)malloc(FFC->Num_Channels + 3);
+                    memset(FFC->Buff, 0, FFC->Num_Channels + 3);
+
+                    FFC->StringColor[0].Color = "RGB";
+                    FFC->StringColor[0].Value = 0;
+                    FFC->StringColor[1].Color = "RBG";
+                    FFC->StringColor[1].Value = 1;
+                    FFC->StringColor[2].Color = "GRB";
+                    FFC->StringColor[2].Value = 2;
+                    FFC->StringColor[3].Color = "GBR";
+                    FFC->StringColor[3].Value = 3;
+                    FFC->StringColor[4].Color = "BRG";
+                    FFC->StringColor[4].Value = 4;
+                    FFC->StringColor[5].Color = "BGR";
+                    FFC->StringColor[5].Value = 5;
+
+
+#ifdef Log_FseqFram
+                    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                    logger_base.debug("FSEQ Frame Controller %s, Start %d  End = %d  Num Channels = %d", FFC->IP, FFC->Start_Channel, FFC->End_Channel, FFC->Num_Channels);
+#endif
+                    // pixels first 
+
+                    for (int port = 1; port <= cud->GetMaxPixelPort(); port++) {
+                        if (cud->HasPixelPort(port)) {
+                            UDControllerPort* portData = cud->GetControllerPixelPort(port);
+                            for (auto const& m : portData->GetModels()) {
+                                FFC->Ports[FFC->Port_String_Index].Port = port;
+                                FFC->Ports[FFC->Port_String_Index].Num_Channels = m->Channels();
+                                FFC->Ports[FFC->Port_String_Index].Start_Channel = m->GetStartChannel() - 1;
+                                FFC->Ports[FFC->Port_String_Index].Brightness = m->GetBrightness(100);
+                                FFC->Ports[FFC->Port_String_Index].StringColor = Convert_ColorOrder_to_INT(FFC, m->GetColourOrder("RGB").c_str());
+
+                                From_IDX = FFC->Ports[FFC->Port_String_Index].Start_Channel;
+                                To_IDX = IDX + FFC->Start_Channel;
+
+                                if (From_IDX != To_IDX || FFC->Ports[FFC->Port_String_Index].Brightness != 100 || FFC->Ports[FFC->Port_String_Index].StringColor) {
+                                    dirty++;
+                                }
+
+#ifdef Log_FseqFram
+                                static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                                logger_base.debug("%s, HPort %d  SC = %d  #C = %d Dirty %d", FFC->IP, port, FFC->Ports[FFC->Port_String_Index].Start_Channel, FFC->Ports[FFC->Port_String_Index].Num_Channels, dirty);
+#endif
+
+                                IDX += FFC->Ports[FFC->Port_String_Index].Num_Channels;
+
+                                FFC->Port_String_Index++;
+                            }
+                        }
+                    }
+
+                    // serial second
+                    if (cud->HasSerialPort(1)) {
+                        UDControllerPort* portData = cud->GetControllerSerialPort(1);
+                        for (auto const& m : portData->GetModels()) {
+                            FFC->Ports[FFC->Port_String_Index].Num_Channels = m->Channels();
+                            FFC->Ports[FFC->Port_String_Index].Start_Channel = m->GetStartChannel() - 1;
+
+                            FFC->Ports[FFC->Port_String_Index].Brightness = 100;
+                            FFC->Ports[FFC->Port_String_Index].StringColor = 0;
+
+
+                            From_IDX = FFC->Ports[FFC->Port_String_Index].Start_Channel;
+                            To_IDX = IDX + FFC->Start_Channel;
+
+                            if (From_IDX != To_IDX) {
+                                dirty++;
+                            }
+
+#ifdef Log_FseqFram
+                            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                            logger_base.debug("%s, DMX SC = %d  #C = %d  Dirty %d", FFC->IP, FFC->Ports[FFC->Port_String_Index].Start_Channel, FFC->Ports[FFC->Port_String_Index].Num_Channels, dirty);
+#endif
+
+                            IDX += FFC->Ports[FFC->Port_String_Index].Num_Channels;
+
+                            FFC->Port_String_Index++;
+                        }
+                    }
+
+                    if(dirty == 0) {
+                        free(FFC);
+                    } else {
+                        if (H_FseqFrame_Head) {
+                            FFC->next = H_FseqFrame_Head;
+                            H_FseqFrame_Head = FFC;
+                        } else {
+                            H_FseqFrame_Head = FFC;
+                        }
+                    }
+
+                    delete cud;
+                }
+            }
+        }
+    }
+}
+
+void PackUniverse_FseqFrame_Release(void) {
+
+   struct Tag_FseqFrame_Controller* FFC;
+
+   while (H_FseqFrame_Head) {
+        FFC = H_FseqFrame_Head;
+        H_FseqFrame_Head = FFC->next;
+
+        if (FFC->Buff)
+            free(FFC->Buff);
+
+        free(FFC);
+    }
+}
+
+
+void PackUniverse_ModifyFseqFrame(uint8_t* data, int datasize)
+{
+    struct Tag_FseqFrame_Controller* FFC;
+    int i;
+    int IDX;
+    int From_IDX, To_IDX;
+    int dirty;
+    int Xfered;
+    int Modified;
+    uint8_t *P_PIN, *P_POUT;
+    int Cnt;
+    float B;
+
+    if (H_FseqFrame_Head == 0)
+        return;
+
+#ifdef Log_FseqFram
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("HFseqFrame NEW!!!");
+#endif
+
+    FFC = H_FseqFrame_Head;
+
+
+
+    while(FFC) {
+        if (datasize && (((FFC->Start_Channel) + FFC->Num_Channels) > datasize)) {
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.error("Frame Size MisMatch IP %s HFstart %d HFsize %d, FSEQ Fsize %d", FFC->IP, FFC->Start_Channel, FFC->Num_Channels, datasize);
+            return;
+        }
+
+#ifdef Log_FseqFram
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.debug("HFseqFrame New Controller %s  Start %d, End %d, Num Channels %d", FFC->IP, FFC->Start_Channel, FFC->End_Channel, FFC->Num_Channels);
+#endif
+
+        IDX = 0;
+        dirty = 0;
+        
+
+        for(i = 0; i < FFC->Port_String_Index; i++) {
+            From_IDX = FFC->Ports[i].Start_Channel;
+
+            if (FFC->UniversePerString_Active) {
+                To_IDX = From_IDX;
+                IDX = From_IDX - FFC->Start_Channel;
+            }
+            else {
+                To_IDX = IDX + FFC->Start_Channel;
+            }
+
+            Xfered = (From_IDX != To_IDX) ? 1 : 0;
+            Modified = (FFC->Ports[i].Brightness != 100 || FFC->Ports[i].StringColor) ? 1 : 0;
+            
+            if (dirty == 0 && (Xfered || Modified)) {
+                dirty++;
+
+                  memmove(FFC->Buff, &data[FFC->Start_Channel], FFC->Num_Channels);
+            }
+
+            if (Xfered) {
+                memmove(&FFC->Buff[IDX], &data[From_IDX], FFC->Ports[i].Num_Channels);
+            }
+
+            if(FFC->Ports[i].StringColor) {
+
+                P_PIN = &data[From_IDX];
+                P_POUT = &FFC->Buff[IDX];
+                Cnt = FFC->Ports[i].Num_Channels;
+
+			    while (Cnt > 0) {
+                    switch (FFC->Ports[i].StringColor) {
+
+                        case 1: // RBG
+
+                            *(P_POUT) = *(P_PIN);
+                            *(P_POUT + 1) = *(P_PIN + 2);
+                            *(P_POUT + 2) = *(P_PIN + 1);
+
+                            break;
+
+                        case 2: // GRB
+
+                            *(P_POUT) = *(P_PIN + 1);
+                            *(P_POUT + 1) = *(P_PIN);
+                            *(P_POUT + 2) = *(P_PIN + 2);
+
+                            break;
+
+                        case 3: // GBR
+
+                            *(P_POUT) = *(P_PIN + 1);
+                            *(P_POUT + 1) = *(P_PIN + 2);
+                            *(P_POUT + 2) = *(P_PIN);
+
+                            break;
+
+                        case 4: // BRG
+
+                            *(P_POUT) = *(P_PIN + 2);
+                            *(P_POUT + 1) = *(P_PIN);
+                            *(P_POUT + 2) = *(P_PIN + 1);
+
+                            break;
+
+                        case 5: // BGR
+
+                            *(P_POUT) = *(P_PIN + 2);
+                            *(P_POUT + 1) = *(P_PIN + 1);
+                            *(P_POUT + 2) = *(P_PIN);
+
+                            break;
+                    }
+
+                    Cnt -= 3;
+                    P_POUT += 3;
+                    P_PIN += 3;
+
+                }
+            }
+			
+			if (FFC->Ports[i].Brightness != 100) {
+                P_PIN = &data[From_IDX];
+                P_POUT = &FFC->Buff[IDX];
+                Cnt = FFC->Ports[i].Num_Channels;
+                B = FFC->Ports[i].Brightness / 100.0;
+
+                while (Cnt > 0) {
+                    *P_POUT = (uint8_t)(((float)(*P_PIN) * B) + .5);
+                    P_POUT++;
+                    P_PIN++;
+                    Cnt--;
+                }
+            }
+
+
+#ifdef Log_FseqFram
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.debug("FseqFramePort Moved %d from %d to %d - Port %d  Moved %d Dirty %d", FFC->Ports[i].Num_Channels, From_IDX, To_IDX, FFC->Ports[i].Port, Xfered, dirty);
+#endif
+
+            IDX += FFC->Ports[i].Num_Channels;
+        }
+
+        if (dirty) {
+            memmove(&data[FFC->Start_Channel], FFC->Buff, FFC->Num_Channels);
+        }
+
+        FFC = FFC->next;
+    }
+
+
+
+
+    return;
+}
+
+
+int Convert_ColorOrder_to_INT(struct Tag_FseqFrame_Controller* FFC, const char* C) {
+    int i;
+
+    for(i = 0; i < 6; i++) {
+        if (strcmp(C, FFC->StringColor[i].Color) == 0)
+            return i;
+    }
+
+    return 0;
 }

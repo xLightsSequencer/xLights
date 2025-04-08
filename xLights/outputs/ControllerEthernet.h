@@ -165,6 +165,7 @@ public:
 #pragma region UI
     #ifndef EXCLUDENETWORKUI
         bool SupportsUniversePerString() const;
+        bool SupportsModifyFseqFrame() const;
     
         virtual void UpdateProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties, OutputModelManager* outputModelManager) override;
         virtual void AddProperties(wxPropertyGrid* propertyGrid, ModelManager* modelManager, std::list<wxPGProperty*>& expandProperties) override;

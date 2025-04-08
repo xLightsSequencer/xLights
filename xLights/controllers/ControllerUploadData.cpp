@@ -847,7 +847,7 @@ int32_t UDControllerPort::Channels() const {
     if (_virtualStrings.size() == 0) {
         if (_models.size() == 0) return 0;
 
-        if (_separateUniverses) {
+        if (_separateUniverses_Allowed) {
             int c = 0;
             for (const auto& it : _models) {
                 c += it->Channels();
@@ -1845,6 +1845,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
             }
 
             if (rules->SupportsUniversePerString() && _controller->GetType() == CONTROLLER_ETHERNET) {
+                it.second->SetSeparateUniverses_Allowed(true);
                 it.second->SetSeparateUniverses(((ControllerEthernet*)_controller)->IsUniversePerString());
             }
 
@@ -2101,6 +2102,22 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
         res += wxString::Format("ERR: Attempt to upload LED Panel Matrix but this controller does not support LED Panel Matrices.\n");
         success = false;
     }
+
+
+    if (rules->SupportsUniversePerString()) {
+        std::string CO;
+
+        for (const auto& it : _pixelPorts) {
+            for (const auto& it2 : it.second->GetModels()) {
+                CO = it2->GetColourOrder("RGB");
+                if (strlen(CO.c_str()) > 3) {
+                    res += wxString::Format("ERR: Controller does NOT Support Color Order %s.\n", CO);
+                    success = false;
+                }
+            }
+        }
+    }
+
 
     return success;
 }
