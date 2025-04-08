@@ -3568,6 +3568,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift) {
     } else if (!MultipleEffectsSelected() && mSelectedEffect != nullptr && !mSelectedEffect->IsLocked() && mSelectedRow > 0) {
         logger_base.debug("EffectsGrid::MoveSelectedEffectUp moving single effect.");
         int row = mSelectedRow - 1;
+        xlights->AbortRender();
         EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
         while (row + mSequenceElements->GetFirstVisibleModelRow() >= mSequenceElements->GetNumberOfTimingRows()) {
             EffectLayer* new_el = mSequenceElements->GetEffectLayer(mSequenceElements->GetFirstVisibleModelRow() + row);
@@ -3629,6 +3630,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift) {
             // Tag all selected effects so we don't move them twice
             ((MainSequencer*)mParent)->TagAllSelectedEffects();
 
+            xlights->AbortRender();
             mSequenceElements->get_undo_mgr().CreateUndoStep();
             for (int row = first_model_row + 1; row < mSequenceElements->GetRowInformationSize(); row++) {
                 EffectLayer* el1 = mSequenceElements->GetEffectLayer(row - 1);
@@ -3695,8 +3697,8 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift) {
         Draw();
     } else if (!MultipleEffectsSelected() && mSelectedEffect != nullptr && !mSelectedEffect->IsLocked() && mSelectedRow >= 0) {
         logger_base.debug("EffectsGrid::MoveSelectedEffectDown moving single effect.");
-
         int row = mSelectedRow + 1;
+        xlights->AbortRender();
         EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
         while (row < mSequenceElements->GetRowInformationSize()) {
             EffectLayer* new_el = mSequenceElements->GetEffectLayer(mSequenceElements->GetFirstVisibleModelRow() + row);
@@ -3758,6 +3760,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift) {
             // Tag all selected effects so we don't move them twice
             ((MainSequencer*)mParent)->TagAllSelectedEffects();
 
+            xlights->AbortRender();
             mSequenceElements->get_undo_mgr().CreateUndoStep();
             for (int row = mSequenceElements->GetRowInformationSize() - 1; row > first_model_row; row--) {
                 EffectLayer* el1 = mSequenceElements->GetEffectLayer(row - 1);
