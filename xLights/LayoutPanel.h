@@ -32,6 +32,7 @@ class wxStaticText;
 #include <glm/glm.hpp>
 
 #include "ControllerConnectionDialog.h"
+#include "xlPropertyGrid.h"
 
 #include <vector>
 #include <list>
@@ -447,7 +448,7 @@ class LayoutPanel: public wxPanel
         wxTreeListItems selectedTreeModels;
         wxTreeListItems selectedTreeSubModels;
 
-        wxPropertyGrid *propertyEditor = nullptr;
+        xlPropertyGrid *propertyEditor = nullptr;
         bool updatingProperty = false;
         BaseObject *selectedBaseObject = nullptr;
         BaseObject *highlightedBaseObject = nullptr;
@@ -500,7 +501,7 @@ class LayoutPanel: public wxPanel
         std::string GetSelectedModelName() const;
         bool Is3d() const;
         void Set3d(bool is3d);
-        wxPropertyGrid* GetPropertyEditor() const { return propertyEditor; }
+        xlPropertyGrid* GetPropertyEditor() const { return propertyEditor; }
 
     private:
         int Col_Model = 0;

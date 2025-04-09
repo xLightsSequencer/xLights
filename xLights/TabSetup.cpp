@@ -22,6 +22,7 @@
 #include "xLightsMain.h"
 #include "LayoutPanel.h"
 #include "xLightsXmlFile.h"
+#include "xlPropertyGrid.h"
 #include "sequencer/MainSequencer.h"
 #include "ViewsModelsPanel.h"
 #include "UtilFunctions.h"
@@ -1636,20 +1637,6 @@ void xLightsFrame::StatusRefreshTimer(wxTimerEvent& event) {
     }
 }
 
-class xlPropertyGrid : public wxPropertyGrid {
-public:
-    xlPropertyGrid(wxWindow *parent, wxWindowID id = wxID_ANY,
-                   const wxPoint& pos = wxDefaultPosition,
-                   const wxSize& size = wxDefaultSize,
-                   long style = wxPG_DEFAULT_STYLE,
-                   const wxString& name = wxASCII_STR(wxPropertyGridNameStr)) :
-        wxPropertyGrid(parent, id, pos, size, style, name) {}
-    virtual ~xlPropertyGrid() {}
-    void OnKillFocus(wxFocusEvent& event) {
-        wxIdleEvent ev;
-        OnIdle(ev);
-    }
-};
 void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
     inInitialize = true;
     // create the checked tree control

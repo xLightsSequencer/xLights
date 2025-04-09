@@ -71,6 +71,7 @@
 #include "CustomModelDialog.h"
 #include "SubModelsDialog.h"
 #include "xlColourData.h"
+#include "xlPropertyGrid.h"
 
 #include "LayoutUtils.h"
 
@@ -444,7 +445,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     modelPreview->Connect(EVT_MOTION3D, (wxObjectEventFunction)&LayoutPanel::OnPreviewMotion3D, nullptr, this);
     modelPreview->Connect(EVT_MOTION3D_BUTTONCLICKED, (wxObjectEventFunction)&LayoutPanel::OnPreviewMotion3DButtonEvent, nullptr, this);
 
-    propertyEditor = new wxPropertyGrid(ModelSplitter,
+    propertyEditor = new xlPropertyGrid(ModelSplitter,
                                         wxID_ANY, // id
                                         wxDefaultPosition, // position
                                         wxDefaultSize, // size
@@ -453,7 +454,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
                                         wxPG_SPLITTER_AUTO_CENTER | // Automatically center splitter until user manually adjusts it
                                         // Default style
                                         wxPG_DEFAULT_STYLE);
-    propertyEditor->SetExtraStyle(wxWS_EX_PROCESS_IDLE | wxPG_EX_HELP_AS_TOOLTIPS);
+    propertyEditor->SetExtraStyle(wxPG_EX_HELP_AS_TOOLTIPS);
+    propertyEditor->Connect(wxEVT_KILL_FOCUS,(wxObjectEventFunction)&xlPropertyGrid::OnKillFocus, 0, propertyEditor);
     LayoutUtils::CreateImageList(m_imageList);
 
     wxFlexGridSizer* FlexGridSizerModels = new wxFlexGridSizer(0, 1, 0, 0);

@@ -22,6 +22,7 @@
 #include "effects/EffectManager.h"
 #include "effects/RenderableEffect.h"
 #include "xLightsMain.h"
+#include "xlPropertyGrid.h"
 
 //(*IdInit(KeyBindingEditDialog)
 const long KeyBindingEditDialog::ID_STATICTEXT1 = wxNewId();
@@ -134,13 +135,14 @@ KeyBindingEditDialog::KeyBindingEditDialog(xLightsFrame* parent, KeyBindingMap* 
     ListCtrl_Bindings->SetColumnWidth(1, wxCOL_WIDTH_AUTOSIZE);
     ListCtrl_Bindings->SetColumnWidth(6, wxCOL_WIDTH_AUTOSIZE);
 
-	_propertyGrid = new wxPropertyGrid(Panel_Properties, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+	_propertyGrid = new xlPropertyGrid(Panel_Properties, wxID_ANY, wxDefaultPosition, wxDefaultSize,
 		// Here are just some of the supported window styles
 		//wxPG_AUTO_SORT | // Automatic sorting after items added
 		wxPG_SPLITTER_AUTO_CENTER | // Automatically center splitter until user manually adjusts it
 		// Default style
 		wxPG_DEFAULT_STYLE);
-	_propertyGrid->SetExtraStyle(wxWS_EX_PROCESS_IDLE | wxPG_EX_HELP_AS_TOOLTIPS);
+	_propertyGrid->SetExtraStyle(wxPG_EX_HELP_AS_TOOLTIPS);
+    _propertyGrid->Connect(wxEVT_KILL_FOCUS,(wxObjectEventFunction)&xlPropertyGrid::OnKillFocus, 0, _propertyGrid);
 	FlexGridSizer3->Add(_propertyGrid, 1, wxALL | wxEXPAND, 5);
 	_propertyGrid->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&KeyBindingEditDialog::OnControllerPropertyGridChange, 0, this);
     _propertyGrid->SetValidationFailureBehavior(wxPGVFBFlags::MarkCell | wxPGVFBFlags::Beep);
