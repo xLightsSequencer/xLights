@@ -396,7 +396,9 @@ enum TextDirection {
     TEXTDIR_DOWNRIGHT,
     TEXTDIR_WAVEY_LRUPDOWN,
     TEXTDIR_VECTOR,
-    TEXTDIR_WORDFLIP
+    TEXTDIR_WORDFLIP,
+    TEXTDIR_LEFTRIGHT,
+    TEXTDIR_UPDOWN
 };
 
 static TextDirection TextEffectDirectionsIndex(const wxString &st) {
@@ -414,6 +416,8 @@ static TextDirection TextEffectDirectionsIndex(const wxString &st) {
         return TEXTDIR_VECTOR;
     if (st == "word-flip")
         return TEXTDIR_WORDFLIP;
+    if (st == "left-right") return TEXTDIR_LEFTRIGHT;
+    if (st == "up-down") return TEXTDIR_UPDOWN;
     return TEXTDIR_NONE;
 }
 static int TextCountDownIndex(const wxString &st) {
@@ -1082,6 +1086,38 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
                 else
                     rect.Offset(xlimit/16 - state % xlimit/8, zigzag(state/4, totheight)/2 - totheight/4);
                 break; // left-to-right, wavey up-down 1/2 height (too bouncy if full height is used), slow down up/down motion (too fast unless scaled)
+            case TEXTDIR_LEFTRIGHT: {
+                int OffsetX;
+                const int cycle = xlimit;
+                const int halfCycle = xlimit / 2;
+                const int normalizedState = state % cycle;
+                if (normalizedState <= halfCycle) {
+                    OffsetX = xlimit / 8 - (normalizedState * (xlimit / 4)) / halfCycle;
+                } else {
+                    OffsetX = -xlimit / 8 + ((normalizedState - halfCycle) * (xlimit / 4)) / halfCycle;
+                }
+                if (norepeat && state > xlimit) {
+                    rect.Offset(-xlimit, OffsetTop);
+                } else {
+                    rect.Offset(OffsetX, OffsetTop);
+                }
+            } break; // Moves right to left, then left to right
+            case TEXTDIR_UPDOWN: {
+                int OffsetY;
+                const int cycle = ylimit;
+                const int halfCycle = ylimit / 2;
+                const int normalizedState = state % cycle;
+                if (normalizedState <= halfCycle) {
+                    OffsetY = (ylimit / 16) - (normalizedState * (ylimit / 8)) / halfCycle;
+                } else {
+                    OffsetY = -(ylimit / 16) + ((normalizedState - halfCycle) * (ylimit / 8)) / halfCycle;
+                }
+                if (norepeat && state > ylimit) {
+                    rect.Offset(OffsetLeft, -ylimit);
+                } else {
+                    rect.Offset(OffsetLeft, OffsetY);
+                }
+            } break; // Moves top to bottom, then back bottom to top
             case TEXTDIR_WORDFLIP:
             case TEXTDIR_NONE: //fall thru to default
             default:
@@ -1779,6 +1815,38 @@ void TextEffect::AddMotions(int& OffsetLeft, int& OffsetTop, const SettingsMap& 
         OffsetLeft = xlimit / 16 - state % xlimit / 8;
         OffsetTop = zigzag(state / 4, totheight) / 2 - totheight / 4;
         break; // left-to-right, wavey up-down 1/2 height (too bouncy if full height is used), slow down up/down motion (too fast unless scaled)
+    case TEXTDIR_LEFTRIGHT: {
+        int OffsetX;
+        const int cycle = xlimit;
+        const int halfCycle = xlimit / 2;
+        const int normalizedState = state % cycle;
+        if (normalizedState <= halfCycle) {
+            OffsetX = (xlimit / 16) - (normalizedState * (xlimit / 8)) / halfCycle;
+        } else {
+            OffsetX = -(xlimit / 16) + ((normalizedState - halfCycle) * (xlimit / 8)) / halfCycle;
+        }
+        if (norepeat && state > xlimit) {
+            OffsetLeft = -xlimit;
+        } else {
+            OffsetLeft = OffsetX;
+        }
+    } break; // Moves left then back right
+    case TEXTDIR_UPDOWN: {
+        int OffsetY;
+        const int cycle = ylimit;
+        const int halfCycle = ylimit / 2;
+        const int normalizedState = state % cycle;
+        if (normalizedState <= halfCycle) {
+            OffsetY = (ylimit / 16) - (normalizedState * (ylimit / 8)) / halfCycle;
+        } else {
+            OffsetY = -(ylimit / 16) + ((normalizedState - halfCycle) * (ylimit / 8)) / halfCycle;
+        }
+        if (norepeat && state > ylimit) {
+            OffsetTop = -ylimit;
+        } else {
+            OffsetTop = OffsetY;
+        }
+    } break; // Moves bottom to top, then back top to bottom
     default:
         break;
     }
