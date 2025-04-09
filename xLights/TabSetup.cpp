@@ -1636,6 +1636,20 @@ void xLightsFrame::StatusRefreshTimer(wxTimerEvent& event) {
     }
 }
 
+class xlPropertyGrid : public wxPropertyGrid {
+public:
+    xlPropertyGrid(wxWindow *parent, wxWindowID id = wxID_ANY,
+                   const wxPoint& pos = wxDefaultPosition,
+                   const wxSize& size = wxDefaultSize,
+                   long style = wxPG_DEFAULT_STYLE,
+                   const wxString& name = wxASCII_STR(wxPropertyGridNameStr)) :
+        wxPropertyGrid(parent, id, pos, size, style, name) {}
+    virtual ~xlPropertyGrid() {}
+    void OnKillFocus(wxFocusEvent& event) {
+        wxIdleEvent ev;
+        OnIdle(ev);
+    }
+};
 void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
     inInitialize = true;
     // create the checked tree control
@@ -1695,18 +1709,20 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
     }
 
     if (Controllers_PropertyEditor == nullptr) {
-        Controllers_PropertyEditor = new wxPropertyGrid(Panel5, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+        xlPropertyGrid *grid = new xlPropertyGrid(Panel5, wxID_ANY, wxDefaultPosition, wxDefaultSize,
             // Here are just some of the supported window styles
             //wxPG_AUTO_SORT | // Automatic sorting after items added
             wxPG_SPLITTER_AUTO_CENTER | // Automatically center splitter until user manually adjusts it
             // Default style
             wxPG_DEFAULT_STYLE);
-        Controllers_PropertyEditor->SetExtraStyle(wxWS_EX_PROCESS_IDLE | wxPG_EX_HELP_AS_TOOLTIPS);
+        Controllers_PropertyEditor = grid;
+        Controllers_PropertyEditor->SetExtraStyle(wxPG_EX_HELP_AS_TOOLTIPS);
         FlexGridSizerSetupProperties->Add(Controllers_PropertyEditor, 1, wxALL | wxEXPAND, 5);
         Controllers_PropertyEditor->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&xLightsFrame::OnControllerPropertyGridChange, 0, this);
         Controllers_PropertyEditor->Connect(wxEVT_PG_ITEM_COLLAPSED, (wxObjectEventFunction)&xLightsFrame::OnControllerPropertyGridCollapsed, 0, this);
         Controllers_PropertyEditor->Connect(wxEVT_PG_ITEM_EXPANDED, (wxObjectEventFunction)&xLightsFrame::OnControllerPropertyGridExpanded, 0, this);
         Controllers_PropertyEditor->SetValidationFailureBehavior(wxPGVFBFlags::MarkCell | wxPGVFBFlags::Beep);
+        Controllers_PropertyEditor->Connect(wxEVT_KILL_FOCUS,(wxObjectEventFunction)&xlPropertyGrid::OnKillFocus, 0, grid);
 
         Controllers_PropertyEditor->AddActionTrigger(wxPGKeyboardAction::NextProperty, WXK_RETURN);
         Controllers_PropertyEditor->DedicateKey(WXK_RETURN);
