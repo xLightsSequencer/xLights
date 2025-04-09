@@ -159,6 +159,8 @@
 													<item>down-right</item>
 													<item>wavey</item>
 													<item>word-flip</item>
+													<item>left-right</item>
+													<item>up-down</item>
 												</content>
 												<selection>0</selection>
 												<handler function="OnChoice_Text_DirSelect" entry="EVT_CHOICE" />
