@@ -4128,23 +4128,15 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
 
         // For 3D render view buffers recursively process each individual model...should be able to handle nested model groups
         if (GetDisplayAs() == "ModelGroup" && camera != "2D") {
-            std::vector<Model*> models;
-            auto mn = Split(ModelXml->GetAttribute("models").ToStdString(), ',', true);
+            const ModelGroup *mg = dynamic_cast<const ModelGroup*>(this);
             int nc = 0;
-            for (int x = 0; x < mn.size(); ++x) {
-                Model* c = modelManager.GetModel(mn[x]);
-                if (c != nullptr) {
-                    models.push_back(c);
-                    nc += c->GetNodeCount();
-                } else if (mn[x].empty()) {
-                    // silently ignore blank models
-                }
+            for (auto &c : mg->ActiveModels()) {
+                nc += c->GetNodeCount();
             }
-
             if (nc) {
                 newNodes.reserve(nc);
             }
-            for (Model* c : models) {
+            for (auto &c : mg->ActiveModels()) {
                 int bw, bh;
                 c->InitRenderBufferNodes("Per Preview No Offset", camera, transform, newNodes, bw, bh, stagger);
             }
