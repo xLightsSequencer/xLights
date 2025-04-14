@@ -75,6 +75,7 @@ class EffectsGridSettingsPanel: public wxPanel
 		void OnGroupEffectIndicatorClick(wxCommandEvent& event);
 		void OnPaint(wxPaintEvent& event);
 		void OnAlternateTimingFormatCheckBoxClick(wxCommandEvent& event);
+		void OnShowAlternateTimingFormatCheckBoxClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
