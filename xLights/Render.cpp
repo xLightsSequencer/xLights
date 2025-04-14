@@ -1520,7 +1520,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
                         job->SetModelBlending();
                     }
                     PixelBufferClass *buffer = job->getBuffer();
-                    if (buffer == nullptr) {
+                    if (buffer == nullptr || buffer->GetNodeCount() == 0) {
                         delete job;
                         continue;
                     }

@@ -141,6 +141,9 @@ ISPCComputeUtilities::~ISPCComputeUtilities() {
 }
 
 bool ISPCComputeUtilities::blendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels) {
+    if (pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() == 0) {
+        return false;
+    }
     if (pixelBuffer->blendDataBuffer.size() < pixelBuffer->layers[saveLayer]->buffer.GetNodeCount()) {
         pixelBuffer->blendDataBuffer.resize(pixelBuffer->layers[saveLayer]->buffer.GetNodeCount());
     }
