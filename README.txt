@@ -11,6 +11,38 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2025.05 April 14, 2025
+    - enh (cybercop23)      Add optional status led for each controller on Controllers tab (enabled in settings)
+    - enh (derwin12)        Add popup menu option to close gaps between effects
+    - enh (derwin12)        Add "Alternate Nodes" option to Sphere model
+    - enh (derwin12)        Adjust Save and Save As tool tips to reflect if Render on Save is enabled
+    - enh (derwin12)        Allow Seconds + Millisecond for timeline instead of m:s:ms
+    - enh (scott)           Sub Model Dialog - add ability to pad the front/rear of rows to make them uniform
+    - enh (derwin12)        Colorize X/Y/Z coordinates for BoxScreenLocation based models
+    - enh (keith)           Render Progress dialog can save position/size
+    - enh (derwin12)        Handle IPV6 proxy addresses if hostname resolves only to IPV6
+    - enh (dkulp)           MacOS - point Mac VAMP users to new 2.0 plugin pack
+    - enh (cybercop23)      Show stated of effect render status in popup menu
+    - enh (derwin12)        Add number of effects to left side of Import Mapping
+    - enh (cybercop23)      Add Export Faces & States to other Models
+    - enh (derwin12)        Add leftright text effect option
+    - enh (keith)           Mark sm16804 as a supported pixel type
+    - bug (derwin12)        Only enable media adjustment buttons if media is actually found
+    - bug (derwin12)        Fix problems rendering some multi-path SVG's
+    - bug (derwin12)        Tweak preference panes for smaller screens
+    - bug (cybercop23)      Fix populating properly list when searching for model
+    - bug (cybercop23)      Fix some problems with fade in/out of audio with the prepare audio functions
+    - bug (cybercop23)      Fix settings not properly reflected after bulk edit
+    - bug (MartinMueller)   Fix some issues with ESPixelStick uploads
+    - bug (derwin12)        Fix some crashes with the Video effect
+    - bug (derwin12)        Fix a crash with Pinwheel effect
+    - bug (derwin12)        Fix F48v3 discovery
+    - bug (derwin12)        Account for alt nodes when display node layout
+    - bug (dkulp)           Hopefully fix crash on Mac when using keys to navigate/select choice options on property grids
+    - bug (derwin12)        Abort render if effects moved to prevent crashes
+    - bug (dkulp)           Fix crash with effects on empty groups, don't add render jobs for models/groups with no nodes
+    - bug (dkulp)           Make sure only "active" models are used to compute nodes of groups with named cameras
+    - bug (dkulp)           Catch Crashing Emoji Effect on single line buffer styles
 2025.04 March 7, 2025
     - enh (cybercop23)      And SubModel name to SubModelDialog title
     - enh (derwin12)        Rename OK button to "Close" for effect preset dialog
