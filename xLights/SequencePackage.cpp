@@ -213,6 +213,7 @@ void SequencePackage::Extract()
                     if (ext == "xsq") {
                         _xsqFile = fnOutput;
                         _xsqName = fnOutput.GetName();
+                        _xsqName.erase(std::remove(_xsqName.begin(), _xsqName.end(), ','), _xsqName.end());
                     } else if (ext == "xml") {
                         if (fnOutput.GetName() == "xlights_rgbeffects") {
                             wxXmlDocument rgbEffects;
@@ -230,6 +231,7 @@ void SequencePackage::Extract()
                                 if (doc.GetRoot()->GetName() == "xsequence") {
                                     _xsqFile = fnOutput;
                                     _xsqName = fnOutput.GetName();
+                                    _xsqName.erase(std::remove(_xsqName.begin(), _xsqName.end(), ','), _xsqName.end());
                                 }
                             }
                         }
