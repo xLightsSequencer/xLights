@@ -117,6 +117,7 @@ void AssistPanel::RefreshEffect() {
         wxSize sz = GetSize();
         mGridCanvas->SetNumColumns(bw);
         mGridCanvas->SetNumRows(bh);
+        mGridCanvas->SetToolTip(wxString::Format("Render Buffer - %dC x %dR", bw, bh));
         mGridCanvas->SetEffect(mEffect);
         mGridCanvas->AdjustSize(sz);
         mGridCanvas->Refresh();
