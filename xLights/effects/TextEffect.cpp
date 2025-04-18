@@ -1535,7 +1535,6 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     wxString filename = settings["FILEPICKERCTRL_Text_File"];
     wxString lyricTrack = settings["CHOICE_Text_LyricTrack"];
 
-    // File and lyric track handling remains unchanged
     if (text == "") {
         if (FileExists(filename)) {
             wxTextFile f(filename);
@@ -1596,7 +1595,6 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     ReplaceVaribles(msg, buffer);
     text = msg;
 
-    // Split text into lines
     wxArrayString lines = wxSplit(text, '\n');
     std::vector<int> line_lengths;
     int max_line_length = 0;
@@ -1633,10 +1631,8 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     int PreOffsetLeft = OffsetLeft;
     int PreOffsetTop = OffsetTop;
 
-    // Use max_line_length for motion calculations
     AddMotions(OffsetLeft, OffsetTop, settings, buffer, text.size(), endx, endy, pixelOffsets, PreOffsetLeft, PreOffsetTop, max_line_length, char_width, char_height, vertical, rotate_90);
 
-    // Adjust offsets based on text effect
     if (rotate_90) {
         OffsetLeft += buffer.BufferWi / 2 - font->GetCapsHeight() / 2;
         if (up) {
@@ -1664,7 +1660,6 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
         int curPos = 0;
         for (size_t line_idx = 0; line_idx < lines.size(); line_idx++) {
             const wxString& line = lines[line_idx];
-            // Center each line individually
             int line_offset_left = OffsetLeft - line_lengths[line_idx] / 2;
 
             for (int i = 0; i < line.length(); i++) {
@@ -1715,7 +1710,6 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
                     line_offset_left += actual_width;
                 }
             }
-            // Move to next line
             OffsetTop += font->GetHeight() + 1;
         }
     }
