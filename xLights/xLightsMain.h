@@ -1735,6 +1735,7 @@ public:
     bool IsACActive();
     void GetACSettings(ACTYPE& type, ACSTYLE& style, ACTOOL& tool, ACMODE& mode);
     int GetACIntensity();
+    bool IsSequencerInitialize() {return mSequencerInitialize;}
     void GetACRampValues(int& a, int& b);
     void UpdateACToolbar(bool forceState = true); // if force state is false then it will force disable the AC toolbar
     void SetACSettings(ACTOOL tool);
