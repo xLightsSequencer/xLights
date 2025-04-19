@@ -24,6 +24,7 @@
 #include "../ExternalHooks.h"
 #include "outputs/OutputManager.h"
 #include "../ModelPreview.h"
+#include "RulerObject.h"
 
 #include <log4cpp/Category.hh>
 
@@ -1683,6 +1684,29 @@ void CustomModel::ExportXlightsModel()
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
     f.Write(wxString::Format("LayoutGroup=\"%s\" ", lg));
     f.Write(wxString::Format("CustomModelCompressed=\"%s\" ", cmc));
+
+    // If we have a ruler then also include the model dimensions so when imported we can bring them in as the right size
+    if (RulerObject::GetRuler() != nullptr)
+    {
+        float widthmm = RulerObject::GetRuler()->Convert(RulerObject::GetRuler()->GetUnits(), "mm", RulerObject::GetRuler()->Measure(GetModelScreenLocation().GetMWidth()));
+        float heightmm = RulerObject::GetRuler()->Convert(RulerObject::GetRuler()->GetUnits(), "mm", RulerObject::GetRuler()->Measure(GetModelScreenLocation().GetMHeight()));
+        float depthmm = RulerObject::GetRuler()->Convert(RulerObject::GetRuler()->GetUnits(), "mm", RulerObject::GetRuler()->Measure(GetModelScreenLocation().GetMDepth()));
+        if (d == "1")
+        {
+            depthmm = -1;
+        }
+        if (widthmm > 0)
+        {
+            f.Write(wxString::Format("widthmm=\"%d\" ", (int)widthmm));
+        }
+        if (heightmm > 0) {
+            f.Write(wxString::Format("heightmm=\"%d\" ", (int)heightmm));
+        }
+        if (depthmm > 0) {
+            f.Write(wxString::Format("depthmm=\"%d\" ", (int)depthmm));
+        }
+    }
+
     f.Write("CustomModel=\"");
     f.Write(cm);
     f.Write("\" ");

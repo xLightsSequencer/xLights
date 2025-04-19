@@ -196,6 +196,133 @@ std::string RulerObject::MeasureDepthDescription(glm::vec3 p1, glm::vec3 p2)
     return wxString::Format("%0.02f%s", MeasureDepth(p1,p2), GetUnitDescription()).ToStdString();
 }
 
+float RulerObject::Convert(const std::string& fromUnits, int toUnits, float measure) {
+    std::string tu = "";
+    switch (toUnits) {
+    case RULER_UNITS_INCHES:
+        tu = "i";
+        break;
+    case RULER_UNITS_FEET:
+        tu = "f";
+        break;
+    case RULER_UNITS_YARDS:
+        tu = "y";
+        break;
+    case RULER_UNITS_MM:
+        tu = "mm";
+        break;
+    case RULER_UNITS_CM:
+        tu = "cm";
+        break;
+    case RULER_UNITS_M:
+        tu = "m";
+        break;
+    }
+
+    return Convert(fromUnits, tu, measure);
+}
+
+float RulerObject::Convert(int fromUnits, const std::string& toUnits, float measure) {
+    std::string fu = "";
+    switch (fromUnits) {
+    case RULER_UNITS_INCHES:
+        fu = "i";
+        break;
+    case RULER_UNITS_FEET:
+        fu = "f";
+        break;
+    case RULER_UNITS_YARDS:
+        fu = "y";
+        break;
+    case RULER_UNITS_MM:
+        fu = "mm";
+        break;
+    case RULER_UNITS_CM:
+        fu = "cm";
+        break;
+    case RULER_UNITS_M:
+        fu = "m";
+        break;
+    }
+
+    return Convert(fu, toUnits, measure);
+}
+
+float RulerObject::Convert(const std::string& fromUnits, const std::string& toUnits, float measure) {
+    if (fromUnits == toUnits)
+        return measure;
+
+    if (fromUnits == "m") {
+        if (toUnits == "cm")
+            return measure * 100;
+        if (toUnits == "mm")
+            return measure * 1000;
+        if (toUnits == "i")
+            return measure / 0.0254f;
+        if (toUnits == "f")
+            return measure / (12 * 0.0254f);
+        if (toUnits == "y")
+            return measure / (36 * 0.0254f);
+    } else if (fromUnits == "cm") {
+        if (toUnits == "m")
+            return measure / 100;
+        if (toUnits == "mm")
+            return measure * 10;
+        if (toUnits == "i")
+            return measure / 2.54f;
+        if (toUnits == "f")
+            return measure / (12 * 2.54f);
+        if (toUnits == "y")
+            return measure / (36 * 2.54f);
+    } else if (fromUnits == "mm") {
+        if (toUnits == "m")
+            return measure / 1000;
+        if (toUnits == "cm")
+            return measure / 10;
+        if (toUnits == "i")
+            return measure / 25.4f;
+        if (toUnits == "f")
+            return measure / (12 * 25.4f);
+        if (toUnits == "y")
+            return measure / (36 * 25.4f);
+    } else if (fromUnits == "i") {
+        if (toUnits == "m")
+            return measure * 0.0254f;
+        if (toUnits == "cm")
+            return measure * 2.54f;
+        if (toUnits == "mm")
+            return measure * 25.4f;
+        if (toUnits == "f")
+            return measure / 12;
+        if (toUnits == "y")
+            return measure / 36;
+    } else if (fromUnits == "f") {
+        if (toUnits == "m")
+            return measure * 0.0254f * 12;
+        if (toUnits == "cm")
+            return measure * 2.54f * 12;
+        if (toUnits == "mm")
+            return measure * 25.4f * 12;
+        if (toUnits == "i")
+            return measure * 12;
+        if (toUnits == "y")
+            return measure / 3;
+    } else if (fromUnits == "y") {
+        if (toUnits == "m")
+            return measure * 0.0254f * 36;
+        if (toUnits == "cm")
+            return measure * 2.54f * 36;
+        if (toUnits == "mm")
+            return measure * 25.4f * 36;
+        if (toUnits == "i")
+            return measure * 36;
+        if (toUnits == "f")
+            return measure * 3;
+    }
+
+    return 0.0f;
+}
+
 float RulerObject::ConvertDimension(const std::string& units, float measure)
 {
     if (units == "m") // metres

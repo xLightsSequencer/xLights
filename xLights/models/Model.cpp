@@ -6452,6 +6452,16 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                 if (doc.IsOk() && doc.GetRoot()->GetAttribute("name", "") != "") {
                     docLoaded = true;
                     wxString modelName = doc.GetRoot()->GetAttribute("name", "");
+
+                    if (doc.GetRoot()->GetAttribute("widthmm", "") != "") {
+						widthmm = wxAtoi(doc.GetRoot()->GetAttribute("widthmm", ""));
+					}
+                    if (doc.GetRoot()->GetAttribute("heightmm", "") != "") {
+						heightmm = wxAtoi(doc.GetRoot()->GetAttribute("heightmm", ""));
+					}
+                    if (doc.GetRoot()->GetAttribute("depthmm", "") != "") {
+						depthmm = wxAtoi(doc.GetRoot()->GetAttribute("depthmm", ""));
+					}
 #ifdef __WXMSW__
                     // If a windows user does not want vendor recommendations then dont go looking for them at all
                     // I have allowed this to be off (ie it does the vendor recommendation check) by default but once
