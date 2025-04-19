@@ -947,7 +947,7 @@ bool ModelManager::ReworkStartChannel() const
                 auto oldC = it->GetChannels();
                 // Set channel size won't always change the number of channels for some protocols
                 it->SetChannelSize(std::max((int32_t)1, (int32_t)ch - 1), allSortedModels);
-                if (it->GetChannels() != oldC || (eth != nullptr && eth->IsUniversePerString())) {
+                if (it->GetChannels() != oldC || (eth != nullptr && xlights->IsSequencerInitialize() && eth->IsUniversePerString() )) {
                     outputManager->SomethingChanged();
 
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel");
