@@ -1635,6 +1635,36 @@ std::string CheckSequenceReport::RenderModelIssues(const std::vector<ReportIssue
 
     html += RenderSectionEnd();
 
+    html += RenderSectionStart("Moving Head Model Groups with all heads with default fixture name", " mt-4");
+
+    bool hasMHIssues = false;
+    std::map<std::string, std::vector<std::string>> mhIssues;
+
+    for (const auto& issue : issues) {
+        if (issue.category == "groupmovinghead") {
+            hasMHIssues = true;
+            std::string msg = issue.message;
+
+            // Extract model group name - always between first quotes
+            size_t groupStart = msg.find("'") + 1;
+            size_t groupEnd = msg.find("' contains", groupStart);
+
+            if (groupStart != std::string::npos && groupEnd != std::string::npos) {
+                std::string groupName = msg.substr(groupStart, groupEnd - groupStart);
+                // Store the rest of the message after "contains"
+                if (issue.type == ReportIssue::CRITICAL || issue.type == ReportIssue::WARNING) {
+                    html += RenderIssueBox(issue);
+                }
+            }
+        }
+    }
+
+    if (!hasMHIssues) {
+        html += RenderNoIssuesFound("MH groups with all default fixture names");
+    }
+
+    html += RenderSectionEnd();
+
     html += RenderSectionStart("SubModels with no nodes", " mt-4");
 
     bool hasSubModelNoNodesIssues = false;

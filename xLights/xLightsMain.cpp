@@ -118,6 +118,7 @@
 #include "xlColourData.h"
 #include "utils/Curl.h"
 #include "ai/chatGPT.h"
+#include "models/DMX/DmxMovingHeadComm.h"
 
 #include "../xSchedule/wxHTTPServer/wxhttpserver.h"
 
@@ -6142,6 +6143,59 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                         wxString msg = wxString::Format("    WARN: Model group '%s' contains DMX models with varying numbers of channels. This is not likely to work as expected.", (const char*)it->Name().c_str());
                         LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "groupdmx", errcount, warncount);
                         break;
+                    }
+                }
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave) {
+        LogCheckSequenceMsg("    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Check for model groups containing moving heads where the heads are all numbered MH1
+    LogCheckSequenceMsg("");
+    LogCheckSequenceMsg("Model Groups containing moving heads which have not been numbered");
+
+    for (const auto& it : AllModels) {
+        if (it.second->GetDisplayAs() == "ModelGroup") {
+            ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
+            if (mg != nullptr) { // this should never fail
+                auto models = mg->ModelNames();
+
+                bool allMovingHeads = true;
+                uint32_t count = 0;
+                for (const auto& m : models) {
+                    Model* model = AllModels.GetModel(m);
+
+                    if (model != nullptr) {
+                        if (model->GetDisplayAs() != "DmxMovingHeadAdv" && model->GetDisplayAs() != "DmxMovingHead") {
+							allMovingHeads = false;
+							break;
+						}
+                        ++count;
+                    }
+                }
+
+                if (count > 1 && allMovingHeads) {
+                    bool numberOK = false;
+
+                    // now check if any are not MH1
+                    for (const auto& m : models) {
+                        Model* model = AllModels.GetModel(m);
+
+                        if (model != nullptr) {
+                            if (dynamic_cast <DmxMovingHeadComm*>(model)->GetFixture() != "MH1") {
+                                numberOK = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!numberOK) {
+                        wxString msg = wxString::Format("    WARN: Model group '%s' contains multiple moving heads but they are all numbered MH1. This may not work as expected with the moving head effect if you want to do fans.", mg->GetName());
+                        LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "groupmovinghead", errcount, warncount);
                     }
                 }
             }
