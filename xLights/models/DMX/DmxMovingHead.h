@@ -58,7 +58,7 @@ class DmxMovingHead : public DmxMovingHeadComm, public DmxDimmerAbility
         virtual void InitModel() override;
 
         virtual void ExportXlightsModel() override;
-        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
 
         virtual float GetDefaultBeamWidth() const { return 30; }
 

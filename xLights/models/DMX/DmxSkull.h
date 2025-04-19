@@ -141,7 +141,7 @@ class DmxSkull : public DmxModel
         float GetServoPos(Servo* _servo, bool active);
 
         virtual void ExportXlightsModel() override;
-        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
         virtual std::list<std::string> CheckModelSettings() override;
 
         Mesh* head_mesh = nullptr;

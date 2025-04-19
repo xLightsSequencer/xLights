@@ -3671,6 +3671,8 @@ void LayoutPanel::FinalizeModel()
             float max_x = (float)(_newModel->GetBaseObjectScreenLocation().GetRight());
             float min_y = (float)(_newModel->GetBaseObjectScreenLocation().GetBottom());
             float max_y = (float)(_newModel->GetBaseObjectScreenLocation().GetTop());
+            float min_z = (float)(_newModel->GetBaseObjectScreenLocation().GetFront());
+            float max_z = (float)(_newModel->GetBaseObjectScreenLocation().GetBack());
             bool cancelled = false;
             auto pos = _newModel->GetBaseObjectScreenLocation().GetWorldPosition();
 
@@ -3685,7 +3687,11 @@ void LayoutPanel::FinalizeModel()
             auto oldam = modelPreview->GetAdditionalModel();
             modelPreview->SetAdditionalModel(nullptr); // just in case we delete the model
 
-            _newModel = Model::GetXlightsModel(_newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99, modelPreview);
+            int widthmm = -1;
+            int heightmm = -1;
+            int depthmm = -1;
+
+            _newModel = Model::GetXlightsModel(_newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99, modelPreview, widthmm, heightmm, depthmm);
 
             // These statements ensure the Additional model and _newModel pointers are all ok and any unnecessary models is cleaned up
             if (_newModel != oldNewModel) {
@@ -3747,7 +3753,27 @@ void LayoutPanel::FinalizeModel()
             if (!_newModel->SupportsVisitors() || !XmlSerializer::IsXmlSerializerFormat(_newModel->GetModelXml())) {
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Do the import. " + _lastXlightsModel);
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Model type " + _newModel->GetDisplayAs());
-                bool success = _newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y);
+
+                // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+                if (RulerObject::GetRuler() != nullptr && (widthmm != -1 || heightmm != -1 || depthmm != -1)) {
+                    if (widthmm != -1) {
+                        float measure = RulerObject::GetRuler()->UnMeasure(RulerObject::GetRuler()->ConvertDimension("mm", widthmm));
+                        max_x = measure / 2.0;
+                        min_x = -1 * max_x;
+                    }
+                    if (heightmm != -1) {
+                        float measure = RulerObject::GetRuler()->UnMeasure(RulerObject::GetRuler()->ConvertDimension("mm", heightmm));
+                        max_y = measure / 2.0;
+                        min_y = -1 * max_y;
+                    }
+                    if (depthmm != -1) {
+                        float measure = RulerObject::GetRuler()->UnMeasure(RulerObject::GetRuler()->ConvertDimension("mm", depthmm));
+						max_z = measure / 2.0;
+						min_z = -1 * max_z;
+					}
+                }
+
+                bool success = _newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y, min_z, max_z);
                 if (!success) {
                     _lastXlightsModel = "";
                     xlights->GetOutputModelManager()->ClearSelectedModel();

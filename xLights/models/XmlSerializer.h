@@ -425,7 +425,9 @@ private:
         float max_x = (float)(model->GetBaseObjectScreenLocation().GetRight());
         float min_y = (float)(model->GetBaseObjectScreenLocation().GetBottom());
         float max_y = (float)(model->GetBaseObjectScreenLocation().GetTop());
-        model->ImportModelChildren(node, xlights, newname, min_x, max_x, min_y, max_y);
+        float min_z = (float)(model->GetBaseObjectScreenLocation().GetFront());
+        float max_z = (float)(model->GetBaseObjectScreenLocation().GetBack());
+        model->ImportModelChildren(node, xlights, newname, min_x, max_x, min_y, max_y, min_z, max_z);
 
         return model;
     }
@@ -442,7 +444,9 @@ private:
         float max_x = (float)(model->GetBaseObjectScreenLocation().GetRight());
         float min_y = (float)(model->GetBaseObjectScreenLocation().GetBottom());
         float max_y = (float)(model->GetBaseObjectScreenLocation().GetTop());
-        model->ImportModelChildren(node, xlights, newname, min_x, max_x, min_y, max_y);
+        float min_z = (float)(model->GetBaseObjectScreenLocation().GetFront());
+        float max_z = (float)(model->GetBaseObjectScreenLocation().GetBack());
+        model->ImportModelChildren(node, xlights, newname, min_x, max_x, min_y, max_y, min_z, max_z);
 
         return model;
     }
@@ -509,7 +513,9 @@ struct XmlSerializer
         float max_x = (float)(model->GetBaseObjectScreenLocation().GetRight());
         float min_y = (float)(model->GetBaseObjectScreenLocation().GetBottom());
         float max_y = (float)(model->GetBaseObjectScreenLocation().GetTop());
-        model->ImportModelChildren(model->GetModelXml(), xlights, model->GetName(), min_x, max_x, min_y, max_y);
+        float min_z = (float)(model->GetBaseObjectScreenLocation().GetFront());
+        float max_z = (float)(model->GetBaseObjectScreenLocation().GetBack());
+        model->ImportModelChildren(model->GetModelXml(), xlights, model->GetName(), min_x, max_x, min_y, max_y, min_z, max_z);
         
         return model;
     }

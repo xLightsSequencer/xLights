@@ -163,7 +163,7 @@ public:
     void SetPixelSize(int size);
     void SetTransparency(int t);
     void SetBlackTransparency(int t);
-    void ApplyDimensions(const std::string& units, float width, float height, float depth, float& min_x, float& max_x, float& min_y, float& max_y);
+    void ApplyDimensions(const std::string& units, float width, float height, float depth, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z);
     void ExportDimensions(wxFile& f) const;
 
     virtual bool AllNodesAllocated() const { return true; }
@@ -197,30 +197,36 @@ public:
     void AddSubmodel(wxXmlNode* n, bool skipPrompt);
     void AddModelAliases(wxXmlNode* n);
     void ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup);
-    Model* CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, wxXmlNode* node, xLightsFrame* xlights, const std::string& startChannel, bool& cancelled) const;
+    [[nodiscard]] Model* CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, wxXmlNode* node, xLightsFrame* xlights, const std::string& startChannel, bool& cancelled) const;
 
-    wxString SerialiseSubmodel() const;
-    wxString SerialiseAliases() const;
-    virtual wxString CreateBufferAsSubmodel() const;
+    [[nodiscard]] wxString SerialiseSubmodel() const;
+    [[nodiscard]] wxString SerialiseAliases() const;
+    virtual [[nodiscard]] wxString CreateBufferAsSubmodel() const;
     bool importAliases = false;
     bool skipImportAliases = false;
 
-    std::map<std::string, std::map<std::string, std::string>> GetDimmingInfo() const;
-    virtual std::list<std::string> CheckModelSettings() override;
-    virtual const std::vector<std::string>& GetBufferStyles() const { return DEFAULT_BUFFER_STYLES; };
+    [[nodiscard]] std::map<std::string, std::map<std::string, std::string>> GetDimmingInfo() const;
+    [[nodiscard]] virtual std::list<std::string> CheckModelSettings() override;
+    virtual [[nodiscard]] const std::vector<std::string>& GetBufferStyles() const {
+        return DEFAULT_BUFFER_STYLES;
+    };
     virtual const std::string AdjustBufferStyle(const std::string &style) const;
     virtual void GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const;
     virtual void InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform,
         std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int stagger, bool deep = false) const;
-    const ModelManager& GetModelManager() const { return modelManager; }
-    virtual bool SupportsXlightsModel() { return false; }
-    static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview);
-    [[nodiscard]] bool ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
-    [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) {
+    const [[nodiscard]] ModelManager& GetModelManager() const {
+        return modelManager;
+    }
+    virtual [[nodiscard]] bool SupportsXlightsModel() {
+        return false;
+    }
+    static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int& depthmm);
+    [[nodiscard]] bool ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z);
+    [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) {
         return true;
     }
     virtual void ExportXlightsModel() {}
-    virtual void ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname, float& min_x, float& max_x, float& min_y, float& max_y);
+    virtual void ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z);
     bool FourChannelNodes() const;
     bool FiveChannelNodes() const;
     std::list<std::string> GetShadowedBy() const;

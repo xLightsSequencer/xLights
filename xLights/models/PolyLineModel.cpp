@@ -1396,7 +1396,7 @@ void PolyLineModel::OnPropertyGridItemExpanded(wxPropertyGridInterface* grid, wx
     }
 }
 
-bool PolyLineModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool PolyLineModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z)
 {
     if (root->GetName() == "polylinemodel") {
         wxString name = root->GetAttribute("name");
@@ -1443,7 +1443,7 @@ bool PolyLineModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         SetProperty("name", newname, true);
 
         ImportSuperStringColours(root);
-        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y, min_z, max_z);
 
         int num_points = wxAtoi(pts);
         ModelXml->DeleteAttribute("NumPoints");

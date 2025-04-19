@@ -23,6 +23,7 @@
 #include <wx/dir.h>
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
+#include <wx/regex.h>
 
 #include "CachedFileDownloader.h"
 #include "UtilFunctions.h"
@@ -40,12 +41,21 @@ public:
     wxURI _xmodelLink;
     wxFileName _xmodelFile;
     MModel* _model;
+    int _modelWidthMM = -1;
+    int _modelHeightMM = -1;
+    int _modelDepthMM = -1;
 
     std::string GetDescription();
 
     ~MModelWiring() { }
 
-    wxColor GetColour() const
+    [[nodiscard]] int GetWidthMM() const { return _modelWidthMM; }
+    [[nodiscard]] int GetHeightMM() const { return _modelHeightMM; }
+        [[nodiscard]] int GetDepthMM() const {
+        return _modelDepthMM;
+    }
+
+    [[nodiscard]] wxColor GetColour() const
     {
         if (_xmodelLink.BuildURI() == "") {
             return wxColour(255, 128, 0);
@@ -70,10 +80,13 @@ public:
 
     void DownloadXModel();
 
-    MModelWiring(wxXmlNode* n, MModel* m)
+    MModelWiring(wxXmlNode* n, MModel* m, int widthMM, int heightMM, int depthMM)
     {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         _model = m;
+        _modelWidthMM = widthMM;
+        _modelHeightMM = heightMM;
+        _modelDepthMM = depthMM;
 
         for (wxXmlNode* l = n->GetChildren(); l != nullptr; l = l->GetNext()) {
             if (l->GetType() != wxXmlNodeType::wxXML_COMMENT_NODE) {
@@ -117,6 +130,7 @@ public:
     std::string _thickness;
     std::string _width;
     std::string _height;
+    std::string _depth;
     std::string _pixelCount;
     std::string _pixelSpacing;
     std::string _pixelDescription;
@@ -127,7 +141,94 @@ public:
     std::list<MModelWiring*> _wiring;
     MVendor* _vendor = nullptr;
 
-    bool InCategory(std::string category)
+    [[nodiscard]] int InterpretSize(const std::string& size)
+    {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+        // strip out all spaces and tabs first
+        std::string s = size;
+        s.erase(remove_if(s.begin(), s.end(), isspace), s.end());
+
+        if (s == "") {
+			return -1;
+		}
+
+        // Because there is no standardisation we need to do our best to interpret sizes
+
+        // numbers and mm (assume mm)
+        // check using regex that the string is just a decimal number and mm
+        wxRegEx regex;
+        if (regex.Compile("^\\d+\\.*\\d*mm$")) {
+            if (regex.Matches(s)) {
+                if (wxAtoi(s) != 0) {
+                    return wxAtoi(s);
+                }
+			}
+        }
+
+        // (xxmm) included
+        if (regex.Compile("\\((\\d+\\.*\\d*)mm\\)")) {
+            if (regex.Matches(s)) {
+                auto ss = regex.GetMatch(s, 1);
+                if (wxAtof(ss) != 0) {
+                    return wxAtoi(ss);
+                }
+            }
+        }
+
+        // numbers and cm (assume cm)
+        if (regex.Compile("^\\d+\\.*\\d*cm$")) {
+            if (regex.Matches(s)) {
+                if (wxAtof(s) != 0) {
+                    return (int)(wxAtof(s) * 10);
+				}
+            }
+        }
+
+        // (xxcm) included
+        if (regex.Compile("\\((\\d+\\.*\\d*)cm\\)")) {
+            if (regex.Matches(s)) {
+                auto ss = regex.GetMatch(s, 1);
+                if (wxAtof(ss) != 0) {
+                    return (int)(wxAtof(ss) * 10);
+				}
+            }
+        }
+
+        // just numbers (assume inches)
+        if (regex.Compile("^\\d+\\.*\\d*$")) {
+            if (regex.Matches(s)) {
+                if (wxAtof(s) != 0) {
+                    return (int)(wxAtof(s) * 25.4);
+                }
+            }
+        }
+
+        if (regex.Compile("^(\\d+\\.*\\d*)'(\\d+\\.*\\d*)\"$")) {
+            if (regex.Matches(s)) {
+                float foot = wxAtof(regex.GetMatch(s, 1));
+                float inch = wxAtof(regex.GetMatch(s, 2));
+                if (foot != 0 || inch != 0) {
+                    return (int)(((foot * 12) + inch) * 25.4);
+				}
+            }
+        }
+
+        // numbers and " (assume inches)
+        if (regex.Compile("^\\d+\\.*\\d*\"$")) {
+            if (regex.Matches(s)) {
+                if (wxAtof(s) != 0) {
+                    return (int)(wxAtof(s) * 25.4);
+				}
+            }
+        }
+
+        logger_base.warn("Unable to interpret size from '%s'", size.c_str());
+
+        return -1;
+    }
+
+    [[nodiscard]] bool InCategory(std::string category)
     {
         for (const auto& it : _categoryIds) {
             if (it == category) return true;
@@ -136,7 +237,7 @@ public:
         return false;
     }
 
-    wxColor GetColour() const
+    [[nodiscard]] wxColor GetColour() const
     {
         if (_wiring.size() == 0 || _wiring.front()->_xmodelLink.BuildURI() == "") {
             return wxColour(255, 128, 0);
@@ -177,8 +278,9 @@ public:
                 }
                 else if (nn == "height") {
                     _height = l->GetNodeContent().ToStdString();
-                }
-                else if (nn == "pixelcount") {
+                } else if (nn == "depth") {
+                    _depth = l->GetNodeContent().ToStdString();
+                } else if (nn == "pixelcount") {
                     _pixelCount = l->GetNodeContent().ToStdString();
                 }
                 else if (nn == "pixelspacing") {
@@ -197,11 +299,26 @@ public:
                     _images.push_back(wxURI(l->GetNodeContent()));
                 }
                 else if (nn == "wiring") {
-                    _wiring.push_back(new MModelWiring(l, this));
+                    // dont handle this until we have processed all the other properties
                 }
                 else {
                     logger_base.warn("MModel: Error processing vendor xml: %s ", (const char*)nn.c_str());
                     wxASSERT(false);
+                }
+            }
+        }
+
+        // now we can handle wiring
+        for (wxXmlNode* l = n->GetChildren(); l != nullptr; l = l->GetNext()) {
+            if (l->GetType() != wxXmlNodeType::wxXML_COMMENT_NODE) {
+                wxString nn = l->GetName().Lower().ToStdString();
+                if (nn == "wiring") {
+                    _wiring.push_back(new MModelWiring(l, this, InterpretSize(_width), InterpretSize(_height), InterpretSize(_depth)));
+
+                    //if (_wiring.back()->GetWidthMM() != -1 || _wiring.back()->GetHeightMM() != -1 || _wiring.back()->GetDepthMM() != -1)
+                    //{
+                    //    logger_base.debug("Size W: '%s'->%dmm H: '%s'->%dmm D: '%s'->%dmm", _width.c_str(), _wiring.back()->GetWidthMM(), _height.c_str(), _wiring.back()->GetHeightMM(), _depth.c_str(), _wiring.back()->GetDepthMM());
+                    //}
                 }
             }
         }
@@ -219,14 +336,14 @@ public:
         }
     }
 
-    std::string PadTitle(std::string t) const
+    [[nodiscard]] std::string PadTitle(std::string t) const
     {
         std::string res = t;
         while (res.size() < 18) res += " ";
         return res;
     }
 
-    std::string GetDescription() const
+    [[nodiscard]] std::string GetDescription() const
     {
         std::string desc;
 
@@ -247,6 +364,9 @@ public:
         }
         if (_height != "") {
             desc += PadTitle("Height:") + _height + "\n";
+        }
+        if (_depth != "") {
+            desc += PadTitle("Depth:") + _depth + "\n";
         }
         if (_pixelCount != "") {
             desc += PadTitle("Pixel Count:") + _pixelCount + "\n";
@@ -954,7 +1074,7 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
     wxTreeItemIdValue cookie;
     for (auto l1 = TreeCtrl_Navigator->GetFirstChild(root, cookie); l1.IsOk(); l1 = TreeCtrl_Navigator->GetNextChild(root, cookie))
     {
-        DeleteEmptyCategories(l1);
+        UNUSED(DeleteEmptyCategories(l1));
     }
 
     TreeCtrl_Navigator->Thaw();
@@ -984,7 +1104,7 @@ bool VendorModelDialog::DeleteEmptyCategories(wxTreeItemId& parent)
             )
         {
             auto next = TreeCtrl_Navigator->GetNextChild(parent, cookie);
-            DeleteEmptyCategories(l1);
+            UNUSED(DeleteEmptyCategories(l1));
             l1 = next;
         }
     }
@@ -1151,6 +1271,9 @@ void VendorModelDialog::DownloadModel(MModelWiring* wiring)
                     auto file = dir + GetPathSeparator() + ent->GetName();
                     if (wxFileName(ent->GetName()).GetExt().Lower() == "xmodel") {
                         _modelFile = file;
+                        _modelWidthMM = wiring->GetWidthMM();
+                        _modelHeightMM = wiring->GetHeightMM();
+                        _modelDepthMM = wiring->GetDepthMM();
                     }
 
                     if (!FileExists(file)) {
@@ -1177,6 +1300,9 @@ void VendorModelDialog::DownloadModel(MModelWiring* wiring)
     }
     else {
         _modelFile = wiring->_xmodelFile.GetFullPath();
+        _modelWidthMM = wiring->GetWidthMM();
+        _modelHeightMM = wiring->GetHeightMM();
+        _modelDepthMM = wiring->GetDepthMM();
     }
 }
 

@@ -47,9 +47,12 @@ class VendorModelDialog: public wxDialog
     int _currImage = -1;
     wxImage _vendorImage;
     wxImage _modelImage;
+	int _modelWidthMM = -1;
+	int _modelHeightMM = -1;
+	int _modelDepthMM = -1;
 
-    wxXmlDocument* GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high, bool keepProgress) const;
-    bool LoadTree(wxProgressDialog* prog, int low = 0, int high = 100);
+    [[nodiscard]] wxXmlDocument* GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high, bool keepProgress) const;
+    [[nodiscard]] bool LoadTree(wxProgressDialog* prog, int low = 0, int high = 100);
     void AddHierachy(wxTreeItemId v, MVendor* vendor, std::list<MVendorCategory*> categories);
     void AddModels(wxTreeItemId v, MVendor* vendor, std::string categoryId);
     void ValidateWindow();
@@ -58,8 +61,8 @@ class VendorModelDialog: public wxDialog
     void PopulateModelPanel(MModelWiring* vendor);
     void LoadModelImage(std::list<wxFileName> imageFiles, int image);
     void LoadImage(wxStaticBitmap* sb, wxImage* img) const;
-    bool DeleteEmptyCategories(wxTreeItemId& parent);
-    bool IsVendorSuppressed(const std::string& vendor);
+    [[nodiscard]] bool DeleteEmptyCategories(wxTreeItemId& parent);
+    [[nodiscard]] bool IsVendorSuppressed(const std::string& vendor);
     void SuppressVendor(const std::string& vendor, bool suppress);
 	void DownloadModel(MModelWiring* wiring);
 
@@ -67,10 +70,15 @@ class VendorModelDialog: public wxDialog
 
 		VendorModelDialog(wxWindow* parent, const std::string& showFolder, wxWindowID id=wxID_ANY, const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~VendorModelDialog();
-        std::string GetModelFile() const { return _modelFile; }
-        bool DlgInit(wxProgressDialog* prog, int low, int high);
-        bool FindModelFile(const std::string &vendor, const std::string &model);
-        static CachedFileDownloader& GetCache() { return CachedFileDownloader::GetDefaultCache(); }
+        [[nodiscard]] std::string GetModelFile() const { return _modelFile; }
+        [[nodiscard]] int GetModelWidthMM() const { return _modelWidthMM; }
+		[[nodiscard]] int GetModelHeightMM() const { return _modelHeightMM; }
+		[[nodiscard]] int GetModelDepthMM() const { return _modelDepthMM; }
+        [[nodiscard]] bool DlgInit(wxProgressDialog* prog, int low, int high);
+        [[nodiscard]] bool FindModelFile(const std::string &vendor, const std::string &model);
+        [[nodiscard]] static CachedFileDownloader& GetCache() {
+            return CachedFileDownloader::GetDefaultCache();
+        }
 
 		//(*Declarations(VendorModelDialog)
 		wxAnimationCtrl* AnimationCtrl1;

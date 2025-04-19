@@ -2479,8 +2479,7 @@ void Model::AddModelAliases(wxXmlNode* n) {
     }
 }
 
-void Model::ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup)
-{
+void Model::ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     int x = GetHcenterPos();
@@ -2488,7 +2487,6 @@ void Model::ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview*
 
     // import the shadow models as well
     for (auto m = n->GetChildren(); m != nullptr; m = m->GetNext()) {
-
         bool cancelled = false;
         Model* model = xlights->AllModels.CreateDefaultModel("Custom", "1"); // start with a custom model
         model = model->CreateDefaultModelFromSavedModelNode(model, modelPreview, m, xlights, "1", cancelled);
@@ -2502,17 +2500,19 @@ void Model::ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview*
             float min_y = 0;
             float max_x = 0;
             float max_y = 0;
-            bool success = model->ImportXlightsModel(m, xlights, min_x, max_x, min_y, max_y);
+            float min_z = 0;
+            float max_z = 0;
+            bool success = model->ImportXlightsModel(m, xlights, min_x, max_x, min_y, max_y, min_z, max_z);
             if (success) {
-		model->SetHcenterPos(x);
- 		model->SetVcenterPos(y);
- 		model->SetWidth(GetWidth(), true);
- 		model->SetHeight(GetHeight(), true);
- 		model->UpdateXmlWithScale();
-		if (dynamic_cast<BoxedScreenLocation*>(&model->GetModelScreenLocation()) != nullptr) {
-		    BoxedScreenLocation* sl = dynamic_cast<BoxedScreenLocation*>(&model->GetModelScreenLocation());
-		    sl->SetScale(1, 1);
-		}
+                model->SetHcenterPos(x);
+                model->SetVcenterPos(y);
+                model->SetWidth(GetWidth(), true);
+                model->SetHeight(GetHeight(), true);
+                model->UpdateXmlWithScale();
+                if (dynamic_cast<BoxedScreenLocation*>(&model->GetModelScreenLocation()) != nullptr) {
+                    BoxedScreenLocation* sl = dynamic_cast<BoxedScreenLocation*>(&model->GetModelScreenLocation());
+                    sl->SetScale(1, 1);
+                }
                 model->SetControllerName(NO_CONTROLLER); // this will force the start channel to a non controller start channel ... then the user can associate them using visualiser
                 xlights->AllModels.AddModel(model);
                 AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::ImportExtraModels");
@@ -6022,8 +6022,7 @@ std::string Model::GetDimension() const
     return GetModelScreenLocation().GetDimension();
 }
 
-void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname, float& min_x, float& max_x, float& min_y, float& max_y)
-{
+void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) {
     bool merge = false;
     bool showPopup = true;
     importAliases = 0;
@@ -6055,7 +6054,7 @@ void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString
                 float width = wxAtof(n->GetAttribute("width", "1000"));
                 float height = wxAtof(n->GetAttribute("height", "1000"));
                 float depth = wxAtof(n->GetAttribute("depth", "0"));
-                ApplyDimensions(units, width, height, depth, min_x, max_x, min_y, max_y);
+                ApplyDimensions(units, width, height, depth, min_x, max_x, min_y, max_y, min_z, max_z);
             }
         } else if (n->GetName().Lower() == "associatedmodels") {
             ImportExtraModels(n, xlights, xlights->GetLayoutPreview(), GetLayoutGroup());
@@ -6400,7 +6399,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
     return model;
 }
 
-Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview)
+Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int&depthmm)
 {
     wxXmlDocument doc;
     bool docLoaded = false;
@@ -6417,6 +6416,9 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                 if (dlg.ShowModal() == wxID_OK) {
                     xlights->SuspendAutoSave(false);
                     last_model = dlg.GetModelFile();
+                    widthmm = dlg.GetModelWidthMM();
+                    heightmm = dlg.GetModelHeightMM();
+                    depthmm = dlg.GetModelDepthMM();
 
                     if (last_model.empty()) {
                         DisplayError("Failed to download model file.");
@@ -6503,7 +6505,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                                         wxString vendor = v["vendor"].AsString();
                                         if (dlg == nullptr) {
                                             dlg = new VendorModelDialog(xlights, xlights->CurrentDir);
-                                            dlg->DlgInit(prog, low, high);
+                                            UNUSED(dlg->DlgInit(prog, low, high));
                                         }
                                         if (localBlock) {
                                             vendorBlock = vendor;
@@ -7731,8 +7733,7 @@ void Model::GetMinScreenXY(float& minx, float& miny) const
     }
 }
 
-void Model::ApplyDimensions(const std::string& units, float width, float height, float depth, float& min_x, float& max_x, float& min_y, float& max_y)
-{
+void Model::ApplyDimensions(const std::string& units, float width, float height, float depth, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) {
     auto ruler = RulerObject::GetRuler();
 
     if (ruler != nullptr && width != 0 && height != 0) {
@@ -7947,8 +7948,7 @@ bool wxDropPatternProperty::ValidateValue(wxVariant& value, wxPGValidationInfo& 
     return true;
 }
 
-bool Model::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
-{
+bool Model::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) {
     // these have already been dealt with
     if (EndsWith(filename, "gdtf"))
         return false;
@@ -7966,7 +7966,7 @@ bool Model::ImportXlightsModel(std::string const& filename, xLightsFrame* xlight
     wxXmlDocument doc(filename);
     if (doc.IsOk()) {
         wxXmlNode* root = doc.GetRoot();
-        return ImportXlightsModel(root, xlights, min_x, max_x, min_y, max_y);
+        return ImportXlightsModel(root, xlights, min_x, max_x, min_y, max_y, min_z, max_z);
     }
 
     DisplayError("Failure loading model file: " + filename);
