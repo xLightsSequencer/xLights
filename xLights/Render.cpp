@@ -1290,6 +1290,9 @@ void xLightsFrame::UpdateRenderStatus() {
         }
 
         if (done) {
+            if (IsRenderBell() && !_renderMode && mRendering) {
+                wxBell();
+            }
             for (size_t row = 0; row < rpi->numRows; ++row) {
                 if (rpi->jobs[row]) {
                     delete rpi->jobs[row];

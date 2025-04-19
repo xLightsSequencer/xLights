@@ -23,17 +23,18 @@
 #include "../xLightsMain.h"
 
 //(*IdInit(EffectsGridSettingsPanel)
-const wxWindowID EffectsGridSettingsPanel::ID_CHOICE1 = wxNewId();
-const wxWindowID EffectsGridSettingsPanel::ID_CHECKBOX1 = wxNewId();
-const wxWindowID EffectsGridSettingsPanel::ID_CHECKBOX2 = wxNewId();
-const wxWindowID EffectsGridSettingsPanel::ID_CHECKBOX7 = wxNewId();
-const wxWindowID EffectsGridSettingsPanel::ID_CHECKBOX3 = wxNewId();
-const wxWindowID EffectsGridSettingsPanel::ID_STATICTEXT1 = wxNewId();
-const wxWindowID EffectsGridSettingsPanel::ID_CHOICE2 = wxNewId();
-const wxWindowID EffectsGridSettingsPanel::ID_CHECKBOX4 = wxNewId();
-const wxWindowID EffectsGridSettingsPanel::ID_CHECKBOX6 = wxNewId();
-const wxWindowID EffectsGridSettingsPanel::ID_CHECKBOX5 = wxNewId();
-const wxWindowID EffectsGridSettingsPanel::ID_CHECKBOX8 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHOICE1 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHECKBOX1 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHECKBOX2 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHECKBOX7 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHECKBOX3 = wxNewId();
+const long EffectsGridSettingsPanel::ID_STATICTEXT1 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHOICE2 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHECKBOX4 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHECKBOX6 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHECKBOX5 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHECKBOX8 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHECKBOX9 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(EffectsGridSettingsPanel,wxPanel)
@@ -109,20 +110,28 @@ EffectsGridSettingsPanel::EffectsGridSettingsPanel(wxWindow* parent, xLightsFram
 	ShowAlternateTimingFormatCheckBox->SetValue(false);
 	ShowAlternateTimingFormatCheckBox->SetToolTip(_("Sequencer timing will be displayed in seconds and milliseconds"));
 	GridSizer1->Add(ShowAlternateTimingFormatCheckBox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	GridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BellOnRenderCompletion = new wxCheckBox(this, ID_CHECKBOX9, _("Bell on render completion"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX9"));
+	BellOnRenderCompletion->SetValue(false);
+	GridSizer1->Add(BellOnRenderCompletion, 1, wxALL|wxEXPAND, 5);
 	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(GridSizer1);
+	GridSizer1->Fit(this);
+	GridSizer1->SetSizeHints(this);
 
-	Connect(ID_CHOICE1, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnGridSpacingChoiceSelect);
-	Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnIconBackgroundsCheckBoxClick);
-	Connect(ID_CHECKBOX2, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnNodeValuesCheckBoxClick);
-	Connect(ID_CHECKBOX7, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnGroupEffectIndicatorClick);
-	Connect(ID_CHECKBOX3, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnSnapToTimingCheckBoxClick);
-	Connect(ID_CHOICE2, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnDoubleClickChoiceSelect);
-	Connect(ID_CHECKBOX4, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnSmallWaveformCheckBoxClick);
-	Connect(ID_CHECKBOX6, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnTransistionMarksCheckBoxClick);
-	Connect(ID_CHECKBOX5, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnColorUpdateWarnCheckBoxClick);
-	Connect(ID_CHECKBOX8, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnShowAlternateTimingFormatCheckBoxClick);
+	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnGridSpacingChoiceSelect);
+	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnIconBackgroundsCheckBoxClick);
+	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnNodeValuesCheckBoxClick);
+	Connect(ID_CHECKBOX7,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnGroupEffectIndicatorClick);
+	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnSnapToTimingCheckBoxClick);
+	Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnDoubleClickChoiceSelect);
+	Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnSmallWaveformCheckBoxClick);
+	Connect(ID_CHECKBOX6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnTransistionMarksCheckBoxClick);
+	Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnColorUpdateWarnCheckBoxClick);
+	Connect(ID_CHECKBOX8,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnShowAlternateTimingFormatCheckBoxClick);
+    Connect(ID_CHECKBOX9, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnBellOnRenderCompletionClick);
 	//*)
 }
 
@@ -143,6 +152,7 @@ bool EffectsGridSettingsPanel::TransferDataToWindow() {
     ColorUpdateWarnCheckBox->SetValue(frame->SuppressColorWarn());
     GroupEffectIndicator->SetValue(frame->ShowGroupEffectIndicator());
     ShowAlternateTimingFormatCheckBox->SetValue(frame->ShowAlternateTimingFormat());
+    BellOnRenderCompletion->SetValue(frame->IsRenderBell());
     int gs = frame->GridSpacing();
     switch (gs) {
         case 48:
@@ -192,6 +202,7 @@ bool EffectsGridSettingsPanel::TransferDataFromWindow() {
     frame->SetSuppressColorWarn(ColorUpdateWarnCheckBox->IsChecked());
     frame->SetShowGroupEffectIndicator(GroupEffectIndicator->IsChecked());
     frame->SetShowAlternateTimingFormat(ShowAlternateTimingFormatCheckBox->IsChecked());
+    frame->SetRenderBell(BellOnRenderCompletion->IsChecked());
     return true;
 }
 
@@ -267,6 +278,13 @@ void EffectsGridSettingsPanel::OnAlternateTimingFormatCheckBoxClick(wxCommandEve
 }
 
 void EffectsGridSettingsPanel::OnShowAlternateTimingFormatCheckBoxClick(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void EffectsGridSettingsPanel::OnBellOnRenderCompletionClick(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();

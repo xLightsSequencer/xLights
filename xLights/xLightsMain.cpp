@@ -1564,6 +1564,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsSmallWaveform", &_smallWaveform, false);
     logger_base.debug("Small Waveform: %s.", toStr(_smallWaveform));
 
+    config->Read("xlightsRenderBell", &_renderBellEnabled, false);
+    logger_base.debug("Render Bell Enabled: %s.", toStr(_renderBellEnabled));
+
     config->Read("xLightsModelBlendDefaultOff", &_modelBlendDefaultOff, false);
     logger_base.debug("Model Blend Default Off: %s.", toStr(_modelBlendDefaultOff));
 
@@ -2198,6 +2201,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsZoomMethodToCursor", _zoomMethodToCursor);
     config->Write("xLightsHidePresetPreview", _hidePresetPreview);
     config->Write("xLightsSmallWaveform", _smallWaveform);
+    config->Write("xLightsRenderBell", _renderBellEnabled);
     config->Write("xLightsModelBlendDefaultOff", _modelBlendDefaultOff);
     config->Write("xLightsLowDefinitionRender", _lowDefinitionRender);
     config->Write("xLightsTimelineZooming", _timelineZooming);

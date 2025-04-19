@@ -64,10 +64,10 @@ std::unique_lock<std::recursive_mutex> EffectLayer::acquireLockWaitForRender() {
             // and then try again, possibly yielding to allow the background
             // thread to get to a point where the lock can be released
             xLightsApp::GetFrame()->RenderMainThreadEffects();
-            locker.try_lock();
+            UNUSED(locker.try_lock());
             if (!locker.owns_lock()) {
                 std::this_thread::yield();
-                locker.try_lock();
+                UNUSED(locker.try_lock());
             }
         }
         return locker;
