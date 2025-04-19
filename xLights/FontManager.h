@@ -51,7 +51,7 @@ class FontManager
 
         static wxArrayString get_font_names();
         static xlFont* get_font(wxString font_name);
-        static int get_length(xlFont* font, wxString& text);
+        static int get_length(xlFont* font, const wxString& text);
 
     protected:
 

@@ -1521,7 +1521,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
         OffsetTop = -starty;
     }
 
-    font_mgr.init();  // make sure font class is initialized
+    font_mgr.init();
     wxString xl_font = settings["CHOICE_Text_Font"];
     xlFont* font = font_mgr.get_font(xl_font);
     wxBitmap* bmp = font->get_bitmap();
@@ -1552,36 +1552,32 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
             }
             f.Close();
         }
-        else {
-            if (lyricTrack != "") {
-                Element* t = nullptr;
-                for (int i = 0; i < mSequenceElements->GetElementCount(); i++) {
-                    auto lt = lyricTrack.BeforeLast('-');
-                    lt = lt.Left(lt.size() - 1);
-                    Element* e = mSequenceElements->GetElement(i);
-                    if (e->GetEffectLayerCount() > 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == lt) {
-                        t = e;
+        else if (lyricTrack != "") {
+            Element* t = nullptr;
+            for (int i = 0; i < mSequenceElements->GetElementCount(); i++) {
+                auto lt = lyricTrack.BeforeLast('-');
+                lt = lt.Left(lt.size() - 1);
+                Element* e = mSequenceElements->GetElement(i);
+                if (e->GetEffectLayerCount() > 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == lt) {
+                    t = e;
+                    break;
+                }
+            }
+            if (t != nullptr) {
+                long time = buffer.curPeriod * buffer.frameTimeInMs;
+                EffectLayer* el = nullptr;
+                if (lyricTrack.EndsWith(" - Phrases")) {
+                    el = t->GetEffectLayer(0);
+                }
+                else {
+                    el = t->GetEffectLayer(1);
+                }
+                for (int j = 0; j < el->GetEffectCount(); j++) {
+                    Effect* e = el->GetEffect(j);
+                    if (e->GetStartTimeMS() <= time && e->GetEndTimeMS() > time) {
+                        text = e->GetEffectName();
                         break;
                     }
-                }
-
-                if (t != nullptr) {
-                    long time = buffer.curPeriod * buffer.frameTimeInMs;
-                    EffectLayer* el = nullptr;
-                    if (lyricTrack.EndsWith(" - Phrases")) {
-                        el = t->GetEffectLayer(0);
-                    }
-                    else {
-                        el = t->GetEffectLayer(1);
-                    }
-                    for (int j = 0; j < el->GetEffectCount(); j++) {
-                        Effect* e = el->GetEffect(j);
-                        if (e->GetStartTimeMS() <= time && e->GetEndTimeMS() > time) {
-                            text = e->GetEffectName();
-                            break;
-                        }
-                    }
-
                 }
             }
         }
@@ -1598,7 +1594,15 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     }
     ReplaceVaribles(msg, buffer);
     text = msg;
-    int text_length = font_mgr.get_length(font, text);
+
+    wxArrayString lines = wxSplit(text, '\n');
+    std::vector<int> line_lengths;
+    int max_line_length = 0;
+    for (const auto& line : lines) {
+        int len = font_mgr.get_length(font, line);
+        line_lengths.push_back(len);
+        max_line_length = std::max(max_line_length, len);
+    }
 
     int text_effect = TextEffectsIndex(settings["CHOICE_Text_Effect"]);
     bool vertical = false;
@@ -1619,52 +1623,52 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
 
     TextDirection dir = TextEffectDirectionsIndex(settings["CHOICE_Text_Dir"]);
     if (dir == TEXTDIR_WORDFLIP) {
-        text = FlipWord(settings, text, buffer);
+        for (size_t i = 0; i < lines.size(); i++) {
+            lines[i] = FlipWord(settings, lines[i], buffer);
+        }
     }
 
     int PreOffsetLeft = OffsetLeft;
     int PreOffsetTop = OffsetTop;
 
-    AddMotions(OffsetLeft, OffsetTop, settings, buffer, text.size(), endx, endy, pixelOffsets, PreOffsetLeft, PreOffsetTop, text_length, char_width, char_height, vertical, rotate_90);
+    AddMotions(OffsetLeft, OffsetTop, settings, buffer, text.size(), endx, endy, pixelOffsets, PreOffsetLeft, PreOffsetTop, max_line_length, char_width, char_height, vertical, rotate_90);
+
     if (rotate_90) {
         OffsetLeft += buffer.BufferWi / 2 - font->GetCapsHeight() / 2;
         if (up) {
-            OffsetTop += buffer.BufferHt / 2 + text_length / 2;
+            OffsetTop += buffer.BufferHt / 2 + max_line_length / 2;
         }
         else {
-            OffsetTop += buffer.BufferHt / 2 - text_length / 2;
+            OffsetTop += buffer.BufferHt / 2 - max_line_length / 2;
         }
     }
     else if (vertical) {
         OffsetLeft += buffer.BufferWi / 2 - char_width / 2;
         if (up) {
-            OffsetTop += buffer.BufferHt / 2 + (char_height * text.length()) / 2;
+            OffsetTop += buffer.BufferHt / 2 + (char_height * lines.size()) / 2;
         }
         else {
-            OffsetTop += buffer.BufferHt / 2 - (char_height * text.length()) / 2;
+            OffsetTop += buffer.BufferHt / 2 - (char_height * lines.size()) / 2;
         }
     }
     else {
-        OffsetLeft += buffer.BufferWi / 2 - text_length / 2;
-        OffsetTop += buffer.BufferHt / 2 - font->GetCapsHeight() / 2;
+        OffsetLeft += buffer.BufferWi / 2;
+        OffsetTop += buffer.BufferHt / 2 - (font->GetCapsHeight() * lines.size()) / 2;
     }
 
-    auto startOffsetLeft = OffsetLeft;
-
-    if (text != "") {
+    if (!lines.empty()) {
         int curPos = 0;
-        for (int i = 0; i < text.length(); i++) {
-            if (text[i] == '\n')
-            {
-                OffsetLeft = startOffsetLeft;
-                OffsetTop += font->GetHeight() + 1;
-            } else {
+        for (size_t line_idx = 0; line_idx < lines.size(); line_idx++) {
+            const wxString& line = lines[line_idx];
+            int line_offset_left = OffsetLeft - line_lengths[line_idx] / 2;
+
+            for (int i = 0; i < line.length(); i++) {
                 buffer.palette.GetColor(curPos % num_colors, c);
-                if ((perWord && text[i] == ' ' && i + 1 < text.size() && text[i + 1] != ' ') || 
-                    (!perWord && text[i] != ' ')) {
+                if ((perWord && line[i] == ' ' && i + 1 < line.size() && line[i + 1] != ' ') || 
+                    (!perWord && line[i] != ' ')) {
                     curPos++;
                 }
-                char ascii = text[i];
+                char ascii = line[i];
                 int x_start_corner = (ascii % 8) * (char_width + 1) + 1;
                 int y_start_corner = (ascii / 8) * (char_height + 1) + 1;
 
@@ -1683,12 +1687,12 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
                             if (red == 255 && green == 255 && blue == 255) {
                                 if (rotate_90) {
                                     if (up) {
-                                        buffer.SetPixel(y_pos - y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (actual_width - 1 - x_pos + x_start_corner + OffsetTop), c, false);
+                                        buffer.SetPixel(y_pos - y_start_corner + line_offset_left, (buffer.BufferHt - 1) - (actual_width - 1 - x_pos + x_start_corner + OffsetTop), c, false);
                                     } else {
-                                        buffer.SetPixel(char_height - 1 - y_pos + y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (x_pos - x_start_corner + OffsetTop), c, false);
+                                        buffer.SetPixel(char_height - 1 - y_pos + y_start_corner + line_offset_left, (buffer.BufferHt - 1) - (x_pos - x_start_corner + OffsetTop), c, false);
                                     }
                                 } else {
-                                    buffer.SetPixel(x_pos - x_start_corner + OffsetLeft, buffer.BufferHt - (y_pos - y_start_corner + OffsetTop) - 1, c, false);
+                                    buffer.SetPixel(x_pos - x_start_corner + line_offset_left, buffer.BufferHt - (y_pos - y_start_corner + OffsetTop) - 1, c, false);
                                 }
                             }
                         }
@@ -1703,9 +1707,10 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
                 } else if (rotate_90 && !up) {
                     OffsetTop += actual_width;
                 } else if (!rotate_90) {
-                    OffsetLeft += actual_width;
+                    line_offset_left += actual_width;
                 }
             }
+            OffsetTop += font->GetHeight() + 1;
         }
     }
 }

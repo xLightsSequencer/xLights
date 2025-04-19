@@ -155,7 +155,7 @@ xlFont* FontManager::get_font(wxString font_name)
     return nullptr;
 }
 
-int FontManager::get_length(xlFont* font, wxString& text)
+int FontManager::get_length(xlFont* font, const wxString& text)
 {
     if( text == "" ) return 0;
     int length = 0;
