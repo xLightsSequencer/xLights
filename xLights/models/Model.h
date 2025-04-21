@@ -201,23 +201,23 @@ public:
 
     [[nodiscard]] wxString SerialiseSubmodel() const;
     [[nodiscard]] wxString SerialiseAliases() const;
-    virtual [[nodiscard]] wxString CreateBufferAsSubmodel() const;
+    [[nodiscard]] virtual wxString CreateBufferAsSubmodel() const;
     bool importAliases = false;
     bool skipImportAliases = false;
 
     [[nodiscard]] std::map<std::string, std::map<std::string, std::string>> GetDimmingInfo() const;
     [[nodiscard]] virtual std::list<std::string> CheckModelSettings() override;
-    virtual [[nodiscard]] const std::vector<std::string>& GetBufferStyles() const {
+    [[nodiscard]] virtual const std::vector<std::string>& GetBufferStyles() const {
         return DEFAULT_BUFFER_STYLES;
     };
     virtual const std::string AdjustBufferStyle(const std::string &style) const;
     virtual void GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const;
     virtual void InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform,
         std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int stagger, bool deep = false) const;
-    const [[nodiscard]] ModelManager& GetModelManager() const {
+    [[nodiscard]] const ModelManager& GetModelManager() const {
         return modelManager;
     }
-    virtual [[nodiscard]] bool SupportsXlightsModel() {
+    [[nodiscard]] virtual bool SupportsXlightsModel() {
         return false;
     }
     static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int& depthmm);
