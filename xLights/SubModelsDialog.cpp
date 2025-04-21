@@ -4513,7 +4513,6 @@ void SubModelsDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
 }
 
 void SubModelsDialog::OnSplitterSashPosChanging(wxSplitterEvent& event) {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (NodesGrid && NodesGrid->GetNumberCols() > 0) {
         const int newPos = event.GetSashPosition() - FromDIP(310);
         if (newPos > 200) {
@@ -4522,7 +4521,6 @@ void SubModelsDialog::OnSplitterSashPosChanging(wxSplitterEvent& event) {
             NodesGrid->SetColSize(0, ToDIP(310));
         }
         const int sashPos = FromDIP(event.GetSashPosition());
-        logger_base.debug("Sash pos = %d", sashPos);
         if (sashPos < 510) {
             event.SetSashPosition(FromDIP(510));
         } else {
