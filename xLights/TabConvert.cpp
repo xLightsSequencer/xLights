@@ -629,6 +629,11 @@ void xLightsFrame::WriteFalconPiModelFile(const wxString& filename, long numChan
         file->finalize();
         delete file;
     } else {
+        static const int V1ESEQ_STEP_TIME = 50; // 50ms step time
+        if (dataBuf->FrameTime() != V1ESEQ_STEP_TIME) {
+            DisplayError("Cannot export to ESEQ unless the sequence timing is 50ms, Use newer Compressed Format instead");
+            return;
+        }
         wxUint32 stepSize = roundTo4(numChans);
         wxFile f;
         logger_base.debug("Creating file %s. Channels: %ld Frames %ld, Start Channel %d, Model Size %d.",
