@@ -448,6 +448,15 @@ void SubModelsDialog::OnInit(wxInitDialogEvent& event)
         NodesGrid->SetColSize(1, secondColWidth);
     }
 
+    const wxSize clientSize = GetClientSize();
+    const int buttonAreaHeight = FromDIP(50);
+    const int margin = FromDIP(20);
+    const int maxPanel3Height = clientSize.GetHeight() - buttonAreaHeight - margin;
+    Panel3->SetMaxSize(wxSize(-1, maxPanel3Height));
+    if (Panel3->GetSizer()) {
+        Panel3->GetSizer()->SetSizeHints(Panel3);
+    }
+
     EnsureWindowHeaderIsOnScreen(this);
     Layout();
 }
