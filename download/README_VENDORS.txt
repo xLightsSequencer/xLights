@@ -39,6 +39,14 @@ will be displayed to the user.
 
 
 
+NOTE:  XML is very strict about formatting and open/close tags and such.   If using an
+editor to hand edit, it is strongly recommend to "lint" the file before publishing it
+to make sure it's valid XML.  xLights will ignore any vendor xml that cannot be parsed
+by it's XML parser.   A good tool to use to make sure the XML is valid:
+  https://xmllint.com
+
+
+
 There are a couple of tools to help create/edit the XML file.
 * There is an Excel file at:
 https://github.com/xLightsSequencer/xLights/raw/refs/heads/master/download/vendor_xml_generator.xlsm
