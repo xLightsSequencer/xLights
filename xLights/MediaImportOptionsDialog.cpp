@@ -149,11 +149,11 @@ void MediaImportOptionsDialog::OnInit(wxInitDialogEvent& event)
 
 void MediaImportOptionsDialog::UpdateOptions() {
 
-    FacesFolder->SetLabel(_importOptions->GetDir(MediaTargetDir::FACES_DIR));
-    GlediatorsFolder->SetLabel(_importOptions->GetDir(MediaTargetDir::GLEDIATORS_DIR));
-    ImagesFolder->SetLabel(_importOptions->GetDir(MediaTargetDir::IMAGES_DIR));
-    ShadersFolder->SetLabel(_importOptions->GetDir(MediaTargetDir::SHADERS_DIR));
-    VideosFolder->SetLabel(_importOptions->GetDir(MediaTargetDir::VIDEOS_DIR));
+    FacesFolder->SetValue(_importOptions->GetDir(MediaTargetDir::FACES_DIR));
+    GlediatorsFolder->SetValue(_importOptions->GetDir(MediaTargetDir::GLEDIATORS_DIR));
+    ImagesFolder->SetValue(_importOptions->GetDir(MediaTargetDir::IMAGES_DIR));
+    ShadersFolder->SetValue(_importOptions->GetDir(MediaTargetDir::SHADERS_DIR));
+    VideosFolder->SetValue(_importOptions->GetDir(MediaTargetDir::VIDEOS_DIR));
 
     Layout();
 }
@@ -184,16 +184,16 @@ void MediaImportOptionsDialog::GetCurrentLabelAndPath(int btnId, std::string& la
 
 void MediaImportOptionsDialog::UpdateFolderPath(int btnId, std::string& newPath) {
     if (btnId == ID_BUTTON_FACES_FLD) {
-        FacesFolder->SetLabel(newPath);
+        FacesFolder->SetValue(newPath);
         FacesFolder->SetToolTip(newPath);
     } else if (btnId == ID_BUTTON_GLEDIATORS_FLD) {
-        GlediatorsFolder->SetLabel(newPath);
+        GlediatorsFolder->SetValue(newPath);
     } else if (btnId == ID_BUTTON_IMAGES_FLD) {
-        ImagesFolder->SetLabel(newPath);
+        ImagesFolder->SetValue(newPath);
     } else if (btnId == ID_BUTTON_SHADERS_FLD) {
-        ShadersFolder->SetLabel(newPath);
+        ShadersFolder->SetValue(newPath);
     } else if (btnId == ID_BUTTON_VIDEOS_FLD) {
-        VideosFolder->SetLabel(newPath);
+        VideosFolder->SetValue(newPath);
     }
 
     Layout();
