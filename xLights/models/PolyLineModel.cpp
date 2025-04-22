@@ -490,11 +490,10 @@ void PolyLineModel::InitModel()
             x1p = (pPos[i].x - minX) / deltax;
             x2p = (pPos[i + 1].x - minX) / deltax;
         }
-        if (deltay == 0.0f) {
+        if (std::abs(deltay) < 0.1f) {
             y1p = 0.0f;
             y2p = 0.0f;
-        }
-        else {
+        } else {
             y1p = (pPos[i].y - minY) / deltay;
             y2p = (pPos[i + 1].y - minY) / deltay;
         }
