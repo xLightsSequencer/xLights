@@ -950,7 +950,7 @@ bool ModelManager::ReworkStartChannel() const
                 if (it->GetChannels() != oldC || (eth != nullptr && eth->IsUniversePerString())) {
                     outputManager->SomethingChanged();
 
-                    if (xlights->IsSequencerInitialize()) { 
+                    if (eth != nullptr && eth->IsUniversePerString() && xlights->IsSequencerInitialize()) { 
                         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel");
                     }
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ReworkStartChannel");
