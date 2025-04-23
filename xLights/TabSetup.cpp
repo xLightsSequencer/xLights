@@ -885,7 +885,7 @@ void xLightsFrame::NetworkChange() {
 void xLightsFrame::NetworkChannelsChange() {
 
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
-    logger_work.debug("        NetowrkChannelsChange.");
+    logger_work.debug("        NetworkChannelsChange.");
 
     _outputManager.SomethingChanged();
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "NetworkChannelsChange");
