@@ -27,6 +27,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - enh (cybercop23)      Add Export Faces & States to other Models
     - enh (derwin12)        Add leftright text effect option
     - enh (keith)           Mark sm16804 as a supported pixel type
+    - enh (MrPierreB)       Display number of timing marks an effect spans in status bar for active timing track
     - bug (derwin12)        Only enable media adjustment buttons if media is actually found
     - bug (derwin12)        Fix problems rendering some multi-path SVG's
     - bug (derwin12)        Tweak preference panes for smaller screens
