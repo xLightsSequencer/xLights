@@ -443,9 +443,20 @@ void StateEffect::RenderState(RenderBuffer& buffer,
 
     bool customColor = found ? findKey(definitionSi, "CustomColors") == "1" : false;
 
+    std::vector<std::pair<std::string, std::string>> sortedStateDefinitions;
+    for (const auto& it : definitionSi) {
+        if (EndsWith(it.first, "-Name")) {
+            sortedStateDefinitions.emplace_back(it);
+        }
+    }
+    std::sort(sortedStateDefinitions.begin(), sortedStateDefinitions.end(),
+        [](const auto& a, const auto& b) {
+            return NumberAwareStringCompare(a.first, b.first) < 0;
+        });
+
     // process each token
     for (size_t i = 0; i < sstates.size(); i++) {
-        for (const auto& it : definitionSi) {
+        for (const auto& it : sortedStateDefinitions) {
             if (it.second == sstates[i] && EndsWith(it.first, "-Name")) {
                 // get the channels
                 std::string statename = BeforeFirst(it.first, '-'); // FindState(model_info->stateInfo[definition], sstates[i]);
