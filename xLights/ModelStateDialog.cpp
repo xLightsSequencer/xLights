@@ -1405,6 +1405,13 @@ void ModelStateDialog::CopyStates(wxGridEvent& event)
                 stateData[name]["CustomColors"] = "1";
             }
 
+            for (int x = 200; x >= 0; --x) {
+                std::string pname = "s" + std::to_string(x);
+                if (stateData[name].contains(pname)) {
+                    stateIdx = x + 1;
+                    break;
+                }
+            }
             for (int x = 1; x <= 200; x++) {
                 std::string pname = "s" + std::to_string(x);
                 if (sd.find(pname) != end(sd) || sd.find(pname + "-Name") != end(sd) || sd.find(pname + "-Color") != end(sd)) {
@@ -1437,6 +1444,8 @@ void ModelStateDialog::CopyStates(wxGridEvent& event)
                     stateData[name].insert({ newname, val });
                     stateData[name].insert({ newname + "-Name", n });
                     stateData[name].insert({ newname + "-Color", c });
+                    ++stateIdx;
+                } else {
                     ++stateIdx;
                 }
             }
