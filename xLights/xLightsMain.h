@@ -1748,6 +1748,7 @@ public:
     ModelPreview* GetLayoutPreview() const {return modelPreview;}
     void SetStoredLayoutGroup(const std::string &group);
     const std::string& GetStoredLayoutGroup() const {return mStoredLayoutGroup;}
+    bool IsSequencerInitialize() {return mSequencerInitialize;}
     bool IsACActive();
     void GetACSettings(ACTYPE& type, ACSTYLE& style, ACTOOL& tool, ACMODE& mode);
     int GetACIntensity();
