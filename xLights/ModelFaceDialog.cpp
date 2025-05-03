@@ -360,6 +360,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent, OutputManager* outputManager,
 	//*)
 
     model = nullptr;
+    MatrixImagePlacementChoice->SetStringSelection("Scaled");
 
     modelPreview = new ModelPreview(ModelPreviewPanelLocation);
     modelPreview->SetMinSize(wxSize(150, 150));
