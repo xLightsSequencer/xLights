@@ -44,6 +44,7 @@
 #include "effects/ShaderEffect.h"
 #include "effects/VideoEffect.h"
 #include "models/Model.h"
+#include "utils/string_utils.h"
 
 #include <cmath>
 #include <limits>
@@ -78,6 +79,11 @@ const long EffectsGrid::ID_GRID_MNU_CUT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_COPY = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_PASTE = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_DELETE = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_FIND = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_FIND_NEXT = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_FIND_PREVIOUS = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_REPLACE = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_ADD_SHIMMER = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_RANDOM_EFFECTS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_RESETEFFECT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_DESCRIPTION = wxNewId();
@@ -200,6 +206,9 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint& po
     mTimeline = nullptr;
     magSinceLast = 0.0f;
     mStartPixelOffset = 0;
+    mSearchText = "";
+    mLastFoundEffectIndex = -1;
+    mSearchRow = -1;
 
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
@@ -504,6 +513,9 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
             if (ri->layerIndex == 0) {
                 mnuLayer.Append(ID_GRID_MNU_AUTOLABEL, "Auto Label Timings");
             }
+            if (ri->layerIndex == 2) {
+                mnuLayer.Append(ID_GRID_MNU_ADD_SHIMMER, "Add \"-shimmer\"");
+            }
             mSelectedEffect = selectedEffect;
         }
         mnuLayer.AppendSeparator();
@@ -525,6 +537,16 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
         }
         if (!(mCellRangeSelected || mPartialCellSelected)) {
             menu_paste->Enable(false);
+        }
+        mnuLayer.AppendSeparator();
+        wxMenuItem* menu_find = mnuLayer.Append(ID_GRID_MNU_FIND, "Find...");
+        wxMenuItem* menu_find_next = mnuLayer.Append(ID_GRID_MNU_FIND_NEXT, "Find Next");
+        wxMenuItem* menu_find_prior = mnuLayer.Append(ID_GRID_MNU_FIND_PREVIOUS, "Find Previous");
+        wxMenuItem* menu_replace = mnuLayer.Append(ID_GRID_MNU_REPLACE, "Replace All...");
+        if (mSearchText.empty() || mSearchRow < 0 || mSearchRow >= mSequenceElements->GetVisibleRowInformationSize()) {
+            menu_find_next->Enable(false);
+            menu_find_prior->Enable(false);
+            menu_replace->Enable(false);
         }
         mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, nullptr, this);
         Draw();
@@ -556,6 +578,189 @@ uint32_t EffectsGrid::FindChannel(Element* element, int strandIndex, int nodeInd
         return model->GetChannelForNode(strandIndex, nodeIndex);
     }
     return 0xFFFFFFFF;
+}
+
+void EffectsGrid::AddShimmer() {
+    if (mSelectedRow >= 0 && mSelectedRow < mSequenceElements->GetVisibleRowInformationSize()) {
+        Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
+        if (ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING && ri->layerIndex == 2) {
+            EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(mSelectedRow);
+            if (effectLayer != nullptr) {
+                int modifiedCount = 0;
+                for (int i = 0; i < effectLayer->GetEffectCount(); i++) {
+                    Effect* eff = effectLayer->GetEffect(i);
+                    if (eff->GetSelected() != EFFECT_NOT_SELECTED && !eff->IsLocked()) {
+                        wxLogMessage(eff->GetSettingsAsString().c_str());
+                        std::string currentName = eff->GetEffectName();
+                        if (currentName.length() <= 3) {
+                            std::string newName = currentName + "-shimmer";
+                            eff->SetEffectName(newName);
+                            modifiedCount++;
+                            mSelectedEffect = eff;
+                        }
+                    }
+                }
+                if (modifiedCount > 0) {
+                    effectLayer->UnSelectAllEffects();
+                    for (int i = 0; i < effectLayer->GetEffectCount(); i++) {
+                        Effect* eff = effectLayer->GetEffect(i);
+                        if (eff->GetSelected() != EFFECT_NOT_SELECTED) {
+                            eff->SetSelected(EFFECT_SELECTED);
+                        }
+                    }
+                    if (mSelectedEffect) {
+                        RaiseSelectedEffectChanged(mSelectedEffect, false, true);
+                    }
+                    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+                    wxPostEvent(mParent, eventRowHeaderChanged);
+                    Draw();
+                    xlights->SetStatusText(wxString::Format("Added '-shimmer' to %d phoneme(s).", modifiedCount));
+                } else {
+                    wxMessageBox("No valid phoneme selected.", "Add Shimmer", wxOK | wxICON_INFORMATION);
+                }
+                return;
+            }
+        }
+    }
+}
+
+void EffectsGrid::Find() {
+    wxTextEntryDialog dlg(const_cast<EffectsGrid*>(this), "Enter text to find:", "Find");
+    OptimiseDialogPosition(&dlg);
+    if (dlg.ShowModal() == wxID_OK) {
+        const_cast<EffectsGrid*>(this)->mSearchText = dlg.GetValue().ToStdString();
+        const_cast<EffectsGrid*>(this)->mSearchRow = mSelectedRow;
+        const_cast<EffectsGrid*>(this)->mLastFoundEffectIndex = -1;
+        FindNext();
+    }
+}
+
+void EffectsGrid::FindNext() {
+    if (mSearchText.empty() || mSearchRow < 0 || mSearchRow >= mSequenceElements->GetVisibleRowInformationSize()) {
+        wxMessageBox("No search text or invalid row selected.", "Find", wxOK | wxICON_INFORMATION);
+        return;
+    }
+
+    Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(mSearchRow);
+    if (ri->element->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+        wxMessageBox("Find is only supported on timing tracks.", "Find", wxOK | wxICON_INFORMATION);
+        return;
+    }
+
+    EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(mSearchRow);
+    if (effectLayer == nullptr) {
+        wxMessageBox("No effect layer found.", "Find", wxOK | wxICON_INFORMATION);
+        return;
+    }
+
+    int startIndex = mLastFoundEffectIndex + 1;
+    for (int i = startIndex; i < effectLayer->GetEffectCount(); i++) {
+        Effect* eff = effectLayer->GetEffect(i);
+        if (::Lower(eff->GetEffectName()).find(::Lower(mSearchText)) != std::string::npos) {
+            const_cast<EffectsGrid*>(this)->mLastFoundEffectIndex = i;
+            const_cast<EffectsGrid*>(this)->mSelectedEffect = eff;
+            effectLayer->UnSelectAllEffects();
+            eff->SetSelected(EFFECT_SELECTED);
+            int timeMS = (eff->GetStartTimeMS() + eff->GetEndTimeMS()) / 2;
+            mTimeline->SetTimelinePosition(timeMS);
+            RaiseSelectedEffectChanged(eff, false, true);
+            Draw();
+            return;
+        }
+    }
+
+    wxMessageBox("Text not found.", "Find", wxOK | wxICON_INFORMATION);
+}
+
+void EffectsGrid::FindPrevious() {
+    if (mSearchText.empty() || mSearchRow < 0 || mSearchRow >= mSequenceElements->GetVisibleRowInformationSize()) {
+        wxMessageBox("No search text or invalid row selected.", "Find", wxOK | wxICON_INFORMATION);
+        return;
+    }
+
+    Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(mSearchRow);
+    if (ri->element->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+        wxMessageBox("Find is only supported on timing tracks.", "Find", wxOK | wxICON_INFORMATION);
+        return;
+    }
+
+    EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(mSearchRow);
+    if (effectLayer == nullptr) {
+        wxMessageBox("No effect layer found.", "Find", wxOK | wxICON_INFORMATION);
+        return;
+    }
+
+    int startIndex = (mLastFoundEffectIndex == -1) ? effectLayer->GetEffectCount() - 1 : mLastFoundEffectIndex - 1;
+    for (int i = startIndex; i >= 0; i--) {
+        Effect* eff = effectLayer->GetEffect(i);
+        if (::Lower(eff->GetEffectName()).find(::Lower(mSearchText)) != std::string::npos) {
+            const_cast<EffectsGrid*>(this)->mLastFoundEffectIndex = i;
+            const_cast<EffectsGrid*>(this)->mSelectedEffect = eff;
+            effectLayer->UnSelectAllEffects();
+            eff->SetSelected(EFFECT_SELECTED);
+            int timeMS = (eff->GetStartTimeMS() + eff->GetEndTimeMS()) / 2;
+            mTimeline->SetTimelinePosition(timeMS);
+            RaiseSelectedEffectChanged(eff, false, true);
+            Draw();
+            return;
+        }
+    }
+
+    wxMessageBox("Text not found.", "Find", wxOK | wxICON_INFORMATION);
+}
+
+void EffectsGrid::Replace() {
+    if (mSearchText.empty() || mSearchRow < 0 || mSearchRow >= mSequenceElements->GetVisibleRowInformationSize()) {
+        wxMessageBox("No search text or invalid row selected. Please use 'Find' first.", "Replace All", wxOK | wxICON_INFORMATION);
+        return;
+    }
+
+    Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(mSearchRow);
+    if (ri->element->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+        wxMessageBox("Replace All is only supported on timing tracks.", "Replace All", wxOK | wxICON_INFORMATION);
+        return;
+    }
+
+    EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(mSearchRow);
+    if (effectLayer == nullptr) {
+        wxMessageBox("No effect layer found.", "Replace All", wxOK | wxICON_INFORMATION);
+        return;
+    }
+
+    wxTextEntryDialog dlg(const_cast<EffectsGrid*>(this), "Enter replacement text:", "Replace All", mSearchText);
+    OptimiseDialogPosition(&dlg);
+    if (dlg.ShowModal() != wxID_OK) {
+        return;
+    }
+
+    std::string replaceText = dlg.GetValue().ToStdString();
+    int replacedCount = 0;
+
+    for (int i = 0; i < effectLayer->GetEffectCount(); i++) {
+        Effect* eff = effectLayer->GetEffect(i);
+        if (::Lower(eff->GetEffectName()).find(::Lower(mSearchText)) != std::string::npos) {
+            eff->SetEffectName(replaceText);
+            replacedCount++;
+
+            const_cast<EffectsGrid*>(this)->mLastFoundEffectIndex = i;
+            const_cast<EffectsGrid*>(this)->mSelectedEffect = eff;
+        }
+    }
+
+    if (replacedCount > 0) {
+        effectLayer->UnSelectAllEffects();
+        if (mSelectedEffect) {
+            mSelectedEffect->SetSelected(EFFECT_SELECTED);
+            int timeMS = (mSelectedEffect->GetStartTimeMS() + mSelectedEffect->GetEndTimeMS()) / 2;
+            mTimeline->SetTimelinePosition(timeMS);
+            RaiseSelectedEffectChanged(mSelectedEffect, false, true);
+            Draw();
+        }
+
+        xlights->SetStatusText(wxString::Format("Replaced %d occurrence(s).", replacedCount));
+    } else {
+        wxMessageBox("No matching text found for replacement.", "Replace All", wxOK | wxICON_INFORMATION);
+    }
 }
 
 void EffectsGrid::FindEffectsForData(uint32_t channel, uint8_t chans, uint32_t _findDataMS) const {
@@ -1022,6 +1227,16 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(mParent, eventRowHeaderChanged);
         }
+    } else if (id == ID_GRID_MNU_FIND) {
+        Find();
+    } else if (id == ID_GRID_MNU_FIND_NEXT) {
+        FindNext();
+    } else if (id == ID_GRID_MNU_FIND_PREVIOUS) {
+        FindPrevious();
+    } else if (id == ID_GRID_MNU_REPLACE) {
+        Replace();
+    } else if (id == ID_GRID_MNU_ADD_SHIMMER) {
+        AddShimmer();
     }
     Draw();
 }
