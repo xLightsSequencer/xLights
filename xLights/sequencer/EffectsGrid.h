@@ -288,6 +288,11 @@ private:
     void TruncateBrightnessValueCurve(ValueCurve& vc, double startPos, double endPos, int startMS, int endMS, int originalLength);
     uint32_t FindChannel(Element* element, int strandIndex, int nodeIndex, uint8_t& channelsPerNode) const;
     void FindEffectsForData(uint32_t channel, uint8_t chans, uint32_t _findDataMS) const;
+    void Find();
+    void FindNext();
+    void FindPrevious();
+    void Replace();
+    void AddShimmer();
 
     SequenceElements* mSequenceElements = nullptr;
     bool mIsDrawing = false;
@@ -359,10 +364,19 @@ private:
     int mRangeCursorRow;
     int mRangeCursorCol;
 
+    std::string mSearchText;
+    int mLastFoundEffectIndex;
+    int mSearchRow;
+
     static const long ID_GRID_MNU_CUT;
     static const long ID_GRID_MNU_COPY;
     static const long ID_GRID_MNU_PASTE;
     static const long ID_GRID_MNU_DELETE;
+    static const long ID_GRID_MNU_FIND;
+    static const long ID_GRID_MNU_FIND_NEXT;
+    static const long ID_GRID_MNU_FIND_PREVIOUS;
+    static const long ID_GRID_MNU_REPLACE;
+    static const long ID_GRID_MNU_ADD_SHIMMER;
     static const long ID_GRID_MNU_RANDOM_EFFECTS;
     static const long ID_GRID_MNU_DESCRIPTION;
     static const long ID_GRID_MNU_RESETEFFECT;
