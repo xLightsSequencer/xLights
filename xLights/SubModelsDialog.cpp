@@ -504,9 +504,6 @@ int SubModelsDialog::CountNodesInRange(const wxString& range) {
     wxStringTokenizer tokenizer(range, ",");
     while (tokenizer.HasMoreTokens()) {
         wxString nodeRange = tokenizer.GetNextToken();
-        if (nodeRange.IsEmpty())
-            continue;
-
         if (nodeRange.Contains("-")) {
             int dashPosition = nodeRange.Index('-');
             int start = wxAtoi(nodeRange.Left(dashPosition));
@@ -515,10 +512,10 @@ int SubModelsDialog::CountNodesInRange(const wxString& range) {
                 count += std::abs(end - start) + 1;
             }
         } else {
-            if (wxAtoi(nodeRange) > 0)
-                count++;
+            count++;
         }
     }
+    if (EndsWith(range, ",")) count++;
     return count;
 }
 
@@ -1076,7 +1073,7 @@ void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
     mnu.Append(SUBMODEL_DIALOG_EXPAND_STRANDS_ALL, "Expand All Strands");
     mnu.Append(SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL, "Compress All Strands");
     mnu.Append(SUBMODEL_DIALOG_BLANKS_AS_ZERO, "Convert Blanks To Zeros");
-    mnu.Append(SUBMODEL_DIALOG_BLANKS_AS_EMPTY, "Convert Zeros To Empty");
+    mnu.Append(SUBMODEL_DIALOG_BLANKS_AS_EMPTY, "Convert Zeros To Blanks");
     mnu.Append(SUBMODEL_DIALOG_REMOVE_BLANKS_ZEROS, "Remove Blanks/Zeros");
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&SubModelsDialog::OnNodesGridPopup, nullptr, this);
