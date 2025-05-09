@@ -17,6 +17,7 @@
 #include <log4cpp/Category.hh>
 
 const long TimeLine::ID_ZOOMSEL = wxNewId();
+const long TimeLine::ID_RESETZOOM = wxNewId();
 
 wxDEFINE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEQUENCE_CHANGED, wxCommandEvent);
@@ -53,6 +54,7 @@ void TimeLine::mouseRightDown(wxMouseEvent& event)
     if (mSelectedPlayMarkerEndMS != mSelectedPlayMarkerStartMS) {
         mnuLayer.Append(ID_ZOOMSEL, "Zoom to Selection");
     }
+    mnuLayer.Append(ID_RESETZOOM, "Reset Zoom");
     for (int i = 0; i < 10; ++i)
     {
         auto mnu = mnuLayer.AppendCheckItem(i+1, wxString::Format("%i", i));
@@ -94,6 +96,10 @@ void TimeLine::OnPopup(wxCommandEvent& event)
 
     if (id + 1 == ID_ZOOMSEL) {
         ZoomSelection();
+    }
+    else if (id + 1 == ID_RESETZOOM) {
+        int maxZoom = GetMaxZoomLevel();
+        SetZoomLevel(maxZoom);
     }
     else if (id == 199)
     {

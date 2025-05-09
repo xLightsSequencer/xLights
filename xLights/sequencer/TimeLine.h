@@ -136,6 +136,7 @@ public:
     const static int ZoomLevelValues[];
 
     static const long ID_ZOOMSEL;
+    static const long ID_RESETZOOM;
 
 private:
     DECLARE_EVENT_TABLE()
