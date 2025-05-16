@@ -6,7 +6,7 @@ PREFIX          = /usr
 export PKG_CONFIG_PATH := $(if $(PKG_CONFIG_PATH),$(PKG_CONFIG_PATH):$(PREFIX)/lib/pkgconfig/,$(PREFIX)/lib/pkgconfig)
 
 # Make sure wx-config will be found.
-export PATH := $(PREFIX)/bin:$(PATH)
+export PATH := $(PATH):$(PREFIX)/bin
 
 # Ignore some warnings for now to make compile output cleaner
 # until the issues are cleaned up in the code.
