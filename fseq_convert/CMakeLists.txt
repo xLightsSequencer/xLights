@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.24)
 
 project(fseq_convert VERSION 0.0.1 LANGUAGES CXX)
 
@@ -39,10 +39,12 @@ file(WRITE "${CMAKE_BINARY_DIR}/git_version.h"
 "\n"
 )
 
-#add_definitions(fseq_export)
-add_compile_definitions(fseq_export)
-include_directories(../include ../include/zlib ${CMAKE_CURRENT_BINARY_DIR})
-link_directories(../lib/windows64)
+IF (WIN32)
+    include_directories(../include ../include/zlib ../xLights ${CMAKE_CURRENT_BINARY_DIR})
+    link_directories(../lib/windows64)
+ELSE()
+    include_directories(../xLights ${CMAKE_CURRENT_BINARY_DIR})
+ENDIF()
 
 set(SRC_FILES
     fseq_convert.cpp
@@ -51,6 +53,12 @@ set(SRC_FILES
     )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
-target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog argparse libzstdd_static_VS.lib z.lib)
 
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
+IF (WIN32)
+    target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog argparse libzstdd_static_VS.lib z.lib)
+    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
+ELSE()
+    find_package(ZLIB REQUIRED)
+    find_package(zstd REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog argparse zstd::libzstd_shared ZLIB::ZLIB)
+ENDIF()

@@ -13,7 +13,7 @@
 
 #include "git_version.h"
 
-#include "../xlights/FSEQFile.h"
+#include "FSEQFile.h"
 
 static int fseqMajVersion = 2;
 static int fseqMinVersion = 0;
