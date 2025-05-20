@@ -112,22 +112,40 @@
 																	</object>
 																</object>
 																<flag>wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
-																<border>5</border>
+																<border>2</border>
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
 																<object class="wxBoxSizer" variable="BoxSizer3" member="no">
 																	<orient>wxVERTICAL</orient>
 																	<object class="sizeritem">
-																		<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" subclass="xlSizedBitmapButton" variable="BitmapButton_SavePalette" member="yes">
-																			<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_save_xpm&quot;, wxART_BUTTON)' />
-																			<size>24,24</size>
-																			<tooltip>Ctrl+Click to enter a palette name.</tooltip>
-																			<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
-																			<handler function="OnBitmapButton_SavePaletteClick" entry="EVT_BUTTON" />
+																		<object class="wxBoxSizer" variable="BoxSizer4" member="no">
+																			<object class="sizeritem">
+																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" subclass="xlSizedBitmapButton" variable="BitmapButton_SavePalette" member="yes">
+																					<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_save_xpm&quot;, wxART_BUTTON)' />
+																					<size>24,24</size>
+																					<tooltip>Ctrl+Click to enter a palette name.</tooltip>
+																					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+																					<handler function="OnBitmapButton_SavePaletteClick" entry="EVT_BUTTON" />
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON1" subclass="xlSizedBitmapButton" variable="BitmapButton_ImportPalette" member="yes">
+																					<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_cc_up_xpm&quot;, wxART_BUTTON)' />
+																					<size>24,24</size>
+																					<tooltip>Import Hex Color Values</tooltip>
+																					<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+																					<handler function="OnBitmapButton_ImportPaletteClick" entry="EVT_BUTTON" />
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
@@ -138,12 +156,11 @@
 																			<handler function="OnBitmapButton_DeletePaletteClick" entry="EVT_BUTTON" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
-																		<option>1</option>
+																		<border>2</border>
 																	</object>
 																</object>
 																<flag>wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
-																<border>5</border>
+																<border>2</border>
 																<option>1</option>
 															</object>
 														</object>
