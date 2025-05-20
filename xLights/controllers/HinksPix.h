@@ -222,7 +222,7 @@ public:
     bool UploadFileToController(std::string const& localpathname, std::string const& remotepathname, std::function<bool(int, int, std::string)> progress_dlg, wxDateTime const& fileTime) const;
     bool UploadTimeToController() const;
     bool UploadModeToController(unsigned char mode) const;
-    [[nodiscard]] std::vector<HinksPixFileData> GetFileInfoFromSDCard(byte cmd) const;
+    [[nodiscard]] std::vector<HinksPixFileData> GetFileInfoFromSDCard(uint8_t cmd) const;
     [[nodiscard]] int GetMPUVersion() const { return _MCPU_Version; }
     [[nodiscard]] bool IsHardwareV3() const { return _hardwareV3; }
     [[nodiscard]] bool FirmwareSupportsUpload() const;

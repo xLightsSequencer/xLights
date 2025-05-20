@@ -41,7 +41,7 @@
 
 struct Tag_Packet {
     char HINK[18];
-    byte CMD[4];
+    uint8_t CMD[4];
 
     // struct Tag_TCP_Packet
     uint16_t TotalSize; // data and header
@@ -49,7 +49,7 @@ struct Tag_Packet {
 
     // struct Tag_File_Data
     uint16_t DataSize;
-    byte Data[580]; // must be even
+    uint8_t Data[580]; // must be even
 };
 
 // data follows or file name etc
@@ -79,14 +79,14 @@ struct Tag_File_Data_Close { // controller rename and set date/time
 
 struct Tag_CMD_Packet {
     char HINK[18];
-    byte CMD[4];
+    uint8_t CMD[4];
 };
 
 struct Tag_Dow_TimePacket {
-    byte hr;
-    byte min;
-    byte sec;
-    byte dow;
+    uint8_t hr;
+    uint8_t min;
+    uint8_t sec;
+    uint8_t dow;
 };
 #pragma pack(pop)
 
@@ -1460,7 +1460,7 @@ bool HinksPix::UploadFileToController(std::string const& localpathname, std::str
     PK.DataSize = (uint16_t)NumBytes;
     PK.TotalSize = sizeof(struct Tag_Packet) - sizeof(PK.Data) + (uint16_t)NumBytes;
 
-    auto ss = sock->Write((byte*)&PK, PK.TotalSize).LastCount();
+    auto ss = sock->Write((uint8_t*)&PK, PK.TotalSize).LastCount();
     if (ss==0) {
         fclose(f);
         logger_base.error("ERROR Sending Data to Controller File Data");
@@ -1517,7 +1517,7 @@ bool HinksPix::UploadFileToController(std::string const& localpathname, std::str
 
             PK.TotalSize = sizeof(struct Tag_Packet) - sizeof(PK.Data) + sizeof(struct Tag_File_Data_Close);
 
-            auto ss = sock->Write((byte*)&PK, PK.TotalSize).LastCount();
+            auto ss = sock->Write((uint8_t*)&PK, PK.TotalSize).LastCount();
             if (ss == 0) {
                 sock->Close();
                 return false;
@@ -1542,7 +1542,7 @@ bool HinksPix::UploadFileToController(std::string const& localpathname, std::str
         PK.DataSize = (uint16_t)NumBytes;
         PK.TotalSize = sizeof(struct Tag_Packet) - sizeof(PK.Data) + (uint16_t)NumBytes;
 
-        auto ss = sock->Write((byte*)&PK, PK.TotalSize).LastCount();
+        auto ss = sock->Write((uint8_t*)&PK, PK.TotalSize).LastCount();
         if (ss == 0) {
             fclose(f);
             logger_base.error("ERROR Xmitting to Controller File Data");
@@ -1596,7 +1596,7 @@ bool HinksPix::UploadTimeToController() const {
     PK.DataSize = sizeof(struct Tag_Dow_TimePacket);
 
     memmove(PK.Data, &TP, sizeof(struct Tag_Dow_TimePacket));
-    auto ss = sock->Write((byte*)&PK, PK.TotalSize).LastCount();
+    auto ss = sock->Write((uint8_t*)&PK, PK.TotalSize).LastCount();
     if (ss == 0) {
         logger_base.error("ERROR Sending Data to Controller File Data");
         sock->Close();
@@ -1635,7 +1635,7 @@ bool HinksPix::UploadModeToController(unsigned char mode) const {
     CP.CMD[2] = 0xa5;
     CP.CMD[3] = 0;
 
-    auto ss = sock->Write((byte*)&CP, sizeof(struct Tag_CMD_Packet)).LastCount();
+    auto ss = sock->Write((uint8_t*)&CP, sizeof(struct Tag_CMD_Packet)).LastCount();
     if (ss == 0) {
         logger_base.error("ERROR Sending Mode to Controller");
         sock->Close();
@@ -1653,12 +1653,12 @@ bool HinksPix::UploadModeToController(unsigned char mode) const {
     return true;
 }
 
-std::vector<HinksPixFileData> HinksPix::GetFileInfoFromSDCard(byte cmd) const {
+std::vector<HinksPixFileData> HinksPix::GetFileInfoFromSDCard(uint8_t cmd) const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::unique_ptr<wxSocketClient> sock = std::make_unique<wxSocketClient>();
     std::vector<HinksPixFileData> files;
-    byte CMD[4];
-    byte B[100];
+    uint8_t CMD[4];
+    uint8_t B[100];
     char* p;
     int CmdLength;
 
