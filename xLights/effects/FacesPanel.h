@@ -41,6 +41,7 @@ class FacesPanel: public xlEffectPanel
 		BulkEditCheckBox* CheckBox_SuppressShimmer;
 		BulkEditCheckBox* CheckBox_SuppressWhenNotSinging;
 		BulkEditCheckBox* CheckBox_TransparentBlack;
+		BulkEditChoice* Choice_Faces_EyeBlinkDuration;
 		BulkEditChoice* Choice_Faces_EyeBlinkFrequency;
 		BulkEditChoice* Choice_Faces_Eyes;
 		BulkEditChoice* Choice_Faces_Phoneme;
@@ -55,6 +56,8 @@ class FacesPanel: public xlEffectPanel
 		wxStaticText* StaticText14;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
 		wxStaticText* StaticText71;
 		wxStaticText* StaticText_Faces_EyeBlinkFrequency;
 		//*)
@@ -62,27 +65,30 @@ class FacesPanel: public xlEffectPanel
 	protected:
 
 		//(*Identifiers(FacesPanel)
-		static const long IDD_RADIOBUTTON_Faces_Phoneme;
-		static const long ID_CHOICE_Faces_Phoneme;
-		static const long IDD_RADIOBUTTON_Faces_TimingTrack;
-		static const long ID_CHOICE_Faces_TimingTrack;
-		static const long ID_STATICTEXT15;
-		static const long ID_CHOICE_Faces_FaceDefinition;
-		static const long ID_STATICTEXT_Faces_Eyes;
-		static const long ID_CHOICE_Faces_Eyes;
-		static const long ID_STATICTEXT_EYEBLINKFREQUENCY;
-		static const long ID_CHOICE_Faces_EyeBlinkFrequency;
-		static const long ID_CHECKBOX_Faces_Outline;
-		static const long ID_CHECKBOX_Faces_SuppressShimmer;
-		static const long ID_STATICTEXT1;
-		static const long ID_CHOICE_Faces_UseState;
-		static const long ID_CHECKBOX_Faces_SuppressWhenNotSinging;
-		static const long ID_STATICTEXT_Faces_Lead_Frames;
-		static const long ID_SPINCTRL_Faces_LeadFrames;
-		static const long ID_CHECKBOX_Faces_Fade;
-		static const long ID_CHECKBOX_Faces_TransparentBlack;
-		static const long IDD_SLIDER_Faces_TransparentBlack;
-		static const long ID_TEXTCTRL_Faces_TransparentBlack;
+		static const wxWindowID IDD_RADIOBUTTON_Faces_Phoneme;
+		static const wxWindowID ID_CHOICE_Faces_Phoneme;
+		static const wxWindowID IDD_RADIOBUTTON_Faces_TimingTrack;
+		static const wxWindowID ID_CHOICE_Faces_TimingTrack;
+		static const wxWindowID ID_STATICTEXT15;
+		static const wxWindowID ID_CHOICE_Faces_FaceDefinition;
+		static const wxWindowID ID_STATICTEXT_Faces_Eyes;
+		static const wxWindowID ID_CHOICE_Faces_Eyes;
+		static const wxWindowID ID_STATICTEXT_EYEBLINKFREQUENCY;
+		static const wxWindowID ID_STATICTEXT3;
+		static const wxWindowID ID_CHOICE_Faces_EyeBlinkFrequency;
+		static const wxWindowID ID_STATICTEXT2;
+		static const wxWindowID ID_CHOICE_Faces_EyeBlinkDuration;
+		static const wxWindowID ID_CHECKBOX_Faces_Outline;
+		static const wxWindowID ID_CHECKBOX_Faces_SuppressShimmer;
+		static const wxWindowID ID_STATICTEXT1;
+		static const wxWindowID ID_CHOICE_Faces_UseState;
+		static const wxWindowID ID_CHECKBOX_Faces_SuppressWhenNotSinging;
+		static const wxWindowID ID_STATICTEXT_Faces_Lead_Frames;
+		static const wxWindowID ID_SPINCTRL_Faces_LeadFrames;
+		static const wxWindowID ID_CHECKBOX_Faces_Fade;
+		static const wxWindowID ID_CHECKBOX_Faces_TransparentBlack;
+		static const wxWindowID IDD_SLIDER_Faces_TransparentBlack;
+		static const wxWindowID ID_TEXTCTRL_Faces_TransparentBlack;
 		//*)
 
 	public:
