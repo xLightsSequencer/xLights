@@ -452,10 +452,10 @@ export void NonAlphaFade(uniform const LayerBlendingData &data,
 }
 
 float ColorDistance(const uint32 e1, const uniform uint32 e2) {
-    int rmean = (red(e1) + red(e2)) >> 1;
-    int r = red(e1) - red(e2);
-    int g = green(e1) - green(e2);
-    int b = blue(e1) - blue(e2);
+    int rmean = ((int)red(e1) + (int)red(e2)) >> 1;
+    int r = (int)red(e1) - (int)red(e2);
+    int g = (int)green(e1) - (int)green(e2);
+    int b = (int)blue(e1) - (int)blue(e2);
     int f1 = (((512 + rmean) * r * r) >> 8);
     int f2 = (((767 - rmean) * b * b) >> 8);
     float f3 = f1 + 4 * g * g + f2;
@@ -742,9 +742,9 @@ export void AdditiveFunction(uniform const LayerBlendingData &data,
         if (!data.isChromaKey || !applyChroma(data, fg)) {
             uint32 bg = result[index];
             
-            int r = red(fg) + red(bg);
-            int g = green(fg) + green(bg);
-            int b = blue(fg) + blue(bg);
+            int r = (int)red(fg) + (int)red(bg);
+            int g = (int)green(fg) + (int)green(bg);
+            int b = (int)blue(fg) + (int)blue(bg);
             if (r > 255)
                 r = 255;
             if (g > 255)
@@ -855,9 +855,9 @@ export void HighlightVibrantFunction(uniform const LayerBlendingData &data,
             uint32 bg = result[index];
             HSVColor hsv1 = toHSV(bg);
             if (hsv1.z > data.effectMixThreshold) {
-                int r = red(fg) + red(bg);
-                int g = green(fg) + green(bg);
-                int b = blue(fg) + blue(bg);
+                int r = (int)red(fg) + (int)red(bg);
+                int g = (int)green(fg) + (int)green(bg);
+                int b = (int)blue(fg) + (int)blue(bg);
 
                 if (r > 255)
                     r = 255;
