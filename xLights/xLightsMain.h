@@ -387,7 +387,6 @@ public:
     };
 
     wxString _userEmail;
-    wxString _linkedSave = "None";
     wxString _linkedControllerUpload = "None";
     wxString _aliasRenameBehavior = "Always Prompt";
     static wxString CurrentDir; //expose current folder name -DJ
@@ -1254,9 +1253,6 @@ public:
     const wxString& UserEMAIL() const { return _userEmail; }
     void SetUserEMAIL(const wxString &e);
 
-    const wxString& GetLinkedSave() const { return _linkedSave; }
-    void SetLinkedSave(const wxString& e);
-
     const wxString& GetLinkedControllerUpload() const { return _linkedControllerUpload; }
     void SetLinkedControllerUpload(const wxString& e);
     
@@ -1445,7 +1441,6 @@ public:
     bool PromptForShowDirectory(bool permanent, const std::string &defaultDir = "");
     bool PromptForDirectorySelection(const std::string &msg, std::string &dir);
     bool SaveNetworksFile();
-    bool IsControllersAndLayoutTabSaveLinked() { return _linkedSave == "Controllers and Layout Tab"; }
     bool IsControllerUploadLinked() { return _linkedControllerUpload == "Inputs and Outputs"; }
     void NetworkChange();
     void NetworkChannelsChange();
