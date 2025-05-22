@@ -103,13 +103,15 @@ struct PlayList
         }
     }
 
-    void saveAsFile(wxString const& drive) const
-    {
+    [[nodiscard]] wxString getFileName() const {
+        return Name + ".ply";
+    }
+
+    void saveAsFile(wxString const& filename) const {
         wxArrayString main;
         for (auto const& it : Items) {
             main.Add(it.asString());
         }
-        wxString const filename = drive + wxFileName::GetPathSeparator() + Name + ".ply";
         wxFile f;
         f.Open(filename, wxFile::write);
         if (f.IsOpened()) {
@@ -118,6 +120,10 @@ struct PlayList
             f.Write("]");
             f.Close();
         }
+    }
+    void saveToDrive(wxString const& drive) const {
+        wxString const filename = drive + wxFileName::GetPathSeparator() + getFileName();
+        saveAsFile(filename);
     }
 };
 
@@ -254,7 +260,11 @@ struct Schedule {
         return sorted;
     }
 
-    void saveAsFile(wxString const& drive) const
+    [[nodiscard]] wxString getFileName() const {
+        return Day + ".sched";
+    }
+
+    void saveAsFile(wxString const& filename) const
     {
         wxArrayString main;
         auto sItems = GetSortedSchedule();
@@ -263,7 +273,6 @@ struct Schedule {
                 main.Add(it.asString());
             }
         }
-        wxString const filename = drive + wxFileName::GetPathSeparator() + Day + ".sched";
         wxFile f;
         f.Open(filename, wxFile::write);
         if (f.IsOpened()) {
@@ -272,6 +281,11 @@ struct Schedule {
             f.Write("]");
             f.Close();
         }
+    }
+
+    void saveToDrive(wxString const& drive) const {
+        wxString const filename = drive + wxFileName::GetPathSeparator() + getFileName();
+        saveAsFile(filename);
     }
 
     [[nodiscard]] bool isValid(wxString &reason) const
@@ -346,6 +360,7 @@ public:
     wxButton* AddRefreshButton;
     wxButton* ButtonAddPlaylist;
     wxButton* ButtonRemove;
+    wxButton* ButtonUpload;
     wxButton* Button_Export;
     wxChoice* ChoiceFilter;
     wxChoice* ChoiceFolder;
@@ -363,25 +378,26 @@ public:
     //*)
 protected:
     //(*Identifiers(HinksPixExportDialog)
-    static const long ID_SCROLLEDWINDOW1;
-    static const long ID_STATICTEXT3;
-    static const long ID_CHOICE_PLAYLISTS;
-    static const long ID_BUTTON_ADD_PLAYLIST;
-    static const long ID_BUTTON_REMOVE;
-    static const long ID_STATICTEXT1;
-    static const long ID_CHOICE_FILTER;
-    static const long ID_STATICTEXT2;
-    static const long ID_CHOICE_FOLDER;
-    static const long ID_BITMAPBUTTON_MOVE_UP;
-    static const long ID_BITMAPBUTTON_MOVE_DOWN;
-    static const long ID_LISTVIEW_Sequences;
-    static const long ID_PANEL1;
-    static const long ID_GRID_SCHEDULE;
-    static const long ID_PANEL4;
-    static const long ID_NOTEBOOK_EXPORT_ITEMS;
-    static const long ID_BUTTON_REFRESH;
-    static const long ID_BUTTON_EXPORT;
-    static const long wxID_Close;
+    static const wxWindowID ID_SCROLLEDWINDOW1;
+    static const wxWindowID ID_STATICTEXT3;
+    static const wxWindowID ID_CHOICE_PLAYLISTS;
+    static const wxWindowID ID_BUTTON_ADD_PLAYLIST;
+    static const wxWindowID ID_BUTTON_REMOVE;
+    static const wxWindowID ID_STATICTEXT1;
+    static const wxWindowID ID_CHOICE_FILTER;
+    static const wxWindowID ID_STATICTEXT2;
+    static const wxWindowID ID_CHOICE_FOLDER;
+    static const wxWindowID ID_BITMAPBUTTON_MOVE_UP;
+    static const wxWindowID ID_BITMAPBUTTON_MOVE_DOWN;
+    static const wxWindowID ID_LISTVIEW_Sequences;
+    static const wxWindowID ID_PANEL1;
+    static const wxWindowID ID_GRID_SCHEDULE;
+    static const wxWindowID ID_PANEL4;
+    static const wxWindowID ID_NOTEBOOK_EXPORT_ITEMS;
+    static const wxWindowID ID_BUTTON_REFRESH;
+    static const wxWindowID ID_BUTTON_EXPORT;
+    static const wxWindowID ID_BUTTON_UPLOAD;
+    static const wxWindowID wxID_Close;
     //*)
 
     static const long ID_MNU_SELECTALL;
@@ -391,6 +407,10 @@ protected:
 
     static const long ID_MNU_SETALL;
     static const long ID_MNU_SETALLPLAY;
+
+    static const long ID_MNU_SETTIME;
+    static const long ID_MNU_UPLOADFILE;
+    static const long ID_MNU_UPLOADFIRM;
 
     ModelManager* m_modelManager = nullptr;
     OutputManager* m_outputManager = nullptr;
@@ -416,6 +436,7 @@ private:
     void OnButton_CloseClick(wxCommandEvent& event);
     void OnGridScheduleCellChanged(wxGridEvent& event);
     void OnGridScheduleCellRightClick(wxGridEvent& event);
+    void OnButtonUploadClick(wxCommandEvent& event);
     //*)
 
     void CreateDriveList();
@@ -437,6 +458,7 @@ private:
 
     [[nodiscard]] int getMaxSlaveControllerUniverses(ControllerEthernet* controller) const;
 
+    void ControllerPopupMenu(wxContextMenuEvent& event);
     void OnPopup(wxCommandEvent& event);
     void OnPopupGrid(wxCommandEvent& event);
 
@@ -446,7 +468,7 @@ private:
     void LoadSettings();
     void ApplySavedSettings(wxJSONValue json);
 
-    void AddInstanceHeader(wxString const& h);
+    wxPanel* AddInstanceHeader(wxString const& h);
 
     [[nodiscard]] bool GetCheckValue(wxString const& col) const;
     [[nodiscard]] wxString GetChoiceValue(wxString const& col) const;
@@ -475,6 +497,9 @@ private:
     void StoreToObjectSchedule();
     void RedrawSchedules();
     bool CheckSchedules();
+
+    void UploadFile(ControllerEthernet* controller);
+    void ExtractFirmware(ControllerEthernet* controller);
 
     DECLARE_EVENT_TABLE()
 };

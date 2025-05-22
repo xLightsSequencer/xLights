@@ -321,6 +321,7 @@ class SeqSettingsDialog: public wxDialog
 
         void ProcessSequenceType();
         void PopulateTimingGrid();
+		std::vector<std::string> ParseTags(const wxString& tagString);
         void AddTimingCell(const wxString& name);
         void UpdateDataLayer();
         void MediaChooser();

@@ -20,11 +20,75 @@
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "../xSchedule/wxJSON/jsonwriter.h"
 
+#include <wx/datetime.h>
 #include <wx/msgdlg.h>
 #include <wx/progdlg.h>
+#include <wx/sckipc.h>
+#include "wx/socket.h"
 #include <wx/sstream.h>
 
+#ifdef _MSC_VER
+#include <stdio.h>
+#else
+#include <unistd.h>
+#endif
+
 #include <log4cpp/Category.hh>
+#include <filesystem>
+
+#pragma pack(push)
+#pragma pack(2)
+
+struct Tag_Packet {
+    char HINK[18];
+    uint8_t CMD[4];
+
+    // struct Tag_TCP_Packet
+    uint16_t TotalSize; // data and header
+    uint16_t StructType; // allows any number of different message packets
+
+    // struct Tag_File_Data
+    uint16_t DataSize;
+    uint8_t Data[580]; // must be even
+};
+
+// data follows or file name etc
+
+struct Tag_TCP_Packet {
+    uint16_t TotalSize; // data and header
+    uint16_t StructType; // allows any number of different message packets
+};
+
+// CMD 'F' ******************
+// StructType 0
+struct Tag_File_Data_Start { // controller open temp file with hard write to overwrite previous faulted file
+    uint16_t DataSize;
+};
+
+// StructType 1
+struct Tag_File_Data { // controller open temp file with append
+    uint16_t DataSize;
+};
+
+// StructType 2
+struct Tag_File_Data_Close { // controller rename and set date/time
+    // its part of packetword DataSize;	// so it matches earlier
+    char FN[30]; // seq and playlist limit to 20 to 25
+    uint32_t DTTM;
+};
+
+struct Tag_CMD_Packet {
+    char HINK[18];
+    uint8_t CMD[4];
+};
+
+struct Tag_Dow_TimePacket {
+    uint8_t hr;
+    uint8_t min;
+    uint8_t sec;
+    uint8_t dow;
+};
+#pragma pack(pop)
 
 
 
@@ -226,7 +290,7 @@ void HinksPix::InitExpansionBoardData(int expansion, int startport, int length) 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxJSONValue data;
 
-    bool worked = GetControllerDataJSON(GetJSONPortURL(), data, wxString::Format("BLK: %d", expansion - 1));
+    bool const worked = GetControllerDataJSON(GetJSONPortURL(), data, wxString::Format("BLK: %d", expansion - 1));
 
     if (!worked || !data.HasMember("LIST")) {
         logger_base.error("Invalid Data from controller");
@@ -258,7 +322,7 @@ std::unique_ptr<HinksPixSerial> HinksPix::InitSerialData(bool fullControl) {
         }
 
         wxJSONValue data;
-        bool worked = GetControllerDataJSON(GetJSONModeURL(), data, "BLK: 0");
+        bool const worked = GetControllerDataJSON(GetJSONModeURL(), data, "BLK: 0");
 
         if (!worked || !data.HasMember("CMD")) {
             logger_base.error("Invalid Data from controller");
@@ -311,7 +375,7 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
     }
 
     wxJSONValue data;
-    bool worked = GetControllerDataJSON(GetJSONModeURL(), data, "BLK: 0");
+    bool const worked = GetControllerDataJSON(GetJSONModeURL(), data, "BLK: 0");
 
     if (!worked || !data.HasMember("CMD")) {
         DisplayError("Getting HinksPix Input Mode FAILED.");
@@ -341,7 +405,7 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
     //  HinksPix Pro prev v111 firmware is 145 universes
     //  HinksPix Pro v111 firmware is 402 universes
     //  HinksPix Pro80 max is 684 universes
-    int numberOfCalls = std::ceil(_numberOfUniverses / UN_PER);
+    int const numberOfCalls = std::ceil(_numberOfUniverses / UN_PER);
 
     int index = 1;
     int num_of_unv = 0;
@@ -490,7 +554,7 @@ bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vecto
 
         const auto map = StringToMap(data);
 
-        int maxUnv = wxAtoi(map.at("C"));
+        int const maxUnv = wxAtoi(map.at("C"));
 
         if (controller->GetOutputCount() > maxUnv) {
             DisplayError(wxString::Format("Attempt to upload %d universes to HinksPix controller but only %d are supported.", controller->GetOutputCount(), maxUnv).ToStdString());
@@ -525,7 +589,7 @@ bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vecto
             //Joes code allows 6 universe settings uploaded at a time
             // loop though and submit every 6
             // EasyLights 16 max is 65 universes
-            int numberOfCalls = std::ceil(maxUnv / UN_PER);
+            int const numberOfCalls = std::ceil(maxUnv / UN_PER);
             int index = 1;
 
             for (int j = 0; j < numberOfCalls; j++) {
@@ -772,7 +836,7 @@ void HinksPix::UploadSmartReceiverData(int expan, int bank, std::vector<HinksSma
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     logger_base.debug("Building SmartReciever upload Expansion %d Bank %d:", expan, bank);
-    if (receivers.size() == 0) {
+    if (receivers.empty()) {
         logger_base.info("No SmartReciever found");
         return;
     }
@@ -780,9 +844,9 @@ void HinksPix::UploadSmartReceiverData(int expan, int bank, std::vector<HinksSma
     wxString requestString = wxString::Format("DATA: {\"CMD\":\"SCONFIG\",\"BOARD\":\"%d\",\"Port4\":\"%d\",\"LIST\":[",
                                               expan, bank);
 
-    for (int i = 0; i < receivers.size(); i++) {
-        receivers[i].Dump();
-        requestString += receivers[i].BuildCommand();
+    for (auto const& rec: receivers) {
+        rec.Dump();
+        requestString += rec.BuildCommand();
         requestString += ",";
     }
     requestString.RemoveLast(); //remove last ","
@@ -799,11 +863,11 @@ void HinksPix::CalculateSmartReceivers(UDControllerPort* stringData) {
     if (!stringData->AtLeastOneModelIsUsingSmartRemote()) {
         return;
     }
-    int port {stringData->GetPort() - 1};
-    int expansionBoard = port / OUT_SIZE;
-    int expansionPort = port % OUT_SIZE;
-    int bank = expansionPort / REC_SIZE;
-    int subPort = (expansionPort % REC_SIZE);
+    int const port {stringData->GetPort() - 1};
+    int const expansionBoard = port / OUT_SIZE;
+    int const expansionPort = port % OUT_SIZE;
+    int const bank = expansionPort / REC_SIZE;
+    int const subPort = (expansionPort % REC_SIZE);
 
     int prevID { -1 };
     int start_pixels { 1 };
@@ -821,7 +885,7 @@ void HinksPix::CalculateSmartReceivers(UDControllerPort* stringData) {
                     if (it->GetSmartRemoteType().find("16") != std::string::npos && 
                         it->GetSmartRemoteType().find("16ac") == std::string::npos) { //add 16 port
                         //add all four remotes, starting at the first id 0,4,8,12
-                        int id16 = (id / REC_SIZE) * REC_SIZE;
+                        int const id16 = (id / REC_SIZE) * REC_SIZE;
                         auto& smartPort = _smartOutputs[expansionBoard][bank].emplace_back(id16);
                         smartPort.type = 1;
                         // fluff the Receivers
@@ -846,9 +910,9 @@ void HinksPix::CalculateSmartReceivers(UDControllerPort* stringData) {
                 }
             }
 
-            int32_t chans = it->GetEndChannel() - it->GetStartChannel() + 1;
+            int32_t const chans = it->GetEndChannel() - it->GetStartChannel() + 1;
             portchans += chans;
-            int pixs = chans / std::max(it->GetChannelsPerPixel(),3);
+            int const pixs = chans / std::max(it->GetChannelsPerPixel(), 3);
             start_pixels += pixs;
             prevID = id;
         }
@@ -1101,6 +1165,7 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) :
         } else if (_controllerType == "H") {
             if (pix_type == "8") {
                 _model = "HinksPix PRO 80";
+                _hardwareV3 = true;
             } else {
                 _model = "HinksPix PRO";
             }
@@ -1155,6 +1220,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }*/
 
     if (controller->GetModel() == "PRO V1/V2" && _model == "HinksPix PRO 80") {// Hinkle added 
+
         DisplayError(wxString::Format("Controller Reports as PRO V3 BUT You have the Model as PRO V1/V2 - Please Fix"));
         return false;
     }
@@ -1564,6 +1630,382 @@ wxString HinksPix::GetControllerRowData(int rowIndex, std::string const& url, st
         //curl_easy_cleanup(curl);
     }
     return res;
+}
+
+uint32_t GetDateTimeWord(int month, int day, int year, int hour, int min, int sec) 
+{
+    uint32_t const DT = (((year - 1980) * 512U) | month * 32U | day);
+    uint32_t const TM = (hour * 2048U | min * 32U | sec / 2U);
+
+    return ((DT << 16) & 0xffff0000) | (TM & 0xffff);
+}
+
+uint32_t GetDateTimeWord(wxDateTime dt)
+{
+    return GetDateTimeWord(dt.GetMonth() + 1, dt.GetDay(), dt.GetYear(), dt.GetHour(), dt.GetMinute(), dt.GetSecond());
+}
+
+bool ReadLineFromSocket(wxSocketClient* socket, std::string& line, long timeout) {
+    line.clear();
+    wxStopWatch sw;
+    bool found{false};
+    while ((timeout <= 0) || (sw.Time() < timeout)) {
+        if (socket->WaitForRead(0, 1)) {
+            char c;
+            int tt = socket->Read(&c, sizeof(c)).GetLastIOReadSize();
+            if (socket->LastCount() != sizeof(c) && found) {
+                return true;
+            }
+            if (c == '|') {
+                found = true;
+               // line += c;
+            }
+            if (std::isprint(c)) {
+                line += c;
+            } else if (found) {
+                return true;
+            }
+        }
+        else {
+           // wxYield(); // Allow other events to be processed
+            // If not in a separate thread you might call wxYield() or wxSafeYield()
+            // to prevent the app from hanging. But doing this can cause several
+            // other problems which can be hard to debug, so be carefull!!
+            if (found) {
+                return true;
+            }
+        }
+    }
+    //int cc = sw.Time();
+    return false; // Line not received as expected
+}
+
+bool HinksPix::UploadFileToController(std::string const& localpathname, std::string const& remotepathname, std::function<bool(int, int, std::string)> progress_dlg, wxDateTime const& fileTime) const {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    std::unique_ptr<wxSocketClient> sock = std::make_unique<wxSocketClient>();
+
+    wxIPV4address addr;
+    addr.Hostname(_ip);
+    addr.Service(80);
+    auto work = sock->Connect(addr);
+    if (!work ) {
+        logger_base.error("Could not connect to %s", (const char*)_ip.c_str());
+        return false;
+    }
+
+    Tag_Packet PK;
+    Tag_File_Data_Close DC;
+
+    uint32_t NumBytes;
+    int Progress = 0;
+
+    int maxLoop = std::ceil(std::filesystem::file_size(localpathname) / sizeof(PK.Data)) + 1;
+
+    auto up_message = wxString::Format("Uploading '%s' (%d/%d)", remotepathname, Progress, maxLoop);
+    progress_dlg(Progress, maxLoop, up_message);
+
+    FILE* f = fopen((const char*)localpathname.c_str(), "rb");
+    if (f == NULL) {
+        logger_base.error("Could not open file %s", (const char*)localpathname.c_str());
+        sock->Close();
+        return false;
+    }
+    memset(&PK, 0, sizeof(struct Tag_Packet));
+    memmove(PK.HINK, "HINK TCP_CMD  \r\n\r\n", sizeof(PK.HINK)); // must be 18
+    PK.CMD[0] = 'F';
+    PK.CMD[1] = 0x5a;
+    PK.CMD[2] = 0xa5;
+    PK.CMD[3] = 0;
+    PK.TotalSize = 0; // fix before xmit
+    PK.StructType = 0;
+    PK.DataSize = 0; // fix before xmit
+
+    NumBytes = fread(PK.Data, 1, sizeof(PK.Data), f);
+    PK.DataSize = (uint16_t)NumBytes;
+    PK.TotalSize = sizeof(struct Tag_Packet) - sizeof(PK.Data) + (uint16_t)NumBytes;
+
+    auto ss = sock->Write((uint8_t*)&PK, PK.TotalSize).LastCount();
+    if (ss==0) {
+        fclose(f);
+        logger_base.error("ERROR Sending Data to Controller File Data");
+        sock->Close();
+        return false;
+    }
+
+    std::string line;
+    ReadLineFromSocket(sock.get(), line, 5000);
+    if (line.find("|FOK") == std::string::npos) {
+        fclose(f);
+        logger_base.error("Failed to Write %s", (const char*)line.c_str());
+        sock->Close();
+        return false;
+    }
+    wxStopWatch sw;
+    while (true) 
+    {
+        Progress++;
+        if (progress_dlg != nullptr) {
+            auto time = sw.Time();
+            wxString message;
+            auto remaining = maxLoop - Progress;
+            if (time > 0 && Progress > 0) {
+                auto const rate = (time / Progress);
+                auto const remainingTime = (int)(remaining * rate);
+                auto const elapsed_seconds = remainingTime / 1000;
+                auto const minutes = elapsed_seconds / 60;
+                auto const seconds = elapsed_seconds % 60;
+                message = wxString::Format("Uploading '%s' (%d/%d) Remaining time: %dm %ds", remotepathname, Progress, maxLoop, minutes, seconds);
+            } else {
+                message = wxString::Format("Uploading '%s' (%d/%d)", remotepathname, Progress, maxLoop);
+            }
+            auto con = progress_dlg(Progress, maxLoop+1, message);
+            if (!con) {
+                fclose(f);
+                sock->Close();
+                return false;
+            }
+        }
+
+        if (NumBytes < sizeof(PK.Data)) // we have fully sent the file
+        {
+            fclose(f);
+            // send closing info
+            PK.StructType = 2;
+            PK.DataSize = 0;
+            memset(&DC, 0, sizeof(struct Tag_File_Data_Close));
+
+            //strncpy(DC.FN, remotepathname, sizeof(DC.FN) - 1);
+            std::strcpy(DC.FN, remotepathname.c_str());
+            DC.DTTM = GetDateTimeWord(fileTime);
+            memmove(PK.Data, &DC, sizeof(struct Tag_File_Data_Close));
+
+            PK.TotalSize = sizeof(struct Tag_Packet) - sizeof(PK.Data) + sizeof(struct Tag_File_Data_Close);
+
+            auto ss = sock->Write((uint8_t*)&PK, PK.TotalSize).LastCount();
+            if (ss == 0) {
+                sock->Close();
+                return false;
+            }
+
+            ReadLineFromSocket(sock.get(), line, 5000);
+            if (line.find("|FOK") == std::string::npos) {
+                logger_base.error("Failed to Write %s", (const char*)line.c_str());
+                sock->Close();
+                return false;
+            } else {
+                logger_base.debug("File %s uploaded successfully", (const char*)remotepathname.c_str());
+            } 
+            sock->Close();
+            return true;
+        }
+
+        // we are sending all the data here but the first one
+        PK.StructType = 1;
+
+        NumBytes = fread(PK.Data, 1, sizeof(PK.Data), f);
+        PK.DataSize = (uint16_t)NumBytes;
+        PK.TotalSize = sizeof(struct Tag_Packet) - sizeof(PK.Data) + (uint16_t)NumBytes;
+
+        auto ss = sock->Write((uint8_t*)&PK, PK.TotalSize).LastCount();
+        if (ss == 0) {
+            fclose(f);
+            logger_base.error("ERROR Xmitting to Controller File Data");
+            sock->Close();
+            return false;
+        }
+
+        ReadLineFromSocket(sock.get(), line, 5000);
+        if (line.find("|FOK") == std::string::npos) {
+            logger_base.error("Failed to Write %s", (const char*)line.c_str());
+            fclose(f);
+            sock->Close();
+            return false;
+        }
+
+    }
+    sock->Close();
+    return false;
+}
+
+bool HinksPix::UploadTimeToController() const {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    std::unique_ptr<wxSocketClient> sock = std::make_unique<wxSocketClient>();
+
+    wxIPV4address addr;
+    addr.Hostname(_ip);
+    addr.Service(80);
+    auto work = sock->Connect(addr);
+    if (!work) {
+        logger_base.error("Could not connect to %s", (const char*)_ip.c_str());
+        return false;
+    }
+    auto time = wxDateTime::Now();
+    Tag_Dow_TimePacket TP;
+    memset(&TP, 0, sizeof(struct Tag_Dow_TimePacket));
+    TP.hr = time.GetHour();
+    TP.min = time.GetMinute();
+    TP.sec = time.GetSecond();
+    TP.dow = time.GetWeekDay(); // zero based
+
+    Tag_Packet PK;
+    memset(&PK, 0, sizeof(struct Tag_Packet));
+    memmove(PK.HINK, "HINK TCP_CMD  \r\n\r\n", sizeof(PK.HINK)); // must be 18
+    PK.CMD[0] = 'D';
+    PK.CMD[1] = 0x5a;
+    PK.CMD[2] = 0xa5;
+    PK.CMD[3] = 0;
+
+    PK.TotalSize = sizeof(struct Tag_Packet) - sizeof(PK.Data) + sizeof(struct Tag_Dow_TimePacket);
+    PK.StructType = 0;
+    PK.DataSize = sizeof(struct Tag_Dow_TimePacket);
+
+    memmove(PK.Data, &TP, sizeof(struct Tag_Dow_TimePacket));
+    auto ss = sock->Write((uint8_t*)&PK, PK.TotalSize).LastCount();
+    if (ss == 0) {
+        logger_base.error("ERROR Sending Data to Controller File Data");
+        sock->Close();
+        return false;
+    }
+
+    std::string line;
+    ReadLineFromSocket(sock.get(), line, 5000);
+    if (line.find("|FOK") == std::string::npos) {
+        logger_base.error("Failed to Write %s", (const char*)line.c_str());
+        sock->Close();
+        return false;
+    }
+    sock->Close();
+    return true;
+}
+
+bool HinksPix::UploadModeToController(unsigned char mode) const {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    std::unique_ptr<wxSocketClient> sock = std::make_unique<wxSocketClient>();
+
+    wxIPV4address addr;
+    addr.Hostname(_ip);
+    addr.Service(80);
+    auto work = sock->Connect(addr);
+    if (!work) {
+        logger_base.error("Could not connect to %s", (const char*)_ip.c_str());
+        return false;
+    }
+
+    Tag_CMD_Packet CP;
+    memset(&CP, 0, sizeof(struct Tag_CMD_Packet));
+    memmove(CP.HINK, "HINK TCP_CMD  \r\n\r\n", sizeof(CP.HINK)); // must be 18
+    CP.CMD[0] = mode;
+    CP.CMD[1] = 0x5a;
+    CP.CMD[2] = 0xa5;
+    CP.CMD[3] = 0;
+
+    auto ss = sock->Write((uint8_t*)&CP, sizeof(struct Tag_CMD_Packet)).LastCount();
+    if (ss == 0) {
+        logger_base.error("ERROR Sending Mode to Controller");
+        sock->Close();
+        return false;
+    }
+
+    std::string line;
+    ReadLineFromSocket(sock.get(), line, 5000);
+    if (line.find("|FOK") == std::string::npos) {
+        logger_base.error("Failed to Send %s", (const char*)line.c_str());
+        sock->Close();
+        return false;
+    }
+    sock->Close();
+    return true;
+}
+
+std::vector<HinksPixFileData> HinksPix::GetFileInfoFromSDCard(uint8_t cmd) const {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    std::unique_ptr<wxSocketClient> sock = std::make_unique<wxSocketClient>();
+    std::vector<HinksPixFileData> files;
+    uint8_t CMD[4];
+    uint8_t B[100];
+    char* p;
+    int CmdLength;
+
+    CMD[0] = cmd;
+    CMD[1] = 0x5a;
+    CMD[2] = 0xa5;
+    CMD[3] = 0;
+
+    wxIPV4address addr;
+    // addr.AnyAddress();
+    addr.Hostname(_ip);
+    addr.Service(80);
+
+    auto connected = sock->Connect(addr);
+    if (!connected) {
+        logger_base.error("Could not connect to %s", (const char*)_ip.c_str());
+        return files;
+    }
+
+    sprintf((char*)B, "HINK TCP_CMD  \r\n\r\n"); // we must fake a http header
+    CmdLength = strlen((char*)B);
+    p = (char*)B;
+    while (*p)
+        *p++;
+    memmove(p, CMD, 4);
+    CmdLength += 4;
+
+    auto ss = sock->Write(B, CmdLength).LastCount();
+    if (ss == 0) {
+        //fclose(f);
+        sock->Close();
+        logger_base.error("ERROR Xmitting to Controller File Data");
+        return files;
+    }
+
+    //std::string line;
+    // wxStopWatch sw;
+    std::string data;
+    ReadLineFromSocket(sock.get(), data, 5000);
+    if (data.find("|FOK") != std::string::npos) {
+        logger_base.error("Failed to Write %s", (const char*)data.c_str());
+        // txtRx->AppendText(wxT("Failed to read message.\n"));
+        sock->Close();
+        return files;
+    }
+    //*FILENAME.HSEQ,1002,1504!
+    auto const sfiles = Split(data, std::vector<char>({ '!' }));
+    for (auto it : sfiles) {
+        if (it.size() > 0) {
+            HinksPixFileData file;
+            if (it.starts_with('*')) {
+                it = it.Remove(0, 1);
+            }
+            auto const parts = Split(it, std::vector<char>({ ',' }));
+            if (parts.size() == 3) {
+                file.FileName = parts[0];
+                file.Date = wxAtoi(parts[1]);
+                file.Time = wxAtoi(parts[2]);
+                files.push_back(file);
+            }
+        }
+    }
+    sock->Close();
+    return files;
+}
+
+bool HinksPix::FirmwareSupportsUpload() const {
+    constexpr int V3UPLOADFIRMEWARE = 129;
+    constexpr int V2UPLOADFIRMEWARE = 151;
+
+    if (_controllerType == "E") {
+        return false;
+    }
+    if (_hardwareV3) {
+        if (_MCPU_Version >= V3UPLOADFIRMEWARE) {
+            return true;
+        }
+    } else {    
+        if (_MCPU_Version >= V2UPLOADFIRMEWARE) {
+            return true;
+        }
+    }    
+    return false;
 }
 
 std::map<wxString, wxString> HinksPix::StringToMap(wxString const& text) const

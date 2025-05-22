@@ -6,7 +6,7 @@ PREFIX          = /usr
 export PKG_CONFIG_PATH := $(if $(PKG_CONFIG_PATH),$(PKG_CONFIG_PATH):$(PREFIX)/lib/pkgconfig/,$(PREFIX)/lib/pkgconfig)
 
 # Make sure wx-config will be found.
-export PATH := $(PREFIX)/bin:$(PATH)
+export PATH := $(PATH):$(PREFIX)/bin
 
 # Ignore some warnings for now to make compile output cleaner
 # until the issues are cleaned up in the code.
@@ -91,10 +91,8 @@ log4cpp: FORCE
 
 wxwidgets33: FORCE
 	@printf "Checking wxwidgets\n"
-	@if test "`wx-config --version`" != "3.3.0"; \
-		then if test ! -d wxWidgets-$(WXWIDGETS_TAG); \
-			then echo Downloading wxwidgets; git clone --depth=1 --shallow-submodules  --recurse-submodules -b $(WXWIDGETS_TAG) https://github.com/xLightsSequencer/wxWidgets wxWidgets-$(WXWIDGETS_TAG); \
-		fi; \
+	@if test ! -d wxWidgets-$(WXWIDGETS_TAG); \
+		then echo Downloading wxwidgets; git clone --depth=1 --shallow-submodules  --recurse-submodules -b $(WXWIDGETS_TAG) https://github.com/xLightsSequencer/wxWidgets wxWidgets-$(WXWIDGETS_TAG); \
 		cd wxWidgets-$(WXWIDGETS_TAG); \
 		./configure --enable-cxx11 --with-cxx=17 --enable-std_containers --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-sdltest --with-gtk=3 $(WXWIDGETS_CANVAS_FLAGS) --disable-pcx --disable-iff --without-libtiff --prefix=$(PREFIX); \
 		echo Building wxwidgets; \
@@ -102,7 +100,7 @@ wxwidgets33: FORCE
 		echo Installing wxwidgets; \
 		$(SUDO) ${MAKE} install DESTDIR=$(DESTDIR); \
 		echo Completed build/install of wxwidgets; \
-        fi
+		fi
 
 ispc: FORCE	
 	@printf "Checking ispc\n"

@@ -129,6 +129,7 @@ struct HinksPixInputUniverse {
     wxString BuildCommandEasyLights() const;
 };
 
+
 class UnPack
 {
 public:
@@ -140,7 +141,6 @@ public:
     int32_t Port;
     bool InActive;
 };
-
 
 class HinksPix : public BaseController
 {
@@ -162,6 +162,7 @@ class HinksPix : public BaseController
     CURL* _curl { nullptr };
     int _numberOfUniverses;
     int _MCPU_Version;
+    bool _hardwareV3{false};
 
     std::vector<HinksPixOutput> _pixelOutputs;
     std::unique_ptr<HinksPixSerial> _serialOutput;
@@ -200,7 +201,7 @@ class HinksPix : public BaseController
     void UploadSmartReceivers(bool& worked) const;
     void UploadSmartReceiverData(int expan, int bank, std::vector<HinksSmartOutput> const& receivers, bool& worked) const;
     void CalculateSmartReceivers(UDControllerPort* stringData);
-    void SendRebootController(bool& worked) const;
+
     std::string GetJSONControllerData(std::string const& url, std::string const& data) const;
     bool GetControllerDataJSON(const std::string& url, wxJSONValue& val, std::string const& data) const;
     void PostToControllerNoResponse(std::string const& url, std::string const& data) const;
@@ -232,6 +233,14 @@ public:
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
 #endif
     virtual bool UsesHTTP() const override { return true; }
+    bool UploadFileToController(std::string const& localpathname, std::string const& remotepathname, std::function<bool(int, int, std::string)> progress_dlg, wxDateTime const& fileTime) const;
+    bool UploadTimeToController() const;
+    bool UploadModeToController(unsigned char mode) const;
+    [[nodiscard]] std::vector<HinksPixFileData> GetFileInfoFromSDCard(uint8_t cmd) const;
+    [[nodiscard]] int GetMPUVersion() const { return _MCPU_Version; }
+    [[nodiscard]] bool IsHardwareV3() const { return _hardwareV3; }
+    [[nodiscard]] bool FirmwareSupportsUpload() const;
+    void SendRebootController(bool& worked) const;
 #pragma endregion
 };
 

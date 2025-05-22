@@ -1554,9 +1554,9 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, int previewWi,
             }
         }
         for (auto const&[x,y,z, ch] : modelPts) {
-            ret += ToUTF8(wxString::Format("%d,%d,%d,%d,%d,%s\n",
+            ret += ToUTF8(wxString::Format("%d,%d,%d,%d,%d,%s,%d\n",
                 (int)std::round(x), (int)std::round(y), (int)std::round(z), ch,
-                model->GetChanCountPerNode(), stringType.c_str()));
+                model->GetChanCountPerNode(), stringType.c_str(), model->GetPixelSize()));
         }
 
     }

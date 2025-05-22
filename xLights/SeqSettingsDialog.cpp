@@ -967,6 +967,20 @@ void SeqSettingsDialog::PopulateTimingGrid()
     }
 }
 
+std::vector<std::string> SeqSettingsDialog::ParseTags(const wxString& tagString) {
+    std::vector<std::string> tags;
+    if (!tagString.empty()) {
+        wxArrayString splitTags = wxSplit(tagString, ',');
+        for (auto& tag : splitTags) {
+            wxString trimmedTag = tag.Trim().Trim(false);
+            if (!trimmedTag.empty()) {
+                tags.push_back(trimmedTag.ToStdString());
+            }
+        }
+    }
+    return tags;
+}
+
 void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
 {
     NewTimingDialog dialog(this);
@@ -1072,40 +1086,43 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
                             AddTimingCell(ttn);
                         }
                     }
-                }
-                else if (selected_timing == "Metronome w/ Tags")
-                {
+                } else if (selected_timing == "Metronome w/ Tags") {
                     int base_timing = xml_file->GetFrameMS();
                     MetronomeLabelDialog dlg(base_timing, this);
-                    if (dlg.ShowModal() == wxID_OK)
-                    {
+                    if (dlg.ShowModal() == wxID_OK) {
                         int ms = (dlg.GetTiming() + base_timing / 2) / base_timing * base_timing;
 
-                        if (ms != dlg.GetTiming())
-                        {
-                            wxString msg = wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetTiming(), ms);
-                            wxMessageBox(msg);
+                        if (ms != dlg.GetTiming()) {
+                            DisplayWarning(wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetTiming(), ms).ToStdString());
                         }
                         wxString ttn = wxString::Format("%s%dms Metronome %d Tag", dlg.IsRandomTiming() || dlg.IsRandomTags() ? "Random " : "", ms, dlg.GetTagCount());
-                        //Handle new random tag names
-                        if( (dlg.IsRandomTiming() || dlg.IsRandomTags()) && xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent) ) {
+
+                        // Handle new random tag names
+                        if ((dlg.IsRandomTiming() || dlg.IsRandomTags()) && xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent)) {
                             int copyNum = 1;
                             wxString new_ttn = ttn;
                             do {
-                                wxString copyString =  wxString::Format(" (%d)", copyNum);
+                                wxString copyString = wxString::Format("_%d", copyNum);
                                 new_ttn = ttn + copyString;
                                 copyNum++;
                             } while (xml_file->TimingAlreadyExists(new_ttn.ToStdString(), xLightsParent));
                             ttn = new_ttn;
                         }
-                        if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent))
-                        {
-                            xml_file->AddMetronomeLabelTimingSection(ttn.ToStdString(), ms, dlg.GetTagCount(), xLightsParent, dlg.GetMinRandomTiming(), dlg.IsRandomTags());
+
+                        if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent)) {
+                            std::vector<std::string> customTags = ParseTags(dlg.GetTextLabels());
+
+                            if (customTags.empty()) {
+                                for (int i = 1; i <= dlg.GetTagCount(); ++i) {
+                                    customTags.push_back(std::to_string(i));
+                                }
+                            }
+
+                            xml_file->AddMetronomeLabelTimingSection(ttn.ToStdString(), ms, customTags, xLightsParent, dlg.GetMinRandomTiming(), dlg.IsRandomTags());
                             AddTimingCell(ttn);
                         }
                     }
-                }
-                else
+                } else
                 {
                     xml_file->AddFixedTimingSection(selected_timing, xLightsParent);
                     AddTimingCell(selected_timing);
