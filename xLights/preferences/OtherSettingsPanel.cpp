@@ -42,6 +42,8 @@ const wxWindowID OtherSettingsPanel::ID_STATICTEXT3 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHOICE_CODEC = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_STATICTEXT5 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_SPINCTRLDOUBLE_BITRATE = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_STATICTEXT8 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHOICE_VIDEOUPSCALE = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX2 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX3 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX4 = wxNewId();
@@ -127,6 +129,15 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     SpinCtrlDoubleBitrate = new wxSpinCtrlDouble(this, ID_SPINCTRLDOUBLE_BITRATE, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 90000, 0, 1000, _T("ID_SPINCTRLDOUBLE_BITRATE"));
     SpinCtrlDoubleBitrate->SetValue(_T("0"));
     FlexGridSizer1->Add(SpinCtrlDoubleBitrate, 1, wxALL|wxEXPAND, 5);
+    StaticText9 = new wxStaticText(this, ID_STATICTEXT8, _("Video Upscale:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+    FlexGridSizer1->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_VideoUpscale = new wxChoice(this, ID_CHOICE_VIDEOUPSCALE, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIDEOUPSCALE"));
+    Choice_VideoUpscale->SetSelection( Choice_VideoUpscale->Append(_("Unchanged")) );
+    Choice_VideoUpscale->Append(_("720p"));
+    Choice_VideoUpscale->Append(_("1080p"));
+    Choice_VideoUpscale->Append(_("4K"));
+    Choice_VideoUpscale->SetToolTip(_("Upscale house preview video to this resolution."));
+    FlexGridSizer1->Add(Choice_VideoUpscale, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer2->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
     GridBagSizer1->Add(StaticBoxSizer2, wxGBPosition(1, 1), wxGBSpan(4, 1), wxALL|wxEXPAND, 0);
     StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Packaging Sequences"));
@@ -208,6 +219,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     Connect(ID_CHECKBOX7, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHOICE_CODEC, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_SPINCTRLDOUBLE_BITRATE, wxEVT_SPINCTRLDOUBLE, (wxObjectEventFunction)&OtherSettingsPanel::OnSpinCtrlDoubleBitrateChange);
+    Connect(ID_CHOICE_VIDEOUPSCALE, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX2, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX3, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX4, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
@@ -268,6 +280,7 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetControllerPingInterval(CtrlPingInterval->GetValue());
 	frame->SetPurgeDownloadCacheOnStart(CheckBox_PurgeDownloadCache->GetValue());
     frame->SetVideoExportCodec(ChoiceCodec->GetStringSelection());
+    frame->SetVideoUpscale(Choice_VideoUpscale->GetStringSelection());
     frame->SetVideoExportBitrate(SpinCtrlDoubleBitrate->GetValue());
     frame->SetMinTipLevel(Choice_MinTipLevel->GetStringSelection());
     frame->SetRecycleTips(!CheckBox_RecycleTips->GetValue());
@@ -293,6 +306,7 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     CtrlPingInterval->SetValue(frame->GetControllerPingInterval());
 	CheckBox_PurgeDownloadCache->SetValue(frame->GetPurgeDownloadCacheOnStart());
     ChoiceCodec->SetStringSelection(frame->GetVideoExportCodec());
+    Choice_VideoUpscale->SetStringSelection(frame->GetVideoUpscale());
     SpinCtrlDoubleBitrate->SetValue(frame->GetVideoExportBitrate());
     Choice_MinTipLevel->SetStringSelection(frame->GetMinTipLevel());
     CheckBox_RecycleTips->SetValue(!frame->GetRecycleTips());
@@ -315,6 +329,7 @@ void OtherSettingsPanel::OnControlChanged(wxCommandEvent& event)
 #ifdef __WXMSW__
         frame->SetHardwareVideoRenderer(HardwareVideoRenderChoice->GetSelection());
         HardwareVideoRenderChoice->Enable(HardwareVideoDecodingCheckBox->IsChecked());
+        frame->SetVideoUpscale(Choice_VideoUpscale->GetStringSelection());
 #endif
         return;
     }

@@ -1138,6 +1138,7 @@ public:
     bool _presetRendering = false;
     wxString _defaultSeqView;
     wxString _videoExportCodec;
+    wxString _videoUpscale;
     int _videoExportBitrate;
 
     std::unique_ptr< wxAppProgressIndicator> _appProgress;
@@ -1372,6 +1373,9 @@ public:
 
     const wxString& GetVideoExportCodec() const { return _videoExportCodec; }
     void SetVideoExportCodec(const wxString& codec);
+
+    const wxString& GetVideoUpscale() const { return _videoUpscale; }
+    void SetVideoUpscale(const wxString& value);
 
     std::string GetMinTipLevel() const;
     void SetMinTipLevel(const wxString& level);

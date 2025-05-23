@@ -47,6 +47,7 @@ class OtherSettingsPanel: public wxPanel
 		wxChoice* Choice_LinkControllerUpload;
 		wxChoice* Choice_LinkSave;
 		wxChoice* Choice_MinTipLevel;
+		wxChoice* Choice_VideoUpscale;
 		wxChoice* HardwareVideoRenderChoice;
 		wxSpinCtrlDouble* CtrlPingInterval;
 		wxSpinCtrlDouble* SpinCtrlDoubleBitrate;
@@ -57,6 +58,7 @@ class OtherSettingsPanel: public wxPanel
 		wxStaticText* StaticText6;
 		wxStaticText* StaticText7;
 		wxStaticText* StaticText8;
+		wxStaticText* StaticText9;
 		wxTextCtrl* eMailTextControl;
 		//*)
 
@@ -75,6 +77,8 @@ class OtherSettingsPanel: public wxPanel
 		static const wxWindowID ID_CHOICE_CODEC;
 		static const wxWindowID ID_STATICTEXT5;
 		static const wxWindowID ID_SPINCTRLDOUBLE_BITRATE;
+		static const wxWindowID ID_STATICTEXT8;
+		static const wxWindowID ID_CHOICE_VIDEOUPSCALE;
 		static const wxWindowID ID_CHECKBOX2;
 		static const wxWindowID ID_CHECKBOX3;
 		static const wxWindowID ID_CHECKBOX4;

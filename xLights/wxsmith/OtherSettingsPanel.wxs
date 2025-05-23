@@ -130,6 +130,30 @@
 								<border>5</border>
 								<option>1</option>
 							</object>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText9" member="yes">
+									<label>Video Upscale:</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxChoice" name="ID_CHOICE_VIDEOUPSCALE" variable="Choice_VideoUpscale" member="yes">
+									<content>
+										<item>Unchanged</item>
+										<item>720p</item>
+										<item>1080p</item>
+										<item>4K</item>
+									</content>
+									<selection>0</selection>
+									<tooltip>Upscale house preview video to this resolution.</tooltip>
+									<handler function="OnControlChanged" entry="EVT_CHOICE" />
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<option>1</option>
