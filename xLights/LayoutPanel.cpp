@@ -2903,10 +2903,8 @@ void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
     }
 
     SaveEffects();
-    if (xlights->IsControllersAndLayoutTabSaveLinked()) {
-        xlights->SaveNetworksFile();
-        xlights->UpdateLayoutSave(); // SaveEffects tried to do this, but if the saves are linked it is marked dirty til nets are saved.
-    }
+    xlights->SaveNetworksFile();
+    xlights->UpdateLayoutSave(); // SaveEffects tried to do this, but if the saves are linked it is marked dirty til nets are saved.
 }
 
 int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl* treelist, wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn)
@@ -9251,9 +9249,7 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event) {
             EditModelData();
         } else if (type == "SAVE_LAYOUT") {
             SaveEffects();
-            if (xlights->IsControllersAndLayoutTabSaveLinked()) {
-                xlights->SaveNetworksFile();
-            }
+            xlights->SaveNetworksFile();
         } else if (type == "MODEL_ALIGN_TOP") {
             PreviewModelAlignTops();
         } else if (type == "MODEL_ALIGN_BOTTOM") {

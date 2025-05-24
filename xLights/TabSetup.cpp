@@ -927,7 +927,7 @@ bool xLightsFrame::SaveNetworksFile() {
 }
 
 void xLightsFrame::UpdateControllerSave() {
-    if (UnsavedNetworkChanges || (IsControllersAndLayoutTabSaveLinked() && UnsavedRgbEffectsChanges)) {
+    if (UnsavedNetworkChanges || UnsavedRgbEffectsChanges) {
 #ifdef __WXOSX__
         SetButtonBackground(ButtonSaveSetup, wxColour(255, 0, 0), 0);
 #else
@@ -943,7 +943,7 @@ void xLightsFrame::UpdateControllerSave() {
 }
 
 void xLightsFrame::UpdateLayoutSave() {
-    if (UnsavedRgbEffectsChanges || (IsControllersAndLayoutTabSaveLinked() && UnsavedNetworkChanges)) {
+    if (UnsavedRgbEffectsChanges || UnsavedNetworkChanges) {
 #ifdef __WXOSX__
         SetButtonBackground(layoutPanel->ButtonSavePreview, wxColour(255, 0, 0), 2);
 #else
@@ -961,9 +961,7 @@ void xLightsFrame::UpdateLayoutSave() {
 void xLightsFrame::OnButtonSaveSetupClick(wxCommandEvent& event) {
 
     SaveNetworksFile();
-    if (IsControllersAndLayoutTabSaveLinked()) {
-        layoutPanel->SaveEffects();
-    }
+    layoutPanel->SaveEffects();
     UpdateControllerSave();
 }
 

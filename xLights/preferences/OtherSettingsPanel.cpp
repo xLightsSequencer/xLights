@@ -33,8 +33,6 @@ extern bool isMetalComputeSupported();
 #endif
 
 //(*IdInit(OtherSettingsPanel)
-const wxWindowID OtherSettingsPanel::ID_STATICTEXT1 = wxNewId();
-const wxWindowID OtherSettingsPanel::ID_CHOICE1 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX1 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHOICE4 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX7 = wxNewId();
@@ -72,7 +70,6 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer3;
-    wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer7;
@@ -86,14 +83,6 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
 
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
     GridBagSizer1 = new wxGridBagSizer(0, 0);
-    FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
-    StaticText2 = new wxStaticText(this, ID_STATICTEXT1, _("Link save:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizer4->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_LinkSave = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
-    Choice_LinkSave->SetSelection( Choice_LinkSave->Append(_("None")) );
-    Choice_LinkSave->Append(_("Controllers and Layout Tab"));
-    FlexGridSizer4->Add(Choice_LinkSave, 1, wxALL|wxEXPAND, 5);
-    GridBagSizer1->Add(FlexGridSizer4, wxGBPosition(6, 0), wxDefaultSpan, wxALL|wxEXPAND, 0);
     FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
     HardwareVideoDecodingCheckBox = new wxCheckBox(this, ID_CHECKBOX1, _("Hardware Video Decoding"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
     HardwareVideoDecodingCheckBox->SetValue(false);
@@ -202,7 +191,6 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     GridBagSizer1->Add(FlexGridSizer8, wxGBPosition(10, 0), wxDefaultSpan, wxALL, 0);
     SetSizer(GridBagSizer1);
 
-    Connect(ID_CHOICE1, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHOICE4, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX7, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
@@ -260,8 +248,6 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetUseGPURendering(GPURenderCheckbox->IsChecked());
     frame->SetShadersOnBackgroundThreads(ShaderCheckbox->IsChecked());
     frame->SetUserEMAIL(eMailTextControl->GetValue());
-	frame->SetLinkedSave(Choice_LinkSave->GetStringSelection());
-	frame->SetLinkedControllerUpload(Choice_LinkControllerUpload->GetStringSelection());
     frame->SetRenameModelAliasPromptBehavior(Choice_AliasPromptBehavior->GetStringSelection());
 	frame->SetPromptBatchRenderIssues(CheckBox_BatchRenderPromptIssues->GetValue());
 	frame->SetIgnoreVendorModelRecommendations(CheckBox_IgnoreVendorModelRecommendations->GetValue());
@@ -285,7 +271,6 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     GPURenderCheckbox->SetValue(frame->UseGPURendering());
     ShaderCheckbox->SetValue(frame->ShadersOnBackgroundThreads());
     eMailTextControl->ChangeValue(frame->UserEMAIL());
-	Choice_LinkSave->SetStringSelection(frame->GetLinkedSave());
 	Choice_LinkControllerUpload->SetStringSelection(frame->GetLinkedControllerUpload());
     Choice_AliasPromptBehavior->SetStringSelection(frame->GetRenameModelAliasPromptBehavior());
 	CheckBox_BatchRenderPromptIssues->SetValue(frame->GetPromptBatchRenderIssues());
