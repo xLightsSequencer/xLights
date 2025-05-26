@@ -1067,15 +1067,30 @@ void MainSequencer::OnChar(wxKeyEvent& event)
         case 'z':
         case 'Z':
         case WXK_CONTROL_Z:
-            if (event.CmdDown() || event.ControlDown()) {
-                if( mSequenceElements != nullptr &&
-                   mSequenceElements->get_undo_mgr().CanUndo() ) {
-                    mSequenceElements->get_undo_mgr().UndoLastStep();
-                    PanelEffectGrid->ClearSelection();
-                    PanelEffectGrid->Draw();
-                    PanelEffectGrid->sendRenderDirtyEvent();
+            if(!event.ShiftDown()) {
+                if ((event.CmdDown() || event.ControlDown())) {
+                    if( mSequenceElements != nullptr &&
+                        mSequenceElements->get_undo_mgr().CanUndo() ) {
+                        mSequenceElements->get_undo_mgr().UndoLastStep();
+                        mSequenceElements->UnSelectAllEffects();
+                        PanelEffectGrid->ClearSelection();
+                        PanelEffectGrid->Draw();
+                        PanelEffectGrid->sendRenderDirtyEvent();
+                    }
+                    event.StopPropagation();
                 }
-                event.StopPropagation();
+            } else {
+                if ((event.CmdDown() || event.ControlDown())) {
+                    if( mSequenceElements != nullptr &&
+                        mSequenceElements->get_undo_mgr().CanRedo() ) {
+                        mSequenceElements->get_undo_mgr().RedoLastStep();
+                        mSequenceElements->UnSelectAllEffects();
+                        PanelEffectGrid->ClearSelection();
+                        PanelEffectGrid->Draw();
+                        PanelEffectGrid->sendRenderDirtyEvent();
+                    }
+                    event.StopPropagation();
+                }
             }
             break;
         case 'y':
@@ -1085,6 +1100,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
                 if( mSequenceElements != nullptr &&
                    mSequenceElements->get_undo_mgr().CanRedo() ) {
                     mSequenceElements->get_undo_mgr().RedoLastStep();
+                    mSequenceElements->UnSelectAllEffects();
                     PanelEffectGrid->ClearSelection();
                     PanelEffectGrid->Draw();
                     PanelEffectGrid->sendRenderDirtyEvent();
@@ -1246,6 +1262,7 @@ void MainSequencer::DoUndo(wxCommandEvent& event) {
     if (PanelEffectGrid == nullptr) return;
 
     if (mSequenceElements != nullptr && mSequenceElements->get_undo_mgr().CanUndo() ) {
+        mSequenceElements->UnSelectAllEffects();
         mSequenceElements->get_undo_mgr().UndoLastStep();
         PanelEffectGrid->ClearSelection();
         PanelEffectGrid->Draw();
@@ -1257,6 +1274,7 @@ void MainSequencer::DoRedo(wxCommandEvent& event) {
     if (PanelEffectGrid == nullptr) return;
 
     if (mSequenceElements != nullptr && mSequenceElements->get_undo_mgr().CanRedo() ) {
+        mSequenceElements->UnSelectAllEffects();
         mSequenceElements->get_undo_mgr().RedoLastStep();
         PanelEffectGrid->ClearSelection();
         PanelEffectGrid->Draw();
