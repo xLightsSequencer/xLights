@@ -1172,6 +1172,11 @@
 					<accel>Ctrl-z</accel>
 					<bitmap code='GetMenuItemBitmapBundle(&quot;wxART_UNDO&quot;)' />
 				</object>
+				<object class="wxMenuItem" name="wxID_REDO" variable="MenuItem_REDO" member="yes">
+					<label>Redo</label>
+					<accel>Ctrl-y</accel>
+					<bitmap code='GetMenuItemBitmapBundle(&quot;wxART_REDO&quot;)' />
+				</object>
 				<object class="separator" />
 				<object class="wxMenuItem" name="wxID_CUT" variable="MenuItem34" member="yes">
 					<label>Cut</label>
@@ -1588,7 +1593,7 @@
 				</object>
 				<object class="wxMenuItem" name="ID_MNU_ZOOM" variable="MenuItem_Zoom" member="yes">
 					<label>Zoom Room Help</label>
-					<help>Access the free Zoom Room for Help.</help>
+					<help>Access the free Zoom Room for Help</help>
 					<handler function="OnMenuItem_ZoomSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_MENUITEM1" variable="MenuItem_ShowKeyBindings" member="yes">

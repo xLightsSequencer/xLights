@@ -130,6 +130,7 @@
 #include "../include/control-play-blue-icon.xpm"
 
 #include <xlsxwriter.h>
+#include <CheckSequenceReport.h>
 
 #include "wxWEBPHandler/wx/imagwebp.h"
 
@@ -140,7 +141,6 @@
 #include <wx/image.h>
 #include <wx/intl.h>
 #include <wx/string.h>
-#include <CheckSequenceReport.h>
 //*)
 
 #define TOOLBAR_SAVE_VERSION "0003:"
@@ -957,6 +957,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MenuItem37 = new wxMenuItem(Menu3, wxID_UNDO, _("Undo\tCtrl-z"), wxEmptyString, wxITEM_NORMAL);
     MenuItem37->SetBitmap(GetMenuItemBitmapBundle("wxART_UNDO"));
     Menu3->Append(MenuItem37);
+    MenuItem_REDO = new wxMenuItem(Menu3, wxID_REDO, _("Redo\tCtrl-y"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem_REDO->SetBitmap(GetMenuItemBitmapBundle("wxART_REDO"));
+    Menu3->Append(MenuItem_REDO);
     Menu3->AppendSeparator();
     MenuItem34 = new wxMenuItem(Menu3, wxID_CUT, _("Cut\tCTRL-x"), wxEmptyString, wxITEM_NORMAL);
     MenuItem34->SetBitmap(GetMenuItemBitmapBundle("wxART_CUT"));
