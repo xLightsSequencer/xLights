@@ -110,7 +110,7 @@ void CandleEffect::SetDefaultParameters()
     SetSliderValue(fp->Slider_Candle_WindVariability, 5);
 
     SetCheckBoxValue(fp->CheckBox_PerNode, false);
-	SetCheckBoxValue(fp->CheckBox_UsePalette, false);
+    SetCheckBoxValue(fp->CheckBox_UsePalette, false);
 }
 
 void CandleEffect::Update(wxByte& flameprime, wxByte& flame, wxByte& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline)
@@ -161,13 +161,13 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     int windVariability = GetValueCurveInt("Candle_WindVariability", 5, SettingsMap, oset, CANDLE_WINDVARIABILITY_MIN, CANDLE_WINDVARIABILITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int windBaseline = GetValueCurveInt("Candle_WindBaseline", 30, SettingsMap, oset, CANDLE_WINDBASELINE_MIN, CANDLE_WINDBASELINE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool perNode = SettingsMap.GetBool("CHECKBOX_PerNode", false);
-	bool usePalette = SettingsMap.GetBool("CHECKBOX_UsePalette", false);
-	
-	const auto& pal = effect->GetPalette();
+    bool usePalette = SettingsMap.GetBool("CHECKBOX_UsePalette", false);
+
+    const auto& pal = effect->GetPalette();
     if (usePalette && pal.empty()) {
         //If "Use Palette" selected, but no colors are selected skip processing and return black.
         buffer.Fill(xlBLACK);
-        return;    
+        return;
     }
 
     CandleRenderCache* cache = GetCache(buffer, id);
