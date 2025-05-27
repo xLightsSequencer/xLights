@@ -164,10 +164,17 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     bool usePalette = SettingsMap.GetBool("CHECKBOX_UsePalette", false);
 
     const auto& pal = effect->GetPalette();
-    if (usePalette && pal.empty()) {
-        //If "Use Palette" selected, but no colors are selected skip processing and return black.
-        buffer.Fill(xlBLACK);
-        return;
+    xlColor c1, c2;
+    if (usePalette){  // We're using the palette.
+        if (pal.empty()) {
+            // No colors selected. Default to white. Set black as second color.
+            c1 = xlWHITE;
+            c2 = xlBLACK;
+        } else {
+            // One color selected, set black as second color.
+            c1 = pal[0];
+            c2 = (pal.size() > 1 ? pal[1] : xlBLACK);
+        }
     }
 
     CandleRenderCache* cache = GetCache(buffer, id);
@@ -194,7 +201,7 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
 
     if (perNode) {
         int maxW = cache->maxWid;
-        parallel_for(0, buffer.BufferHt, [&buffer, &states, maxW, windVariability, flameAgility, windCalmness, windBaseline, usePalette, &pal, this](int y) {
+        parallel_for(0, buffer.BufferHt, [&buffer, &states, maxW, windVariability, flameAgility, windCalmness, windBaseline, usePalette, c1, c2, this](int y) {
             for (size_t x = 0; x < buffer.BufferWi; x++) {
                 size_t index = y * maxW + x;
                 if (index >= states.size()) {
@@ -213,8 +220,6 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
 
                     xlColor c;
                     if (usePalette) {
-                        xlColor c1 = pal[0];
-                        xlColor c2 = pal.size() > 1 ? pal[1] : xlBLACK;  //Choose black as other color if only one color selected.
                         float t = float(state->flameprimer) / 255.0f;
                         c.red = wxByte(c1.red * (1.0f - t) + c2.red * t);
                         c.green = wxByte(c1.green * (1.0f - t) + c2.green * t);
@@ -240,8 +245,6 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         //  Now play Candle
         xlColor c;
         if (usePalette) {
-            xlColor c1 = pal[0];
-            xlColor c2 = pal.size() > 1 ? pal[1] : xlBLACK;  //Choose black as other color if only one color selected.
             float t = float(state->flameprimer) / 255.0f;
             c.red = wxByte(c1.red * (1.0f - t) + c2.red * t);
             c.green = wxByte(c1.green * (1.0f - t) + c2.green * t);
