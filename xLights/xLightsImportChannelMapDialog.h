@@ -589,6 +589,7 @@ protected:
         static const long ID_MNU_SHOWALLMAPPED;
         static const long ID_MNU_AUTOMAPSELECTED;
         static const long ID_MNU_AUTOMAPSELECTED_AVAIL;
+        static const wxWindowID ID_MNU_ADD_EMPTY_GROUP;
 
 	private:
         wxString FindTab(wxString &line);
@@ -623,6 +624,7 @@ protected:
         void RightClickModelsAvail(wxDataViewEvent& event);
         void CollapseAll();
         void ExpandAll();
+        void AddEmptyGroup();
         void ShowAllMapped();
         void OnPopupTimingTracks(wxCommandEvent& event);
         void OnPopupModels(wxCommandEvent& event);
