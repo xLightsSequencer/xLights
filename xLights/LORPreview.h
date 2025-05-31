@@ -105,7 +105,7 @@ struct S5Group {
 class LORPreview {
 
 public:
-    LORPreview(xLightsFrame* frame, wxString xLigthsPreview);
+    LORPreview(xLightsFrame* frame, wxString xLightsPreview);
     virtual ~LORPreview() {};
 
     bool LoadPreviewFile();
@@ -114,7 +114,7 @@ public:
 private:
     //member varables
     xLightsFrame* xlights;
-    const wxString xLigths_preview;
+    const wxString xLights_preview;
 
     //private functions
     wxString FindLORPreviewFile();

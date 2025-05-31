@@ -1304,10 +1304,18 @@ float BoxedScreenLocation::GetRestorableMHeight() const {
     }
 }
 float BoxedScreenLocation::GetMWidth() const {
-    return RenderWi * scalex;
+    if (RenderWi < 0) {
+        return 0.0;
+    } else {
+        return RenderWi * scalex;
+    }
 }
 float BoxedScreenLocation::GetMHeight() const {
-    return RenderHt * scaley;
+    if (RenderHt < 0) {
+        return 0.0;
+    } else {
+        return RenderHt * scaley;
+    }
 }
 void BoxedScreenLocation::SetMWidth(float w) {
     if (RenderWi == 1)

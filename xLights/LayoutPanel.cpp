@@ -8008,9 +8008,6 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
 
-            //Model* model = xlights->GetModel(name.ToStdString());
-            //SelectModelInTree(model);
-
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
         }

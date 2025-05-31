@@ -489,6 +489,7 @@ const long xLightsImportChannelMapDialog::ID_MNU_COLLAPSEALL = wxNewId();
 const long xLightsImportChannelMapDialog::ID_MNU_EXPANDALL = wxNewId();
 const long xLightsImportChannelMapDialog::ID_MNU_SHOWALLMAPPED = wxNewId();
 const long xLightsImportChannelMapDialog::ID_MNU_AUTOMAPSELECTED = wxNewId();
+const wxWindowID xLightsImportChannelMapDialog::ID_MNU_ADD_EMPTY_GROUP = wxNewId();
 
 
 BEGIN_EVENT_TABLE(xLightsImportChannelMapDialog,wxDialog)
@@ -715,6 +716,8 @@ void xLightsImportChannelMapDialog::RightClickModels(wxDataViewEvent& event)
         mnuLayer.Append(ID_MNU_EXPANDALL, "Expand All");
         mnuLayer.Append(ID_MNU_SHOWALLMAPPED, "Show All Mapped Models");
         mnuLayer.Append(ID_MNU_AUTOMAPSELECTED, "Auto Map Selected");
+        mnuLayer.AppendSeparator();
+        mnuLayer.Append(ID_MNU_ADD_EMPTY_GROUP, "Add Empty Group");
         mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnPopupModels, nullptr, this);
         TreeListCtrl_Mapping->PopupMenu(&mnuLayer, event.GetPosition());
     }
@@ -738,7 +741,56 @@ void xLightsImportChannelMapDialog::OnPopupModels(wxCommandEvent& event)
         ShowAllMapped();
     } else if (id == ID_MNU_AUTOMAPSELECTED) {
         OnButton_AutoMapSelClick(event);
+    } else if (id == ID_MNU_ADD_EMPTY_GROUP) {
+        AddEmptyGroup();
     }
+}
+
+void xLightsImportChannelMapDialog::AddEmptyGroup()
+{
+    wxTextEntryDialog dialog(this, "Enter the name for the new group:", "Add New Group", "");
+    if (dialog.ShowModal() != wxID_OK) {
+        return;
+    }
+
+    wxString groupName = dialog.GetValue().Trim();
+    if (groupName.IsEmpty()) {
+        wxMessageBox("Group name cannot be empty.", "Error", wxOK | wxICON_ERROR, this);
+        return;
+    }
+
+    for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
+        xLightsImportModelNode* existingNode = _dataModel->GetNthChild(i);
+        if (existingNode->_model == groupName) {
+            wxMessageBox("A group or model with the name '" + groupName + "' already exists.", "Error", wxOK | wxICON_ERROR, this);
+            return;
+        }
+    }
+
+    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroup");
+    xlights->ModelGroupsNode->AddChild(node);
+    node->AddAttribute("selected", "0");
+    node->AddAttribute("name", groupName);
+    node->AddAttribute("models", "");
+    node->AddAttribute("layout", "minimalGrid");
+    node->AddAttribute("GridSize", "400");
+    node->AddAttribute("LayoutGroup", "Default");
+
+    xLightsImportModelNode* newGroup = new xLightsImportModelNode(
+        nullptr, groupName, "", true, std::list<std::string>{}, "ModelGroup", "", false, "ModelGroup", 1000,
+        *wxWHITE, true, "", 0);
+
+    _dataModel->BulkInsert(newGroup, _dataModel->GetChildCount());
+
+    wxDataViewItem parentItem;
+    wxDataViewItem newItem(newGroup);
+    _dataModel->ItemAdded(parentItem, newItem);
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, groupName.ToStdString());
+
+    TreeListCtrl_Mapping->Refresh();
+    DisplayInfo("Group '" + groupName + "' added successfully.", this);
 }
 
 void xLightsImportChannelMapDialog::CollapseAll()
