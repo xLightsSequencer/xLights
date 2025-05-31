@@ -1267,7 +1267,7 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
 ModelElement* AddModel(Model* m, SequenceElements& se)
 {
     if (m != nullptr) {
-        se.AddMissingModelsToSequence(m->GetName(), false);
+        se.AddMissingModelsToSequence(m->GetName(), true);
         ModelElement* model = dynamic_cast<ModelElement*>(se.GetElement(m->GetName()));
         model->Init(*m);
         return model;
