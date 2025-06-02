@@ -34,6 +34,7 @@ class CandlePanel: public xlEffectPanel
 
 		//(*Declarations(CandlePanel)
 		BulkEditCheckBox* CheckBox_PerNode;
+		BulkEditCheckBox* CheckBox_UsePalette;
 		BulkEditSlider* Slider_Candle_FlameAgility;
 		BulkEditSlider* Slider_Candle_WindBaseline;
 		BulkEditSlider* Slider_Candle_WindCalmness;
@@ -59,27 +60,28 @@ class CandlePanel: public xlEffectPanel
 	protected:
 
 		//(*Identifiers(CandlePanel)
-		static const long ID_STATICTEXT_Candle_FlameAgility;
-		static const long IDD_SLIDER_Candle_FlameAgility;
-		static const long ID_VALUECURVE_Candle_FlameAgility;
-		static const long ID_TEXTCTRL_Candle_FlameAgility;
-		static const long ID_BITMAPBUTTON_SLIDER_Candle_FlameAgility;
-		static const long ID_STATICTEXT_Candle_WindBaseline;
-		static const long IDD_SLIDER_Candle_WindBaseline;
-		static const long ID_VALUECURVE_Candle_WindBaseline;
-		static const long ID_TEXTCTRL_Candle_WindBaseline;
-		static const long ID_BITMAPBUTTON_SLIDER_Candle_WindBaseline;
-		static const long ID_STATICTEXT_Candle_WindVariability;
-		static const long IDD_SLIDER_Candle_WindVariability;
-		static const long ID_VALUECURVE_Candle_WindVariability;
-		static const long ID_TEXTCTRL_Candle_WindVariability;
-		static const long ID_BITMAPBUTTON_SLIDER_Candle_WindVariability;
-		static const long ID_STATICTEXT_Candle_WindCalmness;
-		static const long IDD_SLIDER_Candle_WindCalmness;
-		static const long ID_VALUECURVE_Candle_WindCalmness;
-		static const long ID_TEXTCTRL_Candle_WindCalmness;
-		static const long ID_BITMAPBUTTON_SLIDER_Candle_WindCalmness;
-		static const long ID_CHECKBOX_PerNode;
+		static const wxWindowID ID_STATICTEXT_Candle_FlameAgility;
+		static const wxWindowID IDD_SLIDER_Candle_FlameAgility;
+		static const wxWindowID ID_VALUECURVE_Candle_FlameAgility;
+		static const wxWindowID ID_TEXTCTRL_Candle_FlameAgility;
+		static const wxWindowID ID_BITMAPBUTTON_SLIDER_Candle_FlameAgility;
+		static const wxWindowID ID_STATICTEXT_Candle_WindBaseline;
+		static const wxWindowID IDD_SLIDER_Candle_WindBaseline;
+		static const wxWindowID ID_VALUECURVE_Candle_WindBaseline;
+		static const wxWindowID ID_TEXTCTRL_Candle_WindBaseline;
+		static const wxWindowID ID_BITMAPBUTTON_SLIDER_Candle_WindBaseline;
+		static const wxWindowID ID_STATICTEXT_Candle_WindVariability;
+		static const wxWindowID IDD_SLIDER_Candle_WindVariability;
+		static const wxWindowID ID_VALUECURVE_Candle_WindVariability;
+		static const wxWindowID ID_TEXTCTRL_Candle_WindVariability;
+		static const wxWindowID ID_BITMAPBUTTON_SLIDER_Candle_WindVariability;
+		static const wxWindowID ID_STATICTEXT_Candle_WindCalmness;
+		static const wxWindowID IDD_SLIDER_Candle_WindCalmness;
+		static const wxWindowID ID_VALUECURVE_Candle_WindCalmness;
+		static const wxWindowID ID_TEXTCTRL_Candle_WindCalmness;
+		static const wxWindowID ID_BITMAPBUTTON_SLIDER_Candle_WindCalmness;
+		static const wxWindowID ID_CHECKBOX_PerNode;
+		static const wxWindowID ID_CHECKBOX_UsePalette;
 		//*)
 
 	public:
