@@ -327,6 +327,16 @@ ControllerCaps* ControllerCaps::GetControllerConfigByAlternateName(const std::st
                 }
             }
         }
+        // did not find new model/variant, see if the model itself has become a variant
+        if (!model.empty()) {
+            for (auto const &[_, cap] : v->second) {
+                for (auto const& vr : cap) {
+                    if (vr->GetVariantName() == model) {
+                        return vr;
+                    }
+                }
+            }
+        }
     }
     return nullptr;
 }
