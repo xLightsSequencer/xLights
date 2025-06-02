@@ -5769,6 +5769,11 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     // Check for overlapping channels in models
     for (auto it = std::begin(AllModels); it != std::end(AllModels); ++it) {
         if (it->second->GetDisplayAs() != "ModelGroup") {
+            if(it->second->GetModelStartChannel().starts_with("@") && it->second->GetDisplayAs() == "Single Line" && it->second->GetNumStrings() > 1) {
+                logger_base.debug("Skipping Overlap Checking for %s [%s]", it->second->GetFullName().c_str(), it->second->GetModelStartChannel().c_str());
+                continue;
+            }
+
             auto m1start = it->second->GetFirstChannel() + 1;
             auto m1end = it->second->GetLastChannel() + 1;
 
