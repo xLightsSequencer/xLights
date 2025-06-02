@@ -1,12 +1,12 @@
 /***************************************************************
- * This source files comes from the xLights project
- * https://www.xlights.org
- * https://github.com/xLightsSequencer/xLights
- * See the github commit history for a record of contributing
- * developers.
- * Copyright claimed based on commit dates recorded in Github
- * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
- **************************************************************/
+* This source files comes from the xLights project
+* https://www.xlights.org
+* https://github.com/xLightsSequencer/xLights
+* See the github commit history for a record of contributing
+* developers.
+* Copyright claimed based on commit dates recorded in Github
+* License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
+**************************************************************/
 
 #include "VideoExporter.h"
 
@@ -54,49 +54,49 @@ void my_av_log_callback(void* ptr, int level, const char* fmt, va_list vargs)
 
 namespace
 {
-   // initialize to solid color (varies with each frame)
-   bool getVideo(AVFrame *f, uint8_t* buf, int bufSize, unsigned frameIndex ) {
-      uint8_t* ptr = buf;
-      enum Color { Red, Green, Blue } color = Color( frameIndex % 3 );
-      int n = bufSize / 3;
-      for ( int i = 0; i < n; ++i ) {
-         if (color == Red) {
-            *ptr++ = 0xff;
-            *ptr++ = 0x00;
-            *ptr++ = 0x00;
-         } else if (color == Green) {
-            *ptr++ = 0x00;
-            *ptr++ = 0xff;
-            *ptr++ = 0x00;
-         } else {
-            *ptr++ = 0x00;
-            *ptr++ = 0x00;
-            *ptr++ = 0xff;
-         }
-      }
-      return true;
-   }
+    // initialize to solid color (varies with each frame)
+    bool getVideo(AVFrame *f, uint8_t* buf, int bufSize, unsigned frameIndex ) {
+        uint8_t* ptr = buf;
+        enum Color { Red, Green, Blue } color = Color( frameIndex % 3 );
+        int n = bufSize / 3;
+        for ( int i = 0; i < n; ++i ) {
+            if (color == Red) {
+                *ptr++ = 0xff;
+                *ptr++ = 0x00;
+                *ptr++ = 0x00;
+            } else if (color == Green) {
+                *ptr++ = 0x00;
+                *ptr++ = 0xff;
+                *ptr++ = 0x00;
+            } else {
+                *ptr++ = 0x00;
+                *ptr++ = 0x00;
+                *ptr++ = 0xff;
+            }
+        }
+        return true;
+    }
 
-   // initialize to silence
-   bool getAudio(float* leftCh, float *rightCh, int frameSize) {
-      std::memset(leftCh, 0, frameSize * sizeof(float));
-      std::memset(rightCh, 0, frameSize * sizeof(float));
+    // initialize to silence
+    bool getAudio(float* leftCh, float *rightCh, int frameSize) {
+        std::memset(leftCh, 0, frameSize * sizeof(float));
+        std::memset(rightCh, 0, frameSize * sizeof(float));
 
-      return true;
-   }
+        return true;
+    }
 
-   bool queryForCancel() {
-      return false;
-   }
+    bool queryForCancel() {
+        return false;
+    }
 
-   void progressReporter( int ) {
-   }
+    void progressReporter( int ) {
+    }
 }
 
-GenericVideoExporter::GenericVideoExporter(const std::string& outPath, const Params& inParams, bool videoOnly /*=false*/) :
-    _path(outPath), _inParams(inParams), _videoOnly(videoOnly)
+GenericVideoExporter::GenericVideoExporter(const std::string& outPath, const Params& inParams, bool videoOnly)
+    : _path(outPath), _inParams(inParams), _videoOnly(videoOnly)
 {
-    _outParams = inParams;
+    _outParams = _inParams;
 
     // MP4/MOV has some restrictions on width... apparently it's common
     // with FFmpeg to just enforce even-number width and height
@@ -137,13 +137,13 @@ void GenericVideoExporter::initialize()
     void *cio = nullptr;
     const AVCodec *ci = ::av_codec_iterate(&cio);
     while (ci != nullptr) {
-        if (::av_codec_is_encoder(ci)) {
-            printf("%s: %s\n", ci->name, ci->long_name);
-        }
-        ci = ::av_codec_iterate(&cio);
+    if (::av_codec_is_encoder(ci)) {
+    printf("%s: %s\n", ci->name, ci->long_name);
+    }
+    ci = ::av_codec_iterate(&cio);
     }
     */
-    
+
     // Initialize video & audio
     AVOutputFormat* fmt = (AVOutputFormat*)::av_guess_format(nullptr, _path.c_str(), nullptr);
     const AVCodec* videoCodec = ::avcodec_find_encoder(fmt->video_codec);
@@ -238,8 +238,8 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
     _videoCodecContext->height = _outParams.height;
     _videoCodecContext->pix_fmt = static_cast<AVPixelFormat>(_outParams.pfmt);
     _videoCodecContext->thread_count = 8;
-    
-     if (AV_CODEC_ID_MPEG4 != codec->id || _outParams.videoBitrate != 0) {
+
+    if (AV_CODEC_ID_MPEG4 != codec->id || _outParams.videoBitrate != 0) {
         // _outParams.videoBitrate may be 0 which would allow the encoder to
         // "choose" or flip to constant quality using the crf parameter
         _videoCodecContext->bit_rate = _outParams.videoBitrate * 1000;
@@ -367,25 +367,24 @@ void GenericVideoExporter::initializeFrames()
     }
     // Note: _swsContext does not do any scaling in the case where we need to pad out
     //       the width/height; may just get an extra black column or row
-    if (_inParams.pfmt == AV_PIX_FMT_RGB24) {
-        _colorConversionFrame = ::av_frame_alloc();
-        _colorConversionFrame->width = _outParams.width;
-        _colorConversionFrame->height = _outParams.height;
-        _colorConversionFrame->format = _inParams.pfmt;
-        status = ::av_frame_get_buffer(_colorConversionFrame, 1);
-        if (status != 0) {
-            throw std::runtime_error("VideoExporter - Error initializing color-conversion frame");
-        }
-        int flags = SWS_FAST_BILINEAR; // doesn't matter too much since we're just doing a colorspace conversion
-        AVPixelFormat inPfmt = static_cast<AVPixelFormat>(_inParams.pfmt);
-        AVPixelFormat outPfmt = static_cast<AVPixelFormat>(_outParams.pfmt);
+    // Initialize color conversion frame
+    _colorConversionFrame = ::av_frame_alloc();
+    _colorConversionFrame->width = _inParams.width;
+    _colorConversionFrame->height = _inParams.height;
+    _colorConversionFrame->format = AV_PIX_FMT_RGB24;
+    status = ::av_frame_get_buffer(_colorConversionFrame, 1);
+    if (status != 0) {
+        throw std::runtime_error("VideoExporter - Error initializing color-conversion frame");
+    }
+    int flags = SWS_FAST_BILINEAR; // doesn't matter too much since we're just doing a colorspace conversion
+    AVPixelFormat inPfmt = AV_PIX_FMT_RGB24;
+    AVPixelFormat outPfmt = static_cast<AVPixelFormat>(_outParams.pfmt);
 
-        _swsContext = ::sws_getContext(_outParams.width, _outParams.height, inPfmt,
-                                       _outParams.width, _outParams.height, outPfmt,
-                                       flags, nullptr, nullptr, nullptr);
-        if (_swsContext == nullptr) {
-            throw std::runtime_error("VideoExporter - Error initializing color-converter");
-        }
+    _swsContext = ::sws_getContext(_inParams.width, _inParams.height, inPfmt,
+        _outParams.width, _outParams.height, outPfmt,
+        flags, nullptr, nullptr, nullptr);
+    if (_swsContext == nullptr) {
+        throw std::runtime_error("VideoExporter - Error initializing color-converter");
     }
     if (_audioCodecContext != nullptr) {
         _audioFrame = ::av_frame_alloc();
@@ -583,25 +582,33 @@ int GenericVideoExporter::pushVideoUntilPacketFilled(int index)
     uint8_t* data[] = { nullptr, nullptr, nullptr, nullptr };
     int stride[] = { 0, 0, 0, 0 };
     int frameHeight = 0;
-    int frameSize = stride[0] * frameHeight;
 
     if (_colorConversionFrame) {
         data[0] = _colorConversionFrame->data[0];
         stride[0] = _colorConversionFrame->linesize[0];
         frameHeight = _colorConversionFrame->height;
-        frameSize = stride[0] * frameHeight;
     }
     do {
-        if (_getVideo(_videoFrames[_curVideoFrame], data[0], frameSize, index++)) {
-            int height = ::sws_scale(_swsContext, data, stride, 0, frameHeight, _videoFrames[_curVideoFrame]->data, _videoFrames[_curVideoFrame]->linesize);
-            if (height != _videoCodecContext->height) {
-                throw std::runtime_error("VideoExporter - color conversion error");
+        if (_getVideo(_colorConversionFrame, data[0], stride[0] * frameHeight, index++)) {
+            // Validate input frame content
+            bool hasContent = false;
+            for (int y = 0; y < _inParams.height; y += _inParams.height / 4) {
+                for (int x = 0; x < _inParams.width * 3; x += 3) {
+                    uint8_t* pixel = data[0] + y * stride[0] + x;
+                    if (pixel[0] != 0 || pixel[1] != 0 || pixel[2] != 0) {
+                        hasContent = true;
+                        break;
+                    }
+                }
+                if (hasContent) break;
             }
+
+            int height = ::sws_scale(_swsContext, data, stride, 0, frameHeight, _videoFrames[_curVideoFrame]->data, _videoFrames[_curVideoFrame]->linesize);
         }
 
         status = ::avcodec_send_frame(_videoCodecContext, _videoFrames[_curVideoFrame]);
         if (status < 0) {
-            throw std::runtime_error("VideoExporter - error sending video frame to compresssor");
+            throw std::runtime_error("VideoExporter - error sending video frame to compressor");
         }
 
         int nbSamples = _videoFrames[_curVideoFrame]->nb_samples;
@@ -638,7 +645,7 @@ void GenericVideoExporter::pushAudioUntilPacketFilled()
 
         status = ::avcodec_send_frame(_audioCodecContext, _audioFrame);
         if (status < 0)
-            throw std::runtime_error("VideoExporter - error sending audio frame to compresssor");
+            throw std::runtime_error("VideoExporter - error sending audio frame to compressor");
         _audioFrame->pts += _audioCodecContext->frame_size;
 
         status = ::avcodec_receive_packet(_audioCodecContext, _audioPacket);
@@ -652,9 +659,9 @@ void GenericVideoExporter::pushAudioUntilPacketFilled()
 namespace
 {
     GenericVideoExporter::Params makeParams(int width, int height, int fps, int audioSampleRate, const std::string& codec,
-                                            int videoBitrate)
+        int videoBitrate, int output_width = 0, int output_height = 0)
     {
-        GenericVideoExporter::Params p = {
+        GenericVideoExporter::Params in_p = {
             AV_PIX_FMT_RGB24,
             width,
             height,
@@ -663,19 +670,33 @@ namespace
             codec,
             videoBitrate
         };
-
-        return p;
+        GenericVideoExporter::Params out_p = {
+            AV_PIX_FMT_YUV420P,
+            output_width > 0 ? output_width : width,
+            output_height > 0 ? output_height : height,
+            fps,
+            audioSampleRate,
+            codec,
+            videoBitrate
+        };
+        return in_p;
     }
 }
 
 VideoExporter::VideoExporter(wxWindow* parent,
-                             int width, int height, float scaleFactor,
-                             unsigned int frameDuration, unsigned int frameCount,
-                             int audioChannelCount, int audioSampleRate,
-                             const std::string& outPath, const std::string& codec,
-                             int videoBitrate) :
-    GenericVideoExporter(outPath, makeParams(width * scaleFactor, height * scaleFactor, 1000u / frameDuration, audioSampleRate, codec, videoBitrate), audioSampleRate == 0), _parent(parent), _frameCount(frameCount)
+    int width, int height, float scaleFactor,
+    unsigned int frameDuration, unsigned int frameCount,
+    int audioChannelCount, int audioSampleRate,
+    const std::string& outPath, const std::string& codec,
+    int videoBitrate,
+    int output_width, int output_height)
+    : GenericVideoExporter(outPath, makeParams(width, height, 1000u / frameDuration, audioSampleRate, codec, videoBitrate, output_width, output_height), audioSampleRate == 0),
+    _parent(parent),
+    _frameCount(frameCount)
 {
+    _outParams.width = output_width;
+    _outParams.height = output_height;
+    _outParams.pfmt = AV_PIX_FMT_YUV420P;
     if (audioChannelCount != 2 && audioChannelCount != 0 && audioChannelCount != 1)
         throw std::runtime_error("VideoExporter - assumes mono or stereo for input and creating stereo for output currently");
 }
@@ -692,7 +713,7 @@ bool VideoExporter::Export(wxAppProgressIndicator* appIndicator)
 
     auto cancelLambda = [&dlg]() {
         return dlg.WasCancelled();
-    };
+        };
     setQueryForCancelCallback(cancelLambda);
 
     auto progressLambda = [&dlg, &appIndicator](int value) {
