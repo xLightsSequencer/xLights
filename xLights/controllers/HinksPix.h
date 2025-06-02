@@ -129,6 +129,11 @@ struct HinksPixInputUniverse {
     wxString BuildCommandEasyLights() const;
 };
 
+struct HinksPixFileData {
+    std::string FileName;
+    uint16_t Date;
+    uint16_t Time;
+};
 
 class UnPack
 {
