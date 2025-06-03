@@ -894,9 +894,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
 
         auto const oldIP = _outputs.front()->GetIP();
 
-        int HinksPix_DMX_channels = 0;
-
-        if (IsUniversePerString() == false && SupportsUniversePerString())
+        if (!IsUniversePerString() && SupportsUniversePerString())
         {
             while (_outputs.size()) {
             delete _outputs.back();
