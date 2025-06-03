@@ -12,7 +12,6 @@
 
  //(*Headers(ColorPanel)
  #include <wx/bmpbuttn.h>
- #include <wx/button.h>
  #include <wx/checkbox.h>
  #include <wx/clrpicker.h>
  #include <wx/panel.h>
@@ -175,12 +174,10 @@ public:
 		xlLockButton* BitmapButton_Contrast;
 		xlLockButton* BitmapButton_MusicSparkles;
 		xlLockButton* BitmapButton_SparkleFrequency;
-		xlSizedBitmapButton* BitmapButton_DeletePalette;
-		xlSizedBitmapButton* BitmapButton_ImportPalette;
 		xlSizedBitmapButton* BitmapButton_LeftShiftColours;
+		xlSizedBitmapButton* BitmapButton_MenuPalette;
 		xlSizedBitmapButton* BitmapButton_ReverseColours;
 		xlSizedBitmapButton* BitmapButton_RightShiftColours;
-		xlSizedBitmapButton* BitmapButton_SavePalette;
 		//*)
 
 	protected:
@@ -190,10 +187,7 @@ public:
 		static const wxWindowID ID_BITMAPBUTTON_LeftShiftColours;
 		static const wxWindowID ID_BITMAPBUTTON_RightShiftColours;
 		static const wxWindowID ID_CUSTOM1;
-		static const wxWindowID ID_BUTTON1;
 		static const wxWindowID ID_BITMAPBUTTON3;
-		static const wxWindowID ID_BITMAPBUTTON1;
-		static const wxWindowID ID_BITMAPBUTTON2;
 		static const wxWindowID ID_CHECKBOX_ResetColorPanel;
 		static const wxWindowID ID_STATICTEXT1;
 		static const wxWindowID ID_SLIDER_ChromaSensitivity;
@@ -234,32 +228,41 @@ public:
 		static const wxWindowID ID_PANEL1;
 		//*)
 
+		static const wxWindowID ID_MNU_UPDATE;
+		static const wxWindowID ID_MNU_SAVE;
+		static const wxWindowID ID_MNU_SAVE_AS;
+		static const wxWindowID ID_MNU_DELETE;
+		static const wxWindowID ID_MNU_IMPORT;
+
+
 	private:
 
 		//(*Handlers(ColorPanel)
 		void OnCheckBox_PaletteClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
-		void OnUpdateColorClick(wxCommandEvent& event);
 		void OnCheckBox_MusicSparklesClick(wxCommandEvent& event);
-		void OnBitmapButton_SavePaletteClick(wxCommandEvent& event);
-		void OnBitmapButton_DeletePaletteClick(wxCommandEvent& event);
 		void OnBitmapButton_ReverseColoursClick(wxCommandEvent& event);
 		void UpdateTouchBarSlider(wxScrollEvent& event);
 		void OnCheckBox_ResetColorPanelClick(wxCommandEvent& event);
 		void OnCheckBox_EnableChromakeyClick(wxCommandEvent& event);
 		void OnBitmapButton_ShiftColoursLeftClick(wxCommandEvent& event);
 		void OnBitmapButton_ShiftColoursRightClick(wxCommandEvent& event);
-		void OnBitmapButton_ImportPaletteClick(wxCommandEvent& event);
+		void OnBitmapButton_MenuPaletteClick(wxCommandEvent& event);
 		//*)
 
         void OnCCButtonClick(wxCommandEvent& event);
         wxCheckBox* GetPaletteCheckbox(int idx);
         wxButton* GetPaletteButton(int idx);
         void OnColourChoiceDropDown(wxCommandEvent& event);
-		bool ValidateAndFormatPaletteString(wxString& input, wxString& errorMsg);
-		void LoadColorsToButtons(const wxString& colorString) ;
+        bool ValidateAndFormatPaletteString(wxString& input, wxString& errorMsg);
+        void LoadColorsToButtons(const wxString& colorString);
         void OnColourChoiceSelect(wxCommandEvent& event);
         wxString RemoveNonAlphanumeric(wxString const& str) const;
+        void OnListPopup(wxCommandEvent& event);
+        void ImportPalette();
+        void SavePalette(bool saveAs);
+        void DeletePalette();
+        void UpdateColor();
 
         std::vector<ColorCurveButton*> buttons;
         std::vector<wxCheckBox*> checkBoxes;
