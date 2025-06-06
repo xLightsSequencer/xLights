@@ -47,7 +47,7 @@ const wxWindowID ColorPanel::ID_BITMAPBUTTON_ReverseColours = wxNewId();
 const wxWindowID ColorPanel::ID_BITMAPBUTTON_LeftShiftColours = wxNewId();
 const wxWindowID ColorPanel::ID_BITMAPBUTTON_RightShiftColours = wxNewId();
 const wxWindowID ColorPanel::ID_CUSTOM1 = wxNewId();
-const wxWindowID ColorPanel::ID_BITMAPBUTTON3 = wxNewId();
+const wxWindowID ColorPanel::ID_BUTTON1 = wxNewId();
 const wxWindowID ColorPanel::ID_CHECKBOX_ResetColorPanel = wxNewId();
 const wxWindowID ColorPanel::ID_STATICTEXT1 = wxNewId();
 const wxWindowID ColorPanel::ID_SLIDER_ChromaSensitivity = wxNewId();
@@ -102,7 +102,7 @@ public:
         const wxSize& size = wxDefaultSize,
         long style = 0,
         const wxValidator& validator = wxDefaultValidator,
-        const wxString& name = "ColourList") : wxOwnerDrawnComboBox(parent, id, wxEmptyString, pos, size, 0, nullptr, style | wxCB_READONLY, validator, name)
+        const wxString& name = "ColourList") : wxOwnerDrawnComboBox(parent, id, wxEmptyString, pos, size, 0, nullptr, style | wxCB_READONLY | wxCC_STD_BUTTON | wxODCB_STD_CONTROL_PAINT, validator, name)
     {
 
     }
@@ -124,14 +124,8 @@ public:
 
         wxString s = GetString(item);
 
-        if (s == "(Load)")
+        if (s == "")
         {
-            if (rect.GetHeight() != 18)
-            {
-                wxFontMetrics fm = dc.GetFontMetrics();
-                dc.SetTextForeground(*wxBLACK);
-                dc.DrawText(s, rect.GetLeft() + 2, rect.GetTop() + (rect.GetHeight() - fm.height) / 2);
-            }
             GetVListBoxComboPopup()->UnsetToolTip();
         }
         else
@@ -257,7 +251,6 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 
 	//(*Initialize(ColorPanel)
 	wxBoxSizer* BoxSizer1;
-	wxBoxSizer* BoxSizer2;
 	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer12;
@@ -304,12 +297,12 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	BitmapButton_RightShiftColours = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON_RightShiftColours, wxArtProvider::GetBitmapBundle("xlART_colorpanel_right_shift_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(26,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_RightShiftColours"));
 	BoxSizer1->Add(BitmapButton_RightShiftColours, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer11->Add(BoxSizer1, 1, wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 2);
-	BoxSizer2 = new wxBoxSizer(wxHORIZONTAL);
 	BitmapButton_ColourChoice = new ColourList(ColorScrollWindow,ID_CUSTOM1,wxDefaultPosition,wxDefaultSize,ZERO,wxDefaultValidator,_T("ID_CUSTOM1"));
-	BoxSizer2->Add(BitmapButton_ColourChoice, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer11->Add(BoxSizer2, 1, wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 2);
-	BitmapButton_MenuPalette = new xlSizedBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON3, wxArtProvider::GetBitmapBundle("xlART_colorpanel_menu_xpm", wxART_BUTTON), wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
-	FlexGridSizer11->Add(BitmapButton_MenuPalette, 1, wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 2);
+	FlexGridSizer11->Add(BitmapButton_ColourChoice, 1, wxALL, 2);
+	Button_MenuPalette = new wxButton(ColorScrollWindow, ID_BUTTON1, _T("☰"), wxDefaultPosition, wxDLG_UNIT(ColorScrollWindow,wxSize(16,-1)), 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	Button_MenuPalette->SetMinSize(wxDLG_UNIT(ColorScrollWindow,wxSize(16,-1)));
+	Button_MenuPalette->SetMaxSize(wxDLG_UNIT(ColorScrollWindow,wxSize(16,-1)));
+	FlexGridSizer11->Add(Button_MenuPalette, 1, wxALL|wxALIGN_TOP, 5);
 	FlexGridSizer9->Add(FlexGridSizer11, 1, wxALL|wxALIGN_LEFT, 2);
 	FlexGridSizer9->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 0);
@@ -431,11 +424,12 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	Panel_Sizer->SetSizer(FlexGridSizer3);
 	FlexGridSizer1->Add(Panel_Sizer, 1, wxALL|wxEXPAND, 0);
 	SetSizer(FlexGridSizer1);
+	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_ReverseColours, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnBitmapButton_ReverseColoursClick);
 	Connect(ID_BITMAPBUTTON_LeftShiftColours, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnBitmapButton_ShiftColoursLeftClick);
 	Connect(ID_BITMAPBUTTON_RightShiftColours, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnBitmapButton_ShiftColoursRightClick);
-	Connect(ID_BITMAPBUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnBitmapButton_MenuPaletteClick);
+	Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnBitmapButton_MenuPaletteClick);
 	Connect(ID_CHECKBOX_ResetColorPanel, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ColorPanel::OnCheckBox_ResetColorPanelClick);
 	Connect(ID_CHECKBOX_Chroma, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ColorPanel::OnCheckBox_EnableChromakeyClick);
 	Connect(ID_VALUECURVE_SparkleFrequency, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnVCButtonClick);
@@ -576,7 +570,7 @@ void ColorPanel::LoadAllPalettes()
     if (BitmapButton_ColourChoice->GetCount() != 0) {
         BitmapButton_ColourChoice->Clear();
     }
-    BitmapButton_ColourChoice->AppendString("(Load)");
+    BitmapButton_ColourChoice->AppendString("");
     for(auto it=  _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it)
     {
         BitmapButton_ColourChoice->AppendString(*it);
@@ -1397,7 +1391,7 @@ void ColorPanel::OnColourChoiceSelect(wxCommandEvent& event)
     long sel = event.GetInt();
     wxString s = BitmapButton_ColourChoice->GetString(sel);
 
-    if (s != "(Load)") {
+    if (s != "") {
         wxArrayString as = wxSplit(s, ',');
 
         for (size_t i = 0; i < std::min(as.size(), buttons.size()); i++)
@@ -1635,7 +1629,9 @@ void ColorPanel::OnBitmapButton_MenuPaletteClick(wxCommandEvent& event) {
     if (alleffects == 0) {
         updateItem->Enable(false);
     }
-
+    
+    deleteItem->Enable(false);
+    
     // only enable save if this palette was not loaded from disk or has been saved to disk
     wxString pal = wxString(GetCurrentPalette()).BeforeLast(',');
     for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it) {

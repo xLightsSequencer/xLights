@@ -12,6 +12,7 @@
 
  //(*Headers(ColorPanel)
  #include <wx/bmpbuttn.h>
+ #include <wx/button.h>
  #include <wx/checkbox.h>
  #include <wx/clrpicker.h>
  #include <wx/panel.h>
@@ -157,6 +158,7 @@ public:
 		BulkEditValueCurveButton* BitmapButton_SparkleFrequencyVC;
 		BulkEditValueCurveButton* BitmapButton_VCBrightness;
 		ColourList* BitmapButton_ColourChoice;
+		wxButton* Button_MenuPalette;
 		wxCheckBox* CheckBox_ResetColorPanel;
 		wxFlexGridSizer* FlexGridSizer1;
 		wxFlexGridSizer* FlexGridSizer_Palette;
@@ -175,7 +177,6 @@ public:
 		xlLockButton* BitmapButton_MusicSparkles;
 		xlLockButton* BitmapButton_SparkleFrequency;
 		xlSizedBitmapButton* BitmapButton_LeftShiftColours;
-		xlSizedBitmapButton* BitmapButton_MenuPalette;
 		xlSizedBitmapButton* BitmapButton_ReverseColours;
 		xlSizedBitmapButton* BitmapButton_RightShiftColours;
 		//*)
@@ -187,7 +188,7 @@ public:
 		static const wxWindowID ID_BITMAPBUTTON_LeftShiftColours;
 		static const wxWindowID ID_BITMAPBUTTON_RightShiftColours;
 		static const wxWindowID ID_CUSTOM1;
-		static const wxWindowID ID_BITMAPBUTTON3;
+		static const wxWindowID ID_BUTTON1;
 		static const wxWindowID ID_CHECKBOX_ResetColorPanel;
 		static const wxWindowID ID_STATICTEXT1;
 		static const wxWindowID ID_SLIDER_ChromaSensitivity;

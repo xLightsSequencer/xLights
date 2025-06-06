@@ -90,30 +90,24 @@
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxBoxSizer" variable="BoxSizer2" member="no">
-																	<object class="sizeritem">
-																		<object class="Custom" name="ID_CUSTOM1" subclass="ColourList" variable="BitmapButton_ColourChoice" member="yes">
-																			<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),wxDefaultValidator,$(NAME));</creating_code>
-																			<style>ZERO</style>
-																		</object>
-																		<flag>wxALL|wxEXPAND</flag>
-																		<border>2</border>
-																		<option>1</option>
-																	</object>
+																<object class="Custom" name="ID_CUSTOM1" subclass="ColourList" variable="BitmapButton_ColourChoice" member="yes">
+																	<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),wxDefaultValidator,$(NAME));</creating_code>
+																	<style>ZERO</style>
 																</object>
-																<flag>wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
+																<flag>wxALL</flag>
 																<border>2</border>
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" subclass="xlSizedBitmapButton" variable="BitmapButton_MenuPalette" member="yes">
-																	<bitmap code='wxArtProvider::GetBitmapBundle(&quot;xlART_colorpanel_menu_xpm&quot;, wxART_BUTTON)' />
-																	<size>24,24</size>
-																	<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+																<object class="wxButton" name="ID_BUTTON1" variable="Button_MenuPalette" member="yes">
+																	<label>☰</label>
+																	<size>16,-1d</size>
+																	<minsize>16,-1d</minsize>
+																	<maxsize>16,-1d</maxsize>
 																	<handler function="OnBitmapButton_MenuPaletteClick" entry="EVT_BUTTON" />
 																</object>
-																<flag>wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
-																<border>2</border>
+																<flag>wxALL|wxALIGN_TOP</flag>
+																<border>5</border>
 																<option>1</option>
 															</object>
 														</object>

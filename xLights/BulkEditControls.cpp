@@ -63,6 +63,11 @@ BulkEditColourPickerCtrl::BulkEditColourPickerCtrl(wxWindow* parent, wxWindowID 
     _supportsBulkEdit = true;
     ID_COLOURPICKER_BULKEDIT = wxNewId();
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditColourPickerCtrl::OnRightDown, nullptr, this);
+    wxControl *c = this->GetPickerCtrl();
+    wxBitmapButton *b = dynamic_cast<wxBitmapButton*>(c);
+    if (b) {
+        b->SetBitmapMargins(0, 0);
+    }
     this->GetPickerCtrl()->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditColourPickerCtrl::OnRightDown, nullptr, this);
 }
 
