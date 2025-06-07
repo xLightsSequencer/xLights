@@ -16,6 +16,8 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <arpa/inet.h>
+#else
+#include <WS2tcpip.h>
 #endif
 
 #include "Discovery.h"
