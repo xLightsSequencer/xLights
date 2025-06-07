@@ -6234,7 +6234,7 @@ void EffectsGrid::SetFirstEffectSelected() {
             for (int i = 0; i < num_effects && !found; ++i) {
                 Effect* eff = el->GetEffect(i);
                 if (eff->GetSelected()) {
-                    mSelectedRow = row;
+                    mSelectedRow = row- mSequenceElements->GetFirstVisibleModelRow();
                     mSelectedEffect = eff;
                     RaiseSelectedEffectChanged(eff, false);
                     RaisePlayModelEffect(element, eff, false);
