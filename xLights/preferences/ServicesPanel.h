@@ -2,23 +2,25 @@
 #define SERVICESPANEL_H
 
 //(*Headers(ServicesPanel)
+#include "wx/propgrid/propgrid.h"
 #include <wx/button.h>
-#include <wx/listctrl.h>
+#include <wx/choice.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
 //*)
 
-class xLightsFrame;
+class ServiceManager;
 class EditableListCtrl;
 class ServicesPanel : public wxPanel {
 	public:
 
-		ServicesPanel(wxWindow* parent, xLightsFrame* f, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+		ServicesPanel(wxWindow* parent, ServiceManager* sm, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 		virtual ~ServicesPanel();
 
 		//(*Declarations(ServicesPanel)
-		EditableListCtrl* servicesList;
 		wxButton* ButtonTest;
+		wxChoice* ChoiceServicesTest;
+		wxPropertyGrid* servicesGrid;
 		//*)
 
         virtual bool TransferDataFromWindow() override;
@@ -27,20 +29,19 @@ class ServicesPanel : public wxPanel {
 	protected:
 
 		//(*Identifiers(ServicesPanel)
-		static const long ID_LISTCTRL1;
-		static const long ID_BUTTON1;
+		static const wxWindowID ID_PROPERYMANAGER_SERVICES;
+		static const wxWindowID ID_CHOICE_SERVICES;
+		static const wxWindowID ID_BUTTON_TEST;
 		//*)
 
 	private:
-        xLightsFrame* frame;
+        ServiceManager* m_serviceManager;
 
 		//(*Handlers(ServicesPanel)
-		void OnservicesListItemSelect(wxListEvent& event);
-		void OnservicesListDeleteItem(wxListEvent& event);
-		void OnservicesListBeginLabelEdit(wxListEvent& event);
-		void OnservicesListEndLabelEdit(wxListEvent& event);
 		void OnButtonTestClick(wxCommandEvent& event);
 		//*)
+
+		void OnPropertyGridChange(wxPropertyGridEvent& event);
 
 		DECLARE_EVENT_TABLE()
 };

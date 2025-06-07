@@ -10,21 +10,33 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include "aiType.h"
+
+#include <utility>
 #include <string>
 
-class xLightsFrame;
+class ServiceManager;
+class wxPropertyGrid;
+class wxVariant;
 
-class aiBase {
+class aiBase {  
+protected:  
+    ServiceManager* _sm = nullptr;  
+    bool _enabled{ false };  
+public:  
+    explicit aiBase(ServiceManager* sm);  
+    virtual ~aiBase() {}  
 
-protected:
-    xLightsFrame* _frame = nullptr;
-
-public:
-    aiBase(xLightsFrame* frame) : _frame(frame) {}
-	virtual ~aiBase() {}
-
-    virtual std::string CallLLM(const std::string& prompt, const std::string& token = "") const = 0;
-    virtual bool TestLLM(const std::string& token = "") const = 0;
-    virtual bool IsAvailable(const std::string& token = "") const = 0;
-    virtual std::string GetLLMName() const = 0;
+    [[nodiscard]] virtual std::pair<std::string, bool> CallLLM(const std::string& prompt) const = 0;  
+    virtual void SaveSettings() const = 0;  
+    virtual void LoadSettings() = 0;  
+    [[nodiscard]] virtual std::pair<std::string, bool> TestLLM() const;  
+    [[nodiscard]] virtual bool IsAvailable() const = 0;  
+    [[nodiscard]] virtual std::string GetLLMName() const = 0;  
+    [[nodiscard]] virtual aiType::TYPE GetLLMType() const = 0;  
+    [[nodiscard]] virtual bool IsEnabled() const { return _enabled; };  
+    virtual void SetEnabled(bool enabled) { _enabled = enabled; }  
+    
+    virtual void PopulateLLMSettings(wxPropertyGrid* page) = 0;  
+    virtual void SetSetting(const std::string& key, const wxVariant& value) = 0;  
 };

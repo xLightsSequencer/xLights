@@ -1,23 +1,40 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxPanel" name="ServicesPanel">
-		<pos_arg>1</pos_arg>
-		<size_arg>1</size_arg>
+		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
 			<object class="sizeritem">
-				<object class="wxListCtrl" name="ID_LISTCTRL1" subclass="EditableListCtrl" variable="servicesList" member="yes">
-					<size>600,-1</size>
-					<style>wxLC_REPORT|wxVSCROLL|wxHSCROLL</style>
+				<object class="Custom" name="ID_PROPERYMANAGER_SERVICES" subclass="wxPropertyGrid" variable="servicesGrid" member="yes">
+					<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),$(NAME));</creating_code>
+					<include_file>wx/propgrid/propgrid.h</include_file>
+					<local_include>1</local_include>
+					<style>wxPG__TOOLBAR|wxPG__SPLITTER__AUTO__CENTER|wxPG__DEFAULT__STYLE</style>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxButton" name="ID_BUTTON1" variable="ButtonTest" member="yes">
-					<label>Test</label>
-					<handler function="OnButtonTestClick" entry="EVT_BUTTON" />
+				<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE_SERVICES" variable="ChoiceServicesTest" member="yes">
+							<selection>0</selection>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_TEST" variable="ButtonTest" member="yes">
+							<label>Test</label>
+							<handler function="OnButtonTestClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+					</object>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>

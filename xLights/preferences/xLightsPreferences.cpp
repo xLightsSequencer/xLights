@@ -127,7 +127,7 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
         mPreferencesEditor->AddPage(new xLightsPreferencesPage("Other", settingIcon, f));
 
 #ifdef ENABLE_SERVICES
-        f = [this] (wxWindow *p) { return (wxWindow*)(new ServicesPanel(p, this));};
+        f = [this](wxWindow* p) { return (wxWindow*)(new ServicesPanel(p, _serviceManager.get())); };
         mPreferencesEditor->AddPage(new xLightsPreferencesPage("Services", wxArtProvider::GetBitmap("xlART_SETTINGS", wxART_BUTTON, wxSize(64, 64)), f));
 #endif
     }

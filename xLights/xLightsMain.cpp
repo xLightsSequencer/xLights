@@ -1716,11 +1716,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsIgnoreVendorModelRecommendations2", &_ignoreVendorModelRecommendations, defVMR);
     logger_base.debug("Ignore vendor model recommendations: %s.", toStr(_ignoreVendorModelRecommendations));
 
-    config->Read("XLightsControllerPingInterval", &_controllerPingInterval, 0);   
+    config->Read("XLightsControllerPingInterval", &_controllerPingInterval, 0);
     if (_controllerPingInterval > 0) {
         _pingTimer->Start(_controllerPingInterval * 1000);
         _statusRefreshTimer->Start(_controllerPingInterval/2 * 1000);
-    
+
     }
     logger_base.debug("Controller ping interval in seconds: %s.", toStr(_controllerPingInterval));
 
@@ -1889,6 +1889,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     InitEffectsPanel(EffectsPanel1);
     logger_base.debug("Effects panel initialised.");
 
+    _serviceManager = std::make_unique<ServiceManager>(this);
 
     EffectTreeDlg = nullptr; // must be before any call to SetDir
 
@@ -5063,7 +5064,7 @@ bool xLightsFrame::CheckStart(wxFile& f, CheckSequenceReport& report, bool write
 std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    
+
     // make sure everything is up to date
     if (Notebook1->GetSelection() != LAYOUTTAB)
         layoutPanel->UnSelectAllModels();
@@ -5163,7 +5164,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     size_t errcountsave = errcount;
     size_t warncountsave = warncount;
-    
+
     LogCheckSequenceMsg(wxString::Format("\nSection Errors (Network): %u. Warnings: %u", (unsigned int)errcount, (unsigned int)warncount).ToStdString());
     LogCheckSequenceMsg("-----------------------------------------------------------------------------------------------------------------");
     toterrcount += errcount;
@@ -5235,7 +5236,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             wxString msg = wxString::Format("    ERR: Layout Background image not loadable as an image: %s.", mBackgroundImage);
             LogAndTrack(report, "preferences", CheckSequenceReport::ReportIssue::CRITICAL, msg.ToStdString(), "layout", errcount, warncount);
         }
-    }    
+    }
 
    if (errcount + warncount == errcountsave + warncountsave) {
         LogCheckSequenceMsg("    No problems found");
@@ -5911,7 +5912,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             auto issueType = (it.find("WARN:") != std::string::npos)
                                  ? CheckSequenceReport::ReportIssue::WARNING
                                  : CheckSequenceReport::ReportIssue::CRITICAL;
-            LogAndTrack(report, "models", issueType, it, "settings", errcount, warncount);            
+            LogAndTrack(report, "models", issueType, it, "settings", errcount, warncount);
         }
 
         if ((it.second->GetPixelStyle() == Model::PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || it.second->GetPixelStyle() == Model::PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) && it.second->GetNodeCount() > 100) {
@@ -5926,7 +5927,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             auto issueType = (it.find("WARN:") != std::string::npos)
                                  ? CheckSequenceReport::ReportIssue::WARNING
                                  : CheckSequenceReport::ReportIssue::CRITICAL;
-            LogAndTrack(report, "models", issueType, it, "settings", errcount, warncount);  
+            LogAndTrack(report, "models", issueType, it, "settings", errcount, warncount);
         }
     }
 
@@ -10764,31 +10765,6 @@ void xLightsFrame::OnMenuItemFindShowFolderSelected(wxCommandEvent& event)
     dlg.ShowModal();
 }
 
-void xLightsFrame::SetServiceSetting(const std::string& key, const std::string& value)
-{
-    // It would be nice if we had a secret we  could encrypt these with
-	wxConfigBase* config = wxConfigBase::Get();
-	config->Write(wxString("xLightsServiceSettings" + key), wxString(value));
-	config->Flush();
-}
-
-std::string xLightsFrame::GetServiceSetting(const std::string& key, const std::string& defaultValue)
-{
-    // It would be nice if we had a secret we  could encrypt these with
-    wxConfigBase* config = wxConfigBase::Get();
-    wxString value = config->Read(wxString("xLightsServiceSettings" + key), wxString(defaultValue));
-    return value.ToStdString();
-}
-
-std::unique_ptr<aiBase> xLightsFrame::GetLLM()
-{
-    // we arrange these in priority order ... although in reality users are likely to only have one
-    // maybe we need to give the user control over the order of use (although i am not sure when it would use anything other than the top one)
-
-    auto gpt = std::make_unique<chatGPT>(chatGPT(this));
-    if (gpt->IsAvailable()) {
-		return gpt;
-	}
-
-    return nullptr;
+aiBase* xLightsFrame::GetLLM(aiType::TYPE serviceType) {
+    return _serviceManager->findService(serviceType);
 }

@@ -2666,7 +2666,10 @@ bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std
     if (ai == nullptr)
         return false;
 
-    std::string response = ai->CallLLM(prompt, "");
+   auto const[ response, worked] = ai->CallLLM(prompt);
+    if (!worked) {
+        return false;
+    }
 
     std::string possibleSources = "";
     for (const auto& it : sourceModels) {

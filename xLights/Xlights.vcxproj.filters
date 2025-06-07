@@ -1109,6 +1109,12 @@
       <Filter>ai</Filter>
     </ClCompile>
     <ClCompile Include="CheckSequenceReport.cpp" />
+    <ClCompile Include="ai\ollama.cpp">
+      <Filter>ai</Filter>
+    </ClCompile>
+    <ClCompile Include="ai\ServiceManager.cpp">
+      <Filter>ai</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2227,6 +2233,15 @@
       <Filter>ai</Filter>
     </ClInclude>
     <ClInclude Include="CheckSequenceReport.h" />
+    <ClInclude Include="ai\ollama.h">
+      <Filter>ai</Filter>
+    </ClInclude>
+    <ClInclude Include="ai\ServiceManager.h">
+      <Filter>ai</Filter>
+    </ClInclude>
+    <ClInclude Include="ai\aiType.h">
+      <Filter>ai</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

@@ -14,35 +14,43 @@
 #include "aiType.h"
 #include <string>
 
-// https://platform.openai.com/docs/api-reference/introduction
-// to get a list of models curl https://api.openai.com/v1/models -H "Authorization: Bearer YOUR_API_KEY"
+/*
+curl http://localhost:11434/api/generate -d '{
+  "model": "llama3.2",
+  "prompt":"Why is the sky blue?"
+}'
+*/
 
-class chatGPT : public aiBase {
+class ollama : public aiBase {
 
-	std::string url = "https://api.openai.com/v1/chat/completions";
-	std::string model = "gpt-4o-mini";
-    std::string bearer_token;
-	float temperature = 0.0;
+    const std::string api = "/api/generate";
+	std::string model = "deepseek-r1";
+    std::string host = "localhost";
+    //std::string host = "http://localhost:11434";
+    int port_num{ 11434 };
+	//float temperature = 0.0;
+    bool https{ false };
 
 	public:
 
-	explicit chatGPT(ServiceManager* sm) :
-            aiBase(sm) {
+	explicit ollama(ServiceManager* frame) :
+            aiBase(frame) {
         }
-	virtual ~chatGPT() {}
+	virtual ~ollama() {}
 
     void SaveSettings() const override;
     void LoadSettings() override;
 
     void PopulateLLMSettings(wxPropertyGrid* page) override;
-    void SetSetting(const std::string& key, const wxVariant& value) override;
+    void SetSetting(const std::string& key, const wxVariant& value) override;  
 
-	[[nodiscard]] std::pair<std::string, bool> CallLLM(const std::string& prompt) const override;
+	[[nodiscard]] std::pair<std::string,bool> CallLLM(const std::string& prompt) const override;
     [[nodiscard]] bool IsAvailable() const override;
     [[nodiscard]] std::string GetLLMName() const override {
-        return "ChatGPT";
+        return "ollama";
     }
-    [[nodiscard]] aiType::TYPE GetLLMType() const override {
+
+	[[nodiscard]] aiType::TYPE GetLLMType() const override {
         return aiType::TYPE::PROMPT;
     }
 };

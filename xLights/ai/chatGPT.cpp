@@ -1,29 +1,63 @@
 #include "chatGPT.h"
-#include "xLightsMain.h"
+#include "ServiceManager.h"
 #include "utils/Curl.h"
 #include "UtilFunctions.h"
+
+#include <wx/propgrid/propgrid.h>
 
 #include <vector>
 #include <string>
 
 #include <log4cpp/Category.hh>
 
-
-bool chatGPT::IsAvailable(const std::string& token) const {
-    return token != "" || _frame->GetServiceSetting("ChatGPTBearerToken") != "";
+bool chatGPT::IsAvailable() const {
+    return !bearer_token.empty() && _enabled;
 }
 
-std::string chatGPT::CallLLM(const std::string& prompt, const std::string& token) const {
-
+void chatGPT::SaveSettings() const {
 	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+	_sm->setServiceSetting("ChatGPTEnable", _enabled);    
+	_sm->setServiceSetting("ChatGPTModel", model);
+    _sm->setSecretServiceToken("ChatGPTBearerToken", bearer_token);
+	logger_base.info("ChatGPT settings saved successfully");
+}
 
-	std::string bearerToken = token;
-    
-	if (bearerToken == "") bearerToken = _frame->GetServiceSetting("ChatGPTBearerToken");
+void chatGPT::LoadSettings() {
+    model = _sm->getServiceSetting("ChatGPTModel", model);
+    _enabled = _sm->getServiceSetting("ChatGPTEnable", _enabled);
+    bearer_token = _sm->getServiceSetting("ChatGPTBearerToken", std::string());
+}
 
-	if (token == "" && bearerToken.empty()) {
+void chatGPT::PopulateLLMSettings(wxPropertyGrid* page) {
+    page->Append(new wxPropertyCategory("chatGPT"));
+    auto p = page->Append(new wxBoolProperty("Enabled", "chatGPT.Enabled", _enabled));
+    p->SetEditor("CheckBox");
+    page->Append(new wxStringProperty("Bearer Token", "chatGPT.Token", bearer_token));
+    page->Append(new wxStringProperty("Model", "chatGPT.Model", model));
+}
+
+void chatGPT::SetSetting(const std::string& key, const wxVariant& value) {
+	if (key == "chatGPT.Enabled") {
+		_enabled = value.GetBool();
+	} else if (key == "chatGPT.Token") {
+		bearer_token = value.GetString();
+	} else if (key == "chatGPT.Model") {
+		model = value.GetString();
+	}
+}
+
+std::pair<std::string, bool> chatGPT::CallLLM(const std::string& prompt) const {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    std::string bearerToken = bearer_token;
+
+    if (bearerToken.empty()) {
+        bearerToken = _sm->getServiceSetting("ChatGPTBearerToken", std::string());
+	}
+
+	if (bearer_token.empty() && bearerToken.empty()) {
 		wxMessageBox("You must set a ChatGPT Bearer Token in the Preferences on the Services Panel", "Error", wxICON_ERROR);
-		return "";
+        return { "ChatGPT: Bearer Token is empty", false };
 	}
 
 	// remove all \t, \r and \n as chatGPT does not like it
@@ -32,7 +66,7 @@ std::string chatGPT::CallLLM(const std::string& prompt, const std::string& token
     Replace(p, std::string("\r"), std::string(""));
     Replace(p, std::string("\n"), std::string("\\n"));
 
-	std::string request = "{ \"model\": \"" + model + "\", \"messages\": [ { \"role\": \"user\",\"content\": \"" + JSONSafe(p) + "\" } ] , \"temperature\": " + std::to_string(temperature) + " }";
+	std::string const request = "{ \"model\": \"" + model + "\", \"messages\": [ { \"role\": \"user\",\"content\": \"" + JSONSafe(p) + "\" } ] , \"temperature\": " + std::to_string(temperature) + " }";
 
 	std::vector<std::pair<std::string, std::string>> customHeaders = {
         { "Authorization", "Bearer " + bearerToken }
@@ -46,7 +80,7 @@ std::string chatGPT::CallLLM(const std::string& prompt, const std::string& token
     logger_base.debug("ChatGPT Response %d: %s", responseCode, response.c_str());
 
 	if (responseCode != 200) {
-        return "";
+        return { response, false };
     }
 
 	wxJSONReader reader;
@@ -54,32 +88,24 @@ std::string chatGPT::CallLLM(const std::string& prompt, const std::string& token
     if (reader.Parse(response, &root) > 0)
 	{
 		logger_base.error("ChatGPT: Failed to parse response");
-		return "";
+        return { "ChatGPT: Failed to parse response", false };
 	}
 
 	wxJSONValue choices = root["choices"];
 	if (choices.IsNull() || choices.Size() == 0) {
 		logger_base.error("ChatGPT: No choices in response");
-		return "";
-		}
+        return { "ChatGPT: No choices in response", false };
+	}
 
 	wxJSONValue choice = choices[0];
 	wxJSONValue text = choice["message"]["content"];
 	if (text.IsNull()) {
 		logger_base.error("ChatGPT: No text in response");
-		return "";
-		}
+        return { "ChatGPT: No text in response", false };
+	}
 
 	response = text.AsString();
 	logger_base.debug("ChatGPT: %s", response.c_str());
 
-    return response;
-}
-
-bool chatGPT::TestLLM(const std::string& token) const {
-	std::string response = CallLLM("Hello", token);
-	if (response.empty()) {
-		return false;
-	}
-	return true;
+    return { response, true };
 }
