@@ -647,7 +647,6 @@ public:
     void OnButton_OpenBaseShowDirClick(wxCommandEvent& event);
     void OnMenuItemFindShowFolderSelected(wxCommandEvent& event);
     void OnMenuItemShiftEffectsAndTimingSelected(wxCommandEvent& event);
-    void OnMenuItem_GenerateDMXEffectSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
@@ -798,7 +797,6 @@ public:
     static const wxWindowID ID_MENUITEM_GenerateCustomModel;
     static const wxWindowID ID_MNU_REMAPCUSTOM;
     static const wxWindowID ID_MNU_GENERATELYRICS;
-    static const wxWindowID ID_MNU_GENERATEDMXEFFECT;
     static const wxWindowID ID_MENUITEM_CONVERT;
     static const wxWindowID ID_MNU_PREPAREAUDIO;
     static const wxWindowID ID_MENU_USER_DICT;
@@ -994,7 +992,6 @@ public:
     wxMenuItem* MenuItem_File_Save;
     wxMenuItem* MenuItem_File_SaveAs_Sequence;
     wxMenuItem* MenuItem_Generate2DPath;
-    wxMenuItem* MenuItem_GenerateDMXEffect;
     wxMenuItem* MenuItem_GenerateLyrics;
     wxMenuItem* MenuItem_Help_Download;
     wxMenuItem* MenuItem_Help_Facebook;
