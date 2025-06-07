@@ -116,7 +116,7 @@ ISPC is a compiler for a variant of the C programming language, with extensions 
 It is used in xLights for the generation of AVX1, AVX2, SEE2 and SSE4 optimized code.
 
   a) Download ISPC from
-        https://github.com/ispc/ispc/releases/download/v1.26.0/ispc-v1.26.0-windows.zip
+        https://github.com/ispc/ispc/releases/download/v1.27.0/ispc-v1.27.0-windows.zip
 
   b) Extract the zip file to a folder of your choice.
 
