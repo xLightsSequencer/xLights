@@ -1,4 +1,4 @@
-﻿/***************************************************************
+/***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
  * https://github.com/xLightsSequencer/xLights
@@ -1377,7 +1377,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(wxEVT_CHAR, (wxObjectEventFunction)&xLightsFrame::OnChar);
     Connect(wxEVT_SIZE, (wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
-
+    
+    Notebook1->SetArtProvider(new wxAuiGenericTabArt());
+    
     wxConfigBase* config = wxConfigBase::Get();
     if (config == nullptr) {
         logger_base.error("Null config ... this wont end well.");
