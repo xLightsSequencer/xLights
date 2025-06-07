@@ -2693,7 +2693,21 @@ void Model::ParseStateInfo(wxXmlNode* f, FaceStateData& stateInfo) {
     while (att != nullptr) {
         if (att->GetName() != "Name") {
             if (att->GetValue() != "") { // we only save non default values to keep xml file small
-                stateInfo[name][att->GetName().ToStdString()] = att->GetValue();
+                std::string key = att->GetName().ToStdString();
+                std::string value = att->GetValue().ToStdString();
+                std::string storedKey = key;
+                if (key.find('s') == 0) { // Handle all keys starting with 's'
+                    size_t sPos = key.find('s');
+                    size_t dashPos = key.find('-');
+                    size_t endPos = (dashPos != std::string::npos) ? dashPos : key.length();
+                    if (sPos == 0 && sPos + 1 < endPos) {
+                        std::string numStr = key.substr(sPos + 1, endPos - sPos - 1);
+                        int num = std::stoi(numStr);
+                        std::string paddedNum = wxString::Format("%03d", num).ToStdString();
+                        storedKey = "s" + paddedNum + (dashPos != std::string::npos ? key.substr(dashPos) : "");
+                    }
+                }
+                stateInfo[name][storedKey] = value;
             }
         }
         att = att->GetNext();

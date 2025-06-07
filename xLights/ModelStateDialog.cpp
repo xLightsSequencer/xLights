@@ -439,7 +439,7 @@ static bool SetGrid(wxGrid *grid, std::map<std::string, std::string> &info) {
         grid->HideCol(COLOUR_COL);
     }
     for (int x = 0; x < grid->GetNumberRows(); x++) {
-        wxString pname = "s" + grid->GetRowLabelValue(x);
+        wxString pname = wxString::Format("s%03d", wxAtoi(grid->GetRowLabelValue(x)));
         pname.Replace(" ", "");
         if (info.find(pname) != end(info) || info.find(pname + "-Name") != end(info) || info.find(pname + "-Color") != end(info)) {
             grid->SetCellValue(x, CHANNEL_COL, info[pname.ToStdString()]);
