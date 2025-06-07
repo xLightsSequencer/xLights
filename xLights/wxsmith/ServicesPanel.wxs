@@ -12,6 +12,7 @@
 					<include_file>wx/propgrid/propgrid.h</include_file>
 					<local_include>1</local_include>
 					<style>wxPG__TOOLBAR|wxPG__SPLITTER__AUTO__CENTER|wxPG__DEFAULT__STYLE</style>
+					<minsize>200,150d</minsize>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

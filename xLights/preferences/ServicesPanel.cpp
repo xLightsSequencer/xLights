@@ -118,6 +118,7 @@ ServicesPanel::ServicesPanel(wxWindow* parent, ServiceManager* sm, wxWindowID id
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
 	servicesGrid = new wxPropertyGrid(this,ID_PROPERYMANAGER_SERVICES,wxDefaultPosition,wxDefaultSize,wxPG_TOOLBAR|wxPG_SPLITTER_AUTO_CENTER|wxPG_DEFAULT_STYLE,_T("ID_PROPERYMANAGER_SERVICES"));
+	servicesGrid->SetMinSize(wxDLG_UNIT(this,wxSize(200,150)));
 	FlexGridSizer1->Add(servicesGrid, 1, wxALL|wxEXPAND, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	ChoiceServicesTest = new wxChoice(this, ID_CHOICE_SERVICES, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_SERVICES"));
@@ -126,7 +127,6 @@ ServicesPanel::ServicesPanel(wxWindow* parent, ServiceManager* sm, wxWindowID id
 	BoxSizer1->Add(ButtonTest, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_BUTTON_TEST, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ServicesPanel::OnButtonTestClick);
 	//*)
@@ -149,6 +149,7 @@ ServicesPanel::~ServicesPanel()
 }
 
 bool ServicesPanel::TransferDataToWindow() {
+    servicesGrid->Clear();
     for (auto const& ss : m_serviceManager->getServices()) {
         ss->PopulateLLMSettings(servicesGrid);
     }
