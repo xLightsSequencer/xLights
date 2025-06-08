@@ -131,9 +131,6 @@
 
 #include <xlsxwriter.h>
 #include <CheckSequenceReport.h>
-
-#include "wxWEBPHandler/wx/imagwebp.h"
-
 #include <log4cpp/Category.hh>
 
 //(*InternalHeaders(xLightsFrame)

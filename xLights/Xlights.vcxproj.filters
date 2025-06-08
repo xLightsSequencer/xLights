@@ -1032,7 +1032,6 @@
     <ClCompile Include="effects\DuplicatePanel.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
-    <ClCompile Include="wxWEBPHandler\imagwebp.cpp" />
     <ClCompile Include="effects\AdjustEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
@@ -2159,7 +2158,6 @@
     <ClInclude Include="effects\DuplicatePanel.h">
       <Filter>Effects</Filter>
     </ClInclude>
-    <ClInclude Include="wxWEBPHandler\imagwebp.h" />
     <ClInclude Include="effects\AdjustEffect.h">
       <Filter>Effects</Filter>
     </ClInclude>

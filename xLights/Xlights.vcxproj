@@ -993,7 +993,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="WiringDialog.cpp" />
     <ClCompile Include="wxCheckedListCtrl.cpp" />
     <ClCompile Include="wxModelGridCellRenderer.cpp" />
-    <ClCompile Include="wxWEBPHandler\imagwebp.cpp" />
     <ClCompile Include="xlColorCanvas.cpp" />
     <ClCompile Include="xlColorPicker.cpp" />
     <ClCompile Include="xlColorPickerFields.cpp" />
@@ -1533,7 +1532,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="WiringDialog.h" />
     <ClInclude Include="wxCheckedListCtrl.h" />
     <ClInclude Include="wxModelGridCellRenderer.h" />
-    <ClInclude Include="wxWEBPHandler\imagwebp.h" />
     <ClInclude Include="xlColorCanvas.h" />
     <ClInclude Include="xlColorPicker.h" />
     <ClInclude Include="xlColorPickerFields.h" />

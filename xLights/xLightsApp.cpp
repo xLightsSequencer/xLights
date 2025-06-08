@@ -75,6 +75,7 @@
     #pragma comment(lib, "liquidfund.lib")
     #pragma comment(lib, "libzstdd_static_VS.lib")
     #pragma comment(lib, "xlsxwriterd.lib")
+    #pragma comment(lib, "wxwebpd.lib")
 #else
     #pragma comment(lib, "wxbase" WXWIDGETS_VERSION "u.lib")
     #pragma comment(lib, "wxbase" WXWIDGETS_VERSION "u_net.lib")
@@ -97,6 +98,7 @@
     #pragma comment(lib, "liquidfun.lib")
     #pragma comment(lib, "libzstd_static_VS.lib")
     #pragma comment(lib, "xlsxwriter.lib")
+    #pragma comment(lib, "wxwebp.lib")
 #endif
 #pragma comment(lib, "libcurl.dll.a")
 #pragma comment(lib, "z.lib")
@@ -129,9 +131,9 @@
 #pragma comment(lib, "swscale.lib")
 #pragma comment(lib, "z.lib")
 #pragma comment(lib, "lua5.3.5-static.lib")
-#pragma comment(lib, "libwebp.lib")
-#pragma comment(lib, "libwebpdecoder.lib")
-#pragma comment(lib, "libwebpdemux.lib")
+//#pragma comment(lib, "libwebp.lib")
+//#pragma comment(lib, "libwebpdecoder.lib")
+//#pragma comment(lib, "libwebpdemux.lib")
 #endif
 
 xLightsFrame* xLightsApp::__frame = nullptr;
