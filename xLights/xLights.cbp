@@ -1165,8 +1165,6 @@
 		<Unit filename="wxCheckedListCtrl.h" />
 		<Unit filename="wxModelGridCellRenderer.cpp" />
 		<Unit filename="wxModelGridCellRenderer.h" />
-		<Unit filename="wxWEBPHandler/imagwebp.cpp" />
-		<Unit filename="wxWEBPHandler/wx/imagwebp.h" />
 		<Unit filename="wx_pch.h" />
 		<Unit filename="wxsmith/AboutDialog.wxs" />
 		<Unit filename="wxsmith/AdjustPanel.wxs" />
