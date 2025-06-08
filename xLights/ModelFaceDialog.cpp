@@ -1348,8 +1348,7 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
                 {
                     basefn = basefn.SubString(0, basefn.Length() - 4);
                     eyesclosed = false;
-                }
-                else if (basefn.EndsWith("_ec"))
+                } else if (basefn.EndsWith("_ec"))
                 {
                     basefn = basefn.SubString(0, basefn.Length() - 4);
                     eyesclosed = true;

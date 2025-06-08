@@ -10,6 +10,25 @@
 
 #include "MatrixFaceDownloadDialog.h"
 
+// The xml file that has the list of faces is held https://nutcracker123.com/xlights/faces/xlights_faces.xml
+// 
+// The file format is a zip file containing the following:
+//
+// xxx.zip
+//     xxx_AI_eo.png
+//     xxx_E_eo.png
+//     xxx_etc_eo.png
+//     xxx_FV_eo.xml
+//     xxx_L_eo.png
+//     xxx_MBP_eo.png
+//     xxx_O_eo.png
+//     xxx_REST_ec.png
+//     xxx_REST_eo.png
+//     xxx_U_eo.png
+//     xxx_WQ_eo.png
+//
+// You also need a xxx.png file to preview the face ... this is typically the xxx_AI_EO.png file renamed
+
 //(*InternalHeaders(MatrixFaceDownloadDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
