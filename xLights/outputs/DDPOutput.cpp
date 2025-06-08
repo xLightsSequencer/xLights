@@ -363,7 +363,7 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
                 dd = discovery.AddController(controller);
             }
             ControllerEthernet* controller = dd->controller;
-
+            controller->SetProtocol(OUTPUT_DDP);
             if (controller == nullptr){
                 logger_base.warn("Unsupported DDP controller");
             }
