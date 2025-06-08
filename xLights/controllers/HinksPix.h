@@ -23,6 +23,7 @@
 
 class HinksPix;
 class wxJSONValue;
+class ControllerEthernet;
 
 struct HinksPixOutput {
     HinksPixOutput(int output_ ,int defaultBrightness_) :
@@ -134,6 +135,18 @@ struct HinksPixFileData {
     uint16_t Time;
 };
 
+class UnPack
+{
+public:
+    int32_t MyStart;
+    int32_t MyEnd;
+    int32_t NewStart;
+    int32_t NewEnd;
+    int32_t NumChans;
+    int32_t Port;
+    bool InActive;
+};
+
 class HinksPix : public BaseController
 {
     static constexpr int UN_PER = 6;
@@ -176,6 +189,7 @@ class HinksPix : public BaseController
     std::unique_ptr<HinksPixSerial> InitSerialData(bool fullControl);
 
     bool UploadInputUniverses(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const;
+    bool UploadUnPack(bool &worked, Controller *controller, std::vector<UnPack *> const &UPA, bool dirty) const;
     
     bool UploadInputUniversesEasyLights(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const;
     void UploadPixelOutputsEasyLights(bool& worked);
@@ -199,9 +213,11 @@ class HinksPix : public BaseController
     bool CheckPixelOutputs(std::string & message);
     bool CheckSmartReceivers(std::string & message);
 
+
     static const std::string GetJSONPostURL() { return "/Xlights_PostData.cgi"; };
     static const std::string GetJSONInfoURL() { return "/XLights_BoardInfo.cgi"; };
     static const std::string GetJSONPortURL() { return "/Xlights_Board_Port_Config.cgi"; };
+    static const std::string GetJSONUnPackURL() { return "/Xlights_UnPack_Config.cgi"; };
     static const std::string GetJSONModeURL() { return "/Xlights_Data_Mode.cgi"; };
     static const std::string GetE131URL() { return"/GetE131Data.cgi"; };
     static const std::string GetInfoURL() { return"/GetInfo.cgi"; };
@@ -209,6 +225,9 @@ class HinksPix : public BaseController
 #pragma endregion
 
 public:
+
+    bool IsUnPackSupported_Hinks(ControllerEthernet *controller);
+
 #pragma region Constructors and Destructors
     HinksPix(const std::string& ip, const std::string& fppProxy);
     virtual ~HinksPix();
@@ -229,3 +248,4 @@ public:
     void SendRebootController(bool& worked) const;
 #pragma endregion
 };
+

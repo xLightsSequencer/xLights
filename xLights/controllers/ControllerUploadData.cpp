@@ -2102,6 +2102,22 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
         success = false;
     }
 
+
+    if (rules->SupportsUniversePerString()) {
+        std::string CO;
+
+        for (const auto& it : _pixelPorts) {
+            for (const auto& it2 : it.second->GetModels()) {
+                CO = it2->GetColourOrder("RGB");
+                if (strlen(CO.c_str()) > 3) {
+                    res += wxString::Format("ERR: Controller does NOT Support Color Order %s.\n", CO);
+                    success = false;
+                }
+            }
+        }
+    }
+
+
     return success;
 }
 
