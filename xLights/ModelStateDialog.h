@@ -107,6 +107,12 @@ protected:
     static const long STATE_DIALOG_CLEAR_SELECTED_ROWS;
     static const long STATE_DIALOG_CLEAR_STATES;
     static const long STATE_DIALOG_EXPORT_TOOTHERS;
+    static const wxWindowID ID_MNU_ADD_STATE_BEFORE;
+    static const wxWindowID ID_MNU_ADD_STATE_AFTER;
+    static const wxWindowID ID_MNU_DELETE_STATE;
+    static const wxWindowID ID_MNU_MOVE_STATE_UP;
+    static const wxWindowID ID_MNU_MOVE_STATE_DOWN;
+    static const wxWindowID ID_MNU_SORT;
 
 private:
     //(*Handlers(ModelStateDialog)
@@ -188,6 +194,12 @@ private:
     void CopyStates(wxGridEvent& event);
     void ClearStates(wxGridEvent& event);
     void ClearSelectedStates(wxGridEvent& event);
+    void AddBefore(wxGridEvent& event);
+    void AddAfter(wxGridEvent& event);
+    void DeleteSelected(wxGridEvent& event);
+    void MoveSelectedUp(wxGridEvent& event);
+    void MoveSelectedDown(wxGridEvent& event);
+    void SortState(wxGridEvent& event);
 
     void CopyStateData();
     void RenameState();
