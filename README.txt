@@ -11,6 +11,48 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2025.06 
+    - bug (derwin12)        Add editor Right click options to state dialog
+    - bug (derwin12)        Crash when discovering Falcon v4/v5
+    - bug (MrPierreB)       Correct effect movement with drag selection box
+    - bug (derwin12)        Ensure state item render order
+    - enh (dkulp)           Update to ISPC and wxwidgets
+    - enh (scott)           Add ollama AI api service and refactor
+    - enh (derwin12)        Add abitlity to import color palettes and ui change
+    - bug (derwin12)        Dont mark universe per string controllers dirty on startup
+    - enh (derwin12)        Add right click find/replace in timing tracks
+    - enh (derwin12)        Skill multi string shadow models in check sequence
+    - enh (derwin12)        Add option to add an empty group during an effect import
+    - enh (derwin12)        Add redo to menu and shortcut key
+    - enh (gstrike)         Optionally use color palette in candle effect
+    - enh (derwin12)        Retain spacing when copying states
+    - bug (derwin12)        Crash on dropdown selection in Windows
+    - bug (derwin12)        Poly line not rendering flat in model preview
+    - enh (dkulp)           Converting controller to a variant
+    - enh (gstrike)         Add Bong69 controller
+    - bug (derwin12)        Chromakey fix
+    - enh (derwin12)        Have linked Controller/Layout always done
+    - enh (derwin12)        Add blink length to face effect
+    - enh (scott)           hinkspix upload support
+    - enh (scott)           Fedora 42 updates
+    - bug (cpinkman)        Add pixel size to FPP virtual display map
+    - enh (keith)           Fix up EFL vendor model upload links
+    - enh (derwin12)        Add text labels as a timing track creation options
+    - enh (derwin12)        Add right click reset zoom level
+    - enh (jasonsomers)     Add Solo2Go Controller
+    - bug (derwin12)        Handle printing 3d mesh (house) object
+    - bug (derwin12)        Correctly show the default face placement in layout
+    - enh (dkulp)           Vendor model documentation
+    - enh (dkulp)           xLights Vendor info
+    - enh (Scott)           Code refactor
+    - enh (Scott)           Add warning on ESEQ not used 50ms fps
+    - bug (derwin12)        Handle submodel window size being too large
+    - enh (keith)           Add check sequence for mh group not defined correctly
+    - bug (derwin12)        Centering of multiline xlfont text effect
+    - enh (keith)           Preference for bell on render
+    - enh (keith)           Include dimension in model export
+    - enh (keith)           Use dimensions provided in downloaded models
+    - bug (derwin12)        Wave bug with low number of waves having no movement
 2025.05 April 14, 2025
     - enh (cybercop23)      Add optional status led for each controller on Controllers tab (enabled in settings)
     - enh (derwin12)        Add popup menu option to close gaps between effects
