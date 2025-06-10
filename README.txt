@@ -11,7 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2025.06 
+2025.06 June 10, 2025
     - bug (derwin12)        Add editor Right click options to state dialog
     - bug (derwin12)        Crash when discovering Falcon v4/v5
     - bug (MrPierreB)       Correct effect movement with drag selection box
