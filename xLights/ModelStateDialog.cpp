@@ -26,6 +26,8 @@
 #include "VendorModelDialog.h"
 
 #include <log4cpp/Category.hh>
+#include <algorithm>
+#include <vector>
 
 //(*InternalHeaders(ModelStateDialog)
 #include <wx/intl.h>
@@ -80,6 +82,12 @@ const long ModelStateDialog::STATE_DIALOG_REVERSE = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_CLEAR_SELECTED_ROWS = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_CLEAR_STATES = wxNewId();
 const long ModelStateDialog::STATE_DIALOG_EXPORT_TOOTHERS = wxNewId();
+const wxWindowID ModelStateDialog::ID_MNU_ADD_STATE_BEFORE = wxNewId();
+const wxWindowID ModelStateDialog::ID_MNU_ADD_STATE_AFTER = wxNewId();
+const wxWindowID ModelStateDialog::ID_MNU_DELETE_STATE = wxNewId();
+const wxWindowID ModelStateDialog::ID_MNU_MOVE_STATE_UP = wxNewId();
+const wxWindowID ModelStateDialog::ID_MNU_MOVE_STATE_DOWN = wxNewId();
+const wxWindowID ModelStateDialog::ID_MNU_SORT = wxNewId();
 
 BEGIN_EVENT_TABLE(ModelStateDialog,wxDialog)
 	//(*EventTable(ModelStateDialog)
@@ -583,7 +591,7 @@ void ModelStateDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
 }
 
 void ModelStateDialog::GetValue(wxGrid *grid, const int row, const int col, std::map<std::string, std::string> &info) {
-    wxString key = "s" + grid->GetRowLabelValue(row).ToStdString();
+    wxString key = wxString::Format("s%03d", wxAtoi(grid->GetRowLabelValue(row)));
     key.Replace(" ", "");
     if (key != "")
     {
@@ -853,8 +861,15 @@ void ModelStateDialog::OnNodeRangeGridCellRightClick(wxGridEvent& event)
     wxMenu mnu;
 
     mnu.Append(STATE_DIALOG_IMPORT_SUB, "Import SubModel");
-    mnu.Append(STATE_DIALOG_COPY_STATES, "Copy States");
+    mnu.Append(STATE_DIALOG_COPY_STATES, "Import State Definition");
+    mnu.Append(ID_MNU_SORT, "Sort by State");
     mnu.AppendSeparator();
+    mnu.Append(ID_MNU_ADD_STATE_BEFORE, "Insert Line Before");
+    mnu.Append(ID_MNU_ADD_STATE_AFTER, "Insert Line After");
+    mnu.Append(ID_MNU_MOVE_STATE_UP, "Move Selected Up");
+    mnu.Append(ID_MNU_MOVE_STATE_DOWN, "Move Selected Down");
+    mnu.AppendSeparator();
+    mnu.Append(ID_MNU_DELETE_STATE, "Delete Selected");
     mnu.Append(STATE_DIALOG_CLEAR_SELECTED_ROWS, "Clear Selected");
     mnu.Append(STATE_DIALOG_CLEAR_STATES, "Clear All Rows");
 
@@ -945,7 +960,7 @@ void ModelStateDialog::AddLabel(wxString label)
     if (free != -1)
     {
         grid->SetCellValue(free, NAME_COL, label);
-        wxString key = "s" + grid->GetRowLabelValue(free).ToStdString();
+        wxString key = wxString::Format("s%03d", wxAtoi(grid->GetRowLabelValue(free)));
         key.Replace(" ", "");
         if (key != "")
         {
@@ -1065,7 +1080,7 @@ void ModelStateDialog::ValidateWindow() {
         }
         // enable wxID_OK button
 
-		okButton->Enable(!blank);
+        okButton->Enable(!blank);
     } else {
         // enable wxID_OK button
         okButton->Enable(true);
@@ -1082,6 +1097,18 @@ void ModelStateDialog::OnGridPopup(const int rightEventID, wxGridEvent& gridEven
         ClearStates(gridEvent);
     } else if (rightEventID == STATE_DIALOG_CLEAR_SELECTED_ROWS) {
         ClearSelectedStates(gridEvent);
+    } else if (rightEventID == ID_MNU_ADD_STATE_BEFORE) {
+        AddBefore(gridEvent);
+    } else if (rightEventID == ID_MNU_ADD_STATE_AFTER) {
+        AddAfter(gridEvent);
+    } else if (rightEventID == ID_MNU_DELETE_STATE) {
+        DeleteSelected(gridEvent);
+    } else if (rightEventID == ID_MNU_MOVE_STATE_UP) {
+        MoveSelectedUp(gridEvent);
+    } else if (rightEventID == ID_MNU_MOVE_STATE_DOWN) {
+        MoveSelectedDown(gridEvent);
+    } else if (rightEventID == ID_MNU_SORT) {
+        SortState(gridEvent);
     }
 }
 
@@ -1406,14 +1433,14 @@ void ModelStateDialog::CopyStates(wxGridEvent& event)
             }
 
             for (int x = 200; x >= 0; --x) {
-                std::string pname = "s" + std::to_string(x);
+                std::string pname = wxString::Format("s%03d", x);
                 if (stateData[name].contains(pname)) {
                     stateIdx = x + 1;
                     break;
                 }
             }
             for (int x = 1; x <= 200; x++) {
-                std::string pname = "s" + std::to_string(x);
+                std::string pname = wxString::Format("s%03d", x);
                 if (sd.find(pname) != end(sd) || sd.find(pname + "-Name") != end(sd) || sd.find(pname + "-Color") != end(sd)) {
                     auto val = sd[pname];
                     if (val.empty()) {
@@ -1430,13 +1457,13 @@ void ModelStateDialog::CopyStates(wxGridEvent& event)
                         c = "";
                     }
 
-                    std::string newname = "s" + std::to_string(stateIdx);
+                    std::string newname = wxString::Format("s%03d", stateIdx);
                     for (int x = stateIdx; x <= 200; x++) {
                         if (stateData[name].contains(newname) ||
                             stateData[name].contains(newname + "-Name") ||
                             stateData[name].contains(newname + "-Color")) {
                             ++stateIdx;
-                            newname = "s" + std::to_string(stateIdx);
+                            newname = wxString::Format("s%03d", stateIdx);
                         } else {
                             break;
                         }
@@ -1861,6 +1888,408 @@ void ModelStateDialog::ClearSelectedStates(wxGridEvent& event) {
     ValidateWindow();
     NodeRangeGrid->Refresh();
 }
+
+void ModelStateDialog::AddBefore(wxGridEvent& event) {
+    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+    if (name.empty() || stateData[name]["Type"] != "NodeRange") {
+        return;
+    }
+
+    std::set<int> selectedRows;
+    for (int col = 0; col < NodeRangeGrid->GetNumberCols(); col++) {
+        for (int row = 0; row < NodeRangeGrid->GetNumberRows(); row++) {
+            if (NodeRangeGrid->IsInSelection(row, col)) {
+                selectedRows.insert(row);
+            }
+        }
+    }
+
+    if (selectedRows.empty()) {
+        int cursorRow = NodeRangeGrid->GetGridCursorRow();
+        if (cursorRow >= 0 && cursorRow < NodeRangeGrid->GetNumberRows()) {
+            selectedRows.insert(cursorRow);
+        }
+    }
+
+    if (selectedRows.empty()) {
+        return;
+    }
+
+    int firstRow = *selectedRows.begin();
+    NodeRangeGrid->InsertRows(firstRow, 1);
+
+    for (int col = 0; col < NodeRangeGrid->GetNumberCols(); col++) {
+        NodeRangeGrid->SetCellValue(firstRow, col, wxEmptyString);
+        if (col == COLOUR_COL) {
+            NodeRangeGrid->SetCellBackgroundColour(firstRow, col, *wxWHITE);
+        }
+    }
+
+    for (int row = firstRow; row < NodeRangeGrid->GetNumberRows(); row++) {
+        for (int col = 0; col < NodeRangeGrid->GetNumberCols(); col++) {
+            GetValue(NodeRangeGrid, row, col, stateData[name]);
+        }
+    }
+
+    ValidateWindow();
+    NodeRangeGrid->Refresh();
+}
+
+void ModelStateDialog::AddAfter(wxGridEvent& event) {
+    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+    if (name.empty() || stateData[name]["Type"] != "NodeRange") {
+        return;
+    }
+
+    std::set<int> selectedRows;
+    for (int col = 0; col < NodeRangeGrid->GetNumberCols(); col++) {
+        for (int row = 0; row < NodeRangeGrid->GetNumberRows(); row++) {
+            if (NodeRangeGrid->IsInSelection(row, col)) {
+                selectedRows.insert(row);
+            }
+        }
+    }
+
+    if (selectedRows.empty()) {
+        int cursorRow = NodeRangeGrid->GetGridCursorRow();
+        if (cursorRow >= 0 && cursorRow < NodeRangeGrid->GetNumberRows()) {
+            selectedRows.insert(cursorRow);
+        }
+    }
+
+    if (selectedRows.empty()) {
+        return;
+    }
+
+    int lastRow = *selectedRows.rbegin();
+    NodeRangeGrid->InsertRows(lastRow + 1, 1);
+
+    for (int col = 0; col < NodeRangeGrid->GetNumberCols(); col++) {
+        NodeRangeGrid->SetCellValue(lastRow + 1, col, wxEmptyString);
+        if (col == COLOUR_COL) {
+            NodeRangeGrid->SetCellBackgroundColour(lastRow + 1, col, *wxWHITE);
+        }
+    }
+
+    for (int row = lastRow + 1; row < NodeRangeGrid->GetNumberRows(); row++) {
+        for (int col = 0; col < NodeRangeGrid->GetNumberCols(); col++) {
+            GetValue(NodeRangeGrid, row, col, stateData[name]);
+        }
+    }
+
+    ValidateWindow();
+    NodeRangeGrid->Refresh();
+}
+
+void ModelStateDialog::DeleteSelected(wxGridEvent& event) {
+    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+    if (name.empty() || stateData[name]["Type"] != "NodeRange") {
+        return;
+    }
+
+    std::set<int, std::greater<int>> selectedRows;
+    for (int col = 0; col < NodeRangeGrid->GetNumberCols(); col++) {
+        for (int row = 0; row < NodeRangeGrid->GetNumberRows(); row++) {
+            if (NodeRangeGrid->IsInSelection(row, col)) {
+                selectedRows.insert(row);
+            }
+        }
+    }
+
+    if (selectedRows.empty()) {
+        int cursorRow = NodeRangeGrid->GetGridCursorRow();
+        if (cursorRow >= 0 && cursorRow < NodeRangeGrid->GetNumberRows()) {
+            selectedRows.insert(cursorRow);
+        }
+    }
+
+    if (selectedRows.empty()) {
+        return;
+    }
+
+    for (int row : selectedRows) {
+        NodeRangeGrid->DeleteRows(row, 1);
+    }
+
+    for (int row = 0; row < NodeRangeGrid->GetNumberRows(); row++) {
+        for (int col = 0; col < NodeRangeGrid->GetNumberCols(); col++) {
+            GetValue(NodeRangeGrid, row, col, stateData[name]);
+        }
+    }
+
+    ValidateWindow();
+    NodeRangeGrid->Refresh();
+}
+
+void ModelStateDialog::MoveSelectedUp(wxGridEvent& event) {
+    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+    if (name.empty() || stateData[name]["Type"] != "NodeRange") {
+        return;
+    }
+
+    std::vector<std::pair<int, int>> selectedCells;
+    for (int col = 0; col < NodeRangeGrid->GetNumberCols(); col++) {
+        for (int row = 0; row < NodeRangeGrid->GetNumberRows(); row++) {
+            if (NodeRangeGrid->IsInSelection(row, col)) {
+                selectedCells.emplace_back(row, col);
+            }
+        }
+    }
+
+    if (selectedCells.empty()) {
+        int cursorRow = NodeRangeGrid->GetGridCursorRow();
+        int cursorCol = NodeRangeGrid->GetGridCursorCol();
+        if (cursorRow >= 0 && cursorRow < NodeRangeGrid->GetNumberRows() && cursorCol >= 0) {
+            selectedCells.emplace_back(cursorRow, cursorCol);
+        }
+    }
+
+    if (selectedCells.empty()) {
+        return;
+    }
+
+    std::set<int> selectedRows;
+    for (const auto& cell : selectedCells) {
+        selectedRows.insert(cell.first);
+    }
+
+    if (*selectedRows.begin() == 0) {
+        return;
+    }
+
+    for (int row : selectedRows) {
+        for (int col = 0; col < NodeRangeGrid->GetNumberCols(); col++) {
+            wxString temp = NodeRangeGrid->GetCellValue(row - 1, col);
+            NodeRangeGrid->SetCellValue(row - 1, col, NodeRangeGrid->GetCellValue(row, col));
+            NodeRangeGrid->SetCellValue(row, col, temp);
+
+            if (col == COLOUR_COL) {
+                wxColour colour = NodeRangeGrid->GetCellBackgroundColour(row - 1, col);
+                NodeRangeGrid->SetCellBackgroundColour(row - 1, col, NodeRangeGrid->GetCellBackgroundColour(row, col));
+                NodeRangeGrid->SetCellBackgroundColour(row, col, colour);
+            }
+        }
+    }
+
+    for (int row : selectedRows) {
+        for (int col = 0; col < NodeRangeGrid->GetNumberCols(); col++) {
+            GetValue(NodeRangeGrid, row - 1, col, stateData[name]);
+            GetValue(NodeRangeGrid, row, col, stateData[name]);
+        }
+    }
+
+    NodeRangeGrid->ClearSelection();
+    bool firstSelection = true;
+    for (const auto& cell : selectedCells) {
+        int newRow = cell.first - 1;
+        if (newRow >= 0) {
+            NodeRangeGrid->SelectBlock(newRow, cell.second, newRow, cell.second, !firstSelection);
+            if (firstSelection) {
+                NodeRangeGrid->SetGridCursor(newRow, cell.second);
+                firstSelection = false;
+            }
+        }
+    }
+
+    ValidateWindow();
+    NodeRangeGrid->Refresh();
+}
+
+void ModelStateDialog::MoveSelectedDown(wxGridEvent& event) {
+    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+    if (name.empty() || stateData[name]["Type"] != "NodeRange") {
+        return;
+    }
+
+    std::vector<std::pair<int, int>> selectedCells;
+    for (int col = 0; col < NodeRangeGrid->GetNumberCols(); col++) {
+        for (int row = 0; row < NodeRangeGrid->GetNumberRows(); row++) {
+            if (NodeRangeGrid->IsInSelection(row, col)) {
+                selectedCells.emplace_back(row, col);
+            }
+        }
+    }
+
+    if (selectedCells.empty()) {
+        int cursorRow = NodeRangeGrid->GetGridCursorRow();
+        int cursorCol = NodeRangeGrid->GetGridCursorCol();
+        if (cursorRow >= 0 && cursorRow < NodeRangeGrid->GetNumberRows() && cursorCol >= 0) {
+            selectedCells.emplace_back(cursorRow, cursorCol);
+        }
+    }
+
+    if (selectedCells.empty()) {
+        return;
+    }
+
+    std::set<int, std::greater<int>> selectedRows;
+    for (const auto& cell : selectedCells) {
+        selectedRows.insert(cell.first);
+    }
+
+    if (*selectedRows.begin() == NodeRangeGrid->GetNumberRows() - 1) {
+        return;
+    }
+
+    for (int row : selectedRows) {
+        for (int col = 0; col < NodeRangeGrid->GetNumberCols(); col++) {
+            wxString temp = NodeRangeGrid->GetCellValue(row + 1, col);
+            NodeRangeGrid->SetCellValue(row + 1, col, NodeRangeGrid->GetCellValue(row, col));
+            NodeRangeGrid->SetCellValue(row, col, temp);
+
+            if (col == COLOUR_COL) {
+                wxColour colour = NodeRangeGrid->GetCellBackgroundColour(row + 1, col);
+                NodeRangeGrid->SetCellBackgroundColour(row + 1, col, NodeRangeGrid->GetCellBackgroundColour(row, col));
+                NodeRangeGrid->SetCellBackgroundColour(row, col, colour);
+            }
+        }
+    }
+
+    for (int row : selectedRows) {
+        for (int col = 0; col < NodeRangeGrid->GetNumberCols(); col++) {
+            GetValue(NodeRangeGrid, row + 1, col, stateData[name]);
+            GetValue(NodeRangeGrid, row, col, stateData[name]);
+        }
+    }
+
+    NodeRangeGrid->ClearSelection();
+    bool firstSelection = true;
+    for (const auto& cell : selectedCells) {
+        int newRow = cell.first + 1;
+        if (newRow < NodeRangeGrid->GetNumberRows()) {
+            NodeRangeGrid->SelectBlock(newRow, cell.second, newRow, cell.second, !firstSelection);
+            if (firstSelection) {
+                NodeRangeGrid->SetGridCursor(newRow, cell.second);
+                firstSelection = false;
+            }
+        }
+    }
+
+    ValidateWindow();
+    NodeRangeGrid->Refresh();
+}
+
+void ModelStateDialog::SortState(wxGridEvent& event) {
+    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+    if (name.empty() || stateData[name]["Type"] != "NodeRange") {
+        return;
+    }
+
+    int numRows = NodeRangeGrid->GetNumberRows();
+    int numCols = NodeRangeGrid->GetNumberCols();
+    if (numRows == 0 || numCols == 0) {
+        return;
+    }
+
+    std::vector<std::pair<int, int>> selectedCells;
+    for (int col = 0; col < numCols; ++col) {
+        for (int row = 0; row < numRows; ++row) {
+            if (NodeRangeGrid->IsInSelection(row, col)) {
+                selectedCells.emplace_back(row, col);
+            }
+        }
+    }
+
+    if (selectedCells.empty()) {
+        int cursorRow = NodeRangeGrid->GetGridCursorRow();
+        int cursorCol = NodeRangeGrid->GetGridCursorCol();
+        if (cursorRow >= 0 && cursorRow < numRows && cursorCol >= 0) {
+            selectedCells.emplace_back(cursorRow, cursorCol);
+        }
+    }
+
+    struct RowData {
+        std::vector<wxString> values;
+        std::vector<wxColour> colours;
+        int originalIndex;
+    };
+
+    std::vector<RowData> rows;
+    rows.reserve(numRows);
+    for (int row = 0; row < numRows; ++row) {
+        RowData rowData;
+        rowData.values.resize(numCols);
+        rowData.colours.resize(numCols, *wxWHITE);
+        for (int col = 0; col < numCols; ++col) {
+            if (col == COLOUR_COL) {
+                rowData.colours[col] = NodeRangeGrid->GetCellBackgroundColour(row, col);
+            } else {
+                rowData.values[col] = NodeRangeGrid->GetCellValue(row, col);
+            }
+        }
+        rowData.originalIndex = row;
+        rows.push_back(rowData);
+    }
+
+    std::stable_sort(rows.begin(), rows.end(), [](const RowData& a, const RowData& b) {
+        // Handle empty first column (sort to bottom)
+        bool aEmpty = a.values[0].IsEmpty();
+        bool bEmpty = b.values[0].IsEmpty();
+        if (aEmpty != bEmpty) {
+            return bEmpty; // Empty rows go to the bottom
+        }
+        if (!aEmpty && !bEmpty) {
+            double aNum, bNum;
+            bool aIsNum = wxString(a.values[0]).ToDouble(&aNum);
+            bool bIsNum = wxString(b.values[0]).ToDouble(&bNum);
+            if (aIsNum && bIsNum) {
+                return aNum < bNum;
+            }
+            if (a.values[0] != b.values[0]) {
+                return a.values[0] < b.values[0];
+            }
+        }
+        return a.originalIndex < b.originalIndex; // Ensure stability
+        });
+
+    NodeRangeGrid->BeginBatch();
+
+    if (numRows > 0) {
+        NodeRangeGrid->DeleteRows(0, numRows);
+    }
+    NodeRangeGrid->AppendRows(numRows);
+
+    std::map<std::string, std::string> tempStateData;
+    for (int row = 0; row < numRows; ++row) {
+        wxString key = wxString::Format("s%03d", row+1);
+        for (int col = 0; col < numCols; ++col) {
+            wxString value = rows[row].values[col];
+            if (col == COLOUR_COL && (value != "" || rows[row].colours[col] != *wxWHITE)) {
+                tempStateData[key.ToStdString() + "-Color"] = xlColor(rows[row].colours[col]);
+            } else if (col == NAME_COL && value != "") {
+                tempStateData[key.ToStdString() + "-Name"] = value.Lower().ToStdString();
+            } else if (col == CHANNEL_COL && value != "") {
+                tempStateData[key.ToStdString()] = value.ToStdString();
+            }
+        }
+    }
+
+    for (auto it = stateData[name].begin(); it != stateData[name].end();) {
+        wxLogMessage("Checking %s %s", name.c_str(), it->first.c_str());
+        if (it->first.find("s") == 0) {
+            it = stateData[name].erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    stateData[name].insert(tempStateData.begin(), tempStateData.end());
+
+    for (int row = 0; row < numRows; ++row) {
+        NodeRangeGrid->SetRowLabelValue(row, wxString::Format("%d", row+1));
+        for (int col = 0; col < numCols; ++col) {
+            NodeRangeGrid->SetCellValue(row, col, rows[row].values[col]);
+            if (col == COLOUR_COL) {
+                NodeRangeGrid->SetCellBackgroundColour(row, col, rows[row].colours[col]);
+            }
+        }
+    }
+
+    NodeRangeGrid->EndBatch();
+    NodeRangeGrid->ForceRefresh();
+    ValidateWindow();
+}
+
 
 wxString ModelStateDialog::GetDownloadStates() {
     wxProgressDialog* prog = new wxProgressDialog("Model download", "Downloading models ...", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
