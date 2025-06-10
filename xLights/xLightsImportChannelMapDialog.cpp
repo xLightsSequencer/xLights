@@ -497,7 +497,7 @@ BEGIN_EVENT_TABLE(xLightsImportChannelMapDialog,wxDialog)
 //*)
 END_EVENT_TABLE()
 
-xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName& filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, bool allowImportBlend, wxWindowID id, const wxPoint& pos, const wxSize& size)
+xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* parent, const wxFileName& filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, bool allowImportBlend, wxWindowID id, const wxPoint& pos, const wxSize& size) : xlights(parent)
 {
     TreeListCtrl_Mapping = nullptr;
     _dataModel = nullptr;
