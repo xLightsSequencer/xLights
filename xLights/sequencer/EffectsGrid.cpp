@@ -539,7 +539,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
             menu_paste->Enable(false);
         }
         mnuLayer.AppendSeparator();
-        wxMenuItem* menu_find = mnuLayer.Append(ID_GRID_MNU_FIND, "Find...");
+        mnuLayer.Append(ID_GRID_MNU_FIND, "Find...");
         wxMenuItem* menu_find_next = mnuLayer.Append(ID_GRID_MNU_FIND_NEXT, "Find Next");
         wxMenuItem* menu_find_prior = mnuLayer.Append(ID_GRID_MNU_FIND_PREVIOUS, "Find Previous");
         wxMenuItem* menu_replace = mnuLayer.Append(ID_GRID_MNU_REPLACE, "Replace All...");
@@ -4743,7 +4743,6 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode) {
 void EffectsGrid::CloseGap() {
     int sel_eff_start = mSelectedEffect->GetStartTimeMS();
     int sel_eff_end = mSelectedEffect->GetEndTimeMS();
-    bool isSelectedEffectLocked = mSelectedEffect->IsLocked();
 
     std::vector<std::tuple<Effect*, int, int>> selectedEffects;
 

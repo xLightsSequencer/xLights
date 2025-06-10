@@ -1450,7 +1450,7 @@ void HinksPixExportDialog::OnButtonUploadClick(wxCommandEvent& event)
             }
             auto temp_schedule = ToStdString(wxFileName::CreateTempFileName("schedule"));
             schedule.saveAsFile(temp_schedule);
-            auto worked = hixpix->UploadFileToController(temp_schedule, schedule.getFileName(), updateProg, wxDateTime::Now());
+            hixpix->UploadFileToController(temp_schedule, schedule.getFileName(), updateProg, wxDateTime::Now());
         }
         prgs.Pulse("Updating Time...");
         hixpix->UploadTimeToController();

@@ -5369,8 +5369,7 @@ void LayoutPanel::ExportFacesStatesSubModels() {
             }
             for (wxXmlNode* node = selectedModel->GetModelXml()->GetChildren(); node != nullptr; node = node->GetNext()) {
                 if (node->GetName() == "subModel") {
-                    wxXmlNode* subModelCopy = new wxXmlNode(*node);
-                    targetModel->AddSubmodel(node,true);
+                    targetModel->AddSubmodel(node, true);
                 }
             }
             targetModel->IncrementChangeCount();

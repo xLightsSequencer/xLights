@@ -335,7 +335,7 @@ int FPP::TransferToURL(const std::string& url, const std::vector<uint8_t>& val, 
         fullUrl = ipAddress + "/fpp?path=" +  url;
     }
     if (!_fppProxy.empty()) {
-        fullUrl = "http://" +  ip_utils::IsIPv6(_fppProxy) ? "[" + _fppProxy + "]" : _fppProxy + "/proxy/" + fullUrl;
+        fullUrl = "http://" +  (ip_utils::IsIPv6(_fppProxy) ? "[" + _fppProxy + "]" : _fppProxy) + "/proxy/" + fullUrl;
         ipAddForGet = _fppProxy;
     } else {
         fullUrl = "http://" + fullUrl;
@@ -597,12 +597,6 @@ static inline void addString(std::vector<uint8_t> &buffer, const std::string &st
 }
 static inline void addString(std::vector<uint8_t> &buffer, const wxString &str) {
     addString(buffer, ToUTF8(str));
-}
-static inline void addString(wxMemoryBuffer &buffer, const char *str) {
-    buffer.AppendData(str, strlen(str));
-}
-static inline void addString(wxMemoryBuffer &buffer, const std::string &str) {
-    buffer.AppendData(str.c_str(), str.length());
 }
 
 int FPP::PostJSONToURL(const std::string& url, const wxJSONValue& val) {

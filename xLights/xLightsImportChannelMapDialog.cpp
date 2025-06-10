@@ -2878,7 +2878,6 @@ void xLightsImportChannelMapDialog::DoAIAutoMap(bool select) {
 
     // I welcome other developers experimenting with the prompt and trying to improve it.
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool selectMapAvail = (ListCtrl_Available->GetSelectedItemCount() != 0) && select;
     bool selectMapTarget = (TreeListCtrl_Mapping->GetSelectedItemsCount() != 0) && select;
 

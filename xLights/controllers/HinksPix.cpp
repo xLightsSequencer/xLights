@@ -36,8 +36,7 @@
 #include <log4cpp/Category.hh>
 #include <filesystem>
 
-#pragma pack(push)
-#pragma pack(2)
+#pragma pack(push, 2)
 
 struct Tag_Packet {
     char HINK[18];
@@ -88,6 +87,7 @@ struct Tag_Dow_TimePacket {
     uint8_t sec;
     uint8_t dow;
 };
+
 #pragma pack(pop)
 
 
@@ -1340,7 +1340,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     UnPack *UP;
     std::vector<UnPack *> UPA;
     int32_t HStart = -1;
-    int32_t OffSet;
+    int32_t OffSet = 0;
     bool dirty = false;
 
     if(IsUnPackSupported_Hinks(controller))
@@ -1652,7 +1652,7 @@ bool ReadLineFromSocket(wxSocketClient* socket, std::string& line, long timeout)
     while ((timeout <= 0) || (sw.Time() < timeout)) {
         if (socket->WaitForRead(0, 1)) {
             char c;
-            int tt = socket->Read(&c, sizeof(c)).GetLastIOReadSize();
+            socket->Read(&c, sizeof(c)).GetLastIOReadSize();
             if (socket->LastCount() != sizeof(c) && found) {
                 return true;
             }
@@ -1823,8 +1823,6 @@ bool HinksPix::UploadFileToController(std::string const& localpathname, std::str
         }
 
     }
-    sock->Close();
-    return false;
 }
 
 bool HinksPix::UploadTimeToController() const {
@@ -1942,11 +1940,11 @@ std::vector<HinksPixFileData> HinksPix::GetFileInfoFromSDCard(uint8_t cmd) const
         return files;
     }
 
-    sprintf((char*)B, "HINK TCP_CMD  \r\n\r\n"); // we must fake a http header
+    snprintf((char*)B, sizeof(B), "HINK TCP_CMD  \r\n\r\n"); // we must fake a http header
     CmdLength = strlen((char*)B);
     p = (char*)B;
     while (*p)
-        *p++;
+        p++;
     memmove(p, CMD, 4);
     CmdLength += 4;
 

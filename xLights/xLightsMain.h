@@ -507,7 +507,6 @@ public:
     void OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event);
     void OnMenu_Settings_SequenceSelected(wxCommandEvent& event);
     void OnMenuItem_File_Open_SequenceSelected(wxCommandEvent& event);
-    void OnResize(wxSizeEvent& event);
     void OnAuiToolBarItemRenderAllClick(wxCommandEvent& event);
     void OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event);
     void OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event);

@@ -1372,7 +1372,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_TIMER_RENDERSTATUS, wxEVT_TIMER, (wxObjectEventFunction)&xLightsFrame::OnRenderStatusTimerTrigger);
     Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&xLightsFrame::OnClose);
     Connect(wxEVT_CHAR, (wxObjectEventFunction)&xLightsFrame::OnChar);
-    Connect(wxEVT_SIZE, (wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
     
     Notebook1->SetArtProvider(new wxAuiGenericTabArt());
@@ -3515,10 +3514,6 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
         DisplayError("Exporting house preview video failed.  " + emsg, this);
     }
     return exportStatus;
-}
-
-void xLightsFrame::OnResize(wxSizeEvent& event)
-{
 }
 
 void xLightsFrame::OnAuiToolBarItemRenderAllClick(wxCommandEvent& event)

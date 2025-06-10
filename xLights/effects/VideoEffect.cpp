@@ -466,8 +466,6 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
             image = _videoreader->GetNextFrame(frame);
         }
 
-            int ch = _videoreader->GetPixelChannels();
-
             // check it looks valid
             if (image != nullptr && frame >= 0) {
 
@@ -523,8 +521,6 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     int imageHeightAferCropping = ((cropTop + 100 - cropBottom) * image->width) / 200;
                     int startx = imageWidthAfterCropping / 2 - xneeded / 2 + (cropLeft * image->width) / 100;
                     int starty = imageHeightAferCropping / 2 - yneeded / 2 + ((100 - cropTop) * image->height) / 100;
-
-                    int cury = starty;
 
                     int xoffset = cropLeft * _videoreader->GetWidth() / 100;
                     int yoffset = cropBottom * _videoreader->GetHeight() / 100;
