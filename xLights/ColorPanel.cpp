@@ -299,9 +299,9 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	FlexGridSizer11->Add(BoxSizer1, 1, wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 2);
 	BitmapButton_ColourChoice = new ColourList(ColorScrollWindow,ID_CUSTOM1,wxDefaultPosition,wxDefaultSize,ZERO,wxDefaultValidator,_T("ID_CUSTOM1"));
 	FlexGridSizer11->Add(BitmapButton_ColourChoice, 1, wxALL, 2);
-	Button_MenuPalette = new wxButton(ColorScrollWindow, ID_BUTTON1, _T("☰"), wxDefaultPosition, wxDLG_UNIT(ColorScrollWindow,wxSize(16,-1)), 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	Button_MenuPalette->SetMinSize(wxDLG_UNIT(ColorScrollWindow,wxSize(16,-1)));
-	Button_MenuPalette->SetMaxSize(wxDLG_UNIT(ColorScrollWindow,wxSize(16,-1)));
+	Button_MenuPalette = new wxButton(ColorScrollWindow, ID_BUTTON1, _T("☰"), wxDefaultPosition, wxDLG_UNIT(ColorScrollWindow,wxSize(18,-1)), 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	Button_MenuPalette->SetMinSize(wxDLG_UNIT(ColorScrollWindow,wxSize(18,-1)));
+	Button_MenuPalette->SetMaxSize(wxDLG_UNIT(ColorScrollWindow,wxSize(18,-1)));
 	FlexGridSizer11->Add(Button_MenuPalette, 1, wxALL|wxALIGN_TOP, 5);
 	FlexGridSizer9->Add(FlexGridSizer11, 1, wxALL|wxALIGN_LEFT, 2);
 	FlexGridSizer9->Add(-1,-1,1, wxALL|wxEXPAND, 5);
@@ -424,7 +424,6 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 	Panel_Sizer->SetSizer(FlexGridSizer3);
 	FlexGridSizer1->Add(Panel_Sizer, 1, wxALL|wxEXPAND, 0);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_ReverseColours, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnBitmapButton_ReverseColoursClick);
 	Connect(ID_BITMAPBUTTON_LeftShiftColours, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnBitmapButton_ShiftColoursLeftClick);
@@ -446,6 +445,8 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 
     SetName("Color");
 
+    Button_MenuPalette->SetLabel(L"\u2630"); // ☰
+    
     Connect(wxID_ANY, wxEVT_COMBOBOX_DROPDOWN, (wxObjectEventFunction)&ColorPanel::OnColourChoiceDropDown, 0, this);
     Connect(wxID_ANY, wxEVT_COMBOBOX, (wxObjectEventFunction)&ColorPanel::OnColourChoiceSelect, 0, this);
 

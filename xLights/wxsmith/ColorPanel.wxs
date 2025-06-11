@@ -101,9 +101,9 @@
 															<object class="sizeritem">
 																<object class="wxButton" name="ID_BUTTON1" variable="Button_MenuPalette" member="yes">
 																	<label>☰</label>
-																	<size>16,-1d</size>
-																	<minsize>16,-1d</minsize>
-																	<maxsize>16,-1d</maxsize>
+																	<size>18,-1d</size>
+																	<minsize>18,-1d</minsize>
+																	<maxsize>18,-1d</maxsize>
 																	<handler function="OnBitmapButton_MenuPaletteClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_TOP</flag>
