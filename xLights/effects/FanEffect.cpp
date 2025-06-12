@@ -124,7 +124,7 @@ void FanEffect::adjustSettings(const std::string& version, Effect* effect, bool 
     SettingsMap& settings = effect->GetSettings();
 
     if (IsVersionOlder("2025.04", version)) {
-        settings["CHECKBOX_Fan_Scale"] = "0";
+        settings["E_CHECKBOX_Fan_Scale"] = "0";
     }
 }
 

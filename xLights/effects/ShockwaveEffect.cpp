@@ -93,7 +93,7 @@ void ShockwaveEffect::adjustSettings(const std::string& version, Effect* effect,
     SettingsMap& settings = effect->GetSettings();
 
     if (IsVersionOlder("2025.04", version)) {
-        settings["CHECKBOX_Shockwave_Scale"] = "0";
+        settings["E_CHECKBOX_Shockwave_Scale"] = "0";
     }
 }
 
