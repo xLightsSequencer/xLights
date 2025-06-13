@@ -58,6 +58,7 @@
         <SupportsSmartRemotes>3</SupportsSmartRemotes>
         <AllSmartRemoteTypesPerPortMustBeSame/>
         <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+        <SupportsDefaultGamma/>
         <InputProtocols>
             <Protocol>e131</Protocol>
             <Protocol>artnet</Protocol>
@@ -177,6 +178,7 @@
         <MinGroup>1</MinGroup>
         <AllSmartRemoteTypesPerPortMustBeSame/>
         <SupportsDefaultBrightness/>
+        <SupportsDefaultGamma/>
         <MaxInputUniverses>192</MaxInputUniverses>
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
 		<PreferredInputProtocol>DDP</PreferredInputProtocol>
@@ -318,9 +320,10 @@
 			<MaxPixelPort>32</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxPixelPortChannels>3072</MaxPixelPortChannels>
-      <v4BoardMode>4</v4BoardMode>
+			<v4BoardMode>4</v4BoardMode>
 			<SupportsRemotes/>
 			<SupportsSmartRemotes>6</SupportsSmartRemotes>
+			<SupportsDefaultGamma/>
 		</Variant>
 	</Controller>
   <Controller Name="F48V5">

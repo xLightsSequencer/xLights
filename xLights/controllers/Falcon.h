@@ -102,7 +102,8 @@ class Falcon : public BaseController
 
 #ifndef DISCOVERYONLY
     int V4_GetBrightness(int port, int sr, int defaultBrightness, const std::vector<FALCON_V4_STRING>& falconStrings);
-    bool V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, const std::vector<FALCON_V4_STRING>& falconStrings, UDController& cud, ControllerCaps* caps, int defaultBrightness, std::string& error, bool oneBased, uint32_t firstControllerChannel, bool fullcontrol);
+    int V4_GetGamma(int port, int sr, float defaultGamma, const std::vector<FALCON_V4_STRING>& falconStrings);
+    bool V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, const std::vector<FALCON_V4_STRING>& falconStrings, UDController& cud, ControllerCaps* caps, int defaultBrightness, std::string& error, bool oneBased, uint32_t firstControllerChannel, bool fullcontrol, int defaultGamma);
     void V4_MakeStringsValid(Controller* controlle, UDController& cud, std::vector<FALCON_V4_STRING>& falconStrings, int addressingMode);
 #endif
 
@@ -118,17 +119,17 @@ class Falcon : public BaseController
 
     #pragma region Strings.xml Handling
     int CountStrings(const wxXmlDocument& stringsDoc) const;
-    void ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconString*>& stringData, int defaultBrightness) const;
+    void ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconString*>& stringData, int defaultBrightness, float defaultGamma) const;
     int MaxPixels(const wxXmlDocument& stringsDoc, int board) const;
     #pragma endregion
 
     #pragma region FalconString Handling
-    void InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int minuniverse, int defaultBrightness, int32_t firstchannel) const;
+    void InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int minuniverse, int defaultBrightness, int32_t firstchannel, float defaultGamma) const;
     std::string BuildStringPort(FalconString* string) const;
     FalconString* FindPort(const std::vector<FalconString*>& stringData, int port) const;
     int GetPixelCount(const std::vector<FalconString*>& stringData, int port) const;
     int GetMaxPixelPort(const std::vector<FalconString*>& stringData) const;
-    void EnsureSmartStringExists(std::vector<FalconString*>& stringData, int port, int smartRemote, int minuniverse, int defaultBrightness, int32_t firstchannel);
+    void EnsureSmartStringExists(std::vector<FalconString*>& stringData, int port, int smartRemote, int minuniverse, int defaultBrightness, int32_t firstchannel, float defaultGamma);
     void RemoveNonSmartRemote(std::vector<FalconString*>& stringData, int port);
     void DumpStringData(std::vector<FalconString*> stringData) const;
     #pragma endregion
@@ -137,7 +138,7 @@ class Falcon : public BaseController
 #ifndef DISCOVERYONLY
     void ResetStringOutputs();
     void UploadStringPort(const std::string& request, bool final);
-    void UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2, int minuniverse, int defaultBrightness, int32_t firstchannel);
+    void UploadStringPorts(std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2, int minuniverse, int defaultBrightness, int32_t firstchannel, float defaultGamma);
     std::string GetSerialOutputURI(ControllerCaps* caps, int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent);
 #endif
     #pragma endregion
