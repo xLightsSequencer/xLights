@@ -128,8 +128,8 @@
 		<categoryid>Bulbs</categoryid>
 		<name>Blue Bulb</name>
 		<artist>Christopher Kovacik</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/BlueBulb.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/BlueBulb.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/BlueBulb.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/BlueBulb.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -141,8 +141,8 @@
 		<categoryid>Bulbs</categoryid>
 		<name>Blue Bulb with Hat</name>
 		<artist>Christopher Kovacik</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/BlueBulbHat.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/BlueBulbHat.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/BlueBulbHat.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/BlueBulbHat.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -154,8 +154,8 @@
 		<categoryid>Elves</categoryid>
 		<name>Boy Elf</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/BoyElf01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/BoyElf01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/BoyElf01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/BoyElf01.png</faceimage>
 		<width>302</width>
 		<height>584</height>
 		<minwidth>-1</minwidth>
@@ -168,8 +168,8 @@
 		<categoryid>Deer</categoryid>
 		<name>Deer and Elf</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/DeerElf01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/DeerElf01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/DeerElf01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/DeerElf01.png</faceimage>
 		<width>141</width>
 		<height>123</height>
 		<minwidth>-1</minwidth>
@@ -182,8 +182,8 @@
 		<categoryid>HalloweenTrees</categoryid>
 		<name>Frankenstein</name>
 		<artist>Matthew Mark</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Frank01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Frank01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Frank01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Frank01.png</faceimage>
 		<width>16</width>
 		<height>50</height>
 		<minwidth>-1</minwidth>
@@ -195,8 +195,8 @@
 		<categoryid>Frankenstein</categoryid>
 		<name>Frankenstein</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Frank02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Frank02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Frank02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Frank02.png</faceimage>
 		<width>312</width>
 		<height>416</height>
 		<minwidth>-1</minwidth>
@@ -208,8 +208,8 @@
 		<categoryid>ChristmasMegaTrees</categoryid>
 		<name>Gingerbread Man</name>
 		<artist>Edward Czajka</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/GingerbreadMan.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/GingerbreadMan.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/GingerbreadMan.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/GingerbreadMan.png</faceimage>
 		<width>20</width>
 		<height>50</height>
 		<minwidth>-1</minwidth>
@@ -221,8 +221,8 @@
 		<categoryid>Elves</categoryid>
 		<name>Girl Elf</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/GirlElf01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/GirlElf01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/GirlElf01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/GirlElf01.png</faceimage>
 		<width>1106</width>
 		<height>1600</height>
 		<minwidth>-1</minwidth>
@@ -234,8 +234,8 @@
 		<categoryid>MegaTreeFaces</categoryid>
 		<name>Girl Tree</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/GirlTree01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/GirlTree01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/GirlTree01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/GirlTree01.png</faceimage>
 		<width>16</width>
 		<height>50</height>
 		<minwidth>-1</minwidth>
@@ -247,8 +247,8 @@
 		<categoryid>Bulbs</categoryid>
 		<name>Green Bulb</name>
 		<artist>Christopher Kovacik</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/GreenBulb.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/GreenBulb.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/GreenBulb.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/GreenBulb.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -260,8 +260,8 @@
 		<categoryid>Bulbs</categoryid>
 		<name>Green Bulb with Hat</name>
 		<artist>Christopher Kovacik</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/GreenBulbHat.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/GreenBulbHat.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/GreenBulbHat.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/GreenBulbHat.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -273,8 +273,8 @@
 		<categoryid>MegaTreeFaces</categoryid>
 		<name>Green Tree</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/GreenTree01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/GreenTree01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/GreenTree01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/GreenTree01.png</faceimage>
 		<width>16</width>
 		<height>50</height>
 		<minwidth>-1</minwidth>
@@ -286,8 +286,8 @@
 		<categoryid>Grinch</categoryid>
 		<name>Grinch</name>
 		<artist>Edward Czajka</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Grinch01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Grinch01.gif</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Grinch01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Grinch01.gif</faceimage>
 		<width>1280</width>
 		<height>800</height>
 		<minwidth>-1</minwidth>
@@ -300,8 +300,8 @@
 		<categoryid>Elves</categoryid>
 		<name>Minion Elf</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/MinionElf01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/MinionElf01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MinionElf01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MinionElf01.png</faceimage>
 		<width>16</width>
 		<height>50</height>
 		<minwidth>-1</minwidth>
@@ -314,8 +314,8 @@
 		<categoryid>Santa</categoryid>
 		<name>Minion Santa</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/MinionSanta01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/MinionSanta01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MinionSanta01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MinionSanta01.png</faceimage>
 		<width>16</width>
 		<height>50</height>
 		<minwidth>-1</minwidth>
@@ -327,8 +327,8 @@
 		<categoryid>Monsters</categoryid>
 		<name>Monster - Flat</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/MonsterFlat01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/MonsterFlat01.jpg</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MonsterFlat01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MonsterFlat01.jpg</faceimage>
 		<width>200</width>
 		<height>200</height>
 		<minwidth>-1</minwidth>
@@ -340,8 +340,8 @@
 		<categoryid>Monsters</categoryid>
 		<name>Monster - Horn</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/MonsterHorn01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/MonsterHorn01.jpg</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MonsterHorn01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MonsterHorn01.jpg</faceimage>
 		<width>200</width>
 		<height>200</height>
 		<minwidth>-1</minwidth>
@@ -353,8 +353,8 @@
 		<categoryid>Monsters</categoryid>
 		<name>Monster - Round</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/MonsterRound01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/MonsterRound01.jpg</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MonsterRound01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MonsterRound01.jpg</faceimage>
 		<width>200</width>
 		<height>200</height>
 		<minwidth>-1</minwidth>
@@ -366,8 +366,8 @@
 		<categoryid>Monsters</categoryid>
 		<name>4 Monsters</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Monsters01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Monsters01.jpg</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Monsters01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Monsters01.jpg</faceimage>
 		<width>200</width>
 		<height>200</height>
 		<minwidth>-1</minwidth>
@@ -380,8 +380,8 @@
 		<categoryid>Skulls</categoryid>
 		<name>Monster - Skull</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/MonsterSkull01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/MonsterSkull01.jpg</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MonsterSkull01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MonsterSkull01.jpg</faceimage>
 		<width>200</width>
 		<height>200</height>
 		<minwidth>-1</minwidth>
@@ -393,8 +393,8 @@
 		<categoryid>MegaTreeFaces</categoryid>
 		<name>White Tree</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/MouthOnly01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/MouthOnly01.gif</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MouthOnly01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MouthOnly01.gif</faceimage>
 		<width>24</width>
 		<height>52</height>
 		<minwidth>-1</minwidth>
@@ -406,8 +406,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Odd Face</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/OddFace01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/OddFace01.jpg</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OddFace01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OddFace01.jpg</faceimage>
 		<width>193</width>
 		<height>237</height>
 		<minwidth>-1</minwidth>
@@ -419,8 +419,8 @@
 		<categoryid>Snowmen</categoryid>
 		<name>Olaf</name>
 		<artist>Edward Czajka</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Olaf.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Olaf.gif</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Olaf.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Olaf.gif</faceimage>
 		<width>449</width>
 		<height>306</height>
 		<minwidth>-1</minwidth>
@@ -432,8 +432,8 @@
 		<categoryid>Bulbs</categoryid>
 		<name>Orange Bulb</name>
 		<artist>Christopher Kovacik</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/OrangeBulb.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/OrangeBulb.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OrangeBulb.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OrangeBulb.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -445,8 +445,8 @@
 		<categoryid>Bulbs</categoryid>
 		<name>Orange Bulb with Hat</name>
 		<artist>Christopher Kovacik</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/OrangeBulbHat.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/OrangeBulbHat.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OrangeBulbHat.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OrangeBulbHat.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -458,8 +458,8 @@
 		<categoryid>MegaTreeFaces</categoryid>
 		<name>Pineapple</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Pineapple01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Pineapple01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pineapple01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pineapple01.png</faceimage>
 		<width>16</width>
 		<height>50</height>
 		<minwidth>-1</minwidth>
@@ -471,8 +471,8 @@
 		<categoryid>MegaTreeFaces</categoryid>
 		<name>Pineapple</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Pineapple02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Pineapple02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pineapple02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pineapple02.png</faceimage>
 		<width>14</width>
 		<height>22</height>
 		<minwidth>-1</minwidth>
@@ -484,8 +484,8 @@
 		<categoryid>MegaTreeFaces</categoryid>
 		<name>Pineapple</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Pineapple03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Pineapple03.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pineapple03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pineapple03.png</faceimage>
 		<width>14</width>
 		<height>22</height>
 		<minwidth>-1</minwidth>
@@ -497,8 +497,8 @@
 		<categoryid>MegaTreeFaces</categoryid>
 		<name>Pineapple</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Pineapple04.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Pineapple04.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pineapple04.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pineapple04.png</faceimage>
 		<width>14</width>
 		<height>22</height>
 		<minwidth>-1</minwidth>
@@ -510,8 +510,8 @@
 		<categoryid>Bulbs</categoryid>
 		<name>Pink Bulb</name>
 		<artist>Christopher Kovacik</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/PinkBulb.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/PinkBulb.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PinkBulb.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PinkBulb.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -523,8 +523,8 @@
 		<categoryid>Bulbs</categoryid>
 		<name>Pink Bulb with Hat</name>
 		<artist>Christopher Kovacik</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/PinkBulbHat.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/PinkBulbHat.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PinkBulbHat.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PinkBulbHat.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -537,8 +537,8 @@
 		<categoryid>Other</categoryid>
 		<name>Poppy</name>
 		<artist>Logan Carpenter</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Poppy.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Poppy.gif</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Poppy.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Poppy.gif</faceimage>
 		<width>24</width>
 		<height>52</height>
 		<minwidth>-1</minwidth>
@@ -550,8 +550,8 @@
 		<categoryid>Monsters</categoryid>
 		<name>Purple People Eater</name>
 		<artist>Edward Czajka</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/PPE.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/PPE.gif</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PPE.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PPE.gif</faceimage>
 		<width>300</width>
 		<height>250</height>
 		<minwidth>-1</minwidth>
@@ -563,8 +563,8 @@
 		<categoryid>Pumpkins</categoryid>
 		<name>Pumpkin</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Pumpkin01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Pumpkin01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pumpkin01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pumpkin01.png</faceimage>
 		<width>230</width>
 		<height>200</height>
 		<minwidth>-1</minwidth>
@@ -576,8 +576,8 @@
 		<categoryid>Pumpkins</categoryid>
 		<name>Pumpkin 1 of 3</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Pumpkin1of3.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Pumpkin1of3.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pumpkin1of3.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pumpkin1of3.png</faceimage>
 		<width>150</width>
 		<height>50</height>
 		<minwidth>-1</minwidth>
@@ -590,8 +590,8 @@
 		<categoryid>HalloweenTrees</categoryid>
 		<name>Pumpkin</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Pumpkin02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Pumpkin02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pumpkin02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pumpkin02.png</faceimage>
 		<width>16</width>
 		<height>50</height>
 		<minwidth>-1</minwidth>
@@ -603,8 +603,8 @@
 		<categoryid>Pumpkins</categoryid>
 		<name>Pumpkin 2 of 3</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Pumpkin2of3.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Pumpkin2of3.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pumpkin2of3.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pumpkin2of3.png</faceimage>
 		<width>150</width>
 		<height>50</height>
 		<minwidth>-1</minwidth>
@@ -616,8 +616,8 @@
 		<categoryid>Pumpkins</categoryid>
 		<name>Pumpkin 3 of 3</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Pumpkin3of3.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Pumpkin3of3.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pumpkin3of3.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pumpkin3of3.png</faceimage>
 		<width>150</width>
 		<height>50</height>
 		<minwidth>-1</minwidth>
@@ -629,8 +629,8 @@
 		<categoryid>Bulbs</categoryid>
 		<name>Purple Bulb</name>
 		<artist>Christopher Kovacik</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/PurpleBulb.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/PurpleBulb.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PurpleBulb.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PurpleBulb.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -642,8 +642,8 @@
 		<categoryid>Bulbs</categoryid>
 		<name>Purple Bulb with Hat</name>
 		<artist>Christopher Kovacik</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/PurpleBulbHat.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/PurpleBulbHat.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PurpleBulbHat.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PurpleBulbHat.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -655,8 +655,8 @@
 		<categoryid>Bulbs</categoryid>
 		<name>Red Bulb</name>
 		<artist>Christopher Kovacik</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/RedBulb.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/RedBulb.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/RedBulb.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/RedBulb.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -668,8 +668,8 @@
 		<categoryid>Bulbs</categoryid>
 		<name>Red Bulb with Hat</name>
 		<artist>Christopher Kovacik</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/RedBulbHat.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/RedBulbHat.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/RedBulbHat.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/RedBulbHat.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -681,8 +681,8 @@
 		<categoryid>MegaTreeFaces</categoryid>
 		<name>Red Trees</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/RedTrees.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/RedTrees.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/RedTrees.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/RedTrees.png</faceimage>
 		<width>16</width>
 		<height>50</height>
 		<minwidth>-1</minwidth>
@@ -694,8 +694,8 @@
 		<categoryid>Santa</categoryid>
 		<name>Santa</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Santa02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Santa02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Santa02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Santa02.png</faceimage>
 		<width>1240</width>
 		<height>1252</height>
 		<minwidth>-1</minwidth>
@@ -707,8 +707,8 @@
 		<categoryid>Santa</categoryid>
 		<name>Santa Waving</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Santa03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Santa03.jpg</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Santa03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Santa03.jpg</faceimage>
 		<width>1200</width>
 		<height>1200</height>
 		<minwidth>-1</minwidth>
@@ -721,8 +721,8 @@
 		<categoryid>HalloweenTrees</categoryid>
 		<name>Tree Skull</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Skull01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Skull01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Skull01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Skull01.png</faceimage>
 		<width>16</width>
 		<height>50</height>
 		<minwidth>-1</minwidth>
@@ -734,8 +734,8 @@
 		<categoryid>Skulls</categoryid>
 		<name>Skull</name>
 		<artist>Edward Czajka</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Skull02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Skull02.jpg</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Skull02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Skull02.jpg</faceimage>
 		<width>977</width>
 		<height>937</height>
 		<minwidth>-1</minwidth>
@@ -747,8 +747,8 @@
 		<categoryid>MegaTreeFaces</categoryid>
 		<name>Smidge</name>
 		<artist>Logan Carpenter</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Smidge.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Smidge.gif</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Smidge.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Smidge.gif</faceimage>
 		<width>24</width>
 		<height>52</height>
 		<minwidth>-1</minwidth>
@@ -760,8 +760,8 @@
 		<categoryid>Snowmen</categoryid>
 		<name>Snowman</name>
 		<artist>David Geall</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Snowman01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Snowman01.jpg</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Snowman01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Snowman01.jpg</faceimage>
 		<width>89</width>
 		<height>96</height>
 		<minwidth>-1</minwidth>
@@ -773,8 +773,8 @@
 		<categoryid>Snowmen</categoryid>
 		<name>Snowman</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Snowman02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Snowman02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Snowman02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Snowman02.png</faceimage>
 		<width>50</width>
 		<height>40</height>
 		<minwidth>25</minwidth>
@@ -786,8 +786,8 @@
 		<categoryid>Snowmen</categoryid>
 		<name>Snowman</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Snowman03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Snowman03.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Snowman03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Snowman03.png</faceimage>
 		<width>236</width>
 		<height>330</height>
 		<minwidth>-1</minwidth>
@@ -799,8 +799,8 @@
 		<categoryid>Snowmen</categoryid>
 		<name>Snowman</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Snowman04.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Snowman04.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Snowman04.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Snowman04.png</faceimage>
 		<width>680</width>
 		<height>800</height>
 		<minwidth>-1</minwidth>
@@ -812,8 +812,8 @@
 		<categoryid>Trees</categoryid>
 		<name>Star Tree</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/StarTree01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/StarTree01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/StarTree01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/StarTree01.png</faceimage>
 		<width>24</width>
 		<height>52</height>
 		<minwidth>-1</minwidth>
@@ -825,8 +825,8 @@
 		<categoryid>Trees</categoryid>
 		<name>Star Tree Eyes Down</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/StarTreeDown.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/StarTreeDown.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/StarTreeDown.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/StarTreeDown.png</faceimage>
 		<width>24</width>
 		<height>52</height>
 		<minwidth>-1</minwidth>
@@ -838,8 +838,8 @@
 		<categoryid>Trees</categoryid>
 		<name>Star Tree Eyes Left</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/StarTreeLeft.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/StarTreeLeft.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/StarTreeLeft.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/StarTreeLeft.png</faceimage>
 		<width>24</width>
 		<height>52</height>
 		<minwidth>-1</minwidth>
@@ -851,8 +851,8 @@
 		<categoryid>Trees</categoryid>
 		<name>Star Tree Eyes Right</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/StarTreeRight.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/StarTreeRight.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/StarTreeRight.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/StarTreeRight.png</faceimage>
 		<width>24</width>
 		<height>52</height>
 		<minwidth>-1</minwidth>
@@ -864,8 +864,8 @@
 		<categoryid>Trees</categoryid>
 		<name>Star Tree Eyes Up</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/StarTreeUp.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/StarTreeUp.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/StarTreeUp.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/StarTreeUp.png</faceimage>
 		<width>24</width>
 		<height>52</height>
 		<minwidth>-1</minwidth>
@@ -877,8 +877,8 @@
 		<categoryid>Trees</categoryid>
 		<name>Blue Tree</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/TreeBlue01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/TreeBlue01.jpg</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeBlue01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeBlue01.jpg</faceimage>
 		<width>230</width>
 		<height>248</height>
 		<minwidth>-1</minwidth>
@@ -890,8 +890,8 @@
 		<categoryid>MegaTreeFaces</categoryid>
 		<name>Simple Tree Face</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/TreeFace01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/TreeFace01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeFace01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeFace01.png</faceimage>
 		<width>16</width>
 		<height>50</height>
 		<minwidth>-1</minwidth>
@@ -903,8 +903,8 @@
 		<categoryid>Trees</categoryid>
 		<name>Green Tree</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/TreeGreen01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/TreeGreen01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeGreen01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeGreen01.png</faceimage>
 		<width>230</width>
 		<height>248</height>
 		<minwidth>-1</minwidth>
@@ -916,8 +916,8 @@
 		<categoryid>Trees</categoryid>
 		<name>Green Tree</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/TreeGreen02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/TreeGreen02.jpg</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeGreen02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeGreen02.jpg</faceimage>
 		<width>230</width>
 		<height>248</height>
 		<minwidth>-1</minwidth>
@@ -929,8 +929,8 @@
 		<categoryid>Trees</categoryid>
 		<name>Light Green Tree</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/TreeLightGreen01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/TreeLightGreen01.jpg</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeLightGreen01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeLightGreen01.jpg</faceimage>
 		<width>230</width>
 		<height>248</height>
 		<minwidth>-1</minwidth>
@@ -942,8 +942,8 @@
 		<categoryid>Trees</categoryid>
 		<name>Red Tree</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/TreeRed01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/TreeRed01.jpg</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeRed01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeRed01.jpg</faceimage>
 		<width>230</width>
 		<height>248</height>
 		<minwidth>-1</minwidth>
@@ -955,8 +955,8 @@
 		<categoryid>Trees</categoryid>
 		<name>Tall Tree</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/TreeTall01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/TreeTall01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeTall01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeTall01.png</faceimage>
 		<width>30</width>
 		<height>96</height>
 		<minwidth>-1</minwidth>
@@ -968,8 +968,8 @@
 		<categoryid>Trees</categoryid>
 		<name>Teal Tree</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/TreeTeal01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/TreeTeal01.jpg</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeTeal01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeTeal01.jpg</faceimage>
 		<width>230</width>
 		<height>248</height>
 		<minwidth>-1</minwidth>
@@ -981,8 +981,8 @@
 		<categoryid>Trees</categoryid>
 		<name>Yellow Tree</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/TreeYellow01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/TreeYellow01.jpg</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeYellow01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeYellow01.jpg</faceimage>
 		<width>230</width>
 		<height>248</height>
 		<minwidth>-1</minwidth>
@@ -994,8 +994,8 @@
 		<categoryid>MegaTreeFaces</categoryid>
 		<name>Troll</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Troll.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Troll.gif</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Troll.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Troll.gif</faceimage>
 		<width>24</width>
 		<height>52</height>
 		<minwidth>-1</minwidth>
@@ -1007,8 +1007,8 @@
 		<categoryid>Bulbs</categoryid>
 		<name>White Bulb</name>
 		<artist>Christopher Kovacik</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/WhiteBulb.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/WhiteBulb.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/WhiteBulb.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/WhiteBulb.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -1020,8 +1020,8 @@
 		<categoryid>Bulbs</categoryid>
 		<name>White Bulb with Hat</name>
 		<artist>Christopher Kovacik</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/WhiteBulbHat.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/WhiteBulbHat.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/WhiteBulbHat.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/WhiteBulbHat.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -1034,8 +1034,8 @@
 		<categoryid>HalloweenTrees</categoryid>
 		<name>Witch</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Witch01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Witch01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Witch01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Witch01.png</faceimage>
 		<width>16</width>
 		<height>50</height>
 		<minwidth>-1</minwidth>
@@ -1047,8 +1047,8 @@
 		<categoryid>Other</categoryid>
 		<name>Witch Doctor</name>
 		<artist>Edward Czajka</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Witchdoctor.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Witchdoctor.jpg</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Witchdoctor.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Witchdoctor.jpg</faceimage>
 		<width>350</width>
 		<height>480</height>
 		<minwidth>-1</minwidth>
@@ -1060,8 +1060,8 @@
 		<categoryid>Bulbs</categoryid>
 		<name>Yellow Bulb</name>
 		<artist>Christopher Kovacik</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/YellowBulb.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/YellowBulb.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/YellowBulb.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/YellowBulb.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -1073,8 +1073,8 @@
 		<categoryid>Bulbs</categoryid>
 		<name>Yellow Bulb with Hat</name>
 		<artist>Christopher Kovacik</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/YellowBulbHat.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/YellowBulbHat.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/YellowBulbHat.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/YellowBulbHat.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -1086,8 +1086,8 @@
 		<categoryid>Pumpkins</categoryid>
 		<name>Pumpkin</name>
 		<artist>Gil Jones</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/PumpkinGil.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/PumpkinGil.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PumpkinGil.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PumpkinGil.png</faceimage>
 		<width>87</width>
 		<height>80</height>
 		<minwidth>-1</minwidth>
@@ -1099,8 +1099,8 @@
 		<categoryid>Dracula</categoryid>
 		<name>Dracula</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Dracula01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Dracula01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Dracula01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Dracula01.png</faceimage>
 		<width>555</width>
 		<height>732</height>
 		<minwidth>-1</minwidth>
@@ -1112,8 +1112,8 @@
 		<categoryid>Monsters</categoryid>
 		<name>Blue Face-Green Eyes</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/EvilEyes01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/EvilEyes01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/EvilEyes01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/EvilEyes01.png</faceimage>
 		<width>229</width>
 		<height>229</height>
 		<minwidth>-1</minwidth>
@@ -1125,8 +1125,8 @@
 		<categoryid>Monsters</categoryid>
 		<name>Blue Face-Red Eyes</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/EvilEyes02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/EvilEyes02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/EvilEyes02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/EvilEyes02.png</faceimage>
 		<width>229</width>
 		<height>229</height>
 		<minwidth>-1</minwidth>
@@ -1138,8 +1138,8 @@
 		<categoryid>Monsters</categoryid>
 		<name>Blue Face-Red Eyes</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/EvilEyes03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/EvilEyes03.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/EvilEyes03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/EvilEyes03.png</faceimage>
 		<width>229</width>
 		<height>229</height>
 		<minwidth>-1</minwidth>
@@ -1151,8 +1151,8 @@
 		<categoryid>Frankenstein</categoryid>
 		<name>Frankenstein</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Frank03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Frank03.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Frank03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Frank03.png</faceimage>
 		<width>204</width>
 		<height>247</height>
 		<minwidth>-1</minwidth>
@@ -1164,8 +1164,8 @@
 		<categoryid>Other</categoryid>
 		<name>Mike Wazowski</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Mike01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Mike01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Mike01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Mike01.png</faceimage>
 		<width>455</width>
 		<height>455</height>
 		<minwidth>-1</minwidth>
@@ -1177,8 +1177,8 @@
 		<categoryid>Other</categoryid>
 		<name>Mike Wazowski</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Mike02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Mike02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Mike02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Mike02.png</faceimage>
 		<width>589</width>
 		<height>550</height>
 		<minwidth>-1</minwidth>
@@ -1190,8 +1190,8 @@
 		<categoryid>Other</categoryid>
 		<name>One Eyed Minion</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Minion01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Minion01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Minion01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Minion01.png</faceimage>
 		<width>499</width>
 		<height>592</height>
 		<minwidth>-1</minwidth>
@@ -1203,8 +1203,8 @@
 		<categoryid>Other</categoryid>
 		<name>Two Eyed Minion</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Minion02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Minion02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Minion02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Minion02.png</faceimage>
 		<width>205</width>
 		<height>245</height>
 		<minwidth>-1</minwidth>
@@ -1216,8 +1216,8 @@
 		<categoryid>Monsters</categoryid>
 		<name>Four Armed Monster</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Monster01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Monster01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Monster01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Monster01.png</faceimage>
 		<width>244</width>
 		<height>207</height>
 		<minwidth>-1</minwidth>
@@ -1229,8 +1229,8 @@
 		<categoryid>Monsters</categoryid>
 		<name>Pointy Eared Monster</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Monster02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Monster02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Monster02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Monster02.png</faceimage>
 		<width>891</width>
 		<height>742</height>
 		<minwidth>-1</minwidth>
@@ -1242,8 +1242,8 @@
 		<categoryid>Santa</categoryid>
 		<name>Mrs Claus</name>
 		<artist>Christopher Kovacik</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/MrsClaus01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/MrsClaus01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MrsClaus01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MrsClaus01.png</faceimage>
 		<width>300</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -1255,8 +1255,8 @@
 		<categoryid>Other</categoryid>
 		<name>Shrek</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Shrek01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Shrek01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Shrek01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Shrek01.png</faceimage>
 		<width>242</width>
 		<height>208</height>
 		<minwidth>-1</minwidth>
@@ -1268,8 +1268,8 @@
 		<categoryid>Other</categoryid>
 		<name>Toothless Woman</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Toothless01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Toothless01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Toothless01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Toothless01.png</faceimage>
 		<width>675</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -1281,8 +1281,8 @@
 		<categoryid>Other</categoryid>
 		<name>Blonde Girl</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Child01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Child01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Child01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Child01.png</faceimage>
 		<width>130</width>
 		<height>99</height>
 		<minwidth>-1</minwidth>
@@ -1294,8 +1294,8 @@
 		<categoryid>Other</categoryid>
 		<name>Boy</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Child02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Child02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Child02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Child02.png</faceimage>
 		<width>130</width>
 		<height>99</height>
 		<minwidth>-1</minwidth>
@@ -1307,8 +1307,8 @@
 		<categoryid>Other</categoryid>
 		<name>Brunette Girl</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Child03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Child03.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Child03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Child03.png</faceimage>
 		<width>130</width>
 		<height>99</height>
 		<minwidth>-1</minwidth>
@@ -1320,8 +1320,8 @@
 		<categoryid>Other</categoryid>
 		<name>Boy</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Child04.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Child04.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Child04.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Child04.png</faceimage>
 		<width>130</width>
 		<height>99</height>
 		<minwidth>-1</minwidth>
@@ -1334,8 +1334,8 @@
 		<categoryid>Deer</categoryid>
 		<name>Deer and Elf</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/DeerElf02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/DeerElf02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/DeerElf02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/DeerElf02.png</faceimage>
 		<width>345</width>
 		<height>300</height>
 		<minwidth>115</minwidth>
@@ -1347,8 +1347,8 @@
 		<categoryid>Frankenstein</categoryid>
 		<name>Frankenstein</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Frank04.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Frank04.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Frank04.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Frank04.png</faceimage>
 		<width>163</width>
 		<height>209</height>
 		<minwidth>-1</minwidth>
@@ -1360,8 +1360,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Jack Skelton</name>
 		<artist>Todd Wright</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/JackS01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/JackS01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/JackS01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/JackS01.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -1373,8 +1373,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Christmas Jack</name>
 		<artist>Todd Wright</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/JackS02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/JackS02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/JackS02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/JackS02.png</faceimage>
 		<width>400</width>
 		<height>400</height>
 		<minwidth>-1</minwidth>
@@ -1387,8 +1387,8 @@
 		<categoryid>Monsters</categoryid>
 		<name>Light Street Court Pumpkin</name>
 		<artist>Gary ODonnell Jr</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/LSC01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/LSC01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/LSC01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/LSC01.png</faceimage>
 		<width>800</width>
 		<height>600</height>
 		<minwidth>-1</minwidth>
@@ -1400,8 +1400,8 @@
 		<categoryid>Monsters</categoryid>
 		<name>Light Street Court Monster</name>
 		<artist>Gary ODonnell Jr</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/LSC02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/LSC02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/LSC02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/LSC02.png</faceimage>
 		<width>800</width>
 		<height>600</height>
 		<minwidth>-1</minwidth>
@@ -1413,8 +1413,8 @@
 		<categoryid>Monsters</categoryid>
 		<name>Light Street Court Monster</name>
 		<artist>Gary ODonnell Jr</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/LSC03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/LSC03.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/LSC03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/LSC03.png</faceimage>
 		<width>800</width>
 		<height>600</height>
 		<minwidth>-1</minwidth>
@@ -1426,8 +1426,8 @@
 		<categoryid>Other</categoryid>
 		<name>Mickey Mouse</name>
 		<artist>Walt Disney - Christopher Kovacik</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/MM01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/MM01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MM01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MM01.png</faceimage>
 		<width>200</width>
 		<height>200</height>
 		<minwidth>48</minwidth>
@@ -1439,8 +1439,8 @@
 		<categoryid>Monsters</categoryid>
 		<name>Pink Monster</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Monster03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Monster03.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Monster03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Monster03.png</faceimage>
 		<width>223</width>
 		<height>226</height>
 		<minwidth>-1</minwidth>
@@ -1452,8 +1452,8 @@
 		<categoryid>Mummy</categoryid>
 		<name>Mummy</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Mummy01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Mummy01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Mummy01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Mummy01.png</faceimage>
 		<width>493</width>
 		<height>600</height>
 		<minwidth>-1</minwidth>
@@ -1465,8 +1465,8 @@
 		<categoryid>Trees</categoryid>
 		<name>Singing Tree</name>
 		<artist>Tomas Rodriguez</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Tree01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Tree01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Tree01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Tree01.png</faceimage>
 		<width>253</width>
 		<height>367</height>
 		<minwidth>-1</minwidth>
@@ -1478,8 +1478,8 @@
 		<categoryid>Other</categoryid>
 		<name>Poppy</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Poppy02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Poppy02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Poppy02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Poppy02.png</faceimage>
 		<width>344</width>
 		<height>344</height>
 		<minwidth>-1</minwidth>
@@ -1491,8 +1491,8 @@
 		<categoryid>Other</categoryid>
 		<name>Branch</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Branch01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Branch01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Branch01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Branch01.png</faceimage>
 		<width>513</width>
 		<height>440</height>
 		<minwidth>-1</minwidth>
@@ -1504,8 +1504,8 @@
 		<categoryid>Witches</categoryid>
 		<name>Witch</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Witch02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Witch02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Witch02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Witch02.png</faceimage>
 		<width>450</width>
 		<height>449</height>
 		<minwidth>-1</minwidth>
@@ -1517,8 +1517,8 @@
 		<categoryid>MegaTreeFaces</categoryid>
 		<name>Minion</name>
 		<artist>Richard Maciejewski</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Minion03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Minion03.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Minion03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Minion03.png</faceimage>
 		<width>24</width>
 		<height>52</height>
 		<minwidth>-1</minwidth>
@@ -1530,8 +1530,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Alvin</name>
 		<artist>Todd Wright</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Alvin01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Alvin01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Alvin01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Alvin01.png</faceimage>
 		<width>100</width>
 		<height>100</height>
 		<minwidth>20</minwidth>
@@ -1543,8 +1543,8 @@
 		<categoryid>Other</categoryid>
 		<name>Minnie Mouse</name>
 		<artist>Walt Disney - Christopher Kovacik</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/MM02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/MM02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MM02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MM02.png</faceimage>
 		<width>200</width>
 		<height>200</height>
 		<minwidth>48</minwidth>
@@ -1556,8 +1556,8 @@
 		<categoryid>Other</categoryid>
 		<name>Green Candy</name>
 		<artist>Todd Wright</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/MMGreen01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/MMGreen01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MMGreen01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MMGreen01.png</faceimage>
 		<width>88</width>
 		<height>100</height>
 		<minwidth>25</minwidth>
@@ -1569,8 +1569,8 @@
 		<categoryid>Other</categoryid>
 		<name>Porky Pig</name>
 		<artist>Todd Wright</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/PP01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/PP01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PP01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PP01.png</faceimage>
 		<width>100</width>
 		<height>100</height>
 		<minwidth>20</minwidth>
@@ -1582,8 +1582,8 @@
 		<categoryid>Monsters</categoryid>
 		<name>Devil</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Devil.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Devil.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Devil.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Devil.png</faceimage>
 		<width>85</width>
 		<height>85</height>
 		<minwidth>16</minwidth>
@@ -1595,8 +1595,8 @@
 		<categoryid>Other</categoryid>
 		<name>Elvis</name>
 		<artist>Matthew Mark</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Elvis01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Elvis01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elvis01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elvis01.png</faceimage>
 		<width>14</width>
 		<height>20</height>
 		<minwidth>14</minwidth>
@@ -1608,8 +1608,8 @@
 		<categoryid>Other</categoryid>
 		<name>Lady Liberty</name>
 		<artist>Todd Wright</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Liberty.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Liberty.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Liberty.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Liberty.png</faceimage>
 		<width>100</width>
 		<height>100</height>
 		<minwidth>20</minwidth>
@@ -1622,8 +1622,8 @@
 		<categoryid>HalloweenTrees</categoryid>
 		<name>Tree Witch</name>
 		<artist>Matthew Mark</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/TreeWitch.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/TreeWitch.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeWitch.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeWitch.png</faceimage>
 		<width>16</width>
 		<height>50</height>
 		<minwidth>12</minwidth>
@@ -1635,8 +1635,8 @@
 		<categoryid>Other</categoryid>
 		<name>Uncle Sam</name>
 		<artist>Todd Wright</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/UncleSam.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/UncleSam.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/UncleSam.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/UncleSam.png</faceimage>
 		<width>299</width>
 		<height>366</height>
 		<minwidth>-1</minwidth>
@@ -1648,8 +1648,8 @@
 		<categoryid>Deer</categoryid>
 		<name>Cute Deer</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Cutedeer01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Cutedeer01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Cutedeer01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Cutedeer01.png</faceimage>
 		<width>300</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -1661,8 +1661,8 @@
 		<categoryid>Deer</categoryid>
 		<name>Cute Deer - Left</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Cutedeer02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Cutedeer02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Cutedeer02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Cutedeer02.png</faceimage>
 		<width>300</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -1674,8 +1674,8 @@
 		<categoryid>Deer</categoryid>
 		<name>Cute Deer - Right</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Cutedeer03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Cutedeer03.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Cutedeer03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Cutedeer03.png</faceimage>
 		<width>300</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -1687,8 +1687,8 @@
 		<categoryid>Deer</categoryid>
 		<name>Reindeer</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Reindeer01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Reindeer01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Reindeer01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Reindeer01.png</faceimage>
 		<width>300</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -1700,8 +1700,8 @@
 		<categoryid>Deer</categoryid>
 		<name>White Boomer</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Boomer01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Boomer01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Boomer01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Boomer01.png</faceimage>
 		<width>212</width>
 		<height>215</height>
 		<minwidth>-1</minwidth>
@@ -1713,8 +1713,8 @@
 		<categoryid>Deer</categoryid>
 		<name>Small White Boomer</name>
 		<artist>Matthew Mark</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Boomer02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Boomer02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Boomer02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Boomer02.png</faceimage>
 		<width>16</width>
 		<height>20</height>
 		<minwidth>16</minwidth>
@@ -1726,8 +1726,8 @@
 		<categoryid>Ghosts</categoryid>
 		<name>Casper</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Casper.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Casper.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Casper.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Casper.png</faceimage>
 		<width>245</width>
 		<height>258</height>
 		<minwidth>-1</minwidth>
@@ -1739,8 +1739,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Polar Express Conductor</name>
 		<artist>Todd Wright</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/conductor.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/conductor.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/conductor.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/conductor.png</faceimage>
 		<width>100</width>
 		<height>100</height>
 		<minwidth>20</minwidth>
@@ -1752,8 +1752,8 @@
 		<categoryid>Elves</categoryid>
 		<name>Elf holding Sign</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Elfsign.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Elfsign.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elfsign.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elfsign.png</faceimage>
 		<width>227</width>
 		<height>300</height>
 		<minwidth>16</minwidth>
@@ -1766,8 +1766,8 @@
 		<categoryid>Other</categoryid>
 		<name>Elsa</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Elsa01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Elsa01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elsa01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elsa01.png</faceimage>
 		<width>300</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -1780,8 +1780,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Elsa Left</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Elsa02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Elsa02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elsa02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elsa02.png</faceimage>
 		<width>300</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -1794,8 +1794,8 @@
 		<categoryid>Other</categoryid>
 		<name>Elsa Right</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Elsa03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Elsa03.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elsa03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elsa03.png</faceimage>
 		<width>300</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -1807,8 +1807,8 @@
 		<categoryid>Ghosts</categoryid>
 		<name>Ghost</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Ghost01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Ghost01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Ghost01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Ghost01.png</faceimage>
 		<width>291</width>
 		<height>299</height>
 		<minwidth>-1</minwidth>
@@ -1820,8 +1820,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Teddy Bear in Stocking</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/BearStocking.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/BearStocking.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/BearStocking.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/BearStocking.png</faceimage>
 		<width>300</width>
 		<height>420</height>
 		<minwidth>-1</minwidth>
@@ -1833,8 +1833,8 @@
 		<categoryid>Other</categoryid>
 		<name>Bella</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Bella.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Bella.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Bella.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Bella.png</faceimage>
 		<width>440</width>
 		<height>488</height>
 		<minwidth>-1</minwidth>
@@ -1847,8 +1847,8 @@
 		<categoryid>Other</categoryid>
 		<name>Elsa for Tree</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Elsa04.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Elsa04.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elsa04.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elsa04.png</faceimage>
 		<width>100</width>
 		<height>100</height>
 		<minwidth>-1</minwidth>
@@ -1860,8 +1860,8 @@
 		<categoryid>Other</categoryid>
 		<name>Elvis</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Elvis02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Elvis02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elvis02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elvis02.png</faceimage>
 		<width>552</width>
 		<height>627</height>
 		<minwidth>-1</minwidth>
@@ -1873,8 +1873,8 @@
 		<categoryid>Other</categoryid>
 		<name>Fairy Godmother</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/FairyGM01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/FairyGM01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/FairyGM01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/FairyGM01.png</faceimage>
 		<width>186</width>
 		<height>195</height>
 		<minwidth>-1</minwidth>
@@ -1886,8 +1886,8 @@
 		<categoryid>Frankenstein</categoryid>
 		<name>Frankenstein</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Frank05.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Frank05.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Frank05.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Frank05.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -1899,8 +1899,8 @@
 		<categoryid>Other</categoryid>
 		<name>Queen Grimhilde</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Grimhilde.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Grimhilde.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Grimhilde.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Grimhilde.png</faceimage>
 		<width>204</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -1912,8 +1912,8 @@
 		<categoryid>Other</categoryid>
 		<name>Heart</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Heart01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Heart01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Heart01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Heart01.png</faceimage>
 		<width>300</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -1925,8 +1925,8 @@
 		<categoryid>Other</categoryid>
 		<name>Heart</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Heart02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Heart02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Heart02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Heart02.png</faceimage>
 		<width>100</width>
 		<height>100</height>
 		<minwidth>-1</minwidth>
@@ -1938,8 +1938,8 @@
 		<categoryid>Ornaments</categoryid>
 		<name>Red Ornament</name>
 		<artist>Todd Wright</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/OrnRed01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/OrnRed01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OrnRed01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OrnRed01.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -1951,8 +1951,8 @@
 		<categoryid>Other</categoryid>
 		<name>Snow White</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/SnowWhite01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/SnowWhite01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/SnowWhite01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/SnowWhite01.png</faceimage>
 		<width>284</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -1964,8 +1964,8 @@
 		<categoryid>Other</categoryid>
 		<name>Tiana</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Tiana.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Tiana.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Tiana.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Tiana.png</faceimage>
 		<width>305</width>
 		<height>450</height>
 		<minwidth>-1</minwidth>
@@ -1977,8 +1977,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Charlie Brown Face - Low</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/CharlieFace03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/CharlieFace03.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/CharlieFace03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/CharlieFace03.png</faceimage>
 		<width>93</width>
 		<height>100</height>
 		<minwidth>-1</minwidth>
@@ -1990,8 +1990,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Charlie Brown Face - Med</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/CharlieFace01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/CharlieFace01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/CharlieFace01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/CharlieFace01.png</faceimage>
 		<width>279</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -2003,8 +2003,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Charlie Brown Face - High</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/CharlieFace02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/CharlieFace02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/CharlieFace02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/CharlieFace02.png</faceimage>
 		<width>585</width>
 		<height>629</height>
 		<minwidth>-1</minwidth>
@@ -2016,8 +2016,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Standing Charlie Brown - Small</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/CharlieStand03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/CharlieStand03.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/CharlieStand03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/CharlieStand03.png</faceimage>
 		<width>58</width>
 		<height>100</height>
 		<minwidth>-1</minwidth>
@@ -2029,8 +2029,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Standing Charlie Brown - Med</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/CharlieStand01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/CharlieStand01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/CharlieStand01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/CharlieStand01.png</faceimage>
 		<width>291</width>
 		<height>500</height>
 		<minwidth>-1</minwidth>
@@ -2042,8 +2042,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Standing Charlie Brown - High</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/CharlieStand02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/CharlieStand02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/CharlieStand02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/CharlieStand02.png</faceimage>
 		<width>586</width>
 		<height>1006</height>
 		<minwidth>-1</minwidth>
@@ -2055,8 +2055,8 @@
 		<categoryid>Other</categoryid>
 		<name>Lucy (Peanuts) - Low</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Lucy02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Lucy02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Lucy02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Lucy02.png</faceimage>
 		<width>54</width>
 		<height>100</height>
 		<minwidth>-1</minwidth>
@@ -2068,8 +2068,8 @@
 		<categoryid>Other</categoryid>
 		<name>Lucy (Peanuts) - High</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Lucy01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Lucy01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Lucy01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Lucy01.png</faceimage>
 		<width>238</width>
 		<height>443</height>
 		<minwidth>-1</minwidth>
@@ -2081,8 +2081,8 @@
 		<categoryid>Elves</categoryid>
 		<name>Elf with Candy Cane</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/ElfCandy01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/ElfCandy01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ElfCandy01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ElfCandy01.png</faceimage>
 		<width>243</width>
 		<height>500</height>
 		<minwidth>-1</minwidth>
@@ -2094,8 +2094,8 @@
 		<categoryid>Elves</categoryid>
 		<name>Elf with Gift Box - Two Handed</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/ElfGift01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/ElfGift01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ElfGift01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ElfGift01.png</faceimage>
 		<width>279</width>
 		<height>500</height>
 		<minwidth>-1</minwidth>
@@ -2107,8 +2107,8 @@
 		<categoryid>Elves</categoryid>
 		<name>Elf with Gift Box - One Handed</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/ElfGift02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/ElfGift02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ElfGift02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ElfGift02.png</faceimage>
 		<width>322</width>
 		<height>500</height>
 		<minwidth>-1</minwidth>
@@ -2120,8 +2120,8 @@
 		<categoryid>Other</categoryid>
 		<name>Baby New Year</name>
 		<artist>Todd Wright</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/NewYearBaby.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/NewYearBaby.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/NewYearBaby.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/NewYearBaby.png</faceimage>
 		<width>100</width>
 		<height>100</height>
 		<minwidth>20</minwidth>
@@ -2133,8 +2133,8 @@
 		<categoryid>Trees</categoryid>
 		<name>Singing Tree</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Tree02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Tree02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Tree02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Tree02.png</faceimage>
 		<width>100</width>
 		<height>141</height>
 		<minwidth>-1</minwidth>
@@ -2147,8 +2147,8 @@
 		<categoryid>Dracula</categoryid>		
 		<name>Dracula Tree</name>
 		<artist>Matthew Mark</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/DraculaTree.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/DraculaTree.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/DraculaTree.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/DraculaTree.png</faceimage>
 		<width>16</width>
 		<height>50</height>
 		<minwidth>16</minwidth>
@@ -2161,8 +2161,8 @@
 		<categoryid>ChristmasMegaTrees</categoryid>
 		<name>Blue Bulb for Tree</name>
 		<artist>Matthew Mark</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/BlueBulb01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/BlueBulb01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/BlueBulb01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/BlueBulb01.png</faceimage>
 		<width>16</width>
 		<height>33</height>
 		<minwidth>16</minwidth>
@@ -2175,8 +2175,8 @@
 		<categoryid>ChristmasMegaTrees</categoryid>
 		<name>Green Bulb for Tree</name>
 		<artist>Matthew Mark</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/GreenBulb01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/GreenBulb01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/GreenBulb01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/GreenBulb01.png</faceimage>
 		<width>16</width>
 		<height>33</height>
 		<minwidth>16</minwidth>
@@ -2189,8 +2189,8 @@
 		<categoryid>ChristmasMegaTrees</categoryid>
 		<name>Red Bulb for Tree</name>
 		<artist>Matthew Mark</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/RedBulb01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/RedBulb01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/RedBulb01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/RedBulb01.png</faceimage>
 		<width>16</width>
 		<height>33</height>
 		<minwidth>16</minwidth>
@@ -2202,8 +2202,8 @@
 		<categoryid>Elves</categoryid>
 		<name>Cute Elf</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Elf01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Elf01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elf01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elf01.png</faceimage>
 		<width>152</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -2215,8 +2215,8 @@
 		<categoryid>Elves</categoryid>
 		<name>Cute Elf - Face only</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/ElfFace01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/ElfFace01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ElfFace01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ElfFace01.png</faceimage>
 		<width>152</width>
 		<height>152</height>
 		<minwidth>-1</minwidth>
@@ -2228,8 +2228,8 @@
 		<categoryid>Elves</categoryid>
 		<name>Elf Face</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/ElfFace02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/ElfFace02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ElfFace02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ElfFace02.png</faceimage>
 		<width>98</width>
 		<height>100</height>
 		<minwidth>-1</minwidth>
@@ -2241,8 +2241,8 @@
 		<categoryid>Trees</categoryid>
 		<name>Pink Tree</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/TreePink01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/TreePink01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreePink01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreePink01.png</faceimage>
 		<width>230</width>
 		<height>248</height>
 		<minwidth>-1</minwidth>
@@ -2255,8 +2255,8 @@
 		<categoryid>HalloweenTrees</categoryid>
 		<name>Zombie for tree</name>
 		<artist>Matthew Mark</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Zombie01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Zombie01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Zombie01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Zombie01.png</faceimage>
 		<width>16</width>
 		<height>20</height>
 		<minwidth>16</minwidth>
@@ -2268,8 +2268,8 @@
 		<categoryid>Zombies</categoryid>
 		<name>Zombie</name>
 		<artist>Todd Wright</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Zombie02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Zombie02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Zombie02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Zombie02.png</faceimage>
 		<width>100</width>
 		<height>100</height>
 		<minwidth>20</minwidth>
@@ -2281,8 +2281,8 @@
 		<categoryid>Santa</categoryid>
 		<name>Aussie Santa</name>
 		<artist>Matthew Thompson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/AussieSanta.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/AussieSanta.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/AussieSanta.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/AussieSanta.png</faceimage>
 		<width>600</width>
 		<height>600</height>
 		<minwidth>-1</minwidth>
@@ -2294,8 +2294,8 @@
 		<categoryid>Elves</categoryid>
 		<name>Sitting Elf - High Res</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Elf02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Elf02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elf02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elf02.png</faceimage>
 		<width>332</width>
 		<height>527</height>
 		<minwidth>-1</minwidth>
@@ -2307,8 +2307,8 @@
 		<categoryid>Elves</categoryid>
 		<name>Sitting Elf - Low Res</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Elf03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Elf03.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elf03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elf03.png</faceimage>
 		<width>63</width>
 		<height>100</height>
 		<minwidth>-1</minwidth>
@@ -2320,8 +2320,8 @@
 		<categoryid>Frankenstein</categoryid>
 		<name>Frankenstein - High</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Frank06.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Frank06.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Frank06.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Frank06.png</faceimage>
 		<width>300</width>
 		<height>433</height>
 		<minwidth>-1</minwidth>
@@ -2333,8 +2333,8 @@
 		<categoryid>Frankenstein</categoryid>
 		<name>Frankenstein - Low</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Frank07.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Frank07.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Frank07.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Frank07.png</faceimage>
 		<width>50</width>
 		<height>72</height>
 		<minwidth>-1</minwidth>
@@ -2346,8 +2346,8 @@
 		<categoryid>Ghosts</categoryid>
 		<name>Ghostbuster Logo</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/GhostBuster.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/GhostBuster.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/GhostBuster.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/GhostBuster.png</faceimage>
 		<width>260</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -2359,8 +2359,8 @@
 		<categoryid>Gingerbread</categoryid>
 		<name>Gingerbread Man - High</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Ginger01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Ginger01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Ginger01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Ginger01.png</faceimage>
 		<width>239</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -2372,8 +2372,8 @@
 		<categoryid>Gingerbread</categoryid>
 		<name>Gingerbread Man - Low</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Ginger02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Ginger02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Ginger02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Ginger02.png</faceimage>
 		<width>80</width>
 		<height>100</height>
 		<minwidth>-1</minwidth>
@@ -2385,8 +2385,8 @@
 		<categoryid>Gingerbread</categoryid>
 		<name>Gingerbread Man - Frosting</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Ginger03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Ginger03.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Ginger03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Ginger03.png</faceimage>
 		<width>239</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -2398,8 +2398,8 @@
 		<categoryid>Ornaments</categoryid>
 		<name>Blue Ornament</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/OrnBlue01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/OrnBlue01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OrnBlue01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OrnBlue01.png</faceimage>
 		<width>1000</width>
 		<height>1258</height>
 		<minwidth>-1</minwidth>
@@ -2411,8 +2411,8 @@
 		<categoryid>Ornaments</categoryid>
 		<name>Green Ornament</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/OrnGreen01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/OrnGreen01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OrnGreen01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OrnGreen01.png</faceimage>
 		<width>1000</width>
 		<height>1258</height>
 		<minwidth>-1</minwidth>
@@ -2424,8 +2424,8 @@
 		<categoryid>Ornaments</categoryid>
 		<name>Pink Ornament</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/OrnPink01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/OrnPink01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OrnPink01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OrnPink01.png</faceimage>
 		<width>1000</width>
 		<height>1258</height>
 		<minwidth>-1</minwidth>
@@ -2437,8 +2437,8 @@
 		<categoryid>Ornaments</categoryid>
 		<name>Purple Ornament</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/OrnPurple01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/OrnPurple01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OrnPurple01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OrnPurple01.png</faceimage>
 		<width>1000</width>
 		<height>1258</height>
 		<minwidth>-1</minwidth>
@@ -2450,8 +2450,8 @@
 		<categoryid>Ornaments</categoryid>
 		<name>Red Ornament</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/OrnRed02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/OrnRed02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OrnRed02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OrnRed02.png</faceimage>
 		<width>1000</width>
 		<height>1258</height>
 		<minwidth>-1</minwidth>
@@ -2464,8 +2464,8 @@
 		<categoryid>Other</categoryid>
 		<name>Slimer from Ghostbusters</name>
 		<artist>James Innes</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Slimer.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Slimer.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Slimer.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Slimer.png</faceimage>
 		<width>100</width>
 		<height>93</height>
 		<minwidth>-1</minwidth>
@@ -2477,8 +2477,8 @@
 		<categoryid>Witches</categoryid>
 		<name>Witch - Low</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Witch03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Witch03.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Witch03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Witch03.png</faceimage>
 		<width>92</width>
 		<height>100</height>
 		<minwidth>-1</minwidth>
@@ -2490,8 +2490,8 @@
 		<categoryid>Witches</categoryid>
 		<name>Witch - High</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Witch04.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Witch04.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Witch04.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Witch04.png</faceimage>
 		<width>300</width>
 		<height>325</height>
 		<minwidth>-1</minwidth>
@@ -2503,8 +2503,8 @@
 		<categoryid>Other</categoryid>
 		<name>Winnie the Pooh - Low</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Pooh01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Pooh01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pooh01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pooh01.png</faceimage>
 		<width>77</width>
 		<height>100</height>
 		<minwidth>-1</minwidth>
@@ -2516,8 +2516,8 @@
 		<categoryid>Other</categoryid>
 		<name>Winnie the Pooh - High</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Pooh02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Pooh02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pooh02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pooh02.png</faceimage>
 		<width>231</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -2529,8 +2529,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Bear in Gift Box - Low</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/BearGift01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/BearGift01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/BearGift01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/BearGift01.png</faceimage>
 		<width>75</width>
 		<height>100</height>
 		<minwidth>-1</minwidth>
@@ -2542,8 +2542,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Bear in Gift Box - High</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/BearGift02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/BearGift02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/BearGift02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/BearGift02.png</faceimage>
 		<width>224</width>
 		<height>299</height>
 		<minwidth>-1</minwidth>
@@ -2555,8 +2555,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Cat - Low</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Cat01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Cat01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Cat01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Cat01.png</faceimage>
 		<width>74</width>
 		<height>100</height>
 		<minwidth>-1</minwidth>
@@ -2568,8 +2568,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Cat - High</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Cat02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Cat02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Cat02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Cat02.png</faceimage>
 		<width>223</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -2581,8 +2581,8 @@
 		<categoryid>Elves</categoryid>
 		<name>Chubby (Bashful) Elf - Low</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/ElfChubby01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/ElfChubby01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ElfChubby01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ElfChubby01.png</faceimage>
 		<width>67</width>
 		<height>100</height>
 		<minwidth>-1</minwidth>
@@ -2594,8 +2594,8 @@
 		<categoryid>Elves</categoryid>
 		<name>Chubby (Bashful) Elf - High</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/ElfChubby02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/ElfChubby02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ElfChubby02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ElfChubby02.png</faceimage>
 		<width>201</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -2607,8 +2607,8 @@
 		<categoryid>Deer</categoryid>
 		<name>Deer with Ornament - Low</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/DeerOrn01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/DeerOrn01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/DeerOrn01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/DeerOrn01.png</faceimage>
 		<width>100</width>
 		<height>93</height>
 		<minwidth>-1</minwidth>
@@ -2620,8 +2620,8 @@
 		<categoryid>Deer</categoryid>
 		<name>Deer with Ornament - High</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/DeerOrn02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/DeerOrn02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/DeerOrn02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/DeerOrn02.png</faceimage>
 		<width>300</width>
 		<height>278</height>
 		<minwidth>-1</minwidth>
@@ -2633,8 +2633,8 @@
 		<categoryid>Elves</categoryid>
 		<name>Girl Elf with Bell - Low</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/ElfBell01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/ElfBell01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ElfBell01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ElfBell01.png</faceimage>
 		<width>71</width>
 		<height>100</height>
 		<minwidth>-1</minwidth>
@@ -2646,8 +2646,8 @@
 		<categoryid>Elves</categoryid>
 		<name>Girl Elf with Bell - High</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/ElfBell02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/ElfBell02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ElfBell02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ElfBell02.png</faceimage>
 		<width>214</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -2659,8 +2659,8 @@
 		<categoryid>Grinch</categoryid>
 		<name>Grinch - Low</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Grinch02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Grinch02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Grinch02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Grinch02.png</faceimage>
 		<width>79</width>
 		<height>100</height>
 		<minwidth>-1</minwidth>
@@ -2672,8 +2672,8 @@
 		<categoryid>Grinch</categoryid>
 		<name>Grinch - High</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Grinch03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Grinch03.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Grinch03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Grinch03.png</faceimage>
 		<width>385</width>
 		<height>486</height>
 		<minwidth>-1</minwidth>
@@ -2685,8 +2685,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Puppy - Low</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Puppy01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Puppy01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Puppy01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Puppy01.png</faceimage>
 		<width>61</width>
 		<height>100</height>
 		<minwidth>-1</minwidth>
@@ -2698,8 +2698,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Puppy - High</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Puppy02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Puppy02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Puppy02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Puppy02.png</faceimage>
 		<width>182</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -2711,8 +2711,8 @@
 		<categoryid>Snowmen</categoryid>
 		<name>Snowman with Hat and Scarf - Low</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Snowman05.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Snowman05.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Snowman05.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Snowman05.png</faceimage>
 		<width>67</width>
 		<height>100</height>
 		<minwidth>-1</minwidth>
@@ -2724,8 +2724,8 @@
 		<categoryid>Snowmen</categoryid>
 		<name>Snowman with Hat and Scarf - High</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Snowman06.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Snowman06.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Snowman06.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Snowman06.png</faceimage>
 		<width>300</width>
 		<height>445</height>
 		<minwidth>-1</minwidth>
@@ -2737,8 +2737,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Toddler - Low</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Toddler01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Toddler01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Toddler01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Toddler01.png</faceimage>
 		<width>67</width>
 		<height>100</height>
 		<minwidth>-1</minwidth>
@@ -2750,8 +2750,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Toddler - High</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Toddler02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Toddler02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Toddler02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Toddler02.png</faceimage>
 		<width>207</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -2764,8 +2764,8 @@
 		<categoryid>ChristmasMegaTrees</categoryid>		
 		<name>White Boomer for Tree</name>
 		<artist>Matthew Mark</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Boomer03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Boomer03.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Boomer03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Boomer03.png</faceimage>
 		<width>16</width>
 		<height>50</height>
 		<minwidth>16</minwidth>
@@ -2777,8 +2777,8 @@
 		<categoryid>Skulls</categoryid>
 		<name>Skull 32</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Skull32.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Skull32.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Skull32.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Skull32.png</faceimage>
 		<width>32</width>
 		<height>32</height>
 		<minwidth>16</minwidth>
@@ -2791,8 +2791,8 @@
 		<categoryid>Other</categoryid>
 		<name>Scary Clown</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Clown.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Clown.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Clown.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Clown.png</faceimage>
 		<width>432</width>
 		<height>303</height>
 		<minwidth>-1</minwidth>
@@ -2804,8 +2804,8 @@
 		<categoryid>Other</categoryid>
 		<name>Elvis</name>
 		<artist>Julie Mahan</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Elvis03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Elvis03.jpg</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elvis03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elvis03.jpg</faceimage>
 		<width>60</width>
 		<height>104</height>
 		<minwidth>-1</minwidth>
@@ -2818,8 +2818,8 @@
 		<categoryid>Other</categoryid>
 		<name>Vincent Price</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Price.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Price.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Price.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Price.png</faceimage>
 		<width>163</width>
 		<height>182</height>
 		<minwidth>-1</minwidth>
@@ -2831,8 +2831,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Scream Mask</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Scream.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Scream.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Scream.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Scream.png</faceimage>
 		<width>347</width>
 		<height>535</height>
 		<minwidth>-1</minwidth>
@@ -2844,8 +2844,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Werewolf</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Werewolf.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Werewolf.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Werewolf.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Werewolf.png</faceimage>
 		<width>131</width>
 		<height>125</height>
 		<minwidth>-1</minwidth>
@@ -2857,8 +2857,8 @@
 		<categoryid>Other</categoryid>
 		<name>SingDog</name>
 		<artist>jamills6377</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/SingDog.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/SingDog.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/SingDog.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/SingDog.png</faceimage>
 		<width>661</width>
 		<height>666</height>
 		<minwidth>40</minwidth>
@@ -2870,8 +2870,8 @@
 		<categoryid>Other</categoryid>
 		<name>Officer</name>
 		<artist>jamills6377</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/officer.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/officer.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/officer.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/officer.png</faceimage>
 		<width>725</width>
 		<height>824</height>
 		<minwidth>40</minwidth>
@@ -2883,8 +2883,8 @@
 		<categoryid>Santa</categoryid>
 		<name>MrsClaus</name>
 		<artist>jamills6377</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/MrsClaus.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/MrsClaus.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MrsClaus.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MrsClaus.png</faceimage>
 		<width>600</width>
 		<height>662</height>
 		<minwidth>40</minwidth>
@@ -2896,8 +2896,8 @@
 		<categoryid>Christmas</categoryid>
 		<name>Hippo</name>
 		<artist>jamills6377</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Hippo.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Hippo.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Hippo.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Hippo.png</faceimage>
 		<width>490</width>
 		<height>591</height>
 		<minwidth>40</minwidth>
@@ -2909,8 +2909,8 @@
 		<categoryid>Trees</categoryid>
 		<name>Christmas Tree</name>
 		<artist>jamills6377</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/ChrTree.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/ChrTree.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ChrTree.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/ChrTree.png</faceimage>
 		<width>490</width>
 		<height>591</height>
 		<minwidth>40</minwidth>
@@ -2922,8 +2922,8 @@
 		<categoryid>Other</categoryid>
 		<name>Duet_M</name>
 		<artist>jamills6377</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Duet_M.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Duet_M.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Duet_M.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Duet_M.png</faceimage>
 		<width>300</width>
 		<height>600</height>
 		<minwidth>40</minwidth>
@@ -2935,8 +2935,8 @@
 		<categoryid>Other</categoryid>
 		<name>Duet_F</name>
 		<artist>jamills6377</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Duet_F.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Duet_F.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Duet_F.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Duet_F.png</faceimage>
 		<width>300</width>
 		<height>600</height>
 		<minwidth>40</minwidth>
@@ -2948,8 +2948,8 @@
 		<categoryid>Other</categoryid>
 		<name>Branch</name>
 		<artist>Tomas Rodriguez</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Branch02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Branch02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Branch02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Branch02.png</faceimage>
 		<width>191</width>
 		<height>172</height>
 		<minwidth>-1</minwidth>
@@ -2961,8 +2961,8 @@
 		<categoryid>Other</categoryid>
 		<name>Bridgette</name>
 		<artist>Tomas Rodriguez</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/bridgette.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/bridgette.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/bridgette.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/bridgette.png</faceimage>
 		<width>316</width>
 		<height>217</height>
 		<minwidth>-1</minwidth>
@@ -2975,8 +2975,8 @@
 		<categoryid>Other</categoryid>
 		<name>Elsa</name>
 		<artist>Richard Sonnier/706 Lights</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Elsa05.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Elsa05.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elsa05.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elsa05.png</faceimage>
 		<width>861</width>
 		<height>1024</height>
 		<minwidth>-1</minwidth>
@@ -2988,8 +2988,8 @@
 		<categoryid>Other</categoryid>
 		<name>Gristle</name>
 		<artist>Tomas Rodriguez</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/gristle.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/gristle.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/gristle.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/gristle.png</faceimage>
 		<width>387</width>
 		<height>377</height>
 		<minwidth>-1</minwidth>
@@ -3001,8 +3001,8 @@
 		<categoryid>Other</categoryid>
 		<name>Poppy</name>
 		<artist>Tomas Rodriguez</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Poppy03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Poppy03.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Poppy03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Poppy03.png</faceimage>
 		<width>205</width>
 		<height>255</height>
 		<minwidth>-1</minwidth>
@@ -3014,8 +3014,8 @@
 		<categoryid>Trees</categoryid>
 		<name>Singing Tree</name>
 		<artist>B. Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Tree02Trans.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Tree02Trans.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Tree02Trans.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Tree02Trans.png</faceimage>
 		<width>100</width>
 		<height>141</height>
 		<minwidth>-1</minwidth>
@@ -3027,8 +3027,8 @@
 		<categoryid>Witches</categoryid>
 		<name>Witch</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Witch02Trans.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Witch02Trans.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Witch02Trans.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Witch02Trans.png</faceimage>
 		<width>379</width>
 		<height>370</height>
 		<minwidth>-1</minwidth>
@@ -3040,8 +3040,8 @@
 		<categoryid>Witches</categoryid>
 		<name>Witch</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Witch05.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Witch05.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Witch05.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Witch05.png</faceimage>
 		<width>164</width>
 		<height>164</height>
 		<minwidth>-1</minwidth>
@@ -3053,8 +3053,8 @@
 		<categoryid>Witches</categoryid>
 		<name>Witch</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Witch06.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Witch06.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Witch06.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Witch06.png</faceimage>
 		<width>334</width>
 		<height>298</height>
 		<minwidth>-1</minwidth>
@@ -3066,8 +3066,8 @@
 		<categoryid>Witches</categoryid>
 		<name>Witch</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Witch07.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Witch07.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Witch07.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Witch07.png</faceimage>
 		<width>165</width>
 		<height>149</height>
 		<minwidth>-1</minwidth>
@@ -3079,8 +3079,8 @@
 		<categoryid>xLightsATW</categoryid>
 		<name>Albino - Version 1</name>
 		<artist>Bruce Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Albino1.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Albino1.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Albino1.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Albino1.png</faceimage>
 		<width>110</width>
 		<height>131</height>
 		<minwidth>-1</minwidth>
@@ -3092,8 +3092,8 @@
 		<categoryid>xLightsATW</categoryid>
 		<name>Albino - Version 2</name>
 		<artist>Bruce Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Albino2.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Albino2.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Albino2.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Albino2.png</faceimage>
 		<width>101</width>
 		<height>122</height>
 		<minwidth>-1</minwidth>
@@ -3105,8 +3105,8 @@
 		<categoryid>xLightsATW</categoryid>
 		<name>Anne - Version 1</name>
 		<artist>Bruce Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Anne.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Anne.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Anne.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Anne.png</faceimage>
 		<width>96</width>
 		<height>122</height>
 		<minwidth>-1</minwidth>
@@ -3118,8 +3118,8 @@
 		<categoryid>xLightsATW</categoryid>
 		<name>Anne - Version 2</name>
 		<artist>Bruce Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Anne2.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Anne2.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Anne2.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Anne2.png</faceimage>
 		<width>101</width>
 		<height>141</height>
 		<minwidth>-1</minwidth>
@@ -3131,8 +3131,8 @@
 		<categoryid>xLightsATW</categoryid>
 		<name>Lettie - Version 1</name>
 		<artist>Bruce Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Lettie.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Lettie.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Lettie.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Lettie.png</faceimage>
 		<width>144</width>
 		<height>150</height>
 		<minwidth>-1</minwidth>
@@ -3144,8 +3144,8 @@
 		<categoryid>xLightsATW</categoryid>
 		<name>Lettie - Version 2</name>
 		<artist>Bruce Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Lettie2.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Lettie2.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Lettie2.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Lettie2.png</faceimage>
 		<width>133</width>
 		<height>144</height>
 		<minwidth>-1</minwidth>
@@ -3157,8 +3157,8 @@
 		<categoryid>xLightsATW</categoryid>
 		<name>Phillip - Version 1</name>
 		<artist>Bruce Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Phillip.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Phillip.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Phillip.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Phillip.png</faceimage>
 		<width>91</width>
 		<height>122</height>
 		<minwidth>-1</minwidth>
@@ -3170,8 +3170,8 @@
 		<categoryid>xLightsATW</categoryid>
 		<name>Phillip - Version 2</name>
 		<artist>Bruce Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Phillip02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Phillip02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Phillip02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Phillip02.png</faceimage>
 		<width>97</width>
 		<height>146</height>
 		<minwidth>-1</minwidth>
@@ -3183,8 +3183,8 @@
 		<categoryid>xLightsATW</categoryid>
 		<name>P.T. Barnum - Version 1</name>
 		<artist>Bruce Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/PTBarnum.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/PTBarnum.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PTBarnum.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PTBarnum.png</faceimage>
 		<width>116</width>
 		<height>122</height>
 		<minwidth>-1</minwidth>
@@ -3196,8 +3196,8 @@
 		<categoryid>xLightsATW</categoryid>
 		<name>P.T. Barnum - Version 2</name>
 		<artist>Bruce Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/PTBarnum1.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/PTBarnum1.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PTBarnum1.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PTBarnum1.png</faceimage>
 		<width>124</width>
 		<height>144</height>
 		<minwidth>-1</minwidth>
@@ -3209,8 +3209,8 @@
 		<categoryid>xLightsATW</categoryid>
 		<name>P.T. Barnum - Red Hat</name>
 		<artist>Bruce Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/PTBarnum02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/PTBarnum02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PTBarnum02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PTBarnum02.png</faceimage>
 		<width>124</width>
 		<height>144</height>
 		<minwidth>-1</minwidth>
@@ -3222,8 +3222,8 @@
 		<categoryid>xLightsATW</categoryid>
 		<name>Tom Thumb - Version 1</name>
 		<artist>Bruce Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/TomThumb.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/TomThumb.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TomThumb.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TomThumb.png</faceimage>
 		<width>145</width>
 		<height>110</height>
 		<minwidth>-1</minwidth>
@@ -3235,8 +3235,8 @@
 		<categoryid>xLightsATW</categoryid>
 		<name>Tom Thumb - Version 2</name>
 		<artist>Bruce Johnson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/TomThumb01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/TomThumb01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TomThumb01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TomThumb01.png</faceimage>
 		<width>144</width>
 		<height>113</height>
 		<minwidth>-1</minwidth>
@@ -3248,8 +3248,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Oogie Boogie</name>
 		<artist>Cory Dorning</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/OogieBoogieS01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/OogieBoogieS01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OogieBoogieS01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/OogieBoogieS01.png</faceimage>
 		<width>350</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -3261,8 +3261,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Sally</name>
 		<artist>Cory Dorning</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/SallyS01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/SallyS01.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/SallyS01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/SallyS01.png</faceimage>
 		<width>476</width>
 		<height>475</height>
 		<minwidth>-1</minwidth>
@@ -3275,8 +3275,8 @@
 		<categoryid>Trees</categoryid>
 		<name>White Tree</name>
 		<artist>Jay Danielson</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/TreeWhite01.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/TreeWhite01.jpg</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeWhite01.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeWhite01.jpg</faceimage>
 		<width>230</width>
 		<height>248</height>
 		<minwidth>-1</minwidth>
@@ -3288,8 +3288,8 @@
 		<categoryid>COVIDBulbs</categoryid>
 		<name>COVID Blue Bulb</name>
 		<artist>Bill Jenkins</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/COVIDBlueBulb.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/COVIDBlueBulb.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/COVIDBlueBulb.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/COVIDBlueBulb.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -3301,8 +3301,8 @@
 		<categoryid>COVIDBulbs</categoryid>
 		<name>COVID Red Bulb</name>
 		<artist>Bill Jenkins</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/COVIDRedBulb.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/COVIDRedBulb.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/COVIDRedBulb.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/COVIDRedBulb.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -3314,8 +3314,8 @@
 		<categoryid>COVIDBulbs</categoryid>
 		<name>COVID Green Bulb</name>
 		<artist>Bill Jenkins</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/COVIDGreenBulb.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/COVIDGreenBulb.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/COVIDGreenBulb.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/COVIDGreenBulb.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -3327,8 +3327,8 @@
 		<categoryid>COVIDBulbs</categoryid>
 		<name>COVID Yellow Bulb</name>
 		<artist>Bill Jenkins</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/COVIDYellowBulb.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/COVIDYellowBulb.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/COVIDYellowBulb.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/COVIDYellowBulb.png</faceimage>
 		<width>475</width>
 		<height>720</height>
 		<minwidth>-1</minwidth>
@@ -3340,8 +3340,8 @@
 		<categoryid>Santa</categoryid>
 		<name>Santa 4</name>
 		<artist>Daryl Erwin</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Santa04.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Santa04.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Santa04.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Santa04.png</faceimage>
 		<width>214</width>
 		<height>342</height>
 		<minwidth>-1</minwidth>
@@ -3353,8 +3353,8 @@
 		<categoryid>Other</categoryid>
 		<name>Sailor</name>
 		<artist>Daryl Erwin</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Sailor.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Sailor.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Sailor.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Sailor.png</faceimage>
 		<width>247</width>
 		<height>293</height>
 		<minwidth>-1</minwidth>
@@ -3366,8 +3366,8 @@
 		<categoryid>Santa</categoryid>
 		<name>Santa 5</name>
 		<artist>Daryl Erwin</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Santa05.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Santa05.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Santa05.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Santa05.png</faceimage>
 		<width>88</width>
 		<height>103</height>
 		<minwidth>-1</minwidth>
@@ -3379,8 +3379,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Alvin</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Alvin02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Alvin.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Alvin02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Alvin.png</faceimage>
 		<width>225</width>
 		<height>272</height>
 		<minwidth>-1</minwidth>
@@ -3392,8 +3392,8 @@
 		<categoryid>Other</categoryid>
 		<name>Banjo</name>
 		<artist>Bill Jenkins</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Banjo.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Banjo.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Banjo.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Banjo.png</faceimage>
 		<width>260</width>
 		<height>660</height>
 		<minwidth>-1</minwidth>
@@ -3405,8 +3405,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Bing Crosby</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Bing.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Bing.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Bing.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Bing.png</faceimage>
 		<width>1079</width>
 		<height>1165</height>
 		<minwidth>-1</minwidth>
@@ -3418,8 +3418,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Cat</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Cat03.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Cat03.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Cat03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Cat03.png</faceimage>
 		<width>223</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -3431,8 +3431,8 @@
 		<categoryid>Other</categoryid>
 		<name>Caveboy</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/caveboy.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/caveboy.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/caveboy.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/caveboy.png</faceimage>
 		<width>120</width>
 		<height>170</height>
 		<minwidth>-1</minwidth>
@@ -3444,8 +3444,8 @@
 		<categoryid>Other</categoryid>
 		<name>Cavegirl</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/cavegirl.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/cavegirl.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/cavegirl.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/cavegirl.png</faceimage>
 		<width>135</width>
 		<height>170</height>
 		<minwidth>-1</minwidth>
@@ -3457,8 +3457,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Alvin</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Chip_Alvin.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Chip_Alvin.gif</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Chip_Alvin.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Chip_Alvin.gif</faceimage>
 		<width>40</width>
 		<height>34</height>
 		<minwidth>-1</minwidth>
@@ -3470,8 +3470,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Dave</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Chip_Dave.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Chip_Dave.gif</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Chip_Dave.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Chip_Dave.gif</faceimage>
 		<width>32</width>
 		<height>34</height>
 		<minwidth>-1</minwidth>
@@ -3483,8 +3483,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Simon</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Chip_Simon.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Chip_Simon.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Chip_Simon.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Chip_Simon.png</faceimage>
 		<width>40</width>
 		<height>34</height>
 		<minwidth>-1</minwidth>
@@ -3496,8 +3496,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Theodore</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Chip_Theodore.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Chip_Theodore.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Chip_Theodore.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Chip_Theodore.png</faceimage>
 		<width>40</width>
 		<height>32</height>
 		<minwidth>-1</minwidth>
@@ -3509,8 +3509,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Polar Express Conductor</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/conductor02.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/conductor02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/conductor02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/conductor02.png</faceimage>
 		<width>203</width>
 		<height>193</height>
 		<minwidth>-1</minwidth>
@@ -3522,8 +3522,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Elvira</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Elvira.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Elvira.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elvira.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Elvira.png</faceimage>
 		<width>1060</width>
 		<height>1499</height>
 		<minwidth>-1</minwidth>
@@ -3535,8 +3535,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Five Nights Bonnie</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/FiveNights_Bonnie.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/FiveNights_Bonnie.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/FiveNights_Bonnie.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/FiveNights_Bonnie.png</faceimage>
 		<width>78</width>
 		<height>140</height>
 		<minwidth>-1</minwidth>
@@ -3548,8 +3548,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Five Nights Chica</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/FiveNights_Chica.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/FiveNights_Chica.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/FiveNights_Chica.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/FiveNights_Chica.png</faceimage>
 		<width>109</width>
 		<height>132</height>
 		<minwidth>-1</minwidth>
@@ -3561,8 +3561,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Five Nights Foxy</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/FiveNights_Foxy.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/FiveNights_Foxy.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/FiveNights_Foxy.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/FiveNights_Foxy.png</faceimage>
 		<width>126</width>
 		<height>122</height>
 		<minwidth>-1</minwidth>
@@ -3574,8 +3574,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Five Nights Freddy</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/FiveNights_Freddy.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/FiveNights_Freddy.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/FiveNights_Freddy.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/FiveNights_Freddy.png</faceimage>
 		<width>128</width>
 		<height>130</height>
 		<minwidth>-1</minwidth>
@@ -3587,8 +3587,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Five Nights Goldin Freddy</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/FiveNights_GoldinFreddy.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/FiveNights_GoldinFreddy.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/FiveNights_GoldinFreddy.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/FiveNights_GoldinFreddy.png</faceimage>
 		<width>125</width>
 		<height>130</height>
 		<minwidth>-1</minwidth>
@@ -3600,8 +3600,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Five Nights Mangle</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/FiveNights_Mangle.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/FiveNights_Mangle.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/FiveNights_Mangle.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/FiveNights_Mangle.png</faceimage>
 		<width>131</width>
 		<height>125</height>
 		<minwidth>-1</minwidth>
@@ -3613,8 +3613,8 @@
 		<categoryid>Frankenstein</categoryid>
 		<name>Frankenstein</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Frank08.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Frank08.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Frank08.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Frank08.png</faceimage>
 		<width>14</width>
 		<height>12</height>
 		<minwidth>-1</minwidth>
@@ -3626,8 +3626,8 @@
 		<categoryid>Other</categoryid>
 		<name>Guitar</name>
 		<artist>Bill Jenkins</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Guitar.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Guitar.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Guitar.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Guitar.png</faceimage>
 		<width>482</width>
 		<height>856</height>
 		<minwidth>-1</minwidth>
@@ -3639,8 +3639,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Hagrid</name>
 		<artist>Paul Irwin</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Hagrid.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Hagrid.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Hagrid.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Hagrid.png</faceimage>
 		<width>332</width>
 		<height>334</height>
 		<minwidth>-1</minwidth>
@@ -3652,8 +3652,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Harry Potter</name>
 		<artist>Paul Irwin</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/HarryPotter.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/HarryPotter.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/HarryPotter.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/HarryPotter.png</faceimage>
 		<width>237</width>
 		<height>290</height>
 		<minwidth>-1</minwidth>
@@ -3665,8 +3665,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Hermione</name>
 		<artist>Paul Irwin</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Hermione.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Hermione.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Hermione.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Hermione.png</faceimage>
 		<width>305</width>
 		<height>303</height>
 		<minwidth>-1</minwidth>
@@ -3678,8 +3678,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Jigsaw</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Jigsaw.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Jigsaw.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Jigsaw.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Jigsaw.png</faceimage>
 		<width>501</width>
 		<height>556</height>
 		<minwidth>-1</minwidth>
@@ -3691,8 +3691,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Maria Carey</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/MariaCarey_H.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/MariaCarey_H.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MariaCarey_H.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MariaCarey_H.png</faceimage>
 		<width>1440</width>
 		<height>1440</height>
 		<minwidth>-1</minwidth>
@@ -3704,8 +3704,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Maria Carey</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/MariaCarey_L.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/MariaCarey_L.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MariaCarey_L.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MariaCarey_L.png</faceimage>
 		<width>154</width>
 		<height>158</height>
 		<minwidth>-1</minwidth>
@@ -3717,8 +3717,8 @@
 		<categoryid>Other</categoryid>
 		<name>Mouth</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Mouth.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Mouth.jpg</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Mouth.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Mouth.jpg</faceimage>
 		<width>24</width>
 		<height>52</height>
 		<minwidth>-1</minwidth>
@@ -3730,8 +3730,8 @@
 		<categoryid>Ghosts</categoryid>
 		<name>Pink Ghoul</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/PinkGhoul.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/PinkGhoul.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PinkGhoul.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PinkGhoul.png</faceimage>
 		<width>14</width>
 		<height>12</height>
 		<minwidth>-1</minwidth>
@@ -3743,8 +3743,8 @@
 		<categoryid>Other</categoryid>
 		<name>PT Barnum</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/PTBarnum_L.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/PTBarnum_L.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PTBarnum_L.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PTBarnum_L.png</faceimage>
 		<width>16</width>
 		<height>50</height>
 		<minwidth>-1</minwidth>
@@ -3756,8 +3756,8 @@
 		<categoryid>Pumpkins</categoryid>
 		<name>Pumpkin</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Pumpkin_L.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Pumpkin_L.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pumpkin_L.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pumpkin_L.png</faceimage>
 		<width>14</width>
 		<height>12</height>
 		<minwidth>-1</minwidth>
@@ -3769,8 +3769,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Ron Weasley</name>
 		<artist>Paul Irwin</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/RonWeasley.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/RonWeasley.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/RonWeasley.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/RonWeasley.png</faceimage>
 		<width>300</width>
 		<height>384</height>
 		<minwidth>-1</minwidth>
@@ -3782,8 +3782,8 @@
 		<categoryid>Santa</categoryid>
 		<name>Santa 6</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Santa06.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Santa06.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Santa06.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Santa06.png</faceimage>
 		<width>529</width>
 		<height>549</height>
 		<minwidth>-1</minwidth>
@@ -3795,8 +3795,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Simon</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Simon.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Simon.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Simon.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Simon.png</faceimage>
 		<width>225</width>
 		<height>268</height>
 		<minwidth>-1</minwidth>
@@ -3808,8 +3808,8 @@
 		<categoryid>MiscHalloween</categoryid>
 		<name>Skeleton</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Skeleton.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Skeleton.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Skeleton.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Skeleton.png</faceimage>
 		<width>14</width>
 		<height>12</height>
 		<minwidth>-1</minwidth>
@@ -3821,8 +3821,8 @@
 		<categoryid>Other</categoryid>
 		<name>Taco</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/taco.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/taco.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/taco.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/taco.png</faceimage>
 		<width>250</width>
 		<height>300</height>
 		<minwidth>-1</minwidth>
@@ -3834,8 +3834,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Theodore</name>
 		<artist></artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Theodore.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Theodore.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Theodore.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Theodore.png</faceimage>
 		<width>214</width>
 		<height>225</height>
 		<minwidth>-1</minwidth>
@@ -3847,8 +3847,8 @@
 		<categoryid>Monsters</categoryid>
 		<name>Yellow Monster</name>
 		<artist>Unknown</artist>
-		<facelink>https://nutcracker123.com/xlights/faces/Yellow_Monster.zip</facelink>
-		<faceimage>https://nutcracker123.com/xlights/faces/Yellow_Monster.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Yellow_Monster.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Yellow_Monster.png</faceimage>
 		<width>1372</width>
 		<height>1567</height>
 		<minwidth>-1</minwidth>

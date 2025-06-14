@@ -467,8 +467,9 @@ bool MatrixFaceDownloadDialog::LoadTree()
         _categories.pop_front();
     }
 
-    const std::string facelink = "https://nutcracker123.com/xlights/faces/xlights_faces.xml";
+    //const std::string facelink = "https://nutcracker123.com/xlights/faces/xlights_faces.xml";
     //const std::string facelink = "http://localhost:3000/xlights/faces/xlights_faces.xml";
+    const std::string facelink = "https://raw.githubusercontent.com/xLightsSequencer/xLights/refs/heads/master/download/xlights_faces.xml";
 
     std::string filename;
     wxXmlDocument* vd = GetXMLFromURL(wxURI(facelink), filename);
