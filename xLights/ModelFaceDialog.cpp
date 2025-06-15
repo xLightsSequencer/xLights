@@ -100,6 +100,8 @@ BEGIN_EVENT_TABLE(ModelFaceDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
+#define MIN_COL_SIZE 10
+
 enum {
     SINGLE_NODE_FACE = 0,
     NODE_RANGE_FACE,
@@ -145,6 +147,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent, OutputManager* outputManager,
 	FlexGridSizer4->AddGrowableRow(1);
 	FlexGridSizer7 = new wxFlexGridSizer(0, 5, 0, 0);
 	FlexGridSizer7->AddGrowableCol(1);
+	FlexGridSizer7->AddGrowableRow(0);
 	StaticText3 = new wxStaticText(Panel3, ID_STATICTEXT2, _("Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer7->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	NameChoice = new wxChoice(Panel3, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
@@ -209,6 +212,8 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent, OutputManager* outputManager,
 	FlexGridSizer9->AddGrowableCol(0);
 	FlexGridSizer9->AddGrowableRow(1);
 	FlexGridSizer11 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer11->AddGrowableCol(2);
+	FlexGridSizer11->AddGrowableRow(0);
 	CustomColorNodeRanges = new wxCheckBox(NodeRangePanel, ID_CHECKBOX2, _("Force Custom Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CustomColorNodeRanges->SetValue(false);
 	FlexGridSizer11->Add(CustomColorNodeRanges, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -270,6 +275,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent, OutputManager* outputManager,
 	FlexGridSizer10->AddGrowableRow(1);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer6->AddGrowableCol(1);
+	FlexGridSizer6->AddGrowableRow(0);
 	StaticText2 = new wxStaticText(Matrix, wxID_ANY, _("Image Placement:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer6->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	MatrixImagePlacementChoice = new wxChoice(Matrix, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
@@ -314,6 +320,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent, OutputManager* outputManager,
 	StdDialogButtonSizer1->AddButton(new wxButton(Panel3, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(Panel3, wxID_CANCEL, wxEmptyString));
 	StdDialogButtonSizer1->Realize();
+	dynamic_cast <wxButton *> (Panel3->FindWindow(wxID_OK))->SetDefault();
 	FlexGridSizer4->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel3->SetSizer(FlexGridSizer4);
 	ModelPreviewPanelLocation = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
@@ -400,11 +407,11 @@ ModelFaceDialog::~ModelFaceDialog()
 
 void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<std::string, std::string> > const&finfo) {
     NodeRangeGrid->SetColSize(1, 50);
-    NodeRangeGrid->SetColSize(0, NodeRangeGrid->GetSize().x - 50 - NodeRangeGrid->GetRowLabelSize());
+    NodeRangeGrid->SetColSize(0, std::max(NodeRangeGrid->GetSize().x - 50 - NodeRangeGrid->GetRowLabelSize(), MIN_COL_SIZE));
     SingleNodeGrid->SetColSize(1, 50);
-    SingleNodeGrid->SetColSize(0, SingleNodeGrid->GetSize().x - 50 - SingleNodeGrid->GetRowLabelSize());
-    MatrixModelsGrid->SetColSize(0, (MatrixModelsGrid->GetSize().x - MatrixModelsGrid->GetRowLabelSize()) / 2);
-    MatrixModelsGrid->SetColSize(1, (MatrixModelsGrid->GetSize().x - MatrixModelsGrid->GetRowLabelSize()) / 2);
+    SingleNodeGrid->SetColSize(0, std::max(SingleNodeGrid->GetSize().x - 50 - SingleNodeGrid->GetRowLabelSize(), MIN_COL_SIZE));
+    MatrixModelsGrid->SetColSize(0, std::max((MatrixModelsGrid->GetSize().x - MatrixModelsGrid->GetRowLabelSize()) / 2, MIN_COL_SIZE));
+    MatrixModelsGrid->SetColSize(1, std::max((MatrixModelsGrid->GetSize().x - MatrixModelsGrid->GetRowLabelSize()) / 2, MIN_COL_SIZE));
     NameChoice->Clear();
     model = cls;
     modelPreview->SetModel(cls);
@@ -503,11 +510,11 @@ static bool SetGrid(wxGrid *grid, std::map<std::string, std::string> &info) {
     bool customColor = false;
     if (info["CustomColors"] == "1") {
         grid->ShowCol(1);
-        grid->SetColSize(0, grid->GetSize().x - grid->GetColSize(1) - grid->GetRowLabelSize());
+        grid->SetColSize(0, std::max(grid->GetSize().x - grid->GetColSize(1) - grid->GetRowLabelSize(), MIN_COL_SIZE));
         customColor = true;
     } else {
         grid->HideCol(1);
-        grid->SetColSize(0, grid->GetSize().x - grid->GetRowLabelSize());
+        grid->SetColSize(0, std::max(grid->GetSize().x - grid->GetRowLabelSize(), MIN_COL_SIZE));
     }
     for (int x = 0; x < grid->GetNumberRows(); x++) {
         wxString pname = grid->GetRowLabelValue(x);
@@ -932,11 +939,11 @@ void ModelFaceDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
     if (FaceTypeChoice->GetSelection() == SINGLE_NODE_FACE) {
         if (CustomColorSingleNode->IsChecked()) {
             SingleNodeGrid->ShowCol(1);
-            SingleNodeGrid->SetColSize(0, SingleNodeGrid->GetSize().x - SingleNodeGrid->GetColSize(1) - SingleNodeGrid->GetRowLabelSize());
+            SingleNodeGrid->SetColSize(0, std::max(SingleNodeGrid->GetSize().x - SingleNodeGrid->GetColSize(1) - SingleNodeGrid->GetRowLabelSize(), MIN_COL_SIZE));
             faceData[name]["CustomColors"] = "1";
         } else {
             SingleNodeGrid->HideCol(1);
-            SingleNodeGrid->SetColSize(0, SingleNodeGrid->GetSize().x - SingleNodeGrid->GetRowLabelSize());
+            SingleNodeGrid->SetColSize(0, std::max(SingleNodeGrid->GetSize().x - SingleNodeGrid->GetRowLabelSize(), MIN_COL_SIZE));
             faceData[name]["CustomColors"] = "0";
             for (auto& it : faceData[name])
             {
@@ -951,7 +958,7 @@ void ModelFaceDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
     } else {
         if (CustomColorNodeRanges->IsChecked()) {
             NodeRangeGrid->ShowCol(1);
-            NodeRangeGrid->SetColSize(0, NodeRangeGrid->GetSize().x - NodeRangeGrid->GetColSize(1) - NodeRangeGrid->GetRowLabelSize());
+            NodeRangeGrid->SetColSize(0, std::max(NodeRangeGrid->GetSize().x - NodeRangeGrid->GetColSize(1) - NodeRangeGrid->GetRowLabelSize(), MIN_COL_SIZE));
             faceData[name]["CustomColors"] = "1";
             for (int r = 0; r < NodeRangeGrid->GetNumberRows(); r++) {
                 wxString pname1 = NodeRangeGrid->GetRowLabelValue(r);
@@ -961,7 +968,7 @@ void ModelFaceDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
             }
         } else {
             NodeRangeGrid->HideCol(1);
-            NodeRangeGrid->SetColSize(0, NodeRangeGrid->GetSize().x - NodeRangeGrid->GetRowLabelSize());
+            NodeRangeGrid->SetColSize(0, std::max(NodeRangeGrid->GetSize().x - NodeRangeGrid->GetRowLabelSize(), MIN_COL_SIZE));
             faceData[name]["CustomColors"] = "0";
             for (auto& it : faceData[name]) {
                 if (EndsWith(it.first, "-Color")) {
@@ -2040,18 +2047,18 @@ void ModelFaceDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
 
 void ModelFaceDialog::OnMatrixModelsGridResize(wxSizeEvent& event)
 {
-    MatrixModelsGrid->SetColSize(0, (event.GetSize().x - MatrixModelsGrid->GetRowLabelSize()) / 2);
-    MatrixModelsGrid->SetColSize(1, (event.GetSize().x - MatrixModelsGrid->GetRowLabelSize()) / 2);
+    MatrixModelsGrid->SetColSize(0, std::max((event.GetSize().x - MatrixModelsGrid->GetRowLabelSize()) / 2, MIN_COL_SIZE));
+    MatrixModelsGrid->SetColSize(1, std::max((event.GetSize().x - MatrixModelsGrid->GetRowLabelSize()) / 2, MIN_COL_SIZE));
 }
 
 void ModelFaceDialog::OnSingleNodeGridResize(wxSizeEvent& event)
 {
-    SingleNodeGrid->SetColSize(0, event.GetSize().x - SingleNodeGrid->GetColSize(1) - SingleNodeGrid->GetRowLabelSize());
+    SingleNodeGrid->SetColSize(0, std::max(event.GetSize().x - SingleNodeGrid->GetColSize(1) - SingleNodeGrid->GetRowLabelSize(), MIN_COL_SIZE));
 }
 
 void ModelFaceDialog::OnNodeRangeGridResize(wxSizeEvent& event)
 {
-    NodeRangeGrid->SetColSize(0, event.GetSize().x - NodeRangeGrid->GetColSize(1) - NodeRangeGrid->GetRowLabelSize());
+    NodeRangeGrid->SetColSize(0, std::max(event.GetSize().x - NodeRangeGrid->GetColSize(1) - NodeRangeGrid->GetRowLabelSize(), MIN_COL_SIZE));
 }
 
 void ModelFaceDialog::ExportFacesToOtherModels() {

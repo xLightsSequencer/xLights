@@ -22,6 +22,7 @@
 								<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
 									<cols>5</cols>
 									<growablecols>1</growablecols>
+									<growablerows>0</growablerows>
 									<object class="sizeritem">
 										<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText3" member="yes">
 											<label>Name:</label>
@@ -169,6 +170,8 @@
 														<object class="sizeritem">
 															<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
 																<cols>3</cols>
+																<growablecols>2</growablecols>
+																<growablerows>0</growablerows>
 																<object class="sizeritem">
 																	<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CustomColorNodeRanges" member="yes">
 																		<label>Force Custom Colors</label>
@@ -276,6 +279,7 @@
 															<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
 																<cols>3</cols>
 																<growablecols>1</growablecols>
+																<growablerows>0</growablerows>
 																<object class="sizeritem">
 																	<object class="wxStaticText" name="wxID_ANY" variable="StaticText2" member="no">
 																		<label>Image Placement:</label>
