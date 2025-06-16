@@ -1454,8 +1454,8 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 if (findKey(sts, "CustomColors") == "1") {
                     if (findKey(sts, "Type") == "NodeRange") {
                         for (size_t i = 1; i <= 200; i++) {
-                            auto r = findKey(sts, wxString::Format("s%d", (int)i));
-                            auto c = findKey(sts, wxString::Format("s%d-Color", (int)i));
+                            auto r = findKey(sts, wxString::Format("s%03d", (int)i));
+                            auto c = findKey(sts, wxString::Format("s%03d-Color", (int)i));
                             if (r != "") {
                                 xlColor colour = xlColor(c);
                                 if (c.empty()) {
@@ -1465,7 +1465,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                                 
                                 // use the nodes as it is faster
                                 if (model_info->GetStateInfoNodes().find(outlineState) != model_info->GetStateInfoNodes().end()) {
-                                    const std::string k2 = wxString::Format("s%d", (int)i).ToStdString();
+                                    const std::string k2 = wxString::Format("s%03d", (int)i).ToStdString();
                                     for (const auto it : model_info->GetStateInfoNodes().find(outlineState)->second.find(k2)->second) {
                                         buffer.SetNodePixel(it, colour, true);
                                     }
