@@ -7,7 +7,6 @@
     <vendor>
         <name>Gilbert Engineering USA</name>
         <link>https://raw.githubusercontent.com/GEUSA/xmodels/master/geusa-xlights.xml</link>
-        <maxmodels>50</maxmodels>
     </vendor>
     <vendor>
         <name>EFL</name>
