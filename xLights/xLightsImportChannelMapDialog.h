@@ -588,6 +588,8 @@ protected:
         static const long ID_MNU_EXPANDALL;
         static const long ID_MNU_SHOWALLMAPPED;
         static const long ID_MNU_AUTOMAPSELECTED;
+        static const wxWindowID ID_MNU_CLEARSELECTED;
+        static const wxWindowID ID_MNU_CLEARALL;
         static const long ID_MNU_AUTOMAPSELECTED_AVAIL;
         static const wxWindowID ID_MNU_ADD_EMPTY_GROUP;
 
@@ -624,6 +626,8 @@ protected:
         void RightClickModelsAvail(wxDataViewEvent& event);
         void CollapseAll();
         void ExpandAll();
+        void ClearAll();
+        void ClearSelected();
         void AddEmptyGroup();
         void ShowAllMapped();
         void OnPopupTimingTracks(wxCommandEvent& event);
