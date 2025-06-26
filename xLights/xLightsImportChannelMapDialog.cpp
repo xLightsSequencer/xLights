@@ -2988,7 +2988,7 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                 if (isTargetSelected) break;
             }
 
-            if ((selectMapTarget && isTargetSelected) || !selectMapTarget) {
+            if ((selectMapTarget && isTargetSelected) || !selectMapTarget) { // If LS has selection or no selections required
                 auto aliases = model->GetAliases();
                 if ((model->IsGroup() && (mg == "B" || mg == "G")) || (!model->IsGroup() && (mg == "B" || mg == "M"))) {
                     for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
@@ -3062,9 +3062,58 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                         }
                     }
                 }
-            } else {
-                static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                logger_base.warn("xLightsImportTreeModel::OnButton_AutoMapClick: Weird ... model %d was nullptr", i);
+            }
+        } else {
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn("xLightsImportTreeModel::OnButton_AutoMapClick: Weird ... model %d was nullptr", i);
+        }
+    }
+    // Process selected submodels independently
+    if (selectMapTarget) {
+        for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i) {
+            auto model = _dataModel->GetNthChild(i);
+            if (model != nullptr) {
+                for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
+                    auto submodel = model->GetNthChild(k);
+                    if (submodel != nullptr) {
+                        bool isSubmodelSelected = false;
+                        auto index = (wxDataViewItem)submodel;
+                        for (const wxDataViewItem& selectedItem : targetSelectedItems) {
+                            isSubmodelSelected = (index.GetID() == selectedItem.GetID() ? true : false);
+                            if (isSubmodelSelected)
+                                break;
+                        }
+
+                        if ((selectMapTarget && isSubmodelSelected) || !selectMapTarget) {
+                            for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
+                                bool isSourceSelected = ListCtrl_Available->GetItemState(j, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED;
+                                if ((selectMapAvail && isSourceSelected) || !selectMapAvail) {
+                                    std::string const availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower().ToStdString();
+                                    auto m = xlights->GetModel(model->_model);
+                                    auto& mAliases = m->GetAliases();
+                                    if (m != nullptr) {
+                                        auto sm = m->GetSubModel(submodel->_strand);
+                                        if (sm != nullptr) {
+                                            auto& smAliases = sm->GetAliases();
+                                            if (submodel->_mapping.empty()) {
+                                                if (lambda_strand(submodel->GetModelName(), availName, extra1, extra2, smAliases)) {
+                                                    submodel->Map(ListCtrl_Available->GetItemText(j), "SubModel");
+                                                } else {
+                                                    for (const auto& modelAlias : mAliases) { // check for any aliases on model itself
+                                                        if (lambda_strand(modelAlias + "/" + submodel->_strand, availName, extra1, extra2, smAliases)) {
+                                                            submodel->Map(ListCtrl_Available->GetItemText(j), "SubModel");
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
