@@ -21,8 +21,18 @@
 			<object class="sizeritem">
 				<object class="wxBoxSizer" variable="BoxSizer1" member="no">
 					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StatictText1" member="yes">
+							<label>Select Service</label>
+							<style>wxALIGN_RIGHT</style>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
 						<object class="wxChoice" name="ID_CHOICE_SERVICES" variable="ChoiceServicesTest" member="yes">
 							<selection>0</selection>
+							<handler function="OnChoiceServicesTestSelect" entry="EVT_CHOICE" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -31,6 +41,7 @@
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_TEST" variable="ButtonTest" member="yes">
 							<label>Test</label>
+							<enabled>0</enabled>
 							<handler function="OnButtonTestClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

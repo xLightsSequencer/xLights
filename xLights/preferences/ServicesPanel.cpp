@@ -11,6 +11,7 @@
 
 //(*IdInit(ServicesPanel)
 const wxWindowID ServicesPanel::ID_PROPERYMANAGER_SERVICES = wxNewId();
+const wxWindowID ServicesPanel::ID_STATICTEXT1 = wxNewId();
 const wxWindowID ServicesPanel::ID_CHOICE_SERVICES = wxNewId();
 const wxWindowID ServicesPanel::ID_BUTTON_TEST = wxNewId();
 //*)
@@ -121,13 +122,17 @@ ServicesPanel::ServicesPanel(wxWindow* parent, ServiceManager* sm, wxWindowID id
 	servicesGrid->SetMinSize(wxDLG_UNIT(this,wxSize(200,150)));
 	FlexGridSizer1->Add(servicesGrid, 1, wxALL|wxEXPAND, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
+	StatictText1 = new wxStaticText(this, ID_STATICTEXT1, _("Select Service"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, _T("ID_STATICTEXT1"));
+	BoxSizer1->Add(StatictText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ChoiceServicesTest = new wxChoice(this, ID_CHOICE_SERVICES, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_SERVICES"));
 	BoxSizer1->Add(ChoiceServicesTest, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonTest = new wxButton(this, ID_BUTTON_TEST, _("Test"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_TEST"));
+	ButtonTest->Disable();
 	BoxSizer1->Add(ButtonTest, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
 
+	Connect(ID_CHOICE_SERVICES, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ServicesPanel::OnChoiceServicesTestSelect);
 	Connect(ID_BUTTON_TEST, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ServicesPanel::OnButtonTestClick);
 	//*)
     servicesGrid->SetPropertyAttributeAll(wxPG_BOOL_USE_CHECKBOX, true);
@@ -179,7 +184,7 @@ void ServicesPanel::OnButtonTestClick(wxCommandEvent& event) {
     if (work) {
         wxMessageBox("Service " + ts->GetLLMName() + " is valid", "Success", wxICON_INFORMATION);
     } else {
-        wxMessageBox("Service " + ts->GetLLMName() + " returned: " + msg, "Error", wxICON_ERROR);
+        wxMessageBox("Service " + ts->GetLLMName() + " returned: " + (msg.empty() ? "No response" : msg), "Error", wxICON_ERROR);
     }
 }
 
@@ -194,4 +199,9 @@ void ServicesPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();
     }
+}
+
+void ServicesPanel::OnChoiceServicesTestSelect(wxCommandEvent& event)
+{
+        ButtonTest->Enable(!ChoiceServicesTest->GetStringSelection().IsEmpty());
 }
