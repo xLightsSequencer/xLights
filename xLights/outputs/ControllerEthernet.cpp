@@ -983,6 +983,10 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
                         while (chs > 0) {
                             size_t uch = std::min(chs, (size_t)channels_per_universe);
                             wxASSERT(o != end(_outputs));
+                            if (o == end(_outputs)) {
+                                wxLogError("Unexpected error. Not enough outputs. Channels remaining: %zu, Outputs size: %zu", chs, _outputs.size());
+                                return false;
+                            }
                             (*o)->SetChannels(uch);
                             chs -= uch;
                             ++o;
