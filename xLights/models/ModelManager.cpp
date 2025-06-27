@@ -423,12 +423,29 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                         auto mgmn = wxString(it);
                         mgmn = mname + "/" + mgmn.AfterFirst('/');
                         std::string em = "EXPORTEDMODEL/" + mgmn.AfterFirst('/');
-                        if (ContainsBetweenCommas(grpModels, em) && std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
-                            std::find(prevousNames.begin(), prevousNames.end(), mgmn) == prevousNames.end() &&
-                            !mmg->DirectlyContainsModel(mgmn)) {
-                            mmg->AddModel(mgmn);
-                            prevousNames.push_back(mgmn);
-                            found = true;
+                        if (ContainsBetweenCommas(grpModels, em)) {
+                            if (std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
+                                std::find(prevousNames.begin(), prevousNames.end(), mgmn) == prevousNames.end() &&
+                                !mmg->DirectlyContainsModel(mgmn)) {
+                                mmg->AddModel(mgmn);
+                                prevousNames.push_back(mgmn);
+                                found = true;
+                            }
+                        } else { // look for zero padded
+                            size_t pos = it.find_last_not_of("0123456789") + 1;
+                            int num = std::stoi(it.substr(pos));
+                            auto itZeroPad = it.substr(0, pos) + (num < 10 ? "0" : "") + std::to_string(num);
+                            auto mgmn = wxString(itZeroPad);
+                            mgmn = mname + "/" + mgmn.AfterFirst('/');
+                            std::string em = "EXPORTEDMODEL/" + mgmn.AfterFirst('/');
+                            if (ContainsBetweenCommas(grpModels, em) &&
+                                std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
+                                std::find(prevousNames.begin(), prevousNames.end(), mgmn) == prevousNames.end() &&
+                                !mmg->DirectlyContainsModel(mgmn)) {
+                                mmg->AddModel(mgmn);
+                                prevousNames.push_back(mgmn);
+                                found = true;
+                            }
                         }
                     } else {
                         if (ContainsBetweenCommas(grpModels, it) && std::find(mmnmn.begin(), mmnmn.end(), mname) == mmnmn.end() &&
