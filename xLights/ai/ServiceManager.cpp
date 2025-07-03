@@ -29,7 +29,7 @@ ServiceManager::~ServiceManager() {
 
 aiBase* ServiceManager::getService(std::string const& serviceName) {
     for (auto& service : m_services) {
-        if (service->GetLLMName() == serviceName) {
+        if (Lower(service->GetLLMName()) == Lower(serviceName)) {
             return service.get();
         }
     }
