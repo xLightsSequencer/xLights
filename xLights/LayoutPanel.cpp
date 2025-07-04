@@ -346,7 +346,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	LeftPanelSizer->AddGrowableCol(0);
 	LeftPanelSizer->AddGrowableRow(0);
 	ModelSplitter = new wxSplitterWindow(LeftPanel, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW1"));
-	ModelSplitter->SetMinimumPaneSize(100);
+	ModelSplitter->SetMinimumPaneSize(0);
 	ModelSplitter->SetSashGravity(0.5);
 	FirstPanel = new wxPanel(ModelSplitter, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -407,7 +407,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	SetSizer(FlexGridSizerPreview);
 
 	Connect(ID_NOTEBOOK_OBJECTS, wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&LayoutPanel::OnNotebook_ObjectsPageChanged);
-	Connect(ID_SPLITTERWINDOW1, wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, (wxObjectEventFunction)&LayoutPanel::OnModelSplitterSashPosChanged);
 	Connect(ID_CHECKBOX_3D, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&LayoutPanel::OnCheckBox_3DClick);
 	Connect(ID_CHECKBOXOVERLAP, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&LayoutPanel::OnCheckBoxOverlapClick);
 	Connect(ID_BUTTON_SAVE_PREVIEW, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&LayoutPanel::OnButtonSavePreviewClick);
@@ -585,6 +584,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     if (msp != -1) {
         ModelSplitter->SetSashGravity(0.0);
         ModelSplitter->SetSashPosition(msp);
+    } else {
+        ModelSplitter->SetSashPosition(200);
     }
 
     TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
@@ -592,10 +593,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     TreeListViewModels->SetColumnWidth(2, TreeListViewModels->WidthFor(CHNUMWIDTH));
     TreeListViewModels->SetColumnWidth(3, wxCOL_WIDTH_AUTOSIZE);
 
-    if (ModelSplitter->GetSashPosition() < 200)
-    {
-        ModelSplitter->SetSashPosition(200, true);
-    }
 }
 
 wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
@@ -792,6 +789,11 @@ void LayoutPanel::SaveModelsListColumns()
 
 LayoutPanel::~LayoutPanel()
 {
+    if (ModelGroupWindow != nullptr) {
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write("LayoutModelSplitterSash", ModelSplitter->GetSashPosition());
+    }
+
     SaveModelsListColumns();
     if (background != nullptr) {
         delete background;
@@ -6231,15 +6233,6 @@ int LayoutPanel::ViewObjectsSelectedCount() const
     return selectedObjectCount;
 }
 
-void LayoutPanel::OnModelSplitterSashPosChanged(wxSplitterEvent& event)
-{
-    if (ModelGroupWindow == nullptr) {
-        //event during creation
-        return;
-    }
-    wxConfigBase* config = wxConfigBase::Get();
-    config->Write("LayoutModelSplitterSash", event.GetSashPosition());
-}
 
 void LayoutPanel::OnSplitterWindowSashPosChanged(wxSplitterEvent& event)
 {
