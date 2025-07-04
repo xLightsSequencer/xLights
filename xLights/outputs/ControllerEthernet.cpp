@@ -34,6 +34,8 @@
 #include "../xLightsMain.h"
 #endif
 
+#include <log4cpp/Category.hh>
+
 #pragma region Property Choices
 wxPGChoices ControllerEthernet::__types;
 
@@ -837,6 +839,7 @@ bool ControllerEthernet::SupportsUpload() const {
 
 bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> models, uint32_t universeSize)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_outputs.size() == 0) return false;
 
     for (auto& it2 : GetOutputs()) {
@@ -983,6 +986,10 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
                         while (chs > 0) {
                             size_t uch = std::min(chs, (size_t)channels_per_universe);
                             wxASSERT(o != end(_outputs));
+                            if (o == end(_outputs)) {
+                                logger_base.debug("Unexpected error. Not enough outputs. Channels remaining: %zu, Outputs size: %zu", chs, _outputs.size());
+                                return false;
+                            }
                             (*o)->SetChannels(uch);
                             chs -= uch;
                             ++o;
