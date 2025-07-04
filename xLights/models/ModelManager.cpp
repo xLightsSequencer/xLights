@@ -392,25 +392,39 @@ std::string ModelManager::SerialiseModelGroupsForModel(Model* m) const
     return res;
 }
 
-void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string& mname, bool& merge, bool& ask)
-{
+void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string& mname, bool& merge, bool& ask) {
     // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // logger_base.debug("ModelManager adding groups.");
 
     auto grpModels = n->GetAttribute("models");
-    if (grpModels.length() == 0)
+    if (grpModels.empty())
+    {
         return;
+    }
 
     auto mgname = n->GetAttribute("name");
+    bool alias { false };
     if (models.find(mgname) != models.end()) {
-        if (ask) {
+        for (const auto& [name, mm] : models) {
+            if (mm->GetDisplayAs() == "ModelGroup") {
+                if (mm->IsAlias(mgname, false)) {
+                    mgname = name;
+                    alias = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (models.find(mgname) != models.end()) {
+        if (ask && !alias) {
             wxMessageDialog confirm(GetXLightsFrame(), _("Model contains Model Group(s) that Already Exist.\n Would you Like to Add this Model to the Existing Groups?"), _("Model Group(s) Already Exists"), wxYES_NO);
             int returnCode = confirm.ShowModal();
             if (returnCode == wxID_YES)
                 merge = true;
             ask = false;
         }
-        if (merge) { // merge
+        if (merge || alias) { // merge
             Model* mg = GetModel(mgname);
             if (mg->GetDisplayAs() == "ModelGroup") {
                 ModelGroup* mmg = dynamic_cast<ModelGroup*>(mg);
