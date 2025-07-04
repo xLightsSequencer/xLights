@@ -153,7 +153,7 @@
 		<id>3</id>
 		<categoryid>Elves</categoryid>
 		<name>Boy Elf</name>
-		<artist>Unknown</artist>
+		<artist>Ed Buechner</artist>
 		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/BoyElf01.zip</facelink>
 		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/BoyElf01.png</faceimage>
 		<width>302</width>
@@ -220,7 +220,7 @@
 		<id>8</id>
 		<categoryid>Elves</categoryid>
 		<name>Girl Elf</name>
-		<artist>Unknown</artist>
+		<artist>Ed Buechner</artist>
 		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/GirlElf01.zip</facelink>
 		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/GirlElf01.png</faceimage>
 		<width>1106</width>
@@ -562,7 +562,7 @@
 		<id>34</id>
 		<categoryid>Pumpkins</categoryid>
 		<name>Pumpkin</name>
-		<artist>Unknown</artist>
+		<artist>Ed Buechner</artist>
 		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pumpkin01.zip</facelink>
 		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pumpkin01.png</faceimage>
 		<width>230</width>
@@ -785,7 +785,7 @@
 		<id>51</id>
 		<categoryid>Snowmen</categoryid>
 		<name>Snowman</name>
-		<artist>Unknown</artist>
+		<artist>Ed Buechner</artist>
 		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Snowman03.zip</facelink>
 		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Snowman03.png</faceimage>
 		<width>236</width>
@@ -915,7 +915,7 @@
 		<id>61</id>
 		<categoryid>Trees</categoryid>
 		<name>Green Tree</name>
-		<artist>Ed Buechner</artist>
+		<artist>Unknown</artist>
 		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeGreen02.zip</facelink>
 		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeGreen02.jpg</faceimage>
 		<width>230</width>
@@ -928,7 +928,7 @@
 		<id>62</id>
 		<categoryid>Trees</categoryid>
 		<name>Light Green Tree</name>
-		<artist>Ed Buechner</artist>
+		<artist>Unknown</artist>
 		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeLightGreen01.zip</facelink>
 		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeLightGreen01.jpg</faceimage>
 		<width>230</width>
@@ -941,7 +941,7 @@
 		<id>63</id>
 		<categoryid>Trees</categoryid>
 		<name>Red Tree</name>
-		<artist>Ed Buechner</artist>
+		<artist>Unknown</artist>
 		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeRed01.zip</facelink>
 		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeRed01.jpg</faceimage>
 		<width>230</width>
@@ -967,7 +967,7 @@
 		<id>65</id>
 		<categoryid>Trees</categoryid>
 		<name>Teal Tree</name>
-		<artist>Ed Buechner</artist>
+		<artist>Unknown</artist>
 		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeTeal01.zip</facelink>
 		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeTeal01.jpg</faceimage>
 		<width>230</width>
@@ -980,7 +980,7 @@
 		<id>66</id>
 		<categoryid>Trees</categoryid>
 		<name>Yellow Tree</name>
-		<artist>Ed Buechner</artist>
+		<artist>Unknown</artist>
 		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeYellow01.zip</facelink>
 		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/TreeYellow01.jpg</faceimage>
 		<width>230</width>
@@ -3380,7 +3380,7 @@
 		<name>Alvin</name>
 		<artist>Ed Buechner</artist>
 		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Alvin02.zip</facelink>
-		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Alvin.png</faceimage>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Alvin02.png</faceimage>
 		<width>225</width>
 		<height>272</height>
 		<minwidth>-1</minwidth>
@@ -3509,8 +3509,8 @@
 		<categoryid>MiscChristmas</categoryid>
 		<name>Polar Express Conductor</name>
 		<artist>Ed Buechner</artist>
-		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/conductor02.zip</facelink>
-		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/conductor02.png</faceimage>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Conductor02.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Conductor02.png</faceimage>
 		<width>203</width>
 		<height>193</height>
 		<minwidth>-1</minwidth>
@@ -3690,7 +3690,7 @@
 		<id>273</id>
 		<categoryid>MiscChristmas</categoryid>
 		<name>Maria Carey</name>
-		<artist></artist>
+		<artist>Ed Buechner</artist>
 		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MariaCarey_H.zip</facelink>
 		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MariaCarey_H.png</faceimage>
 		<width>1440</width>
@@ -3703,9 +3703,9 @@
 		<id>274</id>
 		<categoryid>MiscChristmas</categoryid>
 		<name>Maria Carey</name>
-		<artist></artist>
-		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MariaCarey_L.zip</facelink>
-		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MariaCarey_L.png</faceimage>
+		<artist>Ed Buechner</artist>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MariahCarey_L.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/MariahCarey_L.png</faceimage>
 		<width>154</width>
 		<height>158</height>
 		<minwidth>-1</minwidth>
@@ -3853,6 +3853,110 @@
 		<height>1567</height>
 		<minwidth>-1</minwidth>
 		<minheight>-1</minheight>
-		<notes/>
+		<notes></notes>
+	</face>
+    <face>
+		<id>286</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Dorthy</name>
+		<artist>Ed Buechner</artist>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Dorthy.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Dorthy.png</faceimage>
+		<width>375</width>
+		<height>375</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes></notes>
+	</face>
+	<face>
+		<id>287</id>
+		<categoryid>Frankenstein</categoryid>
+		<name>Little Frank</name>
+		<artist>Ed Buechner</artist>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/LittleFrank.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/LittleFrank.png</faceimage>
+		<width>312</width>
+		<height>315</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes></notes>
+	</face>
+	<face>
+		<id>288</id>
+		<categoryid>MiscHalloween</categoryid>
+		<name>Alice Cooper</name>
+		<artist>Ed Buechner</artist>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/AliceCooper.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/AliceCooper.png</faceimage>
+		<width>383</width>
+		<height>464</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes></notes>
+	</face>
+	<face>
+		<id>289</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Marlyn Monroe</name>
+		<artist>Ed Buechner</artist>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Marlyn.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Marlyn.png</faceimage>
+		<width>935</width>
+		<height>985</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes></notes>
+	</face>
+	<face>
+		<id>290</id>
+		<categoryid>Pumpkins</categoryid>
+		<name>Pumpkin</name>
+		<artist>Ed Buechner</artist>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pumpkin03.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Pumpkin03.png</faceimage>
+		<width>790</width>
+		<height>734</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Transparent outline</notes>
+	</face>
+	<face>
+	    <id>291</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Paul McCartney</name>
+		<artist>Ed Buechner</artist>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PaulMc.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/PaulMc.png</faceimage>
+		<width>577</width>
+		<height>639</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes></notes>
+	</face>
+	<face>
+	    <id>292</id>
+		<categoryid>Other</categoryid>
+		<name>Brian Setzer</name>
+		<artist>Ed Buechner</artist>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/BrianSetzer.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/BrianSetzer.png</faceimage>
+		<width>180</width>
+		<height>211</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes></notes>
+	</face>
+	<face>
+	    <id>292</id>
+		<categoryid>Other</categoryid>
+		<name>Alex</name>
+		<artist>Ed Buechner</artist>
+		<facelink>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Alex.zip</facelink>
+		<faceimage>https://raw.githubusercontent.com/xLightsSequencer/xLights-data/refs/heads/main/faces/Alex.png</faceimage>
+		<width>248</width>
+		<height>310</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes></notes>
 	</face>
 </faces>
