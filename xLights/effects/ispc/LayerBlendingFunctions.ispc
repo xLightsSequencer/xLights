@@ -32,7 +32,7 @@ inline uint8 alpha(const uint32 c) {
     return (c >> 24) & 0xFF;
 }
 inline uint32 fromComponents(const uint8 r, const uint8 g, const uint8 b, const uint8 a) {
-    return (((int32)a) << 24) | (((int32)b) << 16) |  (((int32)g) << 8) |  (int32)r;
+    return (((int32)a) << 24) | (((int32)b) << 16) | (((int32)g) << 8) | (int32)r;
 }
 
 inline HSVColor toHSV(const uint32 &c)
@@ -923,9 +923,9 @@ bool isBlack(const uint32 &c) {
     return (c & 0xFFFFFF) == 0;
 }
 export void AveragedFunction(uniform const LayerBlendingData &data,
-                                uniform uint32 result[],
-                                const uniform uint32 src[],
-                                const uniform uint32 indexes[]) {
+                            uniform uint32 result[],
+                            const uniform uint32 src[],
+                            const uniform uint32 indexes[]) {
     foreach (index = data.startNode...data.endNode) {
         uint32 fg = src[index];
         if (!data.isChromaKey || !applyChroma(data, fg)) {
@@ -933,8 +933,11 @@ export void AveragedFunction(uniform const LayerBlendingData &data,
             if (isBlack(bg)) {
                 result[index] = fg;
             } else if (!isBlack(fg)) {
-                result[index] = fromComponents((uint8)((red(fg) + red(bg)) >> 1), (uint8)((green(fg) + green(bg)) >> 1),
-                        (uint8)((blue(fg) + blue(bg)) >> 1), (uint8)((alpha(fg) + alpha(bg)) >> 1));
+                uint8 r_avg = ((int)red(fg) + (int)red(bg)) / 2;
+                uint8 g_avg = ((int)green(fg) + (int)green(bg)) / 2;
+                uint8 b_avg = ((int)blue(fg) + (int)blue(bg)) / 2;
+                uint8 a_avg = ((int)alpha(fg) + (int)alpha(bg)) / 2;
+                result[index] = fromComponents(r_avg, g_avg, b_avg, a_avg);
             }
         }
     }
