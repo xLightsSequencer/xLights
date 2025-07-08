@@ -97,6 +97,7 @@ const long EffectsGrid::ID_GRID_MNU_UNDO = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_REDO = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_PRESETS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_PHRASE = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_PHRASES = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_AUTOLABEL = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_HALVETIMINGS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_WORD = wxNewId();
@@ -503,6 +504,9 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
         if (selectedEffect != nullptr && selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             if (ri->layerIndex == 0) {
                 mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_PHRASE, "Breakdown Phrase");
+                if (selectedEffect->GetParentEffectLayer()->GetSelectedEffectCount() > 1) {
+                    mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_PHRASES, "Breakdown Selected Phrases");
+                }
             } else if (ri->layerIndex == 1) {
                 mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_WORD, "Breakdown Word");
                 if (selectedEffect->GetParentEffectLayer()->GetSelectedEffectCount() > 1) {
@@ -1106,6 +1110,54 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
             word_layer->SelectEffectsInTimeRange(phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS());
             word_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
             mSequenceElements->BreakdownPhrase(word_layer, phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS(), phrase_effect->GetEffectName(), mSequenceElements->get_undo_mgr());
+            element->SetCollapsed(false);
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(mParent, eventRowHeaderChanged);
+        }
+    } else if (id == ID_GRID_MNU_BREAKDOWN_PHRASES) {
+        logger_base.debug("OnGridPopup - ID_GRID_MNU_BREAKDOWN_PHRASES");
+        Effect* phrase_effect = mSelectedEffect;
+        EffectLayer* word_layer;
+        TimingElement* element = dynamic_cast<TimingElement*>(phrase_effect->GetParentEffectLayer()->GetParentElement());
+        bool found_locked = false;
+        element->SetFixedTiming(0);
+        if (element->GetEffectLayerCount() == 1) {
+            word_layer = element->AddEffectLayer();
+        } else {
+            word_layer = element->GetEffectLayer(1);
+        }
+
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
+        word_layer->UnSelectAllEffects();
+        word_layer->SelectEffectsInTimeRange(phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS());
+        EffectLayer* layer = phrase_effect->GetParentEffectLayer();
+        for (int x = 0; x < layer->GetEffectCount(); x++) {
+            phrase_effect = layer->GetEffect(x);
+            if (phrase_effect->GetSelected() != EFFECT_NOT_SELECTED) {
+                for (auto&& e : word_layer->GetAllEffectsByTime(phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS())) {
+                    if (e->IsLocked()) {
+                        found_locked = true;
+                        break;
+                    }
+                }
+                word_layer->SelectEffectsInTimeRange(phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS());
+            }
+            if (found_locked) {
+                break;
+            }
+        }
+
+        if (found_locked) {
+            wxMessageBox("Locked words in the way - Can not break down phrase", "Error", wxOK);
+            word_layer->UnSelectAllEffects();
+        } else {
+            word_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+            for (int x = 0; x < layer->GetEffectCount(); x++) {
+                phrase_effect = layer->GetEffect(x);
+                if (phrase_effect->GetSelected() != EFFECT_NOT_SELECTED) {
+                    mSequenceElements->BreakdownPhrase(word_layer, phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS(), phrase_effect->GetEffectName(), mSequenceElements->get_undo_mgr());
+                }
+            }
             element->SetCollapsed(false);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(mParent, eventRowHeaderChanged);

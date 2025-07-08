@@ -13,21 +13,6 @@
         <link>https://efl-designs.com/wp-content/uploads/filr/8660/Vendor.txt</link>
     </vendor>
     <vendor>
-        <name>Custom Christmas Creations</name>
-        <link>https://cdn.shopify.com/s/files/1/0277/8490/4777/files/Vendor.xml</link>
-        <maxmodels>28</maxmodels>
-    </vendor>
-    <vendor>
-        <name>Build A Light Show</name>
-        <link>https://buildalightshow.com/downloads/vendor.xml</link>
-        <maxmodels>25</maxmodels>
-    </vendor>
-    <vendor>
-        <name>Charlees Props</name>
-        <link>https://cdn.shopify.com/s/files/1/0747/5393/3624/files/CharleesPropsXmodels.xml</link>
-        <maxmodels>65</maxmodels>
-    </vendor>
-    <vendor>
         <name>Mattos Designs</name>
         <link>https://models.mattosdesigns.com/xlights/mattos.xml</link>
         <maxmodels>50</maxmodels>
@@ -36,6 +21,11 @@
         <name>Wired Watts</name>
         <link>https://wiredwatts.com/xmodels</link>
         <maxmodels>50</maxmodels>
+    </vendor>
+    <vendor>
+        <name>Build A Light Show</name>
+        <link>https://buildalightshow.com/downloads/vendor.xml</link>
+        <maxmodels>25</maxmodels>
     </vendor>
     <vendor>
         <name>DMX Fixture Library</name>

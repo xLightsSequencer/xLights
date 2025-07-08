@@ -31,6 +31,7 @@
 #include "TestPreset.h"
 #include "../Parallel.h"
 #include "../UtilFunctions.h"
+#include "../ExternalHooks.h"
 #include "utils/ip_utils.h"
 #include <wx/regex.h>
 
@@ -168,6 +169,8 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
     wxFileName fn(showdir + GetPathSeparator() + GetNetworksFileName());
     _filename = fn.GetFullPath();
+    ObtainAccessToURL(_filename);
+    FileExists(_filename, true);
 
     wxXmlDocument doc;
     doc.Load(fn.GetFullPath());

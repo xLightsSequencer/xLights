@@ -25,23 +25,23 @@ void chatGPT::SaveSettings() const {
 void chatGPT::LoadSettings() {
     model = _sm->getServiceSetting("ChatGPTModel", model);
     _enabled = _sm->getServiceSetting("ChatGPTEnable", _enabled);
-    bearer_token = _sm->getServiceSetting("ChatGPTBearerToken", std::string());
+    bearer_token = _sm->getSecretServiceToken("ChatGPTBearerToken");
 }
 
 void chatGPT::PopulateLLMSettings(wxPropertyGrid* page) {
-    page->Append(new wxPropertyCategory("chatGPT"));
-    auto p = page->Append(new wxBoolProperty("Enabled", "chatGPT.Enabled", _enabled));
+    page->Append(new wxPropertyCategory("ChatGPT"));
+    auto p = page->Append(new wxBoolProperty("Enabled", "ChatGPT.Enabled", _enabled));
     p->SetEditor("CheckBox");
-    page->Append(new wxStringProperty("Bearer Token", "chatGPT.Token", bearer_token));
-    page->Append(new wxStringProperty("Model", "chatGPT.Model", model));
+    page->Append(new wxStringProperty("Bearer Token", "ChatGPT.Token", bearer_token));
+    page->Append(new wxStringProperty("Model", "ChatGPT.Model", model));
 }
 
 void chatGPT::SetSetting(const std::string& key, const wxVariant& value) {
-	if (key == "chatGPT.Enabled") {
+	if (key == "ChatGPT.Enabled") {
 		_enabled = value.GetBool();
-	} else if (key == "chatGPT.Token") {
+	} else if (key == "ChatGPT.Token") {
 		bearer_token = value.GetString();
-	} else if (key == "chatGPT.Model") {
+	} else if (key == "ChatGPT.Model") {
 		model = value.GetString();
 	}
 }
@@ -52,7 +52,7 @@ std::pair<std::string, bool> chatGPT::CallLLM(const std::string& prompt) const {
     std::string bearerToken = bearer_token;
 
     if (bearerToken.empty()) {
-        bearerToken = _sm->getServiceSetting("ChatGPTBearerToken", std::string());
+        bearerToken = _sm->getSecretServiceToken("ChatGPTBearerToken");
 	}
 
 	if (bearer_token.empty() && bearerToken.empty()) {

@@ -7,6 +7,7 @@
 #include <wx/choice.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/stattext.h>
 //*)
 
 class ServiceManager;
@@ -21,6 +22,7 @@ class ServicesPanel : public wxPanel {
 		wxButton* ButtonTest;
 		wxChoice* ChoiceServicesTest;
 		wxPropertyGrid* servicesGrid;
+		wxStaticText* StatictText1;
 		//*)
 
         virtual bool TransferDataFromWindow() override;
@@ -30,6 +32,7 @@ class ServicesPanel : public wxPanel {
 
 		//(*Identifiers(ServicesPanel)
 		static const wxWindowID ID_PROPERYMANAGER_SERVICES;
+		static const wxWindowID ID_STATICTEXT1;
 		static const wxWindowID ID_CHOICE_SERVICES;
 		static const wxWindowID ID_BUTTON_TEST;
 		//*)
@@ -39,6 +42,7 @@ class ServicesPanel : public wxPanel {
 
 		//(*Handlers(ServicesPanel)
 		void OnButtonTestClick(wxCommandEvent& event);
+		void OnChoiceServicesTestSelect(wxCommandEvent& event);
 		//*)
 
 		void OnPropertyGridChange(wxPropertyGridEvent& event);
