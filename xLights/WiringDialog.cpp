@@ -31,6 +31,8 @@
 
 #include "WiringDialog.h"
 #include "models/Model.h"
+#include "models/CustomModel.h"
+
 #include "UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
@@ -200,6 +202,14 @@ void WiringDialog::SetData(Model* model)
         } else if (model->GetDisplayAs() == "Custom") {
             // because a custom mdoel can skip nodes we need to reverse engineer the node number
             stringnode = 1 + (nodeList[i]->ActChan - nodeList[0]->ActChan) / nodeList[0]->GetChanCount();
+            CustomModel* cm = dynamic_cast<CustomModel*>(model);
+            if(cm) {
+                if (cm->GetCustomNodeStringNumber(stringnode) - 1 != string) {
+                    _points[string] = data;
+                    data.clear();
+                    string = cm->GetCustomNodeStringNumber(stringnode) - 1;
+                }
+            }
         }
 
         auto points = nodeList[i]->Coords;
@@ -314,13 +324,19 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
     }
 
     // draw the lines
+    int string = 1;
     for (const auto& itp : points) {
         int last = -10;
         wxRealPoint lastpt = wxRealPoint(0.0, 0.0);
 
         for (const auto& it : itp.second) {
-            dc.SetBrush(wxBrush(_selectedTheme.wiringFill));
-            dc.SetPen(wxPen(_selectedTheme.wiringOutline, penWidth));
+            if (string % 2 == 0) {
+                dc.SetBrush(wxBrush(_selectedTheme.wiringFill));
+                dc.SetPen(wxPen(_selectedTheme.labelFill, penWidth));
+            } else {
+                dc.SetBrush(wxBrush(_selectedTheme.wiringFill));
+                dc.SetPen(wxPen(_selectedTheme.wiringOutline, penWidth));
+            }
 
             int x = (width - it.second.front().x) * pageWidth / width;
             if (!_rear) {
@@ -341,13 +357,14 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
             last = it.first;
             lastpt = it.second.front();
         }
+        string++;
     }
 
     // now the circles
     for (const auto& itp : points) {
-        dc.SetBrush(wxBrush(_selectedTheme.nodeFill));
-        dc.SetPen(wxPen(_selectedTheme.nodeOutline, penWidth));
-
+        bool first = true;
+        dc.SetBrush(wxBrush(_selectedTheme.messageAltFill));
+        dc.SetPen(wxPen(_selectedTheme.messageAltFill, penWidth));
         for (const auto& it : itp.second) {
             int x = (width - it.second.front().x) * pageWidth / width;
             if (!_rear) {
@@ -355,11 +372,26 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
             }
             int y = it.second.front().y * pageHeight / height;
             dc.DrawCircle((AdjustX(x, printer) * _zoom) + _start.x, (AdjustY(y) * _zoom) + _start.y, r);
+            if(first) {
+                dc.SetBrush(wxBrush(_selectedTheme.nodeFill));
+                dc.SetPen(wxPen(_selectedTheme.nodeOutline, penWidth));
+                first = false;
+            }
         }
     }
 
     // render the text after the lines so the text is not drawn over
-    int string = 1;
+    string = 1;
+    bool useStringNodeFormat = true;
+
+    // Check if the first node of the second string is 1 (indicating overlapping ranges)
+    if (points.size() > 1) {
+        auto it = std::next(points.begin()); // Get second string's data
+        if (!it->second.empty() && it->second.begin()->first == 1) {
+            useStringNodeFormat = false; // First example: use "string:node"
+        }
+    }
+
     for (const auto& itp : points) {
         for (const auto& it : itp.second) {
             int x = (width - it.second.front().x) * pageWidth / width;
@@ -369,7 +401,7 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
             int y = it.second.front().y * pageHeight / height;
 
             std::string label;
-            if (points.size() == 1) {
+            if (useStringNodeFormat) { // and the first point on the second string is > 1
                 label = wxString::Format("%d", it.first).ToStdString();
             } else {
                 label = wxString::Format("%d:%d", string, it.first).ToStdString();
