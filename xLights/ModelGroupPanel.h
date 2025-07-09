@@ -99,38 +99,38 @@ public:
 protected:
 
 	//(*Identifiers(ModelGroupPanel)
-	static const long ID_STATICTEXT5;
-	static const long ID_STATICTEXT6;
-	static const long ID_CHOICE1;
-	static const long ID_STATICTEXT12;
-	static const long ID_CHOICE2;
-	static const long ID_STATICTEXT4;
-	static const long ID_SPINCTRL1;
-	static const long ID_CHOICE_PREVIEWS;
-	static const long ID_STATICTEXT7;
-	static const long ID_STATICTEXT10;
-	static const long ID_SPINCTRL2;
-	static const long ID_STATICTEXT11;
-	static const long ID_SPINCTRL3;
-	static const long ID_STATICTEXT8;
-	static const long ID_COLOURPICKERCTRL_MG_TAGCOLOUR;
-	static const long ID_BUTTON2;
-	static const long ID_CHECKBOX1;
-	static const long ID_CHECKBOX3;
-	static const long ID_CHECKBOX2;
-	static const long ID_CHECKBOX4;
-	static const long ID_STATICTEXT3;
-	static const long ID_STATICTEXT2;
-	static const long ID_STATICTEXT9;
-	static const long ID_TEXTCTRL1;
-	static const long ID_BUTTON1;
-	static const long ID_LISTCTRL1;
-	static const long ID_BITMAPBUTTON4;
-	static const long ID_BITMAPBUTTON3;
-	static const long ID_BITMAPBUTTON1;
-	static const long ID_BITMAPBUTTON2;
-	static const long ID_STATICTEXT1;
-	static const long ID_LISTCTRL2;
+	static const wxWindowID ID_STATICTEXT5;
+	static const wxWindowID ID_STATICTEXT6;
+	static const wxWindowID ID_CHOICE1;
+	static const wxWindowID ID_STATICTEXT12;
+	static const wxWindowID ID_CHOICE2;
+	static const wxWindowID ID_STATICTEXT4;
+	static const wxWindowID ID_SPINCTRL1;
+	static const wxWindowID ID_CHOICE_PREVIEWS;
+	static const wxWindowID ID_STATICTEXT7;
+	static const wxWindowID ID_STATICTEXT10;
+	static const wxWindowID ID_SPINCTRL2;
+	static const wxWindowID ID_STATICTEXT11;
+	static const wxWindowID ID_SPINCTRL3;
+	static const wxWindowID ID_STATICTEXT8;
+	static const wxWindowID ID_COLOURPICKERCTRL_MG_TAGCOLOUR;
+	static const wxWindowID ID_BUTTON2;
+	static const wxWindowID ID_CHECKBOX1;
+	static const wxWindowID ID_CHECKBOX3;
+	static const wxWindowID ID_CHECKBOX2;
+	static const wxWindowID ID_CHECKBOX4;
+	static const wxWindowID ID_STATICTEXT3;
+	static const wxWindowID ID_STATICTEXT2;
+	static const wxWindowID ID_STATICTEXT9;
+	static const wxWindowID ID_TEXTCTRL1;
+	static const wxWindowID ID_BUTTON1;
+	static const wxWindowID ID_LISTCTRL1;
+	static const wxWindowID ID_BITMAPBUTTON4;
+	static const wxWindowID ID_BITMAPBUTTON3;
+	static const wxWindowID ID_BITMAPBUTTON1;
+	static const wxWindowID ID_BITMAPBUTTON2;
+	static const wxWindowID ID_STATICTEXT1;
+	static const wxWindowID ID_LISTCTRL2;
 	//*)
 
 	static const long ID_MNU_CLEARALL;
@@ -183,6 +183,7 @@ private:
 	int GetSelectedModelCount();
 	void OnPopup(wxCommandEvent& event);
 
+	std::string WildcardToRegex(const std::string& wildcard);
 	void SaveGroupChanges(bool updateCentre = false);
 	void AddSelectedModels(int index);
 	void RemoveSelectedModels();

@@ -292,6 +292,7 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_Filter" member="yes">
+													<tooltip>Allows for basic regex values ^?.*$</tooltip>
 													<handler function="OnTextCtrl_FilterText" entry="EVT_TEXT" />
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
