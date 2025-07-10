@@ -448,7 +448,7 @@ void HinksPixExportDialog::ControllerPopupMenu(wxContextMenuEvent& event) {
                     return;
                 }
 
-                if (hixpix->FirmwareSupportsUpload()) {
+                if (!hixpix->FirmwareSupportsUpload()) {
                     DisplayError(wxString::Format("'%s' CPU Firmware is too old (v%d) Update to a Newer Version.", (*contrl)->GetIP(), hixpix->GetMPUVersion()));
                     return;
                 }
@@ -490,7 +490,7 @@ void HinksPixExportDialog::ExtractFirmware(ControllerEthernet* controller) {
             return;
         }
 
-        if (hixpix->FirmwareSupportsUpload()) {
+        if (!hixpix->FirmwareSupportsUpload()) {
             DisplayError(wxString::Format("'%s' CPU Firmware is too old (v%d) Update to a Newer Version.", controller->GetName(), hixpix->GetMPUVersion()));
             return;
         }
@@ -599,7 +599,7 @@ void HinksPixExportDialog::UploadFile(ControllerEthernet* controller) {
             return;
         }
 
-        if (hixpix->FirmwareSupportsUpload()) {
+        if (!hixpix->FirmwareSupportsUpload()) {
             DisplayError(wxString::Format("'%s' CPU Firmware is too old (v%d) Update to a Newer Version.", controller->GetName(), hixpix->GetMPUVersion()));
             return;
         }
@@ -1348,7 +1348,7 @@ void HinksPixExportDialog::OnButtonUploadClick(wxCommandEvent& event)
             continue;
         }
 
-        if (hixpix->FirmwareSupportsUpload()) {
+        if (!hixpix->FirmwareSupportsUpload()) {
             error = true;
             errorMsg = wxString::Format("'%s' CPU Firmware is too old (v%d) Update to a Newer Version.", hix->GetName(), hixpix->GetMPUVersion());
             continue;
