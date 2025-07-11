@@ -1154,7 +1154,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                         }
                         str.name = SafeDescription(it->_description);
                         str.blank = false;
-                        str.gamma = V4_ValidGamma(it->_gammaSet ? it->_gamma * 10 : (fullcontrol ? defaultGamma * 10 : V4_GetGamma(p, sr, defaultGamma, falconStrings) * 10));
+                        str.gamma = V4_ValidGamma(it->_gammaSet ? it->_gamma * 10 : (fullcontrol ? defaultGamma : V4_GetGamma(p, sr, defaultGamma, falconStrings)));
                         str.brightness = V4_ValidBrightness(it->_brightnessSet ? it->_brightness : (fullcontrol ? defaultBrightness : V4_GetBrightness(p, sr, defaultBrightness, falconStrings)));
                         str.zigcount = 0;
                         str.endNulls = it->_endNullPixelsSet ? it->_endNullPixels : 0;
@@ -1186,7 +1186,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                     str.smartRemote = sr;
                     str.name = wxString::Format("Port %d", p + 1);
                     str.blank = false;
-                    str.gamma = fullcontrol ? defaultGamma * 10 : V4_GetGamma(p, 0, defaultGamma, falconStrings) * 10;
+                    str.gamma = fullcontrol ? defaultGamma : V4_GetGamma(p, 0, defaultGamma, falconStrings);
                     str.brightness = fullcontrol ? defaultBrightness : V4_GetBrightness(p, 0, defaultBrightness, falconStrings);
                     str.zigcount = 0;
                     str.endNulls = 0;
@@ -1217,7 +1217,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                     str.smartRemote = sr;
                     str.name = wxString::Format("Port %d", p + 1);
                     str.blank = false;
-                    str.gamma = fullcontrol ? defaultGamma * 10 : V4_GetGamma(p, sr, defaultGamma, falconStrings) * 10;
+                    str.gamma = fullcontrol ? defaultGamma : V4_GetGamma(p, sr, defaultGamma, falconStrings);
                     str.brightness = fullcontrol ? defaultBrightness : V4_GetBrightness(p, sr, defaultBrightness, falconStrings);
                     str.zigcount = 0;
                     str.endNulls = 0;
@@ -1240,7 +1240,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                 str.smartRemote = sr;
                 str.name = wxString::Format("Port %d", p + 1);
                 str.blank = false;
-                str.gamma = fullcontrol ? defaultGamma * 10 : V4_GetGamma(p, sr, defaultGamma, falconStrings) * 10;
+                str.gamma = fullcontrol ? defaultGamma : V4_GetGamma(p, sr, defaultGamma, falconStrings);
                 str.brightness = fullcontrol ? defaultBrightness : V4_GetBrightness(p, sr, defaultBrightness, falconStrings);
                 str.zigcount = 0;
                 str.endNulls = 0;
