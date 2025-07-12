@@ -45,20 +45,20 @@
 #include <xlsxwriter.h>
 
 //(*IdInit(ControllerModelDialog)
-const long ControllerModelDialog::ID_PANEL1 = wxNewId();
-const long ControllerModelDialog::ID_SCROLLBAR1 = wxNewId();
-const long ControllerModelDialog::ID_SCROLLBAR2 = wxNewId();
-const long ControllerModelDialog::ID_STATICTEXT1 = wxNewId();
-const long ControllerModelDialog::ID_SLIDER_BOX_SCALE = wxNewId();
-const long ControllerModelDialog::ID_STATICTEXT2 = wxNewId();
-const long ControllerModelDialog::ID_SLIDER_FONT_SCALE = wxNewId();
-const long ControllerModelDialog::ID_TEXTCTRL1 = wxNewId();
-const long ControllerModelDialog::ID_PANEL3 = wxNewId();
-const long ControllerModelDialog::ID_CHECKBOX1 = wxNewId();
-const long ControllerModelDialog::ID_PANEL2 = wxNewId();
-const long ControllerModelDialog::ID_SCROLLBAR3 = wxNewId();
-const long ControllerModelDialog::ID_PANEL4 = wxNewId();
-const long ControllerModelDialog::ID_SPLITTERWINDOW1 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_PANEL1 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_SCROLLBAR1 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_SCROLLBAR2 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_STATICTEXT1 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_SLIDER_BOX_SCALE = wxNewId();
+const wxWindowID ControllerModelDialog::ID_STATICTEXT2 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_SLIDER_FONT_SCALE = wxNewId();
+const wxWindowID ControllerModelDialog::ID_TEXTCTRL1 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_PANEL3 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_CHECKBOX1 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_PANEL2 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_SCROLLBAR3 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_PANEL4 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_SPLITTERWINDOW1 = wxNewId();
 //*)
 
 const long ControllerModelDialog::CONTROLLERModel_PRINT = wxNewId();
@@ -2254,7 +2254,9 @@ void ControllerModelDialog::ReloadModels()
             }
 
             if (_caps != nullptr && _caps->SupportsUniversePerString() && _controller->GetType() == CONTROLLER_ETHERNET) {
-                pp->SetSeparateUniverses(((ControllerEthernet*)_controller)->IsUniversePerString());
+                auto const ups = ((ControllerEthernet*)_controller)->IsUniversePerString();
+                pp->SetPackedStrings(!ups);
+                pp->SetSeparateUniverses(ups);
             }
 
             if (_caps == nullptr || _caps->SupportsVirtualStrings()) {
