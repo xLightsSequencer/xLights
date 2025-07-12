@@ -1272,7 +1272,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     }
 
     int defaultBrightness = V4_ValidBrightness(controller->GetDefaultBrightnessUnderFullControl());
-    int defaultGamma = V4_ValidGamma(controller->GetDefaultGammaUnderFullControl());
+    int defaultGamma = V4_ValidGamma(controller->GetDefaultGammaUnderFullControl() * 10);
 
     if (doProgress)
         progress->Update(0, "Scanning models");
