@@ -16,17 +16,28 @@ function populateSideBar() {
         `;
         $('#sideBar1').html(sidebar1);
 
-        var sidebar2 = `
-        <div class="list-group">
-        <div class="list-group-item active main-color-bg"><span class="glyphicon glyphicon glyphicon-sort" aria-hidden="true"></span> Controller Status </div>
+    var sidebar2 = `
+    <div class="list-group">
+      <div class="list-group-item active main-color-bg" data-toggle="collapse" data-target="#controllerStatusCollapse" style="cursor: pointer;">
+        <span class="glyphicon glyphicon-sort" aria-hidden="true"></span> Controller Status
+        <span class="glyphicon glyphicon-chevron-down pull-right" aria-hidden="true"></span>
+      </div>
+      <div id="controllerStatusCollapse" class="collapse in">
         <table class="table table-sm table-dark">
-        <tbody id="controllerStatusTable">
-        </tbody>
+          <tbody id="controllerStatusTable">
+          </tbody>
         </table>
-        </div>
-        `;
-        $('#sideBar2').html(sidebar2);
+      </div>
+    </div>
+   `;
+    $('#sideBar2').html(sidebar2);
 
+    $('#controllerStatusCollapse').on('show.bs.collapse', function () {
+        $(this).prev().find('.glyphicon.pull-right').removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
+    });
+    $('#controllerStatusCollapse').on('hide.bs.collapse', function () {
+        $(this).prev().find('.glyphicon.pull-right').removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
+    });
 
   }
 
