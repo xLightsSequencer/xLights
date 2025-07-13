@@ -764,7 +764,7 @@ void FPPConnectDialog::SequenceSelector(const std::string regexKey) {
     config->Read(regexKey, &itcsv, "");
 
     if (!itcsv.IsEmpty()) {
-        auto const& list = wxSplit(itcsv, ',');
+        auto const& list = wxSplit(itcsv, '|');
         xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
         wxString const& showDirectory = frame->GetShowDirectory();
         wxString const& fseqDirectory = frame->GetFseqDirectory();

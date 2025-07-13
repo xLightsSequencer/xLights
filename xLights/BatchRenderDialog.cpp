@@ -274,7 +274,7 @@ bool BatchRenderDialog::Prepare(const wxString &showDir)
         config->Read("BatchRendererItemList", &itcsv, "");
 
         if (!itcsv.IsEmpty()) {
-            wxArrayString savedUploadItems = wxSplit(itcsv, ',');
+            wxArrayString savedUploadItems = wxSplit(itcsv, '|');
 
             wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
             while (item.IsOk()) {
@@ -440,7 +440,7 @@ void BatchRenderDialog::SaveSettings()
         bool isChecked = CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED;
         if (isChecked) {
             if (selected != "") {
-                selected += ",";
+                selected += "|";
             }
             selected += CheckListBox_Sequences->GetItemText(item);
         }
