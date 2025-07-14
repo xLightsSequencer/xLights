@@ -5217,7 +5217,7 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
         for (int x = 0; x < BufferWi; ++x) {
             int n = chmap[y * BufferWi + x];
             if (n == 0) {
-                html += "<td></td>";
+                html += "<td>&nbsp&nbsp&nbsp</td>";
             } else {
                 int s = Nodes[n - 1]->StringNum + 1;
                 wxString bgcolor = (s % 2 == 1) ? "#ADD8E6" : "#90EE90";
