@@ -2,12 +2,36 @@ name: Windows Nightly
 
 on:
   schedule:
-    - cron: '0 5 * * *' # run at 5 AM UTC
-    
+    - cron: '0 5 * * *' # run at 5 AM UTC    
   workflow_dispatch:
 
 jobs:
-  build:
+  check_date:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check_recent_commits.outputs.should_run }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Check for recent commits
+        id: check_recent_commits
+        run: |
+          # Get the timestamp of the last commit
+          last_commit_timestamp=$(git log -1 --format=%at)
+          # Get the current timestamp
+          current_timestamp=$(date +%s)
+          # Calculate the difference in seconds
+          difference=$((current_timestamp - last_commit_timestamp))
+
+          # Check if the last commit was within the last 24 hours (86400 seconds)
+          if [ "$difference" -lt 86400 ]; then
+            echo "::set-output name=should_run::true"
+          else
+            echo "::set-output name=should_run::false"
+          fi
+  nightly_build:
+    needs: check_date
+    if: ${{ needs.check_date.outputs.should_run == 'true' }}
     runs-on: windows-2022
 
     steps:
