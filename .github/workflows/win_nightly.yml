@@ -6,32 +6,28 @@ on:
   workflow_dispatch:
 
 jobs:
-  check_date:
+  check_for_commits:
     runs-on: ubuntu-latest
-    outputs:
-      should_run: ${{ steps.check_recent_commits.outputs.should_run }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Check for recent commits
-        id: check_recent_commits
-        run: |
-          # Get the timestamp of the last commit
-          last_commit_timestamp=$(git log -1 --format=%at)
-          # Get the current timestamp
-          current_timestamp=$(date +%s)
-          # Calculate the difference in seconds
-          difference=$((current_timestamp - last_commit_timestamp))
+      - name: Check for new commits today
+        id: check-new-commits
+        uses: adriangl/check-new-commits-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          seconds: 86400 # One day in seconds
+          branch: 'master' # Or your target branch
+      - name: Set output if new commits found
+        if: ${{ steps.check-new-commits.outputs.has-new-commits == 'true' }}
+        run: echo "::set-output name=should_run::true"
+      - name: Set output if no new commits
+        if: ${{ steps.check-new-commits.outputs.has-new-commits != 'true' }}
+        run: echo "::set-output name=should_run::false"
+    outputs:
+      should_run: ${{ steps.check-new-commits.outputs.has-new-commits }}
 
-          # Check if the last commit was within the last 24 hours (86400 seconds)
-          if [ "$difference" -lt 86400 ]; then
-            echo "::set-output name=should_run::true"
-          else
-            echo "::set-output name=should_run::false"
-          fi
-  nightly_build:
-    needs: check_date
-    if: ${{ needs.check_date.outputs.should_run == 'true' }}
+  build:
+    needs: check_for_commits
+    if: ${{ needs.check_for_commits.outputs.should_run == 'true' }}
     runs-on: windows-2022
 
     steps:
