@@ -1086,7 +1086,15 @@ void Controller::ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid)
 
     p = propGrid->GetPropertyByName("ControllerName");
     if (p != nullptr) {
-        if (!_outputManager->IsControllerNameUnique(name)) {
+        wxString value = p->GetValueAsString();
+        bool isValid = true;
+        for (wxChar c : value) {
+            if (c == ':') {
+                isValid = false;
+                break;
+            }
+        }
+        if (!isValid || !_outputManager->IsControllerNameUnique(name)) {
             p->SetBackgroundColour(*wxRED);
         } else {
             p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
