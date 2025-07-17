@@ -11,7 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2025.07 July , 2025
+2025.07 July 17, 2025
     - bug (derwin12)        Handle cursor up/down the sequencer panel consistently
     - enh (derwin12)        Split multiple effects via right click
     - enh (derwin12)        Adding models to group now allows regex filter 
