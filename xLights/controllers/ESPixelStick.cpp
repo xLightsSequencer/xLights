@@ -28,7 +28,7 @@
 
 #pragma region Constructors and Destructors
 // This is tested with a pixel stick running v3.0 of the firmware
-ESPixelStick::ESPixelStick(const std::string& ip) : BaseController(ip, "") {
+ESPixelStick::ESPixelStick(const std::string& ip, const std::string &proxy) : BaseController(ip, proxy) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("connecting to ESPixelStick controller on %s.", (const char*)_ip.c_str());

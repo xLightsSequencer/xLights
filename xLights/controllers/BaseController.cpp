@@ -70,14 +70,13 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
         flip = dynamic_cast<ControllerEthernet*>(controller)->GetFirstOutput()->GetForceLocalIPToUse();
     }
     
-    
     std::string driver = caps->GetConfigDriver();
     if (driver == "Falcon") {
         bc = new Falcon(ip, proxy);
     } else if (driver == "PixLite16") {
         bc = new Pixlite16(ip);
     } else if (driver == "ESPixelStick") {
-        bc = new ESPixelStick(ip);
+        bc = new ESPixelStick(ip, proxy);
     } else if (driver == "J1Sys") {
         bc = new J1Sys(ip, proxy);
     } else if (driver == "SanDevices") {
