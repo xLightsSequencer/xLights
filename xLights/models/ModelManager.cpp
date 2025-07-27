@@ -446,19 +446,56 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                                 found = true;
                             }
                         } else { // look for zero padded
-                            size_t pos = it.find_last_not_of("0123456789") + 1;
-                            int num = std::stoi(it.substr(pos));
-                            auto itZeroPad = it.substr(0, pos) + (num < 10 ? "0" : "") + std::to_string(num);
-                            auto mgmn = wxString(itZeroPad);
-                            mgmn = mname + "/" + mgmn.AfterFirst('/');
-                            std::string em = "EXPORTEDMODEL/" + mgmn.AfterFirst('/');
-                            if (ContainsBetweenCommas(grpModels, em) &&
-                                std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
-                                std::find(prevousNames.begin(), prevousNames.end(), mgmn) == prevousNames.end() &&
-                                !mmg->DirectlyContainsModel(mgmn)) {
-                                mmg->AddModel(mgmn);
-                                prevousNames.push_back(mgmn);
-                                found = true;
+                            std::string submodel = it.substr(it.find('/') + 1);
+                            size_t pos = submodel.find_last_of(' ');
+                            std::string num_str;
+                            if (pos != std::string::npos) {
+                                std::string before_space = submodel.substr(0, pos);
+                                size_t num_start = before_space.find_last_of(' ') + 1;
+                                if (num_start == 0 || num_start >= before_space.length()) num_start = 0;
+                                size_t i = num_start;
+                                while (i < before_space.length() && std::isdigit(before_space[i])) {
+                                    num_str += before_space[i];
+                                    ++i;
+                                }
+                            }
+                            if (num_str.empty()) {
+                                size_t i = 0;
+                                while (i < submodel.length() && std::isdigit(submodel[i])) {
+                                    num_str += submodel[i];
+                                    ++i;
+                                }
+                            }
+                            if (!num_str.empty()) {
+                                try {
+                                    int num = std::stoi(num_str);
+                                    std::string itZeroPad;
+                                    if (pos != std::string::npos) {
+                                        size_t num_start = submodel.find_last_of(' ', pos - 1) + 1;
+                                        if (num_start >= submodel.length()) num_start = 0;
+                                        itZeroPad = it.substr(0, it.find('/') + 1) + submodel.substr(0, num_start) +
+                                            (num < 10 ? "0" : "") + std::to_string(num);
+                                        size_t num_end = num_start + num_str.length();
+                                        if (num_end < submodel.length()) {
+                                            itZeroPad += submodel.substr(num_end);
+                                        }
+                                    } else {
+                                        itZeroPad = it.substr(0, it.find('/') + 1) +
+                                            (num < 10 ? "0" : "") + std::to_string(num);
+                                    }
+                                    auto mgmn = wxString(itZeroPad);
+                                    mgmn = mname + "/" + mgmn.AfterFirst('/');
+                                    std::string em = "EXPORTEDMODEL/" + mgmn.AfterFirst('/');
+                                    if (ContainsBetweenCommas(grpModels, em) &&
+                                        std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
+                                        std::find(prevousNames.begin(), prevousNames.end(), mgmn) == prevousNames.end() &&
+                                        !mmg->DirectlyContainsModel(mgmn)) {
+                                        mmg->AddModel(mgmn);
+                                        prevousNames.push_back(mgmn);
+                                        found = true;
+                                    }
+                                } catch (const std::exception&) {
+                                }
                             }
                         }
                     } else {
