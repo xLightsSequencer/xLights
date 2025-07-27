@@ -204,6 +204,8 @@ protected:
     static const long ID_TIMER1;
 
     static const long SUBMODEL_DIALOG_IMPORT_MODEL;
+    static const long SUBMODEL_DIALOG_IMPORT_STATE;
+    static const long SUBMODEL_DIALOG_IMPORT_FACE;
     static const long SUBMODEL_DIALOG_IMPORT_FILE;
     static const long SUBMODEL_DIALOG_IMPORT_CUSTOM;
     static const long SUBMODEL_DIALOG_IMPORT_CSV;
@@ -256,6 +258,7 @@ protected:
     wxString GenerateSubModelName(wxString basename);
     bool IsUniqueName(wxString const& newname) const;
     void ImportCustomModel(std::string filename);
+    void CreateSubmodel(const std::string& name, const std::list<std::string>& nodes);
     void FixNodes(wxXmlNode* n, const std::string& attribute, std::map<int, int>& nodeMap);
 
     void ApplySubmodelName();

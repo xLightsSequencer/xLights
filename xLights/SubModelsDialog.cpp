@@ -96,6 +96,8 @@ const wxWindowID SubModelsDialog::ID_STATICTEXT3 = wxNewId();
 const long SubModelsDialog::ID_TIMER1 = wxNewId();
 
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_MODEL = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_STATE = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_FACE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_FILE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_CUSTOM = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_CSV = wxNewId();
@@ -833,6 +835,8 @@ void SubModelsDialog::OnButtonImportClick(wxCommandEvent& event)
     mnu.Append(SUBMODEL_DIALOG_IMPORT_FILE, "Import SubModels From File");
     mnu.Append(SUBMODEL_DIALOG_IMPORT_LAYOUT, "Import SubModels From Layout");
     mnu.Append(SUBMODEL_DIALOG_IMPORT_DOWNLOAD, "Import SubModels From Downloads");
+    mnu.Append(SUBMODEL_DIALOG_IMPORT_STATE, "Import SubModels From State");
+    mnu.Append(SUBMODEL_DIALOG_IMPORT_FACE, "Import SubModels From Face");
     if (_isMatrix) {
         mnu.Append(SUBMODEL_DIALOG_IMPORT_CUSTOM, "Import Custom Model Overlay");
     }
@@ -868,7 +872,135 @@ void SubModelsDialog::OnImportBtnPopup(wxCommandEvent& event)
             ImportSubModelXML(m->GetModelXml());
         }
     }
-    else if (event.GetId() == SUBMODEL_DIALOG_IMPORT_FILE) {
+    else if (event.GetId() == SUBMODEL_DIALOG_IMPORT_STATE) {
+        // Import submodels from states
+        // Get a list of states on this model
+        const FaceStateData& states = model->GetStateInfo();
+        wxArrayString choices;
+        for (const auto& it : states)
+        {
+            // check the type is NodeRange
+            bool ok = false;
+            for (const auto& it2 : it.second)
+            {
+                if (it2.first == "Type" && it2.second == "NodeRange") {
+                    ok = true;
+                    break;
+                }
+            }
+
+            if (ok) choices.Add(it.first);
+        }
+        if (choices.GetCount() > 0) {
+            wxSingleChoiceDialog dlg(GetParent(), "", "Select State", choices);
+            if (dlg.ShowModal() == wxID_OK) {
+                const std::map<std::string, std::string>* state = nullptr;
+                for (const auto& it : states) {
+                    if (it.first == dlg.GetStringSelection()) {
+                        state = &it.second;
+                        break;
+                    }
+                }
+
+                // its just easier to find string in a std list
+                std::list<std::string> choices2z;
+                wxArrayString choices2;
+                for (const auto& it : *state) {
+                    if (it.first.ends_with("-Name")) {
+                        if (std::find(choices2z.begin(), choices2z.end(), it.second) == choices2z.end()) {
+                            choices2z.push_back(it.second);
+                            choices2.Add(it.second);
+                        }
+                    }
+                }
+                if (choices2.GetCount() > 0) {
+                    std::list<std::string> substates;
+                    if (choices2.GetCount() == 1) {
+                        substates.push_back(choices2[0]);
+                    } else {
+                        wxMultiChoiceDialog dlg2(GetParent(), "", "Select Sub-state(s)", choices2);
+                        if (dlg2.ShowModal() == wxID_OK) {
+                            for (auto i : dlg2.GetSelections())
+                            {
+                                substates.push_back(choices2[i]);
+                            }
+                        }
+                    }
+                    if (substates.size() > 0) {
+                        std::list<std::string> nodes;
+                        std::list<std::string> ss;
+                        for (const auto& it : *state)
+                        {
+                            if (it.first.ends_with("-Name")) {
+                                if (std::find(substates.begin(), substates.end(), it.second) != substates.end()) {
+                                    ss.push_back(it.first.substr(0, it.first.size() - 5));
+                                }
+                            }
+                        }
+                        for (const auto& it : *state) {
+                            if (std::find(ss.begin(), ss.end(), it.first) != ss.end()) {
+                                nodes.push_back(it.second);
+                            }
+                        }
+                        CreateSubmodel(dlg.GetStringSelection(), nodes);
+                    }
+                }
+            }
+        }
+    } else if (event.GetId() == SUBMODEL_DIALOG_IMPORT_FACE) {
+        // Import submodels from faces
+        // Get a list of faces on this model - node ones only
+        const FaceStateData& faces = model->GetFaceInfo();
+        wxArrayString choices;
+        for (const auto& it : faces) {
+            // check the type is NodeRange
+            bool ok = false;
+            for (const auto& it2 : it.second) {
+                if (it2.first == "Type" && it2.second == "NodeRange") {
+                    ok = true;
+                    break;
+                }
+            }
+
+            if (ok)
+                choices.Add(it.first);
+        }
+        if (choices.GetCount() > 0) {
+            wxSingleChoiceDialog dlg(GetParent(), "", "Select Face", choices);
+            if (dlg.ShowModal() == wxID_OK) {
+                const std::map<std::string, std::string>* face = nullptr;
+                for (const auto& it : faces) {
+                    if (it.first == dlg.GetStringSelection()) {
+                        face = &it.second;
+                        break;
+                    }
+                }
+                wxArrayString choices2;
+                for (const auto& it : *face) {
+                    if ((it.first.starts_with("Eyes") || it.first.starts_with("Mouth") || it.first.starts_with("Face")) && !it.first.ends_with("-Color") && it.second != "") {
+                        choices2.Add(it.first);
+                    }
+                }
+                wxMultiChoiceDialog dlg2(GetParent(), "", "Select face elements", choices2);
+                if (dlg2.ShowModal() == wxID_OK) {
+                    std::list<std::string> elements;
+                    for (auto i : dlg2.GetSelections()) {
+                        elements.push_back(choices2[i]);
+                    }
+                    if (elements.size() > 0)
+                    {
+                        std::list<std::string> nodes;
+                        for (const auto& it : *face) {
+                            if (std::find(elements.begin(), elements.end(), it.first) != elements.end()) {
+                                nodes.push_back(it.second);
+                            }
+                        }
+                        CreateSubmodel(dlg.GetStringSelection(), nodes);
+                    }
+                }
+            }
+        }
+    } else if (event.GetId() == SUBMODEL_DIALOG_IMPORT_FILE) {
         //Import Submodels xModel File
         wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xModel Files (*.xmodel)|*.xmodel", wxFD_OPEN);
         if (filename.IsEmpty()) return;
@@ -3494,6 +3626,28 @@ void SubModelsDialog::FixNodes(wxXmlNode* n, const std::string& attribute, std::
         }
     }
     n->AddAttribute(attribute, row);
+}
+
+void SubModelsDialog::CreateSubmodel(const std::string& name, const std::list<std::string>& nodes)
+{
+    SubModelInfo* sm = new SubModelInfo(GenerateSubModelName(name));
+    sm->vertical = false;
+    sm->strands.clear();
+    sm->isRanges = true;
+
+    for (const auto& n : nodes)
+    {
+        sm->strands.push_back(n);
+    }
+
+    _subModels.push_back(sm);
+    long index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm->name);
+    ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)sm);
+    Select(sm->name);
+    Panel3->SetFocus();
+    TextCtrl_Name->SetFocus();
+    TextCtrl_Name->SelectAll();
+    ValidateWindow();
 }
 
 void SubModelsDialog::ImportCustomModel(std::string filename)
