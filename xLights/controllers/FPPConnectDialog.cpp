@@ -572,7 +572,11 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
                 doUploadCheckbox->SetValue(false);
                 doUploadCheckbox->Enable(false);
 
-                label = new wxStaticText(FPPInstanceList, wxID_ANY, "Unavailable/Unsupported", wxDefaultPosition, wxDefaultSize, 0, "ID_STATIC_TEXT_FS_" + rowStr);
+                if (!inst->fullVersion.empty()) {
+                    label = new wxStaticText(FPPInstanceList, wxID_ANY, "Unsupported", wxDefaultPosition, wxDefaultSize, 0, "ID_STATIC_TEXT_FS_" + rowStr);
+                }else {
+                    label = new wxStaticText(FPPInstanceList, wxID_ANY, "Unavailable", wxDefaultPosition, wxDefaultSize, 0, "ID_STATIC_TEXT_FS_" + rowStr);
+                }
                 FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             } else {
                 wxChoice *Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, FSEQ_COL + rowStr);
