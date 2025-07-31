@@ -578,10 +578,8 @@ int ControllerCaps::GetMaxVirtualMatrixPort() const {
     return SupportsVirtualMatrix() ? wxAtoi(GetXmlNodeContent(_config, "MaxVirtualMatrixPorts", "1")): 0;
 }
 int ControllerCaps::GetMaxLEDPanelMatrixPort() const {
-    //FPP internally can map multiple matrices onto the panel outputs
-    //but none of that is exposed in the FPP UI yet so just use a single
-    //matrix at this point
-    return SupportsLEDPanelMatrix() ? 1 : 0;
+    //FPP 9 supports up to 5 PanelMatrices defined
+    return SupportsLEDPanelMatrix() ? 5 : 0;
 }
 
 int ControllerCaps::GetMaxPixelPortChannels() const {

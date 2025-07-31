@@ -133,7 +133,7 @@ class FPP : public BaseController
 
     bool UploadControllerProxies(OutputManager* outputManager);
 
-    bool SetRestartFlag();
+    bool SetRestartFlag(bool forceOn9 = false);
     bool Restart(bool ifNeeded = false);
     void SetDescription(const std::string &st);
     [[nodiscard]] std::vector<std::string> GetProxyList();

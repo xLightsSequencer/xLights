@@ -65,8 +65,8 @@
 			<fpp1>21,16</fpp1>
 		</Variant>
 	</Controller>
-    <Controller Name="K16A-B">
-        <Variant Name="No Expansion" ID="K16A-B" Base="FPP:FPPStringCapeTTYs">
+    <Controller Name="K16">
+        <Variant Name="K16A-B" ID="K16A-B" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>32</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
             <fpp>1</fpp>
@@ -79,7 +79,7 @@
                 <Type>falcon_v5</Type>
             </SmartRemoteTypes>
         </Variant>
-        <Variant Name="Expansion" ID="K16A-B" Base="FPP:FPPStringCapeTTYs">
+        <Variant Name="K16A-B w/ Expansion" ID="K16A-B" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>48</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
             <fpp>1</fpp>
@@ -91,6 +91,23 @@
                 <Type>fpp_v2</Type>
                 <Type>falcon_v5</Type>
             </SmartRemoteTypes>
+        </Variant>
+        <Variant Name="K16-Max" ID="K16-Max" Base="FPP:FPPShiftStringCape">
+            <MaxPixelPort>48</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fppSerialPort1>DMX1</fppSerialPort1>
+            <fppSerialPort2>DMX2</fppSerialPort2>
+        </Variant>
+        <Variant Name="K16-Pro" ID="K16-Pro" Base="FPP:FPPShiftStringCape">
+            <MaxPixelPort>48</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fppSerialPort1>DMX1</fppSerialPort1>
+            <fppSerialPort2>DMX2</fppSerialPort2>
+        </Variant>
+        <Variant Name="K16" ID="K16" Base="FPP:FPPShiftStringCape">
+            <MaxPixelPort>32</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fppSerialPort1>DMX1</fppSerialPort1>
         </Variant>
     </Controller>
     <Controller Name="K4-PB">
@@ -114,11 +131,22 @@
             <fppSerialPort1>ttyS1</fppSerialPort1>
             <fppSerialPort2>ttyS2</fppSerialPort2>
         </Variant>
-        <Variant Name="K32-Max" ID="K32-Max" Base="FPP:FPPStringCapeTTYs">
+        <Variant Name="K32-Max" ID="K32-Max" Base="FPP:FPPShiftStringCape">
             <MaxPixelPort>64</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
             <fppSerialPort1>DMX1</fppSerialPort1>
             <fppSerialPort2>DMX2</fppSerialPort2>
+        </Variant>
+        <Variant Name="K32-Pro" ID="K32-Pro" Base="FPP:FPPShiftStringCape">
+            <MaxPixelPort>64</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fppSerialPort1>DMX1</fppSerialPort1>
+            <fppSerialPort2>DMX2</fppSerialPort2>
+        </Variant>
+        <Variant Name="K32" ID="K32" Base="FPP:FPPShiftStringCape">
+            <MaxPixelPort>48</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fppSerialPort1>DMX1</fppSerialPort1>
         </Variant>
     </Controller>
     <Controller Name="K64D-B">

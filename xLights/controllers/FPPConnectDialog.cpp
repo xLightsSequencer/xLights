@@ -1212,14 +1212,15 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     wxJSONValue const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, 0, std::numeric_limits<int32_t>::max());
                     cancelled |= inst->UploadModels(memoryMaps);
                     cancelled |= inst->UploadDisplayMap(displayMap);
-                    inst->SetRestartFlag();
+                    // model uploads currently still require a full restart
+                    inst->SetRestartFlag(true);
                 } else if (GetChoiceValueIndex(MODELS_COL + rowStr) == 2) {
                     auto c = _outputManager->GetControllers(inst->ipAddress);
                     if (c.size() == 1) {
                         wxJSONValue const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());
                         cancelled |= inst->UploadModels(memoryMaps);
                         // cancelled |= inst->UploadDisplayMap(displayMap);
-                        inst->SetRestartFlag();
+                        inst->SetRestartFlag(true);
                     }
                 }
                 //if restart flag is now set, restart and recheck range

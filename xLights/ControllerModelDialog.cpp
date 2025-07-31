@@ -2470,11 +2470,11 @@ void ControllerModelDialog::ReloadModels()
         y += VERTICAL_GAP + VERTICAL_SIZE;
     }
 
-    if (_caps != nullptr && _caps->SupportsLEDPanelMatrix()) {
-        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::PANEL_MATRIX, 1, _cud, _caps,
+    for (int i = 0; i < std::max((_caps == nullptr ? 0 : _caps->GetMaxLEDPanelMatrixPort()), _cud->GetMaxLEDPanelMatrixPort()); i++) {
+        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::PANEL_MATRIX, i + 1, _cud, _caps,
                                                 wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
                                                 BaseCMObject::STYLE_CHANNELS, false, _scale));
-        auto sp = _cud->GetControllerLEDPanelMatrixPort(1);
+        auto sp = _cud->GetControllerLEDPanelMatrixPort(i + 1);
         if (sp != nullptr) {
             int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + FIRST_MODEL_GAP_MULTIPLIER * HORIZONTAL_GAP;
             for (const auto& it : sp->GetModels()) {

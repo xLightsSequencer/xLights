@@ -1876,9 +1876,12 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool
     return json;
 }
 
-bool FPP::SetRestartFlag() {
-    restartNeeded = true;
-    return PutToURL("/api/settings/restartFlag", "2", "text/plain");
+bool FPP::SetRestartFlag(bool forceOn9) {
+    if (forceOn9 || !IsVersionAtLeast(9, 0)) {
+        restartNeeded = true;
+        return PutToURL("/api/settings/restartFlag", "2", "text/plain");
+    }
+    return true;
 }
 
 bool FPP::Restart( bool ifNeeded) {
@@ -2147,27 +2150,35 @@ bool FPP::UploadPanelOutputs(ModelManager* allmodels,
 
     wxJSONValue origJson;
     bool changed = false;
-    int startChannel = -1;
-
-    if (rules->SupportsLEDPanelMatrix() && cud.GetMaxLEDPanelMatrixPort()) {
-        startChannel = cud.GetControllerLEDPanelMatrixPort(1)->GetStartChannel();
-        startChannel--;
+    bool hasPanel = false;
+    
+    if (rules->SupportsLEDPanelMatrix()) {
+        for (int x = 0; x < cud.GetMaxLEDPanelMatrixPort(); ++x) {
+            if (cud.GetControllerLEDPanelMatrixPort(1 + x)->GetStartChannel() > 0) {
+                hasPanel = true;
+            }
+        }
     }
-    if (startChannel >= 0 || fullcontrol) {
+
+    if (hasPanel || fullcontrol) {
         GetURLAsJSON("/api/channel/output/channelOutputsJSON", origJson, false);
     }
-    if (startChannel >= 0) {
+    if (hasPanel) {
         std::map<int, int> rngs;
         FillRanges(rngs);
-        //LED panel cape, nothing we can really do except update the start channel, and enable
-        startChannel++;  //one based
-        for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
-            if (origJson["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
-                if (UpdateJSONValue(origJson["channelOutputs"][x], "startChannel", startChannel)) {
-                    changed = true;
-                    rngs[startChannel - 1] = origJson["channelOutputs"][x]["channelCount"].AsLong();
+        for (int panel = 0; panel < cud.GetMaxLEDPanelMatrixPort(); ++panel) {
+            if (panel < origJson["channelOutputs"].Size()) {
+                int startChannel = cud.GetControllerLEDPanelMatrixPort(1 + panel)->GetStartChannel();
+                if (startChannel > 0) {
+                    if (UpdateJSONValue(origJson["channelOutputs"][panel], "startChannel", startChannel)) {
+                        changed = true;
+                        rngs[startChannel - 1] = origJson["channelOutputs"][panel]["channelCount"].AsLong();
+                    }
+                    changed |= UpdateJSONValue(origJson["channelOutputs"][panel], "enabled", 1);
+                } else {
+                    // need to disable the panel
+                    changed |= UpdateJSONValue(origJson["channelOutputs"][panel], "enabled", 0);
                 }
-                changed |= UpdateJSONValue(origJson["channelOutputs"][x], "enabled", 1);
             }
         }
         SetNewRanges(rngs);
