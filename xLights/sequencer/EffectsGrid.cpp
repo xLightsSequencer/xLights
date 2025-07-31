@@ -84,6 +84,7 @@ const long EffectsGrid::ID_GRID_MNU_FIND_NEXT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_FIND_PREVIOUS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_REPLACE = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_ADD_SHIMMER = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_REMOVE_SHIMMER = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_RANDOM_EFFECTS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_RESETEFFECT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_DESCRIPTION = wxNewId();
@@ -519,6 +520,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
             }
             if (ri->layerIndex == 2) {
                 mnuLayer.Append(ID_GRID_MNU_ADD_SHIMMER, "Add \"-shimmer\"");
+                mnuLayer.Append(ID_GRID_MNU_REMOVE_SHIMMER, "Remove \"-shimmer\"");
             }
             mSelectedEffect = selectedEffect;
         }
@@ -621,6 +623,49 @@ void EffectsGrid::AddShimmer() {
                     xlights->SetStatusText(wxString::Format("Added '-shimmer' to %d phoneme(s).", modifiedCount));
                 } else {
                     wxMessageBox("No valid phoneme selected.", "Add Shimmer", wxOK | wxICON_INFORMATION);
+                }
+                return;
+            }
+        }
+    }
+}
+
+void EffectsGrid::RemoveShimmer() {
+    if (mSelectedRow >= 0 && mSelectedRow < mSequenceElements->GetVisibleRowInformationSize()) {
+        Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
+        if (ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING && ri->layerIndex == 2) {
+            EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(mSelectedRow);
+            if (effectLayer != nullptr) {
+                int modifiedCount = 0;
+                for (int i = 0; i < effectLayer->GetEffectCount(); i++) {
+                    Effect* eff = effectLayer->GetEffect(i);
+                    if (eff->GetSelected() != EFFECT_NOT_SELECTED && !eff->IsLocked()) {
+                        std::string currentName = eff->GetEffectName();
+                        if (currentName.length() > 8 && currentName.substr(currentName.length() - 8) == "-shimmer") {
+                            std::string newName = currentName.substr(0, currentName.length() - 8);
+                            eff->SetEffectName(newName);
+                            modifiedCount++;
+                            mSelectedEffect = eff;
+                        }
+                    }
+                }
+                if (modifiedCount > 0) {
+                    effectLayer->UnSelectAllEffects();
+                    for (int i = 0; i < effectLayer->GetEffectCount(); i++) {
+                        Effect* eff = effectLayer->GetEffect(i);
+                        if (eff->GetSelected() != EFFECT_NOT_SELECTED) {
+                            eff->SetSelected(EFFECT_SELECTED);
+                        }
+                    }
+                    if (mSelectedEffect) {
+                        RaiseSelectedEffectChanged(mSelectedEffect, false, true);
+                    }
+                    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+                    wxPostEvent(mParent, eventRowHeaderChanged);
+                    Draw();
+                    xlights->SetStatusText(wxString::Format("Removed '-shimmer' from %d phoneme(s).", modifiedCount));
+                } else {
+                    wxMessageBox("No phoneme with '-shimmer' selected.", "Remove Shimmer", wxOK | wxICON_INFORMATION);
                 }
                 return;
             }
@@ -1302,6 +1347,8 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
         Replace();
     } else if (id == ID_GRID_MNU_ADD_SHIMMER) {
         AddShimmer();
+    } else if (id == ID_GRID_MNU_REMOVE_SHIMMER) {
+        RemoveShimmer();
     }
     Draw();
 }
