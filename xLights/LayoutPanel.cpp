@@ -478,21 +478,11 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     int msp = config->Read("LayoutModelSplitterSash", -1);
     int sp = config->Read("LayoutMainSplitterSash", -1);
     is_3d = config->ReadBool("LayoutMode3D", false);
-    bool allow_3d_previews = true; //false; //set to false for previous behavior
 
     CheckBox_3D->SetValue(is_3d);
     xlights->GetHousePreview()->Set3D(is_3d);
 
-    if (!allow_3d_previews && is_3d)
-    {
-        ChoiceLayoutGroups->Disable();
-        ChoiceLayoutGroups->SetToolTip("3D is only supported in the Default preview.");
-    }
-    else
-    {
-        ChoiceLayoutGroups->Enable();
-        ChoiceLayoutGroups->UnsetToolTip();
-    }
+    ChoiceLayoutGroups->Enable();
     modelPreview->Set3D(is_3d);
 
     propertyEditor->Connect(wxEVT_PG_CHANGING, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChanging,0,this);
@@ -687,6 +677,7 @@ void LayoutPanel::Reset()
     ChoiceLayoutGroups->Append("Default");
     ChoiceLayoutGroups->Append("All Models");
     ChoiceLayoutGroups->Append("Unassigned");
+    ChoiceLayoutGroups->SetToolTip("Select a preview or model group to display in the Layout Preview window. Choose 'Default' for models assigned to the default preview, 'All Models' to show all models, or a specific group to filter displayed models.");
     for (const auto& it : xlights->LayoutGroups) {
         LayoutGroup* grp = (LayoutGroup*)(it);
         ChoiceLayoutGroups->Append(grp->GetName());
@@ -2600,11 +2591,6 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
     }
 
     base_object->AddProperties(propertyEditor, xlights->GetOutputManager());
-    if (is_3d)
-    {
-        base_object->EnableLayoutGroupProperty(propertyEditor, false);
-    }
-
     if (dynamic_cast<SubModel*>(base_object) == nullptr) {
 
         wxPGProperty* p2;
@@ -9083,20 +9069,6 @@ std::string CopyPasteBaseObject::Serialise() const
 void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
 {
     is_3d = CheckBox_3D->GetValue();
-    bool allow_3d_previews = true; //false; //set to false for previous behavior
-
-    if (!allow_3d_previews && is_3d) {
-        if (ChoiceLayoutGroups->GetStringSelection() != "Default") {
-            ChoiceLayoutGroups->SetStringSelection("Default");
-            wxCommandEvent e;
-            OnChoiceLayoutGroupsSelect(e);
-        }
-        ChoiceLayoutGroups->Disable();
-        ChoiceLayoutGroups->SetToolTip("3D is only supported in the Default preview.");
-    } else {
-        ChoiceLayoutGroups->Enable();
-        ChoiceLayoutGroups->UnsetToolTip();
-    }
 
     modelPreview->Set3D(is_3d);
     if (is_3d) {
@@ -9104,7 +9076,6 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
             selectionLatched = true;
             highlightedBaseObject = selectedBaseObject;
             selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
-            selectedBaseObject->EnableLayoutGroupProperty(propertyEditor, false);
         } else {
             UnSelectAllModels();
         }
@@ -9112,9 +9083,7 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
     } else {
         editing_models = true;
         Model *m = dynamic_cast<Model*>(selectedBaseObject);
-        if (m != nullptr) {
-            m->EnableLayoutGroupProperty(propertyEditor, true);
-        } else {
+        if (m == nullptr) {
             UnSelectAllModels();
         }
         Notebook_Objects->RemovePage(1);
