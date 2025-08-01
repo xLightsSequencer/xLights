@@ -1345,7 +1345,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
     if(IsUnPackSupported_Hinks(controller))
     {
-        if(controller->IsUniversePerString() == false)
+        if(!controller->IsUniversePerString())
         {
             for(int port = 1; port <= cud.GetMaxPixelPort(); port++)
             {
@@ -1373,26 +1373,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
                     }
                 }
             }
-
-            if(cud.HasSerialPort(1))
-            {
-                UDControllerPort *portData = cud.GetControllerSerialPort(1);
-                for(auto const &m : portData->GetModels())
-                {
-                    UP = new UnPack;
-                    UP->InActive = false;
-                    UP->Port = 100;
-                    UP->NumChans = m->Channels();
-                    UP->NewStart = HStart;
-                    UP->NewEnd = UP->NewStart + UP->NumChans;
-                    UP->MyStart = m->GetStartChannel() - 1 - OffSet;
-                    UP->MyEnd = UP->MyStart + UP->NumChans;
-                    HStart += UP->NumChans;
-                    UPA.push_back(UP);
-
-                }
-            }
-
+            // removed serial port unpack
 
             logger_base.debug("Total Map\n");
             for(int i = 0; i < UPA.size(); i++)
@@ -1401,14 +1382,8 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
             }
             logger_base.debug("\n\n\n");
 
-
-
             // sort by my start channel
             std::sort(UPA.begin(), UPA.end(), less_than_key());
-
-
-
-
 
             logger_base.debug("Total Map after sort before compress\n");
             for(int i = 0; i < UPA.size(); i++)
@@ -1417,46 +1392,54 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
             }
             logger_base.debug("\n\n\n");
 
-
             // combine/compress
-
+            logger_base.debug("Total Map compress\n");
             int LastUsed = 0;
-            for(int i = 1; i < UPA.size(); i++)
+            for(int i = 0, iii = 0; i < UPA.size(); i++)
             {
-                if(UPA[i]->MyStart == UPA[i]->NewStart)  // we have continious memort
+                if(UPA[i]->MyStart == UPA[i]->NewStart)  // we have continious memory
                 {
                     UPA[LastUsed]->MyEnd += UPA[i]->NumChans;
                     UPA[LastUsed]->NewEnd += UPA[i]->NumChans;
                     UPA[LastUsed]->NumChans += UPA[i]->NumChans;
                     UPA[i]->InActive = true;
                     dirty = true;
+
+                    if(iii == 0)    // new group in sync
+                    {
+                        iii = 1;
+                        LastUsed = i;
+                    }
+                    logger_base.debug("%d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
+                    logger_base.debug("\t\tLast Used %d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n\n", LastUsed, UPA[LastUsed]->InActive, UPA[LastUsed]->Port, UPA[LastUsed]->MyStart, UPA[LastUsed]->MyEnd, UPA[LastUsed]->NewStart, UPA[LastUsed]->NewEnd, UPA[LastUsed]->NumChans);
+
                 }
                 else
+                {
+                    logger_base.debug("\n%d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
                     LastUsed = i;
-
+                    iii = 0;
+                }
             }
+            logger_base.debug("\n\n\n");
 
-
-                logger_base.debug("Total Map after compress and sort\n");
-                for(int i = 0; i < UPA.size(); i++)
+            logger_base.debug("Total Map after compress and sort\n");
+            for(int i = 0; i < UPA.size(); i++)
+            {
+                logger_base.debug("%d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
+            }
+            logger_base.debug("\n\n\n");
+            logger_base.debug("Active only after compress and sort\n");
+            for(int i = 0; i < UPA.size(); i++)
+            {
+                if (!UPA[i]->InActive)
                 {
                     logger_base.debug("%d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
                 }
-                logger_base.debug("\n\n\n");
-                logger_base.debug("Active only after compress and sort\n");
-                for(int i = 0; i < UPA.size(); i++)
-                {
-                    if(UPA[i]->InActive == false)
-                    {
-                        logger_base.debug("%d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
-                    }
-                }
-                logger_base.debug("\n\n\n");
-
-
+            }
+            logger_base.debug("\n\n\n");
         }
     }
-
 
     logger_base.info("Checking Pixel Output and SmartReceivers Information.");
     progress.Update(20, "Checking Pixel Output and SmartReceivers Information.");

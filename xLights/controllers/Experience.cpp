@@ -225,7 +225,7 @@ int32_t Experience::SetInputUniverses(wxJSONValue& data, Controller* controller)
             universe["start_channel"] = 1;
             universes.Append(universe);
         } else {
-            //not the same size, loop through them all indivually
+            //not the same size, loop through them all individually
             for (auto const& it : outputs) {
                 wxJSONValue universe;
                 universe["start_universe"] = it->GetUniverse();
