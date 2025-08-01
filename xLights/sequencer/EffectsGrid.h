@@ -293,6 +293,7 @@ private:
     void FindPrevious();
     void Replace();
     void AddShimmer();
+    void RemoveShimmer();
 
     SequenceElements* mSequenceElements = nullptr;
     bool mIsDrawing = false;
@@ -377,6 +378,7 @@ private:
     static const long ID_GRID_MNU_FIND_PREVIOUS;
     static const long ID_GRID_MNU_REPLACE;
     static const long ID_GRID_MNU_ADD_SHIMMER;
+    static const long ID_GRID_MNU_REMOVE_SHIMMER;
     static const long ID_GRID_MNU_RANDOM_EFFECTS;
     static const long ID_GRID_MNU_DESCRIPTION;
     static const long ID_GRID_MNU_RESETEFFECT;
