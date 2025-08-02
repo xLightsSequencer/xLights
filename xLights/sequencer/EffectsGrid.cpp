@@ -641,7 +641,7 @@ void EffectsGrid::RemoveShimmer() {
                     Effect* eff = effectLayer->GetEffect(i);
                     if (eff->GetSelected() != EFFECT_NOT_SELECTED && !eff->IsLocked()) {
                         std::string currentName = eff->GetEffectName();
-                        if (currentName.length() > 8 && currentName.substr(currentName.length() - 8) == "-shimmer") {
+                        if (::Lower(currentName).ends_with("-shimmer")) {
                             std::string newName = currentName.substr(0, currentName.length() - 8);
                             eff->SetEffectName(newName);
                             modifiedCount++;
