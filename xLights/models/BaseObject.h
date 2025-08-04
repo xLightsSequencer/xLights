@@ -89,6 +89,9 @@ public:
     float GetWidth() const;
     float GetHeight() const;
     float GetDepth() const;
+    float GetRestorableMWidth() const;
+    float GetRestorableMHeight() const;
+    float GetRestorableMDepth() const;
 
     const std::string &Name() const { return name;}
     const std::string &GetName() const { return name;}

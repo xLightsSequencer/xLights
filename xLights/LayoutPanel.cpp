@@ -5503,8 +5503,9 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
 
     Model* selectedModel = modelPreview->GetModels()[selectedindex];
     std::string selectedType = selectedModel->GetDisplayAs();
-    float width = selectedModel->GetWidth();
-    float height = selectedModel->GetHeight();
+    float width = selectedModel->GetRestorableMWidth();
+    float height = selectedModel->GetRestorableMHeight();
+    float depth = selectedModel->GetRestorableMDepth();
 
     bool isBoxed = false;
     if ((dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(selectedModel) != nullptr)) {
@@ -5560,7 +5561,7 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
                 if (sameWidth) {
                     modelPreview->GetModels()[i]->SetWidth(width);
                     if (z_scale) {
-                        modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().SetMDepth(width);
+                        modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().SetMDepth(depth);
                     }
                 }
 

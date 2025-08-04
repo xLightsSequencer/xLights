@@ -337,6 +337,18 @@ float BaseObject::GetDepth() const {
     return GetBaseObjectScreenLocation().GetMDepth();
 }
 
+float BaseObject::GetRestorableMWidth() const {
+    return GetBaseObjectScreenLocation().GetRestorableMWidth();
+}
+
+float BaseObject::GetRestorableMHeight() const {
+    return GetBaseObjectScreenLocation().GetRestorableMHeight();
+}
+
+float BaseObject::GetRestorableMDepth() const {
+    return GetBaseObjectScreenLocation().GetRestorableMDepth();
+}
+
 float BaseObject::GetHcenterPos() {
     return GetBaseObjectScreenLocation().GetHcenterPos();
 }
