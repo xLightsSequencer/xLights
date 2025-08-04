@@ -136,6 +136,7 @@ class SanDevices : public BaseController
     char EncodeColorOrderV5(const std::string& colorOrder) const;
     int EncodeColorOrderV4(const std::string& colorOrder) const;
     char EncodeBrightness(int brightness) const;
+    char EncoderRenardSpeed(int baud) const;
     bool EncodeDirection(const std::string& direction) const;
     char EncodeUniverse(int universe) const;
     SanDeviceModel DecodeControllerType(const std::string& modelName) const;
