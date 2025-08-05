@@ -264,7 +264,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
             wxMessageBox("NOTE: When you save this .xbkp file it will save as a .xsq file overwriting any existing sequence .xsq file", "Warning");
         }
 
-        if (!rp.IsEmpty()) {
+        if (rp.IsEmpty()) {
             // check if there is a autosave backup file which is newer than the file we have been asked to open
             if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && wxFileName(filename).GetExt().Lower() != "xbkp" && wxFileName(filename).GetExt().Lower() != "fseq") {
                 wxFileName fn(filename);
@@ -280,7 +280,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                     
                     if (xbkptime.IsValid() && xmltime.IsValid() && (xbkptime > xmltime)) {
                         // autosave file is newer
-                        if (wxMessageBox("Autosaved file found which seems to be newer than your sequence file ... would you like to open that instead and replace your xml file?", "Newer file found", wxYES_NO) == wxYES) {
+                        if (wxMessageBox("Autosaved file found which seems to be newer than your sequence file ... would you like to open that instead and replace your xsq file?", "Newer file found", wxYES_NO) == wxYES) {
                             // run a backup ... equivalent of a F10
                             DoBackup(false, false, true);
                             
