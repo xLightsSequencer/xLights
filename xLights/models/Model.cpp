@@ -3093,6 +3093,9 @@ std::list<int> Model::ParseFaceNodes(std::string channels)
 
 void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxStopWatch sw;
+
     if (modelDimmingCurve != nullptr) {
         delete modelDimmingCurve;
         modelDimmingCurve = nullptr;
@@ -3306,6 +3309,10 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     }
 
     IncrementChangeCount();
+    
+    if (sw.Time() > 10) {
+        logger_base.debug("%s model %s took %lums to initialise.", GetDisplayAs().c_str(), (const char*)name.c_str(), sw.Time());
+    }
 }
 
 std::string Model::GetControllerConnectionString() const

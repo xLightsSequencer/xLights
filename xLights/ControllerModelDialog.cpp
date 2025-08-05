@@ -467,9 +467,6 @@ public:
             }
         }
 
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("HITY port %d %d-%d %s", _port, _location.y, _location.y + totaly, (mouse.y >= _location.y && mouse.y <= _location.y + totaly) ? "HIT" : "");
-
         return (mouse.y >= _location.y &&
                 mouse.y <= _location.y + totaly);
     }

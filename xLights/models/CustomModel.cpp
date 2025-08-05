@@ -293,9 +293,6 @@ void CustomModel::UpdateModel(int width, int height, int depth, const std::vecto
 
 void CustomModel::InitModel()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxStopWatch sw;
-
     std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
     std::string compressed = ModelXml->GetAttribute("CustomModelCompressed", "").ToStdString();
     InitCustomMatrix(customModel, compressed);
@@ -308,11 +305,6 @@ void CustomModel::InitModel()
     screenLocation.SetRenderSize(parm1, parm2, _depth);
     if (_depth > 1) {
         screenLocation.SetPerspective2D(0.1f); // if i dont do this you cant see the back nodes in 2D
-    }
-
-    if (sw.Time() > 5)
-    {
-        logger_base.debug("Custom model %s took %lums to initialise.", (const char*)name.c_str(), sw.Time());
     }
 }
 
