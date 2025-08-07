@@ -3892,6 +3892,41 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift) {
         UpdateSelectedEffects();
         MakeRowVisible(mRangeEndRow - mSequenceElements->GetNumberOfTimingRows() - 1);
         Draw();
+    } else if (!MultipleEffectsSelected() && mSelectedEffect != nullptr && !mSelectedEffect->IsLocked() && mSelectedRow > 0) {
+        logger_base.debug("EffectsGrid::MoveSelectedEffectUp moving single effect.");
+        int row = mSelectedRow - 1;
+        xlights->AbortRender();
+        EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
+        while (row + mSequenceElements->GetFirstVisibleModelRow() >= mSequenceElements->GetNumberOfTimingRows()) {
+            EffectLayer* new_el = mSequenceElements->GetEffectLayer(mSequenceElements->GetFirstVisibleModelRow() + row);
+            if (new_el != nullptr) {
+                if (new_el->GetRangeIsClearMS(mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS())) {
+                    mSequenceElements->get_undo_mgr().CreateUndoStep();
+                    Effect* ef = new_el->AddEffect(0,
+                                                   mSelectedEffect->GetEffectName(),
+                                                   mSelectedEffect->GetSettingsAsString(),
+                                                   mSelectedEffect->GetPaletteAsString(),
+                                                   mSelectedEffect->GetStartTimeMS(),
+                                                   mSelectedEffect->GetEndTimeMS(),
+                                                   EFFECT_SELECTED,
+                                                   false);
+                    if (ef != nullptr) {
+                        mSelectedRow = row;
+                        mSelectedEffect = ef;
+                        el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+                        mSequenceElements->get_undo_mgr().CaptureAddedEffect(new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID());
+                        RaiseSelectedEffectChanged(ef, false, true);
+                        sendRenderDirtyEvent();
+                        MakeRowVisible(mSelectedRow + mSequenceElements->GetFirstVisibleModelRow() - mSequenceElements->GetNumberOfTimingRows() - 1);
+                    } else {
+                        logger_base.warn("Problem adding effect when moving effect up %s", (const char*)mSelectedEffect->GetEffectName().c_str());
+                    }
+                    Draw();
+                    return;
+                }
+            }
+            row--;
+        }
     } else {
         logger_base.debug("EffectsGrid::MoveSelectedEffectUp moving multiple effects.");
 
@@ -3987,6 +4022,41 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift) {
         UpdateSelectedEffects();
         MakeRowVisible(mRangeEndRow - mSequenceElements->GetNumberOfTimingRows() + 1);
         Draw();
+    } else if (!MultipleEffectsSelected() && mSelectedEffect != nullptr && !mSelectedEffect->IsLocked() && mSelectedRow >= 0) {
+        logger_base.debug("EffectsGrid::MoveSelectedEffectDown moving single effect.");
+        int row = mSelectedRow + 1;
+        xlights->AbortRender();
+        EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
+        while (row < mSequenceElements->GetRowInformationSize()) {
+            EffectLayer* new_el = mSequenceElements->GetEffectLayer(mSequenceElements->GetFirstVisibleModelRow() + row);
+            if (new_el != nullptr) {
+                if (new_el->GetRangeIsClearMS(mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS())) {
+                    mSequenceElements->get_undo_mgr().CreateUndoStep();
+                    Effect* ef = new_el->AddEffect(0,
+                                                   mSelectedEffect->GetEffectName(),
+                                                   mSelectedEffect->GetSettingsAsString(),
+                                                   mSelectedEffect->GetPaletteAsString(),
+                                                   mSelectedEffect->GetStartTimeMS(),
+                                                   mSelectedEffect->GetEndTimeMS(),
+                                                   EFFECT_SELECTED,
+                                                   false);
+                    if (ef != nullptr) {
+                        mSelectedRow = row;
+                        mSelectedEffect = ef;
+                        el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+                        mSequenceElements->get_undo_mgr().CaptureAddedEffect(new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID());
+                        RaiseSelectedEffectChanged(ef, false, true);
+                        sendRenderDirtyEvent();
+                        MakeRowVisible(mSelectedRow + mSequenceElements->GetFirstVisibleModelRow() - mSequenceElements->GetNumberOfTimingRows() + 1);
+                    } else {
+                        logger_base.warn("Error adding effect when moving effects down %s", (const char*)mSelectedEffect->GetEffectName().c_str());
+                    }
+                    Draw();
+                    return;
+                }
+            }
+            ++row;
+        }
     } else {
         logger_base.debug("EffectsGrid::MoveSelectedEffectDown moving multiple effects.");
 
