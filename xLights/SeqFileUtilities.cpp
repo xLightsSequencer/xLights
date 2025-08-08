@@ -998,13 +998,15 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
         filter += *it;
     }
 
-    wxFileDialog file(this, "Choose file to import", "", "", filter);
-
     wxString lit = "";
+    wxString ldir = "";
     wxConfigBase* config = wxConfigBase::Get();
     if (config != nullptr) {
         config->Read("xLightsLastImportType", &lit, "");
+        config->Read("xLightsLastImportDir", &ldir, "");
     }
+
+    wxFileDialog file(this, "Choose file to import", ldir.ToStdString(), "", filter);
     if (lit != "") {
         int index = 0;
 
@@ -1022,6 +1024,10 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
             config->Write("xLightsLastImportType", filters[file.GetFilterIndex()]);
         } else {
             logger_base.warn("XLightsLastImportType not saved due to invalid filter index %d.", file.GetFilterIndex());
+        }
+        if (config != nullptr) {
+            ldir = file.GetDirectory();
+            config->Write("xLightsLastImportDir", ldir);
         }
 
         wxFileName fn = file.GetPath();
