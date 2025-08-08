@@ -3894,11 +3894,21 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift) {
         Draw();
     } else if (!MultipleEffectsSelected() && mSelectedEffect != nullptr && !mSelectedEffect->IsLocked() && mSelectedRow > 0) {
         logger_base.debug("EffectsGrid::MoveSelectedEffectUp moving single effect.");
+
+        const int first_model_row = mSequenceElements->GetNumberOfTimingRows();
+        for (int r = first_model_row + 1; r < mSequenceElements->GetRowInformationSize(); r++) {
+            EffectLayer* el1 = mSequenceElements->GetEffectLayer(r);
+            if (mSequenceElements->GetEffectLayer(r)->GetSelectedEffectCount() > 0) {
+                mSelectedRow = r;
+                break;
+            }
+        }
+
         int row = mSelectedRow - 1;
         xlights->AbortRender();
         EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
         while (row + mSequenceElements->GetFirstVisibleModelRow() >= mSequenceElements->GetNumberOfTimingRows()) {
-            EffectLayer* new_el = mSequenceElements->GetEffectLayer(mSequenceElements->GetFirstVisibleModelRow() + row);
+            EffectLayer* new_el = mSequenceElements->GetEffectLayer(row);
             if (new_el != nullptr) {
                 if (new_el->GetRangeIsClearMS(mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS())) {
                     mSequenceElements->get_undo_mgr().CreateUndoStep();
@@ -3917,7 +3927,8 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift) {
                         mSequenceElements->get_undo_mgr().CaptureAddedEffect(new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID());
                         RaiseSelectedEffectChanged(ef, false, true);
                         sendRenderDirtyEvent();
-                        MakeRowVisible(mSelectedRow + mSequenceElements->GetFirstVisibleModelRow() - mSequenceElements->GetNumberOfTimingRows() - 1);
+                        MakeRowVisible(mSelectedRow - mSequenceElements->GetNumberOfTimingRows() + 1); // if off bottom
+                        MakeRowVisible(mSelectedRow - mSequenceElements->GetNumberOfTimingRows());
                     } else {
                         logger_base.warn("Problem adding effect when moving effect up %s", (const char*)mSelectedEffect->GetEffectName().c_str());
                     }
@@ -4024,11 +4035,21 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift) {
         Draw();
     } else if (!MultipleEffectsSelected() && mSelectedEffect != nullptr && !mSelectedEffect->IsLocked() && mSelectedRow >= 0) {
         logger_base.debug("EffectsGrid::MoveSelectedEffectDown moving single effect.");
+
+        const int first_model_row = mSequenceElements->GetNumberOfTimingRows();
+        for (int r = first_model_row + 1; r < mSequenceElements->GetRowInformationSize(); r++) {
+            EffectLayer* el1 = mSequenceElements->GetEffectLayer(r);
+            if (mSequenceElements->GetEffectLayer(r)->GetSelectedEffectCount() > 0) {
+                mSelectedRow = r;
+                break;
+            }
+        }
+
         int row = mSelectedRow + 1;
         xlights->AbortRender();
         EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
         while (row < mSequenceElements->GetRowInformationSize()) {
-            EffectLayer* new_el = mSequenceElements->GetEffectLayer(mSequenceElements->GetFirstVisibleModelRow() + row);
+            EffectLayer* new_el = mSequenceElements->GetEffectLayer(row);
             if (new_el != nullptr) {
                 if (new_el->GetRangeIsClearMS(mSelectedEffect->GetStartTimeMS(), mSelectedEffect->GetEndTimeMS())) {
                     mSequenceElements->get_undo_mgr().CreateUndoStep();
@@ -4047,7 +4068,8 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift) {
                         mSequenceElements->get_undo_mgr().CaptureAddedEffect(new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID());
                         RaiseSelectedEffectChanged(ef, false, true);
                         sendRenderDirtyEvent();
-                        MakeRowVisible(mSelectedRow + mSequenceElements->GetFirstVisibleModelRow() - mSequenceElements->GetNumberOfTimingRows() + 1);
+                        MakeRowVisible(mSelectedRow - mSequenceElements->GetNumberOfTimingRows()); // if scroll off
+                        MakeRowVisible(mSelectedRow - mSequenceElements->GetNumberOfTimingRows() + 1);
                     } else {
                         logger_base.warn("Error adding effect when moving effects down %s", (const char*)mSelectedEffect->GetEffectName().c_str());
                     }
