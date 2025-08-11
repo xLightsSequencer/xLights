@@ -3897,7 +3897,6 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift) {
 
         const int first_model_row = mSequenceElements->GetNumberOfTimingRows();
         for (int r = first_model_row + 1; r < mSequenceElements->GetRowInformationSize(); r++) {
-            EffectLayer* el1 = mSequenceElements->GetEffectLayer(r);
             if (mSequenceElements->GetEffectLayer(r)->GetSelectedEffectCount() > 0) {
                 mSelectedRow = r;
                 break;
@@ -4038,7 +4037,6 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift) {
 
         const int first_model_row = mSequenceElements->GetNumberOfTimingRows();
         for (int r = first_model_row + 1; r < mSequenceElements->GetRowInformationSize(); r++) {
-            EffectLayer* el1 = mSequenceElements->GetEffectLayer(r);
             if (mSequenceElements->GetEffectLayer(r)->GetSelectedEffectCount() > 0) {
                 mSelectedRow = r;
                 break;
