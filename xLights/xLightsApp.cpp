@@ -137,7 +137,6 @@
 #endif
 
 xLightsFrame* xLightsApp::__frame = nullptr;
-wxString cleanupFolder = "";
 
 void InitialiseLogging(bool fromMain)
 {
@@ -447,10 +446,10 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
                     frame->SetDir(xLightsApp::showDir, false);
                     
                     // save the folder and we will remove it when we shutdown
-                    if (!cleanupFolder.empty()) {
-                        wxDir::Remove(cleanupFolder, wxPATH_RMDIR_RECURSIVE);
+                    if (!cleanupDir.empty()) {
+                        wxDir::Remove(cleanupDir, wxPATH_RMDIR_RECURSIVE);
                     }
-                    cleanupFolder = xsqPkg.GetTempDir();
+                    cleanupDir = xsqPkg.GetTempDir();
                     
                     // tell xlights not to allow saving ... at least as much as possible
                     frame->SetReadOnlyMode(true);
@@ -703,7 +702,6 @@ bool xLightsApp::OnInit()
             showDir = xsqPkg.GetTempShowFolder();
 
             // save the folder and we will remove it when we shutdown
-            cleanupFolder = showDir;
             cleanupDir = showDir;
 
         } else {
