@@ -2883,6 +2883,11 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
     logger_base.debug("Heartbeat exit.");
 
+    if (xLightsApp::cleanupDir != "") {
+        logger_base.info("Cleaning up temp folder %s", (const char*)xLightsApp::cleanupDir.c_str());
+        wxDir::Remove(xLightsApp::cleanupDir, wxPATH_RMDIR_RECURSIVE);
+    }
+
     Destroy();
     logger_base.info("xLights Closed.");
 
