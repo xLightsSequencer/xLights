@@ -11,6 +11,25 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2025.08 August , 2025
+    - enh (derwin12)        Allow preview edits in 3D mode
+    - enh (derwin12)        Store/restore the last directory used for imports
+    - enh (derwin12)        Add right click option to remove "-shimmer"
+    - enh (scott)           Add serial upload for Sandevice v5 controllers
+    - enh (TheHodge)        Add Baldrick17 controller
+    - enh (scott)           Add YPS VIVID8 controller
+    - enh (dkulp)           FPP9 - Support up to 5 matrices
+    - enh (derwin12)        Distinguish between unsupported and unavailable for FPP connect status
+    - enh (keith)           Support creation of submodels from states and faces
+    - bug (derwin12)        Disallow invalid characters (ex :) for controller names
+    - bug (dkulp)           Fix proxy support for ESPixelStick uploads
+    - bug (derwin12)        Fix crash importing some models that have numbers in the middle of submodel names
+    - bug (derwin12)        ImageEffect - images with alpha channel may display wrong
+    - bug (scott)           Fix HinksPix universe packing issues in some setups
+    - bug (derwin12)        Fix some issues with "Match Size" not actually matching the size for some models
+    - bug (derwin12)        Fix check for xbkp files and properly prompt to restore
+    - bug (mpierreb/derwin12) Fix some issues moving effects up/down in the grid
+    - bug (derwin12)        Fix removing of temp files after opening xsqz files
 2025.07 July 17, 2025
     - bug (derwin12)        Handle cursor up/down the sequencer panel consistently
     - enh (derwin12)        Split multiple effects via right click
