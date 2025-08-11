@@ -375,10 +375,6 @@ int main(int argc, char **argv)
     int rc =  wxEntry(argc, argv);
     logger_base.info("Main: wxWidgets exited with rc=" + wxString::Format("%d", rc));
 
-    if (cleanupFolder != "") {
-        wxDir::Remove(cleanupFolder, wxPATH_RMDIR_RECURSIVE);
-    }
-
     return rc;
 }
 
@@ -708,6 +704,7 @@ bool xLightsApp::OnInit()
 
             // save the folder and we will remove it when we shutdown
             cleanupFolder = showDir;
+            cleanupDir = showDir;
 
         } else {
             logger_base.debug("Zip file did not contain sequence.");        
@@ -795,4 +792,5 @@ bool xLightsApp::ProcessIdle() {
 //global flags from command line:
 wxString xLightsApp::mediaDir;
 wxString xLightsApp::showDir;
+wxString xLightsApp::cleanupDir;
 wxArrayString xLightsApp::sequenceFiles;
