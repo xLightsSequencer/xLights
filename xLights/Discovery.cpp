@@ -345,7 +345,8 @@ void Discovery::AddCurl(const std::string &host, const std::string &url, std::fu
     data->urls.insert(furl);
     CURL *curl = CurlManager::INSTANCE.createCurl(furl);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 30000L);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 3000L);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 10000L);
 
     logger_curl.info("Discovery Adding CURL - URL: %s    Method: GET", furl.c_str());
 
@@ -647,14 +648,16 @@ DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std
 
 
 void Discovery::Discover() {
-    auto endBroadcastTime = wxGetLocalTimeMillis().GetValue() + 2000l;
-    discoveryFinishTime = wxGetLocalTimeMillis().GetValue() + 10000L; // 10 seconds max
+    uint64_t curMs = wxGetLocalTimeMillis().GetValue();
+    //uint64_t start = curMs;
+    auto endBroadcastTime = curMs + 1000l;
+    discoveryFinishTime = curMs + 5000L; // 5 seconds max
     bool running = CurlManager::INSTANCE.processCurls();
     uint8_t buffer[1500];
     finished = false;
     
-    while ((running || (wxGetLocalTimeMillis().GetValue() < endBroadcastTime))
-           && (wxGetLocalTimeMillis().GetValue() < discoveryFinishTime)){
+    while ((running || (curMs < endBroadcastTime))
+           && (curMs < discoveryFinishTime)){
         memset(buffer, 0x00, sizeof(buffer));
         int readSize = 0;
         //first check to see if any of the socket have received data
@@ -679,6 +682,8 @@ void Discovery::Discover() {
         //now check the http/curls
         running = CurlManager::INSTANCE.processCurls();
         wxYieldIfNeeded();
+        curMs = wxGetLocalTimeMillis().GetValue();
+        //printf("%d:  %d\n", (int)(curMs - start), running);
     }
     finished = true;
 }

@@ -3976,6 +3976,16 @@ bool FPP::ValidateProxy(const std::string& to, const std::string& via)
     return false;
 }
 
+static void waitForCurlsComplete(wxWindow* frame, Discovery *discovery) {
+    if (CurlManager::INSTANCE.processCurls()) {
+        frame->CallAfter([discovery, frame]() {
+            waitForCurlsComplete(frame, discovery);
+        });
+    } else {
+        delete discovery;
+    }
+}
+
 std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
 {
     std::list<FPP*> instances;
@@ -4022,10 +4032,10 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
     startAddresses.sort();
     startAddresses.unique();
 
-    Discovery discovery(frame, outputManager);
-    FPP::PrepareDiscovery(discovery, startAddresses);
-    discovery.Discover();
-    FPP::MapToFPPInstances(discovery, instances, outputManager);
+    Discovery *discovery = new Discovery(frame, outputManager);
+    FPP::PrepareDiscovery(*discovery, startAddresses);
+    discovery->Discover();
+    FPP::MapToFPPInstances(*discovery, instances, outputManager);
     instances.sort(sortByIP);
 
     wxString newForce = "";
@@ -4044,6 +4054,9 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
         config->Flush();
     }
 
+    frame->CallAfter([discovery, frame]() {
+        waitForCurlsComplete(frame, discovery);
+    });
     return instances;
 }
 
