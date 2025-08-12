@@ -1008,22 +1008,22 @@ void FPPConnectDialog::LoadSequences()
 {
     CheckListBox_Sequences->DeleteAllItems();
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
-    wxString freqDir = frame->GetFseqDirectory();
+    wxString fseqDir = frame->GetFseqDirectory();
 
     if (ChoiceFolder->GetSelection() == 0) {
-        LoadSequencesFromFolder(xLightsFrame::CurrentDir);
+        LoadSequencesFromFolder(fseqDir);
     }
     else {
         const wxString folder = ChoiceFolder->GetString(ChoiceFolder->GetSelection());
         LoadSequencesFromFolder(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + folder);
-        freqDir = xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + folder;
+        fseqDir = xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + folder;
     }
 
     wxDir directory;
-    directory.Open(freqDir);
+    directory.Open(fseqDir);
 
     wxArrayString files;
-    GetAllFilesInDir(freqDir, files, "*.?seq");
+    GetAllFilesInDir(fseqDir, files, "*.?seq");
     for (auto &v : files) {
         wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
         bool found = false;
