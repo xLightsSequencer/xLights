@@ -103,14 +103,11 @@ struct FPPDInfo {
 };
 std::set<FPPDInfo> fppDiscInfo;
 
-FPP::FPP(const std::string& ad) :
-    BaseController(ad, ""), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), fppType(FPP_TYPE::FPP) {
-    wxIPV4address address;
-    if (address.Hostname(ad)) {
-        hostName = ad;
-        ipAddress = ToUTF8(address.IPAddress());
-        _ip = ipAddress;
-
+FPP::FPP(const std::string& ad) : BaseController(ad, ""), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr), ipAddress(ad), fppType(FPP_TYPE::FPP) {
+        
+    if (ip_utils::IsValidHostname(ipAddress)) {
+        hostName = ipAddress;
+        _ip = ip_utils::ResolveIP(ipAddress);
     }
     _connected = true; // well not really but i need to fake it
 }
@@ -121,11 +118,9 @@ FPP::FPP(const std::string& ip_, const std::string& proxy_, const std::string& m
     fppType(FPP_TYPE::FPP), proxy(proxy_), pixelControllerType(model_)
 {
     ipAddress = ip_;
-    wxIPV4address address;
-    if (address.Hostname(ipAddress)) {
+    if (ip_utils::IsValidHostname(ipAddress)) {
         hostName = ipAddress;
-        ipAddress = ToStdString(address.IPAddress());
-        _ip = ipAddress;
+        _ip = ip_utils::ResolveIP(ipAddress);
     }
     _connected = true; // well not really but i need to fake it
 }
@@ -3028,9 +3023,10 @@ bool FPP::UploadControllerProxies(OutputManager* outputManager)
 static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const std::string &proxyIp, const std::string &sysInfo);
 
 static bool resolvableHostname(const std::string &hn, const std::string &ip) {
-    wxIPV4address address;
-    // hostname resolves to correct IP, DNS works, we can use it
-    return address.Hostname(hn) && address.IPAddress() == ip;
+    if (ip_utils::IsValidHostname(hn)) {
+        return ip == ip_utils::ResolveIP(hn);
+    }
+    return false;
 }
 static void setRangesToChannelCount(DiscoveredData *inst) {
     int min = 9999999; int max = 0;
@@ -4074,6 +4070,8 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
         config->Flush();
     }
     waitForCurlsComplete(discovery);
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("FPP Discovery Complete.  Found " + std::to_string(instances.size()) + " instances.");
     return instances;
 }
 
