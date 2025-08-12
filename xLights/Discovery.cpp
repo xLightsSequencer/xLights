@@ -663,11 +663,11 @@ void Discovery::Discover() {
     uint64_t curMs = wxGetLocalTimeMillis().GetValue();
     //uint64_t start = curMs;
     auto endBroadcastTime = curMs + 1000l;
-    discoveryFinishTime = curMs + 5000L; // 5 seconds max
+    discoveryFinishTime = curMs + 5000L; // Start with 5 seconds max
     bool running = CurlManager::INSTANCE.processCurls();
     uint8_t buffer[1500];
     finished = false;
-    
+    uint32_t instanceCount = 0;
     while ((running || (curMs < endBroadcastTime))
            && (curMs < discoveryFinishTime)){
         memset(buffer, 0x00, sizeof(buffer));
@@ -695,6 +695,22 @@ void Discovery::Discover() {
         running = CurlManager::INSTANCE.processCurls();
         wxYieldIfNeeded();
         curMs = wxGetLocalTimeMillis().GetValue();
+        
+        // If discovery is finding new instances, we'll increase
+        // the timeouts so if there are a LOT of instances where
+        // we start hitting curl resource limits and such, we
+        // we can still discover everything.  If all the curls
+        // finish, this bails immediately anyway so this
+        // only increases the time if it's actually able to
+        // find new instances
+        if (instanceCount != results.size()) {
+            instanceCount = results.size();
+            auto nt = curMs + 1000;
+            if (nt > discoveryFinishTime) {
+                discoveryFinishTime = nt;
+            }
+        }
+        
         //printf("%d:  %d\n", (int)(curMs - start), running);
     }
     finished = true;
