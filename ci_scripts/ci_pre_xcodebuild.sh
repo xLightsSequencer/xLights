@@ -13,6 +13,14 @@ echo ""
 echo "TMP"
 ls -lart ${TMPDIR}
 
+if [ "$CI_PRIMARY_REPOSITORY_PATH" = "" ]; then
+    CI_PRIMARY_REPOSITORY_PATH=`pwd`
+fi
+
+if [ "$CI_DERIVED_DATA_PATH" = "" ]; then
+    CI_DERIVED_DATA_PATH=`pwd`/macOS
+fi
+
 
 mkdir -p $CI_DERIVED_DATA_PATH
 cd $CI_DERIVED_DATA_PATH
