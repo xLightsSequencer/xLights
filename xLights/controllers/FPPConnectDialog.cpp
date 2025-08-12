@@ -526,7 +526,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
         if (c != nullptr && c->GetActive() == Controller::ACTIVESTATE::ACTIVEINXLIGHTSONLY) {
             if (std::find(discoveredControllers.begin(), discoveredControllers.end(), c->GetResolvedIP()) == discoveredControllers.end()) {
                 FPP* missing = new FPP(c->GetResolvedIP());
-                missing->hostName = c->GetResolvedIP();
+                missing->hostName = c->GetIP();
                 instances.push_back(missing);
             }
         }
