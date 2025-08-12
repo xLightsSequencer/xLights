@@ -32,19 +32,20 @@ class ollama : public aiBase {
     bool https{ false };
 
 	public:
-
 	explicit ollama(ServiceManager* frame) :
-            aiBase(frame) {
-        }
+        aiBase(frame)
+    { }
 	virtual ~ollama() {}
 
     void SaveSettings() const override;
     void LoadSettings() override;
 
     void PopulateLLMSettings(wxPropertyGrid* page) override;
-    void SetSetting(const std::string& key, const wxVariant& value) override;  
+    void SetSetting(const std::string& key, const wxVariant& value) override;
 
 	[[nodiscard]] std::pair<std::string,bool> CallLLM(const std::string& prompt) const override;
+    [[nodiscard]] std::vector<wxColour> CallLLMForColors(const std::string& prompt) const override;
+
     [[nodiscard]] bool IsAvailable() const override;
     [[nodiscard]] std::string GetLLMName() const override {
         return "ollama";

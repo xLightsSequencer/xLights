@@ -21,7 +21,7 @@
 #include "ExternalHooks.h"
 #include "sequencer/SequenceElements.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #include <limits>
 
@@ -1581,8 +1581,8 @@ void ValueCurve::SaveXVC(const wxFileName& fn)
 void ValueCurve::SaveXVC(const std::string& filename)
 {
     wxFile f(filename);
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Saving to xvc file %s.", (const char *)filename.c_str());
+    
+    LOG_INFO("Saving to xvc file %s.", (const char *)filename.c_str());
 
     if (!f.Create(filename, true) || !f.IsOpened())
     {

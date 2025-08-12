@@ -54,7 +54,7 @@
 #include "CheckboxSelectDialog.h"
 #include "VendorModelDialog.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 wxDEFINE_EVENT(EVT_SMDROP, wxCommandEvent);
 
@@ -1094,7 +1094,7 @@ void SubModelsDialog::OnListPopup(wxCommandEvent& event)
 
 void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!shouldProcessGridCellChanged) {
         shouldProcessGridCellChanged = true;
@@ -1105,7 +1105,7 @@ void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
     if (sm != nullptr) {
         int str = (int)sm->strands.size() - 1 - r;
         if (str < 0) {
-            logger_base.crit("SubModelsDialog::OnNodesGridCellChange submodel '%s' tried to access strand %d. This should have crashed.", (const char*)GetSelectedName().c_str(), str);
+            LOG_CRIT("SubModelsDialog::OnNodesGridCellChange submodel '%s' tried to access strand %d. This should have crashed.", (const char*)GetSelectedName().c_str(), str);
             wxASSERT(false);
         } else {
             wxString newValue = NodesGrid->GetCellValue(r, 0);
@@ -1114,7 +1114,7 @@ void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
 
         }
     } else {
-        logger_base.crit("SubModelsDialog::OnNodesGridCellChange submodel '%s' ... not found. This should have crashed.", (const char*)GetSelectedName().c_str());
+        LOG_CRIT("SubModelsDialog::OnNodesGridCellChange submodel '%s' ... not found. This should have crashed.", (const char*)GetSelectedName().c_str());
         wxASSERT(false);
     }
     SelectRow(r);
@@ -1355,7 +1355,7 @@ void SubModelsDialog::OnListCtrl_SubModelsKeyDown(wxListEvent& event)
 
 void SubModelsDialog::ApplySubmodelName()
 {
-    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     int index = GetSelectedIndex();
     wxASSERT(index >= 0);
@@ -1387,7 +1387,7 @@ void SubModelsDialog::ApplySubmodelName()
         }
     }
     else {
-        logger_base.warn("SubModelsDialog::ApplySubmodelName submodel not found for index %d.", index);
+        LOG_WARN("SubModelsDialog::ApplySubmodelName submodel not found for index %d.", index);
     }
 
     ValidateWindow();
@@ -1431,8 +1431,8 @@ void SubModelsDialog::OnButton_SearchClick(wxCommandEvent& event)
 
 static void LogAndWrite(wxFile& f, const std::string& msg)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("CheckSequence: " + msg);
+    
+    LOG_DEBUG("CheckSequence: " + msg);
     if (f.IsOpened()) {
         f.Write(msg + "\r\n");
     }
@@ -3562,8 +3562,8 @@ void SubModelsDialog::ImportCSVSubModel(wxString const& filename)
         TextCtrl_Name->SetFocus();
         TextCtrl_Name->SelectAll();
     } else {
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.warn("Failed to Open File %s", (const char *)filename.c_str());
+        
+        LOG_WARN("Failed to Open File %s", (const char *)filename.c_str());
     }
 }
 

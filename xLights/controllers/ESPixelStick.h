@@ -10,8 +10,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <list>
 #include <string>
+
+#include <nlohmann/json.hpp>
 
 #include "BaseController.h"
 #include "WebSocketClient.h"
@@ -39,16 +40,16 @@ private:
     bool CheckWsConnection();
     bool CheckHTTPconnection();
 
-    bool GetAdminInformation(wxJSONValue& Result);
-    bool GetInputConfig(wxJSONValue& Result);
-    bool GetOutputConfig(wxJSONValue& Result);
-    bool GetHttpConfig(std::string FileName, std::string key, wxJSONValue& Result);
-    bool GetWsConfig(std::string FileName, std::string key, wxJSONValue& Result);
+    bool GetAdminInformation(nlohmann::json& Result);
+    bool GetInputConfig(nlohmann::json& Result);
+    bool GetOutputConfig(nlohmann::json& Result);
+    bool GetHttpConfig(std::string FileName, std::string key, nlohmann::json& Result);
+    bool GetWsConfig(std::string FileName, std::string key, nlohmann::json& Result);
 
-    bool SetInputConfig(wxJSONValue& Data);
-    bool SetOutputConfig(wxJSONValue& Data);
-    bool SetHttpConfig(std::string FileName, std::string key, wxJSONValue& Data);
-    bool SetWsConfig(std::string FileName, std::string key, wxJSONValue& Data);
+    bool SetInputConfig(nlohmann::json& Data);
+    bool SetOutputConfig(nlohmann::json& Data);
+    bool SetHttpConfig(std::string FileName, std::string key, nlohmann::json& Data);
+    bool SetWsConfig(std::string FileName, std::string key, nlohmann::json& Data);
 
     bool SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);
     bool SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);

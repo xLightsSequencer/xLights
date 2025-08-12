@@ -45,7 +45,7 @@
 #include "xLightsVersion.h"
 #include "TopEffectsPanel.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename) const
 {
@@ -83,7 +83,7 @@ void xLightsFrame::ResetEffectsXml()
 
 wxString xLightsFrame::LoadEffectsFileNoCheck()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     ResetEffectsXml();
     wxFileName effectsFile;
     effectsFile.AssignDir(CurrentDir);
@@ -169,7 +169,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     _backupDirectory = GetXmlSetting("backupDir", showDirectory);
     ObtainAccessToURL(_backupDirectory);
     if (!wxDir::Exists(_backupDirectory)) {
-        logger_base.warn("Backup Directory not Found ... switching to Show Directory.");
+        LOG_WARN("Backup Directory not Found ... switching to Show Directory.");
         _backupDirectory = showDirectory;
         SetXmlSetting("backupDir", showDirectory);
         UnsavedRgbEffectsChanges = true;
@@ -225,7 +225,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     _defaultSeqView = GetXmlSetting("defaultSeqView", "");
 
     if (_sequenceViewManager.GetViewIndex(_defaultSeqView) == -1 && _defaultSeqView != "") {
-        logger_base.warn("View Not Found ... clearing");
+        LOG_WARN("View Not Found ... clearing");
         _defaultSeqView.clear();
         SetXmlSetting("defaultSeqView", _defaultSeqView);
         UnsavedRgbEffectsChanges = true;
@@ -321,7 +321,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         }
     }
     if (!wxDir::Exists(fseqDirectory)) {
-        logger_base.warn("FSEQ Directory not Found ... switching to Show Directory.");
+        LOG_WARN("FSEQ Directory not Found ... switching to Show Directory.");
         fseqDirectory = showDirectory;
         SetXmlSetting("fseqDir", showDirectory);
         UnsavedRgbEffectsChanges = true;
@@ -337,7 +337,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         }
     }
     if (!wxDir::Exists(renderCacheDirectory)) {
-        logger_base.warn("Render Cache Directory not Found ... switching to Show Directory.");
+        LOG_WARN("Render Cache Directory not Found ... switching to Show Directory.");
         renderCacheDirectory = showDirectory;
         SetXmlSetting("renderCacheDir", showDirectory);
         UnsavedRgbEffectsChanges = true;
@@ -615,21 +615,21 @@ void xLightsFrame::OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event)
 void xLightsFrame::SaveModelsFile()
 {
     wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::string filename = CurrentDir.ToStdString() + "/xScheduleData/GetModels.dat";
 
     if (!wxDir::Exists(CurrentDir + "/xScheduleData")) {
-        logger_base.debug("Creating xScheduleData folder.");
+        LOG_DEBUG("Creating xScheduleData folder.");
         wxDir sd(CurrentDir);
         sd.Make(CurrentDir + "/xScheduleData");
     }
 
-    logger_base.debug("Creating models JSON file: %s.", (const char*)filename.c_str());
+    LOG_DEBUG("Creating models JSON file: %s.", (const char*)filename.c_str());
 
     wxFile modelsJSON;
     if (!modelsJSON.Create(filename, true) || !modelsJSON.IsOpened()) {
-        logger_base.error("Unable to create file: %s.", (const char*)filename.c_str());
+        LOG_ERROR("Unable to create file: %s.", (const char*)filename.c_str());
         return;
     }
 
@@ -686,13 +686,13 @@ void xLightsFrame::SaveModelsFile()
 
     modelsJSON.Write("]}");
 
-    logger_base.debug("     models JSON file done.");
+    LOG_DEBUG("     models JSON file done.");
 }
 
 // returns true on success
 bool xLightsFrame::SaveEffectsFile(bool backup)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     // dont save if currently saving
     std::unique_lock<std::mutex> lock(saveLock, std::try_to_lock);
@@ -719,7 +719,7 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
 
     if (!EffectsXml.Save(*bout)) {
         if (backup) {
-            logger_base.warn("Unable to save backup of RGB effects file");
+            LOG_WARN("Unable to save backup of RGB effects file");
         } else {
             DisplayError("Unable to save RGB effects file", this);
         }
@@ -729,7 +729,7 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     delete bout;
     if (!fout.Close()) {
         if (backup) {
-            logger_base.warn("Unable to save backup of RGB effects file");
+            LOG_WARN("Unable to save backup of RGB effects file");
         } else {
             DisplayError("Unable to save RGB effects file", this);
         }
@@ -825,7 +825,7 @@ bool xLightsFrame::EnsureSequenceElementsAreOrderedCorrectly(const std::string M
 
 bool xLightsFrame::RenameModel(const std::string OldName, const std::string& NewName)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     bool internalsChanged = false;
 
     if (OldName == NewName) {
@@ -833,7 +833,7 @@ bool xLightsFrame::RenameModel(const std::string OldName, const std::string& New
     }
     AbortRender();
 
-    logger_base.debug("Renaming model '%s' to '%s'.", (const char*)OldName.c_str(), (const char*)NewName.c_str());
+    LOG_DEBUG("Renaming model '%s' to '%s'.", (const char*)OldName.c_str(), (const char*)NewName.c_str());
 
     Element* elem_to_rename = _sequenceElements.GetElement(OldName);
     if (elem_to_rename != nullptr) {
@@ -878,14 +878,14 @@ void xLightsFrame::SetChoicebook(wxChoicebook* cb, const wxString& PageName)
 
 bool xLightsFrame::RenameObject(const std::string OldName, const std::string& NewName)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     bool internalsChanged = false;
 
     if (OldName == NewName) {
         return false;
     }
 
-    logger_base.debug("Renaming object '%s' to '%s'.", (const char*)OldName.c_str(), (const char*)NewName.c_str());
+    LOG_DEBUG("Renaming object '%s' to '%s'.", (const char*)OldName.c_str(), (const char*)NewName.c_str());
 
     Element* elem_to_rename = _sequenceElements.GetElement(OldName);
     if (elem_to_rename != nullptr) {
@@ -945,8 +945,8 @@ static void AddModelsToPreview(ModelGroup* grp, std::vector<Model*>& PreviewMode
 
 void xLightsFrame::UpdateModelsList()
 {
-    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
-    logger_work.debug("        UpdateModelsList.");
+    
+    LOG_DEBUG("        UpdateModelsList.");
 
     if (ModelsNode == nullptr 
         || ViewObjectsNode == nullptr
@@ -1082,7 +1082,7 @@ void xLightsFrame::UpdateModelsList()
 
 std::string xLightsFrame::OpenAndCheckSequence(const std::string& origFilename)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::string file;
 
@@ -1093,7 +1093,7 @@ std::string xLightsFrame::OpenAndCheckSequence(const std::string& origFilename)
         wxString seq = origFilename;
 
         printf("Processing file %s\n", (const char*)seq.c_str());
-        logger_base.debug("Batch Check sequence processing file %s\n", (const char*)seq.c_str());
+        LOG_DEBUG("Batch Check sequence processing file %s\n", (const char*)seq.c_str());
         OpenSequence(seq, nullptr);
         EnableSequenceControls(false);
 
@@ -1114,7 +1114,7 @@ std::string xLightsFrame::OpenAndCheckSequence(const std::string& origFilename)
 
         _checkSequenceMode = false;
         EnableSequenceControls(true);
-        logger_base.debug("Check sequence done.");
+        LOG_DEBUG("Check sequence done.");
         CloseSequence();
     }
 
@@ -1123,12 +1123,12 @@ std::string xLightsFrame::OpenAndCheckSequence(const std::string& origFilename)
 
 void xLightsFrame::OpenAndCheckSequence(const wxArrayString& origFilenames, bool exitOnDone)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (origFilenames.IsEmpty()) {
         _checkSequenceMode = false;
         EnableSequenceControls(true);
-        logger_base.debug("Batch check sequence done.");
+        LOG_DEBUG("Batch check sequence done.");
         printf("Done All Files\n");
         if (exitOnDone) {
             Destroy();
@@ -1140,7 +1140,7 @@ void xLightsFrame::OpenAndCheckSequence(const wxArrayString& origFilenames, bool
     }
 
     if (wxGetKeyState(WXK_ESCAPE)) {
-        logger_base.debug("Batch render cancelled.");
+        LOG_DEBUG("Batch render cancelled.");
         EnableSequenceControls(true);
         printf("Batch render cancelled.\n");
 
@@ -1172,7 +1172,7 @@ void xLightsFrame::OpenAndCheckSequence(const wxArrayString& origFilenames, bool
     fileNames.RemoveAt(0);
 
     printf("Processing file %s\n", (const char*)seq.c_str());
-    logger_base.debug("Batch Check sequence processing file %s\n", (const char*)seq.c_str());
+    LOG_DEBUG("Batch Check sequence processing file %s\n", (const char*)seq.c_str());
     OpenSequence(seq, nullptr);
     EnableSequenceControls(false);
 
@@ -1200,13 +1200,13 @@ void xLightsFrame::OpenRenderAndSaveSequencesF(const wxArrayString& origFileName
 }
 
 void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames, bool exitOnDone, bool alreadyRetried) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (origFilenames.IsEmpty()) {
         _lowDefinitionRender = _saveLowDefinitionRender;
         _renderMode = false;
         EnableSequenceControls(true);
-        logger_base.debug("Batch render done.");
+        LOG_DEBUG("Batch render done.");
         printf("Done All Files\n");
         wxBell();
 
@@ -1233,7 +1233,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
 
     if (wxGetKeyState(WXK_ESCAPE))
     {
-        logger_base.debug("Batch render cancelled.");
+        LOG_DEBUG("Batch render cancelled.");
         EnableSequenceControls(true);
         printf("Batch render cancelled.\n");
 
@@ -1274,7 +1274,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     _renderMode = b;
 
     printf("Processing file %s\n", (const char *)seq.c_str());
-    logger_base.debug("Batch Render Processing file %s\n", (const char *)seq.c_str());
+    LOG_DEBUG("Batch Render Processing file %s\n", (const char *)seq.c_str());
     OpenSequence(seq, nullptr);
     EnableSequenceControls(false);
 
@@ -1293,16 +1293,16 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     SetStatusText(_("Saving ") + xlightsFilename + _(" ... Rendering."));
     ProgressBar->Show();
     GaugeSizer->Layout();
-    logger_base.info("Rendering on save.");
+    LOG_INFO("Rendering on save.");
     RenderIseqData(true, nullptr); // render ISEQ layers below the Nutcracker layer
-    logger_base.info("   iseq below effects done.");
+    LOG_INFO("   iseq below effects done.");
     ProgressBar->SetValue(10);
     RenderGridToSeqData([this, sw, fileNames, exitOnDone, alreadyRetried] (bool aborted) {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("   Effects done.");
+        
+        LOG_INFO("   Effects done.");
         ProgressBar->SetValue(90);
         RenderIseqData(false, nullptr);  // render ISEQ layers above the Nutcracker layer
-        logger_base.info("   iseq above effects done. Render complete.");
+        LOG_INFO("   iseq above effects done. Render complete.");
         ProgressBar->SetValue(100);
         ProgressBar->Hide();
         _appProgress->SetValue(0);
@@ -1310,14 +1310,14 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         GaugeSizer->Layout();
 
         if (!aborted || alreadyRetried) {
-            logger_base.info("Saving fseq file.");
+            LOG_INFO("Saving fseq file.");
             SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
             WriteFalconPiFile(xlightsFilename);
-            logger_base.info("fseq file done.");
+            LOG_INFO("fseq file done.");
             DisplayXlightsFilename(xlightsFilename);
             float elapsedTime = sw.Time() / 1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
             wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"), xlightsFilename, elapsedTime);
-            logger_base.info("%s", (const char*)displayBuff.c_str());
+            LOG_INFO("%s", (const char*)displayBuff.c_str());
             CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
             mSavedChangeCount = _sequenceElements.GetChangeCount();
             mLastAutosaveCount = mSavedChangeCount;
@@ -1326,7 +1326,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
             nFileNames.RemoveAt(0);
             CallAfter(&xLightsFrame::OpenRenderAndSaveSequencesF, nFileNames, (exitOnDone ? RENDER_EXIT_ON_DONE : 0));
         } else {
-            logger_base.info("Render was aborted, retrying.");
+            LOG_INFO("Render was aborted, retrying.");
             CallAfter(&xLightsFrame::OpenRenderAndSaveSequencesF, fileNames, (exitOnDone ? RENDER_EXIT_ON_DONE : 0) | RENDER_ALREADY_RETRIED);
         }
     } );
@@ -1334,7 +1334,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
 
 void xLightsFrame::SaveSequence()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_seqData.NumFrames() == 0)
     {
@@ -1421,14 +1421,14 @@ void xLightsFrame::SaveSequence()
         CurrentSeqXmlFile->SetExt("xsq");
     }
     SetStatusText(_("Saving ") + CurrentSeqXmlFile->GetFullPath() + _(" ... Saving xsq."));
-    logger_base.info("Saving XSQ file.");
+    LOG_INFO("Saving XSQ file.");
     CurrentSeqXmlFile->AddJukebox(jukeboxPanel->Save());
     if (!CurrentSeqXmlFile->Save(_sequenceElements)) {
         wxMessageDialog msgDlg(this, "Error Saving Sequence to " + CurrentSeqXmlFile->GetFullPath(),
                                "Error Saving Sequence", wxOK | wxCENTRE);
         msgDlg.ShowModal();
     }
-    logger_base.info("XSQ file done.");
+    LOG_INFO("XSQ file done.");
 
     if (mBackupOnSave) {
         DoBackup(false);
@@ -1445,7 +1445,7 @@ void xLightsFrame::SaveSequence()
         if ((_seqData.NumChannels() != roundTo4(GetMaxNumChannels())) ||
             (_seqData.FrameTime() != CurrentSeqXmlFile->GetFrameMS()) )
         {
-            logger_base.info("Render on Save: Number of channels was wrong ... reallocating sequence data memory before rendering and saving.");
+            LOG_INFO("Render on Save: Number of channels was wrong ... reallocating sequence data memory before rendering and saving.");
 
             //need to abort any render going on in order to change the SeqData size
             AbortRender();
@@ -1458,31 +1458,31 @@ void xLightsFrame::SaveSequence()
 
         ProgressBar->Show();
         GaugeSizer->Layout();
-        logger_base.info("Rendering on save.");
+        LOG_INFO("Rendering on save.");
         RenderIseqData(true, nullptr); // render ISEQ layers below the Nutcracker layer
-        logger_base.info("   iseq below effects done.");
+        LOG_INFO("   iseq below effects done.");
         ProgressBar->SetValue(10);
         RenderGridToSeqData([this, sw] (bool aborted) {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.info("   Effects done.");
+            
+            LOG_INFO("   Effects done.");
             ProgressBar->SetValue(90);
             RenderIseqData(false, nullptr);  // render ISEQ layers above the Nutcracker layer
-            logger_base.info("   iseq above effects done. Render complete.");
+            LOG_INFO("   iseq above effects done. Render complete.");
             ProgressBar->SetValue(100);
             _appProgress->SetValue(0);
             _appProgress->Reset();
             ProgressBar->Hide();
             GaugeSizer->Layout();
 
-            logger_base.info("Saving fseq file.");
+            LOG_INFO("Saving fseq file.");
 
             SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
             WriteFalconPiFile(xlightsFilename);
-            logger_base.info("fseq file done.", true);
+            LOG_INFO("fseq file done.", true);
             DisplayXlightsFilename(xlightsFilename);
             float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
             wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
-            logger_base.info("%s", (const char *) displayBuff.c_str());
+            LOG_INFO("%s", (const char *) displayBuff.c_str());
             CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
             EnableSequenceControls(true);
             mSavedChangeCount = _sequenceElements.GetChangeCount();
@@ -1494,7 +1494,7 @@ void xLightsFrame::SaveSequence()
     if (mSaveFseqOnSave) {
         SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
         WriteFalconPiFile(xlightsFilename, true);
-        logger_base.info("fseq file done.");
+        LOG_INFO("fseq file done.");
         DisplayXlightsFilename(xlightsFilename);
         display_name = xlightsFilename;
     } else {
@@ -1502,7 +1502,7 @@ void xLightsFrame::SaveSequence()
     }
     float elapsedTime = sw.Time() / 1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
     wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"), display_name, elapsedTime);
-    logger_base.info("%s", (const char *)displayBuff.c_str());
+    LOG_INFO("%s", (const char *)displayBuff.c_str());
     CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
     EnableSequenceControls(true);
     mSavedChangeCount = _sequenceElements.GetChangeCount();
@@ -1577,10 +1577,10 @@ void xLightsFrame::SaveAsSequence(const std::string& filename)
 
 void xLightsFrame::RenderAll()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!_seqData.IsValidData()) {
-        logger_base.warn("Aborting render all because sequence data has not been initialised.");
+        LOG_WARN("Aborting render all because sequence data has not been initialised.");
         return;
     }
 
@@ -1593,17 +1593,16 @@ void xLightsFrame::RenderAll()
     GaugeSizer->Layout();
     SetStatusText(_("Rendering all layers"));
     SuspendAutoSave(true); // no need to auto save during render all
-    logger_base.debug("Rendering all.");
-    logger_base.debug("Model blending: %s", CurrentSeqXmlFile->supportsModelBlending() ? "On" : "Off");
+    LOG_DEBUG("Rendering all.");
+    LOG_DEBUG("Model blending: %s", CurrentSeqXmlFile->supportsModelBlending() ? "On" : "Off");
     RenderIseqData(true, nullptr); // render ISEQ layers below the Nutcracker layer
-    logger_base.info("   iseq below effects done.");
+    LOG_INFO("   iseq below effects done.");
     ProgressBar->SetValue(10);
-    RenderGridToSeqData([this, sw] (bool aborted) {
-        static log4cpp::Category& logger_base2 = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base2.info("   Effects done.");
+    RenderGridToSeqData([this, sw](bool /* aborted*/) {
+        LOG_INFO("   Effects done.");
         ProgressBar->SetValue(90);
         RenderIseqData(false, nullptr); // render ISEQ layers above the Nutcracker layer
-        logger_base2.info("   iseq above effects done. Render all complete.");
+        LOG_INFO("   iseq above effects done. Render all complete.");
         ProgressBar->SetValue(100);
         float elapsedTime = sw.Time() / 1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
         wxString displayBuff = wxString::Format(_("Rendered in %7.3f seconds"), elapsedTime);

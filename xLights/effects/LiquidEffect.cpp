@@ -26,7 +26,7 @@
 #include "../../include/liquid-48.xpm"
 #include "../../include/liquid-64.xpm"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 //#define LE_INTERPOLATE
 #define MAX_PARTICLES 100000
@@ -651,7 +651,7 @@ void LiquidEffect::Render(RenderBuffer &buffer,
     bool enabled4, int direction4, int x4, int y4, int velocity4, int flow4, int sourceSize4, bool flowMusic4,
     const std::string& particleType, int despeckle, float gravity, int gravityAngle)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     bool enabled[4];
     enabled[0] = true;
@@ -720,8 +720,8 @@ void LiquidEffect::Render(RenderBuffer &buffer,
     // allow up to 1 times physical memory
     if (IsExcessiveMemoryUsage(1.0))
     {
-        logger_base.error("LiquidEffect Render abandoned due to insufficient memory. This is not good. Rendering will be slow.");
-        logger_base.error("To reduce memory turn off render caching and/or change liquid effect settings.");
+        LOG_ERROR("LiquidEffect Render abandoned due to insufficient memory. This is not good. Rendering will be slow.");
+        LOG_ERROR("To reduce memory turn off render caching and/or change liquid effect settings.");
 
         // delete our world to get all our memory back
         delete _world;

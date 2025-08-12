@@ -15,6 +15,8 @@
 #include <memory>
 #include <string>
 
+#include <nlohmann/json.hpp>
+
 #include "BaseController.h"
 #include "ControllerUploadData.h"
 #include "../UtilClasses.h"
@@ -22,7 +24,6 @@
 #include <curl/curl.h>
 
 class HinksPix;
-class wxJSONValue;
 class ControllerEthernet;
 
 struct HinksPixOutput {
@@ -85,7 +86,7 @@ struct HinksPixSerial {
     bool ddpDMXEnabled;
     bool upload;
     void Dump() const;
-    void SetConfig(wxJSONValue const& data);
+    void SetConfig(nlohmann::json const& data);
 
     wxString BuildCommand() const;
     wxString BuildCommandEasyLights(int mode) const;
@@ -165,8 +166,8 @@ class HinksPix : public BaseController
     EXPType _EXP_Outputs[EXP_PORTS];
     std::string _controllerType;
     CURL* _curl { nullptr };
-    int _numberOfUniverses;
-    int _MCPU_Version;
+    int _numberOfUniverses{ 0 };
+    int _MCPU_Version{ 0 };
     bool _hardwareV3{false};
 
     std::vector<HinksPixOutput> _pixelOutputs;
@@ -194,7 +195,7 @@ class HinksPix : public BaseController
     bool UploadInputUniversesEasyLights(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const;
     void UploadPixelOutputsEasyLights(bool& worked);
     wxString GetControllerE131Data(int rowIndex) const;
-    wxString GetControllerData(int rowIndex, std::string const& data = std::string())const ;
+    wxString GetControllerData(int rowIndex, std::string const& data = std::string()) const ;
     wxString GetControllerRowData(int rowIndex, std::string const& url, std::string const& data) const;
     std::map<wxString, wxString> StringToMap(wxString const& text) const;
     
@@ -208,7 +209,7 @@ class HinksPix : public BaseController
     void CalculateSmartReceivers(UDControllerPort* stringData);
 
     std::string GetJSONControllerData(std::string const& url, std::string const& data) const;
-    bool GetControllerDataJSON(const std::string& url, wxJSONValue& val, std::string const& data) const;
+    bool GetControllerDataJSON(const std::string& url, nlohmann::json& val, std::string const& data) const;
     void PostToControllerNoResponse(std::string const& url, std::string const& data) const;
     bool CheckPixelOutputs(std::string & message);
     bool CheckSmartReceivers(std::string & message);

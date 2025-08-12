@@ -54,7 +54,7 @@
 #include "outputs/OutputManager.h"
 #include "xlColourData.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #define CHANNEL_COL 0
 #define COLOR_COL 1
@@ -1285,7 +1285,7 @@ std::string FixPhonemeCase(const std::string p)
 
 void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (xLightsFrame::CurrentDir == "") {
         wxMessageBox("Show folder is not valid. Face image download aborted.");
@@ -1317,7 +1317,7 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
                 if (ent->IsDir()) {
                     wxString dirname = dir + wxFileName::GetPathSeparator() + ent->GetName();
                     if (!wxDirExists(dirname)) {
-                        logger_base.debug("Extracting dir %s:%s to %s.", (const char*)faceZip.c_str(), (const char*)ent->GetName().c_str(), (const char*)dirname.c_str());
+                        LOG_DEBUG("Extracting dir %s:%s to %s.", (const char*)faceZip.c_str(), (const char*)ent->GetName().c_str(), (const char*)dirname.c_str());
                         wxFileName::Mkdir(dirname, wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
                     }
                 } else {
@@ -1328,16 +1328,16 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
                     {
 #ifdef __WXMSW__
                         if (filename.length() > MAX_PATH) {
-                            logger_base.warn("Target filename longer than %d chars (%d). This will likely fail. %s.", MAX_PATH, (int)filename.length(), (const char*) filename.c_str());
+                            LOG_WARN("Target filename longer than %d chars (%d). This will likely fail. %s.", MAX_PATH, (int)filename.length(), (const char*) filename.c_str());
                         }
 #endif
 
-                        logger_base.debug("Extracting %s:%s to %s.", (const char*)faceZip.c_str(), (const char*)ent->GetName().c_str(), (const char*)filename.c_str());
+                        LOG_DEBUG("Extracting %s:%s to %s.", (const char*)faceZip.c_str(), (const char*)ent->GetName().c_str(), (const char*)filename.c_str());
                         wxFileOutputStream fout(filename);
                         zin.Read(fout);
                     }
                     if (!FileExists(filename)) {
-                        logger_base.error("File extract failed.");
+                        LOG_ERROR("File extract failed.");
                     }
                 }
                 ent = zin.GetNextEntry();
@@ -1365,7 +1365,7 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
 
                 if (phoneme == "" || !IsValidPhoneme(phoneme))
                 {
-                    logger_base.warn("Phoneme '%s' was not known. File %s ignored.", (const char *)phoneme.c_str(), (const char *)it.c_str());
+                    LOG_WARN("Phoneme '%s' was not known. File %s ignored.", (const char *)phoneme.c_str(), (const char *)it.c_str());
                     error = true;
                 }
                 else
@@ -1430,7 +1430,7 @@ void ModelFaceDialog::OnGridPopup(const int rightEventID, wxGridEvent& gridEvent
 
 void ModelFaceDialog::ImportSubmodel(wxGridEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxArrayString choices;
     for (Model* sm : model->GetSubModels()) {
@@ -1451,7 +1451,7 @@ void ModelFaceDialog::ImportSubmodel(wxGridEvent& event)
         for (auto const& idx : dlg.GetSelections()) {
             Model* sm = model->GetSubModel(choices.at(idx));
             if (sm == nullptr) {
-                logger_base.error(
+                LOG_ERROR(
                     "Strange ... ModelFaceDialog::ImportSubmodel returned no model "
                     "for %s but it was in the list we gave the user.",
                     (const char*)choices.at(idx).c_str());

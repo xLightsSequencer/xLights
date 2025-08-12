@@ -17,7 +17,7 @@
 #include "models/ModelManager.h"
 #include "ExternalHooks.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
@@ -99,10 +99,10 @@ LORPreview::LORPreview( xLightsFrame* frame, wxString xLightsPreview ) :
     xLights_preview( xLightsPreview ) {
 #ifndef _DEBUG
     DisplayWarning(
-        "WARNING: As at this release S5 model import is experimental and its improvement relies on your feedback.\nIf it doesnt do a good job let us know by telling us:\n\
+        "WARNING: As at this release S5 model import is experimental and its improvement relies on your feedback.\nIf it doesn't do a good job let us know by telling us:\n\
         - which LOR S5 Model type it was\n\
         - what xLights Model was it converted too\n\
-        - what you changs you made to it.\n",
+        - what you changes you made to it.\n",
         frame );
 #else
     RunTests();
@@ -110,7 +110,7 @@ LORPreview::LORPreview( xLightsFrame* frame, wxString xLightsPreview ) :
 }
 
 bool LORPreview::LoadPreviewFile() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance( std::string( "log_base" ) );
+    
 
     auto const previewfileName = FindLORPreviewFile();
 
@@ -131,10 +131,10 @@ bool LORPreview::LoadPreviewFile() {
                 }
             }
         } else {
-            logger_base.warn( "LOR S5 Preview file could not be loaded." );
+            LOG_WARN( "LOR S5 Preview file could not be loaded." );
         }
     } else {
-        logger_base.warn( "LOR S5 Preview file not fould." );
+        LOG_WARN( "LOR S5 Preview file not found." );
     }
 
     return false;
@@ -178,9 +178,9 @@ bool LORPreview::ReadPreview( wxXmlNode* preview ) {
 }
 
 Model* LORPreview::LoadModelFile( wxString const& modelFile, wxString const& startChan, int previewW, int previewH, bool& error ) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance( std::string( "log_base" ) );
+    
 
-    logger_base.debug( "Loading LOR S5 Model file %s.", (const char*)modelFile.c_str() );
+    LOG_DEBUG( "Loading LOR S5 Model file %s.", (const char*)modelFile.c_str() );
 
     S5Model model;
 
@@ -198,7 +198,7 @@ Model* LORPreview::LoadModelFile( wxString const& modelFile, wxString const& sta
 }
 
 Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan, int previewW, int previewH, bool& error ) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance( std::string( "log_base" ) );
+    
 
     bool supportsMultiString = false;
 
@@ -582,7 +582,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         m = xlights->AllModels.CreateDefaultModel( "Single Line" );
         ScaleToPreview( model, m, previewW, previewH );
         error = true;
-        logger_base.debug( "Unknown LOR S5 Model type %s.", (const char*)model.shapeName.c_str() );
+        LOG_DEBUG( "Unknown LOR S5 Model type %s.", (const char*)model.shapeName.c_str() );
     }
 
     //Decode Type, "Traditional" vs "RGB"
@@ -621,7 +621,7 @@ void LORPreview::SetStartChannel( S5Model const& model, Model* xModel, bool doMu
                 int universe;
                 int chan;
                 if( GetStartUniverseChan( address, universe, chan ) ) {
-                    xModel->SetProperty( Model::StartChanAttrName( i ), "#" + std::to_string( universe ) + ":" + std::to_string( chan ) );
+                    xModel->SetProperty(xModel->StartChanAttrName(i), "#" + std::to_string(universe) + ":" + std::to_string(chan));
                 }
                 i++;
             }

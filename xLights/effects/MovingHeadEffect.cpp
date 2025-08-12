@@ -693,3 +693,92 @@ void MovingHeadEffect::SetEffectTimeRange(int startTimeMs, int endTimeMs) {
     }
     p->SetEffectTimeRange(startTimeMs, endTimeMs);
 }
+
+std::pair<int, int> MovingHeadEffect::RenderPath(DMXPathType effectType, double eff_pos, int height, int width, int rot) {
+    float position = 360.0 * (eff_pos);
+
+    auto [x, y] = CalcLocation(effectType, position);
+
+    x = width * x;
+    y = height * y;
+
+    double radRot = (rot) * (M_PI / 180.0);
+    double rx = (x * cos(radRot)) + (y * sin(radRot));
+    double ry = (y * cos(radRot)) + (x * sin(radRot));
+
+    int xx = std::round(rx);
+    int yy = std::round(ry);
+
+    // x += x_off;
+    // y += y_off;
+    return { xx, yy };
+}
+
+std::pair<float, float> MovingHeadEffect::CalcLocation(DMXPathType effectType, float degpos) {
+    float x;
+    float y;
+
+    double radpos = degpos * M_PI / 180.0;
+
+    switch (effectType) {
+    case DMXPathType::Circle:
+        x = sin(radpos);
+        y = cos(radpos);
+
+        break;
+    case DMXPathType::Square:
+        if (radpos < M_PI / 2) {
+            x = (radpos * 2 / M_PI) * 2 - 1;
+            y = 1.0F;
+        } else if (M_PI / 2 <= radpos && radpos < M_PI) {
+            x = 1.0F;
+            y = (1 - (radpos - M_PI / 2) * 2 / M_PI) * 2 - 1;
+        } else if (M_PI <= radpos && radpos < M_PI * 3 / 2) {
+            x = (1 - (radpos - M_PI) * 2 / M_PI) * 2 - 1;
+            y = -1.0F;
+        } else // M_PI * 3 / 2 <= iterator
+        {
+            x = -1.0F;
+            y = ((radpos - M_PI * 3 / 2) * 2 / M_PI) * 2 - 1;
+        }
+        break;
+    case DMXPathType::Leaf:
+        x = pow(cos(radpos + (M_PI / 2.0)), 5);
+        y = cos(radpos);
+        break;
+    case DMXPathType::Line:
+        x = cos(radpos);
+        y = cos(radpos);
+        break;
+    case DMXPathType::Diamond:
+        x = pow(cos(radpos - (M_PI / 2.0)), 3);
+        y = pow(cos(radpos), 3);
+        break;
+    case DMXPathType::Eight:
+        x = cos((radpos * 2) + (M_PI / 2.0));
+        y = cos(radpos);
+        break;
+    default:
+        wxASSERT(false);
+        break;
+    }
+
+    return { x, y };
+}
+
+DMXPathType MovingHeadEffect::DecodeType(const std::string& shape) {
+    if (shape == "Circle") {
+        return DMXPathType::Circle;
+    } else if (shape == "Square") {
+        return DMXPathType::Square;
+    } else if (shape == "Diamond") {
+        return DMXPathType::Diamond;
+    } else if (shape == "Line") {
+        return DMXPathType::Line;
+    } else if (shape == "Leaf") {
+        return DMXPathType::Leaf;
+    } else if (shape == "Eight") {
+        return DMXPathType::Eight;
+    }
+    return DMXPathType::Unknown;
+}

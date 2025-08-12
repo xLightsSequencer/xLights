@@ -29,7 +29,7 @@
 #include "CachedFileDownloader.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #include "utils/Curl.h"
 #undef min
@@ -157,7 +157,7 @@ public:
 
     void DownloadFS()
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
 
         if (xLightsFrame::CurrentDir == "") {
             wxMessageBox("Show folder invalid. Shader download aborted.");
@@ -183,7 +183,7 @@ public:
                     else if (strcmp(token, "<!") == 0) {
                         wxRemoveFile(fn);
                         fn = "";
-                        logger_base.debug("Shader file download failed and returned a non fs file.");
+                        LOG_DEBUG("Shader file download failed and returned a non fs file.");
                     }
                     else if (strcmp(token, "{\\\"")) {
                         wxString newFile = xLightsFrame::CurrentDir + "/Shaders/" + _name + ".json";
@@ -193,7 +193,7 @@ public:
                         if (!ff.IsOpened()) {
                             wxRemoveFile(fn);
                             fn = "";
-                            logger_base.debug("Shader file download failed load fs file.");
+                            LOG_DEBUG("Shader file download failed load fs file.");
                         }
                         else {
                             wxString json;
@@ -211,14 +211,14 @@ public:
                                 fff.Close();
                             }
                             else {
-                                logger_base.debug("Shader file download failed load to create fs file.");
+                                LOG_DEBUG("Shader file download failed load to create fs file.");
                             }
                         }
                     }
                     else {
                         wxRemoveFile(fn);
                         fn = "";
-                        logger_base.debug("Shader file download failed and returned a non fs file.");
+                        LOG_DEBUG("Shader file download failed and returned a non fs file.");
                     }
                 }
 

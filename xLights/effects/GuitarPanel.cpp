@@ -28,7 +28,7 @@
 #include "GuitarEffect.h"
 #include "UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 //(*IdInit(GuitarPanel)
 const wxWindowID GuitarPanel::ID_STATICTEXT_Guitar_Type = wxNewId();

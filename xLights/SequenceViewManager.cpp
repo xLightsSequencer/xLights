@@ -14,7 +14,7 @@
 #include "models/Model.h"
 #include "UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #define MASTER_VIEW_NAME "Master View"
 

@@ -80,9 +80,20 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         std::vector<std::vector<std::vector<int>>> GetData() const { return locations; }
         int GetCustomNodeStringNumber(int node) const;
 
+        long GetNumStrings() const override {
+            return _strings;
+        }
+
     protected:
         virtual void InitModel() override;
         virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
+
+        std::string StartStringAttrName(int idx) const {
+            return std::string("String") + std::to_string(idx + 1);
+        }
+        std::string StartChanAttrName(int idx) const override {
+            return std::string("ChanString") + std::to_string(idx + 1);
+        }
 
     private:
         int GetCustomMaxChannel(const std::string& customModel) const;
@@ -96,6 +107,8 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int _depth = 1;
         std::string custom_background;
         int _strings;
-        std::vector<int> stringStartNodes;
+        //std::vector<int> stringStartNodes;
         std::vector<std::vector<std::vector<int>>> locations;
+
+        std::vector<int32_t> stringStartNodes;
 };

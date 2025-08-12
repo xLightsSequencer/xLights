@@ -16,7 +16,7 @@
 #include <wx/xml/xml.h>
 #include <string>
 #include <map>
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 
 std::string SpecialOptions::StashShowDir(const std::string& showDir)
@@ -29,7 +29,7 @@ std::string SpecialOptions::StashShowDir(const std::string& showDir)
 
 std::string SpecialOptions::GetOption(const std::string& option, const std::string& defaultValue )
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     static bool __loaded = false;
     static std::map<std::string, std::string> __cache;
 
@@ -49,7 +49,7 @@ std::string SpecialOptions::GetOption(const std::string& option, const std::stri
         }
         else
         {
-            logger_base.debug("Special options file not found at " + file);
+            LOG_DEBUG("Special options file not found at " + file);
             __loaded = true;
         }
         __cache.clear();
@@ -58,7 +58,7 @@ std::string SpecialOptions::GetOption(const std::string& option, const std::stri
 
     if (!__loaded)
     {
-        logger_base.debug("Loading special options from " + file);
+        LOG_DEBUG("Loading special options from " + file);
         wxXmlDocument doc;
         doc.Load(file);
         if (doc.IsOk() && doc.GetRoot() != nullptr)
@@ -73,14 +73,14 @@ std::string SpecialOptions::GetOption(const std::string& option, const std::stri
                     if (name != "")
                     {
                         __cache[name] = value;
-                        logger_base.debug("   Option '" + name + "' = '" + value + "'");
+                        LOG_DEBUG("   Option '" + name + "' = '" + value + "'");
                     }
                 }
             }
         }
         else
         {
-            logger_base.error("Unable to load " + file + " invalid xml.");
+            LOG_ERROR("Unable to load " + file + " invalid xml.");
             return defaultValue;
         }
     }

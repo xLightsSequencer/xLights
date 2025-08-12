@@ -25,7 +25,7 @@
 #include "xLightsVersion.h"
 #include "ExternalHooks.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 wxDEFINE_EVENT(EVT_EFFTREEDROP, wxCommandEvent);
 
@@ -417,9 +417,9 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
 {
     if (settings == "") return "0";
 
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    //logger_base.debug("Name: %s", (const char *)name.c_str());
-    //logger_base.debug("Settings: %s", (const char *)settings.c_str());
+    //
+    //LOG_DEBUG("Name: %s", (const char *)name.c_str());
+    //LOG_DEBUG("Settings: %s", (const char *)settings.c_str());
     int res = 0;
     bool ac = false;
 
@@ -433,7 +433,7 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
         bool cf1 = false;
         for (int i = 0; i < all_efdata.size(); i++)
         {
-            //logger_base.debug("    %d: %s", i, (const char *)all_efdata[i].c_str());
+            //LOG_DEBUG("    %d: %s", i, (const char *)all_efdata[i].c_str());
 
             wxArrayString efdata = wxSplit(all_efdata[i], '\t');
 
@@ -457,21 +457,21 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
                         int row = wxAtoi(efdata[efdata.size() - 6]);
                         if (row < start) start = row;
                         if (row > end) end = row;
-                        //logger_base.debug("        row: %d start: %d end: %d", row, start, end);
+                        //LOG_DEBUG("        row: %d start: %d end: %d", row, start, end);
                     }
                     else if (!cf1 && efdata.size() > 2 && efdata[0] != "None")
                     {
                         int row = wxAtoi(efdata[efdata.size() - 2]);
                         if (row < start) start = row;
                         if (row > end) end = row;
-                        //logger_base.debug("        row: %d start: %d end: %d", row, start, end);
+                        //LOG_DEBUG("        row: %d start: %d end: %d", row, start, end);
                     }
                     else if (efdata.back() == "NO_PASTE_BY_CELL" && efdata.size() > 3 && efdata[0] != "None")
                     {
                         int row = wxAtoi(efdata[efdata.size() - 3]);
                         if (row < start) start = row;
                         if (row > end) end = row;
-                        //logger_base.debug("        row: %d start: %d end: %d", row, start, end);
+                        //LOG_DEBUG("        row: %d start: %d end: %d", row, start, end);
                     }
                 }
             }
@@ -491,7 +491,7 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
         if (efdata[1] != "None") res++;
     }
 
-    //logger_base.debug("    **** %d", res);
+    //LOG_DEBUG("    **** %d", res);
 
     if (ac)
     {
@@ -522,9 +522,9 @@ wxString EffectTreeDialog::ParseDuration(wxString name, wxString settings)
 {
     if (settings == "") return "0";
 
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    //logger_base.debug("Name: %s", (const char *)name.c_str());
-    //logger_base.debug("Settings: %s", (const char *)settings.c_str());
+    //
+    //LOG_DEBUG("Name: %s", (const char *)name.c_str());
+    //LOG_DEBUG("Settings: %s", (const char *)settings.c_str());
     int minstart = 99999999;
     int maxend = -99999999;
 
@@ -535,7 +535,7 @@ wxString EffectTreeDialog::ParseDuration(wxString name, wxString settings)
         bool cf1 = false;
         for (int i = 0; i < all_efdata.size(); i++)
         {
-            //logger_base.debug("    %d: %s", i, (const char *)all_efdata[i].c_str());
+            //LOG_DEBUG("    %d: %s", i, (const char *)all_efdata[i].c_str());
 
             wxArrayString efdata = wxSplit(all_efdata[i], '\t');
 
@@ -845,8 +845,8 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
 
             wxXmlDocument input_xml;
             if (!input_xml.Load(file_to_import)) {
-                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                logger_base.warn("EffectTreeDialog::Unable to load %s to import presets.", (const char *)file_to_import.c_str());
+                
+                LOG_WARN("EffectTreeDialog::Unable to load %s to import presets.", (const char *)file_to_import.c_str());
                 ValidateWindow();
                 return;
             }

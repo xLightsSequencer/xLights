@@ -22,6 +22,16 @@
 #define MOVING_HEAD_SCALE_MIN -100
 #define MOVING_HEAD_SCALE_MAX 100
 
+enum class DMXPathType {
+    Circle,
+    Square,
+    Diamond,
+    Line,
+    Leaf,
+    Eight,
+    Unknown
+};
+
 class DmxMotorBase;
 class MovingHeadPanel;
 class DmxColorAbility;
@@ -110,6 +120,10 @@ public:
             return MOVING_HEAD_DIVISOR;
         return RenderableEffect::GetSettingVCDivisor(name);
     }
+
+    static std::pair<int, int> RenderPath(DMXPathType effectType, double eff_pos, int height, int width, int rot);
+    static DMXPathType DecodeType(const std::string& shape);
+    static std::pair<float, float> CalcLocation(DMXPathType effectType, float degpos);
 
 protected:
     virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;

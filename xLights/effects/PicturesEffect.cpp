@@ -33,7 +33,7 @@
 #include "GIFImage.h"
 #include "../xLightsMain.h" 
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #define wrdebug(...)
 
@@ -500,7 +500,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
     bool transparentBlack, int transparentBlackLevel)
 {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     int dir = GetPicturesDirection(dirstr);
     double position = buffer.GetEffectTimeIntervalPosition(movementSpeed);
 
@@ -599,11 +599,11 @@ void PicturesEffect::Render(RenderBuffer& buffer,
 
                 // There seems to be a bug on linux where this function crashes occasionally
 #ifdef LINUX
-                logger_base.debug("About to count images in bitmap %s.", (const char*)NewPictureName.c_str());
+                LOG_DEBUG("About to count images in bitmap %s.", (const char*)NewPictureName.c_str());
 #endif
                 cache->imageCount = wxImage::GetImageCount(NewPictureName);
                 if (cache->imageCount <= 0) {
-                    logger_base.error("Image %s reports %d frames which is invalid. Overriding it to be 1.", (const char*)NewPictureName.c_str(), cache->imageCount);
+                    LOG_ERROR("Image %s reports %d frames which is invalid. Overriding it to be 1.", (const char*)NewPictureName.c_str(), cache->imageCount);
 
                     // override it to 1
                     cache->imageCount = 1;
@@ -613,7 +613,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
 
                 if (cache->imageCount > 1) {
 #ifdef DEBUG_GIF
-                    logger_base.debug("Preparing GIF file for reading: %s", (const char*)NewPictureName.c_str());
+                    LOG_DEBUG("Preparing GIF file for reading: %s", (const char*)NewPictureName.c_str());
 #endif
                     if (gifImage != nullptr && gifImage->GetFilename() != NewPictureName) {
                         delete gifImage;
@@ -628,7 +628,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
                         gifImage = nullptr;
                         cache->imageCount = 1;
                         if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0)) {
-                            logger_base.error("Error loading image file: %s.", (const char*)NewPictureName.c_str());
+                            LOG_ERROR("Error loading image file: %s.", (const char*)NewPictureName.c_str());
                             image.Create(5, 5, true);
                         }
                         rawimage = image;
@@ -638,7 +638,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
                     }
                 } else {
                     if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0)) {
-                        logger_base.error("Error loading image file: %s.", (const char*)NewPictureName.c_str());
+                        LOG_ERROR("Error loading image file: %s.", (const char*)NewPictureName.c_str());
                         image.Create(5, 5, true);
                     }
                     rawimage = image;

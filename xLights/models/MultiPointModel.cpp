@@ -27,7 +27,7 @@
 //#include "UtilFunctions.h"
 //#include "../ModelPreview.h"
 
-//#include <log4cpp/Category.hh>
+//#include "./utils/spdlog_macros.h"
 
 MultiPointModel::MultiPointModel(const ModelManager &manager) : ModelWithScreenLocation(manager) {
     parm1 = parm2 = parm3 = 0;

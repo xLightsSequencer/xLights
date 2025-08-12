@@ -17,7 +17,7 @@
 #include "../graphics/xlGraphicsAccumulators.h"
 #include "../graphics/xlGraphicsContext.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #define BOUNDING_RECT_OFFSET        8
 #define NUM_TERRAIN_HANDLES   861   // default number of points for a 40x20 grid

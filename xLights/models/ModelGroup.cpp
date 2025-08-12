@@ -18,7 +18,7 @@
 #include "ModelScreenLocation.h"
 #include "../UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 static const std::string HORIZ("Horizontal Stack");
 static const std::string VERT("Vertical Stack");
@@ -287,7 +287,9 @@ bool ModelGroup::ContainsModelOrSubmodel(Model* m, std::list<const Model*>& visi
 // Returns true if group only contains model and submodels of that model
 bool ModelGroup::OnlyContainsModel(const std::string& name) const
 {
-    if (modelNames.size() == 0) return false;
+    if (modelNames.size() == 0) {
+        return false;
+    }
 
     for (const auto& it : modelNames) {
         if (!StartsWith(it, name)) return false;
@@ -1427,8 +1429,8 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
             if (m != nullptr && m->IsActive()) {
                 int endBM = Nodes.size();
                 if ((endBM - startBM) != m->GetNodeCount()) {
-                    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                    logger_base.warn("Model group '%s' had problems creating render buffer for Per Strand/Model. Problem model '%s'.",
+                    
+                    LOG_WARN("Model group '%s' had problems creating render buffer for Per Strand/Model. Problem model '%s'.",
                                      (const char*)GetFullName().c_str(),
                                      (const char*)m->GetFullName().c_str());
                 }

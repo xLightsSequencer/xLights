@@ -16,7 +16,7 @@
 #include <wx/wx.h>
 #include <wx/file.h>
 #include <wx/filename.h>
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include "ExternalHooks.h"
 
 double CorrectForGamma(double value)
@@ -345,7 +345,7 @@ std::string VixenEffect::GetSettings() const
 
 std::string VixenEffect::GetXLightsType() const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (type == "AlternatingData") return "Marquee";
     if (type == "BarsData") return "Bars";
@@ -357,11 +357,11 @@ std::string VixenEffect::GetXLightsType() const
     if (type == "ColorWashData") return "Color Wash";
     if (type == "CurtainData") return "Curtain";
     if (type == "Data") {
-        logger_base.warn("Vixen3: Unable to convert Data effect ... inserting an On effect.");
+        LOG_WARN("Vixen3: Unable to convert Data effect ... inserting an On effect.");
         return "On"; // this should go to timing
     }
     if (type == "DissolveData") {
-        logger_base.warn("Vixen3: Unable to convert DissolveData effect ... inserting an off effect.");
+        LOG_WARN("Vixen3: Unable to convert DissolveData effect ... inserting an off effect.");
         return "Off"; // not sure what to do with this
     }
     if (type == "FireData") return "Fire";
@@ -373,7 +373,7 @@ std::string VixenEffect::GetXLightsType() const
     if (type == "LiquidData") return "Liquid";
     if (type == "MeteorsData") return "Meteors";
     if (type == "MorphData") {
-        logger_base.warn("Vixen3: Morph color import not supported.");
+        LOG_WARN("Vixen3: Morph color import not supported.");
         return "Morph";
     }
     if (type == "NutcrackerModuleData") {
@@ -392,17 +392,17 @@ std::string VixenEffect::GetXLightsType() const
     if (type == "PulseData") return "On";
     if (type == "SetLevelData") return "On";
     if (type == "ShapesData") {
-        logger_base.warn("Vixen3: Shapes color import not supported.");
+        LOG_WARN("Vixen3: Shapes color import not supported.");
         return "Shape";
     }
     if (type == "ShockwaveData") return "Shockwave";
     if (type == "SnowflakesData") {
-        logger_base.warn("Vixen3: Snowflakes color import not supported.");
+        LOG_WARN("Vixen3: Snowflakes color import not supported.");
         return "Snowflakes";
     }
     if (type == "SnowStormData") return "Snowstorm";
     if (type == "SpinData") {
-        logger_base.warn("Vixen3: Unable to convert SpinData effect ... inserting an Pinwheel effect.");
+        LOG_WARN("Vixen3: Unable to convert SpinData effect ... inserting an Pinwheel effect.");
         return "Pinwheel";
     }
     if (type == "SpiralData") return "Spirals";
@@ -410,7 +410,7 @@ std::string VixenEffect::GetXLightsType() const
     if (type == "StrobeData") return "Strobe";
     if (type == "TextData") return "Text";
     if (type == "TreeData") {
-        logger_base.warn("Vixen3: Tree color import not supported.");
+        LOG_WARN("Vixen3: Tree color import not supported.");
         return "Tree";
     }
     if (type == "TwinkleData") return "Twinkle";
@@ -419,7 +419,7 @@ std::string VixenEffect::GetXLightsType() const
     if (type == "WaveData") return "Wave";
     if (type == "WipeData") return "Single Strand";
 
-    logger_base.warn("Vixen3: Unknown effect %s ... inserting an off effect.", (const char*)type.c_str());
+    LOG_WARN("Vixen3: Unknown effect %s ... inserting an off effect.", (const char*)type.c_str());
 
     return "Off";
 }
@@ -441,7 +441,7 @@ void Vixen3::ProcessNode(wxXmlNode* n, std::map<std::string, std::string>& model
 
 Vixen3::Vixen3(const std::string& filename, const std::string& system)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _filename = filename;
     _systemFile = system;
@@ -451,24 +451,24 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
     {
         wxFileName seq(_filename);
         _systemFile = seq.GetPath() + wxFileName::GetPathSeparator() + "SystemConfig.xml";
-        logger_base.debug("Looking for Vixen SystemConfig in %s", (const char*)_systemFile.c_str());
+        LOG_DEBUG("Looking for Vixen SystemConfig in %s", (const char*)_systemFile.c_str());
 
         if (!FileExists(_systemFile))
         {
             _systemFile = seq.GetPath() + wxFileName::GetPathSeparator() + "SystemData" + wxFileName::GetPathSeparator() + "SystemConfig.xml";
-            logger_base.debug("Looking for Vixen SystemConfig in %s", (const char*)_systemFile.c_str());
+            LOG_DEBUG("Looking for Vixen SystemConfig in %s", (const char*)_systemFile.c_str());
         }
 
         if (!FileExists(_systemFile))
         {
             int lastFolder = seq.GetPath().Last(wxFileName::GetPathSeparator());
             _systemFile = seq.GetPath().Left(lastFolder) + wxFileName::GetPathSeparator() + "SystemData" + wxFileName::GetPathSeparator() + "SystemConfig.xml";
-            logger_base.debug("Looking for Vixen SystemConfig in %s", (const char*)_systemFile.c_str());
+            LOG_DEBUG("Looking for Vixen SystemConfig in %s", (const char*)_systemFile.c_str());
         }
 
         if (!FileExists(_systemFile))
         {
-            logger_base.debug("Looking for Vixen SystemConfig ... FAILED ... NOT FOUND");
+            LOG_DEBUG("Looking for Vixen SystemConfig ... FAILED ... NOT FOUND");
             _systemFound = false;
         }
     }
@@ -789,7 +789,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                             }
                             else
                             {
-                                logger_base.warn("Vixen3: model not found for effect. %s", (const char*)modelId.c_str());
+                                LOG_WARN("Vixen3: model not found for effect. %s", (const char*)modelId.c_str());
                                 wxASSERT(false);
                             }
                         }

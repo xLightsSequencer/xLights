@@ -27,7 +27,7 @@
 #include "sequencer/MainSequencer.h"
 #include "xlColourData.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 wxDEFINE_EVENT(EVT_CCP_CHANGED, wxCommandEvent);
 
@@ -194,8 +194,8 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
 
 void ColorCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("ColorCurveDialog Scanning directory for *.xcc files: %s.", (const char *)directory.GetNameWithSep().c_str());
+    
+    LOG_INFO("ColorCurveDialog Scanning directory for *.xcc files: %s.", (const char *)directory.GetNameWithSep().c_str());
 
     int count = 0;
 
@@ -229,7 +229,7 @@ void ColorCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
             }
         }
     }
-    logger_base.info("    Found %d.", count);
+    LOG_INFO("    Found %d.", count);
 
     if (subdirs) {
         wxString filename;
@@ -244,7 +244,7 @@ void ColorCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
 
 void ColorCurveDialog::PopulatePresets()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxDir dir(xLightsFrame::CurrentDir);
 
     ProcessPresetDir(dir, false);
@@ -258,7 +258,7 @@ void ColorCurveDialog::PopulatePresets()
     }
     else
     {
-        logger_base.info("Directory for *.xcc files not found: %s.", (const char *)d.c_str());
+        LOG_INFO("Directory for *.xcc files not found: %s.", (const char *)d.c_str());
     }
 
     wxStandardPaths stdp = wxStandardPaths::Get();
@@ -275,7 +275,7 @@ void ColorCurveDialog::PopulatePresets()
     }
     else
     {
-        logger_base.info("Directory for *.xcc files not found: %s.", (const char *)d.c_str());
+        LOG_INFO("Directory for *.xcc files not found: %s.", (const char *)d.c_str());
     }
 
     PresetSizer->Layout();
@@ -823,8 +823,8 @@ void ColorCurveDialog::OnButtonExportClick(wxCommandEvent& event)
     if (filename.IsEmpty()) return;
 
     wxFile f(filename);
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Saving to xcc file %s.", (const char *)filename.c_str());
+    
+    LOG_INFO("Saving to xcc file %s.", (const char *)filename.c_str());
 
     if (!f.Create(filename, true) || !f.IsOpened())
     {

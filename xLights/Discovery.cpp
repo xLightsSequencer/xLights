@@ -11,6 +11,8 @@
 #include <wx/socket.h>
 #include <wx/secretstore.h>
 
+#include <nlohmann/json.hpp>
+
 #ifndef __WXMSW__
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -30,7 +32,7 @@
 #include "controllers/Falcon.h"
 #endif
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #include "utils/CurlManager.h"
 
@@ -330,7 +332,7 @@ Discovery::CurlData::~CurlData() {
 }
 
 void Discovery::AddCurl(const std::string &host, const std::string &url, std::function<bool(int rc, const std::string &buffer, const std::string &errorBuffer)>&& callback) {
-    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
+    
 
     std::string furl = "http://" + host + url;
     Discovery::CurlData *data = https[host];
@@ -347,7 +349,7 @@ void Discovery::AddCurl(const std::string &host, const std::string &url, std::fu
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 30000L);
 
-    logger_curl.info("Discovery Adding CURL - URL: %s    Method: GET", furl.c_str());
+    LOG_INFO("Discovery Adding CURL - URL: %s    Method: GET", furl.c_str());
 
     int authStatus = data->authStatus;
     CurlManager::INSTANCE.addCURL(furl, curl, [this, url, furl, host, callback, authStatus, data](CURL* c) {
@@ -359,7 +361,7 @@ void Discovery::AddCurl(const std::string &host, const std::string &url, std::fu
         curl_easy_getinfo(c, CURLINFO_PRIVATE, &cpd);
         curl_easy_getinfo(c, CURLINFO_RESPONSE_CODE, &rc);
 
-        logger_curl.info("    Discovery CURL Callback - URL: %s  RC: %d    Size: %d", furl.c_str(), rc, cpd ? cpd->resp.size() : -1);
+        LOG_INFO("    Discovery CURL Callback - URL: %s  RC: %d    Size: %d", furl.c_str(), rc, cpd ? cpd->resp.size() : -1);
         if (rc == 401) {
             if (HandleAuth(host, c, authStatus) || authStatus != data->authStatus) {
                 data->urls.erase(furl);
@@ -367,7 +369,7 @@ void Discovery::AddCurl(const std::string &host, const std::string &url, std::fu
                     return callback(rc, buffer, errorBuffer);
                 });
             } else {
-                logger_curl.info("    Discovery CURL Callback - Unauthorized");
+                LOG_INFO("    Discovery CURL Callback - Unauthorized");
             }
         } else {
             std::string resp(reinterpret_cast<char*>(cpd->resp.data()), cpd->resp.size());

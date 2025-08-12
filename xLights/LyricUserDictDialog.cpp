@@ -21,7 +21,7 @@
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 #include <wx/msgdlg.h>
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 
@@ -242,7 +242,7 @@ void LyricUserDictDialog::OnButtonLyricCancelClick(wxCommandEvent& event)
 
 void LyricUserDictDialog::ReadUserDictionary() const
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     const wxString filename = "user_dictionary";
     wxFileName phonemeFile = wxFileName::DirName(m_showDirectory);
     phonemeFile.SetFullName(filename);
@@ -255,7 +255,7 @@ void LyricUserDictDialog::ReadUserDictionary() const
     }
 
     if (!FileExists(phonemeFile.GetFullPath())) {
-        logger_base.error("Could Not Find user_dictionary file");
+        LOG_ERROR("Could Not Find user_dictionary file");
         return;
     }
 
@@ -276,7 +276,7 @@ void LyricUserDictDialog::ReadUserDictionary() const
 
 void LyricUserDictDialog::WriteUserDictionary() const
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     const wxString filename = "user_dictionary";
     wxFileName phonemeFile = wxFileName::DirName(m_showDirectory);
     phonemeFile.SetFullName(filename);
@@ -295,7 +295,7 @@ void LyricUserDictDialog::WriteUserDictionary() const
         f.Close();
     }
     else {
-        logger_base.error("Could Not Save user_dictionary file");
+        LOG_ERROR("Could Not Save user_dictionary file");
     }
 }
 

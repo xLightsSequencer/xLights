@@ -1,7 +1,7 @@
 
 #include "xlFontInfo.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include <vector>
 #include <map>
 
@@ -187,8 +187,8 @@ const xlFontInfo &xlFontInfo::FindFont(int size) {
     }
 
     if (!FONTS[tsize].valid()) {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.warn("xlFontTexture had trouble creating font size %d ... this could end badly.", size);
+        
+        LOG_WARN("xlFontTexture had trouble creating font size %d ... this could end badly.", size);
     }
 
     return FONTS[tsize];

@@ -34,7 +34,7 @@
 #include "../../include/text-32.xpm"
 #include "../../include/text-48.xpm"
 #include "../../include/text-64.xpm"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #define MAXTEXTLINES 100
 

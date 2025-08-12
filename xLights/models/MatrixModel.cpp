@@ -22,7 +22,7 @@
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 MatrixModel::MatrixModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
@@ -91,6 +91,10 @@ void MatrixModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
     }
 
     grid->Append(new wxEnumProperty("Starting Location", "MatrixStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
+
+    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", _noZig));
+    p->SetEditor("CheckBox");
+    p->Enable(_alternateNodes == false);
 }
 
 void MatrixModel::AddStyleProperties(wxPropertyGridInterface *grid) {
@@ -98,10 +102,6 @@ void MatrixModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     wxPGProperty *p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
     p->SetEditor("CheckBox");
     p->Enable(_noZig == false);
-
-    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", _noZig));
-    p->SetEditor("CheckBox");
-    p->Enable(_alternateNodes == false);
 }
 
 int MatrixModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
@@ -298,7 +298,7 @@ void MatrixModel::InitModel() {
 // parm3=StrandsPerString
 void MatrixModel::InitVMatrix(int firstExportStrand)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     vMatrix = true;
     int stringnum, segmentnum;
     if (parm3 > parm2) {
@@ -400,7 +400,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
             }
             CopyBufCoord2ScreenCoord();
         } else {
-            logger_base.debug("Building low definition buffer at %d%%", _lowDefFactor);
+            LOG_DEBUG("Building low definition buffer at %d%%", _lowDefFactor);
 
             int xoffset = NumStrands / 2;
             int yoffset = PixelsPerStrand / 2;
@@ -454,7 +454,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
 // parm2=PixelsPerString
 // parm3=StrandsPerString
 void MatrixModel::InitHMatrix() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     vMatrix = false;
     int idx,stringnum,segmentnum,xincr;
     if (parm3 > parm2) {
@@ -543,7 +543,7 @@ void MatrixModel::InitHMatrix() {
             }
             CopyBufCoord2ScreenCoord();
         } else {
-            logger_base.debug("Building low definition buffer at %d%%", _lowDefFactor);
+            LOG_DEBUG("Building low definition buffer at %d%%", _lowDefFactor);
 
             int xoffset = PixelsPerStrand / 2;
             int yoffset = NumStrands / 2;

@@ -26,7 +26,7 @@
 #include "../outputs/ControllerEthernet.h"
 #include "../UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #include <curl/curl.h>
 
@@ -48,8 +48,8 @@ public:
     AlphaPixOutput(int output_) : output(output_) { }
     void Dump() const {
 
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("    Output %d Uni %d StartChan %d Pixels %d Rev %s Nulls %d Brightness %d ZigZag %d ColorOrder %d Upload %s",
+        
+        LOG_DEBUG("    Output %d Uni %d StartChan %d Pixels %d Rev %s Nulls %d Brightness %d ZigZag %d ColorOrder %d Upload %s",
             output,
             universe,
             startChannel,
@@ -75,8 +75,8 @@ public:
     AlphaPixSerial(int output_) : output(output_) { }
     void Dump() const {
 
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("    Output %d Uni %d Enabled %s Upload %s",
+        
+        LOG_DEBUG("    Output %d Uni %d Enabled %s Upload %s",
             output,
             universe,
             toStr(enabled),
@@ -94,8 +94,8 @@ public:
     AlphaPixData() {}
     void Dump() const {
 
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("    Name %s Protocol %d InputMode %d",
+        
+        LOG_DEBUG("    Name %s Protocol %d InputMode %d",
             (const char*)name.c_str(),
             protocol,
             inputMode
@@ -107,12 +107,12 @@ public:
 #pragma region Constructors and Destructors
 AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseController(ip, proxy) {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _page = APGetURL("/");
     if (!_page.empty()) {
         if (_page.Contains("Existing user login")) {
-            logger_base.error("AlphaPix Webpage locked out by another computer");
+            LOG_ERROR("AlphaPix Webpage locked out by another computer");
         }
         //AlphaPix 4 V2/V3 Classic
         //AlphaPix Flex Lighting Controller
@@ -131,7 +131,7 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseContro
             _connected = true;
         }
         else {
-            logger_base.error("Error Determining AlphaPix controller Type.");
+            LOG_ERROR("Error Determining AlphaPix controller Type.");
             _connected = false;
         }
 
@@ -143,10 +143,10 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseContro
 
         if (_page.Contains("name=\"U01\"")) {//look for certain web element. Fix for new webUI on firmware 2.16, 2.18 and maybe 2.12,2.13. Firmware has the same format as Flex Controller
             _revision = 2;
-            logger_base.debug("v2 WebPage format, AlphaPix 4/16 Firmware 2.16+ or AlphaPix Flex/Evolution Firmware 4.3+");
+            LOG_DEBUG("v2 WebPage format, AlphaPix 4/16 Firmware 2.16+ or AlphaPix Flex/Evolution Firmware 4.3+");
         } else {
             _revision = 1;
-            logger_base.debug("v1 WebPage format, AlphaPix 4/16 Firmware 2.08 and below or AlphaPix Flex/Evolution Firmware 4.2");
+            LOG_DEBUG("v1 WebPage format, AlphaPix 4/16 Firmware 2.08 and below or AlphaPix Flex/Evolution Firmware 4.2");
         }
 
         if (_modelnum == 48) {
@@ -157,11 +157,11 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseContro
         }
 
         if(_connected)
-            logger_base.debug("Connected to AlphaPix controller model %s.", (const char*)GetFullName().c_str());
+            LOG_DEBUG("Connected to AlphaPix controller model %s.", (const char*)GetFullName().c_str());
     }
     else {
         _connected = false;
-        logger_base.error("Error connecting to AlphaPix controller on %s.", (const char *)_ip.c_str());
+        LOG_ERROR("Error connecting to AlphaPix controller on %s.", (const char *)_ip.c_str());
     }
 }
 
@@ -396,7 +396,7 @@ void AlphaPix::UpdateSerialData(AlphaPixSerial* pd, UDControllerPort* serialData
 
 std::string AlphaPix::ExtractFromPage(const wxString& page, const std::string& parameter, const std::string& type, int start) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     const wxString p = wxString(page).Mid(start);
     if (type == "input") {
@@ -404,7 +404,7 @@ std::string AlphaPix::ExtractFromPage(const wxString& page, const std::string& p
         //<input\s+style\s=\s\".*\"\stype="text"\s+value=\")([0-9\\.]*?)\"
         //<input\s+style\s=\s\".*\"\stype=\"text\"\s+value=\"(.*)\"\s+name=\"SU1\"
         const wxString regex = "<input\\s+style\\s?=\\s?\\\".*\\\"\\stype=\\\"text\\\"\\s+value=\\\"(.*)\\\"\\s+name=\\\"" + parameter + "\\\"";
-        //logger_base.debug("Regex:%s", (const char*)regex.c_str());
+        //LOG_DEBUG("Regex:%s", (const char*)regex.c_str());
 
         wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
         if (inputregex.Matches(wxString(p))) {
@@ -418,7 +418,7 @@ std::string AlphaPix::ExtractFromPage(const wxString& page, const std::string& p
         //<select name="RGBS"
         //<option value="([0-9])\"\sselected=\"selected\"
         const wxString regex = "<option\\s+value=\"([0-9])\\\"\\sselected=\\\"selected\\\"";
-        //logger_base.debug("Regex:%s", (const char*)regex.c_str());
+        //LOG_DEBUG("Regex:%s", (const char*)regex.c_str());
         wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
         if (inputregex.Matches(wxString(pSel))) {
             const std::string res = inputregex.GetMatch(wxString(pSel), 1).ToStdString();
@@ -428,7 +428,7 @@ std::string AlphaPix::ExtractFromPage(const wxString& page, const std::string& p
     else if (type == "checkbox") {
         //<input\s+(?:style\s=\s\".*\"\s+)?type=\"checkbox\"\s+name=\"(\w+)\"\s+(checked=\"checked\"\s+)?value=\"[0-9]\"
         const wxString regex = "<input\\s+(?:style\\s?=\\s?\\\".*\\\"\\s+)?type=\"checkbox\"\\s+name=\\\"" + parameter + "\"\\s+(checked=\\\"checked\\\"\\s+)?value=\\\"[0-9]\\\"";
-        //logger_base.debug("Regex:%s", (const char*)regex.c_str());
+        //LOG_DEBUG("Regex:%s", (const char*)regex.c_str());
         wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
         if (inputregex.Matches(wxString(p))) {
             const std::string res = inputregex.GetMatch(wxString(p), 0).ToStdString();
@@ -442,7 +442,7 @@ std::string AlphaPix::ExtractFromPage(const wxString& page, const std::string& p
     else if (type == "radio") {
         // <input\s+type="radio"\s+(?:id="\w+")?\s+name=\"\w+"\s+value=\"([0-9])\"\s+checked="checked"
         const wxString regex = "<input\\s+type=\"radio\"\\s+(?:id=\"\\w+\")?\\s+name=\\\"" + parameter + "\"\\s+value=\\\"([0-9])\\\"\\s+checked=\"checked\"";
-        //logger_base.debug("Regex:%s", (const char*)regex.c_str());
+        //LOG_DEBUG("Regex:%s", (const char*)regex.c_str());
         wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
         if (inputregex.Matches(wxString(p))) {
             const std::string res = inputregex.GetMatch(wxString(p), 1).ToStdString();
@@ -450,7 +450,7 @@ std::string AlphaPix::ExtractFromPage(const wxString& page, const std::string& p
         }
     }
     else {
-        logger_base.error("AlphaPix::ExtractFromPage   Invalid Regex Type:%s", (const char*)type.c_str());
+        LOG_ERROR("AlphaPix::ExtractFromPage   Invalid Regex Type:%s", (const char*)type.c_str());
         wxASSERT(false);
     }
 
@@ -534,9 +534,9 @@ AlphaPixSerial* AlphaPix::FindSerialData(int port) {
 
 wxString AlphaPix::BuildStringPortRequest(AlphaPixOutput* po) const {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    logger_base.debug("     Output String %d, Universe %d StartChannel %d Pixels %d",
+    LOG_DEBUG("     Output String %d, Universe %d StartChannel %d Pixels %d",
         po->output, po->universe, po->startChannel, po->pixels);
 
     std::string reverseAdd;
@@ -556,9 +556,9 @@ wxString AlphaPix::BuildStringPortRequest(AlphaPixOutput* po) const {
 
 wxString AlphaPix::BuildStringPortRequestV2(AlphaPixOutput* po) const {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    logger_base.debug("     Output String %d, Universe %d StartChannel %d Pixels %d",
+    LOG_DEBUG("     Output String %d, Universe %d StartChannel %d Pixels %d",
         po->output, po->universe, po->startChannel, po->pixels);
 
     std::string reverseAdd;
@@ -584,14 +584,14 @@ std::string AlphaPix::SafeDescription(const std::string description) const {
 
 std::string AlphaPix::APGetURL(const std::string& url) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     std::string res;
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
 
     CURL* curl = curl_easy_init();
     if (curl) {
         auto u = std::string("http://" + baseIP + _baseUrl + url);
-        logger_base.debug("Curl GET: %s", (const char*)u.c_str());
+        LOG_DEBUG("Curl GET: %s", (const char*)u.c_str());
         curl_easy_setopt(curl, CURLOPT_URL, u.c_str());
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15);
         curl_easy_setopt(curl, CURLOPT_HTTP09_ALLOWED, 1L);
@@ -604,7 +604,7 @@ std::string AlphaPix::APGetURL(const std::string& url) const
         CURLcode r = curl_easy_perform(curl);
 
         if (r != CURLE_OK) {
-            logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(r));
+            LOG_ERROR("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(r));
         } else {
             res = response_string;
         }
@@ -616,17 +616,17 @@ std::string AlphaPix::APGetURL(const std::string& url) const
 
 std::string AlphaPix::APPutURL(const std::string& url, const std::string& request) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
-    logger_base.debug("Making request to Controller '%s'.", (const char*)url.c_str());
-    logger_base.debug("    With data '%s'.", (const char*)request.c_str());
+    LOG_DEBUG("Making request to Controller '%s'.", (const char*)url.c_str());
+    LOG_DEBUG("    With data '%s'.", (const char*)request.c_str());
 
     CURL* curl = curl_easy_init();
     if (curl != nullptr) {
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
         auto u = std::string("http://" + baseIP + _baseUrl + url);
-        logger_base.debug("Curl POST: %s", (const char*)u.c_str());
+        LOG_DEBUG("Curl POST: %s", (const char*)u.c_str());
         curl_easy_setopt(curl, CURLOPT_URL, u.c_str());
         curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 
@@ -649,7 +649,7 @@ std::string AlphaPix::APPutURL(const std::string& url, const std::string& reques
         if (ret == CURLE_OK) {
             return buffer;
         }
-        logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(ret));
+        LOG_ERROR("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(ret));
     }
 
     return "";
@@ -662,11 +662,11 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("AlphaPix Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+    
+    LOG_DEBUG("AlphaPix Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
 
     progress.Update(0, "Scanning models");
-    logger_base.info("Scanning models.");
+    LOG_INFO("Scanning models.");
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
@@ -675,7 +675,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     auto caps = ControllerCaps::GetControllerConfig(controller);
     const bool success = cud.Check(caps, check);
 
-    logger_base.debug(check);
+    LOG_DEBUG(check);
 
     cud.Dump();
     if (!success) {
@@ -702,7 +702,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         return false;
     }
 
-    logger_base.info("Figuring Out Pixel Output Information.");
+    LOG_INFO("Figuring Out Pixel Output Information.");
     progress.Update(10, "Figuring Out Pixel Output Information.");
 
     bool uploadColor = false;
@@ -722,14 +722,14 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         }
     }
 
-    logger_base.info("Uploading String Output Information.");
+    LOG_INFO("Uploading String Output Information.");
     progress.Update(20, "Uploading String Output Information.");
     if (_modelnum == 48)
         UploadFlexPixelOutputs(worked);
     else
         UploadPixelOutputs(worked);
 
-    logger_base.info("Figuring Out DMX Output Information.");
+    LOG_INFO("Figuring Out DMX Output Information.");
     progress.Update(30, "Figuring Out DMX Output Information.");
     for (int port = 1; port <= GetNumberOfSerial(); port++) {
         if (cud.HasSerialPort(port)) {
@@ -739,7 +739,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         }
     }
 
-    logger_base.info("Uploading DMX Output Information.");
+    LOG_INFO("Uploading DMX Output Information.");
     progress.Update(40, "Uploading DMX Output Information.");
     for (const auto& serial : _serialOutputs) {
         serial->Dump();
@@ -762,7 +762,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         }
     }
 
-    logger_base.info("Uploading Protocol Type.");
+    LOG_INFO("Uploading Protocol Type.");
     progress.Update(50, "Uploading Protocol Type.");
     const int newProtocol = EncodeStringPortProtocol(pixelType);
     if (newProtocol != -1 && controllerData.protocol != newProtocol) {
@@ -772,7 +772,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         wxMilliSleep(1000);
     }
 
-    logger_base.info("Uploading Color Order.");
+    LOG_INFO("Uploading Color Order.");
     progress.Update(60, "Uploading Color Order.");
 
     if (uploadColor) {
@@ -807,7 +807,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         }
     }
 
-    logger_base.info("Uploading Output Description.");
+    LOG_INFO("Uploading Output Description.");
     progress.Update(70, "Uploading Output Description.");
     const std::string outName = SafeDescription(controller->GetName());
     if (!outName.empty() && !controllerData.name.IsSameAs(outName)) {
@@ -829,7 +829,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
             requestInputString = "EP=1";
     }
 
-    logger_base.info("Uploading Output Type.");
+    LOG_INFO("Uploading Output Type.");
     progress.Update(80, "Updating Output Type.");
     if (!requestInputString.empty()) {
         const wxString res = APPutURL(GetInputTypeURL(), requestInputString);
@@ -840,15 +840,15 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     if(!worked)
-        logger_base.error("Error Uploading to AlphaPix controller, Page HTML:%s.", (const char*)_page.c_str());
+        LOG_ERROR("Error Uploading to AlphaPix controller, Page HTML:%s.", (const char*)_page.c_str());
 
     return worked;
 }
 
 void AlphaPix::UploadPixelOutputs(bool& worked) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Building pixel upload:");
+    
+    LOG_DEBUG("Building pixel upload:");
     std::string requestString;
     for (const auto& pixelPort : _pixelOutputs) {
         if (requestString != "")
@@ -859,7 +859,7 @@ void AlphaPix::UploadPixelOutputs(bool& worked) {
             requestString += BuildStringPortRequest(pixelPort);
     }
 
-    logger_base.info("PUT String Output Information.");
+    LOG_INFO("PUT String Output Information.");
 
     if (!requestString.empty()) {
         const wxString res = APPutURL(GetOutputURL(), requestString);
@@ -871,8 +871,8 @@ void AlphaPix::UploadPixelOutputs(bool& worked) {
 
 void AlphaPix::UploadFlexPixelOutputs(bool& worked) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Building pixel upload:");
+    
+    LOG_DEBUG("Building pixel upload:");
 
     for (int i = 0; i < 3; i++) {
         const int startPort = (i * 16) + 1;
@@ -890,7 +890,7 @@ void AlphaPix::UploadFlexPixelOutputs(bool& worked) {
             upload |= pixelPort->upload;
         }
 
-        logger_base.info("PUT String Output Information.");
+        LOG_INFO("PUT String Output Information.");
         if (!requestString.empty() && upload) {
             const wxString res = APPutURL(GetOutputURL(i + 1), requestString);
             if (res.empty())

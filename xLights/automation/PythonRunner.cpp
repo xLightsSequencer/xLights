@@ -14,7 +14,7 @@
 #include "UtilFunctions.h"
 #include "../ExternalHooks.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #include <wx/stdpaths.h>
 
@@ -82,7 +82,7 @@ std::string PythonRunner::PromptSelection(std::list<std::string> const& items, s
 std::list<std::string> PythonRunner::PromptSequences() const
 {
     std::list<std::string> sequenceList;
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     BatchRenderDialog dlg(_frame);
     dlg.SetTitle("Select Sequences");
@@ -94,17 +94,16 @@ std::list<std::string> PythonRunner::PromptSequences() const
             if (FileExists(fname)) {
                 sequenceList.push_back(fname.GetFullPath());
             } else {
-                logger_base.info("PromptSequences: Sequence File not Found: %s.", (const char*)fname.GetFullPath().c_str());
+                LOG_INFO("PromptSequences: Sequence File not Found: %s.", (const char*)fname.GetFullPath().c_str());
             }
         }
     }
     return sequenceList;
 }
 
-bool PythonRunner::Run_Script(wxString const& filepath, std::function<void (std::string const& msg)> SendResponse)
-{
+bool PythonRunner::Run_Script(std::string const& filepath, std::function<void(std::string const& msg)> SendResponse) {
     #if defined(PYTHON_RUNNER)
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::string const user_scripts_folder = GetUserScriptFolder();
     std::string const system_scripts_folder = GetUserScriptFolder();
@@ -125,8 +124,8 @@ bool PythonRunner::Run_Script(wxString const& filepath, std::function<void (std:
         py::eval_file(filepath.ToStdString(), py::globals(), locals);
 
     } catch (std::exception& e) {
-        logger_base.info("PythonRunner: Throw Running Script: %s.", (const char*)filepath.c_str());
-        logger_base.info("PythonRunner: Error: %s.", e.what());
+        LOG_INFO("PythonRunner: Throw Running Script: %s.", (const char*)filepath.c_str());
+        LOG_INFO("PythonRunner: Error: %s.", e.what());
         SendResponse(e.what());
         wxMessageBox(e.what(), "Error", wxOK);
         return false;
@@ -140,23 +139,17 @@ std::string PythonRunner::RunCommand(std::string const& cmd, const pybind11::dic
     return _frame->ProcessxlDoAutomation(CommandtoString(cmd, dict));
 }
 
-wxString PythonRunner::JSONtoString(wxJSONValue const& json) const
-{
-    wxJSONWriter writer(wxJSONWRITER_NONE, 0, 0);
-    wxString p;
-    writer.Write(json, p);
-    return p;
+std::string PythonRunner::JSONtoString(nlohmann::json const& json) const {
+    return json.dump(3);
 }
 
-wxString PythonRunner::CommandtoString(std::string const& cmd, const pybind11::dict& dict) const
-{
-    wxJSONValue cmds;
+std::string PythonRunner::CommandtoString(std::string const& cmd, const pybind11::dict& dict) const {
+    nlohmann::json cmds;
     cmds["cmd"] = cmd;
 #if defined(PYTHON_RUNNER)
     for (auto item : dict) {
-
-        wxString key = std::string(py::str(item.first));
-        wxString value =  std::string(py::str(item.second));
+        std::string key = std::string(py::str(item.first));
+        std::string value = std::string(py::str(item.second));
         cmds[key] = value;
     }
 #endif

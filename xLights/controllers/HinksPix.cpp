@@ -17,8 +17,6 @@
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
 
-#include "../xSchedule/wxJSON/jsonreader.h"
-#include "../xSchedule/wxJSON/jsonwriter.h"
 
 #include <wx/datetime.h>
 #include <wx/msgdlg.h>
@@ -33,7 +31,7 @@
 #include <unistd.h>
 #endif
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include <filesystem>
 
 #pragma pack(push, 2)
@@ -90,8 +88,6 @@ struct Tag_Dow_TimePacket {
 
 #pragma pack(pop)
 
-
-
 static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
 
     if (data == nullptr) return 0;
@@ -101,8 +97,8 @@ static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* d
 
 #pragma region HinksPixOutput
 void HinksPixOutput::Dump() const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("    Output %d Uni %d StartChan %d Pixels %d Dir %d Protocol %d Nulls %d ColorOrder %d Brightness %d Gamma %d ControlerStartChannel %d ControlerEndChannel %d Used %s",
+    
+    spdlog::debug("    Output %d Uni %d StartChan %d Pixels %d Dir %d Protocol %d Nulls %d ColorOrder %d Brightness %d Gamma %d ControlerStartChannel %d ControlerEndChannel %d Used %s",
                       output,
                       universe,
                       startChannel,
@@ -121,14 +117,14 @@ void HinksPixOutput::Dump() const {
 void HinksPixOutput::SetConfig(wxString const& data) {
     const wxArrayString config = Split(data, std::vector<char>({ ',' }));
     if (config.size() != 10) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.error("Invalid config data '%s'", (const char*)data.c_str());
+        
+        spdlog::error("Invalid config data '%s'", (const char*)data.c_str());
         return;
     }
 
     if (wxAtoi(config[0]) != output) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.error("Mismatched output ports data port:'%d' data:'%s'", output, (const char*)data.c_str());
+        
+        spdlog::error("Mismatched output ports data port:'%d' data:'%s'", output, (const char*)data.c_str());
         return;
     }
     if (config[1] != "undefined") {
@@ -171,8 +167,8 @@ void HinksPixOutput::setControllerChannels(const int startChan) {
 
 #pragma region HinksPixSerial
 void HinksPixSerial::Dump() const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("   E131 Uni %d E131 StartChan %d E131 NumOfChan %d E131 Enabled %s DDP StartChan %d DDP NumOfChan %d DPP Enabled %s Upload %s",
+    
+    spdlog::debug("   E131 Uni %d E131 StartChan %d E131 NumOfChan %d E131 Enabled %s DDP StartChan %d DDP NumOfChan %d DPP Enabled %s Upload %s",
                       e131Universe,
                       e131StartChannel,
                       e131NumOfChan,
@@ -183,15 +179,15 @@ void HinksPixSerial::Dump() const {
                       toStr(upload));
 }
 
-void HinksPixSerial::SetConfig(wxJSONValue const& data) {
-    e131Enabled = data.ItemAt("DMX_ACTIVE").AsInt();
-    e131Universe = data.ItemAt("DMX_UNIV").AsInt();
-    e131StartChannel = data.ItemAt("DMX_START").AsInt();
-    e131NumOfChan = data.ItemAt("DMX_CHAN_CNT").AsInt();
+void HinksPixSerial::SetConfig(nlohmann::json const& data) {
+    e131Enabled = data.at("DMX_ACTIVE").get<int>();
+    e131Universe = data.at("DMX_UNIV").get<int>();
+    e131StartChannel = data.at("DMX_START").get<int>();
+    e131NumOfChan = data.at("DMX_CHAN_CNT").get<int>();
 
-    ddpDMXEnabled = data.ItemAt("DDP_DMX_ACTIVE").AsInt();
-    ddpDMXStartChannel = data.ItemAt("DDP_DMX_START").AsInt();
-    ddpDMXNumOfChan = data.ItemAt("DDP_DMX_CHAN_CNT").AsInt();
+    ddpDMXEnabled = data.at("DDP_DMX_ACTIVE").get<int>();
+    ddpDMXStartChannel = data.at("DDP_DMX_START").get<int>();
+    ddpDMXNumOfChan = data.at("DDP_DMX_CHAN_CNT").get<int>();
 }
 
 wxString HinksPixSerial::BuildCommand() const {
@@ -210,8 +206,8 @@ wxString HinksPixSerial::BuildCommandEasyLights(int mode) const
 
 #pragma region HinksPixSmart
 void HinksSmartOutput::Dump() const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("  ID %d Type %d Port 1 Start Pixel %d Port 2 Start Pixel %d Port 3 Start Pixel %d Port 4 Start Pixel %d",
+    
+    spdlog::debug("  ID %d Type %d Port 1 Start Pixel %d Port 2 Start Pixel %d Port 3 Start Pixel %d Port 4 Start Pixel %d",
                       id,
                       type,
                       portStartPixel[0],
@@ -223,8 +219,8 @@ void HinksSmartOutput::Dump() const {
 void HinksSmartOutput::SetConfig(wxString const& data) {
     const wxArrayString config = Split(data, std::vector<char>({ ',' }));
     if (config.size() != 6) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.error("Invalid config data '%s'", (const char*)data.c_str());
+        
+        spdlog::error("Invalid config data '%s'", (const char*)data.c_str());
         return;
     }
 
@@ -246,8 +242,8 @@ wxString HinksSmartOutput::BuildCommand() const {
 
 #pragma region HinksPixInputUniverse
 void HinksPixInputUniverse::Dump() const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Index %d Uni %d UniSize %d HinksStart %d",
+    
+    spdlog::debug("Index %d Uni %d UniSize %d HinksStart %d",
                       index,
                       universe,
                       numOfChan,
@@ -287,52 +283,49 @@ bool HinksPix::InitControllerOutputData(bool fullControl, int defaultBrightness)
 }
 
 void HinksPix::InitExpansionBoardData(int expansion, int startport, int length) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxJSONValue data;
+
+    nlohmann::json data;
 
     bool const worked = GetControllerDataJSON(GetJSONPortURL(), data, wxString::Format("BLK: %d", expansion - 1));
 
-    if (!worked || !data.HasMember("LIST")) {
-        logger_base.error("Invalid Data from controller");
+    if (!worked || !data.contains("LIST")) {
+        spdlog::error("Invalid Data from controller");
         return;
     }
-    auto ports = data.ItemAt("LIST").AsArray();
+    auto ports = data.at("LIST").array();
 
-    if (ports->Count() != length) {
-        logger_base.error("Data from controller size and Expansion Size don't match");
-        logger_base.error(data.ItemAt("LIST").AsString());
+    if (ports.size() != length) {
+        spdlog::error("Data from controller size and Expansion Size don't match");
+        spdlog::error(data.at("LIST").get<std::string>());
         return;
     }
 
-    for (int i = 0; i < ports->Count(); i++) {
-        auto stringValue = ports->Item(i)["V"].AsString();
+    for (int i = 0; i < ports.size(); i++) {
+        auto stringValue = ports.at(i)["V"].get<std::string>();
         _pixelOutputs[(startport - 1) + i].SetConfig(stringValue);
     }
 }
 
 std::unique_ptr<HinksPixSerial> HinksPix::InitSerialData(bool fullControl) {
     std::unique_ptr<HinksPixSerial> serial = std::make_unique<HinksPixSerial>();
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (!fullControl) {
 
         if (_controllerType == "E") {
-            logger_base.warn("Easylight 16 is missing Serial API ATM");
+            LOG_WARN("Easylight 16 is missing Serial API ATM");
             return serial;
         }
 
-        wxJSONValue data;
+        nlohmann::json data;
         bool const worked = GetControllerDataJSON(GetJSONModeURL(), data, "BLK: 0");
 
-        if (!worked || !data.HasMember("CMD")) {
-            logger_base.error("Invalid Data from controller");
+        if (!worked || !data.contains("CMD")) {
+            spdlog::error("Invalid Data from controller");
             return serial;
         }
-        if (data.Size() != 0) {
+        if (data.size() != 0) {
             serial->SetConfig(data);
         } else {
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.error("Invalid Return data %s", (const char*)data.AsString().c_str());
+            spdlog::error("Invalid Return data {}", data.get<std::string>());
         }
     }
 
@@ -340,8 +333,8 @@ std::unique_ptr<HinksPixSerial> HinksPix::InitSerialData(bool fullControl) {
 }
 
 bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("HinksPix Inputs Upload: Uploading to %s", (const char*)_ip.c_str());
+    
+    spdlog::debug("HinksPix Inputs Upload: Uploading to {}", _ip);
 
     if (_controllerType == "E")
     {
@@ -374,10 +367,10 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
                                out->GetStartChannel(), out->GetChannels());
     }
 
-    wxJSONValue data;
+    nlohmann::json data;
     bool const worked = GetControllerDataJSON(GetJSONModeURL(), data, "BLK: 0");
 
-    if (!worked || !data.HasMember("CMD")) {
+    if (!worked || !data.contains("CMD")) {
         DisplayError("Getting HinksPix Input Mode FAILED.");
         return false;
     }
@@ -387,7 +380,7 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
     {
         auto const ret = GetJSONControllerData(GetJSONPostURL(), cmd);
         if (ret.find("\"OK\"") == std::string::npos) {
-            logger_base.error("Failed Return %s", (const char*)ret.c_str());
+            spdlog::error("Failed Return {}", ret);
             DisplayError("Changing HinksPix Input Mode FAILED.");
             return false;
         }
@@ -435,7 +428,7 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
         //post data
         auto const ret = GetJSONControllerData(GetJSONPostURL(), requestString);
         if (ret.find("\"OK\"") == std::string::npos) {
-            logger_base.error("Failed Return %s", (const char*)ret.c_str());
+            spdlog::error("Failed Return {}", ret);
             return false;
         }
     }
@@ -444,7 +437,7 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
     auto const unvrequestString = wxString::Format("DATA: {\"CMD\":\"BD_INFO\",\"NumU\":\"%d\"}", num_of_unv);
     auto const unvret = GetJSONControllerData(GetJSONPostURL(), unvrequestString);
     if (unvret.find("\"OK\"") == std::string::npos) {
-        logger_base.error("Failed Return %s", (const char*)unvret.c_str());
+        spdlog::error("Failed Return {}", unvret);
         return false;
     }
 
@@ -455,9 +448,7 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
 
 bool HinksPix::UploadUnPack(bool &worked, Controller *controller, std::vector<UnPack *> const &UPA, bool dirty) const
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    logger_base.debug("Building UnPack");
+    spdlog::debug("Building UnPack");
     wxString requestString;
     wxString LE;
     int BlkNum = 0;
@@ -480,7 +471,7 @@ bool HinksPix::UploadUnPack(bool &worked, Controller *controller, std::vector<Un
         auto const ret = GetJSONControllerData(GetJSONUnPackURL(), requestString);
         if(ret.find("\"OK\"") == std::string::npos)
         {
-            logger_base.error("Failed Return %s", (const char *)ret.c_str());
+            spdlog::error("Failed Return {}", ret);
             worked = false;
             DisplayError("HinksPix UnPack FAILED.");
 
@@ -524,7 +515,7 @@ bool HinksPix::UploadUnPack(bool &worked, Controller *controller, std::vector<Un
         auto const ret = GetJSONControllerData(GetJSONUnPackURL(), requestString);
         if(ret.find("\"OK\"") == std::string::npos)
         {
-            logger_base.error("Failed Return %s", (const char *)ret.c_str());
+            spdlog::error("Failed Return {}", ret);
             worked = false;
             DisplayError("HinksPix UnPack FAILED.");
             return worked;;
@@ -535,117 +526,111 @@ bool HinksPix::UploadUnPack(bool &worked, Controller *controller, std::vector<Un
 
         if(TotalEntries <= 0)
             break;
+    }
+    return worked;
+}
 
+bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const
+{
+    spdlog::debug("HinksPix Inputs Upload: Uploading to {}", _ip);
+
+    auto const data = GetControllerData(902);
+    if (data.empty()) {
+        return false;
+    }
+
+    const auto map = StringToMap(data);
+
+    int const maxUnv = wxAtoi(map.at("C"));
+
+    if (controller->GetOutputCount() > maxUnv) {
+        DisplayError(wxString::Format("Attempt to upload %d universes to HinksPix controller but only %d are supported.", controller->GetOutputCount(), maxUnv).ToStdString());
+        return false;
+    }
+
+    auto out = controller->GetOutputs().front();
+    int type = 0;//e131=0, ddp=1, artnet=2
+    int multi = 0;
+    int DDPStart = 0;
+    if (out->GetType() == OUTPUT_E131) {
+        type = 0;
+    }
+    else if (out->GetType() == OUTPUT_ARTNET) {
+        type = 2;
+    }
+    else if (out->GetType() == OUTPUT_DDP) {
+        type = 1;
+        DDPStart = out->GetStartChannel();
+    }
+
+    if (out->GetIP() == "MULTICAST") {
+        multi = 1;
+    }
+
+    bool worked = true;
+    int num_of_unv = 0;
+
+    //if DDP, skip the next part
+    if (type != 1) {
+
+        //Joes code allows 6 universe settings uploaded at a time
+        // loop though and submit every 6
+        // EasyLights 16 max is 65 universes
+        int const numberOfCalls = std::ceil(maxUnv / UN_PER);
+        int index = 1;
+
+        for (int j = 0; j < numberOfCalls; j++) {
+            wxString requestString = wxString::Format("ROWCNT=16:ROW=%d:", j);
+            for (int i = 0; i < UN_PER; i++) {
+                auto inpUn = std::find_if(inputUniverses.begin(), inputUniverses.end(), [index](auto const& inp) { return inp.index == index; });
+                if (inpUn != inputUniverses.end()) {
+                    if (i != 0) {
+                        requestString += ",";
+                    }
+                    requestString += inpUn->BuildCommandEasyLights();
+                    index++;
+                    num_of_unv++;
+                }
+                else if (index <= maxUnv) {
+                    if (i != 0) {
+                        requestString += ",";
+                    }
+                    requestString += wxString::Format("%d,%d,0,1,0,0", index, index);
+                    index++;
+                }
+                else {
+                    requestString += ",0,0,0,0,0,0";
+                }
+            }
+            //post data
+            auto const res = GetControllerData(2001, requestString);
+            if (res != "done") {
+                worked = false;
+            }
+        }
+    }
+
+    auto const cmd = wxString::Format("A,%d,B,%d,C,%d,D,%d,E,%d",
+        multi, type, maxUnv, num_of_unv, DDPStart);
+
+    //Set Controller Input mode
+    auto const setRet = GetControllerData(4902, cmd);
+    if (setRet != "done")
+    {
+        spdlog::error("4902 Return {}", setRet);
+        worked = false;
+    }
+
+    if (!worked) {
+        DisplayError("HinksPix E131 Input command FAILED.");
     }
 
     return worked;
 }
 
-
-bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const
-{
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("HinksPix Inputs Upload: Uploading to %s", (const char*)_ip.c_str());
-
-        auto const data = GetControllerData(902);
-        if (data.empty()) {
-            return false;
-        }
-
-        const auto map = StringToMap(data);
-
-        int const maxUnv = wxAtoi(map.at("C"));
-
-        if (controller->GetOutputCount() > maxUnv) {
-            DisplayError(wxString::Format("Attempt to upload %d universes to HinksPix controller but only %d are supported.", controller->GetOutputCount(), maxUnv).ToStdString());
-            return false;
-        }
-
-        auto out = controller->GetOutputs().front();
-        int type = 0;//e131=0, ddp=1, artnet=2
-        int multi = 0;
-        int DDPStart = 0;
-        if (out->GetType() == OUTPUT_E131) {
-            type = 0;
-        }
-        else if (out->GetType() == OUTPUT_ARTNET) {
-            type = 2;
-        }
-        else if (out->GetType() == OUTPUT_DDP) {
-            type = 1;
-            DDPStart = out->GetStartChannel();
-        }
-
-        if (out->GetIP() == "MULTICAST") {
-            multi = 1;
-        }
-
-        bool worked = true;
-        int num_of_unv = 0;
-
-        //if DDP, skip the next part
-        if (type != 1) {
-
-            //Joes code allows 6 universe settings uploaded at a time
-            // loop though and submit every 6
-            // EasyLights 16 max is 65 universes
-            int const numberOfCalls = std::ceil(maxUnv / UN_PER);
-            int index = 1;
-
-            for (int j = 0; j < numberOfCalls; j++) {
-                wxString requestString = wxString::Format("ROWCNT=16:ROW=%d:", j);
-                for (int i = 0; i < UN_PER; i++) {
-                    auto inpUn = std::find_if(inputUniverses.begin(), inputUniverses.end(), [index](auto const& inp) { return inp.index == index; });
-                    if (inpUn != inputUniverses.end()) {
-                        if (i != 0) {
-                            requestString += ",";
-                        }
-                        requestString += inpUn->BuildCommandEasyLights();
-                        index++;
-                        num_of_unv++;
-                    }
-                    else if (index <= maxUnv) {
-                        if (i != 0) {
-                            requestString += ",";
-                        }
-                        requestString += wxString::Format("%d,%d,0,1,0,0", index, index);
-                        index++;
-                    }
-                    else {
-                        requestString += ",0,0,0,0,0,0";
-                    }
-                }
-                //post data
-                auto const res = GetControllerData(2001, requestString);
-                if (res != "done") {
-                    worked = false;
-                }
-            }
-        }
-
-        auto const cmd = wxString::Format("A,%d,B,%d,C,%d,D,%d,E,%d",
-            multi, type, maxUnv, num_of_unv, DDPStart);
-
-        //Set Controller Input mode
-        auto const setRet = GetControllerData(4902, cmd);
-        if (setRet != "done")
-        {
-            logger_base.error("4902 Return %s", (const char*)setRet.c_str());
-            worked = false;
-        }
-
-        if (!worked) {
-            DisplayError("HinksPix E131 Input command FAILED.");
-        }
-
-        return worked;
-}
-
 void HinksPix::UploadPixelOutputsEasyLights(bool& worked)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    logger_base.debug("Building pixel upload EasyLights");
+    spdlog::debug("Building pixel upload EasyLights");
     wxString requestString;
 
     for (int i = 0; i < 16; i++) {
@@ -654,12 +639,12 @@ void HinksPix::UploadPixelOutputsEasyLights(bool& worked)
     }
     requestString += "||";
 
-    logger_base.info("Set String Output Information for EasyLights.");
+    spdlog::info("Set String Output Information for EasyLights.");
 
     //Expansion Board "row" 'setting' commands are 3041, 3042, 3043 for expansion 1,2,3
     auto const pixelRet = GetControllerData(3041, requestString);
     if (pixelRet != "done") {
-        logger_base.error("%d Return %s", 3041, (const char*)pixelRet.c_str());
+        spdlog::error("{} Return {}", 3041, pixelRet);
         worked = false;
     }
 }
@@ -673,9 +658,9 @@ void HinksPix::UploadPixelOutputs(bool& worked) const {
 }
 
 void HinksPix::UploadExpansionBoardData(int expansion, int startport, int length, bool& worked) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    logger_base.debug("Building pixel upload Expansion %d:", expansion);
+    spdlog::debug("Building pixel upload Expansion %d:", expansion);
     //{"CMD":"PCONFIG","BOARD":"0","LIST":[
     wxString requestString = wxString::Format("DATA: {\"CMD\":\"PCONFIG\",\"BOARD\":\"%d\",\"LIST\":[", expansion - 1);
 
@@ -690,7 +675,7 @@ void HinksPix::UploadExpansionBoardData(int expansion, int startport, int length
 
     auto const ret = GetJSONControllerData(GetJSONPostURL(), requestString);
     if (ret.find("\"OK\"") == std::string::npos) {
-        logger_base.error("Failed Return %s", (const char*)ret.c_str());
+        spdlog::error("Failed Return {}", ret);
         worked = false;
     }
 }
@@ -753,11 +738,8 @@ void HinksPix::UpdateUniverseControllerChannels(UDControllerPort* stringData, st
     } else {
         for (auto const& m : stringData->GetModels()) {
             hinkstartChan += m->Channels();
-
         }
     }
-
-
 }
 
 void HinksPix::UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int const mode, std::vector<HinksPixInputUniverse>& inputUniverses, int32_t& hinkstartChan, int& index, bool individualUniverse) const
@@ -765,10 +747,7 @@ void HinksPix::UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData
     const int sc = serialData->GetStartChannel();
     const int usc = serialData->GetUniverseStartChannel();
     int maxChan = serialData->GetEndChannel() - sc + 1;
-
-    if (maxChan < 16) {
-        maxChan = 16;
-    }
+    maxChan = std::max(maxChan, 16); // ensure maxChan is min 16
 
     if (mode != 1) { //0 and 2 are E131 and Artnet
         if (pd.e131Universe != (serialData->GetUniverse())) {
@@ -833,11 +812,10 @@ void HinksPix::UploadSmartReceivers(bool& worked) const {
 }
 
 void HinksPix::UploadSmartReceiverData(int expan, int bank, std::vector<HinksSmartOutput> const& receivers, bool& worked) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    logger_base.debug("Building SmartReciever upload Expansion %d Bank %d:", expan, bank);
+    spdlog::debug("Building SmartReciever upload Expansion {} Bank {}:", expan, bank);
     if (receivers.empty()) {
-        logger_base.info("No SmartReciever found");
+        spdlog::info("No SmartReciever found");
         return;
     }
     //{"CMD":"SCONFIG","BOARD":"0","Port4":"0","LIST":[{"V":"0,1,1,1,1,1"},{"V":"1,0,51,51,51,51"},{"V":"2,0,101,101,101,101"},{"V":"3,0,151,151,151,151"},{"V":"6,2,0,1,0,0"},{"V":"8,0,201,1,1,1"}]}
@@ -854,7 +832,7 @@ void HinksPix::UploadSmartReceiverData(int expan, int bank, std::vector<HinksSma
 
     auto const ret = GetJSONControllerData(GetJSONPostURL(), requestString);
     if (ret.find("\"OK\"") == std::string::npos) {
-        logger_base.error("Failed Return %s", (const char*)ret.c_str());
+        spdlog::error("Failed Return {}", ret);
         worked = false;
     }
 }
@@ -920,19 +898,18 @@ void HinksPix::CalculateSmartReceivers(UDControllerPort* stringData) {
 }
 
 void HinksPix::SendRebootController(bool& worked) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    logger_base.debug("Sending Reboot Controller Command");
+    spdlog::debug("Sending Reboot Controller Command");
     PostToControllerNoResponse(GetJSONPostURL(), "DATA: {\"CMD\":\"OP_MODE\",\"MODE\":\"ETHERNET\"}");
 }
 
 //all of the Controller data is retrieved/set by "GET"ing different values
 std::string HinksPix::GetJSONControllerData(std::string const& url, std::string const& data) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     std::string res;
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
 
-    logger_base.debug("Making request to HinksPix '%s'.", (const char*)url.c_str());
+    spdlog::debug("Making request to HinksPix '{}'.", url);
 
 
     struct curl_slist* list = NULL;
@@ -945,7 +922,7 @@ std::string HinksPix::GetJSONControllerData(std::string const& url, std::string 
 
         if (!data.empty()) {
             list = curl_slist_append(list, std::string(data).c_str());
-            logger_base.debug("'%s'.", (const char*)data.c_str());
+            spdlog::debug("'{}'.", data);
         }
         curl_easy_setopt(_curl, CURLOPT_TCP_KEEPALIVE, 1L);
         curl_easy_setopt(_curl, CURLOPT_MAXAGE_CONN, 120L);
@@ -965,27 +942,27 @@ std::string HinksPix::GetJSONControllerData(std::string const& url, std::string 
         CURLcode r = curl_easy_perform(_curl);
 
         if (r != CURLE_OK) {
-            logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(r));
+            spdlog::error("Failure to access {}: {}.", url, curl_easy_strerror(r));
         } else {
-            logger_base.debug("'%s'.", (const char*)response_string.c_str());
+            spdlog::debug("'{}'.", response_string);
             res = response_string;
         }
 
         /* always cleanup */
         //curl_easy_cleanup(curl);
     } else {
-        logger_base.error("Curl was null during HinksPix upload.");
+        spdlog::error("Curl was null during HinksPix upload.");
     }
     return res;
 }
 
 //the reboot command reboots the controller with no response, not proper HTTP Request format but just timeout
 void HinksPix::PostToControllerNoResponse(std::string const& url, std::string const& data) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     std::string res;
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
 
-    logger_base.debug("Making request to HinksPix '%s'.", (const char*)url.c_str());
+    spdlog::debug("Making request to HinksPix '{}'.", url);
 
     struct curl_slist* list = NULL;
 
@@ -996,7 +973,7 @@ void HinksPix::PostToControllerNoResponse(std::string const& url, std::string co
 
         if (!data.empty()) {
             list = curl_slist_append(list, std::string(data).c_str());
-            logger_base.debug("'%s'.", (const char*)data.c_str());
+            spdlog::debug("'{}'.", data);
         }
 
         curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, list);
@@ -1007,16 +984,19 @@ void HinksPix::PostToControllerNoResponse(std::string const& url, std::string co
         /* always cleanup */
        // curl_easy_cleanup(curl);
     } else {
-        logger_base.error("Curl was null during HinksPix upload.");
+        spdlog::error("Curl was null during HinksPix upload.");
     }
 }
 
-bool HinksPix::GetControllerDataJSON(const std::string& url, wxJSONValue& val, std::string const& data) const {
+bool HinksPix::GetControllerDataJSON(const std::string& url, nlohmann::json& val, std::string const& data) const {
     std::string const sval = GetJSONControllerData(url, data);
     if (!sval.empty()) {
-        wxJSONReader reader;
-        reader.Parse(sval, &val);
-        return true;
+        try {
+            val = nlohmann::json::parse(sval);
+            return true;
+        } catch (nlohmann::json::parse_error& e) {
+            spdlog::error("HinksPix Outputs Upload: Failed to parse JSON from {}: {}", url, e.what());
+        }
     }
     return false;
 }
@@ -1123,13 +1103,12 @@ HinksPix::EXPType HinksPix::DecodeExpansionType(const std::string& type) const {
 #pragma region Constructors and Destructors
 HinksPix::HinksPix(const std::string& ip, const std::string& proxy) :
     BaseController(ip, proxy),
-    _EXP_Outputs{ EXPType::Not_Present, EXPType::Not_Present, EXPType::Not_Present, EXPType::Not_Present, EXPType::Not_Present },
-    _numberOfUniverses(0),
-    _MCPU_Version(0) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _EXP_Outputs{ EXPType::Not_Present, EXPType::Not_Present, EXPType::Not_Present, EXPType::Not_Present, EXPType::Not_Present }
+    {
+    
 
     //Get Controller Info
-    wxJSONValue data;
+    nlohmann::json data;
     _curl = curl_easy_init();
 
     for (int x = 0; x < 3; x++) {
@@ -1138,27 +1117,37 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) :
         }
     }
 
-    if (data.Size() > 0) {
+    if (data.size() > 0) {
         //get output type options
 
         for (int i = 0; i < EXP_PORTS; i++) {
-            _EXP_Outputs[i] = DecodeExpansionType(data.Get(wxString::Format("BD%d",i + 1), "N").AsString());
+            if (data.find("BD" + std::to_string(i + 1)) == data.end()) {
+                spdlog::error("Expansion Board {} not found in HinksPix data.", i + 1);
+                _EXP_Outputs[i] = EXPType::Not_Present;
+                continue;
+            }
+            _EXP_Outputs[i] = DecodeExpansionType(data.at("BD" + std::to_string( i + 1)).get<std::string>());
         }        
 
         _connected = true;
 
-        auto const pix_type = data.Get("Type", "").AsString();   //"P" for Pixel, "A" for AC
-        _controllerType = data.Get("Controller", "").AsString(); //"H" for Pro, "E" for EasyLights
+        auto const pix_type = data.at("Type").get<std::string>(); //"P" for Pixel, "A" for AC
+        _controllerType = data.at("Controller").get<std::string>(); //"H" for Pro, "E" for EasyLights
 
-        _numberOfUniverses = wxAtoi(data.Get("MaxU", "0").AsString());
+        if (data.contains("MaxU")) {
+            _numberOfUniverses = wxAtoi(data.at("MaxU").get<std::string>());
+        }
+        if (data.contains("MCPU") && data.contains("PCPU") && data.contains("ECPU") && data.contains("WEB")) {
+            _version = wxString::Format("MAIN:%s,POWER:%s,WIFI:%s,WEB:%s",
+                                        data.at("MCPU").get<std::string>().substr(3),
+                                        data.at("PCPU").get<std::string>().substr(3),
+                                        data.at("ECPU").get<std::string>().substr(3),
+                                        data.at("WEB").get<std::string>().substr(3));
+        }
 
-        _version = wxString::Format("MAIN:%s,POWER:%s,WIFI:%s,WEB:%s",
-                                    data.Get("MCPU", "0").AsString().Mid(3),
-                                    data.Get("PCPU", "0").AsString().Mid(3),
-                                    data.Get("ECPU", "0").AsString().Mid(3),
-                                    data.Get("WEB", "0").AsString().Mid(3));
-
-        _MCPU_Version = wxAtoi(data.Get("MCPU", "0").AsString().Mid(3));
+        if (data.contains("MCPU")) {
+            _MCPU_Version = wxAtoi(data.at("MCPU").get<std::string>().substr(3));
+        }
 
         if (_controllerType == "E") {
             _model = "EasyLights Pix16";
@@ -1173,10 +1162,10 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) :
             _model = "Unknown";
         }
 
-        logger_base.debug("Connected to HinksPix controller model %s.", (const char*)GetFullName().c_str());
+        spdlog::debug("Connected to HinksPix controller model {}.", GetFullName());
     } else {
         _connected = false;
-        logger_base.error("Error connecting to HinksPix controller on %s.", (const char*)_ip.c_str());
+        spdlog::error("Error connecting to HinksPix controller on {}.", _ip);
         DisplayError(wxString::Format("Error connecting to HinksPix controller on %s.", _ip).ToStdString());
     }
 }
@@ -1242,8 +1231,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("HinksPix Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+    spdlog::debug("HinksPix Outputs Upload: Uploading to {}", _ip);
 
     // Get universes based on IP
     std::list<Output*> outputs = controller->GetOutputs();
@@ -1269,7 +1257,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     }
 
     progress.Update(0, "Scanning models");
-    logger_base.info("Scanning models.");
+    spdlog::info("Scanning models.");
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
@@ -1277,7 +1265,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
     //first check rules
     auto rules = ControllerCaps::GetControllerConfig(controller);
     const bool success = cud.Check(rules, check);
-    logger_base.debug(check);
+    spdlog::debug(check);
 
     cud.Dump();
     if (!success) {
@@ -1291,12 +1279,12 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
     bool worked = true;
 
-    logger_base.info("Initializing Pixel Output Information.");
+    spdlog::info("Initializing Pixel Output Information.");
     progress.Update(5, "Initializing Pixel Output Information.");
 
     InitControllerOutputData(fullControl, defaultBrightness);
 
-    logger_base.info("Calculating Universe Start Channel Mappings.");
+    spdlog::info("Calculating Universe Start Channel Mappings.");
     progress.Update(10, "Calculating Universe Start Channel Mappings.");
     std::vector<HinksPixInputUniverse> inputUniverses;
 
@@ -1320,7 +1308,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         }
     }
 
-    logger_base.info("Figuring Out Pixel Output Information.");
+    spdlog::info("Figuring Out Pixel Output Information.");
     progress.Update(15, "Figuring Out Pixel Output Information.");
     int32_t hinkstartChan = 1;
     int univIdx = 1;
@@ -1375,25 +1363,25 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
             }
             // removed serial port unpack
 
-            logger_base.debug("Total Map\n");
+            spdlog::debug("Total Map\n");
             for(int i = 0; i < UPA.size(); i++)
             {
-                logger_base.debug("%d %d  Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
+                spdlog::debug("{} {}  Port={} MyStart={} MyEnd={} NewStart={} NewEnd={} NumChans={}\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
             }
-            logger_base.debug("\n\n\n");
+            spdlog::debug("\n\n\n");
 
             // sort by my start channel
             std::sort(UPA.begin(), UPA.end(), less_than_key());
 
-            logger_base.debug("Total Map after sort before compress\n");
+            spdlog::debug("Total Map after sort before compress\n");
             for(int i = 0; i < UPA.size(); i++)
             {
-                logger_base.debug("%d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
+                spdlog::debug("{} {} Port={} MyStart={} MyEnd={} NewStart={} NewEnd={} NumChans={}\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
             }
-            logger_base.debug("\n\n\n");
+            spdlog::debug("\n\n\n");
 
             // combine/compress
-            logger_base.debug("Total Map compress\n");
+            spdlog::debug("Total Map compress\n");
             int LastUsed = 0;
             for(int i = 0, iii = 0; i < UPA.size(); i++)
             {
@@ -1410,38 +1398,38 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
                         iii = 1;
                         LastUsed = i;
                     }
-                    logger_base.debug("%d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
-                    logger_base.debug("\t\tLast Used %d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n\n", LastUsed, UPA[LastUsed]->InActive, UPA[LastUsed]->Port, UPA[LastUsed]->MyStart, UPA[LastUsed]->MyEnd, UPA[LastUsed]->NewStart, UPA[LastUsed]->NewEnd, UPA[LastUsed]->NumChans);
+                    spdlog::debug("{} {} Port={} MyStart={} MyEnd={} NewStart={} NewEnd={} NumChans={}\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
+                    spdlog::debug("\t\tLast Used {} {} Port={} MyStart={} MyEnd={} NewStart={} NewEnd={} NumChans={}\n\n", LastUsed, UPA[LastUsed]->InActive, UPA[LastUsed]->Port, UPA[LastUsed]->MyStart, UPA[LastUsed]->MyEnd, UPA[LastUsed]->NewStart, UPA[LastUsed]->NewEnd, UPA[LastUsed]->NumChans);
 
                 }
                 else
                 {
-                    logger_base.debug("\n%d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
+                    spdlog::debug("\n{} {} Port={} MyStart={} MyEnd={} NewStart={} NewEnd={} NumChans={}\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
                     LastUsed = i;
                     iii = 0;
                 }
             }
-            logger_base.debug("\n\n\n");
+            spdlog::debug("\n\n\n");
 
-            logger_base.debug("Total Map after compress and sort\n");
+            spdlog::debug("Total Map after compress and sort\n");
             for(int i = 0; i < UPA.size(); i++)
             {
-                logger_base.debug("%d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
+                spdlog::debug("{} {} Port={} MyStart={} MyEnd={} NewStart={} NewEnd={} NumChans={}\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
             }
-            logger_base.debug("\n\n\n");
-            logger_base.debug("Active only after compress and sort\n");
+            spdlog::debug("\n\n\n");
+            spdlog::debug("Active only after compress and sort\n");
             for(int i = 0; i < UPA.size(); i++)
             {
                 if (!UPA[i]->InActive)
                 {
-                    logger_base.debug("%d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
+                    spdlog::debug("{} {} Port={} MyStart={} MyEnd={} NewStart={} NewEnd={} NumChans={}\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
                 }
             }
-            logger_base.debug("\n\n\n");
+            spdlog::debug("\n\n\n");
         }
     }
 
-    logger_base.info("Checking Pixel Output and SmartReceivers Information.");
+    spdlog::info("Checking Pixel Output and SmartReceivers Information.");
     progress.Update(20, "Checking Pixel Output and SmartReceivers Information.");
 
     if (!CheckPixelOutputs(check)) {
@@ -1455,7 +1443,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         return false;
     }
 
-    logger_base.info("Figuring Out DMX Output Information.");
+    spdlog::info("Figuring Out DMX Output Information.");
     progress.Update(25, "Figuring Out DMX Output Information.");
 
     if (cud.HasSerialPort(1)) {
@@ -1463,15 +1451,15 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         UpdateSerialData(*_serialOutput, portData, mode, inputUniverses, hinkstartChan, univIdx, controller->IsUniversePerString());
     }
 
-    logger_base.info("Uploading Input Universes Information.");
+    spdlog::info("Uploading Input Universes Information.");
     progress.Update(30, "Uploading Input Universes Information.");
     worked &= UploadInputUniverses(controller, inputUniverses);
 
-    logger_base.info("Uploading SmartReceivers Information.");
+    spdlog::info("Uploading SmartReceivers Information.");
     progress.Update(60, "Uploading SmartReceivers Information.");
     UploadSmartReceivers(worked);
 
-    logger_base.info("Uploading String Output Information.");
+    spdlog::info("Uploading String Output Information.");
     progress.Update(70, "Uploading String Output Information.");
     if (_controllerType == "E") {
         UploadPixelOutputsEasyLights(worked);
@@ -1480,7 +1468,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         UploadPixelOutputs(worked);
     }
 
-    logger_base.info("Uploading DMX Output Information.");
+    spdlog::info("Uploading DMX Output Information.");
     progress.Update(80, "Uploading DMX Output Information.");
     _serialOutput->Dump();
 
@@ -1489,14 +1477,14 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
             const std::string serialRequest = _serialOutput->BuildCommandEasyLights(mode);
             auto const serRet = GetControllerData(4908, serialRequest);
             if (serRet != "done") {
-                logger_base.error("4908 Return %s", (const char*)serRet.c_str());
+                spdlog::error("4908 Return {}", serRet);
                 worked = false;
             }
         }
 
         if(IsUnPackSupported_Hinks(controller))
         {
-            logger_base.info("Uploading UnPack Information.");
+            spdlog::info("Uploading UnPack Information.");
             progress.Update(30, "Uploading UnPack Information.");
             UploadUnPack(worked, controller, UPA, dirty);
         }
@@ -1508,7 +1496,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         UPA.clear();
 
         //reboot
-        logger_base.info("Rebooting Controller.");
+        spdlog::info("Rebooting Controller.");
         progress.Update(90, "Rebooting Controller.");
         auto const resetres = GetControllerData(1111);
         if (resetres != "done") {
@@ -1520,14 +1508,14 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
             const std::string serialRequest = _serialOutput->BuildCommand();
             auto const ret = GetJSONControllerData(GetJSONPostURL(), serialRequest);
             if (ret.find("\"OK\"") == std::string::npos) {
-                logger_base.error("Failed Return %s", (const char*)ret.c_str());
+                spdlog::error("Failed Return {}", ret);
                 worked = false;
             }
         }
 
         if(IsUnPackSupported_Hinks(controller))
         {
-            logger_base.info("Uploading UnPack Information.");
+            spdlog::info("Uploading UnPack Information.");
             progress.Update(30, "Uploading UnPack Information.");
             UploadUnPack(worked, controller, UPA, dirty);
         }
@@ -1538,7 +1526,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         UPA.clear();
 
         //reboot
-        logger_base.info("Rebooting Controller.");
+        spdlog::info("Rebooting Controller.");
         progress.Update(90, "Rebooting Controller.");
         SendRebootController(worked);
         wxMilliSleep(100);
@@ -1566,11 +1554,11 @@ wxString HinksPix::GetControllerE131Data(int rowIndex) const
 //all of the Controller data is retrieved/set by "GET"ing different ROW values
 wxString HinksPix::GetControllerRowData(int rowIndex, std::string const& url, std::string const& data) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     std::string res;
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
 
-    logger_base.debug("Making request to HinksPix '%s'.", (const char*)url.c_str());
+    spdlog::debug("Making request to HinksPix '%s'.", (const char*)url.c_str());
 
     //CURL* curl = curl_easy_init();
     struct curl_slist* list = NULL;
@@ -1580,12 +1568,12 @@ wxString HinksPix::GetControllerRowData(int rowIndex, std::string const& url, st
         curl_easy_setopt(_curl, CURLOPT_TIMEOUT, 20);
 
         list = curl_slist_append(list, "Content-type: text/plain");
-        logger_base.debug("Row='%d'.", rowIndex);
+        spdlog::debug("Row='{}'.", rowIndex);
         list = curl_slist_append(list, std::string("ROW: " + std::to_string(rowIndex)).c_str());
 
         if (!data.empty()) {
             list = curl_slist_append(list, std::string("DATA: " + data).c_str());
-            logger_base.debug("DATA='%s'.", (const char*)data.c_str());
+            spdlog::debug("DATA='{}'.", data);
         }
 
         curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, list);
@@ -1603,7 +1591,7 @@ wxString HinksPix::GetControllerRowData(int rowIndex, std::string const& url, st
         CURLcode r = curl_easy_perform(_curl);
 
         if (r != CURLE_OK) {
-            logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(r));
+            spdlog::error("Failure to access {}: {}.", url, curl_easy_strerror(r));
         }
         else {
             res = response_string;
@@ -1664,7 +1652,7 @@ bool ReadLineFromSocket(wxSocketClient* socket, std::string& line, long timeout)
 }
 
 bool HinksPix::UploadFileToController(std::string const& localpathname, std::string const& remotepathname, std::function<bool(int, int, std::string)> progress_dlg, wxDateTime const& fileTime) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     std::unique_ptr<wxSocketClient> sock = std::make_unique<wxSocketClient>();
 
     wxIPV4address addr;
@@ -1672,7 +1660,7 @@ bool HinksPix::UploadFileToController(std::string const& localpathname, std::str
     addr.Service(80);
     auto work = sock->Connect(addr);
     if (!work ) {
-        logger_base.error("Could not connect to %s", (const char*)_ip.c_str());
+        spdlog::error("Could not connect to {}", _ip);
         return false;
     }
 
@@ -1689,7 +1677,7 @@ bool HinksPix::UploadFileToController(std::string const& localpathname, std::str
 
     FILE* f = fopen((const char*)localpathname.c_str(), "rb");
     if (f == NULL) {
-        logger_base.error("Could not open file %s", (const char*)localpathname.c_str());
+        spdlog::error("Could not open file {}", localpathname);
         sock->Close();
         return false;
     }
@@ -1710,7 +1698,7 @@ bool HinksPix::UploadFileToController(std::string const& localpathname, std::str
     auto ss = sock->Write((uint8_t*)&PK, PK.TotalSize).LastCount();
     if (ss==0) {
         fclose(f);
-        logger_base.error("ERROR Sending Data to Controller File Data");
+        spdlog::error("ERROR Sending Data to Controller File Data");
         sock->Close();
         return false;
     }
@@ -1719,7 +1707,7 @@ bool HinksPix::UploadFileToController(std::string const& localpathname, std::str
     ReadLineFromSocket(sock.get(), line, 5000);
     if (line.find("|FOK") == std::string::npos) {
         fclose(f);
-        logger_base.error("Failed to Write %s", (const char*)line.c_str());
+        spdlog::error("Failed to Write {}", line);
         sock->Close();
         return false;
     }
@@ -1772,11 +1760,11 @@ bool HinksPix::UploadFileToController(std::string const& localpathname, std::str
 
             ReadLineFromSocket(sock.get(), line, 5000);
             if (line.find("|FOK") == std::string::npos) {
-                logger_base.error("Failed to Write %s", (const char*)line.c_str());
+                spdlog::error("Failed to Write {}", line);
                 sock->Close();
                 return false;
             } else {
-                logger_base.debug("File %s uploaded successfully", (const char*)remotepathname.c_str());
+                spdlog::debug("File {} uploaded successfully", remotepathname);
             } 
             sock->Close();
             return true;
@@ -1792,14 +1780,14 @@ bool HinksPix::UploadFileToController(std::string const& localpathname, std::str
         auto ss = sock->Write((uint8_t*)&PK, PK.TotalSize).LastCount();
         if (ss == 0) {
             fclose(f);
-            logger_base.error("ERROR Xmitting to Controller File Data");
+            spdlog::error("ERROR Xmitting to Controller File Data");
             sock->Close();
             return false;
         }
 
         ReadLineFromSocket(sock.get(), line, 5000);
         if (line.find("|FOK") == std::string::npos) {
-            logger_base.error("Failed to Write %s", (const char*)line.c_str());
+            spdlog::error("Failed to Write {}", line);
             fclose(f);
             sock->Close();
             return false;
@@ -1809,7 +1797,7 @@ bool HinksPix::UploadFileToController(std::string const& localpathname, std::str
 }
 
 bool HinksPix::UploadTimeToController() const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     std::unique_ptr<wxSocketClient> sock = std::make_unique<wxSocketClient>();
 
     wxIPV4address addr;
@@ -1817,7 +1805,7 @@ bool HinksPix::UploadTimeToController() const {
     addr.Service(80);
     auto work = sock->Connect(addr);
     if (!work) {
-        logger_base.error("Could not connect to %s", (const char*)_ip.c_str());
+        spdlog::error("Could not connect to {}", _ip);
         return false;
     }
     auto time = wxDateTime::Now();
@@ -1843,7 +1831,7 @@ bool HinksPix::UploadTimeToController() const {
     memmove(PK.Data, &TP, sizeof(struct Tag_Dow_TimePacket));
     auto ss = sock->Write((uint8_t*)&PK, PK.TotalSize).LastCount();
     if (ss == 0) {
-        logger_base.error("ERROR Sending Data to Controller File Data");
+        spdlog::error("ERROR Sending Data to Controller File Data");
         sock->Close();
         return false;
     }
@@ -1851,7 +1839,7 @@ bool HinksPix::UploadTimeToController() const {
     std::string line;
     ReadLineFromSocket(sock.get(), line, 5000);
     if (line.find("|FOK") == std::string::npos) {
-        logger_base.error("Failed to Write %s", (const char*)line.c_str());
+        spdlog::error("Failed to Write {}", line);
         sock->Close();
         return false;
     }
@@ -1860,7 +1848,7 @@ bool HinksPix::UploadTimeToController() const {
 }
 
 bool HinksPix::UploadModeToController(unsigned char mode) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     std::unique_ptr<wxSocketClient> sock = std::make_unique<wxSocketClient>();
 
     wxIPV4address addr;
@@ -1868,7 +1856,7 @@ bool HinksPix::UploadModeToController(unsigned char mode) const {
     addr.Service(80);
     auto work = sock->Connect(addr);
     if (!work) {
-        logger_base.error("Could not connect to %s", (const char*)_ip.c_str());
+        spdlog::error("Could not connect to {}", _ip);
         return false;
     }
 
@@ -1882,7 +1870,7 @@ bool HinksPix::UploadModeToController(unsigned char mode) const {
 
     auto ss = sock->Write((uint8_t*)&CP, sizeof(struct Tag_CMD_Packet)).LastCount();
     if (ss == 0) {
-        logger_base.error("ERROR Sending Mode to Controller");
+        spdlog::error("ERROR Sending Mode to Controller");
         sock->Close();
         return false;
     }
@@ -1890,7 +1878,7 @@ bool HinksPix::UploadModeToController(unsigned char mode) const {
     std::string line;
     ReadLineFromSocket(sock.get(), line, 5000);
     if (line.find("|FOK") == std::string::npos) {
-        logger_base.error("Failed to Send %s", (const char*)line.c_str());
+        spdlog::error("Failed to Send {}", line);
         sock->Close();
         return false;
     }
@@ -1899,7 +1887,7 @@ bool HinksPix::UploadModeToController(unsigned char mode) const {
 }
 
 std::vector<HinksPixFileData> HinksPix::GetFileInfoFromSDCard(uint8_t cmd) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     std::unique_ptr<wxSocketClient> sock = std::make_unique<wxSocketClient>();
     std::vector<HinksPixFileData> files;
     uint8_t CMD[4];
@@ -1919,7 +1907,7 @@ std::vector<HinksPixFileData> HinksPix::GetFileInfoFromSDCard(uint8_t cmd) const
 
     auto connected = sock->Connect(addr);
     if (!connected) {
-        logger_base.error("Could not connect to %s", (const char*)_ip.c_str());
+        spdlog::error("Could not connect to {}", _ip);
         return files;
     }
 
@@ -1935,7 +1923,7 @@ std::vector<HinksPixFileData> HinksPix::GetFileInfoFromSDCard(uint8_t cmd) const
     if (ss == 0) {
         //fclose(f);
         sock->Close();
-        logger_base.error("ERROR Xmitting to Controller File Data");
+        spdlog::error("ERROR Xmitting to Controller File Data");
         return files;
     }
 
@@ -1944,7 +1932,7 @@ std::vector<HinksPixFileData> HinksPix::GetFileInfoFromSDCard(uint8_t cmd) const
     std::string data;
     ReadLineFromSocket(sock.get(), data, 5000);
     if (data.find("|FOK") != std::string::npos) {
-        logger_base.error("Failed to Write %s", (const char*)data.c_str());
+        spdlog::error("Failed to Write {}", data);
         // txtRx->AppendText(wxT("Failed to read message.\n"));
         sock->Close();
         return files;
@@ -2005,14 +1993,13 @@ bool HinksPix::CheckPixelOutputs(std::string& message)
 {
     for (auto const& it : _pixelOutputs) {
         if (it.used) {
-            int exp_idx = (it.output - 1) / OUT_SIZE;
+            int const exp_idx = (it.output - 1) / OUT_SIZE;
             if (_EXP_Outputs[exp_idx] == EXPType::Not_Present) {
                 message = "Pixel Output " + std::to_string(it.output) + " is being used on Expansion Port " + std::to_string(exp_idx + 1) + " and no Output Board is Connected!";
                 return false;
             }
         }
     }
-
     return true;
 }
 
@@ -2036,22 +2023,18 @@ bool HinksPix::CheckSmartReceivers(std::string& message)
 
 bool HinksPix::IsUnPackSupported_Hinks(ControllerEthernet *controller)
 {
-    std::string M = controller->GetModel();
-
-    if(controller->GetModel() == "PRO V1/V2")
-    {
-        if(_MCPU_Version < 151)
+    std::string const M = controller->GetModel();
+    if (controller->GetModel() == "PRO V1/V2") {
+        if (_MCPU_Version < 151) {
             return false;
-
+        }
         return true;
     }
-    else if(controller->GetModel() == "PRO V3")
-    {
-        if(_MCPU_Version < 129)
+    if (controller->GetModel() == "PRO V3") {
+        if (_MCPU_Version < 129) {
             return false;
-
+        }
         return true;
     }
-
     return false;
 }

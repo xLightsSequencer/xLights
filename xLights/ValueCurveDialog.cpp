@@ -32,7 +32,7 @@
 #include "sequencer/MainSequencer.h"
 #include "sequencer/SequenceElements.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 BEGIN_EVENT_TABLE(ValueCurvePanel, wxWindow)
 EVT_MOTION(ValueCurvePanel::mouseMoved)
@@ -1413,8 +1413,8 @@ void ValueCurveDialog::OnButtonExportClick(wxCommandEvent& event) {
 }
 
 void ValueCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("ValueCurveDialog Scanning directory for *.xvc files: %s.", (const char*)directory.GetNameWithSep().c_str());
+    
+    LOG_INFO("ValueCurveDialog Scanning directory for *.xvc files: %s.", (const char*)directory.GetNameWithSep().c_str());
 
     auto existing = PresetSizer->GetChildren();
 
@@ -1444,7 +1444,7 @@ void ValueCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs) {
             Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ValueCurveDialog::OnButtonPresetClick);
         }
     }
-    logger_base.info("    Found %d.", count);
+    LOG_INFO("    Found %d.", count);
 
     if (subdirs) {
         wxString filename;
@@ -1458,7 +1458,7 @@ void ValueCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs) {
 }
 
 void ValueCurveDialog::PopulatePresets() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxDir dir(xLightsFrame::CurrentDir);
 
     ProcessPresetDir(dir, false);
@@ -1469,7 +1469,7 @@ void ValueCurveDialog::PopulatePresets() {
         dir.Open(d);
         ProcessPresetDir(dir, true);
     } else {
-        logger_base.info("Directory for *.xvc files not found: %s.", (const char*)d.c_str());
+        LOG_INFO("Directory for *.xvc files not found: %s.", (const char*)d.c_str());
     }
 
     wxStandardPaths stdp = wxStandardPaths::Get();
@@ -1483,7 +1483,7 @@ void ValueCurveDialog::PopulatePresets() {
         dir.Open(d);
         ProcessPresetDir(dir, true);
     } else {
-        logger_base.info("Directory for *.xvc files not found: %s.", (const char*)d.c_str());
+        LOG_INFO("Directory for *.xvc files not found: %s.", (const char*)d.c_str());
     }
 
     PresetSizer->Layout();

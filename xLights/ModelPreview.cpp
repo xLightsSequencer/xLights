@@ -29,7 +29,7 @@
 #include "models/ModelGroup.h"
 #include "ExternalHooks.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 BEGIN_EVENT_TABLE(ModelPreview, GRAPHICS_BASE_CLASS)
 	EVT_MOTION(ModelPreview::mouseMoved)
@@ -412,7 +412,7 @@ const std::vector<Model*> &ModelPreview::GetModels() {
 
 bool ModelPreview::ValidateModels(const std::vector<Model*>models, const ModelManager& mm)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     for (const auto& it : models) {
         if (it->GetDisplayAs() != "SubModel") {
             bool found = false;
@@ -425,12 +425,12 @@ bool ModelPreview::ValidateModels(const std::vector<Model*>models, const ModelMa
             if (!found) {
                 // pointer to a non-existent model found ... not good
                 wxASSERT(false);
-                logger_base.error("Validating models in model preview %s found model that was not valid. This may crash!!!!", (const char*)GetName().c_str());
+                LOG_ERROR("Validating models in model preview %s found model that was not valid. This may crash!!!!", (const char*)GetName().c_str());
                 return false;
             }
         }
     }
-    //logger_base.debug("Validating models in model preview %s ALL OK", (const char*)GetName().c_str());
+    //LOG_DEBUG("Validating models in model preview %s ALL OK", (const char*)GetName().c_str());
     return true;
 }
 
@@ -687,23 +687,23 @@ void ModelPreview::DrawGroupCentre(float x, float y)
         rs += 1.0;
         rs *= 12.0;
         float center_width = std::max(CENTER_MARK_WIDTH, CENTER_MARK_WIDTH * zoom * rs);
-        factor = center_width * 0.40; // adjust this for ideal size.
-        factor = MIN(MAX(factor, 1), 10); // sanity check
+        factor = center_width * 0.40f; // adjust this for ideal size.
+        factor = std::min(std::max((int)factor, 1), 10); // sanity check
         switch (crosshairChoice) {
         case 0:
-            factor *= 1.25;
+            factor *= 1.25f;
             break;
         case 1:
             // No changes needed
             break;
         case 2:
-            factor *= 0.5;
+            factor *= 0.5f;
             break;
         case 3:
-            factor *= 0.20;
+            factor *= 0.20f;
             break;
         case 4:
-            factor = 0;
+            factor = 0.0f;
             break;
         default:
             break;
@@ -1162,7 +1162,7 @@ void ModelPreview::SetPan(float deltax, float deltay, float deltaz)
 
 bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!fromPaint && !IsShownOnScreen()) return false;
     if (!mIsInitialized) {
@@ -1228,16 +1228,16 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         
         if (mBackgroundImageExists) {
             if (background == nullptr) {
-                logger_base.debug("Loading background image file %s for preview %s.",
+                LOG_DEBUG("Loading background image file %s for preview %s.",
                                   (const char *)mBackgroundImage.c_str(),
                                   (const char *)GetName().c_str());
                 wxImage image(mBackgroundImage);
                 if (image.IsOk()) {
                     backgroundSize.Set(image.GetWidth(), image.GetHeight());
                     background = currentContext->createTexture(image, mBackgroundImage, true);
-                    logger_base.debug("    Loaded.");
+                    LOG_DEBUG("    Loaded.");
                 } else {
-                    logger_base.debug("    Failed.");
+                    LOG_DEBUG("    Failed.");
                 }
             }
             if (background != nullptr) {

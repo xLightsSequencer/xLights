@@ -30,7 +30,7 @@
 #include "effects/SnowflakesEffect.h"
 #include "effects/RippleEffect.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 // Current working assumptions
 //
@@ -229,7 +229,7 @@ std::string LOREditEffect::GetBlend() const
 
 std::string LOREditEffect::GetSettings(std::string& palette) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (effectType == "INTENSITY") {
         // intensity ramp 0-100
@@ -455,14 +455,14 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
 
         // No xLights equivalent
 
-        logger_base.warn("LPE conversion for Lines Horizontal does not exist.");
+        LOG_WARN("LPE conversion for Lines Horizontal does not exist.");
     }
     else if (et == "linesvertical") {
         // Left_to_Right,4,32
 
         // No xLights equivalent
 
-        logger_base.warn("LPE conversion for Lines Vertical does not exist.");
+        LOG_WARN("LPE conversion for Lines Vertical does not exist.");
     }
     else if (et == "curtain") {
         // center,open,0,once_at_speed,12
@@ -1017,10 +1017,10 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         }
 
         // I dont have enough samples to know what the rest of the settings are
-        logger_base.warn("Wave effects I have never seen enough samples to truly decode the settings.");
+        LOG_WARN("Wave effects I have never seen enough samples to truly decode the settings.");
     }
     else {
-        logger_base.warn("S5 conversion for %s not created yet.", (const char*)et.c_str());
+        LOG_WARN("S5 conversion for %s not created yet.", (const char*)et.c_str());
         wxASSERT(false);
     }
 

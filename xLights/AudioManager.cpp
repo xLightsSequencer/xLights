@@ -34,7 +34,7 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 using namespace Vamp;
 
@@ -126,11 +126,11 @@ long AudioData::Tell() const {
 }
 
 void AudioData::Seek(long ms) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if ((((Uint64)ms * _rate * 2 * 2) / 1000) > (Uint64)_original_len) {
         // I am not super sure about this
-        logger_base.warn("ID %d Attempt to seek past the end of the loaded audio. Seeking to 0ms instead. Seek to %ldms. Length %ldms.", _id, ms, (long)(((Uint64)_original_len * 1000) / ((Uint64)_rate * 2 * 2)));
+        LOG_WARN("ID %d Attempt to seek past the end of the loaded audio. Seeking to 0ms instead. Seek to %ldms. Length %ldms.", _id, ms, (long)(((Uint64)_original_len * 1000) / ((Uint64)_rate * 2 * 2)));
         ms = 0;
     }
 
@@ -142,7 +142,7 @@ void AudioData::Seek(long ms) {
 
     _audio_pos = _original_pos + (_original_len - _audio_len);
 
-    logger_base.debug("ID %d Seeking to %ldMS ... calculated audio_len: %ld", _id, ms, _audio_len);
+    LOG_DEBUG("ID %d Seeking to %ldMS ... calculated audio_len: %ld", _id, ms, _audio_len);
 }
 
 void AudioData::SeekAndLimitPlayLength(long ms, long len) {
@@ -150,20 +150,20 @@ void AudioData::SeekAndLimitPlayLength(long ms, long len) {
     _audio_len -= _audio_len % 4;
     _audio_pos = _original_pos + (((Uint64)ms * _rate * 2 * 2) / 1000);
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("ID %d Seeking to %ldMS Length %ldMS ... calculated audio_len: %ld.", _id, ms, len, _audio_len);
+    
+    LOG_DEBUG("ID %d Seeking to %ldMS Length %ldMS ... calculated audio_len: %ld.", _id, ms, len, _audio_len);
 }
 
 void AudioData::SavePos() {
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // 
     _savedpos = Tell();
-    // logger_base.info("Saving position %ld 0x%lx as %d.", (long)_audio_len, (long)_audio_pos, _savedpos);
+    // LOG_INFO("Saving position %ld 0x%lx as %d.", (long)_audio_len, (long)_audio_pos, _savedpos);
 }
 
 void AudioData::RestorePos() {
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // 
     Seek(_savedpos);
-    // logger_base.info("Restoring position %d as %ld 0x%ld.", _savedpos, (long)_audio_len, (long)_audio_pos);
+    // LOG_INFO("Restoring position %d as %ld 0x%ld.", _savedpos, (long)_audio_len, (long)_audio_pos);
 }
 
 #pragma endregion
@@ -174,9 +174,9 @@ BaseSDL::~BaseSDL() {
 }
 
 bool BaseSDL::CloseDevice() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (_dev > 0) {
-        logger_base.debug("Pausing audio device %d.", _dev);
+        LOG_DEBUG("Pausing audio device %d.", _dev);
         SDL_ClearError();
         SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
         wxASSERT(strlen(SDL_GetError()) == 0);
@@ -184,12 +184,12 @@ bool BaseSDL::CloseDevice() {
             SDL_PauseAudioDevice(_dev, 1);
             wxASSERT(strlen(SDL_GetError()) == 0);
         }
-        logger_base.debug("    Result '%s'", SDL_GetError());
-        logger_base.debug("Closing audio device %d.", _dev);
+        LOG_DEBUG("    Result '%s'", SDL_GetError());
+        LOG_DEBUG("Closing audio device %d.", _dev);
         SDL_ClearError();
         SDL_CloseAudioDevice(_dev);
         wxASSERT(strlen(SDL_GetError()) == 0);
-        logger_base.debug("    Result '%s'", SDL_GetError());
+        LOG_DEBUG("    Result '%s'", SDL_GetError());
         _dev = 0;
     }
 
@@ -197,29 +197,29 @@ bool BaseSDL::CloseDevice() {
 }
 
 void BaseSDL::DumpState(std::string device, int devid, SDL_AudioSpec* wanted, SDL_AudioSpec* actual) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    logger_base.debug("Current audio driver %s", SDL_GetCurrentAudioDriver());
-    logger_base.debug("Output devices %d. Input devices %d.", SDL_GetNumAudioDevices(0), SDL_GetNumAudioDevices(1));
-    logger_base.debug("Audio device '%s' opened %d. Device specification:", (const char*)device.c_str(), (int)devid);
+    LOG_DEBUG("Current audio driver %s", SDL_GetCurrentAudioDriver());
+    LOG_DEBUG("Output devices %d. Input devices %d.", SDL_GetNumAudioDevices(0), SDL_GetNumAudioDevices(1));
+    LOG_DEBUG("Audio device '%s' opened %d. Device specification:", (const char*)device.c_str(), (int)devid);
     SDL_AudioStatus as = SDL_GetAudioDeviceStatus(devid);
-    logger_base.debug("    Audio device status (%d) %s", (int)devid, (as == SDL_AUDIO_PAUSED) ? "Paused" : (as == SDL_AUDIO_PLAYING) ? "Playing"
+    LOG_DEBUG("    Audio device status (%d) %s", (int)devid, (as == SDL_AUDIO_PAUSED) ? "Paused" : (as == SDL_AUDIO_PLAYING) ? "Playing"
                                                                                                                                      : "Stopped");
-    logger_base.debug("    Size Asked %d Received %d", wanted->size, actual->size);
-    logger_base.debug("    Channels Asked %d Received %d", wanted->channels, actual->channels);
-    logger_base.debug("    Format Asked 0x%x Received 0x%x", wanted->format, actual->format);
-    logger_base.debug("        Bitsize Asked %d Received %d", (int)SDL_AUDIO_BITSIZE(wanted->format), (int)SDL_AUDIO_BITSIZE(actual->format));
-    logger_base.debug("        Float Asked %s Received %s", SDL_AUDIO_ISFLOAT(wanted->format) ? "True" : "False", SDL_AUDIO_ISFLOAT(actual->format) ? "True" : "False");
-    logger_base.debug("        Big Endian Asked %s Received %s", SDL_AUDIO_ISBIGENDIAN(wanted->format) ? "True" : "False", SDL_AUDIO_ISBIGENDIAN(actual->format) ? "True" : "False");
-    logger_base.debug("        Signed Asked %s Received %s", SDL_AUDIO_ISSIGNED(wanted->format) ? "True" : "False", SDL_AUDIO_ISSIGNED(actual->format) ? "True" : "False");
-    logger_base.debug("    Frequency Asked %d Received %d", wanted->freq, actual->freq);
-    logger_base.debug("    Padding Asked %d Received %d", wanted->padding, actual->padding);
-    logger_base.debug("    Samples Asked %d Received %d", wanted->samples, actual->samples);
-    logger_base.debug("    Silence Asked %d Received %d", wanted->silence, actual->silence);
+    LOG_DEBUG("    Size Asked %d Received %d", wanted->size, actual->size);
+    LOG_DEBUG("    Channels Asked %d Received %d", wanted->channels, actual->channels);
+    LOG_DEBUG("    Format Asked 0x%x Received 0x%x", wanted->format, actual->format);
+    LOG_DEBUG("        Bitsize Asked %d Received %d", (int)SDL_AUDIO_BITSIZE(wanted->format), (int)SDL_AUDIO_BITSIZE(actual->format));
+    LOG_DEBUG("        Float Asked %s Received %s", SDL_AUDIO_ISFLOAT(wanted->format) ? "True" : "False", SDL_AUDIO_ISFLOAT(actual->format) ? "True" : "False");
+    LOG_DEBUG("        Big Endian Asked %s Received %s", SDL_AUDIO_ISBIGENDIAN(wanted->format) ? "True" : "False", SDL_AUDIO_ISBIGENDIAN(actual->format) ? "True" : "False");
+    LOG_DEBUG("        Signed Asked %s Received %s", SDL_AUDIO_ISSIGNED(wanted->format) ? "True" : "False", SDL_AUDIO_ISSIGNED(actual->format) ? "True" : "False");
+    LOG_DEBUG("    Frequency Asked %d Received %d", wanted->freq, actual->freq);
+    LOG_DEBUG("    Padding Asked %d Received %d", wanted->padding, actual->padding);
+    LOG_DEBUG("    Samples Asked %d Received %d", wanted->samples, actual->samples);
+    LOG_DEBUG("    Silence Asked %d Received %d", wanted->silence, actual->silence);
 }
 
 bool BaseSDL::OpenDevice(bool input, int rate) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     CloseDevice(); // just in case it is open
 
@@ -248,13 +248,13 @@ bool BaseSDL::OpenDevice(bool input, int rate) {
     if (_device != "") {
         d = _device.c_str();
     }
-    logger_base.debug("Opening audio device. %s", (const char*)d);
+    LOG_DEBUG("Opening audio device. %s", (const char*)d);
     SDL_ClearError();
     SDL_AudioDeviceID rc = SDL_OpenAudioDevice(d, input ? 1 : 0, &_wanted_spec, &actual_spec, 0);
     if (_device == "") {
         d = "<Default>";
     }
-    logger_base.debug("    Result '%s'", SDL_GetError());
+    LOG_DEBUG("    Result '%s'", SDL_GetError());
     if (rc < 2) {
         _dev = 0;
         return false;
@@ -263,7 +263,7 @@ bool BaseSDL::OpenDevice(bool input, int rate) {
 
     _state = SDLSTATE::SDLNOTPLAYING;
 
-    logger_base.debug("Audio device opened %s -> Device: %d.", d, _dev);
+    LOG_DEBUG("Audio device opened %s -> Device: %d.", d, _dev);
     DumpState("", rc, &_wanted_spec, &actual_spec);
 
     return true;
@@ -273,11 +273,11 @@ bool BaseSDL::OpenDevice(bool input, int rate) {
 #pragma region InputSDL
 
 bool InputSDL::OpenDevice() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     bool rc = BaseSDL::OpenDevice(true, DEFAULT_RATE);
 
     if (rc) {
-        logger_base.debug("Unpausing audio input device %d.", _dev);
+        LOG_DEBUG("Unpausing audio input device %d.", _dev);
         SDL_ClearError();
         SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
         wxASSERT(strlen(SDL_GetError()) == 0);
@@ -285,7 +285,7 @@ bool InputSDL::OpenDevice() {
             SDL_PauseAudioDevice(_dev, 0);
             wxASSERT(strlen(SDL_GetError()) == 0);
         }
-        logger_base.debug("    Result '%s'", SDL_GetError());
+        LOG_DEBUG("    Result '%s'", SDL_GetError());
     }
 
     return rc;
@@ -314,29 +314,29 @@ bool InputSDL::IsListening() const {
 }
 
 void InputSDL::StopListening() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     --_listeners;
 
     if (_listeners == 0) {
         CloseDevice();
     }
 
-    logger_base.debug("SDL Stopping listening - listeners %d", _listeners);
+    LOG_DEBUG("SDL Stopping listening - listeners %d", _listeners);
 }
 
 void InputSDL::StartListening() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     _listeners++;
 
     if (_listeners == 1) {
         if (!OpenDevice()) {
-            logger_base.error("Could not open SDL audio input");
+            LOG_ERROR("Could not open SDL audio input");
         } else {
-            logger_base.debug("SDL Starting listening - '%s'", (const char*)_device.c_str());
+            LOG_DEBUG("SDL Starting listening - '%s'", (const char*)_device.c_str());
         }
     }
 
-    logger_base.debug("SDL Starting listening - listeners %d", _listeners);
+    LOG_DEBUG("SDL Starting listening - listeners %d", _listeners);
 }
 
 void InputSDL::PurgeAllButInputAudio(int ms) const {
@@ -393,7 +393,7 @@ int InputSDL::GetMax(int ms) const {
             break;
     }
 
-    // logger_base.debug("samples needed %d, read %d, max %d", samplesNeeded, read / 2, max);
+    // LOG_DEBUG("samples needed %d, read %d, max %d", samplesNeeded, read / 2, max);
 
     // return the output scaled from 0-127 to 0-255
     return std::min((max - 127) * 2, 255);
@@ -482,9 +482,9 @@ void InputSDL::PurgeInput() {
 
 #pragma region OutputSDL
 void OutputSDL::Reopen() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    logger_base.debug("SDL Reopen");
+    LOG_DEBUG("SDL Reopen");
 
     SDLSTATE oldstate = _state;
 
@@ -511,21 +511,21 @@ void OutputSDL::Reopen() {
         }
     }
 
-    logger_base.info("SDL reinitialised.");
+    LOG_INFO("SDL reinitialised.");
 }
 
 OutputSDL::OutputSDL(const std::string& device) :
     BaseSDL(device) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _initialisedRate = DEFAULT_RATE;
 
     if (!OpenDevice()) {
-        logger_base.error("Could not open SDL audio");
+        LOG_ERROR("Could not open SDL audio");
         return;
     }
 
-    logger_base.debug("SDL initialized output: '%s'", (const char*)_device.c_str());
+    LOG_DEBUG("SDL initialized output: '%s'", (const char*)_device.c_str());
 }
 
 OutputSDL::~OutputSDL() {
@@ -727,7 +727,7 @@ AudioData* OutputSDL::GetData(int id) const {
 }
 
 int OutputSDL::AddAudio(long len, Uint8* buffer, int volume, int rate, long tracksize, long lengthMS) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     int id = AudioData::__nextId++;
 
@@ -751,32 +751,32 @@ int OutputSDL::AddAudio(long len, Uint8* buffer, int volume, int rate, long trac
 
     if (rate != _initialisedRate) {
         if (_audioData.size() != 1) {
-            logger_base.warn("Playing multiple audio files with different sample rates with play at least one of them at the wrong speed.");
+            LOG_WARN("Playing multiple audio files with different sample rates with play at least one of them at the wrong speed.");
         }
 
         _initialisedRate = rate;
         Reopen();
     }
 
-    logger_base.debug("SDL Audio Added: id: %d, device %d, rate: %d, len: %ld, lengthMS: %ld, trackSize: %ld.", id, _dev, rate, len, lengthMS, tracksize);
+    LOG_DEBUG("SDL Audio Added: id: %d, device %d, rate: %d, len: %ld, lengthMS: %ld, trackSize: %ld.", id, _dev, rate, len, lengthMS, tracksize);
 
     return id;
 }
 
 void OutputSDL::RemoveAudio(int id) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     std::unique_lock<std::mutex> locker(_audio_Lock);
     auto toremove = GetData(id);
     if (toremove == nullptr)
         return;
     _audioData.remove(toremove);
     delete toremove;
-    logger_base.debug("SDL Audio Removed: id: %d device: %d.", id, _dev);
+    LOG_DEBUG("SDL Audio Removed: id: %d device: %d.", id, _dev);
 }
 
 void OutputSDL::Pause(int id, bool pause) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SDL Audio Pause: id: %d, device %d, pause %d.", id, _dev, pause);
+    
+    LOG_DEBUG("SDL Audio Pause: id: %d, device %d, pause %d.", id, _dev, pause);
     std::unique_lock<std::mutex> locker(_audio_Lock);
     auto topause = GetData(id);
     if (topause != nullptr)
@@ -791,8 +791,8 @@ void OutputSDL::SetRate(float rate) {
 }
 
 void OutputSDL::Play() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SDL Audio Play on device %d.", _dev);
+    
+    LOG_DEBUG("SDL Audio Play on device %d.", _dev);
     if (_dev == 0) {
         if (!OpenDevice()) {
             return;
@@ -811,8 +811,8 @@ void OutputSDL::Play() {
 }
 
 void OutputSDL::Stop() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SDL Audio Stop on device %d.", _dev);
+    
+    LOG_DEBUG("SDL Audio Stop on device %d.", _dev);
     if (_dev > 0) {
         SDL_ClearError();
         _state = SDLSTATE::SDLNOTPLAYING;
@@ -828,8 +828,8 @@ void OutputSDL::Stop() {
 }
 
 void OutputSDL::Pause() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SDL Audio Pause on device %d.", _dev);
+    
+    LOG_DEBUG("SDL Audio Pause on device %d.", _dev);
     if (_dev > 0) {
         SDL_ClearError();
         SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
@@ -843,8 +843,8 @@ void OutputSDL::Pause() {
 }
 
 void OutputSDL::Unpause() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SDL Audio Unpause on device %d.", _dev);
+    
+    LOG_DEBUG("SDL Audio Unpause on device %d.", _dev);
     if (_dev == 0) {
         if (!OpenDevice()) {
             return;
@@ -871,10 +871,10 @@ void OutputSDL::TogglePause() {
 
 #pragma region SDLManager
 SDLManager::SDLManager() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (SDL_Init(SDL_INIT_AUDIO)) {
-        logger_base.error("Could not initialize SDL");
+        LOG_ERROR("Could not initialize SDL");
         return;
     }
 
@@ -883,14 +883,14 @@ SDLManager::SDLManager() {
 #else
     // override the default driver on windows so we can access the microphone
     if (SDL_AudioInit("directsound") != 0) {
-        logger_base.error("Failed to access DirectSound ... Microphone won't be available.");
+        LOG_ERROR("Failed to access DirectSound ... Microphone won't be available.");
     }
 #endif
     _initialised = true;
 }
 
 SDLManager::~SDLManager() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _inputs.clear();
     _outputs.clear();
@@ -902,7 +902,7 @@ SDLManager::~SDLManager() {
         SDL_Quit();
     }
 
-    logger_base.debug("SDL uninitialized");
+    //LOG_DEBUG("SDL uninitialized");
 }
 
 [[nodiscard]] InputSDL* SDLManager::GetInputSDL(const std::string& device) {
@@ -1079,7 +1079,7 @@ long AudioManager::Tell() const {
 }
 
 size_t AudioManager::GetAudioFileLength(std::string filename) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     AVFormatContext* formatContext = nullptr;
 
 #if LIBAVFORMAT_VERSION_MAJOR < 58
@@ -1109,7 +1109,7 @@ size_t AudioManager::GetAudioFileLength(std::string filename) {
         AVCodec* cdc;
     int streamIndex = av_find_best_stream(formatContext, AVMEDIA_TYPE_AUDIO, -1, -1, &cdc, 0);
     if (streamIndex < 0) {
-        logger_base.error("AudioManager: Could not find any audio stream in " + filename);
+        LOG_ERROR("AudioManager: Could not find any audio stream in " + filename);
 
         if (formatContext != nullptr) {
             avformat_close_input(&formatContext);
@@ -1146,7 +1146,7 @@ size_t AudioManager::GetAudioFileLength(std::string filename) {
         formatContext = nullptr;
     }
 
-    logger_base.error("AudioManager: Could not determine length of video " + filename);
+    LOG_ERROR("AudioManager: Could not determine length of video " + filename);
     return 0;
 }
 
@@ -1175,9 +1175,9 @@ bool AudioManager::IsDataLoaded(long pos) {
 }
 
 AudioManager::AudioManager(const std::string& audio_file, int intervalMS, const std::string& device) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    logger_base.debug("Audio Manager Constructor start");
+    LOG_DEBUG("Audio Manager Constructor start");
 
     // save parameters and initialise defaults
     _ok = true;
@@ -1202,9 +1202,9 @@ AudioManager::AudioManager(const std::string& audio_file, int intervalMS, const 
     _extra = 32769;
 
     // Open the media file
-    logger_base.debug("Audio Manager Constructor: Loading media file.");
+    LOG_DEBUG("Audio Manager Constructor: Loading media file.");
     OpenMediaFile();
-    logger_base.debug("Audio Manager Constructor: Media file loaded.");
+    LOG_DEBUG("Audio Manager Constructor: Media file loaded.");
 
     // if we didnt get a valid looking rate then we really are not ok
     if (_rate <= 0)
@@ -1212,25 +1212,25 @@ AudioManager::AudioManager(const std::string& audio_file, int intervalMS, const 
 
     // If we opened it successfully kick off the frame data extraction ... this will run on another thread
     if (_intervalMS > 0 && _ok) {
-        logger_base.debug("Audio Manager Constructor: Preparing frame data.");
+        LOG_DEBUG("Audio Manager Constructor: Preparing frame data.");
         PrepareFrameData(true);
-        logger_base.debug("Audio Manager Constructor: Preparing frame data done ... but maybe on a background thread.");
+        LOG_DEBUG("Audio Manager Constructor: Preparing frame data done ... but maybe on a background thread.");
     } else if (_ok) {
-        logger_base.debug("Audio Manager Constructor: Skipping preparing frame data as timing not known yet.");
+        LOG_DEBUG("Audio Manager Constructor: Skipping preparing frame data as timing not known yet.");
     }
 
     // if we got here without setting state to zero then all must be good so set state to 1 success
     if (_ok && _state == -1) {
         _state = 1;
-        logger_base.info("Audio file loaded.");
-        logger_base.info("    Filename: %s", (const char*)_audio_file.c_str());
-        logger_base.info("    Title: %s", (const char*)_title.c_str());
-        logger_base.info("    Album: %s", (const char*)_album.c_str());
-        logger_base.info("    Artist: %s", (const char*)_artist.c_str());
-        logger_base.info("    Length: %ldms", _lengthMS);
-        logger_base.info("    Channels %d, Bits: %d, Rate %ld", _channels, _bits, _rate);
+        LOG_INFO("Audio file loaded.");
+        LOG_INFO("    Filename: %s", (const char*)_audio_file.c_str());
+        LOG_INFO("    Title: %s", (const char*)_title.c_str());
+        LOG_INFO("    Album: %s", (const char*)_album.c_str());
+        LOG_INFO("    Artist: %s", (const char*)_artist.c_str());
+        LOG_INFO("    Length: %ldms", _lengthMS);
+        LOG_INFO("    Channels %d, Bits: %d, Rate %ld", _channels, _bits, _rate);
     } else {
-        logger_base.error("Audio file not loaded: %s.", _resultMessage.c_str());
+        LOG_ERROR("Audio file not loaded: %s.", _resultMessage.c_str());
     }
     AddAudioDeviceChangeListener([this]() { AudioDeviceChanged(); });
 }
@@ -1280,7 +1280,7 @@ void AudioManager::CalculateSpectrumAnalysis(const float* in, int n, float& max,
 }
 
 void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManagerProgressCallback fn) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     // dont redo it
     if (_polyphonicTranscriptionDone) {
@@ -1289,24 +1289,24 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
 
     wxStopWatch sw;
 
-    logger_base.info("DoPolyphonicTranscription: Polyphonic transcription started on file " + _audio_file);
+    LOG_INFO("DoPolyphonicTranscription: Polyphonic transcription started on file " + _audio_file);
 
     while (!IsDataLoaded()) {
-        logger_base.debug("DoPolyphonicTranscription: Waiting for audio data to load.");
+        LOG_DEBUG("DoPolyphonicTranscription: Waiting for audio data to load.");
         wxMilliSleep(100);
     }
 
-    static log4cpp::Category& logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
-    logger_pianodata.debug("Processing polyphonic transcription on file " + _audio_file);
-    logger_pianodata.debug("Interval %d.", _intervalMS);
-    logger_pianodata.debug("BitRate %d.", GetRate());
+    
+    LOG_DEBUG("Processing polyphonic transcription on file " + _audio_file);
+    LOG_DEBUG("Interval %d.", _intervalMS);
+    LOG_DEBUG("BitRate %d.", GetRate());
 
     // Initialise Polyphonic Transcription
     _vamp.GetAllAvailablePlugins(this); // this initialises Vamp
     Vamp::Plugin* pt = _vamp.GetPlugin("Polyphonic Transcription");
 
     if (pt == nullptr) {
-        logger_base.warn("DoPolyphonicTranscription: Unable to load Polyphonic Transcription VAMP plugin.");
+        LOG_WARN("DoPolyphonicTranscription: Unable to load Polyphonic Transcription VAMP plugin.");
     } else {
         float* pdata[2];
         long frames = _lengthMS / _intervalMS;
@@ -1322,9 +1322,9 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
             channels = 1;
         }
 
-        logger_pianodata.debug("Channels %d.", GetChannels());
-        logger_pianodata.debug("Step %d.", pref_step);
-        logger_pianodata.debug("Block %d.", pref_block);
+        LOG_DEBUG("Channels %d.", GetChannels());
+        LOG_DEBUG("Step %d.", pref_step);
+        LOG_DEBUG("Block %d.", pref_block);
         pt->initialise(channels, pref_step, pref_block);
 
         bool first = true;
@@ -1346,7 +1346,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
             Vamp::Plugin::FeatureSet features = pt->process(pdata, timestamp);
 
             if (first && features.size() > 0) {
-                logger_base.warn("DoPolyphonicTranscription: Polyphonic transcription data process oddly retrieved data.");
+                LOG_WARN("DoPolyphonicTranscription: Polyphonic transcription data process oddly retrieved data.");
                 first = false;
             }
             if (len > pref_step) {
@@ -1360,10 +1360,10 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
         // Process the Polyphonic Transcription
         try {
             unsigned int total = 0;
-            logger_pianodata.debug("About to extract Polyphonic Transcription result.");
+            LOG_DEBUG("About to extract Polyphonic Transcription result.");
             Vamp::Plugin::FeatureSet features = pt->getRemainingFeatures();
-            logger_pianodata.debug("Polyphonic Transcription result retrieved.");
-            logger_pianodata.debug("Start,Duration,CalcStart,CalcEnd,midinote");
+            LOG_DEBUG("Polyphonic Transcription result retrieved.");
+            LOG_DEBUG("Start,Duration,CalcStart,CalcEnd,midinote");
             for (size_t j = 0; j < features[0].size(); j++) {
                 if (j % 10 == 0) {
                     fn(dlg, (int)(((float)j * 75.0) / (float)features[0].size()) + 25.0);
@@ -1373,9 +1373,9 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
                 long currentend = currentstart + features[0][j].duration.sec * 1000 + features[0][j].duration.msec();
 
                 // printf("%f\t%f\t%f\n",(float)currentstart/1000.0, (float)currentend/1000.0, features[0][j].values[0]);
-                if (logger_pianodata.isDebugEnabled()) {
-                    logger_pianodata.debug("%d.%03d,%d.%03d,%d,%d,%f", features[0][j].timestamp.sec, features[0][j].timestamp.msec(), features[0][j].duration.sec, features[0][j].duration.msec(), currentstart, currentend, features[0][j].values[0]);
-                }
+                //if (logger_pianodata.isDebugEnabled()) {
+                    LOG_DEBUG("%d.%03d,%d.%03d,%d,%d,%f", features[0][j].timestamp.sec, features[0][j].timestamp.msec(), features[0][j].duration.sec, features[0][j].duration.msec(), currentstart, currentend, features[0][j].values[0]);
+                //}
                 total += features[0][j].values.size();
 
                 int sframe = currentstart / _intervalMS;
@@ -1391,21 +1391,21 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
 
             fn(dlg, 100);
 
-            if (logger_pianodata.isDebugEnabled()) {
-                logger_pianodata.debug("Piano data calculated:");
-                logger_pianodata.debug("Time MS, Keys");
+            //if (logger_pianodata.isDebugEnabled()) {
+                LOG_DEBUG("Piano data calculated:");
+                LOG_DEBUG("Time MS, Keys");
                 for (size_t i = 0; i < _frameData.size(); i++) {
                     long ms = i * _intervalMS;
                     std::string keys = "";
                     for (const auto& it2 : _frameData[i].notes) {
                         keys += " " + std::string(wxString::Format("%f", it2).c_str());
                     }
-                    logger_pianodata.debug("%ld,%s", ms, (const char*)keys.c_str());
+                    LOG_DEBUG("%ld,%s", ms, (const char*)keys.c_str());
                 }
-            }
+            //}
             // printf("Total points: %u", total);
         } catch (...) {
-            logger_base.warn("DoPolyphonicTranscription: Polyphonic Transcription threw an error getting the remaining features.");
+            LOG_WARN("DoPolyphonicTranscription: Polyphonic Transcription threw an error getting the remaining features.");
         }
 
         // done with VAMP Polyphonic Transcriber ... but dont delete it as the VAMP code manages its lifetime
@@ -1413,21 +1413,21 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
     }
 
     _polyphonicTranscriptionDone = true;
-    logger_base.info("DoPolyphonicTranscription: Polyphonic transcription completed in %ld.", sw.Time());
+    LOG_INFO("DoPolyphonicTranscription: Polyphonic transcription completed in %ld.", sw.Time());
 }
 
 // Frame Data Extraction Functions
 // process audio data and build data for each frame
 void AudioManager::DoPrepareFrameData() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("DoPrepareFrameData: Start processing audio frame data.");
+    
+    LOG_INFO("DoPrepareFrameData: Start processing audio frame data.");
 
     // lock the mutex
     std::unique_lock<std::shared_timed_mutex> locker(_mutex);
-    logger_base.info("DoPrepareFrameData: Got mutex.");
+    LOG_INFO("DoPrepareFrameData: Got mutex.");
 
     if (_data[0] == nullptr) {
-        logger_base.warn("    DoPrepareFrameData: Exiting as there is no data.");
+        LOG_WARN("    DoPrepareFrameData: Exiting as there is no data.");
         return;
     }
 
@@ -1435,7 +1435,7 @@ void AudioManager::DoPrepareFrameData() {
 
     // if we have already done it ... bail
     if (_frameDataPrepared && _frameDataPreparedForInterval == _intervalMS) {
-        logger_base.info("DoPrepareFrameData: Aborting processing audio frame data ... it has already been done.");
+        LOG_INFO("DoPrepareFrameData: Aborting processing audio frame data ... it has already been done.");
         return;
     }
 
@@ -1443,11 +1443,11 @@ void AudioManager::DoPrepareFrameData() {
 
     // wait for the data to load
     while (!IsDataLoaded()) {
-        logger_base.info("DoPrepareFrameData: waiting for audio data to load.");
+        LOG_INFO("DoPrepareFrameData: waiting for audio data to load.");
         wxMilliSleep(1000);
     }
 
-    logger_base.info("DoPrepareFrameData: Data is loaded.");
+    LOG_INFO("DoPrepareFrameData: Data is loaded.");
 
     // we need to ensure at least the raw data is available
     if (_filtered.size() == 0) {
@@ -1466,11 +1466,11 @@ void AudioManager::DoPrepareFrameData() {
     }
     int totalsamples = frames * samplesperframe;
 
-    logger_base.info("    Length %ldms", _lengthMS);
-    logger_base.info("    Interval %dms", _intervalMS);
-    logger_base.info("    Samples per frame %d", samplesperframe);
-    logger_base.info("    Frames %d", frames);
-    logger_base.info("    Total samples %d", totalsamples);
+    LOG_INFO("    Length %ldms", _lengthMS);
+    LOG_INFO("    Interval %dms", _intervalMS);
+    LOG_INFO("    Samples per frame %d", samplesperframe);
+    LOG_INFO("    Frames %d", frames);
+    LOG_INFO("    Total samples %d", totalsamples);
 
     // these are used to normalise output
     _bigmax = -1;
@@ -1588,7 +1588,7 @@ void AudioManager::DoPrepareFrameData() {
 
     // flag the fact that the data is all ready
     _frameDataPrepared = true;
-    logger_base.info("DoPrepareFrameData: Audio frame data processing complete in %ld. Frames: %d", sw.Time(), frames);
+    LOG_INFO("DoPrepareFrameData: Audio frame data processing complete in %ld. Frames: %d", sw.Time(), frames);
 }
 // Called to trigger frame data creation
 void AudioManager::PrepareFrameData(bool separateThread) {
@@ -1622,7 +1622,7 @@ void ProgressFunction(wxProgressDialog* pd, int p) {
 
 // Get the pre-prepared data for this frame
 const FrameData* AudioManager::GetFrameData(int frame, const std::string& timing, bool needNotes) {
-    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     // Grab the lock so we can safely access the frame data
     std::shared_lock<std::shared_timed_mutex> lock(_mutex);
@@ -1633,7 +1633,7 @@ const FrameData* AudioManager::GetFrameData(int frame, const std::string& timing
 
     // if the frame data has not been prepared
     if (!_frameDataPrepared) {
-        logger_base.debug("GetFrameData was called prior to the frame data being prepared.");
+        LOG_DEBUG("GetFrameData was called prior to the frame data being prepared.");
         // prepare it
         lock.unlock();
         PrepareFrameData(false);
@@ -1804,11 +1804,11 @@ int AudioManager::decodesideinfosize(int version, int mono) {
 
 // Set the frame interval we will be using
 void AudioManager::SetFrameInterval(int intervalMS) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     // If this is different from what it was previously
     if (_intervalMS != intervalMS) {
-        logger_base.debug("Changing frame interval to %d", intervalMS);
+        LOG_DEBUG("Changing frame interval to %d", intervalMS);
 
         // save it and regenerate the frame data for effects that rely upon it ... but do it on a background thread
 
@@ -1837,12 +1837,12 @@ void AudioManager::SetStepBlock(int step, int block) {
 
 // Clean up our data buffers
 AudioManager::~AudioManager() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("AudioManager::~AudioManager");
+    
+    LOG_DEBUG("AudioManager::~AudioManager");
     RemoveAudioDeviceChangeListener();
 
     while (IsOk() && !IsDataLoaded()) {
-        logger_base.debug("~AudioManager waiting for audio data to complete loading before destroying it.");
+        LOG_DEBUG("~AudioManager waiting for audio data to complete loading before destroying it.");
         wxMilliSleep(100);
     }
 
@@ -1891,7 +1891,7 @@ AudioManager::~AudioManager() {
         free(_data[0]);
         _data[0] = nullptr;
     }
-    logger_base.debug("AudioManager::~AudioManager Done");
+    LOG_DEBUG("AudioManager::~AudioManager Done");
 }
 
 // Split the MP# data into left and right and normalise the values
@@ -1920,7 +1920,7 @@ long AudioManager::CalcLengthMS() const {
 
 // Open and read the media file into memory
 int AudioManager::OpenMediaFile() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     int err = 0;
 
     if (_pcmdata != nullptr) {
@@ -1942,7 +1942,7 @@ int AudioManager::OpenMediaFile() {
     AVFormatContext* formatContext = nullptr;
     int res = avformat_open_input(&formatContext, ToUTF8(_audio_file).c_str(), nullptr, nullptr);
     if (res != 0) {
-        logger_base.error("avformat_open_input Error opening the file %s => %d.", (const char*)_audio_file.c_str(), res);
+        LOG_ERROR("avformat_open_input Error opening the file %s => %d.", (const char*)_audio_file.c_str(), res);
         _ok = false;
         wxASSERT(false);
         return 1;
@@ -1951,7 +1951,7 @@ int AudioManager::OpenMediaFile() {
     if (avformat_find_stream_info(formatContext, nullptr) < 0) {
         avformat_close_input(&formatContext);
         formatContext = nullptr;
-        logger_base.error("avformat_find_stream_info Error finding the stream info %s.", (const char*)_audio_file.c_str());
+        LOG_ERROR("avformat_find_stream_info Error finding the stream info %s.", (const char*)_audio_file.c_str());
         _ok = false;
         wxASSERT(false);
         return 1;
@@ -1966,7 +1966,7 @@ int AudioManager::OpenMediaFile() {
     if (streamIndex < 0) {
         avformat_close_input(&formatContext);
         formatContext = nullptr;
-        logger_base.error("av_find_best_stream Could not find any audio stream in the file %s.", (const char*)_audio_file.c_str());
+        LOG_ERROR("av_find_best_stream Could not find any audio stream in the file %s.", (const char*)_audio_file.c_str());
         _ok = false;
         wxASSERT(false);
         return 1;
@@ -1976,14 +1976,14 @@ int AudioManager::OpenMediaFile() {
     if (audioStream == nullptr) {
         avformat_close_input(&formatContext);
         formatContext = nullptr;
-        logger_base.error("formatContext->streams[%d] was nullptr.", streamIndex);
+        LOG_ERROR("formatContext->streams[%d] was nullptr.", streamIndex);
         _ok = false;
         wxASSERT(false);
         return 1;
     } else if (audioStream->codecpar == nullptr) {
         avformat_close_input(&formatContext);
         formatContext = nullptr;
-        logger_base.error("formatContext->codecpar was nullptr.");
+        LOG_ERROR("formatContext->codecpar was nullptr.");
         _ok = false;
         wxASSERT(false);
         return 1;
@@ -1997,7 +1997,7 @@ int AudioManager::OpenMediaFile() {
     if (avcodec_open2(codecContext, cdc, nullptr) < 0) {
         avformat_close_input(&formatContext);
         formatContext = nullptr;
-        logger_base.error("avcodec_open2 Couldn't open the context with the decoder %s.", (const char*)_audio_file.c_str());
+        LOG_ERROR("avcodec_open2 Couldn't open the context with the decoder %s.", (const char*)_audio_file.c_str());
         _ok = false;
         wxASSERT(false);
         return 1;
@@ -2051,7 +2051,7 @@ int AudioManager::OpenMediaFile() {
     if (_data[0] == nullptr) {
         avformat_close_input(&formatContext);
         formatContext = nullptr;
-        logger_base.error("Unable to allocate %ld memory to load audio file %s.", (long)size, (const char*)_audio_file.c_str());
+        LOG_ERROR("Unable to allocate %ld memory to load audio file %s.", (long)size, (const char*)_audio_file.c_str());
         _ok = false;
         wxASSERT(false);
         return 1;
@@ -2063,7 +2063,7 @@ int AudioManager::OpenMediaFile() {
         if (_data[1] == nullptr) {
             avformat_close_input(&formatContext);
             formatContext = nullptr;
-            logger_base.error("Unable to allocate %ld memory to load audio file %s.", (long)size, (const char*)_audio_file.c_str());
+            LOG_ERROR("Unable to allocate %ld memory to load audio file %s.", (long)size, (const char*)_audio_file.c_str());
             _ok = false;
             wxASSERT(false);
             return 1;
@@ -2096,16 +2096,16 @@ int AudioManager::OpenMediaFile() {
 }
 
 void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    logger_base.debug("Preparing to load song data.");
+    LOG_DEBUG("Preparing to load song data.");
 
     // setup our conversion format ... we need to convert the input to a standard format before we can process anything
     int out_channels = 2;
 
     AVFrame* frame = av_frame_alloc();
     if (frame == nullptr) {
-        logger_base.error("av_frame_alloc ... error allocating frame.");
+        LOG_ERROR("av_frame_alloc ... error allocating frame.");
         _resultMessage = "Error allocating the frame";
         _state = 0;
         _ok = false;
@@ -2116,7 +2116,7 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
     _pcmdata = (Uint8*)calloc(_pcmdatasize + PCMFUDGE, 1); // PCMFUDGE is a fudge because some ogg files dont read consistently
     if (_pcmdata == nullptr) {
         _pcmdatasize = 0;
-        logger_base.error("Error allocating memory for pcm data: %ld", (long)_pcmdatasize + PCMFUDGE);
+        LOG_ERROR("Error allocating memory for pcm data: %ld", (long)_pcmdatasize + PCMFUDGE);
         _ok = false;
         av_frame_free(&frame);
         return;
@@ -2133,8 +2133,8 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
         return;
     }
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("DoLoadAudioData: Doing load of song data.");
+    
+    LOG_DEBUG("DoLoadAudioData: Doing load of song data.");
 
     wxStopWatch sw;
 
@@ -2174,7 +2174,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     #endif
 
     if (au_convert_ctx == nullptr) {
-        logger_base.error("DoLoadAudioData: swe_alloc_set_opts was null");
+        LOG_ERROR("DoLoadAudioData: swe_alloc_set_opts was null");
         // let it go as it may be the cause of a crash
         wxASSERT(false);
     }
@@ -2239,7 +2239,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 
     avformat_close_input(&formatContext);
 
-    logger_base.debug("DoLoadAudioData: Song data loaded in %ld. Read: %ld", sw.Time(), read);
+    LOG_DEBUG("DoLoadAudioData: Song data loaded in %ld. Read: %ld", sw.Time(), read);
 }
 
 void AudioManager::LoadAudioFromFrame(AVFormatContext* formatContext, AVCodecContext* codecContext, AVPacket* decodingPacket, AVFrame* frame, SwrContext* au_convert_ctx, bool receivedEOF, int out_channels, uint8_t* out_buffer, long& read, int& lastpct) {
@@ -2256,24 +2256,24 @@ void AudioManager::LoadAudioFromFrame(AVFormatContext* formatContext, AVCodecCon
 }
 
 void AudioManager::LoadDecodedAudioFromFrame(AVFrame* frame, AVFormatContext* formatContext, SwrContext* au_convert_ctx, int out_channels, uint8_t* out_buffer, long& read, int& lastpct) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     int outSamples = 0;
 
     try {
         if (*(frame->data) == nullptr) {
-            logger_base.error("LoadDecodedAudioFromFrame: frame->data was a pointer to a nullptr.");
+            LOG_ERROR("LoadDecodedAudioFromFrame: frame->data was a pointer to a nullptr.");
             // let this go maybe it causes the crash
             wxASSERT(false);
         }
         if (frame->nb_samples == 0) {
-            logger_base.error("LoadDecodedAudioFromFrame: frame->nb_samples was 0.");
+            LOG_ERROR("LoadDecodedAudioFromFrame: frame->nb_samples was 0.");
             // let this go maybe it causes the crash
             wxASSERT(false);
         }
 
         outSamples = swr_convert(au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, (const uint8_t**)frame->data, frame->nb_samples);
     } catch (...) {
-        logger_base.error("LoadDecodedAudioFromFrame: swr_convert threw an exception.");
+        LOG_ERROR("LoadDecodedAudioFromFrame: swr_convert threw an exception.");
         wxASSERT(false);
         std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
         _trackSize = _loadedData; // makes it looks like we are done
@@ -2284,12 +2284,12 @@ void AudioManager::LoadDecodedAudioFromFrame(AVFrame* frame, AVFormatContext* fo
 }
 
 void AudioManager::LoadResampledAudio(int sampleCount, int out_channels, uint8_t* out_buffer, long& read, int& lastpct) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (read + sampleCount > _trackSize) {
         // I dont understand why this happens ... add logging when i can
         // I have seen this happen with a wma file ... but i dont know why
-        logger_base.warn("LoadResampledAudio: This shouldnt happen ... read [" + wxString::Format("%li", (long)read) + "] + nb_samples [" + wxString::Format("%i", sampleCount) + "] > _tracksize [" + wxString::Format("%li", (long)_trackSize) + "] .");
+        LOG_WARNWX("LoadResampledAudio: This shouldnt happen ... read [" + wxString::Format("%li", (long)read) + "] + nb_samples [" + wxString::Format("%i", sampleCount) + "] > _tracksize [" + wxString::Format("%li", (long)_trackSize) + "] .");
 
         // we've consumed some of the "extra" space, make sure we reduce that
         _extra -= (read + sampleCount - _trackSize);
@@ -2314,7 +2314,7 @@ void AudioManager::LoadResampledAudio(int sampleCount, int out_channels, uint8_t
     SetLoadedData(read);
     int progress = read * 100 / _trackSize;
     if (progress >= lastpct + 10) {
-        // logger_base.debug("DoLoadAudioData: Progress %d%%", progress);
+        // LOG_DEBUG("DoLoadAudioData: Progress %d%%", progress);
         lastpct = progress / 10 * 10;
     }
 }
@@ -2324,21 +2324,21 @@ SDLManager* AudioManager::GetSDLManager() {
 }
 
 void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    logger_base.debug("Getting track metrics.");
+    LOG_DEBUG("Getting track metrics.");
 
     _trackSize = 0;
 
     AVFrame* frame = av_frame_alloc();
     if (!frame) {
-        logger_base.error("av_frame_alloc ... error allocating frame.");
+        LOG_ERROR("av_frame_alloc ... error allocating frame.");
         _resultMessage = "Error allocating the frame";
         _state = 0;
         _ok = false;
         return;
     } else
-        logger_base.info("av_frame_alloc okay");
+        LOG_INFO("av_frame_alloc okay");
 
     AVPacket* readingPacket = av_packet_alloc();
     // av_init_packet( readingPacket );
@@ -2381,7 +2381,7 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
     _extra += 2048; // add some extra space just in case the estimate is not accurate
 #endif
 
-    logger_base.info("    Track Size: %ld, Time Base Den: %d => Length %ldms", _trackSize, codecContext->time_base.den, _lengthMS);
+    LOG_INFO("    Track Size: %ld, Time Base Den: %d => Length %ldms", _trackSize, codecContext->time_base.den, _lengthMS);
 }
 
 void AudioManager::ExtractMP3Tags(AVFormatContext* formatContext) {
@@ -2401,9 +2401,9 @@ void AudioManager::ExtractMP3Tags(AVFormatContext* formatContext) {
 
 // Access a single piece of track data
 float AudioManager::GetFilteredLeftData(long offset) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     while (!IsDataLoaded(offset)) {
-        logger_base.debug("GetLeftData waiting for data to be loaded.");
+        LOG_DEBUG("GetLeftData waiting for data to be loaded.");
         wxMilliSleep(100);
     }
 
@@ -2414,9 +2414,9 @@ float AudioManager::GetFilteredLeftData(long offset) {
 }
 
 float AudioManager::GetRawLeftData(long offset) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     while (!IsDataLoaded(offset)) {
-        logger_base.debug("GetLeftData waiting for data to be loaded.");
+        LOG_DEBUG("GetLeftData waiting for data to be loaded.");
         wxMilliSleep(100);
     }
 
@@ -2524,8 +2524,8 @@ void AudioManager::NormaliseFilteredAudioData(FilteredAudioData* fad) {
 
 void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
     while (!IsDataLoaded()) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("SwitchTo waiting for data to be loaded.");
+        
+        LOG_DEBUG("SwitchTo waiting for data to be loaded.");
         wxMilliSleep(50);
     }
     std::unique_lock<std::shared_timed_mutex> locker(_mutex);
@@ -2723,9 +2723,9 @@ FilteredAudioData* AudioManager::GetFilteredAudioData(AUDIOSAMPLETYPE type, int 
 }
 
 void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float& maximum, AUDIOSAMPLETYPE type, int lowNote, int highNote) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     while (!IsDataLoaded(end - 1)) {
-        logger_base.debug("GetLeftDataMinMax waiting for data to be loaded.");
+        LOG_DEBUG("GetLeftDataMinMax waiting for data to be loaded.");
         wxMilliSleep(100);
     }
 
@@ -2745,9 +2745,9 @@ void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float
 
 // Access a single piece of track data
 float AudioManager::GetFilteredRightData(long offset) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     while (!IsDataLoaded(offset)) {
-        logger_base.debug("GetRightData waiting for data to be loaded.");
+        LOG_DEBUG("GetRightData waiting for data to be loaded.");
         wxMilliSleep(100);
     }
 
@@ -2758,9 +2758,9 @@ float AudioManager::GetFilteredRightData(long offset) {
 }
 
 float AudioManager::GetRawRightData(long offset) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     while (!IsDataLoaded(offset)) {
-        logger_base.debug("GetRightData waiting for data to be loaded.");
+        LOG_DEBUG("GetRightData waiting for data to be loaded.");
         wxMilliSleep(100);
     }
 
@@ -2774,9 +2774,9 @@ float AudioManager::GetRawRightData(long offset) {
 
 // Access track data but get a pointer so you can then read a block directly
 float* AudioManager::GetFilteredLeftDataPtr(long offset) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     while (!IsDataLoaded(offset)) {
-        logger_base.debug("GetLeftDataPtr waiting for data to be loaded.");
+        LOG_DEBUG("GetLeftDataPtr waiting for data to be loaded.");
         wxMilliSleep(100);
     }
 
@@ -2788,9 +2788,9 @@ float* AudioManager::GetFilteredLeftDataPtr(long offset) {
 }
 
 float* AudioManager::GetRawLeftDataPtr(long offset) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     while (!IsDataLoaded(offset)) {
-        logger_base.debug("GetLeftDataPtr waiting for data to be loaded.");
+        LOG_DEBUG("GetLeftDataPtr waiting for data to be loaded.");
         wxMilliSleep(100);
     }
 
@@ -2802,9 +2802,9 @@ float* AudioManager::GetRawLeftDataPtr(long offset) {
 }
 
 float* AudioManager::GetRawRightDataPtr(long offset) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     while (!IsDataLoaded(offset)) {
-        logger_base.debug("GetRightDataPtr waiting for data to be loaded.");
+        LOG_DEBUG("GetRightDataPtr waiting for data to be loaded.");
         wxMilliSleep(100);
     }
 
@@ -2817,9 +2817,9 @@ float* AudioManager::GetRawRightDataPtr(long offset) {
 
 // Access track data but get a pointer so you can then read a block directly
 float* AudioManager::GetFilteredRightDataPtr(long offset) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     while (!IsDataLoaded(offset)) {
-        logger_base.debug("GetRightDataPtr waiting for data to be loaded.");
+        LOG_DEBUG("GetRightDataPtr waiting for data to be loaded.");
         wxMilliSleep(100);
     }
 
@@ -2832,8 +2832,8 @@ float* AudioManager::GetFilteredRightDataPtr(long offset) {
 
 // xLightsVamp Functions
 xLightsVamp::xLightsVamp() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Constructing xLightsVamp");
+    
+    LOG_DEBUG("Constructing xLightsVamp");
     _loader = Vamp::HostExt::PluginLoader::getInstance();
 }
 
@@ -2846,9 +2846,9 @@ xLightsVamp::~xLightsVamp() {
 
 std::string AudioManager::Hash() {
     if (_hash == "") {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
         while (!IsDataLoaded(_trackSize)) {
-            logger_base.debug("GetLeftDataPtr waiting for data to be loaded.");
+            LOG_DEBUG("GetLeftDataPtr waiting for data to be loaded.");
             wxMilliSleep(100);
         }
 
@@ -2893,12 +2893,12 @@ void xLightsVamp::LoadPlugins(AudioManager* paudio) {
         return;
     }
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Loading plugins.");
+    
+    LOG_DEBUG("Loading plugins.");
 
     Vamp::HostExt::PluginLoader::PluginKeyList pluginList = _loader->listPlugins();
 
-    logger_base.debug("Plugins found %d.", pluginList.size());
+    LOG_DEBUG("Plugins found %d.", pluginList.size());
 
     for (size_t x = 0; x < pluginList.size(); x++) {
         Vamp::Plugin* p = _loader->loadPlugin(pluginList[x], paudio->GetRate());
@@ -3010,9 +3010,9 @@ std::list<std::string> AudioManager::GetInputAudioDevices() {
 }
 
 bool AudioManager::WriteCurrentAudio(const std::string& path, long bitrate) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    logger_base.info("AudioManager::WriteCurrentAudio() - %d samples to export to '%s'", _trackSize, path.c_str());
+    LOG_INFO("AudioManager::WriteCurrentAudio() - %d samples to export to '%s'", _trackSize, path.c_str());
 
     std::vector<float> leftData(_data[0], _data[0] + _trackSize);
     std::vector<float> rightData(_data[1], _data[1] + _trackSize);
@@ -3064,8 +3064,8 @@ void my_av_log_callback_am(void* ptr, int level, const char* fmt, va_list vargs)
         }
     }
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("WriteAudioFile: lvl: %s (%d) msg: %s.", (const char*)DecodeAVLevel(level).c_str(), level, static_cast<const char*>(message));
+    
+    LOG_DEBUG("WriteAudioFile: lvl: %s (%d) msg: %s.", (const char*)DecodeAVLevel(level).c_str(), level, static_cast<const char*>(message));
 }
 #endif
 
@@ -3074,12 +3074,12 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
                                size_t sampleRate,
                                const std::string& filename,
                                AudioManager *copyFrom) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    logger_base.debug("Writing %lu samples to %s at sample rate %lu", left_channel.size(), (const char*)filename.c_str(), sampleRate);
+    LOG_DEBUG("Writing %lu samples to %s at sample rate %lu", left_channel.size(), (const char*)filename.c_str(), sampleRate);
 
     if (left_channel.size() != right_channel.size()) {
-        logger_base.error("Left and right channel sizes do not match");
+        LOG_ERROR("Left and right channel sizes do not match");
         return false;
     }
 
@@ -3095,7 +3095,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
 
     // Find the MP3 encoder
 #ifdef AUDIOWRITE_DEBUG
-    logger_base.debug("avcodec_find_encoder");
+    LOG_DEBUG("avcodec_find_encoder");
 #endif
     
     AVCodecID codecId = EndsWith(filename, "m4a") ? AV_CODEC_ID_AAC : AV_CODEC_ID_MP3;
@@ -3107,7 +3107,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
         codec = avcodec_find_encoder(AV_CODEC_ID_AAC);
     }
     if (!codec) {
-        logger_base.error("MP3/MP2/AAC encoder not found");
+        LOG_ERROR("MP3/MP2/AAC encoder not found");
 #ifdef AUDIOWRITE_DEBUG
         av_log_set_callback(nullptr);
 #endif
@@ -3117,11 +3117,11 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     // Allocate the output media context
     AVFormatContext* format_context = nullptr;
 #ifdef AUDIOWRITE_DEBUG
-    logger_base.debug("avformat_alloc_output_context2");
+    LOG_DEBUG("avformat_alloc_output_context2");
 #endif
     avformat_alloc_output_context2(&format_context, nullptr, nullptr, filename.c_str());
     if (!format_context) {
-        logger_base.error("Could not deduce output format from file extension");
+        LOG_ERROR("Could not deduce output format from file extension");
 #ifdef AUDIOWRITE_DEBUG
         av_log_set_callback(nullptr);
 #endif
@@ -3137,12 +3137,12 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     // Create a new audio stream in the output file container
     // AVStream* audio_stream = avformat_new_stream(format_context, nullptr);
 #ifdef AUDIOWRITE_DEBUG
-    logger_base.debug("avformat_new_stream");
+    LOG_DEBUG("avformat_new_stream");
 #endif
     AVStream* audio_stream = avformat_new_stream(format_context, codec);
     if (!audio_stream) {
         avformat_free_context(format_context);
-        logger_base.error("Could not create new audio stream");
+        LOG_ERROR("Could not create new audio stream");
 #ifdef AUDIOWRITE_DEBUG
         av_log_set_callback(nullptr);
 #endif
@@ -3150,12 +3150,12 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     }
 
 #ifdef AUDIOWRITE_DEBUG
-    logger_base.debug("avcodec_alloc_context3");
+    LOG_DEBUG("avcodec_alloc_context3");
 #endif
     AVCodecContext* codec_context = avcodec_alloc_context3(codec);
     if (!codec_context) {
         avformat_free_context(format_context);
-        logger_base.error("Could not allocate an encoding context");
+        LOG_ERROR("Could not allocate an encoding context");
 #ifdef AUDIOWRITE_DEBUG
         av_log_set_callback(nullptr);
 #endif
@@ -3167,7 +3167,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
         const int* p = codec->supported_samplerates;
         bool rateOK = false;
         while (*p != 0) {
-            logger_base.debug("    Encoder supports sample rate %d", *p);
+            LOG_DEBUG("    Encoder supports sample rate %d", *p);
             if (*p == sampleRate) {
                 rateOK = true;
                 break;
@@ -3175,7 +3175,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
             p++;
         }
         if (!rateOK) {
-            logger_base.error("Encoder does not support sample rate %d", sampleRate);
+            LOG_ERROR("Encoder does not support sample rate %d", sampleRate);
             avformat_free_context(format_context);
 #ifdef AUDIOWRITE_DEBUG
             av_log_set_callback(nullptr);
@@ -3213,7 +3213,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
         bool fmtOK = false;
         bool hasS16 = false;
         while (*p != AV_SAMPLE_FMT_NONE) {
-            logger_base.debug("    Encoder supports sample format %s", av_get_sample_fmt_name(*p));
+            LOG_DEBUG("    Encoder supports sample format %s", av_get_sample_fmt_name(*p));
             if (*p == codec_context->sample_fmt) {
                 fmtOK = true;
                 break;
@@ -3236,7 +3236,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
             fmtOK = true;
         }
         if (!fmtOK) {
-            logger_base.error("Encoder does not support sample format %s",
+            LOG_ERROR("Encoder does not support sample format %s",
                               av_get_sample_fmt_name(codec_context->sample_fmt));
             avformat_free_context(format_context);
 #ifdef AUDIOWRITE_DEBUG
@@ -3254,12 +3254,12 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
 
     // Open the codec
 #ifdef AUDIOWRITE_DEBUG
-    logger_base.debug("avcodec_open2");
+    LOG_DEBUG("avcodec_open2");
 #endif
     if (avcodec_open2(codec_context, codec, nullptr) < 0) {
         avcodec_free_context(&codec_context);
         avformat_free_context(format_context);
-        logger_base.error("Could not open codec");
+        LOG_ERROR("Could not open codec");
 #ifdef AUDIOWRITE_DEBUG
         av_log_set_callback(nullptr);
 #endif
@@ -3268,12 +3268,12 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
 
     // Copy the codec context parameters to the stream
 #ifdef AUDIOWRITE_DEBUG
-    logger_base.debug("avcodec_parameters_from_context");
+    LOG_DEBUG("avcodec_parameters_from_context");
 #endif
     if (avcodec_parameters_from_context(audio_stream->codecpar, codec_context) < 0) {
         avcodec_free_context(&codec_context);
         avformat_free_context(format_context);
-        logger_base.error("Could not copy codec parameters");
+        LOG_ERROR("Could not copy codec parameters");
 #ifdef AUDIOWRITE_DEBUG
         av_log_set_callback(nullptr);
 #endif
@@ -3283,12 +3283,12 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     // Open the output file
     if (!(format_context->oformat->flags & AVFMT_NOFILE)) {
 #ifdef AUDIOWRITE_DEBUG
-        logger_base.debug("avio_open");
+        LOG_DEBUG("avio_open");
 #endif
         if (avio_open(&format_context->pb, filename.c_str(), AVIO_FLAG_WRITE) < 0) {
             avcodec_free_context(&codec_context);
             avformat_free_context(format_context);
-            logger_base.error("Could not open output file");
+            LOG_ERROR("Could not open output file");
 #ifdef AUDIOWRITE_DEBUG
             av_log_set_callback(nullptr);
 #endif
@@ -3297,7 +3297,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     } else {
         avcodec_free_context(&codec_context);
         avformat_free_context(format_context);
-        logger_base.error("avio open was being skipped");
+        LOG_ERROR("avio open was being skipped");
 #ifdef AUDIOWRITE_DEBUG
         av_log_set_callback(nullptr);
 #endif
@@ -3306,13 +3306,13 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
 
     // Write the stream header
 #ifdef AUDIOWRITE_DEBUG
-    logger_base.debug("avformat_write_header");
+    LOG_DEBUG("avformat_write_header");
 #endif
     if (avformat_write_header(format_context, nullptr) < 0) {
         avcodec_free_context(&codec_context);
         avio_closep(&format_context->pb);
         avformat_free_context(format_context);
-        logger_base.error("Error occurred when opening output file");
+        LOG_ERROR("Error occurred when opening output file");
 #ifdef AUDIOWRITE_DEBUG
         av_log_set_callback(nullptr);
 #endif
@@ -3321,14 +3321,14 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
 
     // Allocate the audio frame
 #ifdef AUDIOWRITE_DEBUG
-    logger_base.debug("av_frame_alloc");
+    LOG_DEBUG("av_frame_alloc");
 #endif
     AVFrame* frame = av_frame_alloc();
     if (!frame) {
         avcodec_free_context(&codec_context);
         avio_closep(&format_context->pb);
         avformat_free_context(format_context);
-        logger_base.error("Could not allocate audio frame");
+        LOG_ERROR("Could not allocate audio frame");
 #ifdef AUDIOWRITE_DEBUG
         av_log_set_callback(nullptr);
 #endif
@@ -3348,7 +3348,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
         av_frame_free(&frame);
         avio_closep(&format_context->pb);
         avformat_free_context(format_context);
-        logger_base.error("Could not copy channel layout");
+        LOG_ERROR("Could not copy channel layout");
 #ifdef AUDIOWRITE_DEBUG
         av_log_set_callback(nullptr);
 #endif
@@ -3359,7 +3359,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     // Allocate the buffer for the frame data
     // int buffer_size = av_samples_get_buffer_size(nullptr, codec_context->channels, frame->nb_samples, codec_context->sample_fmt, 0);
 #ifdef AUDIOWRITE_DEBUG
-    logger_base.debug("av_samples_get_buffer_size");
+    LOG_DEBUG("av_samples_get_buffer_size");
 #endif
     int buffer_size = av_samples_get_buffer_size(nullptr,
 #if LIBAVFORMAT_VERSION_MAJOR < 59
@@ -3374,21 +3374,21 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
         av_frame_free(&frame);
         avio_closep(&format_context->pb);
         avformat_free_context(format_context);
-        logger_base.error("Could not get sample buffer size");
+        LOG_ERROR("Could not get sample buffer size");
 #ifdef AUDIOWRITE_DEBUG
         av_log_set_callback(nullptr);
 #endif
         return false;
     }
 
-    logger_base.debug("Buffer size: %d", buffer_size);
+    LOG_DEBUG("Buffer size: %d", buffer_size);
 
     if (buffer_size == 0) {
         avcodec_free_context(&codec_context);
         av_frame_free(&frame);
         avio_closep(&format_context->pb);
         avformat_free_context(format_context);
-        logger_base.error("Buffer size determined to be zero ... that aint right.");
+        LOG_ERROR("Buffer size determined to be zero ... that aint right.");
 #ifdef AUDIOWRITE_DEBUG
         av_log_set_callback(nullptr);
 #endif
@@ -3396,7 +3396,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
     }
 
 #ifdef AUDIOWRITE_DEBUG
-    logger_base.debug("av_malloc");
+    LOG_DEBUG("av_malloc");
 #endif
     uint8_t* frame_buffer = (uint8_t*)av_malloc(buffer_size);
     if (!frame_buffer) {
@@ -3404,7 +3404,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
         av_frame_free(&frame);
         avio_closep(&format_context->pb);
         avformat_free_context(format_context);
-        logger_base.error("Could not allocate frame buffer");
+        LOG_ERROR("Could not allocate frame buffer");
 #ifdef AUDIOWRITE_DEBUG
         av_log_set_callback(nullptr);
 #endif
@@ -3413,7 +3413,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
 
     // if (avcodec_fill_audio_frame(frame, codec_context->channels, codec_context->sample_fmt, frame_buffer, buffer_size, 0) < 0) {
 #ifdef AUDIOWRITE_DEBUG
-    logger_base.debug("avcodec_fill_audio_frame");
+    LOG_DEBUG("avcodec_fill_audio_frame");
 #endif
     if (avcodec_fill_audio_frame(frame,
 #if LIBAVFORMAT_VERSION_MAJOR < 59
@@ -3427,7 +3427,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
         av_frame_free(&frame);
         avio_closep(&format_context->pb);
         avformat_free_context(format_context);
-        logger_base.error("Could not fill audio frame");
+        LOG_ERROR("Could not fill audio frame");
         av_free(frame_buffer);
 #ifdef AUDIOWRITE_DEBUG
         av_log_set_callback(nullptr);
@@ -3437,7 +3437,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
 
     // Allocate the packet
 #ifdef AUDIOWRITE_DEBUG
-    logger_base.debug("av_packet_alloc");
+    LOG_DEBUG("av_packet_alloc");
 #endif
     AVPacket* packet = av_packet_alloc();
     if (!packet) {
@@ -3445,7 +3445,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
         av_frame_free(&frame);
         avio_closep(&format_context->pb);
         avformat_free_context(format_context);
-        logger_base.error("Could not allocate packet");
+        LOG_ERROR("Could not allocate packet");
         av_free(frame_buffer);
 #ifdef AUDIOWRITE_DEBUG
         av_log_set_callback(nullptr);
@@ -3486,13 +3486,13 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
 
         // Send the frame to the encoder
 #ifdef AUDIOWRITE_DEBUG
-        logger_base.debug("avcodec_send_frame");
+        LOG_DEBUG("avcodec_send_frame");
 
         // some extra validations to check possible reasons why avcodec_send_frame might return invalid without writing to log
         if (!avcodec_is_open(codec_context))
-            logger_base.error("Codec is not open");
+            LOG_ERROR("Codec is not open");
         if (!av_codec_is_encoder(codec_context->codec))
-            logger_base.error("Codec is not an encoder");
+            LOG_ERROR("Codec is not an encoder");
 
 #endif
         int ret = avcodec_send_frame(codec_context, frame);
@@ -3504,7 +3504,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
             avformat_free_context(format_context);
             char errbuf[AV_ERROR_MAX_STRING_SIZE];
             av_strerror(ret, errbuf, sizeof(errbuf));
-            logger_base.error("Error sending the frame to the encoder: %s", errbuf);
+            LOG_ERROR("Error sending the frame to the encoder: %s", errbuf);
             av_free(frame_buffer);
 #ifdef AUDIOWRITE_DEBUG
             av_log_set_callback(nullptr);
@@ -3519,7 +3519,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
         // Receive the encoded packets
         while (ret >= 0) {
 #ifdef AUDIOWRITE_DEBUG
-            logger_base.debug("avcodec_receive_packet");
+            LOG_DEBUG("avcodec_receive_packet");
 #endif
             ret = avcodec_receive_packet(codec_context, packet);
             if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
@@ -3532,7 +3532,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
                 avformat_free_context(format_context);
                 char errbuf[AV_ERROR_MAX_STRING_SIZE];
                 av_strerror(ret, errbuf, sizeof(errbuf));
-                logger_base.error("Error receiving encoded packet: %s", errbuf);
+                LOG_ERROR("Error receiving encoded packet: %s", errbuf);
                 av_free(frame_buffer);
 #ifdef AUDIOWRITE_DEBUG
                 av_log_set_callback(nullptr);
@@ -3542,12 +3542,12 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
 
             // Write the packet
 #ifdef AUDIOWRITE_DEBUG
-            logger_base.debug("av_packet_rescale_ts");
+            LOG_DEBUG("av_packet_rescale_ts");
 #endif
             av_packet_rescale_ts(packet, codec_context->time_base, audio_stream->time_base);
             packet->stream_index = audio_stream->index;
 #ifdef AUDIOWRITE_DEBUG
-            logger_base.debug("av_interleaved_write_frame");
+            LOG_DEBUG("av_interleaved_write_frame");
 #endif
             ret = av_interleaved_write_frame(format_context, packet);
             if (ret < 0) {
@@ -3559,7 +3559,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
                 avformat_free_context(format_context);
                 char errbuf[AV_ERROR_MAX_STRING_SIZE];
                 av_strerror(ret, errbuf, sizeof(errbuf));
-                logger_base.error("Error writing packet to output file: %s", errbuf);
+                LOG_ERROR("Error writing packet to output file: %s", errbuf);
                 av_free(frame_buffer);
 #ifdef AUDIOWRITE_DEBUG
                 av_log_set_callback(nullptr);
@@ -3568,7 +3568,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
             }
 
 #ifdef AUDIOWRITE_DEBUG
-            logger_base.debug("av_packet_unref");
+            LOG_DEBUG("av_packet_unref");
 #endif
             av_packet_unref(packet);
         }
@@ -3576,7 +3576,7 @@ bool AudioManager::EncodeAudio(const std::vector<float>& left_channel,
 
     // Write the trailer
 #ifdef AUDIOWRITE_DEBUG
-    logger_base.debug("av_write_trailer");
+    LOG_DEBUG("av_write_trailer");
 #endif
     av_write_trailer(format_context);
 

@@ -16,7 +16,7 @@
 
 #include "PhonemeDictionary.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 
@@ -60,7 +60,7 @@ void PhonemeDictionary::LoadDictionaries(const wxString& showDir, wxWindow* pare
 
 void PhonemeDictionary::LoadDictionary(const wxString &filename, const wxString &showDir, wxWindow* parent, wxFontEncoding defEnc)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     // start looking for dictionary in the show folder
     wxFileName phonemeFile = wxFileName::DirName(showDir);
@@ -78,12 +78,12 @@ void PhonemeDictionary::LoadDictionary(const wxString &filename, const wxString 
     }
 
     if (!FileExists(phonemeFile.GetFullPath())) {
-        logger_base.warn("Failed to open phoneme dictionary. '%s'", (const char *)filename.c_str());
+        LOG_WARN("Failed to open phoneme dictionary. '%s'", (const char *)filename.c_str());
         DisplayError("Failed to open Phoneme dictionary!");
         return;
     }
 
-    logger_base.debug("Loading phoneme dictionary. '%s'", (const char *)phonemeFile.GetFullPath().c_str());
+    LOG_DEBUG("Loading phoneme dictionary. '%s'", (const char *)phonemeFile.GetFullPath().c_str());
 
     wxProgressDialog dlg("Loading", "Loading dictionary " + phonemeFile.GetName(), 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
 

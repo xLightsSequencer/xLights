@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 ServiceManager::ServiceManager(xLightsFrame* xl)
 {

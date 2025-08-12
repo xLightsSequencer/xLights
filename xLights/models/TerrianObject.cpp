@@ -17,7 +17,7 @@
 #include "Model.h"
 #include "RulerObject.h"
 #include "../ExternalHooks.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 TerrianObject::TerrianObject(wxXmlNode *node, const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), _imageFile(""), spacing(50), gridColor(xlColor(0,128, 0)),
@@ -266,14 +266,14 @@ int TerrianObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
 bool TerrianObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
     if (!IsActive()) { return true; }
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     bool exists = false;
 
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
 
     if (_images.find(preview->GetName().ToStdString()) == _images.end()) {
         if (FileExists(_imageFile)) {
-            logger_base.debug("Loading image model %s file %s for preview %s.",
+            LOG_DEBUG("Loading image model %s file %s for preview %s.",
                 (const char *)GetName().c_str(),
                 (const char *)_imageFile.c_str(),
                 (const char *)preview->GetName().c_str());

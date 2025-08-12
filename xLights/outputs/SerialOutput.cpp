@@ -26,7 +26,7 @@
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #pragma region Private Functions
 void SerialOutput::Save(wxXmlNode* node) {
@@ -293,7 +293,7 @@ bool SerialOutput::operator==(const SerialOutput& output) const {
 #pragma region Start and Stop
 bool SerialOutput::Open() {
 
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _ok = Output::Open();
 
@@ -303,20 +303,20 @@ bool SerialOutput::Open() {
 
     if (_commPort == "NotConnected") {
 
-        logger_base.warn("Serial port %s for %s not opened as it is tagged as not connected.", (const char *)_commPort.c_str(), (const char *)GetType().c_str());
+        LOG_WARN("Serial port %s for %s not opened as it is tagged as not connected.", (const char *)_commPort.c_str(), (const char *)GetType().c_str());
         // dont set ok to false ... while this is not really open it is not an error as the user meant it to be not connected.
     }
     else {
         _serial = new SerialPort();
 
-        logger_base.debug("Opening serial port %s. Baud rate = %d. Config = %s.", (const char *)_commPort.c_str(), _baudRate, (const char *)_serialConfig);
+        LOG_DEBUG("Opening serial port %s. Baud rate = %d. Config = %s.", (const char *)_commPort.c_str(), _baudRate, (const char *)_serialConfig);
 
         int errcode = _serial->Open(_commPort, _baudRate, _serialConfig);
         if (errcode < 0) {
             delete _serial;
             _serial = nullptr;
 
-            logger_base.warn("Unable to open serial port %s. Error code = %d", (const char *)_commPort.c_str(), errcode);
+            LOG_WARN("Unable to open serial port %s. Error code = %d", (const char *)_commPort.c_str(), errcode);
             _ok = false;
 
             std::string p = "";
@@ -343,7 +343,7 @@ bool SerialOutput::Open() {
             }
         }
         else {
-            logger_base.debug("    Serial port %s open.", (const char *)_commPort.c_str());
+            LOG_DEBUG("    Serial port %s open.", (const char *)_commPort.c_str());
         }
     }
 
@@ -352,7 +352,7 @@ bool SerialOutput::Open() {
 
 void SerialOutput::Close() {
 
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_serial != nullptr) {
         // throw away any pending data
@@ -373,7 +373,7 @@ void SerialOutput::Close() {
         _serial->Close();
         delete _serial;
         _serial = nullptr;
-        logger_base.debug("    Serial port %s closed in %d milliseconds.", (const char *)_commPort.c_str(), i * 5);
+        LOG_DEBUG("    Serial port %s closed in %d milliseconds.", (const char *)_commPort.c_str(), i * 5);
     }
 }
 #pragma endregion
@@ -381,14 +381,14 @@ void SerialOutput::Close() {
 #pragma region Frame Handling
 void SerialOutput::StartFrame(long msec) {
 
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!_enabled) return;
 
     if (!_ok && OutputManager::IsRetryOpen()) {
         _ok = SerialOutput::Open();
         if (_ok) {
-            logger_base.debug("SerialOutput: Open retry successful. %s.", (const char *)_commPort.c_str());
+            LOG_DEBUG("SerialOutput: Open retry successful. %s.", (const char *)_commPort.c_str());
         }
     }
 

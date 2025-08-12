@@ -23,7 +23,7 @@
 
 #include "xlColourData.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #if wxUSE_GRAPHICS_CONTEXT == 0
 #error Please refer to README.windows to make necessary changes to wxWidgets setup.h file.

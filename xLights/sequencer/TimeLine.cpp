@@ -14,7 +14,7 @@
 #include "TimeLine.h"
 #include "Waveform.h"
 #include "../xLightsMain.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 const long TimeLine::ID_ZOOMSEL = wxNewId();
 const long TimeLine::ID_RESETZOOM = wxNewId();
@@ -297,9 +297,9 @@ int TimeLine::GetPositionFromSelection(int position)
 TimeLine::TimeLine(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,long style, const wxString &name):
                    wxWindow((wxWindow*)parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("                Creating Timeline");
-    logger_base.info("If xLights crashes after this log message then the root cause is almost always a problem between OpenGL and their video drivers.\nWe recommend they download the latest drivers from their card provider ... not from their operating system provider.");
+    
+    LOG_DEBUG("                Creating Timeline");
+    LOG_INFO("If xLights crashes after this log message then the root cause is almost always a problem between OpenGL and their video drivers.\nWe recommend they download the latest drivers from their card provider ... not from their operating system provider.");
 
     _savedPosition = -1;
     mParent = (wxPanel*)parent;

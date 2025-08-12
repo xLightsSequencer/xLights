@@ -38,6 +38,8 @@ class chatGPT : public aiBase {
     void SetSetting(const std::string& key, const wxVariant& value) override;
 
 	[[nodiscard]] std::pair<std::string, bool> CallLLM(const std::string& prompt) const override;
+
+    std::vector<wxColour> CallLLMForColors(const std::string& prompt) const override;
     [[nodiscard]] bool IsAvailable() const override;
     [[nodiscard]] std::string GetLLMName() const override {
         return "ChatGPT";

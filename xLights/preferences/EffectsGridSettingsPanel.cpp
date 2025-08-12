@@ -149,7 +149,7 @@ bool EffectsGridSettingsPanel::TransferDataToWindow() {
     SmallWaveformCheckBox->SetValue(frame->SmallWaveform());
     SnapToTimingCheckBox->SetValue(frame->SnapToTimingMarks());
     TransistionMarksCheckBox->SetValue(!frame->IsSuppressFadeHints());
-    ColorUpdateWarnCheckBox->SetValue(frame->SuppressColorWarn());
+    ColorUpdateWarnCheckBox->SetValue(frame->IsSuppressColorWarn());
     GroupEffectIndicator->SetValue(frame->ShowGroupEffectIndicator());
     ShowAlternateTimingFormatCheckBox->SetValue(frame->ShowAlternateTimingFormat());
     BellOnRenderCompletion->SetValue(frame->IsRenderBell());

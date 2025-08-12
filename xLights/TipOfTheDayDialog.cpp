@@ -23,7 +23,7 @@
 #include "utils/Curl.h"
 #include "CachedFileDownloader.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #ifdef USE_WEBVIEW_FOR_TOD
 #include <wx/webview.h>
@@ -197,14 +197,14 @@ TipOfTheDayDialog::TipOfTheDayDialog(const std::string& url, wxWindow* parent, w
 
 void TipOfTheDayDialog::LoadURL(const std::string& url)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (url != "") {
-        logger_base.warn("Tip Of Day: %s", (const char*)url.c_str());
+        LOG_WARN("Tip Of Day: %s", (const char*)url.c_str());
         if (StartsWith(url, "file://")) {
             auto file = url.substr(7);
             if (!wxFile::Exists(file)) {
-                logger_base.warn("Tip Of Day unable to load file: %s", (const char*)file.c_str());
-                logger_base.info("Current directory: %s", (const char*)wxGetCwd().c_str());
+                LOG_WARN("Tip Of Day unable to load file: %s", (const char*)file.c_str());
+                LOG_INFO("Current directory: %s", (const char*)wxGetCwd().c_str());
             } else {
 #ifdef USE_WEBVIEW_FOR_TOD
                 webView->LoadURL(url);
@@ -330,9 +330,9 @@ bool TipOfTheDayDialog::GetTODAtLevel(wxXmlDocument& doc, TODTracker& tracker, c
 
 bool TipOfTheDayDialog::DoTipOfDay(bool force)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    logger_base.debug("Getting tip of the day");
+    LOG_DEBUG("Getting tip of the day");
 
     wxXmlDocument doc;
 #ifdef USE_GITHUB_HOSTED_TOD
@@ -349,7 +349,7 @@ bool TipOfTheDayDialog::DoTipOfDay(bool force)
         if (force) {
             mintiplevel = "Beginner";
         } else {
-            logger_base.debug("Tip of the day disabled.");
+            LOG_DEBUG("Tip of the day disabled.");
             return false;
         }
         ShowTipsCheckbox->SetValue(0);
@@ -361,13 +361,13 @@ bool TipOfTheDayDialog::DoTipOfDay(bool force)
     
     std::string file = GetTODXMLFile();
     if (!wxFile::Exists(file)) {
-        logger_base.warn("Tip Of Day unable to load file: %s", (const char*)file.c_str());
-        logger_base.info("Current directory: %s", (const char*)wxGetCwd().c_str());
+        LOG_WARN("Tip Of Day unable to load file: %s", (const char*)file.c_str());
+        LOG_INFO("Current directory: %s", (const char*)wxGetCwd().c_str());
         return false;
     } else {
-        logger_base.debug("Loading tip of the day xml file %s.", (const char*)file.c_str());
+        LOG_DEBUG("Loading tip of the day xml file %s.", (const char*)file.c_str());
         if (!doc.Load(file)) {
-            logger_base.warn("Error loading xml file: %s", (const char*)file.c_str());
+            LOG_WARN("Error loading xml file: %s", (const char*)file.c_str());
             return false;
         }
 
@@ -401,7 +401,7 @@ bool TipOfTheDayDialog::DoTipOfDay(bool force)
 
         // if everything has been seen then clear visited and start again
         if (!onlyshowunseen) {
-            logger_base.debug("Clearing viewed tips.");
+            LOG_DEBUG("Clearing viewed tips.");
             ClearVisited();
             return DoTipOfDay(force);
         }

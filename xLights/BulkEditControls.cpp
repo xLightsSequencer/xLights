@@ -24,7 +24,7 @@
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 // Here is how the sliders, labels, value curves and text boxes all work together.
 //
@@ -412,12 +412,12 @@ void BulkEditSlider::BulkEdit()
 #pragma region Do the bulk edit
 void BulkEditSlider::OnSliderPopup(wxCommandEvent &event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (event.GetId() == ID_SLIDER_BULKEDIT)
     {
         // Logging this because these dont happen often and I have seen crashes here and I would like to know which slider is crashing
-        logger_base.debug("BulkEditSlider::OnSliderPopup %s", (const char *)GetName().c_str());
+        LOG_DEBUG("BulkEditSlider::OnSliderPopup %s", (const char *)GetName().c_str());
 
         // does it support a value curve - this function should be common
         ValueCurveButton* vcb = GetSettingValueCurveButton(GetParent(), GetName().ToStdString(), "SLIDER");
@@ -443,7 +443,7 @@ void BulkEditSlider::OnSliderPopup(wxCommandEvent &event)
             }
             else
             {
-                logger_base.crit("BulkEditSlider::OnSliderPopup text control not found %s", (const char *)GetName().c_str());
+                LOG_CRIT("BulkEditSlider::OnSliderPopup text control not found %s", (const char *)GetName().c_str());
                 wxASSERT(false);
             }
 
@@ -452,7 +452,7 @@ void BulkEditSlider::OnSliderPopup(wxCommandEvent &event)
             {
                 if (vcb->GetValue() == nullptr)
                 {
-                    logger_base.crit("BulkEditSlider::OnSliderPopup value curve not present.");
+                    LOG_CRIT("BulkEditSlider::OnSliderPopup value curve not present.");
                     wxASSERT(false);
                 }
 
@@ -1304,10 +1304,10 @@ bool IsSliderTextPair(wxWindow* w, wxString ourName, wxString ourType)
 // Check if bulk edit is appropriate ... ie sequence is open and suitable effects are selected
 bool IsBulkEditAvailable(wxWindow* w, bool requireOneElement)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (xLightsApp::GetFrame()->GetMainSequencer() == nullptr) {
-        logger_base.debug("Bulk edit refused ... no sequencer.");
+        LOG_DEBUG("Bulk edit refused ... no sequencer.");
         return false;
     }
 
@@ -1315,7 +1315,7 @@ bool IsBulkEditAvailable(wxWindow* w, bool requireOneElement)
     int alleffects = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount("");
     if (alleffects < 2)
     {
-        logger_base.debug("Bulk edit refused ... insufficient effects selected.");
+        LOG_DEBUG("Bulk edit refused ... insufficient effects selected.");
         return false;
     }
 
@@ -1327,7 +1327,7 @@ bool IsBulkEditAvailable(wxWindow* w, bool requireOneElement)
         int thiseffect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount(effect);
         if (thiseffect < 2)
         {
-            logger_base.debug("Bulk edit refused ... insufficient effects of type %s selected.", (const char *)effect.c_str());
+            LOG_DEBUG("Bulk edit refused ... insufficient effects of type %s selected.", (const char *)effect.c_str());
             return false;
         }
 

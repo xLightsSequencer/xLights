@@ -19,7 +19,7 @@
 #include <string>
 #include <algorithm>
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #include "Curl.h"
 
@@ -209,9 +209,8 @@ static int progressFunction(void* bar,
 #ifdef _DEBUG
 static size_t headerFunction(char* buffer, size_t size, size_t nitems, void* userdata)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (buffer != nullptr) {
-        logger_base.debug(buffer);
+        spdlog::debug(buffer);
     }
     return size * nitems;
 }
@@ -219,8 +218,7 @@ static size_t headerFunction(char* buffer, size_t size, size_t nitems, void* use
 
 std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const std::string& user, const std::string& password, const std::string& contentType, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders, int* responseCode)
 {
-    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    logger_curl.info("URL: %s", url.c_str());
+    spdlog::info("URL: {}", url);
 
     CURL* curl = curl_easy_init();
 
@@ -233,7 +231,7 @@ std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const 
         static const char buf[] = "Expect:";
         headerlist = curl_slist_append(headerlist, buf);
 
-        logger_curl.info("CONTENTTYPE: %s", contentType.c_str());
+        LOG_INFO("CONTENTTYPE: %s", contentType.c_str());
         if (contentType == "JSON") {
             static const char buf2[] = "Content-Type: application/json";
             headerlist = curl_slist_append(headerlist, buf2);
@@ -254,19 +252,19 @@ std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const 
             headerlist = curl_slist_append(headerlist, buf2);
         }
 
-        logger_curl.info("HEADER START ----------");
+        LOG_INFO("HEADER START ----------");
         for (const auto& it : customHeaders) {
-            std::string s = it.first + ": " + it.second;
+            std::string const s = it.first + ": " + it.second;
             headerlist = curl_slist_append(headerlist, s.c_str());
-            logger_curl.info("    %s", (const char*)s.c_str());
+            LOG_INFO("    %s", (const char*)s.c_str());
         }
-        logger_curl.info("HEADER END ----------");
+        LOG_INFO("HEADER END ----------");
 
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
 
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         if (user != "" || password != "") {
-            std::string sAuth = user + ":" + password;
+            std::string const sAuth = user + ":" + password;
             curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
             curl_easy_setopt(curl, CURLOPT_USERPWD, sAuth.c_str());
         }
@@ -276,16 +274,16 @@ std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const 
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
 
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
-        std::string buffer = "";
+        std::string buffer;
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
 
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
 
-        logger_curl.info("BODY START ----------");
-        logger_curl.info("%s", (const char*)body.c_str());
-        logger_curl.info("BODY END ----------");
-        logger_curl.info("BODY SIZE: %d", body.size());
-        logger_curl.info("TIMEOUT: %d", timeout);
+        LOG_INFO("BODY START ----------");
+        LOG_INFO("%s", (const char*)body.c_str());
+        LOG_INFO("BODY END ----------");
+        LOG_INFO("BODY SIZE: %d", body.size());
+        LOG_INFO("TIMEOUT: %d", timeout);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)body.size());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)body.c_str());
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
@@ -295,7 +293,7 @@ std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const 
         //            curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, headerFunction);
         //#endif
 
-        CURLcode res = curl_easy_perform(curl);
+        CURLcode const res = curl_easy_perform(curl);
         if (responseCode) {
             long rc = 0;
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &rc);
@@ -306,22 +304,21 @@ std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const 
             curl_slist_free_all(headerlist);
         }
         if (res == CURLE_OK) {
-            logger_curl.debug("RESPONSE START ------");
-            logger_curl.debug("%s", (const char*)buffer.c_str());
-            logger_curl.debug("RESPONSE END ------");
+            LOG_DEBUG("RESPONSE START ------");
+            LOG_DEBUG("%s", (const char*)buffer.c_str());
+            LOG_DEBUG("RESPONSE END ------");
             return buffer;
-        } else {
-            logger_curl.error("Curl post failed: %d", res);
         }
+        spdlog::error("Curl post failed: {}", static_cast<int>(res));
     }
 
-    return "";
+    return {};
 }
 
 std::string Curl::HTTPSPost(const std::string& url, const std::vector<Var>& vars, const std::string& user, const std::string& password, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders)
 {
-    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    logger_curl.info("URL: %s", url.c_str());
+    
+    LOG_INFO("URL: %s", url.c_str());
 
     CURL* curl = curl_easy_init();
 
@@ -329,16 +326,16 @@ std::string Curl::HTTPSPost(const std::string& url, const std::vector<Var>& vars
         struct curl_httppost* formpost = nullptr;
         struct curl_httppost* lastptr = nullptr;
 
-        logger_curl.info("FORM START ------");
+        LOG_INFO("FORM START ------");
         for (const auto& it : vars) {
             curl_formadd(&formpost,
                          &lastptr,
                          CURLFORM_COPYNAME, it.key.c_str(),
                          CURLFORM_COPYCONTENTS, it.value.c_str(),
                          CURLFORM_END);
-            logger_curl.info("    %s : %s", it.key.c_str(), it.value.c_str());
+            LOG_INFO("    %s : %s", it.key.c_str(), it.value.c_str());
         }
-        logger_curl.info("FORM END ------");
+        LOG_INFO("FORM END ------");
 
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         if (user != "" || password != "") {
@@ -350,13 +347,13 @@ std::string Curl::HTTPSPost(const std::string& url, const std::vector<Var>& vars
         struct curl_slist* headerlist = nullptr;
         static const char buf[] = "Expect:";
         headerlist = curl_slist_append(headerlist, buf);
-        logger_curl.info("HEADER START ----------");
+        LOG_INFO("HEADER START ----------");
         for (const auto& it : customHeaders) {
             auto s = wxString::Format("%s: %s", it.first, it.second);
             headerlist = curl_slist_append(headerlist, s.c_str());
-            logger_curl.info("    %s", (const char*)s.c_str());
+            LOG_INFO("    %s", (const char*)s.c_str());
         }
-        logger_curl.info("HEADER END ----------");
+        LOG_INFO("HEADER END ----------");
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
 
         curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
@@ -378,24 +375,21 @@ std::string Curl::HTTPSPost(const std::string& url, const std::vector<Var>& vars
             curl_slist_free_all(headerlist);
         }
         if (res == CURLE_OK) {
-            logger_curl.debug("RESPONSE START ----------");
-            logger_curl.debug("%s", (const char*)buffer.c_str());
-            logger_curl.debug("RESPONSE END ----------");
+            LOG_DEBUG("RESPONSE START ----------");
+            LOG_DEBUG("%s", (const char*)buffer.c_str());
+            LOG_DEBUG("RESPONSE END ----------");
             return buffer;
-        } else {
-            const char* err = curl_easy_strerror(res);
-            logger_curl.error("Curl post failed: %d : %s", res, err);
-        }
+        } 
+        const char* err = curl_easy_strerror(res);
+        spdlog::error("Curl post failed: {} : {}",static_cast<int>(res), err);
     }
 
-    return "";
+    return {};
 }
 
 std::string Curl::HTTPSGet(const std::string& s, const std::string& user, const std::string& password, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders, int* responseCode)
 {
-    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_curl.info("URL: %s", s.c_str());
+    LOG_INFO("URL: %s", s.c_str());
 
     std::string res;
     CURL* curl = curl_easy_init();
@@ -423,13 +417,13 @@ std::string Curl::HTTPSGet(const std::string& s, const std::string& user, const 
 #endif
 
         struct curl_slist* headerlist = nullptr;
-        logger_curl.info("HEADER START ----------");
+        LOG_INFO("HEADER START ----------");
         for (const auto& it : customHeaders) {
             auto s = wxString::Format("%s: %s", it.first, it.second);
             headerlist = curl_slist_append(headerlist, s.c_str());
-            logger_curl.info("    %s", (const char*)s.c_str());
+            LOG_INFO("    %s", (const char*)s.c_str());
         }
-        logger_curl.info("HEADER END ----------");
+        LOG_INFO("HEADER END ----------");
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
 
         std::string response_string;
@@ -441,9 +435,9 @@ std::string Curl::HTTPSGet(const std::string& s, const std::string& user, const 
 #endif
 
         /* Perform the request, res will get the return code */
-        logger_curl.debug("Curl: %s", (const char*)s.c_str());
-        CURLcode r = curl_easy_perform(curl);
-        logger_curl.debug(" Curl => %d", r);
+        spdlog::debug("Curl: {}", s);
+        CURLcode const r = curl_easy_perform(curl);
+        spdlog::debug(" Curl => {}", static_cast<int>(r));
 
         if (headerlist != nullptr) {
             curl_slist_free_all(headerlist);
@@ -452,22 +446,22 @@ std::string Curl::HTTPSGet(const std::string& s, const std::string& user, const 
         if (r != CURLE_OK) {
             const char* err = curl_easy_strerror(r);
             if (err == nullptr) {
-                logger_base.error("Failure to access %s: %d.", (const char*)s.c_str(), r);
+                spdlog::error("Failure to access {}: {}.", (const char*)s.c_str(), static_cast<int>(r));
             } else {
-                logger_base.error("Failure to access %s: %d: %s.", (const char*)s.c_str(), r, err);
+                spdlog::error("Failure to access {}: {}: {}.", (const char*)s.c_str(), static_cast<int>(r), err);
             }
         } else {
             if (responseCode) {
                 long rc = 0;
                 curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &rc);
                 *responseCode = rc;
-                logger_curl.debug("  Response code %d -> %s", *responseCode, (const char*)DecodeResponseCode(*responseCode).c_str());
+                LOG_DEBUG("  Response code %d -> %s", *responseCode, (const char*)DecodeResponseCode(*responseCode).c_str());
             }
 
             res = response_string;
-            logger_curl.debug("RESPONSE START ----------");
-            logger_curl.debug("%s", (const char*)res.substr(0, 4096).c_str());
-            logger_curl.debug("RESPONSE END ----------");
+            LOG_DEBUG("RESPONSE START ----------");
+            LOG_DEBUG("%s", (const char*)res.substr(0, 4096).c_str());
+            LOG_DEBUG("RESPONSE END ----------");
         }
 
         /* always cleanup */
@@ -479,36 +473,36 @@ std::string Curl::HTTPSGet(const std::string& s, const std::string& user, const 
 // TODO once I have what i need from this move to logger_curl
 int Curl::CurlDebug(CURL* handle, curl_infotype type, char* data, size_t size, void* userp)
 {
-    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
+    //
     switch (type) {
     case CURLINFO_TEXT:
         // strip off the cr
         if (strlen(data) > 0 && data[strlen(data) - 1] == '\n')
             data[strlen(data) - 1] = 0x00;
-        logger_curl.debug("== Info: %s", data);
+        LOG_DEBUG("== Info: %s", data);
         /* FALLTHROUGH */
     default: /* in case a new one is introduced to shock us */
         return 0;
 
     case CURLINFO_HEADER_OUT:
-        logger_curl.debug("=> Send header %lu", size);
+        LOG_DEBUG("=> Send header %lu", size);
         break;
     case CURLINFO_DATA_OUT:
-        logger_curl.debug("=> Send data %lu", size);
+        LOG_DEBUG("=> Send data %lu", size);
         break;
     case CURLINFO_SSL_DATA_OUT:
-        logger_curl.debug("=> Send SSL data %lu", size);
+        LOG_DEBUG("=> Send SSL data %lu", size);
         break;
     case CURLINFO_HEADER_IN:
-        logger_curl.debug("<= Recv header %lu %s", size, data);
-        logger_curl.debug("<= Recv header %lu", size);
+        LOG_DEBUG("<= Recv header %lu %s", size, data);
+        LOG_DEBUG("<= Recv header %lu", size);
         break;
     case CURLINFO_DATA_IN:
-        logger_curl.debug("<= Recv data %lu", size);
+        LOG_DEBUG("<= Recv data %lu", size);
         break;
     case CURLINFO_SSL_DATA_IN:
-        logger_curl.debug("<= Recv SSL data %lu", size);
+        LOG_DEBUG("<= Recv SSL data %lu", size);
         break;
     }
 
@@ -517,9 +511,9 @@ int Curl::CurlDebug(CURL* handle, curl_infotype type, char* data, size_t size, v
 
 bool Curl::HTTPSGetFile(const std::string& s, const std::string& filename, const std::string& user, const std::string& password, int timeout, wxProgressDialog* prog, bool keepProgress)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 #ifdef _DEBUG
-    logger_base.debug("%s", (const char*)s.c_str());
+    LOG_DEBUG("%s", (const char*)s.c_str());
 #endif
 
     void* ocd = nullptr;
@@ -586,14 +580,14 @@ bool Curl::HTTPSGetFile(const std::string& s, const std::string& filename, const
             CURLcode r = curl_easy_perform(curl);
 
             if (r != CURLE_OK) {
-                logger_base.error("Failure to access %s -> %s: %s.", (const char*)s.c_str(), (const char*)filename.c_str(), curl_easy_strerror(r));
+                LOG_ERROR("Failure to access %s -> %s: %s.", (const char*)s.c_str(), (const char*)filename.c_str(), curl_easy_strerror(r));
                 res = false;
             } else {
                 long response_code = 0;
                 curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
                 if (response_code >= 400) {
                     // not found or server error or similar
-                    logger_base.error("Error getting file %s -> %s: %d -> %d.", (const char*)s.c_str(), (const char*)filename.c_str(), response_code, (const char*)DecodeResponseCode(response_code).c_str());
+                    LOG_ERROR("Error getting file %s -> %s: %d -> %d.", (const char*)s.c_str(), (const char*)filename.c_str(), response_code, (const char*)DecodeResponseCode(response_code).c_str());
                     res = false;
                 }
             }
@@ -610,7 +604,7 @@ bool Curl::HTTPSGetFile(const std::string& s, const std::string& filename, const
             remove(filename.c_str());
         }
     } else {
-        logger_base.error("HTTPSGetFile: Failure to create file %s.", (const char*)filename.c_str());
+        LOG_ERROR("HTTPSGetFile: Failure to create file %s.", (const char*)filename.c_str());
         res = false;
     }
 
@@ -710,7 +704,7 @@ static size_t http_file_upload_callback(void* ptr, size_t size, size_t nmemb, vo
 
 bool Curl::HTTPUploadFile(const std::string& url, const std::string& filename, const std::string& file, std::function<bool(int, std::string)> dlg, const std::string& username, const std::string& password)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     bool res = true;
     wxString fn;
@@ -725,7 +719,7 @@ bool Curl::HTTPUploadFile(const std::string& url, const std::string& filename, c
     }
 
     bool cancelled = false;
-    logger_base.debug("Upload via http of %s to %s.", (const char*)filename.c_str(), (const char *)url.c_str());
+    LOG_DEBUG("Upload via http of %s to %s.", (const char*)filename.c_str(), (const char *)url.c_str());
     //dlg->SetTitle("HTTP Upload");
     cancelled |= !dlg(0, "Transferring " + wxFileName(file).GetFullName() + " to " + wxURL(url).GetServer());
     int lastDone = 0;
@@ -795,7 +789,7 @@ bool Curl::HTTPUploadFile(const std::string& url, const std::string& filename, c
         HTTPFileUploadData data;
         wxFile fileobj;
         fileobj.Open(fn);
-        logger_base.debug("File Size: %s. Content Length %s.", (const char*)std::to_string(fileobj.Length()).c_str(), (const char*)std::to_string(fileobj.Length() + memBuffPre.GetDataLen() + memBuffPost.GetDataLen()).c_str());
+        LOG_DEBUG("File Size: %s. Content Length %s.", (const char*)std::to_string(fileobj.Length()).c_str(), (const char*)std::to_string(fileobj.Length() + memBuffPre.GetDataLen() + memBuffPost.GetDataLen()).c_str());
         // While this looks odd only by setting this can we avoid the chunked transfer. Setting CURLOPT_INFILESIZE would seem more logical but it does not work
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, fileobj.Length() + memBuffPre.GetDataLen() + memBuffPost.GetDataLen());
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
@@ -821,16 +815,16 @@ bool Curl::HTTPUploadFile(const std::string& url, const std::string& filename, c
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
             if (response_code == 200) {
             } else {
-                logger_base.warn("Did not get 200 resonse code: %d -> %s", response_code, (const char*)DecodeResponseCode(response_code).c_str());
+                LOG_WARN("Did not get 200 resonse code: %d -> %s", response_code, (const char*)DecodeResponseCode(response_code).c_str());
                 cancelled = true;
             }
         } else {
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-            logger_base.warn("Curl did not upload file:  %d -> %s   %s", response_code, (const char*)DecodeResponseCode(response_code).c_str(), error);
+            LOG_WARN("Curl did not upload file:  %d -> %s   %s", response_code, (const char*)DecodeResponseCode(response_code).c_str(), error);
             cancelled = true;
         }
         cancelled |= !dlg(1000, "");
-        logger_base.info("HTTP File Upload file %s  - Return: %d - RC: %d -> %s - File: %s", url.c_str(), i, response_code, (const char*)DecodeResponseCode(response_code).c_str(), filename.c_str());
+        LOG_INFO("HTTP File Upload file %s  - Return: %d - RC: %d -> %s - File: %s", url.c_str(), i, response_code, (const char*)DecodeResponseCode(response_code).c_str(), filename.c_str());
         res = !(data.cancelled || cancelled);
     }
 
@@ -838,8 +832,7 @@ bool Curl::HTTPUploadFile(const std::string& url, const std::string& filename, c
 }
 
 std::string Curl::HTTPSDelete(const std::string& url, const wxString& body, const std::string& user, const std::string& password, const std::string& contentType, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders, int* responseCode) {
-    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    logger_curl.info("URL: %s", url.c_str());
+    spdlog::info("URL: {}", url);
 
     CURL* curl = curl_easy_init();
 
@@ -852,7 +845,7 @@ std::string Curl::HTTPSDelete(const std::string& url, const wxString& body, cons
         static const char buf[] = "Expect:";
         headerlist = curl_slist_append(headerlist, buf);
 
-        logger_curl.info("CONTENTTYPE: %s", contentType.c_str());
+        spdlog::info("CONTENTTYPE: {}", contentType);
         if (contentType == "JSON") {
             static const char buf2[] = "Content-Type: application/json";
             headerlist = curl_slist_append(headerlist, buf2);
@@ -873,19 +866,19 @@ std::string Curl::HTTPSDelete(const std::string& url, const wxString& body, cons
             headerlist = curl_slist_append(headerlist, buf2);
         }
 
-        logger_curl.info("HEADER START ----------");
+        spdlog::info("HEADER START ----------");
         for (const auto& it : customHeaders) {
-            std::string s = it.first + ": " + it.second;
+            std::string const s = it.first + ": " + it.second;
             headerlist = curl_slist_append(headerlist, s.c_str());
-            logger_curl.info("    %s", (const char*)s.c_str());
+            spdlog::info(s);
         }
-        logger_curl.info("HEADER END ----------");
+        spdlog::info("HEADER END ----------");
 
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
 
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         if (user != "" || password != "") {
-            std::string sAuth = user + ":" + password;
+            std::string const sAuth = user + ":" + password;
             curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
             curl_easy_setopt(curl, CURLOPT_USERPWD, sAuth.c_str());
         }
@@ -895,14 +888,14 @@ std::string Curl::HTTPSDelete(const std::string& url, const wxString& body, cons
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
 
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
-        std::string buffer = "";
+        std::string buffer;
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
 
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
 
-        logger_curl.info("BODY START ----------");
-        logger_curl.info("%s", (const char*)body.c_str());
-        logger_curl.info("BODY END ----------");
+        spdlog::info("BODY START ----------");
+        spdlog::info(body);
+        spdlog::info("BODY END ----------");
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)body.size());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)body.c_str());
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
@@ -912,7 +905,7 @@ std::string Curl::HTTPSDelete(const std::string& url, const wxString& body, cons
         //             curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, headerFunction);
         // #endif
 
-        CURLcode res = curl_easy_perform(curl);
+        CURLcode const res = curl_easy_perform(curl);
         if (responseCode) {
             long rc = 0;
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &rc);
@@ -923,14 +916,13 @@ std::string Curl::HTTPSDelete(const std::string& url, const wxString& body, cons
             curl_slist_free_all(headerlist);
         }
         if (res == CURLE_OK) {
-            logger_curl.debug("RESPONSE START ------");
-            logger_curl.debug("%s", (const char*)buffer.c_str());
-            logger_curl.debug("RESPONSE END ------");
+            spdlog::debug("RESPONSE START ------");
+            spdlog::debug( buffer);
+            spdlog::debug("RESPONSE END ------");
             return buffer;
-        } else {
-            logger_curl.error("Curl post failed: %d", res);
-        }
+        } 
+        spdlog::error("Curl post failed: {}", static_cast<int>(res));
     }
 
-    return "";
+    return {};
 }

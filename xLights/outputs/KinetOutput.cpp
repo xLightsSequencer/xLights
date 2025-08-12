@@ -17,7 +17,7 @@
 #include "ControllerEthernet.h"
 #include "../utils/ip_utils.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #pragma region Static Variables
 #pragma endregion
@@ -25,7 +25,7 @@
 #pragma region Private Functions
 void KinetOutput::OpenDatagram() {
 
-    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_datagram != nullptr) return;
 
@@ -39,17 +39,17 @@ void KinetOutput::OpenDatagram() {
 
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
-        logger_base.error("Error initialising Kinet datagram for %s %d. %s", (const char*)_ip.c_str(), GetUniverse(), (const char*)localaddr.IPAddress().c_str());
+        LOG_ERROR("Error initialising Kinet datagram for %s %d. %s", (const char*)_ip.c_str(), GetUniverse(), (const char*)localaddr.IPAddress().c_str());
         _ok = false;
     }
     else if (!_datagram->IsOk()) {
-        logger_base.error("Error initialising Kinet datagram for %s %d. %s OK : FALSE", (const char*)_ip.c_str(), GetUniverse(), (const char*)localaddr.IPAddress().c_str());
+        LOG_ERROR("Error initialising Kinet datagram for %s %d. %s OK : FALSE", (const char*)_ip.c_str(), GetUniverse(), (const char*)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;
     }
     else if (_datagram->Error()) {
-        logger_base.error("Error creating Kinet datagram => %d : %s. %s", _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+        LOG_ERROR("Error creating Kinet datagram => %d : %s. %s", (int)_datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;
@@ -220,14 +220,14 @@ void KinetOutput::Close() {
 #pragma region Frame Handling
 void KinetOutput::StartFrame(long msec) {
 
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!_enabled) return;
 
     if (_datagram == nullptr && OutputManager::IsRetryOpen()) {
         OpenDatagram();
         if (_ok) {
-            logger_base.debug("KinetOutput: Open retry successful");
+            LOG_DEBUG("KinetOutput: Open retry successful");
         }
     }
 

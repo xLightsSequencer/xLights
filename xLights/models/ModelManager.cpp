@@ -57,7 +57,7 @@
 #include "outputs/Controller.h"
 #include "outputs/ControllerEthernet.h"
 #include "outputs/Output.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
     _outputManager(outputManager),
@@ -231,8 +231,7 @@ bool ModelManager::IsModelOverlapping(const Model* model) const
 
 void ModelManager::LoadModels(wxXmlNode* modelNode, int previewW, int previewH)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("ModelManager loading models.");
+    // LOG_DEBUG("ModelManager loading models.");
 
     _modelsLoading = true;
     clear();
@@ -254,7 +253,7 @@ void ModelManager::LoadModels(wxXmlNode* modelNode, int previewW, int previewH)
     };
     RunInAutoReleasePool([&]() {parallel_for(modelsToLoad, f);});
     // printf("%d Models loaded in %ldms", (int)modelsToLoad.size(), timer.Time());
-    logger_base.debug("Models loaded in %ldms", timer.Time());
+    LOG_DEBUG("Models loaded in %ldms", timer.Time());
     _modelsLoading = false;
 
     // Check all recorded shadow models actually exist
@@ -284,8 +283,8 @@ uint32_t ModelManager::GetLastChannel() const
 
 void ModelManager::ResetModelGroups() const
 {
-    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("ModelManager resetting groups.");
+    // 
+    // LOG_DEBUG("ModelManager resetting groups.");
 
     // This goes through all the model groups which hold model pointers and ensure their model pointers are correct
     std::lock_guard<std::recursive_mutex> lock(_modelMutex);
@@ -393,8 +392,8 @@ std::string ModelManager::SerialiseModelGroupsForModel(Model* m) const
 }
 
 void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string& mname, bool& merge, bool& ask) {
-    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("ModelManager adding groups.");
+    // 
+    // LOG_DEBUG("ModelManager adding groups.");
 
     auto grpModels = n->GetAttribute("models");
     if (grpModels.empty())
@@ -544,7 +543,7 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
 
 bool ModelManager::RecalcStartChannels() const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     std::lock_guard<std::recursive_mutex> lock(_modelMutex);
 
     wxStopWatch sw;
@@ -639,7 +638,7 @@ bool ModelManager::RecalcStartChannels() const
     // xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "RecalcStartChannels");
 
     long end = sw.Time();
-    logger_base.debug("RecalcStartChannels takes %ldms.", end);
+    LOG_DEBUG("RecalcStartChannels takes %ldms.", end);
 
     if (countInvalid > 0) {
         DisplayStartChannelCalcWarning();
@@ -752,10 +751,7 @@ bool ModelManager::IsValidControllerModelChain(Model* m, std::string& tip) const
 
 bool ModelManager::ReworkStartChannel() const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static log4cpp::Category& logger_zcpp = log4cpp::Category::getInstance(std::string("log_zcpp"));
-    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
-    logger_work.debug("        ReworkStartChannel.");
+    LOG_DEBUG("        ReworkStartChannel.");
 
     bool outputsChanged = false;
 
@@ -791,17 +787,17 @@ bool ModelManager::ReworkStartChannel() const
 
         // first of all fix any weirdness ...
         for (const auto& itcc : cmodels) {
-            logger_zcpp.debug("Fixing weirdness on %s - %s", (const char*)it->GetName().c_str(), (const char*)itcc.first.c_str());
-            logger_zcpp.debug("    Models at start:");
+            LOG_DEBUG("Fixing weirdness on %s - %s", (const char*)it->GetName().c_str(), (const char*)itcc.first.c_str());
+            LOG_DEBUG("    Models at start:");
 
             // build a list of model names on the port
             std::list<std::string> models;
             for (auto& itmm : itcc.second) {
-                logger_zcpp.debug("        %s Chained to '%s'", (const char*)itmm->GetName().c_str(), (const char*)itmm->GetModelChain().c_str());
+                LOG_DEBUG("        %s Chained to '%s'", (const char*)itmm->GetName().c_str(), (const char*)itmm->GetModelChain().c_str());
                 models.push_back(itmm->GetName());
             }
 
-            logger_zcpp.debug("    Fixing weirdness:");
+            LOG_DEBUG("    Fixing weirdness:");
 
             // If a model refers to a chained model not on the port then move it to beginning ... so next step can move it again
             bool beginningFound = false;
@@ -812,7 +808,7 @@ bool ModelManager::ReworkStartChannel() const
                 } else {
                     ch = ch.substr(1); // string off leading >
                     if (std::find(models.begin(), models.end(), ch) == models.end()) {
-                        logger_zcpp.debug("    Model %s set to beginning because the model it is chained to '%s' does not exist.", (const char*)itmm->GetName().c_str(), (const char*)ch.c_str());
+                        LOG_DEBUG("    Model %s set to beginning because the model it is chained to '%s' does not exist.", (const char*)itmm->GetName().c_str(), (const char*)ch.c_str());
                         itmm->SetModelChain("");
                         beginningFound = true;
                         outputsChanged = true;
@@ -822,7 +818,7 @@ bool ModelManager::ReworkStartChannel() const
 
             // If no model is set as beginning ... then just make the first one beginning
             if (!beginningFound) {
-                logger_zcpp.debug("    Model %s set to beginning because no other model was.", (const char*)itcc.second.front()->GetName().c_str());
+                LOG_DEBUG("    Model %s set to beginning because no other model was.", (const char*)itcc.second.front()->GetName().c_str());
                 itcc.second.front()->SetModelChain("");
                 outputsChanged = true;
             }
@@ -832,7 +828,7 @@ bool ModelManager::ReworkStartChannel() const
             // and let the user sort it out rather than creating loops
         }
 
-        logger_zcpp.debug("    Sorting models:");
+        LOG_DEBUG("    Sorting models:");
         int32_t ch = 1;
         std::list<Model*> allSortedModels;
         for (auto itcc = cmodels.begin(); itcc != cmodels.end(); ++itcc) {
@@ -860,7 +856,7 @@ bool ModelManager::ReworkStartChannel() const
                     if (!pushed && (*itcc).second.size() > 0) {
                         // chain is broken ... so just put the rest in in the original order
                         // wxASSERT(false);
-                        logger_zcpp.error("    Model chain is broken so just stuffing the remaining %d models in in their original order.", (*itcc).second.size());
+                        LOG_ERROR("    Model chain is broken so just stuffing the remaining %d models in in their original order.", (*itcc).second.size());
                         while ((*itcc).second.size() > 0) {
                             sortedmodels.push_back(itcc->second.front());
                             itcc->second.pop_front();
@@ -894,7 +890,7 @@ bool ModelManager::ReworkStartChannel() const
 
                 if ((*itcc).second.size() > 0) {
                     // models left over so stuff them on the end
-                    logger_zcpp.error("    DMX Model chain is broken or there are duplicate models so just stuffing the remaining %d models in in their original order.", (*itcc).second.size());
+                    LOG_ERROR("    DMX Model chain is broken or there are duplicate models so just stuffing the remaining %d models in in their original order.", (*itcc).second.size());
                     while ((*itcc).second.size() > 0) {
                         sortedmodels.push_back(itcc->second.front());
                         itcc->second.pop_front();
@@ -937,7 +933,7 @@ bool ModelManager::ReworkStartChannel() const
                         // because we have now moved a model off a controller we really need to do this all again
                         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ReworkStartChannel");
 
-                        logger_base.warn("Attempt to place a second model %s on led panel port when only one is allowed. Only the first model has been retained. The others have been removed.", (const char*)itm->GetName().c_str());
+                        LOG_WARN("Attempt to place a second model %s on led panel port when only one is allowed. Only the first model has been retained. The others have been removed.", (const char*)itm->GetName().c_str());
 
                     } else {
                         std::string osc = itm->ModelStartChannel;
@@ -997,7 +993,7 @@ bool ModelManager::ReworkStartChannel() const
                     }
                 }
 
-                logger_zcpp.debug("    Model %s on port %d chained to %s start channel %s.",
+                LOG_DEBUG("    Model %s on port %d chained to %s start channel %s.",
                                   (const char*)itm->GetName().c_str(),
                                   itm->GetControllerPort(),
                                   (const char*)itm->GetModelChain().c_str(),
@@ -1010,7 +1006,7 @@ bool ModelManager::ReworkStartChannel() const
         if (it->IsAutoSize()) {
             auto eth = dynamic_cast<const ControllerEthernet*>(it);
             if (it->GetChannels() != std::max((int32_t)1, (int32_t)ch - 1) || (eth != nullptr && eth->SupportsUniversePerString())) {
-                logger_zcpp.debug("    Resizing output to %d channels.", std::max((int32_t)1, (int32_t)ch - 1));
+                LOG_DEBUG("    Resizing output to %d channels.", std::max((int32_t)1, (int32_t)ch - 1));
 
                 auto oldC = it->GetChannels();
                 // Set channel size won't always change the number of channels for some protocols
@@ -1111,8 +1107,8 @@ bool ModelManager::ModelHasNoDependencyOnNoController(Model* m, std::list<std::s
 
 bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH)
 {
-    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("ModelManager loading groups.");
+    // 
+    // LOG_DEBUG("ModelManager loading groups.");
 
     this->groupNode = groupNode;
     bool changed = false;
@@ -1870,7 +1866,7 @@ std::string MergeModels(const std::string& ml1, const std::string& ml2)
 
 bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     bool changed = false;
 
     wxXmlDocument doc;
@@ -1907,7 +1903,7 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
                 if (m->HasAttribute("FromBase")) m->DeleteAttribute("FromBase");
                 m->AddAttribute("FromBase", "1");
                 createAndAddModel(new wxXmlNode(*m), xlights->modelPreview->getWidth(), xlights->modelPreview->getHeight());
-                logger_base.debug("Adding model from base show folder: '%s'.", (const char*)name.c_str());
+                LOG_DEBUG("Adding model from base show folder: '%s'.", (const char*)name.c_str());
             } else {
                 bool force = false;
                 if (prompt && !curr->IsFromBase()) {
@@ -1942,10 +1938,10 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
                         }
                         ReplaceModel(name, newm);
                         RecalcStartChannels();
-                        logger_base.debug("Updating model from base show folder: '%s'.", (const char*)name.c_str());
+                        LOG_DEBUG("Updating model from base show folder: '%s'.", (const char*)name.c_str());
                     }
                 } else {
-                    logger_base.debug("Model '%s' NOT updated from base show folder as it never came from there.", (const char*)name.c_str());
+                    LOG_DEBUG("Model '%s' NOT updated from base show folder as it never came from there.", (const char*)name.c_str());
                 }
             }
         }
@@ -1962,7 +1958,7 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
                         m->DeleteAttribute("FromBase");
                     m->AddAttribute("FromBase", "1");
                     createAndAddModel(new wxXmlNode(*m), xlights->modelPreview->getWidth(), xlights->modelPreview->getHeight());
-                    logger_base.debug("Adding model group from base show folder: '%s'.", (const char*)name.c_str());
+                    LOG_DEBUG("Adding model group from base show folder: '%s'.", (const char*)name.c_str());
                 } else {
                     bool force = false;
                     if (prompt && !curr->IsFromBase()) {
@@ -1993,11 +1989,11 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
                                 changed = true;
                                 Model* newm = CreateModel(new wxXmlNode(*m));
                                 ReplaceModel(name, newm);
-                                logger_base.debug("Updating model group from base show folder: '%s'.", (const char*)name.c_str());
+                                LOG_DEBUG("Updating model group from base show folder: '%s'.", (const char*)name.c_str());
                             }
                         }
                     } else {
-                        logger_base.debug("Model Group '%s' NOT updated from base show folder as it never came from there.", (const char*)name.c_str());
+                        LOG_DEBUG("Model Group '%s' NOT updated from base show folder as it never came from there.", (const char*)name.c_str());
                     }
                 }
             }

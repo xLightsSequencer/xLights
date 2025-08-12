@@ -11,7 +11,7 @@
 
 #include "xlOGL3GraphicsContext.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #include "DrawGLUtils.h"
 #include "../xlMesh.h"
@@ -263,7 +263,6 @@ public:
     }
 
     static GLuint CreateProgram(GLuint vs, GLuint fs) {
-        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
 
         GLuint ProgramID = glCreateProgram();
         if (ProgramID != 0) {
@@ -277,7 +276,7 @@ public:
             LOG_GL_ERRORV(glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result));
             LOG_GL_ERRORV(glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength));
             if (!Result) {
-                logger_opengl.error("ShaderProgram::CreateProgram failed.");
+                LOG_ERROR("ShaderProgram::CreateProgram failed.");
                 if (InfoLogLength > 0) {
                     std::vector<char> ProgramErrorMessage(InfoLogLength + 1);
                     glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
@@ -285,7 +284,7 @@ public:
                     l.Trim();
                     if (l.length() > 0) {
                         printf("Program Log: %s\n", &ProgramErrorMessage[0]);
-                        logger_opengl.error(std::string(&ProgramErrorMessage[0]));
+                        LOG_ERROR(std::string(&ProgramErrorMessage[0]));
                     }
                 }
             }
@@ -300,7 +299,6 @@ public:
     }
 
     static bool CompileShader(const char *sourcePointer, GLuint shaderID) {
-        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
 
         LOG_GL_ERRORV(glShaderSource(shaderID, 1, &sourcePointer , NULL));
         LOG_GL_ERRORV(glCompileShader(shaderID));
@@ -311,7 +309,7 @@ public:
         glGetShaderiv(shaderID, GL_COMPILE_STATUS, &Result);
         glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
         if (!Result) {
-            logger_opengl.error("ShaderProgram::Compile failed.");
+            LOG_ERROR("ShaderProgram::Compile failed.");
             if (InfoLogLength > 0) {
                 std::vector<char> VertexShaderErrorMessage(InfoLogLength + 1);
                 glGetShaderInfoLog(shaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
@@ -319,7 +317,7 @@ public:
                 l.Trim();
                 if (l.length() > 0) {
                     printf("Shader Log: %s\n", &VertexShaderErrorMessage[0]);
-                    logger_opengl.error(std::string(&VertexShaderErrorMessage[0]));
+                    LOG_ERROR(std::string(&VertexShaderErrorMessage[0]));
                 }
             }
             return false;
@@ -1174,8 +1172,7 @@ static void addMipMap(const wxImage& l_Image, int& level) {
         if (err == GL_NO_ERROR) {
             level++;
         } else {
-            static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-            logger_opengl.error("Error glTexImage2D: %d", err);
+            LOG_ERROR("Error glTexImage2D: %d", err);
         }
     }
 }

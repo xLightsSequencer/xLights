@@ -19,7 +19,7 @@
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
 #include "../Parallel.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 static const std::string TEXTCTRL_Eff_On_Start("TEXTCTRL_Eff_On_Start");
 static const std::string TEXTCTRL_Eff_On_End("TEXTCTRL_Eff_On_End");

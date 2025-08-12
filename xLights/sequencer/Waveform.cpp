@@ -32,7 +32,7 @@
 #include "MainSequencer.h"
 #include "../NoteRangeDialog.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 wxDEFINE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_WAVE_FORM_HIGHLIGHT, wxCommandEvent);
@@ -63,8 +63,8 @@ Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
                    long style, const wxString &name):
     GRAPHICS_BASE_CLASS(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "WaveForm")
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("                Creating Waveform");
+    
+    LOG_DEBUG("                Creating Waveform");
     m_dragging = false;
     m_drag_mode = DRAG_NORMAL;
     mParent = parent;
@@ -202,10 +202,10 @@ void Waveform::rightClick(wxMouseEvent& event)
 
 void Waveform::OnGridPopup(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     int id = event.GetId();
     if(id == ID_WAVE_MNU_RENDER) {
-        logger_base.debug("OnGridPopup - ID_WAVE_MNU_RENDER");
+        LOG_DEBUG("OnGridPopup - ID_WAVE_MNU_RENDER");
         RenderCommandEvent rcEvent("", mTimeline->GetSelectedPositionStartMS(), mTimeline->GetSelectedPositionEndMS(), true, false);
         wxPostEvent(mParent, rcEvent);
     } else if (id == ID_WAVE_MNU_RAW) {

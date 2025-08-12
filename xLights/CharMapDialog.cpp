@@ -19,7 +19,6 @@
 #include <wx/settings.h>
 #include <wx/numformatter.h>
 
-#include <log4cpp/Category.hh>
 
 //(*IdInit(CharMapDialog)
 const long CharMapDialog::ID_STATICTEXT1 = wxNewId();

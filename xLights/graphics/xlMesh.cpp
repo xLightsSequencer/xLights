@@ -12,10 +12,10 @@
 #include "../ExternalHooks.h"
 #include "../UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : graphicsContext(ctx), filename(f) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     objectsLoaded = false;
     wxFileName fn(filename);
     
@@ -25,12 +25,12 @@ xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : graphicsContext(c
 
     if (!objects.ParseFromFile(filename, reader_config)) {
         if (!objects.Error().empty()) {
-            logger_base.error("TinyObjReader: %s", objects.Error().c_str());
+            LOG_ERROR("TinyObjReader: %s", objects.Error().c_str());
             return;
         }
     }
     if (!objects.Warning().empty()) {
-        logger_base.warn("TinyObjReader: %s", objects.Warning().c_str());
+        LOG_WARN("TinyObjReader: %s", objects.Warning().c_str());
     }
     objectsLoaded = true;
     

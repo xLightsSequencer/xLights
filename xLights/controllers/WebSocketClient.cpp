@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "WebSocketClient.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 WebSocketClient::WebSocketClient()
 {
@@ -18,8 +18,8 @@ WebSocketClient::WebSocketClient()
 
 bool WebSocketClient::Connect(std::string ip, std::string url)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Connecting to websocket %s %s.", (const char *)ip.c_str(), (const char *)url.c_str());
+    
+    LOG_DEBUG("Connecting to websocket %s %s.", (const char *)ip.c_str(), (const char *)url.c_str());
 
     wxIPV4address addr;
     addr.Hostname(ip);
@@ -28,13 +28,13 @@ bool WebSocketClient::Connect(std::string ip, std::string url)
     _socket.WaitOnConnect(10);
 
     if (!_socket.IsConnected()) {
-        logger_base.error("    Failed to connect.");
+        LOG_ERROR("    Failed to connect.");
         return false;
     }
 
     _connected = true;
 
-    logger_base.debug("    Connected.");
+    LOG_DEBUG("    Connected.");
 
     if (url == "") url = "/";
     wxString line = wxString::Format("GET %s HTTP/1.1\r\nHost: %s\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\r\nSec-WebSocket-Version: 13\r\nOrigin:http://%s/\r\n\r\n", url, ip, ip);
@@ -43,14 +43,14 @@ bool WebSocketClient::Connect(std::string ip, std::string url)
     wxString answer = ReadSocket();
 
     if (answer.StartsWith("HTTP/1.1 ") && wxAtoi(answer.substr(9)) == 101) {
-        logger_base.debug("    Converted to websocket.");
+        LOG_DEBUG("    Converted to websocket.");
 
         ClearIncomingData();
 
         return true;
     }
 
-    logger_base.error("     Failed to convert to web socket %d.", wxAtoi(answer.substr(9)));
+    LOG_ERROR("     Failed to convert to web socket %d.", wxAtoi(answer.substr(9)));
 
     _socket.Close();
     _connected = false;
@@ -60,8 +60,8 @@ bool WebSocketClient::Connect(std::string ip, std::string url)
 
 bool WebSocketClient::Send(std::string message)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("WebSocket Sent: %s", (const char *)message.c_str());
+    
+    LOG_DEBUG("WebSocket Sent: %s", (const char *)message.c_str());
     //printf("Send: %s\n", message.c_str());
 
     bool useMask = false;
@@ -114,7 +114,7 @@ bool WebSocketClient::Send(std::string message)
 
 std::string WebSocketClient::Receive()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     uint8_t buffer[8192];
     _socket.Peek(buffer, sizeof(buffer));
     auto read = _socket.LastCount();
@@ -178,7 +178,7 @@ std::string WebSocketClient::Receive()
 
                     res += std::string((char*)&buffer[header_size]);
                     if (fin) {
-                        logger_base.debug("WebSocket Received: %s", (const char *)res.c_str());
+                        LOG_DEBUG("WebSocket Received: %s", (const char *)res.c_str());
                         //printf("Receive: %s\n", res.c_str());
                         return res;
                     }

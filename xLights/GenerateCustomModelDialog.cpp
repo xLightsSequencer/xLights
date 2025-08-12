@@ -34,7 +34,7 @@
 #include "Parallel.h"
 #include "models/CustomModel.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #define GCM_DISPLAYIMAGEWIDTH 800
 #define GCM_DISPLAYIMAGEHEIGHT 600
@@ -1106,13 +1106,13 @@ public:
     // finds all possible pixels in frame
     [[nodiscard]] std::list<std::pair<wxPoint, uint32_t>> FindPixels(uint32_t pixel, uint32_t minSeparation, std::function<void(float)> progressCallback = nullptr)
     {
-        static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+
 
         std::list<std::pair<wxPoint, uint32_t>> res;
         uint32_t width = GetWidth();
         uint8_t incr = HasAlpha() ? 4 : 3;
 
-        logger_gcm.debug("Found pixels:");
+        LOG_DEBUG("Found pixels:");
 
         for (uint32_t x = 0; x < width; ++x) {
             for (uint32_t y = 0; y < (uint32_t)GetHeight(); ++y) {
@@ -1139,7 +1139,7 @@ public:
 
                     if (okToAdd) {
                         res.push_back({ pt, pixel });
-                        logger_gcm.debug("   %d: %d, %d", res.back().second, res.back().first.x, res.back().first.y);
+                        LOG_DEBUG("   %d: %d, %d", res.back().second, res.back().first.x, res.back().first.y);
                     }
                 }
             }
@@ -1617,11 +1617,10 @@ public:
     // turns on the nominated bulbs
     void SetBulbs(OutputManager* outputManager, bool nodes, int count, int startch, int node, int ms, uint8_t intensity)
     {
-        static log4cpp::Category& logger_pcm = log4cpp::Category::getInstance(std::string("log_prepcustommodel"));
 
         // node is out of range ... odd
         if (node > count) {
-            logger_pcm.debug("SetBulbs failed. Node %d is greater than number of nodes %d", node, count);
+            LOG_DEBUG("SetBulbs failed. Node %d is greater than number of nodes %d", node, count);
             return;
         }
 
@@ -1856,13 +1855,13 @@ public:
 
     [[nodiscard]] VideoFrame* ReadFrame(AVFrame* frame, uint32_t timestamp, bool processRGB)
     {
-        static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+
 
         ProcessedImage* img = nullptr;
         if (frame != nullptr) {
             img = new ProcessedImage(frame->width, frame->height, (unsigned char*)frame->data[0]);
         } else {
-            logger_gcm.info("Video returned no frame.");
+            LOG_INFO("Video returned no frame.");
             if (_startFrame1 != nullptr && _startFrame1->IsOk()) {
                 img = new ProcessedImage(_startFrame1->GetWidth(), _startFrame1->GetHeight());
             } else {
@@ -1880,7 +1879,7 @@ public:
     // call back used whenever we have an image the UI might want to display
     [[nodiscard]] bool FindStartFrames(std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr, std::function<void(float)> progressCallback = nullptr)
     {
-        static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+
         bool res = false;
         bool abort = false;
 
@@ -1899,7 +1898,7 @@ public:
 
         if (!abort) {
             // work out all the frame deltas ... we want the biggest with the right gap
-            logger_gcm.debug("Working out frame deltas");
+            LOG_DEBUG("Working out frame deltas");
             auto it1 = startScan.begin();
             auto it2 = it1;
             ++it2;
@@ -1907,7 +1906,7 @@ public:
             uint32_t cnt = 0;
             while (it2 != startScan.end()) {
                 (*it2)->SetFrameDelta(*it1);
-                logger_gcm.debug("Frame %u delta %d", (*it2)->GetTimestamp(), (*it2)->GetFrameDelta());
+                LOG_DEBUG("Frame %u delta %d", (*it2)->GetTimestamp(), (*it2)->GetFrameDelta());
                 ++it1;
                 ++it2;
                 ++cnt;
@@ -1920,11 +1919,11 @@ public:
             // find 2 high events separated by flag off duration
             // only look through first 20 items as the frames should be there
 
-            logger_gcm.debug("Looking through the largest deltas");
+            LOG_DEBUG("Looking through the largest deltas");
             std::vector<VideoFrame*> candidates;
             it1 = startScan.begin();
             for (uint32_t j = 0; j < 20 && !abort && (*it1)->GetFrameDelta() != 0; ++j) {
-                // logger_gcm.debug("Frame %u delta %u", (*it1)->GetTimestamp(), (*it1)->GetFrameDelta());
+                // LOG_DEBUG("Frame %u delta %u", (*it1)->GetTimestamp(), (*it1)->GetFrameDelta());
                 it2 = it1;
                 ++it2;
                 for (uint32_t i = 0; i < 20 && !abort && (*it2)->GetFrameDelta() != 0; ++i) {
@@ -1948,7 +1947,7 @@ public:
                                 }
                             }
                             if (!present) {
-                                logger_gcm.debug("Candidate %u - %u, %ld", (*it1)->GetTimestamp(), (*it2)->GetTimestamp(), std::abs((long)(*it1)->GetTimestamp() - (long)(*it2)->GetTimestamp()) - FLAGON);
+                                LOG_DEBUG("Candidate %u - %u, %ld", (*it1)->GetTimestamp(), (*it2)->GetTimestamp(), std::abs((long)(*it1)->GetTimestamp() - (long)(*it2)->GetTimestamp()) - FLAGON);
                                 candidates.push_back(*cand);
                             }
                         }
@@ -1960,7 +1959,7 @@ public:
             }
 
             if (!abort) {
-                logger_gcm.info("We found %lu start flashes.", candidates.size());
+                LOG_INFO("We found %lu start flashes.", candidates.size());
 
                 std::sort(candidates.begin(), candidates.end(), VideoFrameTimestampCompare);
                 startScan.sort(VideoFrameTimestampCompare);
@@ -2038,7 +2037,7 @@ public:
     // watch the video from the start recording all the frames that should have pixels ... dont apply any fancy processing
     [[nodiscard]] bool ReadVideo(uint32_t maxPixels, bool steady, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr, std::function<void(float)> progressCallback = nullptr)
     {
-        static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+
 
         if (_startFrame1 == nullptr)
             return false;
@@ -2052,7 +2051,7 @@ public:
             if (progressCallback != nullptr)
                 progressCallback((float)(currentTime * 100) / (float)_vr->GetLengthMS());
 
-            logger_gcm.debug("Reading frame %u at %ums", (uint32_t)_frames.size() + 1, currentTime);
+            LOG_DEBUG("Reading frame %u at %ums", (uint32_t)_frames.size() + 1, currentTime);
             auto img = ReadFrame(_vr->GetNextFrame(currentTime), currentTime, true);
             _frames.push_back(img);
             if (displayCallback != nullptr)
@@ -2121,13 +2120,13 @@ public:
     // lights are 1 based
     [[nodiscard]] wxPoint FindLight(uint32_t pixel, uint32_t numPixels, std::map<std::string, ProcessedImage*>& cache, ProcessedImage** ppi, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
-        static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+
         wxASSERT(_processedFrames.size() > 0);
 
         auto bits = GetBits(numPixels);
         auto value = convertToBase3(pixel, bits);
 
-        logger_gcm.debug("Finding pixel %u : %s", pixel, (const char*)value.c_str());
+        LOG_DEBUG("Finding pixel %u : %s", pixel, (const char*)value.c_str());
 
         ProcessedImage* img = nullptr;
 
@@ -2138,7 +2137,7 @@ public:
             if (cache.find(key) != cache.end()) {
                 img = new ProcessedImage(cache[key]);
                 startat = key.size();
-                logger_gcm.debug("   starting with image from cache ... key %s", (const char*)key.c_str());
+                LOG_DEBUG("   starting with image from cache ... key %s", (const char*)key.c_str());
                 break;
             }
         }
@@ -2148,7 +2147,7 @@ public:
         for (uint32_t i = startat; i < bits && !abort; ++i) {
             switch (value[i]) {
             case '0':
-                logger_gcm.debug("   Applying red frame %d", i + 1);
+                LOG_DEBUG("   Applying red frame %d", i + 1);
                 if (img == nullptr) {
                     img = new ProcessedImage(_processedFrames[i]->GetRedImage());
                 } else {
@@ -2156,7 +2155,7 @@ public:
                 }
                 break;
             case '1':
-                logger_gcm.debug("   Applying green frame %d", i + 1);
+                LOG_DEBUG("   Applying green frame %d", i + 1);
                 if (img == nullptr) {
                     img = new ProcessedImage(_processedFrames[i]->GetGreenImage());
                 } else {
@@ -2164,7 +2163,7 @@ public:
                 }
                 break;
             case '2':
-                logger_gcm.debug("   Applying blue frame %d", i + 1);
+                LOG_DEBUG("   Applying blue frame %d", i + 1);
                 if (img == nullptr) {
                     img = new ProcessedImage(_processedFrames[i]->GetBlueImage());
                 } else {
@@ -2201,13 +2200,13 @@ public:
     // lights are 1 based
     [[nodiscard]] wxPoint FindLightA(uint32_t pixel, uint32_t numPixels, uint8_t erode_dilate, uint8_t threshold, std::map<std::string, ProcessedImage*>& cache, ProcessedImage** ppi, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
-        static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+
         wxASSERT(_processedFrames.size() > 0);
 
         auto bits = GetBits(numPixels);
         auto value = convertToBase3(pixel, bits);
 
-        logger_gcm.debug("Finding pixel %u : %s", pixel, (const char*)value.c_str());
+        LOG_DEBUG("Finding pixel %u : %s", pixel, (const char*)value.c_str());
 
         ProcessedImage* img = nullptr;
 
@@ -2218,7 +2217,7 @@ public:
             if (cache.find(key) != cache.end()) {
                 img = new ProcessedImage(cache[key]);
                 startat = key.size();
-                logger_gcm.debug("   starting with image from cache ... key %s", (const char*)key.c_str());
+                LOG_DEBUG("   starting with image from cache ... key %s", (const char*)key.c_str());
                 break;
             }
         }
@@ -2227,7 +2226,7 @@ public:
         for (uint32_t i = startat; i < bits && !abort; ++i) {
             switch (value[i]) {
             case '0':
-                logger_gcm.debug("   Applying red frame %d", i + 1);
+                LOG_DEBUG("   Applying red frame %d", i + 1);
                 if (img == nullptr) {
                     img = new ProcessedImage(_processedFrames[i]->GetRedImage());
                 } else {
@@ -2235,7 +2234,7 @@ public:
                 }
                 break;
             case '1':
-                logger_gcm.debug("   Applying green frame %d", i + 1);
+                LOG_DEBUG("   Applying green frame %d", i + 1);
                 if (img == nullptr) {
                     img = new ProcessedImage(_processedFrames[i]->GetGreenImage());
                 } else {
@@ -2243,7 +2242,7 @@ public:
                 }
                 break;
             case '2':
-                logger_gcm.debug("   Applying blue frame %d", i + 1);
+                LOG_DEBUG("   Applying blue frame %d", i + 1);
                 if (img == nullptr) {
                     img = new ProcessedImage(_processedFrames[i]->GetBlueImage());
                 } else {
@@ -2286,7 +2285,7 @@ public:
     // turns rgb into b&w images then tries to find them
     [[nodiscard]] std::list<std::pair<wxPoint, uint32_t>> FindLights(uint32_t maxPixels, uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, ProcessedImage** ppi, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr)
     {
-        static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+
         std::list<std::pair<wxPoint, uint32_t>> res;
 
         if (_startFrame1 == nullptr || _frames.size() == 0)
@@ -2297,12 +2296,12 @@ public:
 
         std::map<std::string, ProcessedImage*> cache;
 
-        logger_gcm.debug("Found pixels:");
+        LOG_DEBUG("Found pixels:");
         bool abort = false;
         for (uint32_t p = 0; p < maxPixels && !abort; ++p) {
             auto pt = FindLight(p + 1, maxPixels, cache, ppi, displayCallback);
             if (pt.x != -1) {
-                logger_gcm.debug("   %d: %d, %d", p + 1, pt.x, pt.y);
+                LOG_DEBUG("   %d: %d, %d", p + 1, pt.x, pt.y);
                 res.push_back({ pt, p + 1 });
             }
             abort |= wxGetKeyState(WXK_ESCAPE);
@@ -2319,7 +2318,7 @@ public:
 
     [[nodiscard]] std::list<std::pair<wxPoint, uint32_t>> FindLightsA(uint32_t maxPixels, uint32_t cropLeft, uint32_t cropRight, uint32_t cropTop, uint32_t cropBottom, int contrast, uint8_t blur, uint8_t erode_dilate, uint8_t threshold, float gamma, uint8_t saturate, ProcessedImage** ppi, std::function<void(ProcessedImage*, std::list<std::pair<wxPoint, uint32_t>>*)> displayCallback = nullptr, std::function<void(float)> progressCallback = nullptr)
     {
-        static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
+
         std::list<std::pair<wxPoint, uint32_t>> res;
 
         if (_startFrame1 == nullptr || _frames.size() == 0)
@@ -2336,12 +2335,12 @@ public:
 
         std::map<std::string, ProcessedImage*> cache;
 
-        logger_gcm.debug("Found pixels:");
+        LOG_DEBUG("Found pixels:");
         bool abort = false;
         for (uint32_t p = 0; p < maxPixels && !abort; ++p) {
             auto pt = FindLightA(p + 1, maxPixels, erode_dilate, threshold, cache, ppi, displayCallback);
             if (pt.x != -1) {
-                logger_gcm.debug("   %d: %d, %d", p + 1, pt.x, pt.y);
+                LOG_DEBUG("   %d: %d, %d", p + 1, pt.x, pt.y);
                 res.push_back({ pt, p + 1 });
             }
             if (progressCallback != nullptr) {
@@ -3106,8 +3105,7 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
 {
     DisplayInfo("Please prepare to video the model ... press ok when ready to start.", this);
 
-    static log4cpp::Category &logger_pcm = log4cpp::Category::getInstance(std::string("log_prepcustommodel"));
-    logger_pcm.info("Running lights to be videoed.");
+    LOG_INFO("Running lights to be videoed.");
 
     _pd = new wxProgressDialog("Running light patterns", "", 100, this);
 
@@ -3117,23 +3115,23 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
     bool nodes = NodesRadioButton->GetValue();
     bool manual = ManualNodesRadioButton->GetValue();
 
-    logger_pcm.info("   Count: %d.", count);
-    logger_pcm.info("   Start Channel: %d.", startch);
-    logger_pcm.info("   Intensity: %d.", intensity);
+    LOG_INFO("   Count: %d.", count);
+    LOG_INFO("   Start Channel: %d.", startch);
+    LOG_INFO("   Intensity: %d.", intensity);
     if (nodes || manual)
     {
         if (nodes) {
-        logger_pcm.info("   Nodes.");
+        LOG_INFO("   Nodes.");
         }
         else {
-            logger_pcm.info("   Manual Nodes.");
+            LOG_INFO("   Manual Nodes.");
         }
-        logger_pcm.info("   Channels that will be affected %ld-%ld of %ld channels", startch, startch + (count * 3) - 1, _outputManager->GetTotalChannels());
+        LOG_INFO("   Channels that will be affected %ld-%ld of %ld channels", startch, startch + (count * 3) - 1, _outputManager->GetTotalChannels());
     }
     else
     {
-        logger_pcm.info("   Channels.");
-        logger_pcm.info("   Channels that will be affected %ld-%ld of %ld channels", startch, startch + count - 1, _outputManager->GetTotalChannels());
+        LOG_INFO("   Channels.");
+        LOG_INFO("   Channels that will be affected %ld-%ld of %ld channels", startch, startch + count - 1, _outputManager->GetTotalChannels());
     }
 
     if (manual) {
@@ -3147,7 +3145,7 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
 
     SetFocus();
 
-    logger_pcm.info("   Done.");
+    LOG_INFO("   Done.");
 
     DisplayInfo("Please stop the video.", this);
     ValidateWindow();
@@ -3213,8 +3211,7 @@ void GenerateCustomModelDialog::MTTabEntry()
 
 void GenerateCustomModelDialog::OnButton_MT_NextClick(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
-    logger_gcm.info("Generating custom model.");
+    LOG_INFO("Generating custom model.");
 
     TextCtrl_GCM_Filename->SetValue(""); // clear the filename in case the type has changed
     CVTabEntry();
@@ -3341,8 +3338,7 @@ void GenerateCustomModelDialog::OnButton_CV_NextClick(wxCommandEvent& event)
     CheckBox_AdvancedStartScan->Disable();
     ClearLights();
 
-    static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
-    logger_gcm.info("File: %s.", (const char*)TextCtrl_GCM_Filename->GetValue().c_str());
+    LOG_INFO("File: %s.", (const char*)TextCtrl_GCM_Filename->GetValue().c_str());
 
     if (SLRadioButton->GetValue()) {
         // static
@@ -3369,7 +3365,7 @@ void GenerateCustomModelDialog::OnButton_CV_NextClick(wxCommandEvent& event)
             ShowImage(_generator->GetStartFrame()->GetColourImage());
 
             if (!_generator->ReadVideo(SpinCtrl_ProcessNodeCount->GetValue(), CheckBox_BI_IsSteady->IsChecked(), DisplayImage(true), nullptr)) {
-                logger_gcm.warn("Video reading generated an error ... but lets keep going.");
+                LOG_WARN("Video reading generated an error ... but lets keep going.");
             }
 
             ShowImage(_generator->GetStartFrame()->GetColourImage());
@@ -3481,8 +3477,6 @@ void GenerateCustomModelDialog::ClearLights()
 
 void GenerateCustomModelDialog::DoBulbIdentify()
 {
-    static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
-
     if (!_busy) {
         _busy = true;
 
@@ -3510,17 +3504,17 @@ void GenerateCustomModelDialog::DoBulbIdentify()
 
         wxYield(); // let them update
 
-        logger_gcm.info("Executing bulb identify.");
-        logger_gcm.info("   Image Size: %dx%d.", _generator->GetFirstFrame()->GetWidth(), _generator->GetFirstFrame()->GetHeight());
-        logger_gcm.info("   Blur: %d.", Slider_AdjustBlur->GetValue());
-        logger_gcm.info("   Sensitivity: %d.", Slider_BI_Sensitivity->GetValue());
-        logger_gcm.info("   Contrast: %d.", Slider_BI_Contrast->GetValue());
-        logger_gcm.info("   Erode/Dilate: %d.", Slider_Despeckle->GetValue());
-        logger_gcm.info("   Gamma: %s.", (const char*)TextCtrl_Gamma->GetValue().c_str());
-        logger_gcm.info("   Saturation: %d.", Slider_Saturation->GetValue());
-        logger_gcm.info("   Minimum Separation: %d.", Slider_BI_MinSeparation->GetValue());
-        logger_gcm.info("   Minimum Scale: %d.", Slider_BI_MinScale->GetValue());
-        logger_gcm.info("   Clip Rectangle: (%d,%d)-(%d,%d).", _clip.GetLeft(), _clip.GetTop(), _clip.GetRight(), _clip.GetBottom());
+        LOG_INFO("Executing bulb identify.");
+        LOG_INFO("   Image Size: %dx%d.", _generator->GetFirstFrame()->GetWidth(), _generator->GetFirstFrame()->GetHeight());
+        LOG_INFO("   Blur: %d.", Slider_AdjustBlur->GetValue());
+        LOG_INFO("   Sensitivity: %d.", Slider_BI_Sensitivity->GetValue());
+        LOG_INFO("   Contrast: %d.", Slider_BI_Contrast->GetValue());
+        LOG_INFO("   Erode/Dilate: %d.", Slider_Despeckle->GetValue());
+        LOG_INFO("   Gamma: %s.", (const char*)TextCtrl_Gamma->GetValue().c_str());
+        LOG_INFO("   Saturation: %d.", Slider_Saturation->GetValue());
+        LOG_INFO("   Minimum Separation: %d.", Slider_BI_MinSeparation->GetValue());
+        LOG_INFO("   Minimum Scale: %d.", Slider_BI_MinScale->GetValue());
+        LOG_INFO("   Clip Rectangle: (%d,%d)-(%d,%d).", _clip.GetLeft(), _clip.GetTop(), _clip.GetRight(), _clip.GetBottom());
 
         if (SLRadioButton->GetValue()) {
             VideoFrame* vf = new VideoFrame(_generator->GetFirstFrame()->GetColourImage(), 0, false, VideoFrame::VIDEO_FRAME_TYPE::VFT_IMAGE_MULTI);
@@ -3589,7 +3583,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
         ShowProgress(false);
 
         SetCursor(wxCURSOR_ARROW);
-        logger_gcm.info("Result: %s.", (const char*)TextCtrl_BI_Status->GetValue().c_str());
+        LOG_INFO("Result: %s.", (const char*)TextCtrl_BI_Status->GetValue().c_str());
         _busy = false;
     }
 }
@@ -3709,8 +3703,6 @@ wxString GenerateCustomModelDialog::GetMissingNodes()
 
 void GenerateCustomModelDialog::GuessMissingBulbs()
 {
-    static log4cpp::Category& logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
-
     // make sure lights are in order
     _lights.sort(LightsCompare);
 
@@ -3723,11 +3715,11 @@ void GenerateCustomModelDialog::GuessMissingBulbs()
             if (distance < 1)
                 distance = 1;
             float incr = distance / (missing + 1);
-            logger_gcm.debug("%u Bulbs missing %u-%u", missing, next, next + missing - 1);
+            LOG_DEBUG("%u Bulbs missing %u-%u", missing, next, next + missing - 1);
             for (uint32_t i = 0; i < missing; ++i) {
                 uint32_t x = (float)last.x + (((float)(i + 1) * incr) / distance) * (float)(it->first.x - last.x);
                 uint32_t y = (float)last.y + (((float)(i + 1) * incr) / distance) * (float)(it->first.y - last.y);
-                logger_gcm.debug("  Bulb missing for node %u ... added at %u,%u", next + i, x, y);
+                LOG_DEBUG("  Bulb missing for node %u ... added at %u,%u", next + i, x, y);
                 _lights.insert(it, std::pair<wxPoint, uint32_t>(wxPoint(x, y), next + i));
             }
         }
@@ -4035,8 +4027,8 @@ void GenerateCustomModelDialog::OnButton_CM_SaveClick(wxCommandEvent& event)
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, "NewCustomModel", wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty()) return;
     wxFile f(filename);
-    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
-    logger_gcm.info("Saving to xmodel file %s.", (const char *)filename.c_str());
+
+    LOG_INFO("Saving to xmodel file %s.", (const char *)filename.c_str());
     if (!f.Create(filename, true) || !f.IsOpened())
     {
         DisplayError("Unable to create file "+filename+". Error "+std::to_string(f.GetLastError())+"\n");

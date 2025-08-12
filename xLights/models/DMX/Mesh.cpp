@@ -23,7 +23,7 @@
 #include "../../ExternalHooks.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsMain.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -381,10 +381,10 @@ void Mesh::uncacheDisplayObjects() {
 void Mesh::loadObject(BaseObject* base, xlGraphicsContext *ctx) {
     if (FileExists(_objFile)) {
         uncacheDisplayObjects();
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
         obj_exists = true;
                 
-        logger_base.debug("Loading mesh model file %s.",
+        LOG_DEBUG("Loading mesh model file %s.",
                           (const char *)_objFile.c_str());
         mesh3d = ctx->loadMeshFromObjFile(_objFile);
         width = mesh3d->GetXMax() - mesh3d->GetXMin();

@@ -29,7 +29,7 @@
 #include "UtilFunctions.h"
 #include "EditAliasesDialog.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 // This event is fired when a model is dropped between lists
 wxDEFINE_EVENT(EVT_MGDROP, wxCommandEvent);
@@ -415,7 +415,7 @@ std::string ModelGroupPanel::WildcardToRegex(const std::string& wildcard) {
 
 void ModelGroupPanel::UpdatePanel(const std::string& group)
 {
-    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // 
     static wxColour BLUE_ON_DARK(100, 100, 255);
 
     Choice_DefaultCamera->Clear();
@@ -487,7 +487,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
                     if (std::find(modelsInGroup.begin(), modelsInGroup.end(), it.first) != modelsInGroup.end() ||
                         (it.second->GetDisplayAs() == "ModelGroup" && (!CheckBox_ShowModelGroups->GetValue() || it.first == group || dynamic_cast<ModelGroup*>(it.second)->ContainsModelGroup(g)))) {
                         // dont add this group
-                        // logger_base.debug("Model not eligible to be added to group or already in group " + group + " : " + it.first);
+                        // LOG_DEBUG("Model not eligible to be added to group or already in group " + group + " : " + it.first);
                     }
                     else {
                         std::string modelName = ::Lower(it.first);

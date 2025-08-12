@@ -29,7 +29,7 @@
 #include "ExternalHooks.h"
 #include "ColorPanel.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #define ZERO 0
 #define PALETTE_SIZE 8
@@ -624,8 +624,8 @@ void PicturesAssistPanel::OnBitmapButton_SavePaletteClick(wxCommandEvent& event)
         LoadAllPalettes();
         ValidateWindow();
         if (!BitmapButton_SavePalette->IsEnabled()) {
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.error("Already saved xpalette ... skipped.");
+            
+            LOG_ERROR("Already saved xpalette ... skipped.");
             return;
         }
     }
@@ -653,8 +653,8 @@ void PicturesAssistPanel::OnBitmapButton_SavePaletteClick(wxCommandEvent& event)
 
         _loadedPalettes.push_back(pal);
     } else {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.error("Unable to create file %s.", (const char*)fn.c_str());
+        
+        LOG_ERROR("Unable to create file %s.", (const char*)fn.c_str());
     }
 
     LoadAllPalettes();

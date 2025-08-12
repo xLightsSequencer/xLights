@@ -27,7 +27,7 @@
 
 #include <curl/curl.h>
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #pragma region Output Classes
 struct WLEDOutput {
@@ -44,8 +44,8 @@ struct WLEDOutput {
 
     explicit WLEDOutput(int output_) : output(output_) { }
     void Dump() const {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("    Output %d Start %d Pixels %d Rev %s Ref %s Nulls %d ColorOrder %d Protocol %d Pin %d Upload %s",
+        
+        LOG_DEBUG("    Output %d Start %d Pixels %d Rev %s Ref %s Nulls %d ColorOrder %d Protocol %d Pin %d Upload %s",
             output,
             startCount,
             pixels,
@@ -80,7 +80,7 @@ struct WLEDOutput {
 #pragma region Constructors and Destructors
 WLED::WLED(const std::string& ip, const std::string &proxy) : BaseController(ip, proxy), _vid(0) {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::string const json = GetURL(GetInfoURL());
     if (!json.empty()) {
@@ -94,16 +94,16 @@ WLED::WLED(const std::string& ip, const std::string &proxy) : BaseController(ip,
             _model = jsonVal["arch"].AsString();
             _connected = true;
         } else {
-            logger_base.error("Error Determining WLED controller Type.");
+            LOG_ERROR("Error Determining WLED controller Type.");
             _connected = false;
         }
 
         if (_connected) {
-            logger_base.debug("Connected to WLED controller model %s.", (const char*)GetFullName().c_str());
+            LOG_DEBUG("Connected to WLED controller model %s.", (const char*)GetFullName().c_str());
         }
     } else {
         _connected = false;
-        logger_base.error("Error connecting to WLED controller on %s.", (const char *)_ip.c_str());
+        LOG_ERROR("Error connecting to WLED controller on %s.", (const char *)_ip.c_str());
     }
 }
 
@@ -215,8 +215,8 @@ void WLED::UpdatePortData(WLEDOutput* pd, UDControllerPort* stringData, int star
 
 void WLED::UpdatePixelOutputs(bool& worked, int totalPixelCount, wxJSONValue& jsonVal) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Building pixel upload:");
+    
+    LOG_DEBUG("Building pixel upload:");
     //total Pixel Count
     jsonVal["hw"]["led"]["total"] = totalPixelCount;
 
@@ -245,11 +245,11 @@ bool WLED::PostJSON(wxJSONValue const& jsonVal) {
 
     const std::string url = GetCfgURL();
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
-    logger_base.debug("Making request to Controller '%s'.", (const char*)url.c_str());
-    logger_base.debug("    With data '%s'.", (const char*)str.c_str());
+    LOG_DEBUG("Making request to Controller '%s'.", (const char*)url.c_str());
+    LOG_DEBUG("    With data '%s'.", (const char*)str.c_str());
 
     CURL* hnd = curl_easy_init();
 
@@ -274,12 +274,12 @@ bool WLED::PostJSON(wxJSONValue const& jsonVal) {
         CURLcode ret = curl_easy_perform(hnd);
         if (ret == CURLE_OK) {
             if (buffer.find("error") != std::string::npos) {
-                logger_base.error("Error From WLED %s", (const char*)buffer.c_str());
+                LOG_ERROR("Error From WLED %s", (const char*)buffer.c_str());
                 return false;
             }
             return true;
         } else {
-            logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(ret));
+            LOG_ERROR("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(ret));
         }
     }
     return false;
@@ -434,27 +434,27 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("WLED Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+    
+    LOG_DEBUG("WLED Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
 
     //2105110 added json config
     //2105200 added per string null pixel to GUI but older builds have it in the JSON
     if (_vid < 2105110) {
-        logger_base.error("Build 2105110 or newer of WLED Is Required, '%d' is Installed .", _vid);
+        LOG_ERROR("Build 2105110 or newer of WLED Is Required, '%d' is Installed .", _vid);
         DisplayError("WLED Upload Error:\nWLED 0.13b5 or newer is required", parent);
         progress.Update(100, "Aborting.");
         return false;
     }
 
     if (_vid < 2203190 && _vid > 2112080) {
-        logger_base.error("WLED Build 2112080 to 2203190 are broken, '%d' is Installed .", _vid);
+        LOG_ERROR("WLED Build 2112080 to 2203190 are broken, '%d' is Installed .", _vid);
         DisplayError("WLED Upload Error:\nUpload with WLED 0.13 and 0.13.1 is broken.\n(There is a bug in the WLED 0.13/0.13.1 firmware, not xLights)\nSwitch to WLED 0.13.2, WLED 0.13 beta6 or beta5 for the upload to work correctly", parent);
         progress.Update(100, "Aborting.");
         return false;
     }
 
     progress.Update(0, "Scanning models");
-    logger_base.info("Scanning models.");
+    LOG_INFO("Scanning models.");
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
@@ -463,7 +463,7 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     auto caps = ControllerCaps::GetControllerConfig(controller);
     const bool success = cud.Check(caps, check);
 
-    logger_base.debug(check);
+    LOG_DEBUG(check);
 
     cud.Dump();
 
@@ -495,7 +495,7 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
         return false;
     }
 
-    logger_base.info("Figuring Out Pixel Output Information.");
+    LOG_INFO("Figuring Out Pixel Output Information.");
     progress.Update(20, "Figuring Out Pixel Output Information.");
 
     //loop to setup string outputs
@@ -513,16 +513,16 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
         }
     }
 
-    logger_base.info("Updating String Output Information.");
+    LOG_INFO("Updating String Output Information.");
     progress.Update(40, "Updating String Output Information.");
 
     UpdatePixelOutputs(worked, totalCount, val);
 
     if (!worked) {
-        logger_base.error("Error Updating to WLED controller, JSON:%s.", (const char*)page.c_str());
+        LOG_ERROR("Error Updating to WLED controller, JSON:%s.", (const char*)page.c_str());
     }
 
-    logger_base.info("Updating Input Information.");
+    LOG_INFO("Updating Input Information.");
     progress.Update(50, "Updating Input Information.");
     worked = SetupInput(controller, val, rgbw);
     if (!worked) {
@@ -530,7 +530,7 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
         return false;
     }
 
-    logger_base.info("Uploading JSON to WLED.");
+    LOG_INFO("Uploading JSON to WLED.");
     progress.Update(70, "Uploading JSON to WLED.");
 
     //reboot
@@ -539,11 +539,11 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     bool uploadWorked = PostJSON(val);
 
     if (!uploadWorked) {
-        logger_base.error("Error Uploading to WLED controller, JSON:%s.", (const char*)page.c_str());
+        LOG_ERROR("Error Uploading to WLED controller, JSON:%s.", (const char*)page.c_str());
         worked = false;
     }
 
-    logger_base.info("WLED Outputs Upload Done.");
+    LOG_INFO("WLED Outputs Upload Done.");
     progress.Update(100, "Done.");
     return worked;
 }

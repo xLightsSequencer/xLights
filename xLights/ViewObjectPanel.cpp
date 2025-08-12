@@ -19,7 +19,7 @@
 #include "UtilFunctions.h"
 #include "models/ViewObject.h"
 #include "xLightsMain.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 //(*InternalHeaders(ViewObjectPanel)
 #include <wx/intl.h>
@@ -190,7 +190,7 @@ int ViewObjectPanel::AddObjectToTree(ViewObject *view_object, wxTreeListItem* pa
                                                          new ObjectTreeData(view_object, nativeOrder));
 
     /*if( model->GetDisplayAs() == "ModelGroup" ) {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
         ModelGroup *grp = (ModelGroup*)model;
         int i = 0;
         for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); ++it) {
@@ -198,12 +198,12 @@ int ViewObjectPanel::AddObjectToTree(ViewObject *view_object, wxTreeListItem* pa
 
             if (m == nullptr)
             {
-                logger_base.error("Model group %s thought it contained model. '%s' but it didnt. This would have crashed.", (const char *)grp->GetName().c_str(), (const char *)it->c_str());
+                LOG_ERROR("Model group %s thought it contained model. '%s' but it didnt. This would have crashed.", (const char *)grp->GetName().c_str(), (const char *)it->c_str());
             }
             else if (m == grp)
             {
                 // This is bad ... a model group contains itself
-                logger_base.error("Model group contains itself. '%s'", (const char *)grp->GetName().c_str());
+                LOG_ERROR("Model group contains itself. '%s'", (const char *)grp->GetName().c_str());
             }
             else
             {
@@ -564,15 +564,15 @@ void ViewObjectPanel::OnItemContextMenu(wxTreeListEvent& event)
 
 void ViewObjectPanel::OnObjectsPopup(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     int id = event.GetId();
     if(id == ID_MNU_DELETE_OBJECT)
     {
-        logger_base.debug("ViewObjectPanel::OnObjectsPopup DELETE_OBJECT");
+        LOG_DEBUG("ViewObjectPanel::OnObjectsPopup DELETE_OBJECT");
         DeleteSelectedObject();
     } else if (id == ID_MNU_UNLINKFROMBASE) {
-        logger_base.debug("ViewObjectPanel::OnObjectsPopup UNLINKFROMBASE");
+        LOG_DEBUG("ViewObjectPanel::OnObjectsPopup UNLINKFROMBASE");
         UnlinkSelectedObject();
     }
 }

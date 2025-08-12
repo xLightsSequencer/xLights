@@ -214,7 +214,7 @@ class ControllerModelDialog: public wxDialog
 		void OnKeyDown(wxKeyEvent& event);
 		void PrintScreen();
 		void SaveCSV();
-		double getFontSize();
+        double getFontSize() const;
 		void EnsureSelectedModelIsVisible(ModelCMObject* cm);
         bool MaybeSetSmartRemote(wxKeyEvent& event);
 

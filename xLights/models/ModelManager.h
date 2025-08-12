@@ -103,6 +103,6 @@ class ModelManager : public ObjectManager
     std::map<std::string, Model *> models;
     mutable std::recursive_mutex _modelMutex;
     std::atomic<bool> _modelsLoading;
-    mutable std::string lastGeneratedModelName = "";
+    mutable std::string lastGeneratedModelName;
 };
 

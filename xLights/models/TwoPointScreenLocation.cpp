@@ -24,7 +24,7 @@
 #include "UtilFunctions.h"
 #include "RulerObject.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 extern void DrawBoundingBoxLines(const xlColor &c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, xlVertexColorAccumulator &va);
 extern wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation);

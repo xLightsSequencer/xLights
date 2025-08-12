@@ -15,7 +15,7 @@
 #include <wx/string.h>
 //*)
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include <wx/msgdlg.h>
 #include <wx/stopwatch.h>
 #include "CachedFileDownloader.h"
@@ -169,8 +169,8 @@ VendorMusicDialog::VendorMusicDialog(wxWindow* parent, wxWindowID id, const wxPo
 
     SetSize(800, 600);
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("File cache size: %d", GetCache().size());
+    
+    LOG_DEBUG("File cache size: %d", GetCache().size());
 
     PopulateSequenceLyricPanel((MSLSequenceLyric*)nullptr);
     PopulateVendorPanel(nullptr);

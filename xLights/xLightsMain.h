@@ -1328,7 +1328,6 @@ public:
     void SetSuppressFadeHints(bool b);
 
     bool IsSuppressColorWarn() const { return mSuppressColorWarn; }
-    bool SuppressColorWarn() const { return mSuppressColorWarn; }
     void SetSuppressColorWarn(bool b);
 
     bool PlayControlsOnPreview() const { return _playControlsOnPreview;}

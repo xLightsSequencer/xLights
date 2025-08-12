@@ -26,7 +26,7 @@
 #include "../ModelPreview.h"
 #include "RulerObject.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 CustomModel::CustomModel(wxXmlNode *node, const ModelManager &manager,  bool zeroBased) : ModelWithScreenLocation(manager)
 {
@@ -107,7 +107,7 @@ protected:
 
 void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxPGProperty* p = grid->Append(new CustomModelProperty(this, outputManager, "Model Data", "CustomData", CLICK_TO_EDIT));
     grid->LimitPropertyEditing(p);
@@ -165,7 +165,7 @@ void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
         custom_background));
 
     if (sw.Time() > 500)
-        logger_base.debug("        Adding background image property (%s) to model %s really slow: %lums", (const char*)custom_background.c_str(), (const char*)name.c_str(), sw.Time());
+        LOG_DEBUG("        Adding background image property (%s) to model %s really slow: %lums", (const char*)custom_background.c_str(), (const char*)name.c_str(), sw.Time());
 
     p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
                                         ";*.webp"
@@ -293,7 +293,7 @@ void CustomModel::UpdateModel(int width, int height, int depth, const std::vecto
 
 void CustomModel::InitModel()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxStopWatch sw;
 
     std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
@@ -312,7 +312,7 @@ void CustomModel::InitModel()
 
     if (sw.Time() > 5)
     {
-        logger_base.debug("Custom model %s took %lums to initialise.", (const char*)name.c_str(), sw.Time());
+        LOG_DEBUG("Custom model %s took %lums to initialise.", (const char*)name.c_str(), sw.Time());
     }
 }
 
@@ -408,8 +408,8 @@ std::list<std::string> CustomModel::GetFileReferences()
     return res;
 }
 
-void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString)
-{
+void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) {
+
     std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
     _strings = wxAtoi(ModelXml->GetAttribute("CustomStrings", "1").ToStdString());
     int maxval = GetCustomMaxChannel(customModel);
@@ -425,17 +425,17 @@ void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, in
         Model::SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
     }
     else {
-        stringStartChan.clear();
-        stringStartChan.resize(_strings);
+        stringStartNodes.clear();
+        stringStartNodes.resize(_strings);
 
         for (int i = 0; i < _strings; i++) {
-            wxString nm = StartChanAttrName(i);
+            wxString nm = StartStringAttrName(i);
             int node = wxAtoi(ModelXml->GetAttribute(nm, "-1"));
             if (node < 0) {
                 node = ((ChannelsPerString * i) / GetNodeChannelCount(StringType)) + 1;
             }
             if (node > maxval) node = maxval;
-            stringStartChan[i] = (zeroBased ? 0 : StartChannel - 1) + (node - 1) * GetNodeChannelCount(StringType);
+            stringStartNodes[i] = (zeroBased ? 0 : StartChannel - 1) + (node - 1) * GetNodeChannelCount(StringType);
         }
     }
 }
@@ -924,7 +924,7 @@ void CustomModel::InitCustomMatrix(const std::string& customModel, const std::st
     nodemap.resize(maxval + 1, -1);
 
     int32_t firstStartChan = 999999999;
-    for (auto it : stringStartChan) {
+    for (auto it : stringStartNodes) {
         firstStartChan = std::min(it, firstStartChan);
     }
 
@@ -984,9 +984,16 @@ void CustomModel::InitCustomMatrix(const std::string& customModel, const std::st
         }
     }
 
+
     for (size_t x = 0; x < Nodes.size(); x++) {
         if (Nodes[x]->GetName().empty()) {
             Nodes[x]->SetName(GetNodeName(Nodes[x]->StringNum));
+        }
+    }
+
+    if (HasIndividualStartChannels()) {
+        for (long str = 0; str < GetNumStrings(); str++) {
+            //long start_address = GetStringStartChannel(str);
         }
     }
 
@@ -1102,7 +1109,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
     }
     maxn++;
     int chssize = (maxn + 1) * sizeof(int);
-    //logger_base.debug("    CheckSequence: Checking custom model %d nodes", maxn);
+    //LOG_DEBUG("    CheckSequence: Checking custom model %d nodes", maxn);
     int* chs = (int*)malloc(chssize);
     if (chs == nullptr) {
         res.push_back(wxString::Format("    WARN: Could not check Custom model '%s' for missing nodes. Error allocating memory for %d nodes.", GetName(), maxn).ToStdString());
@@ -1173,15 +1180,15 @@ int CustomModel::NodesPerString(int string) const
 
     int32_t lowestStartChannel = 2000000000;
     for (int i = 0; i < _strings; i++) {
-        if (stringStartChan[i] < lowestStartChannel) lowestStartChannel = stringStartChan[i];
+        if (stringStartNodes[i] < lowestStartChannel) lowestStartChannel = stringStartNodes[i];
     }
 
-    int32_t ss = stringStartChan[string];
+    int32_t ss = stringStartNodes[string];
     int32_t len = GetChanCount() - (ss - lowestStartChannel);
     for (int i = 0; i < _strings; i++) {
         if (i != string) {
-            if (stringStartChan[i] > ss && len > stringStartChan[i] - ss) {
-                len = stringStartChan[i] - ss;
+            if (stringStartNodes[i] > ss && len > stringStartNodes[i] - ss) {
+                len = stringStartNodes[i] - ss;
             }
         }
     }
@@ -1452,8 +1459,8 @@ bool HasDuplicates(float divisor, std::list<std::list<wxPoint>> chs)
 {
     std::list<wxPoint> scaled;
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Checking for duplicates at scale %f.", divisor);
+    
+    LOG_DEBUG("Checking for duplicates at scale %f.", divisor);
 
     for (const auto& ch : chs) {
         for (const auto& it : ch) {
@@ -1478,11 +1485,11 @@ bool HasDuplicates(float divisor, std::list<std::list<wxPoint>> chs)
 
 bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxXmlDocument doc(filename);
 
     if (doc.IsOk()) {
-        logger_base.debug("Loading LOR model %s.", (const char*)filename.c_str());
+        LOG_DEBUG("Loading LOR model %s.", (const char*)filename.c_str());
 
         wxXmlNode* root = doc.GetRoot();
 
@@ -1516,7 +1523,7 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::ImportLORModel");
 
         if (chs.size() == 0) {
-            logger_base.error("No model data found.");
+            LOG_ERROR("No model data found.");
             wxMessageBox("Unable to import model data.");
             return false;
         }
@@ -1579,7 +1586,7 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
         maxx = ((float)maxx * divisor) + 1;
         maxy = ((float)maxy * divisor) + 1;
 
-        logger_base.debug("Divisor chosen %f. Model dimensions %d,%d", divisor, maxx + 1, maxy + 1);
+        LOG_DEBUG("Divisor chosen %f. Model dimensions %d,%d", divisor, maxx + 1, maxy + 1);
 
         SetProperty("parm1", wxString::Format("%i", maxx));
         SetProperty("parm2", wxString::Format("%i", maxy));
@@ -1618,7 +1625,7 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
         free(data);
 
         SetProperty("CustomModel", cm);
-        logger_base.debug("Model import done.");
+        LOG_DEBUG("Model import done.");
         return true;
     } else {
         DisplayError("Failure loading LOR model file.");
@@ -1760,7 +1767,7 @@ int CustomModel::MapPhysicalStringToLogicalString(int string) const
     for (int curr = 0; curr < _strings; curr++) {
         int count = 0;
         for (int s = 0; s < _strings; s++) {
-            if (stringStartChan[s] < stringStartChan[curr] && s != curr) {
+            if (stringStartNodes[s] < stringStartNodes[curr] && s != curr) {
                 count++;
             }
         }

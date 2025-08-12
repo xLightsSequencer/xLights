@@ -34,7 +34,7 @@
 #define _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
 #include <hash_map>
 #define snprintf _snprintf
-#define vsnprintf _vsnprintf
+//#define vsnprintf _vsnprintf
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
 #else

@@ -29,7 +29,7 @@
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 PolyLineModel::PolyLineModel(const ModelManager &manager) : ModelWithScreenLocation(manager) {
     parm1 = parm2 = parm3 = 0;
@@ -659,7 +659,7 @@ void PolyLineModel::DistributeLightsEvenly( const std::vector<xlPolyPoint>& pPos
                                             const int                       maxH,
                                             const int                       numLights )
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     bool using_icicles = maxH > 1;
     unsigned int drop_index = 0;
     size_t idx = 0;
@@ -742,7 +742,7 @@ void PolyLineModel::DistributeLightsEvenly( const std::vector<xlPolyPoint>& pPos
                     node = FindNodeAtXY(xpos, maxH - z - 1);
                 }
                 if (node == -1) {
-                    logger_base.error("Polyline buffer x,y %d, %d not found.", xpos, maxH - z - 1);
+                    LOG_ERROR("Polyline buffer x,y %d, %d not found.", xpos, maxH - z - 1);
                 }
                 else {
                     size_t current_coord = c;
@@ -803,7 +803,7 @@ void PolyLineModel::DistributeLightsAcrossSegment( const int                    
                                                    const int                       maxH,
                                                    const bool                      isCurve )
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     // distribute the lights evenly across the line segments
     bool using_icicles = maxH > 1;
@@ -871,7 +871,7 @@ void PolyLineModel::DistributeLightsAcrossSegment( const int                    
             for (size_t z = 0; z < drops_this_node; z++) {
                 auto node = FindNodeAtXY(xpos, maxH - z - 1);
                 if (node == -1) {
-                    logger_base.error("Polyline buffer x,y %d, %d not found.", xpos, maxH - z - 1);
+                    LOG_ERROR("Polyline buffer x,y %d, %d not found.", xpos, maxH - z - 1);
                 }
                 else {
                     size_t current_coord = c;

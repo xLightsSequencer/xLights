@@ -23,7 +23,7 @@
 #include "../ExternalHooks.h"
 #include "../outputs/Controller.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #pragma region Static Functions
 std::map<std::string, std::map<std::string, std::list<ControllerCaps*>>> ControllerCaps::__controllers;
@@ -61,7 +61,7 @@ static void merge(std::map<std::string, wxXmlNode *> &abstracts, const std::stri
 
 void ControllerCaps::LoadControllers() {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (__controllers.size() != 0) return;
 
     wxString d;
@@ -99,7 +99,7 @@ void ControllerCaps::LoadControllers() {
                 docs[count].Load(fn.GetFullPath());
                 if (!docs[count].IsOk()) {
                     wxASSERT(false);
-                    logger_base.error("Problem loading " + fn.GetFullPath());
+                    LOG_ERRORWX("Problem loading " + fn.GetFullPath());
                 }
                 count++;
             }
@@ -156,7 +156,7 @@ void ControllerCaps::LoadControllers() {
             }
         }
     } else {
-        logger_base.error("Controllers folder not found " + d);
+        LOG_ERRORWX("Controllers folder not found " + d);
     }
 }
 
@@ -777,37 +777,36 @@ std::vector<std::string> ControllerCaps::GetAlternativeNames() const {
 
 void ControllerCaps::Dump() const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Controller Capabilities " + _vendor + ":" + _model + ":" + GetVariantName());
+    LOG_DEBUG("Controller Capabilities " + _vendor + ":" + _model + ":" + GetVariantName());
 
-    if (SupportsUpload()) logger_base.debug("   Supports upload.");
-    if (SupportsInputOnlyUpload()) logger_base.debug("   Supports input only upload.");
-    if (SupportsLEDPanelMatrix()) logger_base.debug("   Supports LED panel matrices.");
-    if (SupportsVirtualStrings()) logger_base.debug("   Supports virtual strings.");
+    if (SupportsUpload()) LOG_DEBUG("   Supports upload.");
+    if (SupportsInputOnlyUpload()) LOG_DEBUG("   Supports input only upload.");
+    if (SupportsLEDPanelMatrix()) LOG_DEBUG("   Supports LED panel matrices.");
+    if (SupportsVirtualStrings()) LOG_DEBUG("   Supports virtual strings.");
     if (SupportsSmartRemotes()) {
-        logger_base.debug("   Supports smart remotes.");
-        logger_base.debug("   Supported smart remotes types:");
+        LOG_DEBUG("   Supports smart remotes.");
+        LOG_DEBUG("   Supported smart remotes types:");
         for (auto const& it : GetSmartRemoteTypes()) {
-            logger_base.debug("      " + it);
+            LOG_DEBUG("      " + it);
         }
     }
-    if (SupportsMultipleSimultaneousOutputProtocols()) logger_base.debug("   Supports multiple simultaneous output protocols.");
-    if (AllInputUniversesMustBeSameSize()) logger_base.debug("   All input universes must be the same size.");
-    if (UniversesMustBeInNumericalOrder()) logger_base.debug("   All input universes must be in numerical order.");
-    logger_base.debug("   Inputs: maximum of %d universes.", GetMaxInputE131Universes());
-    logger_base.debug("   Input protocols supported:");
+    if (SupportsMultipleSimultaneousOutputProtocols()) LOG_DEBUG("   Supports multiple simultaneous output protocols.");
+    if (AllInputUniversesMustBeSameSize()) LOG_DEBUG("   All input universes must be the same size.");
+    if (UniversesMustBeInNumericalOrder()) LOG_DEBUG("   All input universes must be in numerical order.");
+    LOG_DEBUG("   Inputs: maximum of %d universes.", GetMaxInputE131Universes());
+    LOG_DEBUG("   Input protocols supported:");
     for (const auto& it : GetInputProtocols()) {
-        logger_base.debug("      " + it);
+        LOG_DEBUG("      " + it);
     }
-    logger_base.debug("   Pixel ports: %d ports with a maximum of %d channels per port.", GetMaxPixelPort(), GetMaxPixelPortChannels());
-    logger_base.debug("   Pixel protocols supported:");
+    LOG_DEBUG("   Pixel ports: %d ports with a maximum of %d channels per port.", GetMaxPixelPort(), GetMaxPixelPortChannels());
+    LOG_DEBUG("   Pixel protocols supported:");
     for (const auto& it : GetPixelProtocols()) {
-        logger_base.debug("      " + it);
+        LOG_DEBUG("      " + it);
     }
-    logger_base.debug("   Serial ports: %d ports with a maximum of %d channels per port.", GetMaxSerialPort(), GetMaxSerialPortChannels());
-    logger_base.debug("   Serial protocols supported:");
+    LOG_DEBUG("   Serial ports: %d ports with a maximum of %d channels per port.", GetMaxSerialPort(), GetMaxSerialPortChannels());
+    LOG_DEBUG("   Serial protocols supported:");
     for (const auto& it : GetSerialProtocols()) {
-        logger_base.debug("      " + it);
+        LOG_DEBUG("      " + it);
     }
 }
 

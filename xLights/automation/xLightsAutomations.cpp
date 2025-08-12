@@ -11,6 +11,8 @@
 #include "../xLightsMain.h"
 #include "../xLightsVersion.h"
 
+#include "nlohmann/json.hpp"
+
 #include "../FSEQFile.h"
 #include "../outputs/Controller.h"
 #include "../outputs/ControllerEthernet.h"
@@ -33,7 +35,7 @@
 
 #include "LuaRunner.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 std::string xLightsFrame::FindSequence(const std::string& seq)
 {
@@ -75,14 +77,14 @@ static std::map<std::string, std::string> ParseParams(const wxString &params) {
     }
     return p;
 }
-inline bool ReadBool(const wxJSONValue &v) {
-    if (v.IsBool()) {
-        return v.AsBool();
+inline bool ReadBool(const nlohmann::json& v) {
+    if (v.is_boolean()) {
+        return v.get<bool>();
     }
-    if (v.IsInt()) {
-        return v.IsInt() != 0;
+    if (v.is_number_integer()) {
+        return v.get<int>() != 0;
     }
-    return v.AsString() == "true" || v.AsString() == "1";
+    return v.get<std::string>() == "true" || v.get<std::string>() == "1";
 }
 inline bool ReadBool(const std::string &v) {
     return v == "true" || v == "1";
@@ -113,19 +115,25 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         
         if (params["_METHOD"] == "POST" && !params["_DATA"].empty()) {
             wxString data = params["_DATA"];
-            wxJSONValue val;
-            wxJSONReader reader;
-            if (reader.Parse(data, &val) == 0) {
-                fname = val["seq"].AsString();
-                if (val.HasMember("promptIssues")) {
-                    prompt = ReadBool(params["promptIssues"]);
+            try {
+                nlohmann::json val = nlohmann::json::parse(data.ToStdString());
+                //wxJSONReader reader;
+                // if (reader.Parse(data, &val) == 0)
+                {
+                    fname = val["seq"].get<std::string>();
+                    if (val.contains("promptIssues")) {
+                        prompt = ReadBool(params["promptIssues"]);
+                    }
+                    if (val.contains("force")) {
+                        force = ReadBool(params["force"]);
+                    }
                 }
-                if (val.HasMember("force")) {
-                    force = ReadBool(params["force"]);
-                }
-            } else {
-                fname = "";
+            } catch (const std::exception &e) {
+                return sendResponse(wxString::Format("Failed to parse JSON data: %s", e.what()), "msg", 503, false);
             }
+            //else {
+            //    fname = "";
+            //}
         } else {
             if (params["seq"] != "") {
                 fname = params["seq"];
@@ -340,7 +348,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
 
         std::map<int, int> udpRanges;
-        wxJSONValue outputs = FPP::CreateUniverseFile(_outputManager.GetControllers(), false, &udpRanges);
+        auto const& outputs = FPP::CreateUniverseFile(_outputManager.GetControllers(), false, &udpRanges);
 
         if (udp == "all") {
             fpp->UploadUDPOut(outputs);
@@ -351,12 +359,12 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
 
         if (models == "true" || models == "all") {
-            wxJSONValue memoryMaps = fpp->CreateModelMemoryMap(&AllModels, 0, std::numeric_limits<int32_t>::max());
+            auto const& memoryMaps = fpp->CreateModelMemoryMap(&AllModels, 0, std::numeric_limits<int32_t>::max());
             fpp->UploadModels(memoryMaps);
         } else if (udp == "local") {
             auto c = _outputManager.GetControllers(fpp->ipAddress);
             if (c.size() == 1) {
-                wxJSONValue const& memoryMaps = fpp->CreateModelMemoryMap(&AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());
+                auto const& memoryMaps = fpp->CreateModelMemoryMap(&AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());
                 fpp->UploadModels(memoryMaps);
             }
         }
@@ -445,7 +453,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                     FSEQFile::FrameData* f = seq->getFrame(frame);
                     if (f != nullptr) {
                         if (!f->readFrame(&frames[lastBuffered][0], frames[lastBuffered].size())) {
-                            //logger_base.error("FPPConnect FSEQ file corrupt.");
+                            //LOG_ERROR("FPPConnect FSEQ file corrupt.");
                             res = false;
                         }
                         delete f;
@@ -1171,32 +1179,33 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
         params.clear();
         accept = MIME_JSON;
 
-        wxJSONValue val;
-        wxJSONReader reader;
-        if (reader.Parse(request.Data(), &val) == 0) {
-            if (!val.HasMember("cmd")) {
+        nlohmann::json val = nlohmann::json::parse(request.Data().ToStdString());
+        //wxJSONReader reader;
+        //if (reader.Parse(request.Data(), &val) == 0) 
+        {
+            if (!val.contains("cmd")) {
                 HttpResponse resp(connection, request, (HttpStatus::HttpStatusCode)503);
                 resp.AddHeader("access-control-allow-origin", "*");
                 resp.MakeFromText("{\"res\":503,\"msg\":\"Missing cmd.\"}", MIME_JSON);
                 connection.SendResponse(resp);
                 return true;
             } else {
-                for (auto& mn : val.GetMemberNames()) {
-                    wxJSONValue v = val[mn];
+                for (auto [mn, v] : val.items()) {
+                    //nlohmann::json v = val[mn];
                     if (mn == "cmd") {
-                        paths.push_back(v.AsString());
-                    } else if (v.IsString()) {
-                        paramMap[mn] = v.AsString();
-                    } else if (v.IsLong()) {
-                        paramMap[mn] = std::to_string(v.AsLong());
-                    } else if (v.IsInt()) {
-                        paramMap[mn] = std::to_string(v.AsInt());
-                    } else if (v.IsBool()) {
-                        paramMap[mn] = v.AsBool() ? "true" : "false";
-                    } else if (v.IsArray()) {
-                        for (int x = 0; x < v.Size(); x++) {
-                            std::string k = mn.ToStdString() + "_" + std::to_string(x);
-                            paramMap[k] = v[x].AsString();
+                        paths.push_back(v.get<std::string>());
+                    } else if (v.is_string()) {
+                        paramMap[mn] = v.get<std::string>();
+                    } else if (v.is_number_integer()) {
+                        paramMap[mn] = std::to_string(v.get<int>());
+                    } else if (v.is_number_float()) {
+                        paramMap[mn] = std::to_string(v.get<float>());
+                    } else if (v.is_boolean()) {
+                        paramMap[mn] = v.get<bool>() ? "true" : "false";
+                    } else if (v.is_array()) {
+                        for (int x = 0; x < v.size(); x++) {
+                            std::string k = mn + "_" + std::to_string(x);
+                            paramMap[k] = v[x].get<std::string>();
                         }
                     }
                 }
@@ -1216,7 +1225,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
     }
 
     return ProcessAutomation(paths, paramMap, [&](const std::string& msg, const std::string& jsonKey, int responseCode, bool isJson) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
         HttpResponse resp(connection, request, (HttpStatus::HttpStatusCode)responseCode);
         resp.AddHeader("access-control-allow-origin", "*");
 
@@ -1244,7 +1253,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
             connection.SendResponse(resp);
             return true;
         } else {
-            logger_base.warn("Automation did not send result because connection lost.");
+            LOG_WARN("Automation did not send result because connection lost.");
         }
         return false;
     });
@@ -1252,7 +1261,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
 
 void xLightsFrame::StartAutomationListener()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_automationServer != nullptr) {
         _automationServer->Stop();
@@ -1275,11 +1284,11 @@ void xLightsFrame::StartAutomationListener()
     ctx.ErrorPage404 = HTTP_ERROR_PAGE;
 
     if (!server->Start(ctx)) {
-        logger_base.debug("xLights Automation could not listen on %d", ::GetxFadePort(_xFadePort));
+        LOG_DEBUG("xLights Automation could not listen on %d", ::GetxFadePort(_xFadePort));
         delete server;
         return;
     }
-    logger_base.debug("xLights Automation listening on %d", ::GetxFadePort(_xFadePort));
+    LOG_DEBUG("xLights Automation listening on %d", ::GetxFadePort(_xFadePort));
     _automationServer = server;
 }
 
@@ -1289,28 +1298,29 @@ std::string xLightsFrame::ProcessxlDoAutomation(const std::string& msg)
     std::map<std::string, std::string> paramMap;
 
     
-    wxJSONValue val;
-    wxJSONReader reader;
-    if (reader.Parse(msg, &val) == 0) {
-        if (!val.HasMember("cmd")) {
+    nlohmann::json val = nlohmann::json::parse(msg);
+    //wxJSONReader reader;
+    //if (reader.Parse(msg, &val) == 0)
+    {
+        if (!val.contains("cmd")) {
             return "{\"res\":504,\"msg\":\"Missing cmd.\"}";
         } else {
-            for (auto &mn : val.GetMemberNames()) {
-                wxJSONValue v = val[mn];
+            for (auto [mn, v] : val.items()) {
+                //wxJSONValue v = val[mn];
                 if (mn == "cmd") {
-                    paths.push_back(v.AsString());
-                } else if (v.IsString()) {
-                    paramMap[mn] = v.AsString();
-                } else if (v.IsLong()) {
-                    paramMap[mn] = std::to_string(v.AsLong());
-                } else if (v.IsInt()) {
-                    paramMap[mn] = std::to_string(v.AsInt());
-                } else if (v.IsBool()) {
-                    paramMap[mn] = v.AsBool() ? "true" : "false";
-                } else if (v.IsArray()) {
-                    for (int x = 0; x < v.Size(); x++) {
-                        std::string k = mn.ToStdString() + "_" + std::to_string(x);
-                        paramMap[k] = v[x].AsString();
+                    paths.push_back(v.get<std::string>());
+                } else if (v.is_string()) {
+                    paramMap[mn] = v.get<std::string>();
+                } else if (v.is_number_integer()) {
+                    paramMap[mn] = std::to_string(v.get<int>());
+                } else if (v.is_number_float()) {
+                    paramMap[mn] = std::to_string(v.get<float>());
+                } else if (v.is_boolean()) {
+                    paramMap[mn] = v.get<bool>() ? "true" : "false";
+                } else if (v.is_array()) {
+                    for (int x = 0; x < v.size(); x++) {
+                        std::string k = mn + "_" + std::to_string(x);
+                        paramMap[k] = v[x].get<std::string>();
                     }
                 }
             }
@@ -1339,7 +1349,7 @@ std::string xLightsFrame::ProcessxlDoAutomation(const std::string& msg)
             });
             
             if (!processed) {
-                auto cmd = val["cmd"].AsString();
+                auto cmd = val["cmd"].get<std::string>();
                 return wxString::Format("{\"res\":504,\"msg\":\"Unknown command: '%s'.\"}", cmd);
             }
             return result;

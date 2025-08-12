@@ -27,7 +27,7 @@
 #include <unordered_map>
 #include <regex>
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 wxDEFINE_EVENT(EVT_SETTIMINGTRACKS, wxCommandEvent);
 
@@ -196,7 +196,7 @@ Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const s
     mID(id), mParentLayer(parent) , mEffectIndex(-1), mName(nullptr),
       mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mTagged(false), mProtected(Protected), mCache(nullptr)
 {
-    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //
 
     mColorMask = xlColor::NilColor();
     mEffectIndex = (parent->GetParentElement() == nullptr) ? -1 : parent->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
@@ -224,7 +224,7 @@ Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const s
     //{
     //    if (it.second == "")
     //    {
-    //        logger_base.warn("Effect '%s' on model '%s' at time '%s' has setting '%s' with a blank value.",
+    //        LOG_WARN("Effect '%s' on model '%s' at time '%s' has setting '%s' with a blank value.",
     //            (const char *)name.c_str(),
     //            (const char *)(parent->GetParentElement() == nullptr ? "" : parent->GetParentElement()->GetName().c_str()),
     //            FORMATTIME(startTimeMS),
@@ -286,14 +286,14 @@ void Effect::SetEffectIndex(int effectIndex)
 
 const std::string& Effect::GetEffectName() const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (mName != nullptr) {
         return *mName;
     }
 
     if (GetParentEffectLayer() == nullptr) {
-        logger_base.crit("Call to Effect::GetEffectName() called but parent effect layer was null ... this will crash.");
+        LOG_CRIT("Call to Effect::GetEffectName() called but parent effect layer was null ... this will crash.");
         wxASSERT(false);
     }
     
@@ -302,10 +302,10 @@ const std::string& Effect::GetEffectName() const
 
 const std::string& Effect::GetEffectName(int index) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (GetParentEffectLayer() == nullptr) {
         // This really should never happen ... we should be digging into why it does
-        logger_base.crit("Call to Effect::GetEffectName(int) called but parent effect layer was null ... this will crash.");
+        LOG_CRIT("Call to Effect::GetEffectName(int) called but parent effect layer was null ... this will crash.");
         wxASSERT(false);
     }
 
@@ -578,7 +578,7 @@ void Effect::PressButton(RenderableEffect* re, const std::string& id)
 
 void Effect::ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxString idd(id);
     if (idd.StartsWith("C_"))
     {
@@ -644,7 +644,7 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
                             }
                         }
                         if (origName == mSettings[realid] && !FileExists(origName)) {
-                            logger_base.warn("Unable to correct show folder '%s' : '%s' to '%s'", (const char*)realid.c_str(), (const char*)origName.c_str(), (const char*)value.c_str());
+                            LOG_WARN("Unable to correct show folder '%s' : '%s' to '%s'", (const char*)realid.c_str(), (const char*)origName.c_str(), (const char*)value.c_str());
                         }
                     }
                 }

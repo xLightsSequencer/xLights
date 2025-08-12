@@ -36,7 +36,7 @@
 #include "../utils/ip_utils.h"
 #include "Controller.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #pragma region Private Functions
 void Output::Save(wxXmlNode* node) {
@@ -107,7 +107,7 @@ wxXmlNode* Output::Save() {
 #pragma region Static Functions
 Output* Output::Create(Controller* c, wxXmlNode* node, std::string showDir) {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxString type = node->GetAttribute("NetworkType", "");
     if (type.EndsWith(" Ethernet") && type[0] == 'S' && type[1] == 'y') { type = OUTPUT_xxxETHERNET; }
@@ -169,7 +169,7 @@ Output* Output::Create(Controller* c, wxXmlNode* node, std::string showDir) {
         return new TwinklyOutput(node, c && c->IsActive());
     }
 
-    logger_base.warn("Unknown network type %s ignored.", (const char *)type.c_str());
+    LOG_WARN("Unknown network type %s ignored.", (const char *)type.c_str());
     wxASSERT(false);
     return nullptr;
 }

@@ -14,7 +14,7 @@
 #include "UtilFunctions.h"
 #include "../ExternalHooks.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #include <wx/stdpaths.h>
 
@@ -76,8 +76,6 @@ std::pair<std::list<std::string>, bool> LuaRunner::PromptSequences() const
 {
     std::list<std::string> sequenceList;
     bool forceHighDefinitionRender = false;
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     BatchRenderDialog dlg(_frame);
     dlg.SetTitle("Select Sequences");
     if (dlg.Prepare(_frame->GetShowDirectory()) && dlg.ShowModal() == wxID_OK) {
@@ -88,7 +86,7 @@ std::pair<std::list<std::string>, bool> LuaRunner::PromptSequences() const
             if (FileExists(fname)) {
                 sequenceList.push_back(fname.GetFullPath());
             } else {
-                logger_base.info("PromptSequences: Sequence File not Found: %s.", (const char*)fname.GetFullPath().c_str());
+                LOG_INFO("PromptSequences: Sequence File not Found: %s.", (const char*)fname.GetFullPath().c_str());
             }
         }
         if (dlg.CheckBox_ForceHighDefinition->IsChecked()) {
@@ -115,9 +113,8 @@ std::string LuaRunner::JoinString(sol::object const& list, char const& delimiter
     return wxJoin(itemList, delimiter);
 }
 
-bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::string const& msg)> SendResponse)
-{ 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+bool LuaRunner::Run_Script(std::string const& filepath, std::function<void(std::string const& msg)> SendResponse) { 
+    
     sol::state lua;
     // open some common libraries
     lua.open_libraries(sol::lib::base, sol::lib::package, sol::lib::table, sol::lib::os, sol::lib::io, sol::lib::string, sol::lib::math );
@@ -155,8 +152,8 @@ bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::st
         // check if it's successfully loaded
         if (!lr.valid()) {
             sol::error err = lr;
-            logger_base.info("LuaRunner: Script is Invalid: %s.", (const char*)filepath.c_str());
-            logger_base.info("LuaRunner: Error: %s.", err.what());
+            LOG_INFO("LuaRunner: Script is Invalid: %s.", (const char*)filepath.c_str());
+            LOG_INFO("LuaRunner: Error: %s.", err.what());
             wxMessageBox("Script is Invalid: " + filepath + "\n\n" + err.what(), "Load Script Error", wxOK);
             return false;
         }
@@ -165,15 +162,15 @@ bool LuaRunner::Run_Script(wxString const& filepath, std::function<void (std::st
         // check if it was done properly
         if (!result2.valid()) {
             sol::error err2 = result2;
-            logger_base.info("LuaRunner: Error Running Script: %s.", (const char*)filepath.c_str());
-            logger_base.info("LuaRunner: Error: %s.", err2.what());
+            LOG_INFO("LuaRunner: Error Running Script: %s.", (const char*)filepath.c_str());
+            LOG_INFO("LuaRunner: Error: %s.", err2.what());
             SendResponse(err2.what());
             wxMessageBox("Error Running Script: " + filepath + "\n\n" + err2.what(), "Script Error", wxOK);
             return false;
         }
     } catch (std::exception& e) {
-        logger_base.info("LuaRunner: Throw Running Script: %s.", (const char*)filepath.c_str());
-        logger_base.info("LuaRunner: Error: %s.", e.what());
+        LOG_INFO("LuaRunner: Throw Running Script: %s.", (const char*)filepath.c_str());
+        LOG_INFO("LuaRunner: Error: %s.", e.what());
         SendResponse(e.what());
         wxMessageBox(e.what(), "Error", wxOK);
         return false;
@@ -219,17 +216,13 @@ sol::object LuaRunner::RunCommand(std::string const& cmd, std::map<std::string, 
     return JSONToTable(_frame->ProcessxlDoAutomation(CommandtoString(cmd, parms)), thislua);
 }
 
-wxString LuaRunner::JSONtoString(wxJSONValue const& json) const
-{
-    wxJSONWriter writer(wxJSONWRITER_NONE, 0, 0);
-    wxString p;
-    writer.Write(json, p);
-    return p;
+std::string LuaRunner::JSONtoString(nlohmann::json const& p) const {
+
+    return p.dump(3);
 }
 
-wxString LuaRunner::CommandtoString(std::string const& cmd, std::map<std::string, std::string> const& parms) const
-{
-    wxJSONValue cmds;
+std::string LuaRunner::CommandtoString(std::string const& cmd, std::map<std::string, std::string> const& parms) const {
+    nlohmann::json cmds;
     cmds["cmd"] = cmd;
     for (auto const&[key, value] : parms) {
         cmds[key] = value;
@@ -239,29 +232,24 @@ wxString LuaRunner::CommandtoString(std::string const& cmd, std::map<std::string
 
 sol::object LuaRunner::JSONToTable(std::string const& json, sol::this_state s) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     sol::state_view lua = s;
-    wxJSONValue val;
-    wxJSONReader reader;
-    if (reader.Parse(wxString(json), &val) == 0) {
+    try {
+        nlohmann::json val = nlohmann::json::parse(json);
         return getObjectType(val, lua);
-    }
-    logger_base.info("LuaRunner: Could not Parse JSON: %s.", (const char*)json.c_str());
+    } catch (std::exception){}
+    
+    LOG_INFO("LuaRunner: Could not Parse JSON: %s.", (const char*)json.c_str());
     return sol::make_object(lua, json);
 }
 
 std::string LuaRunner::TableToJSON(sol::object const& item) const
 {
-    wxJSONValue json;
+    nlohmann::json json;
     ObjectToJSON(item, json);
-    wxString str;
-    wxJSONWriter writer(wxJSONWRITER_NONE, 0, 3);
-    writer.Write(json, str);
-    return str.ToStdString();
+    return json.dump(3);
 }
 
-void LuaRunner::ObjectToJSON(sol::object const& items, wxJSONValue &json) const
-{
+void LuaRunner::ObjectToJSON(sol::object const& items, nlohmann::json& json) const {
     if (items.get_type() == sol::type::table) {
         for (auto const& it : items.as<sol::table>()) {
             auto key = it.first.as<std::string>();
@@ -288,47 +276,43 @@ void LuaRunner::ObjectToJSON(sol::object const& items, wxJSONValue &json) const
     }
 }
 
-sol::object LuaRunner::getObjectType(wxJSONValue const& val, sol::state_view lua) const
-{
-    if (val.IsString()) {
-        return sol::make_object(lua, val.AsString().ToStdString());
+sol::object LuaRunner::getObjectType(nlohmann::json const& val, sol::state_view lua) const {
+    if (val.is_string()) {
+        return sol::make_object(lua, val.get<std::string>());
     }
-    if (val.IsInt()) {
-        return sol::make_object(lua, val.AsInt());
+    if (val.is_number_integer()) {
+        return sol::make_object(lua, val.get<int>());
     }
-    if (val.IsLong()) {
-        return sol::make_object(lua, val.AsLong());
+
+    if (val.is_number_float()) {
+        return sol::make_object(lua, val.get<float>());
     } 
-    if (val.IsDouble()) {
-        return sol::make_object(lua, val.AsDouble());
+    if (val.is_boolean()) {
+        return sol::make_object(lua, val.get<bool>());
     } 
-    if (val.IsBool()) {
-        return sol::make_object(lua,val.AsBool());
-    } 
-    if (val.IsArray()) {
+    if (val.is_array()) {
         sol::table arry = lua.create_table();
-        for (int x = 0; x < val.Size(); x++) {
-            arry[x] = getObjectType(val.ItemAt(x), lua);
+        for (int x = 0; x < val.size(); x++) {
+            arry[x] = getObjectType(val.at(x), lua);
         }
         return arry;
     } 
-    if (val.IsObject()) {
+    if (val.is_object()) {
         sol::table obj = lua.create_table();
-        for (const auto& it : val.GetMemberNames()) {
-            obj[it.ToStdString()] = getObjectType(val.ItemAt(it), lua);
+        for (auto [nn, item] : val.items()) {
+            obj[nn] = getObjectType(item, lua);
         }
         return obj;
     }
     return sol::make_object(lua, nullptr);
 }
 
-wxArrayString LuaRunner::getArrayString(sol::object const& items) const
-{
-    wxArrayString itemList;
+std::vector<std::string> LuaRunner::getArrayString(sol::object const& items) const {
+    std::vector<std::string> itemList;
     if (items.get_type() == sol::type::table) {
         for (auto const& it : items.as<sol::table>()) {
             if (it.second.get_type() == sol::type::string) {
-                itemList.Add(it.second.as<std::string>());
+                itemList.emplace_back(it.second.as<std::string>());
             }
         }
     } else if (items.get_type() == sol::type::userdata) {

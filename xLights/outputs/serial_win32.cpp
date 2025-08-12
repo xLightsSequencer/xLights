@@ -49,10 +49,8 @@ int SerialPort::Close() {
 // return 0 on success, negative value on error
 int SerialPort::Open(const std::string& devName, int baudRate, const char* protocol) {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (strlen(protocol) != 3) {
-        logger_base.error("Illegal protocol %s -> returning -1.", protocol);
+        LOG_ERROR("Illegal protocol %s -> returning -1.", protocol);
         return -1;
     }
 
@@ -67,7 +65,7 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
     _devName = devName;
 
     if(_fd == INVALID_HANDLE_VALUE) {
-        logger_base.error("File creation failed opening serial port %s -> returning -1.", devName.c_str());
+        LOG_ERROR("File creation failed opening serial port %s -> returning -1.", devName.c_str());
         return -1;
     }
 
@@ -150,7 +148,7 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
     // wordlen, valid values are 5,6,7,8
     dcb.ByteSize = protocol[0] - '0';
     if (!SetCommState(_fd, &dcb)) {
-        logger_base.error("Failed to set Comm State DevName: %s BaudRate: %d Protocol: %s -> returning -2.", (const char*) devName.c_str(), baudRate, protocol);
+        LOG_ERROR("Failed to set Comm State DevName: %s BaudRate: %d Protocol: %s -> returning -2.", (const char*) devName.c_str(), baudRate, protocol);
         return -2;
     }
 
@@ -163,13 +161,13 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
                             NULL); // LPTSTR lpszEventName
 
     if (_ov.hEvent == INVALID_HANDLE_VALUE) {
-        logger_base.error("Failed to create event for overlapped I/O DevName: %s -> returning -3.", (const char *) devName.c_str());
+        LOG_ERROR("Failed to create event for overlapped I/O DevName: %s -> returning -3.", (const char *) devName.c_str());
         return -3;
     }
 
     COMMTIMEOUTS cto = {MAXDWORD,0,0,0,0};
     if (!SetCommTimeouts(_fd, &cto)) {
-        logger_base.info("Failed to set Comm timeouts DevName %s -> returning -5.", (const char *) devName.c_str());
+        LOG_INFO("Failed to set Comm timeouts DevName %s -> returning -5.", (const char*)devName.c_str());
         return -5;
     }
 
@@ -189,13 +187,11 @@ bool SerialPort::IsOpen() {
 #pragma region Read and Write
 int SerialPort::AvailableToRead() {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     // Get and clear current errors on the port.
     COMSTAT comStat;
     DWORD   dwErrors;
     if (!ClearCommError(_fd, &dwErrors, &comStat)) {
-        logger_base.error("Failed to clear Comm error.");
+        LOG_ERROR("Failed to clear Comm error.");
 
         // Report error in ClearCommError.
         return 0;
@@ -206,13 +202,11 @@ int SerialPort::AvailableToRead() {
 
 int SerialPort::WaitingToWrite() {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    
     // Get and clear current errors on the port.
     COMSTAT comStat;
     DWORD   dwErrors;
     if (!ClearCommError(_fd, &dwErrors, &comStat)) {
-        logger_base.error("Failed to clear Comm error.");
+        LOG_ERROR("Failed to clear Comm error.");
         // Report error in ClearCommError.
         return 0;
     }
@@ -222,14 +216,12 @@ int SerialPort::WaitingToWrite() {
 
 int SerialPort::Read(char* buf, size_t len) {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     DWORD read;
     if (!ReadFile(_fd, buf, len, &read, &_ov)) {
         // if we use a asynchrone reading, ReadFile always gives FALSE
         // ERROR_IO_PENDING means ok, other values show an error
         if(GetLastError() != ERROR_IO_PENDING) {
-            logger_base.error("Error reading from serial port %d.", GetLastError());
+            LOG_ERROR("Error reading from serial port %d.", GetLastError());
             // oops..., error in communication
             return -1;
         }
@@ -261,12 +253,10 @@ void SerialPort::SetRTS(bool state) {
 
 int SerialPort::Write(char* buf, size_t len) {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     DWORD write;
     if (!WriteFile(_fd, buf, len, &write, &_ov)) {
         if(GetLastError() != ERROR_IO_PENDING) {
-            logger_base.error("Error writing to serial port %d.", GetLastError());
+            LOG_ERROR("Error writing to serial port %d.", GetLastError());
             return -1;
         }
     }
@@ -279,17 +269,15 @@ int SerialPort::Write(char* buf, size_t len) {
 
 int SerialPort::SendBreak() {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (!SetCommBreak(_fd)) {
-        logger_base.error("Error setting commport break.");
+        LOG_ERROR("Error setting commport break.");
         return -1;
     }
 
     wxMilliSleep(1);
 
     if (!ClearCommBreak(_fd)) {
-        logger_base.error("Error clearing commport break.");
+        LOG_ERROR("Error clearing commport break.");
         return -1;
     }
 
@@ -299,12 +287,10 @@ int SerialPort::SendBreak() {
 
 int SerialPort::Purge() {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    
-    logger_base.debug("Purging commport");
+    LOG_DEBUG("Purging commport");
 
     if (PurgeComm(_fd, PURGE_RXCLEAR | PURGE_TXCLEAR) == 0) {
-        logger_base.error("Error purging commport 0x%lx.", (long)GetLastError());
+        LOG_ERROR("Error purging commport 0x%lx.", (long)GetLastError());
         return -1;
     }
 

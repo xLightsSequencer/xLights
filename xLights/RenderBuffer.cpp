@@ -26,7 +26,7 @@
 #include "GPURenderUtils.h"
 #include "BufferPanel.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include "Parallel.h"
 
 template <class CTX>
@@ -401,7 +401,7 @@ void DrawingContext::Clear()
 }
 
 void PathDrawingContext::Clear() {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (gc != nullptr) {
         delete gc;
@@ -412,7 +412,7 @@ void PathDrawingContext::Clear() {
 
     if (gc == nullptr)
     {
-        logger_base.error("PathDrawingContext DC creation failed.");
+        LOG_ERROR("PathDrawingContext DC creation failed.");
         return;
     }
 
@@ -450,8 +450,8 @@ void TextDrawingContext::Clear()
 #endif
 
     if (gc == nullptr) {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.error("TextDrawingContext DC creation failed.");
+        
+        LOG_ERROR("TextDrawingContext DC creation failed.");
         return;
     }
 
@@ -603,9 +603,9 @@ const wxFontInfo& TextDrawingContext::GetTextFont(const std::string& FontString)
     FontMapLock locker;
 
     if (FONT_MAP_TXT.find(FontString) == FONT_MAP_TXT.end()) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
         if (!FontString.empty()) {
-            logger_base.debug("Loading font %s.", (const char*)FontString.c_str());
+            LOG_DEBUG("Loading font %s.", (const char*)FontString.c_str());
             wxFont font(FontString);
             font.SetNativeFontInfoUserDesc(FontString);
 
@@ -626,7 +626,7 @@ const wxFontInfo& TextDrawingContext::GetTextFont(const std::string& FontString)
             info.AntiAliased(false);
             info.Encoding(font.GetEncoding());
             FONT_MAP_TXT[FontString] = info;
-            logger_base.debug("    Added to font map.");
+            LOG_DEBUG("    Added to font map.");
         } else {
             wxFontInfo info(wxSize(0, 12));
             info.AntiAliased(false);

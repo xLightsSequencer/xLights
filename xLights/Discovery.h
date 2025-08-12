@@ -17,8 +17,10 @@
 #include <map>
 #include <curl/curl.h>
 
+#include <nlohmann/json.hpp>
+
 #include "outputs/ControllerEthernet.h"
-#include "../xSchedule/wxJSON/jsonval.h"
+//#include "../xSchedule/wxJSON/jsonval.h"
 #include <wx/secretstore.h>
 #include <set>
 
@@ -103,7 +105,7 @@ public:
     std::string password;
     bool canZipUpload = false;
 
-    wxJSONValue extraData;
+    nlohmann::json extraData;
 };
 
 class Discovery

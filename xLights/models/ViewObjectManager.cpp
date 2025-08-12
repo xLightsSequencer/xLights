@@ -19,7 +19,7 @@
 #include "TerrianObject.h"
 #include "xLightsMain.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 ViewObjectManager::ViewObjectManager(xLightsFrame* xl) : xlights(xl)
 {
@@ -185,7 +185,7 @@ void ViewObjectManager::Delete(const std::string &name) {
 
 bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     bool changed = false;
 
     wxXmlDocument doc;
@@ -217,7 +217,7 @@ bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool promp
                 if (o->HasAttribute("FromBase")) o->DeleteAttribute("FromBase");
                 o->AddAttribute("FromBase", "1");
                 createAndAddObject(new wxXmlNode(*o));
-                logger_base.debug("Adding object from base show folder: '%s'.", (const char*)name.c_str());
+                LOG_DEBUG("Adding object from base show folder: '%s'.", (const char*)name.c_str());
             } else {
                 bool force = false;
                 if (prompt && !curr->IsFromBase()) {
@@ -232,10 +232,10 @@ bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool promp
                         changed = true;
                         Delete(name);
                         createAndAddObject(new wxXmlNode(*o));
-                        logger_base.debug("Updating object from base show folder: '%s'.", (const char*)name.c_str());
+                        LOG_DEBUG("Updating object from base show folder: '%s'.", (const char*)name.c_str());
                     }
                 } else {
-                    logger_base.debug("Object '%s' NOT updated from base show folder as it never came from there.", (const char*)name.c_str());
+                    LOG_DEBUG("Object '%s' NOT updated from base show folder as it never came from there.", (const char*)name.c_str());
                 }
             }
         }

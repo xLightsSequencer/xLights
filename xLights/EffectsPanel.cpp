@@ -32,7 +32,7 @@
 #include "xLightsMain.h"
 #include "sequencer/MainSequencer.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 //(*IdInit(EffectsPanel)
 const long EffectsPanel::ID_CHOICEBOOK1 = wxNewId();

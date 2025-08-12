@@ -11,7 +11,7 @@
 #include <wx/wx.h>
 
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 
 #include "../common/xlBaseApp.h"
@@ -260,22 +260,22 @@ unsigned char* SequenceData::AllocBlock(size_t requested, size_t& szAllocated, B
 }
 
 unsigned char *SequenceData::checkBlockPtr(unsigned char *block, size_t sizeRemaining) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxASSERT(block != nullptr); // if this fails then we have a memory allocation error
     if (block == nullptr) {
-        logger_base.crit("Error allocating memory for frame data. Frames=%d, Channels=%d, Memory=%zu.", _numFrames, _numChannels, sizeRemaining);
-        logger_base.crit("***** THIS IS GOING TO CRASH *****");
+        LOG_CRIT("Error allocating memory for frame data. Frames=%d, Channels=%d, Memory=%zu.", _numFrames, _numChannels, sizeRemaining);
+        LOG_CRIT("***** THIS IS GOING TO CRASH *****");
         wxString settings = wxString::Format("Frames=%d, Channels=%d, Memory=%ld.", _numFrames, _numChannels, sizeRemaining);
         DisplayError("Bad news ... xLights is about to crash because it could not get memory it needed. If you are running 32 bit xLights then moving to 64 bit will probably fix this. Alternatively look to reduce memory usage by shortening sequences and/or reducing channels.\n" + settings);
     } else {
-        logger_base.debug("Memory allocated for frame data. Block=%d, Frames=%d, Channels=%d, Memory=%zu.", _dataBlocks.size(), _numFrames, _numChannels, sizeRemaining);
+        LOG_DEBUG("Memory allocated for frame data. Block=%d, Frames=%d, Channels=%d, Memory=%zu.", _dataBlocks.size(), _numFrames, _numChannels, sizeRemaining);
     }
     return block;
 }
 
 void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsigned int frameTime, bool roundto4)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     Cleanup();
     if (roundto4) {
         _numChannels = roundTo4(numChannels);
@@ -308,7 +308,7 @@ void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsign
         }
     }
     else {
-        logger_base.debug("Sequence memory released.");
+        LOG_DEBUG("Sequence memory released.");
     }
     _invalidFrame._data = (unsigned char*)calloc(1, _bytesPerFrame);
     _invalidFrame._numChannels = _numChannels;

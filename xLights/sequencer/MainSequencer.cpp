@@ -30,7 +30,7 @@
 #include "../effects/RenderableEffect.h"
 #include "../graphics/xlGraphicsBase.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 //(*IdInit(MainSequencer)
 const wxWindowID MainSequencer::ID_CHOICE_VIEW_CHOICE = wxNewId();
@@ -231,8 +231,8 @@ END_EVENT_TABLE()
 
 MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("                Creating main sequencer");
+    
+    LOG_DEBUG("                Creating main sequencer");
 
     //(*Initialize(MainSequencer)
     wxFlexGridSizer* FlexGridSizer1;
@@ -309,7 +309,7 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     CheckBox_SuspendRender->SetFont(fnt);
 #endif
 
-    logger_base.debug("                Create time display control");
+    LOG_DEBUG("                Create time display control");
     timeDisplay = new TimeDisplayControl(this, wxID_ANY);
     FlexGridSizer2->Add(timeDisplay, 1, wxALL |wxEXPAND, 0);
     FlexGridSizer2->AddGrowableRow(3);
@@ -326,10 +326,10 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     _savedTopModel = "";
     mParent = parent;
 
-    logger_base.debug("                Set handlers");
+    LOG_DEBUG("                Set handlers");
     SetHandlers(this);
 
-    logger_base.debug("                Load key bindings");
+    LOG_DEBUG("                Load key bindings");
     keyBindings.LoadDefaults();
     mCanUndo = false;
     mPasteByCell = false;
@@ -337,7 +337,7 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     SetName("MainSequencer");
     // ReSharper restore CppVirtualFunctionCallInsideCtor
 
-    logger_base.debug("                Initialise touch bar");
+    LOG_DEBUG("                Initialise touch bar");
 #ifdef __XLIGHTS_HAS_TOUCHBARS__
     touchBarSupport.Init(this);
 #endif
@@ -524,7 +524,7 @@ void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
 
 bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
 {
-    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (mSequenceElements != nullptr) {
 
@@ -731,11 +731,11 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
                     mSequenceElements->GetXLightsFrame()->SetStatusText(wxString::Format("Speed now set %.2f ", t - 0.25));
                 }
             } else if (type == "PLAY_PRIOR_TAG") {
-                logger_base.debug("play prior tag");
+                LOG_DEBUG("play prior tag");
                 wxCommandEvent playEvent(EVT_SEQUENCE_PRIOR_TAG);
                 wxPostEvent(mSequenceElements->GetXLightsFrame(), playEvent);
             } else if (type == "PLAY_NEXT_TAG") {
-                logger_base.debug("play next tag");
+                LOG_DEBUG("play next tag");
                 wxCommandEvent playEvent(EVT_SEQUENCE_NEXT_TAG);
                 wxPostEvent(mSequenceElements->GetXLightsFrame(), playEvent);
             }
@@ -842,7 +842,7 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
 
             }
             else {
-                logger_base.warn("Keybinding '%s' not recognised.", (const char*)type.c_str());
+                LOG_WARN("Keybinding '%s' not recognised.", (const char*)type.c_str());
                 wxASSERT(false);
                 return false;
             }
@@ -1308,7 +1308,7 @@ void MainSequencer::GetPresetData(wxString& copy_data)
 }
 
 bool MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     bool effectsPresent = false;
 
@@ -1368,7 +1368,7 @@ bool MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
                     {
                         if (tel == nullptr)
                         {
-                            logger_base.crit("MainSequencer::GetSelectedEffectsData tel is nullptr ... this is going to crash.");
+                            LOG_CRIT("MainSequencer::GetSelectedEffectsData tel is nullptr ... this is going to crash.");
                         }
 
                         if( tel->HitTestEffectByTime(ef->GetStartTimeMS()+1,start_column) )
@@ -1386,16 +1386,16 @@ bool MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
                             {
                                 if (tel == nullptr)
                                 {
-                                    logger_base.crit("MainSequencer::GetSelectedEffectsData tel is nullptr ... this is going to crash.");
+                                    LOG_CRIT("MainSequencer::GetSelectedEffectsData tel is nullptr ... this is going to crash.");
                                 }
 
                                 if (te_start->GetEndTimeMS() == te_start->GetStartTimeMS()) {
-                                    logger_base.crit("MainSequencer::GetSelectedEffectsData start effect start and end time is the same ... this is going to crash.");
+                                    LOG_CRIT("MainSequencer::GetSelectedEffectsData start effect start and end time is the same ... this is going to crash.");
                                 }
                                 int start_pct = ((ef->GetStartTimeMS() - te_start->GetStartTimeMS()) * 100) / (te_start->GetEndTimeMS() - te_start->GetStartTimeMS());
 
                                 if (te_end->GetEndTimeMS() == te_end->GetStartTimeMS()) {
-                                    logger_base.crit("MainSequencer::GetSelectedEffectsData end effect start and end time is the same ... this is going to crash.");
+                                    LOG_CRIT("MainSequencer::GetSelectedEffectsData end effect start and end time is the same ... this is going to crash.");
                                 }
                                 int end_pct = ((ef->GetEndTimeMS() - te_end->GetStartTimeMS()) * 100) / (te_end->GetEndTimeMS() - te_end->GetStartTimeMS());
                                 int start_index;
@@ -1439,7 +1439,7 @@ bool MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
 }
 
 bool MainSequencer::GetACEffectsData(wxString& copy_data) {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     bool effectsPresent = false;
 
@@ -1515,7 +1515,7 @@ bool MainSequencer::GetACEffectsData(wxString& copy_data) {
                         {
                             if (tel == nullptr)
                             {
-                                logger_base.crit("MainSequencer::GetSelectedEffectsData tel is nullptr ... this is going to crash.");
+                                LOG_CRIT("MainSequencer::GetSelectedEffectsData tel is nullptr ... this is going to crash.");
                             }
 
                             int start_pct = ((adj_start_time - te_start->GetStartTimeMS()) * 100) / (te_start->GetEndTimeMS() - te_start->GetStartTimeMS());
@@ -1799,7 +1799,7 @@ void MainSequencer::InsertTimingMarkFromRange()
 
 void MainSequencer::SplitTimingMark()
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     int x1;
     int x2;
@@ -1829,7 +1829,7 @@ void MainSequencer::SplitTimingMark()
 
         if (el == nullptr)
         {
-            logger_base.crit("MainSequencer::SplitTimingMark el is nullptr ... this is going to crash.");
+            LOG_CRIT("MainSequencer::SplitTimingMark el is nullptr ... this is going to crash.");
         }
 
         int index1, index2;

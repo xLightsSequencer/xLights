@@ -28,7 +28,7 @@
 #include "ControllerCaps.h"
 #include "../UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #pragma region MinleonString Handling
 class MinleonString
@@ -41,9 +41,9 @@ public:
 	int _startChannel = 0;
     void Dump(int startUniverse) const {
 
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
         if (startUniverse == -1) {
-            logger_base.debug("    Port %02d Tees %d %s Nodes %d Start %d",
+            LOG_DEBUG("    Port %02d Tees %d %s Nodes %d Start %d",
                 _port + 1,
                 _tees,
                 (const char*)(_reverse ? _("REVERSE") : _("")).c_str(),
@@ -52,7 +52,7 @@ public:
             );
         }
         else {
-            logger_base.debug("    Port %02d Tees %d %s Nodes %d Start %d (Universe %d, Start Channel %d)",
+            LOG_DEBUG("    Port %02d Tees %d %s Nodes %d Start %d (Universe %d, Start Channel %d)",
                 _port + 1,
                 _tees,
                 (const char*)(_reverse ? _("REVERSE") : _("")).c_str(),
@@ -117,8 +117,8 @@ void Minleon::ParseStringPorts(std::vector<MinleonString*>& stringPorts, wxJSONV
 
 void Minleon::InitialiseStrings(std::vector<MinleonString*>& stringsData, int max) const {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Filling in missing strings.");
+    
+    LOG_DEBUG("Filling in missing strings.");
 
     std::vector<MinleonString*> newStringsData;
 
@@ -134,7 +134,7 @@ void Minleon::InitialiseStrings(std::vector<MinleonString*>& stringsData, int ma
             MinleonString* string = new MinleonString();
             string->_port = i;
             newStringsData.push_back(string);
-            logger_base.debug("    Added default string to port %d.", i + 1);
+            LOG_DEBUG("    Added default string to port %d.", i + 1);
         }
     }
     stringsData = newStringsData;
@@ -285,9 +285,9 @@ void Minleon::SetTimingsFromProtocol()
 
 void Minleon::PostURL(const std::string& url, const std::string& data) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     auto response = Curl::HTTPSPost("http://" + _ip + url, data);
-    logger_base.debug("%s", (const char*)response.c_str());
+    LOG_DEBUG("%s", (const char*)response.c_str());
 }
 
 int Minleon::GetMax8PortPixels(const std::string& chip) const
@@ -313,7 +313,7 @@ int Minleon::GetMax16PortPixels(const std::string& chip) const
 #pragma region Port Handling
 void Minleon::UploadNDBPro(bool reboot)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     int universe = 0;
     if (_startUniverse != -1)
         universe = _startUniverse;
@@ -341,14 +341,14 @@ void Minleon::UploadNDBPro(bool reboot)
     }
     data += "]}";
 
-    logger_base.debug("%s", (const char*)data.c_str());
+    LOG_DEBUG("%s", (const char*)data.c_str());
 
     PostURL("/api/config", data);
 }
 
 void Minleon::UploadNDB(bool reboot)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     int universe = 0;
     if (_startUniverse != -1)
@@ -393,7 +393,7 @@ void Minleon::UploadNDB(bool reboot)
         send += it.first + "=" + it.second;
     }
 
-    logger_base.debug((const char*)send.c_str());
+    LOG_DEBUG((const char*)send.c_str());
 
     PostURL("/00.html", send);
 
@@ -414,7 +414,7 @@ void Minleon::UploadNDB(bool reboot)
 void Minleon::UploadNDPPlus(bool reboot)
 {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     SetTimingsFromProtocol();
 
@@ -480,7 +480,7 @@ void Minleon::UploadNDPPlus(bool reboot)
         send += it.first + "=" + it.second;
     }
 
-    logger_base.debug((const char*)send.c_str());
+    LOG_DEBUG((const char*)send.c_str());
 
     PostURL("/00.html", send);
 
@@ -564,33 +564,33 @@ std::string Minleon::DecodeInputProtocol(int protocol) const {
 Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::string& forceLocalIP) :
     BaseController(ip, proxy)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _version = "";
     _protocol = "";
     _startUniverse = -1;
     _ports = 0;
 
-    logger_base.debug("Connecting to Minleon on %s.", (const char*)_ip.c_str());
+    LOG_DEBUG("Connecting to Minleon on %s.", (const char*)_ip.c_str());
 
-    logger_base.debug("Getting minleon status.");
+    LOG_DEBUG("Getting minleon status.");
 
 #ifdef USEDDP
     auto status = DDPOutput::Query(_ip, DDP_ID_STATUS, forceLocalIP);
     if (!status.IsNull()) {
         _protocol = "DDP";
         _version = status["status"]["ver"].AsString();
-        logger_base.debug("   Version: %s", (const char*)_version.c_str());
-        logger_base.debug("   Manufacturer: %s", (const char*)status["status"]["man"].AsString().c_str());
-        logger_base.debug("   Model: %s", (const char*)status["status"]["mod"].AsString().c_str());
-        logger_base.debug("   Push: %s", (const char*)status["status"]["push"].AsString().c_str());
-        logger_base.debug("   MAC: %s", (const char*)status["status"]["mac"].AsString().c_str());
+        LOG_DEBUG("   Version: %s", (const char*)_version.c_str());
+        LOG_DEBUG("   Manufacturer: %s", (const char*)status["status"]["man"].AsString().c_str());
+        LOG_DEBUG("   Model: %s", (const char*)status["status"]["mod"].AsString().c_str());
+        LOG_DEBUG("   Push: %s", (const char*)status["status"]["push"].AsString().c_str());
+        LOG_DEBUG("   MAC: %s", (const char*)status["status"]["mac"].AsString().c_str());
 
-        logger_base.debug("Getting minleon status.");
+        LOG_DEBUG("Getting minleon status.");
         auto config = DDPOutput::Query(_ip, DDP_ID_CONFIG);
         _ports = config["config"]["ports"].AsArray()->Count();
         ParseStringPorts(_stringPorts, config["config"]["ports"]);
-        logger_base.debug("Downloaded string data.");
+        LOG_DEBUG("Downloaded string data.");
         DumpStringData(_stringPorts, -1);
         _connected = true;
     } else {
@@ -600,21 +600,21 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
         if (html == "") {
             html = GetURL("/psys.html");
         }
-        logger_base.debug("/:\n%s", (const char*)html.c_str());
+        LOG_DEBUG("/:\n%s", (const char*)html.c_str());
         //</script>NDB+ v2.2
         //<p><form>
         wxRegEx extractVersion("\\/script>([^<\r\n]*)(\r|\n|<)", wxRE_ADVANCED | wxRE_NEWLINE);
         if (extractVersion.Matches(wxString(html))) {
             _version = extractVersion.GetMatch(wxString(html), 1).ToStdString();
-            logger_base.debug("Firmware version : %s", (const char*)_version.c_str());
+            LOG_DEBUG("Firmware version : %s", (const char*)_version.c_str());
         } else {
-            logger_base.debug("Firmware version : Unable to determine.");
+            LOG_DEBUG("Firmware version : Unable to determine.");
         }
 
         std::string configJSON = GetURL("/01.html");
 
         if (configJSON == "" || configJSON == "This URI does not exist") {
-            logger_base.warn("    Error retrieving 01.html from Minleon controller.");
+            LOG_WARN("    Error retrieving 01.html from Minleon controller.");
 
             configJSON = GetURL("/api/config");
 
@@ -622,7 +622,7 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
 
                 // it may be an original NDB
                 if (ParseNDBHTML(html, 4) != "") {
-                    logger_base.info("    Original NDB.");
+                    LOG_INFO("    Original NDB.");
                     _nm = ParseNDBHTML(html, 4) + "." + ParseNDBHTML(html, 5) + "." + ParseNDBHTML(html, 6) + "." + ParseNDBHTML(html, 7);
                     _gw = ParseNDBHTML(html, 8) + "." + ParseNDBHTML(html, 9) + "." + ParseNDBHTML(html, 10) + "." + ParseNDBHTML(html, 11);
                     if (ParseNDBHTML(html, 12) == "1") {
@@ -643,7 +643,7 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
                     }
                     _ndbOrig = true;
                 } else {
-                    logger_base.warn("    Error retrieving api/config from Minleon controller.");
+                    LOG_WARN("    Error retrieving api/config from Minleon controller.");
                     _connected = false;
                     return;
                 }
@@ -651,10 +651,10 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
 
             _ndbPro = true;
 
-            logger_base.debug("api/config:\n%s", (const char*)configJSON.c_str());
+            LOG_DEBUG("api/config:\n%s", (const char*)configJSON.c_str());
 
         } else {
-            logger_base.debug("01.html:\n%s", (const char*)configJSON.c_str());
+            LOG_DEBUG("01.html:\n%s", (const char*)configJSON.c_str());
         }
 
         if (!_ndbOrig) {
@@ -712,10 +712,10 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
             ParseStringPorts(_stringPorts, val["config"]["ports"]);
         }
 
-        logger_base.debug("Downloaded string data.");
+        LOG_DEBUG("Downloaded string data.");
         DumpStringData(_stringPorts, _startUniverse);
 
-        logger_base.debug("Connected to Minleon %s", (const char*)_version.c_str());
+        LOG_DEBUG("Connected to Minleon %s", (const char*)_version.c_str());
 #ifdef USEDDP
     }
 #endif
@@ -752,11 +752,11 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Minleon Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+    
+    LOG_DEBUG("Minleon Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
 
     progress.Update(0, "Scanning models");
-    logger_base.info("Scanning models.");
+    LOG_INFO("Scanning models.");
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
@@ -775,7 +775,7 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
         _stringPorts.clear();
     }
 
-    logger_base.debug(check);
+    LOG_DEBUG(check);
     cud.Dump();
 
     bool reboot = false;
@@ -888,7 +888,7 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
                 success = false;
             }
 
-            logger_base.debug("Minleon port data prepared.");
+            LOG_DEBUG("Minleon port data prepared.");
             DumpStringData(_stringPorts, _startUniverse);
 
             progress.Update(10, "Port data prepared.");
@@ -903,7 +903,7 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
             check = ""; // to suppress double display
         }
 
-        logger_base.info("Uploading string ports.");
+        LOG_INFO("Uploading string ports.");
         UploadNDPPlus(reboot);
     }
     else {
@@ -914,7 +914,7 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
     }
 
     progress.Update(100, "Done.");
-    logger_base.info("Minleon upload done.");
+    LOG_INFO("Minleon upload done.");
 
     return success;
 }

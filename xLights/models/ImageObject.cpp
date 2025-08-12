@@ -18,7 +18,7 @@
 #include "xLightsMain.h"
 #include "../ExternalHooks.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 ImageObject::ImageObject(wxXmlNode *node, const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), _imageFile(""), width(1), height(1), transparency(0), brightness(100.0f)
@@ -112,14 +112,14 @@ int ImageObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
 bool ImageObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
     if( !IsActive() ) { return true; }
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     bool exists = false;
 
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
 
     if (_images.find(preview->GetName().ToStdString()) == _images.end()) {
         if (FileExists(_imageFile)) {
-            logger_base.debug("Loading image model %s file %s for preview %s.",
+            LOG_DEBUG("Loading image model %s file %s for preview %s.",
                 (const char *)GetName().c_str(),
                 (const char *)_imageFile.c_str(),
                 (const char *)preview->GetName().c_str());

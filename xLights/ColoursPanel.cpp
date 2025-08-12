@@ -25,7 +25,7 @@
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 //(*IdInit(ColoursPanel)
 const long ColoursPanel::ID_SCROLLEDWINDOW1 = wxNewId();
@@ -80,8 +80,7 @@ int ColoursPanel::UpdateButtons()
 
 void ColoursPanel::ProcessColourCurveDir(wxDir& directory, bool subdirs)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("ColoursPanel Scanning directory for *.xcc files: %s.", (const char*)directory.GetNameWithSep().c_str());
+    LOG_INFO("ColoursPanel Scanning directory for *.xcc files: %s.", (const char*)directory.GetNameWithSep().c_str());
 
     int count = 0;
 
@@ -96,10 +95,10 @@ void ColoursPanel::ProcessColourCurveDir(wxDir& directory, bool subdirs)
             cc.SetId("ID_BUTTON_PaletteX");
             AddColour(cc.Serialise());
         } else {
-            logger_base.warn("ColoursPanel::ProcessColourCurveDir Unable to load " + fn.GetFullPath());
+            LOG_WARNWX("ColoursPanel::ProcessColourCurveDir Unable to load " + fn.GetFullPath());
         }
     }
-    logger_base.info("    Found %d.", count);
+    LOG_INFO("    Found %d.", count);
 
     if (subdirs) {
         wxString filename;
@@ -114,8 +113,7 @@ void ColoursPanel::ProcessColourCurveDir(wxDir& directory, bool subdirs)
 
 void ColoursPanel::ProcessPaletteDir(wxDir& directory, bool subdirs)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("ColoursPanel Scanning directory for *.xpalette files: %s.", (const char*)directory.GetNameWithSep().c_str());
+    LOG_INFO("ColoursPanel Scanning directory for *.xpalette files: %s.", (const char*)directory.GetNameWithSep().c_str());
 
     int count = 0;
 
@@ -133,11 +131,11 @@ void ColoursPanel::ProcessPaletteDir(wxDir& directory, bool subdirs)
                     if (it != "") AddColour(it);
                 }
             } else {
-                logger_base.warn("ColoursPanel::ProcessPaletteDir Unable to load " + fn.GetFullPath());
+                LOG_WARNWX("ColoursPanel::ProcessPaletteDir Unable to load " + fn.GetFullPath());
             }
         }
     }
-    logger_base.info("    Found %d.", count);
+    LOG_INFO("    Found %d.", count);
 
     if (subdirs) {
         wxString filename;
@@ -181,7 +179,7 @@ void ColoursPanel::ParsePalette(const std::string& pal)
 
 void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (reload) {
         _colours.clear();
@@ -216,7 +214,7 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
     }
     else
     {
-        logger_base.info("Directory for *.xcc files not found: %s.", (const char*)d.c_str());
+        LOG_INFO("Directory for *.xcc files not found: %s.", (const char*)d.c_str());
     }
 
     d = GetPaletteFolder(xLightsFrame::CurrentDir.ToStdString());
@@ -227,7 +225,7 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
     }
     else
     {
-        logger_base.info("Directory for *.xpalette files not found: %s.", (const char*)d.c_str());
+        LOG_INFO("Directory for *.xpalette files not found: %s.", (const char*)d.c_str());
     }
 
     wxStandardPaths stdp = wxStandardPaths::Get();
@@ -244,7 +242,7 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
     }
     else
     {
-        logger_base.info("Directory for *.xcc files not found: %s.", (const char*)d.c_str());
+        LOG_INFO("Directory for *.xcc files not found: %s.", (const char*)d.c_str());
     }
 
 #ifndef __WXMSW__
@@ -259,7 +257,7 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
     }
     else
     {
-        logger_base.info("Directory for *.xpalette files not found: %s.", (const char*)d.c_str());
+        LOG_INFO("Directory for *.xpalette files not found: %s.", (const char*)d.c_str());
     }
 
     if (xlights != nullptr)

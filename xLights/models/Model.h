@@ -129,7 +129,7 @@ public:
     bool RenameController(const std::string& oldName, const std::string& newName);
     virtual std::string GetFullName() const { return name; }
     void Rename(std::string const& newName);
-    int GetNumStrings() const { return parm1; }
+    virtual long GetNumStrings() const { return parm1; }
     PIXEL_STYLE GetPixelStyle() const { return _pixelStyle; }
     void SetPixelStyle(PIXEL_STYLE style);
     static std::string GetPixelStyleDescription(PIXEL_STYLE pixelStyle);
@@ -619,14 +619,14 @@ public:
         return "";
     }
 
-    static std::string StartChanAttrName(int idx)
+    virtual std::string StartChanAttrName(int idx) const
     {
         return std::string("String") + std::to_string(idx + 1); // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
     }
     // returns true for models that only have 1 string and where parm1 does NOT represent the # of strings
     static bool HasOneString(const std::string& DispAs)
     {
-        return (DispAs == "Window Frame" || DispAs == "Custom" || DispAs == "Cube");
+        return (DispAs == "Window Frame" /* || DispAs == "Custom"*/ || DispAs == "Cube");
     }
     // true for dumb strings and traditional strings
     bool HasSingleNode(const std::string& StrType) const

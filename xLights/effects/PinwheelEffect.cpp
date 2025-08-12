@@ -20,7 +20,7 @@
 #include "../../include/pinwheel-32.xpm"
 #include "../../include/pinwheel-48.xpm"
 #include "../../include/pinwheel-64.xpm"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #include "../Parallel.h"
 
@@ -303,7 +303,7 @@ void PinwheelEffect::Draw_arm(RenderBuffer& buffer,
     int base_degrees, int max_radius, int pinwheel_twist,
     int xc_adj, int yc_adj, int colorIdx, PinwheelEffect::Pinwheel3DType pw3dType, float round)
 {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //
     float pi_180 = (float)M_PI / 180.0f;
 
     int xc = buffer.BufferWi / 2;

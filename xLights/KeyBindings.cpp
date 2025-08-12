@@ -16,7 +16,7 @@
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #pragma region Constants
 
@@ -493,7 +493,7 @@ KeyBinding::KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool
 {
     _id = __nextid++;
 
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxASSERT(KeyBindingTypes.size() > 0); // this can fail if someone reorders the constant creation so catch it
     auto it = std::find_if(begin(KeyBindingTypes), end(KeyBindingTypes), [type](const auto& kbt) { return kbt.first == type; });
@@ -502,7 +502,7 @@ KeyBinding::KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool
         wxASSERT(false);
         _disabled = true;
         _scope = KBSCOPE::Invalid;
-        logger_base.error("Keybinding type '%s' not recognised", (const char *)type.c_str());
+        LOG_ERROR("Keybinding type '%s' not recognised", (const char *)type.c_str());
     } else {
         _scope = it->second;
     }
@@ -519,7 +519,7 @@ KeyBinding::KeyBinding(const std::string& k, bool disabled, const std::string& t
 {
     _id = __nextid++;
 
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _key = DecodeKey(k);
     if (_key == WXK_NONE) _disabled = true;
@@ -530,7 +530,7 @@ KeyBinding::KeyBinding(const std::string& k, bool disabled, const std::string& t
         wxASSERT(false);
         _disabled = true;
         _scope = KBSCOPE::Invalid;
-        logger_base.error("Keybinding type '%s' not recognised", (const char *)type.c_str());
+        LOG_ERROR("Keybinding type '%s' not recognised", (const char *)type.c_str());
     } else {
         _scope = it->second;
     }
@@ -733,7 +733,7 @@ std::string KeyBinding::EncodeKey(wxKeyCode key, bool shift) noexcept
 
 wxKeyCode KeyBinding::DecodeKey(std::string key) noexcept
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::transform(key.begin(), key.end(), key.begin(), ::toupper);
     if (key == "") {
@@ -861,7 +861,7 @@ wxKeyCode KeyBinding::DecodeKey(std::string key) noexcept
     }
 
     if (key.size() != 1) {
-        logger_base.error("KeyBinding decode key failed to decode '%s'. Taking the first character.", (const char *)key.c_str());
+        LOG_ERROR("KeyBinding decode key failed to decode '%s'. Taking the first character.", (const char *)key.c_str());
     }
 
     return static_cast<wxKeyCode>(static_cast<int8_t>(key[0]));
@@ -996,20 +996,20 @@ bool KeyBinding::IsDuplicateKey(const KeyBinding& b) const
 #pragma region KeyBindingMap
 void KeyBindingMap::LoadDefaults() noexcept
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Loading default keybindings.");
+    
+    LOG_DEBUG("Loading default keybindings.");
 
     _bindings = DefaultBindings;
 }
 
 void KeyBindingMap::Load(const wxFileName &fileName) noexcept
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _openedFile = fileName; // even if the file does not exist I assume this is where we want to save it
 
     if (FileExists(fileName)) {
-        logger_base.debug("Loading keybindings.");
+        LOG_DEBUG("Loading keybindings.");
         wxXmlDocument doc;
         if (doc.Load(fileName.GetFullPath())) {
             _bindings.clear();
@@ -1072,7 +1072,7 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
                     bool rctrl = false;
                     bool alt = false;
                     bool shift = false;
-                    logger_base.debug("Adding essential keybinding %s.", (const char *)type.c_str());
+                    LOG_DEBUG("Adding essential keybinding %s.", (const char *)type.c_str());
                     std::string k = KeyBinding::ParseKey(key, ctrl, alt, shift, rctrl);
                     _bindings.emplace_back(KeyBinding(k, false, type, ctrl, alt, shift, rctrl));
                 }
@@ -1087,15 +1087,15 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
                 if (type != "EFFECT" && type != "PRESET" && type != "APPLYSETTING") {
                     bool found = std::find_if(begin(_bindings), end(_bindings), [type](const KeyBinding& b) {return b.GetType() == type; }) != _bindings.end();
                     if (!found) {
-                        logger_base.debug("Adding missing keybinding %s.", (const char *)type.c_str());
+                        LOG_DEBUG("Adding missing keybinding %s.", (const char *)type.c_str());
                         _bindings.emplace_back(KeyBinding(WXK_NONE, true, type, false, false, false, false));
                     }
                 }
             }
         }
-        logger_base.debug("Keybindings loaded.");
+        LOG_DEBUG("Keybindings loaded.");
     } else {
-        logger_base.debug("Keybinding file not found, Creating Default File.");
+        LOG_DEBUG("Keybinding file not found, Creating Default File.");
         Save();
     }
 
@@ -1133,9 +1133,9 @@ void KeyBindingMap::DeleteKey(int id)
 
 void KeyBindingMap::Save(const wxFileName &fileName) const noexcept
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    logger_base.debug("Saving keybindings.");
+    LOG_DEBUG("Saving keybindings.");
 
     wxXmlDocument doc;
     wxXmlNode *root = new wxXmlNode(wxXML_ELEMENT_NODE, "keybindings");
@@ -1145,8 +1145,8 @@ void KeyBindingMap::Save(const wxFileName &fileName) const noexcept
     for (const auto& binding : _bindings) {
         wxKeyCode key = binding.GetKey();
         if (binding.GetType() == "TIMING_ADD" && (key == WXK_NONE || KeyBinding::EncodeKey(key, binding.RequiresShift()) == "")) {
-            logger_base.debug("TIMING_ADD: " + binding.Description());
-            logger_base.warn("Your keybindings appear corrupt. Resetting key bindings.");
+            LOG_DEBUG("TIMING_ADD: " + binding.Description());
+            LOG_WARN("Your keybindings appear corrupt. Resetting key bindings.");
             corrupt = true;
             break;
         }
@@ -1190,38 +1190,38 @@ void KeyBindingMap::Save(const wxFileName &fileName) const noexcept
     }
     doc.Save(fileName.GetFullPath());
 
-    logger_base.debug("Keybindings saved.");
+    LOG_DEBUG("Keybindings saved.");
 }
 
 std::string KeyBindingMap::Dump() const noexcept
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::string res;
-    logger_base.debug("Dumping key map");
-    logger_base.debug("Scope: Everywhere");
+    LOG_DEBUG("Dumping key map");
+    LOG_DEBUG("Scope: Everywhere");
     for (const auto& b : _bindings) {
         if (b.InScope(KBSCOPE::All) && !b.IsDisabled()) {
             auto s = b.Description();
-            logger_base.debug("    %s", (const char*)s.c_str());
+            LOG_DEBUG("    %s", (const char*)s.c_str());
             res += s + "\n";
         }
     }
-    logger_base.debug("Scope: Layout");
+    LOG_DEBUG("Scope: Layout");
     res += "\n";
     for (const auto& b : _bindings) {
         if (b.InScope(KBSCOPE::Layout) && !b.IsDisabled()) {
             auto s = b.Description();
-            logger_base.debug("    %s", (const char*)s.c_str());
+            LOG_DEBUG("    %s", (const char*)s.c_str());
             res += s + "\n";
         }
     }
-    logger_base.debug("Scope: Sequencer");
+    LOG_DEBUG("Scope: Sequencer");
     res += "\n";
     for (const auto& b : _bindings) {
         if (b.InScope(KBSCOPE::Sequence) && !b.IsDisabled()) {
             auto s = b.Description();
-            logger_base.debug("    %s", (const char*)s.c_str());
+            LOG_DEBUG("    %s", (const char*)s.c_str());
             res += s + "\n";
         }
     }
@@ -1251,7 +1251,7 @@ bool KeyBindingMap::IsDuplicateKey(const KeyBinding& b) const
 
 std::shared_ptr<const KeyBinding> KeyBindingMap::Find(const wxKeyEvent& event, KBSCOPE scope) const noexcept
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
 
     wxKeyCode key = static_cast<wxKeyCode>(event.GetKeyCode());
@@ -1270,7 +1270,7 @@ std::shared_ptr<const KeyBinding> KeyBindingMap::Find(const wxKeyEvent& event, K
                 ) &&
             b.InScope(scope)) {
             // Once we get through a couple of releases and i know i am not getting crashes as a result of these i can comment this out
-            logger_base.debug("Keybinding fired: %s %s", (const char *)b.GetType().c_str(), (const char *)b.GetEffectName().c_str());
+            LOG_DEBUG("Keybinding fired: %s %s", (const char *)b.GetType().c_str(), (const char *)b.GetEffectName().c_str());
             return std::make_shared<const KeyBinding>(b);
         }
     }

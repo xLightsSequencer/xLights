@@ -26,7 +26,7 @@
 #endif
 #include "ExternalHooks.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include <wx/mimetype.h>
 #include <wx/stdpaths.h>
 #include <wx/txtstrm.h>
@@ -142,7 +142,7 @@ void ScriptsDialog::OnListRClick(wxContextMenuEvent& event)
 
 void ScriptsDialog::OnPopup(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (event.GetId() == ID_MCU_VIEWSCRIPT) {
         int sel = ListBoxScripts->GetSelection();
         if (sel == wxNOT_FOUND) {
@@ -164,7 +164,7 @@ void ScriptsDialog::OnPopup(wxCommandEvent& event)
             wxUnsetEnv("LD_PRELOAD");
             wxExecute(command);
         } else {
-            logger_base.warn("Unable to open script as no program can open the file %s.", (const char*)filePath.c_str());
+            LOG_WARN("Unable to open script as no program can open the file %s.", (const char*)filePath.c_str());
         }
     }else if (event.GetId() == ID_MCU_VIEWSCRIPTFOLDER) {
         int sel = ListBoxScripts->GetSelection();
@@ -185,7 +185,7 @@ void ScriptsDialog::OnListBoxScriptsDClick(wxCommandEvent& event)
 void ScriptsDialog::LoadScriptDir()
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxString scriptFolder = _runner->GetUserScriptFolder();
 
@@ -194,12 +194,12 @@ void ScriptsDialog::LoadScriptDir()
     }
     _scripts.clear();
 
-    logger_base.info("Scanning User Script folder: %s", (const char*)scriptFolder.c_str());
+    LOG_INFO("Scanning User Script folder: %s", (const char*)scriptFolder.c_str());
     if (wxDir::Exists(scriptFolder)) {
         ProcessScriptDir(scriptFolder);
     }
 
-    logger_base.info("Scanning System Script folder: %s", (const char*)scriptFolder.c_str());
+    LOG_INFO("Scanning System Script folder: %s", (const char*)scriptFolder.c_str());
     scriptFolder = LuaRunner::GetSystemScriptFolder();
     if (wxDir::Exists(scriptFolder)) {
         ProcessScriptDir(scriptFolder);
@@ -261,13 +261,13 @@ void ScriptsDialog::Run_Selected_Script()
 void ScriptsDialog::Run_Lua_Script(wxString const& filepath) const
 {
     wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
 
     auto LogMessage = [&](std::string const& message) {
         TextCtrl_Log->AppendText(message);
         TextCtrl_Log->AppendText("\n");
-        logger_base.info("%s", (const char*)message.c_str());
+        LOG_INFO("%s", (const char*)message.c_str());
     };
     _runner->Run_Script(filepath, LogMessage);
 }
@@ -276,13 +276,13 @@ void ScriptsDialog::Run_Python_Script(wxString const& filepath) const
 {
 #if defined(PYTHON_RUNNER)
     wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
 
     auto LogMessage = [&](std::string const& message) {
         TextCtrl_Log->AppendText(message);
         TextCtrl_Log->AppendText("\n");
-        logger_base.info("%s", (const char*)message.c_str());
+        LOG_INFO("%s", (const char*)message.c_str());
     };
     _pyrunner->Run_Script(filepath, LogMessage);
 #endif
@@ -293,14 +293,15 @@ void ScriptsDialog::OnButton_DownloadClick(wxCommandEvent& event)
     //https://api.github.com/repos/xLightsSequencer/xLights/contents/scripts
     std::string json_data = Curl::HTTPSGet(R"(https://api.github.com/repos/xLightsSequencer/xLights/contents/scripts)");
     std::vector<std::pair<wxString, wxString>> scripts = std::vector<std::pair<wxString, wxString>>();
-    wxJSONValue val;
-    wxJSONReader reader;
-    if (reader.Parse(wxString(json_data), &val) == 0) {
-        if (val.IsArray()) {
-            for (int x = 0; x < val.Size(); x++) {
-                auto name = val.ItemAt(x).Get("name", "").AsString();
-                auto link = val.ItemAt(x).Get("download_url", "").AsString();
-                auto type = val.ItemAt(x).Get("type", "").AsString();
+    nlohmann::json val = nlohmann::json::parse(json_data);
+
+    //if (reader.Parse(wxString(json_data), &val) == 0)
+    {
+        if (val.is_array()) {
+            for (int x = 0; x < val.size(); x++) {
+                auto name = val.at(x).at("name").get<std::string>();
+                auto link = val.at(x).at("download_url").get<std::string>();
+                auto type = val.at(x).at("type").get<std::string>();
                 if (!name.empty() && !link.empty() && type == "file") {
                     scripts.emplace_back(name, link);
                 }

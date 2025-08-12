@@ -17,7 +17,7 @@
 
 #include "UpdaterDialog.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 //(*IdInit(UpdaterDialog)
 const long UpdaterDialog::ID_UPDATELABEL = wxNewId();
@@ -69,8 +69,8 @@ UpdaterDialog::~UpdaterDialog()
 
 void UpdaterDialog::OnButtonDownloadNewRelease(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("User has chosen to upgrade to version %s. URL: %s",
+    
+    LOG_DEBUG("User has chosen to upgrade to version %s. URL: %s",
         (const char *)urlVersion.c_str(), (const char *)downloadUrl.c_str());
     wxLaunchDefaultBrowser(downloadUrl);
     wxConfigBase* config = wxConfigBase::Get();
@@ -80,8 +80,8 @@ void UpdaterDialog::OnButtonDownloadNewRelease(wxCommandEvent& event)
 
 void UpdaterDialog::OnButtonUpdateSkipClick(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("User has chosen to skip upgrade to version %s.", (const char *)urlVersion.c_str());
+    
+    LOG_DEBUG("User has chosen to skip upgrade to version %s.", (const char *)urlVersion.c_str());
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("SkipVersion","");
     EndDialog(wxID_CANCEL);
@@ -89,8 +89,8 @@ void UpdaterDialog::OnButtonUpdateSkipClick(wxCommandEvent& event)
 
 void UpdaterDialog::OnButtonUpdateIgnoreClick(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("User has chosen to ignore upgrade to version %s.", (const char *)urlVersion.c_str());
+    
+    LOG_DEBUG("User has chosen to ignore upgrade to version %s.", (const char *)urlVersion.c_str());
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("SkipVersion", urlVersion);
     EndDialog(wxID_CLOSE);

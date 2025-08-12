@@ -39,7 +39,7 @@
 #include "outputs/ControllerEthernet.h"
 #include "outputs/Output.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include <cmath>
 
 #include <xlsxwriter.h>
@@ -391,13 +391,17 @@ public:
     {
         if (_type == PORTTYPE::PIXEL) {
             return _cud->GetControllerPixelPort(_port);
-        } else if (_type == PORTTYPE::SERIAL) {
+        } 
+        if (_type == PORTTYPE::SERIAL) {
             return _cud->GetControllerSerialPort(_port);
-        } else if (_type == PORTTYPE::VIRTUAL_MATRIX) {
+        } 
+        if (_type == PORTTYPE::VIRTUAL_MATRIX) {
             return _cud->GetControllerVirtualMatrixPort(_port);
-        } else if (_type == PORTTYPE::PANEL_MATRIX) {
+        } 
+        if (_type == PORTTYPE::PANEL_MATRIX) {
             return _cud->GetControllerLEDPanelMatrixPort(_port);
-        } else if (_type == PORTTYPE::PWM) {
+        } 
+        if (_type == PORTTYPE::PWM) {
             return _cud->GetControllerPWMPort(_port);
         }
         return nullptr;
@@ -412,16 +416,18 @@ public:
         return ((_port - 1) / 4) * 4 + 1;
     }
 
-    int GetMaxPortChannels() const
-    {
-        if (_caps == nullptr)
+    int GetMaxPortChannels() const {
+        if (_caps == nullptr) {
             return 9999999;
+        }
 
         if (_type == PORTTYPE::PIXEL) {
             return _caps->GetMaxPixelPortChannels();
-        } else if (_type == PORTTYPE::SERIAL) {
+        } 
+        if (_type == PORTTYPE::SERIAL) {
             return _caps->GetMaxSerialPortChannels();
-        } else if (_type == PORTTYPE::PWM) {
+        } 
+        if (_type == PORTTYPE::PWM) {
             return 2;
         }
         return 9999999;
@@ -467,8 +473,8 @@ public:
             }
         }
 
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("HITY port %d %d-%d %s", _port, _location.y, _location.y + totaly, (mouse.y >= _location.y && mouse.y <= _location.y + totaly) ? "HIT" : "");
+        
+        LOG_DEBUG("HITY port %d %d-%d %s", _port, _location.y, _location.y + totaly, (mouse.y >= _location.y && mouse.y <= _location.y + totaly) ? "HIT" : "");
 
         return (mouse.y >= _location.y &&
                 mouse.y <= _location.y + totaly);
@@ -678,7 +684,8 @@ public:
                 }
             }
             return true;
-        } else if (id == ControllerModelDialog::CONTROLLER_MOVEMODELSTOPORT) {
+        } 
+        if (id == ControllerModelDialog::CONTROLLER_MOVEMODELSTOPORT) {
             int max = _caps->GetMaxPixelPort();
             if (_type == PORTTYPE::SERIAL)
                 max = _caps->GetMaxSerialPort();
@@ -722,7 +729,8 @@ public:
                 }
             }
             return true;
-        } else if (id == ControllerModelDialog::CONTROLLER_PROTOCOL) {
+        }
+        if (id == ControllerModelDialog::CONTROLLER_PROTOCOL) {
             wxArrayString choices;
             if (_caps != nullptr) {
                 if (_type == PORTTYPE::PIXEL) {
@@ -769,7 +777,8 @@ public:
                 }
             }
             return true;
-        } else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTETYPE) {
+        } 
+        if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTETYPE) {
             if (_caps != nullptr) {
                 wxArrayString choices;
                 auto types = _caps->GetSmartRemoteTypes();
@@ -793,13 +802,15 @@ public:
                 }
                 return true;
             }
-        } else if (id == ControllerModelDialog::CONTROLLER_REMOVESMARTREMOTE) {
+        } 
+        if (id == ControllerModelDialog::CONTROLLER_REMOVESMARTREMOTE) {
             int basePort = GetBasePort();
             for (uint8_t p = 0; p < 4; ++p) {
                 _cud->GetControllerPixelPort(basePort + p)->ClearSmartRemoteOnAllModels();
             }
             return true;
-        } else if (id == ControllerModelDialog::CONTROLLER_SETSMARTREMOTE) {
+        } 
+        if (id == ControllerModelDialog::CONTROLLER_SETSMARTREMOTE) {
             wxArrayString choices;
             int sr_count = _caps->GetSmartRemoteCount();
             if (_caps->GetVendor() == "HinksPix") {
@@ -1910,7 +1921,7 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     _mm(mm),
     _xLights((xLightsFrame*)parent)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     //(*Initialize(ControllerModelDialog)
     wxBoxSizer* BoxSizer1;
@@ -2039,7 +2050,7 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     SplitterWindow1->SetSashPosition(1000);
 
     if (_cud == nullptr) {
-        logger_base.crit("ControllerModelDialog created with no ControllerUploadData ... this is not going to end well.");
+        LOG_CRIT("ControllerModelDialog created with no ControllerUploadData ... this is not going to end well.");
     }
 
     wxConfigBase* config = wxConfigBase::Get();
@@ -2529,7 +2540,7 @@ void ControllerModelDialog::ReloadModels()
 
 void ControllerModelDialog::OnPopupCommand(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     int id = event.GetId();
     if (id == CONTROLLERModel_PRINT) {
@@ -2540,7 +2551,7 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent& event)
         if (wxMessageBox("Are you sure You want to remove all the models from this Controller?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
             return;
         }
-        logger_base.debug("removing all models from controller.");
+        LOG_DEBUG("removing all models from controller.");
         for (const auto& it : _controllers) {
             ModelCMObject* m = dynamic_cast<ModelCMObject*>(it);
             if (m != nullptr && m->GetModel() != nullptr) {
@@ -2952,29 +2963,27 @@ void ControllerModelDialog::DropModelFromModelsPaneOnModel(ModelCMObject* droppe
 
 void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::string& name, wxPanel* target)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     auto m = _mm->GetModel(name);
     if (m == nullptr) {
-        logger_base.debug("Model '%s' was dropped from models but it could not be found.", (const char*)name.c_str());
+        LOG_DEBUG("Model '%s' was dropped from models but it could not be found.", (const char*)name.c_str());
         _lastDropped = nullptr;
         ClearOver(PanelController, _controllers);
         return;
     }
 
-    logger_base.debug("Model '%s' dropped from models pane.", (const char*)name.c_str());
+    LOG_DEBUG("Model '%s' dropped from models pane.", (const char*)name.c_str());
 
     // model dragged from models
     if (target == PanelModels) {
         // do nothing
-        logger_base.debug("   onto the models pane ... nothing to do.");
+        LOG_DEBUG("   onto the models pane ... nothing to do.");
     } else {
-        logger_base.debug("    onto the controller pane.");
+        LOG_DEBUG("    onto the controller pane.");
 
         auto port = GetControllerPortAtLocation(location);
         auto sr = GetControllerSRAtLocation();
         if (port != nullptr) {
-            logger_base.debug("    onto port %d.", port->GetPort());
+            LOG_DEBUG("    onto port %d.", port->GetPort());
             m->SetControllerPort(port->GetPort());
             if (port->GetPortType() == PortCMObject::PORTTYPE::PIXEL) {
                 if (port->GetModelCount() == 0) {
@@ -3047,7 +3056,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
             if (mob == nullptr || !mob->IsMain()) {
                 if (sr != nullptr) {
                     // dropped on a sr
-                    logger_base.debug("    Processing it as a drop onto the SR ... so setting it to end.");
+                    LOG_DEBUG("    Processing it as a drop onto the SR ... so setting it to end.");
 
                     if (_autoLayout) {
                         UDControllerPortModel* lastModel = nullptr;
@@ -3061,7 +3070,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                         }
                     }
                 } else {
-                    logger_base.debug("    Processing it as a drop onto the port ... so setting it to end.");
+                    LOG_DEBUG("    Processing it as a drop onto the port ... so setting it to end.");
 
                     // dropped on a port .. or not on the first string of a model
                     // If no model already there put it at the beginning ... else chain it to end
@@ -3091,14 +3100,14 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                 }
             } else {
                 Model* droppedOn = _mm->GetModel(mob->GetName());
-                logger_base.debug("    Dropped onto model %s.", (const char*)droppedOn->GetName().c_str());
+                LOG_DEBUG("    Dropped onto model %s.", (const char*)droppedOn->GetName().c_str());
 
                 // dropped on a model
                 if (_autoLayout) {
                     m->SetSmartRemote(droppedOn->GetSmartRemote());
                     if (hit == BaseCMObject::HITLOCATION::LEFT) {
-                        logger_base.debug("    On the left hand side.");
-                        logger_base.debug("    Left of %s which comes after %s.", (const char*)droppedOn->GetName().c_str(), (const char*)droppedOn->GetModelChain().c_str());
+                        LOG_DEBUG("    On the left hand side.");
+                        LOG_DEBUG("    Left of %s which comes after %s.", (const char*)droppedOn->GetName().c_str(), (const char*)droppedOn->GetModelChain().c_str());
                         if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
                             m->SetModelChain("");
                             droppedOn->SetModelChain("");
@@ -3127,13 +3136,13 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                             droppedOn->SetModelChain(">" + m->GetName());
                         }
                     } else {
-                        logger_base.debug("    On the right hand side.");
+                        LOG_DEBUG("    On the right hand side.");
                         Model* next = port->GetUDPort()->GetModelAfter(droppedOn);
                         if (next != nullptr) {
-                            logger_base.debug("    Right of %s which comes before %s.", (const char*)droppedOn->GetName().c_str(), (const char*)next->GetName().c_str());
+                            LOG_DEBUG("    Right of %s which comes before %s.", (const char*)droppedOn->GetName().c_str(), (const char*)next->GetName().c_str());
                             next->SetModelChain(">" + m->GetName());
                         } else {
-                            logger_base.debug("    Right of %s.", (const char*)droppedOn->GetName().c_str());
+                            LOG_DEBUG("    Right of %s.", (const char*)droppedOn->GetName().c_str());
                         }
                         m->SetModelChain(">" + droppedOn->GetName());
 
@@ -3158,7 +3167,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
             }
             _lastDropped = m;
         } else {
-            logger_base.debug("    but not onto a port ... so nothing to do.");
+            LOG_DEBUG("    but not onto a port ... so nothing to do.");
             _lastDropped = nullptr;
         }
 
@@ -3179,7 +3188,6 @@ bool CloseTo(const wxPoint& p1, const wxPoint& p2)
 
 void ControllerModelDialog::DropFromController(const wxPoint& location, const std::string& name, wxPanel* target)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (StartsWith(name, "SR:")) {
         // this is a SR being dropped
@@ -3247,7 +3255,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
         return;
     }
 
-    logger_base.debug("Model %s dropped from controllers pane.", (const char*)name.c_str());
+    LOG_DEBUG("Model %s dropped from controllers pane.", (const char*)name.c_str());
 
     // model dragged from controllers
     auto m = _mm->GetModel(name);
@@ -3261,7 +3269,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
     }
 
     if (target == PanelModels) {
-        logger_base.debug("   onto the models pane ... so remove the model from the controller.");
+        LOG_DEBUG("   onto the models pane ... so remove the model from the controller.");
         // Removing a model from the controller
         if (_autoLayout) {
             // get the model after this model
@@ -3280,12 +3288,12 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
     } else {
         // we only do something if the model was actually moved
         if (!CloseTo(location, _dragStartLocation)) {
-            logger_base.debug("    onto the controller pane.");
+            LOG_DEBUG("    onto the controller pane.");
 
             auto port = GetControllerPortAtLocation(location);
             auto sr = GetControllerSRAtLocation();
             if (port != nullptr) {
-                logger_base.debug("    onto port %d.", port->GetPort());
+                LOG_DEBUG("    onto port %d.", port->GetPort());
                 m->SetControllerPort(port->GetPort());
                 if (sr != nullptr) {
                     m->SetSmartRemote(sr->GetSmartRemote());
@@ -3350,7 +3358,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                 if (mob != nullptr && mob->GetModel() == m) {
                     // dropped onto ourselves ... nothing to do
                 } else if (mob == nullptr || !mob->IsMain()) {
-                    logger_base.debug("    Processing it as a drop onto the port ... so setting it to beginning.");
+                    LOG_DEBUG("    Processing it as a drop onto the port ... so setting it to beginning.");
 
                     // dropped on a port .. or not on the first string of a model
                     // If no model already there put it at the beginning ... else chain it
@@ -3360,7 +3368,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                         // Because we are moving a model already in a chain we need to patch that over first
                         Model* nextfrom = _cud->GetModelAfter(m);
                         if (nextfrom != nullptr) {
-                            logger_base.debug("    Model %s was removed from existing chain so %s now chains to %s", (const char*)m->GetName().c_str(), (const char*)nextfrom->GetName().c_str(), (const char*)m->GetModelChain().c_str());
+                            LOG_DEBUG("    Model %s was removed from existing chain so %s now chains to %s", (const char*)m->GetName().c_str(), (const char*)nextfrom->GetName().c_str(), (const char*)m->GetModelChain().c_str());
                             nextfrom->SetModelChain(m->GetModelChain());
                         }
 
@@ -3397,7 +3405,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                     _lastDropped = m;
                 } else {
                     Model* droppedOn = _mm->GetModel(mob->GetName());
-                    logger_base.debug("    Dropped onto model %s.", (const char*)droppedOn->GetName().c_str());
+                    LOG_DEBUG("    Dropped onto model %s.", (const char*)droppedOn->GetName().c_str());
 
                     // dropped on a model
                     if (_autoLayout) {
@@ -3407,16 +3415,16 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                         if (nextfrom != nullptr) {
                             if ((nextfrom == droppedOn && hit == BaseCMObject::HITLOCATION::LEFT) ||
                                 (">" + droppedOn->GetName() == m->GetModelChain())) {
-                                logger_base.debug("    Model did not actually move.");
+                                LOG_DEBUG("    Model did not actually move.");
                             } else {
-                                logger_base.debug("    Model %s was removed from existing chain so %s now chains to %s", (const char*)m->GetName().c_str(), (const char*)nextfrom->GetName().c_str(), (const char*)m->GetModelChain().c_str());
+                                LOG_DEBUG("    Model %s was removed from existing chain so %s now chains to %s", (const char*)m->GetName().c_str(), (const char*)nextfrom->GetName().c_str(), (const char*)m->GetModelChain().c_str());
                                 nextfrom->SetModelChain(m->GetModelChain());
                             }
                         }
 
                         if (hit == BaseCMObject::HITLOCATION::LEFT) {
-                            logger_base.debug("    On the left hand side.");
-                            logger_base.debug("    Left of %s which comes after %s.", (const char*)droppedOn->GetName().c_str(), (const char*)droppedOn->GetModelChain().c_str());
+                            LOG_DEBUG("    On the left hand side.");
+                            LOG_DEBUG("    Left of %s which comes after %s.", (const char*)droppedOn->GetName().c_str(), (const char*)droppedOn->GetModelChain().c_str());
                             if (droppedOn->GetModelChain() != ">" + m->GetName()) {
                                 m->SetModelChain(droppedOn->GetModelChain());
                                 droppedOn->SetModelChain(">" + m->GetName());
@@ -3449,14 +3457,14 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                                 }
                             }
                         } else {
-                            logger_base.debug("    On the right hand side.");
+                            LOG_DEBUG("    On the right hand side.");
                             if (m->GetModelChain() != ">" + droppedOn->GetName()) {
                                 Model* next = port->GetUDPort()->GetModelAfter(droppedOn);
                                 if (next != nullptr) {
-                                    logger_base.debug("    Right of %s which comes before %s.", (const char*)droppedOn->GetName().c_str(), (const char*)next->GetName().c_str());
+                                    LOG_DEBUG("    Right of %s which comes before %s.", (const char*)droppedOn->GetName().c_str(), (const char*)next->GetName().c_str());
                                     next->SetModelChain(">" + m->GetName());
                                 } else {
-                                    logger_base.debug("    Right of %s.", (const char*)droppedOn->GetName().c_str());
+                                    LOG_DEBUG("    Right of %s.", (const char*)droppedOn->GetName().c_str());
                                 }
                                 m->SetModelChain(">" + droppedOn->GetName());
                                 if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
@@ -3480,7 +3488,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                     }
                 }
             } else {
-                logger_base.debug("    but not onto a port ... so nothing to do.");
+                LOG_DEBUG("    but not onto a port ... so nothing to do.");
             }
         }
     }
@@ -3788,8 +3796,7 @@ void ControllerModelDialog::OnPanelControllerMouseMove(wxMouseEvent& event)
             }
         }
     } else {
-        std::string tt = "";
-
+        std::string tt;
         if (event.GetPosition().x < _controllers.front()->GetRect().GetRight() + 2) {
             for (const auto& it : _controllers) {
                 if (it->GetType() == "PORT") {
@@ -4148,8 +4155,6 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
 
 bool ControllerModelDialog::Scroll(wxPanel* panel, int scrollByX, int scrollByY)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     bool scrolled = false;
 
     // we dont scroll models panel
@@ -4159,9 +4164,9 @@ bool ControllerModelDialog::Scroll(wxPanel* panel, int scrollByX, int scrollByY)
     int maxx = ScrollBar_Controller_H->GetRange();
     int maxy = ScrollBar_Controller_V->GetRange();
 
-    logger_base.debug("Current Scroll Position: %d, %d", ScrollBar_Controller_H->GetThumbPosition(), ScrollBar_Controller_V->GetThumbPosition());
-    logger_base.debug("Scroll Range: %d, %d", maxx, maxy);
-    logger_base.debug("Scroll By: %d, %d", scrollByX, scrollByY);
+    LOG_DEBUG("Current Scroll Position: %d, %d", ScrollBar_Controller_H->GetThumbPosition(), ScrollBar_Controller_V->GetThumbPosition());
+    LOG_DEBUG("Scroll Range: %d, %d", maxx, maxy);
+    LOG_DEBUG("Scroll By: %d, %d", scrollByX, scrollByY);
 
     if (scrollByX > 0 && ScrollBar_Controller_H->GetThumbPosition() < maxx - SCROLLBY) {
         scrolled = true;
@@ -4389,8 +4394,8 @@ void ControllerModelDialog::OnScrollBar_ModelsScrollThumbTrack(wxScrollEvent& ev
 
 void ControllerModelDialog::OnScrollBar_ModelsScrollChanged(wxScrollEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Models Scrollbar: %d", ScrollBar_Models->GetThumbPosition());
+    
+    LOG_DEBUG("Models Scrollbar: %d", ScrollBar_Models->GetThumbPosition());
     PanelModels->Refresh();
 }
 
@@ -4737,7 +4742,7 @@ void ControllerModelDialog::OnSlider_ScaleCmdSliderUpdated(wxScrollEvent& event)
     ReloadModels();
 }
 
-double ControllerModelDialog::getFontSize()
+double ControllerModelDialog::getFontSize() const
 {
     return ScaleWithSystemDPI(GetSystemContentScaleFactor(), Slider_Font_Scale->GetValue());
 }

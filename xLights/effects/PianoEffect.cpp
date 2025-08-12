@@ -22,7 +22,7 @@
 #include "../xLightsXmlFile.h"
 #include "models/Model.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 PianoEffect::PianoEffect(int id) :
     RenderableEffect(id, "Piano", piano_16, piano_64, piano_64, piano_64, piano_64)
@@ -648,13 +648,12 @@ std::tuple<int, int, int>* FindTracker(std::list<std::tuple<int, int, int>>& tra
 
 std::map<int, std::list<std::pair<float, float>>> PianoEffect::LoadTimingTrack(const std::string& track, int intervalMS, bool fadeNotes)
 {
-    static log4cpp::Category& logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
     std::map<int, std::list<std::pair<float, float>>> res;
 
-    logger_pianodata.debug("Loading timings from timing track " + track);
+    LOG_DEBUG("Loading timings from timing track " + track);
 
     if (mSequenceElements == nullptr) {
-        logger_pianodata.debug("No timing tracks found.");
+        LOG_DEBUG("No timing tracks found.");
         return res;
     }
 
@@ -662,7 +661,7 @@ std::map<int, std::list<std::pair<float, float>>> PianoEffect::LoadTimingTrack(c
     EffectLayer* el = GetTiming(track);
 
     if (el == nullptr) {
-        logger_pianodata.debug("Timing track not found.");
+        LOG_DEBUG("Timing track not found.");
         return res;
     }
 

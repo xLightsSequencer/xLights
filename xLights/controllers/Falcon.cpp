@@ -30,7 +30,7 @@
 #include "../outputs/ControllerEthernet.h"
 #include "../outputs/DDPOutput.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include <thread>
 
 #pragma region V4
@@ -48,17 +48,15 @@ std::vector<std::string> Falcon::V4_GetMediaFiles() {
     bool success = true;
     bool done = false;
     int batch = 0;
-    wxJSONValue p(wxJSONTYPE_OBJECT);
+    nlohmann::json p;
     while (!done) {
         bool finalCall;
         int outBatch;
         bool reboot;
-        wxJSONValue outParams;
+        nlohmann::json outParams;
         if (CallFalconV4API("Q", "WV", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
-            const wxJSONInternalArray* parr = outParams["F"].AsArray();
-
-            for (size_t i = 0; i < parr->Count(); i++) {
-                res.push_back(parr->Item(i)["f"].AsString());
+            for (auto item : outParams.at("F").array()) {
+                res.push_back(item["f"].get<std::string>());
             }
 
             batch++;
@@ -79,15 +77,16 @@ bool Falcon::V4_IsFileUploading() {
     bool finalCall;
     int outBatch;
     bool reboot;
-    wxJSONValue p(wxJSONTYPE_OBJECT);
-    wxJSONValue outParams;
+    nlohmann::json p;
+    nlohmann::json outParams;
 
     bool uploading = true;
     if (CallFalconV4API("Q", "WD", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
-        int d = outParams["D"].AsInt();
+        int const d = outParams["D"].get<int>();
 
-        if (d == 1)
+        if (d == 1){
             uploading = false;
+        }
     } else {
         uploading = false;
     }
@@ -100,52 +99,46 @@ int Falcon::V4_GetConversionProgress() {
     bool finalCall;
     int outBatch;
     bool reboot;
-    wxJSONValue p(wxJSONTYPE_OBJECT);
-    wxJSONValue outParams;
+    nlohmann::json p;
+    nlohmann::json outParams;
     if (CallFalconV4API("Q", "WD", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
-        int d = outParams["D"].AsInt();
+        int const d = outParams["D"].get<int>();
 
-        if (d == 1)
+        if (d == 1) {
             return 100;
+        }
+        int const mp3 = outParams["MP3"].get<int>();
 
-        int mp3 = outParams["MP3"].AsInt();
-
-        if (mp3 == 100)
+        if (mp3 == 100) {
             return 99;
-
+        }
         return mp3;
-    } else {
-        return 100;
-    }
+    } 
+    return 100;
+
 }
 
-int Falcon::CallFalconV4API(const std::string& type, const std::string& method, int inbatch, int expected, int index, const wxJSONValue& params, bool& finalCall, int& outbatch, bool& reboot, wxJSONValue& result) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
+int Falcon::CallFalconV4API(const std::string& type, const std::string& method, int inbatch, int expected, int index, const nlohmann::json& params, bool& finalCall, int& outbatch, bool& reboot, nlohmann::json& result) {
     // {"T":"S","M":"IN","B":0,"E":1,"I":0,"P":{"A":[{"u":1,"c":512,"uc":16,"p":"e"}]}}
     // {"R":200,"T":"S","M":"IN","F":1,"B":0,"RB":0,"P":{},"W":"","L":""}
+    auto p = params.dump();
 
-    wxJSONWriter writer(wxJSONWRITER_NONE, 0, 0);
-    wxString p;
-    writer.Write(params, p);
+    std::string const send = wxString::Format("{\"T\":\"%s\",\"M\":\"%s\",\"B\":%d,\"E\":%d,\"I\":%d,\"P\":%s}", type, method, inbatch, expected, index, p).ToStdString();
 
-    std::string send = wxString::Format("{\"T\":\"%s\",\"M\":\"%s\",\"B\":%d,\"E\":%d,\"I\":%d,\"P\":%s}", type, method, inbatch, expected, index, p).ToStdString();
+    std::string const res = SendToFalconV4(send);
 
-    std::string res = SendToFalconV4(send);
+    LOG_DEBUG(res);
 
-    logger_base.debug(res);
-
-    if (res == "")
+    if (res.empty()) {
         return 506;
+    }
 
-    wxJSONValue resJson;
-    wxJSONReader reader;
-    reader.Parse(res, &resJson);
+    nlohmann::json resJson = nlohmann::json::parse(res);
 
-    int resInt = resJson["R"].AsInt();
-    finalCall = resJson["F"].AsInt() == 1;
-    outbatch = resJson["B"].AsInt();
-    reboot = resJson["RB"].AsInt() == 1;
+    int const resInt = resJson["R"].get<int>();
+    finalCall = resJson["F"].get<int>() == 1;
+    outbatch = resJson["B"].get<int>();
+    reboot = resJson["RB"].get<int>() == 1;
     result = resJson["P"];
 
     return resInt;
@@ -158,22 +151,16 @@ bool Falcon::V4_GetInputs(std::vector<FALCON_V4_INPUTS>& res) {
     bool success = true;
     bool done = false;
     int batch = 0;
-    wxJSONValue p(wxJSONTYPE_OBJECT);
+    nlohmann::json p;
     while (!done) {
         bool finalCall;
         int outBatch;
         bool reboot;
-        wxJSONValue outParams;
+        nlohmann::json outParams;
         if (CallFalconV4API("Q", "IN", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
-            const wxJSONInternalArray* parr = outParams["A"].AsArray();
 
-            for (size_t i = 0; i < parr->Count(); i++) {
-                FALCON_V4_INPUTS input;
-                input.universe = parr->Item(i)["u"].AsInt();
-                input.channels = parr->Item(i)["c"].AsInt();
-                input.universeCount = parr->Item(i)["uc"].AsInt();
-                input.protocol = parr->Item(i)["p"].AsString() == "e" ? 0 : 1;
-                res.push_back(input);
+            for (auto const& inpj : outParams["A"].array()) {
+                res.emplace_back(inpj);
             }
 
             batch++;
@@ -214,13 +201,11 @@ bool Falcon::V4_SendInputs(std::vector<FALCON_V4_INPUTS>& res, bool& reboot) {
 
         params += "]}";
 
-        wxJSONValue p;
-        wxJSONReader reader;
-        reader.Parse(params, &p);
+        nlohmann::json p = nlohmann::json::parse(params);
 
         bool finalCall;
         int outBatch;
-        wxJSONValue outParams;
+        nlohmann::json outParams;
         if (CallFalconV4API("S", "IN", batch, res.size(), batch * FALCON_V4_SEND_INPUT_BATCH_SIZE, p, finalCall, outBatch, reboot, outParams) == 200) {
             ++batch;
         } else {
@@ -239,13 +224,10 @@ bool Falcon::V4_SendBoardMode(int boardMode, int controllerMode, unsigned long s
     bool success = true;
 
     std::string params = wxString::Format("{\"B\":%d,\"O\":%d,\"ps\":%lu}", boardMode, controllerMode, startChannel - 1).ToStdString();
-    wxJSONValue p;
-    wxJSONReader reader;
-    reader.Parse(params, &p);
-
+    nlohmann::json p = nlohmann::json::parse(params);
     bool finalCall;
     int outBatch;
-    wxJSONValue outParams;
+    nlohmann::json outParams;
     if (CallFalconV4API("S", "BM", 0, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
     } else {
         success = false;
@@ -254,28 +236,29 @@ bool Falcon::V4_SendBoardMode(int boardMode, int controllerMode, unsigned long s
     return success;
 }
 
-bool Falcon::V4_GetStatus(wxJSONValue& res) {
+bool Falcon::V4_GetStatus(nlohmann::json& res) {
     // {"T":"Q","M":"ST","B":0,"E":0,"I":0,"P":{}}
     // {"R":200,"T":"Q","RB":0,"F":0,"B":0,"M":"ST","P":{"SD":"D","I":"192.168.0.124","K":"255.255.255.0","G":"192.168.0.1","D":"198.153.192.50","U":284,"N":"Falcon_F16V4","O":0,"BR":16,"V":"F16V4 v1.00","WI":"10.124.0.1","WK":"255.255.255.0","WG":"0.0.0.0","WD":"0.0.0.0","WSD":"D","WS":"","WP":"","CP":""},"W":" ","L":""}
     // {"T":"Q","M":"ST","B":1,"E":0,"I":0,"P":{}}
     // {"R":200,"T":"Q","RB":0,"F":1,"B":1,"M":"ST","P":{"sm":0,"su":0,"ssc":0,"sr":250000,"T1":341,"T2":327,"V1":115,"V2":111,"PT":380,"FN":2550,"UC":16,"C":"02-fe-00-18-00-3b","P":16,"S":0,"A":0,"B":0,"UG":{"s":"00000001","v":"1.1","d":"v11.zip"},"FW":2,"TG":"255.255.255.255","DP":10000,"DM":3,"DL":4,"SY":"N","PR":"N","Z":65535,"BT":6,"ps":0,"NT":"time.nist.gov","TZ":0,"DST":"N","IN":"Y","FS":32,"BS":50,"DT":"2021-04-17","TM":"04:12:48","CC":16777215},"W":" ","L":""}
 
     bool success = true;
-    for (const auto& n : res.GetMemberNames()) {
-        res.Remove(n);
-    }
+    //for (const auto& n : res.GetMemberNames()) {
+    //    res.Remove(n);
+    //}
+    res.clear();
 
     bool done = false;
     int batch = 0;
-    wxJSONValue p(wxJSONTYPE_OBJECT);
+    nlohmann::json p;
     while (!done) {
         bool finalCall;
         int outBatch;
         bool reboot;
-        wxJSONValue outParams;
+        nlohmann::json outParams;
         if (CallFalconV4API("Q", "ST", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
-            for (const auto& n : outParams.GetMemberNames()) {
-                res[n] = wxJSONValue(outParams[n]);
+            for (const auto& n : outParams) {
+                res[n] = nlohmann::json(outParams[n]);
             }
 
             ++batch;
@@ -283,9 +266,10 @@ bool Falcon::V4_GetStatus(wxJSONValue& res) {
                 done = true;
         } else {
             done = true;
-            for (const auto& n : res.GetMemberNames()) {
-                res.Remove(n);
-            }
+            //for (const auto& n : res.GetMemberNames()) {
+            //    res.Remove(n);
+            //}
+            res.clear();
             success = false;
         }
     }
@@ -300,14 +284,14 @@ bool Falcon::V4_SetSerialConfig(int protocol, int universe, int startChannel, in
     bool success = true;
 
     std::string params = wxString::Format("{\"sm\":%d,\"su\":%d,\"ssc\":%d,\"sr\":%d}", protocol, universe, startChannel, rate).ToStdString();
-    wxJSONValue p;
-    wxJSONReader reader;
-    reader.Parse(params, &p);
+    nlohmann::json p = nlohmann::json::parse(params);
+    //wxJSONReader reader;
+    //reader.Parse(params, &p);
 
     bool finalCall;
     int outBatch;
     bool reboot;
-    wxJSONValue outParams;
+    nlohmann::json outParams;
     if (CallFalconV4API("S", "SE", 0, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
     } else {
         success = false;
@@ -317,7 +301,7 @@ bool Falcon::V4_SetSerialConfig(int protocol, int universe, int startChannel, in
 }
 
 void Falcon::V4_GetStartChannel(int modelUniverse, int modelUniverseStartChannel, unsigned long modelStartChannel, int& universe, unsigned long& startChannel, bool oneBased, uint32_t controllerFirstChannel) {
-    if (_v4status["A"].AsInt() == 0) {
+    if (_v4status["A"].get<int>() == 0) {
         universe = 0;
         startChannel = modelStartChannel - 1;
         if (oneBased)
@@ -329,7 +313,7 @@ void Falcon::V4_GetStartChannel(int modelUniverse, int modelUniverseStartChannel
 }
 
 bool Falcon::V4_IsValidStartChannel(Controller* controller, int universe, long startChannel) {
-    if (_v4status["A"].AsInt() == 0) {
+    if (_v4status["A"].get<int>() == 0) {
         if (universe != 0)
             return false;
         if (startChannel < 0 || startChannel >= controller->GetChannels())
@@ -352,37 +336,16 @@ bool Falcon::V4_GetStrings(std::vector<FALCON_V4_STRING>& res) {
     bool success = true;
     bool done = false;
     int batch = 0;
-    wxJSONValue p(wxJSONTYPE_OBJECT);
+    nlohmann::json p;
     while (!done) {
         bool finalCall;
         int outBatch;
         bool reboot;
-        wxJSONValue outParams;
+        nlohmann::json outParams;
         if (CallFalconV4API("Q", "SP", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
-            const wxJSONInternalArray* parr = outParams["A"].AsArray();
-
-            for (size_t i = 0; i < parr->Count(); i++) {
-                FALCON_V4_STRING str;
-                str.port = parr->Item(i)["p"].AsInt();        // p
-                str.string = parr->Item(i)["s"].AsInt();      // s
-                str.smartRemote = parr->Item(i)["r"].AsInt(); // r
-                str.universe = parr->Item(i)["u"].AsInt();    // u
-                str.name = parr->Item(i)["nm"].AsString();    // nm
-                str.blank = parr->Item(i)["bl"].AsInt();      // bl
-                str.gamma = parr->Item(i)["g"].AsInt();       // g
-                str.brightness = parr->Item(i)["b"].AsInt();  // b
-                str.zigcount = parr->Item(i)["z"].AsInt();    // z
-                str.endNulls = parr->Item(i)["ne"].AsInt();   // ne
-                str.startNulls = parr->Item(i)["ns"].AsInt(); // ns
-                str.colourOrder = parr->Item(i)["o"].AsInt(); // o
-                str.direction = parr->Item(i)["v"].AsInt();   // v
-                str.group = parr->Item(i)["gp"].AsInt();      // gp
-                str.pixels = parr->Item(i)["n"].AsInt();      // n
-                str.protocol = parr->Item(i)["l"].AsInt();
-                str.startChannel = parr->Item(i)["sc"].AsInt();
-                res.push_back(str);
+            for (auto const& inpj : outParams["A"].array()) {
+                res.emplace_back(inpj);
             }
-
             ++batch;
             if (finalCall)
                 done = true;
@@ -397,21 +360,21 @@ bool Falcon::V4_GetStrings(std::vector<FALCON_V4_STRING>& res) {
 }
 
 void Falcon::V4_DumpStrings(const std::vector<FALCON_V4_STRING>& str) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     int lastPort = -1;
     int lastRemote = -1;
 
     for (const auto& it : str) {
         if (it.port != lastPort) {
-            logger_base.debug("  Port %d %s", it.port + 1, (const char*)(it.port % 16 == 0 ? V4_DecodePixelProtocol(it.protocol).c_str() : ""));
+            LOG_DEBUG("  Port %d %s", it.port + 1, (const char*)(it.port % 16 == 0 ? V4_DecodePixelProtocol(it.protocol).c_str() : ""));
             lastRemote = 0;
             lastPort = it.port;
         }
         if (it.smartRemote != lastRemote) {
-            logger_base.debug("    Remote %c", char(it.smartRemote + 64));
+            LOG_DEBUG("    Remote %c", char(it.smartRemote + 64));
         }
-        logger_base.debug("      String %d '%s' Universe %d StartChannel %d Pixels %d", it.string + 1, (const char*)it.name.c_str(), it.universe, it.startChannel + 1, it.pixels);
+        LOG_DEBUG("      String %d '%s' Universe %d StartChannel %d Pixels %d", it.string + 1, (const char*)it.name.c_str(), it.universe, it.startChannel + 1, it.pixels);
     }
 }
 
@@ -461,13 +424,11 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
 
         params += "]}";
 
-        wxJSONValue p;
-        wxJSONReader reader;
-        reader.Parse(params, &p);
+        nlohmann::json p = nlohmann::json::parse(params);
 
         bool finalCall;
         int outBatch;
-        wxJSONValue outParams;
+        nlohmann::json outParams;
         if (CallFalconV4API("S", "SP", batch, res.size(), batch * FALCON_V4_SEND_STRING_BATCH_SIZE, p, finalCall, outBatch, reboot, outParams) == 200) {
             ++batch;
             wxMilliSleep(50);
@@ -802,7 +763,7 @@ int Falcon::V4_EncodeInputProtocol(const std::string& protocol) {
 }
 
 int Falcon::V4_GetRebootSecs() {
-    if (_ip == _v4status["I"].AsString()) {
+    if (_ip == _v4status["I"].get<std::string>()) {
         return 8;
     } else {
         return 20;
@@ -821,22 +782,22 @@ void Falcon::V4_WaitForReboot(const std::string& name, wxWindow* parent) {
 }
 
 bool Falcon::V4_SetInputMode(Controller* controller, wxWindow* parent) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    if (_v4status["O"].AsInt() == V4_CONTROLLERMODE_FPPMASTER ||
-        _v4status["O"].AsInt() == V4_CONTROLLERMODE_FPPPLAYER ||
-        _v4status["O"].AsInt() == V4_CONTROLLERMODE_FPPREMOTE) {
+    if (_v4status["O"].get<int>() == V4_CONTROLLERMODE_FPPMASTER ||
+        _v4status["O"].get<int>() == V4_CONTROLLERMODE_FPPPLAYER ||
+        _v4status["O"].get<int>() == V4_CONTROLLERMODE_FPPREMOTE) {
         auto sc = controller->GetStartChannel();
-        if (_v4status["ps"].AsInt() + 1 != sc) {
+        if (_v4status["ps"].get<int>() + 1 != sc) {
             bool reboot = false;
-            logger_base.debug("Controller in Player/Master/Remote mode. Setting controller start channel: %lu", sc);
-            if (Falcon::V4_SendBoardMode(_v4status["B"].AsInt(), _v4status["O"].AsInt(), sc, reboot)) {
+            LOG_DEBUG("Controller in Player/Master/Remote mode. Setting controller start channel: %lu", sc);
+            if (Falcon::V4_SendBoardMode(_v4status["B"].get<int>(), _v4status["O"].get<int>(), sc, reboot)) {
                 if (reboot) {
                     V4_WaitForReboot(controller->GetName(), parent);
                 }
                 return true;
             } else {
-                logger_base.error("Failed to set board mode.");
+                LOG_ERROR("Failed to set board mode.");
                 return false;
             }
         }
@@ -851,10 +812,10 @@ bool Falcon::V4_SetInputMode(Controller* controller, wxWindow* parent) {
         DDPOutput* ddp = dynamic_cast<DDPOutput*>(controller->GetOutput(0));
 
         size_t ddpStart = ddp->IsKeepChannelNumbers() ? ddp->GetStartChannel() : 1;
-        if (_v4status["O"].AsInt() != V4_CONTROLLERMODE_DDP || _v4status["ps"].AsInt() + 1 != ddpStart) {
-            logger_base.debug("Setting controller to DDP. Start channel: %lu", ddpStart);
+        if (_v4status["O"].get<int>() != V4_CONTROLLERMODE_DDP || _v4status["ps"].get<int>() + 1 != ddpStart) {
+            LOG_DEBUG("Setting controller to DDP. Start channel: %lu", ddpStart);
             bool reboot = false;
-            if (Falcon::V4_SendBoardMode(_v4status["B"].AsInt(), V4_CONTROLLERMODE_DDP, ddpStart, reboot)) {
+            if (Falcon::V4_SendBoardMode(_v4status["B"].get<int>(), V4_CONTROLLERMODE_DDP, ddpStart, reboot)) {
                 if (reboot) {
                     V4_WaitForReboot(controller->GetName(), parent);
                 }
@@ -864,19 +825,19 @@ bool Falcon::V4_SetInputMode(Controller* controller, wxWindow* parent) {
         }
     } else if (protocol == OUTPUT_E131 || protocol == OUTPUT_ARTNET) {
         auto sc = controller->GetStartChannel();
-        if (_v4status["O"].AsInt() != V4_CONTROLLERMODE_E131_ARTNET || _v4status["ps"].AsInt() + 1 != sc) {
-            logger_base.debug("Setting controller to E131/ArtNET. Start channel: %lu", sc);
+        if (_v4status["O"].get<int>() != V4_CONTROLLERMODE_E131_ARTNET || _v4status["ps"].get<int>() + 1 != sc) {
+            LOG_DEBUG("Setting controller to E131/ArtNET. Start channel: %lu", sc);
             bool reboot = false;
-            if (Falcon::V4_SendBoardMode(_v4status["B"].AsInt(), V4_CONTROLLERMODE_E131_ARTNET, sc, reboot)) {
+            if (Falcon::V4_SendBoardMode(_v4status["B"].get<int>(), V4_CONTROLLERMODE_E131_ARTNET, sc, reboot)) {
                 if (reboot) {
                     V4_WaitForReboot(controller->GetName(), parent);
                 }
                 if (!V4_GetStatus(_v4status)) {
-                    logger_base.error("Failed to retrieve status after setting board mode.");
+                    LOG_ERROR("Failed to retrieve status after setting board mode.");
                     return false;
                 }
             } else {
-                logger_base.error("Failed to set board mode.");
+                LOG_ERROR("Failed to set board mode.");
                 return false;
             }
         }
@@ -886,7 +847,7 @@ bool Falcon::V4_SetInputMode(Controller* controller, wxWindow* parent) {
 }
 
 bool Falcon::V4_SetInputUniverses(Controller* controller, wxWindow* parent) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!V4_SetInputMode(controller, parent)) {
         return false;
@@ -894,9 +855,9 @@ bool Falcon::V4_SetInputUniverses(Controller* controller, wxWindow* parent) {
 
     auto protocol = controller->GetProtocol();
     if ((protocol == OUTPUT_E131 || protocol == OUTPUT_ARTNET) &&
-        (_v4status["O"].AsInt() != V4_CONTROLLERMODE_FPPMASTER &&
-         _v4status["O"].AsInt() != V4_CONTROLLERMODE_FPPPLAYER &&
-         _v4status["O"].AsInt() != V4_CONTROLLERMODE_FPPREMOTE)) {
+        (_v4status["O"].get<int>() != V4_CONTROLLERMODE_FPPMASTER &&
+         _v4status["O"].get<int>() != V4_CONTROLLERMODE_FPPPLAYER &&
+         _v4status["O"].get<int>() != V4_CONTROLLERMODE_FPPREMOTE)) {
         auto outputs = controller->GetOutputs();
 
         if (outputs.size() > 192) {
@@ -918,7 +879,7 @@ bool Falcon::V4_SetInputUniverses(Controller* controller, wxWindow* parent) {
             if (Falcon::V4_SendInputs(inputs, reboot)) {
                 return true;
             }
-            logger_base.error("Failed to set inputs.");
+            LOG_ERROR("Failed to set inputs.");
             return false;
         }
         return true;
@@ -1124,7 +1085,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
             auto pp = cud.GetControllerPixelPort(p + 1);
 
             int bank = p / 16;
-            int maxPixels = V4_GetMaxPortPixels(_v4status["B"].AsInt(), protocols[bank]);
+            int maxPixels = V4_GetMaxPortPixels(_v4status["B"].get<int>(), protocols[bank]);
             if (pp->Pixels() > maxPixels) {
                 error = wxString::Format("Port %d has too many pixels on it for the nominated board configuration/pixel type.", p + 1);
                 return false;
@@ -1148,7 +1109,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                         str.port = p;
                         str.string = s++;
                         str.smartRemote = sr;
-                        if (sr != 0 && !V4_IsPortSmartRemoteEnabled(_v4status["B"].AsInt(), p)) {
+                        if (sr != 0 && !V4_IsPortSmartRemoteEnabled(_v4status["B"].get<int>(), p)) {
                             error = wxString::Format("Port %d does not support smart remotes.", p + 1);
                             return false;
                         }
@@ -1260,8 +1221,8 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
 }
 
 bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent, bool doProgress) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Falcon Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+    
+    LOG_DEBUG("Falcon Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
 
     bool success = true;
 
@@ -1276,7 +1237,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
     if (doProgress)
         progress->Update(0, "Scanning models");
-    logger_base.info("Scanning models.");
+    LOG_INFO("Scanning models.");
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
@@ -1288,7 +1249,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
     success = cud.Check(caps, check);
 
-    logger_base.debug(check);
+    LOG_DEBUG(check);
 
     cud.Dump();
 
@@ -1310,8 +1271,8 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
     std::vector<FALCON_V4_STRING> falconStrings;
     if (!fullcontrol) {
-        if (_v4status["B"].AsInt() != wxAtoi(caps->GetCustomPropertyByPath("v4BoardMode", "99"))) {
-            logger_base.debug("Current board mode: %d. desired board mode: %d", _v4status["B"].AsInt(), wxAtoi(caps->GetCustomPropertyByPath("v4BoardMode", "0")));
+        if (_v4status["B"].get<int>() != wxAtoi(caps->GetCustomPropertyByPath("v4BoardMode", "99"))) {
+            LOG_DEBUG("Current board mode: %d. desired board mode: %d", _v4status["B"].get<int>(), wxAtoi(caps->GetCustomPropertyByPath("v4BoardMode", "0")));
             DisplayError("Falcon Outputs Upload: Board is currently set to the wrong mode. Please correct it.", parent);
             if (doProgress)
                 progress->Update(100, "Aborting.");
@@ -1329,14 +1290,14 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
         }
 
         // we need to make sure all the returned strings are valid against the input channels
-        V4_MakeStringsValid(controller, cud, falconStrings, _v4status["A"].AsInt());
+        V4_MakeStringsValid(controller, cud, falconStrings, _v4status["A"].get<int>());
 
-        logger_base.info("Retrieved falcon string configuration.");
+        LOG_INFO("Retrieved falcon string configuration.");
         V4_DumpStrings(falconStrings);
     } else {
-        if (_v4status["O"].AsInt() == V4_CONTROLLERMODE_FPPMASTER ||
-            _v4status["O"].AsInt() == V4_CONTROLLERMODE_FPPPLAYER ||
-            _v4status["O"].AsInt() == V4_CONTROLLERMODE_FPPREMOTE) {
+        if (_v4status["O"].get<int>() == V4_CONTROLLERMODE_FPPMASTER ||
+            _v4status["O"].get<int>() == V4_CONTROLLERMODE_FPPPLAYER ||
+            _v4status["O"].get<int>() == V4_CONTROLLERMODE_FPPREMOTE) {
             // we dont validate inputs
         } else {
             // validate the inputs look correct
@@ -1344,7 +1305,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
             if (V4_GetInputs(inputs)) {
                 if (controller->GetProtocol() == OUTPUT_ARTNET || controller->GetProtocol() == OUTPUT_E131) {
                     if (inputs.size() != 1) {
-                        logger_base.debug("Board has %lu inputs where it should just have 1.", inputs.size());
+                        LOG_DEBUG("Board has %lu inputs where it should just have 1.", inputs.size());
                         DisplayError("Falcon inputs not as expected. Upload inputs to correct.", parent);
                         if (doProgress)
                             progress->Update(100, "Aborting.");
@@ -1356,7 +1317,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                         inputs.front().channels != controller->GetOutput(0)->GetChannels() ||
                         (inputs.front().protocol == 1 && controller->GetProtocol() != OUTPUT_ARTNET) ||
                         (inputs.front().protocol == 0 && controller->GetProtocol() != OUTPUT_E131)) {
-                        logger_base.debug("Board has inputs %d:%d:%d:%s while xlights has %d:%d:%d:%s. These need to match.",
+                        LOG_DEBUG("Board has inputs %d:%d:%d:%s while xlights has %d:%d:%d:%s. These need to match.",
                                           inputs[0].universe, inputs[0].universeCount, inputs[0].channels, inputs[0].protocol == 1 ? OUTPUT_ARTNET : OUTPUT_E131,
                                           controller->GetOutput(0)->GetUniverse(), controller->GetOutputCount(), controller->GetOutput(0)->GetChannels(), (const char*)controller->GetProtocol().c_str());
                         DisplayError("Falcon inputs not as expected. Upload inputs to correct.", parent);
@@ -1371,10 +1332,10 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
         if (doProgress)
             progress->Update(40, "Ensuring board configuration is correct.");
 
-        if (_v4status["B"].AsInt() != wxAtoi(caps->GetCustomPropertyByPath("v4BoardMode", "0"))) {
+        if (_v4status["B"].get<int>() != wxAtoi(caps->GetCustomPropertyByPath("v4BoardMode", "0"))) {
             // we need to change the board mode - controller mode and start channel should be already set
             bool reboot = false;
-            if (!V4_SendBoardMode(wxAtoi(caps->GetCustomPropertyByPath("v4BoardMode", "0")), _v4status["O"].AsInt(), _v4status["ps"].AsInt() + 1, reboot)) {
+            if (!V4_SendBoardMode(wxAtoi(caps->GetCustomPropertyByPath("v4BoardMode", "0")), _v4status["O"].get<int>(), _v4status["ps"].get<int>() + 1, reboot)) {
                 DisplayError("Falcon Outputs Upload: Failed to set board mode.", parent);
                 if (doProgress)
                     progress->Update(100, "Aborting.");
@@ -1416,14 +1377,14 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
         return false;
     }
 
-    logger_base.info("Proposed falcon string configuration.");
+    LOG_INFO("Proposed falcon string configuration.");
     V4_DumpStrings(uploadStrings);
 
     if (doProgress)
         progress->Update(70, "Uploading pixel ports.");
 
     bool reboot = false;
-    if (!V4_SendOutputs(uploadStrings, _v4status["A"].AsInt(), cud.GetFirstOutput()->GetStartChannel(), reboot)) {
+    if (!V4_SendOutputs(uploadStrings, _v4status["A"].get<int>(), cud.GetFirstOutput()->GetStartChannel(), reboot)) {
         DisplayError("Falcon Outputs Upload: Problem uploading string configuration.", parent);
         if (doProgress)
             progress->Update(100, "Aborting.");
@@ -1446,7 +1407,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                 sp->GetFirstModel()->GetModel()->GetControllerProtocolSpeed();
         if (Lower(sp->GetProtocol()) != "dmx") {
             if (rate == 250000) {
-                rate = _v4status["sr"].AsInt();
+                rate = _v4status["sr"].get<int>();
             }
 
             // for renard make sure rate is valid
@@ -1473,7 +1434,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
     if (doProgress)
         progress->Update(100, "Done.");
-    logger_base.info("Falcon upload done.");
+    LOG_INFO("Falcon upload done.");
 
     return success;
 }
@@ -1505,8 +1466,8 @@ public:
     }
 
     void Dump() const {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("    Index %02d Port %02d SmartRemote %d VirtualString %d Prot %d Desc '%s' Uni %d StartChan %d Pixels %d Group %d Direction %s ColorOrder %s Nulls %d Brightness %d Gamma %.1f ZigZag %d",
+        
+        LOG_DEBUG("    Index %02d Port %02d SmartRemote %d VirtualString %d Prot %d Desc '%s' Uni %d StartChan %d Pixels %d Group %d Direction %s ColorOrder %s Nulls %d Brightness %d Gamma %.1f ZigZag %d",
                           index,
                           port + 1,
                           smartRemote,
@@ -1547,8 +1508,8 @@ public:
 
 #define MINIMUMPIXELS 1
 void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int minuniverse, int defaultBrightness, int32_t firstchannel, float defaultGamma) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Filling in missing strings.");
+    
+    LOG_DEBUG("Filling in missing strings.");
 
     std::vector<FalconString*> newStringsData;
 
@@ -1586,7 +1547,7 @@ void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max,
             string->zig = 0;
             string->smartRemote = 0x00;
             newStringsData.push_back(string);
-            logger_base.debug("    Added default string to port %d.", i + 1);
+            LOG_DEBUG("    Added default string to port %d.", i + 1);
         }
     }
     stringsData = newStringsData;
@@ -1664,11 +1625,11 @@ int Falcon::GetMaxPixelPort(const std::vector<FalconString*>& stringData) const 
 }
 
 void Falcon::RemoveNonSmartRemote(std::vector<FalconString*>& stringData, int port) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     auto it = begin(stringData);
     while (it != end(stringData)) {
         if ((*it)->port == port && (*it)->smartRemote == 0) {
-            logger_base.debug("Removing non smart remote port %d", port + 1);
+            LOG_DEBUG("Removing non smart remote port %d", port + 1);
             it = stringData.erase(it);
         } else {
             ++it;
@@ -1677,7 +1638,7 @@ void Falcon::RemoveNonSmartRemote(std::vector<FalconString*>& stringData, int po
 }
 
 void Falcon::EnsureSmartStringExists(std::vector<FalconString*>& stringData, int port, int smartRemote, int minuniverse, int defaultBrightness, int32_t firstchannel, float defaultGamma) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     bool found = false;
     for (const auto& it : stringData) {
@@ -1688,7 +1649,7 @@ void Falcon::EnsureSmartStringExists(std::vector<FalconString*>& stringData, int
     }
 
     if (!found) {
-        logger_base.debug("Adding in dummy string for a smart remote Port: %d Smart Remote %d", port + 1, smartRemote + 1);
+        LOG_DEBUG("Adding in dummy string for a smart remote Port: %d Smart Remote %d", port + 1, smartRemote + 1);
         FalconString* string = new FalconString(defaultBrightness, defaultGamma);
         string->startChannel = firstchannel;
         string->virtualStringIndex = 0;
@@ -1736,13 +1697,13 @@ int Falcon::CountStrings(const wxXmlDocument& stringsDoc) const {
 int Falcon::NumConfiguredStrings() {
     if (IsV4()) {
         int batch = 0;
-        wxJSONValue p(wxJSONTYPE_OBJECT);
+        nlohmann::json p;
         bool finalCall;
         int outBatch;
         bool reboot;
-        wxJSONValue outParams;
+        nlohmann::json outParams;
         if (CallFalconV4API("Q", "SP", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
-            return outParams["A"].Size();
+            return outParams["A"].size();
         }
         return -1;
     }
@@ -1761,7 +1722,7 @@ int Falcon::NumConfiguredStrings() {
 }
 
 void Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconString*>& stringData, int defaultBrightness, float defaultGamma) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (stringsDoc.GetRoot() == nullptr)
         return;
@@ -1771,7 +1732,7 @@ void Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconS
         count++;
     }
 
-    logger_base.debug("Strings.xml had %d entries.", count);
+    LOG_DEBUG("Strings.xml had %d entries.", count);
     if (count == 0)
         return;
 
@@ -2186,9 +2147,9 @@ int Falcon::GetMaxPixels() const {
 #pragma region Constructors and Destructors
 Falcon::Falcon(const std::string& ip, const std::string& proxy) :
     BaseController(ip, proxy) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    _v4status = wxJSONValue(wxJSONTYPE_OBJECT);
+    //_v4status = nlohmann::json;
     _firmwareVersion = "";
     _model = "";
     _versionnum = 0;
@@ -2197,22 +2158,22 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) :
     _minorFirmwareVersion = 0;
     _usingAbsolute = false;
 
-    logger_base.debug("Connecting to Falcon on %s.", (const char*)_ip.c_str());
+    LOG_DEBUG("Connecting to Falcon on %s.", (const char*)_ip.c_str());
 
     _connected = true;
     int p = 0;
     std::string versionxml = GetURL("/status.xml");
     if (versionxml == "") {
-        logger_base.error("    Error retrieving status.xml from falcon controller.");
+        LOG_ERROR("    Error retrieving status.xml from falcon controller.");
         _connected = false;
         return;
     }
-    logger_base.debug("status.xml:\n%s", (const char*)versionxml.c_str());
+    LOG_DEBUG("status.xml:\n%s", (const char*)versionxml.c_str());
 
     wxStringInputStream stream(versionxml);
     wxXmlDocument xml(stream);
     if (!xml.IsOk() || xml.GetRoot() == nullptr) {
-        logger_base.error("     Status XML parses as invalid.");
+        LOG_ERROR("     Status XML parses as invalid.");
         _firmwareVersion = "UNKNOWN";
         _usingAbsolute = false;
         _name = "UNKNOWN";
@@ -2240,14 +2201,14 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) :
         if (_versionnum == 4 || _versionnum == 5) {
             // this is going to need special handling
             if (V4_GetStatus(_v4status)) {
-                _modelnum = _v4status["BR"].AsInt();
+                _modelnum = _v4status["BR"].get<int>();
                 _model = wxString::Format("F%dv%d", _modelnum, _versionnum).ToStdString();
             }
         } else {
             if (_versionnum == 0 || _modelnum == 0 || _firmwareVersion == "") {
                 std::string version = GetURL("/index.htm");
                 if (version == "") {
-                    logger_base.error("    Error retrieving index.htm from falcon controller.");
+                    LOG_ERROR("    Error retrieving index.htm from falcon controller.");
                     _connected = false;
                     return;
                 }
@@ -2266,17 +2227,17 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) :
                 if (majminregex.Matches(wxString(_firmwareVersion))) {
                     _majorFirmwareVersion = wxAtoi(majminregex.GetMatch(wxString(_firmwareVersion), 1));
                     _minorFirmwareVersion = wxAtoi(majminregex.GetMatch(wxString(_firmwareVersion), 2));
-                    logger_base.error("    Parsed firmware version %d.%d.", _majorFirmwareVersion, _minorFirmwareVersion);
+                    LOG_ERROR("    Parsed firmware version %d.%d.", _majorFirmwareVersion, _minorFirmwareVersion);
                 }
             }
         }
 
-        logger_base.debug("Connected to falcon - p=%d Model: '%s' Firmware Version '%s'. F%d:V%d", p, (const char*)GetModel().c_str(), (const char*)_firmwareVersion.c_str(), _modelnum, _versionnum);
+        LOG_DEBUG("Connected to falcon - p=%d Model: '%s' Firmware Version '%s'. F%d:V%d", p, (const char*)GetModel().c_str(), (const char*)_firmwareVersion.c_str(), _modelnum, _versionnum);
     }
 
     if (_versionnum == 0 || _modelnum == 0) {
         _connected = false;
-        logger_base.error("Error connecting to falcon controller on %s. Unable to determine model/version.", (const char*)_ip.c_str());
+        LOG_ERROR("Error connecting to falcon controller on %s. Unable to determine model/version.", (const char*)_ip.c_str());
     }
 }
 #pragma endregion
@@ -2354,9 +2315,9 @@ std::string Falcon::DecodeMode(int mode) {
 #pragma region Getters and Setters
 std::string Falcon::GetMode() {
     if (_versionnum == 4 || _versionnum == 5) {
-        return V4_DecodeMode(_v4status["O"].AsInt());
+        return V4_DecodeMode(_v4status["O"].get<int>());
     }
-    return DecodeMode(wxAtoi(_status["m"].AsString()));
+    return DecodeMode(wxAtoi(_status["m"].get<std::string>()));
 }
 
 #ifndef DISCOVERYONLY
@@ -2367,7 +2328,7 @@ bool Falcon::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* ou
 }
 
 bool Falcon::V4_ValidateWAV(const std::string& media) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxFile f;
     if (f.Open(media)) {
@@ -2375,13 +2336,13 @@ bool Falcon::V4_ValidateWAV(const std::string& media) {
         if (f.Read(&buffer, sizeof(buffer)) == sizeof(buffer)) {
             // is it a WAV file
             if (buffer[0] != 82 || buffer[1] != 73 || buffer[2] != 70 || buffer[3] != 70) {
-                logger_base.error("WAV file token missing.");
+                LOG_ERROR("WAV file token missing.");
                 return false;
             }
 
             // is it PCM
             if (buffer[20] != 1 || buffer[21] != 0) {
-                logger_base.error("Not a PCM audio format.");
+                LOG_ERROR("Not a PCM audio format.");
                 return false;
             }
 
@@ -2396,25 +2357,25 @@ bool Falcon::V4_ValidateWAV(const std::string& media) {
                     (buffer[24] == 0x40 && buffer[25] == 0x1f)    // 8000
                     )) {
                 int br = (((int)buffer[25]) << 8) + (int)buffer[24];
-                logger_base.error("Not valid bit rate: %d", br);
+                LOG_ERROR("Not valid bit rate: %d", br);
                 return false;
             }
 
             // 2 channels
             if (buffer[22] != 2 || buffer[23] != 0) {
-                logger_base.error("Not a stereo file.");
+                LOG_ERROR("Not a stereo file.");
                 return false;
             }
 
             // is it block align 4
             if (buffer[32] != 4 || buffer[33] != 0) {
-                logger_base.error("WAV file block alignment is not 4.");
+                LOG_ERROR("WAV file block alignment is not 4.");
                 return false;
             }
 
             // is it 16 bit
             if (buffer[34] != 16 || buffer[35] != 0) {
-                logger_base.error("Not 16 bits per sample.");
+                LOG_ERROR("Not 16 bits per sample.");
                 return false;
             }
             return true;
@@ -2424,12 +2385,12 @@ bool Falcon::V4_ValidateWAV(const std::string& media) {
 }
 
 bool Falcon::UploadSequence(const std::string& seq, const std::string& file, const std::string& media, std::function<bool(int, std::string)> progress) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     bool res = true;
 
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
     std::string url = "http://" + baseIP + _baseUrl + "/upload.cgi";
-    logger_base.debug("Uploading to URL: %s", (const char*)url.c_str());
+    LOG_DEBUG("Uploading to URL: %s", (const char*)url.c_str());
 
     if (media != "") {
         wxFileName fn(media);
@@ -2610,24 +2571,24 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 }
 
 bool Falcon::ValidateBoard(Controller* controller) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     bool valid = true;
     if ((controller->GetModel() == "F16V4" || controller->GetModel() == "F48V4") && _versionnum != 4) {
         // we say it is a V4 but it isnt
-        logger_base.error("Controller model is %s but response from controller says it is a V%d", (const char*)controller->GetModel().c_str(), _versionnum);
+        LOG_ERROR("Controller model is %s but response from controller says it is a V%d", (const char*)controller->GetModel().c_str(), _versionnum);
         valid = false;
     } else if ((controller->GetModel() == "F16V5" || controller->GetModel() == "F48V5" || controller->GetModel() == "F32V5") && _versionnum != 5) {
         // we say it is a V4 but it isnt
-        logger_base.error("Controller model is %s but response from controller says it is a V%d", (const char*)controller->GetModel().c_str(), _versionnum);
+        LOG_ERROR("Controller model is %s but response from controller says it is a V%d", (const char*)controller->GetModel().c_str(), _versionnum);
         valid = false;
     } else if ((controller->GetModel() == "F16V2" || controller->GetModel() == "F16V2R" || controller->GetModel() == "F4V2") && _versionnum != 2) {
         // we say it is a V4 but it isnt
-        logger_base.error("Controller model is %s but response from controller says it is a V%d", (const char*)controller->GetModel().c_str(), _versionnum);
+        LOG_ERROR("Controller model is %s but response from controller says it is a V%d", (const char*)controller->GetModel().c_str(), _versionnum);
         valid = false;
     } else if ((controller->GetModel() == "F16V3" || controller->GetModel() == "F48" || controller->GetModel() == "F4V3") && _versionnum != 3) {
         // we say it is a V4 but it isnt
-        logger_base.error("Controller model is %s but response from controller says it is a V%d", (const char*)controller->GetModel().c_str(), _versionnum);
+        LOG_ERROR("Controller model is %s but response from controller says it is a V%d", (const char*)controller->GetModel().c_str(), _versionnum);
         valid = false;
     }
 
@@ -2635,7 +2596,7 @@ bool Falcon::ValidateBoard(Controller* controller) {
 }
 
 bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent, bool doProgress) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     // ResetStringOutputs(); // this shouldnt be used normally
 
     if (!ValidateBoard(controller)) {
@@ -2655,11 +2616,11 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     int defaultBrightness = controller->GetDefaultBrightnessUnderFullControl();
     float defaultGamma = controller->GetDefaultGammaUnderFullControl();
 
-    logger_base.debug("Falcon Outputs Upload: Uploading to %s Brightness=%d Gamma=%.1f", (const char*)_ip.c_str(), defaultBrightness, defaultGamma);
+    LOG_DEBUG("Falcon Outputs Upload: Uploading to %s Brightness=%d Gamma=%.1f", (const char*)_ip.c_str(), defaultBrightness, defaultGamma);
 
     if (doProgress)
         progress->Update(0, "Scanning models");
-    logger_base.info("Scanning models.");
+    LOG_INFO("Scanning models.");
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
@@ -2669,7 +2630,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
     success = cud.Check(caps, check);
 
-    logger_base.debug(check);
+    LOG_DEBUG(check);
 
     cud.Dump();
 
@@ -2700,7 +2661,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     if (!fullcontrol) {
         if (doProgress)
             progress->Update(10, "Retrieving string configuration from Falcon.");
-        logger_base.info("Retrieving string configuration from Falcon.");
+        LOG_INFO("Retrieving string configuration from Falcon.");
 
         // get the current config before I start
         std::string strings = GetURL("/strings.xml");
@@ -2723,7 +2684,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
         if (doProgress)
             progress->Update(40, "Processing current configuration data.");
-        logger_base.info("Processing current configuration data.");
+        LOG_INFO("Processing current configuration data.");
 
         currentStrings = CountStrings(stringsDoc);
         mainPixels = GetMaxPixels();
@@ -2740,12 +2701,12 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             }
         }
 
-        logger_base.info("Current Falcon configuration split: Main = %d, Expansion1 = %d, Expansion2 = %d, Strings = %d", mainPixels, daughter1Pixels, daughter2Pixels, currentStrings);
-        logger_base.info("Maximum string port configured in xLights: %d", cud.GetMaxPixelPort());
+        LOG_INFO("Current Falcon configuration split: Main = %d, Expansion1 = %d, Expansion2 = %d, Strings = %d", mainPixels, daughter1Pixels, daughter2Pixels, currentStrings);
+        LOG_INFO("Maximum string port configured in xLights: %d", cud.GetMaxPixelPort());
 
         ReadStringData(stringsDoc, stringData, defaultBrightness, defaultGamma);
 
-        logger_base.debug("Downloaded string data.");
+        LOG_DEBUG("Downloaded string data.");
         DumpStringData(stringData);
     }
 
@@ -2753,25 +2714,25 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     int totalPixelPorts = GetDaughter1Threshold();
     if (IsF48() || cud.GetMaxPixelPort() > GetDaughter2Threshold() ||
         currentStrings > GetDaughter2Threshold()) {
-        logger_base.info("String port count needs to be %d.", caps->GetMaxPixelPort());
+        LOG_INFO("String port count needs to be %d.", caps->GetMaxPixelPort());
         totalPixelPorts = caps->GetMaxPixelPort();
     } else if (cud.GetMaxPixelPort() > GetDaughter1Threshold() ||
                currentStrings > GetDaughter1Threshold()) {
-        logger_base.info("String port count needs to be %d.", GetDaughter2Threshold());
+        LOG_INFO("String port count needs to be %d.", GetDaughter2Threshold());
         totalPixelPorts = GetDaughter2Threshold();
     } else {
-        logger_base.info("String port count needs to be %d.", GetDaughter1Threshold());
+        LOG_INFO("String port count needs to be %d.", GetDaughter1Threshold());
     }
     InitialiseStrings(stringData, totalPixelPorts, minuniverse, defaultBrightness, firstchanneloncontroller, defaultGamma);
 
-    // logger_base.debug("Missing strings added.");
+    // LOG_DEBUG("Missing strings added.");
     // DumpStringData(stringData);
 
-    logger_base.info("Falcon pixel split: Main = %d, Expansion1 = %d, Expansion2 = %d", mainPixels, daughter1Pixels, daughter2Pixels);
+    LOG_INFO("Falcon pixel split: Main = %d, Expansion1 = %d, Expansion2 = %d", mainPixels, daughter1Pixels, daughter2Pixels);
 
     if (doProgress)
         progress->Update(50, "Configuring string ports.");
-    logger_base.info("Configuring string ports.");
+    LOG_INFO("Configuring string ports.");
 
     bool portdone[100];
     memset(&portdone, 0x00, sizeof(portdone)); // all false
@@ -2783,7 +2744,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     for (int pp = 1; pp <= totalPixelPorts; pp++) {
         if (cud.HasPixelPort(pp)) {
             UDControllerPort* port = cud.GetControllerPixelPort(pp);
-            logger_base.info("Pixel Port %d Protocol %s.", pp, (const char*)port->GetProtocol().c_str());
+            LOG_INFO("Pixel Port %d Protocol %s.", pp, (const char*)port->GetProtocol().c_str());
 
             port->CreateVirtualStrings(true);
 
@@ -2929,10 +2890,10 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         }
     }
 
-    logger_base.debug("Virtual strings created.");
+    LOG_DEBUG("Virtual strings created.");
     DumpStringData(stringData);
 
-    logger_base.info("Working out required pixel splits.");
+    LOG_INFO("Working out required pixel splits.");
     int maxMain = 0;
     int maxDaughter1 = 0;
     int maxDaughter2 = 0;
@@ -2988,7 +2949,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             }
         }
 
-        logger_base.info("Falcon pixel fixed split: Main = %d, Expansion1 = %d", maxMain, maxDaughter1);
+        LOG_INFO("Falcon pixel fixed split: Main = %d, Expansion1 = %d", maxMain, maxDaughter1);
     } else {
         if (maxMain == 0) {
             maxMain = 1;
@@ -3009,7 +2970,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             maxDaughter2 = 0;
         }
 
-        logger_base.info("Falcon pixel required split: Main = %d, Expansion1 = %d, Expansion2 = %d", maxMain, maxDaughter1, maxDaughter2);
+        LOG_INFO("Falcon pixel required split: Main = %d, Expansion1 = %d, Expansion2 = %d", maxMain, maxDaughter1, maxDaughter2);
 
         if (maxMain + maxDaughter1 + maxDaughter2 > maxPixels) {
             success = false;
@@ -3022,11 +2983,11 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
                 check += wxString::Format("       Bank 1 Port %d=%d\n", largestMainPort, maxMain);
             }
 
-            logger_base.warn("ERROR: Total pixels exceeded maximum allowed on a pixel port: %d", maxPixels);
+            LOG_WARN("ERROR: Total pixels exceeded maximum allowed on a pixel port: %d", maxPixels);
 
             if (_modelnum == 48) {
                 check += "Trying to disable unused banks on the F48.\n";
-                logger_base.debug("Trying to disable unused banks on the F48.");
+                LOG_DEBUG("Trying to disable unused banks on the F48.");
                 // if it looks like we arent using the last 16 ports and everything is still set to the default
                 if (cud.GetMaxPixelPort() <= 16 && maxDaughter1 == 50 && maxDaughter2 == 50) {
                     int left = maxPixels - maxMain;
@@ -3038,7 +2999,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
                     if (maxMain + maxDaughter1 + maxDaughter2 > maxPixels) {
                         success = false;
                         check += "ERROR: It looked like you were only using the first 16 outputs but even accounting for that there are too many pixels on this port.\n";
-                        logger_base.error("It looked like you were only using the first 16 outputs but even accounting for that there are too many pixels on this port.");
+                        LOG_ERROR("It looked like you were only using the first 16 outputs but even accounting for that there are too many pixels on this port.");
                     }
                 } else if (cud.GetMaxPixelPort() <= 32 && maxDaughter2 == 50) {
                     maxDaughter2 = maxPixels - maxMain - maxDaughter1;
@@ -3047,11 +3008,11 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
                     if (maxMain + maxDaughter1 + maxDaughter2 > maxPixels) {
                         success = false;
                         check += "ERROR: It looked like you were only using the first 32 outputs but even accounting for that there are too many pixels on this port.\n";
-                        logger_base.error("It looked like you were only using the first 32 outputs but even accounting for that there are too many pixels on this port.");
+                        LOG_ERROR("It looked like you were only using the first 32 outputs but even accounting for that there are too many pixels on this port.");
                     }
                 } else {
                     check += "ERROR: Unable to adjust banks. Resetting your controller to its defaults may help.\n";
-                    logger_base.error("    Unable to adjust banks. Resetting your controller to its defaults may help.");
+                    LOG_ERROR("    Unable to adjust banks. Resetting your controller to its defaults may help.");
                 }
             }
         }
@@ -3064,7 +3025,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             } else {
                 maxMain = maxPixels;
             }
-            logger_base.info("Falcon pixel split adjusted to add up to %d: Main = %d, Expansion1 = %d, Expansion2 = %d", maxPixels, maxMain, maxDaughter1, maxDaughter2);
+            LOG_INFO("Falcon pixel split adjusted to add up to %d: Main = %d, Expansion1 = %d, Expansion2 = %d", maxPixels, maxMain, maxDaughter1, maxDaughter2);
         }
     }
 
@@ -3084,7 +3045,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             if (smartRemoteFound && nonSmartRemoteFound) {
                 success = false;
                 check += wxString::Format("ERROR: Ports %d-%d have a mix of models using smart and non-smart remotes. This is not supported.\n", i, i + 3);
-                logger_base.error("Ports %d-%d have a mix of models using smart and non-smart remotes. This is not supported.", i, i + 3);
+                LOG_ERROR("Ports %d-%d have a mix of models using smart and non-smart remotes. This is not supported.", i, i + 3);
             }
         }
     }
@@ -3099,7 +3060,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         }
 
         if (absoluteonebased) {
-            logger_base.info("Applying one based adjustment, Subtracting = %d", firstchannel - 1);
+            LOG_INFO("Applying one based adjustment, Subtracting = %d", firstchannel - 1);
             for (auto& it : stringData) {
                 if (it->startChannel >= firstchannel - 1) {
                     it->startChannel -= (firstchannel - 1);
@@ -3107,7 +3068,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             }
         }
 
-        logger_base.info("Uploading string ports.");
+        LOG_INFO("Uploading string ports.");
         UploadStringPorts(stringData, maxMain, maxDaughter1, maxDaughter2, minuniverse, defaultBrightness, firstchanneloncontroller, defaultGamma);
     } else {
         if (stringData.size() > 0 && caps->GetMaxPixelPort() > 0 && UDController::IsError(check)) {
@@ -3145,7 +3106,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
                 sendSerial = true;
                 UDControllerPort* port = cud.GetControllerSerialPort(sp);
                 int sc = port->GetStartChannel();
-                logger_base.info("Serial Port %d Protocol %s Start Channel %d.", sp, (const char*)port->GetProtocol().c_str(), sc);
+                LOG_INFO("Serial Port %d Protocol %s Start Channel %d.", sp, (const char*)port->GetProtocol().c_str(), sc);
 
                 uri += "&";
                 uri += GetSerialOutputURI(caps, port->GetPort(), outputManager, DecodeSerialOutputProtocol(port->GetProtocol()), sc, parent);
@@ -3169,7 +3130,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
     if (doProgress)
         progress->Update(100, "Done.");
-    logger_base.info("Falcon upload done.");
+    LOG_INFO("Falcon upload done.");
 
     return success;
 }

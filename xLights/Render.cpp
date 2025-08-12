@@ -28,7 +28,7 @@
 #include "ExternalHooks.h"
 #include "GPURenderUtils.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #define END_OF_RENDER_FRAME INT_MAX
 
@@ -216,7 +216,7 @@ class RenderJob: public Job, public NextRenderer {
 public:
     RenderJob(ModelElement *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false)
         : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe),
-            gauge(nullptr), currentFrame(0), renderLog(log4cpp::Category::getInstance(std::string("log_render"))),
+            gauge(nullptr), currentFrame(0),
             supportsModelBlending(false), abort(false), statusMap(nullptr)
     {
         name = "";
@@ -332,35 +332,35 @@ public:
 
     void LogToLogger(int logLevel) {
         // these can only be set at start time
-        static bool debug = renderLog.isPriorityEnabled((log4cpp::Priority::DEBUG));
-        static bool info = renderLog.isPriorityEnabled((log4cpp::Priority::INFO));
-
-        if ((debug && logLevel == log4cpp::Priority::DEBUG) ||
-            (info && logLevel == log4cpp::Priority::INFO))
-        {
-            renderLog.log(logLevel, (const char *)GetwxStatus().c_str());
-        }
+       //static bool debug = renderLog.isPriorityEnabled((log4cpp::Priority::DEBUG));
+       //static bool info = renderLog.isPriorityEnabled((log4cpp::Priority::INFO));
+       //
+       //if ((debug && logLevel == log4cpp::Priority::DEBUG) ||
+       //    (info && logLevel == log4cpp::Priority::INFO))
+       //{
+       //    renderLog.log(logLevel, (const char *)GetwxStatus().c_str());
+       //}
     }
 
     void SetGenericStatus(const wxString &msg, int frame, bool debugLog = false, bool includeStatusMap = false) {
         statusType = includeStatusMap ? 8 : 4;
         statusMsg = msg;
         statusFrame = frame;
-        LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
+       // LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
 
     void SetGenericStatus(const char *msg, int frame, bool debugLog = false, bool includeStatusMap = false) {
         statusType = includeStatusMap ? 10 : 6;
         statusMsgChars = msg;
         statusFrame = frame;
-        LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
+       // LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
     void SetGenericStatus(const wxString &msg, int frame, int layer, bool debugLog = false, bool includeStatusMap = false) {
         statusType = includeStatusMap ? 9 : 5;
         statusMsg = msg;
         statusFrame = frame;
         statusLayer = layer;
-        LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
+       // LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
 
     void SetGenericStatus(const char *msg, int frame, int layer, bool debugLog = false, bool includeStatusMap = false) {
@@ -368,7 +368,7 @@ public:
         statusMsgChars = msg;
         statusFrame = frame;
         statusLayer = layer;
-        LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
+       // LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
 
     wxString PctSafe(const wxString& s) {
@@ -390,7 +390,7 @@ public:
         statusSubmodel = submodel;
         statusNode = node;
         statusMap = map;
-        LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
+       // LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
 
     void SetCalOutputStatus(int frame, int submodel, int strand, int node, bool debugLog = true) {
@@ -399,7 +399,7 @@ public:
         statusStrand = strand;
         statusSubmodel = submodel;
         statusNode = node;
-        LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
+        //LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
 
     void SetInializingStatus(int frame, int layer, int submodel, int strand, int node, bool debugLog = false) {
@@ -409,7 +409,7 @@ public:
         statusStrand = strand;
         statusSubmodel = submodel;
         statusNode = node;
-        LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
+        //LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
     void SetWaitingStatus(int frame, bool debugLog = false) {
         statusType = 13;
@@ -418,13 +418,13 @@ public:
     void SetStatus(const wxString &st, bool debugLog = false) {
         statusMsg = st;
         statusType = 0;
-        LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
+        //LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
 
     void SetStatus(const char *st, bool debugLog = false) {
         statusMsgChars = st;
         statusType = 12;
-        LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
+        //LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
 
     std::string GetStatus() override {
@@ -774,9 +774,9 @@ public:
         }
     }
     virtual void Process() override {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        static log4cpp::Category& logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
-        logger_jobpool.debug("Render job thread id 0x%x or %d", wxThread::GetCurrentId(), wxThread::GetCurrentId());
+        
+        
+        LOG_DEBUG("Render job thread id 0x%x or %d", wxThread::GetCurrentId(), wxThread::GetCurrentId());
 
         SetGenericStatus("Initializing rendering thread for %s", 0);
         int origChangeCount;
@@ -786,7 +786,7 @@ public:
         std::unique_lock<std::recursive_timed_mutex> lock(rowToRender->GetRenderLock());
         if (rowToRender->DecWaitCount() && !HasNext()) {
             // other threads for this model waiting, we'll bail fast and let them handle this
-            renderLog.debug("Rendering thread exiting early.");
+            LOG_DEBUG("Rendering thread exiting early.");
             currentFrame = END_OF_RENDER_FRAME; // this is needed otherwise the job does not look done
             return;
         }
@@ -876,7 +876,7 @@ public:
                         PixelBufferClass *buffer = it.second.get();
 
                         if (buffer == nullptr) {
-                            logger_base.crit("RenderJob::Process PixelBufferPointer is null ... this is going to crash.");
+                            LOG_CRIT("RenderJob::Process PixelBufferPointer is null ... this is going to crash.");
                         }
 
                         int strand = node.strand;
@@ -927,13 +927,13 @@ public:
         } catch ( std::exception &ex) {
             wxASSERT(false); // so when we debug we catch them
             printf("Caught an exception %s", ex.what());
-			renderLog.error("Caught an exception on rendering thread: " + std::string(ex.what()));
-            logger_base.error("Caught an exception on rendering thread: %s", ex.what());
+			//renderLog.error("Caught an exception on rendering thread: " + std::string(ex.what()));
+            LOG_ERROR("Caught an exception on rendering thread: %s", ex.what());
 		} catch ( ... ) {
             wxASSERT(false); // so when we debug we catch them
             printf("Caught an unknown exception");
-			renderLog.error("Caught an unknown exception on rendering thread.");
-            logger_base.error("Caught an unknown exception on rendering thread.");
+			//LOG_ERROR("Caught an unknown exception on rendering thread.");
+            LOG_ERROR("Caught an unknown exception on rendering thread.");
         }
         if (HasNext()) {
             //make sure the previous has told us we're at the end.  If we return before waiting, the previous
@@ -952,7 +952,7 @@ public:
         rowToRender->CleanupAfterRender();
         currentFrame = END_OF_RENDER_FRAME;
         //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
-		renderLog.debug("Rendering thread exiting.");
+        LOG_DEBUG("Rendering thread exiting.");
 	}
 
     void AbortRender() {
@@ -1060,7 +1060,6 @@ private:
     volatile int statusSubmodel = -1;
     volatile int statusStrand = -1;
     volatile int statusNode = -1;
-    log4cpp::Category &renderLog;
 
     wxGauge *gauge;
     std::atomic_int currentFrame;
@@ -1144,13 +1143,13 @@ public:
 
 void xLightsFrame::LogRenderStatus()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Logging render status ***************");
-    logger_base.debug("Render tree size. %d entries.", renderTree.data.size());
-    logger_base.debug("Render Thread status:\n%s", (const char *)GetThreadStatusReport().c_str());
+    
+    LOG_DEBUG("Logging render status ***************");
+    LOG_DEBUG("Render tree size. %d entries.", renderTree.data.size());
+    LOG_DEBUG("Render Thread status:\n%s", (const char *)GetThreadStatusReport().c_str());
     for (const auto& it : renderProgressInfo) {
         int frames = it->endFrame - it->startFrame + 1;
-        logger_base.debug("Render progress rows %d, start frame %d, end frame %d, frames %d.", it->numRows, it->startFrame, it->endFrame, frames);
+        LOG_DEBUG("Render progress rows %d, start frame %d, end frame %d, frames %d.", it->numRows, it->startFrame, it->endFrame, frames);
         for (int i = 0; i < it->numRows; i++) {
             if (it->jobs[i] != nullptr) {
                 auto job = it->jobs[i];
@@ -1159,21 +1158,21 @@ void xLightsFrame::LogRenderStatus()
                     curFrame = it->endFrame;
                 }
 
-                logger_base.debug("    Progress %s - %ld%%.", (const char *)job->GetName().c_str(), (long)(curFrame - it->startFrame + 1) * 100 / frames);
+                LOG_DEBUG("    Progress %s - %ld%%.", (const char *)job->GetName().c_str(), (long)(curFrame - it->startFrame + 1) * 100 / frames);
                 std::string su = job->GetStatusForUser();
                 if (!su.empty()) {
-                    logger_base.debug("             %s.", (const char *)su.c_str());
+                    LOG_DEBUG("             %s.", (const char *)su.c_str());
                 }
                 su = job->GetStatus();
                 if (!su.empty()) {
-                    logger_base.debug("             %s.", (const char *)su.c_str());
+                    LOG_DEBUG("             %s.", (const char *)su.c_str());
                 }
 
                 auto row = job->GetModelElement();
                 if (row != nullptr) {
                     bool blocked = job->GetwxStatus().StartsWith("Initializing rendering thread");
                     if (blocked || row->GetWaitCount()) {
-                        logger_base.debug("             Element %s, Blocked %d, Wait Count %d.",
+                        LOG_DEBUG("             Element %s, Blocked %d, Wait Count %d.",
                                           (const char *)row->GetModelName().c_str(), blocked,
                                           row->GetWaitCount());
                     }
@@ -1181,7 +1180,7 @@ void xLightsFrame::LogRenderStatus()
             }
         }
     }
-    logger_base.debug("*************************************");
+    LOG_DEBUG("*************************************");
 }
 
 static bool HasEffects(ModelElement *me) {
@@ -1326,9 +1325,9 @@ class RenderTreeData {
 public:
     RenderTreeData(Model *e): model(e) {
 
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
         if (e == nullptr) {
-            logger_base.crit("Render tree has a null model ... this is not going to end well.");
+            LOG_CRIT("Render tree has a null model ... this is not going to end well.");
         }
 
         ModelGroup *mg = dynamic_cast<ModelGroup*>(e);
@@ -1421,17 +1420,16 @@ void xLightsFrame::RenderTree::Add(Model *el) {
 }
 
 void xLightsFrame::RenderTree::Print() {
-    static log4cpp::Category &logger_render = log4cpp::Category::getInstance(std::string("log_render"));
-    logger_render.debug("========== RENDER TREE");
+    LOG_DEBUG("========== RENDER TREE");
     for (const auto& it : data) {
         //printf("%s:   (%d)\n", (*it)->model->GetName().c_str(), (int)(*it)->ranges.size());
-        logger_render.debug("   %s:   (%d)", (const char *)it->model->GetName().c_str(), (int)it->ranges.size());
+        LOG_DEBUG("   %s:   (%d)", (const char*)it->model->GetName().c_str(), (int)it->ranges.size());
         for (const auto& it2 : it->renderOrder) {
             //printf("    %s     \n", it2->GetName().c_str());
-            logger_render.debug("        %s", (const char *)it2->GetName().c_str());
+            LOG_DEBUG("        %s", (const char*)it2->GetName().c_str());
         }
     }
-    logger_render.debug("========== END RENDER TREE");
+    LOG_DEBUG("========== END RENDER TREE");
 }
 
 void xLightsFrame::BuildRenderTree() {
@@ -1467,8 +1465,6 @@ void xLightsFrame::Render(SequenceElements& seqElements,
 {
     abortedRenderJobs = 0;
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static log4cpp::Category &logger_render = log4cpp::Category::getInstance(std::string("log_render"));
 
     if (startFrame < 0) {
         startFrame = 0;
@@ -1499,13 +1495,13 @@ void xLightsFrame::Render(SequenceElements& seqElements,
         Element *rowEl = seqElements.GetElement((*it)->GetName());
 
         if (rowEl == nullptr) {
-            //logger_base.crit("xLightsFrame::Render rowEl is nullptr ... this is going to crash looking for '%s'.", (const char *)(*it)->GetName().c_str());
+            //LOG_CRIT("xLightsFrame::Render rowEl is nullptr ... this is going to crash looking for '%s'.", (const char *)(*it)->GetName().c_str());
         } else {
             if (rowEl->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 ModelElement *me = dynamic_cast<ModelElement *>(rowEl);
 
                 if (me == nullptr) {
-                    logger_base.crit("xLightsFrame::Render me is nullptr ... this is going to crash.");
+                    LOG_CRIT("xLightsFrame::Render me is nullptr ... this is going to crash.");
                 }
 
                 bool hasEffects = HasEffects(me);
@@ -1514,7 +1510,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
                     RenderJob *job = new RenderJob(me, seqData, this, false);
 
                     if (job == nullptr) {
-                        logger_base.crit("xLightsFrame::Render job is nullptr ... this is going to crash.");
+                        LOG_CRIT("xLightsFrame::Render job is nullptr ... this is going to crash.");
                     }
 
                     job->setRenderRange(startFrame, endFrame);
@@ -1553,7 +1549,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
         }
     }
 
-    logger_render.debug("Aggregators created.");
+    LOG_DEBUG("Aggregators created.");
 
     channelMaps.clear();
     RenderProgressDialog *renderProgressDialog = nullptr;
@@ -1569,7 +1565,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
         }
     }
 
-    logger_render.debug("Data cleared.");
+    LOG_DEBUG("Data cleared.");
 
     for (row = 0; row < numRows; ++row) {
         if (jobs[row]) {
@@ -1592,7 +1588,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
         }
     }
 
-    logger_render.debug("Job pool start size %d.", (int)jobPool.size());
+    LOG_DEBUG("Job pool start size %d.", (int)jobPool.size());
     for (row = 0; row < numRows; ++row) {
         if (jobs[row] && aggregators[row]->getNumAggregated() != 0) {
             //now start the rest
@@ -1600,7 +1596,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
             ++count;
         }
     }
-    logger_base.debug("Job pool new size %d.", (int)jobPool.size());
+    LOG_DEBUG("Job pool new size %d.", (int)jobPool.size());
 
     if (count) {
         if (progressDialog) {
@@ -1730,7 +1726,7 @@ void xLightsFrame::RenderDirtyModels() {
 
 bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     static bool inAbort = false;
     if (renderProgressInfo.empty()) {
         //nothing to abort, return quickly
@@ -1740,7 +1736,7 @@ bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted)
         return false;
     }
     inAbort = true;
-    logger_base.info("Aborting rendering ...");
+    LOG_INFO("Aborting rendering ...");
     int abortCount = 0;
     for (auto rpi : renderProgressInfo) {
         //abort whatever is rendering
@@ -1755,7 +1751,7 @@ bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted)
     int maxLoops = maxTimeMS;
     maxLoops /= 10;   //doing a 10ms sleep
     //must wait for the rendering to complete
-    logger_base.info("Aborting %d renderers", abortCount);
+    LOG_INFO("Aborting %d renderers", abortCount);
     int loops = 0;
     while (!renderProgressInfo.empty() && loops < maxLoops) {
         loops++;
@@ -1771,10 +1767,10 @@ bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted)
             // cases.
         }
         if (loops % 200 == 0) {
-            logger_base.info("    Waiting for renderers to abort. %d left.", (int)renderProgressInfo.size());
+            LOG_INFO("    Waiting for renderers to abort. %d left.", (int)renderProgressInfo.size());
         }
     }
-    logger_base.info("    Aborting renderers ... Done");
+    LOG_INFO("    Aborting renderers ... Done");
     inAbort = false;
     if( numThreadsAborted != nullptr ) {
         *numThreadsAborted = abortCount;
@@ -1784,7 +1780,7 @@ bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted)
 
 void xLightsFrame::RenderGridToSeqData(std::function<void(bool)>&& callback) {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     BuildRenderTree();
     if (renderTree.data.empty()) {
@@ -1793,7 +1789,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void(bool)>&& callback) {
         return;
     }
 
-    logger_base.debug("Render tree built. %d entries.", renderTree.data.size());
+    LOG_DEBUG("Render tree built. %d entries.", renderTree.data.size());
 
     const int numRows = _sequenceElements.GetElementCount();
     if (numRows == 0) {
@@ -1814,7 +1810,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void(bool)>&& callback) {
     }
     std::list<Model*> restricts;
 
-    logger_base.debug("Rendering %d models %d frames.", models.size(), _seqData.NumFrames());
+    LOG_DEBUG("Rendering %d models %d frames.", models.size(), _seqData.NumFrames());
 
 
 #ifdef DOTIMING
@@ -1838,13 +1834,13 @@ void xLightsFrame::RenderGridToSeqData(std::function<void(bool)>&& callback) {
 
 void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, int endms, bool clear) {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_suspendRender) return;
 
     BuildRenderTree();
 
-    logger_base.debug("Render tree built for model %s %dms-%dms. %d entries.",
+    LOG_DEBUG("Render tree built for model %s %dms-%dms. %d entries.",
         (const char *)model.c_str(),
         startms,
         endms,
@@ -1898,7 +1894,7 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
             std::list<Model *> m;
             m.push_back(it->model);
 
-            logger_base.debug("Rendering %d models %d frames.", m.size(), endframe - startframe + 1);
+            LOG_DEBUG("Rendering %d models %d frames.", m.size(), endframe - startframe + 1);
 
             Render(_sequenceElements, _seqData, it->renderOrder, m, startframe, endframe, false, true, [] (bool) {});
         }
@@ -1907,10 +1903,10 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
 
 void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     BuildRenderTree();
-    logger_base.debug("Render tree built for time slice %dms-%dms. %d entries.",
+    LOG_DEBUG("Render tree built for time slice %dms-%dms. %d entries.",
         startms,
         endms,
         renderTree.data.size());
@@ -1956,8 +1952,8 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
     _appProgress->Reset();
     wxStopWatch sw; // start a stopwatch timer
     Render(_sequenceElements, _seqData, models, restricts, startframe, endframe, true, clear, [this, sw] (bool aborted) {
-        static log4cpp::Category &logger_base2 = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base2.info("   Effects done.");
+        
+        LOG_INFO("   Effects done.");
         ProgressBar->SetValue(100);
         float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
         wxString displayBuff = wxString::Format(_("Rendered in %7.3f seconds"),elapsedTime);
@@ -2132,14 +2128,14 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
     PixelBufferClass& buffer, bool& resetEffectState,
     bool bgThread, RenderEvent* event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static log4cpp::Category& logger_render = log4cpp::Category::getInstance(std::string("log_render"));
+    
+    
 
     // dont render disabled effects
     if (effectObj == nullptr) return false;
     
     if (layer >= buffer.GetLayerCount()) {
-        logger_base.error("Model %s Effect %s at frame %d tried to render on a layer %d that does not exist (Only %d found).",
+        LOG_ERROR("Model %s Effect %s at frame %d tried to render on a layer %d that does not exist (Only %d found).",
             (const char*)buffer.GetModel()->GetName().c_str(), (const char*)effectObj->GetEffectName().c_str(), period, layer + 1, buffer.GetLayerCount());
         wxASSERT(false);
         return false;
@@ -2156,7 +2152,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
     if (buffer.GetModel() != nullptr && buffer.GetModel()->GetNodeCount() == 0) {
         // this happens with custom models with no nodes defined
         if (buffer.BufferForLayer(layer, 0).curEffStartPer == period) {
-            logger_base.warn("Model %s has no nodes so skipping rendering.", (const char*)buffer.GetModel()->GetName().c_str());
+            LOG_WARN("Model %s has no nodes so skipping rendering.", (const char*)buffer.GetModel()->GetName().c_str());
         }
         return false;
     }
@@ -2200,7 +2196,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
             RenderBuffer* b = &buffer.BufferForLayer(layer, -1);
             if (b == nullptr) {
                 // this is bad nothing will work
-                logger_base.warn("render on model %s layer %d effect %s from %dms returned no buffer ... skipping rendering.", (const char*)buffer.GetModelName().c_str(), layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS());
+                LOG_WARN("render on model %s layer %d effect %s from %dms returned no buffer ... skipping rendering.", (const char*)buffer.GetModelName().c_str(), layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS());
             }
             else {
                 if (bgThread && !reff->CanRenderOnBackgroundThread(effectObj, SettingsMap, *b)) {
@@ -2223,7 +2219,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                         retval = event->returnVal == 1;
                     }
                     else {
-                        logger_base.warn("HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 10 secs.", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
+                        LOG_WARN("HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 10 secs.", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
                         printf("HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 10 secs.\n", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
 
                         // Give it one more chance
@@ -2231,7 +2227,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                             retval = event->returnVal == 1;
                         }
                         else {
-                            logger_base.warn("DOUBLE HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 70 secs.", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
+                            LOG_WARN("DOUBLE HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 70 secs.", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
                             printf("DOUBLE HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 70 secs.\n", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
                         }
                     }
@@ -2244,7 +2240,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
 
                         // After yield who knows what may or may not be valid so we need to revalidate it
                         if (!_sequenceElements.IsValidEffect(event->effect)) {
-                            logger_base.error("In RenderEffectFromMap after Yield() call checked the effect was still valid ... and it isnt ... this would likely have crashed.");
+                            LOG_ERROR("In RenderEffectFromMap after Yield() call checked the effect was still valid ... and it isnt ... this would likely have crashed.");
                         }
                     }
                 }
@@ -2280,7 +2276,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
 
                             // Log slow render frames ... this takes time but at this point it is already slow
                             if (sw.Time() > 150) {
-                                logger_render.info("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) took more than 150 ms => %dms.", rb->curPeriod, (const char*)buffer.GetModelName().c_str(), rb->BufferWi, rb->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), rb->curEffStartPer, effectObj->GetEndTimeMS(), rb->curEffEndPer, sw.Time());
+                                LOG_INFO("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) took more than 150 ms => %dms.", rb->curPeriod, (const char*)buffer.GetModelName().c_str(), rb->BufferWi, rb->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), rb->curEffStartPer, effectObj->GetEndTimeMS(), rb->curEffEndPer, sw.Time());
                             }
 
                             if (suppress && oldBuffer != nullptr) {

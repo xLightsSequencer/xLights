@@ -21,23 +21,20 @@
 #include "ControllerCaps.h"
 #include "../outputs/ControllerEthernet.h"
 
-#include <log4cpp/Category.hh>
-
-#include "../xSchedule/wxJSON/jsonreader.h"
-#include "../xSchedule/wxJSON/jsonwriter.h"
+#include "./utils/spdlog_macros.h"
 
 #pragma region Constructors and Destructors
 // This is tested with a pixel stick running v3.0 of the firmware
 ESPixelStick::ESPixelStick(const std::string& ip, const std::string &proxy) : BaseController(ip, proxy) {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("connecting to ESPixelStick controller on %s.", (const char*)_ip.c_str());
+    
+    LOG_DEBUG("connecting to ESPixelStick controller on %s.", (const char*)_ip.c_str());
 
     if (!CheckHTTPconnection()) 
     {
         if (!CheckWsConnection()) {
             _connected = false;
-            logger_base.error("Error connecting to ESPixelStick controller on %s.", (const char*)_ip.c_str());
+            LOG_ERROR("Error connecting to ESPixelStick controller on %s.", (const char*)_ip.c_str());
         }
     }
 }
@@ -47,8 +44,6 @@ ESPixelStick::ESPixelStick(const std::string& ip, const std::string &proxy) : Ba
 
 bool ESPixelStick::CheckWsConnection()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     _wsClient.Connect(_ip, "/ws");
 
     if (_wsClient.IsConnected()) {
@@ -56,7 +51,7 @@ bool ESPixelStick::CheckWsConnection()
         _connected = true;
         _wsClient.Send("G2");
         _version = GetFromJSON("", "version", GetWSResponse());
-        logger_base.debug("Connected to ESPixelStick WebSocket - Firmware Version %s", (const char*)_version.c_str());
+        LOG_DEBUG("Connected to ESPixelStick WebSocket - Firmware Version %s", (const char*)_version.c_str());
         return true;
     }
 
@@ -65,148 +60,122 @@ bool ESPixelStick::CheckWsConnection()
 
 bool ESPixelStick::CheckHTTPconnection()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("CheckHTTPconnection ", (const char*)_ip.c_str());
+    
+    LOG_DEBUG("CheckHTTPconnection ", (const char*)_ip.c_str());
 
     // open HTTP connection to get admininfo
-    wxJSONValue HttpResponse;
+    nlohmann::json HttpResponse;
     if (GetAdminInformation(HttpResponse)) {
-        if (HttpResponse.GetType() == wxJSONTYPE_NULL) {
+        if (HttpResponse.is_null()) {
             return false;
         }
         _UsingHttpConfig = true;
         _model = "ESPixelStick";
         _connected = true;
-        _version = HttpResponse["version"].AsString();
-        logger_base.debug("Connected to ESPixelStick HTTP - Firmware Version %s", (const char*)_version.c_str());
+        _version = HttpResponse["version"].get<std::string>();
+        LOG_DEBUG("Connected to ESPixelStick HTTP - Firmware Version %s", (const char*)_version.c_str());
         return true;
     }
 
     return false;
 }
 
-bool ESPixelStick::GetAdminInformation(wxJSONValue& Response)
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("GetAdminInformation: Getting ESPSv4 HTTP admin info");
+bool ESPixelStick::GetAdminInformation(nlohmann::json& Response) {
+    
+    LOG_DEBUG("GetAdminInformation: Getting ESPSv4 HTTP admin info");
     return GetHttpConfig("admininfo", "admin", Response);
 }
 
-bool ESPixelStick::GetInputConfig(wxJSONValue& Response)
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("GetInputConfig: Getting ESPSv4 HTTP input config");
+bool ESPixelStick::GetInputConfig(nlohmann::json& Response) {
+    
+    LOG_DEBUG("GetInputConfig: Getting ESPSv4 HTTP input config");
     return (_UsingHttpConfig) ? GetHttpConfig("input_config", "input_config", Response) : GetWsConfig("input", "input_config", Response);
 }
 
-bool ESPixelStick::SetInputConfig(wxJSONValue& Data)
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SetInputConfig: Setting ESPSv4 HTTP input config");
+bool ESPixelStick::SetInputConfig(nlohmann::json& Data) {
+    
+    LOG_DEBUG("SetInputConfig: Setting ESPSv4 HTTP input config");
     return (_UsingHttpConfig) ? SetHttpConfig("input_config", "input_config", Data) : SetWsConfig("input", "input_config", Data);
 }
 
-bool ESPixelStick::GetOutputConfig(wxJSONValue& Response)
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("GetOutputConfig: Getting ESPSv4 HTTP output config");
+bool ESPixelStick::GetOutputConfig(nlohmann::json& Response) {
+    
+    LOG_DEBUG("GetOutputConfig: Getting ESPSv4 HTTP output config");
     return (_UsingHttpConfig) ? GetHttpConfig("output_config", "output_config", Response) : GetWsConfig("output", "output_config", Response);
 }
 
-bool ESPixelStick::SetOutputConfig(wxJSONValue& Data)
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SetOutputConfig: Setting ESPSv4 HTTP output config");
+bool ESPixelStick::SetOutputConfig(nlohmann::json& Data) {
+    
+    LOG_DEBUG("SetOutputConfig: Setting ESPSv4 HTTP output config");
     return ((_UsingHttpConfig) ? SetHttpConfig("output_config", "output_config", Data) : SetWsConfig("output", "output_config", Data));
 }
 
-bool ESPixelStick::GetHttpConfig(std::string FileName, std::string key, wxJSONValue& Response)
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("GetHttpConfig: Getting ESPSv4 HTTP config file");
+bool ESPixelStick::GetHttpConfig(std::string FileName, std::string key, nlohmann::json& Response) {
+    
+    LOG_DEBUG("GetHttpConfig: Getting ESPSv4 HTTP config file");
 
     std::string url = "/conf/" + FileName + ".json";
     std::string RawData = GetURL(url);
-    // logger_base.debug(std::string("GetHttpConfig: RawData: ") + RawData);
+    // LOG_DEBUG(std::string("GetHttpConfig: RawData: ") + RawData);
 
-    wxJSONReader reader;
-    wxJSONValue ParsedData;
-    reader.Parse(RawData, &ParsedData);
+    nlohmann::json ParsedData = nlohmann::json::parse(RawData);
     Response = ParsedData[key];
-    logger_base.debug(std::string("GetHttpConfig: Response: ") + std::to_string(Response.Size()));
-    return (0 != Response.Size());
+    LOG_DEBUG(std::string("GetHttpConfig: Response: ") + std::to_string(Response.size()));
+    return (0 != Response.size());
 }
 
-bool ESPixelStick::SetHttpConfig(std::string filename, std::string key, wxJSONValue& _Data)
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SetHttpConfig: Setting ESPSv4 HTTP config file");
+bool ESPixelStick::SetHttpConfig(std::string filename, std::string key, nlohmann::json& _Data) {
+    
+    LOG_DEBUG("SetHttpConfig: Setting ESPSv4 HTTP config file");
 
     std::string url = "http://" + _ip + "/conf/" + filename + ".json";
-    wxJSONWriter writer;
-    wxString Data;
-    wxJSONValue newJson;
+    nlohmann::json newJson;
     newJson[key] = _Data;
-    writer.Write(newJson, Data);
-    // logger_base.debug(std::string("SetHttpConfig: Data: '") + Data + "'");
+    auto Data = newJson.dump();
+    // LOG_DEBUG(std::string("SetHttpConfig: Data: '") + Data + "'");
 
     std::string contentType = "application/json";
     int ReturnCode = -1;
     std::vector<unsigned char> value(Data.begin(), Data.end());
     CurlManager::INSTANCE.doPost(url, contentType, value, ReturnCode);
 
-    // logger_base.debug(std::string("SetHttpConfig: ReturnCode: '") + std::to_string(ReturnCode) + "'");
+    // LOG_DEBUG(std::string("SetHttpConfig: ReturnCode: '") + std::to_string(ReturnCode) + "'");
     return (200 == ReturnCode);
 }
 
-bool ESPixelStick::GetWsConfig(std::string SectionName, std::string key, wxJSONValue& Response)
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("GetWsConfig: Getting ESPSv4 HTTP config file");
+bool ESPixelStick::GetWsConfig(std::string SectionName, std::string key, nlohmann::json& Response) {
+    
+    LOG_DEBUG("GetWsConfig: Getting ESPSv4 HTTP config file");
 
-    wxJSONWriter writer(wxJSONWRITER_NONE, 0, 3);
-    wxString message;
-    wxJSONValue newJson;
+    nlohmann::json newJson;
     newJson["cmd"]["get"] = SectionName;
-    writer.Write(newJson, message);
-    message.Replace(" : ", ":");
-    // logger_base.debug(std::string("GetWsConfig: cmd: ") + message);
-    _wsClient.Send(message);
 
-    wxJSONValue ParsedData;
-    wxJSONReader reader;
+    // LOG_DEBUG(std::string("GetWsConfig: cmd: ") + message);
+    _wsClient.Send(newJson.dump());
     std::string RawData = GetWSResponse();
-    // logger_base.debug(std::string("GetWsConfig: RawData: ") + RawData);
-    reader.Parse(RawData, &ParsedData);
+    nlohmann::json ParsedData = nlohmann::json::parse(RawData);
     Response = ParsedData["get"][key];
-    // logger_base.debug(std::string("GetWsConfig: Response: ") + std::to_string(Response.Size()));
-    return (0 != Response.Size());
+    // LOG_DEBUG(std::string("GetWsConfig: Response: ") + std::to_string(Response.Size()));
+    return (0 != Response.size());
 }
 
-bool ESPixelStick::SetWsConfig(std::string SectionName, std::string key, wxJSONValue& Data)
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SetWsConfig: Setting ESPSv4 HTTP config file");
+bool ESPixelStick::SetWsConfig(std::string SectionName, std::string key, nlohmann::json& Data) {
+    
+    LOG_DEBUG("SetWsConfig: Setting ESPSv4 HTTP config file");
 
-    wxJSONWriter writer(wxJSONWRITER_NONE, 0, 3);
-    wxString message;
-    wxJSONValue newJson;
+    nlohmann::json newJson;
     newJson["cmd"]["set"][SectionName] = Data;
-    writer.Write(newJson, message);
-    message.Replace(" : ", ":");
-    // logger_base.debug(std::string("SetWsConfig: cmd: ") + message);
-    _wsClient.Send(message);
 
-    wxJSONValue ParsedData;
-    wxJSONReader reader;
+    // LOG_DEBUG(std::string("SetWsConfig: cmd: ") + message);
+    _wsClient.Send(newJson.dump());
     std::string RawData = GetWSResponse();
-    // logger_base.debug(std::string("SetWsConfig: RawData: ") + RawData);
-    reader.Parse(RawData, &ParsedData);
-    wxJSONValue Response = ParsedData["cmd"];
-    std::string returnValue = Response.AsString();
-    // logger_base.debug(std::string("SetWsConfig: returnValue: '") + returnValue + "'");
+    // LOG_DEBUG(std::string("SetWsConfig: RawData: ") + RawData);
+    nlohmann::json ParsedData = nlohmann::json::parse(RawData);
+    nlohmann::json Response = ParsedData["cmd"];
+    std::string returnValue = Response.get<std::string>();
+    // LOG_DEBUG(std::string("SetWsConfig: returnValue: '") + returnValue + "'");
     bool result = returnValue == "OK";
-    // logger_base.debug(std::string("SetWsConfig: result: ") + std::to_string(result));
+    // LOG_DEBUG(std::string("SetWsConfig: result: ") + std::to_string(result));
     return result;
 }
 
@@ -267,28 +236,26 @@ std::string ESPixelStick::GetFromJSON(std::string const& section, std::string co
     //skip over the "G2" header or whatever
     for (int x = 0; x < json.size(); x++) {
         if (json[x] == '{' || json[x] == '[') {
-            wxJSONValue origJson;
-            wxJSONReader reader;
-            wxString config = json.substr(x);
-            reader.Parse(config, &origJson);
-            wxJSONValue val = origJson;
+            auto config = json.substr(x);
+            nlohmann::json origJson = nlohmann::json::parse(config);
+            nlohmann::json val = origJson;
             if (section != "") {
                 val = origJson[section];
             }
-            if(!val.HasMember(key))
+            if(!val.contains(key))
             { 
                 return "";
             }
 
-            val = val.ItemAt(key);
-            if (val.IsString()) {
-                return val.AsString().ToStdString();
+            val = val.at(key);
+            if (val.is_string()) {
+                return val.get<std::string>();
             }
-            if (val.IsInt()) {
-                return std::to_string(val.AsInt());
+            if (val.is_number_integer()) {
+                return std::to_string(val.get<int>());
             }
-            if (val.IsDouble()) {
-                return std::to_string(val.AsDouble());
+            if (val.is_number_float()) {
+                return std::to_string(val.get<float>());
             }
         }
     }
@@ -298,12 +265,12 @@ std::string ESPixelStick::GetFromJSON(std::string const& section, std::string co
 
 #pragma region Getters and Setters
 bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (_version.size() > 0 && _version[0] == '4') {
         //only needed on V4.   V3 will upload inputs with outputs
 
         bool changed = false;
-        wxJSONValue inputConfig; // get the input_config element
+        nlohmann::json inputConfig; // get the input_config element
         
         GetInputConfig(inputConfig);
 
@@ -321,16 +288,16 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
             startUniverse = outputs.front()->GetUniverse();
             chanPerUniverse = outputs.front()->GetChannels();
         }
-        std::string s_origTypeIdx = std::to_string(inputConfig["channels"]["0"]["type"].AsInt());
-        std::string s_origType = inputConfig["channels"]["0"][s_origTypeIdx]["type"].AsString();
+        std::string s_origTypeIdx = std::to_string(inputConfig["channels"]["0"]["type"].get<int>());
+        std::string s_origType = inputConfig["channels"]["0"][s_origTypeIdx]["type"].get<std::string>();
         if (s_origType != type) {
             changed = true;
             for (int x = 0; x < 10; x++) {
                 std::string idx = std::to_string(x);
-                if (!inputConfig["channels"]["0"].HasMember(idx)) {
+                if (!inputConfig["channels"]["0"].contains(idx)) {
                     continue;
                 }
-                if (inputConfig["channels"]["0"][idx]["type"].AsString() == type) {
+                if (inputConfig["channels"]["0"][idx]["type"].get<std::string>() == type) {
                     //found the new element, flip over to using that protocol
                     inputConfig["channels"]["0"]["type"] = x;
                     s_origTypeIdx = idx;
@@ -343,11 +310,11 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
             std::string sizeString = std::to_string(chanPerUniverse);
 
             //{"type":"E1.31","universe":1,"universe_limit":512,"channel_start":1}
-            if (inputConfig["channels"]["0"][s_origTypeIdx]["universe"].AsString() != univString) {
+            if (inputConfig["channels"]["0"][s_origTypeIdx]["universe"].get<std::string>() != univString) {
                 inputConfig["channels"]["0"][s_origTypeIdx]["universe"] = startUniverse;
                 changed = true;
             }
-            if (inputConfig["channels"]["0"][s_origTypeIdx]["universe_limit"].AsString() != sizeString) {
+            if (inputConfig["channels"]["0"][s_origTypeIdx]["universe_limit"].get<std::string>() != sizeString) {
                 inputConfig["channels"]["0"][s_origTypeIdx]["universe_limit"] = chanPerUniverse;
                 changed = true;
             }
@@ -368,7 +335,7 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, wxWindow* parent) {
 
         if (changed) {
             if (SetInputConfig(inputConfig)) {
-                logger_base.debug("ESPixelStick Inputs Upload: Success!!!");
+                LOG_DEBUG("ESPixelStick Inputs Upload: Success!!!");
             }
         }
     }
@@ -448,28 +415,28 @@ static std::string MapV4ColorOrder(const std::string &p) {
 }
 
 bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("ESPixelStick Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
+    
+    LOG_DEBUG("ESPixelStick Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
     auto rules = ControllerCaps::GetControllerConfig(controller);
     bool success = cud.Check(rules, check);
     cud.Dump();
-    logger_base.debug(check);
+    LOG_DEBUG(check);
 
     if (success) {
         bool changed = false;
-        wxJSONValue outputConfig;
+        nlohmann::json outputConfig;
 
         GetOutputConfig(outputConfig);
 
         if (controller->IsFullxLightsControl()) {
-            if (outputConfig.HasMember("channels")) {
-                wxJSONValue& channels = outputConfig["channels"];
-                for (const auto& key : channels.GetMemberNames()) {
-                    wxJSONValue& channel = channels[key];
-                    if (channel.HasMember("type"))
+            if (outputConfig.contains("channels")) {
+                nlohmann::json& channels = outputConfig["channels"];
+                for (const auto& [key, _] : channels.items()) {
+                    nlohmann::json& channel = channels[key];
+                    if (channel.contains("type"))
                         channel["type"] = 0; // disable all outputs, since used ones will be re-enabled next
                 }
                 changed = true;
@@ -510,15 +477,15 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                 }
 
                 std::string outidx = std::to_string(x);
-                std::string curIdx = std::to_string(outputConfig["channels"][outidx]["type"].AsInt());
-                if (outputConfig["channels"][outidx][curIdx]["type"].AsString() != proto) {
+                std::string curIdx = std::to_string(outputConfig["channels"][outidx]["type"].get<int>());
+                if (outputConfig["channels"][outidx][curIdx]["type"].get<std::string>() != proto) {
                     changed = true;
                     for (int i = 0; i < 20; i++) {
                         std::string idx = std::to_string(i);
-                        if (!outputConfig["channels"][outidx].HasMember(idx)) {
+                        if (!outputConfig["channels"][outidx].contains(idx)) {
                             return false;
                         }
-                        if (outputConfig["channels"][outidx][idx]["type"].AsString() == proto) {
+                        if (outputConfig["channels"][outidx][idx]["type"].get<std::string>() == proto) {
                             // found the new element, flip over to using that protocol
                             outputConfig["channels"][outidx]["type"] = i;
                             curIdx = idx;
@@ -535,7 +502,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                             gamma = 5.0F;
                         }
                         std::string const s_gamma = std::to_string(gamma);
-                        if (s_gamma != outputConfig["channels"][outidx][curIdx]["gamma"].AsString()) {
+                        if (s_gamma != outputConfig["channels"][outidx][curIdx]["gamma"].get<std::string>()) {
                             changed = true;
                             outputConfig["channels"][outidx][curIdx]["gamma"] = gamma;
                         }
@@ -547,45 +514,45 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                         }
 
                         std::string const b2 = std::to_string(b);
-                        if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].AsString()) {
+                        if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].get<std::string>()) {
                             changed = true;
                             outputConfig["channels"][outidx][curIdx]["brightness"] = b;
                         }
                     }
-                    if (!colorOrder.empty() && colorOrder != outputConfig["channels"][outidx][curIdx]["color_order"].AsString()) {
+                    if (!colorOrder.empty() && colorOrder != outputConfig["channels"][outidx][curIdx]["color_order"].get<std::string>()) {
                         changed = true;
                         outputConfig["channels"][outidx][curIdx]["color_order"] = colorOrder;
                     }
                     if (groupCount != -1) {
                         std::string const s_groupCount = std::to_string(groupCount);
-                        if (s_groupCount != outputConfig["channels"][outidx][curIdx]["group_size"].AsString()) {
+                        if (s_groupCount != outputConfig["channels"][outidx][curIdx]["group_size"].get<std::string>()) {
                             changed = true;
                             outputConfig["channels"][outidx][curIdx]["group_size"] = groupCount;
                         }
                     }
                     if (zigzag != -1) {
 						std::string const s_zigzag = std::to_string(zigzag);
-                        if (s_zigzag != outputConfig["channels"][outidx][curIdx]["zig_size"].AsString()) {
+                        if (s_zigzag != outputConfig["channels"][outidx][curIdx]["zig_size"].get<std::string>()) {
 							changed = true;
 							outputConfig["channels"][outidx][curIdx]["zig_size"] = zigzag;
 						}
 					}
                     if (startNulls != -1) {
                         std::string const s_startNulls = std::to_string(startNulls);
-                        if (s_startNulls != outputConfig["channels"][outidx][curIdx]["prependnullcount"].AsString()) {
+                        if (s_startNulls != outputConfig["channels"][outidx][curIdx]["prependnullcount"].get<std::string>()) {
                             changed = true;
                             outputConfig["channels"][outidx][curIdx]["prependnullcount"] = startNulls;
                         }
                     }
                     if (endNulls != -1) {
                         std::string const s_endNulls = std::to_string(endNulls);
-                        if (s_endNulls != outputConfig["channels"][outidx][curIdx]["appendnullcount"].AsString()) {
+                        if (s_endNulls != outputConfig["channels"][outidx][curIdx]["appendnullcount"].get<std::string>()) {
                             changed = true;
                             outputConfig["channels"][outidx][curIdx]["appendnullcount"] = endNulls;
                         }
                     }
                     std::string const s_pixels = std::to_string(pixels);
-                    if (s_pixels != outputConfig["channels"][outidx][curIdx]["pixel_count"].AsString()) {
+                    if (s_pixels != outputConfig["channels"][outidx][curIdx]["pixel_count"].get<std::string>()) {
                         changed = true;
                         outputConfig["channels"][outidx][curIdx]["pixel_count"] = pixels;
                     }
@@ -596,13 +563,13 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                             b = 100;
                         }
                         std::string const b2 = std::to_string(b);
-                        if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].AsString()) {
+                        if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].get<std::string>()) {
                             changed = true;
                             outputConfig["channels"][outidx][curIdx]["brightness"] = b;
                         }
                     }
                     std::string const s_pixels = std::to_string(pixels);
-                    if (s_pixels != outputConfig["channels"][outidx][curIdx]["pixel_count"].AsString()) {
+                    if (s_pixels != outputConfig["channels"][outidx][curIdx]["pixel_count"].get<std::string>()) {
                         changed = true;
                         outputConfig["channels"][outidx][curIdx]["pixel_count"] = pixels;
                     }
@@ -616,15 +583,15 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                 std::string channels = std::to_string(port->Channels());
 
                 std::string outidx = std::to_string(x);
-                std::string curIdx = std::to_string(outputConfig["channels"][outidx]["type"].AsInt());
-                if (outputConfig["channels"][outidx][curIdx]["type"].AsString() != proto) {
+                std::string curIdx = std::to_string(outputConfig["channels"][outidx]["type"].get<int>());
+                if (outputConfig["channels"][outidx][curIdx]["type"].get<std::string>() != proto) {
                     changed = true;
                     for (int i = 0; i < 20; i++) {
                         std::string idx = std::to_string(i);
-                        if (!outputConfig["channels"][outidx].HasMember(idx)) {
+                        if (!outputConfig["channels"][outidx].contains(idx)) {
                             return false;
                         }
-                        if (outputConfig["channels"][outidx][idx]["type"].AsString() == proto) {
+                        if (outputConfig["channels"][outidx][idx]["type"].get<std::string>() == proto) {
                             // found the new element, flip over to using that protocol
                             outputConfig["channels"][outidx]["type"] = i;
                             curIdx = idx;
@@ -632,7 +599,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                         }
                     }
                 }
-                if (channels != outputConfig["channels"][outidx][curIdx]["num_chan"].AsString()) {
+                if (channels != outputConfig["channels"][outidx][curIdx]["num_chan"].get<std::string>()) {
                     changed = true;
                     outputConfig["channels"][outidx][curIdx]["num_chan"] = channels;
                 }
@@ -642,20 +609,20 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
         {
             if (SetOutputConfig(outputConfig)) {
                 success = true;
-                logger_base.debug("ESPixelStick Outputs Upload: Success!!!");
+                LOG_DEBUG("ESPixelStick Outputs Upload: Success!!!");
             } else {
                 success = false;
-                logger_base.error("ESPixelStick Outputs Upload: Failure!!!");
+                LOG_ERROR("ESPixelStick Outputs Upload: Failure!!!");
             }
         } else {
-            logger_base.debug("ESPixelStick Outputs Upload: No Changes to upload");
+            LOG_DEBUG("ESPixelStick Outputs Upload: No Changes to upload");
         }
     }
     return success;
 }
 bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("ESPixelStick Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
+    
+    LOG_DEBUG("ESPixelStick Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
@@ -665,7 +632,7 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
 
     cud.Dump();
 
-    logger_base.debug(check);
+    LOG_DEBUG(check);
 
     if (success && cud.GetMaxPixelPort() > 0) {
         if (check != "") {
@@ -682,11 +649,9 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
         }
         config = config.substr(2);
 
-        wxJSONValue origJson;
-        wxJSONReader reader;
-        reader.Parse(config, &origJson);
+        nlohmann::json origJson = nlohmann::json::parse(config);
 
-        wxJSONValue newJson;
+        nlohmann::json newJson;
         //copy stuff over to act as defaults
         newJson["device"] = origJson["device"];
         newJson["mqtt"] = origJson["mqtt"];
@@ -734,14 +699,13 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
             }
         }
 
-        wxJSONWriter writer(wxJSONWRITER_NONE, 0, 3);
-        wxString message;
-        writer.Write(newJson, message);
+
+        std::string message = newJson.dump(3);
         message = "S2" + message;
 
         if (_wsClient.Send(message)) {
             success = true;
-            logger_base.debug("ESPixelStick Outputs Upload: Success!!!");
+            LOG_DEBUG("ESPixelStick Outputs Upload: Success!!!");
         }
         GetWSResponse();
     } else {

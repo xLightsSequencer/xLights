@@ -1,7 +1,7 @@
 #include "RenardOutput.h"
 
 #include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #pragma region Constructors and Destructors
 RenardOutput::RenardOutput(wxXmlNode* node) : SerialOutput(node)

@@ -18,7 +18,7 @@
 #include <wx/dcclient.h>
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #include "wx/artprov.h"
 
@@ -43,13 +43,13 @@ SplashDialog::SplashDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
 
     SetIcons(wxArtProvider::GetIconBundle("xlART_xLights_Icons", wxART_FRAME_ICON));
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    logger_base.debug("Loading splash image.");
+    LOG_DEBUG("Loading splash image.");
     _image = wxArtProvider::GetBitmap("xlART_xLights_SlashImage", wxART_OTHER);
     wxSize sz = _image.GetPreferredBitmapSizeFor(this);
 
-    logger_base.debug("Splash loaded. IsOk %s, %dx%d", _image.IsOk() ? "TRUE" : "FALSE", sz.GetWidth(), sz.GetHeight());
+    LOG_DEBUG("Splash loaded. IsOk %s, %dx%d", _image.IsOk() ? "TRUE" : "FALSE", sz.GetWidth(), sz.GetHeight());
 
     int w = FromPhys(sz.GetWidth());
     int h = FromPhys(sz.GetHeight());
@@ -65,8 +65,8 @@ SplashDialog::~SplashDialog()
 
 void SplashDialog::OnPaint(wxPaintEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Splash painting.");
+    
+    LOG_DEBUG("Splash painting.");
 
     wxPaintDC dc(this);
     dc.SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));

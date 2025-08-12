@@ -16,7 +16,7 @@
 #include <wx/tokenzr.h>
 #include <wx/propgrid/propgrid.h>
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 static const std::string DEFAULT("Default");
 static const std::string KEEP_XY("Keep XY");
@@ -96,8 +96,8 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
     
     StringType = p->StringType;
 
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    //logger_base.debug("Submodel init %s:%s", (const char*)p->GetFullName().c_str(), (const char*)name.c_str());
+    //
+    //LOG_DEBUG("Submodel init %s:%s", (const char*)p->GetFullName().c_str(), (const char*)name.c_str());
 
     bool vert = _layout == "vertical";
     bool isRanges = _type == "ranges";

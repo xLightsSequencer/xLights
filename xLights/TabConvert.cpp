@@ -46,7 +46,7 @@ extern "C"
 #include "CopyFormat1.h"
 #include "VideoExporter.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #ifndef CODEC_FLAG_GLOBAL_HEADER /* add compatibility for ffmpeg 3+ */
 #define CODEC_FLAG_GLOBAL_HEADER AV_CODEC_FLAG_GLOBAL_HEADER
@@ -98,8 +98,8 @@ void xLightsFrame::ConversionInit()
 
 void xLightsFrame::SetMediaFilename(const wxString& filename)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Setting media file to: %s.", (const char*)filename.c_str());
+    
+    LOG_DEBUG("Setting media file to: %s.", (const char*)filename.c_str());
 
     mediaFilename = filename;
     if (mediaFilename.size() == 0) {
@@ -611,7 +611,7 @@ void xLightsFrame::WriteFalconPiModelFile(const wxString& filename, long numChan
                                           SeqDataType* dataBuf, int startAddr, int modelSize,
                                           bool v2)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (v2) {
         V2FSEQFile* file = (V2FSEQFile*)FSEQFile::createFSEQFile(filename, 2);
         file->setNumFrames(endFrame - startFrame);
@@ -636,13 +636,13 @@ void xLightsFrame::WriteFalconPiModelFile(const wxString& filename, long numChan
         }
         wxUint32 stepSize = roundTo4(numChans);
         wxFile f;
-        logger_base.debug("Creating file %s. Channels: %ld Frames %ld, Start Channel %d, Model Size %d.",
+        LOG_DEBUG("Creating file %s. Channels: %ld Frames %ld, Start Channel %d, Model Size %d.",
                           (const char*)filename.c_str(),
                           numChans, endFrame - startFrame, startAddr, modelSize);
 
         if (!f.Create(filename, true)) {
             ConversionError(wxString("Unable to create file: ") + filename);
-            logger_base.error("Unable to create file %s.", (const char*)filename.c_str());
+            LOG_ERROR("Unable to create file %s.", (const char*)filename.c_str());
             return;
         }
 
@@ -691,8 +691,8 @@ void RenderModelOnImage(wxImage& image, Model* model, uint8_t* framedata, int st
     int outheight = image.GetHeight();
     int outwidth = image.GetWidth();
 
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("Writing model frame. Model=%s, startAddr=%d, x=%d, y=%d, w=%d, h=%d, ow=%d, oh=%d", (const char *)model->name.c_str(), startAddr, x, y, width, height, outwidth, outheight);
+    // 
+    // LOG_DEBUG("Writing model frame. Model=%s, startAddr=%d, x=%d, y=%d, w=%d, h=%d, ow=%d, oh=%d", (const char *)model->name.c_str(), startAddr, x, y, width, height, outwidth, outheight);
 
     uint8_t* imagedata = image.GetData();
 
@@ -804,8 +804,8 @@ std::string DecodeAVError(int err)
 void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans, unsigned int startFrame, unsigned int endFrame,
                                        SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, bool compressed)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Writing model video.");
+    
+    LOG_DEBUG("Writing model video.");
 
     int origwidth;
     int origheight;
@@ -832,8 +832,8 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
         }
     }
 
-    logger_base.debug("   Video dimensions %dx%d => %dx%d.", origwidth, origheight, width, height);
-    logger_base.debug("   Video frames %ld.", endFrame - startFrame);
+    LOG_DEBUG("   Video dimensions %dx%d => %dx%d.", origwidth, origheight, width, height);
+    LOG_DEBUG("   Video frames %ld.", endFrame - startFrame);
 
     // we need a num/den where the den > 10,000 ... if we dont do this then the timing can get slightly distorted
     uint32_t scale = (11000 * dataBuf->FrameTime()) / 1000u; // we need to multiple num and denom by this to generate the right scale
@@ -866,14 +866,14 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
     }
     int ret = avformat_alloc_output_context2(&oc, nullptr, EndsWith(filename, ".avi") ? "avi" : "mp4", filename);
     if (ret < 0 || oc == nullptr) {
-        logger_base.warn("   Could not create output context. %d", AVERROR(ret));
+        LOG_WARN("   Could not create output context. %d", AVERROR(ret));
         return;
     }
 
     // Create a video stream
     AVStream* video_st = avformat_new_stream(oc, nullptr);
     if (video_st == nullptr) {
-        logger_base.error("   Cannot allocate stream.");
+        LOG_ERROR("   Cannot allocate stream.");
         return;
     }
     video_st->time_base.num = num;
@@ -945,13 +945,13 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
 
     ret = avcodec_open2(codecContext, nullptr, nullptr);
     if (ret < 0) {
-        logger_base.error("   Cannot open codec context %d.", ret);
+        LOG_ERROR("   Cannot open codec context %d.", ret);
         return;
     }
 
     ret = avcodec_parameters_from_context(video_st->codecpar, codecContext);
     if (ret != 0) {
-        logger_base.error("   Cannot init video stream from codec context");
+        LOG_ERROR("   Cannot init video stream from codec context");
         return;
     }
 
@@ -972,7 +972,7 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
     // Create the frame object which will be placed in the packet
     AVFrame* frame = av_frame_alloc();
     if (!frame) {
-        logger_base.error("   Cannot not allocate frame.");
+        LOG_ERROR("   Cannot not allocate frame.");
         return;
     }
     frame->format = codecContext->pix_fmt;
@@ -986,7 +986,7 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
                                                 codecContext->width, codecContext->height, codecContext->pix_fmt,
                                                 sws_flags, nullptr, nullptr, nullptr);
     if (!sws_ctx) {
-        logger_base.error("   Could not create image conversion context.");
+        LOG_ERROR("   Could not create image conversion context.");
         return;
     }
 
@@ -994,13 +994,13 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
     AVFrame src_picture = { 0 };
     ret = av_image_alloc(src_picture.data, src_picture.linesize, origwidth, origheight, informat, 1);
     if (ret < 0) {
-        logger_base.error("   Could not allocate picture buffer.");
+        LOG_ERROR("   Could not allocate picture buffer.");
         return;
     }
 
     ret = av_image_alloc(frame->data, frame->linesize, codecContext->width, codecContext->height, codecContext->pix_fmt, 1);
     if (ret < 0) {
-        logger_base.error("   Could not allocate picture buffer.");
+        LOG_ERROR("   Could not allocate picture buffer.");
         return;
     }
 
@@ -1009,13 +1009,13 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
 
     /* open the output file, if needed */
     if (avio_open(&oc->pb, filename, AVIO_FLAG_WRITE) < 0) {
-        logger_base.error("   Could open file %s.", static_cast<const char*>(filename));
+        LOG_ERROR("   Could open file %s.", static_cast<const char*>(filename));
         return;
     }
 
     /* Write the stream header, if any. */
     if (avformat_write_header(oc, &av_opts) < 0) {
-        logger_base.error("   Could not write video file header.");
+        LOG_ERROR("   Could not write video file header.");
         return;
     }
 
@@ -1028,7 +1028,7 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
         // place it in a frame
         ret = av_image_fill_arrays(src_picture.data, src_picture.linesize, image.GetData(), informat, origwidth, origheight, 1);
         if (ret < 0) {
-            logger_base.error("   Error filling source image data %d.", ret);
+            LOG_ERROR("   Error filling source image data %d.", ret);
             return;
         }
 
@@ -1039,14 +1039,14 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
         ret = sws_scale(sws_ctx, tmp, stride,
                         0, origheight, frame->data, frame->linesize);
         if (ret != codecContext->height) {
-            logger_base.error("   Error resizing frame %d.", ret);
+            LOG_ERROR("   Error resizing frame %d.", ret);
             return;
         }
 
         AVPacket* pkt = av_packet_alloc();
         ret = ::avcodec_send_frame(codecContext, frame);
         if (ret < 0) {
-            logger_base.error("   Error encoding frame : %d %s.", ret, (const char*)DecodeAVError(ret).c_str());
+            LOG_ERROR("   Error encoding frame : %d %s.", ret, (const char*)DecodeAVError(ret).c_str());
             return;
         }
 
@@ -1097,7 +1097,7 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
     av_log_set_callback(nullptr);
 #endif
 
-    logger_base.debug("Model video written successfully.");
+    LOG_DEBUG("Model video written successfully.");
 }
 
 std::string xLightsFrame::GetPresetIconFilename(const std::string& preset) const
@@ -1122,8 +1122,8 @@ void xLightsFrame::CreatePresetIcons()
 #define PRESET_ICON_SIZE 64
 void xLightsFrame::WriteGIFForPreset(const std::string& preset)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Writing preset GIF for %s.", (const char*)preset.c_str());
+    
+    LOG_DEBUG("Writing preset GIF for %s.", (const char*)preset.c_str());
 
     wxMkDir(showDirectory + "/presets", wxS_DIR_DEFAULT);
 
@@ -1236,16 +1236,16 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
 void xLightsFrame::WriteGIFModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
                                      SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, unsigned int frameTime) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Writing model GIF.");
+    
+    LOG_DEBUG("Writing model GIF.");
 
     int width;
     int height;
     model->GetBufferSize("Default", "2D", "None", width, height, 0);
 
     // must be a multiple of 2
-    logger_base.debug("   GIF dimensions %dx%d.", width, height);
-    logger_base.debug("   GIF frames %ld.", endFrame - startFrame);
+    LOG_DEBUG("   GIF dimensions %dx%d.", width, height);
+    LOG_DEBUG("   GIF frames %ld.", endFrame - startFrame);
 
     wxImageArray imgArray;
 
@@ -1291,9 +1291,9 @@ void xLightsFrame::WriteGIFModelFile(const wxString& filename, long numChans, un
 
     bool ret = gif.SaveAnimation(imgArray, &outStream, true, frameTime);
     if (ret) {
-        logger_base.debug("Model GIF written successfully.");
+        LOG_DEBUG("Model GIF written successfully.");
     } else {
-        logger_base.debug("Model GIF written successfully.");
+        LOG_DEBUG("Model GIF written successfully.");
     }
 }
 
@@ -1302,8 +1302,8 @@ void xLightsFrame::WriteMinleonNECModelFile(const wxString& filename, long numCh
 {
     // this writes out at the sequence frame rate ... this may be a problem as samples I have seen seem to use 30fps
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Writing model Minleon Network Effects Controller File.");
+    
+    LOG_DEBUG("Writing model Minleon Network Effects Controller File.");
 
     wxLogNull logNo; // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
 
@@ -1317,7 +1317,7 @@ void xLightsFrame::WriteMinleonNECModelFile(const wxString& filename, long numCh
         return;
     }
 
-    logger_base.debug("   Model dimensions %dx%d => %ld channels %ld frames %ld.", width, height, (long)width * (long)height * 3, numChans, endFrame - startFrame);
+    LOG_DEBUG("   Model dimensions %dx%d => %ld channels %ld frames %ld.", width, height, (long)width * (long)height * 3, numChans, endFrame - startFrame);
 
     unsigned char header[512];
     memset(header, 0x00, sizeof(header));
@@ -1359,7 +1359,7 @@ void xLightsFrame::WriteMinleonNECModelFile(const wxString& filename, long numCh
     }
     f.Close();
 
-    logger_base.debug("Model Minleon Network Effects Controller file written successfully.");
+    LOG_DEBUG("Model Minleon Network Effects Controller file written successfully.");
 }
 
 void xLightsFrame::ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg)
@@ -1416,8 +1416,8 @@ void xLightsFrame::ReadXlightsFile(const wxString& FileName, wxString* mediaFile
         }
         delete[] buf;
 #ifndef NDEBUG
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug(string_format(wxString("ReadXlightsFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"), _seqData.NumFrames(), _seqData.NumChannels()));
+        
+        LOG_DEBUGWX(string_format(wxString("ReadXlightsFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"), _seqData.NumFrames(), _seqData.NumChannels()));
 #endif
     }
     f.Close();
@@ -1438,7 +1438,7 @@ static void addRanges(Model* m, std::map<uint32_t, uint32_t>& ranges)
 
 void xLightsFrame::WriteFalconPiFile(const wxString& filename, bool allowSparse)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     ConvertParameters write_params(filename,                               // filename
                                    _seqData,                               // sequence data object
@@ -1457,12 +1457,12 @@ void xLightsFrame::WriteFalconPiFile(const wxString& filename, bool allowSparse)
         for (int i = 0; i < numElements; ++i) {
             Element* element = _sequenceElements.GetElement(i);
             if (element == nullptr)
-                logger_base.crit("Element %d returns as null.", i);
+                LOG_CRIT("Element %d returns as null.", i);
             if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                 std::string modelName = element->GetModelName();
                 Model* m = this->GetModel(modelName);
                 if (m == nullptr) {
-                    logger_base.crit("Model %s returns as null.", (const char*)modelName.c_str());
+                    LOG_CRIT("Model %s returns as null.", (const char*)modelName.c_str());
                 } else {
                     addRanges(m, ranges);
                 }

@@ -28,7 +28,7 @@
 
 #include "../../include/corofaces.xpm"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 class FacesRenderCache : public EffectRenderCache {
     std::map<std::string, RenderBuffer*> _imageCache;
@@ -475,7 +475,7 @@ uint8_t FacesEffect::CalculateAlpha(SequenceElements* elements, int leadFrames, 
 
 void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
-    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //
     //wxStopWatch sw;
     uint8_t alpha = 255;
     if (SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", false)) {
@@ -510,7 +510,7 @@ void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
     }
 
     //if (sw.TimeInMicro() > 2000) {
-    //    logger_base.debug("Face effect frame render time: %lldus %s", sw.TimeInMicro(), (const char*)buffer.GetModel()->GetFullName().c_str());
+    //    LOG_DEBUG("Face effect frame render time: %lldus %s", sw.TimeInMicro(), (const char*)buffer.GetModel()->GetFullName().c_str());
     //}
 }
 
@@ -1052,8 +1052,8 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     if (buffer.curEffStartPer == buffer.curPeriod) {
         if (modelType != "Matrix" && modelType != "Rendered" && modelType != "Default") {
             if (buffer.isTransformed) {
-                static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                logger_base.warn("Faces effect starting at %dms until %dms on model %s has a transformed buffer. This may not work as expected.", buffer.curEffStartPer * buffer.frameTimeInMs, buffer.curEffEndPer * buffer.frameTimeInMs, (const char*)buffer.cur_model.c_str());
+                
+                LOG_WARN("Faces effect starting at %dms until %dms on model %s has a transformed buffer. This may not work as expected.", buffer.curEffStartPer * buffer.frameTimeInMs, buffer.curEffEndPer * buffer.frameTimeInMs, (const char*)buffer.cur_model.c_str());
             }
         }
     }

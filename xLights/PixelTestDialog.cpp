@@ -26,7 +26,7 @@
 #include "models/Model.h"
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include "xLightsXmlFile.h"
 #include "outputs/TestPreset.h"
 #include "outputs/Output.h"
@@ -98,11 +98,11 @@ void ChannelTracker::FixOverlaps()
 
 void ChannelTracker::Dump()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Selected channels dump:");
+    
+    LOG_DEBUG("Selected channels dump:");
     for (const auto& it : _ranges)
     {
-        logger_base.debug("   %ld-%ld", GetStart(it), GetEnd(it));
+        LOG_DEBUG("   %ld-%ld", GetStart(it), GetEnd(it));
     }
 }
 
@@ -2807,10 +2807,10 @@ void PixelTestDialog::OnButton_SaveClick(wxCommandEvent& event)
         testPreset->AddChannelRange(start, end);
         _channelTracker.GetNextRange(start, end);
     }
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Saving test preset: %s", (const char*)name.c_str());
+    
+    LOG_DEBUG("Saving test preset: %s", (const char*)name.c_str());
     _outputManager->Save();
-    logger_base.debug("   Save done.");
+    LOG_DEBUG("   Save done.");
 }
 #pragma endregion
 

@@ -1,15 +1,19 @@
 #include "ollama.h"
 #include "ServiceManager.h"
 #include "utils/Curl.h"
-#include "UtilFunctions.h"
+
 
 #include <wx/propgrid/propgrid.h>
+#include <wx/colour.h>
 
 #include <vector>
 #include <string>
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
+#include <nlohmann/json.hpp>
+
+#include "UtilFunctions.h"
 
 bool ollama::IsAvailable() const {
     return !host.empty() && _enabled;
@@ -56,10 +60,8 @@ void ollama::SetSetting(const std::string& key, const wxVariant& value) {
 
 std::pair<std::string, bool> ollama::CallLLM(const std::string& prompt) const {
 
-	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
 	if (host.empty()) {
-		logger_base.error("ollama: host is empty");
+        spdlog::error("ollama: host is empty");
 		return {"ollama: host is empty", false};
     }
     std::string const url = (https ? "https://" : "http://") + host + ":" + std::to_string(port_num) + api;
@@ -77,32 +79,118 @@ std::pair<std::string, bool> ollama::CallLLM(const std::string& prompt) const {
 	*/
     std::string const request = "{ \"model\": \"" + model + "\", \"prompt\": \"" + JSONSafe(p) + "\",\"stream\": false }";
 
-    logger_base.debug("ollama: %s", request.c_str());
+    spdlog::debug("ollama: {}", request);
     int responseCode { 0 };	
 	std::string response = Curl::HTTPSPost(url, request, "", "", "JSON", 60 * 10, {}, &responseCode);
 
-    logger_base.debug("ollama Response %d: %s", responseCode, response.c_str());
+    spdlog::debug("ollama Response {}: {}", responseCode, response);
 
 	if (responseCode != 200) {
         return { response , false};
     }
 
-	wxJSONReader reader;
-	wxJSONValue root;
-    if (reader.Parse(response, &root) > 0)
-	{
-		logger_base.error("ollama: Failed to parse response");
-        return { "ollama: Failed to parse response", false };
-	}
-    wxJSONValue text = root["response"];
-	if (text.IsNull()) {
-		logger_base.error("ollama: No text in response");
-        return { "ollama: No text in response", false };
-		}
-
-	response = text.AsString();
-	logger_base.debug("ollama: %s", response.c_str());
+    try {
+        // Check if the response is valid JSON
+        nlohmann::json const resp_json = nlohmann::json::parse(response);
+        if (resp_json.contains("response")) {
+            response = resp_json.at("response").get<std::string>();
+        }
+    } catch (const std::exception&) {
+        spdlog::error("ollama: Invalid JSON response: {}", response);
+        return { "ollama: Invalid JSON response", false };
+    }
+    spdlog::debug("ollama: {}", response);
 
     return { response, true};
+}
+
+std::vector<wxColour> ollama::CallLLMForColors(const std::string& prompt) const {
+    
+    if (host.empty()) {
+        spdlog::error("ollama: host is empty");
+        return std::vector<wxColour>();
+    }
+    std::string const url = (https ? "https://" : "http://") + host + ":" + std::to_string(port_num) + api;
+
+    /*
+    "model": "llama3.1",
+  "messages": [{"role": "user", "content": "Tell me about Canada."}],
+  "stream": false,
+  "format": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string"
+      },
+      "capital": {
+        "type": "string"
+      },
+      "languages": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "required": [
+      "name",
+      "capital", 
+      "languages"
+    ]
+  }
+    */
+
+    /*
+    "type": "array",
+        "items": {
+          "type": "string"
+        }
+    */
+    nlohmann::json input;
+    input["model"] = model;
+    input["stream"] = false;
+    input["format"]["type"] = "array";
+    input["format"]["items"]["type"] = "string";
+    input["format"]["items"]["description"] = "A color in hex format, e.g. #FF0000 or rgb(255,0,0) or rgba(255,0,0,1)";
+    input["format"]["items"]["example"] = "#FF0000, #00FF00, #0000FF";
+    
+    nlohmann::json message;
+    message["role"] = "user";
+    message["content"] = "Generate a list of colors in hex format based on the following song: " + prompt;
+    std::vector<nlohmann::ordered_json> messages;
+    messages.push_back(message);
+    input["messages"] = messages;
+
+
+    std::string str = input.dump(3);
+    //std::string const request = "{ \"model\": \"" + model + "\", \"prompt\": \"" + JSONSafe(p) + "\",\"stream\": false }";
+    spdlog::debug("ollama: {}", str);
+    int responseCode{ 0 };
+    std::string response = Curl::HTTPSPost(url, str, "", "", "JSON", 60 * 10, {}, &responseCode);
+    spdlog::debug("ollama Response {}: {}", responseCode, response);
+    if (responseCode != 200) {
+        return {};
+    }
+    try {
+        // Check if the response is valid JSON
+        nlohmann::json const resp_json = nlohmann::json::parse(response);
+        if (resp_json.contains("response")) {
+            response = resp_json.at("response").get<std::string>();
+        }
+    } catch (const std::exception&) {
+    }
+
+    spdlog::debug("ollama: {}", response);
+    std::vector<wxColour> colors;
+    auto colorStrings = Split(response, { ',', ';' });
+    for (const auto& colorString : colorStrings) {
+        wxColour const color(colorString);
+        if (color.IsOk()) {
+            colors.push_back(color);
+        } else {
+            spdlog::error("ollama: Invalid color '{}'", colorString);
+        }
+    }
+    return colors;
 }
 

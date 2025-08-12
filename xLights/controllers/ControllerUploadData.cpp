@@ -27,7 +27,7 @@
 
 #include <numeric>
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #pragma region UDControllerPortModel
 
@@ -223,15 +223,12 @@ std::string UDControllerPortModel::GetLabel() const {
 
 
 void UDControllerPortModel::Dump() const {
-
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (_string == -1) {
-        logger_base.debug("                Model %s. Controller Connection %s. Start Channel %d. End Channel %d. Channels %d. Pixels %d. Start Channel #%d:%d",
+        LOG_DEBUG("                Model %s. Controller Connection %s. Start Channel %d. End Channel %d. Channels %d. Pixels %d. Start Channel #%d:%d",
             (const char*)_model->GetName().c_str(), (const char*)_model->GetControllerConnectionRangeString().c_str(),
             _startChannel, _endChannel, Channels(),  INTROUNDUPDIV(Channels() , GetChannelsPerPixel()), GetUniverse(), GetUniverseStartChannel());
     } else {
-        logger_base.debug("                Model %s. String %d. Controller Connection %s. Start Channel %d. End Channel %d.",
+        LOG_DEBUG("                Model %s. String %d. Controller Connection %s. Start Channel %d. End Channel %d.",
             (const char*)_model->GetName().c_str(), _string + 1, (const char*)_model->GetControllerConnectionRangeString().c_str(),
             _startChannel, _endChannel);
     }
@@ -363,7 +360,6 @@ UDControllerPortModel* UDControllerPort::GetModel(const std::string& modelName, 
 
 UDControllerPortModel * UDControllerPort::AddModel(Model* m, Controller* controller, OutputManager* om, int string, bool eliminateOverlaps) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxASSERT(!ContainsModel(m, string));
 
     _om = om;
@@ -389,7 +385,7 @@ UDControllerPortModel * UDControllerPort::AddModel(Model* m, Controller* control
                     // this model overlaps at least slightly
                     if ((*it2)->GetEndChannel() <= (*it)->GetEndChannel()) {
                         // it2 is totally inside it
-                        logger_base.debug("CUD add model removed model %s as it totally overlaps with model %s",
+                        LOG_DEBUG("CUD add model removed model %s as it totally overlaps with model %s",
                             (const char*)(*it2)->GetName().c_str(),
                             (const char*)(*it)->GetName().c_str()
                         );
@@ -401,7 +397,7 @@ UDControllerPortModel * UDControllerPort::AddModel(Model* m, Controller* control
                              (*it2)->GetEndChannel() > (*it)->GetEndChannel() &&
                              (*it)->GetSmartRemote() == (*it2)->GetSmartRemote()) {
                         // i1 totally inside it2
-                        logger_base.debug("CUD add model removed model %s as it totally overlaps with model %s",
+                        LOG_DEBUG("CUD add model removed model %s as it totally overlaps with model %s",
                             (const char*)(*it)->GetName().c_str(),
                             (const char*)(*it2)->GetName().c_str()
                         );
@@ -411,7 +407,7 @@ UDControllerPortModel * UDControllerPort::AddModel(Model* m, Controller* control
                     }
                     else if ((*it)->GetSmartRemote() == (*it2)->GetSmartRemote()) {
                         // so this is the difficult partial overlap case ... to prevent issues i will just erase model 2 and the user will need to fix it
-                        logger_base.debug("CUD add model removed model %s as it PARTIALLY overlaps with model %s. This will cause issues but it cannot be handled by the upload.",
+                        LOG_DEBUG("CUD add model removed model %s as it PARTIALLY overlaps with model %s. This will cause issues but it cannot be handled by the upload.",
                             (const char*)(*it2)->GetName().c_str(),
                             (const char*)(*it)->GetName().c_str()
                         );
@@ -534,8 +530,6 @@ bool UDControllerPort::ClearSmartRemoteOnAllModels()
 // you shouldnt set the port as that is just going to cause grief.
 bool UDControllerPort::EnsureAllModelsAreChained()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     bool changed = false;
     std::string last;
     int lastsr{ 0 };
@@ -553,7 +547,7 @@ bool UDControllerPort::EnsureAllModelsAreChained()
             {
                 if (it->GetModel()->GetModelChain() != last)
                 {
-                    logger_base.debug("Model '%s' was chained to '%s' but fixed to chain to '%s'.", (const char*)it->GetModel()->GetName().c_str(),
+                    LOG_DEBUG("Model '%s' was chained to '%s' but fixed to chain to '%s'.", (const char*)it->GetModel()->GetName().c_str(),
                         (const char*)it->GetModel()->GetModelChain().c_str(), (const char*)last.c_str());
                     changed = true;
                     it->GetModel()->SetModelChain(last);
@@ -563,7 +557,7 @@ bool UDControllerPort::EnsureAllModelsAreChained()
             {
                 if (it->GetModel()->GetModelChain() != ">" + last)
                 {
-                    logger_base.debug("Model '%s' was chained to '%s' but fixed to chain to '%s'.", (const char*)it->GetModel()->GetName().c_str(),
+                    LOG_DEBUG("Model '%s' was chained to '%s' but fixed to chain to '%s'.", (const char*)it->GetModel()->GetName().c_str(),
                         (const char*)it->GetModel()->GetModelChain().c_str(), (const char*)((">" + last).c_str()));
                     changed = true;
                     it->GetModel()->SetModelChain(">" + last);
@@ -822,14 +816,10 @@ int32_t UDControllerPort::GetStartChannel() const {
     if (_models.size() == 0) {
         return -1;
     }
-    else {
-        if (_type == "Serial") {
-            return GetFirstModel()->GetStartChannel() - GetFirstModel()->GetDMXChannelOffset() + 1;
-        }
-        else {
-            return GetFirstModel()->GetStartChannel();
-        }
+    if (_type == "Serial") {
+        return GetFirstModel()->GetStartChannel() - GetFirstModel()->GetDMXChannelOffset() + 1;
     }
+    return GetFirstModel()->GetStartChannel();
 }
 
 int32_t UDControllerPort::GetEndChannel() const {
@@ -837,9 +827,7 @@ int32_t UDControllerPort::GetEndChannel() const {
     if (_models.size() == 0) {
         return -1;
     }
-    else {
-        return GetLastModel()->GetEndChannel();
-    }
+    return GetLastModel()->GetEndChannel();
 }
 
 int32_t UDControllerPort::Channels() const {
@@ -853,17 +841,14 @@ int32_t UDControllerPort::Channels() const {
                 c += it->Channels();
             }
             return c;
-        } else {
-            return GetEndChannel() - GetStartChannel() + 1;
-        }
+        } 
+        return GetEndChannel() - GetStartChannel() + 1;
     }
-    else {
-        int c = 0;
-        for (const auto& it : _virtualStrings) {
-            c += it->Channels();
-        }
-        return c;
+    int c = 0;
+    for (const auto& it : _virtualStrings) {
+        c += it->Channels();
     }
+    return c;
 }
 
 int32_t UDControllerPort::EffectiveChannels(std::string vendor) const {
@@ -890,28 +875,26 @@ int UDControllerPort::GetUniverse() const {
     if (_models.size() == 0) {
         return -1;
     }
-    else {
-        if (_type == "Serial") {
 
-            if (_om == nullptr) {
-                wxASSERT(false);
-                return -1;
-            }
+    if (_type == "Serial") {
 
-            // need to offset the first DMX channel
-            auto abs = GetFirstModel()->GetStartChannel();
-            abs = abs - GetFirstModel()->GetDMXChannelOffset() + 1;
-            int32_t sc;
-            Output* o = _om->GetOutput(abs, sc);
-            if (o != nullptr) {
-                return o->GetUniverse();
-            }
+        if (_om == nullptr) {
+            wxASSERT(false);
             return -1;
         }
-        else {
-            return GetFirstModel()->GetUniverse();
+
+        // need to offset the first DMX channel
+        auto abs = GetFirstModel()->GetStartChannel();
+        abs = abs - GetFirstModel()->GetDMXChannelOffset() + 1;
+        int32_t sc;
+        Output* o = _om->GetOutput(abs, sc);
+        if (o != nullptr) {
+            return o->GetUniverse();
         }
+        return -1;
     }
+
+    return GetFirstModel()->GetUniverse();
 }
 
 int UDControllerPort::GetUniverseStartChannel() const {
@@ -919,28 +902,26 @@ int UDControllerPort::GetUniverseStartChannel() const {
     if (_models.size() == 0) {
         return -1;
     }
-    else {
-        if (_type == "Serial") {
 
-            if (_om == nullptr) {
-                wxASSERT(false);
-                return -1;
-            }
+    if (_type == "Serial") {
 
-            // need to offset the first DMX channel
-            auto abs = GetFirstModel()->GetStartChannel();
-            abs = abs - GetFirstModel()->GetDMXChannelOffset() + 1;
-            int32_t sc;
-            Output* o = _om->GetOutput(abs, sc);
-            if (o != nullptr) {
-                return sc;
-            }
+        if (_om == nullptr) {
+            wxASSERT(false);
             return -1;
         }
-        else {
-            return GetFirstModel()->GetUniverseStartChannel();
+
+        // need to offset the first DMX channel
+        auto abs = GetFirstModel()->GetStartChannel();
+        abs = abs - GetFirstModel()->GetDMXChannelOffset() + 1;
+        int32_t sc;
+        Output* o = _om->GetOutput(abs, sc);
+        if (o != nullptr) {
+            return sc;
         }
+        return -1;
     }
+
+    return GetFirstModel()->GetUniverseStartChannel();
 }
 
 bool UDControllerPort::IsPixelProtocol() const {
@@ -982,9 +963,7 @@ std::string UDControllerPort::GetPortName() const {
     if (_models.size() == 0) {
         return "";
     }
-    else {
-        return GetFirstModel()->GetName();
-    }
+    return GetFirstModel()->GetName();
 }
 
 bool UDControllerPort::AtLeastOneModelIsUsingSmartRemote() const
@@ -1043,10 +1022,7 @@ std::string UDControllerPort::GetSmartRemoteType(int smartRemote) const {
 }
 
 void UDControllerPort::Dump() const {
-
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    logger_base.debug("            Port %d. Protocol %s. Valid %s. Invalid Reason '%s'. Channels %d. Pixels %d. Start #%d:%d.", _port, (const char*)_protocol.c_str(), toStr( _valid ), (const char*)_invalidReason.c_str(), Channels(),  INTROUNDUPDIV(Channels(), GetChannelsPerPixel(_protocol)), GetUniverse(), GetUniverseStartChannel());
+    LOG_DEBUG("            Port %d. Protocol %s. Valid %s. Invalid Reason '%s'. Channels %d. Pixels %d. Start #%d:%d.", _port, (const char*)_protocol.c_str(), toStr( _valid ), (const char*)_invalidReason.c_str(), Channels(),  INTROUNDUPDIV(Channels(), GetChannelsPerPixel(_protocol)), GetUniverse(), GetUniverseStartChannel());
     for (const auto& it : _models) {
         it->Dump();
     }
@@ -1328,7 +1304,7 @@ void UDController::Rescan(bool eliminateOverlaps) {
             int32_t modelend = modelstart + it.second->GetChanCount() - 1;
             if ((modelstart >= _controller->GetStartChannel() && modelstart <= _controller->GetEndChannel()) ||
                 (modelend >= _controller->GetStartChannel() && modelend <= _controller->GetEndChannel())) {
-                //logger_base.debug("Model %s start %d end %d found on controller %s output %d start %d end %d.",
+                //LOG_DEBUG("Model %s start %d end %d found on controller %s output %d start %d end %d.",
                 //    (const char *)it->first.c_str(), modelstart, modelend,
                 //    (const char *)_ip.c_str(), node, currentcontrollerstartchannel, currentcontrollerendchannel);
                 if (!it.second->IsControllerConnectionValid()) {
@@ -1491,53 +1467,44 @@ int UDController::GetMaxSerialPort() const {
 
     int last = 0;
     for (const auto& it : _serialPorts) {
-        if (it.second->GetPort() > last) {
-            last = it.second->GetPort();
-        }
+        last = std::max(last, it.second->GetPort());
     }
     return last;
 }
+
 int UDController::GetMaxPWMPort() const {
-
-    int last = 0;
+    int last{ 0 };
     for (const auto& it : _pwmPorts) {
-        if (it.second->GetPort() > last) {
-            last = it.second->GetPort();
-        }
+        last = std::max(last, it.second->GetPort());
     }
     return last;
 }
+
 int UDController::GetMaxPixelPort() const {
-
-    int last = 0;
+    int last{ 0 };
     for (const auto& it : _pixelPorts) {
-        if (it.second->GetPort() > last) {
-            last = it.second->GetPort();
-        }
-    }
-    return last;
-}
-int UDController::GetMaxLEDPanelMatrixPort() const {
-    int last = 0;
-    for (const auto& it : _ledPanelMatrixPorts) {
-        if (it.second->GetPort() > last) {
-            last = it.second->GetPort();
-        }
-    }
-    return last;
-}
-int UDController::GetMaxVirtualMatrixPort() const {
-    int last = 0;
-    for (const auto& it : _virtualMatrixPorts) {
-        if (it.second->GetPort() > last) {
-            last = it.second->GetPort();
-        }
+        last = std::max(last, it.second->GetPort());
     }
     return last;
 }
 
-void UDController::TagSmartRemotePorts()
-{
+int UDController::GetMaxLEDPanelMatrixPort() const {
+    int last{ 0 };
+    for (const auto& it : _ledPanelMatrixPorts) {
+        last = std::max(last, it.second->GetPort());
+    }
+    return last;
+}
+
+int UDController::GetMaxVirtualMatrixPort() const {
+    int last { 0 };
+    for (const auto& it : _virtualMatrixPorts) {
+        last = std::max(last, it.second->GetPort());
+    }
+    return last;
+}
+
+void UDController::TagSmartRemotePorts() {
     for (const auto& it : _pixelPorts) {
         if (it.second->AtLeastOneModelIsUsingSmartRemote()) {
             for (uint32_t i = ((it.first-1) / 4) * 4 + 1; i < ((it.first-1) / 4) * 4 + 5; ++i) {
@@ -1548,40 +1515,35 @@ void UDController::TagSmartRemotePorts()
 }
 
 bool UDController::HasSerialPort(int port) const {
-    for (const auto& it : _serialPorts) {
-        if (it.second->GetPort() == port) {
-            return true;
-        }
-    }
-    return false;
+    return std::any_of(_serialPorts.begin(), _serialPorts.end(),
+        [port](const auto& it) {
+            return it.second->GetPort() == port;
+        });
 }
-bool UDController::HasPWMPort(int port) const {
-    for (const auto& it : _pwmPorts) {
-        if (it.second->GetPort() == port) {
-            return true;
-        }
-    }
-    return false;
-}
-bool UDController::HasLEDPanelMatrixPort(int port) const {
-    for (const auto& it : _ledPanelMatrixPorts) {
-        if (it.second->GetPort() == port) {
-            return true;
-        }
-    }
-    return false;
-}bool UDController::HasVirtualMatrixPort(int port) const {
-    for (const auto& it : _virtualMatrixPorts) {
-        if (it.second->GetPort() == port) {
-            return true;
-        }
-    }
-    return false;
-}
-int UDController::GetMaxPixelPortChannels() const
-{
-    int res = 0;
 
+bool UDController::HasPWMPort(int port) const {
+    return std::any_of(_pwmPorts.begin(), _pwmPorts.end(),
+        [port](const auto& it) {
+            return it.second->GetPort() == port;
+        });
+}
+
+bool UDController::HasLEDPanelMatrixPort(int port) const {
+    return std::any_of(_ledPanelMatrixPorts.begin(), _ledPanelMatrixPorts.end(),
+            [port](const auto& it) {
+                return it.second->GetPort() == port;
+            });
+}
+
+bool UDController::HasVirtualMatrixPort(int port) const {
+    return std::any_of(_virtualMatrixPorts.begin(), _virtualMatrixPorts.end(),
+                       [port](const auto& it) {
+                           return it.second->GetPort() == port;
+                       });
+}
+
+int UDController::GetMaxPixelPortChannels() const {
+    int res {0};
     for (const auto& it : _pixelPorts) {
         res = std::max(res, it.second->Channels());
     }
@@ -1615,33 +1577,26 @@ Model* UDController::GetModelAfter(Model* m) const
 
 bool UDController::HasModels() const
 {
-    for (const auto& it : _pixelPorts) {
-        if (it.second->GetFirstModel() != nullptr) {
-            return true;
-        }
-    }
-    for (const auto& it : _serialPorts) {
-        if (it.second->GetFirstModel() != nullptr) {
-            return true;
-        }
-    }
-    for (const auto& it : _pwmPorts) {
-        if (it.second->GetFirstModel() != nullptr) {
-            return true;
-        }
-    }
-    for (const auto& it : _virtualMatrixPorts) {
-        if (it.second->GetFirstModel() != nullptr) {
-            return true;
-        }
-    }
-    for (const auto& it : _ledPanelMatrixPorts) {
-        if (it.second->GetFirstModel() != nullptr) {
-            return true;
-        }
-    }
-
-    return false;
+    return std::any_of(_pixelPorts.begin(), _pixelPorts.end(),
+                       [](const auto& it) {
+                           return it.second->GetFirstModel() != nullptr;
+                       }) 
+        || std::any_of(_serialPorts.begin(), _serialPorts.end(),
+                       [](const auto& it) {
+                           return it.second->GetFirstModel() != nullptr;
+                       })
+        || std::any_of(_pwmPorts.begin(), _pwmPorts.end(),
+                       [](const auto& it) {
+                           return it.second->GetFirstModel() != nullptr;
+                       })
+        || std::any_of(_virtualMatrixPorts.begin(), _virtualMatrixPorts.end(),
+                       [](const auto& it) {
+                           return it.second->GetFirstModel() != nullptr;
+                       })
+        || std::any_of(_ledPanelMatrixPorts.begin(), _ledPanelMatrixPorts.end(),
+                       [](const auto& it) {
+                           return it.second->GetFirstModel() != nullptr;
+                       });
 }
 
 bool UDController::SetAllModelsToControllerName(const std::string& controllerName)
@@ -1680,7 +1635,7 @@ bool UDController::SetAllModelsToValidProtocols(const std::vector<std::string>& 
     bool changed = false;
     for (const auto& it : _pixelPorts) {
         changed |= it.second->SetAllModelsToValidProtocols(pixelProtocols, force);
-        if (allsame && force == "" && it.second->GetFirstModel() != nullptr) {
+        if (allsame && force.empty() && it.second->GetFirstModel() != nullptr) {
             force = it.second->GetFirstModel()->GetModel()->GetControllerProtocol();
         }
     }
@@ -1688,31 +1643,31 @@ bool UDController::SetAllModelsToValidProtocols(const std::vector<std::string>& 
     force = "";
     for (const auto& it : _serialPorts) {
         changed |= it.second->SetAllModelsToValidProtocols(serialProtocols, force);
-        if (allsame && force == "" && it.second->GetFirstModel() != nullptr) {
+        if (allsame && force.empty() && it.second->GetFirstModel() != nullptr) {
             force = it.second->GetFirstModel()->GetModel()->GetControllerProtocol();
         }
     }
     force = "";
     for (const auto& it : _pwmPorts) {
         changed |= it.second->SetAllModelsToValidProtocols({"PWM"}, force);
-        if (allsame && force == "" && it.second->GetFirstModel() != nullptr) {
+        if (allsame && force.empty() && it.second->GetFirstModel() != nullptr) {
             force = it.second->GetFirstModel()->GetModel()->GetControllerProtocol();
         }
     }
 
     force = "";
     for (const auto& it : _virtualMatrixPorts) {
-        std::vector<std::string> vmProtocol = { "Virtual Matrix" };
+        std::vector<std::string> const vmProtocol = { "Virtual Matrix" };
         changed |= it.second->SetAllModelsToValidProtocols(vmProtocol, force);
-        if (allsame && force == "" && it.second->GetFirstModel() != nullptr) {
+        if (allsame && force.empty() && it.second->GetFirstModel() != nullptr) {
             force = it.second->GetFirstModel()->GetModel()->GetControllerProtocol();
         }
     }
     force = "";
     for (const auto& it : _ledPanelMatrixPorts) {
-        std::vector<std::string> vmProtocol = { "LED Panel Matrix" };
+        std::vector<std::string> const vmProtocol = { "LED Panel Matrix" };
         changed |= it.second->SetAllModelsToValidProtocols(vmProtocol, force);
-        if (allsame && force == "" && it.second->GetFirstModel() != nullptr) {
+        if (allsame && force.empty() && it.second->GetFirstModel() != nullptr) {
             force = it.second->GetFirstModel()->GetModel()->GetControllerProtocol();
         }
     }
@@ -1743,12 +1698,10 @@ bool UDController::ClearSmartRemoteOnAllModels()
 
 bool UDController::HasPixelPort(int port) const {
 
-    for (const auto& it : _pixelPorts) {
-        if (it.second->GetPort() == port) {
-            return true;
-        }
-    }
-    return false;
+     return std::any_of(_pixelPorts.begin(), _pixelPorts.end(),
+                       [port](const auto& it) {
+                           return it.second->GetPort() == port;
+                       });
 }
 
 bool UDController::IsValid() const {
@@ -1773,36 +1726,34 @@ bool UDController::IsValid() const {
 
 void UDController::Dump() const {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    LOG_DEBUG("UDController Dump");
 
-    logger_base.debug("UDController Dump");
-
-    logger_base.debug("   IP Address %s.", (const char*)_ipAddress.c_str());
-    if (_hostName != "" && _hostName != _ipAddress) {
-        logger_base.debug("   HostName %s.", (const char*)_hostName.c_str());
+    LOG_DEBUG("   IP Address %s.", (const char*)_ipAddress.c_str());
+    if (!_hostName.empty() && _hostName != _ipAddress) {
+        LOG_DEBUG("   HostName %s.", (const char*)_hostName.c_str());
     }
-    logger_base.debug("   Outputs:");
+    LOG_DEBUG("   Outputs:");
     auto outputs = _controller->GetOutputs();
     for (const auto& it : outputs) {
-        logger_base.debug("        %s", it->GetLongDescription().c_str());
+        LOG_DEBUG("        %s", it->GetLongDescription().c_str());
     }
-    logger_base.debug("   Pixel Ports %d. Maximum port Number %d.", (int)_pixelPorts.size(), GetMaxPixelPort());
+    LOG_DEBUG("   Pixel Ports %d. Maximum port Number %d.", (int)_pixelPorts.size(), GetMaxPixelPort());
     for (const auto& it : _pixelPorts) {
         it.second->Dump();
     }
-    logger_base.debug("   Serial Ports %d. Maximum port Number %d.", (int)_serialPorts.size(), GetMaxSerialPort());
+    LOG_DEBUG("   Serial Ports %d. Maximum port Number %d.", (int)_serialPorts.size(), GetMaxSerialPort());
     for (const auto& it : _serialPorts) {
         it.second->Dump();
     }
-    logger_base.debug("   PWM Ports %d. Maximum port Number %d.", (int)_pwmPorts.size(), GetMaxPWMPort());
+    LOG_DEBUG("   PWM Ports %d. Maximum port Number %d.", (int)_pwmPorts.size(), GetMaxPWMPort());
     for (const auto& it : _pwmPorts) {
         it.second->Dump();
     }
-    logger_base.debug("   Virtual Matrices %d.", (int)_virtualMatrixPorts.size());
+    LOG_DEBUG("   Virtual Matrices %d.", (int)_virtualMatrixPorts.size());
     for (const auto& it : _virtualMatrixPorts) {
         it.second->Dump();
     }
-    logger_base.debug("   LED Panel Matrices %d.", (int)_ledPanelMatrixPorts.size());
+    LOG_DEBUG("   LED Panel Matrices %d.", (int)_ledPanelMatrixPorts.size());
     for (const auto& it : _ledPanelMatrixPorts) {
         it.second->Dump();
     }
@@ -1838,7 +1789,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
         }
         for (const auto& it : _pixelPorts) {
 
-            int block = (it.first - 1) / 4;
+            int const block = (it.first - 1) / 4;
             blocksAreSmart[block] += it.second->AtLeastOneModelIsUsingSmartRemote() ? 1 : 0;
 
             if (rules->SupportsVirtualStrings()) {
@@ -1864,7 +1815,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
         // try to detect errors with a mix of smart remote and non smart remote ports/models
         for (const auto& it : _pixelPorts) {
 
-            int block = (it.first - 1) / 4;
+            int const block = (it.first - 1) / 4;
             
             if (prevBlock != block) {
                 smType = std::vector<std::string>(rules->GetSmartRemoteCount(), "");
@@ -1910,9 +1861,9 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     }
 
     if (!rules->SupportsMultipleSimultaneousInputProtocols()) {
-        std::string protocol = "";
+        std::string protocol;
         for (const auto& o : outputs) {
-            if (protocol == "") {
+            if (protocol.empty()) {
                 protocol = o->GetType();
             }
             else
@@ -1941,7 +1892,8 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
     if (!rules->SupportsMultipleSimultaneousOutputProtocols()) {
         std::string protocol;
         for (const auto& it : _pixelPorts) {
-            if (protocol == "") protocol = it.second->GetProtocol();
+            if (protocol.empty())
+                protocol = it.second->GetProtocol();
 
             if (Lower(protocol) != Lower(it.second->GetProtocol())) {
                 res += wxString::Format("ERR: Pixel ports only support a single protocol at a time. %s and %s found.\n", protocol, it.second->GetProtocol()).ToStdString();
@@ -1951,7 +1903,7 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
 
         protocol = "";
         for (const auto& it : _serialPorts) {
-            if (protocol == "") protocol = it.second->GetProtocol();
+            if (protocol.empty()) protocol = it.second->GetProtocol();
 
             if (Lower(protocol) != Lower(it.second->GetProtocol())) {
                 res += wxString::Format("ERR: Serial ports only support a single protocol at a time. %s and %s found.\n", protocol, it.second->GetProtocol()).ToStdString();

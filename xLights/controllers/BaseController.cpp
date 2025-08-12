@@ -21,7 +21,7 @@
 #include "../utils/Curl.h"
 #endif
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #include "BaseController.h"
 #include "Falcon.h"
@@ -47,11 +47,11 @@ BaseController::BaseController(const std::string& ip, const std::string &proxy) 
 
 #ifndef DISCOVERYONLY
 BaseController *BaseController::CreateBaseController(Controller *controller, const std::string &ipOrig) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     std::string ip = ipOrig;
     ControllerCaps *caps = controller->GetControllerCaps();
     if (!caps) {
-        logger_base.error("Unable to get controller capabilities.");
+        LOG_ERROR("Unable to get controller capabilities.");
         return nullptr;
     }
     std::string vendor = controller->GetVendor();
@@ -60,7 +60,7 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
     if (ipOrig == "") {
         ip = controller->GetResolvedIP();
         if (ip == "MULTICAST") {
-            logger_base.error("Unable to upload to a multicast controller.");
+            LOG_ERROR("Unable to upload to a multicast controller.");
             return nullptr;
         }
     }
@@ -96,7 +96,7 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
     } else if (driver == "ILightThat") {
         bc = new ILightThat(ip, proxy);
     } else {
-        logger_base.warn("Vendor not recognized ... assuming it is a FPP based vendor : %s.", (const char*)vendor.c_str());
+        LOG_WARN("Vendor not recognized ... assuming it is a FPP based vendor : %s.", (const char*)vendor.c_str());
         bc = new FPP(ip, proxy, caps->GetModel());
     }
     return bc;
@@ -107,7 +107,7 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
 
 #pragma region Protected Functions
 std::string BaseController::GetURL(const std::string& url, const std::string& username, const std::string& password) const{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
     auto furl = std::string("http://" + baseIP + _baseUrl + url);
@@ -120,7 +120,7 @@ std::string BaseController::GetURL(const std::string& url, const std::string& us
     int rc = 0;
     std::string res = CurlManager::INSTANCE.doGet(furl, rc);
     if (rc == 0 && !needsHTTP_0_9()) {
-        logger_base.error("Failure to access %s: %s.", (const char*)furl.c_str(), res.c_str());
+        LOG_ERROR("Failure to access %s: %s.", (const char*)furl.c_str(), res.c_str());
         return "";
     }
     return res;
@@ -128,11 +128,11 @@ std::string BaseController::GetURL(const std::string& url, const std::string& us
 
 std::string BaseController::PutURL(const std::string& url, const std::string& request, const std::string& username, const std::string& password, const std::string& contentType) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
-    logger_base.debug("Making request to Controller '%s'.", (const char*)url.c_str());
-    logger_base.debug("    With data '%s'.", (const char*)request.c_str());
+    LOG_DEBUG("Making request to Controller '%s'.", (const char*)url.c_str());
+    LOG_DEBUG("    With data '%s'.", (const char*)request.c_str());
     
     auto furl = std::string("http://" + baseIP + _baseUrl + url);
     if (!username.empty()) {
@@ -144,7 +144,7 @@ std::string BaseController::PutURL(const std::string& url, const std::string& re
     int rc = 0;
     std::string res = CurlManager::INSTANCE.doPost(furl, contentType, request, rc);
     if (rc == 0 && !needsHTTP_0_9()) {
-        logger_base.error("Failure to post to %s: %s.", (const char*)furl.c_str(), res.c_str());
+        LOG_ERROR("Failure to post to %s: %s.", (const char*)furl.c_str(), res.c_str());
         return "";
     }
     return res;

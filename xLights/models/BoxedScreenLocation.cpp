@@ -24,7 +24,7 @@
 #include "RulerObject.h"
 #include "ColorManager.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #include <cmath>
 

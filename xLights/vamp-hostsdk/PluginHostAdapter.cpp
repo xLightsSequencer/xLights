@@ -39,7 +39,7 @@
 #include "Files.h"
 
 // xLights
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 // end xLights
 
 #if ( VAMP_SDK_MAJOR_VERSION != 2 || VAMP_SDK_MINOR_VERSION != 8 )
@@ -60,8 +60,8 @@ PluginHostAdapter::PluginHostAdapter(const VampPluginDescriptor *descriptor,
     m_handle = m_descriptor->instantiate(m_descriptor, inputSampleRate);
     if (!m_handle) {
         // xLights
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.warn("PluginHostAdapter: Plugin instantiation failed for plugin " + std::string(m_descriptor->name));
+        
+        LOG_WARN("PluginHostAdapter: Plugin instantiation failed for plugin " + std::string(m_descriptor->name));
         // end xLights
 //        std::cerr << "WARNING: PluginHostAdapter: Plugin instantiation failed for plugin " << m_descriptor->name << std::endl;
     }
@@ -77,7 +77,7 @@ std::vector<std::string>
 PluginHostAdapter::getPluginPath()
 {
     // xLights
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     // end xLights
 
     std::vector<std::string> path;
@@ -86,12 +86,12 @@ PluginHostAdapter::getPluginPath()
     if (Files::isNonNative32Bit()) {
         (void)Files::getEnvUtf8("VAMP_PATH_32", envPath);
         // xLights
-        logger_base.info("VAMP_PATH_32 was '%s'", (const char*)envPath.c_str());
+        LOG_INFO("VAMP_PATH_32 was '%s'", (const char*)envPath.c_str());
         // end xLights
     } else {
         (void)Files::getEnvUtf8("VAMP_PATH", envPath);
         // xLights
-        logger_base.info("VAMP_PATH was '%s'", (const char*)envPath.c_str());
+        LOG_INFO("VAMP_PATH was '%s'", (const char*)envPath.c_str());
         // end xLights
     }
 
@@ -130,7 +130,7 @@ PluginHostAdapter::getPluginPath()
 #endif
     }
     // xLights
-    logger_base.info("VAMP_PATH final value '%s'", (const char *)envPath.c_str());
+    LOG_INFO("VAMP_PATH final value '%s'", (const char *)envPath.c_str());
     // end xLights
     std::string::size_type index = 0, newindex = 0;
 
@@ -345,19 +345,19 @@ PluginHostAdapter::OutputList
 PluginHostAdapter::getOutputDescriptors() const
 {
     // xLights
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     // end xLights
 
     OutputList list;
     if (!m_handle) {
         // xLights
-        logger_base.warn("PluginHostAdapter::getOutputDescriptors: no handle");
+        LOG_WARN("PluginHostAdapter::getOutputDescriptors: no handle");
         // end xLights
 //        std::cerr << "PluginHostAdapter::getOutputDescriptors: no handle " << std::endl;
         return list;
     }
     // xLights
-    logger_base.debug("Getting vamp descriptors for %s", (const char *)getName().c_str());
+    LOG_DEBUG("Getting vamp descriptors for %s", (const char *)getName().c_str());
     //end xLights
 
     unsigned int count = m_descriptor->getOutputCount(m_handle);

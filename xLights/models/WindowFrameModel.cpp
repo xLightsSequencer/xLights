@@ -15,7 +15,7 @@
 #include "WindowFrameModel.h"
 #include "ModelScreenLocation.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 WindowFrameModel::WindowFrameModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
@@ -111,7 +111,7 @@ void WindowFrameModel::GetCoordinates(int side, bool clockwise, bool LtoR, bool 
 // parm3=Nodes on Bottom
 void WindowFrameModel::InitFrame()
 {
-    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //
 
     SetNodeCount(1, parm1 + 2 * parm2 + parm3, rgbOrder);
 
@@ -370,7 +370,7 @@ void WindowFrameModel::InitFrame()
             chan += ChanIncr;
         }
 
-        //logger_base.debug("Node %d (%0.3f,%0.3f) -> %d, %d", n, x, y, Nodes[n]->Coords[c].bufX, Nodes[n]->Coords[c].bufY);
+        //LOG_DEBUG("Node %d (%0.3f,%0.3f) -> %d, %d", n, x, y, Nodes[n]->Coords[c].bufX, Nodes[n]->Coords[c].bufY);
         Nodes[nd]->Coords[cd].screenX = screenx;
         Nodes[nd]->Coords[cd].screenY = screeny;
 

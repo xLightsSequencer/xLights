@@ -13,7 +13,7 @@
 #include "ColorManager.h"
 #include "xLightsMain.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 ColorManager::ColorManager(xLightsFrame* frame)
 : xlights(frame)
@@ -35,8 +35,8 @@ ColorManager* ColorManager::instance()
     if( pInstance == nullptr ) {
         // this should not be possible since the main application should
         // always have constructed this object before any clients need it
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.error("Color Manager instance was still a nullptr.");
+        
+        LOG_ERROR("Color Manager instance was still a nullptr.");
     }
     return pInstance;
 }

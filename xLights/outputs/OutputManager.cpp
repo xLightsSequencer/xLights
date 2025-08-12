@@ -37,7 +37,7 @@
 
 #include <numeric>
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #pragma region Static Variables
 int OutputManager::_lastSecond = -10;
@@ -65,7 +65,7 @@ bool OutputManager::SetGlobalOutputtingFlag(bool state, bool force) {
 
 bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc) const {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     bool changed = false;
 
@@ -87,12 +87,12 @@ bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc
                         if (ipo->GetIP() == "MULTICAST") {
                             newsc = wxString::Format("#%d:%d", it->first->GetUniverse(), scc);
                             changed = true;
-                            logger_base.debug("Networks conversion MULTICAST %s converted start channel '%s' to '%s'.", (const char*)it->first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
+                            LOG_DEBUG("Networks conversion MULTICAST %s converted start channel '%s' to '%s'.", (const char*)it->first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
                         }
                         else {
                             newsc = wxString::Format("#%s:%d:%d", it->first->GetIP(), it->first->GetUniverse(), scc);
                             changed = true;
-                            logger_base.debug("Networks conversion %s converted start channel '%s' to '%s'.", (const char*)it->first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
+                            LOG_DEBUG("Networks conversion %s converted start channel '%s' to '%s'.", (const char*)it->first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
                         }
                     }
                     else {
@@ -101,7 +101,7 @@ bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc
                         // convert to !name:sc if description isnt blank
                         newsc = wxString::Format("!%s:%d", it->second->GetName(), scc);
                         changed = true;
-                        logger_base.debug("Networks conversion %s converted start channel '%s' to '%s'.", (const char*)it->first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
+                        LOG_DEBUG("Networks conversion %s converted start channel '%s' to '%s'.", (const char*)it->first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
                     }
                 }
             }
@@ -123,7 +123,7 @@ bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc
 
                     newsc = wxString::Format("!%s:%d", it.second->GetName(), nsc + scc);
                     changed = true;
-                    logger_base.debug("Networks conversion %s converted start channel '%s' to '%s'.", (const char*)it.first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
+                    LOG_DEBUG("Networks conversion %s converted start channel '%s' to '%s'.", (const char*)it.first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
                     break;
                 }
             }
@@ -160,7 +160,7 @@ OutputManager::~OutputManager()
 #pragma region Save and Load
 bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     // Remove any existing outputs
     DeleteAllControllers();
@@ -288,7 +288,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
                 _suppressFrames = wxAtoi(e->GetAttribute("frames"));
             }
             else if (e->GetName() == "testpreset") {
-                logger_base.debug("Loading test presets.");
+                LOG_DEBUG("Loading test presets.");
                 TestPreset* tp = new TestPreset(e);
 
                 bool exists = false;
@@ -315,7 +315,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
         }
     }
     else {
-        logger_base.warn("Error loading networks file: %s.", (const char*)fn.GetFullPath().c_str());
+        LOG_WARN("Error loading networks file: %s.", (const char*)fn.GetFullPath().c_str());
         return false;
     }
 
@@ -325,7 +325,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
             dynamic_cast<ControllerEthernet*>(it)->SetGlobalForceLocalIP(_globalForceLocalIP);
     }
 
-    logger_base.debug("Networks loaded.");
+    LOG_DEBUG("Networks loaded.");
 
     AsyncPingAll();
     UpdateUnmanaged();
@@ -337,7 +337,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
 bool OutputManager::MergeFromBase(bool prompt)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     bool changed = false;
 
     OutputManager baseOM;
@@ -346,12 +346,12 @@ bool OutputManager::MergeFromBase(bool prompt)
 
         if (_globalFPPProxy == "" && baseOM.GetGlobalFPPProxy() != "") {
             SetGlobalFPPProxy(baseOM.GetGlobalFPPProxy());
-            logger_base.debug("Updating global FPP Proxy from base show folder.");
+            LOG_DEBUG("Updating global FPP Proxy from base show folder.");
         }
 
         if (_globalForceLocalIP == "" && baseOM.GetGlobalForceLocalIP() != "") {
             SetGlobalForceLocalIP(baseOM.GetGlobalForceLocalIP());
-            logger_base.debug("Updating global Force Local IP from base show folder.");
+            LOG_DEBUG("Updating global Force Local IP from base show folder.");
         }
 
         for (const auto& baseit : baseOM.GetControllers())
@@ -376,9 +376,9 @@ bool OutputManager::MergeFromBase(bool prompt)
                         if (force) it->SetFromBase(true);
                         bool thischanged = it->UpdateFrom(baseit);
                         changed = thischanged || changed;
-                        if (thischanged) logger_base.debug("Controller '%s' updated from base show folder.", (const char*)it->GetName().c_str());
+                        if (thischanged) LOG_DEBUG("Controller '%s' updated from base show folder.", (const char*)it->GetName().c_str());
                     } else {
-                        logger_base.debug("Controller '%s' NOT updated from base show folder as it never came from there.", (const char*)it->GetName().c_str());
+                        LOG_DEBUG("Controller '%s' NOT updated from base show folder as it never came from there.", (const char*)it->GetName().c_str());
                     }
                 }
             }
@@ -388,7 +388,7 @@ bool OutputManager::MergeFromBase(bool prompt)
                 c->SetFromBase(true);
                 AddController(c);
                 changed = true;
-                logger_base.debug("Adding controller '%s' from base show folder.", (const char*)c->GetName().c_str());
+                LOG_DEBUG("Adding controller '%s' from base show folder.", (const char*)c->GetName().c_str());
             }
         }
 
@@ -1135,7 +1135,7 @@ std::string OutputManager::GetChannelName(int32_t channel) {
 
 bool OutputManager::IsOutputOpenInAnotherProcess() {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxConfig* xlconfig = new wxConfig(_("xLights"));
     if (xlconfig != nullptr) {
@@ -1145,7 +1145,7 @@ bool OutputManager::IsOutputOpenInAnotherProcess() {
             delete xlconfig;
 
             if (state) {
-                logger_base.warn("Output already seems to be happening. This may generate odd results.");
+                LOG_WARN("Output already seems to be happening. This may generate odd results.");
             }
 
             return state;
@@ -1158,12 +1158,12 @@ bool OutputManager::IsOutputOpenInAnotherProcess() {
 #pragma region Start and Stop
 bool OutputManager::StartOutput() {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_outputting) return false;
     if (!_outputCriticalSection.TryEnter()) return false;
 
-    logger_base.debug("Starting light output.");
+    LOG_DEBUG("Starting light output.");
 
     int started = 0;
     bool ok = true;
@@ -1188,7 +1188,7 @@ bool OutputManager::StartOutput() {
             auto name = it->GetIP();
             if (name == "") name = it->GetCommPort();
 
-            logger_base.error("An error occurred opening output %d (%s). Do you want to continue trying to start output?", started + 1, (const char*)name.c_str());
+            LOG_ERROR("An error occurred opening output %d (%s). Do you want to continue trying to start output?", started + 1, (const char*)name.c_str());
             if (OutputManager::IsInteractive()) {
                 if (wxMessageBox(wxString::Format(wxT("An error occurred opening output %d (%s). Do you want to continue trying to start output?"), started + 1, name), "Continue?", wxYES_NO) == wxNO) return _outputting;
             }
@@ -1214,12 +1214,12 @@ bool OutputManager::StartOutput() {
 
 void OutputManager::StopOutput() {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!_outputting) return;
     if (!_outputCriticalSection.TryEnter()) return;
 
-    logger_base.debug("Stopping light output.");
+    LOG_DEBUG("Stopping light output.");
 
     _outputting = false;
 

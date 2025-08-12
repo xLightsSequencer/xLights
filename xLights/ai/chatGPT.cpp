@@ -1,25 +1,28 @@
 #include "chatGPT.h"
+#include <nlohmann/json.hpp>
+
 #include "ServiceManager.h"
 #include "utils/Curl.h"
 #include "UtilFunctions.h"
 
 #include <wx/propgrid/propgrid.h>
+#include <wx/colour.h>
 
 #include <vector>
 #include <string>
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 bool chatGPT::IsAvailable() const {
     return !bearer_token.empty() && _enabled;
 }
 
 void chatGPT::SaveSettings() const {
-	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+	
 	_sm->setServiceSetting("ChatGPTEnable", _enabled);    
 	_sm->setServiceSetting("ChatGPTModel", model);
     _sm->setSecretServiceToken("ChatGPTBearerToken", bearer_token);
-	logger_base.info("ChatGPT settings saved successfully");
+	LOG_INFO("ChatGPT settings saved successfully");
 }
 
 void chatGPT::LoadSettings() {
@@ -47,7 +50,7 @@ void chatGPT::SetSetting(const std::string& key, const wxVariant& value) {
 }
 
 std::pair<std::string, bool> chatGPT::CallLLM(const std::string& prompt) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::string bearerToken = bearer_token;
 
@@ -72,40 +75,44 @@ std::pair<std::string, bool> chatGPT::CallLLM(const std::string& prompt) const {
         { "Authorization", "Bearer " + bearerToken }
     };
 
-    logger_base.debug("ChatGPT: %s", request.c_str());
+    LOG_DEBUG("ChatGPT: %s", request.c_str());
 
 	int responseCode = 0;	
 	std::string response = Curl::HTTPSPost(url, request, "", "", "JSON", 60, customHeaders, &responseCode);
 
-    logger_base.debug("ChatGPT Response %d: %s", responseCode, response.c_str());
+    LOG_DEBUG("ChatGPT Response %d: %s", responseCode, response.c_str());
 
 	if (responseCode != 200) {
         return { response, false };
     }
 
-	wxJSONReader reader;
-	wxJSONValue root;
-    if (reader.Parse(response, &root) > 0)
-	{
-		logger_base.error("ChatGPT: Failed to parse response");
-        return { "ChatGPT: Failed to parse response", false };
-	}
+	nlohmann::json root;
+	try {
+        root = nlohmann::json::parse(response);
+    } catch (const std::exception&) {
+        spdlog::error("ChatGPT: Invalid JSON response: {}", response);
+        return { "ChatGPT: Invalid JSON response", false };
+    }
 
-	wxJSONValue choices = root["choices"];
-	if (choices.IsNull() || choices.Size() == 0) {
-		logger_base.error("ChatGPT: No choices in response");
+	auto choices = root["choices"];
+	if (choices.is_null() || choices.size() == 0) {
+		LOG_ERROR("ChatGPT: No choices in response");
         return { "ChatGPT: No choices in response", false };
 	}
 
-	wxJSONValue choice = choices[0];
-	wxJSONValue text = choice["message"]["content"];
-	if (text.IsNull()) {
-		logger_base.error("ChatGPT: No text in response");
+	auto choice = choices[0];
+    auto text = choice["message"]["content"];
+    if (text.is_null()) {
+		LOG_ERROR("ChatGPT: No text in response");
         return { "ChatGPT: No text in response", false };
 	}
 
-	response = text.AsString();
-	logger_base.debug("ChatGPT: %s", response.c_str());
+	response = text.get<std::string>();
+	LOG_DEBUG("ChatGPT: %s", response.c_str());
 
     return { response, true };
+}
+
+std::vector<wxColour> chatGPT::CallLLMForColors(const std::string& prompt) const {
+    return std::vector<wxColour>();
 }

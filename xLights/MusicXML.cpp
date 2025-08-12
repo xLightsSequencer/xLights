@@ -13,7 +13,7 @@
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
 #include <wx/log.h>
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include "ExternalHooks.h"
 
 bool MusicXML::IsOk()
@@ -23,8 +23,7 @@ bool MusicXML::IsOk()
 
 void MusicXmlNote::Dump()
 {
-    static log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
-    logger_pianodata.info("%d, %d, %d", startMS, startMS + durationMS, midi);
+    LOG_INFO("%d, %d, %d", startMS, startMS + durationMS, midi);
 }
 
 MusicXML::MusicXML(std::string file)
@@ -33,8 +32,8 @@ MusicXML::MusicXML(std::string file)
 
     if (file != "" && FileExists(file))
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("Loading music XML file: %s", (const char*)file.c_str());
+        
+        LOG_INFO("Loading music XML file: %s", (const char*)file.c_str());
         wxFileInputStream fin(file);
         if (fin.IsOk())
         {
@@ -46,13 +45,13 @@ MusicXML::MusicXML(std::string file)
 
                 while (ent != nullptr && (ent->GetName().Contains("\\") || ent->GetName().Contains("/")))
                 {
-                    logger_base.info("    Found in zip file %s ... skipping", (const char*)ent->GetName().c_str());
+                    LOG_INFO("    Found in zip file %s ... skipping", (const char*)ent->GetName().c_str());
                     ent = zin.GetNextEntry();
                 }
 
                 if (ent != nullptr)
                 {
-                    logger_base.info("    Found in zip file %s ... loading", (const char*)ent->GetName().c_str());
+                    LOG_INFO("    Found in zip file %s ... loading", (const char*)ent->GetName().c_str());
                     _doc.Load(zin);
                 }
             }
@@ -60,13 +59,13 @@ MusicXML::MusicXML(std::string file)
 
         if (!IsOk())
         {
-            logger_base.info("    Not a zip file %s ... loading as xml", (const char*)file.c_str());
+            LOG_INFO("    Not a zip file %s ... loading as xml", (const char*)file.c_str());
             _doc.Load(file);
         }
 
         if (!IsOk())
         {
-            logger_base.warn("    Error loading music xml file.");
+            LOG_WARN("    Error loading music xml file.");
         }
     }
 }
@@ -149,9 +148,8 @@ std::list<MusicXmlNote> MusicXML::GetNotes(std::string track)
     if (divisions == 0) divisions = 1;
     float timeperduration = ((60.0 * 1000.0) / tempo) / (4.0 * divisions);
 
-    static log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
-    logger_pianodata.info("BeatTime %.2fms", timeperduration);
-    logger_pianodata.info("StartMS, EndMS, Note");
+    LOG_INFO("BeatTime %.2fms", timeperduration);
+    LOG_INFO("StartMS, EndMS, Note");
     for (auto it = res.begin(); it != res.end(); ++it)
     {
         it->ApplyTiming(timeperduration);

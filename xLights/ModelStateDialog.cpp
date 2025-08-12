@@ -25,7 +25,7 @@
 #include "xlColourData.h"
 #include "VendorModelDialog.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include <algorithm>
 #include <vector>
 
@@ -1114,7 +1114,7 @@ void ModelStateDialog::OnGridPopup(const int rightEventID, wxGridEvent& gridEven
 
 void ModelStateDialog::ImportSubmodel(wxGridEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxArrayString choices;
     for (Model* sm : model->GetSubModels()) {
@@ -1135,7 +1135,7 @@ void ModelStateDialog::ImportSubmodel(wxGridEvent& event)
         for (auto const& idx : dlg.GetSelections()) {
             Model* sm = model->GetSubModel(choices.at(idx));
             if (sm == nullptr) {
-                logger_base.error(
+                LOG_ERROR(
                     "Strange ... ModelStateDialog::ImportSubmodel returned no model "
                     "for %s but it was in the list we gave the user.",
                     (const char*)choices.at(idx).c_str());
