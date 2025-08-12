@@ -21,6 +21,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - enh (dkulp)           FPP9 - Support up to 5 matrices
     - enh (derwin12)        Distinguish between unsupported and unavailable for FPP connect status
     - enh (keith)           Support creation of submodels from states and faces
+    - enh (dkulp)           Speed up FPP Connect discovery and initial dialog setup
     - bug (derwin12)        Disallow invalid characters (ex :) for controller names
     - bug (dkulp)           Fix proxy support for ESPixelStick uploads
     - bug (derwin12)        Fix crash importing some models that have numbers in the middle of submodel names
@@ -30,6 +31,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - bug (derwin12)        Fix check for xbkp files and properly prompt to restore
     - bug (mpierreb/derwin12) Fix some issues moving effects up/down in the grid
     - bug (derwin12)        Fix removing of temp files after opening xsqz files
+    - bug (dkulp)           Fix infrequent crash caused by bg ping threads when changing show dir or closing xLights
 2025.07 July 17, 2025
     - bug (derwin12)        Handle cursor up/down the sequencer panel consistently
     - enh (derwin12)        Split multiple effects via right click

@@ -1407,6 +1407,7 @@ public:
     void UnselectAllControllers();
     void InitialiseControllersTab(bool rebuildPropGrid = true);
     void OnPingTimer(wxTimerEvent& event);
+    void waitForPingsToComplete();
     void StatusRefreshTimer(wxTimerEvent& event);
     wxBitmap CreateLedBitmap(bool online);
     void SetControllersProperties(bool rebuildPropGrid = true);

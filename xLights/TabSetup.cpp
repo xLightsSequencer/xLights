@@ -70,8 +70,16 @@ class ControllerPingThread : public wxThread {
 public:
     ControllerPingThread(Controller* controller) :
         wxThread(wxTHREAD_DETACHED), _controller(controller) {
+        ++pingCount;
     }
-
+    virtual ~ControllerPingThread() {
+        --pingCount;
+    }
+    
+    static std::atomic_int pingCount;
+    static bool hasOutstandingPings() {
+        return pingCount > 0;
+    }
 protected:
     virtual ExitCode Entry() override {
         if (_controller && _controller->IsActive()) {
@@ -83,6 +91,7 @@ protected:
 private:
     Controller* _controller;
 };
+std::atomic_int ControllerPingThread::pingCount(0);
 
 const long xLightsFrame::ID_List_Controllers = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDETHERNET = wxNewId();
@@ -297,6 +306,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     CheckBoxLightOutput->SetValue(false);
     EnableSleepModes();
     _outputManager.StopOutput();
+    waitForPingsToComplete();
     _outputManager.DeleteAllControllers();
     CurrentDir = nd;
     showDirectory = nd;
@@ -1622,6 +1632,11 @@ void xLightsFrame::OnPingTimer(wxTimerEvent& event) {
     _pingInProgress = false;
     StatusRefreshTimer(event);
 }
+void xLightsFrame::waitForPingsToComplete() {
+    while (ControllerPingThread::hasOutstandingPings()) {
+        std::this_thread::yield();
+    }
+}
 
 void xLightsFrame::StatusRefreshTimer(wxTimerEvent& event) {
     if (Notebook1->GetSelection() == SETUPTAB) {
@@ -2284,6 +2299,7 @@ void xLightsFrame::DeleteSelectedControllers() {
     if (todel.size() > 0) {
         auto msg = wxString::Format("Are you sure you want to delete %d controllers.", (int)todel.size());
         if (wxMessageBox(msg, "Delete controller(s)", wxYES_NO) == wxYES) {
+            waitForPingsToComplete();
             for (const auto& it : todel) {
                 _outputManager.DeleteController(it);
             }
@@ -2499,6 +2515,7 @@ void xLightsFrame::OnButtonControllerDeleteClick(wxCommandEvent& event)
 {
     if (wxMessageBox("Are you sure you want delete this controller?", "Delete Controller", wxYES_NO, this) == wxYES) {
         auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
+        waitForPingsToComplete();
         _outputManager.DeleteController(name);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DeleteSelectedControllers");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "DeleteSelectedControllers");

@@ -2259,6 +2259,7 @@ xLightsFrame::~xLightsFrame()
     delete m_mgr;
     delete MainAuiManager;
 
+    waitForPingsToComplete();
     _outputManager.DeleteAllControllers();
 
     if (CurrentSeqXmlFile) {
@@ -10695,6 +10696,7 @@ void xLightsFrame::OnButton_UpdateBaseClick(wxCommandEvent& event)
 {
     // execute the update now
     SetCursor(wxCURSOR_WAIT);
+    waitForPingsToComplete();
     UpdateFromBaseShowFolder(true);
     SetCursor(wxCURSOR_ARROW);
 }
