@@ -309,22 +309,34 @@ Discovery::Discovery(wxWindow* frame, OutputManager* outputManager) : _frame(fra
 }
 
 Discovery::~Discovery() {
-    while (CurlManager::INSTANCE.processCurls()) {
-        wxYieldIfNeeded();
-    }
+    Close(true);
     for (size_t x = 0; x < results.size(); ++x) {
         delete results[x];
+    }
+}
+
+void Discovery::Close(bool wait) {
+    if (wait) {
+        while (CurlManager::INSTANCE.processCurls()) {
+            wxYieldIfNeeded();
+        }
     }
     for (auto &dg : datagrams) {
         delete dg;
     }
+    datagrams.clear();
     for (auto &bj : bonjours) {
         delete bj;
     }
-    for (auto &h : https ) {
-        delete h.second;
+    bonjours.clear();
+    if (!CurlManager::INSTANCE.processCurls()) {
+        for (auto &h : https ) {
+            delete h.second;
+        }
+        https.clear();
     }
 }
+
 
 Discovery::CurlData::~CurlData() {
 }

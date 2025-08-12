@@ -611,9 +611,6 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
         }
 
         if (inst->fppType == FPP_TYPE::FPP && inst->supportedForFPPConnect()) {
-            if (prgs) {
-                prgs->Pulse("Probing information from " + l);
-            }
             wxCheckBox *CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, MEDIA_COL + rowStr);
             FPPInstanceSizer->Add(CheckBox1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             wxChoice* Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, MODELS_COL + rowStr);

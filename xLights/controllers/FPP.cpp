@@ -3976,11 +3976,31 @@ bool FPP::ValidateProxy(const std::string& to, const std::string& via)
     return false;
 }
 
-static void waitForCurlsComplete(wxWindow* frame, Discovery *discovery) {
+class xlDiscoveryWaitTimer : public wxTimer {
+public:
+    std::list<Discovery *> discs;
+    
+    virtual void Notify() override {
+        if (!CurlManager::INSTANCE.processCurls()) {
+            for (auto d : discs) {
+                delete d;
+            }
+            discs.clear();
+            Stop();
+        }
+    }
+};
+static void waitForCurlsComplete(Discovery *discovery) {
+    // close the resources that we can, but don't block
+    // on it as we can delay till later
+    discovery->Close(false);
+    
+    // if there are still http requests outstanding, we'll
+    // need to delay the delete
     if (CurlManager::INSTANCE.processCurls()) {
-        frame->CallAfter([discovery, frame]() {
-            waitForCurlsComplete(frame, discovery);
-        });
+        static xlDiscoveryWaitTimer discTimer;
+        discTimer.discs.push_back(discovery);
+        discTimer.Start(500);
     } else {
         delete discovery;
     }
@@ -4053,10 +4073,7 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
         config->Write("FPPConnectForcedIPs", newForce);
         config->Flush();
     }
-
-    frame->CallAfter([discovery, frame]() {
-        waitForCurlsComplete(frame, discovery);
-    });
+    waitForCurlsComplete(discovery);
     return instances;
 }
 
