@@ -11,13 +11,14 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2025.08 August , 2025
+2025.08 August 8, 2025
     - enh (derwin12)        Allow preview edits in 3D mode
     - enh (derwin12)        Store/restore the last directory used for imports
     - enh (derwin12)        Add right click option to remove "-shimmer"
     - enh (scott)           Add serial upload for Sandevice v5 controllers
     - enh (TheHodge)        Add Baldrick17 controller
     - enh (scott)           Add YPS VIVID8 controller
+    - enh (dkulp)           Add K16/K16-Pro KulpLights controllers
     - enh (dkulp)           FPP9 - Support up to 5 matrices
     - enh (derwin12)        Distinguish between unsupported and unavailable for FPP connect status
     - enh (keith)           Support creation of submodels from states and faces
