@@ -31,8 +31,6 @@
 #include "ExternalHooks.h"
 #include "MediaImportOptionsDialog.h"
 #include "LayoutUtils.h"
-#include "../../xSchedule/wxJSON/jsonreader.h"
-#include "../../xSchedule/wxJSON/jsonwriter.h"
 #include "xlColourData.h"
 #include "utils/string_utils.h"
 #include "ai/aiBase.h"
@@ -1880,67 +1878,67 @@ void xLightsImportChannelMapDialog::SaveXMapMapping(wxString const& filename)
 
 void xLightsImportChannelMapDialog::SaveJSONMapping(wxString const& filename)
 {
-    wxJSONValue data;
+    nlohmann::json data;
 
     //mappings
-    wxJSONValue allMappings;
+    nlohmann::json allMappings;
     for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
         xLightsImportModelNode* m = _dataModel->GetNthChild(i);
         if (m->HasMapping()) {
-            wxJSONValue mapping;
+            nlohmann::json mapping;
 
-            wxString mn = m->_model;
+            std::string mn = m->_model;
             mapping["model"] = mn;
             StashedMapping* sm = GetStashedMapping(mn, "", "");
             if (m->_mapping.empty() && sm != nullptr) {
                 mapping["mapping"] = sm->_mapping;
-                mapping["color"] = sm->_color.GetAsString();
+                mapping["color"] = sm->_color.GetAsString().ToStdString();
                 mapping["stashed"] = true;
             } else {
                 mapping["mapping"] = m->_mapping;
-                mapping["color"] = m->_color.GetAsString();
+                mapping["color"] = m->_color.GetAsString().ToStdString();
             }
-            allMappings.Append(mapping);
+            allMappings.push_back(mapping);
             for (size_t j = 0; j < m->GetChildCount(); ++j) {
                 xLightsImportModelNode* s = m->GetNthChild(j);
                 if (s->HasMapping() || AnyStashedMappingExists(mn, s->_strand)) {
                     sm = GetStashedMapping(mn, s->_strand, "");
 
-                    wxJSONValue smapping;
+                    nlohmann::json smapping;
                     smapping["model"] = mn;
                     if (s->_mapping.empty() && sm != nullptr) {
                         smapping["strand"] = sm->_strand;
                         smapping["mapping"] = sm->_mapping;
-                        smapping["color"] = sm->_color.GetAsString();
+                        smapping["color"] = sm->_color.GetAsString().ToStdString();
                         smapping["stashed"] = true;
                     } else {
                         smapping["strand"] = s->_strand;
                         smapping["mapping"] = s->_mapping;
-                        smapping["color"] = s->_color.GetAsString();
+                        smapping["color"] = s->_color.GetAsString().ToStdString();
                     }
-                    allMappings.Append(smapping);
+                    allMappings.push_back(smapping);
 
                     for (size_t k = 0; k < s->GetChildCount(); ++k) {
                         xLightsImportModelNode* n = s->GetNthChild(k);
                         sm = GetStashedMapping(mn, n->_strand, n->_node);
                         if (n->_mapping.empty() && sm != nullptr) {
-                            wxJSONValue nmapping;
+                            nlohmann::json nmapping;
                             nmapping["model"] = mn;
                             nmapping["strand"] = sm->_strand;
                             nmapping["node"] = sm->_node;
                             nmapping["mapping"] = sm->_mapping;
-                            nmapping["color"] = sm->_color.GetAsString();
+                            nmapping["color"] = sm->_color.GetAsString().ToStdString();
                             nmapping["stashed"] = true;
-                            allMappings.Append(nmapping);
+                            allMappings.push_back(nmapping);
                         } else {
                             if (n->HasMapping()) {
-                                wxJSONValue nmapping;
+                                nlohmann::json nmapping;
                                 nmapping["model"] = mn;
                                 nmapping["strand"] = n->_strand;
                                 nmapping["node"] = n->_node;
                                 nmapping["mapping"] = n->_mapping;
-                                nmapping["color"] = n->_color.GetAsString();
-                                allMappings.Append(nmapping);
+                                nmapping["color"] = n->_color.GetAsString().ToStdString();
+                                allMappings.push_back(nmapping);
                             }
                         }
                     }
@@ -1953,14 +1951,14 @@ void xLightsImportChannelMapDialog::SaveJSONMapping(wxString const& filename)
     for (auto it = _stashedMappings.begin(); it != _stashedMappings.end(); ++it) {
         Element *modelEl = mSequenceElements->GetElement((*it)->_model.ToStdString());
         if (modelEl == nullptr) {
-            wxJSONValue mapping;
+            nlohmann::json mapping;
             mapping["model"] = (*it)->_model;
             mapping["strand"] = (*it)->_strand;
             mapping["node"] = (*it)->_node;
             mapping["mapping"] = (*it)->_mapping;
-            mapping["color"] = (*it)->_color.GetAsString();
+            mapping["color"] = (*it)->_color.GetAsString().ToStdString();
             mapping["stashed"] = true;
-            allMappings.Append(mapping);
+            allMappings.push_back(mapping);
         }
     }
 
@@ -1969,10 +1967,10 @@ void xLightsImportChannelMapDialog::SaveJSONMapping(wxString const& filename)
     //selected timmings
     for (size_t tt = 0; tt < TimingTrackListBox->GetCount(); ++tt)
     {
-        wxJSONValue timtrack;
+        nlohmann::json timtrack;
         timtrack["name"] = timingTracks[tt];
         timtrack["enabled"] = TimingTrackListBox->IsChecked(tt);
-        data["timingtracks"].Append(timtrack);
+        data["timingtracks"].push_back(timtrack);
     }
     //other settings
     data["mapccrstrand"] = CheckBox_MapCCRStrand->IsChecked();
@@ -1989,11 +1987,14 @@ void xLightsImportChannelMapDialog::SaveJSONMapping(wxString const& filename)
         data["videodir"] = _xsqPkg->GetImportOptions()->GetDir(MediaTargetDir::VIDEOS_DIR);
         data["importmedia"] =  CheckBoxImportMedia->IsChecked();
     }
-
-    wxFileOutputStream mapfile(filename);
-    wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
-    writer.Write(data, mapfile);
-    mapfile.Close();
+    std::ofstream o(filename.ToStdString());
+    if (o.is_open()) {
+        o << std::setw(4) << data << std::endl;
+    }
+    //wxFileOutputStream mapfile(filename);
+    //wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
+    //writer.Write(data, mapfile);
+    //mapfile.Close();
     _dirty = false;
 }
 

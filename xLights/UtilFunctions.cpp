@@ -1202,9 +1202,6 @@ nlohmann::json xLightsRequest(int xFadePort, const wxString& message, const wxSt
     }
 
     std::string const msg = "{\"res\":504,\"msg\":\"Unable to connect.\"}";
-    //wxJSONValue result;
-    //wxJSONReader reader;
-    //reader.Parse(msg, &result);
     nlohmann::json result = nlohmann::json::parse(msg);
     return result;
 }

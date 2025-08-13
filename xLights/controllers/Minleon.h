@@ -11,10 +11,12 @@
  **************************************************************/
 
 #include <wx/xml/xml.h>
-#include "../xSchedule/wxJSON/jsonreader.h"
-#include "../xSchedule/wxJSON/jsonwriter.h"
+//#include "../xSchedule/wxJSON/jsonreader.h"
+//#include "../xSchedule/wxJSON/jsonwriter.h"
+#include <nlohmann/json.hpp>
 
-#include <list>
+#include <string>
+#include <vector>
 
 #include "BaseController.h"
 #include "ControllerUploadData.h"
@@ -45,7 +47,7 @@ class Minleon : public BaseController
     #pragma region Private Functions
 
     #pragma region MinleonString Handling
-    void ParseStringPorts(std::vector<MinleonString*>& stringPorts, wxJSONValue& val) const;
+    void ParseStringPorts(std::vector<MinleonString*>& stringPorts, nlohmann::json& val) const;
     void InitialiseStrings(std::vector<MinleonString*>& stringsData, int max) const;
     std::string BuildStringPort(MinleonString* string) const;
     MinleonString* FindPort(const std::vector<MinleonString*>& stringData, int port) const;

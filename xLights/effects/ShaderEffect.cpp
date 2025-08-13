@@ -260,11 +260,10 @@ ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceEle
     if (code == "") return nullptr;
     
     if (code[0] == '{' && code[1] == '"') {
-        wxJSONReader reader;
-        wxJSONValue root;
-        reader.Parse(code, &root);
-        if (root.HasMember("rawFragmentSource")) {
-            code = root["rawFragmentSource"].AsString();
+        nlohmann::json root = nlohmann::json::parse(code.ToStdString());
+
+        if (root.contains("rawFragmentSource")) {
+            code = root["rawFragmentSource"].get<std::string>();
             if (code == "") return nullptr;
         }
     }
@@ -1444,66 +1443,64 @@ wxString SafeValueOption(wxString value)
 
 ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const wxString& json, SequenceElements* sequenceElements) : _filename(filename)
 {
-    
-    wxJSONReader reader;
-    wxJSONValue root;
-    reader.Parse(json, &root);
-    _description = root["DESCRIPTION"].AsString();
+    nlohmann::json root = nlohmann::json::parse(json.ToStdString());
+
+    _description = root["DESCRIPTION"].get<std::string>();
     if ( _description == "xLights AudioFFT" )
         _audioFFTMode = true;
     else if ( _description == "xLights Audio2" )
        _audioIntensityMode = true;
-    wxJSONValue inputs = root["INPUTS"];
-    wxString canvasImgName, audioFFTName;
-    for (int i = 0; i < inputs.Size(); i++) {
+    nlohmann::json inputs = root["INPUTS"];
+    std::string canvasImgName, audioFFTName;
+    for (int i = 0; i < inputs.size(); i++) {
 
-        wxString name = inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "";
+        std::string name = inputs[i].count("NAME") ? inputs[i]["NAME"].get<std::string>() : "";
 
         // we ignore these as xlights provides these settings
         if (name == "XL_OFFSET") continue;
         if (name == "XL_DURATION") continue;
         if (name == "XL_ZOOM") continue;
 
-        wxString type = inputs[i]["TYPE"].AsString();
+        std::string type = inputs[i]["TYPE"].get<std::string>();
         if (type == "float") {
             _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
+                inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
                 ShaderParmType::SHADER_PARM_FLOAT,
-                (double)(inputs[i].HasMember("MIN") ? wxAtof(SafeFloat(inputs[i]["MIN"].AsString())) : 0.0),
-                (double)(inputs[i].HasMember("MAX") ? wxAtof(SafeFloat(inputs[i]["MAX"].AsString())) : 1.0),
-                (double)(inputs[i].HasMember("DEFAULT") ? wxAtof(SafeFloat(inputs[i]["DEFAULT"].AsString())) : 0.0)
+                (double)(inputs[i].contains("MIN") ? wxAtof(SafeFloat(inputs[i]["MIN"].get<std::string>())) : 0.0),
+                (double)(inputs[i].contains("MAX") ? wxAtof(SafeFloat(inputs[i]["MAX"].get<std::string>())) : 1.0),
+                (double)(inputs[i].contains("DEFAULT") ? wxAtof(SafeFloat(inputs[i]["DEFAULT"].get<std::string>())) : 0.0)
             ));
         }
         else if (type == "long")
         {
-            if (inputs[i].HasMember("MIN"))
+            if (inputs[i].contains("MIN"))
             {
                 _parms.push_back(ShaderParm(
-                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                    inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
+                    inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
                     ShaderParmType::SHADER_PARM_LONG,
-                    (double)(inputs[i].HasMember("MIN") ? wxAtol(inputs[i]["MIN"].AsString()) : 0.0),
-                    (double)(inputs[i].HasMember("MAX") ? wxAtol(inputs[i]["MAX"].AsString()) : 1.0),
-                    (double)(inputs[i].HasMember("DEFAULT") ? wxAtol(inputs[i]["DEFAULT"].AsString()) : 0.0)
+                    (double)(inputs[i].contains("MIN") ? wxAtol(inputs[i]["MIN"].get<std::string>()) : 0.0),
+                    (double)(inputs[i].contains("MAX") ? wxAtol(inputs[i]["MAX"].get<std::string>()) : 1.0),
+                    (double)(inputs[i].contains("DEFAULT") ? wxAtol(inputs[i]["DEFAULT"].get<std::string>()) : 0.0)
                 ));
             }
-            else if (inputs[i].HasMember("LABELS") && inputs[i].HasMember("VALUES"))
+            else if (inputs[i].contains("LABELS") && inputs[i].contains("VALUES"))
             {
                 _parms.push_back(ShaderParm(
-                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                    inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
+                    inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
                     ShaderParmType::SHADER_PARM_LONGCHOICE,
                     0.0f,
                     0.0f,
-                    (double)(inputs[i].HasMember("DEFAULT") ? wxAtol(inputs[i]["DEFAULT"].AsString()) : 0.0)
+                    (double)(inputs[i].contains("DEFAULT") ? wxAtol(inputs[i]["DEFAULT"].get<std::string>()) : 0.0)
                 ));
                 auto ls = inputs[i]["LABELS"];
                 auto vs = inputs[i]["VALUES"];
-                int no = std::min(ls.Size(), vs.Size());
+                int no = std::min(ls.size(), vs.size());
                 for (int i = 0; i < no; i++)
                 {
-                    _parms.back()._valueOptions[vs[i].AsInt()] = SafeValueOption(ls[i].AsString());
+                    _parms.back()._valueOptions[vs[i].get<int>()] = SafeValueOption(ls[i].get<std::string>());
                 }
             }
             else
@@ -1514,47 +1511,47 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         else if (type == "color")
         {
             _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
+                inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
                 ShaderParmType::SHADER_PARM_COLOUR
             ));
         }
         else if (type == "audio")
         {
             _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
+                inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
                 ShaderParmType::SHADER_PARM_AUDIO
             ));
         }
         else if (type == "bool")
         {
             _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
+                inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
                 ShaderParmType::SHADER_PARM_BOOL,
                 0.0f,
                 0.0f,
-                (double)(inputs[i].HasMember("DEFAULT") ? wxAtof(SafeFloat(inputs[i]["DEFAULT"].AsString())) : 0.0f)
+                (double)(inputs[i].contains("DEFAULT") ? wxAtof(SafeFloat(inputs[i]["DEFAULT"].get<std::string>())) : 0.0f)
             ));
         }
         else if (type == "point2D")
         {
             wxRealPoint minPt = wxRealPoint(
-                inputs[i].HasMember("MIN") ? (inputs[i]["MIN"][0].IsDouble() ? inputs[i]["MIN"][0].AsDouble() : inputs[i]["MIN"][0].AsInt()) : 0.0f,
-                inputs[i].HasMember("MIN") ? (inputs[i]["MIN"][1].IsDouble() ? inputs[i]["MIN"][1].AsDouble() : inputs[i]["MIN"][1].AsInt()) : 0.0f
+                inputs[i].contains("MIN") ? (inputs[i]["MIN"][0].is_number_float() ? inputs[i]["MIN"][0].get<double>() : inputs[i]["MIN"][0].get<int>()) : 0.0f,
+                inputs[i].contains("MIN") ? (inputs[i]["MIN"][1].is_number_float() ? inputs[i]["MIN"][1].get<double>() : inputs[i]["MIN"][1].get<int>()) : 0.0f
             );
             wxRealPoint maxPt = wxRealPoint(
-                inputs[i].HasMember("MAX") ? (inputs[i]["MAX"][0].IsDouble() ? inputs[i]["MAX"][0].AsDouble() : inputs[i]["MAX"][0].AsInt()) : 1.0f,
-                inputs[i].HasMember("MAX") ? (inputs[i]["MAX"][1].IsDouble() ? inputs[i]["MAX"][1].AsDouble() : inputs[i]["MAX"][1].AsInt()) : 1.0f
+                inputs[i].contains("MAX") ? (inputs[i]["MAX"][0].is_number_float() ? inputs[i]["MAX"][0].get<double>() : inputs[i]["MAX"][0].get<int>()) : 1.0f,
+                inputs[i].contains("MAX") ? (inputs[i]["MAX"][1].is_number_float() ? inputs[i]["MAX"][1].get<double>() : inputs[i]["MAX"][1].get<int>()) : 1.0f
             );
             wxRealPoint defPt = wxRealPoint(
-                inputs[i].HasMember("DEFAULT") ? (inputs[i]["DEFAULT"][0].IsDouble() ? inputs[i]["DEFAULT"][0].AsDouble() : inputs[i]["DEFAULT"][0].AsInt()) : 0.0f,
-                inputs[i].HasMember("DEFAULT") ? (inputs[i]["DEFAULT"][1].IsDouble() ? inputs[i]["DEFAULT"][1].AsDouble() : inputs[i]["DEFAULT"][1].AsInt()) : 0.0f
+                inputs[i].contains("DEFAULT") ? (inputs[i]["DEFAULT"][0].is_number_float() ? inputs[i]["DEFAULT"][0].get<double>() : inputs[i]["DEFAULT"][0].get<int>()) : 0.0f,
+                inputs[i].contains("DEFAULT") ? (inputs[i]["DEFAULT"][1].is_number_float() ? inputs[i]["DEFAULT"][1].get<double>() : inputs[i]["DEFAULT"][1].get<int>()) : 0.0f
             );
             _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
+                inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
                 ShaderParmType::SHADER_PARM_POINT2D,
                 minPt,
                 maxPt,
@@ -1565,39 +1562,39 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         {
             // ignore these as we will use the existing buffer content
             //_parms.push_back({
-            //        inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-            //        inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+            //        inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
+            //        inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
             //        ShaderParmType::SHADER_PARM_IMAGE,
             //        0.0f,
             //        0.0f,
             //        0.0f
             //    });
-            if (inputs[i].HasMember("NAME"))
+            if (inputs[i].contains("NAME"))
             {
-                canvasImgName = inputs[i]["NAME"].AsString();
+                canvasImgName = inputs[i]["NAME"].get<std::string>();
                 //_canvasMode = true;
             }
         }
         else if (type == "audioFFT")
         {
-            if (inputs[i].HasMember("NAME"))
+            if (inputs[i].contains("NAME"))
             {
-                audioFFTName = inputs[i]["NAME"].AsString();
+                audioFFTName = inputs[i]["NAME"].get<std::string>();
                 LOG_INFO("ShaderEffect - found audioFFT shader with name '%s'", static_cast<const char *>(audioFFTName.c_str()));
             }
         }
         else if (type == "text") {
             // ignore these
-            if (inputs[i].HasMember("NAME")) {
-                LOG_WARN("ShaderEffect - found text property with name '%s' ... ignored", static_cast<const char*>(inputs[i]["NAME"].AsString().c_str()));
+            if (inputs[i].contains("NAME")) {
+                LOG_WARN("ShaderEffect - found text property with name '%s' ... ignored", static_cast<const char*>(inputs[i]["NAME"].get<std::string>().c_str()));
             }
         }
         else if (type == "event")
         {
             // ignore these
             _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
+                inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
                 ShaderParmType::SHADER_PARM_EVENT,
                 0.0f,
                 0.0f,
@@ -1621,12 +1618,12 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
             wxASSERT(false);
         }
     }
-    wxJSONValue passes = root["PASSES"];
-    for (int i = 0; i < passes.Size(); i++)
+    auto passes = root["PASSES"];
+    for (int i = 0; i < passes.size(); i++)
     {
         _passes.push_back({
-            inputs[i].HasMember("TARGET") ? inputs[i]["TARGET"].AsString() : "",
-            passes[i].HasMember("PERSISTENT") ? passes[i]["PERSISTENT"].AsString() == "true" : false
+            inputs[i].contains("TARGET") ? inputs[i]["TARGET"].get<std::string>() : "",
+            passes[i].contains("PERSISTENT") ? passes[i]["PERSISTENT"].get<std::string>() == "true" : false
             });
     }
 

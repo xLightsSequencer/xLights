@@ -22,9 +22,6 @@
 #include "../outputs/ControllerEthernet.h"
 #include "../UtilFunctions.h"
 
-#include "../xSchedule/wxJSON/jsonreader.h"
-#include "../xSchedule/wxJSON/jsonwriter.h"
-
 #include <curl/curl.h>
 
 #include "./utils/spdlog_macros.h"
@@ -59,12 +56,12 @@ struct WLEDOutput {
         );
     }
 
-    wxJSONValue GetJSON() const {
-        wxJSONValue portJson;
+    nlohmann::json GetJSON() const {
+        nlohmann::json portJson;
         portJson["len"] = pixels;
         portJson["start"] = startCount;
-        wxJSONValue pinJson;
-        pinJson.Append(pin);
+        nlohmann::json pinJson;
+        pinJson.push_back(pin);
         portJson["pin"] = pinJson;
         portJson["type"] = protocol;
         portJson["order"] = colorOrder;
@@ -78,20 +75,19 @@ struct WLEDOutput {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-WLED::WLED(const std::string& ip, const std::string &proxy) : BaseController(ip, proxy), _vid(0) {
-
-    
+WLED::WLED(const std::string& ip, const std::string &proxy) : BaseController(ip, proxy) {
 
     std::string const json = GetURL(GetInfoURL());
     if (!json.empty()) {
-        wxJSONValue jsonVal;
-        wxJSONReader reader;
+        //wxJSONValue jsonVal;
+       // wxJSONReader reader;
+        nlohmann::json jsonVal = nlohmann::json::parse(json);
 
-        reader.Parse(json, &jsonVal);
-        if (jsonVal.HasMember("ver") && jsonVal.HasMember("arch") && jsonVal.HasMember("name")) {
-            _version = jsonVal["ver"].AsString();
-            _vid = jsonVal["vid"].AsInt();
-            _model = jsonVal["arch"].AsString();
+        //reader.Parse(json, &jsonVal);
+        if (jsonVal.contains("ver") && jsonVal.contains("arch") && jsonVal.contains("name")) {
+            _version = jsonVal["ver"].get<std::string>();
+            _vid = jsonVal["vid"].get<int>();
+            _model = jsonVal["arch"].get<std::string>();
             _connected = true;
         } else {
             LOG_ERROR("Error Determining WLED controller Type.");
@@ -119,7 +115,7 @@ WLED::~WLED() {
 
 #pragma region Private Functions
 
-bool WLED::ParseOutputJSON(wxJSONValue const& jsonVal, int maxPort, ControllerCaps* caps) {
+bool WLED::ParseOutputJSON(nlohmann::json const& jsonVal, int maxPort, ControllerCaps* caps) {
 
     _pixelOutputs.clear();
 
@@ -132,36 +128,36 @@ bool WLED::ParseOutputJSON(wxJSONValue const& jsonVal, int maxPort, ControllerCa
     return true;
 }
 
-WLEDOutput* WLED::ExtractOutputJSON(wxJSONValue const& jsonVal, int port, ControllerCaps* caps) {
+WLEDOutput* WLED::ExtractOutputJSON(nlohmann::json const& jsonVal, int port, ControllerCaps* caps) {
 
     WLEDOutput* output = new WLEDOutput(port);
 
-    auto const& json = jsonVal.ItemAt("hw").ItemAt("led").ItemAt("ins").ItemAt(port - 1);
+    auto const& json = jsonVal.at("hw").at("led").at("ins").at(port - 1);
 
-    if (json.IsValid()) {
-        if (json.ItemAt("len").IsInt()) {
-            output->pixels = json.ItemAt("len").AsInt();
+    if (!json.is_null()) {
+        if (json.at("len").is_number_integer()) {
+            output->pixels = json.at("len").get<int>();
         }
-        if (json.ItemAt("start").IsInt()) {
-            output->startCount = json.ItemAt("start").AsInt();
+        if (json.at("start").is_number_integer()) {
+            output->startCount = json.at("start").get<int>();
         }
-        if (json.ItemAt("pin").IsArray()) {
-            if (json.ItemAt("pin").ItemAt(0).IsValid()) {
-                output->pin = json.ItemAt("pin").ItemAt(0).AsInt();
+        if (json.at("pin").is_array()) {
+            if (!json.at("pin").at(0).is_null()) {
+                output->pin = json.at("pin").at(0).get<int>();
             }
         }
-        if (json.ItemAt("type").IsInt()) {
-            output->protocol = json.ItemAt("type").AsInt();
+        if (json.at("type").is_number_integer()) {
+            output->protocol = json.at("type").get<int>();
         }
-        if (json.ItemAt("order").IsInt()) {
-            output->colorOrder = json.ItemAt("order").AsInt();
+        if (json.at("order").is_number_integer()) {
+            output->colorOrder = json.at("order").get<int>();
         }
-        if (json.ItemAt("rev").IsBool()) {
-            output->reverse = json.ItemAt("rev").AsBool();
+        if (json.at("rev").is_boolean()) {
+            output->reverse = json.at("rev").get<bool>();
         }
         //skip is an int in the JSON but checkbox in the WebUI
-        if (json.ItemAt("skip").IsInt()) {
-            output->nullPixels = json.ItemAt("skip").AsInt();
+        if (json.at("skip").is_number_integer()) {
+            output->nullPixels = json.at("skip").get<int>();
         }
     }
     //work around for un-setup pins
@@ -213,18 +209,17 @@ void WLED::UpdatePortData(WLEDOutput* pd, UDControllerPort* stringData, int star
     }
 }
 
-void WLED::UpdatePixelOutputs(bool& worked, int totalPixelCount, wxJSONValue& jsonVal) {
+void WLED::UpdatePixelOutputs(bool& worked, int totalPixelCount, nlohmann::json& jsonVal) {
 
-    
     LOG_DEBUG("Building pixel upload:");
     //total Pixel Count
     jsonVal["hw"]["led"]["total"] = totalPixelCount;
 
     //Port Pixel Count
-    wxJSONValue newLEDS;
+    nlohmann::json newLEDS;
     for (const auto& pixelPort : _pixelOutputs) {
         if (pixelPort->upload) {
-            newLEDS.Append(pixelPort->GetJSON());
+            newLEDS.push_back(pixelPort->GetJSON());
         }
     }
 
@@ -238,14 +233,12 @@ static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* d
     return size * nmemb;
 }
 
-bool WLED::PostJSON(wxJSONValue const& jsonVal) {
-    wxString str;
-    wxJSONWriter writer(wxJSONWRITER_NONE, 0, 3);
-    writer.Write(jsonVal, str);
+bool WLED::PostJSON(nlohmann::json const& jsonVal) {
+    std::string str = jsonVal.dump(3);
+    //wxJSONWriter writer(wxJSONWRITER_NONE, 0, 3);
+    //writer.Write(jsonVal, str);
 
     const std::string url = GetCfgURL();
-
-    
 
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
     LOG_DEBUG("Making request to Controller '%s'.", (const char*)url.c_str());
@@ -285,7 +278,7 @@ bool WLED::PostJSON(wxJSONValue const& jsonVal) {
     return false;
 }
 
-bool WLED::SetupInput(Controller* c, wxJSONValue& jsonVal, bool rgbw) {
+bool WLED::SetupInput(Controller* c, nlohmann::json& jsonVal, bool rgbw) {
     ControllerEthernet *controller = dynamic_cast<ControllerEthernet*>(c);
     if (controller == nullptr) {
         DisplayError(wxString::Format("%s is not a WLED controller.", c->GetName().c_str()));
@@ -434,7 +427,6 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
 
-    
     LOG_DEBUG("WLED Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
 
     //2105110 added json config
@@ -478,15 +470,24 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     //get current config JSON
     const std::string page = GetURL(GetCfgURL());
 
-    wxJSONValue val;
-    wxJSONReader reader;
-    int parseResult = reader.Parse(page, &val);
-
-    if (parseResult != 0) {
-        DisplayError("WLED Upload Error:\n JSON Parse Error", parent);
+    nlohmann::json val;
+    try {
+        val = nlohmann::json::parse(page);
+    } catch (...) {
+        LOG_ERROR("Error Parsing JSON from WLED controller, JSON:%s.", (const char*)page.c_str());
+        DisplayError("WLED Upload Error:\n Unable to Parse JSON.", parent);
         progress.Update(100, "Aborting.");
         return false;
     }
+
+   // wxJSONReader reader;
+    //int parseResult = reader.Parse(page, &val);
+
+    //if (parseResult != 0) {
+    //    DisplayError("WLED Upload Error:\n JSON Parse Error", parent);
+    //    progress.Update(100, "Aborting.");
+    //    return false;
+   // }
 
     bool worked = ParseOutputJSON(val, maxPort, caps);
     if (!worked) {
