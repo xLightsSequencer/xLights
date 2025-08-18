@@ -13,6 +13,8 @@
 #include "wx/glcanvas.h"
 #include "../xlGraphicsContext.h"
 
+#include "spdlog/spdlog.h"
+
 
 class wxImage;
 
@@ -98,4 +100,6 @@ class xlGLCanvas
         std::map<GLuint, GLuint> vertexArrayIds;
     
         static wxGLContext *m_sharedContext;
+
+        std::shared_ptr<spdlog::logger> m_logger{ nullptr };
 };

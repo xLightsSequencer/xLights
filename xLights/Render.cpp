@@ -216,8 +216,8 @@ class RenderJob: public Job, public NextRenderer {
 public:
     RenderJob(ModelElement *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false)
         : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe),
-            gauge(nullptr), currentFrame(0),
-            supportsModelBlending(false), abort(false), statusMap(nullptr)
+            gauge(nullptr), currentFrame(0), supportsModelBlending(false), abort(false), statusMap(nullptr), 
+            m_logger(spdlog::get("render"))
     {
         name = "";
         if (row != nullptr) {
@@ -774,9 +774,7 @@ public:
         }
     }
     virtual void Process() override {
-        
-        
-        LOG_DEBUG("Render job thread id 0x%x or %d", wxThread::GetCurrentId(), wxThread::GetCurrentId());
+        m_logger->info("Render job thread id {0:x} or  {0:d}", wxThread::GetCurrentId(), wxThread::GetCurrentId());
 
         SetGenericStatus("Initializing rendering thread for %s", 0);
         int origChangeCount;
@@ -786,7 +784,7 @@ public:
         std::unique_lock<std::recursive_timed_mutex> lock(rowToRender->GetRenderLock());
         if (rowToRender->DecWaitCount() && !HasNext()) {
             // other threads for this model waiting, we'll bail fast and let them handle this
-            LOG_DEBUG("Rendering thread exiting early.");
+            m_logger->debug("Rendering thread exiting early.");
             currentFrame = END_OF_RENDER_FRAME; // this is needed otherwise the job does not look done
             return;
         }
@@ -876,7 +874,7 @@ public:
                         PixelBufferClass *buffer = it.second.get();
 
                         if (buffer == nullptr) {
-                            LOG_CRIT("RenderJob::Process PixelBufferPointer is null ... this is going to crash.");
+                            m_logger->critical("RenderJob::Process PixelBufferPointer is null ... this is going to crash.");
                         }
 
                         int strand = node.strand;
@@ -928,12 +926,12 @@ public:
             wxASSERT(false); // so when we debug we catch them
             printf("Caught an exception %s", ex.what());
 			//renderLog.error("Caught an exception on rendering thread: " + std::string(ex.what()));
-            LOG_ERROR("Caught an exception on rendering thread: %s", ex.what());
+            m_logger->error("Caught an exception on rendering thread: {}", ex.what());
 		} catch ( ... ) {
             wxASSERT(false); // so when we debug we catch them
             printf("Caught an unknown exception");
 			//LOG_ERROR("Caught an unknown exception on rendering thread.");
-            LOG_ERROR("Caught an unknown exception on rendering thread.");
+            m_logger->error("Caught an unknown exception on rendering thread.");
         }
         if (HasNext()) {
             //make sure the previous has told us we're at the end.  If we return before waiting, the previous
@@ -952,7 +950,7 @@ public:
         rowToRender->CleanupAfterRender();
         currentFrame = END_OF_RENDER_FRAME;
         //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
-        LOG_DEBUG("Rendering thread exiting.");
+        m_logger->debug("Rendering thread exiting.");
 	}
 
     void AbortRender() {
@@ -1068,6 +1066,8 @@ private:
     std::vector<EffectLayerInfo *> subModelInfos;
 
     std::map<SNPair, PixelBufferClassPtr> nodeBuffers;
+
+    std::shared_ptr<spdlog::logger> m_logger{ nullptr };
 };
 
 

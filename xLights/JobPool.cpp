@@ -64,6 +64,8 @@ class JobPoolWorker
     std::atomic<STATUS_TYPE> status;
     std::thread *thread;
     std::thread::id tid;
+    std::shared_ptr<spdlog::logger> m_logger{ nullptr };
+
 public:
     JobPoolWorker(JobPool *p);
     virtual ~JobPoolWorker();
@@ -94,20 +96,19 @@ static void startFunc(JobPoolWorker *jpw) {
     }
 }
 
-JobPoolWorker::JobPoolWorker(JobPool *p)
-: pool(p), stopped(false), currentJob(nullptr), status(STARTING), thread(nullptr)
-{
+JobPoolWorker::JobPoolWorker(JobPool *p) :
+    pool(p), stopped(false), currentJob(nullptr), status(STARTING), thread(nullptr), m_logger(spdlog::get("job")) {
 
     //
     thread = new std::thread(startFunc, this);
     tid = thread->get_id();
-    spdlog::debug("JobPoolWorker created {}", tid);
+    m_logger->debug("JobPoolWorker created {}", tid);
 }
 
 JobPoolWorker::~JobPoolWorker()
 {
     //
-    spdlog::debug("JobPoolWorker destroyed {}", tid);
+    m_logger->debug("JobPoolWorker destroyed {}", tid);
     status = UNKNOWN;
     thread->detach();
     delete thread;
@@ -115,7 +116,7 @@ JobPoolWorker::~JobPoolWorker()
 
 std::string JobPoolWorker::GetStatus()
 {
-    spdlog::debug("Getting status for {}\n", fmt::ptr(this));
+    m_logger->debug("Getting status for {}\n", fmt::ptr(this));
     std::stringstream ret;
     ret << "Thread: ";
         
@@ -127,7 +128,7 @@ std::string JobPoolWorker::GetStatus()
     
     Job *j = currentJob;
     
-    spdlog::debug("     current job {}\n", fmt::ptr(j));
+    m_logger->debug("     current job {}\n", fmt::ptr(j));
 
     if (j != nullptr && j->SetThreadName()) {
         ret << j->GetName() << " - ";
@@ -220,7 +221,7 @@ std::string JobPoolWorker::GetThreadName() const
 
 void JobPoolWorker::Entry()
 {
-    spdlog::debug("JobPoolWorker started  {}", tid);
+    m_logger->debug("JobPoolWorker started  {}", tid);
 
     try {
         SetThreadName(pool->threadNameBase);
@@ -230,11 +231,11 @@ void JobPoolWorker::Entry()
 
             Job *job = pool->GetNextJob();
             if (job != nullptr) {
-                spdlog::debug("JobPoolWorker::Entry processing job.   {}", fmt::ptr(this));
+                m_logger->debug("JobPoolWorker::Entry processing job.   {}", fmt::ptr(this));
                 status = RUNNING_JOB;
                 // Call user's implementation for processing request
                 ProcessJob(job);
-                spdlog::debug("JobPoolWorker::Entry processed job.  {}", fmt::ptr(this));
+                m_logger->debug("JobPoolWorker::Entry processed job.  {}", fmt::ptr(this));
                 status = IDLE;
                 --pool->inFlight;
             } else if (pool->numThreads > pool->minNumThreads) {
@@ -248,7 +249,7 @@ void JobPoolWorker::Entry()
     // program, see http://udrepper.livejournal.com/21541.html
     }  catch ( abi::__forced_unwind& ) {
         currentJob = nullptr;
-        logger_jobpool.warn("JobPoolWorker::Entry exiting due to __forced_unwind.  %X", this);
+        m_logger->warn("JobPoolWorker::Entry exiting due to __forced_unwind.  {}", mt::ptr(this));
         --(pool->numThreads);
         status = STOPPED;
         pool->RemoveWorker(this);
@@ -256,22 +257,22 @@ void JobPoolWorker::Entry()
 #endif // HAVE_ABI_FORCEDUNWIND
     } catch ( ... ) {
         currentJob = nullptr;
-        spdlog::debug("JobPoolWorker::Entry exiting due to unknown exception. {}", tid);
+        m_logger->debug("JobPoolWorker::Entry exiting due to unknown exception. {}", tid);
         --(pool->numThreads);
         status = STOPPED;
         pool->RemoveWorker(this);
         wxTheApp->OnUnhandledException();
-        spdlog::debug("JobPoolWorker done {}", tid);
+        m_logger->debug("JobPoolWorker done {}", tid);
         return;
     }
     currentJob = nullptr;
-    spdlog::debug("JobPoolWorker exiting {}", tid);
+    m_logger->debug("JobPoolWorker exiting {}", tid);
     --(pool->numThreads);
     status = STOPPED;
     pool->RemoveWorker(this);
-    spdlog::debug("JobPoolWorker::Entry removed.  {}", fmt::ptr(this));
+    m_logger->debug("JobPoolWorker::Entry removed.  {}", fmt::ptr(this));
     RemoveThreadName();
-    spdlog::debug("JobPoolWorker done {}", tid);
+    m_logger->debug("JobPoolWorker done {}", tid);
     //clear trace messages for this thread
     ClearTraceMessages();
 }
@@ -280,7 +281,7 @@ void JobPoolWorker::ProcessJob(Job *job)
 {
     
     if (job) {
-        spdlog::debug("Starting job on background thread.");
+        m_logger->debug("Starting job on background thread.");
 		currentJob = job;
         
         std::string origName;
@@ -299,10 +300,10 @@ void JobPoolWorker::ProcessJob(Job *job)
         
         if (deleteWhenComplete) {
             status = DELETING_JOB;
-            spdlog::debug("Job on background thread done ... deleting job.");
+            m_logger->debug("Job on background thread done ... deleting job.");
             delete job;
         } else {
-            spdlog::debug("Job on background thread done.");
+            m_logger->debug("Job on background thread done.");
         }
         status = FINISHED_JOB;
 	}
@@ -330,7 +331,8 @@ JobPool::~JobPool()
         for (; iter != queue.end(); ++iter) {
             delete (*iter);
         }
-        spdlog::debug("Clearing JobPool queue.");
+        auto logger = spdlog::get("job");
+        logger->debug("Clearing JobPool queue.");
         queue.clear();
     }
     Stop();
@@ -442,7 +444,8 @@ void JobPool::Start(size_t poolSize, size_t minPoolSize)
     minNumThreads = minPoolSize < MIN_JOBPOOLTHREADS ? MIN_JOBPOOLTHREADS : minPoolSize;
     idleThreads = 0;
     numThreads = 0;
-    spdlog::debug("Background thread pool started with {} threads", poolSize);
+    auto logger = spdlog::get("job");
+    logger->debug("Background thread pool started with {} threads", poolSize);
 }
 
 void JobPool::Stop()
