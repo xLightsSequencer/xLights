@@ -5263,7 +5263,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     // Check for inactive outputs
     for (const auto& c : _outputManager.GetControllers()) {
-        if (!c->IsEnabled() && c->CanSendData()) {
+        if (!c->IsEnabled() && c->CanSendData() && c->GetModel() != "FPP Player Only" && c->GetModel() != "FPP Video Playing Remote Only" ) {
             wxString msg = wxString::Format("    WARN: Inactive controller %s %s:%s.",
                                             c->GetName(), c->GetColumn1Label(), c->GetColumn2Label());
             LogAndTrack(report, "controllers", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "inactive", errcount, warncount);
