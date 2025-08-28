@@ -47,7 +47,18 @@ void MHPathPresetBitmapButton::SetPreset(const std::string& _settings)
 }
 
 void MHPathPresetBitmapButton::RenderNewBitmap() {
-    SetBitmap(CreateImage(48, 48, GetContentScaleFactor()));
+    wxBitmap bmp = CreateImage(48, 48, GetContentScaleFactor());
+    if ( bmp.IsOk() ) {
+        SetBitmap(bmp);
+    } else {
+        // Fallback: Set a default or empty bitmap to avoid crashes
+        wxBitmap defaultBmp(48, 48);
+        wxMemoryDC dc(defaultBmp);
+        dc.SetBrush(*wxBLACK_BRUSH);
+        dc.SetPen(*wxWHITE_PEN);
+        dc.DrawRectangle(0, 0, 48, 48);
+        SetBitmap(defaultBmp);
+    }
 }
 
 wxBitmap MHPathPresetBitmapButton::CreateImage( int w, int h, double scaleFactor ) {
@@ -64,53 +75,60 @@ wxBitmap MHPathPresetBitmapButton::CreateImage( int w, int h, double scaleFactor
     dc.SetPen(*wxWHITE_PEN);
     dc.DrawRectangle(0, 0, width, height);
 
-    {
-        std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(dc));
+    std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(dc));
 
-        wxColour c(xlORANGE);
-        wxGraphicsPen pen = gc->CreatePen(wxGraphicsPenInfo(c));
-        gc->SetPen(pen);
+    wxColour c(xlORANGE);
+    wxGraphicsPen pen = gc->CreatePen(wxGraphicsPenInfo(c));
+    gc->SetPen(pen);
 
-        SketchEffectSketch sketch = SketchEffectSketch::SketchFromString(mSettings);
+    SketchEffectSketch sketch = SketchEffectSketch::SketchFromString(mSettings);
 
-        // Moving heads only have one path
-        const auto& all_paths = sketch.paths();
-        const auto& path = all_paths[0];
-
-        wxGraphicsPath graphicsPath(gc->CreatePath());
-        const auto& firstSegment(path->segments().front());
-        wxPoint2DDouble startPt(NormalizedToUI(firstSegment->StartPoint(), scaleFactor));
-        graphicsPath.MoveToPoint(startPt);
-    
-        for (const auto& segment : path->segments()) {
-            std::shared_ptr<SketchQuadraticBezier> quadratic;
-            std::shared_ptr<SketchCubicBezier> cubic;
-
-            if (std::dynamic_pointer_cast<SketchLine>(segment) != nullptr) {
-                wxPoint2DDouble endPt(NormalizedToUI(segment->EndPoint(), scaleFactor));
-                graphicsPath.AddLineToPoint(endPt);
-            } else if ((quadratic = std::dynamic_pointer_cast<SketchQuadraticBezier>(segment)) != nullptr) {
-                wxPoint2DDouble ctrlPt(NormalizedToUI(quadratic->ControlPoint(), scaleFactor));
-                wxPoint2DDouble endPt(NormalizedToUI(quadratic->EndPoint(), scaleFactor));
-                graphicsPath.AddQuadCurveToPoint(ctrlPt.m_x, ctrlPt.m_y, endPt.m_x, endPt.m_y);
-            } else if ((cubic = std::dynamic_pointer_cast<SketchCubicBezier>(segment)) != nullptr) {
-                wxPoint2DDouble ctrlPt1(NormalizedToUI(cubic->ControlPoint1(), scaleFactor));
-                wxPoint2DDouble ctrlPt2(NormalizedToUI(cubic->ControlPoint2(), scaleFactor));
-                wxPoint2DDouble endPt(NormalizedToUI(cubic->EndPoint(), scaleFactor));
-                graphicsPath.AddCurveToPoint(ctrlPt1, ctrlPt2, endPt);
-            }
-        }
-        if (path->isClosed())
-            graphicsPath.CloseSubpath();
-
-        gc->DrawPath(graphicsPath);
-
+    // Moving heads only have one path
+    const auto& all_paths = sketch.paths();
+    if (all_paths.empty()) {
+        return bmp;
     }
-    
+
+    const auto& path = all_paths[0];
+    if (path->segments().empty()) {
+        return bmp;
+    }
+
+    wxGraphicsPath graphicsPath(gc->CreatePath());
+    const auto& firstSegment(path->segments().front());
+    wxPoint2DDouble startPt(NormalizedToUI(firstSegment->StartPoint(), scaleFactor));
+    graphicsPath.MoveToPoint(startPt);
+
+    for (const auto& segment : path->segments()) {
+        std::shared_ptr<SketchQuadraticBezier> quadratic;
+        std::shared_ptr<SketchCubicBezier> cubic;
+
+        if (std::dynamic_pointer_cast<SketchLine>(segment) != nullptr) {
+            wxPoint2DDouble endPt(NormalizedToUI(segment->EndPoint(), scaleFactor));
+            graphicsPath.AddLineToPoint(endPt);
+        } else if ((quadratic = std::dynamic_pointer_cast<SketchQuadraticBezier>(segment)) != nullptr) {
+            wxPoint2DDouble ctrlPt(NormalizedToUI(quadratic->ControlPoint(), scaleFactor));
+            wxPoint2DDouble endPt(NormalizedToUI(quadratic->EndPoint(), scaleFactor));
+            graphicsPath.AddQuadCurveToPoint(ctrlPt.m_x, ctrlPt.m_y, endPt.m_x, endPt.m_y);
+        } else if ((cubic = std::dynamic_pointer_cast<SketchCubicBezier>(segment)) != nullptr) {
+            wxPoint2DDouble ctrlPt1(NormalizedToUI(cubic->ControlPoint1(), scaleFactor));
+            wxPoint2DDouble ctrlPt2(NormalizedToUI(cubic->ControlPoint2(), scaleFactor));
+            wxPoint2DDouble endPt(NormalizedToUI(cubic->EndPoint(), scaleFactor));
+            graphicsPath.AddCurveToPoint(ctrlPt1, ctrlPt2, endPt);
+        }
+    }
+
+    if (path->isClosed()) {
+        graphicsPath.CloseSubpath();
+    }
+
+    gc->DrawPath(graphicsPath);
+
     if (scaleFactor > 1.0f) {
         wxImage img = bmp.ConvertToImage();
         return wxBitmap(img, 8, scaleFactor);
     }
+
     return bmp;
 }
 
