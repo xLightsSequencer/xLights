@@ -1056,7 +1056,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
     sp->SetAttribute("Min", 0);
     sp->SetAttribute("Max", 100);
     sp->SetEditor("SpinCtrl");
-    sp = grid->AppendIn(p, new wxColourProperty("Tag Color", "ModelTagColour", modelTagColour));
+    sp = grid->AppendIn(p, new wxColourProperty("Tag Color", "ModelTagColour", GetTagColour()));
     sp->SetHelpString("A visual color assigned to the model in the model list.");
     UpdateControllerProperties(grid);
     DisableUnusedProperties(grid);
@@ -3237,7 +3237,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     tempstr.ToLong(&n);
     transparency = n;
     blackTransparency = wxAtoi(ModelNode->GetAttribute("BlackTransparency", "0"));
-    modelTagColour = wxColour(ModelNode->GetAttribute("TagColour", "Black"));
+    modelTagColour = wxNullColour;
     layout_group = ModelNode->GetAttribute("LayoutGroup", "Unassigned");
 
     ModelStartChannel = ModelNode->GetAttribute("StartChannel");
@@ -6973,6 +6973,19 @@ std::list<std::string> Model::CheckModelSettings()
 bool Model::IsControllerConnectionValid() const
 {
     return ((IsPixelProtocol() || IsSerialProtocol() || IsMatrixProtocol() || IsPWMProtocol()) && GetControllerPort(1) > 0);
+}
+wxColour Model::GetTagColour() {
+    if (!modelTagColour.IsOk()) {
+        if (ModelXml->HasAttribute("TagColour")) {
+            modelTagColour = wxColour(ModelXml->GetAttribute("TagColour", "#000000"));
+            if (!modelTagColour.IsOk()) {
+                modelTagColour = *wxBLACK;
+            }
+        } else {
+            modelTagColour = *wxBLACK;
+        }
+    }
+    return modelTagColour;
 }
 
 void Model::SetTagColour(wxColour colour)
