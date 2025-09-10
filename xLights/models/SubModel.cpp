@@ -371,19 +371,19 @@ void SubModel::AddProperties(wxPropertyGridInterface* grid, OutputManager* outpu
 {
     wxPGProperty* p = grid->Append(new wxStringProperty("SubModel Type", "SMT", _type));
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
+    p->ChangeFlag(wxPGFlags::ReadOnly, true);
 
     p = grid->Append(new wxStringProperty("SubModel Layout", "SML", _layout));
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
+    p->ChangeFlag(wxPGFlags::ReadOnly, true);
 
     p = grid->Append(new wxStringProperty("SubModel Buffer Style", "SMBS", _bufferStyle));
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
+    p->ChangeFlag(wxPGFlags::ReadOnly, true);
 
     p = grid->Append(new wxStringProperty("SubModel", "SMN", _propertyGridDisplay));
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
+    p->ChangeFlag(wxPGFlags::ReadOnly, true);
 
     auto modelGroups = parent->GetModelManager().GetGroupsContainingModel(this);
     if (modelGroups.size() > 0) {
@@ -400,7 +400,7 @@ void SubModel::AddProperties(wxPropertyGridInterface* grid, OutputManager* outpu
         p = grid->Append(new wxStringProperty("In Model Groups", "MGS", mgs));
         p->SetHelpString(mgscr);
         p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-        p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
+        p->ChangeFlag(wxPGFlags::ReadOnly, true);
     }
     auto smaliases = parent->GetSubModel(this->GetName())->GetAliases();
     if (smaliases.size() > 0) {
@@ -417,7 +417,7 @@ void SubModel::AddProperties(wxPropertyGridInterface* grid, OutputManager* outpu
         p = grid->Append(new wxStringProperty("SubModel Aliases", "SMA", sma));
         p->SetHelpString(smacr);
         p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-        p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
+        p->ChangeFlag(wxPGFlags::ReadOnly, true);
     }
   
 }

@@ -48,16 +48,16 @@ struct uint8_t4 { uint8_t v[4]; } __attribute__ ((aligned(4)));
 /* Unknown compiler/standard - alignment not supported */
 #define __ISPC_ALIGN__(x)
 #warning "Alignment not supported on this compiler"
-#endif
+#endif // defined(__cplusplus) && __cplusplus >= 201103L
 #ifndef __ISPC_ALIGNED_STRUCT__
-#if defined(_MSC_VER)
-// Visual Studio
-#define __ISPC_ALIGNED_STRUCT__(s) __ISPC_ALIGN__(s) struct
-#else
+#if defined(__clang__) || !defined(_MSC_VER)
 // Clang, GCC, ICC
 #define __ISPC_ALIGNED_STRUCT__(s) struct __ISPC_ALIGN__(s)
-#endif
-#endif
+#else
+// Visual Studio
+#define __ISPC_ALIGNED_STRUCT__(s) __ISPC_ALIGN__(s) struct
+#endif // defined(__clang__) || !defined(_MSC_VER)
+#endif // __ISPC_ALIGNED_STRUCT__
 
 #ifndef __ISPC_STRUCT_VideoData__
 #define __ISPC_STRUCT_VideoData__

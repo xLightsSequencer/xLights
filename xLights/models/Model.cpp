@@ -982,7 +982,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
         p = grid->Append(new wxStringProperty("In Model Groups", "MGS", mgs));
         p->SetHelpString(mgscr);
         p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-        p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
+        p->ChangeFlag(wxPGFlags::ReadOnly, true);
     }
 
     AddControllerProperties(grid);
@@ -1248,7 +1248,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
                     } else {
                         std::string type = GetSmartRemoteType();
                         auto smt = grid->AppendIn(p, new wxStringProperty("Smart Remote Type", "SmartRemoteType", type));
-                        smt->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
+                        smt->ChangeFlag(wxPGFlags::ReadOnly, true);
                         smt->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
                     }
                 }

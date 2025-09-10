@@ -607,12 +607,12 @@ void DDPOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, Mo
     if (p) {
         p->SetValue(GetChannels());
         if (c->IsAutoSize()) {
-            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
+            p->ChangeFlag(wxPGFlags::ReadOnly , true);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
             p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
         } else {
             p->SetEditor("SpinCtrl");
-            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , false);
+            p->ChangeFlag(wxPGFlags::ReadOnly , false);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
             p->SetHelpString("");
         }

@@ -531,11 +531,11 @@ void E131Output::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, M
     if (p) {
         p->SetValue((int)c->GetOutputs().size());
         if (c->IsAutoSize()) {
-            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
+            p->ChangeFlag(wxPGFlags::ReadOnly , true);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
             p->SetHelpString("Universes Count cannot be changed when an output is set to Auto Size.");
         } else {
-            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , false);
+            p->ChangeFlag(wxPGFlags::ReadOnly , false);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
             p->SetHelpString("");
             p->SetEditor("SpinCtrl");
@@ -562,13 +562,13 @@ void E131Output::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, M
     p = propertyGrid->GetProperty("IndivSizes");
     if (p) {
         if (ce->IsAutoSize()) {
-            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
+            p->ChangeFlag(wxPGFlags::ReadOnly , true);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
             p->SetHelpString("Individual Sizes cannot be changed when an output is set to Auto Size.");
         } else {
             bool v = !ce->AllSameSize() || ce->IsForcingSizes() || ce->IsUniversePerString();
             p->SetValue(v);
-            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , false);
+            p->ChangeFlag(wxPGFlags::ReadOnly , false);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
             p->SetHelpString("");
         }
@@ -609,12 +609,12 @@ void E131Output::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, M
             p->Hide(false);
             p->SetValue(GetChannels());
             if (ce->IsAutoSize()) {
-                p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
+                p->ChangeFlag(wxPGFlags::ReadOnly , true);
                 p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
                 p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
             } else {
                 p->SetEditor("SpinCtrl");
-                p->ChangeFlag(wxPGPropertyFlags::ReadOnly , false);
+                p->ChangeFlag(wxPGFlags::ReadOnly , false);
                 p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
                 p->SetHelpString("");
             }
@@ -642,7 +642,7 @@ void E131Output::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *befor
     p->SetEditor("CheckBox");
 
     p = propertyGrid->Insert(before, new wxStringProperty("Universes", "UniversesDisplay", ""));
-    p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
+    p->ChangeFlag(wxPGFlags::ReadOnly , true);
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
 

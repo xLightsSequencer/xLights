@@ -1155,13 +1155,13 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
     p->SetHelpString("Some controllers can receive data from more than one source and will ignore one of the sources where this priority is lower.");
     
     p = propertyGrid->Append(new wxStringProperty("Models", "Models", ""));
-    p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
+    p->ChangeFlag(wxPGFlags::ReadOnly , true);
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
     auto p2 = propertyGrid->Append(new wxBoolProperty("Managed", "Managed", _managed));
     p2->SetEditor("CheckBox");
     p2->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p2->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
+    p2->ChangeFlag(wxPGFlags::ReadOnly , true);
 
     bool allSameSize = AllSameSize();
     if (_outputs.size() >= 1) {
