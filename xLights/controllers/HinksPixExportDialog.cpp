@@ -83,7 +83,10 @@ const long HinksPixExportDialog::ID_MNU_DESELECTHIGH = wxNewId();
 const long HinksPixExportDialog::ID_MNU_SETALL = wxNewId();
 const long HinksPixExportDialog::ID_MNU_SETALLPLAY = wxNewId();
 
+const long HinksPixExportDialog::ID_MNU_UPLOADSCHEDULE = wxNewId();
 const long HinksPixExportDialog::ID_MNU_SETTIME = wxNewId();
+const long HinksPixExportDialog::ID_MNU_SETMASTER = wxNewId();
+const long HinksPixExportDialog::ID_MNU_SETREMOTE = wxNewId();
 const long HinksPixExportDialog::ID_MNU_UPLOADFILE = wxNewId();
 const long HinksPixExportDialog::ID_MNU_UPLOADFIRM = wxNewId();
 
@@ -429,9 +432,13 @@ void HinksPixExportDialog::ControllerPopupMenu(wxContextMenuEvent& event) {
     wxStaticText* label = dynamic_cast<wxStaticText*>(event.GetEventObject());
     wxMenu mnu;
 
-    mnu.Append(ID_MNU_SETTIME, "Upload Time");
-    mnu.Append(ID_MNU_SETTIME, "Upload File");  
-    mnu.Append(ID_MNU_UPLOADFIRM, "Upload Firmware");  
+    mnu.Append(ID_MNU_SETTIME, "Set Time");
+    mnu.Append(ID_MNU_SETMASTER, "Set Master");
+    mnu.Append(ID_MNU_SETREMOTE, "Set Remote");
+    mnu.AppendSeparator();
+    mnu.Append(ID_MNU_UPLOADSCHEDULE, "Upload Schedules");
+    mnu.Append(ID_MNU_UPLOADFIRM, "Upload Firmware");
+    mnu.Append(ID_MNU_UPLOADFILE, "Upload File");
 
     mnu.Bind(wxEVT_COMMAND_MENU_SELECTED, [this, label](wxCommandEvent& e) {
         if (ID_MNU_SETTIME == e.GetId()) {
@@ -455,19 +462,53 @@ void HinksPixExportDialog::ControllerPopupMenu(wxContextMenuEvent& event) {
                 prgs.Pulse("Uploading Time To Controller...");
                 hixpix->UploadTimeToController();
             }
-        }
-        else if (e.GetId() == ID_MNU_UPLOADFILE) {
+        } else if (e.GetId() == ID_MNU_UPLOADFILE) {
             auto name = label->GetLabel();
             auto contrl = std::find_if(m_hixControllers.begin(), m_hixControllers.end(), [&name](auto po) { return po->GetName() == name; });
             if (contrl != m_hixControllers.end()) {
                 UploadFile(*contrl);
             }
-        }
-        else if(e.GetId() == ID_MNU_UPLOADFIRM) {
+        } else if(e.GetId() == ID_MNU_UPLOADFIRM) {
             auto name = label->GetLabel();
             auto contrl = std::find_if(m_hixControllers.begin(), m_hixControllers.end(), [&name](auto po) { return po->GetName() == name; });
             if (contrl != m_hixControllers.end()) {
                 ExtractFirmware(*contrl);
+            }
+        } else if (e.GetId() == ID_MNU_UPLOADSCHEDULE) {
+            auto name = label->GetLabel();
+            auto contrl = std::find_if(m_hixControllers.begin(), m_hixControllers.end(), [&name](auto po) { return po->GetName() == name; });
+            if (contrl != m_hixControllers.end()) {
+                UploadSchedules(*contrl);
+            }
+        } else if (e.GetId() == ID_MNU_SETMASTER) {
+            auto name = label->GetLabel();
+            auto contrl = std::find_if(m_hixControllers.begin(), m_hixControllers.end(), [&name](auto po) { return po->GetName() == name; });
+            if (contrl != m_hixControllers.end()) {
+                std::unique_ptr<HinksPix> hixpix = std::make_unique<HinksPix>((*contrl)->GetIP(), (*contrl)->GetFPPProxy());
+                if (!hixpix->IsConnected()) {
+                    DisplayError(wxString::Format("Could not connect to '%s'", (*contrl)->GetIP()));
+                    return;
+                }
+                if (!hixpix->FirmwareSupportsUpload()) {
+                    DisplayError(wxString::Format("'%s' CPU Firmware is too old (v%d) Update to a Newer Version.", (*contrl)->GetIP(), hixpix->GetMPUVersion()));
+                    return;
+                }
+                hixpix->UploadModeToController('G'); // master
+            }
+        } else if (e.GetId() == ID_MNU_SETREMOTE) {
+            auto name = label->GetLabel();
+            auto contrl = std::find_if(m_hixControllers.begin(), m_hixControllers.end(), [&name](auto po) { return po->GetName() == name; });
+            if (contrl != m_hixControllers.end()) {
+                std::unique_ptr<HinksPix> hixpix = std::make_unique<HinksPix>((*contrl)->GetIP(), (*contrl)->GetFPPProxy());
+                if (!hixpix->IsConnected()) {
+                    DisplayError(wxString::Format("Could not connect to '%s'", (*contrl)->GetIP()));
+                    return;
+                }
+                if (!hixpix->FirmwareSupportsUpload()) {
+                    DisplayError(wxString::Format("'%s' CPU Firmware is too old (v%d) Update to a Newer Version.", (*contrl)->GetIP(), hixpix->GetMPUVersion()));
+                    return;
+                }
+                hixpix->UploadModeToController('H'); // remote
             }
         }
     });
@@ -613,8 +654,55 @@ void HinksPixExportDialog::UploadFile(ControllerEthernet* controller) {
             return !prgs.WasCancelled();
         };
 
-        wxFileName fn = file.GetPath();
+        wxFileName const fn = file.GetPath();
         hixpix->UploadFileToController(fn.GetFullPath(), fn.GetName(), updateProg, wxDateTime::Now());
+    }
+}
+
+void HinksPixExportDialog::UploadSchedules(ControllerEthernet* controller) {
+   
+    wxProgressDialog prgs("Connecting to HinksPix", "Connecting to HinksPix", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    prgs.Show();
+
+    std::unique_ptr<HinksPix> hixpix = std::make_unique<HinksPix>(controller->GetIP(), controller->GetFPPProxy());
+    if (!hixpix->IsConnected()) {
+        DisplayError(wxString::Format("Could not connect to '%s'", controller->GetName()));
+        return;
+    }
+
+    if (!hixpix->FirmwareSupportsUpload()) {
+        DisplayError(wxString::Format("'%s' CPU Firmware is too old (v%d) Update to a Newer Version.", controller->GetName(), hixpix->GetMPUVersion()));
+        return;
+    }
+
+    std::function<bool(int, int, std::string)> updateProg = [&prgs](int val, int tol, std::string msg) {
+        if (prgs.GetRange() != tol) {
+            prgs.SetRange(tol);
+        }
+        prgs.Update(val, msg);
+        // wxSafeYield();
+        return !prgs.WasCancelled();
+    };
+
+    if (!m_selectedPlayList.empty()) {
+        StoreToObjectPlayList(m_selectedPlayList);
+    }
+    StoreToObjectSchedule();
+
+    bool error { false };
+    wxString errorMsg;
+    for (const auto& schedule : m_schedules) {
+        wxString reason;
+        if (!schedule.isValid(reason)) {
+            error = true;
+            errorMsg = wxString::Format("'%s' Schedule was invalid!\n%s", schedule.Day, reason);
+        }
+        auto temp_schedule = ToStdString(wxFileName::CreateTempFileName("schedule"));
+        schedule.saveAsFile(temp_schedule);
+        hixpix->UploadFileToController(temp_schedule, schedule.getFileName(), updateProg, wxDateTime::Now());
+    }
+    if (error) {
+        DisplayError("HinksPix Schedule Upload Error\n" + errorMsg);
     }
 }
 
@@ -873,7 +961,7 @@ void HinksPixExportDialog::CreateDriveList() {
 
 #ifdef __WXMSW__
     #ifdef _DEBUG
-    wxArrayString ud = wxFSVolume::GetVolumes();
+    wxArrayString const ud = wxFSVolume::GetVolumes();
     #else
     wxArrayString ud = wxFSVolume::GetVolumes( wxFS_VOL_REMOVABLE | wxFS_VOL_MOUNTED, 0);
     #endif
@@ -923,7 +1011,7 @@ void HinksPixExportDialog::SaveSettings()
 
     int row = 0;
     for (const auto& inst : m_hixControllers) {
-        std::string rowStr = std::to_string(row);
+        std::string const rowStr = std::to_string(row);
         wxJSONValue controller;
         controller["ip"] = wxString(inst->GetIP());
         controller["enabled"] = GetCheckValue(CHECK_COL + rowStr);
@@ -1137,7 +1225,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
     std::vector<wxString> names;
     for (auto& playlist : m_playLists) {
         for (auto& play : playlist.Items) {
-            if (shortNames.find( play.FSEQ) == shortNames.end()) {
+            if (shortNames.find(play.FSEQ) == shortNames.end()) {
                 wxString const shortName = createUniqueShortName(play.FSEQ, names);
                 shortNames.insert({ play.FSEQ, shortName });
                 names.push_back(shortName);
@@ -1145,10 +1233,10 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
         }
     }
 
-    bool error = false;
+    bool error{ false };
     wxString errorMsg;
-    int count = 0;
-    int row = 0;
+    int count{ 0 };
+    int row{ 0 };
     for (auto* hix : m_hixControllers) {
         std::string const rowStr = std::to_string(row);
         ++row;
@@ -1160,8 +1248,8 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
         bool const uploadMedia = GetCheckValue(MEDIA_COL + rowStr);
         prgs.Update(++count, wxString::Format("Generating HinksPix Files for '%s'", hix->GetName()));
 
-        wxString slaveName1 = GetChoiceValue(SLAVE1_COL + rowStr);
-        wxString slaveName2 = GetChoiceValue(SLAVE2_COL + rowStr);
+        wxString const slaveName1 = GetChoiceValue(SLAVE1_COL + rowStr);
+        wxString const slaveName2 = GetChoiceValue(SLAVE2_COL + rowStr);
 
         if (!slaveName1.IsEmpty() && slaveName1 == slaveName2) {
             error = true;
@@ -1283,8 +1371,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
     // EndDialog(wxID_CLOSE);
 }
 
-void HinksPixExportDialog::OnButtonUploadClick(wxCommandEvent& event)
-{
+void HinksPixExportDialog::OnButtonUploadClick(wxCommandEvent& /*event*/) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (!m_selectedPlayList.empty()) {
@@ -1326,7 +1413,7 @@ void HinksPixExportDialog::OnButtonUploadClick(wxCommandEvent& event)
         return !prgs.WasCancelled();
     };
 
-    bool error = false;
+    bool error{ false };
     wxString errorMsg;
     //int count = 0;
     int row = 0;
@@ -1356,8 +1443,8 @@ void HinksPixExportDialog::OnButtonUploadClick(wxCommandEvent& event)
 
         prgs.Pulse( wxString::Format("Generating HinksPix Files for '%s'", hix->GetName()));
 
-        wxString slaveName1 = GetChoiceValue(SLAVE1_COL + rowStr);
-        wxString slaveName2 = GetChoiceValue(SLAVE2_COL + rowStr);
+        wxString const slaveName1 = GetChoiceValue(SLAVE1_COL + rowStr);
+        wxString const slaveName2 = GetChoiceValue(SLAVE2_COL + rowStr);
 
         if (!slaveName1.IsEmpty() && slaveName1 == slaveName2) {
             error = true;

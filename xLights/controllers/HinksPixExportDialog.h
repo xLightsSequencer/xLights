@@ -408,9 +408,12 @@ protected:
     static const long ID_MNU_SETALL;
     static const long ID_MNU_SETALLPLAY;
 
+    static const long ID_MNU_SETMASTER;
+    static const long ID_MNU_SETREMOTE;
     static const long ID_MNU_SETTIME;
     static const long ID_MNU_UPLOADFILE;
     static const long ID_MNU_UPLOADFIRM;
+    static const long ID_MNU_UPLOADSCHEDULE;
 
     ModelManager* m_modelManager = nullptr;
     OutputManager* m_outputManager = nullptr;
@@ -500,6 +503,7 @@ private:
 
     void UploadFile(ControllerEthernet* controller);
     void ExtractFirmware(ControllerEthernet* controller);
+    void UploadSchedules(ControllerEthernet* controller);
 
     DECLARE_EVENT_TABLE()
 };
