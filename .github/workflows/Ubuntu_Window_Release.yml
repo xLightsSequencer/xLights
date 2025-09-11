@@ -38,11 +38,11 @@ jobs:
     - name: install ISPC
       uses: ispc/install-ispc-action@main
       with:
-        version: 1.27.0
+        version: 1.28.0
 
     - name: Download wxWidgets
       run: 
-        git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2025.06 https://github.com/xLightsSequencer/wxWidgets C:/wxWidgets/
+        git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2025.09 https://github.com/xLightsSequencer/wxWidgets C:/wxWidgets/
 
     - name: Build wxWidgets
       working-directory: C:/wxWidgets/
