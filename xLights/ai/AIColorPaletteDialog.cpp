@@ -129,7 +129,7 @@ void AIColorPaletteDialog::OnGenerateButtonClick(wxCommandEvent& event)
     html += "<html><body>\n";
     if (cp.error.empty()) {
         html += "<b>Description:</b> " + cp.description + "<br>\n";
-        html += "<b>Sont:</b> " + cp.song + "<br>\n";
+        html += "<b>Song:</b> " + cp.song + "<br>\n";
         html += "<b>Artist:</b> " + cp.artist + "<br><br><ul>\n";
         for (int x  = 0; x < cp.colors.size(); x++) {
             html += "<li>";
