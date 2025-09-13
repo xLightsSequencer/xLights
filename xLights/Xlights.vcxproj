@@ -498,6 +498,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="ai\AIColorPaletteDialog.cpp" />
     <ClCompile Include="ai\aiBase.cpp" />
     <ClCompile Include="ai\chatGPT.cpp" />
     <ClCompile Include="ai\ollama.cpp" />
@@ -1017,6 +1018,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\xSchedule\wxHTTPServer\sha1.h" />
     <ClInclude Include="..\xSchedule\wxHTTPServer\wxhttpserver.h" />
     <ClInclude Include="AboutDialog.h" />
+    <ClCompile Include="ai\AIColorPaletteDialog.h" />
     <ClInclude Include="ai\aiBase.h" />
     <ClInclude Include="ai\aiType.h" />
     <ClInclude Include="ai\chatGPT.h" />

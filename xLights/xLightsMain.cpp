@@ -10767,6 +10767,6 @@ void xLightsFrame::OnMenuItemFindShowFolderSelected(wxCommandEvent& event)
     dlg.ShowModal();
 }
 
-aiBase* xLightsFrame::GetLLM(aiType::TYPE serviceType) {
+aiBase* xLightsFrame::GetAIService(aiType::TYPE serviceType) {
     return _serviceManager->findService(serviceType);
 }

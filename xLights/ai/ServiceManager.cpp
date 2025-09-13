@@ -3,6 +3,10 @@
 #include "chatGPT.h"
 #include "ollama.h"
 
+#ifdef __WXOSX__
+#include "AppleIntelligence.h"
+#endif
+
 #include "xLightsMain.h"
 #include "utils/Curl.h"
 #include "UtilFunctions.h"
@@ -17,6 +21,9 @@
 
 ServiceManager::ServiceManager(xLightsFrame* xl)
 {
+#if defined(__WXOSX__) && defined(__arm64__)
+    m_services.push_back(std::make_unique<AppleIntelligence>(this));
+#endif
     m_services.push_back(std::make_unique<chatGPT>(this));
     m_services.push_back(std::make_unique<ollama>(this));
     for (auto& service : m_services) {
@@ -42,8 +49,10 @@ void ServiceManager::addService(std::unique_ptr<aiBase> service) {
 
 aiBase* ServiceManager::findService(aiType::TYPE serviceType) {
     for (auto& service : m_services) {
-        if (service->GetLLMType() == serviceType && service->IsEnabled()) {
-            return service.get();
+        for (auto &t : service->GetTypes()) {
+            if (t == serviceType && service->IsEnabled()) {
+                return service.get();
+            }
         }
     }
     return nullptr;

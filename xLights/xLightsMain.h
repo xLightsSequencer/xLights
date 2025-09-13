@@ -1337,7 +1337,7 @@ public:
     bool HidePresetPreview() const { return _hidePresetPreview;}
     void SetHidePresetPreview(bool b);
 
-    aiBase* GetLLM(aiType::TYPE serviceType = aiType::TYPE::PROMPT);
+    aiBase* GetAIService(aiType::TYPE serviceType = aiType::TYPE::PROMPT);
 
     bool IsShowBaseShowFolder() const
     {

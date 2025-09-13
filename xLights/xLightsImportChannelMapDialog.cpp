@@ -694,7 +694,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     CheckBox_LockEffects->SetValue(config->ReadBool("ImportEffectsLocked", false));
     CheckBox_ConvertRenderStyle->SetValue(config->ReadBool("ImportEffectsRenderStyle", false));
 
-    auto ai = xlights->GetLLM();
+    auto ai = xlights->GetAIService();
     Button_AIMap->Enable(ai != nullptr);
 
     EnsureWindowHeaderIsOnScreen(this);
@@ -2762,7 +2762,7 @@ bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std
 
     logger_base.debug("Prompt: %s", prompt.c_str());
 
-    auto ai = xlights->GetLLM();
+    auto ai = xlights->GetAIService();
     if (ai == nullptr)
         return false;
 
@@ -2821,7 +2821,7 @@ bool xLightsImportChannelMapDialog::AIModelMap(wxProgressDialog* dlg, const std:
     if (targetModels.size() == 0)
         return false;
 
-    auto llm = xlights->GetLLM();
+    auto llm = xlights->GetAIService();
     if (llm == nullptr)
         return false;
     std::string prompt = GetAIPrompt(llm->GetLLMName() + "_AI_Model_AutoMap.txt");
@@ -2858,7 +2858,7 @@ bool xLightsImportChannelMapDialog::AISubModelMap(wxProgressDialog* dlg, const s
     if (submodelCount == 0)
         return false;
 
-    auto llm = xlights->GetLLM();
+    auto llm = xlights->GetAIService();
     if (llm == nullptr)
         return false;
     std::string prompt = GetAIPrompt(llm->GetLLMName() + "_AI_SubModel_AutoMap.txt");
@@ -2895,7 +2895,7 @@ bool xLightsImportChannelMapDialog::AIStrandMap(wxProgressDialog* dlg, const std
     if (strandCount == 0)
         return false;
 
-    auto llm = xlights->GetLLM();
+    auto llm = xlights->GetAIService();
     if (llm == nullptr)
 		return false;
     std::string prompt = GetAIPrompt(llm->GetLLMName() + "_AI_Strand_AutoMap.txt");
@@ -2942,7 +2942,7 @@ bool xLightsImportChannelMapDialog::AINodeMap(wxProgressDialog* dlg, const std::
     if (nodeModelCount == 0)
         return false;
 
-    auto llm = xlights->GetLLM();
+    auto llm = xlights->GetAIService();
     if (llm == nullptr)
         return false;
     std::string prompt = GetAIPrompt(llm->GetLLMName() + "_AI_Node_AutoMap.txt");

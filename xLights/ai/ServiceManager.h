@@ -63,7 +63,6 @@ public:
     [[nodiscard]] int getServiceSetting(std::string const& key, int defaultValue ) const;
     [[nodiscard]] bool getServiceSetting(std::string const& key, bool defaultValue) const;
     [[nodiscard]] std::string getServiceSetting(std::string const& key, std::string const& defaultValue) const;
-    //std::unique_ptr<aiBase> GetLLM();
 
     [[nodiscard]] std::string getSecretServiceToken(std::string const& service) const;
     void setSecretServiceToken(std::string const& service, std::string const& token);
