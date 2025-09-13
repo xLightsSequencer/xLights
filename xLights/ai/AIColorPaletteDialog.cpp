@@ -41,7 +41,7 @@ AIColorPaletteDialog::AIColorPaletteDialog(wxWindow* parent,wxWindowID id)
     SongRadioButton = new wxRadioButton(this, ID_RADIOBUTTON1, _T("Song"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON1"));
     SongRadioButton->SetValue(true);
     FlexGridSizer2->Add(SongRadioButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    SongTextCtrl = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxSize(500,-1), 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+    SongTextCtrl = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxSize(600,-1), 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
     SongTextCtrl->SetMaxLength(250);
     FlexGridSizer2->Add(SongTextCtrl, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FreeFormRadioButton = new wxRadioButton(this, ID_RADIOBUTTON2, _T("Free Form"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON2"));
@@ -52,7 +52,7 @@ AIColorPaletteDialog::AIColorPaletteDialog(wxWindow* parent,wxWindowID id)
     StaticBoxSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND, 5);
     StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, this, _T("Results"));
-    ResultHTMLCtrl = new wxHtmlWindow(this, ID_HTMLWINDOW1, wxDefaultPosition, wxSize(-1,250), wxHW_SCROLLBAR_AUTO, _T("ID_HTMLWINDOW1"));
+    ResultHTMLCtrl = new wxHtmlWindow(this, ID_HTMLWINDOW1, wxDefaultPosition, wxSize(-1,300), wxHW_SCROLLBAR_AUTO, _T("ID_HTMLWINDOW1"));
     StaticBoxSizer2->Add(ResultHTMLCtrl, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer1->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);

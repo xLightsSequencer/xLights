@@ -24,7 +24,7 @@
 							<object class="sizeritem">
 								<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="SongTextCtrl" member="yes">
 									<maxlength>250</maxlength>
-									<size>500,-1</size>
+									<size>600,-1</size>
 									<handler function="OnSongTextCtrlText" entry="EVT_TEXT" />
 									<handler function="OnSongTextCtrlTextEnter" entry="EVT_TEXT_ENTER" />
 								</object>
@@ -65,7 +65,7 @@
 					<label>Results</label>
 					<object class="sizeritem">
 						<object class="wxHtmlWindow" name="ID_HTMLWINDOW1" variable="ResultHTMLCtrl" member="yes">
-							<size>-1,250</size>
+							<size>-1,300</size>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>

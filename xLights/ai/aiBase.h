@@ -14,6 +14,8 @@
 
 #include <utility>
 #include <string>
+#include <list>
+#include <vector>
 
 class ServiceManager;
 class wxPropertyGrid;
