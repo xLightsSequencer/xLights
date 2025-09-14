@@ -42,7 +42,7 @@ class ollama : public aiBase {
     void LoadSettings() override;
 
     void PopulateLLMSettings(wxPropertyGrid* page) override;
-    void SetSetting(const std::string& key, const wxVariant& value) override;  
+    void SetSetting(const std::string& key, const wxVariant& value) override;
 
 	[[nodiscard]] std::pair<std::string,bool> CallLLM(const std::string& prompt) const override;
     [[nodiscard]] bool IsAvailable() const override;
@@ -51,6 +51,8 @@ class ollama : public aiBase {
     }
 
 	[[nodiscard]] std::list<aiType::TYPE> GetTypes() const override {
-        return std::list({aiType::TYPE::PROMPT});
+        return std::list({ aiType::TYPE::PROMPT, aiType::TYPE::COLORPALETTES });
     }
+
+    virtual AIColorPalette GenerateColorPalette(const std::string& prompt) const override;
 };

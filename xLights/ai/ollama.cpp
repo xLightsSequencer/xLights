@@ -5,11 +5,14 @@
 
 #include <wx/propgrid/propgrid.h>
 
+#include "../xSchedule/wxJSON/jsonreader.h"
+#include "../xSchedule/wxJSON/jsonwriter.h"
+
 #include <vector>
 #include <string>
 
 #include <log4cpp/Category.hh>
-
+#include <Color.h>
 
 bool ollama::IsAvailable() const {
     return !host.empty() && _enabled;
@@ -104,5 +107,102 @@ std::pair<std::string, bool> ollama::CallLLM(const std::string& prompt) const {
 	logger_base.debug("ollama: %s", response.c_str());
 
     return { response, true};
+}
+
+aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) const {
+    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
+    if (host.empty()) {
+        logger_base.error("ollama: host is empty");
+        return {};
+    }
+    std::string const url = (https ? "https://" : "http://") + host + ":" + std::to_string(port_num) + api;
+
+    auto fullprompt = "xlights color paletes are 8 unique colors. Can you create a color palette that would represent the moods and imagery " + prompt + ". Avoid dark, near black colors. Return As Hex Values.";
+    
+    wxJSONValue request_payload;
+    request_payload["model"] = model;
+    request_payload["temperature"] = 0;
+    request_payload["prompt"] = fullprompt;
+    request_payload["stream"] = false;
+
+    // Include the structured output format (JSON schema)
+    wxJSONValue format_schema;
+    format_schema["type"] = wxString("object");
+    format_schema["properties"]["colors"]["type"] = wxString("array");
+    format_schema["properties"]["colors"]["items"]["type"] = wxString("string");
+    format_schema["properties"]["colors"]["description"] = wxString("A list of colors mentioned in the text.");
+    //format_schema["required"] = wxArrayString({ "colors" });
+    wxJSONValue requiredArray(wxJSONTYPE_ARRAY);
+    requiredArray.Append(wxString("colors"));
+    format_schema["required"] = requiredArray;
+
+    request_payload["format"] = format_schema;
+
+     wxJSONWriter writer;
+
+    // Create a wxString to store the JSON text
+     wxString json_payload_str;
+
+    // Write the wxJSONValue to the wxString
+    writer.Write(request_payload, json_payload_str);
+
+    logger_base.debug("ollama: %s", json_payload_str.c_str());
+    int responseCode{ 0 };
+    std::string const response = Curl::HTTPSPost(url, json_payload_str, "", "", "JSON", 60 * 10, {}, &responseCode);
+
+    logger_base.debug("ollama Response %d: %s", responseCode, response.c_str());
+
+    if (responseCode != 200) {
+        return {};
+    }
+
+    try {
+        wxJSONValue root;
+        wxJSONReader reader;
+        reader.Parse(response, &root);
+
+        if (root.HasMember("response") && root["response"].IsString()) {
+            wxJSONValue color_root;
+            auto const color_responce = root["response"].AsString();
+            bool const worked = reader.Parse(color_responce, &color_root);
+            logger_base.debug("ollama Response %s", color_responce.c_str());
+            if (color_root.HasMember("colors") && color_root["colors"].IsArray()) {
+                aiBase::AIColorPalette ret;
+                ret.description = prompt;
+                
+                for (int x = 0; x < color_root["colors"].Size(); x++) {
+                    auto const& color = color_root["colors"][x];
+                    if (color.IsArray()) {
+                        for (int y = 0; y < color.Size(); y++) {
+                            auto const& col = color.ItemAt(y);
+                            if (col.IsString()) {
+                                auto colorl = col.AsString();
+                                ret.colors.push_back(aiBase::AIColor());
+                                ret.colors.back().hexValue = colorl;
+                                wxColor xc(colorl);
+                                ret.colors.back().name = GetColourName(xc);
+                            }
+                        }
+                    }
+                    if (color.IsString()) {
+                        auto cc = color.AsString();
+                        ret.colors.push_back(aiBase::AIColor());
+                        ret.colors.back().hexValue = cc;
+                        wxColor xc(cc);
+                        ret.colors.back().name = GetColourName(xc);
+                    }
+                }
+                return ret;
+            }
+            logger_base.error("Response does not contain 'colors' array or is not in expected format.");
+        } else {
+            logger_base.error("Invalid response from Ollama API.");
+        }
+    } catch (const std::exception& e) {
+        logger_base.error(e.what());
+    }
+    return {};
 }
 
