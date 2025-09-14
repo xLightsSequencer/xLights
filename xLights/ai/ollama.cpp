@@ -148,7 +148,7 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
     // Write the wxJSONValue to the wxString
     writer.Write(request_payload, json_payload_str);
 
-    logger_base.debug("ollama: %s", json_payload_str.c_str());
+    logger_base.debug("ollama: %s", (const char *)json_payload_str.c_str());
     int responseCode{ 0 };
     std::string const response = Curl::HTTPSPost(url, json_payload_str, "", "", "JSON", 60 * 10, {}, &responseCode);
 
@@ -166,8 +166,8 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
         if (root.HasMember("response") && root["response"].IsString()) {
             wxJSONValue color_root;
             auto const color_responce = root["response"].AsString();
-            bool const worked = reader.Parse(color_responce, &color_root);
-            logger_base.debug("ollama Response %s", color_responce.c_str());
+            reader.Parse(color_responce, &color_root);
+            logger_base.debug("ollama Response %s", (const char *)color_responce.c_str());
             if (color_root.HasMember("colors") && color_root["colors"].IsArray()) {
                 aiBase::AIColorPalette ret;
                 ret.description = prompt;
