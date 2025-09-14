@@ -119,7 +119,7 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
     }
     std::string const url = (https ? "https://" : "http://") + host + ":" + std::to_string(port_num) + api;
 
-    auto fullprompt = "xlights color paletes are 8 unique colors. Can you create a color palette that would represent the moods and imagery " + prompt + ". Avoid dark, near black colors. Return As Hex Values.";
+    auto fullprompt = "xlights color paletes are 8 unique colors. Can you create a color palette that would represent the moods and imagery " + prompt + ". Avoid dark, near black colors. Include the hex_code and usage_notes.";
     
     wxJSONValue request_payload;
     request_payload["model"] = model;
@@ -128,15 +128,37 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
     request_payload["stream"] = false;
 
     // Include the structured output format (JSON schema)
+    
+    std::string schema = R"(
+    {
+        "type": "object",
+        "properties":  {
+            "colors": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "hex_code": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "usage_notes": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "hex_code", "name", "usage_notes"
+                    ]
+                }
+            }
+        }
+    }
+    )";
+    wxJSONReader schemaReader;
     wxJSONValue format_schema;
-    format_schema["type"] = wxString("object");
-    format_schema["properties"]["colors"]["type"] = wxString("array");
-    format_schema["properties"]["colors"]["items"]["type"] = wxString("string");
-    format_schema["properties"]["colors"]["description"] = wxString("A list of colors mentioned in the text.");
-    //format_schema["required"] = wxArrayString({ "colors" });
-    wxJSONValue requiredArray(wxJSONTYPE_ARRAY);
-    requiredArray.Append(wxString("colors"));
-    format_schema["required"] = requiredArray;
+    schemaReader.Parse(schema, &format_schema);
 
     request_payload["format"] = format_schema;
 
@@ -173,26 +195,12 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
                 ret.description = prompt;
                 
                 for (int x = 0; x < color_root["colors"].Size(); x++) {
-                    auto const& color = color_root["colors"][x];
-                    if (color.IsArray()) {
-                        for (int y = 0; y < color.Size(); y++) {
-                            auto const& col = color.ItemAt(y);
-                            if (col.IsString()) {
-                                auto colorl = col.AsString();
-                                ret.colors.push_back(aiBase::AIColor());
-                                ret.colors.back().hexValue = colorl;
-                                wxColor xc(colorl);
-                                ret.colors.back().name = GetColourName(xc);
-                            }
-                        }
-                    }
-                    if (color.IsString()) {
-                        auto cc = color.AsString();
-                        ret.colors.push_back(aiBase::AIColor());
-                        ret.colors.back().hexValue = cc;
-                        wxColor xc(cc);
-                        ret.colors.back().name = GetColourName(xc);
-                    }
+                    auto & color = color_root["colors"][x];
+                    
+                    ret.colors.push_back(aiBase::AIColor());
+                    ret.colors.back().hexValue = color["hex_code"].AsString();
+                    ret.colors.back().description = color["usage_notes"].AsString();
+                    ret.colors.back().name = color["name"].AsString();
                 }
                 return ret;
             }
