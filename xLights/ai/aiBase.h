@@ -56,8 +56,6 @@ public:
     class AIColorPalette {
     public:
         std::string description;
-        std::string song;
-        std::string artist;
         std::vector<AIColor> colors;
 
         std::string error;

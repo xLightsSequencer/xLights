@@ -55,8 +55,6 @@ aiBase::AIColorPalette AppleIntelligence::GenerateColorPalette(const std::string
         if (root.HasMember("error")) {
             ret.error = root["error"].AsString();
         } else {
-            ret.song = root["Song"].AsString();
-            ret.artist = root["Artist"].AsString();
             ret.description = root["Description"].AsString();
             for (int x = 0; x < root["Colors"].Size(); x++) {
                 ret.colors.push_back(aiBase::AIColor());

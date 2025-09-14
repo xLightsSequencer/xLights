@@ -82,8 +82,6 @@ public func RunAppleIntelligenceGeneratePalette(_ prompt: String) -> String {
             color.addStringProperty(name: "Hex Value")
             color.addStringProperty(name: "Description")
             colorPaletteBuilder.addArrayProperty(name: "Colors", customType: "Color")
-            colorPaletteBuilder.addStringProperty(name: "Song")
-            colorPaletteBuilder.addStringProperty(name: "Artist")
             colorPaletteBuilder.addStringProperty(name: "Description")
             
             let colorPaletteDynamicSchema = colorPaletteBuilder.root
