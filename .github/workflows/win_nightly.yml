@@ -40,7 +40,7 @@ jobs:
     - name: install ISPC
       uses: ispc/install-ispc-action@main
       with:
-        version: 1.27.0
+        version: 1.28.1
             
 #    - name: install Inno
 #      run: choco install innosetup   

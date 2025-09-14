@@ -1,5 +1,4 @@
-#ifndef AICOLORPALETTEDIALOG_H
-#define AICOLORPALETTEDIALOG_H
+#pragma once
 
 //(*Headers(AIColorPaletteDialog)
 #include <wx/button.h>
@@ -62,5 +61,3 @@ class AIColorPaletteDialog: public wxDialog
     
     void createFreeFormFromSong();
 };
-
-#endif
