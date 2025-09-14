@@ -50,7 +50,7 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
     It is used in xLights for the generation of AVX1, AVX2, SEE2 and SSE4 optimized code.
 
     1) Download ISPC from
-        https://github.com/ispc/ispc/releases/download/v1.27.0/ispc-v1.27.0-windows.zip
+        https://github.com/ispc/ispc/releases/download/v1.28.1/ispc-v1.28.1-windows.zip
     2) Extract the zip file to a folder of your choice.
     3) Add the path to the ISPC executable to your PATH environment variable.
   
