@@ -1304,6 +1304,9 @@ bool FPP::UploadPlaylist(const std::string &name) {
     }
     origJson.Remove(wxString("playlistInfo"));
     origJson["name"] = name;
+    if (!origJson.HasMember("random")) {
+        origJson["random"] = 0;
+    }
 
     PostJSONToURL("/api/playlist/" + URLEncode(name), origJson);
     return false;
