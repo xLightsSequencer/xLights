@@ -1357,7 +1357,8 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
                         if(HStart < 0)
                         {
                             HStart = 0;
-                            OffSet = m->GetStartChannel() - 1;
+                            auto FO = cud.GetFirstOutput();
+                            OffSet = FO->GetStartChannel() - 1;
                         }
 
                         UP = new UnPack;
