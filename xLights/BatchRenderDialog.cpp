@@ -195,7 +195,7 @@ void BatchRenderDialog::GetSeqList(const wxString& folder)
     wxArrayString files;
     GetAllFilesInDir(folder, files, "*.x*", wxDIR_DEFAULT);
     for (size_t i = 0; i < files.size(); /* no increment here */) {
-        if (files[i].StartsWith("Backup/") || files[i].StartsWith("Backup\\") || files[i].Contains("\\Backup\\") || files[i].Contains("/Backup/")) {
+        if (files[i].StartsWith("Backup/") || files[i].StartsWith("Backup\\") || files[i].Contains("\\Backup\\") || files[i].Contains("/Backup/") || files[i].StartsWith("._")) {
             files.RemoveAt(i);
         } else {
             ++i; // Only increment if no removal
