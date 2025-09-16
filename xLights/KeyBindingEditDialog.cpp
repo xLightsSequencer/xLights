@@ -142,7 +142,6 @@ KeyBindingEditDialog::KeyBindingEditDialog(xLightsFrame* parent, KeyBindingMap* 
 		// Default style
 		wxPG_DEFAULT_STYLE);
 	_propertyGrid->SetExtraStyle(wxWS_EX_PROCESS_IDLE | wxPG_EX_HELP_AS_TOOLTIPS);
-    _propertyGrid->Connect(wxEVT_KILL_FOCUS,(wxObjectEventFunction)&xlPropertyGrid::OnKillFocus, 0, _propertyGrid);
 	FlexGridSizer3->Add(_propertyGrid, 1, wxALL | wxEXPAND, 5);
 	_propertyGrid->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&KeyBindingEditDialog::OnControllerPropertyGridChange, 0, this);
     _propertyGrid->SetValidationFailureBehavior(wxPGVFBFlags::MarkCell | wxPGVFBFlags::Beep);

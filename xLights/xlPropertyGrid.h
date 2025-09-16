@@ -9,7 +9,9 @@
  **************************************************************/
 #pragma once
 
+#include <set>
 #include <wx/propgrid/propgrid.h>
+#include <wx/combo.h>
 
 // This is to workaround a crash in wxPropertyGrid where doing
 // the DeletePendingObjects() during the OnIdle handling could
@@ -25,16 +27,38 @@ public:
                    const wxSize& size = wxDefaultSize,
                    long style = wxPG_DEFAULT_STYLE,
                    const wxString& name = wxASCII_STR(wxPropertyGridNameStr)) :
-        wxPropertyGrid(parent, id, pos, size, style, name) {}
-    virtual ~xlPropertyGrid() {}
-    
-    
-    void OnKillFocus(wxFocusEvent& event) {
-        wxIdleEvent ev;
-        OnIdle(ev);
+        wxPropertyGrid(parent, id, pos, size, style, name) {
+            Connect(wxEVT_IDLE,(wxObjectEventFunction)&xlPropertyGrid::OnIdle, 0, this);
+    }
+    virtual ~xlPropertyGrid() {
     }
     
-    void CleanupControls() {
-        DeletePendingObjects();
+    void HideDeletingComboPopups() {
+        if (!m_deletedEditorObjects.empty()) {
+            for (auto o : m_deletedEditorObjects) {
+                wxComboCtrl *combo = dynamic_cast<wxComboCtrl*>(o);
+                if (combo) {
+                    combo->HidePopup();
+                    combo->Hide();
+                }
+            }
+        }
+    }
+    void OnIdle(wxIdleEvent& event) {
+        HideDeletingComboPopups();
+        wxPropertyGrid::OnIdle(event);
+    }
+    virtual void Clear() override {
+        HideDeletingComboPopups();
+        if (!m_deletedEditorObjects.empty()) {
+            for (auto o : m_deletedEditorObjects) {
+                wxComboCtrl *combo = dynamic_cast<wxComboCtrl*>(o);
+                if (combo) {
+                    combo->HidePopup();
+                    combo->Hide();
+                }
+            }
+        }
+        wxPropertyGrid::Clear();
     }
 };

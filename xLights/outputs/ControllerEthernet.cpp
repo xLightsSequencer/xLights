@@ -744,7 +744,7 @@ Output::PINGSTATE ControllerEthernet::Ping() {
             if (ipOutput) {
                 ipOutput->SetIP(this->GetResolvedIP(), true, true); // Re-resolve IP
                 ip_utils::waitForAllToResolve();
-                _resolvedIp = it->GetResolvedIP();
+                _resolvedIp = ipOutput->GetResolvedIP();
             }
         }
     }

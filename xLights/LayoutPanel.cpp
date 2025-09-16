@@ -454,7 +454,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
                                         // Default style
                                         wxPG_DEFAULT_STYLE);
     propertyEditor->SetExtraStyle(wxWS_EX_PROCESS_IDLE | wxPG_EX_HELP_AS_TOOLTIPS);
-    propertyEditor->Connect(wxEVT_KILL_FOCUS,(wxObjectEventFunction)&xlPropertyGrid::OnKillFocus, 0, propertyEditor);
     LayoutUtils::CreateImageList(m_imageList);
 
     wxFlexGridSizer* FlexGridSizerModels = new wxFlexGridSizer(0, 1, 0, 0);
@@ -1124,11 +1123,12 @@ void LayoutPanel::resetPropertyGrid() {
 }
 
 void LayoutPanel::clearPropGrid() {
-
     // remember last selected item
     if (propertyEditor->GetSelection() != nullptr) {
         _lastSelProp = propertyEditor->GetSelection()->GetName();
     }
+    propertyEditor->UnfocusEditor();
+    propertyEditor->ClearSelection();
 
     wxPGProperty *p = propertyEditor->GetPropertyByName("ModelAppearance");
     if (p != nullptr) {
@@ -1154,7 +1154,6 @@ void LayoutPanel::clearPropGrid() {
     if (p != nullptr) {
         layersVisible = propertyEditor->IsPropertyExpanded(p);
     }
-
     propertyEditor->Clear();
 }
 
