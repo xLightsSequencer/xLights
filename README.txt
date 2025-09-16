@@ -11,6 +11,20 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2025.09 September 16, 2025
+    - enh (dkulp)           New "Generate Palette" dialog to use AI to generate a color palette
+    - enh (dkulp)           Add "Apple Intelligence" service provider (palette generation only at this point)
+    - enh (scott/dkulp)     Allow Ollama to generate color palettes
+    - enh (scott)           Bunch of updates/enhancements for HinksPix uploads
+    - enh (Dom Hodgson)     Add Baldrick Input8 Controller
+    - bug (dkulp)           iCloud - make sure xsqz files are download from iCloud before trying to open them
+    - bug (derwin12)        Handle crash with Moving Heads when no path is defined
+    - bug (derwin12)        Don't allow submodels/faces to be copied to Image types
+    - bug (derwin12)        Check Sequence improperly flagging FPP Player as inactive
+    - bug (dkulp)           Bunch of minor fixes/adjustments for appearance issues on MacOS Tahoe
+    - bug (derwin12)        Fix tab key navigation/completion for various property grids
+    - bug (derwin12)        Remove macOS metadata files from Batch render pick list
+    - bug (derwin12)        FPP Connect - make sure uploaded playlists have the "random" value included in the json
 2025.08 August 8, 2025
     - enh (derwin12)        Allow preview edits in 3D mode
     - enh (derwin12)        Store/restore the last directory used for imports
