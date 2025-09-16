@@ -193,7 +193,7 @@ wxArrayString BatchRenderDialog::GetFileList()
 void BatchRenderDialog::GetSeqList(const wxString& folder)
 {
     wxArrayString files;
-    GetAllFilesInDir(folder, files, "*.x*", wxDIR_DEFAULT);
+    GetAllFilesInDir(folder, files, "*.x*", wxDIR_FILES | wxDIR_DIRS);
     for (size_t i = 0; i < files.size(); /* no increment here */) {
         if (files[i].StartsWith("Backup/") || files[i].StartsWith("Backup\\") || files[i].Contains("\\Backup\\") || files[i].Contains("/Backup/")) {
             files.RemoveAt(i);
