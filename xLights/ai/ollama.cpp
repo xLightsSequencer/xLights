@@ -119,7 +119,7 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
     }
     std::string const url = (https ? "https://" : "http://") + host + ":" + std::to_string(port_num) + api;
 
-    auto fullprompt = "xlights color paletes are 8 unique colors. Can you create a color palette that would represent the moods and imagery " + prompt + ". Avoid dark, near black colors. Include the hex_code and usage_notes.";
+    auto fullprompt = "xlights color palettes are 8 unique colors. Can you create a color palette that would represent the moods and imagery " + prompt + ". Avoid dark, near black colors. Include the hex_code and usage_notes.";
     
     wxJSONValue request_payload;
     request_payload["model"] = model;
