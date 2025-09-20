@@ -17,8 +17,10 @@
 #include "sol/sol.hpp"
 #include <lua.h>
 
+#include <list>
 #include <map>
 #include <string>
+#include <vector>
 
 class xLightsFrame;
 
