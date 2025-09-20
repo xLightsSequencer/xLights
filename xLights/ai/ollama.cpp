@@ -127,6 +127,9 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
     {
         "type": "object",
         "properties":  {
+            "description": {
+                "type": "string"
+            },
             "colors": {
                 "type": "array",
                 "items": {
@@ -147,7 +150,10 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
                     ]
                 }
             }
-        }
+        },
+        "required": [
+            "description", "colors"
+        ]
     }
     )";
 
@@ -181,6 +187,9 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
                 if (color_root.contains("colors") && color_root["colors"].is_array()) {
                     aiBase::AIColorPalette ret;
                     ret.description = prompt;
+                    if (color_root.contains("description")) {
+                        ret.description = color_root["description"].get<std::string>();
+                    }
                     for (int x = 0; x < color_root["colors"].size(); x++) {
                         auto& color = color_root["colors"][x];
                         ret.colors.push_back(aiBase::AIColor());
