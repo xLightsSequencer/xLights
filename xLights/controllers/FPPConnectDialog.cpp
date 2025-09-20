@@ -26,8 +26,9 @@
 #include "FPPUploadProgressDialog.h"
 #include "ModelPreview.h"
 
+#include "nlohmann/json.hpp"
+
 #include <log4cpp/Category.hh>
-#include "../xSchedule/wxJSON/jsonreader.h"
 
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
@@ -1157,7 +1158,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
     std::map<int, int> udpRanges;
-    wxJSONValue outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
+    auto outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
     int pw, ph;
     frame->GetLayoutPreview()->GetVirtualCanvasSize(pw, ph);
     std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels, pw, ph);
@@ -1206,7 +1207,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     }
                 }
                 if (GetChoiceValueIndex(MODELS_COL + rowStr) == 1) {
-                    wxJSONValue const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, 0, std::numeric_limits<int32_t>::max());
+                    auto const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, 0, std::numeric_limits<int32_t>::max());
                     cancelled |= inst->UploadModels(memoryMaps);
                     cancelled |= inst->UploadDisplayMap(displayMap);
                     // model uploads currently still require a full restart
@@ -1214,7 +1215,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 } else if (GetChoiceValueIndex(MODELS_COL + rowStr) == 2) {
                     auto c = _outputManager->GetControllers(inst->ipAddress);
                     if (c.size() == 1) {
-                        wxJSONValue const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());
+                        auto const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());
                         cancelled |= inst->UploadModels(memoryMaps);
                         // cancelled |= inst->UploadDisplayMap(displayMap);
                         inst->SetRestartFlag(true);

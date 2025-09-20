@@ -12,11 +12,10 @@
 
 #include <wx/string.h>
 
-#include "../../xSchedule/wxJSON/jsonreader.h"
-#include "../../xSchedule/wxJSON/jsonwriter.h"
-
 #include <map>
 #include <string>
+
+#include <nlohmann/json.hpp>
 
 namespace pybind11
 {
@@ -24,14 +23,13 @@ namespace pybind11
 };
 
 class xLightsFrame;
-class wxJSONValue;
 
 class PythonRunner 
 {
 public:
     explicit PythonRunner(xLightsFrame* frame);
 
-    bool Run_Script(wxString const& filepath, std::function<void(std::string const& msg)> SendResponse);
+    bool Run_Script(std::string const& filepath, std::function<void(std::string const& msg)> SendResponse);
 
     [[nodiscard]] std::string GetUserScriptFolder() const;
     [[nodiscard]] static std::string GetSystemScriptFolder();
@@ -53,7 +51,7 @@ public:
 private:
     xLightsFrame* _frame = nullptr;
 
-    [[nodiscard]] wxString JSONtoString(wxJSONValue const& json) const;
-    [[nodiscard]] wxString CommandtoString(std::string const& cmd, const pybind11::dict& dict) const;
+    [[nodiscard]] std::string JSONtoString(nlohmann::json const& json) const;
+    [[nodiscard]] std::string CommandtoString(std::string const& cmd, const pybind11::dict& dict) const;
 
 };

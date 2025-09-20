@@ -19,10 +19,9 @@
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
 
-#include "../xSchedule/wxJSON/jsonreader.h"
-#include "../xSchedule/wxJSON/jsonwriter.h"
-
 #include <curl/curl.h>
+
+#include <nlohmann/json.hpp>
 
 #include <log4cpp/Category.hh>
 #include <utils/CurlManager.h>
@@ -34,10 +33,9 @@ ILightThat::ILightThat(const std::string& ip, const std::string& proxy) :
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::string const json = GetURL("/settings");
     if (!json.empty()) {
-        wxJSONValue jsonVal;
-        wxJSONReader reader;
-
-        reader.Parse(json, &jsonVal);
+        //wxJSONValue jsonVal;
+        //wxJSONReader reader;
+        //reader.Parse(json, &jsonVal);
         _connected = true;
         logger_base.debug("Connected to ILightThat controller model %s.", (const char*)GetFullName().c_str());
     } else {
@@ -66,16 +64,14 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     std::unordered_map<std::string, int> model_test_cols = {};
     std::string const json = GetURL("/settings");
     if (!json.empty()) {
-        wxJSONValue jsonVal;
-        wxJSONReader reader;
+        nlohmann::json jsonVal = nlohmann::json::parse(json);
 
-        reader.Parse(json, &jsonVal);
-        if (jsonVal["ports"].IsArray()) {
-            for (int i = 0; i < jsonVal["ports"].Size(); i++) {
-                for (int j = 0; j < jsonVal["ports"][i]["models"].Size(); j++) {
-                    wxJSONValue model = jsonVal["ports"][i]["models"][j];
-                    if (model.HasMember("test_colour")) {
-                        model_test_cols[model["name"].AsString()] = model["test_colour"].AsInt();
+        if (jsonVal["ports"].is_array()) {
+            for (int i = 0; i < jsonVal["ports"].size(); i++) {
+                for (int j = 0; j < jsonVal["ports"][i]["models"].size(); j++) {
+                    auto model = jsonVal["ports"][i]["models"][j];
+                    if (model.contains("test_colour")) {
+                        model_test_cols[model["name"].get<std::string>()] = model["test_colour"].get<int>();
                     }
                 }
             }
@@ -88,7 +84,7 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     bool success = cud.Check(rules, check);
 
     if (success) {
-        wxJSONValue outputConfig = new wxJSONValue();
+        nlohmann::json outputConfig;
         int first_channel = cud.GetFirstOutput()->GetStartChannel();
         outputConfig["start_address"] = first_channel;
         outputConfig["start_universe"] = cud.GetFirstOutput()->GetUniverse();
@@ -146,10 +142,7 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
             outputConfig["ports"][i]["num_pixels"] = 0;
         }
 
-        wxJSONWriter writer;
-        wxString Data;
-        writer.Write(outputConfig, Data);
-        std::string response = PutURL("/settings", Data, "", "", "application/json");
+        std::string response = PutURL("/settings", outputConfig.dump(), "", "", "application/json");
         return (response == "OK");
     }
     return false;

@@ -16,7 +16,6 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
-#include "../../xSchedule/wxJSON/jsonreader.h"
 #include "../utils/Curl.h"
 #include <wx/sckaddr.h>
 #include "../UtilFunctions.h"

@@ -1,8 +1,10 @@
 #include "SketchAssistPanel.h"
 #include "SketchCanvasPanel.h"
 
-#include "../../xSchedule/wxJSON/jsonreader.h"
-#include "../../xSchedule/wxJSON/jsonwriter.h"
+#include <fstream>
+#include <iostream>
+#include <nlohmann/json.hpp>
+
 #include "UtilFunctions.h"
 #include <xLightsMain.h>
 #include "../../ExternalHooks.h"
@@ -356,14 +358,18 @@ void SketchAssistPanel::OnButton_ExportSketch(wxCommandEvent& event)
     wxString filename = wxFileSelector(_("Save xLights Sketch File"), xLightsFrame::CurrentDir, wxEmptyString, wxEmptyString, "Sketch Files (*.xsketch)|*.xsketch", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
     if (!filename.IsEmpty()) {
-        wxJSONValue data;
+        nlohmann::json data;
         data["sketchdata"] = m_sketch.toString();
-        data["imagepath"] = m_bgImagePath;
+        data["imagepath"] = m_bgImagePath.ToStdString();
         data["bitmapalpha"] = m_bitmapAlpha;
-        wxFileOutputStream skfile(filename);
-        wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
-        writer.Write(data, skfile);
-        skfile.Close();
+
+        try {
+            std::ofstream o(filename.ToStdString());
+            if (o.is_open()) {
+                o << std::setw(4) << data << std::endl;
+            }
+        } catch (const std::exception&) {
+        }
     }
 }
 

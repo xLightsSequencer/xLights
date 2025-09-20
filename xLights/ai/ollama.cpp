@@ -1,12 +1,10 @@
 #include "ollama.h"
+#include <nlohmann/json.hpp>
 #include "ServiceManager.h"
 #include "utils/Curl.h"
 #include "UtilFunctions.h"
 
 #include <wx/propgrid/propgrid.h>
-
-#include "../xSchedule/wxJSON/jsonreader.h"
-#include "../xSchedule/wxJSON/jsonwriter.h"
 
 #include <vector>
 #include <string>
@@ -89,21 +87,17 @@ std::pair<std::string, bool> ollama::CallLLM(const std::string& prompt) const {
 	if (responseCode != 200) {
         return { response , false};
     }
+    try {
+        // Check if the response is valid JSON
+        nlohmann::json const resp_json = nlohmann::json::parse(response);
+        if (resp_json.contains("response")) {
+            response = resp_json.at("response").get<std::string>();
+        }
+    } catch (const std::exception& ex) {
+        logger_base.error("ollama: Invalid JSON response: %s", ex.what());
+        return { "ollama: Invalid JSON response", false };
+    }
 
-	wxJSONReader reader;
-	wxJSONValue root;
-    if (reader.Parse(response, &root) > 0)
-	{
-		logger_base.error("ollama: Failed to parse response");
-        return { "ollama: Failed to parse response", false };
-	}
-    wxJSONValue text = root["response"];
-	if (text.IsNull()) {
-		logger_base.error("ollama: No text in response");
-        return { "ollama: No text in response", false };
-		}
-
-	response = text.AsString();
 	logger_base.debug("ollama: %s", response.c_str());
 
     return { response, true};
@@ -121,7 +115,7 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
 
     auto fullprompt = "xlights color palettes are 8 unique colors. Can you create a color palette that would represent the moods and imagery " + prompt + ". Avoid dark, near black colors. Include the hex_code and usage_notes.";
     
-    wxJSONValue request_payload;
+    nlohmann::json request_payload;
     request_payload["model"] = model;
     request_payload["temperature"] = 0;
     request_payload["prompt"] = fullprompt;
@@ -156,19 +150,13 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
         }
     }
     )";
-    wxJSONReader schemaReader;
-    wxJSONValue format_schema;
-    schemaReader.Parse(schema, &format_schema);
+
+    nlohmann::json format_schema = nlohmann::json::parse(schema);
 
     request_payload["format"] = format_schema;
 
-     wxJSONWriter writer;
-
     // Create a wxString to store the JSON text
-     wxString json_payload_str;
-
-    // Write the wxJSONValue to the wxString
-    writer.Write(request_payload, json_payload_str);
+    auto json_payload_str = request_payload.dump(3);
 
     logger_base.debug("ollama: %s", (const char *)json_payload_str.c_str());
     int responseCode{ 0 };
@@ -181,28 +169,29 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
     }
 
     try {
-        wxJSONValue root;
-        wxJSONReader reader;
-        reader.Parse(response, &root);
+        nlohmann::json root = nlohmann::json::parse(schema);
 
-        if (root.HasMember("response") && root["response"].IsString()) {
-            wxJSONValue color_root;
-            auto const color_responce = root["response"].AsString();
-            reader.Parse(color_responce, &color_root);
-            logger_base.debug("ollama Response %s", (const char *)color_responce.c_str());
-            if (color_root.HasMember("colors") && color_root["colors"].IsArray()) {
-                aiBase::AIColorPalette ret;
-                ret.description = prompt;
-                
-                for (int x = 0; x < color_root["colors"].Size(); x++) {
-                    auto & color = color_root["colors"][x];
-                    
-                    ret.colors.push_back(aiBase::AIColor());
-                    ret.colors.back().hexValue = color["hex_code"].AsString();
-                    ret.colors.back().description = color["usage_notes"].AsString();
-                    ret.colors.back().name = color["name"].AsString();
+        if (root.contains("response") && root["response"].is_string()) {
+            auto const color_responce = root["response"].get<std::string>();
+
+            logger_base.debug("ollama Response %s", (const char*)color_responce.c_str());
+            try {
+                // Check if the response is valid JSON
+                nlohmann::json const color_root = nlohmann::json::parse(color_responce);
+                if (color_root.contains("colors") && color_root["colors"].is_binary()) {
+                    aiBase::AIColorPalette ret;
+                    ret.description = prompt;
+                    for (int x = 0; x < color_root["colors"].size(); x++) {
+                        auto& color = color_root["colors"][x];
+                        ret.colors.push_back(aiBase::AIColor());
+                        ret.colors.back().hexValue = color["hex_code"].get<std::string>();
+                        ret.colors.back().description = color["usage_notes"].get<std::string>();
+                        ret.colors.back().name = color["name"].get<std::string>();
+                    }
+                    return ret;
                 }
-                return ret;
+            } catch (const std::exception& ex) {
+                logger_base.error(ex.what());
             }
             logger_base.error("Response does not contain 'colors' array or is not in expected format.");
         } else {

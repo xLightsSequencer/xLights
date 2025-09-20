@@ -24,8 +24,6 @@
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
 #include <wx/dir.h>
-#include "../xSchedule/wxJSON/jsonreader.h"
-
 #include "CachedFileDownloader.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"

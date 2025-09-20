@@ -12,7 +12,7 @@
 #include "TwinklyOutput.h"
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
-#include "../xSchedule/wxJSON/jsonreader.h"
+
 #include "../utils/Curl.h"
 #include <log4cpp/Category.hh>
 #include <wx/base64.h>
@@ -100,7 +100,7 @@ void TwinklyOutput::SetTransientData(int32_t& startChannel, int nullnumber)
 #pragma region Start and Stop
 bool TwinklyOutput::SetLEDMode(bool rt)
 {
-    wxJSONValue result;
+    nlohmann::json result;
     if (rt) {
         if (!MakeCall("POST", "/xled/v1/led/mode", result, "{\"mode\": \"rt\"}")) {
             return false;
@@ -295,7 +295,7 @@ void TwinklyOutput::AllOff()
 }
 #pragma endregion
 
-bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path, wxJSONValue& result, const char* body)
+bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path, nlohmann::json& result, const char* body)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Twinkly: Invoke " + method + " http://" + _ip + (_httpPort == 80
@@ -322,26 +322,19 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
         logger_base.error("Twinkly: Error %d : %s", responseCode, (const char*)httpResponse.c_str());
     }
 
-    wxJSONReader reader;
-    wxString str(httpResponse);
-
-    if (reader.Parse(str, &result)) {
-        logger_base.debug("DX");
-        wxString err;
-        auto errors = reader.GetErrors();
-        for (int i = 0; i < errors.GetCount(); ++i) {
-            err.Append(errors.Item(i)).Append(", ");
+    nlohmann::json jsonDoc;
+    try {
+        jsonDoc = nlohmann::json::parse(httpResponse);
+        // int32_t code;
+        if (!jsonDoc.contains("code") && jsonDoc.at("code").get<int>() != 1000) {
+            logger_base.error("Twinkly: Server returned: " + std::to_string(jsonDoc.at("code").get<int>()));
+            return false;
         }
-        logger_base.error("Twinkly: Returned json is not valid: " + err + " : '" + str + "'");
+    } catch (const nlohmann::json::parse_error& e) {
+        logger_base.error("Twinkly: Returned json is not valid: " + httpResponse + "'");
+        logger_base.error("Twinkly: JSON parse error: %s", e.what());
         return false;
     }
-
-    int32_t code;
-    if (!result.Get("code", wxJSONValue(0)).AsInt32(code) || code != 1000) {
-        logger_base.error("Twinkly: Server returned: " + std::to_string(code));
-        return false;
-    }
-
     return true;
 }
 
@@ -351,15 +344,15 @@ bool TwinklyOutput::ReloadToken()
     m_token = "";
 
     // get token
-    wxJSONValue reply;
+    nlohmann::json reply;
     if (!MakeCall("POST", "/xled/v1/login", reply, "{\"challenge\": \"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=\"}")) {
         return false;
     }
-    wxString token;
-    if (!reply.Get("authentication_token", "").AsString(token)) {
+    if (!reply.contains("authentication_token")) {
         logger_base.error("Invalid authentication token");
         return false;
     }
+    auto token = reply.at("authentication_token").get<std::string>();
     auto decoded = wxBase64Decode(token);
     if (decoded.GetDataLen() != TOKEN_SIZE) {
         logger_base.error("Invalid authentication token");
@@ -675,33 +668,28 @@ bool TwinklyOutput::GetLayout(const std::string& ip, std::vector<std::tuple<floa
     logger_base.debug("%s", (const char*)httpResponse.c_str());
     #endif
 
-    wxJSONReader reader;
-    wxJSONValue jsonDoc;
-    wxString str(httpResponse);
-    if (reader.Parse(str, &jsonDoc)) {
-        wxString result;
-        auto errors = reader.GetErrors();
-        for (int i = 0; i < errors.GetCount(); i++) {
-            result.Append(errors.Item(i)).Append(", ");
+    nlohmann::json jsonDoc;
+    try {
+        jsonDoc = nlohmann::json::parse(httpResponse);
+        // int32_t code;
+        if (!jsonDoc.contains("code") && jsonDoc.at("code").get<int>() != 1000) {
+            logger_base.error("Twinkly: Server returned: " + std::to_string(jsonDoc.at("code").get<int>()));
+            return false;
         }
-        logger_base.error("Twinkly: Returned json is not valid: " + result);
+    } catch (const nlohmann::json::parse_error& e) {
+        logger_base.error("Twinkly: Returned json is not valid: " + httpResponse + "'");
+        logger_base.error("Twinkly: JSON parse error: %s", e.what());
         return false;
     }
 
-    int32_t code;
-    if (!jsonDoc.Get("code", "").AsInt32(code) || code != 1000) {
-        logger_base.error("Twinkly: Server returned: " + std::to_string(code));
-        return false;
-    }
+    is3D = jsonDoc.at("source").get<std::string>() == "3d";
 
-    is3D = jsonDoc.Get("source", "2d").AsString() == "3d";
+    auto coords = jsonDoc.at("coordinates").array();
 
-    auto coords = jsonDoc.Get("coordinates", "").AsArray();
-
-    for (uint32_t i = 0; i < coords->Count(); i++) {
-        auto v = coords->Item(i);
+    for (uint32_t i = 0; i < coords.size(); i++) {
+        auto v = coords.at(i);
         // we invert Y as that is how it comes from Twinkly
-        result.push_back(std::tuple<float, float, float>(v["x"].AsDouble(), 1.0 - v["y"].AsDouble(), v["z"].AsDouble()));
+        result.push_back(std::tuple<float, float, float>(v["x"].get<float>(), 1.0 - v["y"].get<float>(), v["z"].get<float>()));
     }
 
     return true;
@@ -713,11 +701,11 @@ bool TwinklyOutput::GetLayout(std::vector<std::tuple<float, float, float>>& resu
 }
 
 #ifndef EXCLUDENETWORKUI
-wxJSONValue TwinklyOutput::Query(const std::string& ip, uint8_t type, const std::string& localIP)
+nlohmann::json TwinklyOutput::Query(const std::string& ip, uint8_t type, const std::string& localIP)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    wxJSONValue val;
+    nlohmann::json val;
 
     uint8_t packet[9];
     memset(&packet, 0x00, sizeof(packet));

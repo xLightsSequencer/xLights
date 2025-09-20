@@ -37,9 +37,6 @@
 #include <zstd.h>
 #include <wx/debugrpt.h>
 
-#include "../xSchedule/wxJSON/jsonreader.h"
-#include "../xSchedule/wxJSON/jsonwriter.h"
-
 #include "FPP.h"
 #include "../models/CustomModel.h"
 #include "../models/Model.h"
@@ -348,12 +345,14 @@ int FPP::TransferToURL(const std::string& url, const std::vector<uint8_t>& val, 
     return response_code;
 }
 
-bool FPP::GetURLAsJSON(const std::string& url, wxJSONValue& val, bool recordError) {
+bool FPP::GetURLAsJSON(const std::string& url, nlohmann::json& val, bool recordError) {
     std::string sval;
     if (GetURLAsString(url, sval, recordError)) {
-        wxJSONReader reader;
-        reader.Parse(sval, &val);
-        return true;
+        try {
+            val = nlohmann::json::parse(sval);
+            return true;
+        } catch (const std::exception&) {
+        }
     }
     return false;
 }
@@ -362,17 +361,17 @@ std::map<int, int> FPP::GetExpansionPorts(ControllerCaps* caps) const
 {
     std::map<int, int> res;
 
-    int ports = wxAtoi(caps->GetCustomPropertyByPath("fpp", "0"));
+    int const ports = wxAtoi(caps->GetCustomPropertyByPath("fpp", "0"));
 
     for (int i = 1; i <= ports; i++)
     {
         auto s = caps->GetCustomPropertyByPath(ToUTF8(wxString::Format("fpp%d", i)), "0,0");
         if (s != "0,0")
         {
-            auto ss = wxSplit(s, ',');
+            auto ss = Split(s, ',');
             if (ss.size() == 2)
             {
-                res[wxAtoi(ss[0])] = wxAtoi(ss[1]);
+                res[std::stoi(ss[0])] = std::stoi(ss[1]);
             }
         }
     }
@@ -385,7 +384,7 @@ bool FPP::AuthenticateAndUpdateVersions() {
         std::string conf;
         if (GetURLAsString("/config.php", conf)) {
             parseConfig(conf);
-            wxJSONValue val;
+            nlohmann::json val;
             if (GetURLAsJSON("/api/system/info", val)) {
                 sysInfoLoaded = true;
                 return fppType == FPP_TYPE::FPP && parseSysInfo(val);
@@ -395,14 +394,14 @@ bool FPP::AuthenticateAndUpdateVersions() {
     }
     return fppType == FPP_TYPE::FPP;
 }
-bool FPP::parseSysInfo(wxJSONValue& val) {
-    platform = ToStdString(val["Platform"].AsString());
-    model = ToStdString(val["Variant"].AsString());
-    fullVersion = ToStdString(val["Version"].AsString());
-    hostName = ToStdString(val["HostName"].AsString());
-    description = ToStdString(val["HostDescription"].AsString());
-    mode = ToStdString(val["Mode"].AsString());
-    if (mode == "player" && val.HasMember("multisync") && val["multisync"].AsBool()) {
+bool FPP::parseSysInfo(nlohmann::json& val) {
+    platform = ToStdString(val["Platform"].get<std::string>());
+    model = ToStdString(val["Variant"].get<std::string>());
+    fullVersion = ToStdString(val["Version"].get<std::string>());
+    hostName = ToStdString(val["HostName"].get<std::string>());
+    description = ToStdString(val["HostDescription"].get<std::string>());
+    mode = ToStdString(val["Mode"].get<std::string>());
+    if (mode == "player" && val.contains("multisync") && val["multisync"].get<bool>()) {
         mode += " w/multisync";
     }
 
@@ -417,27 +416,27 @@ bool FPP::parseSysInfo(wxJSONValue& val) {
             patchVersion = wxAtoi(fullVersion.substr(4));
         }
     }
-    if (val.HasMember("channelRanges")) {
-        std::string r = val["channelRanges"].AsString().ToStdString();
+    if (val.contains("channelRanges")) {
+        std::string r = val["channelRanges"].get<std::string>();
         if (r.size() > ranges.size()) {
             ranges = r;
         }
     }
-    if (val.HasMember("minorVersion")) {
-        minorVersion = val["minorVersion"].AsInt();
+    if (val.contains("minorVersion")) {
+        minorVersion = val["minorVersion"].get<int>();
     }
-    if (val.HasMember("majorVersion")) {
-        majorVersion = val["majorVersion"].AsInt();
+    if (val.contains("majorVersion")) {
+        majorVersion = val["majorVersion"].get<int>();
     }
     return true;
 }
 
 bool FPP::IsDDPInputEnabled() {
-    wxJSONValue origRoot;
+    nlohmann::json origRoot;
     if (GetURLAsJSON("/api/configfile/ci-universes.json", origRoot, false)) {
-        if (origRoot.HasMember("channelInputs") && origRoot.ItemAt("channelInputs").HasMember(0)
-            && origRoot.ItemAt("channelInputs").ItemAt(0).HasMember("enabled") &&
-            origRoot.ItemAt("channelInputs").ItemAt(0).ItemAt("enabled").AsInt() == 1) {
+        if (origRoot.contains("channelInputs") && origRoot.at("channelInputs").size() > 0
+            && origRoot.at("channelInputs").at(0).contains("enabled") &&
+            origRoot.at("channelInputs").at(0).at("enabled").get<int>() == 1) {
             return true;
         }
     }
@@ -449,36 +448,36 @@ void FPP::probePixelControllerType() {
     if (platform.find("Beagle") != std::string::npos) {
         file = "co-bbbStrings";
     }
-    wxJSONValue val;
+    nlohmann::json val;
     if (GetURLAsJSON("/api/channel/output/" + file, val)) {
         parseControllerType(val);
     }
 }
-void FPP::parseProxies(wxJSONValue& val) {
-    for (int x = 0; x < val.Size(); x++) {
-        proxies.emplace(val[x].AsString());
+void FPP::parseProxies(nlohmann::json& val) {
+    for (int x = 0; x < val.size(); x++) {
+        proxies.emplace(val[x].get<std::string>());
     }
 }
-void FPP::parseControllerType(wxJSONValue& val) {
-    for (int x = 0; x < val["channelOutputs"].Size(); x++) {
-        if (val["channelOutputs"][x]["enabled"].AsInt()) {
-            if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X"||
-                val["channelOutputs"][x]["type"].AsString() == "BBB48String" ||
-                val["channelOutputs"][x]["type"].AsString() == "BBShiftString" ||
-                val["channelOutputs"][x]["type"].AsString() == "DPIPixels") {
-                pixelControllerType = ToUTF8(val["channelOutputs"][x]["subType"].AsString());
-            } else if (val["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
+void FPP::parseControllerType(nlohmann::json& val) {
+    for (int x = 0; x < val["channelOutputs"].size(); x++) {
+        if (val["channelOutputs"][x]["enabled"].get<int>()) {
+            if (val["channelOutputs"][x]["type"].get<std::string>() == "RPIWS281X"||
+                val["channelOutputs"][x]["type"].get<std::string>() == "BBB48String" ||
+                val["channelOutputs"][x]["type"].get<std::string>() == "BBShiftString" ||
+                val["channelOutputs"][x]["type"].get<std::string>() == "DPIPixels") {
+                pixelControllerType = ToUTF8(val["channelOutputs"][x]["subType"].get<std::string>());
+            } else if (val["channelOutputs"][x]["type"].get<std::string>() == "LEDPanelMatrix") {
                 pixelControllerType = LEDPANELS;
-                int pw = val["channelOutputs"][x]["panelWidth"].AsInt();
-                int ph = val["channelOutputs"][x]["panelHeight"].AsInt();
+                int pw = val["channelOutputs"][x]["panelWidth"].get<int>();
+                int ph = val["channelOutputs"][x]["panelHeight"].get<int>();
                 int nw = 0; int nh = 0;
                 bool tall = false;
-                for (int p = 0; p < val["channelOutputs"][x]["panels"].Size(); ++p) {
-                    int r = val["channelOutputs"][x]["panels"][p]["row"].AsInt();
-                    int c = val["channelOutputs"][x]["panels"][p]["col"].AsInt();
+                for (int p = 0; p < val["channelOutputs"][x]["panels"].size(); ++p) {
+                    int r = val["channelOutputs"][x]["panels"][p]["row"].get<int>();
+                    int c = val["channelOutputs"][x]["panels"][p]["col"].get<int>();
                     nw = std::max(c, nw);
                     nh = std::max(r, nh);
-                    wxString orientation = val["channelOutputs"][x]["panels"][p]["orientation"].AsString();
+                    wxString orientation = val["channelOutputs"][x]["panels"][p]["orientation"].get<std::string>();
                     if (orientation == "E" || orientation == "W") {
                         tall = true;
                     }
@@ -490,7 +489,7 @@ void FPP::parseControllerType(wxJSONValue& val) {
                 panelSize = std::to_string(pw * nw);
                 panelSize.append("x");
                 panelSize.append(std::to_string(ph * nh));
-            } else if (val["channelOutputs"][x]["type"].AsString() == "VirtualMatrix") {
+            } else if (val["channelOutputs"][x]["type"].get<std::string>() == "VirtualMatrix") {
                 pixelControllerType = "Virtual Matrix";
             }
         }
@@ -594,32 +593,26 @@ static inline void addString(std::vector<uint8_t> &buffer, const wxString &str) 
     addString(buffer, ToUTF8(str));
 }
 
-int FPP::PostJSONToURL(const std::string& url, const wxJSONValue& val) {
-    wxString str;
-    wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
-    writer.Write(val, str);
+int FPP::PostJSONToURL(const std::string& url, const nlohmann::json& val) {
+    std::string const str = val.dump(3);
     std::vector<uint8_t> memBuffPost;
     addString(memBuffPost, str);
     return PostToURL(url, memBuffPost, "application/json");
 }
-int FPP::PostJSONToURLAsFormData(const std::string& url, const std::string &extra, const wxJSONValue& val) {
+int FPP::PostJSONToURLAsFormData(const std::string& url, const std::string& extra, const nlohmann::json& val) {
     std::vector<uint8_t> memBuffPost;
     addString(memBuffPost, extra);
     addString(memBuffPost, "&data={");
-    wxString str;
-    wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
-    writer.Write(val, str);
+    std::string const str = val.dump(3);
     addString(memBuffPost, str);
     addString(memBuffPost, "}");
     return PostToURL(url, memBuffPost, "application/x-www-form-urlencoded; charset=UTF-8");
 }
 
-void FPP::DumpJSON(const wxJSONValue& json) const {
+void FPP::DumpJSON(const nlohmann::json& json) const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxString str;
-    wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
-    writer.Write(json, str);
-    logger_base.debug(ToUTF8(str));
+    std::string const str = json.dump(3);
+    logger_base.debug(str);
 }
 
 int FPP::PostToURL(const std::string& url, const std::string& val, const std::string& contentType) const {
@@ -1017,12 +1010,13 @@ bool FPP::CheckUploadMedia(const std::string &media, std::string &mediaBaseName)
     CurlManager::INSTANCE.addGet(fullUrl, [this, mfn, mediaBaseName, mediaFile](int rc, const std::string &resp) {
         bool doMediaUpload = true;
         if (rc == 200) {
-            wxJSONValue currentMeta;
-            wxJSONReader reader;
-            reader.Parse(resp, &currentMeta);
-            if (currentMeta.HasMember("format") && currentMeta["format"].HasMember("size") &&
-                (mfn.GetSize() == std::atoi(currentMeta["format"]["size"].AsString().c_str()))) {
-                doMediaUpload = false;
+            try {
+                nlohmann::json const& currentMeta = nlohmann::json::parse(resp);
+                if (currentMeta.contains("format") && currentMeta["format"].contains("size") &&
+                    (mfn.GetSize() == std::atoi(currentMeta["format"]["size"].get<std::string>().c_str()))) {
+                    doMediaUpload = false;
+                }
+            } catch (const std::exception& e) {
             }
         }
         if (doMediaUpload) {
@@ -1079,25 +1073,25 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
     }
 
     bool doSeqUpload = true;
-    int currentMaxChannel = 0;
-    int currentChannelCount = 0;
+    uint32_t currentMaxChannel = 0;
+    uint32_t currentChannelCount = 0;
     std::vector<std::pair<uint32_t, uint32_t>> currentRanges;
     std::vector<std::pair<uint32_t, uint32_t>> newRanges;
     if (fppType == FPP_TYPE::FPP) {
-        wxJSONValue currentMeta;
+        nlohmann::json currentMeta;
         if (GetURLAsJSON("/api/sequence/" + URLEncode(baseName) + "/meta", currentMeta, false)) {
             doSeqUpload = false;
             char buf[24];
             snprintf(buf, sizeof(buf), "%" PRIu64, file->getUniqueId());
-            wxString version = currentMeta["Version"].AsString();
+            wxString version = currentMeta["Version"].get<std::string>();
             if (type == 0 && version[0] != '1') doSeqUpload = true;
             if (type != 0 && version[0] == '1') doSeqUpload = true;
             int currentCompression = 1;
             if (version[0] == '1') {
                 currentCompression = 0;
             }
-            if (currentMeta.HasMember("CompressionType")) {
-                currentCompression = currentMeta["CompressionType"].AsLong();
+            if (currentMeta.contains("CompressionType")) {
+                currentCompression = currentMeta["CompressionType"].get<int>();
             }
             if ((type == 2 || type == 1) && currentCompression != 1) {
                 doSeqUpload = true;
@@ -1105,16 +1099,18 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
             if ((type == 0 || type == 3) && currentCompression != 0) {
                 doSeqUpload = true;
             }
-            if (currentMeta["ID"].AsString() != buf) doSeqUpload = true;
-            if (currentMeta["NumFrames"].AsLong() != file->getNumFrames()) doSeqUpload = true;
-            if (currentMeta["StepTime"].AsLong() != file->getStepTime()) doSeqUpload = true;
+            if (currentMeta["ID"].get<std::string>() != buf) doSeqUpload = true;
+            if (currentMeta["NumFrames"].get<uint64_t>() != file->getNumFrames())
+                doSeqUpload = true;
+            if (currentMeta["StepTime"].get<int>() != file->getStepTime())
+                doSeqUpload = true;
 
-            currentMaxChannel = currentMeta["MaxChannel"].AsLong();
-            currentChannelCount = currentMeta["ChannelCount"].AsLong();
-            if (currentMeta.HasMember("Ranges")) {
-                for (int x = 0; x < currentMeta["Ranges"].Size(); x++) {
-                    int s = currentMeta["Ranges"][x]["Start"].AsLong();
-                    int l = currentMeta["Ranges"][x]["Length"].AsLong();
+            currentMeta["MaxChannel"].get_to(currentMaxChannel);
+            currentMeta["ChannelCount"].get_to(currentChannelCount);
+            if (currentMeta.contains("Ranges")) {
+                for (int x = 0; x < currentMeta["Ranges"].size(); x++) {
+                    uint32_t s = currentMeta["Ranges"][x]["Start"].get<uint32_t>();
+                    uint32_t l = currentMeta["Ranges"][x]["Length"].get<uint32_t>();
                     currentRanges.push_back(std::pair<uint32_t, uint32_t>(s, l));
                 }
             }
@@ -1259,16 +1255,16 @@ bool FPP::FinalizeUploadSequence() {
     return cancelled;
 }
 
-static bool PlaylistContainsEntry(wxJSONValue &pl, const std::string &media, const std::string &seq) {
-    for (int x = 0; x < pl.Size(); x++) {
-        wxJSONValue entry = pl[x];
-        if (seq == ToStdString(entry["sequenceName"].AsString())) {
+static bool PlaylistContainsEntry(nlohmann::json &pl, const std::string &media, const std::string &seq) {
+    for (int x = 0; x < pl.size(); x++) {
+        nlohmann::json entry = pl[x];
+        if (seq == ToStdString(entry["sequenceName"].get<std::string>())) {
             if (media == "") {
-                if (entry["type"].AsString() == wxString("sequence")) {
+                if (entry["type"].get<std::string>() == "sequence") {
                     return true;
                 }
-            } else if (entry["type"].AsString() == "both") {
-                if (media == ToStdString(entry["mediaName"].AsString())) {
+            } else if (entry["type"].get<std::string>() == "both") {
+                if (media == ToStdString(entry["mediaName"].get<std::string>())) {
                     return true;
                 }
             }
@@ -1278,33 +1274,33 @@ static bool PlaylistContainsEntry(wxJSONValue &pl, const std::string &media, con
 }
 
 bool FPP::UploadPlaylist(const std::string &name) {
-    wxJSONValue origJson;
+    nlohmann::json origJson;
     GetURLAsJSON("/api/playlist/" + URLEncode(name), origJson, false);
 
     for (const auto& info : sequences) {
         if (!PlaylistContainsEntry(origJson["mainPlaylist"], info.second.media, info.first)) {
-            wxJSONValue entry;
-            if (info.second.media != "") {
-                entry["type"] = wxString("both");
+            nlohmann::json entry;
+            if (!info.second.media.empty()) {
+                entry["type"] = std::string("both");
                 entry["enabled"] = 1;
                 entry["playOnce"] = 0;
                 entry["sequenceName"] = info.first;
                 entry["mediaName"] = info.second.media;
-                entry["videoOut"] = wxString("--Default--");
+                entry["videoOut"] = std::string("--Default--");
                 entry["duration"] = info.second.duration;
             } else {
-                entry["type"] = wxString("sequence");
+                entry["type"] = std::string("sequence");
                 entry["enabled"] = 1;
                 entry["playOnce"] = 0;
                 entry["sequenceName"] = info.first;
                 entry["duration"] = info.second.duration;
             }
-            origJson["mainPlaylist"].Append(entry);
+            origJson["mainPlaylist"].push_back(entry);
         }
     }
-    origJson.Remove(wxString("playlistInfo"));
+    origJson.erase(std::string("playlistInfo"));
     origJson["name"] = name;
-    if (!origJson.HasMember("random")) {
+    if (!origJson.contains("random")) {
         origJson["random"] = 0;
     }
 
@@ -1312,7 +1308,7 @@ bool FPP::UploadPlaylist(const std::string &name) {
     return false;
 }
 
-bool FPP::UploadModels(const wxJSONValue &models) {
+bool FPP::UploadModels(const nlohmann::json &models) {
     PostJSONToURL("/api/models", models);
     return false;
 }
@@ -1322,15 +1318,15 @@ bool FPP::UploadDisplayMap(const std::string &displayMap) {
     return false;
 }
 
-bool FPP::UploadUDPOut(const wxJSONValue &udp) {
-    wxJSONValue orig;
-    wxJSONValue newudp = udp;
+bool FPP::UploadUDPOut(const nlohmann::json &udp) {
+    nlohmann::json orig;
+    nlohmann::json newudp = udp;
 
     if (GetURLAsJSON("/api/channel/output/universeOutputs", orig)) {
-        if (orig.HasMember("channelOutputs")) {
-            for (int x = 0; x < orig["channelOutputs"].Size(); x++) {
-                if (orig["channelOutputs"][x]["type"].AsString() == "universes" && orig["channelOutputs"][x].HasMember("interface")) {
-                    newudp["channelOutputs"][0]["interface"] = orig["channelOutputs"][x]["interface"].AsString();
+        if (orig.contains("channelOutputs")) {
+            for (int x = 0; x < orig["channelOutputs"].size(); x++) {
+                if (orig["channelOutputs"][x]["type"].get<std::string>() == "universes" && orig["channelOutputs"][x].contains("interface")) {
+                    newudp["channelOutputs"][0]["interface"] = orig["channelOutputs"][x]["interface"].get<std::string>();
                 }
             }
         }
@@ -1339,10 +1335,10 @@ bool FPP::UploadUDPOut(const wxJSONValue &udp) {
     return false;
 }
 
-wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel) {
-    wxJSONValue json;
-    wxJSONValue models;
-    std::vector<wxString> names;
+nlohmann::json FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel) {
+    nlohmann::json json;
+    nlohmann::json models;
+    std::vector<std::string> names;
     for (const auto& m : *allmodels) {
         Model* model = m.second;
 
@@ -1355,9 +1351,8 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan
             continue;
         }
 
-        wxString name(model->name);
-        name.Replace(" ", "_");
-
+        std::string name(model->name);
+        Replace(name, " ", "_");
 
         int numStr = model->GetNumStrings();
         if (numStr == 0) {
@@ -1370,7 +1365,7 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan
             straPerStr = 1;
         }
 
-        wxJSONValue jm;
+        nlohmann::json jm;
         jm["Name"] = name;
         jm["ChannelCount"] = model->GetActChanCount();
         jm["StartChannel"] = ch;
@@ -1380,43 +1375,42 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan
         MatrixModel *mm = dynamic_cast<MatrixModel*>(model);
         if (mm) {
             if (mm->isVerticalMatrix()) {
-                jm["Orientation"] = wxString("vertical");
+                jm["Orientation"] = std::string("vertical");
             } else {
-                jm["Orientation"] = wxString("horizontal");
+                jm["Orientation"] = std::string("horizontal");
             }
         } else if (model->GetDisplayAs() == "Custom") {
             straPerStr = 1;
             numStr = 1;
-            jm["Orientation"] = wxString("custom");
+            jm["Orientation"] = std::string("custom");
             CustomModel *cm = dynamic_cast<CustomModel*>(model);
             jm["data"] = cm->GetCustomData();
         } else {
-            jm["Orientation"] = wxString("horizontal");
+            jm["Orientation"] = std::string("horizontal");
         }
         jm["StringCount"] = numStr;
         jm["StrandsPerString"] = straPerStr;
         std::string corner = model->GetIsBtoT() ? "B" : "T";
         corner += model->GetIsLtoR() ? "L" : "R";
         jm["StartCorner"] = corner;
-        jm["Type"] = wxString("Channel");
+        jm["Type"] = std::string("Channel");
         names.emplace_back(name);
-        models.Append(jm);
+        models.push_back(jm);
     }
 
-    wxJSONValue ogModelJSON;
+    nlohmann::json ogModelJSON;
     if (GetURLAsJSON("/api/models", ogModelJSON)) {
-        auto ogModels = ogModelJSON.AsArray();
-        for (size_t i = 0; i < ogModels->Count(); i++) {
-            if (!ogModels->Item(i).HasMember("Name") ) {
+        for (auto const& ogmodel : ogModelJSON) {
+            if (!ogmodel.contains("Name")) {
                 continue;
             }
-            if (!ogModels->Item(i)["Name"].IsString()) {
+            if (!ogmodel["Name"].is_string()) {
                 continue;
             }
-            auto ogName = ogModels->Item(i)["Name"].AsString();
+            auto ogName = ogmodel["Name"].get<std::string>();
 
-            if (ogModels->Item(i).HasMember("autoCreated") && ogModels->Item(i)["autoCreated"].IsBool()) {
-                auto wasAutoCreated = ogModels->Item(i)["autoCreated"].AsBool();
+            if (ogmodel.contains("autoCreated") && ogmodel["autoCreated"].is_boolean()) {
+                auto wasAutoCreated = ogmodel["autoCreated"].get<bool>();
                 if (wasAutoCreated) {
                     continue;
                 }
@@ -1424,16 +1418,16 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan
 
             if (!IsVersionAtLeast(8, 0)) {
                 //I don't think this works
-                if (ogModels->Item(i).HasMember("StartChannel") && ogModels->Item(i)["StartChannel"].IsInt32()) {
-                    auto ogStartChan = ogModels->Item(i)["StartChannel"].AsInt32();
+                if (ogmodel.contains("StartChannel") && ogmodel["StartChannel"].is_number_integer()) {
+                    auto ogStartChan = ogmodel["StartChannel"].get<int32_t>();
                     if (ogStartChan < startChan || ogStartChan > endChannel ) {
                         continue;
                     }
                 }
             }
 
-            if (ogModels->Item(i).HasMember("xLights") && ogModels->Item(i)["xLights"].IsBool()) {
-                auto isfromXlights = ogModels->Item(i)["xLights"].AsBool();
+            if (ogmodel.contains("xLights") && ogmodel["xLights"].is_boolean()) {
+                auto isfromXlights = ogmodel["xLights"].get<bool>();
                 if (isfromXlights) {
                     continue;
                 }
@@ -1442,7 +1436,7 @@ wxJSONValue FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan
             if (std::find(names.cbegin(), names.cend(), ogName) != names.end()) { // only add if name doesn't exist
                 continue;
             }
-            models.Append(ogModels->Item(i));
+            models.push_back(ogmodel);
         }
     }
 
@@ -1567,13 +1561,13 @@ inline wxString stripInvalidChars(const std::string &str) {
 
 void FPP::FillRanges(std::map<int, int> &rngs) {
     if (ranges != "") {
-        wxArrayString r1 = wxSplit(wxString(ranges), ',');
+        auto const r1 = Split(ranges, ',');
         for (const auto& a : r1) {
-            wxArrayString r = wxSplit(a, '-');
-            int start = wxAtoi(r[0]);
+            auto const r = Split(a, '-');
+            int const start = std::stoi(r[0]);
             int len = 4; //at least 4
             if (r.size() == 2) {
-                len = wxAtoi(r[1]) - start + 1;
+                len = std::stoi(r[1]) - start + 1;
             }
             rngs[start] = len;
         }
@@ -1637,14 +1631,14 @@ bool FPP::UploadUDPOutputsForProxy(OutputManager* outputManager) {
         }
     }
 
-    wxJSONValue f = CreateUniverseFile(selected, false);
+    nlohmann::json f = CreateUniverseFile(selected, false);
 
     std::map<int, int> rng;
     FillRanges(rng);
-    for (int x = 0; x < f["channelOutputs"][0]["universes"].Size(); x++) {
-        wxJSONValue u = f["channelOutputs"][0]["universes"][x];
-        int start = u["startChannel"].AsLong() - 1;
-        int len = u["channelCount"].AsLong();
+    for (int x = 0; x < f["channelOutputs"][0]["universes"].size(); x++) {
+        nlohmann::json u = f["channelOutputs"][0]["universes"][x];
+        int const start = u["startChannel"].get<int>() - 1;
+        int const len = u["channelCount"].get<int>();
         rng[start] = len;
     }
     SetNewRanges(rng);
@@ -1652,7 +1646,7 @@ bool FPP::UploadUDPOutputsForProxy(OutputManager* outputManager) {
     return UploadUDPOut(f);
 }
 
-wxJSONValue FPP::CreateUniverseFile(Controller* controller, bool input) {
+nlohmann::json FPP::CreateUniverseFile(Controller* controller, bool input) {
     std::list<Controller*> selected;
     selected.push_back(controller);
     return CreateUniverseFile(selected, false);
@@ -1756,15 +1750,15 @@ bool FPP::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* outpu
     return b;
 }
 
-wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool input, std::map<int, int> *rngs) {
-    wxJSONValue root;
-    root["type"] = wxString("universes");
+nlohmann::json FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool input, std::map<int, int> *rngs) {
+    nlohmann::json root;
+    root["type"] = std::string("universes");
     root["enabled"] = 1;
     root["timeout"] = 1000;
     root["startChannel"] = 1;
     root["channelCount"] = -1;
 
-    wxJSONValue universes;
+    nlohmann::json universes;
 
     for (const auto& it2 : selected) {
         auto eth = dynamic_cast<ControllerEthernet*>(it2);
@@ -1778,17 +1772,17 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool
         for (const auto& it : outputs) {
             int c = it->GetStartChannel();
 
-            wxJSONValue universe;
+            nlohmann::json universe;
             if (!input) {
                 universe["active"] = controllerEnabled == Controller::ACTIVESTATE::ACTIVE ? 1 : 0;
             } else {
                 universe["active"] = 1;
             }
-            universe["description"] = stripInvalidChars(it2->GetName());
+            universe["description"] = stripInvalidChars(it2->GetName()).ToStdString();
             universe["id"] = it->GetUniverse();
             universe["startChannel"] = c;
             universe["channelCount"] = it->GetChannels();
-            universe["address"] = wxString("");
+            universe["address"] = std::string("");
             universe["priority"] = 0;
             universe["deDuplicate"] = eth->IsSuppressDuplicateFrames() ? 1 : 0;
             universe["monitor"] = eth->IsMonitoring() ? 1 : 0;
@@ -1800,7 +1794,7 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool
             if (it->GetType() == OUTPUT_E131) {
                 universe["type"] = (int)(it->GetIP() != "MULTICAST" ? 1 : 0);
                 if (!input && (it->GetIP() != "MULTICAST")) {
-                    universe["address"] = wxString(it->GetIP());
+                    universe["address"] = it->GetIP();
                 }
                 if (it->GetIP() == "MULTICAST") {
                     universe["monitor"] = 0;
@@ -1812,60 +1806,60 @@ wxJSONValue FPP::CreateUniverseFile(const std::list<Controller*>& selected, bool
                 // TODO this needs work to restore the loading of multiple universes as a single line
                 if (allSameSize) {
                     universe["universeCount"] = it2->GetOutputCount();
-                    universes.Append(universe);
+                    universes.push_back(universe);
                     break;
                 }
                 universe["universeCount"] = 1;
 
-                universes.Append(universe);
+                universes.push_back(universe);
             } else if (it->GetType() == OUTPUT_DDP || it->GetType() == OUTPUT_ZCPP) {
                 if (!input) {
-                    universe["address"] = wxString(it->GetIP());
+                    universe["address"] = it->GetIP();
                     DDPOutput* ddp = dynamic_cast<DDPOutput*>(it);
                     if (ddp) {
                         universe["type"] = ddp->IsKeepChannelNumbers() ? 4 : 5;
                     } else {
                         universe["type"] = 5;
                     }
-                    universes.Append(universe);
+                    universes.push_back(universe);
                 } else {
                     //create empty array DDP input
-                    universes = wxJSONValue(wxJSONTYPE_ARRAY);
+                    universes = nlohmann::json::array();
                 }
             } else if (it->GetType() == OUTPUT_ARTNET) {
                 universe["type"] = (int)((eth->GetIP() != "MULTICAST") + 2);
                 if (!input && (it->GetIP() != "MULTICAST")) {
-                    universe["address"] = wxString(it->GetIP());
+                    universe["address"] = it->GetIP();
                 }
                 if (it->GetIP() == "MULTICAST") {
                     universe["monitor"] = 0;
                 }
                 if (allSameSize) {
                     universe["universeCount"] = it2->GetOutputCount();
-                    universes.Append(universe);
+                    universes.push_back(universe);
                     break;
                 }
                 //ArtNetOutput* ano = dynamic_cast<ArtNetOutput*>(it);
                 universe["universeCount"] = 1;
-                universes.Append(universe);
+                universes.push_back(universe);
             } else if (it->GetType() == OUTPUT_KINET) {
                 KinetOutput* kiNet = dynamic_cast<KinetOutput*>(it);
-                universe["address"] = wxString(kiNet->GetIP());
+                universe["address"] = kiNet->GetIP();
                 universe["type"] = kiNet->GetVersion() + 5;
-                universes.Append(universe);
+                universes.push_back(universe);
             } else if (it->GetType() == OUTPUT_TWINKLY) {
-                universe["address"] = wxString(it->GetIP());
+                universe["address"] = it->GetIP();
                 universe["type"] = 8;
-                universes.Append(universe);
+                universes.push_back(universe);
             }
         }
     }
 
     root["universes"] = universes;
 
-    wxJSONValue json;
-    wxJSONValue chan;
-    chan.Append(root);
+    nlohmann::json json;
+    nlohmann::json chan;
+    chan.push_back(root);
     if (input) {
         json["channelInputs"] = chan;
     } else {
@@ -1899,12 +1893,12 @@ void FPP::UpdateChannelRanges()
     if (fppType != FPP_TYPE::FPP) {
         return;
     }
-    wxJSONValue jval;
+    nlohmann::json jval;
     int count = 0;
     while (count < 20) {
         if (GetURLAsJSON("/api/system/info", jval, false)) {
-            if (jval.HasMember("channelRanges")) {
-                std::string r = jval["channelRanges"].AsString().ToStdString();
+            if (jval.contains("channelRanges")) {
+                std::string r = jval["channelRanges"].get<std::string>();
                 if (r.size() > 0) {
                     //append the  new ranges,  then parse/reset which will do a merge/cleanup
                     if (ranges.size() > 0) {
@@ -1948,8 +1942,8 @@ bool FPP::SetInputUniversesBridge(Controller* controller) {
         return false;
     }
 
-    wxJSONValue udp = CreateUniverseFile(std::list<Controller*>({ controller }), true);
-    if (udp["channelInputs"][0]["universes"].Size() != 0 || forceUpload) {
+    nlohmann::json udp = CreateUniverseFile(std::list<Controller*>({ controller }), true);
+    if (udp["channelInputs"][0]["universes"].size() != 0 || forceUpload) {
         PostJSONToURL("/api/channel/output/universeInputs", udp);
     }
 
@@ -1957,36 +1951,36 @@ bool FPP::SetInputUniversesBridge(Controller* controller) {
 }
 
 
-static bool UpdateJSONValue(wxJSONValue &v, const std::string &key, int newValue) {
-    if (!v.HasMember(key)) {
+static bool UpdateJSONValue(nlohmann::json &v, const std::string &key, int newValue) {
+    if (!v.contains(key)) {
         v[key] = newValue;
         return true;
     }
-    int origValue = v[key].AsLong();
+    int origValue = v[key].get<int>();
     if (origValue != newValue) {
         v[key] = newValue;
         return true;
     }
     return false;
 }
-static bool UpdateJSONFloatValue(wxJSONValue &v, const std::string &key, float newValue) {
-    if (!v.HasMember(key)) {
+static bool UpdateJSONFloatValue(nlohmann::json &v, const std::string &key, float newValue) {
+    if (!v.contains(key)) {
         v[key] = newValue;
         return true;
     }
-    float origValue = v[key].AsDouble();
+    float origValue = v[key].get<float>();
     if (origValue != newValue) {
         v[key] = (double)newValue;
         return true;
     }
     return false;
 }
-static bool UpdateJSONValue(wxJSONValue &v, const std::string &key, const wxString &newValue) {
-    if (!v.HasMember(key)) {
+static bool UpdateJSONValue(nlohmann::json& v, const std::string& key, const std::string& newValue) {
+    if (!v.contains(key)) {
         v[key] = newValue;
         return true;
     }
-    wxString origValue = v[key].AsString();
+    std::string origValue = v[key].get<std::string>();
     if (origValue != newValue) {
         v[key] = newValue;
         return true;
@@ -1994,34 +1988,34 @@ static bool UpdateJSONValue(wxJSONValue &v, const std::string &key, const wxStri
     return false;
 }
 
-static bool mergeSerialInto(wxJSONValue &otherDmxData, wxJSONValue &otherOrigRoot, bool addDefaults) {
+static bool mergeSerialInto(nlohmann::json &otherDmxData, nlohmann::json &otherOrigRoot, bool addDefaults) {
     bool changed = false;
-    for (int x = 0; x < otherDmxData["channelOutputs"].Size(); x++) {
-        wxString device = otherDmxData["channelOutputs"][x]["device"].AsString();
-        wxString type = otherDmxData["channelOutputs"][x]["type"].AsString();
+    for (int x = 0; x < otherDmxData["channelOutputs"].size(); x++) {
+        std::string device = otherDmxData["channelOutputs"][x]["device"].get<std::string>();
+        std::string type = otherDmxData["channelOutputs"][x]["type"].get<std::string>();
         bool found = false;
-        for (int y = 0; y < otherOrigRoot["channelOutputs"].Size(); y++) {
-            if (otherOrigRoot["channelOutputs"][y]["device"].AsString() == device) {
+        for (int y = 0; y < otherOrigRoot["channelOutputs"].size(); y++) {
+            if (otherOrigRoot["channelOutputs"][y]["device"].get<std::string>() == device) {
                 //same device, see if type matches and update or disable
-                if (type == otherOrigRoot["channelOutputs"][y]["type"].AsString()) {
+                if (type == otherOrigRoot["channelOutputs"][y]["type"].get<std::string>()) {
                     //device and type the same, update values
                     found = true;
-                    changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "description", otherDmxData["channelOutputs"][x]["description"].AsString());
+                    changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "description", otherDmxData["channelOutputs"][x]["description"].get<std::string>());
                     changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "enabled", 1);
-                    changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "startChannel", otherDmxData["channelOutputs"][x]["startChannel"].AsLong());
-                    changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "channelCount", otherDmxData["channelOutputs"][x]["channelCount"].AsLong());
+                    changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "startChannel", otherDmxData["channelOutputs"][x]["startChannel"].get<int>());
+                    changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "channelCount", otherDmxData["channelOutputs"][x]["channelCount"].get<int>());
 
                     if (!addDefaults) {
                         if (type == "Renard") {
-                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "renardspeed", otherDmxData["channelOutputs"][x]["renardspeed"].AsLong());
-                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "renardparm", otherDmxData["channelOutputs"][x]["renardparm"].AsString());
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "renardspeed", otherDmxData["channelOutputs"][x]["renardspeed"].get<int>());
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "renardparm", otherDmxData["channelOutputs"][x]["renardparm"].get<std::string>());
                         } else if (type == "LOR") {
-                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "firstControllerId", otherDmxData["channelOutputs"][x]["firstControllerId"].AsLong());
-                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "speed", otherDmxData["channelOutputs"][x]["speed"].AsLong());
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "firstControllerId", otherDmxData["channelOutputs"][x]["firstControllerId"].get<int>());
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "speed", otherDmxData["channelOutputs"][x]["speed"].get<int>());
                         } else if (type == "GenricSerial") {
-                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "speed", otherDmxData["channelOutputs"][x]["speed"].AsLong());
-                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "header", otherDmxData["channelOutputs"][x]["header"].AsString());
-                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "footer", otherDmxData["channelOutputs"][x]["footer"].AsString());
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "speed", otherDmxData["channelOutputs"][x]["speed"].get<int>());
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "header", otherDmxData["channelOutputs"][x]["header"].get<std::string>());
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "footer", otherDmxData["channelOutputs"][x]["footer"].get<std::string>());
                         }
                     }
                 } else {
@@ -2044,7 +2038,7 @@ static bool mergeSerialInto(wxJSONValue &otherDmxData, wxJSONValue &otherOrigRoo
                     otherDmxData["channelOutputs"][x]["speed"] = 9600;
                 }
             }
-            otherOrigRoot["channelOutputs"].Append(otherDmxData["channelOutputs"][x]);
+            otherOrigRoot["channelOutputs"].push_back(otherDmxData["channelOutputs"][x]);
             changed = true;
         }
     }
@@ -2061,11 +2055,11 @@ bool FPP::IsCompatible(const ControllerCaps *rules,
     if (IsVersionAtLeast(7, 0)) {
         // we can verify that the ID actually can load a pinout
         bool found = false;
-        wxJSONValue val;
-        wxString id = rules->GetID();
+        nlohmann::json val;
+        std::string id = rules->GetID();
         if (GetURLAsJSON("/api/cape/strings", val)) {
-            for (int x = 0; x < val.Size(); x++) {
-                if (val[x].AsString() == id) {
+            for (int x = 0; x < val.size(); x++) {
+                if (val[x].get<std::string>() == id) {
                     found = true;
                 }
             }
@@ -2073,44 +2067,44 @@ bool FPP::IsCompatible(const ControllerCaps *rules,
             //we'll need to check them
             if (!found) {
                 id = rules->GetID() + "_v2";
-                for (int x = 0; x < val.Size(); x++) {
-                    if (val[x].AsString() == id) {
+                for (int x = 0; x < val.size(); x++) {
+                    if (val[x].get<std::string>() == id) {
                         found = true;
                     }
                 }
             }
             if (!found) {
                 id = rules->GetID() + "_v3";
-                for (int x = 0; x < val.Size(); x++) {
-                    if (val[x].AsString() == id) {
+                for (int x = 0; x < val.size(); x++) {
+                    if (val[x].get<std::string>() == id) {
                         found = true;
                     }
                 }
             }
             if (!found) {
                 id = rules->GetID() + "-v2";
-                for (int x = 0; x < val.Size(); x++) {
-                    if (val[x].AsString() == id) {
+                for (int x = 0; x < val.size(); x++) {
+                    if (val[x].get<std::string>() == id) {
                         found = true;
                     }
                 }
             }
             if (!found) {
                 id = rules->GetID() + "-v3";
-                for (int x = 0; x < val.Size(); x++) {
-                    if (val[x].AsString() == id) {
+                for (int x = 0; x < val.size(); x++) {
+                    if (val[x].get<std::string>() == id) {
                         found = true;
                     }
                 }
             }
         }
         if (found) {
-            wxJSONValue val;
+            nlohmann::json val;
             if (GetURLAsJSON("/api/cape/strings/" + id, val)) {
-                if (val.HasMember("driver")) {
-                    driver = val["driver"].AsString();
+                if (val.contains("driver")) {
+                    driver = val["driver"].get<std::string>();
                 }
-                if (val.HasMember("falconV5ListenerConfig")) {
+                if (val.contains("falconV5ListenerConfig")) {
                     supportsV5Receivers = true;;
                 }
             } else {
@@ -2146,7 +2140,7 @@ bool FPP::UploadPanelOutputs(ModelManager* allmodels,
     UDController cud(controller, outputManager, allmodels, false);
     bool fullcontrol = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
 
-    wxJSONValue origJson;
+    nlohmann::json origJson;
     bool changed = false;
     bool hasPanel = false;
     
@@ -2165,12 +2159,12 @@ bool FPP::UploadPanelOutputs(ModelManager* allmodels,
         std::map<int, int> rngs;
         FillRanges(rngs);
         for (int panel = 0; panel < cud.GetMaxLEDPanelMatrixPort(); ++panel) {
-            if (panel < origJson["channelOutputs"].Size()) {
+            if (panel < origJson["channelOutputs"].size()) {
                 int startChannel = cud.GetControllerLEDPanelMatrixPort(1 + panel)->GetStartChannel();
                 if (startChannel > 0) {
                     if (UpdateJSONValue(origJson["channelOutputs"][panel], "startChannel", startChannel)) {
                         changed = true;
-                        rngs[startChannel - 1] = origJson["channelOutputs"][panel]["channelCount"].AsLong();
+                        rngs[startChannel - 1] = origJson["channelOutputs"][panel]["channelCount"].get<int>();
                     }
                     changed |= UpdateJSONValue(origJson["channelOutputs"][panel], "enabled", 1);
                 } else {
@@ -2182,8 +2176,8 @@ bool FPP::UploadPanelOutputs(ModelManager* allmodels,
         SetNewRanges(rngs);
     } else if (fullcontrol) {
         //disable
-        for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
-            if (origJson["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
+        for (int x = 0; x < origJson["channelOutputs"].size(); x++) {
+            if (origJson["channelOutputs"][x]["type"].get<std::string>() == "LEDPanelMatrix") {
                 changed |= UpdateJSONValue(origJson["channelOutputs"][x], "enabled", 0);
             }
         }
@@ -2207,13 +2201,13 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
     UDController cud(controller, outputManager, allmodels, false);
     bool fullcontrol = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
     bool changed = false;
-    wxJSONValue origJson;
+    nlohmann::json origJson;
     if (fullcontrol || (rules->SupportsVirtualMatrix() && cud.GetMaxVirtualMatrixPort())) {
         GetURLAsJSON("/api/channel/output/co-other", origJson, false);
         if (fullcontrol) {
-            for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
-                if (origJson["channelOutputs"][x]["type"].AsString() == "VirtualMatrix") {
-                    origJson["channelOutputs"].Remove(x);
+            for (int x = 0; x < origJson["channelOutputs"].size(); x++) {
+                if (origJson["channelOutputs"][x]["type"].get<std::string>() == "VirtualMatrix") {
+                    origJson["channelOutputs"].erase(x);
                     x--;
                     changed = true;
                 }
@@ -2231,7 +2225,7 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
                 int startChannel = m->GetStartChannel();
                 std::string name = m->GetName();
                 MatrixModel *mm = dynamic_cast<MatrixModel*>(m->GetModel());
-                wxString layout = "";
+                std::string layout;
                 int w = -1;
                 int h = -1;
                 if (mm != nullptr) {
@@ -2243,15 +2237,15 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
                         h = mm->GetNumStrings();
                     }
                     if (w != -1 && h != -1) {
-                        layout = wxString::Format("%dx%d", w, h);
+                        layout = std::to_string(w) + "x" + std::to_string(h);
                     }
                 }
 
                 models[port].insert(name);
                 bool found = false;
-                for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
-                    if (origJson["channelOutputs"][x]["type"].AsString() == "VirtualMatrix"
-                        && origJson["channelOutputs"][x]["description"].AsString() == name) {
+                for (int x = 0; x < origJson["channelOutputs"].size(); x++) {
+                    if (origJson["channelOutputs"][x]["type"].get<std::string>() == "VirtualMatrix"
+                        && origJson["channelOutputs"][x]["description"].get<std::string>() == name) {
                         found = true;
                         changed |= UpdateJSONValue(origJson["channelOutputs"][x], "enabled", 1);
                         changed |= UpdateJSONValue(origJson["channelOutputs"][x], "startChannel", startChannel);
@@ -2270,31 +2264,31 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
                     }
                 }
                 if (!found) {
-                    wxJSONValue v;
+                    nlohmann::json v;
                     v["enabled"] = 1;
-                    v["type"] = wxString("VirtualMatrix");
+                    v["type"] = std::string("VirtualMatrix");
                     v["startChannel"] = startChannel;
                     v["channelCount"] = m->GetEndChannel() - m->GetStartChannel() + 1;
                     v["width"] = w > 0 ? w : 64;
                     v["height"] = h > 0 ? h : 32;
                     v["layout"] = layout;
-                    v["colorOrder"] = wxString("RGB");
+                    v["colorOrder"] = std::string("RGB");
                     v["invert"] = 0;
                     if (IsVersionAtLeast(8, 0)) {
-                        v["device"] = wxString::Format("HDMI-A-%d", port + 1); //hdmi ports are 1 based, not 0 like fb
+                        v["device"] = wxString::Format("HDMI-A-%d", port + 1).ToStdString(); //hdmi ports are 1 based, not 0 like fb
                     } else {
-                        v["device"] = wxString::Format("fb%d", port);
+                        v["device"] = wxString::Format("fb%d", port).ToStdString();
                     }
                     v["xoff"] = 0;
                     v["description"] = name;
                     v["yoff"] = curOffset;
                     curOffset += h > 0 ? h : 0;
                     if (countModels > 1) {
-                        v["scaling"] = wxString("None");
+                        v["scaling"] = std::string("None");
                     } else {
-                        v["scaling"] = wxString("Hardware");
+                        v["scaling"] = std::string("Hardware");
                     }
-                    origJson["channelOutputs"].Append(v);
+                    origJson["channelOutputs"].push_back(v);
                     rngs[m->GetStartChannel()] = m->GetEndChannel() - m->GetStartChannel() + 1;
                     changed = true;
                 }
@@ -2307,11 +2301,11 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
     if (!fullcontrol && changed) {
         //we need to disable the virtual matrices that are on the ports of the
         //models we uploaded or they will conflict and produce errors
-        for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
-            if (origJson["channelOutputs"][x]["type"].AsString() == "VirtualMatrix") {
-                wxString dev = origJson["channelOutputs"][x]["device"].AsString();
+        for (int x = 0; x < origJson["channelOutputs"].size(); x++) {
+            if (origJson["channelOutputs"][x]["type"].get<std::string>() == "VirtualMatrix") {
+                wxString dev = origJson["channelOutputs"][x]["device"].get<std::string>();
                 int port = (char)dev[2] - '0';
-                if (models[port].find(ToUTF8(origJson["channelOutputs"][x]["description"].AsString())) == models[port].end()) {
+                if (models[port].find(ToUTF8(origJson["channelOutputs"][x]["description"].get<std::string>())) == models[port].end()) {
                     UpdateJSONValue(origJson["channelOutputs"][x], "enabled", 0);
                 }
             }
@@ -2358,9 +2352,9 @@ bool FPP::UploadSerialOutputs(ModelManager* allmodels,
     cud.Check(rules, check);
     cud.Dump();
 
-    wxJSONValue otherData;
+    nlohmann::json otherData;
     for (int sp = 1; sp <= rules->GetMaxSerialPort(); sp++) {
-        wxJSONValue port;
+        nlohmann::json port;
         if (cud.HasSerialPort(sp)) {
             UDControllerPort* vport = cud.GetControllerSerialPort(sp);
             int sc = vport->GetStartChannel();
@@ -2371,33 +2365,33 @@ bool FPP::UploadSerialOutputs(ModelManager* allmodels,
             port["enabled"] = 1;
             std::string tp = controller->GetProtocol();
             if (tp == "DMX" || tp == "dmx" || tp == OUTPUT_DMX) {
-                port["type"] = wxString("DMX-Pro");
+                port["type"] = std::string("DMX-Pro");
                 if (mx < 16) {
                     //several controllers have issues if the DMX data stream has less than 16 channels
                     mx = 16;
                 }
             } else if (tp == OUTPUT_OPENDMX) {
-                port["type"] = wxString("DMX-Open");
+                port["type"] = std::string("DMX-Open");
                 if (mx < 16) {
                     //several controllers have issues if the DMX data stream has less than 16 channels
                     mx = 16;
                 }
             } else if (tp == OUTPUT_PIXELNET) {
-                port["type"] = wxString("Pixelnet-Lynx");
+                port["type"] = std::string("Pixelnet-Lynx");
                 mx = 4096;
             } else if (tp == OUTPUT_OPENPIXELNET) {
-                port["type"] = wxString("Pixelnet-Open");
+                port["type"] = std::string("Pixelnet-Open");
                 mx = 4096;
             } else if (tp == OUTPUT_LOR) {
-                port["type"] = wxString("LOR");
+                port["type"] = std::string("LOR");
                 port["speed"] = controller->GetSpeed();
                 port["firstControllerId"] = 1;
             } else if (tp == OUTPUT_RENARD) {
-                port["type"] = wxString("Renard");
+                port["type"] = std::string("Renard");
                 port["speed"] = controller->GetSpeed();
                 port["renardparm"] = "8N1";
             } else if (tp == OUTPUT_GENERICSERIAL) {
-                port["type"] = wxString("GenericSerial");
+                port["type"] = std::string("GenericSerial");
                 port["speed"] = controller->GetSpeed();
                 port["header"] = controller->GetSaveablePreFix();
                 port["footer"] = controller->GetSaveablePostFix();
@@ -2408,11 +2402,11 @@ bool FPP::UploadSerialOutputs(ModelManager* allmodels,
             }
             port["description"] = description;
             port["channelCount"] = mx;
-            otherData["channelOutputs"].Append(port);
+            otherData["channelOutputs"].push_back(port);
 
             rngs[sc - 1] = mx;
 
-            wxJSONValue otherOrigRoot = otherData;
+            nlohmann::json otherOrigRoot = otherData;
             bool changed = true;
             if (GetURLAsJSON("/api/configfile/co-other.json", otherOrigRoot, false)) {
                 changed = mergeSerialInto(otherData, otherOrigRoot, false);
@@ -2444,11 +2438,11 @@ bool FPP::UploadPWMOutputs(ModelManager* allmodels,
         return true;
     }
     bool hasPWM = false;
-    if (!capeInfo.HasMember("id")) {
+    if (!capeInfo.contains("id")) {
         GetURLAsJSON("/api/cape", capeInfo);
     }
-    for (int x = 0; x < capeInfo["provides"].Size(); x++) {
-        if (capeInfo["provides"][x].AsString() == "pwm") {
+    for (int x = 0; x < capeInfo["provides"].size(); x++) {
+        if (capeInfo["provides"][x].get<std::string>() == "pwm") {
             hasPWM = true;
         }
     }
@@ -2466,12 +2460,12 @@ bool FPP::UploadPWMOutputs(ModelManager* allmodels,
     FillRanges(rngs);
     bool changed = false;
     
-    wxJSONValue root;
+    nlohmann::json root;
     int pca9685Index = -1;
     if (!fullcontrol && GetURLAsJSON("/api/configfile/co-pwm.json", root, false)) {
-        if (root.HasMember("channelOutputs")) {
-            for (int x = 0; x < root["channelOutputs"].Size(); x++) {
-                if (root["channelOutputs"][x]["type"].AsString() == "PCA9685") {
+        if (root.contains("channelOutputs")) {
+            for (int x = 0; x < root["channelOutputs"].size(); x++) {
+                if (root["channelOutputs"][x]["type"].get<std::string>() == "PCA9685") {
                     pca9685Index = x;
                     break;
                 }
@@ -2481,20 +2475,20 @@ bool FPP::UploadPWMOutputs(ModelManager* allmodels,
     if (pca9685Index == -1) {
         changed = true;
         pca9685Index = 0;
-        root["channelOutputs"] = wxJSONValue(wxJSONTYPE_ARRAY);
-        root["channelOutputs"][pca9685Index]["type"] = wxString("PCA9685");
+        root["channelOutputs"] = nlohmann::json::array();
+        root["channelOutputs"][pca9685Index]["type"] = std::string("PCA9685");
         root["channelOutputs"][pca9685Index]["subType"] = rules->GetID();
         root["channelOutputs"][pca9685Index]["enabled"] = 1;
         root["channelOutputs"][pca9685Index]["frequency"] = controller->GetExtraProperty("PWMFrequency", "50hz");
         root["channelOutputs"][pca9685Index]["startChannel"] = 0;
         root["channelOutputs"][pca9685Index]["channelCount"] = -1;
-        root["channelOutputs"][pca9685Index]["outputs"] = wxJSONValue(wxJSONTYPE_ARRAY);
+        root["channelOutputs"][pca9685Index]["outputs"] = nlohmann::json::array();
     }
     // make sure we have enough ports....
-    while (maxPort > root["channelOutputs"][pca9685Index]["outputs"].Size()) {
+    while (maxPort > root["channelOutputs"][pca9685Index]["outputs"].size()) {
         changed = true;
-        wxJSONValue v;
-        v["description"] = xlEMPTY_WXSTRING;
+        nlohmann::json v;
+        v["description"] = "";
         v["startChannel"] = 0;
         v["is16bit"] = 1;
         v["type"] = wxString("Servo");
@@ -2503,7 +2497,7 @@ bool FPP::UploadPWMOutputs(ModelManager* allmodels,
         v["reverse"] = 0;
         v["zero"] = wxString("Hold");
         v["dataType"] = wxString("Scaled");
-        root["channelOutputs"][pca9685Index]["outputs"].Append(v);
+        root["channelOutputs"][pca9685Index]["outputs"].push_back(v);
     }
     for (int x = 0; x < maxPort; x++) {
         if (x < cud.GetMaxPWMPort()) {
@@ -2576,7 +2570,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     cud.Check(rules, check);
     cud.Dump();
 
-    wxJSONValue origJson;
+    nlohmann::json origJson;
     GetURLAsJSON("/api/channel/output/" + fppFileName, origJson, false);
     logger_base.debug("Original JSON");
     DumpJSON(origJson);
@@ -2591,28 +2585,28 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     float defaultGamma = controller->GetDefaultGammaUnderFullControl();
 
-    wxString pinout = "1.x";
-    std::map<wxString, wxJSONValue> origStrings;
-    std::string origSubType = "";
-    if (origJson["channelOutputs"].IsArray()) {
-        for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
-            wxJSONValue &f = origJson["channelOutputs"][x];
-            if (f.HasMember("pinoutVersion")) {
-                pinout = f["pinoutVersion"].AsString();
+    std::string pinout = "1.x";
+    std::map<std::string, nlohmann::json> origStrings;
+    std::string origSubType;
+    if (origJson["channelOutputs"].is_array()) {
+        for (int x = 0; x < origJson["channelOutputs"].size(); x++) {
+            nlohmann::json &f = origJson["channelOutputs"][x];
+            if (f.contains("pinoutVersion")) {
+                pinout = f["pinoutVersion"].get<std::string>();
             }
             if (pinout == "") {
                 pinout = "1.x";
             }
-            if (f.HasMember("subType")) {
-                origSubType = ToUTF8(f["subType"].AsString());
+            if (f.contains("subType")) {
+                origSubType = (f["subType"].get<std::string>());
             }
             if (!fullcontrol) {
-                for (int o = 0; o < f["outputs"].Size(); o++) {
-                    if (f["outputs"][o].HasMember("virtualStrings")) {
-                        for (int vs = 0; vs < f["outputs"][o]["virtualStrings"].Size(); vs++) {
-                            wxJSONValue val = f["outputs"][o]["virtualStrings"][vs];
-                            if (val["description"].AsString() != "") {
-                                origStrings[val["description"].AsString()] = val;
+                for (int o = 0; o < f["outputs"].size(); o++) {
+                    if (f["outputs"][o].contains("virtualStrings")) {
+                        for (int vs = 0; vs < f["outputs"][o]["virtualStrings"].size(); vs++) {
+                            nlohmann::json val = f["outputs"][o]["virtualStrings"][vs];
+                            if (val["description"].get<std::string>() != "") {
+                                origStrings[val["description"].get<std::string>()] = val;
                             }
                         }
                     }
@@ -2622,7 +2616,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     }
     int maxport = 0;
 
-    wxJSONValue stringData;
+    nlohmann::json stringData;
     stringData["enabled"] = 1;
     stringData["startChannel"] = 1;
     stringData["channelCount"] = -1;
@@ -2656,10 +2650,10 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     stringData["outputCount"] = maxport;
 
     for (int x = 0; x < rules->GetMaxPixelPort(); x++) {
-        wxJSONValue port;
+        nlohmann::json port;
         port["portNumber"] = x;
 
-        stringData["outputs"].Append(port);
+        stringData["outputs"].push_back(port);
     }
 
     for (int pp = 1; pp <= rules->GetMaxPixelPort(); pp++) {
@@ -2667,9 +2661,9 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             UDControllerPort* port = cud.GetControllerPixelPort(pp);
             port->CreateVirtualStrings(false, false);
             for (const auto& pvs : port->GetVirtualStrings()) {
-                wxJSONValue vs;
+                nlohmann::json vs;
                 if (pvs->_isDummy) {
-                    vs["description"] = wxString("");
+                    vs["description"] = std::string("");
                     vs["startChannel"] = 0;
                     vs["pixelCount"] = 0;
                 } else {
@@ -2680,13 +2674,13 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     rngs[pvs->_startChannel - 1] = pvs->Channels();
                 }
 
-                if (!pvs->_isDummy && (origStrings.find(vs["description"].AsString()) != origStrings.end())) {
-                    wxJSONValue &vo = origStrings[vs["description"].AsString()];
+                if (!pvs->_isDummy && (origStrings.find(vs["description"].get<std::string>()) != origStrings.end())) {
+                    nlohmann::json &vo = origStrings[vs["description"].get<std::string>()];
                     vs["groupCount"] = vo["groupCount"];
                     vs["reverse"] = vo["reverse"];
                     vs["colorOrder"] = vo["colorOrder"];
                     vs["nullNodes"] = vo["nullNodes"];
-                    vs["endNulls"] = vo.HasMember("endNulls") ? vo["endNulls"] : 0;
+                    vs["endNulls"] = vo.contains("endNulls") ? vo["endNulls"].get<int>() : 0;
                     vs["zigZag"] = vo["zigZag"];
                     vs["brightness"] = vo["brightness"];
                     vs["gamma"] = vo["gamma"];
@@ -2694,17 +2688,17 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     vs["groupCount"] = 0;
                     vs["reverse"] = 0;
                     if (pvs->_channelsPerPixel == 4) {
-                        vs["colorOrder"] = wxString("RGBW");
+                        vs["colorOrder"] = std::string("RGBW");
                     } else if (pvs->_channelsPerPixel == 1) {
-                        vs["colorOrder"] = wxString("W");
+                        vs["colorOrder"] = std::string("W");
                     } else {
-                        vs["colorOrder"] = wxString("RGB");
+                        vs["colorOrder"] = std::string("RGB");
                     }
                     vs["nullNodes"] = 0;
                     vs["endNulls"] = 0;
                     vs["zigZag"] = 0; // If we zigzag in xLights, we don't do it in the controller, if we need it in the controller, we don't know about it here
                     vs["brightness"] = defaultBrightness;
-                    vs["gamma"] = wxString::Format("%.1f", defaultGamma);
+                    vs["gamma"] = wxString::Format("%.1f", defaultGamma).ToStdString();
                 }
                 if (pvs->_reverseSet) {
                     vs["reverse"] = pvs->_reverse == "Reverse" ? 1 : 0;
@@ -2731,14 +2725,14 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     vs["colorOrder"] = pvs->_colourOrder;
                 }
                 if (pvs->_channelsPerPixel == 1) {
-                    vs["colorOrder"] = wxString("W");
+                    vs["colorOrder"] = std::string("W");
                 }
                 if (pvs->_groupCountSet) {
                     vs["groupCount"] = pvs->_groupCount;
                 }
-                if (vs["groupCount"].AsLong() > 1) {
+                if (vs["groupCount"].get<int>() > 1) {
                     //if the group count is >1, we need to adjust the number of pixels
-                    vs["pixelCount"] = vs["pixelCount"].AsLong() * vs["groupCount"].AsLong();
+                    vs["pixelCount"] = vs["pixelCount"].get<int>() * vs["groupCount"].get<int>();
                 }
                 if (pvs->_zigZagSet) {
                     vs["zigZag"] = pvs->_zigZag;
@@ -2766,16 +2760,16 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     }
                 }
 
-                stringData["outputs"][port->GetPort() - 1][vsname].Append(vs);
+                stringData["outputs"][port->GetPort() - 1][vsname].push_back(vs);
             }
         }
     }
 
     for (int x = 0; x < rules->GetMaxPixelPort(); x++) {
-        if (!stringData["outputs"][x].HasMember("virtualStrings")
-            || stringData["outputs"][x]["virtualStrings"].IsNull()
-            || stringData["outputs"][x]["virtualStrings"].Size() == 0) {
-            wxJSONValue vs;
+        if (!stringData["outputs"][x].contains("virtualStrings")
+            || stringData["outputs"][x]["virtualStrings"].is_null()
+            || stringData["outputs"][x]["virtualStrings"].size() == 0) {
+            nlohmann::json vs;
             vs["description"] = wxString("");
             vs["startChannel"] = 0;
             vs["pixelCount"] = 0;
@@ -2786,8 +2780,8 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             vs["endNulls"] = 0;
             vs["zigZag"] = 0;
             vs["brightness"] = defaultBrightness;
-            vs["gamma"] = wxString::Format("%.1f", defaultGamma);
-            stringData["outputs"][x]["virtualStrings"].Append(vs);
+            vs["gamma"] = wxString::Format("%.1f", defaultGamma).ToStdString();
+            stringData["outputs"][x]["virtualStrings"].push_back(vs);
         }
         if ((x & 0x3) == 0) {
             //need to check the group of 4 to see if we need a smartRemote or not
@@ -2795,21 +2789,21 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             ReceiverType receiverType{ ReceiverType::Standard };
             for (int z = 0; z < 4; z++) {
                 if ((x + z) < maxport) {
-                    if (stringData["outputs"][x + z].HasMember("virtualStringsF")) {
+                    if (stringData["outputs"][x + z].contains("virtualStringsF")) {
                         remoteType = std::max(remoteType, 6);
-                    } else if (stringData["outputs"][x + z].HasMember("virtualStringsE")) {
+                    } else if (stringData["outputs"][x + z].contains("virtualStringsE")) {
                         remoteType = std::max(remoteType, 5);
-                    } else if (stringData["outputs"][x + z].HasMember("virtualStringsD")) {
+                    } else if (stringData["outputs"][x + z].contains("virtualStringsD")) {
                         remoteType = std::max(remoteType, 4);
-                    } else if (stringData["outputs"][x + z].HasMember("virtualStringsC")) {
+                    } else if (stringData["outputs"][x + z].contains("virtualStringsC")) {
                         remoteType = std::max(remoteType, 3);
-                    } else if (stringData["outputs"][x+z].HasMember("virtualStringsB")) {
+                    } else if (stringData["outputs"][x + z].contains("virtualStringsB")) {
                         remoteType = std::max(remoteType, 2);
-                    } else if (stringData["outputs"][x+z].HasMember("differentialType")) {
+                    } else if (stringData["outputs"][x + z].contains("differentialType")) {
                         remoteType = std::max(remoteType, 1);
                     }
-                    if (stringData["outputs"][x + z].HasMember("differentialType") ) {
-                        receiverType = DecodeReceiverType(stringData["outputs"][x + z]["differentialType"].AsLong(), supportsV5Receivers);
+                    if (stringData["outputs"][x + z].contains("differentialType")) {
+                        receiverType = DecodeReceiverType(stringData["outputs"][x + z]["differentialType"].get<int>(), supportsV5Receivers);
                     }
                 }
             }
@@ -2831,15 +2825,15 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     for (int x = 0; x <= rules->GetMaxPixelPort(); x++) {
         if (expansionPorts.find(x+1) != expansionPorts.end()) {
             if (x == rules->GetMaxPixelPort()) {
-                wxJSONValue port;
+                nlohmann::json port;
                 port["portNumber"] = x;
                 port["expansionType"] = expansionPorts.find(x+1)->second;
-                stringData["outputs"].Append(port);
+                stringData["outputs"].push_back(port);
             } else {
                 int count = expansionPorts.find(x+1)->second;
                 int expansionType = 0;
                 for (int p = 0; p < count; p++) {
-                    if (stringData["outputs"][x+p].HasMember("differentialType") && stringData["outputs"][x+p]["differentialType"].AsLong()) {
+                    if (stringData["outputs"][x + p].contains("differentialType") && stringData["outputs"][x + p]["differentialType"].get<int>()) {
                         expansionType = 1;
                     }
                 }
@@ -2868,11 +2862,11 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         }
     }
 
-    wxJSONValue bbbDmxData;
+    nlohmann::json bbbDmxData;
     bool hasBBBDmx = false;
-    wxJSONValue otherDmxData;
+    nlohmann::json otherDmxData;
     for (int sp = 1; sp <= rules->GetMaxSerialPort(); sp++) {
-        wxJSONValue port;
+        nlohmann::json port;
         std::string portType = rules->GetCustomPropertyByPath("fppSerialPort" + std::to_string(sp), "BBBSerial");
         if (cud.HasSerialPort(sp)) {
             UDControllerPort* vport = cud.GetControllerSerialPort(sp);
@@ -2887,8 +2881,8 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             if (portType == "BBBSerial") {
                 port["channelCount"] = isDMX ? (maxChan < 16 ? 16 : maxChan) : 4096;
                 port["outputNumber"] = (sp - 1);
-                port["outputType"] = isDMX ? wxString("DMX") : wxString("Pixelnet");
-                bbbDmxData["outputs"].Append(port);
+                port["outputType"] = isDMX ? ("DMX") : ("Pixelnet");
+                bbbDmxData["outputs"].push_back(port);
                 rngs[sc] = isDMX ? (maxChan < 16 ? 16 : maxChan) : 4096;
                 hasBBBDmx = true;
                 hasSerial = true;
@@ -2908,8 +2902,8 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 }
                 port["channelCount"] = mx;
                 port["type"] = tp;
-                port["description"] = wxString("");
-                otherDmxData["channelOutputs"].Append(port);
+                port["description"] = ("");
+                otherDmxData["channelOutputs"].push_back(port);
             }
 
         } else if (portType == "BBBSerial") {
@@ -2917,33 +2911,33 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             port["startChannel"] = 0;
             port["channelCount"] = 0;
             port["outputNumber"] = (sp - 1);
-            port["outputType"] = isDMX ? wxString("DMX") : wxString("Pixelnet");
-            bbbDmxData["outputs"].Append(port);
+            port["outputType"] = isDMX ? ("DMX") : ("Pixelnet");
+            bbbDmxData["outputs"].push_back(port);
         }
     }
     if (hasBBBDmx) {
         bbbDmxData["channelCount"] = isDMX ? (maxChan < 16 ? 16 : maxChan) : 4096;
         if (maxChan == 0) {
             bbbDmxData["enabled"] = 0;
-            bbbDmxData["subType"] = wxString("off");
+            bbbDmxData["subType"] = ("off");
         }
     }
     // let the string handling know if it's safe to use the other PRU
     // or if the serial out will need it
     stringData["serialInUse"] = hasSerial;
 
-    wxJSONValue root;
-    root["channelOutputs"].Append(stringData);
+    nlohmann::json root;
+    root["channelOutputs"].push_back(stringData);
     if (hasBBBDmx) {
         bbbDmxData["enabled"] = 1;
         bbbDmxData["startChannel"] = 1;
-        bbbDmxData["type"] = wxString("BBBSerial");
-        bbbDmxData["subType"] = isDMX ? wxString("DMX") : wxString("PixelNet") ;
-        bbbDmxData["device"] = wxString(rules->GetID());
+        bbbDmxData["type"] = ("BBBSerial");
+        bbbDmxData["subType"] = isDMX ? ("DMX") : ("PixelNet") ;
+        bbbDmxData["device"] = (rules->GetID());
         bbbDmxData["pinoutVersion"] = pinout;
-        root["channelOutputs"].Append(bbbDmxData);
+        root["channelOutputs"].push_back(bbbDmxData);
     } else {
-        wxJSONValue otherOrigRoot = otherDmxData;
+        nlohmann::json otherOrigRoot = otherDmxData;
         bool changed = true;
         if (GetURLAsJSON("/api/configfile/co-other.json", otherOrigRoot, false)) {
             changed = mergeSerialInto(otherDmxData, otherOrigRoot, true);
@@ -2957,7 +2951,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     logger_base.debug("New JSON");
     DumpJSON(root);
 
-    if (!origJson.IsSameAs(root)) {
+    if (origJson != (root)) {
         logger_base.debug("Uploading New JSON");
         PostJSONToURL("/api/channel/output/" + fppFileName, root);
         SetRestartFlag();
@@ -2987,12 +2981,12 @@ bool FPP::UploadControllerProxies(OutputManager* outputManager)
             }
         }
 
-        wxJSONValue proxies;
+        nlohmann::json proxies;
         for (const auto& [ip, description] : currentProxies) {
-            wxJSONValue proxy;
+            nlohmann::json proxy;
             proxy["host"] = ip;
             proxy["description"] = description;
-            proxies.Append(proxy);
+            proxies.push_back(proxy);
         }
 
         PostJSONToURL("/api/proxies", proxies);
@@ -3034,13 +3028,13 @@ static bool resolvableHostname(const std::string &hn, const std::string &ip) {
 static void setRangesToChannelCount(DiscoveredData *inst) {
     int min = 9999999; int max = 0;
     if (inst->ranges != "") {
-        wxArrayString r1 = wxSplit(wxString(inst->ranges), ',');
+        auto const r1 = Split(inst->ranges, ',');
         for (auto const& a : r1) {
-            wxArrayString r = wxSplit(a, '-');
-            int start = wxAtoi(r[0]);
+            auto const r = Split(a, '-');
+            int start = std::stoi(r[0]);
             int len = 4; //at least 4
             if (r.size() == 2) {
-                len = wxAtoi(r[1]) - start + 1;
+                len = std::stoi(r[1]) - start + 1;
             }
             min = std::min(min, start);
             max = std::max(max, start + len - 1);
@@ -3136,30 +3130,31 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
 }
 
 static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsString) {
-    wxJSONValue origJson;
-    wxJSONReader reader;
-    bool parsed = reader.Parse(systemsString, &origJson) == 0;
-    if (!parsed) {
+    nlohmann::json origJson;
+
+    try {
+        origJson = nlohmann::json::parse(systemsString);
+    } catch (nlohmann::json::parse_error& e) {
         return;
     }
 
-    wxString IPKey = "IP";
-    wxString PlatformKey = "Platform";
-    wxString HostNameKey = "HostName";
-    wxString ModeStringKey = "fppMode";
-    if (origJson.HasMember("systems")) {
+    std::string IPKey = "IP";
+    std::string PlatformKey = "Platform";
+    std::string HostNameKey = "HostName";
+    std::string ModeStringKey = "fppMode";
+    if (origJson.contains("systems")) {
         IPKey = "address";
         PlatformKey = "type";
         HostNameKey = "hostname";
         ModeStringKey = "fppModeString";
     }
-    wxJSONValue systems = origJson.HasMember("systems") ? origJson["systems"] : origJson;
+    nlohmann::json systems = origJson.contains("systems") ? origJson["systems"] : origJson;
 
-    for (int x = 0; x < systems.Size(); x++) {
-        wxJSONValue &system = systems[x];
-        std::string address = ToUTF8(system[IPKey].AsString());
-        std::string hostName = system[HostNameKey].IsNull() ? "" : ToUTF8(system[HostNameKey].AsString());
-        std::string uuid = system.HasMember("uuid") ? ToUTF8(system["uuid"].AsString()) : (system.HasMember("UUID") ? ToUTF8(system["UUID"].AsString()) : "");
+    for (int x = 0; x < systems.size(); x++) {
+        nlohmann::json &system = systems[x];
+        std::string address = (system[IPKey].get<std::string>());
+        std::string hostName = system[HostNameKey].is_null() ? "" : (system[HostNameKey].get<std::string>());
+        std::string uuid = system.contains("uuid") ? (system["uuid"].get<std::string>()) : (system.contains("UUID") ? (system["UUID"].get<std::string>()) : "");
         
         //logger_base.info("Processing ip: %s   host: %s    uuid: %s", address.c_str(), hostName.c_str(), uuid.c_str());
         if (!uuid.empty()) {
@@ -3179,38 +3174,38 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
         DiscoveredData inst;
         inst.hostname = hostName;
         inst.uuid = uuid;
-        if (!system[PlatformKey].IsNull()) {
-            inst.platform = ToUTF8(system[PlatformKey].AsString());
+        if (!system[PlatformKey].is_null()) {
+            inst.platform = (system[PlatformKey].get<std::string>());
         }
 
-        if (!system["model"].IsNull()) {
-            inst.platformModel = ToUTF8(system["model"].AsString());
+        if (!system["model"].is_null()) {
+            inst.platformModel = (system["model"].get<std::string>());
         }
         inst.ip = address;
-        if (!system["version"].IsNull()) {
-            inst.version = ToUTF8(system["version"].AsString());
+        if (!system["version"].is_null()) {
+            inst.version = (system["version"].get<std::string>());
             if (inst.version.size() > 3 && (inst.version[3] == '-' || inst.version[3] == '.')) {
                 inst.patchVersion = wxAtoi(inst.version.substr(4));
             }
         }
-        if (system["minorVersion"].IsInt()) {
-            inst.minorVersion = system["minorVersion"].AsInt();
+        if (system["minorVersion"].is_null()) {
+            inst.minorVersion = system["minorVersion"].get<int>();
         }
-        if (system["majorVersion"].IsInt()) {
-            inst.majorVersion = system["majorVersion"].AsInt();
+        if (system["majorVersion"].is_number_integer()) {
+            inst.majorVersion = system["majorVersion"].get<int>();
         }
-        if (system["typeId"].IsInt()) {
-            inst.typeId = system["typeId"].AsInt();
+        if (system["typeId"].is_number_integer()) {
+            inst.typeId = system["typeId"].get<int>();
         }
-        if (!system["channelRanges"].IsNull()) {
-            inst.ranges = ToUTF8(system["channelRanges"].AsString());
+        if (!system["channelRanges"].is_null()) {
+            inst.ranges = (system["channelRanges"].get<std::string>());
         }
-        if (!system["HostDescription"].IsNull()) {
-            inst.description = ToUTF8(system["HostDescription"].AsString());
+        if (!system["HostDescription"].is_null()) {
+            inst.description = (system["HostDescription"].get<std::string>());
         }
-        if (!system[ModeStringKey].IsNull()) {
-            inst.mode = ToUTF8(system[ModeStringKey].AsString());
-            if (inst.mode == "player" && system.HasMember("multisync") && system["multisync"].AsBool()) {
+        if (!system[ModeStringKey].is_null()) {
+            inst.mode = ToUTF8(system[ModeStringKey].get<std::string>());
+            if (inst.mode == "player" && system.contains("multisync") && system["multisync"].get<bool>()) {
                 inst.mode += " w/multisync";
             }
         }
@@ -3303,23 +3298,23 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
 }
 static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const std::string &proxies) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxJSONValue origJson;
-    wxJSONReader reader;
-    bool parsed = reader.Parse(proxies, &origJson) == 0;
-    if (!parsed) {
+    nlohmann::json origJson;
+    try {
+        origJson = nlohmann::json::parse(proxies);
+    } catch (nlohmann::json::parse_error& e) {
         return;
     }
     DiscoveredData *ipinst = discovery.FindByIp(ip, "", true);
     ipinst->extraData["httpConnected"] = true;
-    for (int x = 0; x < origJson.Size(); x++) {
+    for (int x = 0; x < origJson.size(); x++) {
         std::string proxy;
-        if (origJson[x].IsString()) {
-            proxy = ToUTF8(origJson[x].AsString());
-        } else if (origJson[x].IsObject()) {//FPP 8 change
-            proxy = ToUTF8(origJson[x]["host"].AsString());
+        if (origJson[x].is_string()) {
+            proxy = (origJson[x].get<std::string>());
+        } else if (origJson[x].is_object()) { // FPP 8 change
+            proxy = (origJson[x]["host"].get<std::string>());
         }
         DiscoveredData *inst = discovery.FindByIp(proxy, "", true);
-        if (!inst->extraData.HasMember("httpConnected")) {
+        if (!inst->extraData.contains("httpConnected")) {
             inst->extraData["httpConnected"] = false;
         }
         inst->SetProxy(ip);
@@ -3349,35 +3344,35 @@ static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const
 
 static void ProcessFPPChannelOutput(Discovery &discovery, const std::string &ip, const std::string &outputs) {
 
-    wxJSONValue val;
-    wxJSONReader reader;
-    bool parsed = reader.Parse(outputs, &val) == 0;
-    if (!parsed) {
+    nlohmann::json val;
+    try {
+        val = nlohmann::json::parse(outputs);
+    } catch (nlohmann::json::parse_error& e) {
         return;
     }
     DiscoveredData *inst = discovery.FindByIp(ip, "", true);
     inst->extraData["httpConnected"] = true;
-    for (int x = 0; x < val["channelOutputs"].Size(); x++) {
-        if (val["channelOutputs"][x]["enabled"].AsInt()) {
-            if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X"||
-                val["channelOutputs"][x]["type"].AsString() == "BBB48String" ||
-                val["channelOutputs"][x]["type"].AsString() == "BBShiftString" ||
-                val["channelOutputs"][x]["type"].AsString() == "DPIPixels") {
-                inst->pixelControllerType = ToUTF8(val["channelOutputs"][x]["subType"].AsString());
-            } else if (val["channelOutputs"][x]["type"].AsString() == "LEDPanelMatrix") {
+    for (int x = 0; x < val["channelOutputs"].size(); x++) {
+        if (val["channelOutputs"][x]["enabled"].get<int>()) {
+            if (val["channelOutputs"][x]["type"].get<std::string>() == "RPIWS281X"||
+                val["channelOutputs"][x]["type"].get<std::string>() == "BBB48String" ||
+                val["channelOutputs"][x]["type"].get<std::string>() == "BBShiftString" ||
+                val["channelOutputs"][x]["type"].get<std::string>() == "DPIPixels") {
+                inst->pixelControllerType = ToUTF8(val["channelOutputs"][x]["subType"].get<std::string>());
+            } else if (val["channelOutputs"][x]["type"].get<std::string>() == "LEDPanelMatrix") {
                 if (inst->pixelControllerType.empty()) {
                     inst->pixelControllerType = LEDPANELS;
                 }
-                int pw = val["channelOutputs"][x]["panelWidth"].AsInt();
-                int ph = val["channelOutputs"][x]["panelHeight"].AsInt();
+                int pw = val["channelOutputs"][x]["panelWidth"].get<int>();
+                int ph = val["channelOutputs"][x]["panelHeight"].get<int>();
                 int nw = 0; int nh = 0;
                 bool tall = false;
-                for (int p = 0; p < val["channelOutputs"][x]["panels"].Size(); ++p) {
-                    int r = val["channelOutputs"][x]["panels"][p]["row"].AsInt();
-                    int c = val["channelOutputs"][x]["panels"][p]["col"].AsInt();
+                for (int p = 0; p < val["channelOutputs"][x]["panels"].size(); ++p) {
+                    int r = val["channelOutputs"][x]["panels"][p]["row"].get<int>();
+                    int c = val["channelOutputs"][x]["panels"][p]["col"].get<int>();
                     nw = std::max(c, nw);
                     nh = std::max(r, nh);
-                    wxString orientation = val["channelOutputs"][x]["panels"][p]["orientation"].AsString();
+                    wxString orientation = val["channelOutputs"][x]["panels"][p]["orientation"].get<std::string>();
                     if (orientation == "E" || orientation == "W") {
                         tall = true;
                     }
@@ -3389,7 +3384,7 @@ static void ProcessFPPChannelOutput(Discovery &discovery, const std::string &ip,
                 inst->panelSize = std::to_string(pw * nw);
                 inst->panelSize.append("x");
                 inst->panelSize.append(std::to_string(ph * nh));
-            } else if (val["channelOutputs"][x]["type"].AsString() == "VirtualMatrix") {
+            } else if (val["channelOutputs"][x]["type"].get<std::string>() == "VirtualMatrix") {
                 if (inst->pixelControllerType.empty()) {
                     inst->pixelControllerType = "Virtual Matrix";
                 }
@@ -3399,134 +3394,135 @@ static void ProcessFPPChannelOutput(Discovery &discovery, const std::string &ip,
     SetControllerType(inst);
 }
 static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const std::string &proxy, const std::string &sysInfo) {
-    wxJSONValue val;
-    wxJSONReader reader;
-    bool parsed = reader.Parse(sysInfo, &val) == 0;
-    if (!parsed) {
+    nlohmann::json val;
+
+    try {
+        val = nlohmann::json::parse(sysInfo);
+    } catch (nlohmann::json::parse_error& e) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("Could not parse sysinfo for %s(%s)", ip.c_str(), proxy.c_str());
-        DiscoveredData *inst = discovery.FindByIp(ip, "", true);
+        DiscoveredData* inst = discovery.FindByIp(ip, "", true);
         inst->extraData["httpConnected"] = false;
         if (proxy != "") {
             inst->SetProxy(proxy);
         }
+        return;
     }
-    if (parsed) {
-        std::string uuid = ToUTF8(val.HasMember("uuid") ? val["uuid"].AsString() : (val.HasMember("UUID") ? val["UUID"].AsString() : ""));
 
-        DiscoveredData *inst = discovery.FindByUUID(uuid, ip);
-        if (inst == nullptr) {
-            inst = discovery.FindByIp(ip, "", true);
-        }
-        inst->extraData["httpConnected"] = true;
-        if (proxy != "") {
-            inst->SetProxy(proxy);
-        }
+    std::string uuid = (val.contains("uuid") ? val["uuid"].get<std::string>() : (val.contains("UUID") ? val["UUID"].get<std::string>() : ""));
+
+    DiscoveredData *inst = discovery.FindByUUID(uuid, ip);
+    if (inst == nullptr) {
+        inst = discovery.FindByIp(ip, "", true);
+    }
+    inst->extraData["httpConnected"] = true;
+    if (proxy != "") {
+        inst->SetProxy(proxy);
+    }
         
-        inst->platform = ToUTF8(val["Platform"].AsString());
-        inst->platformModel = ToUTF8(val["Variant"].AsString());
-        inst->version = ToUTF8(val["Version"].AsString());
-        inst->hostname =ToUTF8( val["HostName"].AsString());
-        inst->description = ToUTF8(val["HostDescription"].AsString());
-        inst->mode = ToUTF8(val["Mode"].AsString());
-        if (inst->mode == "player" && val.HasMember("multisync") && val["multisync"].AsBool()) {
-            inst->mode += " w/multisync";
+    inst->platform = (val["Platform"].get<std::string>());
+    inst->platformModel = (val["Variant"].get<std::string>());
+    inst->version = (val["Version"].get<std::string>());
+    inst->hostname =( val["HostName"].get<std::string>());
+    inst->description = (val["HostDescription"].get<std::string>());
+    inst->mode = (val["Mode"].get<std::string>());
+    if (inst->mode == "player" && val.contains("multisync") && val["multisync"].get<bool>()) {
+        inst->mode += " w/multisync";
+    }
+    inst->uuid = uuid;
+    if (inst->typeId == 0 && val["typeId"].is_number_integer()) {
+        inst->typeId = val["typeId"].get<int>();
+    }
+    inst->canZipUpload = val.contains("zip");
+    if (inst->version != "") {
+        inst->majorVersion = wxAtoi(inst->version);
+        if (inst->version[2] == 'x') {
+            inst->minorVersion = wxAtoi(inst->version.substr(4)) + 1000;
+        } else {
+            inst->minorVersion = wxAtoi(inst->version.substr(2));
         }
-        inst->uuid = uuid;
-        if (inst->typeId == 0 && val["typeId"].IsInt()) {
-            inst->typeId = val["typeId"].AsInt();
+        if (inst->version.size() > 3 && (inst->version[3] == '-' || inst->version[3] == '.')) {
+            inst->patchVersion = wxAtoi(inst->version.substr(4));
         }
-        inst->canZipUpload = val.HasMember("zip");
-        if (inst->version != "") {
-            inst->majorVersion = wxAtoi(inst->version);
-            if (inst->version[2] == 'x') {
-                inst->minorVersion = wxAtoi(inst->version.substr(4)) + 1000;
-            } else {
-                inst->minorVersion = wxAtoi(inst->version.substr(2));
-            }
-            if (inst->version.size() > 3 && (inst->version[3] == '-' || inst->version[3] == '.')) {
-                inst->patchVersion = wxAtoi(inst->version.substr(4));
-            }
+    }
+    if (val.contains("channelRanges")) {
+        std::string r = val["channelRanges"].get<std::string>();
+        if (r.size() > inst->ranges.size()) {
+            inst->ranges = r;
         }
-        if (val.HasMember("channelRanges")) {
-            std::string r = val["channelRanges"].AsString().ToStdString();
-            if (r.size() > inst->ranges.size()) {
-                inst->ranges = r;
-            }
-        }
-        if (val.HasMember("minorVersion")) {
-            inst->minorVersion = val["minorVersion"].AsInt();
-        }
-        if (val.HasMember("majorVersion")) {
-            inst->majorVersion = val["majorVersion"].AsInt();
-        }
-        if (val.HasMember("capeInfo")) {
-            inst->pixelControllerType = ToUTF8(val["capeInfo"]["id"].AsString());
-        }
+    }
+    if (val.contains("minorVersion")) {
+        inst->minorVersion = val["minorVersion"].get<int>();
+    }
+    if (val.contains("majorVersion")) {
+        inst->majorVersion = val["majorVersion"].get<int>();
+    }
+    if (val.contains("capeInfo")) {
+        inst->pixelControllerType = (val["capeInfo"]["id"].get<std::string>());
+    }
 
-        std::string file = "co-pixelStrings";
-        if (inst->platform.find("Beagle") != std::string::npos) {
-            file = "co-bbbStrings";
+    std::string file = "co-pixelStrings";
+    if (inst->platform.find("Beagle") != std::string::npos) {
+        file = "co-bbbStrings";
+    }
+    std::string baseUrl;
+    std::string host = inst->ip;
+    std::string baseIp = inst->ip;
+    if (inst->proxy != "") {
+        baseIp = inst->proxy;
+        baseUrl = "/proxy/" + inst->ip;
+    }
+    discovery.AddCurl(baseIp, baseUrl + "/api/channel/output/" + file,
+                        [&discovery, host] (int rc, const std::string &buffer, const std::string &err) {
+        if (rc == 200) {
+            ProcessFPPChannelOutput(discovery, host, buffer);
         }
-        std::string baseUrl = "";
-        std::string host = inst->ip;
-        std::string baseIp = inst->ip;
-        if (inst->proxy != "") {
-            baseIp = inst->proxy;
-            baseUrl = "/proxy/" + inst->ip;
+        return true;
+    });
+    discovery.AddCurl(baseIp, baseUrl + "/api/channel/output/channelOutputsJSON",
+                        [&discovery, host] (int rc, const std::string &buffer, const std::string &err) {
+        if (rc == 200) {
+            ProcessFPPChannelOutput(discovery, host, buffer);
         }
-        discovery.AddCurl(baseIp, baseUrl + "/api/channel/output/" + file,
-                          [&discovery, host] (int rc, const std::string &buffer, const std::string &err) {
-            if (rc == 200) {
-                ProcessFPPChannelOutput(discovery, host, buffer);
-            }
-            return true;
-        });
-        discovery.AddCurl(baseIp, baseUrl + "/api/channel/output/channelOutputsJSON",
-                          [&discovery, host] (int rc, const std::string &buffer, const std::string &err) {
-            if (rc == 200) {
-                ProcessFPPChannelOutput(discovery, host, buffer);
-            }
-            return true;
-        });
-        discovery.AddCurl(baseIp, baseUrl + "/api/channel/output/co-other",
-                          [&discovery, host] (int rc, const std::string &buffer, const std::string &err) {
-            if (rc == 200) {
-                ProcessFPPChannelOutput(discovery, host, buffer);
-            }
-            return true;
-        });
-        discovery.AddCurl(baseIp, baseUrl + "/api/playlists",
-                          [&discovery, host, inst] (int rc, const std::string &buffer, const std::string &err) {
-            if (rc == 200) {
-                wxJSONValue val;
-                wxJSONReader reader;
-                if (reader.Parse(buffer, &val) == 0) {
-                    inst->extraData["playlists"] = val;
-                }
-            }
-            return true;
-        });
-        discovery.AddCurl(baseIp, baseUrl + "/api/cape",
-                          [&discovery, host, inst, baseUrl, baseIp] (int rc, const std::string &buffer, const std::string &err) {
-            if (rc == 200) {
-                wxJSONValue val;
-                wxJSONReader reader;
-                if (reader.Parse(buffer, &val) == 0) {
-                    inst->extraData["cape"] = val;
-                }
-            }
-            return true;
-        });
-        if (inst->proxy == "") {
-            discovery.AddCurl(baseIp, "/api/proxies",
-                              [&discovery, host] (int rc, const std::string &buffer, const std::string &err) {
-                if (rc == 200) {
-                    ProcessFPPProxies(discovery, host, buffer);
-                }
-                return true;
-            });
+        return true;
+    });
+    discovery.AddCurl(baseIp, baseUrl + "/api/channel/output/co-other",
+                        [&discovery, host] (int rc, const std::string &buffer, const std::string &err) {
+        if (rc == 200) {
+            ProcessFPPChannelOutput(discovery, host, buffer);
         }
+        return true;
+    });
+    discovery.AddCurl(baseIp, baseUrl + "/api/playlists",
+                        [&discovery, host, inst] (int rc, const std::string &buffer, const std::string &err) {
+        if (rc == 200) {
+            try {
+                nlohmann::json val = nlohmann::json::parse(buffer);
+                inst->extraData["playlists"] = val;
+            } catch (nlohmann::json::parse_error& e) {
+            }
+        }
+        return true;
+    });
+    discovery.AddCurl(baseIp, baseUrl + "/api/cape",
+                        [&discovery, host, inst, baseUrl, baseIp] (int rc, const std::string &buffer, const std::string &err) {
+        if (rc == 200) {
+            try {
+                nlohmann::json val = nlohmann::json::parse(buffer);
+                inst->extraData["cape"] = val;
+            } catch (nlohmann::json::parse_error& e) {
+            }
+        }
+        return true;
+    });
+    if (inst->proxy == "") {
+        discovery.AddCurl(baseIp, "/api/proxies",
+                            [&discovery, host] (int rc, const std::string &buffer, const std::string &err) {
+            if (rc == 200) {
+                ProcessFPPProxies(discovery, host, buffer);
+            }
+            return true;
+        });
     }
 }
 
@@ -3729,7 +3725,7 @@ bool FPP::supportedForFPPConnect() const {
         return true;
     }
     if (this->IsVersionAtLeast(6, 3, 3)) {
-        if (capeInfo.HasMember("verifiedKeyId")) {
+        if (capeInfo.contains("verifiedKeyId")) {
             return true;
         }
     }
@@ -3741,7 +3737,7 @@ static bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputMan
         return false;
     }
     if (res->typeId < 0x80) {
-        if (res->extraData.HasMember("httpConnected") && res->extraData["httpConnected"].AsBool() == true) {
+        if (res->extraData.contains("httpConnected") && res->extraData["httpConnected"].get<bool>() == true) {
             // genuine FPP instance and able to connect via http
             return true;
         } else {
@@ -3858,12 +3854,12 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
                 fpp->controllerModel = res->model;
                 fpp->controllerVariant = res->variant;
                 TypeIDtoControllerType(res->typeId, fpp);
-                if (res->extraData.HasMember("playlists")) {
-                    for (int x = 0; x < res->extraData["playlists"].Size(); x++) {
-                        fpp->playlists.push_back(res->extraData["playlists"][x].AsString());
+                if (res->extraData.contains("playlists")) {
+                    for (int x = 0; x < res->extraData["playlists"].size(); x++) {
+                        fpp->playlists.push_back(res->extraData["playlists"][x].get<std::string>());
                     }
                 }
-                if (res->extraData.HasMember("cape")) {
+                if (res->extraData.contains("cape")) {
                     fpp->capeInfo = res->extraData["cape"];
                 }
                 auto it = configuredIPs.find(res->ip);
@@ -3899,12 +3895,12 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
                 setIfEmpty(fpp->patchVersion, res->patchVersion);
                 setIfEmpty(fpp->majorVersion, res->majorVersion);
                 TypeIDtoControllerType(res->typeId, fpp);
-                if (fpp->playlists.empty() && res->extraData.HasMember("playlists")) {
-                    for (int x = 0; x < res->extraData["playlists"].Size(); x++) {
-                        fpp->playlists.push_back(res->extraData["playlists"][x].AsString());
+                if (fpp->playlists.empty() && res->extraData.contains("playlists")) {
+                    for (int x = 0; x < res->extraData["playlists"].size(); x++) {
+                        fpp->playlists.push_back(res->extraData["playlists"][x].get<std::string>());
                     }
                 }
-                if (res->extraData.HasMember("cape")) {
+                if (res->extraData.contains("cape")) {
                     fpp->capeInfo = res->extraData["cape"];
                 }
                 fpp->canZipUpload = res->controller;
@@ -3946,15 +3942,15 @@ std::vector<std::tuple<std::string, std::string>> FPP::GetProxies() {
     std::vector<std::tuple<std::string, std::string>> res;
 
     if (IsConnected()) {
-        wxJSONValue val;
+        nlohmann::json val;
         if (GetURLAsJSON("/api/proxies", val)) {
-            for (int x = 0; x < val.Size(); x++) {
-                if (val[x].IsString()) {
-                    logger_base.debug("FPP %s proxies %s.", (const char*)ipAddress.c_str(), (const char*)val[x].AsString().c_str());
-                    res.push_back({ ToUTF8(val[x].AsString()), std::string() });
-                } else if (val[x].IsObject()) { // FPP 8 change
-                    logger_base.debug("FPP %s proxies %s.", (const char*)ipAddress.c_str(), (const char*)val[x]["host"].AsString().c_str());
-                    res.push_back({ ToUTF8(val[x]["host"].AsString()), ToUTF8(val[x]["description"].AsString()) });
+            for (int x = 0; x < val.size(); x++) {
+                if (val[x].is_string()) {
+                    logger_base.debug("FPP %s proxies %s.", (const char*)ipAddress.c_str(), (const char*)val[x].get<std::string>().c_str());
+                    res.push_back({ (val[x].get<std::string>()), std::string() });
+                } else if (val[x].is_object()) { // FPP 8 change
+                    logger_base.debug("FPP %s proxies %s.", (const char*)ipAddress.c_str(), (const char*)val[x]["host"].get<std::string>().c_str());
+                    res.push_back({ (val[x]["host"].get<std::string>()), (val[x]["description"].get<std::string>()) });
                 }
             }
         }

@@ -17,9 +17,6 @@
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
 
-#include "../xSchedule/wxJSON/jsonreader.h"
-#include "../xSchedule/wxJSON/jsonwriter.h"
-
 #include <wx/datetime.h>
 #include <wx/msgdlg.h>
 #include <wx/progdlg.h>
@@ -183,15 +180,15 @@ void HinksPixSerial::Dump() const {
                       toStr(upload));
 }
 
-void HinksPixSerial::SetConfig(wxJSONValue const& data) {
-    e131Enabled = data.ItemAt("DMX_ACTIVE").AsInt();
-    e131Universe = data.ItemAt("DMX_UNIV").AsInt();
-    e131StartChannel = data.ItemAt("DMX_START").AsInt();
-    e131NumOfChan = data.ItemAt("DMX_CHAN_CNT").AsInt();
+void HinksPixSerial::SetConfig(nlohmann::json const& data) {
+    e131Enabled = data.at("DMX_ACTIVE").get<int>();
+    e131Universe = data.at("DMX_UNIV").get<int>();
+    e131StartChannel = data.at("DMX_START").get<int>();
+    e131NumOfChan = data.at("DMX_CHAN_CNT").get<int>();
 
-    ddpDMXEnabled = data.ItemAt("DDP_DMX_ACTIVE").AsInt();
-    ddpDMXStartChannel = data.ItemAt("DDP_DMX_START").AsInt();
-    ddpDMXNumOfChan = data.ItemAt("DDP_DMX_CHAN_CNT").AsInt();
+    ddpDMXEnabled = data.at("DDP_DMX_ACTIVE").get<int>();
+    ddpDMXStartChannel = data.at("DDP_DMX_START").get<int>();
+    ddpDMXNumOfChan = data.at("DDP_DMX_CHAN_CNT").get<int>();
 }
 
 wxString HinksPixSerial::BuildCommand() const {
@@ -288,24 +285,24 @@ bool HinksPix::InitControllerOutputData(bool fullControl, int defaultBrightness)
 
 void HinksPix::InitExpansionBoardData(int expansion, int startport, int length) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxJSONValue data;
+    nlohmann::json data;
 
     bool const worked = GetControllerDataJSON(GetJSONPortURL(), data, wxString::Format("BLK: %d", expansion - 1));
 
-    if (!worked || !data.HasMember("LIST")) {
+    if (!worked || !data.contains("LIST")) {
         logger_base.error("Invalid Data from controller");
         return;
     }
-    auto ports = data.ItemAt("LIST").AsArray();
+    auto ports = data.at("LIST").array();
 
-    if (ports->Count() != length) {
+    if (ports.size() != length) {
         logger_base.error("Data from controller size and Expansion Size don't match");
-        logger_base.error(data.ItemAt("LIST").AsString());
+        logger_base.error(data.at("LIST").get<std::string>());
         return;
     }
 
-    for (int i = 0; i < ports->Count(); i++) {
-        auto stringValue = ports->Item(i)["V"].AsString();
+    for (int i = 0; i < ports.size(); i++) {
+        auto stringValue = ports.at(i)["V"].get<std::string>();
         _pixelOutputs[(startport - 1) + i].SetConfig(stringValue);
     }
 }
@@ -321,18 +318,18 @@ std::unique_ptr<HinksPixSerial> HinksPix::InitSerialData(bool fullControl) {
             return serial;
         }
 
-        wxJSONValue data;
+        nlohmann::json data;
         bool const worked = GetControllerDataJSON(GetJSONModeURL(), data, "BLK: 0");
 
-        if (!worked || !data.HasMember("CMD")) {
+        if (!worked || !data.contains("CMD")) {
             logger_base.error("Invalid Data from controller");
             return serial;
         }
-        if (data.Size() != 0) {
+        if (data.size() != 0) {
             serial->SetConfig(data);
         } else {
             static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.error("Invalid Return data %s", (const char*)data.AsString().c_str());
+            logger_base.error("Invalid Return data %s", (const char*)data.get<std::string>().c_str());
         }
     }
 
@@ -374,10 +371,10 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
                                out->GetStartChannel(), out->GetChannels());
     }
 
-    wxJSONValue data;
+    nlohmann::json data;
     bool const worked = GetControllerDataJSON(GetJSONModeURL(), data, "BLK: 0");
 
-    if (!worked || !data.HasMember("CMD")) {
+    if (!worked || !data.contains("CMD")) {
         DisplayError("Getting HinksPix Input Mode FAILED.");
         return false;
     }
@@ -1011,12 +1008,16 @@ void HinksPix::PostToControllerNoResponse(std::string const& url, std::string co
     }
 }
 
-bool HinksPix::GetControllerDataJSON(const std::string& url, wxJSONValue& val, std::string const& data) const {
+bool HinksPix::GetControllerDataJSON(const std::string& url, nlohmann::json& val, std::string const& data) const {
     std::string const sval = GetJSONControllerData(url, data);
     if (!sval.empty()) {
-        wxJSONReader reader;
-        reader.Parse(sval, &val);
-        return true;
+        try {
+            val = nlohmann::json::parse(sval);
+            return true;
+        } catch (nlohmann::json::parse_error& e) {
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.error("HinksPix Outputs Upload: Failed to parse JSON from %s: %s", (const char*)url.c_str(), e.what());
+        }
     }
     return false;
 }
@@ -1129,7 +1130,7 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) :
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     //Get Controller Info
-    wxJSONValue data;
+    nlohmann::json data;
     _curl = curl_easy_init();
 
     for (int x = 0; x < 3; x++) {
@@ -1138,27 +1139,36 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) :
         }
     }
 
-    if (data.Size() > 0) {
+    if (data.size() > 0) {
         //get output type options
 
         for (int i = 0; i < EXP_PORTS; i++) {
-            _EXP_Outputs[i] = DecodeExpansionType(data.Get(wxString::Format("BD%d",i + 1), "N").AsString());
+            if (data.find("BD" + std::to_string(i + 1)) == data.end()) {
+                _EXP_Outputs[i] = EXPType::Not_Present;
+                continue;
+            }
+            _EXP_Outputs[i] = DecodeExpansionType(data.at("BD" + std::to_string(i + 1)).get<std::string>());
         }        
 
         _connected = true;
 
-        auto const pix_type = data.Get("Type", "").AsString();   //"P" for Pixel, "A" for AC
-        _controllerType = data.Get("Controller", "").AsString(); //"H" for Pro, "E" for EasyLights
+       auto const pix_type = data.at("Type").get<std::string>();   //"P" for Pixel, "A" for AC
+        _controllerType = data.at("Controller").get<std::string>(); //"H" for Pro, "E" for EasyLights
 
-        _numberOfUniverses = wxAtoi(data.Get("MaxU", "0").AsString());
+        if (data.contains("MaxU")) {
+            _numberOfUniverses = wxAtoi(data.at("MaxU").get<std::string>());
+        }
+        if (data.contains("MCPU") && data.contains("PCPU") && data.contains("ECPU") && data.contains("WEB")) {
+            _version = wxString::Format("MAIN:%s,POWER:%s,WIFI:%s,WEB:%s",
+                                        data.at("MCPU").get<std::string>().substr(3),
+                                        data.at("PCPU").get<std::string>().substr(3),
+                                        data.at("ECPU").get<std::string>().substr(3),
+                                        data.at("WEB").get<std::string>().substr(3));
+        }
 
-        _version = wxString::Format("MAIN:%s,POWER:%s,WIFI:%s,WEB:%s",
-                                    data.Get("MCPU", "0").AsString().Mid(3),
-                                    data.Get("PCPU", "0").AsString().Mid(3),
-                                    data.Get("ECPU", "0").AsString().Mid(3),
-                                    data.Get("WEB", "0").AsString().Mid(3));
-
-        _MCPU_Version = wxAtoi(data.Get("MCPU", "0").AsString().Mid(3));
+        if (data.contains("MCPU")) {
+            _MCPU_Version = std::stoi(data.at("MCPU").get<std::string>().substr(3));
+        }
 
         if (_controllerType == "E") {
             _model = "EasyLights Pix16";

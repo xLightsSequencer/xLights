@@ -56,8 +56,6 @@
 
 #include <log4cpp/Category.hh>
 
-#include "../xSchedule/wxJSON/jsonreader.h"
-
 #include <algorithm>
 
 #define MOST_STRINGS_WE_EXPECT 480

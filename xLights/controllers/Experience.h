@@ -19,7 +19,7 @@
 #include "ControllerUploadData.h"
 #include "../UtilClasses.h"
 
-class wxJSONValue;
+#include <nlohmann/json.hpp>
 
 class Experience : public BaseController
 {
@@ -41,9 +41,9 @@ class Experience : public BaseController
 #pragma endregion
 
 #pragma region Private Functions
-    [[nodiscard]] bool GetJSONData(std::string const& url, wxJSONValue& val) const;
-    std::string PostJSONToURL(std::string const& url, wxJSONValue const& val) const;
-    bool DecodeFirmwareInformation(wxString const& firmware);
+    [[nodiscard]] bool GetJSONData(std::string const& url, nlohmann::json& val) const;
+    std::string PostJSONToURL(std::string const& url, nlohmann::json const& val) const;
+    bool DecodeFirmwareInformation(std::string const& firmware);
     bool DecodeModelInformation(std::string const& model);
     [[nodiscard]] bool IsVersionAtLeast(int maj, int min, int patch) const;
 
@@ -77,7 +77,7 @@ public:
 
 #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-    [[nodiscard]] int32_t SetInputUniverses(wxJSONValue& data, Controller* controller);
+    [[nodiscard]] int32_t SetInputUniverses(nlohmann::json& data, Controller* controller);
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
 #endif
     [[nodiscard]] bool UsesHTTP() const override { return true; }

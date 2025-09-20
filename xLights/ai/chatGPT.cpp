@@ -1,4 +1,5 @@
 #include "chatGPT.h"
+#include <nlohmann/json.hpp>
 #include "ServiceManager.h"
 #include "utils/Curl.h"
 #include "UtilFunctions.h"
@@ -83,28 +84,28 @@ std::pair<std::string, bool> chatGPT::CallLLM(const std::string& prompt) const {
         return { response, false };
     }
 
-	wxJSONReader reader;
-	wxJSONValue root;
-    if (reader.Parse(response, &root) > 0)
-	{
-		logger_base.error("ChatGPT: Failed to parse response");
-        return { "ChatGPT: Failed to parse response", false };
-	}
+    nlohmann::json root;
+    try {
+        root = nlohmann::json::parse(response);
+    } catch (const std::exception&) {
+        logger_base.error("ChatGPT: Invalid JSON response: %s", response.c_str());
+        return { "ChatGPT: Invalid JSON response", false };
+    }
 
-	wxJSONValue choices = root["choices"];
-	if (choices.IsNull() || choices.Size() == 0) {
+	auto choices = root["choices"];
+    if (choices.is_null() || choices.size() == 0) {
 		logger_base.error("ChatGPT: No choices in response");
         return { "ChatGPT: No choices in response", false };
 	}
 
-	wxJSONValue choice = choices[0];
-	wxJSONValue text = choice["message"]["content"];
-	if (text.IsNull()) {
+	auto choice = choices[0];
+    auto text = choice["message"]["content"];
+    if (text.is_null()) {
 		logger_base.error("ChatGPT: No text in response");
         return { "ChatGPT: No text in response", false };
 	}
 
-	response = text.AsString();
+	response = text.get<std::string>();
 	logger_base.debug("ChatGPT: %s", response.c_str());
 
     return { response, true };

@@ -180,11 +180,10 @@ void DDPOutput::SendSync(const std::string& localIP) {
 }
 
 #ifndef EXCLUDENETWORKUI
-wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type, const std::string& localIP)
-{
+nlohmann::json DDPOutput::Query(const std::string& ip, uint8_t type, const std::string& localIP) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    wxJSONValue val;
+    nlohmann::json val;
 
     uint8_t packet[DDP_DISCOVERPACKET_LEN];
     memset(&packet, 0x00, sizeof(packet));
@@ -254,9 +253,11 @@ wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type, const std::str
                     if (response[3] == type) {
                         logger_base.debug(" Valid response.");
                         logger_base.debug((const char*)&response[10]);
-
-                        wxJSONReader reader;
-                        reader.Parse(wxString(&response[10]), &val);
+                        try {
+                            val = nlohmann::json::parse(std::string(reinterpret_cast<char*>(&response[10])));
+                        } catch (std::exception& e) {
+                            logger_base.error("DDP Query JSON Parse error %s", e.what());
+                        }
                     }
                 }
                 logger_base.info("DDP Query Done looking for response.");

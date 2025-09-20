@@ -20,7 +20,6 @@
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
 #include "../Discovery.h"
-#include "../xSchedule/wxJSON/jsonreader.h"
 #include "../utils/Curl.h"
 
 #include <log4cpp/Category.hh>

@@ -1117,6 +1117,7 @@
     <ClCompile Include="ai\ServiceManager.cpp">
       <Filter>ai</Filter>
     </ClCompile>
+    <ClCompile Include="ai\AIColorPaletteDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2226,10 +2227,7 @@
     <ClInclude Include="preferences\ServicesPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
-    <ClInclude Include="effects\ispc\VideoFunctions.ispc.h" />    
-    <ClInclude Include="ai\AIColorPaletteDialog.h">
-      <Filter>ai</Filter>
-    </ClInclude>
+    <ClInclude Include="effects\ispc\VideoFunctions.ispc.h" />
     <ClInclude Include="ai\aiBase.h">
       <Filter>ai</Filter>
     </ClInclude>

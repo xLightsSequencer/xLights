@@ -9,12 +9,11 @@
  * Copyright claimed based on commit dates recorded in Github
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
-
+#include <nlohmann/json.hpp>
 #include "IPOutput.h"
 #include <array>
 #include <wx/wx.h>
 
-class wxJSONValue;
 class wxDatagramSocket;
 class Discovery;
 
@@ -67,7 +66,7 @@ public:
 #pragma endregion
 
 #ifndef EXCLUDEDISCOVERY
-    static wxJSONValue Query(const std::string& ip, uint8_t type, const std::string& localIP);
+    static nlohmann::json Query(const std::string& ip, uint8_t type, const std::string& localIP);
     static void PrepareDiscovery(Discovery& discovery);
 #endif
 
@@ -100,7 +99,7 @@ private:
     static const short DISCOVERY_PORT = 5555;
 
     // make an http call and returns a json
-    bool MakeCall(const std::string& method, const std::string& path, wxJSONValue& result, const char* body = nullptr);
+    bool MakeCall(const std::string& method, const std::string& path, nlohmann::json& result, const char* body = nullptr);
 
     bool ReloadToken();
 
