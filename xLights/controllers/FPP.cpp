@@ -3134,7 +3134,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
 
     try {
         origJson = nlohmann::json::parse(systemsString);
-    } catch (nlohmann::json::parse_error& e) {
+    } catch (nlohmann::json::parse_error& /*e*/) {
         return;
     }
 
@@ -3301,7 +3301,7 @@ static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const
     nlohmann::json origJson;
     try {
         origJson = nlohmann::json::parse(proxies);
-    } catch (nlohmann::json::parse_error& e) {
+    } catch (nlohmann::json::parse_error& /*e*/) {
         return;
     }
     DiscoveredData *ipinst = discovery.FindByIp(ip, "", true);
@@ -3347,7 +3347,7 @@ static void ProcessFPPChannelOutput(Discovery &discovery, const std::string &ip,
     nlohmann::json val;
     try {
         val = nlohmann::json::parse(outputs);
-    } catch (nlohmann::json::parse_error& e) {
+    } catch (nlohmann::json::parse_error& /*e*/) {
         return;
     }
     DiscoveredData *inst = discovery.FindByIp(ip, "", true);
@@ -3398,7 +3398,7 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
 
     try {
         val = nlohmann::json::parse(sysInfo);
-    } catch (nlohmann::json::parse_error& e) {
+    } catch (nlohmann::json::parse_error& /*e*/) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("Could not parse sysinfo for %s(%s)", ip.c_str(), proxy.c_str());
         DiscoveredData* inst = discovery.FindByIp(ip, "", true);
@@ -3499,7 +3499,7 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
             try {
                 nlohmann::json val = nlohmann::json::parse(buffer);
                 inst->extraData["playlists"] = val;
-            } catch (nlohmann::json::parse_error& e) {
+            } catch (nlohmann::json::parse_error& /*e*/) {
             }
         }
         return true;
@@ -3510,7 +3510,7 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
             try {
                 nlohmann::json val = nlohmann::json::parse(buffer);
                 inst->extraData["cape"] = val;
-            } catch (nlohmann::json::parse_error& e) {
+            } catch (nlohmann::json::parse_error& /*e*/) {
             }
         }
         return true;

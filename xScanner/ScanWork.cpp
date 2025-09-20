@@ -13,7 +13,6 @@
 #include "xScannerApp.h"
 #include "../xLights/utils/Curl.h"
 #include "../xLights/UtilFunctions.h"
-#include "../xSchedule/wxJSON/jsonreader.h"
 #include "../xLights/controllers/Falcon.h"
 #include "../xLights/controllers/Pixlite16.h"
 #include "../xLights/outputs/ControllerEthernet.h"
@@ -24,8 +23,9 @@
 #include "../xLights/outputs/ArtNetOutput.h"
 #include "../xLights/outputs/TwinklyOutput.h"
 #include "../xLights/controllers/FPP.h"
-#include "../xLights/outputs/ControllerEthernet.h"
 #include "MAC.h"
+
+#include <nlohmann/json.hpp>
 
 #include <log4cpp/Category.hh>
 
@@ -665,34 +665,36 @@ void FalconWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 			if (p == 128 || p == 129) {
 				Falcon falcon(_ip, _proxy);
 				if (falcon.IsConnected()) {
-					wxJSONValue status = falcon.V4_GetStatus();
-					if (status.HasMember("O")) results.push_back({ "Mode", falcon.V4_DecodeMode(status["O"].AsInt()) });
-					if (status.HasMember("B") && status["WI"].AsString() != "") {
-						results.push_back({ "WIFI IP", "WIFI: " + status["WI"].AsString() + " : " + status["WK"].AsString() + " : " + status["WS"].AsString() });
-						workManager.AddIP(status["WI"].AsString(), "");
+					auto status = falcon.V4_GetStatus();
+                    if (status.contains("O")) {
+                        results.push_back({ "Mode", falcon.V4_DecodeMode(status["O"].get<int>()) });
+                    }
+                    if (status.contains("B") && status["WI"].get<std::string>() != "") {
+                        results.push_back({ "WIFI IP", "WIFI: " + status["WI"].get<std::string>() + " : " + status["WK"].get<std::string>() + " : " + status["WS"].get<std::string>() });
+                        workManager.AddIP(status["WI"].get<std::string>(), "");
 					}
-					if (status.HasMember("I") && status["I"].AsString() != "") {
-						results.push_back({ "ETH IP", "Wired: " + status["I"].AsString() + " : " + status["K"].AsString() });
-						workManager.AddIP(status["I"].AsString(), "");
+                    if (status.contains("I") && status["I"].get<std::string>() != "") {
+                        results.push_back({ "ETH IP", "Wired: " + status["I"].get<std::string>() + " : " + status["K"].get<std::string>() });
+						workManager.AddIP(status["I"].get<std::string>(), "");
 					}
-					results.push_back({ "Model", wxString::Format("F%dv4", status["BR"].AsInt()).ToStdString() });
-					if (status.HasMember("TS") && status["TS"].AsInt() != 0) {
+                    results.push_back({ "Model", wxString::Format("F%dv4", status["BR"].get<int>()).ToStdString() });
+                    if (status.contains("TS") && status["TS"].get<int>() != 0) {
 						results.push_back({ "Test Mode", "Enabled" });
 					}
-					if (status.HasMember("SD")) results.push_back({ "DHCP", (status["SD"].AsString() == "D" ? "DHCP" : "Static") });
-					if (status.HasMember("WSD")) results.push_back({ "WDHCP", (status["WSD"].AsString() == "D" ? "DHCP" : "Static") });
-					if (status.HasMember("D")) results.push_back({ "DNS", status["D"].AsString() });
-					if (status.HasMember("G")) results.push_back({ "Gateway", status["G"].AsString() });
-					if (status.HasMember("WD")) results.push_back({ "WiFi DNS", status["WD"].AsString() });
-					if (status.HasMember("WG")) results.push_back({ "WiFi Gateway", status["WG"].AsString() });
-					if (status.HasMember("N")) results.push_back({ "Name", status["N"].AsString()});
-					if (status.HasMember("T1")) results.push_back({ "Temp1", wxString::Format("%.1fC", (float)status["T1"].AsInt() / 10.0).ToStdString() });
-					if (status.HasMember("T2")) results.push_back({ "Temp2", wxString::Format("%.1fC", (float)status["T2"].AsInt() / 10.0).ToStdString() });
-					if (status.HasMember("PT")) results.push_back({ "Processor Temp", wxString::Format("%.1fC", (float)status["PT"].AsInt() / 10.0).ToStdString() });
-					if (status.HasMember("FN")) results.push_back({ "Fan Speed", wxString::Format("%d RPM", status["FN"].AsInt()).ToStdString() });
-					if (status.HasMember("V1")) results.push_back({ "V1", wxString::Format("%.1fV", (float)status["V1"].AsInt() / 10.0).ToStdString() });
-					if (status.HasMember("V2")) results.push_back({ "V2", wxString::Format("%.1fV", (float)status["V2"].AsInt() / 10.0).ToStdString() });
-					if (status.HasMember("B")) results.push_back({"Board Configuration", falcon.V4_DecodeBoardConfiguration(status["B"].AsInt())});
+					if (status.contains("SD")) results.push_back({ "DHCP", (status["SD"].get<std::string>() == "D" ? "DHCP" : "Static") });
+					if (status.contains("WSD")) results.push_back({ "WDHCP", (status["WSD"].get<std::string>() == "D" ? "DHCP" : "Static") });
+					if (status.contains("D")) results.push_back({ "DNS", status["D"].get<std::string>() });
+					if (status.contains("G")) results.push_back({ "Gateway", status["G"].get<std::string>() });
+					if (status.contains("WD")) results.push_back({ "WiFi DNS", status["WD"].get<std::string>() });
+					if (status.contains("WG")) results.push_back({ "WiFi Gateway", status["WG"].get<std::string>() });
+					if (status.contains("N")) results.push_back({ "Name", status["N"].get<std::string>()});
+					if (status.contains("T1")) results.push_back({ "Temp1", wxString::Format("%.1fC", (float)status["T1"].get<int>() / 10.0).ToStdString() });
+					if (status.contains("T2")) results.push_back({ "Temp2", wxString::Format("%.1fC", (float)status["T2"].get<int>() / 10.0).ToStdString() });
+					if (status.contains("PT")) results.push_back({ "Processor Temp", wxString::Format("%.1fC", (float)status["PT"].get<int>() / 10.0).ToStdString() });
+					if (status.contains("FN")) results.push_back({ "Fan Speed", wxString::Format("%d RPM", status["FN"].get<int>()).ToStdString() });
+					if (status.contains("V1")) results.push_back({ "V1", wxString::Format("%.1fV", (float)status["V1"].get<int>() / 10.0).ToStdString() });
+					if (status.contains("V2")) results.push_back({ "V2", wxString::Format("%.1fV", (float)status["V2"].get<int>() / 10.0).ToStdString() });
+					if (status.contains("B")) results.push_back({"Board Configuration", falcon.V4_DecodeBoardConfiguration(status["B"].get<int>())});
 				}
 			}
 			else {
