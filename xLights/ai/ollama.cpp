@@ -169,7 +169,7 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
     }
 
     try {
-        nlohmann::json root = nlohmann::json::parse(schema);
+        nlohmann::json root = nlohmann::json::parse(response);
 
         if (root.contains("response") && root["response"].is_string()) {
             auto const color_responce = root["response"].get<std::string>();
@@ -178,7 +178,7 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
             try {
                 // Check if the response is valid JSON
                 nlohmann::json const color_root = nlohmann::json::parse(color_responce);
-                if (color_root.contains("colors") && color_root["colors"].is_binary()) {
+                if (color_root.contains("colors") && color_root["colors"].is_array()) {
                     aiBase::AIColorPalette ret;
                     ret.description = prompt;
                     for (int x = 0; x < color_root["colors"].size(); x++) {
