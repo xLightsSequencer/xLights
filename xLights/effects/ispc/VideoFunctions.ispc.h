@@ -34,17 +34,30 @@ struct uint8_t4 { uint8_t v[4]; } __attribute__ ((aligned(4)));
 
 
 
-#ifndef __ISPC_ALIGN__
+/* Portable alignment macro that works across different compilers and standards */
+#if defined(__cplusplus) && __cplusplus >= 201103L
+/* C++11 or newer - use alignas keyword */
+#define __ISPC_ALIGN__(x) alignas(x)
+#elif defined(__GNUC__) || defined(__clang__)
+/* GCC or Clang - use __attribute__ */
+#define __ISPC_ALIGN__(x) __attribute__((aligned(x)))
+#elif defined(_MSC_VER)
+/* Microsoft Visual C++ - use __declspec */
+#define __ISPC_ALIGN__(x) __declspec(align(x))
+#else
+/* Unknown compiler/standard - alignment not supported */
+#define __ISPC_ALIGN__(x)
+#warning "Alignment not supported on this compiler"
+#endif // defined(__cplusplus) && __cplusplus >= 201103L
+#ifndef __ISPC_ALIGNED_STRUCT__
 #if defined(__clang__) || !defined(_MSC_VER)
 // Clang, GCC, ICC
-#define __ISPC_ALIGN__(s) __attribute__((aligned(s)))
 #define __ISPC_ALIGNED_STRUCT__(s) struct __ISPC_ALIGN__(s)
 #else
 // Visual Studio
-#define __ISPC_ALIGN__(s) __declspec(align(s))
 #define __ISPC_ALIGNED_STRUCT__(s) __ISPC_ALIGN__(s) struct
-#endif
-#endif
+#endif // defined(__clang__) || !defined(_MSC_VER)
+#endif // __ISPC_ALIGNED_STRUCT__
 
 #ifndef __ISPC_STRUCT_VideoData__
 #define __ISPC_STRUCT_VideoData__
