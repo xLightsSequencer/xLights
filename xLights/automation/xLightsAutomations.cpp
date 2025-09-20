@@ -1301,8 +1301,7 @@ std::string xLightsFrame::ProcessxlDoAutomation(const std::string& msg)
             return "{\"res\":504,\"msg\":\"Missing cmd.\"}";
         } else {
             for (auto [mn, v] : val.items()) {
-                nlohmann::json v = val[mn];
-                if (mn == "cmd") {
+                   if (mn == "cmd") {
                     paths.push_back(v.get<std::string>());
                 } else if (v.is_string()) {
                     paramMap[mn] = v.get<std::string>();
