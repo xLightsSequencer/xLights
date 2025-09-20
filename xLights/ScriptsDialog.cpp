@@ -31,6 +31,7 @@
 #include <wx/stdpaths.h>
 #include <wx/txtstrm.h>
 #include <utils/Curl.h>
+#include <nlohmann/json.hpp>
 
 
 //(*IdInit(ScriptsDialog)
@@ -293,20 +294,25 @@ void ScriptsDialog::OnButton_DownloadClick(wxCommandEvent& event)
     //https://api.github.com/repos/xLightsSequencer/xLights/contents/scripts
     std::string json_data = Curl::HTTPSGet(R"(https://api.github.com/repos/xLightsSequencer/xLights/contents/scripts)");
     std::vector<std::pair<wxString, wxString>> scripts = std::vector<std::pair<wxString, wxString>>();
-    wxJSONValue val;
-    wxJSONReader reader;
-    if (reader.Parse(wxString(json_data), &val) == 0) {
-        if (val.IsArray()) {
-            for (int x = 0; x < val.Size(); x++) {
-                auto name = val.ItemAt(x).Get("name", "").AsString();
-                auto link = val.ItemAt(x).Get("download_url", "").AsString();
-                auto type = val.ItemAt(x).Get("type", "").AsString();
-                if (!name.empty() && !link.empty() && type == "file") {
-                    scripts.emplace_back(name, link);
+
+    try {
+        nlohmann::json val = nlohmann::json::parse(json_data);
+        if (val.is_array()) {
+            for (const auto& item : val) {
+                if (item.is_object() && item.contains("name") && item.contains("download_url") && item.contains("type")) {
+                    auto name = item.at("name").get<std::string>();
+                    auto link = item.at("download_url").get<std::string>();
+                    auto type = item.at("type").get<std::string>();
+
+                    if (type == "file" && !name.empty() && !link.empty()) {
+                        scripts.emplace_back(name, link);
+                    }
                 }
             }
         }
-    }
+        
+    } catch (std::exception )
+    {}
     wxArrayString itemList;
     std::transform(scripts.begin(), scripts.end(),
                            std::back_inserter(itemList), [](auto const& str) { return str.first; });

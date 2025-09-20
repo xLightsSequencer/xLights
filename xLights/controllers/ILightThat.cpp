@@ -33,9 +33,6 @@ ILightThat::ILightThat(const std::string& ip, const std::string& proxy) :
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::string const json = GetURL("/settings");
     if (!json.empty()) {
-        //wxJSONValue jsonVal;
-        //wxJSONReader reader;
-        //reader.Parse(json, &jsonVal);
         _connected = true;
         logger_base.debug("Connected to ILightThat controller model %s.", (const char*)GetFullName().c_str());
     } else {

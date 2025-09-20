@@ -9,6 +9,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <nlohmann/json.hpp>
+
 #include <wx/msgdlg.h>
 #include <wx/regex.h>
 
@@ -1112,17 +1114,18 @@ bool Pixlite16::GetMK3Config()
 {
     if (_mk3APIVersion == "") {
         _mk3Ver = Curl::HTTPSGet("http://" + _ip + "/ver", "", "");
+        try {
+            nlohmann::json jsonVal = nlohmann::json::parse(_mk3Ver);
 
-        wxJSONValue jsonVal;
-        wxJSONReader reader;
-        reader.Parse(_mk3Ver, &jsonVal);
+            if (!jsonVal.is_null()) {
+                _mk3APIVersion = jsonVal["result"]["apiVer"][0]["maj"].get<std::string>() + "." + wxString::Format("%d", jsonVal["result"]["apiVer"][0]["min"][1].get<int>());
+                _config._modelName = jsonVal["result"]["prodName"].get<std::string>();
+                _config._firmwareVersion = jsonVal["result"]["fwVer"].get<std::string>();
+                _config._nickname = jsonVal["result"]["nickname"].get<std::string>();
+                _config._brand = jsonVal["result"]["oem"].get<int>();
+            }
+        } catch (std::exception) {
 
-        if (jsonVal.IsValid() && !jsonVal.IsNull()) {
-            _mk3APIVersion = jsonVal["result"]["apiVer"][0]["maj"].AsString() + "." + wxString::Format("%d", jsonVal["result"]["apiVer"][0]["min"][1].AsInt());
-            _config._modelName = jsonVal["result"]["prodName"].AsString();
-            _config._firmwareVersion = jsonVal["result"]["fwVer"].AsString();
-            _config._nickname = jsonVal["result"]["nickname"].AsString();
-            _config._brand = jsonVal["result"]["oem"].AsInt();
         }
     }
 
@@ -1130,70 +1133,70 @@ bool Pixlite16::GetMK3Config()
         std::string request = "{\"req\":\"configRead\",\"id\":1,\"params\":{\"path\":[\"\"]}}";
         _mk3Config = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "JSON");
 
-        wxJSONValue jsonVal;
-        wxJSONReader reader;
-        reader.Parse(_mk3Config, &jsonVal);
+        try {
+            nlohmann::json jsonVal = nlohmann::json::parse(_mk3Config);
+            if (!jsonVal.is_null()) {
+                _config._protocol = jsonVal["result"]["config"]["pix"]["dataSrc"].get<std::string>() == "Art-Net" ? 1 : 0;
+                _config._holdLastFrame = jsonVal["result"]["config"]["pix"]["holdLastFrm"].get<bool>();
+                _config._numOutputs = jsonVal["result"]["config"]["pixPort"]["pixCount"].array().size();
+                _config._currentDriverExpanded = jsonVal["result"]["config"]["pix"]["expand"].get<bool>();
+                _config._realOutputs = _config._numOutputs;
+                if (!_config._currentDriverExpanded) {
+                    _config._realOutputs /= 2;
+                }
+                _config._outputPixels.resize(_config._numOutputs);
+                _config._outputUniverse.resize(_config._numOutputs);
+                _config._outputStartChannel.resize(_config._numOutputs);
+                _config._outputNullPixels.resize(_config._numOutputs);
+                _config._outputZigZag.resize(_config._numOutputs);
+                _config._outputReverse.resize(_config._numOutputs);
+                _config._outputColourOrder.resize(_config._numOutputs);
+                _config._outputGrouping.resize(_config._numOutputs);
+                _config._outputBrightness.resize(_config._numOutputs);
 
-        if (jsonVal.IsValid() && !jsonVal.IsNull()) {
-            _config._protocol = jsonVal["result"]["config"]["pix"]["dataSrc"].AsString() == "Art-Net" ? 1 : 0;
-            _config._holdLastFrame = jsonVal["result"]["config"]["pix"]["holdLastFrm"].AsBool();
-            _config._numOutputs = jsonVal["result"]["config"]["pixPort"]["pixCount"].AsArray()->Count();
-            _config._currentDriverExpanded = jsonVal["result"]["config"]["pix"]["expand"].AsBool();
-            _config._realOutputs = _config._numOutputs;
-            if (!_config._currentDriverExpanded) {
-                _config._realOutputs /= 2;
-            }
-            _config._outputPixels.resize(_config._numOutputs);
-            _config._outputUniverse.resize(_config._numOutputs);
-            _config._outputStartChannel.resize(_config._numOutputs);
-            _config._outputNullPixels.resize(_config._numOutputs);
-            _config._outputZigZag.resize(_config._numOutputs);
-            _config._outputReverse.resize(_config._numOutputs);
-            _config._outputColourOrder.resize(_config._numOutputs);
-            _config._outputGrouping.resize(_config._numOutputs);
-            _config._outputBrightness.resize(_config._numOutputs);
+                for (uint32_t i = 0; i < _config._numOutputs; ++i) {
+                    _config._outputPixels[i] = jsonVal["result"]["config"]["pixPort"]["pixCount"][i].get<int>();
+                    _config._outputUniverse[i] = jsonVal["result"]["config"]["pixPort"]["startUni"][i].get<int>();
+                    _config._outputStartChannel[i] = jsonVal["result"]["config"]["pixPort"]["startCh"][i].get<int>();
+                    _config._outputNullPixels[i] = jsonVal["result"]["config"]["pixPort"]["startCh"][i].get<int>();
+                    _config._outputZigZag[i] = jsonVal["result"]["config"]["pixPort"]["zigZag"][i].get<int>();
+                    _config._outputReverse[i] = jsonVal["result"]["config"]["pixPort"]["reverse"][i].get<bool>();
+                    _config._outputColourOrder[i] = EncodeColourOrder(jsonVal["result"]["config"]["pixPort"]["startCh"][i].get<std::string>());
+                    _config._outputGrouping[i] = jsonVal["result"]["config"]["pixPort"]["group"][i].get<int>();
+                    _config._outputBrightness[i] = jsonVal["result"]["config"]["pixPort"]["intensity"][i].get<int>();
+                }
+                _config._numDMX = jsonVal["result"]["config"]["auxPort"]["uni"].array().size();
+                _config._dmxUniverse.resize(_config._numDMX);
+                _config._dmxOn.resize(_config._numDMX);
+                _config._realDMX = 0;
+                for (uint32_t i = 0; i < _config._numDMX; ++i) {
+                    _config._dmxUniverse[i] = jsonVal["result"]["config"]["auxPort"]["uni"][i].get<int>();
+                    _config._dmxOn[i] = jsonVal["result"]["config"]["auxPort"]["mode"][i].get<std::string>() == "DMX512Out" ? 1 : 0;
+                    if (_config._dmxOn[i])
+                        ++_config._realDMX;
+                }
 
-            for (uint32_t i = 0; i < _config._numOutputs; ++i) {
-                _config._outputPixels[i] = jsonVal["result"]["config"]["pixPort"]["pixCount"][i].AsInt();
-                _config._outputUniverse[i] = jsonVal["result"]["config"]["pixPort"]["startUni"][i].AsInt();
-                _config._outputStartChannel[i] = jsonVal["result"]["config"]["pixPort"]["startCh"][i].AsInt();
-                _config._outputNullPixels[i] = jsonVal["result"]["config"]["pixPort"]["startCh"][i].AsInt();
-                _config._outputZigZag[i] = jsonVal["result"]["config"]["pixPort"]["zigZag"][i].AsInt();
-                _config._outputReverse[i] = jsonVal["result"]["config"]["pixPort"]["reverse"][i].AsBool();
-                _config._outputColourOrder[i] = EncodeColourOrder(jsonVal["result"]["config"]["pixPort"]["startCh"][i].AsString());
-                _config._outputGrouping[i] = jsonVal["result"]["config"]["pixPort"]["group"][i].AsInt();
-                _config._outputBrightness[i] = jsonVal["result"]["config"]["pixPort"]["intensity"][i].AsInt();
-            }
-            _config._numDMX = jsonVal["result"]["config"]["auxPort"]["uni"].AsArray()->Count();
-            _config._dmxUniverse.resize(_config._numDMX);
-            _config._dmxOn.resize(_config._numDMX);
-            _config._realDMX = 0;
-            for (uint32_t i = 0; i < _config._numDMX; ++i) {
-                _config._dmxUniverse[i] = jsonVal["result"]["config"]["auxPort"]["uni"][i].AsInt();
-                _config._dmxOn[i] = jsonVal["result"]["config"]["auxPort"]["mode"][i].AsString() == "DMX512Out" ? 1 : 0;
-                if (_config._dmxOn[i])
-                    ++_config._realDMX;
-            }
-
-            _config._protocolName = jsonVal["result"]["config"]["pix"]["pixType"].AsString();
-            _config._currentDriverSpeed = jsonVal["result"]["config"]["pix"]["freq"].AsInt();
-            _config._pixelsCanBeSplit = jsonVal["result"]["config"]["pix"]["pixsSpanUni"].AsBool();
+                _config._protocolName = jsonVal["result"]["config"]["pix"]["pixType"].get<std::string>();
+                _config._currentDriverSpeed = jsonVal["result"]["config"]["pix"]["freq"].get<int>();
+                _config._pixelsCanBeSplit = jsonVal["result"]["config"]["pix"]["pixsSpanUni"].get<bool>();
             
-            _config._gamma.resize(3);
-            for (uint8_t i = 0; i < 3; ++i) {
-                if (jsonVal["result"]["config"]["pix"]["gammaOn"].AsBool()) {
-                    _config._gamma[i] = jsonVal["result"]["config"]["pix"]["gamma"][i].AsDouble() * 10;
+                _config._gamma.resize(3);
+                for (uint8_t i = 0; i < 3; ++i) {
+                    if (jsonVal["result"]["config"]["pix"]["gammaOn"].get<bool>()) {
+                        _config._gamma[i] = jsonVal["result"]["config"]["pix"]["gamma"][i].get<double>() * 10;
+                    }
+                    else
+                    {
+                        _config._gamma[i] = 0;
+                    }
                 }
-                else
-                {
-                    _config._gamma[i] = 0;
-                }
+
+                request = "{\"req\":\"constantRead\",\"id\":1,\"params\":{\"path\":[\"\"]}}";
+                _mk3Constants = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "JSON");
+
+                return true;
             }
-
-            request = "{\"req\":\"constantRead\",\"id\":1,\"params\":{\"path\":[\"\"]}}";
-            _mk3Constants = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "JSON");
-
-            return true;
+        } catch (std::exception) {
         }
     }
 
@@ -1328,33 +1331,35 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
             char cdata[8096];
             memset(cdata, 0x00, sizeof(cdata));
             memcpy(cdata, &data[12], std::min(sizeof(cdata), (size_t)len - 12));
+            try {
+            
+                nlohmann::json jsonVal = nlohmann::json::parse(cdata);
 
-            wxJSONValue jsonVal;
-            wxJSONReader reader;
-            reader.Parse(cdata, &jsonVal);
+                if (!jsonVal.is_null()) {
+                    logger_base.debug("Found PixLite MK3 controller on %s.", (const char*)jsonVal["ipAddr"].get<std::string>().c_str());
+                    logger_base.debug("    Model %s %s.", (const char*)jsonVal["prodName"].get<std::string>().c_str(), (const char*)jsonVal["fwVer"].get<std::string>().c_str());
+                    logger_base.debug("    Nickname %s.", (const char*)jsonVal["nickname"].get<std::string>().c_str());
 
-            if (jsonVal.IsValid() && !jsonVal.IsNull()) {
-                logger_base.debug("Found PixLite MK3 controller on %s.", (const char*)jsonVal["ipAddr"].AsString().c_str());
-                logger_base.debug("    Model %s %s.", (const char*)jsonVal["prodName"].AsString().c_str(), (const char*)jsonVal["fwVer"].AsString().c_str());
-                logger_base.debug("    Nickname %s.", (const char*)jsonVal["nickname"].AsString().c_str());
+                    std::string protocol = OUTPUT_E131;
 
-                std::string protocol = OUTPUT_E131;
-
-                Pixlite16 p(jsonVal["ipAddr"].AsString());
-                if (p.IsConnected()) {
-                    if (p._config._protocol == 1) {
-                        protocol = OUTPUT_ARTNET;
+                    Pixlite16 p(jsonVal["ipAddr"].get<std::string>());
+                    if (p.IsConnected()) {
+                        if (p._config._protocol == 1) {
+                            protocol = OUTPUT_ARTNET;
+                        }
                     }
-                }
 
-                auto eth = new ControllerEthernet(discovery.GetOutputManager(), false);
-                eth->SetIP(jsonVal["ipAddr"].AsString());
-                eth->SetProtocol(protocol); // this may not be true ... but I need to call a different api to work it out
-                eth->SetName(jsonVal["nickname"].AsString());
-                eth->EnsureUniqueId();
-                eth->SetVendor("Advatek");
-                eth->SetModel(jsonVal["prodName"].AsString());
-                discovery.AddController(eth);
+                    auto eth = new ControllerEthernet(discovery.GetOutputManager(), false);
+                    eth->SetIP(jsonVal["ipAddr"].get<std::string>());
+                    eth->SetProtocol(protocol); // this may not be true ... but I need to call a different api to work it out
+                    eth->SetName(jsonVal["nickname"].get<std::string>());
+                    eth->EnsureUniqueId();
+                    eth->SetVendor("Advatek");
+                    eth->SetModel(jsonVal["prodName"].get<std::string>());
+                    discovery.AddController(eth);
+                }
+            } catch (std::exception &ex) {
+                logger_base.error("MK3 discovery JSON parse error: %s.", ex.what());
             }
         }
     });
@@ -1533,19 +1538,19 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     auto res = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "JSON");
 
-    logger_base.debug(res);
-
-    wxJSONValue jsonVal;
-    wxJSONReader reader;
-    reader.Parse(res, &jsonVal);
-
     bool result = false;
-    if (jsonVal.IsValid() && !jsonVal.IsNull()) {
-        if (jsonVal.HasMember("result")) {
-            result = jsonVal["result"]["saved"].AsBool() == true;
-        } else if (jsonVal.HasMember("err")) {
-            logger_base.error(jsonVal["err"]["msg"].AsString());
+
+    try {
+        nlohmann::json jsonVal = nlohmann::json::parse(res);
+        if ( !jsonVal.is_null()) {
+            if (jsonVal.contains("result")) {
+                result = jsonVal["result"]["saved"].get<bool>() == true;
+            } else if (jsonVal.contains("err")) {
+                logger_base.error(jsonVal["err"]["msg"].get<std::string>());
+            }
         }
+    } catch (const std::exception& ex) {
+        logger_base.error(ex.what());
     }
     return result;
 }

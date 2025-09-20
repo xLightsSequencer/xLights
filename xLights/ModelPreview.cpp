@@ -687,23 +687,23 @@ void ModelPreview::DrawGroupCentre(float x, float y)
         rs += 1.0;
         rs *= 12.0;
         float center_width = std::max(CENTER_MARK_WIDTH, CENTER_MARK_WIDTH * zoom * rs);
-        factor = center_width * 0.40; // adjust this for ideal size.
-        factor = MIN(MAX(factor, 1), 10); // sanity check
+        factor = center_width * 0.40f;                   // adjust this for ideal size.
+        factor = std::min(std::max((int)factor, 1), 10); // sanity check
         switch (crosshairChoice) {
         case 0:
-            factor *= 1.25;
+            factor *= 1.25f;
             break;
         case 1:
             // No changes needed
             break;
         case 2:
-            factor *= 0.5;
+            factor *= 0.5f;
             break;
         case 3:
-            factor *= 0.20;
+            factor *= 0.20f;
             break;
         case 4:
-            factor = 0;
+            factor = 0.0f;
             break;
         default:
             break;

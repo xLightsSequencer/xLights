@@ -239,28 +239,26 @@ std::string ESPixelStick::GetFromJSON(std::string const& section, std::string co
     //skip over the "G2" header or whatever
     for (int x = 0; x < json.size(); x++) {
         if (json[x] == '{' || json[x] == '[') {
-            wxJSONValue origJson;
-            wxJSONReader reader;
-            wxString config = json.substr(x);
-            reader.Parse(config, &origJson);
-            wxJSONValue val = origJson;
+            auto config = json.substr(x);
+            nlohmann::json origJson = nlohmann::json::parse(config);
+            nlohmann::json val = origJson;
             if (section != "") {
                 val = origJson[section];
             }
-            if(!val.HasMember(key))
+            if (!val.contains(key))
             { 
                 return "";
             }
 
-            val = val.ItemAt(key);
-            if (val.IsString()) {
-                return val.AsString().ToStdString();
+            val = val.at(key);
+            if (val.is_string()) {
+                return val.get<std::string>();
             }
-            if (val.IsInt()) {
-                return std::to_string(val.AsInt());
+            if (val.is_number_integer()) {
+                return std::to_string(val.get<int>());
             }
-            if (val.IsDouble()) {
-                return std::to_string(val.AsDouble());
+            if (val.is_number_float()) {
+                return std::to_string(val.get<float>());
             }
         }
     }

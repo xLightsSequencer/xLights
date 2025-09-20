@@ -2788,15 +2788,12 @@ bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std
     bool mapped = false;
 
     try {
-        wxJSONValue root;
-        wxJSONReader reader;
-
-        reader.Parse(response, &root);
+        nlohmann::json root = nlohmann::json::parse(response);
 
         logger_base.debug("Parsed response");
 
-        wxJSONValue mappings = root["mappings"];
-        if (mappings.IsNull()) {
+        nlohmann::json mappings = root["mappings"];
+        if (mappings.is_null()) {
             logger_base.error("No mappings found in response");
         } else {
             // now go through all the targets
@@ -2804,9 +2801,9 @@ bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std
                 if (!it->HasMapping()) {
                     auto mn = it->GetModelName();
                     // find the model in the mappings sourceModel
-                    for (size_t i = 0; i < mappings.Size(); ++i) {
-                        wxString targetModel = mappings[i]["targetModel"].AsString();
-                        std::string mappingSource = mappings[i]["sourceModel"].AsString();
+                    for (size_t i = 0; i < mappings.size(); ++i) {
+                        std::string targetModel = mappings[i]["targetModel"].get<std::string>();
+                        std::string mappingSource = mappings[i]["sourceModel"].get<std::string>();
                         if (targetModel == mn && possibleSources.find(mappingSource) != std::string::npos) {
                             it->Map(mappingSource,"Unknown");
                             mapped = true;

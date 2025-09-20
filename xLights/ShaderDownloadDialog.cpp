@@ -198,18 +198,22 @@ public:
                             ff.ReadAll(&json);
                             ff.Close();
 
-                            wxJSONReader reader;
-                            wxJSONValue root;
-                            reader.Parse(json, &root);
-                            auto shader = root["rawFragmentSource"].AsString();
+                            try {
+                                nlohmann::json root = nlohmann::json::parse(json.ToStdString());
+                                auto shader = root["rawFragmentSource"].get<std::string>();
 
-                            wxFile fff(fn, wxFile::OpenMode::write);
-                            if (fff.IsOpened()) {
-                                fff.Write(shader);
-                                fff.Close();
-                            }
-                            else {
-                                logger_base.debug("Shader file download failed load to create fs file.");
+                                wxFile fff(fn, wxFile::OpenMode::write);
+                                if (fff.IsOpened()) {
+                                    fff.Write(shader);
+                                    fff.Close();
+                                } else {
+                                    logger_base.debug("Shader file download failed load to create fs file.");
+                                }
+                            } catch (std::exception& e) {
+                                wxRemoveFile(fn);
+                                fn = "";
+                                logger_base.debug("Shader file download failed load fs file.");
+                                return;
                             }
                         }
                     }

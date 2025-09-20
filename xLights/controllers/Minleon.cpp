@@ -63,31 +63,31 @@ public:
             );
         }
     }
-    MinleonString(wxJSONValue& val)
+    MinleonString(nlohmann::json& val)
     {
-        if (val["port"].IsInt()) {
+        if (val["port"].is_number_integer()) {
             // this is the web request response
-            if (val.HasMember("port")) {
-                _port = val["port"].AsInt();
+            if (val.contains("port")) {
+                _port = val["port"].get<int>();
             } else {
-                _port = val["p"].AsInt();
+                _port = val["p"].get<int>();
             }
-            _tees = val["ts"].AsInt();
-            _reverse = (val["rev"].AsInt() == 1);
-            _nodes = val["l"].AsInt();
-            _startChannel = val["ss"].AsInt();
+            _tees = val["ts"].get<int>();
+            _reverse = (val["rev"].get<int>() == 1);
+            _nodes = val["l"].get<int>();
+            _startChannel = val["ss"].get<int>();
         }
         else {
             // This is the DDP config response
-            if (val.HasMember("port")) {
-                _port = wxAtoi(val["port"].AsString());
+            if (val.contains("port")) {
+                _port = std::stoi(val["port"].get<std::string>());
             } else {
-                _port = val["p"].AsInt();
+                _port = val["p"].get<int>();
             }
-            _tees = wxAtoi(val["ts"].AsString());
+            _tees = std::stoi(val["ts"].get<std::string>());
             _reverse = false;
-            _nodes = wxAtoi(val["l"].AsString());
-            _startChannel = wxAtoi(val["ss"].AsString());
+            _nodes = std::stoi(val["l"].get<std::string>());
+            _startChannel = std::stoi(val["ss"].get<std::string>());
         }
     }
     MinleonString(int port, int ts, bool reverse, int nodes, int startChannel)
@@ -101,15 +101,14 @@ public:
     MinleonString() {}
 };
 
-void Minleon::ParseStringPorts(std::vector<MinleonString*>& stringPorts, wxJSONValue& val) const
-{
+void Minleon::ParseStringPorts(std::vector<MinleonString*>& stringPorts, nlohmann::json& val) const {
     for (auto& it : stringPorts)
     {
         delete it;
     }
     stringPorts.clear();
 
-    for (int i = 0; i < val.Size(); i++)
+    for (int i = 0; i < val.size(); i++)
     {
         stringPorts.push_back(new MinleonString(val[i]));
     }
@@ -579,16 +578,16 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
     auto status = DDPOutput::Query(_ip, DDP_ID_STATUS, forceLocalIP);
     if (!status.IsNull()) {
         _protocol = "DDP";
-        _version = status["status"]["ver"].AsString();
+        _version = status["status"]["ver"].get<std::string>();
         logger_base.debug("   Version: %s", (const char*)_version.c_str());
-        logger_base.debug("   Manufacturer: %s", (const char*)status["status"]["man"].AsString().c_str());
-        logger_base.debug("   Model: %s", (const char*)status["status"]["mod"].AsString().c_str());
-        logger_base.debug("   Push: %s", (const char*)status["status"]["push"].AsString().c_str());
-        logger_base.debug("   MAC: %s", (const char*)status["status"]["mac"].AsString().c_str());
+        logger_base.debug("   Manufacturer: %s", (const char*)status["status"]["man"].get<std::string>().c_str());
+        logger_base.debug("   Model: %s", (const char*)status["status"]["mod"].get<std::string>().c_str());
+        logger_base.debug("   Push: %s", (const char*)status["status"]["push"].get<std::string>().c_str());
+        logger_base.debug("   MAC: %s", (const char*)status["status"]["mac"].get<std::string>().c_str());
 
         logger_base.debug("Getting minleon status.");
         auto config = DDPOutput::Query(_ip, DDP_ID_CONFIG);
-        _ports = config["config"]["ports"].AsArray()->Count();
+        _ports = config["config"]["ports"].array()->size();
         ParseStringPorts(_stringPorts, config["config"]["ports"]);
         logger_base.debug("Downloaded string data.");
         DumpStringData(_stringPorts, -1);
@@ -613,15 +612,15 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
 
         std::string configJSON = GetURL("/01.html");
 
-        if (configJSON == "" || configJSON == "This URI does not exist") {
+        if (configJSON.empty() || configJSON == "This URI does not exist") {
             logger_base.warn("    Error retrieving 01.html from Minleon controller.");
 
             configJSON = GetURL("/api/config");
 
-            if (configJSON == "" || configJSON == "This URI does not exist") {
+            if (configJSON.empty() || configJSON == "This URI does not exist") {
 
                 // it may be an original NDB
-                if (ParseNDBHTML(html, 4) != "") {
+                if (!ParseNDBHTML(html, 4).empty()) {
                     logger_base.info("    Original NDB.");
                     _nm = ParseNDBHTML(html, 4) + "." + ParseNDBHTML(html, 5) + "." + ParseNDBHTML(html, 6) + "." + ParseNDBHTML(html, 7);
                     _gw = ParseNDBHTML(html, 8) + "." + ParseNDBHTML(html, 9) + "." + ParseNDBHTML(html, 10) + "." + ParseNDBHTML(html, 11);
@@ -630,15 +629,15 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
                     } else if (ParseNDBHTML(html, 13) == "1") {
                         _protocol = OUTPUT_ARTNET;
                     }
-                    _startUniverse = wxAtoi(ParseNDBHTML(html, 13));
+                    _startUniverse = std::stoi(ParseNDBHTML(html, 13));
                     uint8_t index = 14;
                     for (uint8_t i = 0; i < 16; ++i) {
                         // Ts
-                        auto ts = wxAtoi(ParseNDBHTML(html, index++));
+                        auto ts = std::stoi(ParseNDBHTML(html, index++));
                         // Lights
-                        auto lights = wxAtoi(ParseNDBHTML(html, index++));
+                        auto lights = std::stoi(ParseNDBHTML(html, index++));
                         // Slot
-                        auto slot = wxAtoi(ParseNDBHTML(html, index++));
+                        auto slot = std::stoi(ParseNDBHTML(html, index++));
                         _stringPorts.push_back(new MinleonString(i, ts, false, lights, slot));
                     }
                     _ndbOrig = true;
@@ -658,21 +657,18 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
         }
 
         if (!_ndbOrig) {
-            wxJSONValue val;
-            wxJSONReader reader;
-            reader.Parse(configJSON, &val);
-
-            _nm = val["config"]["nm"].AsString();
-            _gw = val["config"]["gw"].AsString();
-            _t0h = wxAtoi(val["config"]["t0h"].AsString());
-            _t1h = wxAtoi(val["config"]["t1h"].AsString());
-            _tbit = wxAtoi(val["config"]["tbit"].AsString());
-            _tres = wxAtoi(val["config"]["tres"].AsString());
-            _conv = val["config"]["conv"].AsString();
+            nlohmann::json val = nlohmann::json::parse(configJSON);
+            _nm = val["config"]["nm"].get<std::string>();
+            _gw = val["config"]["gw"].get<std::string>();
+            _t0h = wxAtoi(val["config"]["t0h"].get<std::string>());
+            _t1h = wxAtoi(val["config"]["t1h"].get<std::string>());
+            _tbit = wxAtoi(val["config"]["tbit"].get<std::string>());
+            _tres = wxAtoi(val["config"]["tres"].get<std::string>());
+            _conv = val["config"]["conv"].get<std::string>();
 
             std::string p;
-            if (val["config"].HasMember("protocol")) {
-                p = val["config"]["protocol"].AsString();
+            if (val["config"].contains("protocol")) {
+                p = val["config"]["protocol"].get<std::string>();
             } else {
                 html = GetURL("/pout.html");
                 wxRegEx extractProtocol("type=\"radio\"[^>]*value=\"([^\"]*)[^>]* checked>", wxRE_ADVANCED | wxRE_NEWLINE);
@@ -691,21 +687,21 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
             }
 
             if (_protocol != OUTPUT_DDP) {
-                if (val["config"].HasMember("universe")) {
-                    _startUniverse = wxAtoi(val["config"]["universe"].AsString());
+                if (val["config"].contains("universe")) {
+                    _startUniverse = wxAtoi(val["config"]["universe"].get<std::string>());
                 } else {
-                    _startUniverse = wxAtoi(val["config"]["univ"].AsString());
+                    _startUniverse = wxAtoi(val["config"]["univ"].get<std::string>());
                 }
             }
 
-            _chip = DecodeStringPortProtocol(wxAtoi(val["config"]["chip"].AsString()));
-            if (val["config"].HasMember("nports")) {
-                _ports = wxAtoi(val["config"]["nports"].AsString());
+            _chip = DecodeStringPortProtocol(wxAtoi(val["config"]["chip"].get<std::string>()));
+            if (val["config"].contains("nports")) {
+                _ports = wxAtoi(val["config"]["nports"].get<std::string>());
             } else {
-                _ports = val["config"]["ports"].AsArray()->Count();
+                _ports = val["config"]["ports"].array().size();
             }
-            if (val["config"].HasMember("rpt")) {
-                _grouping = wxAtoi(val["config"]["rpt"].AsString());
+            if (val["config"].contains("rpt")) {
+                _grouping = wxAtoi(val["config"]["rpt"].get<std::string>());
             } else {
                 _grouping = 1;
             }

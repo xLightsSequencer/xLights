@@ -12,6 +12,8 @@
 #include <wx/notebook.h>
 #include <wx/xml/xml.h>
 
+#include <nlohmann/json.hpp>
+
 #include "PlayListItemJukebox.h"
 #include "PlayListItemJukeboxPanel.h"
 #include "../xLights/UtilFunctions.h"
@@ -94,14 +96,14 @@ void PlayListItemJukebox::Frame(uint8_t* buffer, size_t size, size_t ms, size_t 
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("Launching xLights Jukebox Button %d.", _jukeboxButton);
 
-        wxJSONValue result = xLightsRequest(GetPort(), "{\"cmd\":\"lightsOn\"}");
-        if (result["res"].AsInt() != 200) {
-            logger_base.error("Failed to turn on output to lights: %s", (const char*)result["msg"].AsString().c_str());
+        nlohmann::json result = xLightsRequest(GetPort(), "{\"cmd\":\"lightsOn\"}");
+        if (result["res"].get<int>() != 200) {
+            logger_base.error("Failed to turn on output to lights: %s", (const char*)result["msg"].get<std::string>().c_str());
         }
 
         result = xLightsRequest(GetPort(), wxString::Format("{\"cmd\":\"playJukebox\",\"button\":%d}", _jukeboxButton));
-        if (result["res"].AsInt() != 200) {
-            logger_base.error("Failed to send jukebox button press: %s", (const char*)result["msg"].AsString().c_str());
+        if (result["res"].get<int>() != 200) {
+            logger_base.error("Failed to send jukebox button press: %s", (const char*)result["msg"].get<std::string>().c_str());
         }
     }
 }

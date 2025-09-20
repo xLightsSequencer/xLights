@@ -494,9 +494,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\xSchedule\wxHTTPServer\server.cpp" />
     <ClCompile Include="..\xSchedule\wxHTTPServer\sha1.cpp" />
     <ClCompile Include="..\xSchedule\wxHTTPServer\status.cpp" />
-    <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
-    <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
-    <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="ai\AIColorPaletteDialog.cpp" />
     <ClCompile Include="ai\aiBase.cpp" />

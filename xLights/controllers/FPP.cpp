@@ -2454,7 +2454,7 @@ bool FPP::UploadPWMOutputs(ModelManager* allmodels,
     if (cud.GetMaxPWMPort() == 0) {
         return false;
     }
-    bool fullcontrol = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
+    bool const fullcontrol = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
 
     std::map<int, int> rngs;
     FillRanges(rngs);

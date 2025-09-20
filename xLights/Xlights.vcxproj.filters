@@ -142,9 +142,6 @@
     <ClCompile Include="SequenceVideoPanel.cpp" />
     <ClCompile Include="SequenceVideoPreview.cpp" />
     <ClCompile Include="controllers\WebSocketClient.cpp" />
-    <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
-    <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
-    <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
     <ClCompile Include="LayerSelectDialog.cpp" />
     <ClCompile Include="..\xSchedule\md5.cpp" />
     <ClCompile Include="VendorMusicDialog.cpp" />

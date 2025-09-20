@@ -184,13 +184,13 @@ void WorkManager::AddIP(const std::string& ip, const std::string& why, const std
 
 void WorkManager::AddClassDSubnet(const std::string& ip, const std::string& proxy)
 {
-	wxArrayString ipElements = wxSplit(ip, '.');
+	auto ipElements = Split(ip, '.');
 	if (ipElements.size() > 3) {
 		//looks like an IP address
-		int ip1 = wxAtoi(ipElements[0]);
-		int ip2 = wxAtoi(ipElements[1]);
-		int ip3 = wxAtoi(ipElements[2]);
-		int ip4 = wxAtoi(ipElements[3]);
+        int ip1 = std::stoi(ipElements[0]);
+        int ip2 = std::stoi(ipElements[1]);
+        int ip3 = std::stoi(ipElements[2]);
+        int ip4 = std::stoi(ipElements[3]);
 
 		for (uint8_t i = 1; i < 255; i++) {
 			auto ipa = wxString::Format("%d.%d.%d.%d", ip1, ip2, ip3, i);
@@ -216,13 +216,13 @@ void PingWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 	// We only scan private networks
 	bool privateNetwork = true;
 
-	wxArrayString ipElements = wxSplit(_ip, '.');
+	auto ipElements = Split(_ip, '.');
 	if (ipElements.size() > 3) {
 		//looks like an IP address
-		int ip1 = wxAtoi(ipElements[0]);
-		int ip2 = wxAtoi(ipElements[1]);
-		int ip3 = wxAtoi(ipElements[2]);
-		int ip4 = wxAtoi(ipElements[3]);
+        int ip1 = std::stoi(ipElements[0]);
+        int ip2 = std::stoi(ipElements[1]);
+        int ip3 = std::stoi(ipElements[2]);
+        int ip4 = std::stoi(ipElements[3]);
 
 		if (ip1 == 10) {
 			if (ip2 == 255 && ip3 == 255 && ip4 == 255) {
@@ -293,10 +293,10 @@ std::string HTTPWork::GetTitle(const std::string& page)
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static wxRegEx title("<[^>]*title[^>]*>(.*)<[^>]*\\/[^>]*title[^>]*>");
     logger_base.debug("    Scanning for title.");
-    if (title.Matches(page) && title.GetMatchCount() > 1) {
+    if (title.Matches(FromUTF8(page)) && title.GetMatchCount() > 1) {
 
         logger_base.debug("    Title matches found %u.", (uint32_t)title.GetMatchCount());
-        wxString t = title.GetMatch(page, 1);
+        wxString t = title.GetMatch(FromUTF8(page), 1);
         logger_base.debug("    Title value extracted.");
 
 		if (t.Contains("404")) {
@@ -425,154 +425,177 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 		results.push_back({ "Type", "FPP" });
 
 
-		std::list<std::string> networks;
+		std::vector<std::string> networks;
 
 		logger_base.debug("    Getting wifi strength");
 		auto wificonfig = Curl::HTTPSGet(proxy + _ip + "/api/network/wifi/strength", "", "", FAST_TIMEOUT);
 
-		wxJSONReader wifireader;
-		wxJSONValue wifiroot;
+        nlohmann::json wifiroot;
 		bool fwifi = false;
-		if (wificonfig != "") {
-			fwifi = wifireader.Parse(wificonfig, &wifiroot) == 0;
-		}
+		try {
+            // Check if the response is valid JSON
+            if (wificonfig != "") {
+                wifiroot = nlohmann::json::parse(wificonfig);
+                fwifi = true;
+            }
+        } catch (const std::exception&) {
+            
+        }
 
-		wxJSONValue defaultValue = wxString("");
-		wxJSONReader reader;
-		wxJSONValue root;
-		if (reader.Parse(netconfig, &root) == 0) {
+		try
+		{
+            nlohmann::json net = nlohmann::json::parse(netconfig);
 			// extract the type of request
-			auto net = root.AsArray();
+            if (net.is_array()) {
+                // int ii = 1;
+                int ii = 1;
 
-			if (net != nullptr) {
-				int ii = 1;
-				for (size_t i = 0; i < net->Count(); i++) {
-					auto n = (*net)[i];
-					wxString operstate = n.Get("operstate", defaultValue).AsString();
-					wxString iip = n.Get("addr_info", defaultValue)[0].Get("local", defaultValue).AsString();
-					wxString label = n.Get("addr_info", defaultValue)[0].Get("label", defaultValue).AsString();
-					wxString ifname = n.Get("ifname", defaultValue).AsString();
-					if (ifname != "") networks.push_back(ifname);
-					if (operstate == "UP" && iip != "" && label != "") {
-						wxString wifiStrength = "";
-						if (label[0] == 'w' && fwifi) {
-							auto w = wifiroot.AsArray();
-							for (size_t j = 0; j < w->Count(); j++) {
-								auto ww = (*w)[j];
-								wxString iface = ww.Get("interface", defaultValue).AsString();
-								if (iface == label) {
-									int strength = ww.Get("level", wxJSONValue(0)).AsInt();
-									wifiStrength = wxString::Format(" (%d - %s)", strength, DecodeWifiStrength(strength));
-									break;
-								}
-							}
-						}
-						results.push_back({ wxString::Format("IP %d", ii++), label + " : " + iip + " " + wifiStrength });
-						workManager.AddIP(iip, "");
-					}
-				}
-			}
+                for (const auto& n : net) {
+                    // auto n = (*net)[i];
+                    if (n.is_object()) {
+                        std::string operstate = n.value<std::string>("operstate", "");
+                        std::string iip;
+                        std::string label;
+                        if (n.contains("addr_info") && n.at("addr_info").is_array() && !n.at("addr_info").empty()) {
+                            iip = n.at("addr_info")[0].value<std::string>("local", "");
+                            label = n.at("addr_info")[0].value<std::string>("label", "");
+                        }
+                        std::string ifname = n.value<std::string>("ifname", "");
+                        if (!ifname.empty()) {
+                            networks.push_back(ifname);
+                        }
+                        if (operstate == "UP" && !iip.empty() && !label.empty()) {
+                            std::string wifiStrength = "";
+                            if (label[0] == 'w' && fwifi && wifiroot.is_array() && !wifiroot.empty()) {
+                                for (const auto& ww : wifiroot) {
+                                    std::string iface = ww.value("interface", "");
+                                    if (iface == label) {
+                                        int strength = ww.value("level", 0);
+                                        wifiStrength = wxString::Format(" (%d - %s)", strength, DecodeWifiStrength(strength));
+                                        break;
+                                    }
+                                    
+                                }
+                                results.push_back({ wxString::Format("IP %d", ii++), label + " : " + iip + " " + wifiStrength });
+                                workManager.AddIP(iip, "");
+                            }
+                        }
+                    }
+                }
+            }
 		}
+		catch (const std::exception&) {			
+		}		
 
 		int iii = 1;
 		for (const auto& it : networks) {
 			auto net = Curl::HTTPSGet(proxy + _ip + "/api/network/interface/" + it, "", "", FAST_TIMEOUT);
-			if (net != "") {
-				wxJSONValue defaultValue = wxString("");
-				wxJSONReader reader;
-				wxJSONValue root;
-				if (reader.Parse(net, &root) == 0) {
-					wxString dhcp = root.Get("PROTO", defaultValue).AsString();
-					wxString gateway = root.Get("GATEWAY", defaultValue).AsString();
-					wxString address = root.Get("CurrentAddress", defaultValue).AsString();
-					auto n = wxString::Format("%s %s IP : %s Gateway : %s", it, dhcp, address, gateway);
-					results.push_back({ wxString::Format("Net %d", iii++), n });
-				}
+			if (!net.empty()) {
+                try {
+                    nlohmann::json root = nlohmann::json::parse(net);
+                    if (root.is_object()) {
+                        std::string dhcp = root.value("PROTO", "");
+                        std::string gateway = root.value("GATEWAY", "");
+                        std::string address = root.value("CurrentAddress", "");
+                        auto n = wxString::Format("%s %s IP : %s Gateway : %s", it, dhcp, address, gateway);
+                        results.push_back({ wxString::Format("Net %d", iii++), n });
+                    }
+                } catch (const std::exception&) {
+                }
 			}
 		}
 
 		logger_base.debug("    Getting FPP proxies");
 		auto proxies = Curl::HTTPSGet(proxy + _ip + "/api/proxies", "", "", FAST_TIMEOUT);
-		if (proxies != "" && proxies != "[]") {
-			wxJSONValue defaultValue = wxString("");
-			wxJSONReader reader;
-			wxJSONValue root;
-			if (reader.Parse(proxies, &root) == 0) {
-				if (root.IsArray()) {
-					auto ps = root.AsArray();
-					if (ps != nullptr) {
-						int c = 1;
-						for (size_t i = 0; i < ps->Count(); i++) {
-							if ((*ps)[i].IsString()) {
-								wxString p = (*ps)[i].AsString();
-								results.push_back({ wxString::Format("Proxying %d", c++), p });
-								workManager.AddIP(p, "FPP Proxied", _ip);
-								workManager.AddClassDSubnet(p, _ip);
-								std::list<std::pair<std::string, std::string>> pres;
-								pres.push_back({ "Type", "Proxied" });
-								pres.push_back({ "IP", p });
-								pres.push_back({ "Proxied By", _ip });
-								PublishResult(workManager, pres);
-							}
-						}
-					}
-				}
-			}
-		}
-
-		logger_base.debug("    Getting FPP version");
-		auto version = Curl::HTTPSGet(proxy + _ip + "/api/fppd/version", "", "", FAST_TIMEOUT);
-		if (version != "" && version[0] == '{') {
-			wxJSONValue defaultValue = wxString("");
-			wxJSONReader reader;
-			wxJSONValue root;
-			if (reader.Parse(version, &root) == 0) {
-				results.push_back({ "Version", root.Get("version", defaultValue).AsString() });
-			}
+        if (!proxies.empty() && proxies != "[]") {
+            try {
+                nlohmann::json root = nlohmann::json::parse(proxies);
+                // extract the type of request
+                if (root.is_array()) {
+                    int c = 1;
+                    for (const auto& p : root) {
+                        if (p.is_string()) {
+                            std::string proxyIP = p.get<std::string>();
+                            results.push_back({ wxString::Format("Proxying %d", c++), proxyIP });
+                            workManager.AddIP(proxyIP, "FPP Proxied", _ip);
+                            workManager.AddClassDSubnet(proxyIP, _ip);
+                            std::list<std::pair<std::string, std::string>> pres;
+                            pres.push_back({ "Type", "Proxied" });
+                            pres.push_back({ "IP", proxyIP });
+                            pres.push_back({ "Proxied By", _ip });
+                            PublishResult(workManager, pres);
+                        }
+                    }
+                }
+            } catch (const std::exception&) {
+            }
 		}
 
 		logger_base.debug("    Getting FPP Channel Outputs");
 		auto co = Curl::HTTPSGet(proxy + _ip + "/api/configfile/co-universes.json", "", "", FAST_TIMEOUT);
-		if (co != "" && co[0] == '{') {
-			wxJSONValue defaultValue = wxString("");
-			wxJSONReader reader;
-			wxJSONValue root;
-			if (reader.Parse(co, &root) == 0) {
-				auto cc = root.Get("channelOutputs", defaultValue);
-				if (cc.IsArray() && cc[0].Get("enabled", defaultValue).AsInt() == 1) {
-					results.push_back({ "Sending Data", cc[0].Get("interface", defaultValue).AsString() });
-				}
-			}
+        if (!co.empty() && co[0] == '{') {
+            try {
+                nlohmann::json root = nlohmann::json::parse(co);
+				if (root.contains("channelOutputs") && root["channelOutputs"].is_array() && !root["channelOutputs"].empty()) {
+					auto cc = root["channelOutputs"][0];
+					if (cc.contains("enabled") && cc["enabled"].is_number_integer() && cc["enabled"].get<int>() == 1) {
+                        results.push_back({ "Sending Data", cc.value("interface", "") });
+					}
+                }
+            }        
+			catch (const std::exception&) {
+			}			
 		}
 
 		logger_base.debug("    Getting FPP status");
 		auto status = Curl::HTTPSGet(proxy + _ip + "/api/fppd/status", "", "", FAST_TIMEOUT);
-		if (status != "" && status[0] == '{') {
-			wxJSONValue defaultValue = wxString("");
-			wxJSONReader reader;
-			wxJSONValue root;
-			if (reader.Parse(status, &root) == 0) {
-				results.push_back({ "Mode", root.Get("mode_name", defaultValue).AsString() });
-			}
+        if (!status.empty() && status[0] == '{') {
+            try {
+                nlohmann::json root = nlohmann::json::parse(status);
+				if (root.is_object()) {
+                    results.push_back({ "Mode", root.value("mode_name", "") });
+                    results.push_back({ "Version", root.value("version", "") });
+                    
+                    results.push_back({ "Multisync", root.value("multisync", false) ? "true" : "false" });
+                    results.push_back({ "Platform", root.value("platform", "") });
+                }
+            } catch (const std::exception&) {
+            }	
 		}
+
+		logger_base.debug("    Getting FPP Cape Info");
+        auto cape = Curl::HTTPSGet(proxy + _ip + "/api/cape", "", "", FAST_TIMEOUT);
+        if (!cape.empty() && cape[0] == '{') {
+            try {
+                nlohmann::json root = nlohmann::json::parse(cape);
+                if (root.is_object()) {
+                    results.push_back({ "Cape Name", root.value("name", "") });
+                    results.push_back({ "Cape Version", root.value("version", "") });
+					if (root.contains("vendor") && root.at("vendor").is_object())
+					{
+                        results.push_back({ "Cape Vendor", root.at("vendor").value("name", "") });
+					}
+                }
+            } catch (const std::exception&) {
+            }
+        }
 
 		logger_base.debug("    Getting FPP multisync");
 		auto multisync = Curl::HTTPSGet(proxy + _ip + "/api/fppd/multiSyncSystems", "", "", FAST_TIMEOUT);
-		if (multisync != "" && multisync[0] == '{') {
-			wxJSONValue defaultValue = wxString("");
-			wxJSONReader reader;
-			wxJSONValue root;
-			if (reader.Parse(multisync, &root) == 0) {
-				auto sys = root.Get("systems", defaultValue).AsArray();
-
-				if (sys != nullptr) {
-					for (size_t i = 0; i < sys->Count(); i++) {
-						auto s = (*sys)[i];
-						std::string address = s.Get("address", defaultValue).AsString().ToStdString();
-						workManager.AddIP(address, "FPP Multisync");
-					}
-				}
+        if (!multisync.empty() && multisync[0] == '{') {
+            try {
+                nlohmann::json root = nlohmann::json::parse(multisync);
+                if (root.is_object() && root.contains("systems") && root["systems"].is_array() && !root["systems"].empty()) {
+					for (auto& s : root["systems"]) {
+                        if (s.is_object() && s.contains("address") && s["address"].is_string()) {
+                            std::string address = s["address"].get<std::string>();
+                            workManager.AddIP(address, "FPP Multisync");
+                        }
+                    }
+                }            
 			}
+			catch (const std::exception&) {
+			}	
 		}
 		PublishResult(workManager, results);
 	}
@@ -755,12 +778,14 @@ void xScheduleWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 		results.push_back({ "IP", _ip });
 		results.push_back({ "Type", "xSchedule" });
 		results.push_back({ "Port", wxString::Format("%d", _port) });
-		wxJSONValue defaultValue = wxString("");
-		wxJSONReader reader;
-		wxJSONValue root;
-		if (reader.Parse(xs, &root) == 0) {
-			results.push_back({ "Version", root.Get("version", defaultValue).AsString() });
-		}
+        nlohmann::json defaultValue = "";
+        try {
+            auto root = nlohmann::json::parse(xs);
+            results.push_back({ "Version", root.value<std::string>("version", defaultValue) });
+        }
+		catch(std::exception ex) {
+
+        }
 		PublishResult(workManager, results);
 	}
 }

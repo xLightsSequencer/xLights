@@ -24,7 +24,6 @@
 #include <curl/curl.h>
 
 class HinksPix;
-class wxJSONValue;
 class ControllerEthernet;
 
 struct HinksPixOutput {

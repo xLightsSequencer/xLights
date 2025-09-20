@@ -1294,29 +1294,29 @@ std::string xLightsFrame::ProcessxlDoAutomation(const std::string& msg)
     std::vector<std::string> paths;
     std::map<std::string, std::string> paramMap;
 
-    
-    wxJSONValue val;
-    wxJSONReader reader;
-    if (reader.Parse(msg, &val) == 0) {
-        if (!val.HasMember("cmd")) {
+    try
+    {
+        nlohmann::json val = nlohmann::json::parse(msg);
+        if (!val.contains("cmd")) {
             return "{\"res\":504,\"msg\":\"Missing cmd.\"}";
         } else {
-            for (auto &mn : val.GetMemberNames()) {
-                wxJSONValue v = val[mn];
+            for (auto [mn, v] : val.items()) {
+                nlohmann::json v = val[mn];
                 if (mn == "cmd") {
-                    paths.push_back(v.AsString());
-                } else if (v.IsString()) {
-                    paramMap[mn] = v.AsString();
-                } else if (v.IsLong()) {
-                    paramMap[mn] = std::to_string(v.AsLong());
-                } else if (v.IsInt()) {
-                    paramMap[mn] = std::to_string(v.AsInt());
-                } else if (v.IsBool()) {
-                    paramMap[mn] = v.AsBool() ? "true" : "false";
-                } else if (v.IsArray()) {
-                    for (int x = 0; x < v.Size(); x++) {
-                        std::string k = mn.ToStdString() + "_" + std::to_string(x);
-                        paramMap[k] = v[x].AsString();
+                    paths.push_back(v.get<std::string>());
+                } else if (v.is_string()) {
+                    paramMap[mn] = v.get<std::string>();
+                } else if (v.is_number_integer()) {
+                    paramMap[mn] = std::to_string(v.get<int>());
+                }
+                else if (v.is_number_float()) {
+                    paramMap[mn] = std::to_string(v.get<float>());
+                } else if (v.is_boolean()) {
+                    paramMap[mn] = v.get<bool>() ? "true" : "false";
+                } else if (v.is_array()) {
+                    for (int x = 0; x < v.size(); x++) {
+                        std::string k = mn + "_" + std::to_string(x);
+                        paramMap[k] = v[x].get<std::string>();
                     }
                 }
             }
@@ -1345,12 +1345,13 @@ std::string xLightsFrame::ProcessxlDoAutomation(const std::string& msg)
             });
             
             if (!processed) {
-                auto cmd = val["cmd"].AsString();
+                auto cmd = val["cmd"].get<std::string>();
                 return wxString::Format("{\"res\":504,\"msg\":\"Unknown command: '%s'.\"}", cmd);
             }
             return result;
         }
-    }
+    } catch (std::exception)
+    {}
     return "{\"res\":504,\"msg\":\"Error parsing request.\"}";
 }
  

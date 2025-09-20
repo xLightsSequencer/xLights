@@ -28,10 +28,6 @@
 #include "UtilFunctions.h"
 #include "xLightsVersion.h"
 
-#include "../xSchedule/wxJSON/json_defs.h"
-#include "../xSchedule/wxJSON/jsonreader.h"
-#include "../xSchedule/wxJSON/jsonval.h"
-
 #include "utils/Curl.h"
 #include "utils/string_utils.h"
 
@@ -1188,26 +1184,21 @@ void OptimiseDialogPosition(wxDialog* dlg) {
     EnsureWindowHeaderIsOnScreen(dlg);
 }
 
-wxJSONValue xLightsRequest(int xFadePort, const wxString& message, const wxString& ipAddress) {
+nlohmann::json xLightsRequest(int xFadePort, const wxString& message, const std::string& ipAddress) {
     std::string url = "http://" + ipAddress + ":" + std::to_string(GetxFadePort(xFadePort)) + "/xlDoAutomation";
     int responseCode = 0;
     auto resultString = Curl::HTTPSPost(url, message, "", "", "application/json", 30 * 60, {}, &responseCode);
     if (resultString != "" && (responseCode == 200 || responseCode >= 500)) {
-        wxJSONValue result;
-        wxJSONReader reader;
-        reader.Parse(resultString, &result);
+        nlohmann::json result = nlohmann::json::parse(resultString);
         result["res"] = (int)responseCode;
         return result;
     }
 
-    wxString msg = "{\"res\":504,\"msg\":\"Unable to connect.\"}";
-    wxJSONValue result;
-    wxJSONReader reader;
-    reader.Parse(msg, &result);
-
+    std::string const msg = "{\"res\":504,\"msg\":\"Unable to connect.\"}";
+    nlohmann::json result = nlohmann::json::parse(msg);
     return result;
 }
-bool xLightsRequest(std::string& result, int xFadePort, const wxString& request, const wxString& ipAddress) {
+bool xLightsRequest(std::string& result, int xFadePort, const wxString& request, const std::string& ipAddress) {
     std::string url = "http://" + ipAddress + ":" + std::to_string(GetxFadePort(xFadePort)) + "/" + request;
     int responseCode = 0;
     result = Curl::HTTPSGet(url, "", "", 30 * 60, {}, &responseCode);
