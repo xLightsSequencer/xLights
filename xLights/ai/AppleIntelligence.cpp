@@ -2,6 +2,7 @@
 #include "ServiceManager.h"
 #include "utils/Curl.h"
 #include "UtilFunctions.h"
+#include <nlohmann/json.hpp>
 
 #include <wx/propgrid/propgrid.h>
 
@@ -48,23 +49,26 @@ aiBase::AIColorPalette AppleIntelligence::GenerateColorPalette(const std::string
     
     std::string res = xLights::RunAppleIntelligenceGeneratePalette(prompt);
     if (!res.empty()) {
-        wxJSONValue root;
-        wxJSONReader reader;
-        reader.Parse(res, &root);
         
-        if (root.HasMember("error")) {
-            ret.error = root["error"].AsString();
-        } else {
-            ret.description = root["Description"].AsString();
-            for (int x = 0; x < root["Colors"].Size(); x++) {
-                ret.colors.push_back(aiBase::AIColor());
-                ret.colors.back().description = root["Colors"][x]["Description"].AsString();
-                ret.colors.back().name = root["Colors"][x]["Name"].AsString();
-                ret.colors.back().hexValue = root["Colors"][x]["Hex Value"].AsString();
-                if (!ret.colors.back().hexValue.empty() &&  ret.colors.back().hexValue[0] != '#') {
-                    ret.colors.back().hexValue = "#" + ret.colors.back().hexValue;
+        try {
+            // Check if the response is valid JSON
+            nlohmann::json const root = nlohmann::json::parse(res);
+            if (root.contains("error")) {
+                ret.error = root["error"].get<std::string>();
+            } else {
+                ret.description = root["Description"].get<std::string>();
+                for (int x = 0; x < root["Colors"].size(); x++) {
+                    ret.colors.push_back(aiBase::AIColor());
+                    ret.colors.back().description = root["Colors"][x]["Description"].get<std::string>();
+                    ret.colors.back().name = root["Colors"][x]["Name"].get<std::string>();
+                    ret.colors.back().hexValue = root["Colors"][x]["Hex Value"].get<std::string>();
+                    if (!ret.colors.back().hexValue.empty() &&  ret.colors.back().hexValue[0] != '#') {
+                        ret.colors.back().hexValue = "#" + ret.colors.back().hexValue;
+                    }
                 }
             }
+        } catch (const std::exception& ex) {
+            
         }
     }
     return ret;
