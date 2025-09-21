@@ -1445,185 +1445,155 @@ wxString SafeValueOption(wxString value)
 ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const wxString& json, SequenceElements* sequenceElements) : _filename(filename)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    nlohmann::json root = nlohmann::json::parse(json.ToStdString());
-    _description = root["DESCRIPTION"].get<std::string>();
-    if ( _description == "xLights AudioFFT" )
-        _audioFFTMode = true;
-    else if ( _description == "xLights Audio2" )
-       _audioIntensityMode = true;
-    nlohmann::json inputs = root["INPUTS"];
-    std::string canvasImgName, audioFFTName;
-    for (int i = 0; i < inputs.size(); i++) {
 
-        std::string name = inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "";
+   std::string canvasImgName, audioFFTName;
+    try {
+        nlohmann::json root = nlohmann::json::parse(json.ToStdString());
+        _description = root["DESCRIPTION"].get<std::string>();
+        if (_description == "xLights AudioFFT")
+            _audioFFTMode = true;
+        else if (_description == "xLights Audio2")
+            _audioIntensityMode = true;
+        nlohmann::json inputs = root["INPUTS"];
 
-        // we ignore these as xlights provides these settings
-        if (name == "XL_OFFSET") continue;
-        if (name == "XL_DURATION") continue;
-        if (name == "XL_ZOOM") continue;
+        for (int i = 0; i < inputs.size(); i++) {
+            std::string name = inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "";
 
-        std::string type = inputs[i]["TYPE"].get<std::string>();
-        if (type == "float") {
-            _parms.push_back(ShaderParm(
-                inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
-                inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
-                ShaderParmType::SHADER_PARM_FLOAT,
-                (double)(inputs[i].contains("MIN") ? wxAtof(SafeFloat(inputs[i]["MIN"].get<std::string>())) : 0.0),
-                (double)(inputs[i].contains("MAX") ? wxAtof(SafeFloat(inputs[i]["MAX"].get<std::string>())) : 1.0),
-                (double)(inputs[i].contains("DEFAULT") ? wxAtof(SafeFloat(inputs[i]["DEFAULT"].get<std::string>())) : 0.0)
-            ));
-        }
-        else if (type == "long")
-        {
-            if (inputs[i].contains("MIN"))
-            {
+            // we ignore these as xlights provides these settings
+            if (name == "XL_OFFSET")
+                continue;
+            if (name == "XL_DURATION")
+                continue;
+            if (name == "XL_ZOOM")
+                continue;
+
+            std::string type = inputs[i]["TYPE"].get<std::string>();
+            if (type == "float") {
                 _parms.push_back(ShaderParm(
                     inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
                     inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
-                    ShaderParmType::SHADER_PARM_LONG,
-                    (double)(inputs[i].contains("MIN") ? wxAtol(inputs[i]["MIN"].get<std::string>()) : 0.0),
-                    (double)(inputs[i].contains("MAX") ? wxAtol(inputs[i]["MAX"].get<std::string>()) : 1.0),
-                    (double)(inputs[i].contains("DEFAULT") ? wxAtol(inputs[i]["DEFAULT"].get<std::string>()) : 0.0)
-                ));
-            } else if (inputs[i].contains("LABELS") && inputs[i].contains("VALUES"))
-            {
-                _parms.push_back(ShaderParm(
-                    inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
-                    inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
-                    ShaderParmType::SHADER_PARM_LONGCHOICE,
-                    0.0f,
-                    0.0f,
-                    (double)(inputs[i].contains("DEFAULT") ? wxAtol(inputs[i]["DEFAULT"].get<std::string>()) : 0.0)
-                ));
-                auto ls = inputs[i]["LABELS"];
-                auto vs = inputs[i]["VALUES"];
-                int no = std::min(ls.size(), vs.size());
-                for (int i = 0; i < no; i++)
-                {
-                    _parms.back()._valueOptions[vs[i].get<int>()] = SafeValueOption(ls[i].get<std::string>());
+                    ShaderParmType::SHADER_PARM_FLOAT,
+                    (inputs[i].contains("MIN") ? inputs[i]["MIN"].get<double>() : 0.0),
+                    (inputs[i].contains("MAX") ? inputs[i]["MAX"].get<double>() : 1.0),
+                    (inputs[i].contains("DEFAULT") ? inputs[i]["DEFAULT"].get<double>() : 0.0)));
+            } else if (type == "long") {
+                if (inputs[i].contains("MIN")) {
+                    _parms.push_back(ShaderParm(
+                        inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
+                        inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
+                        ShaderParmType::SHADER_PARM_LONG,
+                        (inputs[i].contains("MIN") ? inputs[i]["MIN"].get<double>() : 0.0),
+                        (inputs[i].contains("MAX") ? inputs[i]["MAX"].get<double>() : 1.0),
+                        (inputs[i].contains("DEFAULT") ? inputs[i]["DEFAULT"].get<double>() : 0.0)));
+                } else if (inputs[i].contains("LABELS") && inputs[i].contains("VALUES")) {
+                    _parms.push_back(ShaderParm(
+                        inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
+                        inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
+                        ShaderParmType::SHADER_PARM_LONGCHOICE,
+                        0.0f,
+                        0.0f,
+                        (inputs[i].contains("DEFAULT") ? inputs[i]["DEFAULT"].get<double>() : 0.0)));
+                    auto ls = inputs[i]["LABELS"];
+                    auto vs = inputs[i]["VALUES"];
+                    int no = std::min(ls.size(), vs.size());
+                    for (int i = 0; i < no; i++) {
+                        _parms.back()._valueOptions[vs[i].get<int>()] = SafeValueOption(ls[i].get<std::string>());
+                    }
+                } else {
+                    wxASSERT(false);
                 }
-            }
-            else
-            {
+            } else if (type == "color") {
+                _parms.push_back(ShaderParm(
+                    inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
+                    inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
+                    ShaderParmType::SHADER_PARM_COLOUR));
+            } else if (type == "audio") {
+                _parms.push_back(ShaderParm(
+                    inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
+                    inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
+                    ShaderParmType::SHADER_PARM_AUDIO));
+            } else if (type == "bool") {
+                _parms.push_back(ShaderParm(
+                    inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
+                    inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
+                    ShaderParmType::SHADER_PARM_BOOL,
+                    0.0f,
+                    0.0f,
+                    (double)(inputs[i].contains("DEFAULT") ? inputs[i]["DEFAULT"].get<double>() : 0.0)));
+            } else if (type == "point2D") {
+                wxRealPoint minPt = wxRealPoint(
+                    inputs[i].contains("MIN") ? (inputs[i]["MIN"][0].is_number_float() ? inputs[i]["MIN"][0].get<double>() : inputs[i]["MIN"][0].get<int>()) : 0.0f,
+                    inputs[i].contains("MIN") ? (inputs[i]["MIN"][1].is_number_float() ? inputs[i]["MIN"][1].get<double>() : inputs[i]["MIN"][1].get<int>()) : 0.0f);
+                wxRealPoint maxPt = wxRealPoint(
+                    inputs[i].contains("MAX") ? (inputs[i]["MAX"][0].is_number_float() ? inputs[i]["MAX"][0].get<double>() : inputs[i]["MAX"][0].get<int>()) : 1.0f,
+                    inputs[i].contains("MAX") ? (inputs[i]["MAX"][1].is_number_float() ? inputs[i]["MAX"][1].get<double>() : inputs[i]["MAX"][1].get<int>()) : 1.0f);
+                wxRealPoint defPt = wxRealPoint(
+                    inputs[i].contains("DEFAULT") ? (inputs[i]["DEFAULT"][0].is_number_float() ? inputs[i]["DEFAULT"][0].get<double>() : inputs[i]["DEFAULT"][0].get<int>()) : 0.0f,
+                    inputs[i].contains("DEFAULT") ? (inputs[i]["DEFAULT"][1].is_number_float() ? inputs[i]["DEFAULT"][1].get<double>() : inputs[i]["DEFAULT"][1].get<int>()) : 0.0f);
+                _parms.push_back(ShaderParm(
+                    inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
+                    inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
+                    ShaderParmType::SHADER_PARM_POINT2D,
+                    minPt,
+                    maxPt,
+                    defPt));
+            } else if (type == "image") {
+                // ignore these as we will use the existing buffer content
+                //_parms.push_back({
+                //        inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
+                //        inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                //        ShaderParmType::SHADER_PARM_IMAGE,
+                //        0.0f,
+                //        0.0f,
+                //        0.0f
+                //    });
+                if (inputs[i].contains("NAME")) {
+                    canvasImgName = inputs[i]["NAME"].get<std::string>();
+                    //_canvasMode = true;
+                }
+            } else if (type == "audioFFT") {
+                if (inputs[i].contains("NAME")) {
+                    audioFFTName = inputs[i]["NAME"].get<std::string>();
+                    logger_base.info("ShaderEffect - found audioFFT shader with name '%s'", static_cast<const char*>(audioFFTName.c_str()));
+                }
+            } else if (type == "text") {
+                // ignore these
+                if (inputs[i].contains("NAME")) {
+                    logger_base.warn("ShaderEffect - found text property with name '%s' ... ignored", static_cast<const char*>(inputs[i]["NAME"].get<std::string>().c_str()));
+                }
+            } else if (type == "event") {
+                // ignore these
+                _parms.push_back(ShaderParm(
+                    inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
+                    inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
+                    ShaderParmType::SHADER_PARM_EVENT,
+                    0.0f,
+                    0.0f,
+                    0.0f));
+
+                // Add timing tracks
+                if (sequenceElements != nullptr) {
+                    int tt = 0;
+                    for (int i = 0; i < sequenceElements->GetElementCount(); i++) {
+                        Element* e = sequenceElements->GetElement(i);
+                        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+                            _parms.back()._valueOptions[tt++] = e->GetName();
+                        }
+                    }
+                }
+            } else {
+                logger_base.warn("Unknown type parsing shader JSON : %s.", (const char*)type.c_str());
                 wxASSERT(false);
             }
         }
-        else if (type == "color")
-        {
-            _parms.push_back(ShaderParm(
-                inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
-                inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
-                ShaderParmType::SHADER_PARM_COLOUR
-            ));
+        nlohmann::json passes = root["PASSES"];
+        for (int i = 0; i < passes.size(); i++) {
+            _passes.push_back({ inputs[i].contains("TARGET") ? inputs[i]["TARGET"].get<std::string>() : "",
+                                passes[i].contains("PERSISTENT") ? passes[i]["PERSISTENT"].get<std::string>() == "true" : false });
         }
-        else if (type == "audio")
-        {
-            _parms.push_back(ShaderParm(
-                inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
-                inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
-                ShaderParmType::SHADER_PARM_AUDIO
-            ));
-        }
-        else if (type == "bool")
-        {
-            _parms.push_back(ShaderParm(
-                inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
-                inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
-                ShaderParmType::SHADER_PARM_BOOL,
-                0.0f,
-                0.0f,
-                (double)(inputs[i].contains("DEFAULT") ? wxAtof(SafeFloat(inputs[i]["DEFAULT"].get<std::string>())) : 0.0f)
-            ));
-        }
-        else if (type == "point2D")
-        {
-            wxRealPoint minPt = wxRealPoint(
-                inputs[i].contains("MIN") ? (inputs[i]["MIN"][0].is_number_float() ? inputs[i]["MIN"][0].get<double>() : inputs[i]["MIN"][0].get<int>()) : 0.0f,
-                inputs[i].contains("MIN") ? (inputs[i]["MIN"][1].is_number_float() ? inputs[i]["MIN"][1].get<double>() : inputs[i]["MIN"][1].get<int>()) : 0.0f
-            );
-            wxRealPoint maxPt = wxRealPoint(
-                inputs[i].contains("MAX") ? (inputs[i]["MAX"][0].is_number_float() ? inputs[i]["MAX"][0].get<double>() : inputs[i]["MAX"][0].get<int>()) : 1.0f,
-                inputs[i].contains("MAX") ? (inputs[i]["MAX"][1].is_number_float() ? inputs[i]["MAX"][1].get<double>() : inputs[i]["MAX"][1].get<int>()) : 1.0f
-            );
-            wxRealPoint defPt = wxRealPoint(
-                inputs[i].contains("DEFAULT") ? (inputs[i]["DEFAULT"][0].is_number_float() ? inputs[i]["DEFAULT"][0].get<double>() : inputs[i]["DEFAULT"][0].get<int>()) : 0.0f,
-                inputs[i].contains("DEFAULT") ? (inputs[i]["DEFAULT"][1].is_number_float() ? inputs[i]["DEFAULT"][1].get<double>() : inputs[i]["DEFAULT"][1].get<int>()) : 0.0f
-            );
-            _parms.push_back(ShaderParm(
-                inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
-                inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
-                ShaderParmType::SHADER_PARM_POINT2D,
-                minPt,
-                maxPt,
-                defPt
-            ));
-        }
-        else if (type == "image")
-        {
-            // ignore these as we will use the existing buffer content
-            //_parms.push_back({
-            //        inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-            //        inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
-            //        ShaderParmType::SHADER_PARM_IMAGE,
-            //        0.0f,
-            //        0.0f,
-            //        0.0f
-            //    });
-            if (inputs[i].contains("NAME"))
-            {
-                canvasImgName = inputs[i]["NAME"].get<std::string>();
-                //_canvasMode = true;
-            }
-        }
-        else if (type == "audioFFT")
-        {
-            if (inputs[i].contains("NAME"))
-            {
-                audioFFTName = inputs[i]["NAME"].get<std::string>();
-                logger_base.info("ShaderEffect - found audioFFT shader with name '%s'", static_cast<const char *>(audioFFTName.c_str()));
-            }
-        }
-        else if (type == "text") {
-            // ignore these
-            if (inputs[i].contains("NAME")) {
-                logger_base.warn("ShaderEffect - found text property with name '%s' ... ignored", static_cast<const char*>(inputs[i]["NAME"].get<std::string>().c_str()));
-            }
-        }
-        else if (type == "event")
-        {
-            // ignore these
-            _parms.push_back(ShaderParm(
-                inputs[i].contains("NAME") ? inputs[i]["NAME"].get<std::string>() : "",
-                inputs[i].contains("LABEL") ? inputs[i]["LABEL"].get<std::string>() : "",
-                ShaderParmType::SHADER_PARM_EVENT,
-                0.0f,
-                0.0f,
-                0.0f)
-            );
-
-            // Add timing tracks
-            if (sequenceElements != nullptr) {
-                int tt = 0;
-                for (int i = 0; i < sequenceElements->GetElementCount(); i++) {
-                    Element* e = sequenceElements->GetElement(i);
-                    if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
-                        _parms.back()._valueOptions[tt++] = e->GetName();
-                    }
-                }
-            }
-        }
-        else
-        {
-            logger_base.warn("Unknown type parsing shader JSON : %s.", (const char*)type.c_str());
-            wxASSERT(false);
-        }
-    }
-    nlohmann::json passes = root["PASSES"];
-    for (int i = 0; i < passes.size(); i++)
+    } catch (std::exception& ex)
     {
-        _passes.push_back({ inputs[i].contains("TARGET") ? inputs[i]["TARGET"].get<std::string>() : "",
-                            passes[i].contains("PERSISTENT") ? passes[i]["PERSISTENT"].get<std::string>() == "true" : false
-            });
+        logger_base.warn("Error parsing shader JSON : %s.", (const char*)ex.what());
     }
 
     // The shader code needs declarations for the uniforms that we silently set with each call to Render()
