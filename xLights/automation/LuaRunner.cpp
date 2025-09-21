@@ -240,7 +240,7 @@ sol::object LuaRunner::JSONToTable(std::string const& json, sol::this_state s) c
     try {
         nlohmann::json val = nlohmann::json::parse(json);
         return getObjectType(val, lua);
-    } catch (std::exception) {
+    } catch (std::exception&) {
     }
     logger_base.info("LuaRunner: Could not Parse JSON: %s.", (const char*)json.c_str());
     return sol::make_object(lua, json);

@@ -311,7 +311,7 @@ void ScriptsDialog::OnButton_DownloadClick(wxCommandEvent& event)
             }
         }
         
-    } catch (std::exception )
+    } catch (std::exception&)
     {}
     wxArrayString itemList;
     std::transform(scripts.begin(), scripts.end(),

@@ -1124,7 +1124,7 @@ bool Pixlite16::GetMK3Config()
                 _config._nickname = jsonVal["result"]["nickname"].get<std::string>();
                 _config._brand = jsonVal["result"]["oem"].get<int>();
             }
-        } catch (std::exception) {
+        } catch (std::exception&) {
 
         }
     }
@@ -1196,7 +1196,7 @@ bool Pixlite16::GetMK3Config()
 
                 return true;
             }
-        } catch (std::exception) {
+        } catch (std::exception&) {
         }
     }
 

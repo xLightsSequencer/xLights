@@ -1349,7 +1349,7 @@ std::string xLightsFrame::ProcessxlDoAutomation(const std::string& msg)
             }
             return result;
         }
-    } catch (std::exception)
+    } catch (std::exception &)
     {}
     return "{\"res\":504,\"msg\":\"Error parsing request.\"}";
 }

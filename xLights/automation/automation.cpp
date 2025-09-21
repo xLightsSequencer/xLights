@@ -54,7 +54,7 @@ void xlDo_Output(const std::string& script, const std::string& resp, bool verbos
                         if (verbose)
                             fprintf(stderr, "\u001b[36;1m%s\u001b[0m", (const char*)c.c_str());
                     }
-                } catch (std::exception) { 
+                } catch (std::exception&) { 
                     fprintf(stderr, "\u001b[31;1mFailed to parse response %s.\u001b[0m\n", (const char*)resp.c_str());
                 }
             } else {
