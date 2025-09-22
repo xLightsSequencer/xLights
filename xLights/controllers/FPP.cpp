@@ -1277,6 +1277,10 @@ bool FPP::UploadPlaylist(const std::string &name) {
     nlohmann::json origJson;
     GetURLAsJSON("/api/playlist/" + URLEncode(name), origJson, false);
 
+    if (!origJson.is_object()) {
+        origJson = nlohmann::json::object();
+    }
+
     for (const auto& info : sequences) {
         if (!PlaylistContainsEntry(origJson["mainPlaylist"], info.second.media, info.first)) {
             nlohmann::json entry;
@@ -1303,6 +1307,17 @@ bool FPP::UploadPlaylist(const std::string &name) {
     if (!origJson.contains("random")) {
         origJson["random"] = 0;
     }
+
+    nlohmann::json playlistInfo;
+    playlistInfo["total_items"] = origJson["mainPlaylist"].size();
+    double total_duration = 0.0;
+    for (const auto& entry : origJson["mainPlaylist"]) {
+        if (entry.contains("duration") && entry["duration"].is_number()) {
+            total_duration += entry["duration"].get<double>();
+        }
+    }
+    playlistInfo["total_duration"] = total_duration;
+    origJson["playlistInfo"] = playlistInfo;
 
     PostJSONToURL("/api/playlist/" + URLEncode(name), origJson);
     return false;
