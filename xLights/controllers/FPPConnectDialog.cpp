@@ -645,7 +645,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
 			CheckBoxProxy->SetValue(inst->isaProxy);
 
             //playlist combo box
-            if (StartsWith(inst->mode, "player")) {
+            if (StartsWith(inst->mode, "player") || StartsWith(inst->mode, "master")) {
                 wxComboBox* ComboBox1 = new wxComboBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER, wxDefaultValidator, PLAYLIST_COL + rowStr);
                 ComboBox1->Append(_(""));
                 for (const auto& pl : inst->playlists) {
