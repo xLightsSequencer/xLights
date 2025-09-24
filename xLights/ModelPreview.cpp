@@ -1233,6 +1233,11 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
                                   (const char *)GetName().c_str());
                 wxImage image(mBackgroundImage);
                 if (image.IsOk()) {
+                    int orientation = GetExifOrientation(mBackgroundImage);
+                    if (orientation != 1) {
+                        image = ApplyOrientation(image, orientation);
+                        logger_base.debug("    Applied EXIF orientation %d to background image.", orientation);
+                    }
                     backgroundSize.Set(image.GetWidth(), image.GetHeight());
                     background = currentContext->createTexture(image, mBackgroundImage, true);
                     logger_base.debug("    Loaded.");

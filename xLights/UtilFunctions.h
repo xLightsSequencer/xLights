@@ -79,6 +79,9 @@ void ShiftNodes(std::map<std::string, std::string> & nodes, int shift, int min, 
 //reverse nodes, numbering 1->100, 100->1
 void ReverseNodes(std::map<std::string, std::string> & nodes, int max);
 
+wxImage ApplyOrientation(const wxImage& img, int orient);
+int GetExifOrientation(const wxString& filename);
+
 std::string GetResourcesDirectory();
 
 inline long roundTo4(long i) {
