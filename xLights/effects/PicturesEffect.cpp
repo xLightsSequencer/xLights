@@ -637,7 +637,6 @@ void PicturesEffect::Render(RenderBuffer& buffer,
                         rawimage = image;
                     } else {
                         image = gifImage->GetFrame(0);
-                        image = ApplyOrientation(image, cache->orientation);
                         rawimage = image;
                     }
                 } else {
