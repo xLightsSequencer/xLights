@@ -398,6 +398,7 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
             if (cud.HasPixelPort(portID)) {
                 UDControllerPort* portData = cud.GetControllerPixelPort(portID);
                 portData->CreateVirtualStrings(false, true);
+                int prevousSRID { 0 };
                 for (const auto& pvs : portData->GetVirtualStrings()) {
                     nlohmann::json vs;
 
@@ -442,8 +443,20 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                     }
                     if (pvs->_smartRemote > 0) {
                         vs["ri"] = pvs->_smartRemote - 1;
-                    }
-                    remoteIds.insert(pvs->_smartRemote);
+                        if (prevousSRID + 1 != pvs->_smartRemote) {
+                            for (int st_id = prevousSRID + 1; st_id < pvs->_smartRemote; ++st_id) {
+                                nlohmann::json dum_vs;
+                                dum_vs["sc"] = 0;
+                                dum_vs["ec"] = 0;
+                                dum_vs["ri"] = st_id - 1;
+                                port["virtual_strings"].push_back(dum_vs);
+                                remoteIds.insert(st_id);
+                            }
+                        }
+                        remoteIds.insert(pvs->_smartRemote);
+                    }     
+
+                    prevousSRID = pvs->_smartRemote;
                     port["virtual_strings"].push_back(vs);
                 }
                 port["disabled"] = false;
