@@ -1449,7 +1449,9 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
    std::string canvasImgName, audioFFTName;
     try {
         nlohmann::json root = nlohmann::json::parse(json.ToStdString());
-        _description = root["DESCRIPTION"].get<std::string>();
+        if (root.contains("DESCRIPTION") ) {
+            _description = root["DESCRIPTION"].get<std::string>();
+        }
         if (_description == "xLights AudioFFT")
             _audioFFTMode = true;
         else if (_description == "xLights Audio2")
@@ -1586,10 +1588,12 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                 wxASSERT(false);
             }
         }
-        nlohmann::json passes = root["PASSES"];
-        for (int i = 0; i < passes.size(); i++) {
-            _passes.push_back({ inputs[i].contains("TARGET") ? inputs[i]["TARGET"].get<std::string>() : "",
-                                passes[i].contains("PERSISTENT") ? passes[i]["PERSISTENT"].get<std::string>() == "true" : false });
+        if (root.contains("PASSES")) {
+            nlohmann::json passes = root["PASSES"];
+            for (int i = 0; i < passes.size(); i++) {
+                _passes.push_back({ inputs[i].contains("TARGET") ? inputs[i]["TARGET"].get<std::string>() : "",
+                                    passes[i].contains("PERSISTENT") ? passes[i]["PERSISTENT"].get<std::string>() == "true" : false });
+            }
         }
     } catch (std::exception& ex)
     {
