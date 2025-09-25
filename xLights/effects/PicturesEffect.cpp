@@ -660,12 +660,10 @@ void PicturesEffect::Render(RenderBuffer& buffer,
 
             if (loopGIF) {
                 image = gifImage->GetFrameForTime((buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs * frameRateAdj, true);
-                image = ApplyOrientation(image, cache->orientation);
             }
             else {
                 int ii = cache->imageCount * buffer.GetEffectTimeIntervalPosition(frameRateAdj) * 0.99;
                 image = gifImage->GetFrame(ii);
-                image = ApplyOrientation(image, cache->orientation);
             }
 
             rawimage = image;
