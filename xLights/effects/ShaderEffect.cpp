@@ -274,7 +274,7 @@ ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceEle
         }
     }
 
-    static wxRegEx re("\\/\\*(.*?)\\*\\/", wxRE_ADVANCED);
+    wxRegEx re("\\/\\*(.*?)\\*\\/", wxRE_ADVANCED);
     if (!re.Matches(code)){
         return nullptr;
     }
