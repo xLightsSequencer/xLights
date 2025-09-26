@@ -1506,7 +1506,11 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     };
 
     try {
-        nlohmann::json root = nlohmann::json::parse(json.ToStdString());
+        nlohmann::json root = nlohmann::json::parse(json.ToStdString(),
+                                                     nullptr,
+                                                     true,
+                                                    false,
+                                                     true);
         if (root.contains("DESCRIPTION")) {
             _description = root["DESCRIPTION"].get<std::string>();
         }
