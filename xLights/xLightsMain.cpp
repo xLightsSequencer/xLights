@@ -2359,6 +2359,13 @@ void xLightsFrame::DoPostStartupCommands()
                          wxICON_INFORMATION | wxCENTER | wxOK);
         }
 #endif
+#ifdef __WXOSX__
+        if (hasFullDiskAccess()) {
+            wxMessageBox("xLights has been granted \"Full Disk Access\" in System settings.  This is strongly discouraged.",
+                         "Full Disk Access Detected",
+                         wxICON_INFORMATION | wxCENTER | wxOK);
+        }
+#endif
     }
 }
 
