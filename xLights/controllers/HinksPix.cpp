@@ -1239,16 +1239,6 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         return false;
     }
 
-    if(controller->IsUniversePerString() && IsUnPackSupported_Hinks(controller))
-    {
-        wxString msg = "HinksPix Requires LESS Universes with 'Universe Per String' disabled.  \r\nTurn OFF Universe Per String and Click SAVE.\r\n Then Check Number of Universes for this Controller - Should have Decreased.\r\n  Press YES to Change";
-        if(wxMessageBox(msg, "Disable Universe Per String", wxYES_NO, parent) == wxYES)
-        {
-            return false;
-        }
-    }
-
-
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
 
@@ -1405,32 +1395,14 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
             // combine/compress
             logger_base.debug("Total Map compress\n");
-            int LastUsed = 0;
-            for(int i = 0, iii = 0; i < UPA.size(); i++)
+            for(int i = 0; i < UPA.size(); i++)
             {
-                if(UPA[i]->MyStart == UPA[i]->NewStart)  // we have continious memory
+                if((UPA[i]->MyStart == UPA[i]->NewStart) && (UPA[i]->MyEnd == UPA[i]->NewEnd)) // we have continuous memory
                 {
-                    UPA[LastUsed]->MyEnd += UPA[i]->NumChans;
-                    UPA[LastUsed]->NewEnd += UPA[i]->NumChans;
-                    UPA[LastUsed]->NumChans += UPA[i]->NumChans;
                     UPA[i]->InActive = true;
                     dirty = true;
-
-                    if(iii == 0)    // new group in sync
-                    {
-                        iii = 1;
-                        LastUsed = i;
-                    }
-                    logger_base.debug("%d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
-                    logger_base.debug("\t\tLast Used %d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n\n", LastUsed, UPA[LastUsed]->InActive, UPA[LastUsed]->Port, UPA[LastUsed]->MyStart, UPA[LastUsed]->MyEnd, UPA[LastUsed]->NewStart, UPA[LastUsed]->NewEnd, UPA[LastUsed]->NumChans);
-
                 }
-                else
-                {
-                    logger_base.debug("\n%d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
-                    LastUsed = i;
-                    iii = 0;
-                }
+                logger_base.debug("\n%d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
             }
             logger_base.debug("\n\n\n");
 
