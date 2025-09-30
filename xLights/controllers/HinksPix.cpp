@@ -79,6 +79,8 @@ struct Tag_CMD_Packet {
 };
 
 struct Tag_Dow_TimePacket {
+    char HINK[18];
+    uint8_t CMD[4];
     uint8_t hr;
     uint8_t min;
     uint8_t sec;
@@ -86,7 +88,6 @@ struct Tag_Dow_TimePacket {
 };
 
 #pragma pack(pop)
-
 
 
 static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
@@ -449,7 +450,6 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
 }
 
 
-
 bool HinksPix::UploadUnPack(bool &worked, Controller *controller, std::vector<UnPack *> const &UPA, bool dirty) const
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -753,8 +753,6 @@ void HinksPix::UpdateUniverseControllerChannels(UDControllerPort* stringData, st
 
         }
     }
-
-
 }
 
 void HinksPix::UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int const mode, std::vector<HinksPixInputUniverse>& inputUniverses, int32_t& hinkstartChan, int& index, bool individualUniverse) const
@@ -1804,27 +1802,21 @@ bool HinksPix::UploadTimeToController() const {
         return false;
     }
     auto time = wxDateTime::Now();
-    Tag_Dow_TimePacket TP;
-    memset(&TP, 0, sizeof(struct Tag_Dow_TimePacket));
-    TP.hr = time.GetHour();
-    TP.min = time.GetMinute();
-    TP.sec = time.GetSecond();
-    TP.dow = time.GetWeekDay(); // zero based
 
-    Tag_Packet PK;
-    memset(&PK, 0, sizeof(struct Tag_Packet));
+    Tag_Dow_TimePacket PK;
+    memset(&PK, 0, sizeof(struct Tag_Dow_TimePacket));
     memmove(PK.HINK, "HINK TCP_CMD  \r\n\r\n", sizeof(PK.HINK)); // must be 18
     PK.CMD[0] = 'D';
     PK.CMD[1] = 0x5a;
     PK.CMD[2] = 0xa5;
     PK.CMD[3] = 0;
 
-    PK.TotalSize = sizeof(struct Tag_Packet) - sizeof(PK.Data) + sizeof(struct Tag_Dow_TimePacket);
-    PK.StructType = 0;
-    PK.DataSize = sizeof(struct Tag_Dow_TimePacket);
+    PK.hr = time.GetHour();
+    PK.min = time.GetMinute();
+    PK.sec = time.GetSecond();
+    PK.dow = time.GetWeekDay(); // zero based
 
-    memmove(PK.Data, &TP, sizeof(struct Tag_Dow_TimePacket));
-    auto ss = sock->Write((uint8_t*)&PK, PK.TotalSize).LastCount();
+    auto ss = sock->Write((uint8_t*)&PK, sizeof(struct Tag_Dow_TimePacket)).LastCount();
     if (ss == 0) {
         logger_base.error("ERROR Sending Data to Controller File Data");
         sock->Close();
