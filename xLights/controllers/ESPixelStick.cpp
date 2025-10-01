@@ -26,23 +26,23 @@
 #pragma region Global Data
 static std::map<wxString, wxString> EspsV4ColorOrders = {
     { "rgb nodes",  "rgb" },
-    { "rbg nodes",  "rbg" },
-    { "gbr nodes",  "gbr" },
-    { "grb nodes",  "grb" },
-    { "brg nodes",  "brg" },
-    { "bgr nodes",  "bgr" },
-    { "wrgb nodes", "wrgb" },
-    { "wrbg nodes", "wrbg" },
-    { "wgbr nodes", "wgbr" },
-    { "wgrb nodes", "wgrb" },
-    { "wbrg nodes", "wbrg" },
-    { "wbgr nodes", "wbgr" },
+    { "rbg nodes",  "rgb" },
+    { "gbr nodes",  "rgb" },
+    { "grb nodes",  "rgb" },
+    { "brg nodes",  "rgb" },
+    { "bgr nodes",  "rgb" },
+    { "wrgb nodes", "rgbw" },
+    { "wrbg nodes", "rgbw" },
+    { "wgbr nodes", "rgbw" },
+    { "wgrb nodes", "rgbw" },
+    { "wbrg nodes", "rgbw" },
+    { "wbgr nodes", "rgbw" },
     { "rgbw nodes", "rgbw" },
-    { "rbgw nodes", "rbgw" },
-    { "gbrw nodes", "gbrw" },
-    { "grbw nodes", "grbw" },
-    { "brgw nodes", "brgw" },
-    { "bgrw nodes", "bgrw" }
+    { "rbgw nodes", "rgbw" },
+    { "gbrw nodes", "rgbw" },
+    { "grbw nodes", "rgbw" },
+    { "brgw nodes", "rgbw" },
+    { "bgrw nodes", "rgbw" }
 };
 
 #pragma endregion
