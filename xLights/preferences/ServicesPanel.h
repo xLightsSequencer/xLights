@@ -46,6 +46,8 @@ class ServicesPanel : public wxPanel {
 		//*)
 
 		void OnPropertyGridChange(wxPropertyGridEvent& event);
+    
+        void SetupTests();
 
 		DECLARE_EVENT_TABLE()
 };

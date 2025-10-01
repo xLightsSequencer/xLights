@@ -68,7 +68,7 @@ public func RunAppleIntelligencePrompt(_ prompt: String) -> String {
 }
 
 public func RunAppleIntelligenceGeneratePalette(_ prompt: String) -> String {
-    let fullprompt = "xlights color paletes are 8 unique colors. Can you create a color palette that would represent the moods and imagery " + prompt + ". Avoid dark, near black colors."
+    let fullprompt = "xlights color palettes are 8 unique colors. Can you create a color palette that would represent the moods and imagery " + prompt + ". Avoid dark, near black colors."
     if #available(macOS 26.0, *) {
         let semaphore = DispatchSemaphore(value: 0)
         let result: AsyncStringResult = .init()

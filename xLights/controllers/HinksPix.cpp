@@ -79,6 +79,8 @@ struct Tag_CMD_Packet {
 };
 
 struct Tag_Dow_TimePacket {
+    char HINK[18];
+    uint8_t CMD[4];
     uint8_t hr;
     uint8_t min;
     uint8_t sec;
@@ -86,7 +88,6 @@ struct Tag_Dow_TimePacket {
 };
 
 #pragma pack(pop)
-
 
 
 static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
@@ -449,7 +450,6 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
 }
 
 
-
 bool HinksPix::UploadUnPack(bool &worked, Controller *controller, std::vector<UnPack *> const &UPA, bool dirty) const
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -753,8 +753,6 @@ void HinksPix::UpdateUniverseControllerChannels(UDControllerPort* stringData, st
 
         }
     }
-
-
 }
 
 void HinksPix::UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int const mode, std::vector<HinksPixInputUniverse>& inputUniverses, int32_t& hinkstartChan, int& index, bool individualUniverse) const
@@ -1239,16 +1237,6 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         return false;
     }
 
-    if(controller->IsUniversePerString() && IsUnPackSupported_Hinks(controller))
-    {
-        wxString msg = "HinksPix Requires LESS Universes with 'Universe Per String' disabled.  \r\nTurn OFF Universe Per String and Click SAVE.\r\n Then Check Number of Universes for this Controller - Should have Decreased.\r\n  Press YES to Change";
-        if(wxMessageBox(msg, "Disable Universe Per String", wxYES_NO, parent) == wxYES)
-        {
-            return false;
-        }
-    }
-
-
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
 
@@ -1405,32 +1393,14 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
             // combine/compress
             logger_base.debug("Total Map compress\n");
-            int LastUsed = 0;
-            for(int i = 0, iii = 0; i < UPA.size(); i++)
+            for(int i = 0; i < UPA.size(); i++)
             {
-                if(UPA[i]->MyStart == UPA[i]->NewStart)  // we have continious memory
+                if((UPA[i]->MyStart == UPA[i]->NewStart) && (UPA[i]->MyEnd == UPA[i]->NewEnd)) // we have continuous memory
                 {
-                    UPA[LastUsed]->MyEnd += UPA[i]->NumChans;
-                    UPA[LastUsed]->NewEnd += UPA[i]->NumChans;
-                    UPA[LastUsed]->NumChans += UPA[i]->NumChans;
                     UPA[i]->InActive = true;
                     dirty = true;
-
-                    if(iii == 0)    // new group in sync
-                    {
-                        iii = 1;
-                        LastUsed = i;
-                    }
-                    logger_base.debug("%d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
-                    logger_base.debug("\t\tLast Used %d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n\n", LastUsed, UPA[LastUsed]->InActive, UPA[LastUsed]->Port, UPA[LastUsed]->MyStart, UPA[LastUsed]->MyEnd, UPA[LastUsed]->NewStart, UPA[LastUsed]->NewEnd, UPA[LastUsed]->NumChans);
-
                 }
-                else
-                {
-                    logger_base.debug("\n%d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
-                    LastUsed = i;
-                    iii = 0;
-                }
+                logger_base.debug("\n%d %d Port=%d MyStart=%d MyEnd=%d NewStart=%d NewEnd=%d NumChans=%d\n", i, UPA[i]->InActive, UPA[i]->Port, UPA[i]->MyStart, UPA[i]->MyEnd, UPA[i]->NewStart, UPA[i]->NewEnd, UPA[i]->NumChans);
             }
             logger_base.debug("\n\n\n");
 
@@ -1832,27 +1802,21 @@ bool HinksPix::UploadTimeToController() const {
         return false;
     }
     auto time = wxDateTime::Now();
-    Tag_Dow_TimePacket TP;
-    memset(&TP, 0, sizeof(struct Tag_Dow_TimePacket));
-    TP.hr = time.GetHour();
-    TP.min = time.GetMinute();
-    TP.sec = time.GetSecond();
-    TP.dow = time.GetWeekDay(); // zero based
 
-    Tag_Packet PK;
-    memset(&PK, 0, sizeof(struct Tag_Packet));
+    Tag_Dow_TimePacket PK;
+    memset(&PK, 0, sizeof(struct Tag_Dow_TimePacket));
     memmove(PK.HINK, "HINK TCP_CMD  \r\n\r\n", sizeof(PK.HINK)); // must be 18
     PK.CMD[0] = 'D';
     PK.CMD[1] = 0x5a;
     PK.CMD[2] = 0xa5;
     PK.CMD[3] = 0;
 
-    PK.TotalSize = sizeof(struct Tag_Packet) - sizeof(PK.Data) + sizeof(struct Tag_Dow_TimePacket);
-    PK.StructType = 0;
-    PK.DataSize = sizeof(struct Tag_Dow_TimePacket);
+    PK.hr = time.GetHour();
+    PK.min = time.GetMinute();
+    PK.sec = time.GetSecond();
+    PK.dow = time.GetWeekDay(); // zero based
 
-    memmove(PK.Data, &TP, sizeof(struct Tag_Dow_TimePacket));
-    auto ss = sock->Write((uint8_t*)&PK, PK.TotalSize).LastCount();
+    auto ss = sock->Write((uint8_t*)&PK, sizeof(struct Tag_Dow_TimePacket)).LastCount();
     if (ss == 0) {
         logger_base.error("ERROR Sending Data to Controller File Data");
         sock->Close();
