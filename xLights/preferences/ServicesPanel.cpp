@@ -138,10 +138,7 @@ ServicesPanel::ServicesPanel(wxWindow* parent, ServiceManager* sm, wxWindowID id
     servicesGrid->SetPropertyAttributeAll(wxPG_BOOL_USE_CHECKBOX, true);
     servicesGrid->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&ServicesPanel::OnPropertyGridChange, 0, this);
 
-    for (auto const& ss : m_serviceManager->getServices()) {
-        ChoiceServicesTest->Append(ss->GetLLMName());
-    }
-
+    SetupTests();
 #ifdef _MSC_VER
     MSWDisableComposited();
 #endif
@@ -152,6 +149,23 @@ ServicesPanel::~ServicesPanel()
 	//(*Destroy(ServicesPanel)
 	//*)
 }
+
+void ServicesPanel::SetupTests() {
+    ChoiceServicesTest->Clear();
+    int count = 0;
+    for (auto const& ss : m_serviceManager->getServices()) {
+        if (ss->IsAvailable() && ss->IsEnabled()) {
+            ChoiceServicesTest->Append(ss->GetLLMName());
+            count++;
+        }
+    }
+    if (count > 0) {
+        ChoiceServicesTest->SetSelection(0);
+    }
+    ChoiceServicesTest->Enable(count > 0);
+    ButtonTest->Enable(count > 0);
+}
+
 
 bool ServicesPanel::TransferDataToWindow() {
     servicesGrid->Clear();
@@ -199,9 +213,10 @@ void ServicesPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();
     }
+    SetupTests();
 }
 
 void ServicesPanel::OnChoiceServicesTestSelect(wxCommandEvent& event)
 {
-        ButtonTest->Enable(!ChoiceServicesTest->GetStringSelection().IsEmpty());
+
 }
