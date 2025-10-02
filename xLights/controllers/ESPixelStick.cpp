@@ -25,24 +25,26 @@
 
 #pragma region Global Data
 static std::map<wxString, wxString> EspsV4ColorOrders = {
-    { "rgb nodes",  "rgb" },
-    { "rbg nodes",  "rgb" },
-    { "gbr nodes",  "rgb" },
-    { "grb nodes",  "rgb" },
-    { "brg nodes",  "rgb" },
-    { "bgr nodes",  "rgb" },
-    { "wrgb nodes", "rgbw" },
-    { "wrbg nodes", "rgbw" },
-    { "wgbr nodes", "rgbw" },
-    { "wgrb nodes", "rgbw" },
-    { "wbrg nodes", "rgbw" },
-    { "wbgr nodes", "rgbw" },
-    { "rgbw nodes", "rgbw" },
-    { "rbgw nodes", "rgbw" },
-    { "gbrw nodes", "rgbw" },
-    { "grbw nodes", "rgbw" },
-    { "brgw nodes", "rgbw" },
-    { "bgrw nodes", "rgbw" }
+    { "rgb",        "rgb"  },
+    { "rbg",        "rbg"  },
+    { "gbr",        "gbr"  },
+    { "grb",        "grb"  },
+    { "brg",        "brg"  },
+    { "bgr",        "bgr"  },
+    { "wrgb",       "wrgb" },
+    { "wrbg",       "wrbg" },
+    { "wgbr",       "wgbr" },
+    { "wgrb",       "wgrb" },
+    { "wbrg",       "wbrg" },
+    { "wbgr",       "wbgr" },
+    { "rgbw",       "rgbw" },
+    { "rbgw",       "rbgw" },
+    { "gbrw",       "gbrw" },
+    { "grbw",       "grbw" },
+    { "brgw",       "brgw" },
+    { "bgrw",       "bgrw" },
+    { "undefined",  "rgb"  },
+    { "undefinedw", "rgbw" }
 };
 
 #pragma endregion
@@ -630,6 +632,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
 
             wxString targetProtocolName = port->GetProtocol();
             targetProtocolName = targetProtocolName.Lower();
+            std::string type = port->GetType();
 
             if (!CurrentEspsPort.ProtocolsByName.contains(targetProtocolName))
             {
@@ -659,7 +662,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                 int channelsPerPixel = model->GetChannelsPerPixel();
                 Protocol.PutSetting("pixel_count", std::to_string(INTROUNDUPDIV(numberOfChannels, channelsPerPixel)));
 
-                wxString colorOrder = model->GetModel()->GetStringType();
+                wxString colorOrder = model->GetColourOrder(channelsPerPixel > 3 ? "undefinedw" : "undefined");
                 colorOrder.MakeLower();
                 if (!EspsV4ColorOrders.contains(colorOrder))
                 {
