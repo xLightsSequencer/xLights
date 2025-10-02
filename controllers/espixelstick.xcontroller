@@ -31,17 +31,18 @@
 		<SupportsDefaultGamma/>
 		<SupportsPixelPortBrightness/>
 		<SupportsPixelPortGamma/>
+		<SupportsPixelPortColourOrder/>
 		<SupportsPixelPortNullPixels/>
+    		<MaxStartNulls>20</MaxStartNulls>
 		<SupportsPixelPortEndNullPixels/>
-		<MaxStartNulls>20</MaxStartNulls>
-		<MaxEndNulls>20</MaxEndNulls>
+	    	<MaxEndNulls>20</MaxEndNulls>
 		<SupportsPixelPortGrouping/>
-		<MinGroup>1</MinGroup>
-		<MaxGroup>100</MaxGroup>
+		    <MinGroup>1</MinGroup>
+    		<MaxGroup>100</MaxGroup>
         <SupportsMultipleSimultaneousOutputProtocols/>
         <!--SupportsPixelPortCommonSettings/-->
-        <SupportsPixelZigZag/>
-        <MaxZigZag>256</MaxZigZag>
+		<SupportsPixelPortZigZag/>
+            <MaxZigZag>250</MaxZigZag>
         <SupportsUpload/>
         <SupportsInputOnlyUpload/>
         <SupportsAutoUpload/>
@@ -49,7 +50,6 @@
         <UniversesMustBeSequential/>
         <SupportsAutoLayout/>
         <DDPStartsAtOne/>
-        <SupportsPixelPortEndNullPixels/>
         <NeedsDDPInputUpload/>
         <InputProtocols>
             <Protocol>e131</Protocol>

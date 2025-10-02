@@ -12,6 +12,7 @@
 
 #include <list>
 #include <string>
+#include <map>
 
 #include <nlohmann/json.hpp>
 
@@ -20,6 +21,45 @@
 #include "ControllerUploadData.h"
 #include "../utils/CurlManager.h"
 
+class EspsV4Protocol
+{
+public:
+    void ParseV4Settings(wxString Id, nlohmann::json & JsonConfig);
+    bool GetSetting(wxString Name, wxString & value);
+    bool PutSetting(wxString Name, const wxString & value);
+    int WriteConfigToJson(nlohmann::json& JsonConfig);
+    inline bool IsPixel() { return Settings.contains("color_order"); }
+    inline wxString Name() { return _Name; }
+    inline wxString Id() { return _Id; }
+
+private:
+    wxString _Id;
+    wxString _Name;
+    std::map<wxString, wxString> Settings;
+    uint32_t NumItemsChanged = 0;
+};
+
+class EspsPort
+{
+public:
+    wxString PortId;
+    wxString CurrentProtocolId = "0";
+    wxString CurrentProtocolName = "disabled";
+    wxString DisabledId = "0";
+    wxString DisabledName = "disabled";
+    std::map<wxString, EspsV4Protocol> ProtocolsByName;
+    std::map<wxString, wxString> ProtocolIdToProtocolName;
+
+    bool ParseV4Settings(nlohmann::json& JsonConfig);
+    bool WriteConfigToJson(nlohmann::json& JsonConfig);
+    void Disable() {
+        CurrentProtocolId = DisabledId;
+        CurrentProtocolName = DisabledName;
+    }
+
+private:
+
+};
 
 class ESPixelStick : public BaseController
 {
@@ -29,13 +69,11 @@ private:
     WebSocketClient _wsClient;
     bool _UsingHttpConfig = false;
 
+    std::map<std::string, EspsPort> EspsConfig;
+
     #pragma endregion
 
     #pragma region Private Functions
-
-    std::string DecodeStringPortProtocol(std::string const& protocol) const;
-    std::string DecodeSerialPortProtocol(std::string const& protocol) const;
-    std::string DecodeSerialSpeed(std::string const& protocol) const;
 
     std::string GetFromJSON(std::string const& section, std::string const& key, std::string const& json) const;
     bool CheckWsConnection();
@@ -55,6 +93,7 @@ private:
     bool SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);
     bool SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);
 
+    bool ParseV4Config(nlohmann::json& outputConfig);
     std::string GetWSResponse();
 
 #pragma endregion
