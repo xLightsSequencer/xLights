@@ -20,7 +20,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - bug (dkulp)           Services Test button should depend on enabled services
     - bug (derwin12)        Remove macOS metadata files from Batch render pick list
     - bug (scott)           Several Hinkspix configuration issues
-    - bug (derwin12)        Update playlist duration and coutn during FPP Connect
+    - bug (derwin12)        Update playlist duration and count during FPP Connect
     - bug (derwin12)        Support old "master" setting for FPP
     - bug (scott)           Fix issue with Experience controllers and Dummy Smart Receiver sttrings
     - bug (dkulp)           Fix crash with scroll wheel navigation on Wavefrom on macOS Tahoe
