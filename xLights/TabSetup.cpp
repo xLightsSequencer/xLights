@@ -1639,7 +1639,7 @@ void xLightsFrame::waitForPingsToComplete() {
 }
 
 void xLightsFrame::StatusRefreshTimer(wxTimerEvent& event) {
-    if (Notebook1->GetSelection() == SETUPTAB) {
+    if (Notebook1->GetSelection() == SETUPTAB && List_Controllers != nullptr) {
         List_Controllers->Freeze();
         for (int row = 0; row < List_Controllers->GetItemCount(); ++row) {
             auto controller = dynamic_cast<Controller*>(_outputManager.GetController(List_Controllers->GetItemText(row, 0).ToStdString()));

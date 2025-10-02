@@ -22,7 +22,9 @@
 ServiceManager::ServiceManager(xLightsFrame* xl)
 {
 #if defined(__WXOSX__) && defined(__arm64__)
-    m_services.push_back(std::make_unique<AppleIntelligence>(this));
+    if (wxCheckOsVersion(26, 0, 0)) {
+        m_services.push_back(std::make_unique<AppleIntelligence>(this));
+    }
 #endif
     m_services.push_back(std::make_unique<chatGPT>(this));
     m_services.push_back(std::make_unique<ollama>(this));
@@ -115,7 +117,7 @@ void ServiceManager::setSecretServiceToken(std::string const& service, std::stri
 
     wxSecretValue tt(token);
     if (!pwdStore.Save("xLightsServiceSettings" + service, "token", tt)) {
-                
+        printf("Failed to save %s\n", (const char *)service.c_str());
     }
 }
 #else
@@ -127,7 +129,6 @@ void ServiceManager::setSecretServiceToken(std::string const& service, std::stri
     setServiceSetting(service + "_token", token);
 }
 #endif
-
 
 /*
 std::unique_ptr<aiBase> ServiceManager::GetLLM() {

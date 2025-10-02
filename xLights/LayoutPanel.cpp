@@ -2478,6 +2478,12 @@ void LayoutPanel::showBackgroundProperties()
         backgroundFile = previewBackgroundFile;
         if (backgroundFile != "" && FileExists(backgroundFile) && wxIsReadable(backgroundFile)) {
             background = new wxImage(backgroundFile);
+            if (background->IsOk()) {
+                int orientation = GetExifOrientation(backgroundFile);
+                if (orientation != 1) { // 1 means no rotation needed
+                    *background = ApplyOrientation(*background, orientation);
+                }
+            }
         }
     }
     wxPGProperty* prop = propertyEditor->Append(new xlImageProperty("Background Image",
