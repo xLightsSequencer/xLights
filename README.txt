@@ -11,6 +11,20 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2025.09 October 2, 2025
+    - enh (dkulp)           Support ChatGBT for AI Color Palette creation
+    - enh (dkulp)           Warn if "Full Disk Access" is enabled
+    - enh (scott)           Support newer Hinkspix Firmware
+    - enh (scott)           *Internal* - change JSON parser for most places json is used
+    - enh (derwin12)        Use orientation metadata tag for jpg images
+    - bug (dkulp)           Services Test button should depend on enabled services
+    - bug (derwin12)        Remove macOS metadata files from Batch render pick list
+    - bug (scott)           Several Hinkspix configuration issues
+    - bug (derwin12)        Update playlist duration and coutn during FPP Connect
+    - bug (derwin12)        Support old "master" setting for FPP
+    - bug (scott)           Fix issue with Experience controllers and Dummy Smart Receiver sttrings
+    - bug (dkulp)           Fix crash with scroll wheel navigation on Wavefrom on macOS Tahoe
+    - bug (dkulp)           Fix a crash on macOS if an animation sequence is opened after a music sequence and then the audio device is changed
 2025.09 September 16, 2025
     - enh (dkulp)           New "Generate Palette" dialog to use AI to generate a color palette
     - enh (dkulp)           Add "Apple Intelligence" service provider (palette generation only at this point)
