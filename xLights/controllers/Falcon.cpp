@@ -126,7 +126,12 @@ int Falcon::CallFalconV4API(const std::string& type, const std::string& method, 
     // {"T":"S","M":"IN","B":0,"E":1,"I":0,"P":{"A":[{"u":1,"c":512,"uc":16,"p":"e"}]}}
     // {"R":200,"T":"S","M":"IN","F":1,"B":0,"RB":0,"P":{},"W":"","L":""}
 
-    auto p = params.dump();
+    std::string p;
+    if (!params.is_null()) {
+        p = params.dump();
+    } else {
+        p = "{}";
+    }
 
     std::string send = wxString::Format("{\"T\":\"%s\",\"M\":\"%s\",\"B\":%d,\"E\":%d,\"I\":%d,\"P\":%s}", type, method, inbatch, expected, index, p).ToStdString();
 
@@ -262,8 +267,8 @@ bool Falcon::V4_GetStatus(nlohmann::json& res) {
         bool reboot;
         nlohmann::json outParams;
         if (CallFalconV4API("Q", "ST", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
-            for (const auto& n : outParams) {
-                res[n] = nlohmann::json(outParams[n]);
+            for (const auto& [key, val] : outParams.items()) {
+                res[key] = (outParams[key]);
             }
 
             ++batch;
@@ -394,7 +399,7 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
     // {"R":200,"T":"S","M":"SP","F":0,"B":0,"RB":0,"P":{},"W":" ","L":""}
 
     // strings must be in port order. Within port they must be in smart remote order. Within smart remote they must be in string order.
-
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     size_t batches = res.size() / FALCON_V4_SEND_STRING_BATCH_SIZE + 1;
     if (res.size() % FALCON_V4_SEND_STRING_BATCH_SIZE == 0 && res.size() != 0)
         --batches;
@@ -405,36 +410,15 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
     int batch = 0;
     while (success && left > 0) {
         // a board mode of 255 means dont change anything
-        std::string params = wxString::Format("{\"AD\":%d,\"B\":%d,\"ps\":-10,\"A\":[", addressingMode, 255, startChannel).ToStdString();
-
+        //std::string params = wxString::Format("{\"AD\":%d,\"B\":%d,\"ps\":-10,\"A\":[", addressingMode, 255, startChannel).ToStdString();
+        nlohmann::json p;
+        p["AD"] = addressingMode;
+        p["B"] = 255;
+        p["ps"] = -10;
         for (size_t i = batch * FALCON_V4_SEND_STRING_BATCH_SIZE; i < (batch + 1) * FALCON_V4_SEND_STRING_BATCH_SIZE && i < res.size(); i++) {
-            if (batch != 0 || i != 0)
-                params += ",";
-            params += wxString::Format("{\"l\":%d,\"p\":%d,\"r\":%d,\"s\":%d,\"v\":%d,\"u\":%d,\"sc\":%d,\"n\":%d,\"z\":%d,\"ns\":%d,\"ne\":%d,\"g\":%d,\"o\":%d,\"b\":%d,\"gp\":%d,\"nm\":\"%s\",\"bl\":%d}",
-                                       res[i].protocol,
-                                       res[i].port,
-                                       res[i].smartRemote,
-                                       res[i].string,
-                                       res[i].direction,
-                                       res[i].universe,
-                                       res[i].startChannel,
-                                       res[i].pixels,
-                                       res[i].zigcount,
-                                       res[i].startNulls,
-                                       res[i].endNulls,
-                                       res[i].gamma,
-                                       res[i].colourOrder,
-                                       res[i].brightness,
-                                       res[i].group,
-                                       res[i].name,
-                                       res[i].blank)
-                          .ToStdString();
+            p["A"].push_back(res[i].asJson());
             --left;
         }
-
-        params += "]}";
-
-        nlohmann::json p = nlohmann::json::parse(params);
 
         bool finalCall;
         int outBatch;

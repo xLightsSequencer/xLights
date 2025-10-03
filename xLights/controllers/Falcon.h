@@ -77,6 +77,28 @@ class Falcon : public BaseController
             protocol = json["l"].get<int>();
             startChannel = json["sc"].get<int>();
         }
+        nlohmann::json asJson() const {
+            nlohmann::json json;
+            json["l"] = protocol;
+            json["p"] = port;
+            json["r"] = smartRemote;
+            json["s"] = string;
+            json["v"] = direction;
+            json["u"] = universe;
+            json["sc"] = startChannel;
+            json["n"] = pixels;
+            json["z"] = zigcount;
+            json["ns"] = startNulls;
+            json["ne"] = endNulls;
+            json["g"] = gamma;
+            json["o"] = colourOrder;
+            json["b"] = brightness;
+            json["gp"] = group;
+            json["nm"] = name;
+            json["bl"] = (int)blank;
+            return json;
+        }
+
 
         int port;                   // p
         int string;                 // s
