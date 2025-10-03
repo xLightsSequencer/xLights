@@ -428,6 +428,21 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
     cud.Dump();
     logger_base.debug(check);
 
+    auto getJSONAsNumStr = [](nlohmann::json& json, std::string const& parm) {
+        if (!json.contains(parm)){
+            return std::string();
+        }
+        if (json[parm].is_string()) {
+            return json[parm].get<std::string>();
+        }
+        if (json[parm].is_number_integer()) {
+            return std::to_string(json[parm].get<int>());
+        }
+        if (json[parm].is_number_float()) {
+            return std::to_string(json[parm].get<float>());
+        }
+    };
+
     if (success) {
         bool changed = false;
         nlohmann::json outputConfig;
@@ -505,7 +520,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                             gamma = 5.0F;
                         }
                         std::string const s_gamma = std::to_string(gamma);
-                        if (s_gamma != outputConfig["channels"][outidx][curIdx]["gamma"].get<std::string>()) {
+                        if (s_gamma != getJSONAsNumStr(outputConfig["channels"][outidx][curIdx], "gamma")) {
                             changed = true;
                             outputConfig["channels"][outidx][curIdx]["gamma"] = gamma;
                         }
@@ -517,7 +532,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                         }
 
                         std::string const b2 = std::to_string(b);
-                        if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].get<std::string>()) {
+                        if (b2 != getJSONAsNumStr(outputConfig["channels"][outidx][curIdx],"brightness")) {
                             changed = true;
                             outputConfig["channels"][outidx][curIdx]["brightness"] = b;
                         }
@@ -528,34 +543,34 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                     }
                     if (groupCount != -1) {
                         std::string const s_groupCount = std::to_string(groupCount);
-                        if (s_groupCount != outputConfig["channels"][outidx][curIdx]["group_size"].get<std::string>()) {
+                        if (s_groupCount != getJSONAsNumStr(outputConfig["channels"][outidx][curIdx],"group_size")) {
                             changed = true;
                             outputConfig["channels"][outidx][curIdx]["group_size"] = groupCount;
                         }
                     }
                     if (zigzag != -1) {
 						std::string const s_zigzag = std::to_string(zigzag);
-                        if (s_zigzag != outputConfig["channels"][outidx][curIdx]["zig_size"].get<std::string>()) {
+                        if (s_zigzag != getJSONAsNumStr(outputConfig["channels"][outidx][curIdx],"zig_size")) {
 							changed = true;
 							outputConfig["channels"][outidx][curIdx]["zig_size"] = zigzag;
 						}
 					}
                     if (startNulls != -1) {
                         std::string const s_startNulls = std::to_string(startNulls);
-                        if (s_startNulls != outputConfig["channels"][outidx][curIdx]["prependnullcount"].get<std::string>()) {
+                        if (s_startNulls != getJSONAsNumStr(outputConfig["channels"][outidx][curIdx],"prependnullcount")) {
                             changed = true;
                             outputConfig["channels"][outidx][curIdx]["prependnullcount"] = startNulls;
                         }
                     }
                     if (endNulls != -1) {
                         std::string const s_endNulls = std::to_string(endNulls);
-                        if (s_endNulls != outputConfig["channels"][outidx][curIdx]["appendnullcount"].get<std::string>()) {
+                        if (s_endNulls != getJSONAsNumStr(outputConfig["channels"][outidx][curIdx],"appendnullcount")) {
                             changed = true;
                             outputConfig["channels"][outidx][curIdx]["appendnullcount"] = endNulls;
                         }
                     }
                     std::string const s_pixels = std::to_string(pixels);
-                    if (s_pixels != outputConfig["channels"][outidx][curIdx]["pixel_count"].get<std::string>()) {
+                    if (s_pixels != getJSONAsNumStr(outputConfig["channels"][outidx][curIdx],"pixel_count")) {
                         changed = true;
                         outputConfig["channels"][outidx][curIdx]["pixel_count"] = pixels;
                     }
@@ -566,13 +581,13 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                             b = 100;
                         }
                         std::string const b2 = std::to_string(b);
-                        if (b2 != outputConfig["channels"][outidx][curIdx]["brightness"].get<std::string>()) {
+                        if (b2 != getJSONAsNumStr(outputConfig["channels"][outidx][curIdx],"brightness")) {
                             changed = true;
                             outputConfig["channels"][outidx][curIdx]["brightness"] = b;
                         }
                     }
                     std::string const s_pixels = std::to_string(pixels);
-                    if (s_pixels != outputConfig["channels"][outidx][curIdx]["pixel_count"].get<std::string>()) {
+                    if (s_pixels != getJSONAsNumStr(outputConfig["channels"][outidx][curIdx],"pixel_count")) {
                         changed = true;
                         outputConfig["channels"][outidx][curIdx]["pixel_count"] = pixels;
                     }
