@@ -11,7 +11,13 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2025.09 October 2, 2025
+2025.10.1 October 3, 2025
+    - enh (scott)           Show xml error and location if rgbeffects file has an error
+    - bug (dkulp)           Fix crash in FPP discovery if WLED controllers are present
+    - bug (scott)           Fix upload to Falcon controllers
+    - bug (scott)           Fix upload to ESPixelStick
+    - bug (dkulp)           Fix crash with "Duplicate" effect when duplicating effects with backgrounds (Single Strand, etc..)
+2025.10 October 2, 2025
     - enh (dkulp)           Support ChatGPT for AI Color Palette creation
     - enh (dkulp)           Warn if "Full Disk Access" is enabled
     - enh (scott)           Support newer Hinkspix Firmware
