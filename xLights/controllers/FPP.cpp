@@ -349,9 +349,11 @@ bool FPP::GetURLAsJSON(const std::string& url, nlohmann::json& val, bool recordE
     std::string sval;
     if (GetURLAsString(url, sval, recordError)) {
         try {
-            val = nlohmann::json::parse(sval);
-            return true;
-        } catch (const std::exception&) {
+            val = nlohmann::json::parse(sval, nullptr, false);
+            if (!val.is_discarded()) {
+                return true;
+            }
+        } catch (...) {
         }
     }
     return false;
@@ -851,7 +853,7 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
         curl_slist_free_all(headers);
         long response_code = 0;
         curl_easy_getinfo(c, CURLINFO_RESPONSE_CODE, &response_code);
-        logger_curl.info("    FPPConnect CURL Callbak - URL: %s    Response: %d", ps->fullUrl.c_str(), response_code);
+        logger_curl.info("    FPPConnect CURL Callback - URL: %s    Response: %d", ps->fullUrl.c_str(), response_code);
         bool cancelled = false;
         if (response_code != 200 && ps->errorCount < 3) {
             // strange error on upload, let's restart and try again (up to three attempts)
@@ -1011,12 +1013,12 @@ bool FPP::CheckUploadMedia(const std::string &media, std::string &mediaBaseName)
         bool doMediaUpload = true;
         if (rc == 200) {
             try {
-                nlohmann::json const& currentMeta = nlohmann::json::parse(resp);
+                nlohmann::json currentMeta = nlohmann::json::parse(resp, nullptr, false);
                 if (currentMeta.contains("format") && currentMeta["format"].contains("size") &&
                     (mfn.GetSize() == std::atoi(currentMeta["format"]["size"].get<std::string>().c_str()))) {
                     doMediaUpload = false;
                 }
-            } catch (const std::exception& e) {
+            } catch (...) {
             }
         }
         if (doMediaUpload) {
@@ -1925,8 +1927,7 @@ void FPP::UpdateChannelRanges()
                     SetNewRanges(rngs);
                     return;
                 }
-            }
-            else {
+            } else {
                 //fppd hasn't restarted yet, wait a tiny bit and try again
                 ++count;
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -3148,10 +3149,14 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
     nlohmann::json origJson;
 
     try {
-        origJson = nlohmann::json::parse(systemsString);
-    } catch (nlohmann::json::parse_error& /*e*/) {
+        origJson = nlohmann::json::parse(systemsString, nullptr, false);
+    } catch (...) {
+        origJson = nlohmann::json::value_t::discarded;
+    }
+    if (origJson.is_discarded()) {
         return;
     }
+    
 
     std::string IPKey = "IP";
     std::string PlatformKey = "Platform";
@@ -3315,8 +3320,11 @@ static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     nlohmann::json origJson;
     try {
-        origJson = nlohmann::json::parse(proxies);
-    } catch (nlohmann::json::parse_error& /*e*/) {
+        origJson = nlohmann::json::parse(proxies, nullptr, false);
+    } catch (...) {
+        origJson = nlohmann::json::value_t::discarded;
+    }
+    if (origJson.is_discarded()) {
         return;
     }
     DiscoveredData *ipinst = discovery.FindByIp(ip, "", true);
@@ -3361,8 +3369,11 @@ static void ProcessFPPChannelOutput(Discovery &discovery, const std::string &ip,
 
     nlohmann::json val;
     try {
-        val = nlohmann::json::parse(outputs);
-    } catch (nlohmann::json::parse_error& /*e*/) {
+        val = nlohmann::json::parse(outputs, nullptr, false);
+    } catch (...) {
+        val = nlohmann::json::value_t::discarded;
+    }
+    if (val.is_discarded()) {
         return;
     }
     DiscoveredData *inst = discovery.FindByIp(ip, "", true);
@@ -3412,8 +3423,11 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
     nlohmann::json val;
 
     try {
-        val = nlohmann::json::parse(sysInfo);
-    } catch (nlohmann::json::parse_error& /*e*/) {
+        val = nlohmann::json::parse(sysInfo, nullptr, false);
+    } catch (...) {
+        val = nlohmann::json::value_t::discarded;
+    }
+    if (val.is_discarded()) {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("Could not parse sysinfo for %s(%s)", ip.c_str(), proxy.c_str());
         DiscoveredData* inst = discovery.FindByIp(ip, "", true);
@@ -3423,7 +3437,7 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
         }
         return;
     }
-
+    
     std::string uuid = (val.contains("uuid") ? val["uuid"].get<std::string>() : (val.contains("UUID") ? val["UUID"].get<std::string>() : ""));
 
     DiscoveredData *inst = discovery.FindByUUID(uuid, ip);
@@ -3512,9 +3526,11 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
                         [&discovery, host, inst] (int rc, const std::string &buffer, const std::string &err) {
         if (rc == 200) {
             try {
-                nlohmann::json val = nlohmann::json::parse(buffer);
-                inst->extraData["playlists"] = val;
-            } catch (nlohmann::json::parse_error& /*e*/) {
+                nlohmann::json val = nlohmann::json::parse(buffer, nullptr, false);
+                if (!val.is_discarded()) {
+                    inst->extraData["playlists"] = val;
+                }
+            } catch (...) {
             }
         }
         return true;
@@ -3523,9 +3539,11 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
                         [&discovery, host, inst, baseUrl, baseIp] (int rc, const std::string &buffer, const std::string &err) {
         if (rc == 200) {
             try {
-                nlohmann::json val = nlohmann::json::parse(buffer);
-                inst->extraData["cape"] = val;
-            } catch (nlohmann::json::parse_error& /*e*/) {
+                nlohmann::json val = nlohmann::json::parse(buffer, nullptr, false);
+                if (!val.is_discarded()) {
+                    inst->extraData["cape"] = val;
+                }
+            } catch (...) {
             }
         }
         return true;
