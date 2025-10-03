@@ -581,6 +581,9 @@ public:
                     } else {
                         tempEffect = new Effect(*ef);
                         ef = tempEffect;
+                        
+                        // disable the background display lists as the "duplicate" effect doesn't support this
+                        tempEffect->EnableBackgroundDisplayLists(false);
 
                         if (orig->GetSetting("E_CHECKBOX_Duplicate_Override_Buffer") == "1") {
                             ef->EraseSettingsStartingWith("B_");
