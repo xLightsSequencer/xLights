@@ -12,7 +12,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2025.09 October 2, 2025
-    - enh (dkulp)           Support ChatGBT for AI Color Palette creation
+    - enh (dkulp)           Support ChatGPT for AI Color Palette creation
     - enh (dkulp)           Warn if "Full Disk Access" is enabled
     - enh (scott)           Support newer Hinkspix Firmware
     - enh (scott)           *Internal* - change JSON parser for most places json is used
