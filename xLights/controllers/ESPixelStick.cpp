@@ -441,6 +441,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
         if (json[parm].is_number_float()) {
             return std::to_string(json[parm].get<float>());
         }
+        return std::string();
     };
 
     if (success) {
