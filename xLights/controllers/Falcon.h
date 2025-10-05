@@ -45,8 +45,17 @@ class Falcon : public BaseController
             universe = json["u"].get<int>();
             channels = json["c"].get<int>();
             universeCount = json["uc"].get<int>();
-            protocol = json.get<std::string>() == "e" ? 0 : 1;
+            protocol = json["p"].get<std::string>() == "e" ? 0 : 1;
         }
+
+        nlohmann::json asJson() const {
+            nlohmann::json json;
+            json["u"] = universe;
+            json["c"] = channels;
+            json["uc"] = universeCount;
+            json["p"] = (protocol == 0 ? "e" : "a");
+            return json;
+        };
 
         int universe;
         int channels;
@@ -98,7 +107,6 @@ class Falcon : public BaseController
             json["bl"] = (int)blank;
             return json;
         }
-
 
         int port;                   // p
         int string;                 // s
@@ -162,7 +170,7 @@ class Falcon : public BaseController
 
     #pragma region Private Functions
 
-    bool IsFirmwareEqualOrGreaterThan(int major, int minor)
+    bool IsFirmwareEqualOrGreaterThan(int major, int minor) const
     {
         return _majorFirmwareVersion > major || (_majorFirmwareVersion == major && _minorFirmwareVersion >= minor);
     }

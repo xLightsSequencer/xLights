@@ -56,7 +56,7 @@ std::vector<std::string> Falcon::V4_GetMediaFiles() {
         nlohmann::json outParams;
         if (CallFalconV4API("Q", "WV", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
             for (auto item : outParams.at("F").array()) {
-                res.push_back(item["f"].get<std::string>());
+                res.push_back(item.get<std::string>());
             }
 
             batch++;
@@ -167,7 +167,7 @@ bool Falcon::V4_GetInputs(std::vector<FALCON_V4_INPUTS>& res) {
         bool reboot;
         nlohmann::json outParams;
         if (CallFalconV4API("Q", "IN", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
-            for (auto const& inpj : outParams["A"].array()) {
+            for (auto const& inpj : outParams["A"]) {
                 res.emplace_back(inpj);
             }
 
@@ -199,18 +199,13 @@ bool Falcon::V4_SendInputs(std::vector<FALCON_V4_INPUTS>& res, bool& reboot) {
     bool success = true;
     int batch = 0;
     while (success && left > 0) {
-        std::string params = "{\"A\":[";
+
+        nlohmann::json p;
 
         for (size_t i = batch * FALCON_V4_SEND_INPUT_BATCH_SIZE; i < (batch + 1) * FALCON_V4_SEND_INPUT_BATCH_SIZE && i < res.size(); ++i) {
-            if (batch != 0)
-                params += ",";
-            params += wxString::Format("{\"u\":%d,\"c\":%d,\"uc\":%d,\"p\":\"%c\"}", res[i].universe, res[i].channels, res[i].universeCount, (res[i].protocol == 0 ? 'e' : 'a')).ToStdString();
+            p["A"].push_back(res[i].asJson());
             --left;
         }
-
-        params += "]}";
-
-        nlohmann::json p = nlohmann::json::parse(params);
 
         bool finalCall;
         int outBatch;
@@ -357,7 +352,7 @@ bool Falcon::V4_GetStrings(std::vector<FALCON_V4_STRING>& res) {
         bool reboot;
         nlohmann::json outParams;
         if (CallFalconV4API("Q", "SP", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
-            for (auto const& inpj : outParams["A"].array()) {
+            for (auto const& inpj : outParams["A"]) {
                 res.emplace_back(inpj);
             }
             ++batch;
@@ -399,7 +394,7 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
     // {"R":200,"T":"S","M":"SP","F":0,"B":0,"RB":0,"P":{},"W":" ","L":""}
 
     // strings must be in port order. Within port they must be in smart remote order. Within smart remote they must be in string order.
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     size_t batches = res.size() / FALCON_V4_SEND_STRING_BATCH_SIZE + 1;
     if (res.size() % FALCON_V4_SEND_STRING_BATCH_SIZE == 0 && res.size() != 0)
         --batches;
