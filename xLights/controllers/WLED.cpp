@@ -136,28 +136,28 @@ WLEDOutput* WLED::ExtractOutputJSON(nlohmann::json const& jsonVal, int port, Con
     auto const& json = jsonVal.at("hw").at("led").at("ins").at(port - 1);
 
     if (!json.is_null()) {
-        if (json.at("len").is_number_integer()) {
+        if (json.contains("len") && json.at("len").is_number_integer()) {
             output->pixels = json.at("len").get<int>();
         }
-        if (json.at("start").is_number_integer()) {
+        if (json.contains("start") && json.at("start").is_number_integer()) {
             output->startCount = json.at("start").get<int>();
         }
-        if (json.at("pin").is_array()) {
+        if (json.contains("pin") && json.at("pin").is_array()) {
             if (!json.at("pin").at(0).is_null()) {
                 output->pin = json.at("pin").at(0).get<int>();
             }
         }
-        if (json.at("type").is_number_integer()) {
+        if (json.contains("type") && json.at("type").is_number_integer()) {
             output->protocol = json.at("type").get<int>();
         }
-        if (json.at("order").is_number_integer()) {
+        if (json.contains("order") && json.at("order").is_number_integer()) {
             output->colorOrder = json.at("order").get<int>();
         }
-        if (json.at("rev").is_boolean()) {
+        if (json.contains("rev") && json.at("rev").is_boolean()) {
             output->reverse = json.at("rev").get<bool>();
         }
         //skip is an int in the JSON but checkbox in the WebUI
-        if (json.at("skip").is_number_integer()) {
+        if (json.contains("skip") && json.at("skip").is_number_integer()) {
             output->nullPixels = json.at("skip").get<int>();
         }
     }
@@ -477,8 +477,23 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     {
         val = nlohmann::json::parse(page);
     }
-    catch (std::exception &) 
+    catch (nlohmann::json::parse_error const& e) 
     {
+        logger_base.error(e.what());
+        DisplayError("WLED Upload Error:\n JSON Parse Error", parent);
+        progress.Update(100, "Aborting.");
+        return false;
+    }
+    catch (nlohmann::json::exception& e)
+    {
+        logger_base.error(e.what());
+        DisplayError("WLED Upload Error:\n JSON Parse Error", parent);
+        progress.Update(100, "Aborting.");
+        return false;
+    }
+    catch (std::exception& e) 
+    {
+        logger_base.error(e.what());
         DisplayError("WLED Upload Error:\n JSON Parse Error", parent);
         progress.Update(100, "Aborting.");
         return false;
