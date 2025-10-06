@@ -465,7 +465,7 @@ bool FPP::parseSysInfo(nlohmann::json& val) {
         minorVersion = GetJSONIntValue(val, "minorVersion");
     }
     if (val.contains("majorVersion")) {
-        majorVersion = GetJSONBoolValue(val, "majorVersion");
+        majorVersion = GetJSONIntValue(val, "majorVersion");
     }
     return true;
 }
@@ -2543,12 +2543,12 @@ bool FPP::UploadPWMOutputs(ModelManager* allmodels,
         v["description"] = "";
         v["startChannel"] = 0;
         v["is16bit"] = 1;
-        v["type"] = wxString("Servo");
+        v["type"] = std::string("Servo");
         v["min"] = 1000;
         v["max"] = 2000;
         v["reverse"] = 0;
-        v["zero"] = wxString("Hold");
-        v["dataType"] = wxString("Scaled");
+        v["zero"] = std::string("Hold");
+        v["dataType"] = std::string("Scaled");
         root["channelOutputs"][pca9685Index]["outputs"].push_back(v);
     }
     for (int x = 0; x < maxPort; x++) {
