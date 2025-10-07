@@ -9076,9 +9076,9 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
     }
 
 #ifdef LINUX
-    constexpr std::string ASSET_EXT = "AppImage";
+    const std::string ASSET_EXT = "AppImage";
 #else
-    constexpr std::string ASSET_EXT = "exe";
+    const std::string ASSET_EXT = "exe";
 #endif
 
     std::string downloadURL;
