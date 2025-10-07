@@ -2043,31 +2043,33 @@ static bool UpdateJSONValue(nlohmann::json& v, const std::string& key, const std
 static bool mergeSerialInto(nlohmann::json &otherDmxData, nlohmann::json &otherOrigRoot, bool addDefaults) {
     bool changed = false;
     for (int x = 0; x < otherDmxData["channelOutputs"].size(); x++) {
-        std::string device = otherDmxData["channelOutputs"][x]["device"].get<std::string>();
-        std::string type = otherDmxData["channelOutputs"][x]["type"].get<std::string>();
+        std::string device = GetJSONStringValue(otherDmxData["channelOutputs"][x], "device");
+        std::string type = GetJSONStringValue(otherDmxData["channelOutputs"][x], "type");
         bool found = false;
         for (int y = 0; y < otherOrigRoot["channelOutputs"].size(); y++) {
-            if (otherOrigRoot["channelOutputs"][y]["device"].get<std::string>() == device) {
+            std::string origDevice = GetJSONStringValue(otherOrigRoot["channelOutputs"][y], "device");
+            if (!device.empty() && !origDevice.empty() && origDevice == device) {
                 //same device, see if type matches and update or disable
-                if (type == otherOrigRoot["channelOutputs"][y]["type"].get<std::string>()) {
+                std::string origType = GetJSONStringValue(otherOrigRoot["channelOutputs"][y], "type");
+                if (type == origType) {
                     //device and type the same, update values
                     found = true;
-                    changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "description", otherDmxData["channelOutputs"][x]["description"].get<std::string>());
+                    changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "description", GetJSONStringValue(otherDmxData["channelOutputs"][x], "description"));
                     changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "enabled", 1);
-                    changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "startChannel", otherDmxData["channelOutputs"][x]["startChannel"].get<int>());
-                    changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "channelCount", otherDmxData["channelOutputs"][x]["channelCount"].get<int>());
+                    changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "startChannel", GetJSONIntValue(otherDmxData["channelOutputs"][x], "startChannel"));
+                    changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "channelCount", GetJSONIntValue(otherDmxData["channelOutputs"][x], "channelCount"));
 
                     if (!addDefaults) {
                         if (type == "Renard") {
-                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "renardspeed", otherDmxData["channelOutputs"][x]["renardspeed"].get<int>());
-                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "renardparm", otherDmxData["channelOutputs"][x]["renardparm"].get<std::string>());
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "renardspeed", GetJSONIntValue(otherDmxData["channelOutputs"][x], "renardspeed"));
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "renardparm", GetJSONStringValue(otherDmxData["channelOutputs"][x], "renardparm"));
                         } else if (type == "LOR") {
-                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "firstControllerId", otherDmxData["channelOutputs"][x]["firstControllerId"].get<int>());
-                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "speed", otherDmxData["channelOutputs"][x]["speed"].get<int>());
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "firstControllerId", GetJSONIntValue(otherDmxData["channelOutputs"][x], "firstControllerId"));
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "speed", GetJSONIntValue(otherDmxData["channelOutputs"][x], "speed"));
                         } else if (type == "GenricSerial") {
-                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "speed", otherDmxData["channelOutputs"][x]["speed"].get<int>());
-                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "header", otherDmxData["channelOutputs"][x]["header"].get<std::string>());
-                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "footer", otherDmxData["channelOutputs"][x]["footer"].get<std::string>());
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "speed", GetJSONIntValue(otherDmxData["channelOutputs"][x], "speed"));
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "header", GetJSONStringValue(otherDmxData["channelOutputs"][x], "header"));
+                            changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "footer", GetJSONStringValue(otherDmxData["channelOutputs"][x], "footer"));
                         }
                     }
                 } else {
@@ -2354,11 +2356,16 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
         //we need to disable the virtual matrices that are on the ports of the
         //models we uploaded or they will conflict and produce errors
         for (int x = 0; x < origJson["channelOutputs"].size(); x++) {
-            if (origJson["channelOutputs"][x]["type"].get<std::string>() == "VirtualMatrix") {
-                wxString dev = origJson["channelOutputs"][x]["device"].get<std::string>();
-                int port = (char)dev[2] - '0';
-                if (models[port].find(ToUTF8(origJson["channelOutputs"][x]["description"].get<std::string>())) == models[port].end()) {
-                    UpdateJSONValue(origJson["channelOutputs"][x], "enabled", 0);
+            std::string outputType = GetJSONStringValue(origJson["channelOutputs"][x], "type");
+            if (outputType == "VirtualMatrix") {
+                std::string device = GetJSONStringValue(origJson["channelOutputs"][x], "device");
+                if (!device.empty() && device.length() >= 3) {
+                    wxString dev = device;
+                    int port = (char)dev[2] - '0';
+                    std::string description = GetJSONStringValue(origJson["channelOutputs"][x], "description");
+                    if (models[port].find(ToUTF8(description)) == models[port].end()) {
+                        UpdateJSONValue(origJson["channelOutputs"][x], "enabled", 0);
+                    }
                 }
             }
         }
