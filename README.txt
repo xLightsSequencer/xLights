@@ -11,6 +11,13 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2025.10.2 October 7, 2025
+    - enh (dkulp)           Change Windows update check and download URL to github release location
+    - bug (scott)           Fix Falcon e1.31 upload
+    - bug (scott)           Fix version check that was causing the wrong BBB driver type
+    - bug (scott)           Fix WLED crash when skipping ports
+    - bug (zackbcom)        Fix FPP Connect upload for virtual matrices and some other outputs that may optional json parameters
+    - bug (scott)           Update Minleon upload to handle float values in json better
 2025.10.1 October 3, 2025
     - enh (scott)           Show xml error and location if rgbeffects file has an error
     - bug (dkulp)           Fix crash in FPP discovery if WLED controllers are present
