@@ -2051,7 +2051,7 @@ static bool mergeSerialInto(nlohmann::json &otherDmxData, nlohmann::json &otherO
             if (!device.empty() && !origDevice.empty() && origDevice == device) {
                 //same device, see if type matches and update or disable
                 std::string origType = GetJSONStringValue(otherOrigRoot["channelOutputs"][y], "type");
-                if (type == origType) {
+                if (!type.empty() && !origType.empty() && origType == type) {
                     //device and type the same, update values
                     found = true;
                     changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "description", GetJSONStringValue(otherDmxData["channelOutputs"][x], "description"));
