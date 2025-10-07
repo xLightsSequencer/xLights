@@ -903,24 +903,15 @@ bool IsVersionOlder(const std::string& compare, const std::string& version) {
         return true;
     if (wxAtoi(version_parts[1]) > wxAtoi(compare_parts[1]))
         return false;
-    if (version_parts.Count() == 3 && compare_parts.Count() == 3) {
-        // actually they are the same but we return true when they are the same
-        return true;
-    }
-        // From 2016 versions only have 2 parts
-    else if (version_parts.Count() == 2 || compare_parts.Count() == 2) {
-        if (version_parts.Count() > 2) {
-            return false; // remote version has 2 components but local has three so local must be newer
-        }
-        return true;
-    } else {
-    if (version_parts.Count() == 2 || compare_parts.Count() == 2) {
-        if (version_parts.Count() > 2) {
-            return false; // remote version has 2 components but local has three so local must be newer
-        }
-        return true;
-    }        if (wxAtoi(version_parts[2]) < wxAtoi(compare_parts[2]))
+    if (version_parts.Count() > 2 && compare_parts.Count() == 2)
+        return false; // remote version has 2 components but local has three so local must be newer
+    if (version_parts.Count() == 2 && compare_parts.Count() > 2)
+        return true; // remote version has 3 components but local has two so remote must be newer
+    if (version_parts.Count() > 2 && compare_parts.Count() > 2) {
+        if (wxAtoi(version_parts[2]) < wxAtoi(compare_parts[2]))
             return true;
+        if (wxAtoi(version_parts[2]) > wxAtoi(compare_parts[2]))
+            return false;
     }
     return false;
 }
