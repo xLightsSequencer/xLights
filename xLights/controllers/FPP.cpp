@@ -2358,9 +2358,9 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
         for (int x = 0; x < origJson["channelOutputs"].size(); x++) {
             if (origJson["channelOutputs"][x]["type"].get<std::string>() == "VirtualMatrix") {
                 wxString dev = origJson["channelOutputs"][x]["device"].get<std::string>();
-                    int port = (char)dev[2] - '0';
+                int port = (char)dev[2] - '0';
                 if (models[port].find(ToUTF8(origJson["channelOutputs"][x]["description"].get<std::string>())) == models[port].end()) {
-                        UpdateJSONValue(origJson["channelOutputs"][x], "enabled", 0);
+                    UpdateJSONValue(origJson["channelOutputs"][x], "enabled", 0);
                 }
             }
         }
