@@ -15,7 +15,3 @@ if [[ -d "$CI_APP_STORE_SIGNED_APP_PATH" ]]; then
     cp -f WhatToTest.en-US.txt $TESTFLIGHT_DIR_PATH
 fi
 
-if [[ -d "$CI_AD_HOC_SIGNED_APP_PATH" ]]; then
-    env
-    curl -X POST -F "file=@$CI_AD_HOC_SIGNED_APP_PATH" https://dankulp.com/xCodeCloudUpload/
-fi
