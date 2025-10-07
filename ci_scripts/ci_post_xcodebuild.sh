@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-# By default, xcodecloud does --depth 1 do NO history is available.  We
+# By default, xcodecloud does --depth 1 so NO history is available.  We
 # need to fetch a longer history and fetch the tags so
 # we can get the list of changes.   200 commits should be enough
 # considering how often we release.
@@ -13,4 +13,9 @@ if [[ -d "$CI_APP_STORE_SIGNED_APP_PATH" ]]; then
     TESTFLIGHT_DIR_PATH=../TestFlight
     mkdir $TESTFLIGHT_DIR_PATH
     cp -f WhatToTest.en-US.txt $TESTFLIGHT_DIR_PATH
+fi
+
+if [[ -d "$CI_AD_HOC_SIGNED_APP_PATH" ]]; then
+    env
+    curl -X POST -F "file=@$CI_AD_HOC_SIGNED_APP_PATH" https://dankulp.com/xCodeCloudUpload/
 fi
