@@ -9049,7 +9049,7 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
     std::string resp;
     nlohmann::json val;
     for (int retry = 0; retry < maxRetries && !didConnect; retry++) {
-        resp = CurlManager::INSTANCE.doGet(githubTagURL, rc);
+        resp = Curl::HTTPSGet(githubTagURL, "", "", 3 * 60, {}, &rc);
         if (rc == 200 && !resp.empty()) {
             try {
                 val = nlohmann::json::parse(resp, nullptr, false);
