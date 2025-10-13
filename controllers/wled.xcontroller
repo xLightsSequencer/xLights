@@ -37,7 +37,7 @@
     </AbstractVariant>
     <AbstractVariant Name="ESP32WLEDSettings" Base="WLED:BaseWLEDSettings">
         <MaxInputUniverses>24</MaxInputUniverses>
-        <MaxPixelPortChannels>3000</MaxPixelPortChannels>
+        <MaxPixelPortChannels>3600</MaxPixelPortChannels>
     </AbstractVariant>
     <Controller Name="WLED">
         <Variant Name="Generic ESP8266" Base="WLED:BaseWLEDSettings">
