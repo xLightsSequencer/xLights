@@ -103,6 +103,12 @@ const long xLightsFrame::ID_NETWORK_INACTIVE = wxNewId();
 const long xLightsFrame::ID_NETWORK_DELETE = wxNewId();
 const long xLightsFrame::ID_NETWORK_UNLINKFROMBASE = wxNewId();
 const long xLightsFrame::ID_NETWORK_UPLOADOUTPUT = wxNewId();
+const long xLightsFrame::ID_NETWORK_SORT_NAME = wxNewId();
+const long xLightsFrame::ID_NETWORK_SORT_ID = wxNewId();
+const long xLightsFrame::ID_NETWORK_SORT_IP = wxNewId();
+const long xLightsFrame::ID_NETWORK_SORT_FPP_PROXY = wxNewId();
+const long xLightsFrame::ID_NETWORK_SORT_CONTROLLER_VENDOR = wxNewId();
+const long xLightsFrame::ID_NETWORK_SORT_CONTROLLER_PROTOCOL = wxNewId();
 
 #pragma region Show Directory
 void xLightsFrame::OnMenuMRU(wxCommandEvent& event) {
@@ -2404,6 +2410,16 @@ void xLightsFrame::OnListControllersItemRClick(wxListEvent& event) {
     mnu.Append(ID_NETWORK_UNLINKFROMBASE, "Unlink from Base Show Folder")->Enable(ButtonAddControllerSerial->IsEnabled() && enableUnlinkFromBaseMenuItem);
     mnu.Append(ID_NETWORK_UPLOADOUTPUT, "Upload Output")->Enable(ButtonAddControllerSerial->IsEnabled() && enableUploadMenuItem);
 
+    mnu.AppendSeparator();
+    wxMenu* cc = new wxMenu();
+    cc->Append(ID_NETWORK_SORT_NAME, "by Name");
+    cc->Append(ID_NETWORK_SORT_ID, "by ID");
+    cc->Append(ID_NETWORK_SORT_IP, "by IP");
+    cc->Append(ID_NETWORK_SORT_FPP_PROXY, "by FPP Proxy");
+    cc->Append(ID_NETWORK_SORT_CONTROLLER_VENDOR, "by Controller Model");
+    cc->Append(ID_NETWORK_SORT_CONTROLLER_PROTOCOL, "by Controller Protocol");
+    mnu.AppendSubMenu(cc, "Sort");
+
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnListControllerPopup, nullptr, this);
     PopupMenu(&mnu);
     List_Controllers->SetFocus();
@@ -2472,6 +2488,42 @@ void xLightsFrame::OnListControllerPopup(wxCommandEvent& event) {
     }
     else if (id == ID_NETWORK_UPLOADOUTPUT) {
         OnButtonUploadOutputClick(event);
+    } else if (id == ID_NETWORK_SORT_NAME) {
+        _outputManager.SortControllersbyName();
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SortControllersbyName");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SortControllersbyName");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SortControllersbyName");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SortControllersbyName");
+    } else if (id == ID_NETWORK_SORT_ID) {
+        _outputManager.SortControllersbyID();
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SortControllersbyID");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SortControllersbyID");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SortControllersbyID");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SortControllersbyID");
+    } else if (id == ID_NETWORK_SORT_IP) {
+        _outputManager.SortControllersbyIP();
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SortControllersbyIP");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SortControllersbyIP");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SortControllersbyIP");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SortControllersbyIP");
+    } else if (id == ID_NETWORK_SORT_FPP_PROXY) {
+        _outputManager.SortControllersbyFPPProxy();
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SortControllersbyFPPProxy");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SortControllersbyFPPProxy");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SortControllersbyFPPProxy");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SortControllersbyFPPProxy");
+    } else if (id == ID_NETWORK_SORT_CONTROLLER_VENDOR) {
+        _outputManager.SortControllersbyModel();
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SortControllersbyVendor");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SortControllersbyVendor");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SortControllersbyVendor");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SortControllersbyVendor");
+    } else if (id == ID_NETWORK_SORT_CONTROLLER_PROTOCOL) {
+        _outputManager.SortControllersbyProtocal();
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SortControllersbyProtocal");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SortControllersbyProtocal");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SortControllersbyProtocal");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SortControllersbyProtocal");
     }
 }
 #pragma endregion

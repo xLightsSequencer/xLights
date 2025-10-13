@@ -1925,6 +1925,12 @@ private:
     static const long ID_NETWORK_INACTIVE;
     static const long ID_NETWORK_DELETE;
     static const long ID_NETWORK_UPLOADOUTPUT;
+    static const long ID_NETWORK_SORT_NAME;
+    static const long ID_NETWORK_SORT_ID;
+    static const long ID_NETWORK_SORT_IP;
+    static const long ID_NETWORK_SORT_FPP_PROXY;
+    static const long ID_NETWORK_SORT_CONTROLLER_VENDOR;
+    static const long ID_NETWORK_SORT_CONTROLLER_PROTOCOL;
 
     #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 
