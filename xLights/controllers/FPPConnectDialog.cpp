@@ -1697,19 +1697,27 @@ void FPPConnectDialog::OnFPPReDiscoverClick(wxCommandEvent& event) {
 
     std::string fppConnectIP = "";
     prgs.Show();
-    instances = FPP::GetInstances(this, _outputManager);
+    std::list<FPP*> newInstances = FPP::GetInstances(this, _outputManager);
     
-    if (curSize < instances.size()) {
-        int cur = 0;
-        for (const auto& fpp : instances) {
-            if (cur >= curSize) {
-                prgs.Pulse("Gathering configuration for " + fpp->hostName + " - " + fpp->ipAddress);
-                fpp->AuthenticateAndUpdateVersions();
-                fpp->probePixelControllerType();
+    for (FPP* fpp : newInstances) {
+        bool found = false;
+        
+        for (auto f : instances) {
+            if (f->ipAddress == fpp->ipAddress) {
+                found = true;
             }
-            cur++;
         }
-
+        
+        if (!found) {
+            prgs.Pulse("Gathering configuration for " + fpp->hostName + " - " + fpp->ipAddress);
+            fpp->AuthenticateAndUpdateVersions();
+            fpp->probePixelControllerType();
+            instances.push_back(fpp);
+        } else {
+            delete fpp;
+        }
+    }
+    if (curSize < instances.size()) {
         instances.sort(sortByIP);
         // it worked, we found some new instances, record this
         wxConfigBase* config = wxConfigBase::Get();
@@ -1730,7 +1738,6 @@ void FPPConnectDialog::OnFPPReDiscoverClick(wxCommandEvent& event) {
         }
         PopulateFPPInstanceList();
     }
-
     prgs.Hide();
 }
 
