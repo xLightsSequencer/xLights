@@ -104,93 +104,112 @@ std::pair<std::string, bool> ollama::CallLLM(const std::string& prompt) const {
     return { response, true};
 }
 
-std::vector<wxColour> ollama::CallLLMForColors(const std::string& prompt) const {
-    
+aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) const {
+
     if (host.empty()) {
         spdlog::error("ollama: host is empty");
-        return std::vector<wxColour>();
+        return {};
     }
     std::string const url = (https ? "https://" : "http://") + host + ":" + std::to_string(port_num) + api;
 
-    /*
-    "model": "llama3.1",
-  "messages": [{"role": "user", "content": "Tell me about Canada."}],
-  "stream": false,
-  "format": {
-    "type": "object",
-    "properties": {
-      "name": {
-        "type": "string"
-      },
-      "capital": {
-        "type": "string"
-      },
-      "languages": {
-        "type": "array",
-        "items": {
-          "type": "string"
-        }
-      }
-    },
-    "required": [
-      "name",
-      "capital", 
-      "languages"
-    ]
-  }
-    */
+    auto fullprompt = "xlights color palettes are 8 unique colors. Can you create a color palette that would represent the moods and imagery " + prompt + ". Avoid dark, near black colors. Include the hex_code and usage_notes.";
 
-    /*
-    "type": "array",
-        "items": {
-          "type": "string"
-        }
-    */
-    nlohmann::json input;
-    input["model"] = model;
-    input["stream"] = false;
-    input["format"]["type"] = "array";
-    input["format"]["items"]["type"] = "string";
-    input["format"]["items"]["description"] = "A color in hex format, e.g. #FF0000 or rgb(255,0,0) or rgba(255,0,0,1)";
-    input["format"]["items"]["example"] = "#FF0000, #00FF00, #0000FF";
-    
-    nlohmann::json message;
-    message["role"] = "user";
-    message["content"] = "Generate a list of colors in hex format based on the following song: " + prompt;
-    std::vector<nlohmann::ordered_json> messages;
-    messages.push_back(message);
-    input["messages"] = messages;
+    nlohmann::json request_payload;
+    request_payload["model"] = model;
+    request_payload["temperature"] = 0;
+    request_payload["prompt"] = fullprompt;
+    request_payload["stream"] = false;
 
+    // Include the structured output format (JSON schema)
 
-    std::string str = input.dump(3);
-    //std::string const request = "{ \"model\": \"" + model + "\", \"prompt\": \"" + JSONSafe(p) + "\",\"stream\": false }";
-    spdlog::debug("ollama: {}", str);
+    std::string schema = R"(
+    {
+        "type": "object",
+        "properties":  {
+            "description": {
+                "type": "string"
+            },
+            "colors": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "hex_code": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "usage_notes": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "hex_code", "name", "usage_notes"
+                    ]
+                }
+            }
+        },
+        "required": [
+            "description", "colors"
+        ]
+    }
+    )";
+
+    nlohmann::json format_schema = nlohmann::json::parse(schema);
+
+    request_payload["format"] = format_schema;
+
+    // Create a wxString to store the JSON text
+    auto json_payload_str = request_payload.dump(3);
+
+    spdlog::debug("ollama: {}",json_payload_str);
     int responseCode{ 0 };
-    std::string response = Curl::HTTPSPost(url, str, "", "", "JSON", 60 * 10, {}, &responseCode);
+    std::string const response = Curl::HTTPSPost(url, json_payload_str, "", "", "JSON", 60 * 10, {}, &responseCode);
+
     spdlog::debug("ollama Response {}: {}", responseCode, response);
+
     if (responseCode != 200) {
         return {};
     }
-    try {
-        // Check if the response is valid JSON
-        nlohmann::json const resp_json = nlohmann::json::parse(response);
-        if (resp_json.contains("response")) {
-            response = resp_json.at("response").get<std::string>();
-        }
-    } catch (const std::exception&) {
-    }
 
-    spdlog::debug("ollama: {}", response);
-    std::vector<wxColour> colors;
-    auto colorStrings = Split(response, { ',', ';' });
-    for (const auto& colorString : colorStrings) {
-        wxColour const color(colorString);
-        if (color.IsOk()) {
-            colors.push_back(color);
+    try {
+        nlohmann::json root = nlohmann::json::parse(response);
+
+        if (root.contains("response") && root["response"].is_string()) {
+            auto const color_responce = root["response"].get<std::string>();
+
+            spdlog::debug("ollama Response {}", color_responce);
+            try {
+                // Check if the response is valid JSON
+                nlohmann::json const color_root = nlohmann::json::parse(color_responce);
+                if (color_root.contains("colors") && color_root["colors"].is_array()) {
+                    aiBase::AIColorPalette ret;
+                    ret.description = prompt;
+                    if (color_root.contains("description")) {
+                        ret.description = color_root["description"].get<std::string>();
+                    }
+                    for (int x = 0; x < color_root["colors"].size(); x++) {
+                        auto& color = color_root["colors"][x];
+                        ret.colors.push_back(aiBase::AIColor());
+                        ret.colors.back().hexValue = color["hex_code"].get<std::string>();
+                        ret.colors.back().description = color["usage_notes"].get<std::string>();
+                        ret.colors.back().name = color["name"].get<std::string>();
+                    }
+                    return ret;
+                }
+            } catch (const std::exception& ex) {
+                spdlog::error(ex.what());
+            }
+            spdlog::error("Response does not contain 'colors' array or is not in expected format.");
         } else {
-            spdlog::error("ollama: Invalid color '{}'", colorString);
+            spdlog::error("Invalid response from Ollama API.");
         }
+    } catch (const std::exception& e) {
+        spdlog::error(e.what());
     }
-    return colors;
+    return {};
 }
+
+
 

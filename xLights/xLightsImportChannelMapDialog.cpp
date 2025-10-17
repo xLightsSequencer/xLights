@@ -41,7 +41,7 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 wxDEFINE_EVENT(EVT_MDDROP, wxCommandEvent);
 
@@ -341,8 +341,7 @@ void xLightsImportTreeModel::GetValue(wxVariant &variant,
             break;
         default:
             {
-                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                logger_base.warn("xLightsImportTreeModel::GetValue: wrong column %d", col);
+                LOG_WARN("xLightsImportTreeModel::GetValue: wrong column %d", col);
                 wxLogError("xLightsImportTreeModel::GetValue: wrong column %d", col);
             }
     }
@@ -365,8 +364,7 @@ bool xLightsImportTreeModel::SetValue(const wxVariant &variant,
         node->_color = wxColour(variant.GetString());
         return true;
     }
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.warn("xLightsImportTreeModel::SetValue: wrong column %d", col);
+    LOG_WARN("xLightsImportTreeModel::SetValue: wrong column %d", col);
     wxLogError("xLightsImportTreeModel::SetValue: wrong column %d", col);
     return false;
 }
@@ -1463,8 +1461,6 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 
 void xLightsImportChannelMapDialog::LoadMappingFile(wxString const& filepath, bool hideWarnings)
 {
-     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     _mappingFile = filepath;
     _dataModel->ClearMapping();
     _stashedMappings.clear();
@@ -1492,7 +1488,7 @@ void xLightsImportChannelMapDialog::LoadMappingFile(wxString const& filepath, bo
 
     _dirty = false;
 
-    logger_base.debug("Mapping %s loaded. %d mappings stashed.", (const char*)filepath.c_str(), _stashedMappings.size());
+    LOG_DEBUG("Mapping %s loaded. %d mappings stashed.", (const char*)filepath.c_str(), _stashedMappings.size());
 
     // expand all models that have strands that have a value
     wxDataViewItemArray models;
@@ -1522,8 +1518,6 @@ void xLightsImportChannelMapDialog::LoadMappingFile(wxString const& filepath, bo
 
 void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bool hideWarnings)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     bool strandwarning{hideWarnings};
     bool modelwarning{hideWarnings};
 
@@ -1618,7 +1612,7 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
             if (mel != nullptr) {
                 mel->Init(*xlights->GetModel(model.ToStdString()));
             } else {
-                logger_base.warn("Strange ... load mapping returned null model for " + model);
+                LOG_WARNWX("Strange ... load mapping returned null model for " + model);
             }
             modelEl = mel;
         }
@@ -1665,8 +1659,6 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
 
 void xLightsImportChannelMapDialog::LoadXMapMapping(wxString const& filename, bool hideWarnings)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     bool strandwarning{hideWarnings};
     bool modelwarning{hideWarnings};
 
@@ -1719,7 +1711,7 @@ void xLightsImportChannelMapDialog::LoadXMapMapping(wxString const& filename, bo
             if (mel != nullptr) {
                 mel->Init(*xlights->GetModel(model.ToStdString()));
             } else {
-                logger_base.warn("Strange ... load mapping returned null model for " + model);
+                LOG_WARNWX("Strange ... load mapping returned null model for " + model);
             }
             modelEl = mel;
         }
@@ -2627,7 +2619,6 @@ wxString xLightsImportChannelMapDialog::AggressiveAutomap(const wxString& name) 
 }
 
 std::string xLightsImportChannelMapDialog::GetAIPrompt(const std::string& promptFile) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     std::string showFolderPromptFile = xlights->GetShowDirectory() + "/" + promptFile;
     std::string xlFolder = GetResourcesDirectory();
@@ -2635,10 +2626,10 @@ std::string xLightsImportChannelMapDialog::GetAIPrompt(const std::string& prompt
 
     std::string fileToLoad;
     if (wxFileExists(showFolderPromptFile)) {
-        logger_base.debug("Using prompt file from show folder: %s", showFolderPromptFile.c_str());
+        LOG_DEBUG("Using prompt file from show folder: %s", showFolderPromptFile.c_str());
         fileToLoad = showFolderPromptFile;
     } else if (wxFileExists(xLightsFolderPromptFile)) {
-        logger_base.debug("Using prompt file from xLights folder: %s", xLightsFolderPromptFile.c_str());
+        LOG_DEBUG("Using prompt file from xLights folder: %s", xLightsFolderPromptFile.c_str());
         fileToLoad = xLightsFolderPromptFile;
     } else {
         // This looks for a prompt without the aiEngine prefix
@@ -2648,13 +2639,13 @@ std::string xLightsImportChannelMapDialog::GetAIPrompt(const std::string& prompt
         xLightsFolderPromptFile = xlFolder + "/prompts/" + pf;
 
         if (wxFileExists(showFolderPromptFile)) {
-            logger_base.debug("Using prompt file from show folder: %s", showFolderPromptFile.c_str());
+            LOG_DEBUG("Using prompt file from show folder: %s", showFolderPromptFile.c_str());
             fileToLoad = showFolderPromptFile;
         } else if (wxFileExists(xLightsFolderPromptFile)) {
-            logger_base.debug("Using prompt file from xLights folder: %s", xLightsFolderPromptFile.c_str());
+            LOG_DEBUG("Using prompt file from xLights folder: %s", xLightsFolderPromptFile.c_str());
             fileToLoad = xLightsFolderPromptFile;
         } else {
-            logger_base.error("Prompt file not found: %s", promptFile.c_str());
+            LOG_DEBUG("Prompt file not found: %s", promptFile.c_str());
             wxMessageBox("The prompt file could not be found " + promptFile, "Error", wxICON_ERROR | wxOK, this);
             return "";
         }
@@ -2683,8 +2674,6 @@ std::string xLightsImportChannelMapDialog::GetAIPrompt(const std::string& prompt
 }
 
 std::string xLightsImportChannelMapDialog::BuildSourceModelPrompt(const std::list<ImportChannel*>& sourceModels, std::function<bool(const ImportChannel*)> filter) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     std::string sourceDescription = "<sourceModels>\\n";
     for (const auto& it : sourceModels) {
         if (filter(it)) {
@@ -2705,13 +2694,12 @@ std::string xLightsImportChannelMapDialog::BuildSourceModelPrompt(const std::lis
         }
     }
     sourceDescription += "</sourceModels>";
-    logger_base.debug("Source models: %s", sourceDescription.c_str());
+    LOG_DEBUG("Source models: %s", sourceDescription.c_str());
 
     return sourceDescription;
 }
 
 std::string xLightsImportChannelMapDialog::BuildTargetModelPrompt(const std::list<xLightsImportModelNode*>& targetModels, std::function<bool(const xLightsImportModelNode*)> filter) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     std::string targetDescription = "<targetModels>\\n";
     for (const auto& it : targetModels) {
@@ -2736,13 +2724,12 @@ std::string xLightsImportChannelMapDialog::BuildTargetModelPrompt(const std::lis
         }
     }
     targetDescription += "</targetModels>";
-    logger_base.debug("Target models: %s", targetDescription.c_str());
+    LOG_DEBUG("Target models: %s", targetDescription.c_str());
 
     return targetDescription;
 }
 
 std::string xLightsImportChannelMapDialog::BuildAlreadyMappedPrompt(const std::list<xLightsImportModelNode*>& targetModels, std::function<bool(const xLightsImportModelNode*)> filter) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     std::string exampleMappings = "<exampleMappings>\\n";
     for (const auto& it : targetModels) {
@@ -2759,15 +2746,14 @@ std::string xLightsImportChannelMapDialog::BuildAlreadyMappedPrompt(const std::l
         }
     }
     exampleMappings += "</exampleMappings>";
-    logger_base.debug("Example mappings: %s", exampleMappings.c_str());
+    LOG_DEBUG("Example mappings: %s", exampleMappings.c_str());
 
     return exampleMappings;
 }
 
 bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std::string& prompt, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    logger_base.debug("Prompt: %s", prompt.c_str());
+    LOG_DEBUG("Prompt: %s", prompt.c_str());
 
     auto ai = xlights->GetAIService();
     if (ai == nullptr)
@@ -2783,18 +2769,18 @@ bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std
         possibleSources += it->name + ", ";
     }
 
-    logger_base.debug("Response: %s", response.c_str());
+   LOG_DEBUG("Response: %s", response.c_str());
 
     bool mapped = false;
 
     try {
         nlohmann::json root = nlohmann::json::parse(response);
 
-        logger_base.debug("Parsed response");
+        LOG_DEBUG("Parsed response");
 
         nlohmann::json mappings = root["mappings"];
         if (mappings.is_null()) {
-            logger_base.error("No mappings found in response");
+            LOG_ERROR("No mappings found in response");
         } else {
             // now go through all the targets
             for (const auto& it : targetModels) {
@@ -2814,7 +2800,7 @@ bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std
             }
         }
     } catch (const std::exception& e) {
-        logger_base.error("Error parsing response: %s", e.what());
+        LOG_ERROR("Error parsing response: %s", e.what());
     }
 
     return mapped;
@@ -3168,8 +3154,7 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                 }
             }
         } else {
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.warn("xLightsImportTreeModel::OnButton_AutoMapClick: Weird ... model %d was nullptr", i);
+            LOG_WARN("xLightsImportTreeModel::OnButton_AutoMapClick: Weird ... model %d was nullptr", i);
         }
     }
     // Process selected submodels independently

@@ -444,8 +444,8 @@ void JobPool::Start(size_t poolSize, size_t minPoolSize)
     minNumThreads = minPoolSize < MIN_JOBPOOLTHREADS ? MIN_JOBPOOLTHREADS : minPoolSize;
     idleThreads = 0;
     numThreads = 0;
-    auto logger = spdlog::get("job");
-    logger->debug("Background thread pool started with {} threads", poolSize);
+    //auto logger = spdlog::get("job");
+    //logger->debug("Background thread pool started with {} threads", poolSize);
 }
 
 void JobPool::Stop()

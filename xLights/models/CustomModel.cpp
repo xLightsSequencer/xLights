@@ -26,7 +26,7 @@
 #include "../ModelPreview.h"
 #include "RulerObject.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 CustomModel::CustomModel(wxXmlNode *node, const ModelManager &manager,  bool zeroBased) : ModelWithScreenLocation(manager)
 {
@@ -107,8 +107,6 @@ protected:
 
 void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxPGProperty* p = grid->Append(new CustomModelProperty(this, outputManager, "Model Data", "CustomData", CLICK_TO_EDIT));
     grid->LimitPropertyEditing(p);
 
@@ -165,7 +163,7 @@ void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
         custom_background));
 
     if (sw.Time() > 500)
-        logger_base.debug("        Adding background image property (%s) to model %s really slow: %lums", (const char*)custom_background.c_str(), (const char*)name.c_str(), sw.Time());
+        LOG_DEBUG("        Adding background image property (%s) to model %s really slow: %lums", (const char*)custom_background.c_str(), (const char*)name.c_str(), sw.Time());
 
     p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
                                         ";*.webp"
@@ -1444,8 +1442,7 @@ bool HasDuplicates(float divisor, std::list<std::list<wxPoint>> chs)
 {
     std::list<wxPoint> scaled;
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Checking for duplicates at scale %f.", divisor);
+    LOG_DEBUG("Checking for duplicates at scale %f.", divisor);
 
     for (const auto& ch : chs) {
         for (const auto& it : ch) {
@@ -1470,11 +1467,11 @@ bool HasDuplicates(float divisor, std::list<std::list<wxPoint>> chs)
 
 bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxXmlDocument doc(filename);
 
     if (doc.IsOk()) {
-        logger_base.debug("Loading LOR model %s.", (const char*)filename.c_str());
+        LOG_DEBUG("Loading LOR model %s.", (const char*)filename.c_str());
 
         wxXmlNode* root = doc.GetRoot();
 
@@ -1508,7 +1505,7 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::ImportLORModel");
 
         if (chs.size() == 0) {
-            logger_base.error("No model data found.");
+            LOG_ERROR("No model data found.");
             wxMessageBox("Unable to import model data.");
             return false;
         }
@@ -1571,7 +1568,7 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
         maxx = ((float)maxx * divisor) + 1;
         maxy = ((float)maxy * divisor) + 1;
 
-        logger_base.debug("Divisor chosen %f. Model dimensions %d,%d", divisor, maxx + 1, maxy + 1);
+        LOG_DEBUG("Divisor chosen %f. Model dimensions %d,%d", divisor, maxx + 1, maxy + 1);
 
         SetProperty("parm1", wxString::Format("%i", maxx));
         SetProperty("parm2", wxString::Format("%i", maxy));
@@ -1610,7 +1607,7 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
         free(data);
 
         SetProperty("CustomModel", cm);
-        logger_base.debug("Model import done.");
+        LOG_DEBUG("Model import done.");
         return true;
     } else {
         DisplayError("Failure loading LOR model file.");

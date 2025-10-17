@@ -17,10 +17,8 @@
 #include <map>
 #include <curl/curl.h>
 
-#include <nlohmann/json.hpp>
-
 #include "outputs/ControllerEthernet.h"
-//#include "../xSchedule/wxJSON/jsonval.h"
+#include <nlohmann/json.hpp>
 #include <wx/secretstore.h>
 #include <set>
 
@@ -113,6 +111,7 @@ class Discovery
 public:
     Discovery(wxWindow* frame, OutputManager* outputManager);
     virtual ~Discovery();
+    void Close(bool wait);
 
     // parallel HTTP requests
     void AddCurl(const std::string &host, const std::string &url, std::function<bool(int rc, const std::string &buffer, const std::string &errorBuffer)>&& callback);

@@ -13,6 +13,7 @@
 #include "aiBase.h"
 #include "aiType.h"
 #include <string>
+#include <list>
 
 // https://platform.openai.com/docs/api-reference/introduction
 // to get a list of models curl https://api.openai.com/v1/models -H "Authorization: Bearer YOUR_API_KEY"
@@ -38,7 +39,6 @@ class chatGPT : public aiBase {
 
 	[[nodiscard]] std::pair<std::string, bool> CallLLM(const std::string& prompt) const override;
 
-    std::vector<wxColour> CallLLMForColors(const std::string& prompt) const override;
     [[nodiscard]] bool IsAvailable() const override;
     [[nodiscard]] std::string GetLLMName() const override {
         return "ChatGPT";
@@ -47,5 +47,5 @@ class chatGPT : public aiBase {
         return std::list({aiType::TYPE::COLORPALETTES, aiType::TYPE::PROMPT});
     }
     
-    virtual AIColorPalette GenerateColorPalette(const std::string &prompt) const override;
+    AIColorPalette GenerateColorPalette(const std::string &prompt) const override;
 };

@@ -14,10 +14,6 @@
 #include <wx/socket.h>
 #include <wx/filename.h>
 #include <wx/xml/xml.h>
-//#include "../xSchedule/wxJSON/json_defs.h"
-//#include "../xSchedule/wxJSON/jsonval.h"
-//#include "../xSchedule/wxJSON/jsonreader.h"
-
 #include <nlohmann/json.hpp>
 
 #include "utils/string_utils.h"
@@ -82,6 +78,9 @@ wxString CompressNodes(const wxString& nodes);
 void ShiftNodes(std::map<std::string, std::string> & nodes, int shift, int min, int max);
 //reverse nodes, numbering 1->100, 100->1
 void ReverseNodes(std::map<std::string, std::string> & nodes, int max);
+
+wxImage ApplyOrientation(const wxImage& img, int orient);
+int GetExifOrientation(const wxString& filename);
 
 std::string GetResourcesDirectory();
 

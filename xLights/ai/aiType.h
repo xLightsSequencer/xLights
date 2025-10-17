@@ -14,6 +14,6 @@ namespace aiType {
 	enum TYPE {
 		PROMPT = 0x0000,
 		COLORPALETTES = 0x0001,
-        
+        IMAGEGEN = 0x0002
 	};
 };

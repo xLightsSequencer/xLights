@@ -28,10 +28,6 @@
 #include "UtilFunctions.h"
 #include "xLightsVersion.h"
 
-#include "../xSchedule/wxJSON/json_defs.h"
-#include "../xSchedule/wxJSON/jsonreader.h"
-#include "../xSchedule/wxJSON/jsonval.h"
-
 #include "utils/Curl.h"
 #include "utils/string_utils.h"
 
@@ -279,6 +275,128 @@ static std::vector<std::string> __nonExistentFiles;
 void ClearNonExistentFiles() {
     std::unique_lock<std::recursive_mutex> lock(__fixFilesMutex);
     __nonExistentFiles.clear();
+}
+
+wxImage ApplyOrientation(const wxImage& img, int orient) {
+    wxImage res = img.Copy();
+    switch (orient) {
+    case 2:
+        return res.Mirror(true); // horizontal flip
+    case 3:
+        return res.Rotate180();
+    case 4:
+        return res.Mirror(false); // vertical flip
+    case 5:
+        return res.Mirror(true).Rotate90(false); // horizontal flip + 90° CCW
+    case 6:
+        return res.Rotate90(true); // 90° CW
+    case 7:
+        return res.Mirror(true).Rotate90(true); // horizontal flip + 90° CW
+    case 8:
+        return res.Rotate90(false); // 90° CCW
+    default:
+        return res;
+    }
+}
+
+int GetExifOrientation(const wxString& filename) {
+    std::ifstream file(filename.ToStdString(), std::ios::binary);
+    if (!file) {
+        LOG_DEBUG("Failed to open file: %s", (const char*)filename.c_str());
+        file.close();
+        return 1; // Default orientation
+    }
+
+    unsigned char byte1, byte2;
+    file.read(reinterpret_cast<char*>(&byte1), 1);
+    file.read(reinterpret_cast<char*>(&byte2), 1);
+    if (byte1 != 0xFF || byte2 != 0xD8) {
+        file.close();
+        return 1;
+    }
+
+    while (file) {
+        file.read(reinterpret_cast<char*>(&byte1), 1);
+        if (byte1 != 0xFF)
+            break;
+        file.read(reinterpret_cast<char*>(&byte2), 1);
+        if (byte2 == 0xD9 || byte2 == 0xDA)
+            break;
+
+        unsigned short len;
+        file.read(reinterpret_cast<char*>(&len), 2);
+        len = ((len >> 8) & 0xFF) | ((len << 8) & 0xFF00); // big-endian
+        if (len < 2)
+            break;
+
+        if (byte2 == 0xE1) { // APP1 segment
+            std::vector<char> data(len - 2);
+            file.read(data.data(), len - 2);
+
+            if (data.size() < 14)
+                continue; // too small to hold Exif header
+
+            if (memcmp(data.data(), "Exif\0\0", 6) != 0) {
+                continue;
+            }
+
+            size_t tiff_header = 6; // TIFF header starts right after Exif\0\0
+            bool littleEndian = (data[tiff_header] == 'I' && data[tiff_header + 1] == 'I');
+            unsigned short fortytwo = littleEndian ? ((unsigned char)data[tiff_header + 3] << 8) | (unsigned char)data[tiff_header + 2] : ((unsigned char)data[tiff_header + 2] << 8) | (unsigned char)data[tiff_header + 3];
+
+            if (fortytwo != 42) {
+                LOG_DEBUG("Invalid TIFF header identifier in %s", (const char*)filename.c_str());
+                return 1;
+            }
+
+            // Read offset to IFD0
+            unsigned int ifd_offset;
+            if (littleEndian) {
+                ifd_offset = (unsigned char)data[tiff_header + 4] |
+                             ((unsigned char)data[tiff_header + 5] << 8) |
+                             ((unsigned char)data[tiff_header + 6] << 16) |
+                             ((unsigned char)data[tiff_header + 7] << 24);
+            } else {
+                ifd_offset = ((unsigned char)data[tiff_header + 4] << 24) |
+                             ((unsigned char)data[tiff_header + 5] << 16) |
+                             ((unsigned char)data[tiff_header + 6] << 8) |
+                             (unsigned char)data[tiff_header + 7];
+            }
+
+            size_t pos = tiff_header + ifd_offset;
+            if (pos + 2 > data.size())
+                return 1;
+
+            unsigned short num_entries = littleEndian ? ((unsigned char)data[pos + 1] << 8) | (unsigned char)data[pos] : ((unsigned char)data[pos] << 8) | (unsigned char)data[pos + 1];
+            pos += 2;
+
+            for (unsigned short i = 0; i < num_entries; ++i) {
+                if (pos + 12 > data.size())
+                    break;
+
+                unsigned short tag = littleEndian ? ((unsigned char)data[pos + 1] << 8) | (unsigned char)data[pos] : ((unsigned char)data[pos] << 8) | (unsigned char)data[pos + 1];
+
+                if (tag == 0x0112) { // Orientation
+                    unsigned short orient = littleEndian ? ((unsigned char)data[pos + 9] << 8) | (unsigned char)data[pos + 8] : ((unsigned char)data[pos + 8] << 8) | (unsigned char)data[pos + 9];
+                    return static_cast<int>(orient);
+                }
+                pos += 12;
+            }
+        } else {
+            file.seekg(len - 2, std::ios::cur);
+        }
+    }
+
+    // Fallback: wxImage may know the orientation
+    wxLogNull logNo;
+    wxImage img;
+    if (img.LoadFile(filename, wxBITMAP_TYPE_JPEG)) {
+        if (img.HasOption("Orientation")) {
+            int orient = img.GetOptionInt("Orientation");
+            return orient;
+        }
+    }
+    return 1; // default
 }
 
 std::string GetResourcesDirectory() {

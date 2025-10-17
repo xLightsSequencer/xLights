@@ -22,7 +22,7 @@
 #include "ControllerEthernet.h"
 #include "../utils/ip_utils.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #ifndef EXCLUDEDISCOVERY
 #include "../Discovery.h"
@@ -34,8 +34,6 @@ bool DDPOutput::__initialised = false;
 
 #pragma region Private Functions
 void DDPOutput::OpenDatagram() {
-
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (_datagram != nullptr) return;
 
@@ -49,17 +47,17 @@ void DDPOutput::OpenDatagram() {
 
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK);  // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
-        logger_base.error("Error initialising DDP datagram for %s. %s", (const char*)_ip.c_str(), (const char*)localaddr.IPAddress().c_str());
+        LOG_ERROR("Error initialising DDP datagram for %s. %s", (const char*)_ip.c_str(), (const char*)localaddr.IPAddress().c_str());
         _ok = false;
     }
     else if (!_datagram->IsOk()) {
-        logger_base.error("Error initialising DDP datagram for %s. %s OK: FALSE", (const char*)_ip.c_str(), (const char*)localaddr.IPAddress().c_str());
+        LOG_ERROR("Error initialising DDP datagram for %s. %s OK: FALSE", (const char*)_ip.c_str(), (const char*)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;
     }
     else if (_datagram->Error()) {
-        logger_base.error("Error creating DDP datagram => %d : %s. %s", _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+        LOG_ERROR("Error creating DDP datagram => %d : %s. %s", (int)_datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;
@@ -122,13 +120,12 @@ wxXmlNode* DDPOutput::Save() {
 #pragma region Static Functions
 void DDPOutput::SendSync(const std::string& localIP) {
 
-    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static uint8_t syncdata[DDP_SYNCPACKET_LEN];
     static wxIPV4address syncremoteAddr;
     static wxDatagramSocket *syncdatagram = nullptr;
 
     if (!__initialised) {
-        logger_base.debug("Initialising DDP Sync.");
+        LOG_DEBUG("Initialising DDP Sync.");
 
         __initialised = true;
         memset(syncdata, 0x00, sizeof(syncdata));
@@ -150,16 +147,16 @@ void DDPOutput::SendSync(const std::string& localIP) {
 
         syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
         if (syncdatagram == nullptr) {
-            logger_base.error("Error initialising DDP sync datagram. %s", (const char *)localaddr.IPAddress().c_str());
+            LOG_ERROR("Error initialising DDP sync datagram. %s", (const char *)localaddr.IPAddress().c_str());
             return;
         } else if (!syncdatagram->IsOk()) {
-            logger_base.error("Error initialising DDP sync datagram ... is network connected? OK: FALSE %s", (const char *)localaddr.IPAddress().c_str());
+            LOG_ERROR("Error initialising DDP sync datagram ... is network connected? OK: FALSE %s", (const char *)localaddr.IPAddress().c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;
         }
         else if (syncdatagram->Error()) {
-            logger_base.error("Error creating DDP sync datagram => %d : %s. %s", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
+            LOG_ERROR("Error creating DDP sync datagram => %d : %s. %s", (int)syncdatagram->LastError(), (const char*)DecodeIPError(syncdatagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;
@@ -169,7 +166,7 @@ void DDPOutput::SendSync(const std::string& localIP) {
         // I should use the net mask but i cant find a good way to do that
         //syncremoteAddr.BroadcastAddress();
         wxString broadcast = "255.255.255.255";
-        logger_base.debug("DDP Sync broadcasting to %s.", (const char *)broadcast.c_str());
+        LOG_DEBUG("DDP Sync broadcasting to %s.", (const char *)broadcast.c_str());
         syncremoteAddr.Hostname(broadcast);
         syncremoteAddr.Service(DDP_PORT);
     }
@@ -181,7 +178,6 @@ void DDPOutput::SendSync(const std::string& localIP) {
 
 #ifndef EXCLUDENETWORKUI
 nlohmann::json DDPOutput::Query(const std::string& ip, uint8_t type, const std::string& localIP) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     nlohmann::json val;
 
@@ -199,24 +195,24 @@ nlohmann::json DDPOutput::Query(const std::string& ip, uint8_t type, const std::
         localaddr.Hostname(localIP);
     }
 
-    logger_base.debug(" DDP query using %s", (const char*)localaddr.IPAddress().c_str());
+    LOG_DEBUG(" DDP query using %s", (const char*)localaddr.IPAddress().c_str());
     wxDatagramSocket* datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT); // wxSOCKET_BLOCK causes xLights to lock up waiting forever - SEH, dont use NOWAIT as it can result in dropped packets
 
     if (datagram == nullptr) {
-        logger_base.error("Error initialising DDP query datagram.");
+        LOG_ERROR("Error initialising DDP query datagram.");
     }
     else if (!datagram->IsOk()) {
-        logger_base.error("Error initialising DDP query datagram ... is network connected? OK : FALSE");
+        LOG_ERROR("Error initialising DDP query datagram ... is network connected? OK : FALSE");
         delete datagram;
         datagram = nullptr;
     }
     else if (datagram->Error()) {
-        logger_base.error("Error creating DDP query datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
+        LOG_ERROR("Error creating DDP query datagram => %d : %s.", (int)datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
         delete datagram;
         datagram = nullptr;
     }
     else {
-        logger_base.info("DDP query datagram opened successfully.");
+        LOG_INFO("DDP query datagram opened successfully.");
     }
 
     wxIPV4address remoteaddr;
@@ -225,13 +221,13 @@ nlohmann::json DDPOutput::Query(const std::string& ip, uint8_t type, const std::
 
     // bail if we dont have a datagram to use
     if (datagram != nullptr) {
-        logger_base.info("DDP sending query packet.");
+        LOG_INFO("DDP sending query packet.");
         datagram->SendTo(remoteaddr, &packet, DDP_DISCOVERPACKET_LEN);
         if (datagram->Error()) {
-            logger_base.error("Error sending DDP query datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
+            LOG_ERROR("Error sending DDP query datagram => %d : %s.", (int)datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
         }
         else {
-            logger_base.info("DDP sent query packet. Sleeping for 1 second.");
+            LOG_INFO("DDP sent query packet. Sleeping for 1 second.");
 
             // give the controllers 2 seconds to respond
             wxMilliSleep(1000);
@@ -242,49 +238,46 @@ nlohmann::json DDPOutput::Query(const std::string& ip, uint8_t type, const std::
 
             while (lastread > 0) {
                 wxStopWatch sw;
-                logger_base.debug("Trying to read DDP query response packet.");
+                LOG_DEBUG("Trying to read DDP query response packet.");
                 memset(&response, 0x00, sizeof(response));
                 datagram->Read(&response, sizeof(response));
                 lastread = datagram->LastReadCount();
 
                 if (lastread > 10) {
-                    logger_base.debug(" Read done. %d bytes %ldms", lastread, sw.Time());
+                    LOG_DEBUG(" Read done. %d bytes %ldms", lastread, sw.Time());
 
                     if (response[3] == type) {
-                        logger_base.debug(" Valid response.");
-                        logger_base.debug((const char*)&response[10]);
+                        LOG_DEBUG(" Valid response.");
+                        LOG_DEBUG((const char*)&response[10]);
                         try {
                             val = nlohmann::json::parse(std::string(reinterpret_cast<char*>(&response[10])));
                         } catch (std::exception& e) {
-                            logger_base.error("DDP Query JSON Parse error %s", e.what());
+                            LOG_ERROR("DDP Query JSON Parse error %s", e.what());
                         }
                     }
                 }
-                logger_base.info("DDP Query Done looking for response.");
+                LOG_INFO("DDP Query Done looking for response.");
             }
         }
         datagram->Close();
         delete datagram;
     }
-    logger_base.info("DDP Query Finished.");
+    LOG_INFO("DDP Query Finished.");
 
     return val;
 }
 #endif
 
 void DDPOutput::PrepareDiscovery(Discovery &discovery) {
-
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     discovery.AddBroadcast(DDP_PORT, [&discovery](wxDatagramSocket* socket, uint8_t *response, int len) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
         if (response[0] & DDP_FLAGS1_QUERY) {
             //getting my own QUERY request, ignore
             return;
         }
         if (response[3] == DDP_ID_STATUS) {
-            logger_base.debug(" Valid DDP Status Response.");
-            logger_base.debug((const char*)&response[10]);
+            LOG_DEBUG(" Valid DDP Status Response.");
+            LOG_DEBUG((const char*)&response[10]);
 
             wxIPV4address add;
             socket->GetPeer(add);
@@ -293,7 +286,7 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
             if (dd == nullptr) {
                 ControllerEthernet *controller = new ControllerEthernet(discovery.GetOutputManager(), false);
                 controller->SetProtocol(OUTPUT_DDP);
-                logger_base.debug("   IP %s", (const char*)ip.c_str());
+                LOG_DEBUG("   IP %s", (const char*)ip.c_str());
                 controller->SetIP(ip);
                 controller->SetId(1);
                 controller->EnsureUniqueId();
@@ -303,7 +296,7 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
             ControllerEthernet* controller = dd->controller;
 
             if (controller == nullptr){
-                logger_base.warn("Unsupported DDP controller");
+                LOG_WARN("Unsupported DDP controller");
             }
             else {
                 try {
@@ -346,8 +339,8 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
             // on the broadcast
             discovery.SendData(DDP_PORT, ip, packet, DDP_DISCOVERPACKET_LEN);
         } else if (response[3] == DDP_ID_CONFIG) {
-            logger_base.debug(" Valid DDP Config Response.");
-            logger_base.debug((const char*)&response[10]);
+            LOG_DEBUG(" Valid DDP Config Response.");
+            LOG_DEBUG((const char*)&response[10]);
 
             wxIPV4address add;
             socket->GetPeer(add);
@@ -356,7 +349,7 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
             if (dd == nullptr) {
                 ControllerEthernet *controller = new ControllerEthernet(discovery.GetOutputManager(), false);
                 controller->SetProtocol(OUTPUT_DDP);
-                logger_base.debug("   IP %s", (const char*)ip.c_str());
+                LOG_DEBUG("   IP %s", (const char*)ip.c_str());
                 controller->SetIP(ip);
                 controller->SetId(1);
                 controller->EnsureUniqueId();
@@ -366,7 +359,7 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
             ControllerEthernet* controller = dd->controller;
             controller->SetProtocol(OUTPUT_DDP);
             if (controller == nullptr){
-                logger_base.warn("Unsupported DDP controller");
+                LOG_WARN("Unsupported DDP controller");
             }
             else {
                 try {
@@ -395,11 +388,11 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
             }
         } else {
             // non discovery response packet
-            logger_base.info("DDP Discovery strange packet received.");
+            LOG_INFO("DDP Discovery strange packet received.");
         }
     });
 
-    logger_base.info("Sending DDP Discovery.");
+    LOG_INFO("Sending DDP Discovery.");
     uint8_t packet[DDP_DISCOVERPACKET_LEN];
     memset(&packet, 0x00, sizeof(packet));
     packet[0] = DDP_FLAGS1_VER1 | DDP_FLAGS1_QUERY;
@@ -426,8 +419,6 @@ std::string DDPOutput::GetLongDescription() const {
 #pragma region Start and Stop
 bool DDPOutput::Open() {
 
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (!_enabled) return true;
     if (_ip == "") return false;
     if (!ip_utils::IsIPValid(GetResolvedIP())) return false;
@@ -435,7 +426,7 @@ bool DDPOutput::Open() {
     if (_fulldata != nullptr) delete _fulldata;
     _fulldata = (uint8_t*)malloc(_channels);
     if (_fulldata == nullptr) {
-        logger_base.error("Problem allocating %d memory for DDP output '%s'.", _channels, (const char *)GetIP().c_str());
+        LOG_ERROR("Problem allocating %d memory for DDP output '%s'.", _channels, (const char *)GetIP().c_str());
         _ok = false;
         return false;
     }
@@ -478,15 +469,13 @@ void DDPOutput::Close() {
 #pragma region Frame Handling
 void DDPOutput::StartFrame(long msec) {
 
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (!_enabled) return;
     if (_fppProxyOutput) {
         _fppProxyOutput->StartFrame(msec);
     } else if (_datagram == nullptr && OutputManager::IsRetryOpen()) {
         OpenDatagram();
         if (_ok) {
-            logger_base.debug("DDPOutput: Open retry successful");
+            LOG_DEBUG("DDPOutput: Open retry successful");
         }
     }
 

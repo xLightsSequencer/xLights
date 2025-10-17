@@ -3893,7 +3893,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift) {
         MakeRowVisible(mRangeEndRow - mSequenceElements->GetNumberOfTimingRows() - 1);
         Draw();
     } else if (!MultipleEffectsSelected() && mSelectedEffect != nullptr && !mSelectedEffect->IsLocked() && mSelectedRow > 0) {
-        logger_base.debug("EffectsGrid::MoveSelectedEffectUp moving single effect.");
+        LOG_DEBUG("EffectsGrid::MoveSelectedEffectUp moving single effect.");
 
         const int first_model_row = mSequenceElements->GetNumberOfTimingRows();
         for (int r = first_model_row + 1; r < mSequenceElements->GetRowInformationSize(); r++) {
@@ -3929,7 +3929,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift) {
                         MakeRowVisible(mSelectedRow - mSequenceElements->GetNumberOfTimingRows() + 1); // if off bottom
                         MakeRowVisible(mSelectedRow - mSequenceElements->GetNumberOfTimingRows());
                     } else {
-                        logger_base.warn("Problem adding effect when moving effect up %s", (const char*)mSelectedEffect->GetEffectName().c_str());
+                        LOG_WARN("Problem adding effect when moving effect up %s", (const char*)mSelectedEffect->GetEffectName().c_str());
                     }
                     Draw();
                     return;
@@ -4033,7 +4033,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift) {
         MakeRowVisible(mRangeEndRow - mSequenceElements->GetNumberOfTimingRows() + 1);
         Draw();
     } else if (!MultipleEffectsSelected() && mSelectedEffect != nullptr && !mSelectedEffect->IsLocked() && mSelectedRow >= 0) {
-        logger_base.debug("EffectsGrid::MoveSelectedEffectDown moving single effect.");
+        LOG_DEBUG("EffectsGrid::MoveSelectedEffectDown moving single effect.");
 
         const int first_model_row = mSequenceElements->GetNumberOfTimingRows();
         for (int r = first_model_row + 1; r < mSequenceElements->GetRowInformationSize(); r++) {
@@ -4069,7 +4069,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift) {
                         MakeRowVisible(mSelectedRow - mSequenceElements->GetNumberOfTimingRows()); // if scroll off
                         MakeRowVisible(mSelectedRow - mSequenceElements->GetNumberOfTimingRows() + 1);
                     } else {
-                        logger_base.warn("Error adding effect when moving effects down %s", (const char*)mSelectedEffect->GetEffectName().c_str());
+                        LOG_WARN("Error adding effect when moving effects down %s", (const char*)mSelectedEffect->GetEffectName().c_str());
                     }
                     Draw();
                     return;
