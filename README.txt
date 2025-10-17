@@ -11,6 +11,16 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2025.11  October 17, 2025
+    - enh (dkulp)           Very minory open sequence optimization when searching for data layers
+    - enh (dkulp)           Don't display warning for full disk access if SIP is disabled
+    - enh (scott)           Add controller sort options
+    - enh (scott)           Add 1200 pixel per prot for WLED ESP32
+    - bug (scott)           Fix DDP  channel for DMX outputs on Falcon upload
+    - bug (dkulp)           Fix memory leaks when clicking on "Re-discovery" in FPP Connect dialog
+    - bug (dkulp)           Fix long standing crash in visualizer when dropping models
+    - bug (derwin12)        Add more visible space for colors in Face dialog
+    - bug (derwin12)        Fix issues with verticle text being off buffer
 2025.10.2 October 7, 2025
     - enh (dkulp)           Change Windows update check and download URL to github release location
     - bug (scott)           Fix Falcon e1.31 upload
