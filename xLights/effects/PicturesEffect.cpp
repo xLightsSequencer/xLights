@@ -240,7 +240,7 @@ typedef std::vector< std::pair<wxPoint, xlColor> > PixelVector;
 
 class PicturesRenderCache : public EffectRenderCache {
 public:
-    PicturesRenderCache() : imageCount(0), frame(0),  gifImage(nullptr), maxmovieframes(0) {};
+    PicturesRenderCache() : imageCount(0), frame(0),  gifImage(nullptr), maxmovieframes(0), orientation(1) {};
     virtual ~PicturesRenderCache()
     {
         if (gifImage != nullptr) {
@@ -255,6 +255,7 @@ public:
     int frame;
     int maxmovieframes;
     wxString PictureName;
+    int orientation;
     GIFImage* gifImage;
     std::vector<PixelVector> PixelsByFrame;
 };
@@ -610,6 +611,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
                 }
                 
                 cache->PictureName = NewPictureName;
+                cache->orientation = GetExifOrientation(NewPictureName);
 
                 if (cache->imageCount > 1) {
 #ifdef DEBUG_GIF
@@ -631,6 +633,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
                             LOG_ERROR("Error loading image file: %s.", (const char*)NewPictureName.c_str());
                             image.Create(5, 5, true);
                         }
+                        image = ApplyOrientation(image, cache->orientation);
                         rawimage = image;
                     } else {
                         image = gifImage->GetFrame(0);
@@ -641,6 +644,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
                         LOG_ERROR("Error loading image file: %s.", (const char*)NewPictureName.c_str());
                         image.Create(5, 5, true);
                     }
+                    image = ApplyOrientation(image, cache->orientation);
                     rawimage = image;
                 }
             }

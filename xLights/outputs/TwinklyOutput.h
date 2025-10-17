@@ -9,12 +9,10 @@
  * Copyright claimed based on commit dates recorded in Github
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
-
+#include <nlohmann/json.hpp>
 #include "IPOutput.h"
 #include <array>
 #include <wx/wx.h>
-
-#include <nlohmann/json.hpp>
 
 class wxDatagramSocket;
 class Discovery;

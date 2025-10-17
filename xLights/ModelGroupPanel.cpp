@@ -381,7 +381,6 @@ bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model
 std::string ModelGroupPanel::WildcardToRegex(const std::string& wildcard) {
     std::string pattern;
     pattern.reserve(wildcard.size() + 4); // Account for potential .*
-    bool hasWildcards = wildcard.find_first_of("*?") != std::string::npos;
     bool startsWithCaret = !wildcard.empty() && wildcard[0] == '^';
     bool endsWithDollar = !wildcard.empty() && wildcard.back() == '$';
 

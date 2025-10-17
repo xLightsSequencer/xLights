@@ -13,6 +13,16 @@ echo ""
 echo "TMP"
 ls -lart ${TMPDIR}
 
+if [ "$CI_PRIMARY_REPOSITORY_PATH" = "" ]; then
+    CI_PRIMARY_REPOSITORY_PATH=`pwd`
+fi
+
+if [ "$CI_DERIVED_DATA_PATH" = "" ]; then
+    CI_DERIVED_DATA_PATH=`pwd`/macOS
+fi
+
+cd $CI_PRIMARY_REPOSITORY_PATH
+git submodule update --init
 
 mkdir -p $CI_DERIVED_DATA_PATH
 cd $CI_DERIVED_DATA_PATH
@@ -21,27 +31,9 @@ ls -lart
 #install zstd so we can decompress the deps
 brew install zstd
 
-# This will do a full clone which is huge and consumes a lot of bandwidth from GitHub LFS costing money
-#if [ ! -d xLights-macOS-dependencies ]; then
-#    git clone --depth 1 https://github.com/xLightsSequencer/xLights-macOS-dependencies.git xLights-macOS-dependencies
-#fi
-#cd xLights-macOS-dependencies
-#git reset --hard
-#git pull
-#cd ..
 
-#instead, grab the release tgz
-rm -rf xLights-macOS-dependencies
-export TAG=$(cat ${CI_PRIMARY_REPOSITORY_PATH}/macOS/README.macOS | grep recurse-submodules | cut -d "_" -f 2 | cut -d " "  -f 1)
-curl -L https://github.com/xLightsSequencer/xLights-macOS-dependencies/releases/download/xlights_${TAG}/xLights-macOS-dependencies.tar.zst --output - | tar -xz
-echo ""
-echo "Post update"
-ls -lart
-
-
-cd ${CI_PRIMARY_REPOSITORY_PATH}/macOS
-rm -rf dependencies
-ln -s ${CI_DERIVED_DATA_PATH}/xLights-macOS-dependencies dependencies
-echo ""
-echo "Post link"
-ls -lart
+# need to install the metal toolchain, issue with Xcode 26 in Xcode Cloud
+echo "Downloading and importing Metal Toolchain..."
+xcodebuild -downloadComponent metalToolchain -exportPath /tmp/MyMetalExport/
+xcodebuild -importComponent metalToolchain -importPath /tmp/MyMetalExport/MetalToolchain-*.exportedBundle
+echo "Metal Toolchain imported successfully."

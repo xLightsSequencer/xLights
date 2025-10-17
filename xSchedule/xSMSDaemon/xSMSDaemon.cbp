@@ -34,6 +34,7 @@
 					<Add directory="include" />
 					<Add directory="../xSchedule/xSMSDaemon" />
 					<Add directory="../include" />
+					<Add directory="../../include" />
 					<Add directory="../../xLights" />
 				</Compiler>
 				<Linker>
@@ -75,6 +76,7 @@
 					<Add directory="include" />
 					<Add directory="../xSchedule/xSMSDaemon" />
 					<Add directory="../include" />
+					<Add directory="../../include" />
 					<Add directory="../../xLights" />
 				</Compiler>
 				<Linker>

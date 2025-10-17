@@ -1431,4 +1431,86 @@ void OutputManager::DeleteTestPreset()
     }
     _testPresets.clear();
 }
+
+void OutputManager::SortControllersbyName() {
+    _controllers.sort([](Controller* a, Controller* b) {
+        return a->GetName() < b->GetName();
+    });
+    SomethingChanged();
+}
+
+void OutputManager::SortControllersbyID() {
+    _controllers.sort([](Controller* a, Controller* b) {
+        return a->GetId() < b->GetId();
+    });
+    SomethingChanged();
+}
+
+void OutputManager::SortControllersbyIP() {
+    _controllers.sort([](Controller* a, Controller* b) {
+        auto ea = dynamic_cast<ControllerEthernet*>(a);
+        auto eb = dynamic_cast<ControllerEthernet*>(b);
+        if (ea != nullptr && eb != nullptr) {
+            return ea->GetIP() < eb->GetIP();
+        }
+        return a->GetName() < b->GetName();
+    });
+    SomethingChanged();
+}
+
+void OutputManager::SortControllersbyFPPProxy() {
+    _controllers.sort([](Controller* a, Controller* b) {
+        auto ea = dynamic_cast<ControllerEthernet*>(a);
+        auto eb = dynamic_cast<ControllerEthernet*>(b);
+        if (ea != nullptr && eb != nullptr) {
+            if (!ea->GetFPPProxy().empty() &&
+                !eb->GetFPPProxy().empty()) {
+                return ea->GetFPPProxy() < eb->GetFPPProxy();
+            }
+            if (!ea->GetFPPProxy().empty()) {
+                return true;
+            }
+            if (!eb->GetFPPProxy().empty()) {
+                return false;
+            }
+            return ea->GetIP() < eb->GetIP();
+        }
+        return a->GetName() < b->GetName();
+    });
+    SomethingChanged();
+}
+
+void OutputManager::SortControllersbyModel() {
+    _controllers.sort([](Controller* a, Controller* b) {
+        auto ea = dynamic_cast<ControllerEthernet*>(a);
+        auto eb = dynamic_cast<ControllerEthernet*>(b);
+        if (ea != nullptr && eb != nullptr) {
+            if (!ea->GetModel().empty() &&
+                !eb->GetModel().empty()) {
+                return ea->GetModel() < eb->GetModel();
+            }
+            if (!ea->GetModel().empty()) {
+                return true;
+            }
+            if (!eb->GetModel().empty()) {
+                return false;
+            }
+        }
+        return a->GetName() < b->GetName();
+    });
+    SomethingChanged();
+}
+
+void OutputManager::SortControllersbyProtocal() {
+    _controllers.sort([](Controller* a, Controller* b) {
+        auto ea = dynamic_cast<ControllerEthernet*>(a);
+        auto eb = dynamic_cast<ControllerEthernet*>(b);
+        if (ea != nullptr && eb != nullptr) {
+            return ea->GetProtocol() < eb->GetProtocol();
+        }
+        return a->GetName() < b->GetName();
+    });
+    SomethingChanged();
+}
+
 #pragma endregion 

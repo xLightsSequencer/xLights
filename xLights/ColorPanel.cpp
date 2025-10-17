@@ -18,6 +18,7 @@
 #include "xLightsApp.h"
 #include "ExternalHooks.h"
 #include "sequencer/MainSequencer.h"
+#include "ai/AIColorPaletteDialog.h"
 
 //(*InternalHeaders(ColorPanel)
 #include <wx/bitmap.h>
@@ -39,6 +40,7 @@
 #include <wx/regex.h>
 
 #include "./utils/spdlog_macros.h"
+
 
 #define PALETTE_SIZE 8
 
@@ -92,6 +94,7 @@ const wxWindowID ColorPanel::ID_MNU_SAVE = wxNewId();
 const wxWindowID ColorPanel::ID_MNU_SAVE_AS = wxNewId();
 const wxWindowID ColorPanel::ID_MNU_DELETE = wxNewId();
 const wxWindowID ColorPanel::ID_MNU_IMPORT = wxNewId();
+const wxWindowID ColorPanel::ID_MNU_GENERATE = wxNewId();
 
 #define SWATCH_WIDTH 11
 class ColourList : public wxOwnerDrawnComboBox
@@ -1304,6 +1307,22 @@ void ColorPanel::LoadColorsToButtons(const wxString& colorString) {
     }
 }
 
+void ColorPanel::GeneratePalette() {
+    AIColorPaletteDialog dlg(this);
+    if (dlg.ShowModal() == wxID_OK) {
+        int idx = 0;
+        for (auto &color : dlg.GetColorStrings()) {
+            if (idx < 8) {
+                std::string colorStr = color.ToStdString();
+                SetButtonColor(buttons[idx], colorStr);
+            }
+            idx++;
+        }
+        FireChangeEvent();
+        ValidateWindow();
+    }
+}
+
 void ColorPanel::ImportPalette() {
     wxString lastInput = "";
     bool validInput = false;
@@ -1624,6 +1643,9 @@ void ColorPanel::OnBitmapButton_MenuPaletteClick(wxCommandEvent& event) {
     wxMenuItem* saveAsItem = mnuLayer.Append(ID_MNU_SAVE_AS, "Save Palette As");
     wxMenuItem* deleteItem = mnuLayer.Append(ID_MNU_DELETE, "Delete Palette");
     mnuLayer.Append(ID_MNU_IMPORT, "Import Palette");
+    if (xLightsApp::GetFrame()->GetAIService(aiType::COLORPALETTES) != nullptr) {
+        mnuLayer.Append(ID_MNU_GENERATE, "Generate Palette");
+    }
     mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ColorPanel::OnListPopup, nullptr, this);
 
     const int alleffects = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount("");
@@ -1660,6 +1682,8 @@ void ColorPanel::OnListPopup(wxCommandEvent &event)
         DeletePalette();
     } else if (event.GetId() == ID_MNU_IMPORT) {
         ImportPalette();
+    } else if (event.GetId() == ID_MNU_GENERATE) {
+        GeneratePalette();
     } else if (event.GetId() == ID_MNU_UPDATE) {
         UpdateColor();
     }

@@ -70,8 +70,16 @@ class ControllerPingThread : public wxThread {
 public:
     ControllerPingThread(Controller* controller) :
         wxThread(wxTHREAD_DETACHED), _controller(controller) {
+        ++pingCount;
     }
-
+    virtual ~ControllerPingThread() {
+        --pingCount;
+    }
+    
+    static std::atomic_int pingCount;
+    static bool hasOutstandingPings() {
+        return pingCount > 0;
+    }
 protected:
     virtual ExitCode Entry() override {
         if (_controller && _controller->IsActive()) {
@@ -83,6 +91,7 @@ protected:
 private:
     Controller* _controller;
 };
+std::atomic_int ControllerPingThread::pingCount(0);
 
 const long xLightsFrame::ID_List_Controllers = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDETHERNET = wxNewId();
@@ -94,6 +103,12 @@ const long xLightsFrame::ID_NETWORK_INACTIVE = wxNewId();
 const long xLightsFrame::ID_NETWORK_DELETE = wxNewId();
 const long xLightsFrame::ID_NETWORK_UNLINKFROMBASE = wxNewId();
 const long xLightsFrame::ID_NETWORK_UPLOADOUTPUT = wxNewId();
+const long xLightsFrame::ID_NETWORK_SORT_NAME = wxNewId();
+const long xLightsFrame::ID_NETWORK_SORT_ID = wxNewId();
+const long xLightsFrame::ID_NETWORK_SORT_IP = wxNewId();
+const long xLightsFrame::ID_NETWORK_SORT_FPP_PROXY = wxNewId();
+const long xLightsFrame::ID_NETWORK_SORT_CONTROLLER_VENDOR = wxNewId();
+const long xLightsFrame::ID_NETWORK_SORT_CONTROLLER_PROTOCOL = wxNewId();
 
 #pragma region Show Directory
 void xLightsFrame::OnMenuMRU(wxCommandEvent& event) {
@@ -297,6 +312,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     CheckBoxLightOutput->SetValue(false);
     EnableSleepModes();
     _outputManager.StopOutput();
+    waitForPingsToComplete();
     _outputManager.DeleteAllControllers();
     CurrentDir = nd;
     showDirectory = nd;
@@ -1622,9 +1638,14 @@ void xLightsFrame::OnPingTimer(wxTimerEvent& event) {
     _pingInProgress = false;
     StatusRefreshTimer(event);
 }
+void xLightsFrame::waitForPingsToComplete() {
+    while (ControllerPingThread::hasOutstandingPings()) {
+        std::this_thread::yield();
+    }
+}
 
 void xLightsFrame::StatusRefreshTimer(wxTimerEvent& event) {
-    if (Notebook1->GetSelection() == SETUPTAB) {
+    if (Notebook1->GetSelection() == SETUPTAB && List_Controllers != nullptr) {
         List_Controllers->Freeze();
         for (int row = 0; row < List_Controllers->GetItemCount(); ++row) {
             auto controller = dynamic_cast<Controller*>(_outputManager.GetController(List_Controllers->GetItemText(row, 0).ToStdString()));
@@ -1696,35 +1717,18 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
     }
 
     if (Controllers_PropertyEditor == nullptr) {
-#ifdef __WXOSX__
-        xlPropertyGrid *grid = new xlPropertyGrid(Panel5, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-
-            // Here are just some of the supported window styles
-            //wxPG_AUTO_SORT | // Automatic sorting after items added
-            wxPG_SPLITTER_AUTO_CENTER | // Automatically center splitter until user manually adjusts it
-            // Default style
-            wxPG_DEFAULT_STYLE);
-
-        Controllers_PropertyEditor = grid;
-        Controllers_PropertyEditor->SetExtraStyle(wxPG_EX_HELP_AS_TOOLTIPS);
-#else
-
-        Controllers_PropertyEditor = new wxPropertyGrid(Panel5, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+        Controllers_PropertyEditor = new xlPropertyGrid(Panel5, wxID_ANY, wxDefaultPosition, wxDefaultSize,
             // Here are just some of the supported window styles
             //wxPG_AUTO_SORT | // Automatic sorting after items added
             wxPG_SPLITTER_AUTO_CENTER | // Automatically center splitter until user manually adjusts it
             // Default style
             wxPG_DEFAULT_STYLE);
         Controllers_PropertyEditor->SetExtraStyle(wxWS_EX_PROCESS_IDLE | wxPG_EX_HELP_AS_TOOLTIPS);
-#endif
         FlexGridSizerSetupProperties->Add(Controllers_PropertyEditor, 1, wxALL | wxEXPAND, 5);
         Controllers_PropertyEditor->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&xLightsFrame::OnControllerPropertyGridChange, 0, this);
         Controllers_PropertyEditor->Connect(wxEVT_PG_ITEM_COLLAPSED, (wxObjectEventFunction)&xLightsFrame::OnControllerPropertyGridCollapsed, 0, this);
         Controllers_PropertyEditor->Connect(wxEVT_PG_ITEM_EXPANDED, (wxObjectEventFunction)&xLightsFrame::OnControllerPropertyGridExpanded, 0, this);
         Controllers_PropertyEditor->SetValidationFailureBehavior(wxPGVFBFlags::MarkCell | wxPGVFBFlags::Beep);
-#ifdef __WXOSX__
-        Controllers_PropertyEditor->Connect(wxEVT_KILL_FOCUS,(wxObjectEventFunction)&xlPropertyGrid::OnKillFocus, 0, grid);
-#endif
 
         Controllers_PropertyEditor->AddActionTrigger(wxPGKeyboardAction::NextProperty, WXK_RETURN);
         Controllers_PropertyEditor->DedicateKey(WXK_RETURN);
@@ -2284,6 +2288,7 @@ void xLightsFrame::DeleteSelectedControllers() {
     if (todel.size() > 0) {
         auto msg = wxString::Format("Are you sure you want to delete %d controllers.", (int)todel.size());
         if (wxMessageBox(msg, "Delete controller(s)", wxYES_NO) == wxYES) {
+            waitForPingsToComplete();
             for (const auto& it : todel) {
                 _outputManager.DeleteController(it);
             }
@@ -2405,6 +2410,16 @@ void xLightsFrame::OnListControllersItemRClick(wxListEvent& event) {
     mnu.Append(ID_NETWORK_UNLINKFROMBASE, "Unlink from Base Show Folder")->Enable(ButtonAddControllerSerial->IsEnabled() && enableUnlinkFromBaseMenuItem);
     mnu.Append(ID_NETWORK_UPLOADOUTPUT, "Upload Output")->Enable(ButtonAddControllerSerial->IsEnabled() && enableUploadMenuItem);
 
+    mnu.AppendSeparator();
+    wxMenu* cc = new wxMenu();
+    cc->Append(ID_NETWORK_SORT_NAME, "by Name");
+    cc->Append(ID_NETWORK_SORT_ID, "by ID");
+    cc->Append(ID_NETWORK_SORT_IP, "by IP");
+    cc->Append(ID_NETWORK_SORT_FPP_PROXY, "by FPP Proxy");
+    cc->Append(ID_NETWORK_SORT_CONTROLLER_VENDOR, "by Controller Model");
+    cc->Append(ID_NETWORK_SORT_CONTROLLER_PROTOCOL, "by Controller Protocol");
+    mnu.AppendSubMenu(cc, "Sort");
+
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnListControllerPopup, nullptr, this);
     PopupMenu(&mnu);
     List_Controllers->SetFocus();
@@ -2473,6 +2488,42 @@ void xLightsFrame::OnListControllerPopup(wxCommandEvent& event) {
     }
     else if (id == ID_NETWORK_UPLOADOUTPUT) {
         OnButtonUploadOutputClick(event);
+    } else if (id == ID_NETWORK_SORT_NAME) {
+        _outputManager.SortControllersbyName();
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SortControllersbyName");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SortControllersbyName");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SortControllersbyName");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SortControllersbyName");
+    } else if (id == ID_NETWORK_SORT_ID) {
+        _outputManager.SortControllersbyID();
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SortControllersbyID");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SortControllersbyID");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SortControllersbyID");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SortControllersbyID");
+    } else if (id == ID_NETWORK_SORT_IP) {
+        _outputManager.SortControllersbyIP();
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SortControllersbyIP");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SortControllersbyIP");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SortControllersbyIP");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SortControllersbyIP");
+    } else if (id == ID_NETWORK_SORT_FPP_PROXY) {
+        _outputManager.SortControllersbyFPPProxy();
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SortControllersbyFPPProxy");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SortControllersbyFPPProxy");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SortControllersbyFPPProxy");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SortControllersbyFPPProxy");
+    } else if (id == ID_NETWORK_SORT_CONTROLLER_VENDOR) {
+        _outputManager.SortControllersbyModel();
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SortControllersbyVendor");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SortControllersbyVendor");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SortControllersbyVendor");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SortControllersbyVendor");
+    } else if (id == ID_NETWORK_SORT_CONTROLLER_PROTOCOL) {
+        _outputManager.SortControllersbyProtocal();
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SortControllersbyProtocal");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SortControllersbyProtocal");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SortControllersbyProtocal");
+        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SortControllersbyProtocal");
     }
 }
 #pragma endregion
@@ -2499,6 +2550,7 @@ void xLightsFrame::OnButtonControllerDeleteClick(wxCommandEvent& event)
 {
     if (wxMessageBox("Are you sure you want delete this controller?", "Delete Controller", wxYES_NO, this) == wxYES) {
         auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
+        waitForPingsToComplete();
         _outputManager.DeleteController(name);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DeleteSelectedControllers");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "DeleteSelectedControllers");

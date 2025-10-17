@@ -11,6 +11,79 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2025.11  October 17, 2025
+    - enh (dkulp)           Very minory open sequence optimization when searching for data layers
+    - enh (dkulp)           Don't display warning for full disk access if SIP is disabled
+    - enh (scott)           Add controller sort options
+    - enh (scott)           Add 1200 pixel per prot for WLED ESP32
+    - bug (scott)           Fix DDP  channel for DMX outputs on Falcon upload
+    - bug (dkulp)           Fix memory leaks when clicking on "Re-discovery" in FPP Connect dialog
+    - bug (dkulp)           Fix long standing crash in visualizer when dropping models
+    - bug (derwin12)        Add more visible space for colors in Face dialog
+    - bug (derwin12)        Fix issues with verticle text being off buffer
+2025.10.2 October 7, 2025
+    - enh (dkulp)           Change Windows update check and download URL to github release location
+    - bug (scott)           Fix Falcon e1.31 upload
+    - bug (scott)           Fix version check that was causing the wrong BBB driver type
+    - bug (scott)           Fix WLED crash when skipping ports
+    - bug (zackbcom)        Fix FPP Connect upload for virtual matrices and some other outputs that may optional json parameters
+    - bug (scott)           Update Minleon upload to handle float values in json better
+2025.10.1 October 3, 2025
+    - enh (scott)           Show xml error and location if rgbeffects file has an error
+    - bug (dkulp)           Fix crash in FPP discovery if WLED controllers are present
+    - bug (scott)           Fix upload to Falcon controllers
+    - bug (scott)           Fix upload to ESPixelStick
+    - bug (dkulp)           Fix crash with "Duplicate" effect when duplicating effects with backgrounds (Single Strand, etc..)
+2025.10 October 2, 2025
+    - enh (dkulp)           Support ChatGPT for AI Color Palette creation
+    - enh (dkulp)           Warn if "Full Disk Access" is enabled
+    - enh (scott)           Support newer Hinkspix Firmware
+    - enh (scott)           *Internal* - change JSON parser for most places json is used
+    - enh (derwin12)        Use orientation metadata tag for jpg images
+    - bug (dkulp)           Services Test button should depend on enabled services
+    - bug (derwin12)        Remove macOS metadata files from Batch render pick list
+    - bug (scott)           Several Hinkspix configuration issues
+    - bug (derwin12)        Update playlist duration and count during FPP Connect
+    - bug (derwin12)        Support old "master" setting for FPP
+    - bug (scott)           Fix issue with Experience controllers and Dummy Smart Receiver sttrings
+    - bug (dkulp)           Fix crash with scroll wheel navigation on Wavefrom on macOS Tahoe
+    - bug (dkulp)           Fix a crash on macOS if an animation sequence is opened after a music sequence and then the audio device is changed
+2025.09 September 16, 2025
+    - enh (dkulp)           New "Generate Palette" dialog to use AI to generate a color palette
+    - enh (dkulp)           Add "Apple Intelligence" service provider (palette generation only at this point)
+    - enh (scott/dkulp)     Allow Ollama to generate color palettes
+    - enh (scott)           Bunch of updates/enhancements for HinksPix uploads
+    - enh (Dom Hodgson)     Add Baldrick Input8 Controller
+    - bug (dkulp)           iCloud - make sure xsqz files are download from iCloud before trying to open them
+    - bug (derwin12)        Handle crash with Moving Heads when no path is defined
+    - bug (derwin12)        Don't allow submodels/faces to be copied to Image types
+    - bug (derwin12)        Check Sequence improperly flagging FPP Player as inactive
+    - bug (dkulp)           Bunch of minor fixes/adjustments for appearance issues on MacOS Tahoe
+    - bug (derwin12)        Fix tab key navigation/completion for various property grids
+    - bug (derwin12)        Remove macOS metadata files from Batch render pick list
+    - bug (derwin12)        FPP Connect - make sure uploaded playlists have the "random" value included in the json
+2025.08 August 8, 2025
+    - enh (derwin12)        Allow preview edits in 3D mode
+    - enh (derwin12)        Store/restore the last directory used for imports
+    - enh (derwin12)        Add right click option to remove "-shimmer"
+    - enh (scott)           Add serial upload for Sandevice v5 controllers
+    - enh (TheHodge)        Add Baldrick17 controller
+    - enh (scott)           Add YPS VIVID8 controller
+    - enh (dkulp)           Add K16/K16-Pro KulpLights controllers
+    - enh (dkulp)           FPP9 - Support up to 5 matrices
+    - enh (derwin12)        Distinguish between unsupported and unavailable for FPP connect status
+    - enh (keith)           Support creation of submodels from states and faces
+    - enh (dkulp)           Speed up FPP Connect discovery and initial dialog setup
+    - bug (derwin12)        Disallow invalid characters (ex :) for controller names
+    - bug (dkulp)           Fix proxy support for ESPixelStick uploads
+    - bug (derwin12)        Fix crash importing some models that have numbers in the middle of submodel names
+    - bug (derwin12)        ImageEffect - images with alpha channel may display wrong
+    - bug (scott)           Fix HinksPix universe packing issues in some setups
+    - bug (derwin12)        Fix some issues with "Match Size" not actually matching the size for some models
+    - bug (derwin12)        Fix check for xbkp files and properly prompt to restore
+    - bug (mpierreb/derwin12) Fix some issues moving effects up/down in the grid
+    - bug (derwin12)        Fix removing of temp files after opening xsqz files
+    - bug (dkulp)           Fix infrequent crash caused by bg ping threads when changing show dir or closing xLights
 2025.07 July 17, 2025
     - bug (derwin12)        Handle cursor up/down the sequencer panel consistently
     - enh (derwin12)        Split multiple effects via right click

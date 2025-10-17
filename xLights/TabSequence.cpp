@@ -132,9 +132,9 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
                 }
             }
         }
-
-        if (!EffectsXml.Load(effectsFile.GetFullPath())) {
-            DisplayError("Unable to load RGB effects file ... creating a default one.", this);
+        wxXmlParseError error;
+        if (!EffectsXml.Load(effectsFile.GetFullPath(), wxXMLDOC_NONE, &error)) {
+            DisplayError(wxString::Format("Unable to load RGB effects File ... Creating a Default One.\nError at Line: %d Column: %d Error '%s'", error.line, error.column, error.message), this);
             CreateDefaultEffectsXml();
         }
         wxXmlDoctype dt("");

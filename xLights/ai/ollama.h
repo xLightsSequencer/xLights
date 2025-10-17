@@ -51,7 +51,9 @@ class ollama : public aiBase {
         return "ollama";
     }
 
-	[[nodiscard]] aiType::TYPE GetLLMType() const override {
-        return aiType::TYPE::PROMPT;
+	[[nodiscard]] std::list<aiType::TYPE> GetTypes() const override {
+        return std::list({ aiType::TYPE::PROMPT, aiType::TYPE::COLORPALETTES });
     }
+
+    virtual AIColorPalette GenerateColorPalette(const std::string& prompt) const override;
 };

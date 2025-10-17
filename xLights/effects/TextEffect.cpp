@@ -1643,7 +1643,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
         }
     }
     else if (vertical) {
-        OffsetLeft += buffer.BufferWi / 2 - char_width / 2;
+        OffsetLeft += buffer.BufferWi / 2 - char_width / 2 + 2;
         if (up) {
             OffsetTop += buffer.BufferHt / 2 + (char_height * lines.size()) / 2;
         }
@@ -1661,6 +1661,9 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
         for (size_t line_idx = 0; line_idx < lines.size(); line_idx++) {
             const wxString& line = lines[line_idx];
             int line_offset_left = OffsetLeft - line_lengths[line_idx] / 2;
+            if (rotate_90 || vertical) {
+                line_offset_left = OffsetLeft;
+            }
 
             for (int i = 0; i < line.length(); i++) {
                 buffer.palette.GetColor(curPos % num_colors, c);

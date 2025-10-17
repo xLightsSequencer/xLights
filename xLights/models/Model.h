@@ -322,7 +322,7 @@ protected:
     int pixelSize = 2;
     int transparency = 0;
     int blackTransparency = 0;
-    wxColour modelTagColour = *wxBLACK;
+    wxColour modelTagColour = wxNullColour;
     uint8_t _lowDefFactor = 100;
     std::string _startSide = "B";
     std::string _dir = "L";
@@ -367,9 +367,7 @@ public:
     static std::string DecodeSmartRemote(int sr);
 
     void SetTagColour(wxColour colour);
-    [[nodiscard]] wxColour GetTagColour() const {
-        return modelTagColour;
-    }
+    [[nodiscard]] wxColour GetTagColour();
     [[nodiscard]] int32_t GetStringStartChan(int x) const;
     void SaveSuperStringColours();
     void SetSuperStringColours(int count);

@@ -92,7 +92,7 @@ void ThreePointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* p
     wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Height (%s)", RulerObject::GetUnitDescription()), "RealHeight", 
                                                                      (width * height) / 2.0 * factor
                                                                     ));
-    prop->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
+    prop->ChangeFlag(wxPGFlags::ReadOnly, true);
     prop->SetAttribute("Precision", 2);
     prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 }

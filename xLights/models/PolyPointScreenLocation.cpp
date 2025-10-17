@@ -1872,7 +1872,7 @@ void PolyPointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* pr
         last = mPos[i].AsVector();
     }
     wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Length (%s)", RulerObject::GetUnitDescription()), "RealLength", len));
-    prop->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
+    prop->ChangeFlag(wxPGFlags::ReadOnly, true);
     prop->SetAttribute("Precision", 2);
     prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
     

@@ -2053,12 +2053,12 @@ void ModelFaceDialog::OnMatrixModelsGridResize(wxSizeEvent& event)
 
 void ModelFaceDialog::OnSingleNodeGridResize(wxSizeEvent& event)
 {
-    SingleNodeGrid->SetColSize(0, std::max(event.GetSize().x - SingleNodeGrid->GetColSize(1) - SingleNodeGrid->GetRowLabelSize(), MIN_COL_SIZE));
+    SingleNodeGrid->SetColSize(0, std::max(event.GetSize().x - SingleNodeGrid->GetColSize(1) -30 - SingleNodeGrid->GetRowLabelSize(), MIN_COL_SIZE));
 }
 
 void ModelFaceDialog::OnNodeRangeGridResize(wxSizeEvent& event)
 {
-    NodeRangeGrid->SetColSize(0, std::max(event.GetSize().x - NodeRangeGrid->GetColSize(1) - NodeRangeGrid->GetRowLabelSize(), MIN_COL_SIZE));
+    NodeRangeGrid->SetColSize(0, std::max(event.GetSize().x - NodeRangeGrid->GetColSize(1) - 30 - NodeRangeGrid->GetRowLabelSize(), MIN_COL_SIZE));
 }
 
 void ModelFaceDialog::ExportFacesToOtherModels() {

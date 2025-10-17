@@ -131,7 +131,7 @@
 
 #include <xlsxwriter.h>
 #include <CheckSequenceReport.h>
-#include "./utils/spdlog_macros.h"
+#include <log4cpp/Category.hh>
 
 //(*InternalHeaders(xLightsFrame)
 #include <wx/bitmap.h>
@@ -608,8 +608,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     color_mgr(this),
     _renderMode(renderOnlyMode)
 {
-    
-    LOG_DEBUG("xLightsFrame being constructed.");
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("xLightsFrame being constructed.");
 
     xLightsApp::__frame = this;
 
@@ -883,8 +883,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MainAuiManager->AddPane(Notebook1, wxAuiPaneInfo().Name(_T("MainPain")).CenterPane().Caption(_("Pane caption")).PaneBorder(false));
     AUIStatusBar = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE|wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     StatusBarSizer = new wxGridBagSizer(0, 0);
+    StatusBarSizer->Add(8,0,1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     StatusText = new wxStaticText(AUIStatusBar, ID_STATICTEXT6, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
-    StatusBarSizer->Add(StatusText, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxEXPAND, 2);
+    StatusBarSizer->Add(StatusText, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxEXPAND, 2);
     Panel1 = new wxPanel(AUIStatusBar, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
     Panel1->SetMinSize(wxDLG_UNIT(AUIStatusBar,wxSize(100,-1)));
     GaugeSizer = new wxFlexGridSizer(1, 1, 0, 0);
@@ -892,9 +893,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     ProgressBar = new wxGauge(Panel1, ID_GAUGE1, 100, wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(100,-1)), 0, wxDefaultValidator, _T("ID_GAUGE1"));
     GaugeSizer->Add(ProgressBar, 0, wxEXPAND, 0);
     Panel1->SetSizer(GaugeSizer);
-    StatusBarSizer->Add(Panel1, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    StatusBarSizer->Add(Panel1, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     FileNameText = new wxStaticText(AUIStatusBar, ID_STATICTEXT7, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
-    StatusBarSizer->Add(FileNameText, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxEXPAND, 2);
+    StatusBarSizer->Add(FileNameText, wxGBPosition(0, 3), wxDefaultSpan, wxALL|wxEXPAND, 2);
     StatusBarSizer->AddGrowableRow(0);
     AUIStatusBar->SetSizer(StatusBarSizer);
     MainAuiManager->AddPane(AUIStatusBar, wxAuiPaneInfo().Name(_T("Status Bar")).DefaultPane().Caption(_("Status bar")).CaptionVisible(false).CloseButton(false).Bottom().DockFixed().Dockable(false).Floatable(false).FloatingPosition(wxPoint(0,0)).FloatingSize(wxSize(0,0)).Movable(false).PaneBorder(false));
@@ -1378,7 +1379,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     
     wxConfigBase* config = wxConfigBase::Get();
     if (config == nullptr) {
-        LOG_ERROR("Null config ... this wont end well.");
+        logger_base.error("Null config ... this wont end well.");
     }
 
     wxString dir;
@@ -1396,7 +1397,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     } else {
         ok = config->Read("LastDir", &dir);
     }
-    LOG_DEBUG("Show directory %s.", (const char*)dir.c_str());
+    logger_base.debug("Show directory %s.", (const char*)dir.c_str());
 
     if (dir != "") {
 #ifdef __WXMSW__
@@ -1410,7 +1411,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(wxEVT_HELP, (wxObjectEventFunction)&xLightsFrame::OnHelp);
     Notebook1->Connect(wxEVT_HELP, (wxObjectEventFunction)&xLightsFrame::OnHelp, 0, this);
 
-    LOG_DEBUG("xLightsFrame constructor UI code done.");
+    logger_base.debug("xLightsFrame constructor UI code done.");
 
     GaugeSizer->Fit(Panel1);
     GaugeSizer->SetSizeHints(Panel1);
@@ -1517,8 +1518,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     ChoiceParm1->SetStringSelection("100");
     ChoiceParm2->SetStringSelection("100");
 
-    StatusBarSizer->AddGrowableCol(0, 2);
-    StatusBarSizer->AddGrowableCol(2, 1);
+    StatusBarSizer->AddGrowableCol(1, 2);
+    StatusBarSizer->AddGrowableCol(3, 1);
     ProgressBar->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&xLightsFrame::OnProgressBarDoubleClick, nullptr, this);
     ProgressBar->Hide();
     selectedEffectPalette = "";
@@ -1538,7 +1539,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     modelsChangeCount = 0;
 
-    LOG_DEBUG("Config: AppName '%s' Path '%s' Entries %d Groups %d Style %ld Vendor %s.",
+    logger_base.debug("Config: AppName '%s' Path '%s' Entries %d Groups %d Style %ld Vendor %s.",
                       (const char*)config->GetAppName().c_str(),
                       (const char*)config->GetPath().c_str(),
                       (int)config->GetNumberOfEntries(),
@@ -1548,41 +1549,41 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     xlColourData::INSTANCE.Load(config);
     config->Read("xLightsPlayControlsOnPreview", &_playControlsOnPreview, false);
-    LOG_DEBUG("Play Controls On Preview: %s.", toStr(_playControlsOnPreview));
+    logger_base.debug("Play Controls On Preview: %s.", toStr(_playControlsOnPreview));
 
     config->Read("xLightsShowBaseFolder", &_showBaseShowFolder, false);
-    LOG_DEBUG("Show base show folder controls: %s.", toStr(_showBaseShowFolder));
+    logger_base.debug("Show base show folder controls: %s.", toStr(_showBaseShowFolder));
     SetShowBaseShowFolder(_showBaseShowFolder);
 
     config->Read("xLightsAutoShowHousePreview", &_autoShowHousePreview, false);
-    LOG_DEBUG("Autoshow House Preview: %s.", toStr(_autoShowHousePreview));
+    logger_base.debug("Autoshow House Preview: %s.", toStr(_autoShowHousePreview));
 
     config->Read("xLightsZoomMethodToCursor", &_zoomMethodToCursor, true);
-    LOG_DEBUG("Zoom Method To Cursor: %s.", toStr(_zoomMethodToCursor));
+    logger_base.debug("Zoom Method To Cursor: %s.", toStr(_zoomMethodToCursor));
 
     config->Read("xLightsHidePresetPreview", &_hidePresetPreview, false);
-    LOG_DEBUG("Hide Preset Preview: %s.", toStr(_hidePresetPreview));
+    logger_base.debug("Hide Preset Preview: %s.", toStr(_hidePresetPreview));
 
     config->Read("xLightsSmallWaveform", &_smallWaveform, false);
-    LOG_DEBUG("Small Waveform: %s.", toStr(_smallWaveform));
+    logger_base.debug("Small Waveform: %s.", toStr(_smallWaveform));
 
     config->Read("xlightsRenderBell", &_renderBellEnabled, false);
-    LOG_DEBUG("Render Bell Enabled: %s.", toStr(_renderBellEnabled));
+    logger_base.debug("Render Bell Enabled: %s.", toStr(_renderBellEnabled));
 
     config->Read("xLightsModelBlendDefaultOff", &_modelBlendDefaultOff, false);
-    LOG_DEBUG("Model Blend Default Off: %s.", toStr(_modelBlendDefaultOff));
+    logger_base.debug("Model Blend Default Off: %s.", toStr(_modelBlendDefaultOff));
 
     config->Read("xLightsLowDefinitionRender", &_lowDefinitionRender, false);
-    LOG_DEBUG("Low Defintion Render: %s.", toStr(_lowDefinitionRender));
+    logger_base.debug("Low Defintion Render: %s.", toStr(_lowDefinitionRender));
 
     config->Read("xLightsSnapToTimingMarks", &_snapToTimingMarks, false);
-    LOG_DEBUG("Snap To Timing Marks: %s.", toStr(_snapToTimingMarks));
+    logger_base.debug("Snap To Timing Marks: %s.", toStr(_snapToTimingMarks));
 
     config->Read("xLightsFSEQVersion", &_fseqVersion, 2);
-    LOG_DEBUG("FSEQ Save Version: %d.", _fseqVersion);
+    logger_base.debug("FSEQ Save Version: %d.", _fseqVersion);
 
     config->Read("xLightsDisableKeyAccelerations", &_disableKeyAcceleration, false);
-    LOG_DEBUG("Disable Key Accelerations: %s.", _disableKeyAcceleration ? "Y": "N");
+    logger_base.debug("Disable Key Accelerations: %s.", _disableKeyAcceleration ? "Y": "N");
 
     config->Read("xLightsTimelineZooming", &_timelineZooming, 0);
     config->Read("xLightsPlayVolume", &playVolume, 100);
@@ -1607,20 +1608,20 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         _randomEffectsToUse = wxSplit(randomEffects, ',');
     }
 
-    LOG_DEBUG("xLightsFrame constructor creating sequencer.");
+    logger_base.debug("xLightsFrame constructor creating sequencer.");
 
     CreateSequencer();
 
-    LOG_DEBUG("xLightsFrame constructor sequencer creation done.");
+    logger_base.debug("xLightsFrame constructor sequencer creation done.");
 
     layoutPanel = new LayoutPanel(PanelPreview, this, PanelSequencer);
-    LOG_DEBUG("LayoutPanel creation done.");
+    logger_base.debug("LayoutPanel creation done.");
     FlexGridSizerPreview->Add(layoutPanel, 1, wxALL | wxEXPAND, 5);
     FlexGridSizerPreview->Fit(PanelPreview);
     FlexGridSizerPreview->SetSizeHints(PanelPreview);
 
     modelPreview = layoutPanel->GetMainPreview();
-    LOG_DEBUG("LayoutPanel setup done.");
+    logger_base.debug("LayoutPanel setup done.");
 
     playIcon = wxBitmap(control_play_blue_icon);
     pauseIcon = wxBitmap(control_pause_blue_icon);
@@ -1628,11 +1629,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Grid1HasFocus = false; // set this before grid gets any events -DJ
 
     SetIcons(wxArtProvider::GetIconBundle("xlART_xLights_Icons", wxART_FRAME_ICON));
-    LOG_DEBUG("IconBundle creation done.");
+    logger_base.debug("IconBundle creation done.");
 
     SetName("xLights");
     wxPersistenceManager::Get().RegisterAndRestore(this);
-    LOG_DEBUG("Window Location Restored.");
+    logger_base.debug("Window Location Restored.");
 
     effGridPrevX = 0;
     effGridPrevY = 0;
@@ -1661,13 +1662,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MenuFile->FindItem(ID_MENUITEM_RECENTFOLDERS)->SetBitmap(GetMenuItemBitmapBundle("wxART_FOLDER_OPEN"));
     MenuFile->FindItem(ID_MENUITEM_OPENRECENTSEQUENCE)->SetBitmap(GetMenuItemBitmapBundle("wxART_FILE_OPEN"));
 
-    LOG_DEBUG("xLightsFrame constructor loading config.");
+    logger_base.debug("xLightsFrame constructor loading config.");
 
     wxString md;
 
     if (!xLightsApp::mediaDir.IsNull()) {
         md = xLightsApp::mediaDir;
-        LOG_DEBUG("Media directory %s.", (const char*)md.c_str());
+        logger_base.debug("Media directory %s.", (const char*)md.c_str());
         if (!ObtainAccessToURL(md)) {
             std::string mds = md;
             PromptForDirectorySelection("Reselect Media Directory", mds);
@@ -1693,16 +1694,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         MainAuiManager->GetPane("Status Bar").MinSize(wxSize(-1, size));
         MainAuiManager->Update();
     }
-    LOG_DEBUG("Perspectives loaded.");
+    logger_base.debug("Perspectives loaded.");
 
     config->Read("xLightsBackupSubdirectories", &_backupSubfolders, true);
-    LOG_DEBUG("Backup subdirectories: %s.", toStr(_backupSubfolders));
+    logger_base.debug("Backup subdirectories: %s.", toStr(_backupSubfolders));
 
     config->Read("xLightsExcludePresetsPkgSeq", &_excludePresetsFromPackagedSequences, false);
-    LOG_DEBUG("Exclude Presets From Packaged Sequences: %s.", toStr(_excludePresetsFromPackagedSequences));
+    logger_base.debug("Exclude Presets From Packaged Sequences: %s.", toStr(_excludePresetsFromPackagedSequences));
 
     config->Read("xLightsPromptBatchRenderIssues", &_promptBatchRenderIssues, true);
-    LOG_DEBUG("Prompt for issues during batch render: %s.", toStr(_promptBatchRenderIssues));
+    logger_base.debug("Prompt for issues during batch render: %s.", toStr(_promptBatchRenderIssues));
 
     // I was willing to default this off ... but after multiple attempts to sneak this in ... this will default off in windows and if it is changed
     // again it will be totally and permanently disabled in windows.
@@ -1712,7 +1713,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     bool defVMR = false;
 #endif
     config->Read("xLightsIgnoreVendorModelRecommendations2", &_ignoreVendorModelRecommendations, defVMR);
-    LOG_DEBUG("Ignore vendor model recommendations: %s.", toStr(_ignoreVendorModelRecommendations));
+    logger_base.debug("Ignore vendor model recommendations: %s.", toStr(_ignoreVendorModelRecommendations));
 
     config->Read("XLightsControllerPingInterval", &_controllerPingInterval, 0);
     if (_controllerPingInterval > 0) {
@@ -1720,78 +1721,78 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         _statusRefreshTimer->Start(_controllerPingInterval/2 * 1000);
 
     }
-    LOG_DEBUG("Controller ping interval in seconds: %s.", toStr(_controllerPingInterval));
+    logger_base.debug("Controller ping interval in seconds: %s.", toStr(_controllerPingInterval));
 
     config->Read("xLightsPurgeDownloadCacheOnStart", &_purgeDownloadCacheOnStart, false);
-    LOG_DEBUG("Purge download cache on start: %s.", toStr(_purgeDownloadCacheOnStart));
+    logger_base.debug("Purge download cache on start: %s.", toStr(_purgeDownloadCacheOnStart));
 
     config->Read("xLightsVideoExportCodec", &_videoExportCodec, "H.264");
-    LOG_DEBUG("Video Export Codec: %s.", (const char*)_videoExportCodec.c_str());
+    logger_base.debug("Video Export Codec: %s.", (const char*)_videoExportCodec.c_str());
 
     config->Read("xLightsVideoExportBitrate", &_videoExportBitrate, 0);
-    LOG_DEBUG("Video Export Bitrate: %d.", _videoExportBitrate);
+    logger_base.debug("Video Export Bitrate: %d.", _videoExportBitrate);
 
     config->Read("xLightsExcludeAudioPkgSeq", &_excludeAudioFromPackagedSequences, false);
-    LOG_DEBUG("Exclude Audio From Packaged Sequences: %s.", toStr(_excludeAudioFromPackagedSequences));
+    logger_base.debug("Exclude Audio From Packaged Sequences: %s.", toStr(_excludeAudioFromPackagedSequences));
 
     config->Read("xLightsShowACLights", &_showACLights, false);
     MenuItem_ACLIghts->Check(_showACLights);
-    LOG_DEBUG("Show AC Lights toolbar: %s.", toStr(_showACLights));
+    logger_base.debug("Show AC Lights toolbar: %s.", toStr(_showACLights));
 
     config->Read("xLightsShowACRamps", &_showACRamps, false);
     MenuItem_ShowACRamps->Check(_showACRamps);
-    LOG_DEBUG("Show AC Ramps: %s.", toStr(_showACRamps));
+    logger_base.debug("Show AC Ramps: %s.", toStr(_showACRamps));
 
     bool bit64 = GetBitness() == "64bit";
     config->Read(_("xLightsEnableRenderCache"), &_enableRenderCache, _("Locked Only"));
 
     // Dont enable render caching in 32 bit ... there just isnt enough memory
     if (!bit64) {
-        LOG_DEBUG("Enable Render Cache: false due to running 32 bit.");
+        logger_base.debug("Enable Render Cache: false due to running 32 bit.");
         _enableRenderCache = "Disabled";
     }
-    LOG_DEBUG("Enable Render Cache: %s.", (const char*)_enableRenderCache.c_str());
+    logger_base.debug("Enable Render Cache: %s.", (const char*)_enableRenderCache.c_str());
     _renderCache.Enable(_enableRenderCache);
 
     config->Read(_("xLightsRenderCacheMaxSizeMB"), &_renderCacheMaximumSizeMB, 20 * 1024);
-    LOG_DEBUG("Render Cache Maximum Size: %luMB.", _renderCacheMaximumSizeMB);
+    logger_base.debug("Render Cache Maximum Size: %luMB.", _renderCacheMaximumSizeMB);
     _renderCache.SetMaximumSizeMB(_renderCacheMaximumSizeMB);
 
     config->Read("xLightsAutoSavePerspectives", &_autoSavePerspecive, false);
     MenuItem_PerspectiveAutosave->Check(_autoSavePerspecive);
-    LOG_DEBUG("Autosave perspectives: %s.", toStr(_autoSavePerspecive));
+    logger_base.debug("Autosave perspectives: %s.", toStr(_autoSavePerspecive));
 
     config->Read("xLightsRenderOnSave", &mRenderOnSave, false);
-    LOG_DEBUG("Render on save: %s.", toStr(mRenderOnSave));
+    logger_base.debug("Render on save: %s.", toStr(mRenderOnSave));
 
     config->Read("xLightsSaveFseqOnSave", &mSaveFseqOnSave, true);
-    LOG_DEBUG("Save Fseq on save: %s.", toStr(mSaveFseqOnSave));
+    logger_base.debug("Save Fseq on save: %s.", toStr(mSaveFseqOnSave));
 
     if (!mSaveFseqOnSave) {
-        LOG_DEBUG("Render on save changed to false, because Save Fseq on save is false.");
+        logger_base.debug("Render on save changed to false, because Save Fseq on save is false.");
         mRenderOnSave = false;
     }
 
     config->Read("xLightsModelHandleSize", &_modelHandleSize, 1);
-    LOG_DEBUG("Model Handle Size: %d.", _modelHandleSize);
+    logger_base.debug("Model Handle Size: %d.", _modelHandleSize);
 
     config->Read("xLightsCrosshairSize", &_crosshairSize, 1);
-    LOG_DEBUG("Group View Crosshair Size: %d.", _crosshairSize);
+    logger_base.debug("Group View Crosshair Size: %d.", _crosshairSize);
 
     config->Read("xLightsBackupOnSave", &mBackupOnSave, false);
-    LOG_DEBUG("Backup on save: %s.", toStr(mBackupOnSave));
+    logger_base.debug("Backup on save: %s.", toStr(mBackupOnSave));
 
     config->Read("xLightsBackupOnLaunch", &mBackupOnLaunch, true);
-    LOG_DEBUG("Backup on launch: %s.", toStr(mBackupOnLaunch));
+    logger_base.debug("Backup on launch: %s.", toStr(mBackupOnLaunch));
 
     config->Read("xLightsSuppressFadeHints", &mSuppressFadeHints, false);
-    LOG_DEBUG("Suppress Transition Hints: %s.", toStr(mSuppressFadeHints));
+    logger_base.debug("Suppress Transition Hints: %s.", toStr(mSuppressFadeHints));
 
     config->Read("xLightsSuppressColorWarn", &mSuppressColorWarn, false);
-    LOG_DEBUG("Suppress Color Warning: %s.", toStr(mSuppressColorWarn));
+    logger_base.debug("Suppress Color Warning: %s.", toStr(mSuppressColorWarn));
 
     config->Read(_("xLightsAltBackupDir"), &mAltBackupDir);
-    LOG_DEBUG("Alternate Backup Dir: '%s'.", (const char*)mAltBackupDir.c_str());
+    logger_base.debug("Alternate Backup Dir: '%s'.", (const char*)mAltBackupDir.c_str());
 
     if (_purgeDownloadCacheOnStart) {
         PurgeDownloadCache();
@@ -1813,11 +1814,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     config->Read("xLightsIconSize", &mIconSize, 16);
     SetToolIconSize(mIconSize);
-    LOG_DEBUG("Icon size: %d.", mIconSize);
+    logger_base.debug("Icon size: %d.", mIconSize);
 
     config->Read("AutoSaveInterval", &mAutoSaveInterval, 3);
     SetAutoSaveInterval(mAutoSaveInterval);
-    LOG_DEBUG("Autosave interval: %d.", mAutoSaveInterval);
+    logger_base.debug("Autosave interval: %d.", mAutoSaveInterval);
 
     config->Read("xFadePort", &_xFadePort, 0);
 
@@ -1826,7 +1827,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         _xFadePort = ab;
     }
 
-    LOG_DEBUG("xFadePort: %s.", _xFadePort == 0 ? "Disabled" : ((_xFadePort == 1) ? "A" : "B"));
+    logger_base.debug("xFadePort: %s.", _xFadePort == 0 ? "Disabled" : ((_xFadePort == 1) ? "A" : "B"));
     StartAutomationListener();
 
     if (_xFadePort > 0 && _automationServer == nullptr) {
@@ -1846,38 +1847,38 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     }
 
     config->Read("BackupPurgeDays", &BackupPurgeDays, 0);
-    LOG_DEBUG("Backup purge age: %d days.", BackupPurgeDays);
+    logger_base.debug("Backup purge age: %d days.", BackupPurgeDays);
 
     config->Read("xLightsGridSpacing", &mGridSpacing, 16);
     SetGridSpacing(mGridSpacing);
-    LOG_DEBUG("Grid spacing: %d.", mGridSpacing);
+    logger_base.debug("Grid spacing: %d.", mGridSpacing);
 
     config->Read("xLightsGridIconBackgrounds", &mGridIconBackgrounds, true);
     SetGridIconBackgrounds(mGridIconBackgrounds);
-    LOG_DEBUG("Grid icon backgrounds: %s.", toStr(mGridIconBackgrounds));
+    logger_base.debug("Grid icon backgrounds: %s.", toStr(mGridIconBackgrounds));
 
     config->Read("xLightsShowAlternateTimingFormat", &mShowAlternateTimingFormat, false);
     SetShowAlternateTimingFormat(mShowAlternateTimingFormat);
-    LOG_DEBUG("Show Alternate Timing Format: %s.", toStr(mShowAlternateTimingFormat));
+    logger_base.debug("Show Alternate Timing Format: %s.", toStr(mShowAlternateTimingFormat));
 
     config->Read("xLightsGroupEffectIndicator", &mShowGroupEffectIndicator, true);
     SetShowGroupEffectIndicator(mShowGroupEffectIndicator);
-    LOG_DEBUG("Group Effect Indicators: %s.", toStr(mShowGroupEffectIndicator));
+    logger_base.debug("Group Effect Indicators: %s.", toStr(mShowGroupEffectIndicator));
 
     config->Read("xLightsTimingPlayOnDClick", &mTimingPlayOnDClick, true);
     SetTimingPlayOnDClick(mTimingPlayOnDClick);
-    LOG_DEBUG("Timing Play on DClick: %s.", toStr(mTimingPlayOnDClick));
+    logger_base.debug("Timing Play on DClick: %s.", toStr(mTimingPlayOnDClick));
 
     config->Read("xLightsGridNodeValues", &mGridNodeValues, true);
     SetGridNodeValues(mGridNodeValues);
-    LOG_DEBUG("Grid node values: %s.", toStr(mGridNodeValues));
+    logger_base.debug("Grid node values: %s.", toStr(mGridNodeValues));
 
     config->Read("xLightsEffectAssistMode", &mEffectAssistMode, EFFECT_ASSIST_TOGGLE_MODE);
     if (mEffectAssistMode < 0 || mEffectAssistMode > EFFECT_ASSIST_TOGGLE_MODE) {
         mEffectAssistMode = EFFECT_ASSIST_TOGGLE_MODE;
     }
     tempEffectAssistMode = mEffectAssistMode;
-    LOG_DEBUG("Effect Assist Mode: %d.", mEffectAssistMode);
+    logger_base.debug("Effect Assist Mode: %d.", mEffectAssistMode);
     if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
         SetEffectAssistWindowState(true);
     } else {
@@ -1885,7 +1886,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     }
 
     InitEffectsPanel(EffectsPanel1);
-    LOG_DEBUG("Effects panel initialised.");
+    logger_base.debug("Effects panel initialised.");
 
     _serviceManager = std::make_unique<ServiceManager>(this);
 
@@ -1926,7 +1927,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     // This is for keith ... I like my debug version to be distinctive so I can tell it apart from the prior version
 #ifndef NDEBUG
-    LOG_DEBUG("xLights Crash Menu item not removed.");
+    logger_base.debug("xLights Crash Menu item not removed.");
 #ifdef _MSC_VER
     if (IsDarkMode()) {
         Notebook1->SetBackgroundColour(wxColour(0x006000));
@@ -1942,7 +1943,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         MenuItem_LogRenderState->GetMenu()->Remove(MenuItem_LogRenderState);
         MenuItem_LogRenderState = nullptr;
     } else {
-        LOG_DEBUG("xLights Crash Menu item not removed.");
+        logger_base.debug("xLights Crash Menu item not removed.");
     }
 #endif
 
@@ -1967,7 +1968,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     config->Read("xLightse131Sync", &me131Sync, false);
     _outputManager.SetSyncEnabled(me131Sync);
-    LOG_DEBUG("Sync: %s.", toStr(me131Sync));
+    logger_base.debug("Sync: %s.", toStr(me131Sync));
 
     // this is no longer used ... as it is now stored in the networks file
     wxString tmpString;
@@ -2005,7 +2006,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     jobPool.Start(threadCount);
 
     if (!xLightsApp::sequenceFiles.IsEmpty()) {
-        LOG_DEBUG("Opening sequence: %s.", (const char*)xLightsApp::sequenceFiles[0].c_str());
+        logger_base.debug("Opening sequence: %s.", (const char*)xLightsApp::sequenceFiles[0].c_str());
         OpenSequence(xLightsApp::sequenceFiles[0], nullptr);
     }
 
@@ -2096,10 +2097,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsUserEmail", &_userEmail, "");
 
     config->Read("xLightsLinkedControllerUpload", &_linkedControllerUpload, "Inputs and Outputs");
-    LOG_DEBUG("Linked controller upload: %s.", (const char*)_linkedControllerUpload.c_str());
+    logger_base.debug("Linked controller upload: %s.", (const char*)_linkedControllerUpload.c_str());
 
     config->Read("xLightsModelRename", &_aliasRenameBehavior, "Always Prompt");
-    LOG_DEBUG("Model Rename Behavior: %s.", (const char*)_aliasRenameBehavior.c_str());
+    logger_base.debug("Model Rename Behavior: %s.", (const char*)_aliasRenameBehavior.c_str());
 
     std::thread th([this]() {
         try {
@@ -2126,16 +2127,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     ValidateWindow();
 
-    LOG_DEBUG("xLightsFrame construction complete.");
+    logger_base.debug("xLightsFrame construction complete.");
 }
 
 xLightsFrame::~xLightsFrame()
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static bool reenter = false;
 
     if (reenter) {
-        LOG_ERROR("~xLightsFrame re-entered ... this wont end well ... so bailing now.");
+        logger_base.error("~xLightsFrame re-entered ... this wont end well ... so bailing now.");
         return;
     }
     reenter = true;
@@ -2259,6 +2260,7 @@ xLightsFrame::~xLightsFrame()
     delete m_mgr;
     delete MainAuiManager;
 
+    waitForPingsToComplete();
     _outputManager.DeleteAllControllers();
 
     if (CurrentSeqXmlFile) {
@@ -2329,8 +2331,8 @@ void xLightsFrame::OnHelp(wxHelpEvent& event)
 
 void xLightsFrame::DoPostStartupCommands()
 {
-    
-    LOG_DEBUG("In Post Startup");
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("In Post Startup");
 
     // dont check for updates if batch rendering
     if (!_renderMode && !_checkSequenceMode) {
@@ -2343,7 +2345,7 @@ void xLightsFrame::DoPostStartupCommands()
         if (_userEmail == "")
             CollectUserEmail();
         if (_userEmail != "noone@nowhere.xlights.org")
-            LOG_DEBUG("User email address: <email>%s</email>", (const char*)_userEmail.c_str());
+            logger_base.debug("User email address: <email>%s</email>", (const char*)_userEmail.c_str());
 
 #ifdef __WXMSW__
         int verMaj = -1;
@@ -2354,6 +2356,13 @@ void xLightsFrame::DoPostStartupCommands()
             hasWarned = true;
             wxMessageBox("Windows 7 has known issues rendering some effects.  Support for Windows 7 may be removed entirely soon.",
                          "Windows Version",
+                         wxICON_INFORMATION | wxCENTER | wxOK);
+        }
+#endif
+#ifdef __WXOSX__
+        if (hasFullDiskAccess()) {
+            wxMessageBox("xLights has been granted \"Full Disk Access\" in System settings.  This is strongly discouraged.",
+                         "Full Disk Access Detected",
                          wxICON_INFORMATION | wxCENTER | wxOK);
         }
 #endif
@@ -2384,8 +2393,8 @@ void xLightsFrame::OnQuit(wxCommandEvent& event)
 
     inQuit = true;
 
-    
-    LOG_INFO("Quit");
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Quit");
     wxCloseEvent evt;
     if (QuitMenuItem->IsEnabled()) {
         OnClose(evt);
@@ -2401,11 +2410,11 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
 
 void xLightsFrame::LogPerspective(const wxString& perspective) const
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxArrayString entries = wxSplit(perspective, '|');
     for (const auto& it : entries) {
         TraceLog::AddTraceMessage(it.ToStdString());
-        LOG_DEBUG("    %s", (const char*)it.c_str());
+        logger_base.debug("    %s", (const char*)it.c_str());
     }
 }
 
@@ -2520,20 +2529,20 @@ void xLightsFrame::ResetAllSequencerWindows()
 
 void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // this logging is extra until we find out why this function crashes
-    LOG_DEBUG("xLightsFrame::ShowHideAllSequencerWindows");
+    logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows");
 
     if (m_mgr == nullptr) {
-        LOG_CRIT("ShowHideAllSequencerWindows m_mgr is null ... this is going to crash");
+        logger_base.crit("ShowHideAllSequencerWindows m_mgr is null ... this is going to crash");
     }
     wxAuiPaneInfoArray& info = m_mgr->GetAllPanes();
     bool update = false;
     if (show && savedPaneShown.size() > 0) {
-        LOG_DEBUG("xLightsFrame::ShowHideAllSequencerWindows - show %d %d", (int)info.size(), (int)savedPaneShown.size());
+        logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - show %d %d", (int)info.size(), (int)savedPaneShown.size());
         for (size_t x = 0; x < info.size(); x++) {
-            LOG_DEBUG("     %s", (const char*)info[x].name.c_str());
+            logger_base.debug("     %s", (const char*)info[x].name.c_str());
             if (info[x].IsOk() &&
                 savedPaneShown.find(info[x].name) != savedPaneShown.end() &&
                 savedPaneShown[info[x].name]) {
@@ -2544,9 +2553,9 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
         savedPaneShown.clear();
     } else {
         savedPaneShown.clear();
-        LOG_DEBUG("xLightsFrame::ShowHideAllSequencerWindows - hide %d", (int)info.size());
+        logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - hide %d", (int)info.size());
         for (size_t x = 0; x < info.size(); x++) {
-            LOG_DEBUG("     %s", (const char*)info[x].name.c_str());
+            logger_base.debug("     %s", (const char*)info[x].name.c_str());
             savedPaneShown[info[x].name] = false;
             if (info[x].IsOk()) {
                 if (info[x].frame != nullptr) {
@@ -2556,21 +2565,21 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
                     info[x].frame->Hide();
                 }
             } else {
-                LOG_WARN("Pane %d was not valid ... ShowHideAllSequencerWindows", x);
+                logger_base.warn("Pane %d was not valid ... ShowHideAllSequencerWindows", x);
             }
         }
     }
 
     if (update) {
-        LOG_DEBUG("xLightsFrame::ShowHideAllSequencerWindows - update");
+        logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - update");
         m_mgr->Update();
     }
 
     // show/hide Layout Previews
-    LOG_DEBUG("xLightsFrame::ShowHideAllSequencerWindows - layout previews");
+    logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews");
     for (const auto& it : LayoutGroups) {
         if (it->GetMenuItem() == nullptr) {
-            LOG_CRIT("ShowHideAllSequencerWindows grp->GetMenuItem() is null ... this is going to crash");
+            logger_base.crit("ShowHideAllSequencerWindows grp->GetMenuItem() is null ... this is going to crash");
         }
         if (it->GetMenuItem() && it->GetMenuItem()->IsChecked()) {
             it->SetPreviewActive(show);
@@ -2591,13 +2600,13 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     }
     UpdateViewMenu();
 
-    LOG_DEBUG("xLightsFrame::ShowHideAllSequencerWindows - layout previews - done");
+    logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews - done");
 }
 
 void xLightsFrame::RecalcModels()
 {
-    
-    LOG_DEBUG("        RecalcModels.");
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        RecalcModels.");
 
     if (IsExiting())
         return;
@@ -2842,7 +2851,7 @@ xLightsXmlFile* xLightsFrame::CurrentSeqXmlFile = nullptr;
 
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (!QuitMenuItem->IsEnabled()) {
         return;
@@ -2855,12 +2864,12 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
     inClose = true;
 
-    LOG_INFO("xLights Closing");
+    logger_base.info("xLights Closing");
 
     StopNow();
 
     if (!CloseSequence()) {
-        LOG_INFO("Closing aborted.");
+        logger_base.info("Closing aborted.");
         event.Veto();
         inClose = false;
         return;
@@ -2874,24 +2883,29 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
     ShowHideAllSequencerWindows(false);
 
-    LOG_DEBUG("Destroying %d preview windows.", (int)PreviewWindows.size());
+    logger_base.debug("Destroying %d preview windows.", (int)PreviewWindows.size());
     // destroy preview windows
     for (const auto& it : PreviewWindows) {
         ModelPreview* preview = it;
         delete preview;
     }
 
-    LOG_DEBUG("Heartbeat exit.");
+    logger_base.debug("Heartbeat exit.");
+
+    if (xLightsApp::cleanupDir != "") {
+        logger_base.info("Cleaning up temp folder %s", (const char*)xLightsApp::cleanupDir.c_str());
+        wxDir::Remove(xLightsApp::cleanupDir, wxPATH_RMDIR_RECURSIVE);
+    }
 
     Destroy();
-    LOG_INFO("xLights Closed.");
+    logger_base.info("xLights Closed.");
 
     inClose = false;
 }
 
 void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     time_t cur;
     time(&cur);
     wxFileName newDirH;
@@ -2919,7 +2933,7 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 
     int tries = 0;
     while (wxDirExists(newDir) && tries < 11) {
-        LOG_WARN("Backup directory '%s' already existed ... trying again", (const char*)newDir.c_str());
+        logger_base.warn("Backup directory '%s' already existed ... trying again", (const char*)newDir.c_str());
 
         newDir = wxString::Format("%s%c%s-%s",
                                   newDirBackup, wxFileName::GetPathSeparator(),
@@ -2949,7 +2963,7 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
         DisplayError(wxString::Format("Unable to create directory '%s'! Backup failed.", newDir).ToStdString());
         return;
     } else {
-        LOG_INFO("Backup directory '%s' created", (const char*)newDir.c_str());
+        logger_base.info("Backup directory '%s' created", (const char*)newDir.c_str());
     }
 
     std::string errors = "";
@@ -2969,7 +2983,7 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
 
 void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory, std::string& errors)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (wxDir::Exists(targetDirName))
         return;
@@ -2977,7 +2991,7 @@ void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString las
         return;
 
     if (targetDirName.Length() > 256) {
-        LOG_WARN("Target directory %s is %d characters long. This may be an issue on your operating system.", (const char*)targetDirName.c_str(), targetDirName.Length());
+        logger_base.warn("Target directory %s is %d characters long. This may be an issue on your operating system.", (const char*)targetDirName.c_str(), targetDirName.Length());
     }
 
     wxFileName tgt(targetDirName);
@@ -2986,7 +3000,7 @@ void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString las
     if (!tgt.GetFullPath().StartsWith(lst.GetFullPath()))
         return;
 
-    LOG_DEBUG("Create missing directories. Target %s. Last Created %s.", (const char*)tgt.GetFullPath().c_str(), (const char*)lst.GetFullPath().c_str());
+    logger_base.debug("Create missing directories. Target %s. Last Created %s.", (const char*)tgt.GetFullPath().c_str(), (const char*)lst.GetFullPath().c_str());
 
     wxArrayString tgtd = wxSplit(targetDirName, wxFileName::GetPathSeparator());
     wxArrayString lstd = wxSplit(lastCreatedDirectory, wxFileName::GetPathSeparator());
@@ -2997,11 +3011,11 @@ void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString las
         wxDir dir(newDir);
         newDir += wxFileName::GetPathSeparator() + tgtd[i];
         if (!wxDir::Exists(newDir)) {
-            LOG_DEBUG("    Create folder '%s'.", (const char*)newDir.c_str());
+            logger_base.debug("    Create folder '%s'.", (const char*)newDir.c_str());
             if (!dir.Make(newDir)) {
                 cont = false;
                 errors += wxString::Format("Failed to create folder %s\n", newDir);
-                LOG_ERROR("        Folder Create failed.");
+                logger_base.error("        Folder Create failed.");
             }
         }
     }
@@ -3009,7 +3023,7 @@ void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString las
 
 bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool res = false;
     wxFileName srcFile;
     srcFile.SetPath(srcDir.GetNameWithSep());
@@ -3020,7 +3034,7 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
         auto const fname = wxFileName(file).GetFullName();
         srcFile.SetFullName(file);
         if (FileExists(srcFile.GetFullPath())) { // checking if exists will force it to be downloaded if in the cloud
-            LOG_DEBUG("Backing up file %s.", (const char*)(srcFile.GetFullPath()).c_str());
+            logger_base.debug("Backing up file %s.", (const char*)(srcFile.GetFullPath()).c_str());
             res = true;
 
             CreateMissingDirectories(targetDirName, lastCreatedDirectory, errors);
@@ -3028,16 +3042,16 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
             wxULongLong fsize = srcFile.GetSize();
             if (!forceallfiles && fsize > MAXBACKUPFILE_MB * 1024 * 1024) // skip any xml files > MAXBACKUPFILE_MB mbytes, they are something other than xml files
             {
-                LOG_WARN("    Skipping file as it is too large.");
+                logger_base.warn("    Skipping file as it is too large.");
                 continue;
             }
 
-            LOG_DEBUG("    to %s.", (const char*)(targetDirName + wxFileName::GetPathSeparator() + fname).c_str());
+            logger_base.debug("    to %s.", (const char*)(targetDirName + wxFileName::GetPathSeparator() + fname).c_str());
             SetStatusText("Copying File \"" + srcFile.GetFullPath());
             bool success = wxCopyFile(srcFile.GetFullPath(),
                                       targetDirName + wxFileName::GetPathSeparator() + fname);
             if (!success) {
-                LOG_ERROR("    Copy Failed.");
+                logger_base.error("    Copy Failed.");
                 errors += "Unable to copy file \"" + srcDir.GetNameWithSep() + fname + "\"\n";
                 if (srcDir.GetNameWithSep().length() + fname.length() > 225) {
                     errors += "Consider shortening the directory path or filename.\n";
@@ -3178,7 +3192,7 @@ void xLightsFrame::SetPreviewSize(int width, int height)
 
 void xLightsFrame::SetXmlSetting(const wxString& settingName, const wxString& value)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // Delete existing setting node
     if (SettingsNode != nullptr) {
         for (wxXmlNode* e = SettingsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
@@ -3194,13 +3208,13 @@ void xLightsFrame::SetXmlSetting(const wxString& settingName, const wxString& va
         setting->AddAttribute("value", value);
         SettingsNode->AddChild(setting);
     } else {
-        LOG_WARN("xLightsFrame::SetXmlSetting SettingsNode unexpectantly null.");
+        logger_base.warn("xLightsFrame::SetXmlSetting SettingsNode unexpectantly null.");
     }
 }
 
 wxString xLightsFrame::GetXmlSetting(const wxString& settingName, const wxString& defaultValue) const
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (SettingsNode != nullptr) {
         for (wxXmlNode* e = SettingsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
             if (e->GetName() == settingName) {
@@ -3208,7 +3222,7 @@ wxString xLightsFrame::GetXmlSetting(const wxString& settingName, const wxString
             }
         }
     } else {
-        LOG_WARN("xLightsFrame::GetXmlSetting SettingsNode unexpectantly null.");
+        logger_base.warn("xLightsFrame::GetXmlSetting SettingsNode unexpectantly null.");
     }
 
     return defaultValue;
@@ -3383,10 +3397,10 @@ void xLightsFrame::OnMenuItem_File_SaveAs_SequenceSelected(wxCommandEvent& event
 
 void xLightsFrame::AskCloseSequence()
 {
-    
-    LOG_INFO("Closing sequence.");
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Closing sequence.");
     CloseSequence();
-    LOG_INFO("Sequence closed.");
+    logger_base.info("Sequence closed.");
 
     // force refreshes since grid has been cleared
     mainSequencer->PanelTimeLine->RaiseChangeTimeline();
@@ -3440,8 +3454,8 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
 
     wxStopWatch sw;
 
-    
-    LOG_DEBUG("Writing house-preview video to %s.", (const char*)path.c_str());
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Writing house-preview video to %s.", (const char*)path.c_str());
 
     int width = housePreview->getWidth();
     int height = housePreview->getHeight();
@@ -3495,7 +3509,7 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
         exportStatus = videoExporter.Export(_appProgress.get());
     } catch (const std::runtime_error& re) {
         emsg = (const char*)re.what();
-        LOG_ERROR("Error exporting video : %s", (const char*)re.what());
+        logger_base.error("Error exporting video : %s", (const char*)re.what());
         exportStatus = false;
     }
 
@@ -3507,7 +3521,7 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
     }
 
     if (exportStatus) {
-        LOG_DEBUG("Finished writing house-preview video.");
+        logger_base.debug("Finished writing house-preview video.");
         float elapsedTime = sw.Time() / 1000.0; // msec => sec
         SetStatusText(wxString::Format("'%s' exported in %4.3f sec.", path.c_str(), elapsedTime));
     } else {
@@ -3776,8 +3790,8 @@ void xLightsFrame::CheckUnsavedChanges()
 
 void xLightsFrame::MarkEffectsFileDirty()
 {
-    
-    LOG_DEBUG("        MarkEffectsFileDirty.");
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        MarkEffectsFileDirty.");
 
     layoutPanel->SetDirtyHiLight(true);
     UnsavedRgbEffectsChanges = true;
@@ -3785,8 +3799,8 @@ void xLightsFrame::MarkEffectsFileDirty()
 
 void xLightsFrame::MarkModelsAsNeedingRender()
 {
-    
-    LOG_DEBUG("        MarkModelsAsNeedingRender %d.", modelsChangeCount);
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        MarkModelsAsNeedingRender %d.", modelsChangeCount);
     modelsChangeCount++;
 }
 
@@ -3817,14 +3831,14 @@ void xLightsFrame::UpdateSequenceLength()
 
 void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // save the media playing state and stop it if it is playing
     MEDIAPLAYINGSTATE mps = MEDIAPLAYINGSTATE::STOPPED;
     if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->GetMedia() != nullptr) {
         mps = CurrentSeqXmlFile->GetMedia()->GetPlayingState();
         if (mps == MEDIAPLAYINGSTATE::PLAYING) {
-            LOG_DEBUG("Test: Suspending play.");
+            logger_base.debug("Test: Suspending play.");
             CurrentSeqXmlFile->GetMedia()->Pause();
             SetAudioControls();
         }
@@ -3838,7 +3852,7 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
     // save the output state and turn it off
     bool output = CheckBoxLightOutput->IsChecked();
     if (output) {
-        LOG_DEBUG("Test: Turning off output to lights.");
+        logger_base.debug("Test: Turning off output to lights.");
         DisableOutputs();
     }
 
@@ -3848,19 +3862,19 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
     // Make sure all the models in model groups are valid
     AllModels.ResetModelGroups();
 
-    LOG_DEBUG("Test: Opening test dialog.");
+    logger_base.debug("Test: Opening test dialog.");
 
     // display the test dialog
     PixelTestDialog dialog(this, &_outputManager, networkFile, &AllModels);
     dialog.ShowModal();
 
-    LOG_DEBUG("Test: Test dialog closed.");
+    logger_base.debug("Test: Test dialog closed.");
 
     SetCursor(wxCURSOR_DEFAULT);
 
     // resume output if it was set
     if (output) {
-        LOG_DEBUG("Test: Turning back on output to lights.");
+        logger_base.debug("Test: Turning back on output to lights.");
         EnableOutputs();
     }
 
@@ -3871,7 +3885,7 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 
     // resume playing the media if it was playing
     if (mps == MEDIAPLAYINGSTATE::PLAYING) {
-        LOG_DEBUG("Test: Resuming play.");
+        logger_base.debug("Test: Resuming play.");
         CurrentSeqXmlFile->GetMedia()->Play();
         SetAudioControls();
     }
@@ -3972,7 +3986,7 @@ void xLightsFrame::OnPaneClose(wxAuiManagerEvent& event)
 
 void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxDebugReportCompress* const report = &crashHandler->GetDebugReport();
 
     report->SetCompressedFileDirectory(CurrentDir);
@@ -4029,7 +4043,7 @@ void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
     }
 
     report->AddText("threads.txt", threadStatus, "Threads Status");
-    LOG_CRIT("%s", (const char*)threadStatus.c_str());
+    logger_base.crit("%s", (const char*)threadStatus.c_str());
 
     crashHandler->ProcessCrashReport(xlCrashHandler::SendReportOptions::ASK_USER_TO_SEND);
 }
@@ -4041,7 +4055,7 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
 
 std::string xLightsFrame::PackageDebugFiles(bool showDialog)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxString zipFileName{ "xLightsProblem.zip" };
     wxString zipDir{ CurrentDir };
@@ -4066,7 +4080,7 @@ std::string xLightsFrame::PackageDebugFiles(bool showDialog)
     // check the current sequence to ensure this analysis is in the log
     CheckSequence(false, false);
 
-    LOG_DEBUG("Dumping registry configuration:");
+    logger_base.debug("Dumping registry configuration:");
     wxConfigBase* config = wxConfigBase::Get();
     wxString key;
     long index;
@@ -4099,7 +4113,7 @@ std::string xLightsFrame::PackageDebugFiles(bool showDialog)
             break;
         }
 
-        LOG_DEBUG("      '%s' (%s) ='%s'", (const char*)key.c_str(), (const char*)type.c_str(), (const char*)value.c_str());
+        logger_base.debug("      '%s' (%s) ='%s'", (const char*)key.c_str(), (const char*)type.c_str(), (const char*)value.c_str());
 
         ce = config->GetNextEntry(key, index);
     }
@@ -4169,9 +4183,9 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
         report.AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xbkp").GetFullPath(), "xlights_rgbeffects.xbkp");
     }
 
-    AddLogFile(CurrentDir, "xLights_spdlog.log", report);
+    AddLogFile(CurrentDir, "xLights_l4cpp.log", report);
     // if the rolled log exists, add it to just in case it has the information we need
-    AddLogFile(CurrentDir, "xLights_spdlog.log.1", report);
+    AddLogFile(CurrentDir, "xLights_l4cpp.log.1", report);
 
     if (GetSeqXmlFileName() != "") {
         wxFileName fn2(GetSeqXmlFileName());
@@ -4265,10 +4279,10 @@ bool xLightsFrame::SaveWorking()
 
 void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // dont save if currently playing or in render mode
     if (playType != PLAY_TYPE_MODEL && !_renderMode && !_checkSequenceMode && !_suspendAutoSave) {
-        LOG_DEBUG("Autosaving backup of sequence.");
+        logger_base.debug("Autosaving backup of sequence.");
         wxStopWatch sw;
         if (mSavedChangeCount != _sequenceElements.GetChangeCount()) {
             if (_sequenceElements.GetChangeCount() != mLastAutosaveCount) {
@@ -4276,17 +4290,17 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
                     mLastAutosaveCount = _sequenceElements.GetChangeCount();
                 }
             } else {
-                LOG_DEBUG("    Autosave skipped ... no changes detected since last autosave.");
+                logger_base.debug("    Autosave skipped ... no changes detected since last autosave.");
             }
         } else {
-            LOG_DEBUG("    Autosave skipped ... no changes detected since last save.");
+            logger_base.debug("    Autosave skipped ... no changes detected since last save.");
             mLastAutosaveCount = _sequenceElements.GetChangeCount();
         }
         if (UnsavedRgbEffectsChanges) {
-            LOG_DEBUG("    Autosaving backup of layout.");
+            logger_base.debug("    Autosaving backup of layout.");
             SaveWorkingLayout();
         }
-        LOG_DEBUG("    AutoSave took %d ms.", sw.Time());
+        logger_base.debug("    AutoSave took %d ms.", sw.Time());
 
         if (mAutoSaveInterval > 0) {
             AutoSaveTimer.StartOnce(mAutoSaveInterval * 60000);
@@ -4295,13 +4309,13 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
         if (_renderMode) {
             static bool logged = false;
             if (!logged) {
-                LOG_DEBUG("AutoSave skipped because batch rendering.");
+                logger_base.debug("AutoSave skipped because batch rendering.");
                 logged = true;
             }
         } else {
             static bool logged = false;
             if (!logged) {
-                LOG_DEBUG("AutoSave skipped because sequence is playing or suspended.");
+                logger_base.debug("AutoSave skipped because sequence is playing or suspended.");
                 logged = true;
             }
         }
@@ -4425,7 +4439,7 @@ void xLightsFrame::DoAltBackup(bool prompt)
 
 void xLightsFrame::SetMediaFolders(const std::list<std::string>& folders)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxConfigBase* config = wxConfigBase::Get();
 
     wxString setting;
@@ -4434,7 +4448,7 @@ void xLightsFrame::SetMediaFolders(const std::list<std::string>& folders)
         ObtainAccessToURL(dir);
         if (std::find(mediaDirectories.begin(), mediaDirectories.end(), dir) == mediaDirectories.end()) {
             mediaDirectories.push_back(dir);
-            LOG_DEBUG("Adding Media directory: %s.", (const char*)dir.c_str());
+            logger_base.debug("Adding Media directory: %s.", (const char*)dir.c_str());
             if (setting != "") {
                 setting += "|";
             }
@@ -4454,7 +4468,7 @@ void xLightsFrame::GetFSEQFolder(bool& useShow, std::string& folder)
 
 void xLightsFrame::SetFSEQFolder(bool useShow, const std::string& folder)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxConfigBase* config = wxConfigBase::Get();
 
@@ -4481,7 +4495,7 @@ void xLightsFrame::SetFSEQFolder(bool useShow, const std::string& folder)
     UpdateLayoutSave();
     UpdateControllerSave();
 
-    LOG_DEBUG("FSEQ directory set to : %s.", (const char*)fseqDirectory.c_str());
+    logger_base.debug("FSEQ directory set to : %s.", (const char*)fseqDirectory.c_str());
 }
 
 void xLightsFrame::GetRenderCacheFolder(bool& useShow, std::string& folder)
@@ -4492,7 +4506,7 @@ void xLightsFrame::GetRenderCacheFolder(bool& useShow, std::string& folder)
 
 void xLightsFrame::SetRenderCacheFolder(bool useShow, const std::string& folder)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (useShow) {
         if (renderCacheDirectory == showDirectory)
@@ -4515,7 +4529,7 @@ void xLightsFrame::SetRenderCacheFolder(bool useShow, const std::string& folder)
     UpdateLayoutSave();
     UpdateControllerSave();
 
-    LOG_DEBUG("Render Cache directory set to : %s.", (const char*)renderCacheDirectory.c_str());
+    logger_base.debug("Render Cache directory set to : %s.", (const char*)renderCacheDirectory.c_str());
 }
 
 void xLightsFrame::GetBackupFolder(bool& useShow, std::string& folder)
@@ -4526,7 +4540,7 @@ void xLightsFrame::GetBackupFolder(bool& useShow, std::string& folder)
 
 void xLightsFrame::SetBackupFolder(bool useShow, const std::string& folder)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (useShow) {
         if (_backupDirectory == showDirectory)
@@ -4549,7 +4563,7 @@ void xLightsFrame::SetBackupFolder(bool useShow, const std::string& folder)
     UpdateLayoutSave();
     UpdateControllerSave();
 
-    LOG_DEBUG("Backup directory set to : %s.", (const char*)_backupDirectory.c_str());
+    logger_base.debug("Backup directory set to : %s.", (const char*)_backupDirectory.c_str());
 }
 
 void xLightsFrame::GetAltBackupFolder(std::string& folder)
@@ -4559,7 +4573,7 @@ void xLightsFrame::GetAltBackupFolder(std::string& folder)
 
 void xLightsFrame::SetAltBackupFolder(const std::string& folder)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (folder == mAltBackupDir)
         return;
@@ -4572,7 +4586,7 @@ void xLightsFrame::SetAltBackupFolder(const std::string& folder)
         ObtainAccessToURL(folder);
         config->Write(_("xLightsAltBackupDir"), wxString(folder));
         mAltBackupDir = folder;
-        LOG_DEBUG("Alt Backup directory set to : %s.", (const char*)mAltBackupDir.c_str());
+        logger_base.debug("Alt Backup directory set to : %s.", (const char*)mAltBackupDir.c_str());
     }
 }
 
@@ -4582,8 +4596,8 @@ void xLightsFrame::OnmAltBackupMenuItemSelected(wxCommandEvent& event)
         wxDirDialog dir(this, _("Select alternate backup directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
         if (dir.ShowModal() == wxID_OK) {
             mAltBackupDir = dir.GetPath();
-            
-            LOG_INFO("Alternate backup location set to %s.", (const char*)mAltBackupDir.c_str());
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.info("Alternate backup location set to %s.", (const char*)mAltBackupDir.c_str());
         }
     }
 
@@ -4923,9 +4937,9 @@ void xLightsFrame::OnmExportModelsMenuItemSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString dir;
-    wxString fileName = "xLights_spdlog.log";
+    wxString fileName = "xLights_l4cpp.log";
 #ifdef __WXMSW__
     wxGetEnv("APPDATA", &dir);
     if (dir.EndsWith("/") || dir.EndsWith("\\")) {
@@ -4959,7 +4973,7 @@ void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
         wxString command = ft->GetOpenCommand("foo.txt");
         command.Replace("foo.txt", fn);
 
-        LOG_DEBUG("Viewing log file %s.", (const char*)fn.c_str());
+        logger_base.debug("Viewing log file %s.", (const char*)fn.c_str());
 
         wxUnsetEnv("LD_PRELOAD");
         wxExecute(command);
@@ -4971,8 +4985,8 @@ void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
 
 void LogAndWrite(wxFile& f, const std::string& msg)
 {
-    
-    LOG_DEBUG("CheckSequence: " + msg);
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("CheckSequence: " + msg);
     if (f.IsOpened()) {
         f.Write(msg + "<br>");
     }
@@ -4986,8 +5000,8 @@ bool compare_modelstartchannel(const Model* first, const Model* second) {
 }
 
 void LogCheckSequenceMsg(const std::string& msg) {
-    
-    LOG_DEBUG("CheckSequence: " + msg);
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("CheckSequence: " + msg);
 }
 
 void LogAndTrack(CheckSequenceReport& report,
@@ -5057,7 +5071,7 @@ bool xLightsFrame::CheckStart(wxFile& f, CheckSequenceReport& report, bool write
 
 std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // make sure everything is up to date
     if (Notebook1->GetSelection() != LAYOUTTAB)
@@ -5257,7 +5271,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     // Check for inactive outputs
     for (const auto& c : _outputManager.GetControllers()) {
-        if (!c->IsEnabled() && c->CanSendData()) {
+        if (!c->IsEnabled() && c->CanSendData() && c->GetModel() != "FPP Player Only" && c->GetModel() != "FPP Video Playing Remote Only" ) {
             wxString msg = wxString::Format("    WARN: Inactive controller %s %s:%s.",
                                             c->GetName(), c->GetColumn1Label(), c->GetColumn2Label());
             LogAndTrack(report, "controllers", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "inactive", errcount, warncount);
@@ -5768,7 +5782,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     for (auto it = std::begin(AllModels); it != std::end(AllModels); ++it) {
         if (it->second->GetDisplayAs() != "ModelGroup") {
             if(it->second->GetModelStartChannel().starts_with("@") && it->second->GetDisplayAs() == "Single Line" && it->second->GetNumStrings() > 1) {
-                LOG_DEBUG("Skipping Overlap Checking for %s [%s]", it->second->GetFullName().c_str(), it->second->GetModelStartChannel().c_str());
+                logger_base.debug("Skipping Overlap Checking for %s [%s]", it->second->GetFullName().c_str(), it->second->GetModelStartChannel().c_str());
                 continue;
             }
 
@@ -6472,7 +6486,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                     if (m->GetDisplayAs() == "ModelGroup") {
                         ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
                         if (mg == nullptr)
-                            LOG_CRIT("CheckSequence ModelGroup cast was null. We are about to crash.");
+                            logger_base.crit("CheckSequence ModelGroup cast was null. We are about to crash.");
                         for (auto it2 : mg->Models()) {
                             if (std::find(seenmodels.begin(), seenmodels.end(), it2->GetName()) != seenmodels.end()) {
                                 wxString msg = wxString::Format("    WARN: Model Group '%s' will hide effects on model '%s'.", mg->GetName(), it2->GetName());
@@ -6692,7 +6706,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
         if (displayInEditor) {
             wxUnsetEnv("LD_PRELOAD");
-            LOG_DEBUG("Viewing xLights Check Sequence results %s.", (const char*)filename.c_str());
+            logger_base.debug("Viewing xLights Check Sequence results %s.", (const char*)filename.c_str());
             if (!wxLaunchDefaultApplication(filename)) {
                 DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
             }
@@ -7533,7 +7547,7 @@ void xLightsFrame::ShiftSelectedEffectsOnLayer(EffectLayer* el, int milliseconds
 // returns the lost files path if required
 std::string AddFileToZipFile(const std::string& baseDirectory, const std::string& file, wxZipOutputStream& zip, std::list<std::string>& zippedFiles, const std::string& actualfile = "")
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     bool dozip = std::find(begin(zippedFiles), end(zippedFiles), file) == end(zippedFiles);
 
@@ -7571,11 +7585,11 @@ std::string AddFileToZipFile(const std::string& baseDirectory, const std::string
                     if (fis.IsOk()) {
                         zip.Write(fis);
                     } else {
-                        LOG_WARN("Error adding %s to %s due to failure to create input stream.", (const char*)file.c_str(), (const char*)tgt.c_str());
+                        logger_base.warn("Error adding %s to %s due to failure to create input stream.", (const char*)file.c_str(), (const char*)tgt.c_str());
                     }
                     zip.CloseEntry();
                 } else {
-                    LOG_WARN("    Error zipping %s to %s.", (const char*)file.c_str(), (const char*)tgt.c_str());
+                    logger_base.warn("    Error zipping %s to %s.", (const char*)file.c_str(), (const char*)tgt.c_str());
                 }
             }
         } else {
@@ -7589,7 +7603,7 @@ std::string AddFileToZipFile(const std::string& baseDirectory, const std::string
                     zip.Write(fis);
                     zip.CloseEntry();
                 } else {
-                    LOG_WARN("    Error zipping %s to %s.", (const char*)file.c_str(), (const char*)tgt.c_str());
+                    logger_base.warn("    Error zipping %s to %s.", (const char*)file.c_str(), (const char*)tgt.c_str());
                 }
             }
         }
@@ -7696,7 +7710,7 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 
 std::string xLightsFrame::PackageSequence(bool showDialogs)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
 
@@ -7723,7 +7737,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     RecalcModels();
 
     wxFileName fnZip(filePath);
-    LOG_DEBUG("Packaging sequence into %s.", (const char*)fnZip.GetFullPath().c_str());
+    logger_base.debug("Packaging sequence into %s.", (const char*)fnZip.GetFullPath().c_str());
 
     wxFFileOutputStream out(fnZip.GetFullPath());
     wxZipOutputStream zip(out);
@@ -7888,7 +7902,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     }
 
     if (!zip.Close()) {
-        LOG_WARN("Error packaging sequence into %s.", (const char*)filePath.c_str());
+        logger_base.warn("Error packaging sequence into %s.", (const char*)filePath.c_str());
     }
     out.Close();
 
@@ -7953,7 +7967,7 @@ bool xLightsFrame::FilesMatch(const std::string& file1, const std::string& file2
 
 std::string xLightsFrame::MoveToShowFolder(const std::string& file, const std::string& subdirectory, const bool reuse)
 {
-    
+    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxFileName fn(file);
 
     wxString target = GetShowDirectory();
@@ -7966,7 +7980,7 @@ std::string xLightsFrame::MoveToShowFolder(const std::string& file, const std::s
     if (!wxDir::Exists(dir)) {
         wxFileName d;
         if (!d.Mkdir(dir)) {
-            LOG_ERROR("Unable to create target folder %s.", (const char*)dir.c_str());
+            logger_base.error("Unable to create target folder %s.", (const char*)dir.c_str());
         }
     }
 
@@ -7983,10 +7997,10 @@ std::string xLightsFrame::MoveToShowFolder(const std::string& file, const std::s
     }
 
     if (!FileExists(target)) {
-        LOG_DEBUG("Copying file %s to %s.", (const char*)file.c_str(), (const char*)target.c_str());
+        logger_base.debug("Copying file %s to %s.", (const char*)file.c_str(), (const char*)target.c_str());
         wxCopyFile(file, target, false);
     } else if (reuse) {
-        LOG_DEBUG("Reusing file %s for %s.", (const char*)target.c_str(), (const char*)file.c_str());
+        logger_base.debug("Reusing file %s for %s.", (const char*)target.c_str(), (const char*)file.c_str());
     }
 
     return target.ToStdString();
@@ -8054,8 +8068,8 @@ bool xLightsFrame::CleanupRGBEffectsFileLocations()
 
 void xLightsFrame::OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event)
 {
-    
-    LOG_DEBUG("Cleaning up file locations.");
+    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Cleaning up file locations.");
     CleanupRGBEffectsFileLocations();
     if (CurrentSeqXmlFile != nullptr) {
         SetStatusText("Cleaning up file locations.");
@@ -8065,7 +8079,7 @@ void xLightsFrame::OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event
     } else {
         wxMessageBox("You must have a sequence opened in order to run Cleanup File Locations.", "Missing Sequence", wxOK);
     }
-    LOG_DEBUG("Cleaning up file locations ... DONE.");
+    logger_base.debug("Cleaning up file locations ... DONE.");
 }
 
 void xLightsFrame::OnMenuItem_xScheduleSelected(wxCommandEvent& event)
@@ -8974,15 +8988,15 @@ void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_CrashXLightsSelected(wxCommandEvent& event)
 {
-    
-    LOG_CRIT("^^^^^ xLights crashing on purpose ... bye bye cruel world.");
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.crit("^^^^^ xLights crashing on purpose ... bye bye cruel world.");
     int* p = nullptr;
     *p = 0xFFFFFFFF;
 }
 
 void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     BatchRenderDialog dlg(this);
     if (dlg.Prepare(this->GetShowDirectory()) && dlg.ShowModal() == wxID_OK && CloseSequence()) {
         wxArrayString files = dlg.GetFileList();
@@ -8992,7 +9006,7 @@ void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
             if (FileExists(fname))
                 filesToRender.push_back(fname.GetFullPath());
             else
-                LOG_INFO("BatchRender: Sequence File not Found: %s.", (const char*)fname.GetFullPath().c_str());
+                logger_base.info("BatchRender: Sequence File not Found: %s.", (const char*)fname.GetFullPath().c_str());
         }
         if (filesToRender.size() > 0) {
             _renderMode = true;
@@ -9006,7 +9020,7 @@ void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
                 _renderMode = false;
             }
         } else {
-            LOG_INFO("BatchRender: No Sequences Selected.");
+            logger_base.info("BatchRender: No Sequences Selected.");
         }
     }
 }
@@ -9021,122 +9035,89 @@ void xLightsFrame::OnMenuItem_UpdateSelected(wxCommandEvent& event)
 
 bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool showMessageBoxes)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     bool found_update = false;
-#ifdef LINUX
-    //wxString hostname = wxT("www.adebenham.com");
-    //wxString path = wxT("/wp-content/uploads/xlights/latest.php");
-    wxString downloadUrl = wxT("https://github.com/xLightsSequencer/xLights/releases/latest");
+    // include 6 tags, first will LIKELY be the nightly, this then includes 5 to walk
+    // back and find one that has the right asset for the platform
+    std::string githubTagURL = "https://api.github.com/repos/xLightsSequencer/xLights/releases?per_page=6";
     MenuItem_Update->Enable(true);
-#else
-#ifdef __WXOSX__
-    //wxString hostname = _T("dankulp.com");
-    //wxString path = _T("/xLightsLatest.php");
-    wxString downloadUrl = wxT("http://dankulp.com/xlights/");
-    if (MenuItem_Update)
-        MenuItem_Update->Enable(true);
-#else
-    //wxString hostname = _T("xlights.org");
-    //wxString path = _T("/downloads/");
-    wxString downloadUrl = wxT("https://xlights.org/downloads/");
-    //wxString path = _T("/releases/");
-    // wxString downloadUrl = wxT("https://xlights.org/releases/");
-    //wxString downloadUrl2 = wxT("https://github.com/xLightsSequencer/xLights/releases/latest");
-    LOG_DEBUG("Downloading %s", (const char*)downloadUrl.c_str());
-    MenuItem_Update->Enable(true);
-#endif
-#endif
-    std::string resp;
+    int rc = 0;
+    logger_base.debug("Downloading %s", (const char*)githubTagURL.c_str());
+    
     bool didConnect = false;
-    for (int retry = 0; retry < maxRetries; retry++) {
-        LOG_DEBUG("Attempting version update check %d/%d...", retry + 1, maxRetries);
-        resp = Curl::HTTPSGet(downloadUrl);
-        if (!resp.empty()) {
-            didConnect = true;
-            break;
-        } else {
-            // If another retry is possible, sleep for N seconds
-            // This avoids overloading the remote server with repeat requests
-            if (retry < maxRetries - 1) {
-                wxSleep(3);
+    std::string resp;
+    nlohmann::json val;
+    for (int retry = 0; retry < maxRetries && !didConnect; retry++) {
+        resp = CurlManager::INSTANCE.doGet(githubTagURL, rc);
+        if (rc == 200 && !resp.empty()) {
+            try {
+                val = nlohmann::json::parse(resp, nullptr, false);
+                if (!val.is_discarded()) {
+                    didConnect = true;
+                }
+            } catch (...) {
             }
+        } else {
+            wxSleep(1);
         }
     }
-
     if (!didConnect) {
-        LOG_DEBUG("Version update check failed. Unable to connect.");
+        logger_base.debug("Version update check failed. Unable to connect.");
         if (showMessageBoxes) {
             wxMessageBox("Unable to connect.", "Version update check failed");
         }
         return true;
     }
+    wxString configver;
+    wxConfigBase* config = wxConfigBase::Get();
+    if (canSkipUpdates && (config != nullptr)) {
+        config->Read("SkipVersion", &configver);
+    }
 
-    if (!resp.empty()) {
-        wxString configver = wxT("");
-
-
-#ifdef __WXMSW__
-        wxString page = ToWXString(resp);
-
-        // LOG_DEBUG("    Download page: %s",
-        //     (const char *)page.c_str());
-
-        // find the highest version number in the file
-        wxString urlVersion = xlights_version_string;
-
-        wxRegEx reVersion("xLights[0-9][0-9]_(2[0-9][0-9][0-9]_[0-9][0-9])\\.exe", wxRE_ADVANCED | wxRE_NEWLINE);
-        while (reVersion.Matches(page)) {
-            auto v = reVersion.GetMatch(page, 1);
-            size_t start = -1;
-            size_t len = -1;
-            reVersion.GetMatch(&start, &len, 1);
-            v.Replace("_", ".");
-
-            // LOG_DEBUG("    Found Version: %s",
-            //     (const char *)v.c_str());
-
-            if (IsVersionOlder(v, urlVersion)) {
-                urlVersion = v;
-            }
-            page = page.Mid(start + len);
-        }
-
-        wxString dlv = urlVersion;
-        dlv.Replace(".", "_");
-        wxString bit = GetBitness();
-        bit.Replace("bit", "");
-        downloadUrl = downloadUrl + "xLights" + bit + "_" + dlv + ".exe";
+#ifdef LINUX
+    const std::string ASSET_EXT = "AppImage";
 #else
-        wxRegEx reVersion("^.*(2[0-9][0-9][0-9]\\.[0-9]*\\.?[0-9]?)[a-z]?[\\.-].*$");
-        wxString urlVersion = ToWXString(resp);
-        reVersion.Replace(&urlVersion, "\\1", 1);
+    const std::string ASSET_EXT = "exe";
 #endif
 
-        wxConfigBase* config = wxConfigBase::Get();
-        if (canSkipUpdates && (config != nullptr)) {
-            config->Read("SkipVersion", &configver);
+    std::string downloadURL;
+    std::string urlVersion;
+    for (int x = 0; x < val.size() && downloadURL.empty(); x++) {
+        if (val[x].contains("name")) {
+            std::string verName = val[x]["name"].get<std::string>();
+            if (verName != "nightly" && val[x].contains("assets")) {
+                // not a nightly, so check if it has the needed asses
+                for (int a = 0 ; a < val[x]["assets"].size(); a++) {
+                    std::string url = val[x]["assets"][a]["browser_download_url"].get<std::string>();
+                    if (url.ends_with(ASSET_EXT)) {
+                        downloadURL = url;
+                        urlVersion = verName;
+                    }
+                }
+            }
         }
+    }
 
-        LOG_DEBUG("Current Version: '%s'. Latest Available '%s'. Skip Version '%s'.",
-                          (const char*)xlights_version_string.c_str(),
-                          (const char*)urlVersion.c_str(),
-                          (const char*)configver.c_str());
-
+    logger_base.debug("Current Version: '%s'. Latest Available '%s'. Skip Version '%s'.",
+                      (const char*)xlights_version_string.c_str(),
+                      (const char*)urlVersion.c_str(),
+                      (const char*)configver.c_str());
+    if (!downloadURL.empty()) {
 #ifndef SIMULATE_UPGRADE
-        if ((!urlVersion.Matches(configver)) && (!urlVersion.Matches(xlights_version_string)) && IsVersionOlder(urlVersion, xlights_version_string))
+        if ((urlVersion != configver) && (urlVersion != xlights_version_string) && IsVersionOlder(urlVersion, xlights_version_string))
 #endif
         {
             found_update = true;
             UpdaterDialog* dialog = new UpdaterDialog(this);
 
             dialog->urlVersion = urlVersion;
-            dialog->downloadUrl = downloadUrl;
+            dialog->downloadUrl = downloadURL;
             dialog->StaticTextUpdateLabel->SetLabel(wxT("You are currently running xLights " + xlights_version_string + "\n" + "Whereas the current release is " + urlVersion));
             dialog->Show();
         }
     } else {
-        LOG_DEBUG("Version update check failed. Unable to read available versions.");
+        logger_base.debug("Version update check failed. Unable to read available versions.");
         if (showMessageBoxes) {
             wxMessageBox("Unable to read available versions.", "Version update check failed");
         }
@@ -9320,14 +9301,14 @@ void xLightsFrame::OnMenuItemShowHideVideoPreview(wxCommandEvent& event)
 
 void xLightsFrame::DoBackupPurge()
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (BackupPurgeDays <= 0) {
-        LOG_DEBUG("Backup purging skipped as it is disabled.");
+        logger_base.debug("Backup purging skipped as it is disabled.");
         return;
     }
 
-    LOG_DEBUG("Purging backups older than %d days.", BackupPurgeDays);
+    logger_base.debug("Purging backups older than %d days.", BackupPurgeDays);
 
     time_t cur;
     time(&cur);
@@ -9339,7 +9320,7 @@ void xLightsFrame::DoBackupPurge()
     purgeDate.SetSecond(0);
     purgeDate.SetMillisecond(0);
 
-    LOG_DEBUG("    Keep backups on or after %s.", (const char*)purgeDate.FormatISODate().c_str());
+    logger_base.debug("    Keep backups on or after %s.", (const char*)purgeDate.FormatISODate().c_str());
 
     wxString backupDir = _backupDirectory + GetPathSeparator() + "Backup";
 
@@ -9363,7 +9344,7 @@ void xLightsFrame::DoBackupPurge()
 
                 if (year < 2010 || month < 1 || month > 12 || day < 1 || day > 31) {
                     // date does not look valid
-                    LOG_DEBUG("    Backup purge ignoring %s.", (const char*)filename.c_str());
+                    logger_base.debug("    Backup purge ignoring %s.", (const char*)filename.c_str());
                     return BackUpStatus::Invalid;
                 } else {
                     wxDateTime bd(day, (wxDateTime::Month)(month - 1), year);
@@ -9384,28 +9365,28 @@ void xLightsFrame::DoBackupPurge()
 
             if (current == BackUpStatus::Invalid) {
                 // date does not look valid
-                LOG_DEBUG("    Backup purge ignoring %s.", (const char*)filename.c_str());
+                logger_base.debug("    Backup purge ignoring %s.", (const char*)filename.c_str());
             } else {
                 count++;
 
                 if (current == BackUpStatus::Old && next == BackUpStatus::Old) {
-                    LOG_DEBUG("    Backup purge PURGING %s!", (const char*)filename.c_str());
+                    logger_base.debug("    Backup purge PURGING %s!", (const char*)filename.c_str());
                     if (!DeleteDirectory((backupDir + wxFileName::GetPathSeparator() + filename).ToStdString())) {
-                        LOG_DEBUG("        FAILED!");
+                        logger_base.debug("        FAILED!");
                     } else {
                         purged++;
                     }
                 } else {
-                    // LOG_DEBUG("    Backup purge keeping %s.", (const char *)filename.c_str());
+                    // logger_base.debug("    Backup purge keeping %s.", (const char *)filename.c_str());
                 }
             }
 
             filename = nextfilename;
             cont = nextcont;
         }
-        LOG_DEBUG("Backup purge deleted %d of %d backups.", purged, count);
+        logger_base.debug("Backup purge deleted %d of %d backups.", purged, count);
     } else {
-        LOG_DEBUG("Backup purging skipped as %s does not exist.", (const char*)backupDir.c_str());
+        logger_base.debug("Backup purging skipped as %s does not exist.", (const char*)backupDir.c_str());
     }
 }
 
@@ -9649,7 +9630,7 @@ void xLightsFrame::OnMenuItem_Generate2DPathSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // This exists solely to provide an easy way to test AudioManager::CreateAudioFile()
 #if 0
@@ -9668,7 +9649,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                                        wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 
     if (filename != "") {
-        LOG_DEBUG("Prepare audio: %s.", (const char*)filename.c_str());
+        logger_base.debug("Prepare audio: %s.", (const char*)filename.c_str());
 
         struct musicEdit {
             std::string file;
@@ -9683,8 +9664,8 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
             musicEdit(const std::string& f, double s, double l, double so, double fi, double fo, double v, bool cfi, bool cfo) :
                 file(f), start(s), length(l), sourceoffset(so), fadein(fi), fadeout(fo), volume(v), crossfadein(cfi), crossfadeout(cfo)
             {
-                
-                LOG_DEBUG("        Source file: %s Source Pos: %0.3f Length: %0.3f Target Pos: %0.3f Fade In: %0.3f Fade Out: %0.3f Volume: %0.3f",
+                static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.debug("        Source file: %s Source Pos: %0.3f Length: %0.3f Target Pos: %0.3f Fade In: %0.3f Fade Out: %0.3f Volume: %0.3f",
                                   (const char*)file.c_str(), sourceoffset, length, start, fadein, fadeout, volume);
             }
         };
@@ -9703,7 +9684,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                 wxRegEx regexTgt("RENDER_FILE \\\"[^\\\"]*?\\/([^\\\"\\/]*)\\\"", wxRE_ADVANCED | wxRE_NEWLINE);
                 if (regexTgt.Matches(reaperContent)) {
                     targetFile.SetFullName(regexTgt.GetMatch(reaperContent, 1));
-                    LOG_DEBUG("    Target file: %s", (const char*)targetFile.GetFullPath().c_str());
+                    logger_base.debug("    Target file: %s", (const char*)targetFile.GetFullPath().c_str());
                 } else {
                     targetFile.SetExt("m4a");
                 }
@@ -9924,7 +9905,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                     sampleRate = it.second->GetRate();
                 } else {
                     if (ok && sampleRate != it.second->GetRate()) {
-                        LOG_DEBUG("Songs do not all have the same bitrate ... unable to do the required mixing.");
+                        logger_base.debug("Songs do not all have the same bitrate ... unable to do the required mixing.");
                         wxMessageBox("In order to prepare the audio all the input songs must have the same sample rate.");
                         ok = false;
                     }
@@ -9939,9 +9920,9 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
 
         if (ok) {
             long totalSamples = sampleRate * outputLength;
-            LOG_DEBUG("    New file will:");
-            LOG_DEBUG("        have %ld samples.", totalSamples);
-            LOG_DEBUG("        be %0.3f seconds long.", outputLength);
+            logger_base.debug("    New file will:");
+            logger_base.debug("        have %ld samples.", totalSamples);
+            logger_base.debug("        be %0.3f seconds long.", outputLength);
             std::vector<float> left(totalSamples);
             std::vector<float> right(totalSamples);
 
@@ -9950,7 +9931,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                 if (audio != nullptr) {
                     // ensure that the audio has been processed by setting a frame interval if its unset
                     if (audio->GetFrameInterval() < 0) {
-                        LOG_DEBUG("Setting default frame interval for %s.", (const char*)it.file.c_str());
+                        logger_base.debug("Setting default frame interval for %s.", (const char*)it.file.c_str());
                         audio->SetFrameInterval(20);
                     }
                     // check the data is actually loaded
@@ -9958,15 +9939,15 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
 
                     SetStatusText("Combining audio clips.");
 
-                    LOG_DEBUG("Processing sample from %s.", (const char*)it.file.c_str());
+                    logger_base.debug("Processing sample from %s.", (const char*)it.file.c_str());
                     long startOutput = sampleRate * it.start;
                     long outputSamples = sampleRate * it.length;
-                    // LOG_DEBUG("    Sample Output Start %ld-%ld [%ld].", startOutput, startOutput + outputSamples - 1, outputSamples);
+                    // logger_base.debug("    Sample Output Start %ld-%ld [%ld].", startOutput, startOutput + outputSamples - 1, outputSamples);
                     wxASSERT(startOutput + outputSamples - 1 <= totalSamples);
                     long startSample = audio->GetRate() * it.sourceoffset;
                     long inputSamples = audio->GetRate() * it.length;
-                    // LOG_DEBUG("    Input file samples %ld", audio->GetTrackSize());
-                    // LOG_DEBUG("    Sample Input Start %ld-%ld [%ld].", startSample, startSample + inputSamples - 1, inputSamples);
+                    // logger_base.debug("    Input file samples %ld", audio->GetTrackSize());
+                    // logger_base.debug("    Sample Input Start %ld-%ld [%ld].", startSample, startSample + inputSamples - 1, inputSamples);
                     wxASSERT(startSample + inputSamples - 1 < audio->GetTrackSize());
 
                     // this code does not handle mixed sample rates
@@ -10126,22 +10107,22 @@ void xLightsFrame::SetRandomEffectsToUse(const wxArrayString& effects)
 
 void xLightsFrame::SetUserEMAIL(const wxString& e)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _userEmail = e;
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("xLightsUserEmail", _userEmail);
     config->Flush();
-    LOG_INFO("User email changed to %s", (const char*)_userEmail.c_str());
+    logger_base.info("User email changed to %s", (const char*)_userEmail.c_str());
 }
 
 void xLightsFrame::SetRenameModelAliasPromptBehavior(const wxString& e)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _aliasRenameBehavior = e;
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("xLightsModelRename", _aliasRenameBehavior);
     config->Flush();
-    LOG_INFO("Rename Alias Prompt Behavior set to %s", (const char*)_aliasRenameBehavior.c_str());
+    logger_base.info("Rename Alias Prompt Behavior set to %s", (const char*)_aliasRenameBehavior.c_str());
 }
 
 void xLightsFrame::CollectUserEmail()
@@ -10177,11 +10158,11 @@ wxArrayString xLightsFrame::GetSequenceViews()
 
 void xLightsFrame::SetMinTipLevel(const wxString& level)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("MinTipLevel", level);
     config->Flush();
-    LOG_INFO("Minimum tip level set to %s", (const char*)level.c_str());
+    logger_base.info("Minimum tip level set to %s", (const char*)level.c_str());
 }
 
 std::string xLightsFrame::GetMinTipLevel() const
@@ -10192,22 +10173,22 @@ std::string xLightsFrame::GetMinTipLevel() const
 
 void xLightsFrame::SetVideoExportCodec(const wxString& codec)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _videoExportCodec = codec;
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("xLightsVideoExportCodec", _videoExportCodec);
     config->Flush();
-    LOG_INFO("Video Export Codec set to %s", (const char*)_videoExportCodec.c_str());
+    logger_base.info("Video Export Codec set to %s", (const char*)_videoExportCodec.c_str());
 }
 
 void xLightsFrame::SetVideoExportBitrate(int bitrate)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _videoExportBitrate = bitrate;
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("xLightsVideoExportBitrate", _videoExportBitrate);
     config->Flush();
-    LOG_INFO("Video Export Bitrate set to %d", _videoExportBitrate);
+    logger_base.info("Video Export Bitrate set to %d", _videoExportBitrate);
 }
 
 void xLightsFrame::OnMenuItem_ValueCurvesSelected(wxCommandEvent& event)
@@ -10610,29 +10591,29 @@ void xLightsFrame::OnMenuItem_SuppressDock(wxCommandEvent& event)
 
 void xLightsFrame::LoadDockable()
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxConfigBase* config = wxConfigBase::Get();
     if (config == nullptr) {
-        LOG_ERROR("Null config ... this wont end well.");
+        logger_base.error("Null config ... this wont end well.");
         return;
     }
     bool bv;
 
     config->Read("xLights_SD_HP", &bv, false);
-    LOG_DEBUG("Suppress Dock HousePreview: %s.", toStr(bv));
+    logger_base.debug("Suppress Dock HousePreview: %s.", toStr(bv));
     MenuItem_SD_HP->Check(!bv);
 
     config->Read("xLights_SD_MP", &bv, false);
-    LOG_DEBUG("Suppress Dock ModelPreview: %s.", toStr(bv));
+    logger_base.debug("Suppress Dock ModelPreview: %s.", toStr(bv));
     MenuItem_SD_MP->Check(!bv);
 }
 
 void xLightsFrame::SaveDockable()
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxConfigBase* config = wxConfigBase::Get();
     if (config == nullptr) {
-        LOG_ERROR("Null config ... this wont end well.");
+        logger_base.error("Null config ... this wont end well.");
         return;
     }
     config->Write("xLights_SD_HP", IsDockable("HP"));
@@ -10690,14 +10671,15 @@ void xLightsFrame::OnButton_UpdateBaseClick(wxCommandEvent& event)
 {
     // execute the update now
     SetCursor(wxCURSOR_WAIT);
+    waitForPingsToComplete();
     UpdateFromBaseShowFolder(true);
     SetCursor(wxCURSOR_ARROW);
 }
 
 void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
 {
-    
-    LOG_DEBUG("Updating from base show folder.");
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Updating from base show folder.");
 
     // bring in any controllers overwriting some of their properties ... but not all of them
     if (_outputManager.MergeFromBase(prompt)) {
@@ -10731,7 +10713,7 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "UpdateFromBaseShowFolder-object");
     }
 
-    LOG_DEBUG("Base show folder update done.");
+    logger_base.debug("Base show folder update done.");
 
     // other things we could bring in
     // - Test presets
@@ -10759,6 +10741,6 @@ void xLightsFrame::OnMenuItemFindShowFolderSelected(wxCommandEvent& event)
     dlg.ShowModal();
 }
 
-aiBase* xLightsFrame::GetLLM(aiType::TYPE serviceType) {
+aiBase* xLightsFrame::GetAIService(aiType::TYPE serviceType) {
     return _serviceManager->findService(serviceType);
 }

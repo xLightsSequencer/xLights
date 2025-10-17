@@ -66,12 +66,12 @@
 #define LIT(x) x
 #define DYNAMICCALL(dll, function, fn, msg)                                                                                                           \
     {                                                                                                                                                 \
-        LIT(function)_ptr ffn = (LIT(function)_ptr)GetFunction(dll, #function);                                                                                                       \
+        function##_ptr ffn = (function##_ptr)GetFunction(dll, #function);                                                                              \
         if (ffn == nullptr) {                                                                                                                         \
             LOG_ERROR("---------- " msg " : 0x%08x : %s", hr, (const char*)WindowsHardwareVideoReader::DecodeMFError(E_NOINTERFACE).c_str()); \
             hr = E_NOINTERFACE;                                                                                                                       \
         } else {                                                                                                                                      \
-            SAFEEXEC((ffn)(fn), msg);                                                                                                                        \
+            SAFEEXEC(ffn(fn), msg);                                                                                                                   \
         }                                                                                                                                             \
     }
 

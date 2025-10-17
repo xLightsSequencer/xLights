@@ -166,35 +166,16 @@ int main(int argc, char* argv[]) {
         dest->setChannelCount(channelCount);
         dest->writeHeader();
 
-        uint8_t* WriteBuf = new uint8_t[channelCount];
+        uint8_t* data = (uint8_t*)malloc(8024 * 1024);
+        for (int x = 0; x < src->getNumFrames(); x++) {
+            FSEQFile::FrameData* fdata = src->getFrame(x);
+            fdata->readFrame(data, 8024 * 1024);
+            delete fdata;
 
-        // read buff
-        uint8_t* tmpBuf = new uint8_t[ogNum_Channels];
-
-        uint32_t frame {0};
-
-        while (frame < ogNumber_of_Frames) {
-            FSEQFile::FrameData* data = src->getFrame(frame);
-
-            data->readFrame(tmpBuf, ogNum_Channels); // we have a read frame
-
-            uint8_t* destBuf = WriteBuf;
-
-            // Loop through ranges
-            for (auto const& [start, count] : ranges) {
-                uint8_t* tempSrc = tmpBuf + start;
-                memmove(destBuf, tempSrc, count);
-                destBuf += count;
-            }
-            dest->addFrame(frame, WriteBuf);
-
-            delete data;
-            frame++;
+            dest->addFrame(x, data);
         }
-
+        free(data);
         dest->finalize();
-        delete[] tmpBuf;
-        delete[] WriteBuf;
     }
     return 0;
 }

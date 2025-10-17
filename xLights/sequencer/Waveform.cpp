@@ -346,8 +346,11 @@ void Waveform::mouseWheelMoved(wxMouseEvent& event)
             wxPostEvent(mParent, eventScroll);
         }
     } else {
-        wxPostEvent(GetParent()->GetEventHandler(), event);
-        event.Skip();
+        // Need to process the event directly and not post it
+        // If posted, it will be queued to proces later, but then
+        // it will get disassociated with the underlying OS
+        // level mouse event
+        GetParent()->GetEventHandler()->SafelyProcessEvent(event);
     }
 }
 

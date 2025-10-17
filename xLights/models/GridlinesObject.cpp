@@ -74,7 +74,7 @@ void GridlinesObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputMan
         p = grid->Append(new wxStringProperty("Grid Spacing", "RealSpacing",
             RulerObject::PrescaledMeasureDescription(RulerObject::Measure(line_spacing))
         ));
-        p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
+        p->ChangeFlag(wxPGFlags::ReadOnly, true);
         p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
     }
 }

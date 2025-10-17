@@ -42,6 +42,12 @@
 			<MaxSerialPort>0</MaxSerialPort>
 		</Variant>
 	</Controller>
+    <Controller Name="BaldrickInput8">
+		<Variant Name="" Base="ILightThat:BaseBaldrickSettings">
+			<MaxPixelPort>2</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+		</Variant>
+	</Controller>
 	<Controller Name="BaldrickSwitchy">
 		<Variant Name="" Base="ILightThat:BaseBaldrickSettings">
 			<MaxPixelPort>4</MaxPixelPort>

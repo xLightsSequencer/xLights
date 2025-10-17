@@ -38,8 +38,10 @@
 #include <algorithm>
 #include <fstream>
 #include <string>
+#include <iostream>
+#include <nlohmann/json.hpp>
 
-#include "./utils/spdlog_macros.h"
+#include <log4cpp/Category.hh>
 
 wxDEFINE_EVENT(EVT_MDDROP, wxCommandEvent);
 
@@ -339,8 +341,8 @@ void xLightsImportTreeModel::GetValue(wxVariant &variant,
             break;
         default:
             {
-                
-                LOG_WARN("xLightsImportTreeModel::GetValue: wrong column %d", col);
+                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.warn("xLightsImportTreeModel::GetValue: wrong column %d", col);
                 wxLogError("xLightsImportTreeModel::GetValue: wrong column %d", col);
             }
     }
@@ -363,8 +365,8 @@ bool xLightsImportTreeModel::SetValue(const wxVariant &variant,
         node->_color = wxColour(variant.GetString());
         return true;
     }
-    
-    LOG_WARN("xLightsImportTreeModel::SetValue: wrong column %d", col);
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.warn("xLightsImportTreeModel::SetValue: wrong column %d", col);
     wxLogError("xLightsImportTreeModel::SetValue: wrong column %d", col);
     return false;
 }
@@ -692,7 +694,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     CheckBox_LockEffects->SetValue(config->ReadBool("ImportEffectsLocked", false));
     CheckBox_ConvertRenderStyle->SetValue(config->ReadBool("ImportEffectsRenderStyle", false));
 
-    auto ai = xlights->GetLLM();
+    auto ai = xlights->GetAIService();
     Button_AIMap->Enable(ai != nullptr);
 
     EnsureWindowHeaderIsOnScreen(this);
@@ -1461,6 +1463,8 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 
 void xLightsImportChannelMapDialog::LoadMappingFile(wxString const& filepath, bool hideWarnings)
 {
+     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     _mappingFile = filepath;
     _dataModel->ClearMapping();
     _stashedMappings.clear();
@@ -1482,13 +1486,13 @@ void xLightsImportChannelMapDialog::LoadMappingFile(wxString const& filepath, bo
     }
     //else
     //{
-    //    LOG_ERROR("Invalid Mapping file type %s.", (const char*)ext.c_str());
+    //    logger_base.error("Invalid Mapping file type %s.", (const char*)ext.c_str());
     //    return;
     //}
 
     _dirty = false;
 
-    LOG_DEBUG("Mapping %s loaded. %d mappings stashed.", (const char*)filepath.c_str(), _stashedMappings.size());
+    logger_base.debug("Mapping %s loaded. %d mappings stashed.", (const char*)filepath.c_str(), _stashedMappings.size());
 
     // expand all models that have strands that have a value
     wxDataViewItemArray models;
@@ -1518,13 +1522,14 @@ void xLightsImportChannelMapDialog::LoadMappingFile(wxString const& filepath, bo
 
 void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bool hideWarnings)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     bool strandwarning{hideWarnings};
     bool modelwarning{hideWarnings};
 
     nlohmann::json data;
 
     try {
-        
         std::ifstream inputFile(filename.ToStdString());
         inputFile >> data;
 
@@ -1532,136 +1537,136 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
         return DisplayError("Error reading JSON mapping file: " + filename + "\n" + ex.what());
     } 
 
-    //if (!errors) 
-    {
 
-        //zip package settings
-        if (_xsqPkg != nullptr && _xsqPkg->IsPkg()) {
-            if (data.contains("facesdir") && !data["facesdir"].get<std::string>().empty()) {
-                _xsqPkg->GetImportOptions()->SetDir(MediaTargetDir::FACES_DIR, data["facesdir"].get<std::string>());
-            }
-            if (data.contains("gladiatordir") && !data["gladiatordir"].get<std::string>().empty()) {
-                _xsqPkg->GetImportOptions()->SetDir(MediaTargetDir::GLEDIATORS_DIR, data["gladiatordir"].get<std::string>());
-            }
-            if (data.contains("imagedir") && !data["imagedir"].get<std::string>().empty()) {
-                _xsqPkg->GetImportOptions()->SetDir(MediaTargetDir::IMAGES_DIR, data["imagedir"].get<std::string>());
-            }
-            if (data.contains("shaderdir") && !data["shaderdir"].get<std::string>().empty()) {
-                _xsqPkg->GetImportOptions()->SetDir(MediaTargetDir::SHADERS_DIR, data["shaderdir"].get<std::string>());
-            }
-            if (data.contains("videodir") && !data["videodir"].get<std::string>().empty()) {
-                _xsqPkg->GetImportOptions()->SetDir(MediaTargetDir::VIDEOS_DIR, data["videodir"].get<std::string>());
-            }
-            if (data.contains("importmedia")) {
-                CheckBoxImportMedia->SetValue(data.at("importmedia").get<bool>());
-            }
+    //zip package settings
+    if (_xsqPkg != nullptr && _xsqPkg->IsPkg()) {
+        if (data.contains("facesdir") && !data["facesdir"].get<std::string>().empty()) {
+            _xsqPkg->GetImportOptions()->SetDir(MediaTargetDir::FACES_DIR, data["facesdir"].get<std::string>());
         }
-
-        //settings
-        if (data.contains("eraseexisting")) {
-            CheckBox_EraseExistingEffects->SetValue(data.at("eraseexisting").get<bool>());
+        if (data.contains("gladiatordir") && !data["gladiatordir"].get<std::string>().empty()) {
+            _xsqPkg->GetImportOptions()->SetDir(MediaTargetDir::GLEDIATORS_DIR, data["gladiatordir"].get<std::string>());
         }
-        if (_allowCCRStrand && data.contains("mapccrstrand")) {
-            CheckBox_MapCCRStrand->SetValue(data.at("mapccrstrand").get<bool>());
+        if (data.contains("imagedir") && !data["imagedir"].get<std::string>().empty()) {
+            _xsqPkg->GetImportOptions()->SetDir(MediaTargetDir::IMAGES_DIR, data["imagedir"].get<std::string>());
         }
-        if (_allowImportBlend && data.contains("importblendmode")) {
-            CheckBox_Import_Blend_Mode->SetValue(data.at("importblendmode").get<bool>());
+        if (data.contains("shaderdir") && !data["shaderdir"].get<std::string>().empty()) {
+            _xsqPkg->GetImportOptions()->SetDir(MediaTargetDir::SHADERS_DIR, data["shaderdir"].get<std::string>());
         }
-
-        //selected timmings
-        auto timingtracks = data["timingtracks"].array();
-        if (timingtracks != nullptr) {
-            for (int i = 0; i < timingtracks.size(); ++i) {
-                wxString const ttname = timingtracks.at(i).at("name").get<std::string>();
-                bool const ttenabled = timingtracks.at(i).at("enabled").get<bool>();
-                if (auto const& idx{ std::find(timingTracks.begin(), timingTracks.end(), ttname) }; idx != timingTracks.end()) {
-                    auto index = std::distance(timingTracks.begin(), idx);
-                    TimingTrackListBox->Check(index, ttenabled);
-                }
-            }
+        if (data.contains("videodir") && !data["videodir"].get<std::string>().empty()) {
+            _xsqPkg->GetImportOptions()->SetDir(MediaTargetDir::VIDEOS_DIR, data["videodir"].get<std::string>());
         }
+        if (data.contains("importmedia")) {
+            CheckBoxImportMedia->SetValue(data.at("importmedia").get<bool>());
+        }
+    }
 
-        auto SetMapping = [&](wxString const& mapping, wxDataViewItem item, wxColor const& color) {
-            TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 2);
-            ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, ListCtrl_Available->FindItem(0, mapping) >= 0);
-            TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 4);
-            TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(findModelType(mapping)), item, 3);
-        };
+    //settings
+    if (data.contains("eraseexisting")) {
+        CheckBox_EraseExistingEffects->SetValue(data.at("eraseexisting").get<bool>());
+    }
+    if (_allowCCRStrand && data.contains("mapccrstrand")) {
+        CheckBox_MapCCRStrand->SetValue(data.at("mapccrstrand").get<bool>());
+    }
+    if (_allowImportBlend && data.contains("importblendmode")) {
+        CheckBox_Import_Blend_Mode->SetValue(data.at("importblendmode").get<bool>());
+    }
 
-        //mappings
-        auto mappings = data["mappings"].array();
-        for (int i = 0; i < mappings.size(); ++i) {
-            wxString const model = mappings.at(i).at("model").get<std::string>();
-            wxString const strand = mappings.at(i).at("strand").get<std::string>();
-            wxString const node = mappings.at(i).at("node").get<std::string>();
-            wxString const mapping = mappings.at(i).at("mapping").get<std::string>();
-            wxColor color = wxColor(mappings.at(i).at("color").get<std::string>());
-            bool stashed = mappings.at(i).at("stashed").get<bool>();
-
-            Element *modelEl = mSequenceElements->GetElement(model.ToStdString());
-
-            if (!stashed && TreeContainsModel(model) == nullptr && !modelwarning) {
-                if (wxMessageBox("Model \"" + model + "\" not part of sequence.  Not mapping channels to this model. Do you want to see future occurrences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxNO)
-                {
-                    modelwarning = true;
-                }
-            }
-
-            // This code adds the model into the sequence ... it is useful if the model was previously only
-            // in a model group that was in the sequence.
-            if (modelEl == nullptr && xlights->GetModel(model.ToStdString()) != nullptr) {
-                mSequenceElements->AddMissingModelsToSequence(model.ToStdString(), false);
-                ModelElement *mel = dynamic_cast<ModelElement*>(mSequenceElements->GetElement(model.ToStdString()));
-                if (mel != nullptr) {
-                    mel->Init(*xlights->GetModel(model.ToStdString()));
-                } else {
-                    LOG_WARNWX("Strange ... load mapping returned null model for " + model);
-                }
-                modelEl = mel;
-            }
-
-            if (modelEl != nullptr) {
-                xLightsImportModelNode* mi = TreeContainsModel(model.ToStdString());
-                xLightsImportModelNode* msi = TreeContainsModel(model.ToStdString(), strand.ToStdString());
-                xLightsImportModelNode* mni = TreeContainsModel(model.ToStdString(), strand.ToStdString(), node.ToStdString());
-
-                if (mni == msi) mni = nullptr;
-                if (msi == mi) msi = nullptr;
-
-                if (mi == nullptr || (msi == nullptr && !strand.empty()) || (mni == nullptr && !node.empty())) {
-                    if (mi != nullptr && !strandwarning) {
-                        if (wxMessageBox(model + "/" + strand + "/" + node + " not found.  Has the models changed? Do you want to see future occurrences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxNO)
-                        {
-                            strandwarning = true;
-                        }
-                    }
-
-                    // save the unused mappings
-                    _stashedMappings.emplace_back(new StashedMapping(model, strand, node, mapping, color));
-                } else {
-                    if (!mapping.empty()) {
-                        if (mni != nullptr) {
-                            wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString(), node.ToStdString());
-                            SetMapping(mapping, item, color);
-                        } else if (msi != nullptr) {
-                            wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString());
-                            SetMapping(mapping, item, color);
-                        } else {
-                            wxDataViewItem item = FindItem(model.ToStdString());
-                            SetMapping(mapping, item, color);
-                        }
-                    }
-                }
-            } else {
-                // save this unused mapping
-                _stashedMappings.emplace_back(new StashedMapping(model, strand, node, mapping, color));
+    //selected timmings
+    auto timingtracks = data["timingtracks"].array();
+    if (timingtracks != nullptr) {
+        for (int i = 0; i < timingtracks.size(); ++i) {
+            wxString const ttname = timingtracks.at(i).at("name").get<std::string>();
+            bool const ttenabled = timingtracks.at(i).at("enabled").get<bool>();
+            if (auto const& idx{ std::find(timingTracks.begin(), timingTracks.end(), ttname) }; idx != timingTracks.end()) {
+                auto index = std::distance(timingTracks.begin(), idx);
+                TimingTrackListBox->Check(index, ttenabled);
             }
         }
     }
+
+    auto SetMapping = [&](wxString const& mapping, wxDataViewItem item, wxColor const& color) {
+        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 2);
+        ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, ListCtrl_Available->FindItem(0, mapping) >= 0);
+        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 4);
+        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(findModelType(mapping)), item, 3);
+    };
+
+    //mappings
+    auto mappings = data["mappings"].array();
+    for (int i = 0; i < mappings.size(); ++i) {
+        wxString const model = mappings.at(i).at("model").get<std::string>();
+        wxString const strand = mappings.at(i).at("strand").get<std::string>();
+        wxString const node = mappings.at(i).at("node").get<std::string>();
+        wxString const mapping = mappings.at(i).at("mapping").get<std::string>();
+        wxColor color = wxColor(mappings.at(i).at("color").get<std::string>());
+        bool stashed = mappings.at(i).at("stashed").get<bool>();
+
+        Element *modelEl = mSequenceElements->GetElement(model.ToStdString());
+
+        if (!stashed && TreeContainsModel(model) == nullptr && !modelwarning) {
+            if (wxMessageBox("Model \"" + model + "\" not part of sequence.  Not mapping channels to this model. Do you want to see future occurrences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxNO)
+            {
+                modelwarning = true;
+            }
+        }
+
+        // This code adds the model into the sequence ... it is useful if the model was previously only
+        // in a model group that was in the sequence.
+        if (modelEl == nullptr && xlights->GetModel(model.ToStdString()) != nullptr) {
+            mSequenceElements->AddMissingModelsToSequence(model.ToStdString(), false);
+            ModelElement *mel = dynamic_cast<ModelElement*>(mSequenceElements->GetElement(model.ToStdString()));
+            if (mel != nullptr) {
+                mel->Init(*xlights->GetModel(model.ToStdString()));
+            } else {
+                logger_base.warn("Strange ... load mapping returned null model for " + model);
+            }
+            modelEl = mel;
+        }
+
+        if (modelEl != nullptr) {
+            xLightsImportModelNode* mi = TreeContainsModel(model.ToStdString());
+            xLightsImportModelNode* msi = TreeContainsModel(model.ToStdString(), strand.ToStdString());
+            xLightsImportModelNode* mni = TreeContainsModel(model.ToStdString(), strand.ToStdString(), node.ToStdString());
+
+            if (mni == msi) mni = nullptr;
+            if (msi == mi) msi = nullptr;
+
+            if (mi == nullptr || (msi == nullptr && !strand.empty()) || (mni == nullptr && !node.empty())) {
+                if (mi != nullptr && !strandwarning) {
+                    if (wxMessageBox(model + "/" + strand + "/" + node + " not found.  Has the models changed? Do you want to see future occurrences of this error during this import?", "", wxICON_WARNING | wxYES_NO, this) == wxNO)
+                    {
+                        strandwarning = true;
+                    }
+                }
+
+                // save the unused mappings
+                _stashedMappings.emplace_back(new StashedMapping(model, strand, node, mapping, color));
+            } else {
+                if (!mapping.empty()) {
+                    if (mni != nullptr) {
+                        wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString(), node.ToStdString());
+                        SetMapping(mapping, item, color);
+                    } else if (msi != nullptr) {
+                        wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString());
+                        SetMapping(mapping, item, color);
+                    } else {
+                        wxDataViewItem item = FindItem(model.ToStdString());
+                        SetMapping(mapping, item, color);
+                    }
+                }
+            }
+        } else {
+            // save this unused mapping
+            _stashedMappings.emplace_back(new StashedMapping(model, strand, node, mapping, color));
+        }
+    }
+
 }
 
 void xLightsImportChannelMapDialog::LoadXMapMapping(wxString const& filename, bool hideWarnings)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     bool strandwarning{hideWarnings};
     bool modelwarning{hideWarnings};
 
@@ -1714,7 +1719,7 @@ void xLightsImportChannelMapDialog::LoadXMapMapping(wxString const& filename, bo
             if (mel != nullptr) {
                 mel->Init(*xlights->GetModel(model.ToStdString()));
             } else {
-                LOG_WARNWX("Strange ... load mapping returned null model for " + model);
+                logger_base.warn("Strange ... load mapping returned null model for " + model);
             }
             modelEl = mel;
         }
@@ -1887,11 +1892,10 @@ void xLightsImportChannelMapDialog::SaveJSONMapping(wxString const& filename)
         if (m->HasMapping()) {
             nlohmann::json mapping;
 
-            std::string mn = m->_model;
-            mapping["model"] = mn;
-            StashedMapping* sm = GetStashedMapping(mn, "", "");
+            mapping["model"] = m->_model;
+            StashedMapping* sm = GetStashedMapping(m->_model, "", "");
             if (m->_mapping.empty() && sm != nullptr) {
-                mapping["mapping"] = sm->_mapping;
+                mapping["mapping"] = sm->_mapping.ToStdString();
                 mapping["color"] = sm->_color.GetAsString().ToStdString();
                 mapping["stashed"] = true;
             } else {
@@ -1901,14 +1905,14 @@ void xLightsImportChannelMapDialog::SaveJSONMapping(wxString const& filename)
             allMappings.push_back(mapping);
             for (size_t j = 0; j < m->GetChildCount(); ++j) {
                 xLightsImportModelNode* s = m->GetNthChild(j);
-                if (s->HasMapping() || AnyStashedMappingExists(mn, s->_strand)) {
-                    sm = GetStashedMapping(mn, s->_strand, "");
+                if (s->HasMapping() || AnyStashedMappingExists(m->_model, s->_strand)) {
+                    sm = GetStashedMapping(m->_model, s->_strand, "");
 
                     nlohmann::json smapping;
-                    smapping["model"] = mn;
+                    smapping["model"] = m->_model;
                     if (s->_mapping.empty() && sm != nullptr) {
-                        smapping["strand"] = sm->_strand;
-                        smapping["mapping"] = sm->_mapping;
+                        smapping["strand"] = sm->_strand.ToStdString();
+                        smapping["mapping"] = sm->_mapping.ToStdString();
                         smapping["color"] = sm->_color.GetAsString().ToStdString();
                         smapping["stashed"] = true;
                     } else {
@@ -1920,20 +1924,20 @@ void xLightsImportChannelMapDialog::SaveJSONMapping(wxString const& filename)
 
                     for (size_t k = 0; k < s->GetChildCount(); ++k) {
                         xLightsImportModelNode* n = s->GetNthChild(k);
-                        sm = GetStashedMapping(mn, n->_strand, n->_node);
+                        sm = GetStashedMapping(m->_model, n->_strand, n->_node);
                         if (n->_mapping.empty() && sm != nullptr) {
                             nlohmann::json nmapping;
-                            nmapping["model"] = mn;
-                            nmapping["strand"] = sm->_strand;
-                            nmapping["node"] = sm->_node;
-                            nmapping["mapping"] = sm->_mapping;
+                            nmapping["model"] = m->_model;
+                            nmapping["strand"] = sm->_strand.ToStdString();
+                            nmapping["node"] = sm->_node.ToStdString();
+                            nmapping["mapping"] = sm->_mapping.ToStdString();
                             nmapping["color"] = sm->_color.GetAsString().ToStdString();
                             nmapping["stashed"] = true;
                             allMappings.push_back(nmapping);
                         } else {
                             if (n->HasMapping()) {
                                 nlohmann::json nmapping;
-                                nmapping["model"] = mn;
+                                nmapping["model"] = m->_model;
                                 nmapping["strand"] = n->_strand;
                                 nmapping["node"] = n->_node;
                                 nmapping["mapping"] = n->_mapping;
@@ -1952,10 +1956,10 @@ void xLightsImportChannelMapDialog::SaveJSONMapping(wxString const& filename)
         Element *modelEl = mSequenceElements->GetElement((*it)->_model.ToStdString());
         if (modelEl == nullptr) {
             nlohmann::json mapping;
-            mapping["model"] = (*it)->_model;
-            mapping["strand"] = (*it)->_strand;
-            mapping["node"] = (*it)->_node;
-            mapping["mapping"] = (*it)->_mapping;
+            mapping["model"] = (*it)->_model.ToStdString();
+            mapping["strand"] = (*it)->_strand.ToStdString();
+            mapping["node"] = (*it)->_node.ToStdString();
+            mapping["mapping"] = (*it)->_mapping.ToStdString();
             mapping["color"] = (*it)->_color.GetAsString().ToStdString();
             mapping["stashed"] = true;
             allMappings.push_back(mapping);
@@ -1987,14 +1991,14 @@ void xLightsImportChannelMapDialog::SaveJSONMapping(wxString const& filename)
         data["videodir"] = _xsqPkg->GetImportOptions()->GetDir(MediaTargetDir::VIDEOS_DIR);
         data["importmedia"] =  CheckBoxImportMedia->IsChecked();
     }
-    std::ofstream o(filename.ToStdString());
-    if (o.is_open()) {
-        o << std::setw(4) << data << std::endl;
+
+    try {
+        std::ofstream o(filename.ToStdString());
+        if (o.is_open()) {
+            o << std::setw(4) << data << std::endl;
+        }
+    } catch (const std::exception&) {
     }
-    //wxFileOutputStream mapfile(filename);
-    //wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
-    //writer.Write(data, mapfile);
-    //mapfile.Close();
     _dirty = false;
 }
 
@@ -2623,7 +2627,7 @@ wxString xLightsImportChannelMapDialog::AggressiveAutomap(const wxString& name) 
 }
 
 std::string xLightsImportChannelMapDialog::GetAIPrompt(const std::string& promptFile) {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     std::string showFolderPromptFile = xlights->GetShowDirectory() + "/" + promptFile;
     std::string xlFolder = GetResourcesDirectory();
@@ -2631,10 +2635,10 @@ std::string xLightsImportChannelMapDialog::GetAIPrompt(const std::string& prompt
 
     std::string fileToLoad;
     if (wxFileExists(showFolderPromptFile)) {
-        LOG_DEBUG("Using prompt file from show folder: %s", showFolderPromptFile.c_str());
+        logger_base.debug("Using prompt file from show folder: %s", showFolderPromptFile.c_str());
         fileToLoad = showFolderPromptFile;
     } else if (wxFileExists(xLightsFolderPromptFile)) {
-        LOG_DEBUG("Using prompt file from xLights folder: %s", xLightsFolderPromptFile.c_str());
+        logger_base.debug("Using prompt file from xLights folder: %s", xLightsFolderPromptFile.c_str());
         fileToLoad = xLightsFolderPromptFile;
     } else {
         // This looks for a prompt without the aiEngine prefix
@@ -2644,13 +2648,13 @@ std::string xLightsImportChannelMapDialog::GetAIPrompt(const std::string& prompt
         xLightsFolderPromptFile = xlFolder + "/prompts/" + pf;
 
         if (wxFileExists(showFolderPromptFile)) {
-            LOG_DEBUG("Using prompt file from show folder: %s", showFolderPromptFile.c_str());
+            logger_base.debug("Using prompt file from show folder: %s", showFolderPromptFile.c_str());
             fileToLoad = showFolderPromptFile;
         } else if (wxFileExists(xLightsFolderPromptFile)) {
-            LOG_DEBUG("Using prompt file from xLights folder: %s", xLightsFolderPromptFile.c_str());
+            logger_base.debug("Using prompt file from xLights folder: %s", xLightsFolderPromptFile.c_str());
             fileToLoad = xLightsFolderPromptFile;
         } else {
-            LOG_ERROR("Prompt file not found: %s", promptFile.c_str());
+            logger_base.error("Prompt file not found: %s", promptFile.c_str());
             wxMessageBox("The prompt file could not be found " + promptFile, "Error", wxICON_ERROR | wxOK, this);
             return "";
         }
@@ -2679,7 +2683,7 @@ std::string xLightsImportChannelMapDialog::GetAIPrompt(const std::string& prompt
 }
 
 std::string xLightsImportChannelMapDialog::BuildSourceModelPrompt(const std::list<ImportChannel*>& sourceModels, std::function<bool(const ImportChannel*)> filter) {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     std::string sourceDescription = "<sourceModels>\\n";
     for (const auto& it : sourceModels) {
@@ -2701,13 +2705,13 @@ std::string xLightsImportChannelMapDialog::BuildSourceModelPrompt(const std::lis
         }
     }
     sourceDescription += "</sourceModels>";
-    LOG_DEBUG("Source models: %s", sourceDescription.c_str());
+    logger_base.debug("Source models: %s", sourceDescription.c_str());
 
     return sourceDescription;
 }
 
 std::string xLightsImportChannelMapDialog::BuildTargetModelPrompt(const std::list<xLightsImportModelNode*>& targetModels, std::function<bool(const xLightsImportModelNode*)> filter) {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     std::string targetDescription = "<targetModels>\\n";
     for (const auto& it : targetModels) {
@@ -2732,13 +2736,13 @@ std::string xLightsImportChannelMapDialog::BuildTargetModelPrompt(const std::lis
         }
     }
     targetDescription += "</targetModels>";
-    LOG_DEBUG("Target models: %s", targetDescription.c_str());
+    logger_base.debug("Target models: %s", targetDescription.c_str());
 
     return targetDescription;
 }
 
 std::string xLightsImportChannelMapDialog::BuildAlreadyMappedPrompt(const std::list<xLightsImportModelNode*>& targetModels, std::function<bool(const xLightsImportModelNode*)> filter) {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     std::string exampleMappings = "<exampleMappings>\\n";
     for (const auto& it : targetModels) {
@@ -2755,17 +2759,17 @@ std::string xLightsImportChannelMapDialog::BuildAlreadyMappedPrompt(const std::l
         }
     }
     exampleMappings += "</exampleMappings>";
-    LOG_DEBUG("Example mappings: %s", exampleMappings.c_str());
+    logger_base.debug("Example mappings: %s", exampleMappings.c_str());
 
     return exampleMappings;
 }
 
 bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std::string& prompt, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels) {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    LOG_DEBUG("Prompt: %s", prompt.c_str());
+    logger_base.debug("Prompt: %s", prompt.c_str());
 
-    auto ai = xlights->GetLLM();
+    auto ai = xlights->GetAIService();
     if (ai == nullptr)
         return false;
 
@@ -2779,20 +2783,18 @@ bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std
         possibleSources += it->name + ", ";
     }
 
-    LOG_DEBUG("Response: %s", response.c_str());
+    logger_base.debug("Response: %s", response.c_str());
 
     bool mapped = false;
 
     try {
         nlohmann::json root = nlohmann::json::parse(response);
-        //wxJSONReader reader;
-        //reader.Parse(response, &root);
 
-        LOG_DEBUG("Parsed response");
+        logger_base.debug("Parsed response");
 
         nlohmann::json mappings = root["mappings"];
         if (mappings.is_null()) {
-            LOG_ERROR("No mappings found in response");
+            logger_base.error("No mappings found in response");
         } else {
             // now go through all the targets
             for (const auto& it : targetModels) {
@@ -2800,7 +2802,7 @@ bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std
                     auto mn = it->GetModelName();
                     // find the model in the mappings sourceModel
                     for (size_t i = 0; i < mappings.size(); ++i) {
-                        wxString targetModel = mappings[i]["targetModel"].get<std::string>();
+                        std::string targetModel = mappings[i]["targetModel"].get<std::string>();
                         std::string mappingSource = mappings[i]["sourceModel"].get<std::string>();
                         if (targetModel == mn && possibleSources.find(mappingSource) != std::string::npos) {
                             it->Map(mappingSource,"Unknown");
@@ -2812,7 +2814,7 @@ bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std
             }
         }
     } catch (const std::exception& e) {
-        LOG_ERROR("Error parsing response: %s", e.what());
+        logger_base.error("Error parsing response: %s", e.what());
     }
 
     return mapped;
@@ -2823,7 +2825,7 @@ bool xLightsImportChannelMapDialog::AIModelMap(wxProgressDialog* dlg, const std:
     if (targetModels.size() == 0)
         return false;
 
-    auto llm = xlights->GetLLM();
+    auto llm = xlights->GetAIService();
     if (llm == nullptr)
         return false;
     std::string prompt = GetAIPrompt(llm->GetLLMName() + "_AI_Model_AutoMap.txt");
@@ -2860,7 +2862,7 @@ bool xLightsImportChannelMapDialog::AISubModelMap(wxProgressDialog* dlg, const s
     if (submodelCount == 0)
         return false;
 
-    auto llm = xlights->GetLLM();
+    auto llm = xlights->GetAIService();
     if (llm == nullptr)
         return false;
     std::string prompt = GetAIPrompt(llm->GetLLMName() + "_AI_SubModel_AutoMap.txt");
@@ -2897,7 +2899,7 @@ bool xLightsImportChannelMapDialog::AIStrandMap(wxProgressDialog* dlg, const std
     if (strandCount == 0)
         return false;
 
-    auto llm = xlights->GetLLM();
+    auto llm = xlights->GetAIService();
     if (llm == nullptr)
 		return false;
     std::string prompt = GetAIPrompt(llm->GetLLMName() + "_AI_Strand_AutoMap.txt");
@@ -2944,7 +2946,7 @@ bool xLightsImportChannelMapDialog::AINodeMap(wxProgressDialog* dlg, const std::
     if (nodeModelCount == 0)
         return false;
 
-    auto llm = xlights->GetLLM();
+    auto llm = xlights->GetAIService();
     if (llm == nullptr)
         return false;
     std::string prompt = GetAIPrompt(llm->GetLLMName() + "_AI_Node_AutoMap.txt");
@@ -3166,8 +3168,8 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                 }
             }
         } else {
-            
-            LOG_WARN("xLightsImportTreeModel::OnButton_AutoMapClick: Weird ... model %d was nullptr", i);
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn("xLightsImportTreeModel::OnButton_AutoMapClick: Weird ... model %d was nullptr", i);
         }
     }
     // Process selected submodels independently
