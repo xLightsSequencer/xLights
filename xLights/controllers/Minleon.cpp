@@ -583,6 +583,7 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
         if (json[parm].is_string()) {
             return std::stoi(json[parm].get<std::string>());
         }
+        return 0;
     };
 
     logger_base.debug("Connecting to Minleon on %s.", (const char*)_ip.c_str());
