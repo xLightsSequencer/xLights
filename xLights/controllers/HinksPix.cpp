@@ -294,11 +294,11 @@ void HinksPix::InitExpansionBoardData(int expansion, int startport, int length) 
         logger_base.error("Invalid Data from controller");
         return;
     }
-    auto ports = data.at("LIST").array();
+    auto ports = data.at("LIST");
 
     if (ports.size() != length) {
         logger_base.error("Data from controller size and Expansion Size don't match");
-        logger_base.error(data.at("LIST").get<std::string>());
+        logger_base.error((const char*)data.at("LIST").dump().c_str());
         return;
     }
 
@@ -326,11 +326,11 @@ std::unique_ptr<HinksPixSerial> HinksPix::InitSerialData(bool fullControl) {
             logger_base.error("Invalid Data from controller");
             return serial;
         }
-        if (data.size() != 0) {
+        if (!data.empty()) {
             serial->SetConfig(data);
         } else {
             static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.error("Invalid Return data %s", (const char*)data.get<std::string>().c_str());
+            logger_base.error("Invalid Return data %s", (const char*)data.dump().c_str());
         }
     }
 

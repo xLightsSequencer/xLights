@@ -470,7 +470,7 @@ private:
 
     void SaveSettings();
     void LoadSettings();
-    void ApplySavedSettings(nlohmann::json json);
+    void ApplySavedSettings(nlohmann::json controllers);
 
     wxPanel* AddInstanceHeader(wxString const& h);
 

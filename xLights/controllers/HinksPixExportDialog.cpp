@@ -1035,14 +1035,15 @@ void HinksPixExportDialog::SaveSettings() {
         if (o.is_open()) {
             o << std::setw(4) << data << std::endl;
         }
-    } catch (const std::exception&) {
-       
-
+    } catch (const std::exception& ex) {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.warn("HinksPixExport SaveSettings: Failed: %s", ex.what());
     }
 }
 
 void HinksPixExportDialog::LoadSettings()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     auto path = xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "hinks_export.json";
     bool loaded{false};
     try {
@@ -1050,35 +1051,47 @@ void HinksPixExportDialog::LoadSettings()
             nlohmann::json data;
             std::ifstream inputFile(path.ToStdString());
             inputFile >> data;
-            std::string folderSelect = data.at("folder").get<std::string>();
-            int const filterSelect = data.at("filter").get<int>();
+            std::string const folderSelect = data.value("folder", std::string());
+            int const filterSelect = data.value("filter", -1);
 
             if (filterSelect != wxNOT_FOUND) {
                 ChoiceFilter->SetSelection(filterSelect);
+            }
+            int ifoldSelect = ChoiceFolder->FindString(folderSelect);
+            if (ifoldSelect != wxNOT_FOUND) {
+                ChoiceFolder->SetSelection(ifoldSelect);
             } else {
                 ChoiceFolder->SetSelection(0);
             }
-            auto tab = data.at("tab").get<int>();
+            auto tab = data.value("tab",0);
             NotebookExportItems->SetSelection(tab);
             LoadSequences();
 
-            auto schedules = data["schedules"].array();
-            if (schedules) {
-                for (int i = 0; i < schedules.size(); ++i) {
-                    m_schedules.emplace_back(schedules.at(i));
+            if (data.contains("schedules")) {
+                auto schedules = data.at("schedules");
+                m_schedules.reserve(schedules.size());
+                for (const auto& sched : schedules) {
+                    m_schedules.emplace_back(sched);
                 }
             }
-            auto playlists = data["playlists"].array();
-            if (playlists) {
-                for (int i = 0; i < playlists.size(); ++i) {
-                    auto play = m_playLists.emplace_back(playlists.at(i));
+            
+            if (data.contains("playlists")) {
+                auto playlists = data.at("playlists");
+                m_playLists.reserve(playlists.size());
+                for (const auto& playlist : playlists) {
+                    auto play = m_playLists.emplace_back(playlist);
                     ChoicePlaylists->AppendString(play.Name);
                 }
             }
             loaded = true;
-            ApplySavedSettings(data["controllers"]);
+            if (data.contains("controllers")) {
+                ApplySavedSettings(data.at("controllers"));
+            }
         }
-    } catch (std::exception& ex) {
+    } catch (nlohmann::json::parse_error& ex) {
+        logger_base.warn("HinksPixExport LoadSettings: Failed to parse JSON: %s", ex.what());
+    } catch (std::exception& e) {
+        logger_base.warn("HinksPixExport LoadSettings: Failed to parse JSON: %s", e.what());
     }
 
     if (m_schedules.empty()) {
@@ -1097,7 +1110,7 @@ void HinksPixExportDialog::LoadSettings()
     }
 }
 
-void HinksPixExportDialog::ApplySavedSettings(nlohmann::json json) {
+void HinksPixExportDialog::ApplySavedSettings(nlohmann::json controllers) {
     /*
     static const std::string CHECK_COL = "ID_UPLOAD_";
     static const std::string MODE_COL = "ID_MODE_";
@@ -1106,19 +1119,17 @@ void HinksPixExportDialog::ApplySavedSettings(nlohmann::json json) {
     static const std::string DISK_COL = "ID_DISK_";
      */
 
-    if (!json.is_array()) {
+    if (!controllers.is_array()) {
         return;
     }
-    auto controllers = json.array();
     if (controllers.is_null()) {
         return;
     }
     int row = 0;
     for (const auto& hix : m_hixControllers) {
-        std::string rowStr = std::to_string(row);
+        std::string const rowStr = std::to_string(row);
 
-        for (int i = 0; i < controllers.size(); ++i) {
-            auto controller = controllers.at(i);
+        for (auto const& controller: controllers) {
             if (hix->GetIP() == controller.at("ip").get<std::string>()) {
                 SetCheckValue(CHECK_COL + rowStr, controller.at("enabled").get<bool>());
                 SetChoiceValue(MODE_COL + rowStr, controller.at("mode").get<std::string>());
