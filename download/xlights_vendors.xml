@@ -20,7 +20,7 @@
     <vendor>
         <name>Wired Watts</name>
         <link>https://wiredwatts.com/xmodels</link>
-        <maxmodels>50</maxmodels>
+        <maxmodels>100</maxmodels>
     </vendor>
     <vendor>
         <name>Build A Light Show</name>
