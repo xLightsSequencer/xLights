@@ -1266,10 +1266,11 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
 
     auto b = _renderMode;
     _renderMode = false;
+    wxString truncated = (seq.length() > 100) ? ".." + seq.Mid(seq.length() - 100) : seq;
     if (fileNames.size() == 1) {
-        SetStatusText("Batch Rendering " + seq + ". Last sequence.");
+        SetStatusText("Batch Rendering " + truncated + ". Last sequence.");
     } else {
-        SetStatusText("Batch Rendering " + seq + ". " + wxString::Format("%d", (int)fileNames.size() - 1) + " sequences left to render.");
+        SetStatusText("Batch Rendering " + truncated + ". " + wxString::Format("%d", (int)fileNames.size() - 1) + " sequences left to render.");
     }
     _renderMode = b;
 
