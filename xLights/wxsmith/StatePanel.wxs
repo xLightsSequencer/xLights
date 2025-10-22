@@ -48,7 +48,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxChoice" name="ID_CHOICE_State_State" variable="Choice_State_State" member="yes">
+								<object class="wxChoice" name="ID_CHOICE_State_State" subclass="BulkEditChoice" variable="Choice_State_State" member="yes">
 									<selection>0</selection>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
