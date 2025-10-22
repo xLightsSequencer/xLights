@@ -9794,7 +9794,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                         auto name = n->GetName().Lower();
                         if (name == "targetfile") {
                             if (n->GetChildren() != nullptr) {
-                                targetFile.SetName(n->GetChildren()->GetContent());
+                                targetFile.SetFullName(n->GetChildren()->GetContent());
                             }
                         } else if (name == "items") {
                             for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
