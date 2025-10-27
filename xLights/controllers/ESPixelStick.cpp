@@ -113,21 +113,42 @@ bool ESPixelStick::SetOutputConfig(nlohmann::json& Data) {
     return ((_UsingHttpConfig) ? SetHttpConfig("output_config", "output_config", Data) : SetWsConfig("output", "output_config", Data));
 }
 
-bool ESPixelStick::GetHttpConfig(std::string FileName, std::string key, nlohmann::json& Response) {
+bool ESPixelStick::GetHttpConfig(std::string const& FileName, std::string const& key, nlohmann::json& Response) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("GetHttpConfig: Getting ESPSv4 HTTP config file");
 
     std::string const url = "/conf/" + FileName + ".json";
-    std::string RawData = GetURL(url);
-    // logger_base.debug(std::string("GetHttpConfig: RawData: ") + RawData);
-
-    nlohmann::json ParsedData = nlohmann::json::parse(RawData);
-    Response = ParsedData[key];
-    logger_base.debug(std::string("GetHttpConfig: Response: ") + std::to_string(Response.size()));
-    return (0 != Response.size());
+    std::string const RawData = GetURL(url);
+    // 
+    try {
+        nlohmann::json ParsedData = nlohmann::json::parse(RawData);
+        if (ParsedData.is_null()) {
+            logger_base.debug(std::string("GetHttpConfig: RawData: ") + RawData);
+            logger_base.error("GetHttpConfig: ParsedData is null");
+            return false;
+        }
+        if (ParsedData.contains(key)) {
+            Response = ParsedData[key];
+            logger_base.debug(std::string("GetHttpConfig: Response: ") + std::to_string(Response.size()));
+        } else {
+            logger_base.debug(std::string("GetHttpConfig: RawData: ") + RawData);
+            logger_base.error(std::string("GetHttpConfig: Key '") + key + "' not found in JSON");
+            return false;
+        }
+    } catch (nlohmann::json::parse_error& ex) {
+        logger_base.debug(std::string("GetHttpConfig: RawData: ") + RawData);
+        logger_base.error(std::string("GetHttpConfig: Exception parsing JSON: ") + ex.what());
+        return false;
+    }
+    catch (std::exception& e) {
+        logger_base.debug(std::string("GetHttpConfig: RawData: ") + RawData);
+        logger_base.error(std::string("GetHttpConfig: Exception parsing JSON: ") + e.what());
+        return false;
+    }
+    return !Response.empty();
 }
 
-bool ESPixelStick::SetHttpConfig(std::string filename, std::string key, nlohmann::json& _Data) {
+bool ESPixelStick::SetHttpConfig(std::string const& filename, std::string const& key, nlohmann::json const& _Data) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("SetHttpConfig: Setting ESPSv4 HTTP config file");
 
@@ -135,10 +156,10 @@ bool ESPixelStick::SetHttpConfig(std::string filename, std::string key, nlohmann
 
     nlohmann::json newJson;
     newJson[key] = _Data;
-    auto Data = newJson.dump();
+    auto const Data = newJson.dump();
     // logger_base.debug(std::string("SetHttpConfig: Data: '") + Data + "'");
 
-    std::string contentType = "application/json";
+    std::string const contentType = "application/json";
     int ReturnCode = -1;
     std::vector<unsigned char> value(Data.begin(), Data.end());
     CurlManager::INSTANCE.doPost(url, contentType, value, ReturnCode);
@@ -147,7 +168,7 @@ bool ESPixelStick::SetHttpConfig(std::string filename, std::string key, nlohmann
     return (200 == ReturnCode);
 }
 
-bool ESPixelStick::GetWsConfig(std::string SectionName, std::string key, nlohmann::json& Response) {
+bool ESPixelStick::GetWsConfig(std::string const& SectionName, std::string const& key, nlohmann::json& Response) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("GetWsConfig: Getting ESPSv4 HTTP config file");
 
@@ -155,14 +176,36 @@ bool ESPixelStick::GetWsConfig(std::string SectionName, std::string key, nlohman
     newJson["cmd"]["get"] = SectionName;
     // logger_base.debug(std::string("GetWsConfig: cmd: ") + newJson.dump());
     _wsClient.Send(newJson.dump());
-    std::string RawData = GetWSResponse();
-    nlohmann::json ParsedData = nlohmann::json::parse(RawData);
-    Response = ParsedData["get"][key];
-    // logger_base.debug(std::string("GetWsConfig: Response: ") + std::to_string(Response.Size()));
-    return (0 != Response.size());
+    std::string const RawData = GetWSResponse();
+    if (RawData.empty()) {
+        logger_base.debug(std::string("GetWsConfig: RawData is empty"));
+        return false;
+    }
+    try {    
+        nlohmann::json ParsedData = nlohmann::json::parse(RawData);
+        if (ParsedData.contains("get") && ParsedData.at("get").contains(key)) {
+            Response = ParsedData.at("get").at(key);
+            // logger_base.debug(std::string("GetWsConfig: Response: ") + std::to_string(Response.Size()));
+        } else {
+            logger_base.debug(std::string("GetWsConfig: RawData: ") + RawData);
+            logger_base.error(std::string("GetWsConfig: Key '") + key + "' not found in JSON");
+            return false;
+        }
+    }
+    catch (nlohmann::json::parse_error& ex) {
+        logger_base.debug(std::string("GetWsConfig: RawData: ") + RawData);
+        logger_base.error(std::string("GetWsConfig: Exception parsing JSON: ") + ex.what());
+        return false;
+    }
+    catch (std::exception& e) {
+        logger_base.debug(std::string("GetWsConfig: RawData: ") + RawData);
+        logger_base.error(std::string("GetWsConfig: Exception parsing JSON: ") + e.what());
+        return false;
+    }
+    return !Response.empty();
 }
 
-bool ESPixelStick::SetWsConfig(std::string SectionName, std::string key, nlohmann::json& Data) {
+bool ESPixelStick::SetWsConfig(std::string const& SectionName, std::string const& key, nlohmann::json const& Data) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("SetWsConfig: Setting ESPSv4 HTTP config file");
 
@@ -171,15 +214,32 @@ bool ESPixelStick::SetWsConfig(std::string SectionName, std::string key, nlohman
     // logger_base.debug(std::string("SetWsConfig: cmd: ") + newJson.dump());
     _wsClient.Send(newJson.dump());
 
-    std::string RawData = GetWSResponse();
+    std::string const RawData = GetWSResponse();
+    if (RawData.empty()) {
+        logger_base.debug(std::string("SetWsConfig: RawData is empty"));
+        return false;
+    }
     // logger_base.debug(std::string("SetWsConfig: RawData: ") + RawData);
-    nlohmann::json ParsedData = nlohmann::json::parse(RawData);
-    nlohmann::json Response = ParsedData["cmd"];
-    std::string returnValue = Response.get<std::string>();
-    // logger_base.debug(std::string("SetWsConfig: returnValue: '") + returnValue + "'");
-    bool result = returnValue == "OK";
-    // logger_base.debug(std::string("SetWsConfig: result: ") + std::to_string(result));
-    return result;
+    try {
+        nlohmann::json ParsedData = nlohmann::json::parse(RawData);
+        if (ParsedData.contains("cmd")) {
+            std::string const returnValue = ParsedData.at("cmd").get<std::string>();
+            // logger_base.debug(std::string("SetWsConfig: returnValue: '") + returnValue + "'");
+            bool const result = returnValue == "OK";
+            // logger_base.debug(std::string("SetWsConfig: result: ") + std::to_string(result));
+            return result;
+        } else {
+            logger_base.debug(std::string("SetWsConfig: RawData: ") + RawData);
+            logger_base.error(std::string("SetWsConfig: 'cmd' not found in JSON"));
+        }
+    } catch (nlohmann::json::parse_error& ex) {
+        logger_base.debug(std::string("SetWsConfig: RawData: ") + RawData);
+        logger_base.error(std::string("SetWsConfig: Exception parsing JSON: ") + ex.what());
+    } catch (std::exception& e) {
+        logger_base.debug(std::string("GetHttpConfig: RawData: ") + RawData);
+        logger_base.error(std::string("GetHttpConfig: Exception parsing JSON: ") + e.what());
+    }
+    return false;
 }
 
 std::string ESPixelStick::GetWSResponse()
@@ -196,8 +256,8 @@ std::string ESPixelStick::GetWSResponse()
 }
 
 std::string ESPixelStick::DecodeStringPortProtocol(std::string const& protocol) const {
-    wxString p(protocol);
-    p = p.Lower();
+    std::string p(protocol);
+    p = Lower(p);
     if (p == "ws2811") {
         return "0";
     }
@@ -209,8 +269,8 @@ std::string ESPixelStick::DecodeStringPortProtocol(std::string const& protocol) 
 
 std::string ESPixelStick::DecodeSerialPortProtocol(std::string const& protocol) const {
     // This is not right as I dont actually have a board that supports this
-    wxString p(protocol);
-    p = p.Lower();
+    std::string p(protocol);
+    p = Lower(p);
 
     if (p == "dmx") {
         return "null";
@@ -223,8 +283,8 @@ std::string ESPixelStick::DecodeSerialPortProtocol(std::string const& protocol) 
 
 std::string ESPixelStick::DecodeSerialSpeed(std::string const& protocol) const {
     // This is not right as I dont actually have a board that supports this
-    wxString p(protocol);
-    p = p.Lower();
+    std::string p(protocol);
+    p = Lower(p);
 
     if (p == "dmx") {
         return "null";
@@ -240,29 +300,34 @@ std::string ESPixelStick::GetFromJSON(std::string const& section, std::string co
     for (int x = 0; x < json.size(); x++) {
         if (json[x] == '{' || json[x] == '[') {
             auto config = json.substr(x);
-            nlohmann::json origJson = nlohmann::json::parse(config);
-            nlohmann::json val = origJson;
-            if (section != "") {
-                val = origJson[section];
-            }
-            if (!val.contains(key))
-            { 
-                return "";
-            }
+            try {
+                nlohmann::json origJson = nlohmann::json::parse(config);
+                nlohmann::json val = origJson;
+                if (!section.empty()) {
+                    val = origJson[section];
+                }
+                if (!val.contains(key)) {
+                    return {};
+                }
 
-            val = val.at(key);
-            if (val.is_string()) {
-                return val.get<std::string>();
-            }
-            if (val.is_number_integer()) {
-                return std::to_string(val.get<int>());
-            }
-            if (val.is_number_float()) {
-                return std::to_string(val.get<float>());
+                val = val.at(key);
+                if (val.is_string()) {
+                    return val.get<std::string>();
+                }
+                if (val.is_number_integer()) {
+                    return std::to_string(val.get<int>());
+                }
+                if (val.is_number_float()) {
+                    return std::to_string(val.get<float>());
+                }
+            } catch (nlohmann::json::parse_error& ex) {
+                return {};
+            } catch (std::exception& ex) {
+                return {};
             }
         }
     }
-    return "";
+    return {};
 }
 #pragma endregion
 
@@ -668,64 +733,72 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
         }
         config = config.substr(2);
 
-        nlohmann::json origJson = nlohmann::json::parse(config);
+        try {
+            nlohmann::json origJson = nlohmann::json::parse(config);
 
-        nlohmann::json newJson;
-        //copy stuff over to act as defaults
-        newJson["device"] = origJson["device"];
-        newJson["mqtt"] = origJson["mqtt"];
-        newJson["e131"] = origJson["e131"];
-        newJson["pixel"] = origJson["pixel"];
+            nlohmann::json newJson;
+            // copy stuff over to act as defaults
+            newJson["device"] = origJson["device"];
+            newJson["mqtt"] = origJson["mqtt"];
+            newJson["e131"] = origJson["e131"];
+            newJson["pixel"] = origJson["pixel"];
 
-        newJson["e131"]["universe"] = port->GetUniverse();
-        newJson["e131"]["universe_limit"] = cud.GetFirstOutput()->GetChannels();
-        newJson["e131"]["channel_start"] = port->GetUniverseStartChannel();
-        newJson["e131"]["channel_count"] = port->Channels();
-        newJson["e131"]["multicast"] = ((cud.GetFirstOutput()->GetIP() == "MULTICAST") ? true : false);
+            newJson["e131"]["universe"] = port->GetUniverse();
+            newJson["e131"]["universe_limit"] = cud.GetFirstOutput()->GetChannels();
+            newJson["e131"]["channel_start"] = port->GetUniverseStartChannel();
+            newJson["e131"]["channel_count"] = port->Channels();
+            newJson["e131"]["multicast"] = ((cud.GetFirstOutput()->GetIP() == "MULTICAST") ? true : false);
 
-        auto s = port->GetModels().front();
-        if (s) {
-            int const brightness = s->GetBrightness(-9999);
-            std::string const colourOrder = s->GetColourOrder("unknown");
-            float const gamma = s->GetGamma(-9999);
-            int const groupCount = s->GetGroupCount(-9999);
+            auto s = port->GetModels().front();
+            if (s) {
+                int const brightness = s->GetBrightness(-9999);
+                std::string const colourOrder = s->GetColourOrder("unknown");
+                float const gamma = s->GetGamma(-9999);
+                int const groupCount = s->GetGroupCount(-9999);
 
-            if (gamma > 0) {
-                newJson["pixel"]["gammaVal"] = gamma;
-            }
-            if (groupCount > 0) {
-                newJson["pixel"]["groupSize"] = groupCount;
-            }
-            if (colourOrder != "unknown") {
-                if (colourOrder == "GRB") {
-                    newJson["pixel"]["colourOrder"] = 1;
-                } else if (colourOrder == "BRG") {
-                    newJson["pixel"]["colourOrder"] = 2;
-                } else if (colourOrder == "RBG") {
-                    newJson["pixel"]["colourOrder"] = 3;
-                } else if (colourOrder == "GBR") {
-                    newJson["pixel"]["colourOrder"] = 4;
-                } else if (colourOrder == "BGR") {
-                    newJson["pixel"]["colourOrder"] = 5;
-                } else {
-                    newJson["pixel"]["colourOrder"] = 0;
+                if (gamma > 0) {
+                    newJson["pixel"]["gammaVal"] = gamma;
+                }
+                if (groupCount > 0) {
+                    newJson["pixel"]["groupSize"] = groupCount;
+                }
+                if (colourOrder != "unknown") {
+                    if (colourOrder == "GRB") {
+                        newJson["pixel"]["colourOrder"] = 1;
+                    } else if (colourOrder == "BRG") {
+                        newJson["pixel"]["colourOrder"] = 2;
+                    } else if (colourOrder == "RBG") {
+                        newJson["pixel"]["colourOrder"] = 3;
+                    } else if (colourOrder == "GBR") {
+                        newJson["pixel"]["colourOrder"] = 4;
+                    } else if (colourOrder == "BGR") {
+                        newJson["pixel"]["colourOrder"] = 5;
+                    } else {
+                        newJson["pixel"]["colourOrder"] = 0;
+                    }
+                }
+                if (brightness > 0) {
+                    float bval = (float)brightness;
+                    bval /= 100.0F;
+                    newJson["pixel"]["briteVal"] = bval;
                 }
             }
-            if (brightness > 0) {
-                float bval = (float)brightness;
-                bval /= 100.0F;
-                newJson["pixel"]["briteVal"] = bval;
+
+            std::string message = newJson.dump(3);
+            message = "S2" + message;
+
+            if (_wsClient.Send(message)) {
+                success = true;
+                logger_base.debug("ESPixelStick Outputs Upload: Success!!!");
             }
+            GetWSResponse();
+        } catch (nlohmann::json::parse_error& ex) {
+            logger_base.error(std::string("ESPixelStick Outputs Upload: Exception parsing JSON: ") + ex.what());
+            success = false;
+        } catch (std::exception& e) {
+            logger_base.error(std::string("ESPixelStick Outputs Upload: Exception parsing JSON: ") + e.what());
+            success = false;
         }
-
-        std::string message = newJson.dump(3);
-        message = "S2" + message;
-
-        if (_wsClient.Send(message)) {
-            success = true;
-            logger_base.debug("ESPixelStick Outputs Upload: Success!!!");
-        }
-        GetWSResponse();
     } else {
         DisplayError("Not uploaded due to errors.\n" + check);
     }
