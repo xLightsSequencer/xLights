@@ -548,6 +548,27 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             }
             else if (type == "TIMING_SPLIT") {
                 SplitTimingMark();
+            }
+            else if (type == "TIMING_DIVIDE_2") {
+                DivideTimingTrack(2);
+            }
+            else if (type == "TIMING_DIVIDE_3") {
+                DivideTimingTrack(3);
+            }
+            else if (type == "TIMING_DIVIDE_4") {
+                DivideTimingTrack(4);
+            }
+            else if (type == "TIMING_DIVIDE_6") {
+                DivideTimingTrack(6);
+            }
+            else if (type == "TIMING_DIVIDE_8") {
+                DivideTimingTrack(8);
+            }
+            else if (type == "TIMING_DIVIDE_12") {
+                DivideTimingTrack(12);
+            }
+            else if (type == "TIMING_DIVIDE_16") {
+                DivideTimingTrack(16);
             } else if (type == "EFFECTS_TO_TIMING") {
                 PanelEffectGrid->CreateTimingFromSelectedEffects();
             } else if (type == "SELECT_TIMING_1") {
@@ -1854,6 +1875,66 @@ void MainSequencer::SplitTimingMark()
                 DisplayError("Timing placement error: Timing cannot be split across timing marks.");
             }
         }
+    }
+}
+
+void MainSequencer::DivideTimingTrack(int divisor)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    int selectedTiming = mSequenceElements->GetSelectedTimingRow();
+    if (selectedTiming >= 0)
+    {
+        Element* e = mSequenceElements->GetVisibleRowInformation(selectedTiming)->element;
+        EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(selectedTiming)->layerIndex);
+
+        if (el == nullptr)
+        {
+            logger_base.crit("MainSequencer::DivideTimingTrack el is nullptr ... this is going to crash.");
+            return;
+        }
+
+        if (el->IsFixedTimingLayer())
+        {
+            logger_base.warn("MainSequencer::DivideTimingTrack Cannot divide fixed timing layer.");
+            return;
+        }
+
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
+        auto frequency = PanelTimeLine->GetTimeFrequency();
+        int base_timing = 1000.0 / frequency;
+
+        for (int i = 0; i < el->GetEffectCount(); i++) {
+            auto ef = el->GetEffect(i);
+            if (ef->GetSelected()) {
+                long s = ef->GetStartTimeMS();
+                long e_time = ef->GetEndTimeMS();
+                if (e_time - s > base_timing) {
+                    float splitf = (float)(e_time - s) / (float)divisor;
+                    mSequenceElements->get_undo_mgr().CaptureModifiedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID(), ef->GetSettingsAsString(), ef->GetPaletteAsString());
+                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID(), ef->GetStartTimeMS(), ef->GetEndTimeMS());
+                    long newend = TimeLine::RoundToMultipleOfPeriod((float)s + splitf, frequency);
+                    ef->SetEndTimeMS(newend);
+
+                    for (int j = 1; j < divisor; j++) {
+                        long newstart = newend;
+                        if (j == divisor - 1) {
+                            newend = e_time;
+                        } else {
+                            newend = TimeLine::RoundToMultipleOfPeriod((long)((float)s + splitf * (float)(j + 1)), frequency);
+                        }
+
+                        if (newstart != newend) {
+                            Effect* newef = el->AddEffect(0, "", "", "", newstart, newend, EFFECT_SELECTED, false);
+                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
+                            ++i; // jump over the one we just inserted
+                        }
+                    }
+                    ef->SetSelected(EFFECT_SELECTED);
+                }
+            }
+        }
+        PanelEffectGrid->ForceRefresh();
     }
 }
 
