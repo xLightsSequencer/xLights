@@ -53,29 +53,33 @@ public:
         _running = true;
 
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Pinging thread %s started", (const char*)_pinger->GetName().c_str());
 
-        while (!_stop) {
-            auto res = Output::PINGSTATE::PING_UNKNOWN;
+        if (_pinger->IsInactive()) {
+            logger_base.debug("Pinging thread %s is inactive. Skipping", (const char*)_pinger->GetName().c_str());
+        } else {
+            logger_base.debug("Pinging thread %s started", (const char*)_pinger->GetName().c_str());
+            while (!_stop) {
+                auto res = Output::PINGSTATE::PING_UNKNOWN;
 
-            // if it previously failed ... only try once
-            int loops = PINGRETRIES;
-            if (_pinger->GetFailCount() > 0)
-                loops = 1;
+                // if it previously failed ... only try once
+                int loops = PINGRETRIES;
+                if (_pinger->GetFailCount() > 0)
+                    loops = 1;
 
-            for (int i = 0; !_stop && i < loops; i++) {
-                res = _pinger->Ping();
-                if (res != Output::PINGSTATE::PING_ALLFAILED) {
-                    break;
+                for (int i = 0; !_stop && i < loops; i++) {
+                    res = _pinger->Ping();
+                    if (res != Output::PINGSTATE::PING_ALLFAILED) {
+                        break;
+                    }
                 }
-            }
-            _pinger->SetPingResult(res);
+                _pinger->SetPingResult(res);
 
-            int count = 0;
+                int count = 0;
 
-            while (!_stop && count < _pinger->GetPingInterval() * 100) {
-                wxMilliSleep(10);
-                count++;
+                while (!_stop && count < _pinger->GetPingInterval() * 100) {
+                    wxMilliSleep(10);
+                    count++;
+                }
             }
         }
         _running = false;
