@@ -408,6 +408,7 @@ protected:
 
     static const long ID_MNU_SETALL;
     static const long ID_MNU_SETALLPLAY;
+    static const long ID_MNU_SETALLDAYS;
 
     static const long ID_MNU_SETMASTER;
     static const long ID_MNU_SETREMOTE;
