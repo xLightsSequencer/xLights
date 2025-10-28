@@ -961,31 +961,36 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& fi
             _mmapSize = file.Length();
             _mmap = (uint8_t*)mmap(nullptr, _mmapSize, PROT_READ, MAP_PRIVATE, file.fd(), 0);
             
-            size_t cur = _firstFrameOffset;
-            for (auto& itm : _frames) {
-                for (int i = 0; i < itm.second.size(); i++) {
-                    itm.second[i] = &_mmap[cur];
-                    cur += _frameSize.at(itm.first);
-                }
-            }
-        } else
-#endif
-        {
-            file.Seek(_firstFrameOffset);
-            for (auto& itm : _frames) {
-                for (int i = 0; i < itm.second.size(); i++) {
-                    uint8_t* frameBuffer = (uint8_t *)malloc(_frameSize.at(itm.first));
-                    
-                    if (frameBuffer == nullptr) {
-                        file.Close();
-                        PurgeFrames();
-                        logger_base.debug("Render Cache Item file %s fails due to memory allocation issue.", (const char*)filename.c_str());
-                        return;
+            if (_mmap == MAP_FAILED) {
+                _mmap = nullptr;
+                _mmapSize = 0;
+            } else {
+                size_t cur = _firstFrameOffset;
+                for (auto& itm : _frames) {
+                    for (int i = 0; i < itm.second.size(); i++) {
+                        itm.second[i] = &_mmap[cur];
+                        cur += _frameSize.at(itm.first);
                     }
-                    
-                    file.Read(frameBuffer, _frameSize.at(itm.first));
-                    itm.second[i] = frameBuffer;
                 }
+                file.Close();
+                return;
+            }
+        }
+#endif
+        file.Seek(_firstFrameOffset);
+        for (auto& itm : _frames) {
+            for (int i = 0; i < itm.second.size(); i++) {
+                uint8_t* frameBuffer = (uint8_t *)malloc(_frameSize.at(itm.first));
+                
+                if (frameBuffer == nullptr) {
+                    file.Close();
+                    PurgeFrames();
+                    logger_base.debug("Render Cache Item file %s fails due to memory allocation issue.", (const char*)filename.c_str());
+                    return;
+                }
+                
+                file.Read(frameBuffer, _frameSize.at(itm.first));
+                itm.second[i] = frameBuffer;
             }
         }
         file.Close();
@@ -1020,7 +1025,11 @@ void RenderCacheItem::remmap() {
         file.Seek(0);
         _mmapSize = file.Length();
         _mmap = (uint8_t*)mmap(nullptr, _mmapSize, PROT_READ, MAP_PRIVATE, file.fd(), 0);
-        
+        if (_mmap == MAP_FAILED) {
+            _mmap = nullptr;
+            _mmapSize = 0;
+            return;
+        }
         size_t cur = _firstFrameOffset;
         for (auto& itm : _frames) {
             for (int i = 0; i < itm.second.size(); i++) {
