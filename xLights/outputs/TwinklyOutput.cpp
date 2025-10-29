@@ -322,12 +322,15 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
         logger_base.error("Twinkly: Error %d : %s", responseCode, (const char*)httpResponse.c_str());
     }
 
-    nlohmann::json jsonDoc;
     try {
-        jsonDoc = nlohmann::json::parse(httpResponse);
+        result = nlohmann::json::parse(httpResponse, nullptr, false);
+        if (result.is_discarded()) {
+            logger_base.error("Twinkly: Returned json is not valid: " + httpResponse + "'");
+            return false;
+        }
         // int32_t code;
-        if (!jsonDoc.contains("code") && jsonDoc.at("code").get<int>() != 1000) {
-            logger_base.error("Twinkly: Server returned: " + std::to_string(jsonDoc.at("code").get<int>()));
+        if (!result.contains("code") && result.at("code").get<int>() != 1000) {
+            logger_base.error("Twinkly: Server returned: " + std::to_string(result.at("code").get<int>()));
             return false;
         }
     } catch (const nlohmann::json::parse_error& e) {
