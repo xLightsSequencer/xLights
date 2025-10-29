@@ -24,7 +24,7 @@
 class EspsV4Protocol
 {
 public:
-    void ParseV4Settings(wxString Id, nlohmann::json & JsonConfig);
+    void ParseV4Settings(wxString Id, const nlohmann::json& JsonConfig);
     bool GetSetting(wxString Name, wxString & value);
     bool PutSetting(wxString Name, const wxString & value);
     int WriteConfigToJson(nlohmann::json& JsonConfig);
@@ -50,7 +50,7 @@ public:
     std::map<wxString, EspsV4Protocol> ProtocolsByName;
     std::map<wxString, wxString> ProtocolIdToProtocolName;
 
-    bool ParseV4Settings(nlohmann::json& JsonConfig);
+    bool ParseV4Settings(const nlohmann::json& JsonConfig);
     bool WriteConfigToJson(nlohmann::json& JsonConfig);
     void Disable() {
         CurrentProtocolId = DisabledId;
