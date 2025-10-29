@@ -139,7 +139,7 @@ bool ESPixelStick::SetOutputConfig(nlohmann::json& Data) {
     return ((_UsingHttpConfig) ? SetHttpConfig("output_config", "output_config", Data) : SetWsConfig("output", "output_config", Data));
 }
 
-bool ESPixelStick::GetHttpConfig(std::string FileName, std::string key, nlohmann::json& Response) {
+bool ESPixelStick::GetHttpConfig(std::string const& FileName, std::string const& key, nlohmann::json& Response) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("GetHttpConfig: Getting ESPSv4 HTTP config file");
 
@@ -153,7 +153,7 @@ bool ESPixelStick::GetHttpConfig(std::string FileName, std::string key, nlohmann
     return (0 != Response.size());
 }
 
-bool ESPixelStick::SetHttpConfig(std::string filename, std::string key, nlohmann::json& _Data) {
+bool ESPixelStick::SetHttpConfig(std::string const& filename, std::string const& key, nlohmann::json const& _Data) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("SetHttpConfig: Setting ESPSv4 HTTP config file");
 
@@ -161,7 +161,7 @@ bool ESPixelStick::SetHttpConfig(std::string filename, std::string key, nlohmann
 
     nlohmann::json newJson;
     newJson[key] = _Data;
-    auto Data = newJson.dump();
+    std::string Data = newJson.dump();
     // logger_base.debug(std::string("SetHttpConfig: Data: '") + Data + "'");
 
     std::string contentType = "application/json";
@@ -173,7 +173,7 @@ bool ESPixelStick::SetHttpConfig(std::string filename, std::string key, nlohmann
     return (200 == ReturnCode);
 }
 
-bool ESPixelStick::GetWsConfig(std::string SectionName, std::string key, nlohmann::json& Response) {
+bool ESPixelStick::GetWsConfig(std::string const& SectionName, std::string const& key, nlohmann::json& Response) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("GetWsConfig: Getting ESPSv4 HTTP config file");
 
@@ -188,7 +188,7 @@ bool ESPixelStick::GetWsConfig(std::string SectionName, std::string key, nlohman
     return (0 != Response.size());
 }
 
-bool ESPixelStick::SetWsConfig(std::string SectionName, std::string key, nlohmann::json& Data) {
+bool ESPixelStick::SetWsConfig(std::string const& SectionName, std::string const& key, nlohmann::json const & Data) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("SetWsConfig: Setting ESPSv4 HTTP config file");
 
@@ -221,11 +221,13 @@ std::string ESPixelStick::GetWSResponse()
     return resp;
 }
 
-std::string ESPixelStick::GetFromJSON(std::string const& section, std::string const& key, std::string const& json) const {
+std::string ESPixelStick::GetFromJSON(std::string const& section, std::string const& key, std::string const & json) const {
     //skip over the "G2" header or whatever
-    for (int x = 0; x < json.size(); x++) {
-        if (json[x] == '{' || json[x] == '[') {
-            auto config = json.substr(x);
+    for (int x = 0; x < json.size(); x++)
+    {
+        if (json[x] == '{' || json[x] == '[')
+        {
+            std::string config = json.substr(x);
             nlohmann::json origJson = nlohmann::json::parse(config);
             nlohmann::json val = origJson;
             if (section != "") {
@@ -446,7 +448,7 @@ bool EspsV4Protocol::PutSetting(wxString Name, const wxString & value)
     return Response;
 } // PutSetting
 
-void EspsV4Protocol::ParseV4Settings(wxString Id, nlohmann::json & JsonConfig)
+void EspsV4Protocol::ParseV4Settings(wxString Id, const nlohmann::json & JsonConfig)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // logger_base.debug("EspsV4Protocol:ParseV4Config: Start");
@@ -489,7 +491,7 @@ void EspsV4Protocol::ParseV4Settings(wxString Id, nlohmann::json & JsonConfig)
 
 } // ParseV4Settings
 
-bool EspsPort::ParseV4Settings(nlohmann::json& JsonConfig)
+bool EspsPort::ParseV4Settings(const nlohmann::json& JsonConfig)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // logger_base.debug("EspsPort:ParseV4Config: Start");
@@ -586,18 +588,26 @@ bool ESPixelStick::ParseV4Config(nlohmann::json& outputConfig) {
 
 } // ParseV4Config
 
-bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
+bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent)
+{
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("ESPixelStick Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
-    auto rules = ControllerCaps::GetControllerConfig(controller);
+    ControllerCaps * rules = ControllerCaps::GetControllerConfig(controller);
     bool success = cud.Check(rules, check);
     cud.Dump();
     logger_base.debug(check);
 
-    if (success) {
+    do // once
+    {
+        if (!success)
+        {
+            // could not set up the data
+            break;
+        }
+
         bool changed = false;
         nlohmann::json outputConfig;
 
@@ -608,7 +618,8 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
             // no valid config present
             std::string msg = "ESPixelStick Outputs Upload: Could not parse config from ESPixelstick";
             DisplayError(msg);
-            return false;
+            success = false;
+            break;
         }
 
         for (int currentPortId = 0; currentPortId < cud.GetMaxPixelPort(); currentPortId++)
@@ -628,7 +639,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                 // not a valid ESPS port
                 CurrentEspsPort.Disable();
                 continue;
-        	}
+            }
 
             wxString targetProtocolName = port->GetProtocol();
             targetProtocolName = targetProtocolName.Lower();
@@ -656,7 +667,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
 
             int numberOfChannels = port->Channels();
 
-            auto model = port->GetModels().front();
+            UDControllerPortModel* model = port->GetModels().front();
             if (model)
             {
                 int channelsPerPixel = model->GetChannelsPerPixel();
@@ -716,10 +727,9 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
             }
 
             UDControllerPort* port = cud.GetControllerSerialPort(currentPortId + 1);
-            auto model = port->GetModels().front();
+            UDControllerPortModel* model = port->GetModels().front();
 
-            if (!model)
-            {
+            if (!model) {
                 // no model then ignore the port
                 CurrentEspsPort.Disable();
                 continue;
@@ -761,17 +771,23 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
 
         if (changed)
         {
-            if (SetOutputConfig(outputConfig)) {
+            if (SetOutputConfig(outputConfig))
+            {
                 success = true;
                 logger_base.debug("ESPixelStick Outputs Upload: Success!!!");
-            } else {
+            }
+            else
+            {
                 success = false;
                 logger_base.error("ESPixelStick Outputs Upload: Failure!!!");
             }
-        } else {
-            logger_base.debug("ESPixelStick Outputs Upload: No Changes to upload");
         }
-    }
+        else
+        {
+            logger_base.debug("ESPixelStick Outputs Upload: No Changes to upload");
+            success = true;
+        }
+    } while (false);
 
     return success;
 }
@@ -783,7 +799,7 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
 
-    auto rules = ControllerCaps::GetControllerConfig(controller);
+    ControllerCaps * rules = ControllerCaps::GetControllerConfig(controller);
     bool success = cud.Check(rules, check);
 
     cud.Dump();
@@ -820,7 +836,7 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
         newJson["e131"]["channel_count"] = port->Channels();
         newJson["e131"]["multicast"] = ((cud.GetFirstOutput()->GetIP() == "MULTICAST") ? true : false);
 
-        auto s = port->GetModels().front();
+        UDControllerPortModel * s = port->GetModels().front();
         if (s) {
             int const brightness = s->GetBrightness(-9999);
             std::string const colourOrder = s->GetColourOrder("unknown");
