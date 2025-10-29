@@ -45,8 +45,17 @@ class Falcon : public BaseController
             universe = json["u"].get<int>();
             channels = json["c"].get<int>();
             universeCount = json["uc"].get<int>();
-            protocol = json.get<std::string>() == "e" ? 0 : 1;
+            protocol = json["p"].get<std::string>() == "e" ? 0 : 1;
         }
+
+        nlohmann::json asJson() const {
+            nlohmann::json json;
+            json["u"] = universe;
+            json["c"] = channels;
+            json["uc"] = universeCount;
+            json["p"] = (protocol == 0 ? "e" : "a");
+            return json;
+        };
 
         int universe;
         int channels;
@@ -76,6 +85,27 @@ class Falcon : public BaseController
             pixels = json["n"].get<int>();              // n
             protocol = json["l"].get<int>();
             startChannel = json["sc"].get<int>();
+        }
+        nlohmann::json asJson() const {
+            nlohmann::json json;
+            json["l"] = protocol;
+            json["p"] = port;
+            json["r"] = smartRemote;
+            json["s"] = string;
+            json["v"] = direction;
+            json["u"] = universe;
+            json["sc"] = startChannel;
+            json["n"] = pixels;
+            json["z"] = zigcount;
+            json["ns"] = startNulls;
+            json["ne"] = endNulls;
+            json["g"] = gamma;
+            json["o"] = colourOrder;
+            json["b"] = brightness;
+            json["gp"] = group;
+            json["nm"] = name;
+            json["bl"] = (int)blank;
+            return json;
         }
 
         int port;                   // p
@@ -140,7 +170,7 @@ class Falcon : public BaseController
 
     #pragma region Private Functions
 
-    bool IsFirmwareEqualOrGreaterThan(int major, int minor)
+    bool IsFirmwareEqualOrGreaterThan(int major, int minor) const
     {
         return _majorFirmwareVersion > major || (_majorFirmwareVersion == major && _minorFirmwareVersion >= minor);
     }

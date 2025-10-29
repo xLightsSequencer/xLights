@@ -61,28 +61,37 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     std::unordered_map<std::string, int> model_test_cols = {};
     std::string const json = GetURL("/settings");
     if (!json.empty()) {
-        nlohmann::json jsonVal = nlohmann::json::parse(json);
-
-        if (jsonVal["ports"].is_array()) {
-            for (int i = 0; i < jsonVal["ports"].size(); i++) {
-                for (int j = 0; j < jsonVal["ports"][i]["models"].size(); j++) {
-                    auto model = jsonVal["ports"][i]["models"][j];
-                    if (model.contains("test_colour")) {
-                        model_test_cols[model["name"].get<std::string>()] = model["test_colour"].get<int>();
+        try {
+            nlohmann::json jsonVal = nlohmann::json::parse(json);
+            if (jsonVal["ports"].is_array()) {
+                for (int i = 0; i < jsonVal["ports"].size(); i++) {
+                    if (jsonVal["ports"][i].contains("models")) {
+                        for (int j = 0; j < jsonVal["ports"][i]["models"].size(); j++) {
+                            auto model = jsonVal["ports"][i]["models"][j];
+                            if (model.contains("test_colour")) {
+                                model_test_cols[model["name"].get<std::string>()] = model["test_colour"].get<int>();
+                            }
+                        }
                     }
                 }
             }
+        } catch (nlohmann::json::parse_error& ex) {
+            logger_base.warn("ILightThat Outputs Upload: Failed to parse JSON: %s", ex.what());
+            logger_base.warn((const char*)json.c_str());
+        } catch (std::exception& e) {
+            logger_base.warn("ILightThat Outputs Upload: Failed to parse JSON: %s", e.what());
+            logger_base.warn((const char*)json.c_str());
         }
     }
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
     auto rules = ControllerCaps::GetControllerConfig(controller);
-    bool success = cud.Check(rules, check);
+    bool const success = cud.Check(rules, check);
 
     if (success) {
         nlohmann::json outputConfig;
-        int first_channel = cud.GetFirstOutput()->GetStartChannel();
+        int const first_channel = cud.GetFirstOutput()->GetStartChannel();
         outputConfig["start_address"] = first_channel;
         outputConfig["start_universe"] = cud.GetFirstOutput()->GetUniverse();
         if (cud.GetFirstOutput()->GetType() == OUTPUT_E131 ||
@@ -139,7 +148,7 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
             outputConfig["ports"][i]["num_pixels"] = 0;
         }
 
-        std::string response = PutURL("/settings", outputConfig.dump(), "", "", "application/json");
+        std::string const response = PutURL("/settings", outputConfig.dump(), "", "", "application/json");
         return (response == "OK");
     }
     return false;

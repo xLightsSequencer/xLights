@@ -9038,46 +9038,30 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     bool found_update = false;
-#ifdef LINUX
-    //wxString hostname = wxT("www.adebenham.com");
-    //wxString path = wxT("/wp-content/uploads/xlights/latest.php");
-    wxString downloadUrl = wxT("https://github.com/xLightsSequencer/xLights/releases/latest");
+    // include 6 tags, first will LIKELY be the nightly, this then includes 5 to walk
+    // back and find one that has the right asset for the platform
+    std::string githubTagURL = "https://api.github.com/repos/xLightsSequencer/xLights/releases?per_page=6";
     MenuItem_Update->Enable(true);
-#else
-#ifdef __WXOSX__
-    //wxString hostname = _T("dankulp.com");
-    //wxString path = _T("/xLightsLatest.php");
-    wxString downloadUrl = wxT("http://dankulp.com/xlights/");
-    if (MenuItem_Update)
-        MenuItem_Update->Enable(true);
-#else
-    //wxString hostname = _T("xlights.org");
-    //wxString path = _T("/downloads/");
-    wxString downloadUrl = wxT("https://xlights.org/downloads/");
-    //wxString path = _T("/releases/");
-    // wxString downloadUrl = wxT("https://xlights.org/releases/");
-    //wxString downloadUrl2 = wxT("https://github.com/xLightsSequencer/xLights/releases/latest");
-    logger_base.debug("Downloading %s", (const char*)downloadUrl.c_str());
-    MenuItem_Update->Enable(true);
-#endif
-#endif
-    std::string resp;
+    int rc = 0;
+    logger_base.debug("Downloading %s", (const char*)githubTagURL.c_str());
+    
     bool didConnect = false;
-    for (int retry = 0; retry < maxRetries; retry++) {
-        logger_base.debug("Attempting version update check %d/%d...", retry + 1, maxRetries);
-        resp = Curl::HTTPSGet(downloadUrl);
-        if (!resp.empty()) {
-            didConnect = true;
-            break;
-        } else {
-            // If another retry is possible, sleep for N seconds
-            // This avoids overloading the remote server with repeat requests
-            if (retry < maxRetries - 1) {
-                wxSleep(3);
+    std::string resp;
+    nlohmann::json val;
+    for (int retry = 0; retry < maxRetries && !didConnect; retry++) {
+        resp = CurlManager::INSTANCE.doGet(githubTagURL, rc);
+        if (rc == 200 && !resp.empty()) {
+            try {
+                val = nlohmann::json::parse(resp, nullptr, false);
+                if (!val.is_discarded()) {
+                    didConnect = true;
+                }
+            } catch (...) {
             }
+        } else {
+            wxSleep(1);
         }
     }
-
     if (!didConnect) {
         logger_base.debug("Version update check failed. Unable to connect.");
         if (showMessageBoxes) {
@@ -9085,67 +9069,50 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
         }
         return true;
     }
+    wxString configver;
+    wxConfigBase* config = wxConfigBase::Get();
+    if (canSkipUpdates && (config != nullptr)) {
+        config->Read("SkipVersion", &configver);
+    }
 
-    if (!resp.empty()) {
-        wxString configver = wxT("");
-
-
-#ifdef __WXMSW__
-        wxString page = ToWXString(resp);
-
-        // logger_base.debug("    Download page: %s",
-        //     (const char *)page.c_str());
-
-        // find the highest version number in the file
-        wxString urlVersion = xlights_version_string;
-
-        wxRegEx reVersion("xLights[0-9][0-9]_(2[0-9][0-9][0-9]_[0-9][0-9])\\.exe", wxRE_ADVANCED | wxRE_NEWLINE);
-        while (reVersion.Matches(page)) {
-            auto v = reVersion.GetMatch(page, 1);
-            size_t start = -1;
-            size_t len = -1;
-            reVersion.GetMatch(&start, &len, 1);
-            v.Replace("_", ".");
-
-            // logger_base.debug("    Found Version: %s",
-            //     (const char *)v.c_str());
-
-            if (IsVersionOlder(v, urlVersion)) {
-                urlVersion = v;
-            }
-            page = page.Mid(start + len);
-        }
-
-        wxString dlv = urlVersion;
-        dlv.Replace(".", "_");
-        wxString bit = GetBitness();
-        bit.Replace("bit", "");
-        downloadUrl = downloadUrl + "xLights" + bit + "_" + dlv + ".exe";
+#ifdef LINUX
+    const std::string ASSET_EXT = "AppImage";
 #else
-        wxRegEx reVersion("^.*(2[0-9][0-9][0-9]\\.[0-9]*\\.?[0-9]?)[a-z]?[\\.-].*$");
-        wxString urlVersion = ToWXString(resp);
-        reVersion.Replace(&urlVersion, "\\1", 1);
+    const std::string ASSET_EXT = "exe";
 #endif
 
-        wxConfigBase* config = wxConfigBase::Get();
-        if (canSkipUpdates && (config != nullptr)) {
-            config->Read("SkipVersion", &configver);
+    std::string downloadURL;
+    std::string urlVersion;
+    for (int x = 0; x < val.size() && downloadURL.empty(); x++) {
+        if (val[x].contains("name")) {
+            std::string verName = val[x]["name"].get<std::string>();
+            if (verName != "nightly" && val[x].contains("assets")) {
+                // not a nightly, so check if it has the needed asses
+                for (int a = 0 ; a < val[x]["assets"].size(); a++) {
+                    std::string url = val[x]["assets"][a]["browser_download_url"].get<std::string>();
+                    if (url.ends_with(ASSET_EXT)) {
+                        downloadURL = url;
+                        urlVersion = verName;
+                    }
+                }
+            }
         }
+    }
 
-        logger_base.debug("Current Version: '%s'. Latest Available '%s'. Skip Version '%s'.",
-                          (const char*)xlights_version_string.c_str(),
-                          (const char*)urlVersion.c_str(),
-                          (const char*)configver.c_str());
-
+    logger_base.debug("Current Version: '%s'. Latest Available '%s'. Skip Version '%s'.",
+                      (const char*)xlights_version_string.c_str(),
+                      (const char*)urlVersion.c_str(),
+                      (const char*)configver.c_str());
+    if (!downloadURL.empty()) {
 #ifndef SIMULATE_UPGRADE
-        if ((!urlVersion.Matches(configver)) && (!urlVersion.Matches(xlights_version_string)) && IsVersionOlder(urlVersion, xlights_version_string))
+        if ((urlVersion != configver) && (urlVersion != xlights_version_string) && IsVersionOlder(urlVersion, xlights_version_string))
 #endif
         {
             found_update = true;
             UpdaterDialog* dialog = new UpdaterDialog(this);
 
             dialog->urlVersion = urlVersion;
-            dialog->downloadUrl = downloadUrl;
+            dialog->downloadUrl = downloadURL;
             dialog->StaticTextUpdateLabel->SetLabel(wxT("You are currently running xLights " + xlights_version_string + "\n" + "Whereas the current release is " + urlVersion));
             dialog->Show();
         }
@@ -9827,7 +9794,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                         auto name = n->GetName().Lower();
                         if (name == "targetfile") {
                             if (n->GetChildren() != nullptr) {
-                                targetFile.SetName(n->GetChildren()->GetContent());
+                                targetFile.SetFullName(n->GetChildren()->GetContent());
                             }
                         } else if (name == "items") {
                             for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {

@@ -158,9 +158,12 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                 return sendResponse("Sequence already open.", "msg", 503, false);
             }
             auto oldPrompt = _promptBatchRenderIssues;
+            auto oldRenderMode = _renderMode;
+            if (!prompt) _renderMode = true;
             _promptBatchRenderIssues = prompt; // off by default
             OpenSequence(seq, nullptr);
             _promptBatchRenderIssues = oldPrompt;
+            _renderMode = oldRenderMode;
             std::string response = wxString::Format("{\"seq\":\"%s\",\"fullseq\":\"%s\",\"media\":\"%s\",\"len\":%u,\"framems\":%u}",
                                                     JSONSafe(CurrentSeqXmlFile->GetName()),
                                                     JSONSafe(CurrentSeqXmlFile->GetFullPath()),

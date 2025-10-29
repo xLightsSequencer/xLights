@@ -82,13 +82,13 @@ private:
     bool GetAdminInformation(nlohmann::json& Result);
     bool GetInputConfig(nlohmann::json& Result);
     bool GetOutputConfig(nlohmann::json& Result);
-    bool GetHttpConfig(std::string FileName, std::string key, nlohmann::json& Result);
-    bool GetWsConfig(std::string FileName, std::string key, nlohmann::json& Result);
+    bool GetHttpConfig(std::string const& FileName, std::string const& key, nlohmann::json& Result);
+    bool GetWsConfig(std::string const& FileName, std::string const& key, nlohmann::json& Result);
 
     bool SetInputConfig(nlohmann::json& Data);
     bool SetOutputConfig(nlohmann::json& Data);
-    bool SetHttpConfig(std::string FileName, std::string key, nlohmann::json& Data);
-    bool SetWsConfig(std::string FileName, std::string key, nlohmann::json& Data);
+    bool SetHttpConfig(std::string const& FileName, std::string const& key, nlohmann::json const& Data);
+    bool SetWsConfig(std::string const& FileName, std::string const& key, nlohmann::json const& Data);
 
     bool SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);
     bool SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);

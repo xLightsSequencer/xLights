@@ -81,6 +81,7 @@ const long HinksPixExportDialog::ID_MNU_DESELECTHIGH = wxNewId();
 
 const long HinksPixExportDialog::ID_MNU_SETALL = wxNewId();
 const long HinksPixExportDialog::ID_MNU_SETALLPLAY = wxNewId();
+const long HinksPixExportDialog::ID_MNU_SETALLDAYS = wxNewId();
 
 const long HinksPixExportDialog::ID_MNU_UPLOADSCHEDULE = wxNewId();
 const long HinksPixExportDialog::ID_MNU_SETTIME = wxNewId();
@@ -738,7 +739,8 @@ void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
 {
     int id = event.GetId();
     int col = GridSchedule->GetGridCursorCol();
-    wxString name = GridSchedule->GetColLabelValue(col);
+    int row = GridSchedule->GetGridCursorRow();
+    wxString const name = GridSchedule->GetColLabelValue(col);
     int min = 0;
     int max = 59;
     if (id == ID_MNU_SETALL) {
@@ -752,12 +754,23 @@ void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
             default:
                 break;
             }
-            wxNumberEntryDialog dlg(this, "", "Set " + name, "Set " + name, 0, min, max);
+            auto const val = GridSchedule->GetCellValue(row, col);
+            int ival = wxAtoi(val);
+            wxNumberEntryDialog dlg(this, "", "Set " + name, "Set " + name, ival, min, max);
             if (dlg.ShowModal() == wxID_OK) {
                 for (int i = 0; i < GridSchedule->GetNumberRows(); ++i) {
                     GridSchedule->SetCellValue(i, col, wxString::Format("%i", dlg.GetValue()));
                 }
             }
+        } else if (col == static_cast<int>(ScheduleColumn::PlayList)) {
+            for (int ccol = static_cast<int>(ScheduleColumn::StartHour);
+                 ccol <= static_cast<int>(ScheduleColumn::Enabled); ++ccol) {
+                auto val = GridSchedule->GetCellValue(row, ccol);
+                for (int i = 0; i < GridSchedule->GetNumberRows(); ++i) {
+                    GridSchedule->SetCellValue(i, ccol, val);
+                }
+            }
+            
         } else if (col <= static_cast<int>(ScheduleColumn::Enabled)) {
             wxTextEntryDialog dlg(this, "Set " + name, "Set " + name, "X");
             if (dlg.ShowModal() == wxID_OK) {
@@ -767,8 +780,8 @@ void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
             }
         }
     } else if (id == ID_MNU_SETALLPLAY) {
-        int row = GridSchedule->GetGridCursorRow();
-        auto playList = GridSchedule->GetCellValue(row, static_cast<int>(ScheduleColumn::PlayList));
+        //int row = GridSchedule->GetGridCursorRow();
+        auto const playList = GridSchedule->GetCellValue(row, static_cast<int>(ScheduleColumn::PlayList));
         if (col <= static_cast<int>(ScheduleColumn::EndMin) &&
             col >= static_cast<int>(ScheduleColumn::StartHour)) {
             switch (static_cast<ScheduleColumn>(col)) {
@@ -779,12 +792,25 @@ void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
             default:
                 break;
             }
-            wxNumberEntryDialog dlg(this, "", "Set " + name, "Set " + name, 0, min, max);
+            auto const val = GridSchedule->GetCellValue(row, col);
+            int ival = wxAtoi(val);
+            wxNumberEntryDialog dlg(this, "", "Set " + name, "Set " + name, ival, min, max);
             if (dlg.ShowModal() == wxID_OK) {
                 for (int i = 0; i < GridSchedule->GetNumberRows(); ++i) {
                     auto row_playList = GridSchedule->GetCellValue(i, static_cast<int>(ScheduleColumn::PlayList));
                     if (row_playList == playList) {
                         GridSchedule->SetCellValue(i, col, wxString::Format("%i", dlg.GetValue()));
+                    }
+                }
+            }
+        } else if (col == static_cast<int>(ScheduleColumn::PlayList)) {
+            for (int ccol = static_cast<int>(ScheduleColumn::StartHour);
+                 ccol <= static_cast<int>(ScheduleColumn::Enabled); ++ccol) {
+                auto val = GridSchedule->GetCellValue(row, ccol);
+                for (int i = 0; i < GridSchedule->GetNumberRows(); ++i) {
+                    auto row_playList = GridSchedule->GetCellValue(i, static_cast<int>(ScheduleColumn::PlayList));
+                    if (row_playList == playList) {
+                        GridSchedule->SetCellValue(i, ccol, val);
                     }
                 }
             }
@@ -795,6 +821,34 @@ void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
                     auto row_playList = GridSchedule->GetCellValue(i, static_cast<int>(ScheduleColumn::PlayList));
                     if (row_playList == playList) {
                         GridSchedule->SetCellValue(i, col, dlg.GetValue());
+                    }
+                }
+            }
+        }
+    } else if (id == ID_MNU_SETALLDAYS) {
+        // int row = GridSchedule->GetGridCursorRow();
+        auto const playList = GridSchedule->GetCellValue(row, static_cast<int>(ScheduleColumn::PlayList));
+        wxArrayString days;
+        std::transform(DAYS.begin(), DAYS.end(), std::back_inserter(days), [](auto const& s) { return s; });
+
+        wxMultiChoiceDialog dlg(this, "Select Days to Apply Changes", "Select Days", days);
+        if (dlg.ShowModal() == wxID_OK) {
+            wxArrayInt selections = dlg.GetSelections();
+
+            wxArrayString day_selections;
+            std::transform(selections.begin(), selections.end(), std::back_inserter(day_selections),
+                           [days](auto s) { return days[s]; });
+
+            if (col == static_cast<int>(ScheduleColumn::PlayList)) {
+                for (int ccol = static_cast<int>(ScheduleColumn::StartHour);
+                    ccol <= static_cast<int>(ScheduleColumn::Enabled); ++ccol) {
+                    auto val = GridSchedule->GetCellValue(row, ccol);
+                    for (int i = 0; i < GridSchedule->GetNumberRows(); ++i) {
+                        auto const row_playList = GridSchedule->GetCellValue(i, static_cast<int>(ScheduleColumn::PlayList));
+                        auto const row_day = GridSchedule->GetRowLabelValue(i);
+                        if (row_playList == playList && day_selections.Index(row_day) != wxNOT_FOUND) {
+                            GridSchedule->SetCellValue(i, ccol, val);
+                        }
                     }
                 }
             }
@@ -1035,14 +1089,15 @@ void HinksPixExportDialog::SaveSettings() {
         if (o.is_open()) {
             o << std::setw(4) << data << std::endl;
         }
-    } catch (const std::exception&) {
-       
-
+    } catch (const std::exception& ex) {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.warn("HinksPixExport SaveSettings: Failed: %s", ex.what());
     }
 }
 
 void HinksPixExportDialog::LoadSettings()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     auto path = xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "hinks_export.json";
     bool loaded{false};
     try {
@@ -1050,35 +1105,47 @@ void HinksPixExportDialog::LoadSettings()
             nlohmann::json data;
             std::ifstream inputFile(path.ToStdString());
             inputFile >> data;
-            std::string folderSelect = data.at("folder").get<std::string>();
-            int const filterSelect = data.at("filter").get<int>();
+            std::string const folderSelect = data.value("folder", std::string());
+            int const filterSelect = data.value("filter", -1);
 
             if (filterSelect != wxNOT_FOUND) {
                 ChoiceFilter->SetSelection(filterSelect);
+            }
+            int ifoldSelect = ChoiceFolder->FindString(folderSelect);
+            if (ifoldSelect != wxNOT_FOUND) {
+                ChoiceFolder->SetSelection(ifoldSelect);
             } else {
                 ChoiceFolder->SetSelection(0);
             }
-            auto tab = data.at("tab").get<int>();
+            auto tab = data.value("tab",0);
             NotebookExportItems->SetSelection(tab);
             LoadSequences();
 
-            auto schedules = data["schedules"].array();
-            if (schedules) {
-                for (int i = 0; i < schedules.size(); ++i) {
-                    m_schedules.emplace_back(schedules.at(i));
+            if (data.contains("schedules")) {
+                auto schedules = data.at("schedules");
+                m_schedules.reserve(schedules.size());
+                for (const auto& sched : schedules) {
+                    m_schedules.emplace_back(sched);
                 }
             }
-            auto playlists = data["playlists"].array();
-            if (playlists) {
-                for (int i = 0; i < playlists.size(); ++i) {
-                    auto play = m_playLists.emplace_back(playlists.at(i));
+            
+            if (data.contains("playlists")) {
+                auto playlists = data.at("playlists");
+                m_playLists.reserve(playlists.size());
+                for (const auto& playlist : playlists) {
+                    auto play = m_playLists.emplace_back(playlist);
                     ChoicePlaylists->AppendString(play.Name);
                 }
             }
             loaded = true;
-            ApplySavedSettings(data["controllers"]);
+            if (data.contains("controllers")) {
+                ApplySavedSettings(data.at("controllers"));
+            }
         }
-    } catch (std::exception& ex) {
+    } catch (nlohmann::json::parse_error& ex) {
+        logger_base.warn("HinksPixExport LoadSettings: Failed to parse JSON: %s", ex.what());
+    } catch (std::exception& e) {
+        logger_base.warn("HinksPixExport LoadSettings: Failed to parse JSON: %s", e.what());
     }
 
     if (m_schedules.empty()) {
@@ -1097,7 +1164,7 @@ void HinksPixExportDialog::LoadSettings()
     }
 }
 
-void HinksPixExportDialog::ApplySavedSettings(nlohmann::json json) {
+void HinksPixExportDialog::ApplySavedSettings(nlohmann::json controllers) {
     /*
     static const std::string CHECK_COL = "ID_UPLOAD_";
     static const std::string MODE_COL = "ID_MODE_";
@@ -1106,19 +1173,17 @@ void HinksPixExportDialog::ApplySavedSettings(nlohmann::json json) {
     static const std::string DISK_COL = "ID_DISK_";
      */
 
-    if (!json.is_array()) {
+    if (!controllers.is_array()) {
         return;
     }
-    auto controllers = json.array();
     if (controllers.is_null()) {
         return;
     }
     int row = 0;
     for (const auto& hix : m_hixControllers) {
-        std::string rowStr = std::to_string(row);
+        std::string const rowStr = std::to_string(row);
 
-        for (int i = 0; i < controllers.size(); ++i) {
-            auto controller = controllers.at(i);
+        for (auto const& controller: controllers) {
             if (hix->GetIP() == controller.at("ip").get<std::string>()) {
                 SetCheckValue(CHECK_COL + rowStr, controller.at("enabled").get<bool>());
                 SetChoiceValue(MODE_COL + rowStr, controller.at("mode").get<std::string>());
@@ -1152,6 +1217,7 @@ void HinksPixExportDialog::OnGridScheduleCellRightClick(wxGridEvent& event)
     wxMenu mnu;
     mnu.Append(ID_MNU_SETALL, "Set All");
     mnu.Append(ID_MNU_SETALLPLAY, "Set All - PlayList");
+    mnu.Append(ID_MNU_SETALLDAYS, "Copy Row to Other Days");
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&HinksPixExportDialog::OnPopupGrid, nullptr, this);
     PopupMenu(&mnu);
 }
@@ -1309,7 +1375,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
                 continue;
             }
         }
-        std::vector<wxString> filesDone;
+        std::vector<std::string> filesDone;
         for (auto & playlist : m_playLists) {
             bool worked {true};
             for (auto& play : playlist.Items) {
@@ -2263,7 +2329,7 @@ void HinksPixExportDialog::RedrawSchedules()
         row++;
     };
 
-    for (auto day : DAYS) {
+    for (auto const& day : DAYS) {
         if (auto dayRef = GetSchedule(day); dayRef) {
             auto const& sch = dayRef->get();
             auto playLists = ChoicePlaylists->GetStrings();
@@ -2277,7 +2343,7 @@ void HinksPixExportDialog::RedrawSchedules()
             }
 
             //draw new playlists not already in schedule
-            for (auto play : playLists) {
+            for (auto const& play : playLists) {
                 DrawDefaultPlaylist(day, play);
             }
         } else {

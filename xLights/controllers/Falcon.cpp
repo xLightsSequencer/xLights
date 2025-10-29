@@ -56,7 +56,7 @@ std::vector<std::string> Falcon::V4_GetMediaFiles() {
         nlohmann::json outParams;
         if (CallFalconV4API("Q", "WV", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
             for (auto item : outParams.at("F").array()) {
-                res.push_back(item["f"].get<std::string>());
+                res.push_back(item.get<std::string>());
             }
 
             batch++;
@@ -126,7 +126,12 @@ int Falcon::CallFalconV4API(const std::string& type, const std::string& method, 
     // {"T":"S","M":"IN","B":0,"E":1,"I":0,"P":{"A":[{"u":1,"c":512,"uc":16,"p":"e"}]}}
     // {"R":200,"T":"S","M":"IN","F":1,"B":0,"RB":0,"P":{},"W":"","L":""}
 
-    auto p = params.dump();
+    std::string p;
+    if (!params.is_null()) {
+        p = params.dump();
+    } else {
+        p = "{}";
+    }
 
     std::string send = wxString::Format("{\"T\":\"%s\",\"M\":\"%s\",\"B\":%d,\"E\":%d,\"I\":%d,\"P\":%s}", type, method, inbatch, expected, index, p).ToStdString();
 
@@ -162,7 +167,7 @@ bool Falcon::V4_GetInputs(std::vector<FALCON_V4_INPUTS>& res) {
         bool reboot;
         nlohmann::json outParams;
         if (CallFalconV4API("Q", "IN", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
-            for (auto const& inpj : outParams["A"].array()) {
+            for (auto const& inpj : outParams["A"]) {
                 res.emplace_back(inpj);
             }
 
@@ -194,18 +199,13 @@ bool Falcon::V4_SendInputs(std::vector<FALCON_V4_INPUTS>& res, bool& reboot) {
     bool success = true;
     int batch = 0;
     while (success && left > 0) {
-        std::string params = "{\"A\":[";
+
+        nlohmann::json p;
 
         for (size_t i = batch * FALCON_V4_SEND_INPUT_BATCH_SIZE; i < (batch + 1) * FALCON_V4_SEND_INPUT_BATCH_SIZE && i < res.size(); ++i) {
-            if (batch != 0)
-                params += ",";
-            params += wxString::Format("{\"u\":%d,\"c\":%d,\"uc\":%d,\"p\":\"%c\"}", res[i].universe, res[i].channels, res[i].universeCount, (res[i].protocol == 0 ? 'e' : 'a')).ToStdString();
+            p["A"].push_back(res[i].asJson());
             --left;
         }
-
-        params += "]}";
-
-        nlohmann::json p = nlohmann::json::parse(params);
 
         bool finalCall;
         int outBatch;
@@ -262,8 +262,8 @@ bool Falcon::V4_GetStatus(nlohmann::json& res) {
         bool reboot;
         nlohmann::json outParams;
         if (CallFalconV4API("Q", "ST", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
-            for (const auto& n : outParams) {
-                res[n] = nlohmann::json(outParams[n]);
+            for (const auto& [key, val] : outParams.items()) {
+                res[key] = (outParams[key]);
             }
 
             ++batch;
@@ -352,7 +352,7 @@ bool Falcon::V4_GetStrings(std::vector<FALCON_V4_STRING>& res) {
         bool reboot;
         nlohmann::json outParams;
         if (CallFalconV4API("Q", "SP", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
-            for (auto const& inpj : outParams["A"].array()) {
+            for (auto const& inpj : outParams["A"]) {
                 res.emplace_back(inpj);
             }
             ++batch;
@@ -405,36 +405,15 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
     int batch = 0;
     while (success && left > 0) {
         // a board mode of 255 means dont change anything
-        std::string params = wxString::Format("{\"AD\":%d,\"B\":%d,\"ps\":-10,\"A\":[", addressingMode, 255, startChannel).ToStdString();
-
+        //std::string params = wxString::Format("{\"AD\":%d,\"B\":%d,\"ps\":-10,\"A\":[", addressingMode, 255, startChannel).ToStdString();
+        nlohmann::json p;
+        p["AD"] = addressingMode;
+        p["B"] = 255;
+        p["ps"] = -10;
         for (size_t i = batch * FALCON_V4_SEND_STRING_BATCH_SIZE; i < (batch + 1) * FALCON_V4_SEND_STRING_BATCH_SIZE && i < res.size(); i++) {
-            if (batch != 0 || i != 0)
-                params += ",";
-            params += wxString::Format("{\"l\":%d,\"p\":%d,\"r\":%d,\"s\":%d,\"v\":%d,\"u\":%d,\"sc\":%d,\"n\":%d,\"z\":%d,\"ns\":%d,\"ne\":%d,\"g\":%d,\"o\":%d,\"b\":%d,\"gp\":%d,\"nm\":\"%s\",\"bl\":%d}",
-                                       res[i].protocol,
-                                       res[i].port,
-                                       res[i].smartRemote,
-                                       res[i].string,
-                                       res[i].direction,
-                                       res[i].universe,
-                                       res[i].startChannel,
-                                       res[i].pixels,
-                                       res[i].zigcount,
-                                       res[i].startNulls,
-                                       res[i].endNulls,
-                                       res[i].gamma,
-                                       res[i].colourOrder,
-                                       res[i].brightness,
-                                       res[i].group,
-                                       res[i].name,
-                                       res[i].blank)
-                          .ToStdString();
+            p["A"].push_back(res[i].asJson());
             --left;
         }
-
-        params += "]}";
-
-        nlohmann::json p = nlohmann::json::parse(params);
 
         bool finalCall;
         int outBatch;
@@ -2643,8 +2622,9 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         return false;
     }
 
-    if (_versionnum == 4 || _versionnum == 5)
+    if (_versionnum == 4 || _versionnum == 5) {
         return V4_SetOutputs(allmodels, outputManager, controller, parent, doProgress);
+    }
 
     std::unique_ptr<wxProgressDialog> progress;
     if (doProgress) {
@@ -2652,13 +2632,14 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         progress->Show();
     }
 
-    int defaultBrightness = controller->GetDefaultBrightnessUnderFullControl();
-    float defaultGamma = controller->GetDefaultGammaUnderFullControl();
+    int const defaultBrightness = controller->GetDefaultBrightnessUnderFullControl();
+    float const defaultGamma = controller->GetDefaultGammaUnderFullControl();
 
     logger_base.debug("Falcon Outputs Upload: Uploading to %s Brightness=%d Gamma=%.1f", (const char*)_ip.c_str(), defaultBrightness, defaultGamma);
 
-    if (doProgress)
+    if (doProgress) {
         progress->Update(0, "Scanning models");
+    }
     logger_base.info("Scanning models.");
 
     std::string check;
@@ -2678,12 +2659,14 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     int mainPixels = 680;
     int daughter1Pixels = 0;
     int daughter2Pixels = 0;
-    int minuniverse = controller->GetFirstOutput()->GetUniverse();
-    bool absoluteonebased = (controller->GetFirstOutput()->GetType() == OUTPUT_DDP && !dynamic_cast<DDPOutput*>(controller->GetFirstOutput())->IsKeepChannelNumbers());
+    int const minuniverse = controller->GetFirstOutput()->GetUniverse();
+    bool const absoluteonebased = (controller->GetFirstOutput()->GetType() == OUTPUT_DDP && !dynamic_cast<DDPOutput*>(controller->GetFirstOutput())->IsKeepChannelNumbers());
     int32_t firstchannel = 1;
-    if (absoluteonebased)
+    if (absoluteonebased) {
         firstchannel = controller->GetFirstOutput()->GetStartChannel();
+    }
     int32_t firstchanneloncontroller = firstchannel;
+    // this if statement does nothing....
     if (controller->GetFirstOutput()->GetType() == OUTPUT_DDP && dynamic_cast<DDPOutput*>(controller->GetFirstOutput())->IsKeepChannelNumbers()) {
         firstchanneloncontroller = controller->GetFirstOutput()->GetStartChannel();
     } else {
@@ -2698,16 +2681,18 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     std::vector<FalconString*> stringData;
 
     if (!fullcontrol) {
-        if (doProgress)
+        if (doProgress) {
             progress->Update(10, "Retrieving string configuration from Falcon.");
+        }
         logger_base.info("Retrieving string configuration from Falcon.");
 
         // get the current config before I start
-        std::string strings = GetURL("/strings.xml");
+        std::string const strings = GetURL("/strings.xml");
         if (strings == "") {
             DisplayError("Error occured trying to upload to Falcon. strings.xml could not be retrieved.", parent);
-            if (doProgress)
+            if (doProgress) {
                 progress->Update(100, "Aborting.");
+            }
             return false;
         }
 
@@ -2716,13 +2701,15 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
         if (!stringsDoc.IsOk()) {
             DisplayError("Falcon Outputs Upload: Could not parse Falcon strings.xml.", parent);
-            if (doProgress)
+            if (doProgress) {
                 progress->Update(100, "Aborting.");
+            }
             return false;
         }
 
-        if (doProgress)
+        if (doProgress){
             progress->Update(40, "Processing current configuration data.");
+        }
         logger_base.info("Processing current configuration data.");
 
         currentStrings = CountStrings(stringsDoc);
@@ -2749,7 +2736,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         DumpStringData(stringData);
     }
 
-    int maxPixels = GetMaxPixels();
+    int const maxPixels = GetMaxPixels();
     int totalPixelPorts = GetDaughter1Threshold();
     if (IsF48() || cud.GetMaxPixelPort() > GetDaughter2Threshold() ||
         currentStrings > GetDaughter2Threshold()) {
@@ -2769,8 +2756,9 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
     logger_base.info("Falcon pixel split: Main = %d, Expansion1 = %d, Expansion2 = %d", mainPixels, daughter1Pixels, daughter2Pixels);
 
-    if (doProgress)
+    if (doProgress) {
         progress->Update(50, "Configuring string ports.");
+    }
     logger_base.info("Configuring string ports.");
 
     bool portdone[100];
@@ -2872,8 +2860,9 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             for (const auto& sd : stringData) {
                 if (sd->port == pp - 1) {
                     sd->index = index++;
-                    if (sd->port % 4 != 0 && priorSmartRemote != 0 && sd->smartRemote == 0)
+                    if (sd->port % 4 != 0 && priorSmartRemote != 0 && sd->smartRemote == 0) {
                         sd->smartRemote = 1;
+                    }
                     newStringData.push_back(sd);
                 }
                 priorSmartRemote = sd->smartRemote;
@@ -2894,7 +2883,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             mp = std::max(mp, sd->port);
         }
 
-        int quads = (mp + 3) / 4;
+        int const quads = (mp + 3) / 4;
         for (int i = 0; i < quads; i++) {
             int maxRemote = 0;
             for (int j = 0; j < 4; j++) {
@@ -2941,7 +2930,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     int largestDaughter2Port = -1;
 
     for (auto pp = 0; pp < totalPixelPorts; ++pp) {
-        int pixels = GetPixelCount(stringData, pp);
+        int const pixels = GetPixelCount(stringData, pp);
         if (pp < GetBank1Threshold()) {
             if (pixels > maxMain) {
                 maxMain = pixels;
@@ -2960,7 +2949,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         }
     }
 
-    int maxPort = GetMaxPixelPort(stringData);
+    int const maxPort = GetMaxPixelPort(stringData);
 
     if (!SupportsVariableExpansions()) {
         // minimum of main is 1
@@ -3029,7 +3018,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
                 logger_base.debug("Trying to disable unused banks on the F48.");
                 // if it looks like we arent using the last 16 ports and everything is still set to the default
                 if (cud.GetMaxPixelPort() <= 16 && maxDaughter1 == 50 && maxDaughter2 == 50) {
-                    int left = maxPixels - maxMain;
+                    int const left = maxPixels - maxMain;
                     maxDaughter1 = left / 2;
                     maxDaughter1 = std::max(1, maxDaughter1);
                     maxDaughter2 = left - maxDaughter1;
@@ -3090,8 +3079,9 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     }
 
     if (success && stringData.size() > 0) {
-        if (doProgress)
+        if (doProgress) {
             progress->Update(60, "Uploading string ports.");
+        }
 
         if (check != "") {
             DisplayWarning("Upload warnings:\n" + check);
@@ -3123,8 +3113,9 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     }
 
     if (success && cud.GetMaxSerialPort() > 0) {
-        if (doProgress)
+        if (doProgress) {
             progress->Update(90, "Uploading serial ports.");
+        }
 
         if (check != "") {
             DisplayWarning("Upload warnings:\n" + check);
@@ -3145,6 +3136,12 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
                 sendSerial = true;
                 UDControllerPort* port = cud.GetControllerSerialPort(sp);
                 int sc = port->GetStartChannel();
+
+                if (absoluteonebased) {
+                    logger_base.info("Applying one based adjustment, Subtracting = %d", firstchannel - 1);
+                    sc = port->GetStartChannel() - (firstchannel - 1);
+                }
+
                 logger_base.info("Serial Port %d Protocol %s Start Channel %d.", sp, (const char*)port->GetProtocol().c_str(), sc);
 
                 uri += "&";
@@ -3167,8 +3164,9 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
         check = "";
     }
 
-    if (doProgress)
+    if (doProgress) {
         progress->Update(100, "Done.");
+    }
     logger_base.info("Falcon upload done.");
 
     return success;
