@@ -26,17 +26,21 @@ class EspsV4Protocol
 public:
     void ParseV4Settings(wxString Id, const nlohmann::json& JsonConfig);
     bool GetSetting(wxString Name, wxString & value);
-    bool PutSetting(wxString Name, const wxString & value);
+    bool PutSetting(wxString Name, wxString value, wxString DefaultValue);
+    bool PutSetting(wxString Name, int value, int DefaultValue);
+    bool PutSetting(wxString Name, float value, float DefaultValue);
     int WriteConfigToJson(nlohmann::json& JsonConfig);
     inline bool IsPixel() { return Settings.contains("color_order"); }
     inline wxString Name() { return _Name; }
     inline wxString Id() { return _Id; }
+    void SetIsFullxLightsControl(bool value) {IsFullxLightsControl = value;}
 
 private:
     wxString _Id;
     wxString _Name;
     std::map<wxString, wxString> Settings;
     uint32_t NumItemsChanged = 0;
+    bool IsFullxLightsControl = false;
 };
 
 class EspsPort

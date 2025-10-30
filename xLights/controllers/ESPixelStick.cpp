@@ -423,33 +423,147 @@ bool EspsV4Protocol::GetSetting(wxString Name, wxString & value)
     return Response;
 } // GetSetting
 
-bool EspsV4Protocol::PutSetting(wxString Name, const wxString & value)
+bool EspsV4Protocol::PutSetting(wxString Name, wxString value, wxString DefaultValue)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // logger_base.debug("EspsV4Protocol:PutSetting: Start");
-    bool Response = true;
+    bool Response = false;
 
-    if (Settings.contains(Name))
+    do // once
     {
-        if (!value.IsSameAs(Settings[Name]))
+        if (!Settings.contains(Name))
         {
-            // logger_base.debug("EspsV4Protocol:PutSetting: Name: '" + Name + "' value: '" + value + "' json: '" + Settings[Name] + "'");
-            Settings[Name] = value;
-            NumItemsChanged++;
+            DisplayError(std::string("EspsV4Protocol::PutSetting: Could not update '") + Name + "' No such setting in target data set.");
+            break;
         }
-    }
-    else
-    {
-        DisplayError(std::string("EspsV4Protocol::PutSetting: Could not update '") + Name + "' No such setting in target data set.");
-        Response = false;
-    }
+
+        if (value.IsEmpty())
+        {
+            // no value to set
+            if (!IsFullxLightsControl)
+            {
+                // we do not have full control. Leave the existing value in place
+                break;
+            }
+
+            // use the default value when we are in full control mode
+            value = DefaultValue;
+        }
+
+        // value is accepted
+        Response = true;
+
+        if (value.IsSameAs(Settings[Name]))
+        {
+            // no need to resave an existing value
+            break;
+        }
+
+        // logger_base.debug("EspsV4Protocol:PutSetting: Name: '" + Name + "' value: '" + value + "' json: '" + Settings[Name] + "'");
+        Settings[Name] = value;
+        NumItemsChanged++;
+
+    } while (false);
 
     // logger_base.debug("EspsV4Protocol:GetSetting: Done");
     return Response;
 } // PutSetting
 
-void EspsV4Protocol::ParseV4Settings(wxString Id, const nlohmann::json & JsonConfig)
+bool EspsV4Protocol::PutSetting(wxString Name, int value, int DefaultValue)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // logger_base.debug("EspsV4Protocol:PutSetting: Start");
+    bool Response = false;
+
+    do // once
+    {
+        if (!Settings.contains(Name))
+        {
+            DisplayError(std::string("EspsV4Protocol::PutSetting: Could not update '") + Name + "' No such setting in target data set.");
+            break;
+        }
+
+        if (-1 == value)
+        {
+            // no value to set
+            if (!IsFullxLightsControl)
+            {
+                // we do not have full control. Leave the existing value in place
+                break;
+            }
+
+            // use the default value when we are in full control mode
+            value = DefaultValue;
+        }
+
+        // value is accepted
+        Response = true;
+
+        wxString sValue = std::to_string(value);
+        if (sValue.IsSameAs(Settings[Name]))
+        {
+            // no need to resave an existing value
+            break;
+        }
+
+        // logger_base.debug("EspsV4Protocol:PutSetting: Name: '" + Name + "' value: '" + sValue + "' json: '" + Settings[Name] + "'");
+        Settings[Name] = sValue;
+        NumItemsChanged++;
+
+    } while (false);
+
+    // logger_base.debug("EspsV4Protocol:GetSetting: Done");
+    return Response;
+} // PutSetting
+
+bool EspsV4Protocol::PutSetting(wxString Name, float value, float DefaultValue)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // logger_base.debug("EspsV4Protocol:PutSetting: Start");
+    bool Response = false;
+
+    do // once
+    {
+        if (!Settings.contains(Name))
+        {
+            DisplayError(std::string("EspsV4Protocol::PutSetting: Could not update '") + Name + "' No such setting in target data set.");
+            break;
+        }
+
+        if (-1.0f == value)
+        {
+            // no value to set
+            if (!IsFullxLightsControl)
+            {
+                // we do not have full control. Leave the existing value in place
+                break;
+            }
+
+            // use the default value when we are in full control mode
+            value = DefaultValue;
+        }
+
+        // value is accepted
+        Response = true;
+
+        wxString sValue = std::to_string(value);
+        if (sValue.IsSameAs(Settings[Name]))
+        {
+            // no need to resave an existing value
+            break;
+        }
+
+        // logger_base.debug("EspsV4Protocol:PutSetting: Name: '" + Name + "' value: '" + sValue + "' json: '" + Settings[Name] + "'");
+        Settings[Name] = sValue;
+        NumItemsChanged++;
+
+    } while (false);
+
+    // logger_base.debug("EspsV4Protocol:GetSetting: Done");
+    return Response;
+} // PutSetting
+
+void EspsV4Protocol::ParseV4Settings(wxString Id, const nlohmann::json& JsonConfig) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // logger_base.debug("EspsV4Protocol:ParseV4Config: Start");
     _Id = Id;
@@ -660,6 +774,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                 CurrentEspsPort.Disable();
                 continue;
             }
+            Protocol.SetIsFullxLightsControl(controller->IsFullxLightsControl());
 
             // bind protocol to the port
             CurrentEspsPort.CurrentProtocolId = Protocol.Id();
@@ -671,7 +786,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
             if (model)
             {
                 int channelsPerPixel = model->GetChannelsPerPixel();
-                Protocol.PutSetting("pixel_count", std::to_string(INTROUNDUPDIV(numberOfChannels, channelsPerPixel)));
+                Protocol.PutSetting("pixel_count", INTROUNDUPDIV(numberOfChannels, channelsPerPixel), 0);
 
                 wxString colorOrder = model->GetColourOrder(channelsPerPixel > 3 ? "undefinedw" : "undefined");
                 colorOrder.MakeLower();
@@ -683,26 +798,15 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                     DisplayError(msg);
                     return false;
                 }
-                Protocol.PutSetting("color_order", EspsV4ColorOrders[colorOrder]);
 
-                int brightness = model->GetBrightness(-1);
-                if (brightness < 0 && controller->IsFullxLightsControl())
-                {
-                    brightness = controller->GetDefaultBrightnessUnderFullControl();
-                };
-                Protocol.PutSetting("brightness", std::to_string(brightness));
+                Protocol.PutSetting("color_order", EspsV4ColorOrders[colorOrder], "rgb");
+                Protocol.PutSetting("brightness", model->GetBrightness(-1), controller->GetDefaultBrightnessUnderFullControl());
+                Protocol.PutSetting("gamma", model->GetGamma(-1.0F), controller->GetDefaultGammaUnderFullControl());
+                Protocol.PutSetting("group_size", model->GetGroupCount(-1), 1);
+                Protocol.PutSetting("prependnullcount", model->GetStartNullPixels(-1), 0);
+                Protocol.PutSetting("appendnullcount", model->GetEndNullPixels(-1), 0);
+                Protocol.PutSetting("zig_size", model->GetZigZag(-1), 1);
 
-                float gamma = model->GetGamma(-1.0F);
-                if (gamma < 0 && controller->IsFullxLightsControl())
-                {
-                    gamma = controller->GetDefaultGammaUnderFullControl();
-                };
-                Protocol.PutSetting("gamma", std::to_string(gamma));
-
-                Protocol.PutSetting("group_size", std::to_string(model->GetGroupCount(1)));
-                Protocol.PutSetting("prependnullcount", std::to_string(model->GetStartNullPixels(0)));
-                Protocol.PutSetting("appendnullcount", std::to_string(model->GetEndNullPixels(0)));
-                Protocol.PutSetting("zig_size", std::to_string(model->GetZigZag(1)));
             } // end have a model
 
             changed = CurrentEspsPort.WriteConfigToJson(outputConfig);
@@ -762,8 +866,8 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
             CurrentEspsPort.CurrentProtocolId = Protocol.Id();
             CurrentEspsPort.CurrentProtocolName = Protocol.Name();
 
-            Protocol.PutSetting("num_chan", std::to_string(port->Channels()));
-            Protocol.PutSetting("baudrate", std::to_string(model->GetModel()->GetControllerProtocolSpeed()));
+            Protocol.PutSetting("num_chan", port->Channels(), 0);
+            Protocol.PutSetting("baudrate", model->GetModel()->GetControllerProtocolSpeed(), 57600);
 
             changed = CurrentEspsPort.WriteConfigToJson(outputConfig);
 
