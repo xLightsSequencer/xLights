@@ -35,6 +35,9 @@ class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool ModelSupportsLayerSizes() const override { return true; }
         virtual void OnLayerSizesChange(bool countChanged) override;
 
+        virtual int NodesPerString() const override;
+        bool SupportsChangingStringCount() const override { return true; };
+
     protected:
         virtual void InitModel() override;
         
@@ -45,4 +48,8 @@ class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int maxSize();
 
         bool insideOut = false;
+
+        int totalNodes = 0;
+        static std::string StartNodeAttrName(int idx) { return wxString::Format(wxT("Strings%i"), idx + 1).ToStdString(); }
+        std::string ComputeStringStartNode(int x) const;
 };
