@@ -1418,10 +1418,6 @@ nlohmann::json FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startC
         int straPerStr =  model->GetNumStrands() / numStr;
         if (straPerStr < 1) straPerStr = 1;
 
-        if (model->GetDisplayAs() == "Custom") {
-            straPerStr = 1;
-        }
-
         nlohmann::json jm;
         jm["Name"] = name;
         jm["ChannelCount"] = model->GetActChanCount();
@@ -1437,11 +1433,15 @@ nlohmann::json FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startC
                 jm["Orientation"] = std::string("horizontal");
             }
         } else if (model->GetDisplayAs() == "Custom") {
+            CustomModel *cm = dynamic_cast<CustomModel *>(model);
             straPerStr = 1;
             numStr = 1;
-            jm["Orientation"] = std::string("custom");
-            CustomModel *cm = dynamic_cast<CustomModel*>(model);
-            jm["data"] = cm->GetCustomData();
+            if ((cm->GetCustomWidth() * cm->GetCustomHeight() * cm->GetCustomDepth()) > (512 * 512)) {
+                jm["Orientation"] = std::string("horizontal");
+            } else {
+                jm["Orientation"] = std::string("custom");
+                jm["data"] = cm->GetCustomData();
+            }
         } else {
             jm["Orientation"] = std::string("horizontal");
         }
