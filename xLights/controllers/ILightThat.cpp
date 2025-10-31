@@ -129,8 +129,8 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                 }
 
                 outputConfig["ports"][x]["models"][i]["brightness"] = brightness;
-                outputConfig["ports"][x]["models"][i]["start"] = (model->GetStartChannel() - port->GetFirstModel()->GetStartChannel()) / 3;
-                outputConfig["ports"][x]["models"][i]["num_pixels"] = ((model->GetEndChannel() - model->GetStartChannel()) + 1) / 3;
+                outputConfig["ports"][x]["models"][i]["start_channel"] = model->GetStartChannel() - port->GetFirstModel()->GetStartChannel();
+                outputConfig["ports"][x]["models"][i]["num_channels"] = (model->GetEndChannel() - model->GetStartChannel()) + 1;
 
                 const std::string colorOrder = model->GetColourOrder("unknown");
                 if (colorOrder != "unknown") {
@@ -145,7 +145,7 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
         }
 
         for (int i = cud.GetMaxPixelPort(); i < controller->GetControllerCaps()->GetMaxPixelPort(); i++) {
-            outputConfig["ports"][i]["num_pixels"] = 0;
+            outputConfig["ports"][i]["port_type"] = std::string("Pixel");
         }
 
         std::string const response = PutURL("/settings", outputConfig.dump(), "", "", "application/json");
