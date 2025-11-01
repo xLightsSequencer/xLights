@@ -6049,6 +6049,7 @@ void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString
     importAliases = 0;
     for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext()) {
         if (n->GetName() == "stateInfo") {
+            stateInfo.clear();
             AddState(n);
         } else if (n->GetName() == "subModel") {
             AddSubmodel(n);
