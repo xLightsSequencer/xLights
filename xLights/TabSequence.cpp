@@ -109,7 +109,18 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 
             if (xbkptime > xmltime) {
                 // autosave file is newer
-                if (wxMessageBox("Autosaved rgbeffects file found which seems to be newer than your current rgbeffects file ... would you like to open that instead?", "Newer file found", wxYES_NO) == wxYES) {
+                wxString xmlTimeStr = xmltime.Format("%Y-%m-%d %H:%M:%S");
+                wxString backupTimeStr = xbkptime.Format("%Y-%m-%d %H:%M:%S");
+
+                // Build the message with both timestamps
+                wxString msg = wxString::Format(
+                    "An autosaved rgbeffects file was found that is newer than your current file.\n\n"
+                    "Current file:  %s\n"
+                    "Autosave file: %s\n\n"
+                    "Would you like to use the autosave file instead?",
+                    xmlTimeStr, backupTimeStr
+                );
+                if (wxMessageBox(msg, "Newer Autosave File Found", wxYES_NO | wxICON_QUESTION) == wxYES) {
                     // run a backup ... equivalent of a F10
 
                     // we have not actually read the backup location yet so lets just use the show folder
