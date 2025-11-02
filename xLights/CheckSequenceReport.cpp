@@ -1,8 +1,10 @@
 ﻿#pragma execution_character_set("utf-8")
 
 #include "CheckSequenceReport.h"
+#include "TempFileManager.h"
 #include <wx/datetime.h>
 #include <wx/file.h>
+#include <wx/filename.h>
 #include <UtilFunctions.h>
 
 const std::vector<CheckSequenceReport::ReportSection> CheckSequenceReport::REPORT_SECTIONS = {
@@ -48,20 +50,6 @@ void CheckSequenceReport::UpdateCounts() {
     }
 }
 
-std::string GetCssPath() {
-    std::string resourcesPath = GetResourcesDirectory();
-
-    // Convert backslashes to forward slashes for consistent URL format
-    std::replace(resourcesPath.begin(), resourcesPath.end(), '\\', '/');
-
-    // For Windows, add an extra forward slash after file:
-    #ifdef __WXMSW__
-        return "file:///" + resourcesPath + "/resources/tailwind.min.css";
-    #else
-        return "file://" + resourcesPath + "/resources/tailwind.min.css";
-    #endif
-}
-
 std::string CheckSequenceReport::GenerateHTML() const {
     std::string darkMode = IsDarkMode() ? "true" : "false";
     std::string html = R"(
@@ -71,7 +59,7 @@ std::string CheckSequenceReport::GenerateHTML() const {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>xLights Show Status Report</title>)";
-    html += "<link href=\"" + GetCssPath() + "\" rel=\"stylesheet\">\n";
+    html += "<link href=\"checksequence_tailwind.min.css\" rel=\"stylesheet\">\n";
     html += R"(    <style>
         :root {
             --bg-primary: #f3f4f6;
@@ -496,6 +484,12 @@ std::string CheckSequenceReport::GenerateHTML() const {
 }
 
 bool CheckSequenceReport::WriteToFile(wxFile& f) const {
+    wxString resourcesPath = GetResourcesDirectory();
+    wxString srcCss = resourcesPath + wxFileName::GetPathSeparator() + "resources" + wxFileName::GetPathSeparator() + "tailwind.min.css";
+    wxString destCss = mShowFolder + wxString(wxFileName::GetPathSeparator()) + "checksequence_tailwind.min.css";
+    wxCopyFile(srcCss, destCss);
+    TempFileManager::GetTempFileManager().AddTempFile(ToStdString(destCss));
+
     std::string html = GenerateHTML();
     return f.Write(html.c_str(), html.length()) == html.length();
 }
