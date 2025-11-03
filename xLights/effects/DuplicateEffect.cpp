@@ -109,6 +109,13 @@ void DuplicateEffect::SetPanelStatus(Model* cls)
     // remove all the models
     dp->Choice_Model->Clear();
 
+    if (cls == nullptr)
+        return;
+
+    const ModelManager& mgr = cls->GetModelManager();
+    xLightsFrame* xlights = mgr.GetXLightsFrame();
+    if (xlights == nullptr) return;
+
     // get the sequence elements
     auto& se = cls->GetModelManager().GetXLightsFrame()->GetSequenceElements();
 
