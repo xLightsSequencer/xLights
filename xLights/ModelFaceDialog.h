@@ -61,9 +61,8 @@ class ModelFaceDialog : public wxDialog
     virtual ~ModelFaceDialog();
 
     //(*Declarations(ModelFaceDialog)
-    wxButton* ButtonImport;
+    wxButton* ButtonMore;
     wxButton* Button_DownloadImages;
-    wxButton* DeleteButton;
     wxCheckBox* CheckBox_OutputToLights;
     wxCheckBox* CustomColorNodeRanges;
     wxCheckBox* CustomColorSingleNode;
@@ -99,9 +98,8 @@ protected:
     //(*Identifiers(ModelFaceDialog)
     static const wxWindowID ID_STATICTEXT2;
     static const wxWindowID ID_CHOICE3;
-    static const wxWindowID ID_BUTTON3;
-    static const wxWindowID ID_BUTTON_IMPORT;
-    static const wxWindowID ID_BUTTON4;
+    static const wxWindowID ID_BUTTON_ADD;
+    static const wxWindowID ID_BUTTON_MORE;
     static const wxWindowID ID_PANEL4;
     static const wxWindowID ID_CHECKBOX1;
     static const wxWindowID ID_GRID_COROFACES;
@@ -153,6 +151,7 @@ private:
     void OnMatrixModelsGridResize(wxSizeEvent& event);
     void OnSingleNodeGridResize(wxSizeEvent& event);
     void OnNodeRangeGridResize(wxSizeEvent& event);
+    void OnButtonMoreClick(wxCommandEvent& event);
     //*)
 
     void OnAddBtnPopup(wxCommandEvent& event);
