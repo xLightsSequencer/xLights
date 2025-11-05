@@ -26,8 +26,9 @@
 #include "FPPUploadProgressDialog.h"
 #include "ModelPreview.h"
 
+#include "nlohmann/json.hpp"
+
 #include <log4cpp/Category.hh>
-#include "../xSchedule/wxJSON/jsonreader.h"
 
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
@@ -644,7 +645,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
 			CheckBoxProxy->SetValue(inst->isaProxy);
 
             //playlist combo box
-            if (StartsWith(inst->mode, "player")) {
+            if (StartsWith(inst->mode, "player") || StartsWith(inst->mode, "master")) {
                 wxComboBox* ComboBox1 = new wxComboBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER, wxDefaultValidator, PLAYLIST_COL + rowStr);
                 ComboBox1->Append(_(""));
                 for (const auto& pl : inst->playlists) {
@@ -1157,7 +1158,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
     std::map<int, int> udpRanges;
-    wxJSONValue outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
+    auto outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
     int pw, ph;
     frame->GetLayoutPreview()->GetVirtualCanvasSize(pw, ph);
     std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels, pw, ph);
@@ -1206,7 +1207,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     }
                 }
                 if (GetChoiceValueIndex(MODELS_COL + rowStr) == 1) {
-                    wxJSONValue const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, 0, std::numeric_limits<int32_t>::max());
+                    auto const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, 0, std::numeric_limits<int32_t>::max());
                     cancelled |= inst->UploadModels(memoryMaps);
                     cancelled |= inst->UploadDisplayMap(displayMap);
                     // model uploads currently still require a full restart
@@ -1214,7 +1215,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 } else if (GetChoiceValueIndex(MODELS_COL + rowStr) == 2) {
                     auto c = _outputManager->GetControllers(inst->ipAddress);
                     if (c.size() == 1) {
-                        wxJSONValue const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());
+                        auto const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());
                         cancelled |= inst->UploadModels(memoryMaps);
                         // cancelled |= inst->UploadDisplayMap(displayMap);
                         inst->SetRestartFlag(true);
@@ -1696,19 +1697,27 @@ void FPPConnectDialog::OnFPPReDiscoverClick(wxCommandEvent& event) {
 
     std::string fppConnectIP = "";
     prgs.Show();
-    instances = FPP::GetInstances(this, _outputManager);
+    std::list<FPP*> newInstances = FPP::GetInstances(this, _outputManager);
     
-    if (curSize < instances.size()) {
-        int cur = 0;
-        for (const auto& fpp : instances) {
-            if (cur >= curSize) {
-                prgs.Pulse("Gathering configuration for " + fpp->hostName + " - " + fpp->ipAddress);
-                fpp->AuthenticateAndUpdateVersions();
-                fpp->probePixelControllerType();
+    for (FPP* fpp : newInstances) {
+        bool found = false;
+        
+        for (auto f : instances) {
+            if (f->ipAddress == fpp->ipAddress) {
+                found = true;
             }
-            cur++;
         }
-
+        
+        if (!found) {
+            prgs.Pulse("Gathering configuration for " + fpp->hostName + " - " + fpp->ipAddress);
+            fpp->AuthenticateAndUpdateVersions();
+            fpp->probePixelControllerType();
+            instances.push_back(fpp);
+        } else {
+            delete fpp;
+        }
+    }
+    if (curSize < instances.size()) {
         instances.sort(sortByIP);
         // it worked, we found some new instances, record this
         wxConfigBase* config = wxConfigBase::Get();
@@ -1729,7 +1738,6 @@ void FPPConnectDialog::OnFPPReDiscoverClick(wxCommandEvent& event) {
         }
         PopulateFPPInstanceList();
     }
-
     prgs.Hide();
 }
 

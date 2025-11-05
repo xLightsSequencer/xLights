@@ -13,10 +13,11 @@
 #include <list>
 #include <string>
 
+#include <nlohmann/json.hpp>
+
 #include "BaseController.h"
 #include "ControllerUploadData.h"
 
-class wxJSONValue;
 struct WLEDOutput;
 
 class WLED : public BaseController
@@ -28,22 +29,22 @@ class WLED : public BaseController
     #pragma endregion
 
     #pragma region Private Functions
-    bool SetupInput(Controller* controller, wxJSONValue& jsonVal, bool rgbw);
+    bool SetupInput(Controller* controller, nlohmann::json& jsonVal, bool rgbw);
     void UpdatePortData(WLEDOutput* pd, UDControllerPort* stringData, int startNumber, bool& rgbw) const;
 
     WLEDOutput* FindPortData(int port);
 
-    bool ParseOutputJSON(wxJSONValue const& jsonVal, int maxPort, ControllerCaps* caps);
+    bool ParseOutputJSON(nlohmann::json const& jsonVal, int maxPort, ControllerCaps* caps);
 
-    WLEDOutput* ExtractOutputJSON(wxJSONValue const& jsonVal, int port, ControllerCaps* caps);
+    WLEDOutput* ExtractOutputJSON(nlohmann::json const& jsonVal, int port, ControllerCaps* caps);
 
     int EncodeColorOrder(const std::string& colorOrder) const;
     bool EncodeDirection(const std::string& direction) const;
     int EncodeStringPortProtocol(const std::string& protocol) const;
 
-    void UpdatePixelOutputs(bool& worked, int totalPixelCount, wxJSONValue& jsonVal);
+    void UpdatePixelOutputs(bool& worked, int totalPixelCount, nlohmann::json& jsonVal);
 
-    bool PostJSON(wxJSONValue const& jsonVal);
+    bool PostJSON(nlohmann::json const& jsonVal);
 
     const std::string GetFirmware() { return _version; }
 

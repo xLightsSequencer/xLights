@@ -16,7 +16,6 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
-#include "../../xSchedule/wxJSON/jsonreader.h"
 #include "../utils/Curl.h"
 #include <wx/sckaddr.h>
 #include "../UtilFunctions.h"
@@ -37,25 +36,25 @@ void xlDo_Output(const std::string& script, const std::string& resp, bool verbos
 
         if (f.IsOpened()) {
             if (isJson) {
-                wxJSONValue val;
-                wxJSONReader reader;
-                if (reader.Parse(resp, &val) == 0) {
-                    for (const auto& it : val.GetMemberNames()) {
+                try { 
+                nlohmann::json val = nlohmann::json::parse(resp);
+
+                    for (const auto& [key, value] : val.items()) {
                         std::string set = "@set";
                         #ifndef __WXMSW__
                             set = "EXPORT";
                         #endif
                         wxString c;
-                        if (val[it].IsString()) {
-                            c = wxString::Format("%s %s=%s\n", set, it, val[it].AsString());
-                        } else if (val[it].IsLong()) {
-                            c = wxString::Format("%s %s=%ld\n", set, it, val[it].AsLong());
+                        if (value.is_string()) {
+                            c = wxString::Format("%s %s=%s\n", set, key, value.get<std::string>());
+                        } else if (value.is_number_integer()) {
+                            c = wxString::Format("%s %s=%ld\n", set, key, value.get<int>());
                         }
                         f.Write(c);
                         if (verbose)
                             fprintf(stderr, "\u001b[36;1m%s\u001b[0m", (const char*)c.c_str());
                     }
-                } else {
+                } catch (std::exception&) { 
                     fprintf(stderr, "\u001b[31;1mFailed to parse response %s.\u001b[0m\n", (const char*)resp.c_str());
                 }
             } else {
@@ -116,16 +115,16 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
     }
 
     {
-        wxJSONValue val;
-        wxJSONReader reader;
-        if (reader.Parse(command, &val) == 0) {
-            if (val["cmd"].AsString() == "startxLights") {
+        try {
+            nlohmann::json val = nlohmann::json::parse(command.ToStdString());
+
+            if (val["cmd"].get<std::string>() == "startxLights") {
                 std::string params = " -a";
                 if (ab == 1)
                     params = " -b";
 
                 std::string url = "http://" + ip + ":" + std::to_string(::GetxFadePort(ab + 1)) + "/getVersion";
-                if (val["ifNotRunning"].AsString() == "true") {
+                if (val["ifNotRunning"].get<std::string>() == "true") {
                     std::string resp = Curl::HTTPSGet(url, command.ToStdString());
                     if (resp != "") {
                         xlDo_Output(script, "{\"res\":200,\"msg\":\"xLights was already running.\"}", verbose, false);
@@ -137,8 +136,8 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
                 wxFileName f(wxStandardPaths::Get().GetExecutablePath());
                 wxString appPath(f.GetPath());
                 wxString cmdline(appPath + wxT("/xLights") + params + " &");
-                
-                if (system((const char *)cmdline.c_str()) < 0) {
+
+                if (system((const char*)cmdline.c_str()) < 0) {
                     fprintf(stderr, "\u001b[31;1mUnable to start xLights.\u001b[0m\n");
                     return 1;
                 }
@@ -163,7 +162,6 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
                 }
 #endif
 
-
                 int loop = 0;
                 std::string resp = Curl::HTTPSGet(url, command.ToStdString());
                 while (resp == "") {
@@ -187,7 +185,11 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
                 return 0;
             }
         }
+        catch (const std::exception& e) {
+            // not json, ignore
+        }
     }
+    
     std::string url = "http://" + ip + ":" + std::to_string(::GetxFadePort(ab + 1)) + "/";
     std::string mime = "text/plain";
     bool isJsonResp = false;
@@ -201,42 +203,39 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
     }
     //30 minute timeout?  Some of the automations like batchRender may take a LONG time
     int responseCode = 0;
-    std::string resp = command == "" ? Curl::HTTPSGet(url, "", "", 30*60, {}, &responseCode)
+    std::string resp = command.empty() ? Curl::HTTPSGet(url, "", "", 30 * 60, {}, &responseCode)
         : Curl::HTTPSPost(url, command, "", "", mime, 30*60, {}, &responseCode);
 
 
-    if (resp == "") {
+    if (command.empty()) {
         return 1;
-    } else if (isJsonResp) {
-        wxJSONValue val;
-        wxJSONReader reader;
-        if (reader.Parse(resp, &val) == 0) {
-            if (!val.HasMember("res") && responseCode != 0) {
+    } 
+    if (isJsonResp) {
+        try {        
+            nlohmann::json val = nlohmann::json::parse(resp);
+
+            if (!val.contains("res") && responseCode != 0) {
                 val["res"] = (long)responseCode;
                 resp = "{\"res\":" + std::to_string(responseCode) + "," + resp.substr(1);
             }
-            if (!val.HasMember("res")) {
+            if (!val.contains("res")) {
                 fprintf(stderr, "\u001b[31;1mxLights response missing result code: %s.\u001b[0m\n", (const char*)resp.c_str());
                 return 1;
-            } else {
-                auto res = val["res"].AsLong();
-                if (res != 200) {
-                    fprintf(stderr, "\u001b[31;1mxLights response has error code: %d.\u001b[0m %s\n", (int)res, (const char*)resp.c_str());
-                    return 2;
-                }
             }
-        } else {
+            auto res = val["res"].get<int>();
+            if (res != 200) {
+                fprintf(stderr, "\u001b[31;1mxLights response has error code: %d.\u001b[0m %s\n", (int)res, (const char*)resp.c_str());
+                return 2;
+            }
+        }
+        catch (const std::exception& e) {
             fprintf(stderr, "\u001b[31;1mError parsing xLights response.\u001b[0m\n");
             return 1;
         }
     }
     xlDo_Output(script, resp, verbose, isJsonResp);
-
-
     return 0;
 }
-
-
 
 static const wxCmdLineEntryDesc cmdLineDesc[] =
 {

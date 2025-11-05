@@ -234,6 +234,7 @@ public:
 		static const wxWindowID ID_MNU_SAVE_AS;
 		static const wxWindowID ID_MNU_DELETE;
 		static const wxWindowID ID_MNU_IMPORT;
+        static const wxWindowID ID_MNU_GENERATE;
 
 
 	private:
@@ -261,6 +262,7 @@ public:
         wxString RemoveNonAlphanumeric(wxString const& str) const;
         void OnListPopup(wxCommandEvent& event);
         void ImportPalette();
+        void GeneratePalette();
         void SavePalette(bool saveAs);
         void DeletePalette();
         void UpdateColor();

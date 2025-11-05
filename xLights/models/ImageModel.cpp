@@ -263,7 +263,7 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
                             int b = img.GetBlue(x, y);
                             // Colorimetric (perceptual luminance-preserving) conversion to grayscale
                             int c = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 3; // Weights from https://en.wikipedia.org/wiki/Grayscale
-                            maxBrightness = MAX(c, maxBrightness);
+                            maxBrightness = std::max(c, maxBrightness);
                             img.SetRGB(x, y, c, c, c);
                         }
                     }
@@ -282,7 +282,7 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
                             int l = img.GetGreen(x, y); // Take green as luminance. Red, Green, Blue should now be equal after grayscale conversion
                             int a = img.GetAlpha(x, y);
                             l = (l * 255) / maxBrightness;
-                            img.SetAlpha(x, y, MIN(a, l));
+                            img.SetAlpha(x, y, std::min(a, l));
                         }
                     }
                 }
@@ -408,7 +408,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
                         int b = img.GetBlue(x, y);
                         // Colorimetric (perceptual luminance-preserving) conversion to grayscale
                         int c = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 3; // Weights from https://en.wikipedia.org/wiki/Grayscale
-                        maxBrightness = MAX(c, maxBrightness);
+                        maxBrightness = std::max(c, maxBrightness);
                         img.SetRGB(x, y, c, c, c);
                     }
                 }
@@ -430,7 +430,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
                         int l = img.GetGreen(x, y); // Take green as luminance. Red and Blue should now be equal to Green after grayscale conversion
                         int a = img.GetAlpha(x, y);
                         l = (l * 255) / maxBrightness;
-                        img.SetAlpha(x, y, MIN(a, l));
+                        img.SetAlpha(x, y, std::min(a, l));
                     }
                 }
             }

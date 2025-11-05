@@ -11,8 +11,6 @@
 #include "ControllerConnectionDialog.h"
 #include "models/Model.h"
 
-#include "../xSchedule/wxJSON/jsonreader.h"
-#include "../xSchedule/wxJSON/jsonwriter.h"
 #include <wx/xml/xml.h>
 #include "xLightsApp.h"
 #include "xLightsMain.h"

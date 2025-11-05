@@ -56,9 +56,9 @@
 
 #include <log4cpp/Category.hh>
 
-#include "../xSchedule/wxJSON/jsonreader.h"
-
 #include <algorithm>
+#include <iostream>
+#include <fstream>
 
 #define MOST_STRINGS_WE_EXPECT 480
 #define MOST_CONTROLLER_PORTS_WE_EXPECT 128
@@ -982,7 +982,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
         p = grid->Append(new wxStringProperty("In Model Groups", "MGS", mgs));
         p->SetHelpString(mgscr);
         p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-        p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
+        p->ChangeFlag(wxPGFlags::ReadOnly, true);
     }
 
     AddControllerProperties(grid);
@@ -1056,7 +1056,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
     sp->SetAttribute("Min", 0);
     sp->SetAttribute("Max", 100);
     sp->SetEditor("SpinCtrl");
-    sp = grid->AppendIn(p, new wxColourProperty("Tag Color", "ModelTagColour", modelTagColour));
+    sp = grid->AppendIn(p, new wxColourProperty("Tag Color", "ModelTagColour", GetTagColour()));
     sp->SetHelpString("A visual color assigned to the model in the model list.");
     UpdateControllerProperties(grid);
     DisableUnusedProperties(grid);
@@ -1248,7 +1248,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
                     } else {
                         std::string type = GetSmartRemoteType();
                         auto smt = grid->AppendIn(p, new wxStringProperty("Smart Remote Type", "SmartRemoteType", type));
-                        smt->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
+                        smt->ChangeFlag(wxPGFlags::ReadOnly, true);
                         smt->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
                     }
                 }
@@ -3237,7 +3237,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     tempstr.ToLong(&n);
     transparency = n;
     blackTransparency = wxAtoi(ModelNode->GetAttribute("BlackTransparency", "0"));
-    modelTagColour = wxColour(ModelNode->GetAttribute("TagColour", "Black"));
+    modelTagColour = wxNullColour;
     layout_group = ModelNode->GetAttribute("LayoutGroup", "Unassigned");
 
     ModelStartChannel = ModelNode->GetAttribute("StartChannel");
@@ -6483,6 +6483,7 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                     if (doc.GetRoot()->GetAttribute("depthmm", "") != "") {
 						depthmm = wxAtoi(doc.GetRoot()->GetAttribute("depthmm", ""));
 					}
+
 #ifdef __WXMSW__
                     // If a windows user does not want vendor recommendations then dont go looking for them at all
                     // I have allowed this to be off (ie it does the vendor recommendation check) by default but once
@@ -6498,93 +6499,102 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                             json = "";
                         }
                         if (json != "") {
-                            wxJSONValue origJson;
-                            wxJSONReader reader;
-                            wxFileInputStream f(json);
-                            int errors = reader.Parse(f, &origJson);
-                            if (!errors) {
-                                VendorModelDialog* dlg = nullptr;
+                            try {
+                                std::ifstream file(json);
+
+                                // Check if the file was successfully opened
+                                if (file.is_open()) {
+                                    // Create a json object to hold the data
+                                    nlohmann::json origJson = nlohmann::json::parse(file);
+
+                                    VendorModelDialog* dlg = nullptr;
 #ifndef __WXMSW__
-                                bool block = false;
+                                    bool block = false;
 #endif
-                                wxString vendorBlock;
-                                for (auto& name : origJson["mappings"].GetMemberNames()) {
-                                    wxJSONValue v = origJson["mappings"][name];
-                                    bool matches = false;
-                                    wxString newModelName = modelName;
-                                    bool localBlock = false;
-                                    if (v.HasMember("regex") && v["regex"].AsBool()) {
-                                        wxRegEx regex;
-                                        if (regex.Compile(name)) {
-                                            if (regex.Matches(modelName)) {
-                                                wxString nmodel = v["model"].AsString();
-                                                regex.ReplaceAll(&newModelName, nmodel);
-                                                matches = true;
-                                                if (v.HasMember("block")) {
-                                                    localBlock = v["block"].AsBool();
+                                    wxString vendorBlock;
+                                    for (auto& [name, v] : origJson["mappings"].items()) {
+                                        //nlohmann::json v = origJson["mappings"][name];
+                                        bool matches = false;
+                                        wxString newModelName = modelName;
+                                        bool localBlock = false;
+                                        if (v.contains("regex") && v["regex"].get<bool>()) {
+                                            wxRegEx regex;
+                                            if (regex.Compile(name)) {
+                                                if (regex.Matches(modelName)) {
+                                                    wxString nmodel = v["model"].get<std::string>();
+                                                    regex.ReplaceAll(&newModelName, nmodel);
+                                                    matches = true;
+                                                    if (v.contains("block")) {
+                                                        localBlock = v["block"].get<bool>();
+                                                    }
                                                 }
                                             }
+                                        } else if (name == modelName) {
+                                            matches = true;
+                                            newModelName = v["model"].get<std::string>();
+                                            if (v.contains("block")) {
+                                                localBlock = v["block"].get<bool>();
+                                            }
                                         }
-                                    } else if (name == modelName) {
-                                        matches = true;
-                                        newModelName = v["model"].AsString();
-                                        if (v.HasMember("block")) {
-                                            localBlock = v["block"].AsBool();
-                                        }
-                                    }
-                                    if (matches) {
-                                        wxString vendor = v["vendor"].AsString();
-                                        if (dlg == nullptr) {
-                                            dlg = new VendorModelDialog(xlights, xlights->CurrentDir);
-                                            UNUSED(dlg->DlgInit(prog, low, high));
-                                        }
-                                        if (localBlock) {
-                                            vendorBlock = vendor;
-#ifndef __WXMSW__
-                                            block = true;
-#endif
-                                        }
-                                        if (dlg->FindModelFile(vendor, newModelName)) {
+                                        if (matches) {
+                                            wxString vendor = v["vendor"].get<std::string>();
+                                            if (dlg == nullptr) {
+                                                dlg = new VendorModelDialog(xlights, xlights->CurrentDir);
+                                                UNUSED(dlg->DlgInit(prog, low, high));
+                                            }
                                             if (localBlock) {
-                                                wxString msg = "'" + vendor + "' provides a certified model for '" + newModelName + "' in the xLights downloads.  The " + "vendor has requested that the model they provide be the model that is used." + "Use the Vendor provided model instead?";
-                                                if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
-                                                    last_model = dlg->GetModelFile();
-                                                } else {
-                                                    last_model = "";
-                                                }
-                                                docLoaded = false;
-                                                break;
-                                            } else if (!xlights->GetIgnoreVendorModelRecommendations()) {
-                                                // I do not believe we should be saying xLights recommends this as fom what I have seen this claim on quality is historically dubious and I do not believe we have
-                                                // ever actually assessed the quality of their models. My own experience has been the quality of some models is poor or worse. Others are fine. No vendor in
-                                                // my experience is noticably better or worse than any other ... they all have had their poor models.
-                                                // If you want to change the message back then have an OSX specific phrasing.
-                                                wxString msg = "xLights found a '" + vendor + "' provided and certified model for '" + newModelName + "' in the xLights downloads.  The " + "Vendor provided models are strongly recommended by the vendor due to their claimed quality and ease of use.\n\nWould you prefer to " + "use the Vendor provided model instead?";
-                                                if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
-                                                    last_model = dlg->GetModelFile();
+                                                vendorBlock = vendor;
+#ifndef __WXMSW__
+                                                block = true;
+#endif
+                                            }
+                                            if (dlg->FindModelFile(vendor, newModelName)) {
+                                                if (localBlock) {
+                                                    wxString msg = "'" + vendor + "' provides a certified model for '" + newModelName + "' in the xLights downloads.  The " + "vendor has requested that the model they provide be the model that is used." + "Use the Vendor provided model instead?";
+                                                    if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
+                                                        last_model = dlg->GetModelFile();
+                                                    } else {
+                                                        last_model = "";
+                                                    }
                                                     docLoaded = false;
                                                     break;
+                                                } else if (!xlights->GetIgnoreVendorModelRecommendations()) {
+                                                    // I do not believe we should be saying xLights recommends this as fom what I have seen this claim on quality is historically dubious and I do not believe we have
+                                                    // ever actually assessed the quality of their models. My own experience has been the quality of some models is poor or worse. Others are fine. No vendor in
+                                                    // my experience is noticably better or worse than any other ... they all have had their poor models.
+                                                    // If you want to change the message back then have an OSX specific phrasing.
+                                                    wxString msg = "xLights found a '" + vendor + "' provided and certified model for '" + newModelName + "' in the xLights downloads.  The " + "Vendor provided models are strongly recommended by the vendor due to their claimed quality and ease of use.\n\nWould you prefer to " + "use the Vendor provided model instead?";
+                                                    if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
+                                                        last_model = dlg->GetModelFile();
+                                                        docLoaded = false;
+                                                        break;
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-                                }
 #ifndef __WXMSW__
-                                // I wont incude this code in the windows release ... it is a step way too far ... the vendors should not be dictating what models a user can use
-                                if (block) {
-                                    wxString msg = "'" + vendorBlock + "' has requested that the models they provide be the models that are used.";
-                                    wxMessageBox(msg, "Loading of Model Blocked", wxOK | wxICON_ERROR, xlights);
-                                    last_model = "";
-                                }
+                                    // I wont incude this code in the windows release ... it is a step way too far ... the vendors should not be dictating what models a user can use
+                                    if (block) {
+                                        wxString msg = "'" + vendorBlock + "' has requested that the models they provide be the models that are used.";
+                                        wxMessageBox(msg, "Loading of Model Blocked", wxOK | wxICON_ERROR, xlights);
+                                        last_model = "";
+                                    }
 #endif
-                                if (dlg) {
-                                    delete dlg;
+                                    if (dlg) {
+                                        delete dlg;
+                                    }
                                 }
+                            } 
+                            catch (nlohmann::json::parse_error& e) {
+                                
                             }
                         }
+                        
 #ifdef __WXMSW__
                     }
 #endif
+
                 }
             }
         }
@@ -6973,6 +6983,19 @@ std::list<std::string> Model::CheckModelSettings()
 bool Model::IsControllerConnectionValid() const
 {
     return ((IsPixelProtocol() || IsSerialProtocol() || IsMatrixProtocol() || IsPWMProtocol()) && GetControllerPort(1) > 0);
+}
+wxColour Model::GetTagColour() {
+    if (!modelTagColour.IsOk()) {
+        if (ModelXml->HasAttribute("TagColour")) {
+            modelTagColour = wxColour(ModelXml->GetAttribute("TagColour", "#000000"));
+            if (!modelTagColour.IsOk()) {
+                modelTagColour = *wxBLACK;
+            }
+        } else {
+            modelTagColour = *wxBLACK;
+        }
+    }
+    return modelTagColour;
 }
 
 void Model::SetTagColour(wxColour colour)

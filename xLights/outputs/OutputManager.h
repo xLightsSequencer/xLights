@@ -239,4 +239,12 @@ public:
     TestPreset* CreateTestPreset(std::string preset);
     void DeleteTestPreset();
     #pragma endregion 
+
+    void SortControllersbyName();
+    void SortControllersbyID();
+    void SortControllersbyIP();
+    void SortControllersbyFPPProxy();
+    void SortControllersbyModel();
+    void SortControllersbyProtocal();
+
 };

@@ -22,6 +22,7 @@
 #include <wx/stattext.h>
 //*)
 
+#include <nlohmann/json.hpp>
 #include "../FSEQFile.h"
 
 class ModelManager;
@@ -29,81 +30,82 @@ class OutputManager;
 class Output;
 class ControllerEthernet;
 
-static std::vector<wxString> const DAYS{ "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY" };
+static std::vector<std::string> const DAYS{ "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY" };
 
 struct PlayListItem {
-    PlayListItem(wxString fseq) :
+    explicit PlayListItem(std::string fseq) :
         FSEQ(std::move(fseq))
     {}
-    PlayListItem(wxString fseq, wxString audio) :
+    PlayListItem(std::string fseq, std::string audio) :
         FSEQ(std::move(fseq)), Audio(std::move(audio))
     {}
 
-    PlayListItem(wxJSONValue const& json)
+    explicit PlayListItem(nlohmann::json const& json)
     {
         fromJSON(json);
     }
-    wxString FSEQ;
-    wxString Audio;
+    std::string FSEQ;
+    std::string Audio;
 
-    wxString HSEQ;
-    wxString AU{ "NONE" };
+    std::string HSEQ;
+    std::string AU{ "NONE" };
 
-    [[nodiscard]] wxJSONValue asJSON() const
+    [[nodiscard]] nlohmann::json asJSON() const
     {
-        wxJSONValue vs;
+        nlohmann::json vs;
         vs["f"] = FSEQ;
         vs["a"] = Audio;
         return vs;
     }
 
-    void fromJSON(wxJSONValue const& json)
+    void fromJSON(nlohmann::json const& json)
     {
-        FSEQ = json.ItemAt("f").AsString();
-        Audio = json.ItemAt("a").AsString();
+        FSEQ = json.at("f").get<std::string>();
+        Audio = json.at("a").get<std::string>();
     }
 
     [[nodiscard]] wxString asString() const
     {
+        // switch to std::format if gcc supports it
         return wxString::Format("{\"H\":\"%s\",\"A\":\"%s\",\"D\":2}", HSEQ, AU);//D is a delay, maybe set to zero?
     }
 };
 
 struct PlayList
 {
-    PlayList(wxString name) :
+    explicit PlayList(std::string name) :
         Name(std::move(name))
     {}
 
-    PlayList(wxJSONValue const& json)
+    explicit PlayList(nlohmann::json const& json)
     {
         fromJSON(json);
     }
-    wxString Name;
+    std::string Name;
     std::vector<PlayListItem> Items;
 
-    [[nodiscard]] wxJSONValue asJSON() const
+    [[nodiscard]] nlohmann::json asJSON() const
     {
-        wxJSONValue vs;
+        nlohmann::json vs;
         vs["n"] = Name;
         for (auto const& it : Items) {
-            vs["pl"].Append(it.asJSON());
+            vs["pl"].push_back(it.asJSON());
         }
         return vs;
     }
 
-    void fromJSON(wxJSONValue const& json)
+    void fromJSON(nlohmann::json const& json)
     {
-        Name = json.ItemAt("n").AsString();
-        auto jArry = json.ItemAt("pl");
-        if (jArry.IsArray()) {
-            for (int x = 0; x < jArry.Size(); x++) {
-                Items.emplace_back(jArry.ItemAt(x));
+        Name = json.at("n").get<std::string>();
+        auto jArry = json.at("pl");
+        if (jArry.is_array()) {
+            for (int x = 0; x < jArry.size(); x++) {
+                Items.emplace_back(jArry.at(x));
             }
         }
     }
 
-    [[nodiscard]] wxString getFileName() const {
+    [[nodiscard]] std::string getFileName() const {
         return Name + ".ply";
     }
 
@@ -128,15 +130,15 @@ struct PlayList
 };
 
 struct ScheduleItem {
-    ScheduleItem(wxString playlist) :
+    explicit ScheduleItem(std::string playlist) :
         Playlist(std::move(playlist))
     {}
-    ScheduleItem(wxJSONValue const& json)
+    explicit ScheduleItem(nlohmann::json const& json)
     {
         fromJSON(json);
     }
 
-    wxString Playlist;
+    std::string Playlist;
     int StartHour;
     int StartMin;
     int EndHour;
@@ -144,9 +146,9 @@ struct ScheduleItem {
     bool Enabled{true};
     int Repeat{ 0 };
 
-    [[nodiscard]] wxJSONValue asJSON() const
+    [[nodiscard]] nlohmann::json asJSON() const
     {
-        wxJSONValue vs;
+        nlohmann::json vs;
         vs["pl"] = Playlist;
         vs["sh"] = StartHour;
         vs["sm"] = StartMin;
@@ -156,16 +158,15 @@ struct ScheduleItem {
         vs["rp"] = Repeat;
         return vs;
     }
-    void fromJSON(wxJSONValue const& json)
-    {
-        Playlist = json.ItemAt("pl").AsString();
-        StartHour = json.ItemAt("sh").AsInt();
-        StartMin = json.ItemAt("sm").AsInt();
-        EndHour = json.ItemAt("eh").AsInt();
-        EndMin = json.ItemAt("em").AsInt();
-        Enabled = json.ItemAt("en").AsBool();
-        if (json.HasMember("rp")) {
-            Repeat = json.ItemAt("rp").AsInt();
+    void fromJSON(nlohmann::json const& json) {
+        Playlist = json.at("pl").get<std::string>();
+        StartHour = json.at("sh").get<int>();
+        StartMin = json.at("sm").get<int>();
+        EndHour = json.at("eh").get<int>();
+        EndMin = json.at("em").get<int>();
+        Enabled = json.at("en").get<bool>();
+        if (json.contains("rp")) {
+            Repeat = json.at("rp").get<int>();
         }
     }
     [[nodiscard]] wxString asString() const
@@ -207,33 +208,33 @@ struct ScheduleItem {
 
 struct Schedule {
 
-    Schedule(wxString day) :
+    explicit Schedule(std::string day) :
         Day(std::move(day))
     {}
-    Schedule(wxJSONValue const& json)
+    explicit Schedule(nlohmann::json const& json)
     {
         fromJSON(json);
     }
 
-    wxString Day;
+    std::string Day;
     std::vector<ScheduleItem> Items;
 
-    [[nodiscard]] wxJSONValue asJSON() const
+    [[nodiscard]] nlohmann::json asJSON() const
     {
-        wxJSONValue vs;
+        nlohmann::json vs;
         vs["d"] = Day;
         for (auto const& it : Items) {
-            vs["sc"].Append(it.asJSON());
+            vs["sc"].push_back(it.asJSON());
         }
         return vs;
     }
-    void fromJSON(wxJSONValue const& json)
+    void fromJSON(nlohmann::json const& json)
     {
-        Day = json.ItemAt("d").AsString();
-        auto jArry = json.ItemAt("sc");
-        if (jArry.IsArray()) {
-            for (int x = 0; x < jArry.Size(); x++) {
-                Items.emplace_back(jArry.ItemAt(x));
+        Day = json.at("d").get<std::string>();
+        auto jArry = json.at("sc");
+        if (jArry.is_array()) {
+            for (int x = 0; x < jArry.size(); x++) {
+                Items.emplace_back(jArry.at(x));
             }
         }
     }
@@ -300,26 +301,26 @@ struct Schedule {
             }
         }
         //check for overlapping times
-        for (auto it1 = std::cbegin(sItems); it1 != std::cend(sItems); ++it1) {
-            auto& schItm1 = *it1;
-            if (!schItm1.Enabled) {
-                continue;
-            }
-            for (auto it2 = std::next(it1); it2 != std::cend(sItems); ++it2) {
-                auto& schItm2 = *it2;
-                if (!schItm2.Enabled) {
-                    continue;
-                }
-                if (schItm1.EndHour > schItm2.StartHour) {
-                    reason = wxString::Format("%s End Hour overlaps %s Start Hour", schItm1.Playlist, schItm2.Playlist);
-                    return false;
-                }
-                if (schItm1.EndHour == schItm2.StartHour && schItm1.EndMin >= schItm1.StartMin) {
-                    reason = wxString::Format("%s End Minute overlaps %s Start Minute", schItm1.Playlist, schItm2.Playlist);
-                    return false;
-                }
-            }
-        }
+        //for (auto it1 = std::cbegin(sItems); it1 != std::cend(sItems); ++it1) {
+        //    auto& schItm1 = *it1;
+        //    if (!schItm1.Enabled) {
+        //        continue;
+        //    }
+        //    for (auto it2 = std::next(it1); it2 != std::cend(sItems); ++it2) {
+        //        auto& schItm2 = *it2;
+        //        if (!schItm2.Enabled) {
+        //            continue;
+        //        }
+        //        if (schItm1.EndHour > schItm2.StartHour) {
+        //            reason = wxString::Format("%s End Hour overlaps %s Start Hour", schItm1.Playlist, schItm2.Playlist);
+        //            return false;
+        //        }
+        //        if (schItm1.EndHour == schItm2.StartHour && schItm1.EndMin >= schItm1.StartMin) {
+        //            reason = wxString::Format("%s End Minute overlaps %s Start Minute", schItm1.Playlist, schItm2.Playlist);
+        //            return false;
+        //        }
+        //    }
+        //}
         return true;
     }
 };
@@ -407,10 +408,14 @@ protected:
 
     static const long ID_MNU_SETALL;
     static const long ID_MNU_SETALLPLAY;
+    static const long ID_MNU_SETALLDAYS;
 
+    static const long ID_MNU_SETMASTER;
+    static const long ID_MNU_SETREMOTE;
     static const long ID_MNU_SETTIME;
     static const long ID_MNU_UPLOADFILE;
     static const long ID_MNU_UPLOADFIRM;
+    static const long ID_MNU_UPLOADSCHEDULE;
 
     ModelManager* m_modelManager = nullptr;
     OutputManager* m_outputManager = nullptr;
@@ -466,7 +471,7 @@ private:
 
     void SaveSettings();
     void LoadSettings();
-    void ApplySavedSettings(wxJSONValue json);
+    void ApplySavedSettings(nlohmann::json controllers);
 
     wxPanel* AddInstanceHeader(wxString const& h);
 
@@ -500,6 +505,7 @@ private:
 
     void UploadFile(ControllerEthernet* controller);
     void ExtractFirmware(ControllerEthernet* controller);
+    void UploadSchedules(ControllerEthernet* controller);
 
     DECLARE_EVENT_TABLE()
 };

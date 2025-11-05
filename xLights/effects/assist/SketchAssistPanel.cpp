@@ -1,8 +1,10 @@
 #include "SketchAssistPanel.h"
 #include "SketchCanvasPanel.h"
 
-#include "../../xSchedule/wxJSON/jsonreader.h"
-#include "../../xSchedule/wxJSON/jsonwriter.h"
+#include <fstream>
+#include <iostream>
+#include <nlohmann/json.hpp>
+
 #include "UtilFunctions.h"
 #include <xLightsMain.h>
 #include "../../ExternalHooks.h"
@@ -324,28 +326,31 @@ void SketchAssistPanel::OnButton_ImportSketch(wxCommandEvent& event)
     wxString filename = wxFileSelector(_("Choose xLights Sketch File"), xLightsFrame::CurrentDir, wxEmptyString, wxEmptyString, "Sketch Files (*.xsketch)|*.xsketch", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
     if (!filename.empty()) {
-        wxJSONReader reader;
-        wxFile skfile(filename);
-        wxString json;
-        wxJSONValue data;
-        skfile.ReadAll(&json);
-        reader.Parse(json, &data);
-        skfile.Close();
+        nlohmann::json data;
 
-        wxString bgImagePath;
+        try {
+            std::ifstream inputFile(filename.ToStdString());
+            inputFile >> data;
+
+        } catch (std::exception& ex) {
+            DisplayError(wxString::Format("Could not open xLights Sketch file %s.\nError: %s", filename, ex.what()).ToStdString());
+            return;
+        }
+
+        std::string bgImagePath;
         unsigned char bitmapAlpha = m_bitmapAlpha;
 
-        if (data.HasMember("imagepath") && data["imagepath"].IsString()) {
-            bgImagePath = data["imagepath"].AsString();
+        if (data.contains("imagepath") && data["imagepath"].is_string()) {
+            bgImagePath = data["imagepath"].get<std::string>();
         }
-        if (data.HasMember("bitmapalpha") && data["bitmapalpha"].AsInt()) {
-            bitmapAlpha = data["bitmapalpha"].AsInt();
+        if (data.contains("bitmapalpha") && data["bitmapalpha"].is_number_integer()) {
+            bitmapAlpha = data["bitmapalpha"].get<int>();
         }
         if (bgImagePath != "" && FileExists(bgImagePath)) {
             UpdateSketchBackground(bgImagePath, bitmapAlpha);
         }
-        if (data.HasMember("sketchdata") && data["sketchdata"].IsString()) {
-            SetSketchDef(data["sketchdata"].AsString());
+        if (data.contains("sketchdata") && data["sketchdata"].is_string()) {
+            SetSketchDef(data["sketchdata"].get<std::string>());
             NotifySketchUpdated();
         }
     }
@@ -356,14 +361,18 @@ void SketchAssistPanel::OnButton_ExportSketch(wxCommandEvent& event)
     wxString filename = wxFileSelector(_("Save xLights Sketch File"), xLightsFrame::CurrentDir, wxEmptyString, wxEmptyString, "Sketch Files (*.xsketch)|*.xsketch", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
     if (!filename.IsEmpty()) {
-        wxJSONValue data;
+        nlohmann::json data;
         data["sketchdata"] = m_sketch.toString();
-        data["imagepath"] = m_bgImagePath;
+        data["imagepath"] = m_bgImagePath.ToStdString();
         data["bitmapalpha"] = m_bitmapAlpha;
-        wxFileOutputStream skfile(filename);
-        wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
-        writer.Write(data, skfile);
-        skfile.Close();
+
+        try {
+            std::ofstream o(filename.ToStdString());
+            if (o.is_open()) {
+                o << std::setw(4) << data << std::endl;
+            }
+        } catch (const std::exception&) {
+        }
     }
 }
 

@@ -1012,11 +1012,18 @@
 					<style>wxBORDER_NONE|wxTAB_TRAVERSAL</style>
 					<object class="wxGridBagSizer" variable="StatusBarSizer" member="yes">
 						<growablerows>0</growablerows>
+						<object class="spacer">
+							<col>0</col>
+							<row>0</row>
+							<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<option>1</option>
+							<size>8,0</size>
+						</object>
 						<object class="sizeritem">
 							<object class="wxStaticText" name="ID_STATICTEXT6" variable="StatusText" member="yes">
 								<label>Label</label>
 							</object>
-							<col>0</col>
+							<col>1</col>
 							<row>0</row>
 							<flag>wxALL|wxEXPAND</flag>
 							<border>2</border>
@@ -1037,7 +1044,7 @@
 									</object>
 								</object>
 							</object>
-							<col>1</col>
+							<col>2</col>
 							<row>0</row>
 							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 							<option>1</option>
@@ -1046,7 +1053,7 @@
 							<object class="wxStaticText" name="ID_STATICTEXT7" variable="FileNameText" member="yes">
 								<label>Label</label>
 							</object>
-							<col>2</col>
+							<col>3</col>
 							<row>0</row>
 							<flag>wxALL|wxEXPAND</flag>
 							<border>2</border>

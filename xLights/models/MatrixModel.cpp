@@ -62,7 +62,7 @@ void MatrixModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 10000);
     p->SetEditor("SpinCtrl");
-    p->SetHelpString("This is typically the number of connections from the prop to your controller. *This would also be the 'Height' of a Virtual Matrix.");
+    p->SetHelpString("This is typically the number of connections from the prop to your controller. *This would also be the 'Height' of a Horizontal Virtual Matrix.");
 
     if (SingleNode) {
         p = grid->Append(new wxUIntProperty("Lights/String", "MatrixLightCount", parm2));
@@ -74,7 +74,7 @@ void MatrixModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
-        p->SetHelpString("This is typically the total number of pixels per #String. \n *This would also be the 'Width' of a Virtual Matrix.");
+        p->SetHelpString("This is typically the total number of pixels per #String. \n *This would also be the 'Width' of a Horizontal Virtual Matrix.");
     }
 
     p = grid->Append(new wxUIntProperty("Strands/String", "MatrixStrandCount", parm3));

@@ -181,10 +181,10 @@
 		<Unit filename="ChannelLayoutDialog.h" />
 		<Unit filename="CharMapDialog.cpp" />
 		<Unit filename="CharMapDialog.h" />
-		<Unit filename="CheckboxSelectDialog.cpp" />
-		<Unit filename="CheckboxSelectDialog.h" />
 		<Unit filename="CheckSequenceReport.cpp" />
 		<Unit filename="CheckSequenceReport.h" />
+		<Unit filename="CheckboxSelectDialog.cpp" />
+		<Unit filename="CheckboxSelectDialog.h" />
 		<Unit filename="Color.cpp" />
 		<Unit filename="ColorCurve.cpp" />
 		<Unit filename="ColorCurve.h" />
@@ -490,6 +490,17 @@
 		<Unit filename="WiringDialog.cpp" />
 		<Unit filename="WiringDialog.h" />
 		<Unit filename="XlightsDrawable.h" />
+		<Unit filename="ai/AIColorPaletteDialog.cpp" />
+		<Unit filename="ai/AIColorPaletteDialog.h" />
+		<Unit filename="ai/ServiceManager.cpp" />
+		<Unit filename="ai/ServiceManager.h" />
+		<Unit filename="ai/aiBase.cpp" />
+		<Unit filename="ai/aiBase.h" />
+		<Unit filename="ai/aiType.h" />
+		<Unit filename="ai/chatGPT.cpp" />
+		<Unit filename="ai/chatGPT.h" />
+		<Unit filename="ai/ollama.cpp" />
+		<Unit filename="ai/ollama.h" />
 		<Unit filename="automation/LuaRunner.cpp" />
 		<Unit filename="automation/LuaRunner.h" />
 		<Unit filename="automation/automation.cpp" />
@@ -508,15 +519,6 @@
 		<Unit filename="cad/STLWriter.h" />
 		<Unit filename="cad/VRMLWriter.cpp" />
 		<Unit filename="cad/VRMLWriter.h" />
-		<Unit filename="ai/aiBase.h" />
-		<Unit filename="ai/aiBase.cpp" />
-		<Unit filename="ai/aiType.h" />
-		<Unit filename="ai/chatGPT.h" />
-		<Unit filename="ai/chatGPT.cpp" />
-		<Unit filename="ai/ollama.h" />	
-		<Unit filename="ai/ollama.cpp" />
-		<Unit filename="ai/ServiceManager.h" />
-		<Unit filename="ai/ServiceManager.cpp" />
 		<Unit filename="controllers/AlphaPix.cpp" />
 		<Unit filename="controllers/AlphaPix.h" />
 		<Unit filename="controllers/BaseController.cpp" />
@@ -1070,10 +1072,10 @@
 		<Unit filename="preferences/OutputSettingsPanel.h" />
 		<Unit filename="preferences/RandomEffectsSettingsPanel.cpp" />
 		<Unit filename="preferences/RandomEffectsSettingsPanel.h" />
-        <Unit filename="preferences/ServicesPanel.cpp" />
-        <Unit filename="preferences/ServicesPanel.h" />
 		<Unit filename="preferences/SequenceFileSettingsPanel.cpp" />
 		<Unit filename="preferences/SequenceFileSettingsPanel.h" />
+		<Unit filename="preferences/ServicesPanel.cpp" />
+		<Unit filename="preferences/ServicesPanel.h" />
 		<Unit filename="preferences/ViewSettingsPanel.cpp" />
 		<Unit filename="preferences/ViewSettingsPanel.h" />
 		<Unit filename="preferences/xLightsPreferences.cpp" />
@@ -1166,6 +1168,7 @@
 		<Unit filename="wxModelGridCellRenderer.cpp" />
 		<Unit filename="wxModelGridCellRenderer.h" />
 		<Unit filename="wx_pch.h" />
+		<Unit filename="wxsmith/AIColorPaletteDialog.wxs" />
 		<Unit filename="wxsmith/AboutDialog.wxs" />
 		<Unit filename="wxsmith/AdjustPanel.wxs" />
 		<Unit filename="wxsmith/AlignmentDialog.wxs" />
@@ -1574,6 +1577,7 @@
 					<wxDialog wxs="wxsmith/EditSubmodelAliasesDialog.wxs" src="EditSubmodelAliasesDialog.cpp" hdr="EditSubmodelAliasesDialog.h" fwddecl="0" i18n="1" name="EditSubmodelAliasesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ShowFolderSearchDialog.wxs" src="ShowFolderSearchDialog.cpp" hdr="ShowFolderSearchDialog.h" fwddecl="0" i18n="1" name="ShowFolderSearchDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/ServicesPanel.wxs" src="preferences/ServicesPanel.cpp" hdr="preferences/ServicesPanel.h" fwddecl="0" i18n="1" name="ServicesPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/AIColorPaletteDialog.wxs" src="ai/AIColorPaletteDialog.cpp" hdr="ai/AIColorPaletteDialog.h" fwddecl="0" i18n="0" name="AIColorPaletteDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

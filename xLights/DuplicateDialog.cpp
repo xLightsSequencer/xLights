@@ -19,12 +19,12 @@
 
 
 //(*IdInit(DuplicateDialog)
-const long DuplicateDialog::ID_SPINCTRL_COUNT = wxNewId();
-const long DuplicateDialog::ID_STATICTEXT2 = wxNewId();
-const long DuplicateDialog::ID_SPINCTRL_GAP = wxNewId();
-const long DuplicateDialog::ID_CHECKBOX_RetainDur = wxNewId();
-const long DuplicateDialog::ID_BUTTON_OK = wxNewId();
-const long DuplicateDialog::ID_BUTTON_CLOSE = wxNewId();
+const wxWindowID DuplicateDialog::ID_SPINCTRL_COUNT = wxNewId();
+const wxWindowID DuplicateDialog::ID_STATICTEXT2 = wxNewId();
+const wxWindowID DuplicateDialog::ID_SPINCTRL_GAP = wxNewId();
+const wxWindowID DuplicateDialog::ID_CHECKBOX_RetainDur = wxNewId();
+const wxWindowID DuplicateDialog::ID_BUTTON_OK = wxNewId();
+const wxWindowID DuplicateDialog::ID_BUTTON_CLOSE = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(DuplicateDialog,wxDialog)
@@ -67,11 +67,10 @@ DuplicateDialog::DuplicateDialog(wxWindow* parent, wxWindowID id, const wxPoint&
     BoxSizer2->Add(Button_Close, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer1->Add(BoxSizer2, 0, wxALL|wxEXPAND, 5);
     SetSizer(BoxSizer1);
-    BoxSizer1->Fit(this);
     BoxSizer1->SetSizeHints(this);
 
-    Connect(ID_BUTTON_OK,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DuplicateDialog::OnButton_OkClick);
-    Connect(ID_BUTTON_CLOSE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DuplicateDialog::OnButton_CloseClick);
+    Connect(ID_BUTTON_OK, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&DuplicateDialog::OnButton_OkClick);
+    Connect(ID_BUTTON_CLOSE, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&DuplicateDialog::OnButton_CloseClick);
     //*)
 
     wxConfigBase* config = wxConfigBase::Get();

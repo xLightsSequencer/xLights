@@ -122,8 +122,8 @@ RestoreBackupDialog::RestoreBackupDialog(wxString const& showDir, wxString const
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxSize(602,134), wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinimumPaneSize(900);
-	SplitterWindow1->SetSashGravity(0.5);
+	SplitterWindow1->SetMinimumPaneSize(200);
+	SplitterWindow1->SetSashGravity(0.3);
 	Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	FlexGridSizer2 = new wxFlexGridSizer(2, 1, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
@@ -131,7 +131,7 @@ RestoreBackupDialog::RestoreBackupDialog(wxString const& showDir, wxString const
 	StaticText1 = new wxStaticText(Panel1, ID_STATICTEXT1, _("Backups:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxEXPAND, 5);
 	ListBoxBackups = new wxListBox(Panel1, ID_LISTBOX_BACKUPS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_LISTBOX_BACKUPS"));
-	ListBoxBackups->SetMinSize(wxSize(250,400));
+	ListBoxBackups->SetMinSize(wxSize(150,400));
 	FlexGridSizer2->Add(ListBoxBackups, 0, wxEXPAND, 0);
 	Panel1->SetSizer(FlexGridSizer2);
 	Notebook1 = new wxNotebook(SplitterWindow1, ID_NOTEBOOK1, wxPoint(545,100), wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
@@ -147,7 +147,7 @@ RestoreBackupDialog::RestoreBackupDialog(wxString const& showDir, wxString const
 	Notebook1->AddPage(SplitterWindow2, _("Controllers/Layout"), true);
 	Notebook1->AddPage(CheckListBoxSequences, _("Sequences"), false);
 	SplitterWindow1->SplitVertically(Panel1, Notebook1);
-	SplitterWindow1->SetSashPosition(10);
+	SplitterWindow1->SetSashPosition(200);
 	FlexGridSizer1->Add(SplitterWindow1, 2, wxALL|wxEXPAND, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	StaticTextBackUpFolder = new wxStaticText(this, ID_STATICTEXT_BACKUPFOLDER, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_BACKUPFOLDER"));

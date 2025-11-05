@@ -965,12 +965,12 @@ void ZCPPOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, M
     if (p) {
         p->SetValue(GetChannels());
         if (c->IsAutoSize()) {
-            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
+            p->ChangeFlag(wxPGFlags::ReadOnly , true);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
             p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
         } else {
             p->SetEditor("SpinCtrl");
-            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , false);
+            p->ChangeFlag(wxPGFlags::ReadOnly , false);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
             p->SetHelpString("");
         }
@@ -980,7 +980,7 @@ void ZCPPOutput::AddProperties(wxPropertyGrid* propertyGrid, wxPGProperty *befor
     IPOutput::AddProperties(propertyGrid, before, c, allSameSize, expandProperties);
     
     auto p = propertyGrid->Insert(before, new wxStringProperty("Multicast Address", "MulticastAddressDisplay", ZCPP_GetDataMulticastAddress(_ip)));
-    p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
+    p->ChangeFlag(wxPGFlags::ReadOnly , true);
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
     p = propertyGrid->Insert(before, new wxBoolProperty("Supports Virtual Strings", "SupportsVirtualStrings", IsSupportsVirtualStrings()));

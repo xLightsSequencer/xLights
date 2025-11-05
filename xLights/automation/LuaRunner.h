@@ -11,26 +11,25 @@
  **************************************************************/
 
 #include <wx/string.h>
-
-#include "../../xSchedule/wxJSON/jsonreader.h"
-#include "../../xSchedule/wxJSON/jsonwriter.h"
+#include <nlohmann/json.hpp>
 
 #define SOL_ALL_SAFETIES_ON 1
 #include "sol/sol.hpp"
 #include <lua.h>
 
+#include <list>
 #include <map>
 #include <string>
+#include <vector>
 
 class xLightsFrame;
-class wxJSONValue;
 
 class LuaRunner 
 {
 public:
     explicit LuaRunner(xLightsFrame* frame);
 
-    bool Run_Script(wxString const& filepath, std::function<void(std::string const& msg)> SendResponse);
+    bool Run_Script(std::string const& filepath, std::function<void(std::string const& msg)> SendResponse);
 
     [[nodiscard]] std::string GetUserScriptFolder() const;
     [[nodiscard]] static std::string GetSystemScriptFolder();
@@ -50,11 +49,11 @@ public:
 private:
     xLightsFrame* _frame = nullptr;
 
-    [[nodiscard]] wxString JSONtoString(wxJSONValue const& json) const;
-    [[nodiscard]] wxString CommandtoString(std::string const& cmd, std::map<std::string, std::string> const& parms) const;
-    [[nodiscard]] sol::object getObjectType(wxJSONValue const& val, sol::state_view lua) const;
-    [[nodiscard]] wxArrayString getArrayString(sol::object const& items) const;
+    [[nodiscard]] std::string JSONtoString(nlohmann::json const& json) const;
+    [[nodiscard]] std::string CommandtoString(std::string const& cmd, std::map<std::string, std::string> const& parms) const;
+    [[nodiscard]] sol::object getObjectType(nlohmann::json const& val, sol::state_view lua) const;
+    [[nodiscard]] std::vector<std::string> getArrayString(sol::object const& items) const;
     void SendObjResponse(sol::object const& val, std::function<void(std::string const& msg)> SendResponse) const;
-    void ObjectToJSON(sol::object const& items, wxJSONValue& json) const;
+    void ObjectToJSON(sol::object const& items, nlohmann::json& json) const;
     bool is_integer(double n) const;
 };

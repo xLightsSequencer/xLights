@@ -180,11 +180,10 @@ void DDPOutput::SendSync(const std::string& localIP) {
 }
 
 #ifndef EXCLUDENETWORKUI
-wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type, const std::string& localIP)
-{
+nlohmann::json DDPOutput::Query(const std::string& ip, uint8_t type, const std::string& localIP) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    wxJSONValue val;
+    nlohmann::json val;
 
     uint8_t packet[DDP_DISCOVERPACKET_LEN];
     memset(&packet, 0x00, sizeof(packet));
@@ -254,9 +253,11 @@ wxJSONValue DDPOutput::Query(const std::string& ip, uint8_t type, const std::str
                     if (response[3] == type) {
                         logger_base.debug(" Valid response.");
                         logger_base.debug((const char*)&response[10]);
-
-                        wxJSONReader reader;
-                        reader.Parse(wxString(&response[10]), &val);
+                        try {
+                            val = nlohmann::json::parse(std::string(reinterpret_cast<char*>(&response[10])));
+                        } catch (std::exception& e) {
+                            logger_base.error("DDP Query JSON Parse error %s", e.what());
+                        }
                     }
                 }
                 logger_base.info("DDP Query Done looking for response.");
@@ -305,37 +306,37 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
                 logger_base.warn("Unsupported DDP controller");
             }
             else {
-                wxJSONReader reader;
-                wxJSONValue val;
-                reader.Parse(wxString(&response[10]), &val);
-                if (val.HasMember("status")) {
-                    std::string name = "";
-                    if (val["status"].HasMember("man")) {
-                        name =
-                                val["status"]["man"].AsString().ToStdString();
-                        dd->SetVendor(name);
-                    }
-                    if (val["status"].HasMember("mod")) {
-                        if (name != "") {
-                            name += "-";
+                try {
+                    nlohmann::json val = nlohmann::json::parse(std::string(reinterpret_cast<char*>(&response[10])));
+                    if (val.contains("status")) {
+                        std::string name = "";
+                        if (val["status"].contains("man")) {
+                            name = val["status"]["man"].get<std::string>();
+                            dd->SetVendor(name);
                         }
-                        name +=
-                                val["status"]["mod"].AsString().ToStdString();
-                        dd->SetModel(
-                                val["status"]["mod"].AsString().ToStdString());
-                    }
-                    if (val["status"].HasMember("ver")) {
-                        if (name != "") {
-                            name += "-";
+                        if (val["status"].contains("mod")) {
+                            if (name != "") {
+                                name += "-";
+                            }
+                            name +=
+                                val["status"]["mod"].get<std::string>();
+                            dd->SetModel(
+                                val["status"]["mod"].get<std::string>());
                         }
-                        name +=
-                                val["status"]["ver"].AsString().ToStdString();
-                        dd->version =
-                                val["status"]["ver"].AsString().ToStdString();
+                        if (val["status"].contains("ver")) {
+                            if (name != "") {
+                                name += "-";
+                            }
+                            name +=
+                                val["status"]["ver"].get<std::string>();
+                            dd->version =
+                                val["status"]["ver"].get<std::string>();
+                        }
+                        dd->description = name;
+                        controller->SetDescription(name);
                     }
-                    dd->description = name;
-                    controller->SetDescription(name);
-                }
+                } catch (const std::exception&) {
+                }  
             }
             uint8_t packet[DDP_DISCOVERPACKET_LEN];
             memset(&packet, 0x00, sizeof(packet));
@@ -368,29 +369,29 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
                 logger_base.warn("Unsupported DDP controller");
             }
             else {
-                wxJSONReader reader;
-                wxJSONValue val;
-                reader.Parse(wxString(&response[10]), &val);
+                try {
+                    nlohmann::json val = nlohmann::json::parse(std::string(reinterpret_cast<char*>(&response[10])));
 
-                if (val.HasMember("config")
-                        && val["config"].HasMember("ports")) {
-                    int channels = 0;
-                    auto ports = val["config"]["ports"].AsArray();
-                    for (int i = 0; i < ports->Count(); i++) {
-                        auto ts =
+                    if (val.contains("config") && val["config"].contains("ports")) {
+                        int channels = 0;
+                        auto ports = val["config"]["ports"].array();
+                        for (int i = 0; i < ports.size(); i++) {
+                            auto ts =
                                 wxAtoi(
-                                        val["config"]["ports"][i]["ts"].AsString())
-                                        + 1;
-                        auto l =
+                                    val["config"]["ports"][i]["ts"].get<std::string>()) +
+                                1;
+                            auto l =
                                 wxAtoi(
-                                        val["config"]["ports"][i]["l"].AsString());
-                        channels += ts * l * 3;
-                    }
-                    controller->GetOutputs().front()->SetChannels(
+                                    val["config"]["ports"][i]["l"].get<std::string>());
+                            channels += ts * l * 3;
+                        }
+                        controller->GetOutputs().front()->SetChannels(
                             channels);
-                } else {
-                    controller->GetOutputs().front()->SetChannels(512);
-                }
+                    } else {
+                        controller->GetOutputs().front()->SetChannels(512);
+                    }
+                } catch (const std::exception&) {
+                }                
             }
         } else {
             // non discovery response packet
@@ -607,12 +608,12 @@ void DDPOutput::UpdateProperties(wxPropertyGrid* propertyGrid, Controller* c, Mo
     if (p) {
         p->SetValue(GetChannels());
         if (c->IsAutoSize()) {
-            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
+            p->ChangeFlag(wxPGFlags::ReadOnly , true);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
             p->SetHelpString("Channels cannot be changed when an output is set to Auto Size.");
         } else {
             p->SetEditor("SpinCtrl");
-            p->ChangeFlag(wxPGPropertyFlags::ReadOnly , false);
+            p->ChangeFlag(wxPGFlags::ReadOnly , false);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
             p->SetHelpString("");
         }

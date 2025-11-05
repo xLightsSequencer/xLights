@@ -883,8 +883,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MainAuiManager->AddPane(Notebook1, wxAuiPaneInfo().Name(_T("MainPain")).CenterPane().Caption(_("Pane caption")).PaneBorder(false));
     AUIStatusBar = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE|wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     StatusBarSizer = new wxGridBagSizer(0, 0);
+    StatusBarSizer->Add(8,0,1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     StatusText = new wxStaticText(AUIStatusBar, ID_STATICTEXT6, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
-    StatusBarSizer->Add(StatusText, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxEXPAND, 2);
+    StatusBarSizer->Add(StatusText, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxEXPAND, 2);
     Panel1 = new wxPanel(AUIStatusBar, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
     Panel1->SetMinSize(wxDLG_UNIT(AUIStatusBar,wxSize(100,-1)));
     GaugeSizer = new wxFlexGridSizer(1, 1, 0, 0);
@@ -892,9 +893,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     ProgressBar = new wxGauge(Panel1, ID_GAUGE1, 100, wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(100,-1)), 0, wxDefaultValidator, _T("ID_GAUGE1"));
     GaugeSizer->Add(ProgressBar, 0, wxEXPAND, 0);
     Panel1->SetSizer(GaugeSizer);
-    StatusBarSizer->Add(Panel1, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    StatusBarSizer->Add(Panel1, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     FileNameText = new wxStaticText(AUIStatusBar, ID_STATICTEXT7, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
-    StatusBarSizer->Add(FileNameText, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxEXPAND, 2);
+    StatusBarSizer->Add(FileNameText, wxGBPosition(0, 3), wxDefaultSpan, wxALL|wxEXPAND, 2);
     StatusBarSizer->AddGrowableRow(0);
     AUIStatusBar->SetSizer(StatusBarSizer);
     MainAuiManager->AddPane(AUIStatusBar, wxAuiPaneInfo().Name(_T("Status Bar")).DefaultPane().Caption(_("Status bar")).CaptionVisible(false).CloseButton(false).Bottom().DockFixed().Dockable(false).Floatable(false).FloatingPosition(wxPoint(0,0)).FloatingSize(wxSize(0,0)).Movable(false).PaneBorder(false));
@@ -1517,8 +1518,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     ChoiceParm1->SetStringSelection("100");
     ChoiceParm2->SetStringSelection("100");
 
-    StatusBarSizer->AddGrowableCol(0, 2);
-    StatusBarSizer->AddGrowableCol(2, 1);
+    StatusBarSizer->AddGrowableCol(1, 2);
+    StatusBarSizer->AddGrowableCol(3, 1);
     ProgressBar->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&xLightsFrame::OnProgressBarDoubleClick, nullptr, this);
     ProgressBar->Hide();
     selectedEffectPalette = "";
@@ -2355,6 +2356,13 @@ void xLightsFrame::DoPostStartupCommands()
             hasWarned = true;
             wxMessageBox("Windows 7 has known issues rendering some effects.  Support for Windows 7 may be removed entirely soon.",
                          "Windows Version",
+                         wxICON_INFORMATION | wxCENTER | wxOK);
+        }
+#endif
+#ifdef __WXOSX__
+        if (hasFullDiskAccess()) {
+            wxMessageBox("xLights has been granted \"Full Disk Access\" in System settings.  This is strongly discouraged.",
+                         "Full Disk Access Detected",
                          wxICON_INFORMATION | wxCENTER | wxOK);
         }
 #endif
@@ -5263,7 +5271,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     // Check for inactive outputs
     for (const auto& c : _outputManager.GetControllers()) {
-        if (!c->IsEnabled() && c->CanSendData()) {
+        if (!c->IsEnabled() && c->CanSendData() && c->GetModel() != "FPP Player Only" && c->GetModel() != "FPP Video Playing Remote Only" ) {
             wxString msg = wxString::Format("    WARN: Inactive controller %s %s:%s.",
                                             c->GetName(), c->GetColumn1Label(), c->GetColumn2Label());
             LogAndTrack(report, "controllers", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "inactive", errcount, warncount);
@@ -9030,46 +9038,30 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     bool found_update = false;
-#ifdef LINUX
-    //wxString hostname = wxT("www.adebenham.com");
-    //wxString path = wxT("/wp-content/uploads/xlights/latest.php");
-    wxString downloadUrl = wxT("https://github.com/xLightsSequencer/xLights/releases/latest");
+    // include 6 tags, first will LIKELY be the nightly, this then includes 5 to walk
+    // back and find one that has the right asset for the platform
+    std::string githubTagURL = "https://api.github.com/repos/xLightsSequencer/xLights/releases?per_page=6";
     MenuItem_Update->Enable(true);
-#else
-#ifdef __WXOSX__
-    //wxString hostname = _T("dankulp.com");
-    //wxString path = _T("/xLightsLatest.php");
-    wxString downloadUrl = wxT("http://dankulp.com/xlights/");
-    if (MenuItem_Update)
-        MenuItem_Update->Enable(true);
-#else
-    //wxString hostname = _T("xlights.org");
-    //wxString path = _T("/downloads/");
-    wxString downloadUrl = wxT("https://xlights.org/downloads/");
-    //wxString path = _T("/releases/");
-    // wxString downloadUrl = wxT("https://xlights.org/releases/");
-    //wxString downloadUrl2 = wxT("https://github.com/xLightsSequencer/xLights/releases/latest");
-    logger_base.debug("Downloading %s", (const char*)downloadUrl.c_str());
-    MenuItem_Update->Enable(true);
-#endif
-#endif
-    std::string resp;
+    int rc = 0;
+    logger_base.debug("Downloading %s", (const char*)githubTagURL.c_str());
+    
     bool didConnect = false;
-    for (int retry = 0; retry < maxRetries; retry++) {
-        logger_base.debug("Attempting version update check %d/%d...", retry + 1, maxRetries);
-        resp = Curl::HTTPSGet(downloadUrl);
-        if (!resp.empty()) {
-            didConnect = true;
-            break;
-        } else {
-            // If another retry is possible, sleep for N seconds
-            // This avoids overloading the remote server with repeat requests
-            if (retry < maxRetries - 1) {
-                wxSleep(3);
+    std::string resp;
+    nlohmann::json val;
+    for (int retry = 0; retry < maxRetries && !didConnect; retry++) {
+        resp = CurlManager::INSTANCE.doGet(githubTagURL, rc);
+        if (rc == 200 && !resp.empty()) {
+            try {
+                val = nlohmann::json::parse(resp, nullptr, false);
+                if (!val.is_discarded()) {
+                    didConnect = true;
+                }
+            } catch (...) {
             }
+        } else {
+            wxSleep(1);
         }
     }
-
     if (!didConnect) {
         logger_base.debug("Version update check failed. Unable to connect.");
         if (showMessageBoxes) {
@@ -9077,67 +9069,50 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
         }
         return true;
     }
+    wxString configver;
+    wxConfigBase* config = wxConfigBase::Get();
+    if (canSkipUpdates && (config != nullptr)) {
+        config->Read("SkipVersion", &configver);
+    }
 
-    if (!resp.empty()) {
-        wxString configver = wxT("");
-
-
-#ifdef __WXMSW__
-        wxString page = ToWXString(resp);
-
-        // logger_base.debug("    Download page: %s",
-        //     (const char *)page.c_str());
-
-        // find the highest version number in the file
-        wxString urlVersion = xlights_version_string;
-
-        wxRegEx reVersion("xLights[0-9][0-9]_(2[0-9][0-9][0-9]_[0-9][0-9])\\.exe", wxRE_ADVANCED | wxRE_NEWLINE);
-        while (reVersion.Matches(page)) {
-            auto v = reVersion.GetMatch(page, 1);
-            size_t start = -1;
-            size_t len = -1;
-            reVersion.GetMatch(&start, &len, 1);
-            v.Replace("_", ".");
-
-            // logger_base.debug("    Found Version: %s",
-            //     (const char *)v.c_str());
-
-            if (IsVersionOlder(v, urlVersion)) {
-                urlVersion = v;
-            }
-            page = page.Mid(start + len);
-        }
-
-        wxString dlv = urlVersion;
-        dlv.Replace(".", "_");
-        wxString bit = GetBitness();
-        bit.Replace("bit", "");
-        downloadUrl = downloadUrl + "xLights" + bit + "_" + dlv + ".exe";
+#ifdef LINUX
+    const std::string ASSET_EXT = "AppImage";
 #else
-        wxRegEx reVersion("^.*(2[0-9][0-9][0-9]\\.[0-9]*\\.?[0-9]?)[a-z]?[\\.-].*$");
-        wxString urlVersion = ToWXString(resp);
-        reVersion.Replace(&urlVersion, "\\1", 1);
+    const std::string ASSET_EXT = "exe";
 #endif
 
-        wxConfigBase* config = wxConfigBase::Get();
-        if (canSkipUpdates && (config != nullptr)) {
-            config->Read("SkipVersion", &configver);
+    std::string downloadURL;
+    std::string urlVersion;
+    for (int x = 0; x < val.size() && downloadURL.empty(); x++) {
+        if (val[x].contains("name")) {
+            std::string verName = val[x]["name"].get<std::string>();
+            if (verName != "nightly" && val[x].contains("assets")) {
+                // not a nightly, so check if it has the needed asses
+                for (int a = 0 ; a < val[x]["assets"].size(); a++) {
+                    std::string url = val[x]["assets"][a]["browser_download_url"].get<std::string>();
+                    if (url.ends_with(ASSET_EXT)) {
+                        downloadURL = url;
+                        urlVersion = verName;
+                    }
+                }
+            }
         }
+    }
 
-        logger_base.debug("Current Version: '%s'. Latest Available '%s'. Skip Version '%s'.",
-                          (const char*)xlights_version_string.c_str(),
-                          (const char*)urlVersion.c_str(),
-                          (const char*)configver.c_str());
-
+    logger_base.debug("Current Version: '%s'. Latest Available '%s'. Skip Version '%s'.",
+                      (const char*)xlights_version_string.c_str(),
+                      (const char*)urlVersion.c_str(),
+                      (const char*)configver.c_str());
+    if (!downloadURL.empty()) {
 #ifndef SIMULATE_UPGRADE
-        if ((!urlVersion.Matches(configver)) && (!urlVersion.Matches(xlights_version_string)) && IsVersionOlder(urlVersion, xlights_version_string))
+        if ((urlVersion != configver) && (urlVersion != xlights_version_string) && IsVersionOlder(urlVersion, xlights_version_string))
 #endif
         {
             found_update = true;
             UpdaterDialog* dialog = new UpdaterDialog(this);
 
             dialog->urlVersion = urlVersion;
-            dialog->downloadUrl = downloadUrl;
+            dialog->downloadUrl = downloadURL;
             dialog->StaticTextUpdateLabel->SetLabel(wxT("You are currently running xLights " + xlights_version_string + "\n" + "Whereas the current release is " + urlVersion));
             dialog->Show();
         }
@@ -9819,7 +9794,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                         auto name = n->GetName().Lower();
                         if (name == "targetfile") {
                             if (n->GetChildren() != nullptr) {
-                                targetFile.SetName(n->GetChildren()->GetContent());
+                                targetFile.SetFullName(n->GetChildren()->GetContent());
                             }
                         } else if (name == "items") {
                             for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
@@ -10766,6 +10741,6 @@ void xLightsFrame::OnMenuItemFindShowFolderSelected(wxCommandEvent& event)
     dlg.ShowModal();
 }
 
-aiBase* xLightsFrame::GetLLM(aiType::TYPE serviceType) {
+aiBase* xLightsFrame::GetAIService(aiType::TYPE serviceType) {
     return _serviceManager->findService(serviceType);
 }

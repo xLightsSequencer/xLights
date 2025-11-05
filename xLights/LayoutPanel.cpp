@@ -453,8 +453,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
                                         wxPG_SPLITTER_AUTO_CENTER | // Automatically center splitter until user manually adjusts it
                                         // Default style
                                         wxPG_DEFAULT_STYLE);
-    propertyEditor->SetExtraStyle(wxPG_EX_HELP_AS_TOOLTIPS);
-    propertyEditor->Connect(wxEVT_KILL_FOCUS,(wxObjectEventFunction)&xlPropertyGrid::OnKillFocus, 0, propertyEditor);
+    propertyEditor->SetExtraStyle(wxWS_EX_PROCESS_IDLE | wxPG_EX_HELP_AS_TOOLTIPS);
     LayoutUtils::CreateImageList(m_imageList);
 
     wxFlexGridSizer* FlexGridSizerModels = new wxFlexGridSizer(0, 1, 0, 0);
@@ -1124,11 +1123,12 @@ void LayoutPanel::resetPropertyGrid() {
 }
 
 void LayoutPanel::clearPropGrid() {
-
     // remember last selected item
     if (propertyEditor->GetSelection() != nullptr) {
         _lastSelProp = propertyEditor->GetSelection()->GetName();
     }
+    propertyEditor->UnfocusEditor();
+    propertyEditor->ClearSelection();
 
     wxPGProperty *p = propertyEditor->GetPropertyByName("ModelAppearance");
     if (p != nullptr) {
@@ -1154,7 +1154,6 @@ void LayoutPanel::clearPropGrid() {
     if (p != nullptr) {
         layersVisible = propertyEditor->IsPropertyExpanded(p);
     }
-
     propertyEditor->Clear();
 }
 
@@ -2479,6 +2478,12 @@ void LayoutPanel::showBackgroundProperties()
         backgroundFile = previewBackgroundFile;
         if (backgroundFile != "" && FileExists(backgroundFile) && wxIsReadable(backgroundFile)) {
             background = new wxImage(backgroundFile);
+            if (background->IsOk()) {
+                int orientation = GetExifOrientation(backgroundFile);
+                if (orientation != 1) { // 1 means no rotation needed
+                    *background = ApplyOrientation(*background, orientation);
+                }
+            }
         }
     }
     wxPGProperty* prop = propertyEditor->Append(new xlImageProperty("Background Image",
@@ -2582,7 +2587,7 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
     if( editing_models ) {
         auto p = propertyEditor->Append(new wxStringProperty("Name", "ModelName", base_object->name));
         if (dynamic_cast<SubModel*>(base_object) != nullptr) {
-            p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
+            p->ChangeFlag(wxPGFlags::ReadOnly, true);
             p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
             p->SetHelpString("SubModel names cannot be changed here.");
         }
@@ -5329,7 +5334,7 @@ void LayoutPanel::ExportFacesStatesSubModels() {
     wxArrayString choices;
     
     for (const auto& model : modelPreview->GetModels()) {
-        if (model->Name() == selectedBaseObject->Name())
+        if (model->Name() == selectedBaseObject->Name() || model->GetDisplayAs() == "Image")
             continue;
         choices.Add(model->Name());
     }

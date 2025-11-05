@@ -634,8 +634,8 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
         if (!mg->GetCentreDefined()) {
             int offx = mg->GetXCentreOffset();
             int offy = mg->GetYCentreOffset();
-            float cx = (minx + maxx) / 2.0 + (offx * (maxx - minx)) / 2000.0;
-            float cy = (miny + maxy) / 2.0 + (offy * (maxy - miny)) / 2000.0;
+            float cx = (minx + maxx) / 2.0f + (offx * (maxx - minx)) / 2000.0f;
+            float cy = (miny + maxy) / 2.0f + (offy * (maxy - miny)) / 2000.0f;
             DrawGroupCentre(cx, cy);
             mg->SetCentreX(cx);
             mg->SetCentreY(cy);
@@ -656,8 +656,8 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                 // need to calc new offsets
                 float cx = mg->GetCentreX();
                 float cy = mg->GetCentreY();
-                float offsetX = ((cx - ((minx + maxx) / 2.0)) * 2000.0) / (maxx - minx);
-                float offsetY = ((cy - ((miny + maxy) / 2.0)) * 2000.0) / (maxy - miny);
+                float offsetX = ((cx - ((minx + maxx) / 2.0f)) * 2000.0f) / (maxx - minx);
+                float offsetY = ((cy - ((miny + maxy) / 2.0f)) * 2000.0f) / (maxy - miny);
                 mg->SetXCentreOffset(offsetX);
                 mg->SetYCentreOffset(offsetY);
                 mg->SetCentreMinx(minx);
@@ -683,35 +683,35 @@ void ModelPreview::DrawGroupCentre(float x, float y)
         int scale = GetHandleScale();
         static float CENTER_MARK_WIDTH = 0.5f;
         float rs = scale;
-        rs /= 2.0;
-        rs += 1.0;
-        rs *= 12.0;
+        rs /= 2.0f;
+        rs += 1.0f;
+        rs *= 12.0f;
         float center_width = std::max(CENTER_MARK_WIDTH, CENTER_MARK_WIDTH * zoom * rs);
-        factor = center_width * 0.40; // adjust this for ideal size.
-        factor = MIN(MAX(factor, 1), 10); // sanity check
+        factor = center_width * 0.40f;                   // adjust this for ideal size.
+        factor = std::min(std::max(factor, 1.0f), 10.0f); // sanity check
         switch (crosshairChoice) {
         case 0:
-            factor *= 1.25;
+            factor *= 1.25f;
             break;
         case 1:
             // No changes needed
             break;
         case 2:
-            factor *= 0.5;
+            factor *= 0.5f;
             break;
         case 3:
-            factor *= 0.20;
+            factor *= 0.20f;
             break;
         case 4:
-            factor = 0;
+            factor = 0.0f;
             break;
         default:
             break;
         }
     }
     if (factor > 0) {
-        acc->AddRectAsTriangles(x - 20.5 * factor, y - 1.5 * factor, x + 20.5 * factor, y + 1.5 * factor, xlREDTRANSLUCENT);
-        acc->AddRectAsTriangles(x - 1.5 * factor, y - 20.5 * factor, x + 1.5 * factor, y + 20.5 * factor, xlREDTRANSLUCENT);
+        acc->AddRectAsTriangles(x - 20.5f * factor, y - 1.5f * factor, x + 20.5f * factor, y + 1.5f * factor, xlREDTRANSLUCENT);
+        acc->AddRectAsTriangles(x - 1.5f * factor, y - 20.5f * factor, x + 1.5f * factor, y + 20.5f * factor, xlREDTRANSLUCENT);
     }
 
     int end = acc->getCount();
@@ -722,8 +722,8 @@ void ModelPreview::DrawGroupCentre(float x, float y)
 
 void ModelPreview::SetCenterOffset(ModelGroup* mg, int x, int y)
 {
-    float offsetX = ((x - ((last_minx + last_maxx) / 2.0)) * 2000.0) / (last_maxx - last_minx);
-    float offsetY = ((y - ((last_miny + last_maxy) / 2.0)) * 2000.0) / (last_maxy - last_miny);
+    float offsetX = ((x - ((last_minx + last_maxx) / 2.0f)) * 2000.0f) / (last_maxx - last_minx);
+    float offsetY = ((y - ((last_miny + last_maxy) / 2.0f)) * 2000.0f) / (last_maxy - last_miny);
     mg->SetXCentreOffset(offsetX);
     mg->SetYCentreOffset(offsetY);
     mg->SetCentreX( x );
@@ -1233,6 +1233,11 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
                                   (const char *)GetName().c_str());
                 wxImage image(mBackgroundImage);
                 if (image.IsOk()) {
+                    int orientation = GetExifOrientation(mBackgroundImage);
+                    if (orientation != 1) {
+                        image = ApplyOrientation(image, orientation);
+                        logger_base.debug("    Applied EXIF orientation %d to background image.", orientation);
+                    }
                     backgroundSize.Set(image.GetWidth(), image.GetHeight());
                     background = currentContext->createTexture(image, mBackgroundImage, true);
                     logger_base.debug("    Loaded.");

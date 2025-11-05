@@ -74,9 +74,13 @@ SequencePackage::SequencePackage(const wxFileName& fileName, xLightsFrame* xligh
     if (fileName.GetExt() == "zip" || fileName.GetExt() == "piz" || fileName.GetExt() == "xsqz") {
         _xsqOnly = false;
         _pkgFile = fileName;
+        FileExists(_pkgFile, true);
+        ObtainAccessToURL(_pkgFile.GetFullPath());
     } else {
         _xsqOnly = true;
         _xsqFile = fileName;
+        FileExists(_xsqFile, true);
+        ObtainAccessToURL(_xsqFile.GetFullPath());
     }
 }
 

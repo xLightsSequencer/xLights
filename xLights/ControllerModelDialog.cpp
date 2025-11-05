@@ -290,8 +290,8 @@ public:
     {
         return _size.GetWidth();
     }
-    virtual ~BaseCMObject()
-    {}
+    virtual ~BaseCMObject() {
+    }
     void SetInvalid(bool invalid)
     {
         _invalid = invalid;
@@ -2154,6 +2154,10 @@ bool ModelSortName(const BaseCMObject* first, const BaseCMObject* second)
 
 void ControllerModelDialog::ReloadModels()
 {
+    // we are  deleting the models, make sure the deleted stuff is not referenced
+    _dragging = nullptr;
+    _popup = nullptr;
+    
     _cud->Rescan(true);
     std::string check;
     if (_caps != nullptr) {

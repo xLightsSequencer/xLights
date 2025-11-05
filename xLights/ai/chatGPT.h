@@ -22,7 +22,6 @@ class chatGPT : public aiBase {
 	std::string url = "https://api.openai.com/v1/chat/completions";
 	std::string model = "gpt-4o-mini";
     std::string bearer_token;
-	float temperature = 0.0;
 
 	public:
 
@@ -42,7 +41,9 @@ class chatGPT : public aiBase {
     [[nodiscard]] std::string GetLLMName() const override {
         return "ChatGPT";
     }
-    [[nodiscard]] aiType::TYPE GetLLMType() const override {
-        return aiType::TYPE::PROMPT;
+    [[nodiscard]] std::list<aiType::TYPE> GetTypes() const override {
+        return std::list({aiType::TYPE::COLORPALETTES, aiType::TYPE::PROMPT});
     }
+    
+    virtual AIColorPalette GenerateColorPalette(const std::string &prompt) const override;
 };

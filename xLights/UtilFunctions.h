@@ -14,9 +14,7 @@
 #include <wx/socket.h>
 #include <wx/filename.h>
 #include <wx/xml/xml.h>
-#include "../xSchedule/wxJSON/json_defs.h"
-#include "../xSchedule/wxJSON/jsonval.h"
-#include "../xSchedule/wxJSON/jsonreader.h"
+#include <nlohmann/json.hpp>
 
 #include "utils/string_utils.h"
 
@@ -70,8 +68,8 @@ wxString FixEffectFileParameter(const wxString& paramname, const wxString& param
 int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data);
 int GetxFadePort(int xfp);
 void OptimiseDialogPosition(wxDialog* dlg);
-wxJSONValue xLightsRequest(int xFadePort, const wxString& request, const wxString& ipAddress = "127.0.0.1");
-bool xLightsRequest(std::string &result, int xFadePort, const wxString& request, const wxString& ipAddress = "127.0.0.1");
+nlohmann::json xLightsRequest(int xFadePort, const wxString& request, const std::string& ipAddress = "127.0.0.1");
+bool xLightsRequest(std::string& result, int xFadePort, const wxString& request, const std::string& ipAddress = "127.0.0.1");
 
 wxString ExpandNodes(const wxString& nodes);
 wxString CompressNodes(const wxString& nodes);
@@ -80,6 +78,9 @@ wxString CompressNodes(const wxString& nodes);
 void ShiftNodes(std::map<std::string, std::string> & nodes, int shift, int min, int max);
 //reverse nodes, numbering 1->100, 100->1
 void ReverseNodes(std::map<std::string, std::string> & nodes, int max);
+
+wxImage ApplyOrientation(const wxImage& img, int orient);
+int GetExifOrientation(const wxString& filename);
 
 std::string GetResourcesDirectory();
 
