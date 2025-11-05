@@ -88,6 +88,7 @@ class ModelFaceDialog : public wxDialog
     static const long FACES_DIALOG_EXPORT_TOOTHERS;
     static const long FACES_DIALOG_COPY;
     static const long FACES_DIALOG_RENAME;
+    static const long FACES_DIALOG_DELETE;
     static const long FACES_DIALOG_SHIFT;
     static const long FACES_DIALOG_REVERSE;
 
@@ -125,7 +126,7 @@ private:
     //(*Handlers(ModelFaceDialog)
     void OnMatrixNameChoiceSelect(wxCommandEvent& event);
     void OnButtonMatrixAddClicked(wxCommandEvent& event);
-    void OnButtonMatrixDeleteClick(wxCommandEvent& event);
+    void OnFaceDeleteSelected();
     void OnMatrixModelsGridCellLeftClick(wxGridEvent& event);
     void OnMatrixModelsGridCellChange(wxGridEvent& event);
     void OnMatricImagePlacementChoiceSelect(wxCommandEvent& event);

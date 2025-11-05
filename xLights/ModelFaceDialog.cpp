@@ -91,6 +91,7 @@ const long ModelFaceDialog::FACES_DIALOG_IMPORT_FILE = wxNewId();
 const long ModelFaceDialog::FACES_DIALOG_EXPORT_TOOTHERS = wxNewId();
 const long ModelFaceDialog::FACES_DIALOG_COPY = wxNewId();
 const long ModelFaceDialog::FACES_DIALOG_RENAME = wxNewId();
+const long ModelFaceDialog::FACES_DIALOG_DELETE = wxNewId();
 const long ModelFaceDialog::FACES_DIALOG_SHIFT = wxNewId();
 const long ModelFaceDialog::FACES_DIALOG_REVERSE = wxNewId();
 
@@ -439,12 +440,10 @@ void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<st
     }
 
     if (NameChoice->GetCount() > 0) {
-        DeleteButton->Enable();
         FaceTypeChoice->Enable();
         NameChoice->SetSelection(0);
         SelectFaceModel(NameChoice->GetString(NameChoice->GetSelection()).ToStdString());
     } else {
-        DeleteButton->Disable();
         FaceTypeChoice->Disable();
     }
 
@@ -581,7 +580,6 @@ void ModelFaceDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
             SelectFaceModel(n);
             NameChoice->Enable();
             FaceTypeChoice->Enable();
-            DeleteButton->Enable();
 
             // set the default type of face based on the model type
             if (model->GetDisplayAs() == "Matrix" || StartsWith(model->GetDisplayAs(), "Tree")) {
@@ -614,11 +612,11 @@ void ModelFaceDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
     }
 }
 
-void ModelFaceDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
+void ModelFaceDialog::OnFaceDeleteSelected()
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     int i = wxMessageBox("Delete face definition?", "Are you sure you want to delete " + name + "?",
-                         wxICON_WARNING | wxOK, this);
+                         wxICON_WARNING | wxOK | wxCANCEL, this);
     if (i == wxID_OK || i == wxOK) {
         faceData[name].clear();
         NameChoice->Delete(NameChoice->GetSelection());
@@ -629,7 +627,6 @@ void ModelFaceDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
             NameChoice->SetSelection(wxNOT_FOUND);
             NameChoice->Disable();
             FaceTypeChoice->Disable();
-            DeleteButton->Disable();
         }
     }
 }
@@ -1521,6 +1518,10 @@ void ModelFaceDialog::OnAddBtnPopup(wxCommandEvent& event)
     {
         RenameFace();
     }
+    else if (event.GetId() == FACES_DIALOG_DELETE)
+    {
+        OnFaceDeleteSelected();
+    }
     else if (event.GetId() == FACES_DIALOG_SHIFT)
     {
         ShiftFaceNodes();
@@ -1554,7 +1555,6 @@ void ModelFaceDialog::ImportFacesFromModel()
 
         NameChoice->Enable();
         FaceTypeChoice->Enable();
-        DeleteButton->Enable();
 
         NameChoice->SetSelection(NameChoice->GetCount() - 1);
         NameChoice->SetStringSelection(NameChoice->GetString(NameChoice->GetCount() - 1));
@@ -1591,7 +1591,6 @@ void ModelFaceDialog::ImportFaces(const wxString& filename)
         {
             NameChoice->Enable();
             FaceTypeChoice->Enable();
-            DeleteButton->Enable();
 
             NameChoice->SetSelection(NameChoice->GetCount()-1);
             NameChoice->SetStringSelection(NameChoice->GetString(NameChoice->GetCount() - 1));
@@ -1645,26 +1644,6 @@ void ModelFaceDialog::AddFaces(std::map<std::string, std::map<std::string, std::
 
         faceData[fname] = face.second;
     }
-}
-
-void ModelFaceDialog::OnButtonImportClick(wxCommandEvent& event)
-{
-    wxMenu mnu;
-    if (DeleteButton->IsEnabled())
-    {
-        mnu.Append(FACES_DIALOG_COPY, "Copy");
-        mnu.Append(FACES_DIALOG_RENAME, "Rename");
-        mnu.AppendSeparator();
-    }
-    mnu.Append(FACES_DIALOG_IMPORT_MODEL, "Import From Model");
-    mnu.Append(FACES_DIALOG_IMPORT_FILE, "Import From File");
-    mnu.Append(FACES_DIALOG_EXPORT_TOOTHERS, "Export Faces To Other Model(s)");
-    mnu.AppendSeparator();
-    mnu.Append(FACES_DIALOG_SHIFT, "Shift Nodes");
-    mnu.Append(FACES_DIALOG_REVERSE, "Reverse Nodes");
-
-    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& ModelFaceDialog::OnAddBtnPopup, nullptr, this);
-    PopupMenu(&mnu);
 }
 
 void ModelFaceDialog::CopyFaceData()
@@ -2079,4 +2058,22 @@ void ModelFaceDialog::ExportFacesToOtherModels() {
 
 void ModelFaceDialog::OnButtonMoreClick(wxCommandEvent& event)
 {
+    
+    wxMenu mnu;
+    if (NameChoice->GetCount() > 0)
+    {
+        mnu.Append(FACES_DIALOG_COPY, "Copy");
+        mnu.Append(FACES_DIALOG_RENAME, "Rename");
+        mnu.Append(FACES_DIALOG_DELETE, "Delete");
+        mnu.AppendSeparator();
+    }
+    mnu.Append(FACES_DIALOG_IMPORT_MODEL, "Import From Model");
+    mnu.Append(FACES_DIALOG_IMPORT_FILE, "Import From File");
+    mnu.Append(FACES_DIALOG_EXPORT_TOOTHERS, "Export Faces To Other Model(s)");
+    mnu.AppendSeparator();
+    mnu.Append(FACES_DIALOG_SHIFT, "Shift Nodes");
+    mnu.Append(FACES_DIALOG_REVERSE, "Reverse Nodes");
+
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& ModelFaceDialog::OnAddBtnPopup, nullptr, this);
+    PopupMenu(&mnu);
 }
