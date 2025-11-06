@@ -628,9 +628,6 @@ static inline void addString(std::vector<uint8_t> &buffer, const std::string &st
     buffer.resize(pos + sz);
     memcpy(&buffer[pos], str.c_str(), sz);
 }
-static inline void addString(std::vector<uint8_t> &buffer, const wxString &str) {
-    addString(buffer, ToUTF8(str));
-}
 
 int FPP::PostJSONToURL(const std::string& url, const nlohmann::json& val) {
     std::string const str = val.dump(3);

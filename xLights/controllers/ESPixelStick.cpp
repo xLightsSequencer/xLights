@@ -405,7 +405,7 @@ bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputMana
 
 bool EspsV4Protocol::GetSetting(wxString Name, wxString & value)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // logger_base.debug("EspsV4Protocol:GetSetting: Start");
     bool Response = true;
 
@@ -425,7 +425,7 @@ bool EspsV4Protocol::GetSetting(wxString Name, wxString & value)
 
 bool EspsV4Protocol::PutSetting(wxString Name, wxString value, wxString DefaultValue)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // logger_base.debug("EspsV4Protocol:PutSetting: Start");
     bool Response = false;
 
@@ -471,7 +471,7 @@ bool EspsV4Protocol::PutSetting(wxString Name, wxString value, wxString DefaultV
 
 bool EspsV4Protocol::PutSetting(wxString Name, int value, int DefaultValue)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // logger_base.debug("EspsV4Protocol:PutSetting: Start");
     bool Response = false;
 
@@ -518,7 +518,7 @@ bool EspsV4Protocol::PutSetting(wxString Name, int value, int DefaultValue)
 
 bool EspsV4Protocol::PutSetting(wxString Name, float value, float DefaultValue)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // logger_base.debug("EspsV4Protocol:PutSetting: Start");
     bool Response = false;
 
@@ -663,7 +663,7 @@ bool EspsPort::ParseV4Settings(const nlohmann::json& JsonConfig)
 } // ParseV4Settings
 
 bool ESPixelStick::ParseV4Config(nlohmann::json& outputConfig) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // logger_base.debug("ParseV4Config: Start");
 
     bool Response = true;
