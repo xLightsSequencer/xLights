@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <wx/thread.h>
+#include <wx/xml/xml.h>
 
 #include <list>
 #include <map>
