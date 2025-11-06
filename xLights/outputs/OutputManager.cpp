@@ -399,8 +399,7 @@ bool OutputManager::MergeFromBase(bool prompt)
     return changed;
 }
 
-bool OutputManager::Save() {
-
+wxXmlDocument OutputManager::SaveToXML() {
     wxXmlDocument doc;
     wxXmlNode* root = new wxXmlNode(wxXML_ELEMENT_NODE, "Networks");
 
@@ -432,6 +431,11 @@ bool OutputManager::Save() {
     for (const auto& it : _testPresets) {
         root->AddChild(it->Save());
     }
+    return doc;
+}
+
+bool OutputManager::Save() {
+    wxXmlDocument doc = SaveToXML();
 
     wxFileOutputStream fout(_filename);
     wxBufferedOutputStream *bout = new wxBufferedOutputStream(fout, 2 * 1024 * 1024);

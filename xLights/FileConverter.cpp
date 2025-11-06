@@ -16,6 +16,8 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <wx/xml/xml.h>
+#include <wx/mstream.h>
+#include <zstd.h>
 
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
@@ -1624,6 +1626,29 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
     delete file;
 }
 
+static int compressMemoryBuffer(const wxMemoryOutputStream &out, uint8_t *outbuf, int max) {
+    auto cctx = ZSTD_createCStream();
+    ZSTD_initCStream(cctx, 3);
+    
+    
+    ZSTD_outBuffer output;
+    output.size = max;
+    output.dst = outbuf;
+    output.pos = 0;
+    
+    ZSTD_inBuffer input;
+    input.size = out.GetLength();
+    uint8_t *src = (uint8_t*)malloc(output.size);
+    input.src = src;
+    input.pos = 0;
+    
+    out.CopyTo(src, input.size);
+
+    ZSTD_compressStream2(cctx, &output, &input, ZSTD_e_end);
+    free(src);
+    return output.pos;
+}
+
 void FileConverter::WriteFalconPiFile(ConvertParameters& params)
 {
     static log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
@@ -1751,8 +1776,53 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
                 file->addVariableHeader(commandHeader);
             }
         }
+        if (params.xLightsFrm) {
+            if (params.xLightsFrm) {
+                const auto &xml = params.xLightsFrm->GetEffectsXml();
+                wxMemoryOutputStream out;
+                xml.Save(out);
+                FSEQFile::VariableHeader header;
+                header.code[0] = 'X';
+                header.code[1] = 'R';
+                header.extendedData = true;
+                header.data.resize(out.GetLength());
+                int sz = compressMemoryBuffer(out, &header.data[0], out.GetLength());
+                header.data.resize(sz);
+                file->addVariableHeader(header);
+                // printf("XR:   in: %d   out: %d\n", (int)out.GetLength(), sz);
+            }
+            if (params._outputManager) {
+                wxMemoryOutputStream out;
+                FSEQFile::VariableHeader header;
+                params._outputManager->SaveToXML().Save(out);
+                header.code[0] = 'X';
+                header.code[1] = 'N';
+                header.extendedData = true;
+                header.data.resize(out.GetLength());
+                int sz = compressMemoryBuffer(out, &header.data[0], out.GetLength());
+                header.data.resize(sz);
+                file->addVariableHeader(header);
+                // printf("XN:   in: %d   out: %d\n", (int)out.GetLength(), sz);
+            }
+            if (params.xLightsFrm && params.xLightsFrm->CurrentSeqXmlFile) {
+                wxMemoryOutputStream out;
+                FSEQFile::VariableHeader header;
+                
+                if (params.xLightsFrm->mSavedChangeCount != params.elements->GetChangeCount()) {
+                    params.xLightsFrm->CurrentSeqXmlFile->SaveToDoc(*params.elements);
+                }
+                params.xLightsFrm->CurrentSeqXmlFile->GetXmlDocument().Save(out);
+                header.code[0] = 'X';
+                header.code[1] = 'S';
+                header.extendedData = true;
+                header.data.resize(out.GetLength());
+                int sz = compressMemoryBuffer(out, &header.data[0], out.GetLength());
+                header.data.resize(sz);
+                file->addVariableHeader(header);
+                // printf("XS:   in: %d   out: %d\n", (int)out.GetLength(), sz);
+            }
+        }
     }
-    
 
     file->writeHeader();
     size_t size = params.seq_data.NumFrames();

@@ -75,6 +75,7 @@ public:
     #pragma region Save and Load
     bool Load(const std::string& showdir, bool syncEnabled = false);
     bool Save();
+    wxXmlDocument SaveToXML();
     bool DidConvert() const { return _didConvert; }
     bool ConvertModelStartChannels(wxXmlNode* modelsNode) const;
     #pragma endregion 

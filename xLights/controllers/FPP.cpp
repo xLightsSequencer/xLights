@@ -1251,6 +1251,12 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
             ((V2FSEQFile*)outputFile)->m_sparseRanges.push_back(a);
         }
     }
+    if (fppType != FPP_TYPE::FPP || type < 2 || !IsVersionAtLeast(9, 3)) {
+        // need to remove some variable headers that could trigger extra memory usage
+        outputFile->removeVariableHeader('X', 'S');
+        outputFile->removeVariableHeader('X', 'N');
+        outputFile->removeVariableHeader('X', 'R');
+    }
     outputFile->writeHeader();
     return false;
 }

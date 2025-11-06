@@ -2635,6 +2635,24 @@ void xLightsXmlFile::AddJukebox(wxXmlNode* node)
 // function used to save sequence data
 bool xLightsXmlFile::Save(SequenceElements& seq_elements)
 {
+    if (SaveToDoc(seq_elements)) {
+        wxFileOutputStream fout(GetFullPath());
+        wxBufferedOutputStream *bout = new wxBufferedOutputStream(fout, 2 * 1024 * 1024);
+        if (!seqDocument.Save(*bout)) {
+            delete bout;
+            return false;
+        }
+        delete bout;
+        if (!fout.Close()) {
+            return false;
+        }
+
+        MarkNewFileRevision(GetFullPath());
+        return true;
+    }
+    return false;
+}
+bool xLightsXmlFile::SaveToDoc(SequenceElements& seq_elements) {
     wxXmlNode* root = seqDocument.GetRoot();
 
     root->DeleteAttribute("ModelBlending");
@@ -2863,18 +2881,7 @@ bool xLightsXmlFile::Save(SequenceElements& seq_elements)
     }
 #endif
 
-    wxFileOutputStream fout(GetFullPath());
-    wxBufferedOutputStream *bout = new wxBufferedOutputStream(fout, 2 * 1024 * 1024);
-    if (!seqDocument.Save(*bout)) {
-        delete bout;
-        return false;
-    }
-    delete bout;
-    if (!fout.Close()) {
-        return false;
-    }
-
-    MarkNewFileRevision(GetFullPath());
+    
     return true;
 }
 

@@ -39,7 +39,6 @@ enum class HEADER_INFO_TYPES {
 class xLightsXmlFile : public wxFileName
 {
 public:
-    // xLightsXmlFile();
     xLightsXmlFile(const wxFileName& filename, uint32_t frameMS = 0);
     virtual ~xLightsXmlFile();
 
@@ -50,6 +49,7 @@ public:
 
     void AddJukebox(wxXmlNode* node);
     bool Save(SequenceElements& elements);
+    bool SaveToDoc(SequenceElements& elements);
     wxXmlDocument& GetXmlDocument()
     {
         return seqDocument;
