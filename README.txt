@@ -11,6 +11,31 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2025.12  November 7, 2025
+    - enh (scott)           Make State choice bulk editable
+    - enh (scott)           Add more scheduling options for HinksPix export
+    - enh (derwin12)        Various UI tweaks to the Restore dialog
+    - enh (derwin12)        LUA Script to time batch rendered sequences
+    - enh (derwin12)        Shorter batch render status line
+    - enh (dkulp)           Faster RenderCache cleanup, closing of sequences by optimizing string -> int
+    - enh (dkulp)           FPP Connect - for massive custom models, just map to horizontal string to prevent overly large memory usage on FPP
+    - enh (derwin12)        Show dates of newer autosave rgb file
+    - enh (PeteMathews)     Update ILT controller config upload
+    - enh (dkulp)           FPP Connect - fseq upload to FPP 9.3+ include embedded sequence details
+    - enh (MartinMueller)   Several updates to ESPixelStick v4 upload
+    - bug (scott)           Fix crash with HinksPix in non Full xLights Control mode
+    - bug (scott)           Fix HinksPix Export not loading saved values
+    - bug (derwin12)        Fix scaling/blurring of singing faces on matrices
+    - bug (derwin12)        Fix sequence version check with three digits
+    - bug (dkulp)           Fix Prepare Audio on Mac to properly create m4a files
+    - bug (scott)           Fix some crashes in ESPixelStick, add more error handling
+    - bug (dkulp)           Fix some crashes in RenderCache/macOS if mmap fails
+    - bug (dkulp)           Fix twinkly output not working
+    - bug (derwin12)        Fix Drag/Drop of imported effect in left list causing colums to get messed up
+    - bug (derwin12)        Fix crash in duplicate effect
+    - bug (derwin12)        MacOS - Fix Face delete dialog was not cancellable
+    - bug (derwin12)        Fix Check Sequence CSS file not loadable on Mac
+    - bug (derwin12)        Fix States being imported multiple times
 2025.11  October 17, 2025
     - enh (dkulp)           Very minor open sequence optimization when searching for data layers
     - enh (dkulp)           Don't display warning for full disk access if SIP is disabled
