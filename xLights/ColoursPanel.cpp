@@ -183,6 +183,11 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    if (xlights == nullptr || xLightsFrame::CurrentDir.IsEmpty()) {
+        logger_base.warn("UpdateColourButtons called with null xlights or empty CurrentDir. Skipping.");
+        return;
+    }
+
     if (reload) {
         _colours.clear();
         _colourscmp.clear();
