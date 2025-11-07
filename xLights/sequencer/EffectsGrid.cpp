@@ -6298,13 +6298,18 @@ void EffectsGrid::UpdateSelectionRectangle() {
 }
 
 void EffectsGrid::SetRCToolTip() {
+    if (mSequenceElements == nullptr) {
+        UnsetToolTip();
+        return;
+    }
+
     int x = std::abs(mRangeEndCol - mRangeStartCol) + 1;
     int y = std::abs(mRangeEndRow - mRangeStartRow) + 1;
 
     if (!mCellRangeSelected ||
         mPartialCellSelected ||
         mRangeStartCol < 0 ||
-        (x == 1 && y == 1) || mSequenceElements == nullptr ||
+        (x == 1 && y == 1) ||
         mSequenceElements->GetSelectedTimingRow() < 0) {
         UnsetToolTip();
     } else {
