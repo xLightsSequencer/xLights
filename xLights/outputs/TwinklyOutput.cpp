@@ -111,7 +111,9 @@ bool TwinklyOutput::SetLEDMode(bool rt)
     {
         if (!_fppProxyOutput) {
             // turn off
-            MakeCall("POST", "/xled/v1/led/mode", result, "{\"mode\": \"off\"}");
+            if (!MakeCall("POST", "/xled/v1/led/mode", result, "{\"mode\": \"off\"}")) {
+                return false;
+            }
         }
     }
     return true;
