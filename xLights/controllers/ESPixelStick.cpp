@@ -146,9 +146,18 @@ bool ESPixelStick::GetHttpConfig(std::string const& FileName, std::string const&
     std::string const url = "/conf/" + FileName + ".json";
     std::string RawData = GetURL(url);
     // logger_base.debug(std::string("GetHttpConfig: RawData: ") + RawData);
+    try
+    {
+        nlohmann::json ParsedData = nlohmann::json::parse(RawData);
+        Response = ParsedData[key];
+    }
+    catch (nlohmann::json::exception ex)
+    {
+        Response.clear();
+        logger_base.debug(std::string("GetHttpConfig: ERROR: Could not parse json: ") + RawData);
+        logger_base.error(std::string("GetHttpConfig: ERROR: Could not parse json: ") + ex.what());
+    }
 
-    nlohmann::json ParsedData = nlohmann::json::parse(RawData);
-    Response = ParsedData[key];
     logger_base.debug(std::string("GetHttpConfig: Response: ") + std::to_string(Response.size()));
     return (0 != Response.size());
 }
@@ -182,8 +191,15 @@ bool ESPixelStick::GetWsConfig(std::string const& SectionName, std::string const
     // logger_base.debug(std::string("GetWsConfig: cmd: ") + newJson.dump());
     _wsClient.Send(newJson.dump());
     std::string RawData = GetWSResponse();
-    nlohmann::json ParsedData = nlohmann::json::parse(RawData);
-    Response = ParsedData["get"][key];
+    try {
+        nlohmann::json ParsedData = nlohmann::json::parse(RawData);
+        Response = ParsedData["get"][key];
+    } catch (nlohmann::json::exception ex) {
+        Response.clear();
+        logger_base.debug(std::string("GetWsConfig: ERROR: Could not parse json: ") + RawData);
+        logger_base.error(std::string("GetWsConfig: ERROR: Could not parse json: ") + ex.what());
+    }
+
     // logger_base.debug(std::string("GetWsConfig: Response: ") + std::to_string(Response.Size()));
     return (0 != Response.size());
 }
@@ -199,8 +215,15 @@ bool ESPixelStick::SetWsConfig(std::string const& SectionName, std::string const
 
     std::string RawData = GetWSResponse();
     // logger_base.debug(std::string("SetWsConfig: RawData: ") + RawData);
-    nlohmann::json ParsedData = nlohmann::json::parse(RawData);
-    nlohmann::json Response = ParsedData["cmd"];
+    nlohmann::json Response;
+    try {
+        nlohmann::json ParsedData = nlohmann::json::parse(RawData);
+        nlohmann::json Response = ParsedData["cmd"];
+    } catch (nlohmann::json::exception ex) {
+        logger_base.debug(std::string("SetWsConfig: ERROR: Could not parse json: ") + RawData);
+        logger_base.error(std::string("SetWsConfig: ERROR: Could not parse json: ") + ex.what());
+    }
+
     std::string returnValue = Response.get<std::string>();
     // logger_base.debug(std::string("SetWsConfig: returnValue: '") + returnValue + "'");
     bool result = returnValue == "OK";
@@ -222,34 +245,38 @@ std::string ESPixelStick::GetWSResponse()
 }
 
 std::string ESPixelStick::GetFromJSON(std::string const& section, std::string const& key, std::string const & json) const {
-    //skip over the "G2" header or whatever
-    for (int x = 0; x < json.size(); x++)
-    {
-        if (json[x] == '{' || json[x] == '[')
-        {
-            std::string config = json.substr(x);
-            nlohmann::json origJson = nlohmann::json::parse(config);
-            nlohmann::json val = origJson;
-            if (section != "") {
-                val = origJson[section];
-            }
-            if (!val.contains(key))
-            { 
-                return "";
-            }
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // skip over the "G2" header or whatever
 
-            val = val.at(key);
-            if (val.is_string()) {
-                return val.get<std::string>();
-            }
-            if (val.is_number_integer()) {
-                return std::to_string(val.get<int>());
-            }
-            if (val.is_number_float()) {
-                return std::to_string(val.get<float>());
+    try {
+        for (int x = 0; x < json.size(); x++) {
+            if (json[x] == '{' || json[x] == '[') {
+                std::string config = json.substr(x);
+                nlohmann::json origJson = nlohmann::json::parse(config);
+                nlohmann::json val = origJson;
+                if (section != "") {
+                    val = origJson[section];
+                }
+                if (!val.contains(key)) {
+                    return "";
+                }
+
+                val = val.at(key);
+                if (val.is_string()) {
+                    return val.get<std::string>();
+                }
+                if (val.is_number_integer()) {
+                    return std::to_string(val.get<int>());
+                }
+                if (val.is_number_float()) {
+                    return std::to_string(val.get<float>());
+                }
             }
         }
+    } catch (nlohmann::json::exception ex) {
+        logger_base.error(std::string("GetFromJSON: ERROR: Could not parse json: ") + ex.what());
     }
+
     return "";
 }
 
@@ -910,81 +937,85 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
 
     logger_base.debug(check);
 
-    if (success && cud.GetMaxPixelPort() > 0) {
-        if (check != "") {
-            DisplayWarning("Upload warnings:\n" + check);
-        }
-
-        UDControllerPort* port = cud.GetControllerPixelPort(1);
-
-        _wsClient.Send("G1");
-        std::string config = GetWSResponse();
-        if (config.empty()) {
-            DisplayError("Failed to get Data from ESPixelStick");
-            return false;
-        }
-        config = config.substr(2);
-
-        nlohmann::json origJson = nlohmann::json::parse(config);
-
-        nlohmann::json newJson;
-        //copy stuff over to act as defaults
-        newJson["device"] = origJson["device"];
-        newJson["mqtt"] = origJson["mqtt"];
-        newJson["e131"] = origJson["e131"];
-        newJson["pixel"] = origJson["pixel"];
-
-        newJson["e131"]["universe"] = port->GetUniverse();
-        newJson["e131"]["universe_limit"] = cud.GetFirstOutput()->GetChannels();
-        newJson["e131"]["channel_start"] = port->GetUniverseStartChannel();
-        newJson["e131"]["channel_count"] = port->Channels();
-        newJson["e131"]["multicast"] = ((cud.GetFirstOutput()->GetIP() == "MULTICAST") ? true : false);
-
-        UDControllerPortModel * s = port->GetModels().front();
-        if (s) {
-            int const brightness = s->GetBrightness(-9999);
-            std::string const colourOrder = s->GetColourOrder("unknown");
-            float const gamma = s->GetGamma(-9999);
-            int const groupCount = s->GetGroupCount(-9999);
-
-            if (gamma > 0) {
-                newJson["pixel"]["gammaVal"] = gamma;
+    try {
+        if (success && cud.GetMaxPixelPort() > 0) {
+            if (check != "") {
+                DisplayWarning("Upload warnings:\n" + check);
             }
-            if (groupCount > 0) {
-                newJson["pixel"]["groupSize"] = groupCount;
+
+            UDControllerPort* port = cud.GetControllerPixelPort(1);
+
+            _wsClient.Send("G1");
+            std::string config = GetWSResponse();
+            if (config.empty()) {
+                DisplayError("Failed to get Data from ESPixelStick");
+                return false;
             }
-            if (colourOrder != "unknown") {
-                if (colourOrder == "GRB") {
-                    newJson["pixel"]["colourOrder"] = 1;
-                } else if (colourOrder == "BRG") {
-                    newJson["pixel"]["colourOrder"] = 2;
-                } else if (colourOrder == "RBG") {
-                    newJson["pixel"]["colourOrder"] = 3;
-                } else if (colourOrder == "GBR") {
-                    newJson["pixel"]["colourOrder"] = 4;
-                } else if (colourOrder == "BGR") {
-                    newJson["pixel"]["colourOrder"] = 5;
-                } else {
-                    newJson["pixel"]["colourOrder"] = 0;
+            config = config.substr(2);
+
+            nlohmann::json origJson = nlohmann::json::parse(config);
+
+            nlohmann::json newJson;
+            // copy stuff over to act as defaults
+            newJson["device"] = origJson["device"];
+            newJson["mqtt"] = origJson["mqtt"];
+            newJson["e131"] = origJson["e131"];
+            newJson["pixel"] = origJson["pixel"];
+
+            newJson["e131"]["universe"] = port->GetUniverse();
+            newJson["e131"]["universe_limit"] = cud.GetFirstOutput()->GetChannels();
+            newJson["e131"]["channel_start"] = port->GetUniverseStartChannel();
+            newJson["e131"]["channel_count"] = port->Channels();
+            newJson["e131"]["multicast"] = ((cud.GetFirstOutput()->GetIP() == "MULTICAST") ? true : false);
+
+            UDControllerPortModel* s = port->GetModels().front();
+            if (s) {
+                int const brightness = s->GetBrightness(-9999);
+                std::string const colourOrder = s->GetColourOrder("unknown");
+                float const gamma = s->GetGamma(-9999);
+                int const groupCount = s->GetGroupCount(-9999);
+
+                if (gamma > 0) {
+                    newJson["pixel"]["gammaVal"] = gamma;
+                }
+                if (groupCount > 0) {
+                    newJson["pixel"]["groupSize"] = groupCount;
+                }
+                if (colourOrder != "unknown") {
+                    if (colourOrder == "GRB") {
+                        newJson["pixel"]["colourOrder"] = 1;
+                    } else if (colourOrder == "BRG") {
+                        newJson["pixel"]["colourOrder"] = 2;
+                    } else if (colourOrder == "RBG") {
+                        newJson["pixel"]["colourOrder"] = 3;
+                    } else if (colourOrder == "GBR") {
+                        newJson["pixel"]["colourOrder"] = 4;
+                    } else if (colourOrder == "BGR") {
+                        newJson["pixel"]["colourOrder"] = 5;
+                    } else {
+                        newJson["pixel"]["colourOrder"] = 0;
+                    }
+                }
+                if (brightness > 0) {
+                    float bval = (float)brightness;
+                    bval /= 100.0F;
+                    newJson["pixel"]["briteVal"] = bval;
                 }
             }
-            if (brightness > 0) {
-                float bval = (float)brightness;
-                bval /= 100.0F;
-                newJson["pixel"]["briteVal"] = bval;
+
+            std::string message = newJson.dump(3);
+            message = "S2" + message;
+
+            if (_wsClient.Send(message)) {
+                success = true;
+                logger_base.debug("ESPixelStick Outputs Upload: Success!!!");
             }
+            GetWSResponse();
+        } else {
+            DisplayError("Not uploaded due to errors.\n" + check);
         }
-
-        std::string message = newJson.dump(3);
-        message = "S2" + message;
-
-        if (_wsClient.Send(message)) {
-            success = true;
-            logger_base.debug("ESPixelStick Outputs Upload: Success!!!");
-        }
-        GetWSResponse();
-    } else {
-        DisplayError("Not uploaded due to errors.\n" + check);
+    } catch (nlohmann::json::exception ex) {
+        logger_base.error(std::string("SetOutputsV3: ERROR: Could not parse json: ") + ex.what());
     }
 
     return success;
