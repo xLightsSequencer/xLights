@@ -7883,8 +7883,10 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
                         xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
                         xlights->AbortRender();
 
-                        xlights->AllModels.Delete(mg->GetName());
-                        deleted = true;
+                        bool response = xlights->AllModels.Delete(mg->GetName());
+                        if (response) {
+                            deleted = true;
+                        }
                     }
                 } else {
                     ++it;
