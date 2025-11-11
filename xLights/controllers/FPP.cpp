@@ -112,7 +112,7 @@ FPP::FPP(const std::string& ad) : BaseController(ad, ""), majorVersion(0), minor
 
 FPP::FPP(const std::string& ip_, const std::string& proxy_, const std::string& model_) :
     BaseController(ip_, proxy_), majorVersion(0), minorVersion(0), patchVersion(0), outputFile(nullptr), parent(nullptr),
-    fppType(FPP_TYPE::FPP), proxy(proxy_), pixelControllerType(model_)
+    fppType(FPP_TYPE::FPP), pixelControllerType(model_)
 {
     ipAddress = ip_;
     if (ip_utils::IsValidHostname(ipAddress)) {
@@ -125,7 +125,7 @@ FPP::FPP(const std::string& ip_, const std::string& proxy_, const std::string& m
 FPP::FPP(const FPP &c)
     : majorVersion(c.majorVersion), minorVersion(c.minorVersion), patchVersion(c.patchVersion), outputFile(nullptr), parent(nullptr), hostName(c.hostName), description(c.description), ipAddress(c.ipAddress), fullVersion(c.fullVersion), platform(c.platform),
     model(c.model), ranges(c.ranges), mode(c.mode), pixelControllerType(c.pixelControllerType), username(c.username), password(c.password), 
-    fppType(c.fppType), proxy(c.proxy), capeInfo(c.capeInfo) {
+    fppType(c.fppType), capeInfo(c.capeInfo) {
 
 }
 
@@ -286,8 +286,8 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
     logger_curl.debug(val.c_str());
     logger_curl.debug("RESPONSE END ---------");
     if (response_code == 401) {
-        if (password == "" && xlPasswordEntryDialog::GetStoredPasswordForService(ipAddress, username, password)) {
-            if (password != "") {
+        if (password.empty() && xlPasswordEntryDialog::GetStoredPasswordForService(ipAddress, username, password)) {
+            if (!password.empty()) {
                 return GetURLAsString(url, val);
             }
         }
@@ -1304,7 +1304,7 @@ static bool PlaylistContainsEntry(nlohmann::json &pl, const std::string &media, 
     for (int x = 0; x < pl.size(); x++) {
         nlohmann::json entry = pl[x];
         if (seq == GetJSONStringValue(entry, "sequenceName")) {
-            if (media == "") {
+            if (media.empty()) {
                 if (GetJSONStringValue(entry, "type") == "sequence") {
                     return true;
                 }
@@ -2106,7 +2106,7 @@ static bool mergeSerialInto(nlohmann::json &otherDmxData, nlohmann::json &otherO
 bool FPP::IsCompatible(const ControllerCaps *rules,
                        std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId,
                        std::string& driver, bool& supportsV5Receivers) {
-    if (origMod == "") {
+    if (origMod.empty()) {
         Controller::ConvertOldTypeToVendorModel(origId, origVend, origMod, origVar);
     }
     if (IsVersionAtLeast(7, 0)) {
@@ -2454,7 +2454,7 @@ bool FPP::UploadSerialOutputs(ModelManager* allmodels,
                 port["footer"] = controller->GetSaveablePostFix();
             }
             std::string description = controller->GetDescription();
-            if (description == "") {
+            if (description.empty()) {
                 description = controller->GetName();
             }
             port["description"] = description;
@@ -2620,7 +2620,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         return false;
     }
     std::string fppFileName = rules->GetCustomPropertyByPath("fppStringFileName");
-    if (fppFileName == "") {
+    if (fppFileName.empty()) {
         fppFileName = "co-bbbStrings";
     }
     std::string check;
@@ -2651,7 +2651,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             if (f.contains("pinoutVersion")) {
                 pinout = f["pinoutVersion"].get<std::string>();
             }
-            if (pinout == "") {
+            if (pinout.empty()) {
                 pinout = "1.x";
             }
             if (f.contains("subType")) {
@@ -3282,19 +3282,19 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
                 found->typeId = inst.typeId;
                 found->uuid = inst.uuid;
             } else {
-                if (found->platform == "") {
+                if (found->platform.empty()) {
                     found->platform = inst.platform;
                 }
-                if (found->mode == "") {
+                if (found->mode.empty()) {
                     found->mode = inst.mode;
                 }
-                if (found->platformModel == "") {
+                if (found->platformModel.empty()) {
                     found->platformModel = inst.platformModel;
                 }
                 if (found->typeId == 0) {
                     found->typeId = inst.typeId;
                 }
-                if (found->uuid == "") {
+                if (found->uuid.empty()) {
                     found->uuid = inst.uuid;
                 }
                 if (inst.ranges.size() > found->ranges.size()) {
@@ -3588,7 +3588,7 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
         }
         return true;
     });
-    if (inst->proxy == "") {
+    if (inst->proxy.empty()) {
         discovery.AddCurl(baseIp, "/api/proxies",
                             [&discovery, host] (int rc, const std::string &buffer, const std::string &err) {
             if (rc == 200) {
@@ -3639,19 +3639,19 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
             if (inst->typeId == 0) {
                 inst->typeId = buffer[9];
             }
-            if (inst->hostname == "") {
+            if (inst->hostname.empty()) {
                 inst->hostname = (char *)&buffer[19];
             }
-            if (inst->platformModel == "") {
+            if (inst->platformModel.empty()) {
                 inst->platformModel = (char *)&buffer[125];
             }
-            if (inst->platform == "") {
+            if (inst->platform.empty()) {
                 inst->platform = (char *)&buffer[125];
             }
-            if (inst->ip == "") {
+            if (inst->ip.empty()) {
                 inst->ip = ip;
             }
-            if (inst->version == "") {
+            if (inst->version.empty()) {
                 inst->version = (char *)&buffer[84];
             }
             if (inst->minorVersion == 0) {
@@ -3821,7 +3821,7 @@ static bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputMan
     }
 
     if ((res->typeId >= 0xC2) && (res->typeId <= 0xC3)) {
-        if (res->ranges == "") {
+        if (res->ranges.empty()) {
             auto c = outputManager->GetControllers(res->ip);
             if (c.size() == 1) {
                 ControllerEthernet *controller = dynamic_cast<ControllerEthernet*>(c.front());
@@ -3852,7 +3852,7 @@ static bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputMan
 }
 
 inline void setIfEmpty(std::string &val, const std::string &nv) {
-    if (val == "") {
+    if (val.empty()) {
         val = nv;
     }
 }
@@ -3885,6 +3885,12 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
             }
         }
     }
+    logger_base.info("----------- FPP Discovery Results ------------");
+    for (auto res : discovery.GetResults()) {
+        bool http = (res->extraData.contains("httpConnected") && res->extraData["httpConnected"].get<bool>() == true);
+        logger_base.info("   Instance: %s (uuid: %s)(hn: %s)(proxy: %s)(ver: %s)(http: %s)(t: %X)", res->ip.c_str(), res->uuid.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->version.c_str(), http ? "true" : "false", res->typeId);
+    }
+    logger_base.info("----------------------------------------------");
     for (auto res : discovery.GetResults()) {
         if (::supportedForFPPConnect(res, outputManager)) {
             logger_base.info("FPP Discovery - Found Supported FPP Instance: %s (u: %s)(h: %s)(p: %s)(r: %s)", res->ip.c_str(), res->uuid.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->ranges.c_str());
@@ -3948,7 +3954,9 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
                 instances.push_back(fpp);
             } else if (!skipit) {
                 fpp->ipAddress = res->ip;
-                setIfEmpty(fpp->proxy, res->proxy);
+                if (fpp->proxy().empty()) {
+                    fpp->proxy() = res->proxy;
+                }
                 setIfEmpty(fpp->hostName, res->hostname);
                 setIfEmpty(fpp->uuid, res->uuid);
                 setIfEmpty(fpp->description, res->description);
@@ -3976,7 +3984,7 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
                 if (res->extraData.contains("cape")) {
                     fpp->capeInfo = res->extraData["cape"];
                 }
-                fpp->canZipUpload = res->controller;
+                fpp->canZipUpload = res->canZipUpload;
             }
         } else {
             logger_base.info("FPP Discovery - %s is not a supported FPP Instance", res->ip.c_str());

@@ -541,12 +541,12 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
 
         std::string l = inst->hostName + " - " + inst->ipAddress;
         std::string lhn = "http://" + inst->hostName;
-        if (!inst->proxy.empty()) {
-            lhn = "http://" + inst->proxy + "/proxy/" + inst->ipAddress;
+        if (!inst->proxy().empty()) {
+            lhn = "http://" + inst->proxy() + "/proxy/" + inst->ipAddress;
         }
         std::string lip = "http://" + inst->ipAddress;
-        if (!inst->proxy.empty()) {
-            lip = "http://" + inst->proxy + "/proxy/" + inst->ipAddress;
+        if (!inst->proxy().empty()) {
+            lip = "http://" + inst->proxy() + "/proxy/" + inst->ipAddress;
         }
         auto link1 = new wxHyperlinkCtrl(FPPInstanceList, wxID_ANY, inst->hostName, lhn, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE, "ID_HOSTNAME_" + rowStr);
         link1->SetNormalColour(CyanOrBlue());

@@ -42,6 +42,8 @@ class FPP : public BaseController
     FPP(const FPP &c);
     virtual ~FPP();
     
+    std::string &proxy() { return _fppProxy; }
+    
     std::string hostName;
     std::string description;
     std::string ipAddress;
@@ -58,7 +60,6 @@ class FPP : public BaseController
     std::string uuid = "";
     std::list<std::string> playlists;
 
-    std::string proxy;
     std::set<std::string> proxies;
     bool isaProxy = false;
     bool solePlayer = false;
