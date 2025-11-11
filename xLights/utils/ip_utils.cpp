@@ -38,10 +38,13 @@ namespace ip_utils
         wxString ips = wxString(ip).Trim(false).Trim(true);
         if (ips == "") {
             return false;
-        }
-        else {
+        } else if (wxIsMainThread()) {
             static wxRegEx regxIPAddr("^(([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])$");
-
+            if (regxIPAddr.Matches(ips)) {
+                return true;
+            }
+        } else {
+            wxRegEx regxIPAddr("^(([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])$");
             if (regxIPAddr.Matches(ips)) {
                 return true;
             }
@@ -61,23 +64,30 @@ namespace ip_utils
             return false;
         }
 
-        //hosts only, IP address should have already passed above
-        static wxRegEx hostAddr(R"(^([a-zA-Z0-9\-]+)(\.?)([a-zA-Z0-9\-]{2,})$)");
-
         wxString ips = wxString(ip).Trim(false).Trim(true);
-        if (hostAddr.Matches(ips)) {
-            return true;
+        if (wxIsMainThread()) {
+            //hosts only, IP address should have already passed above
+            static wxRegEx hostAddr(R"(^([a-zA-Z0-9\-]+)(\.?)([a-zA-Z0-9\-]{2,})$)");
+            if (hostAddr.Matches(ips)) {
+                return true;
+            }
+        } else {
+            wxRegEx hostAddr(R"(^([a-zA-Z0-9\-]+)(\.?)([a-zA-Z0-9\-]{2,})$)");
+            if (hostAddr.Matches(ips)) {
+                return true;
+            }
         }
-
         //IP address should fall through to this false if not valid host too
         return false;
     }
 
     bool IsValidHostname(const std::string& ip) {
-        static wxRegEx hostAddr(R"(^([a-zA-Z0-9\-]+)(\.?)([a-zA-Z0-9\-]{2,})$)");
-
         wxString ips = wxString(ip).Trim(false).Trim(true);
-        
+        if (wxIsMainThread()) {
+            static wxRegEx hostAddr(R"(^([a-zA-Z0-9\-]+)(\.?)([a-zA-Z0-9\-]{2,})$)");
+            return hostAddr.Matches(ips);
+        }
+        wxRegEx hostAddr(R"(^([a-zA-Z0-9\-]+)(\.?)([a-zA-Z0-9\-]{2,})$)");
         return hostAddr.Matches(ips);
     }
 
@@ -106,17 +116,32 @@ namespace ip_utils
             return ip;
         }
         wxString IpAddr(ip.c_str());
-        static wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);
-        if (leadingzero1.Matches(IpAddr)) {
-            wxString s0 = leadingzero1.GetMatch(IpAddr, 0);
-            wxString s1 = leadingzero1.GetMatch(IpAddr, 1);
-            leadingzero1.ReplaceFirst(&IpAddr, "" + s0.Right(s0.size() - s1.size()));
-        }
-        static wxRegEx leadingzero2("(\\.0+)(?:[1-9]|0\\.|0$)", wxRE_ADVANCED);
-        while (leadingzero2.Matches(IpAddr)) { // need to do it several times because the results overlap
-            wxString s0 = leadingzero2.GetMatch(IpAddr, 0);
-            wxString s1 = leadingzero2.GetMatch(IpAddr, 1);
-            leadingzero2.ReplaceFirst(&IpAddr, "." + s0.Right(s0.size() - s1.size()));
+        if (wxIsMainThread()) {
+            static wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);
+            if (leadingzero1.Matches(IpAddr)) {
+                wxString s0 = leadingzero1.GetMatch(IpAddr, 0);
+                wxString s1 = leadingzero1.GetMatch(IpAddr, 1);
+                leadingzero1.ReplaceFirst(&IpAddr, "" + s0.Right(s0.size() - s1.size()));
+            }
+            static wxRegEx leadingzero2("(\\.0+)(?:[1-9]|0\\.|0$)", wxRE_ADVANCED);
+            while (leadingzero2.Matches(IpAddr)) { // need to do it several times because the results overlap
+                wxString s0 = leadingzero2.GetMatch(IpAddr, 0);
+                wxString s1 = leadingzero2.GetMatch(IpAddr, 1);
+                leadingzero2.ReplaceFirst(&IpAddr, "." + s0.Right(s0.size() - s1.size()));
+            }
+        } else {
+            wxRegEx leadingzero1("(^0+)(?:[1-9]|0\\.)", wxRE_ADVANCED);
+            if (leadingzero1.Matches(IpAddr)) {
+                wxString s0 = leadingzero1.GetMatch(IpAddr, 0);
+                wxString s1 = leadingzero1.GetMatch(IpAddr, 1);
+                leadingzero1.ReplaceFirst(&IpAddr, "" + s0.Right(s0.size() - s1.size()));
+            }
+            wxRegEx leadingzero2("(\\.0+)(?:[1-9]|0\\.|0$)", wxRE_ADVANCED);
+            while (leadingzero2.Matches(IpAddr)) { // need to do it several times because the results overlap
+                wxString s0 = leadingzero2.GetMatch(IpAddr, 0);
+                wxString s1 = leadingzero2.GetMatch(IpAddr, 1);
+                leadingzero2.ReplaceFirst(&IpAddr, "." + s0.Right(s0.size() - s1.size()));
+            }
         }
         return IpAddr.ToStdString();
     }
