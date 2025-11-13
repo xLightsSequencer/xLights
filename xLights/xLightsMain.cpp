@@ -1399,6 +1399,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     }
     logger_base.debug("Show directory %s.", (const char*)dir.c_str());
 
+#if !defined(_DEBUG)
     if (dir != "") {
 #ifdef __WXMSW__
         _tod.PrepTipOfDay(this);
@@ -1407,7 +1408,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         _tod->PrepTipOfDay(this);
 #endif
     }
-
+#endif
     Connect(wxEVT_HELP, (wxObjectEventFunction)&xLightsFrame::OnHelp);
     Notebook1->Connect(wxEVT_HELP, (wxObjectEventFunction)&xLightsFrame::OnHelp, 0, this);
 

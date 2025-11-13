@@ -1440,7 +1440,7 @@ void xLightsXmlFile::UpdateVersion(const std::string& version)
     }
 }
 
-void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
+void xLightsXmlFile::ProcessAudacityTimingFiles( const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
     wxTextFile f;
     wxString line;
@@ -1448,7 +1448,6 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 
     for (size_t i = 0; i < filenames.Count(); ++i) {
         wxFileName next_file(filenames[i]);
-        next_file.SetPath(dir);
 
         if (!f.Open(next_file.GetFullPath().c_str())) {
             //Add error dialog if open file failed
@@ -1550,12 +1549,11 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
     }
 }
 
-void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
+void xLightsXmlFile::ProcessLorTiming(const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
     for (size_t i = 0; i < filenames.Count(); ++i )
     {
         wxFileName next_file(filenames[i]);
-        next_file.SetPath(dir);
 
         wxFile f;
         if (!f.Open(next_file.GetFullPath().c_str()))
@@ -1782,15 +1780,13 @@ void xLightsXmlFile::ProcessXTiming(wxXmlNode* node, xLightsFrame* xLightsParent
     }
 }
 
-void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
+void xLightsXmlFile::ProcessXTiming(const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
     wxTextFile f;
 
     for (size_t i = 0; i < filenames.Count(); ++i)
     {
         wxFileName next_file(filenames[i]);
-        next_file.SetPath(dir);
-
         if (!f.Open(next_file.GetFullPath().c_str()))
         {
             DisplayError(wxString::Format("xTiming: Failed to open file: '%s'", next_file.GetFullPath()).ToStdString());
@@ -1843,7 +1839,7 @@ wxString RemoveTabs(const wxString& s, size_t tabs)
     return res;
 }
 
-void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
+void xLightsXmlFile::ProcessPapagayo( const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxTextFile f;
@@ -1852,8 +1848,6 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
     {
         int linenum = 1;
         wxFileName next_file(filenames[i]);
-        next_file.SetPath(dir);
-
         logger_base.info("Loading papagayo file " + std::string(next_file.GetFullPath().c_str()));
 
         if (!f.Open(next_file.GetFullPath().c_str()))
@@ -2159,7 +2153,7 @@ std::string ReadSRTLine(wxTextFile& f, int linenum, long& startMS, long& endMS)
     return line;
 }
 
-void xLightsXmlFile::ProcessSRT(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
+void xLightsXmlFile::ProcessSRT( const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxTextFile f;
@@ -2167,8 +2161,6 @@ void xLightsXmlFile::ProcessSRT(const wxString& dir, const wxArrayString& filena
     for (size_t i = 0; i < filenames.Count(); ++i)
     {
         wxFileName next_file(filenames[i]);
-        next_file.SetPath(dir);
-
         logger_base.info("Loading srt file " + std::string(next_file.GetFullPath().c_str()));
 
         if (!f.Open(next_file.GetFullPath().c_str()))
@@ -2262,7 +2254,7 @@ wxString DecodeLSPTTColour(int att)
     return wxString::Format("%d", att);
 }
 
-void xLightsXmlFile::ProcessLSPTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
+void xLightsXmlFile::ProcessLSPTiming( const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxTextFile f;
@@ -2272,8 +2264,6 @@ void xLightsXmlFile::ProcessLSPTiming(const wxString& dir, const wxArrayString& 
     for (size_t i = 0; i < filenames.Count(); ++i)
     {
         wxFileName next_file(filenames[i]);
-        next_file.SetPath(dir);
-
         logger_base.info("Decompressing LSP file " + std::string(next_file.GetFullPath().c_str()));
 
         wxFileInputStream fin(next_file.GetFullPath());
@@ -2388,7 +2378,7 @@ void xLightsXmlFile::ProcessLSPTiming(const wxString& dir, const wxArrayString& 
     xLightsParent->SetCursor(wxCURSOR_ARROW);
 }
 
-void xLightsXmlFile::ProcessXLightsTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent) {
+void xLightsXmlFile::ProcessXLightsTiming( const wxArrayString& filenames, xLightsFrame* xLightsParent) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxTextFile f;
 
@@ -2401,11 +2391,10 @@ void xLightsXmlFile::ProcessXLightsTiming(const wxString& dir, const wxArrayStri
     for (size_t i = 0; i < filenames.Count(); ++i)
     {
         wxFileName next_file(filenames[i]);
-        next_file.SetPath(dir);
 
         logger_base.info("Loading sequence file " + std::string(next_file.GetFullPath().c_str()));
         xLightsXmlFile file(next_file);
-        file.LoadSequence(dir, true, next_file);
+        //file.LoadSequence(dir, true, next_file);
 
         SequenceElements se(xLightsParent);
         se.SetFrequency(file.GetFrequency());
@@ -2483,7 +2472,7 @@ void xLightsXmlFile::AddMarksToLayer(const std::list<VixenTiming>& marks, Effect
     }
 }
 
-void xLightsXmlFile::ProcessVixen3Timing(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent) {
+void xLightsXmlFile::ProcessVixen3Timing( const wxArrayString& filenames, xLightsFrame* xLightsParent) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     xLightsParent->SetCursor(wxCURSOR_WAIT);
@@ -2491,7 +2480,6 @@ void xLightsXmlFile::ProcessVixen3Timing(const wxString& dir, const wxArrayStrin
     for (size_t i = 0; i < filenames.Count(); ++i)
     {
         wxFileName next_file(filenames[i]);
-        next_file.SetPath(dir);
 
         logger_base.info("Loading Vixen 3 file " + std::string(next_file.GetFullPath().c_str()));
 
