@@ -2394,7 +2394,7 @@ void xLightsXmlFile::ProcessXLightsTiming( const wxArrayString& filenames, xLigh
 
         logger_base.info("Loading sequence file " + std::string(next_file.GetFullPath().c_str()));
         xLightsXmlFile file(next_file);
-        //file.LoadSequence(dir, true, next_file);
+        file.LoadSequence(next_file.GetPath(), true, next_file);
 
         SequenceElements se(xLightsParent);
         se.SetFrequency(file.GetFrequency());
