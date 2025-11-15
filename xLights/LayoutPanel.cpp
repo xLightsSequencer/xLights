@@ -5156,7 +5156,11 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::3dCamera");
                     break;
                 } else if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->GetDeleteMenuId()) {
-                    xlights->viewpoint_mgr.DeleteCamera3D(i);
+                    std::string viewpointName = xlights->viewpoint_mgr.GetCamera3D(i)->GetName();
+                    wxString message = wxString::Format("Are you sure you want to delete the 3D viewpoint '%s'?\n\nThis action cannot be undone.", viewpointName);
+                    if (wxMessageBox(message, "Confirm Delete Viewpoint", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION, this) == wxYES) {
+                        xlights->viewpoint_mgr.DeleteCamera3D(i);
+                    }
                 }
             }
         }
@@ -5168,7 +5172,11 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::2dCamera");
                     break;
                 } else if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->GetDeleteMenuId()) {
-                    xlights->viewpoint_mgr.DeleteCamera2D(i);
+                    std::string viewpointName = xlights->viewpoint_mgr.GetCamera2D(i)->GetName();
+                    wxString message = wxString::Format("Are you sure you want to delete the 2D viewpoint '%s'?\n\nThis action cannot be undone.", viewpointName);
+                    if (wxMessageBox(message, "Confirm Delete Viewpoint", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION, this) == wxYES) {
+                        xlights->viewpoint_mgr.DeleteCamera2D(i);
+                    }
                 }
             }
         }
