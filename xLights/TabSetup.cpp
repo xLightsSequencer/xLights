@@ -1624,6 +1624,10 @@ wxBitmap xLightsFrame::CreateLedBitmap(bool online) {
 }
 
 void xLightsFrame::OnPingTimer(wxTimerEvent& event) {
+    if (List_Controllers == nullptr) {
+        //xLights not fully started, likely waiting for show folder to be selected
+        return;
+    }
     if (Notebook1->GetSelection() != SETUPTAB || _pingInProgress) {
         return;
     }
