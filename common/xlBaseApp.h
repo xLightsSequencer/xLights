@@ -79,7 +79,7 @@ public:
 
     virtual bool OnExceptionInMainLoop() override
     {
-        HandleCrash(false, "Exception from main loop.");
+        HandleCrash(true, "Exception from main loop.");
         return false;
     }
 
@@ -118,7 +118,7 @@ public:
 
     virtual bool OnExceptionInMainLoop() override
     {
-        HandleCrash(false, "Exception from main loop.");
+        HandleCrash(true, "Exception from main loop.");
         return false;
     }
 
