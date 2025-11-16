@@ -130,6 +130,7 @@ void ListenerARTNet::Poll() {
                     int mins = buffer[16];
                     int hours = buffer[17];
                     int mode = buffer[18];
+                    _lastMode = mode;
 
                     long stepoffset = _listenerManager->GetStepMMSSOfset(hours, _listenerManager->GetScheduleManager()->GetOptions()->GetMIDITimecodeOffset() / 3600000);
 

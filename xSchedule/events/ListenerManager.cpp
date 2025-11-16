@@ -43,6 +43,28 @@ ListenerManager::ListenerManager(ScheduleManager* scheduleManager) :
     StartListeners(scheduleManager->GetForceLocalIP());
 }
 
+ListenerBase* ListenerManager::GetSyncListener() const
+{
+    switch (_sync)
+    {
+    case 1:
+        return GetListener("FPP");
+    case 5:
+        return GetListener("MIDI");
+    case 7:
+        return GetListener("SMPTE");
+    case 3:
+        return GetListener("ARTNet");
+    case 6:
+        return GetListener("FPP CSV");
+    case 2:
+        return GetListener("OSC");
+    default:
+        break;
+    }
+    return nullptr;
+}
+
 void ListenerManager::StartListeners(const std::string& localIP)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));

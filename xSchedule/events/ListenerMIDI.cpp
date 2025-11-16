@@ -147,6 +147,7 @@ void ListenerMIDI::Poll() {
                 case 7:
                     qfhours = (qfhours & 0x0f) + ((msg->GetData1() & 0x01) << 4);
                     qfmode = (msg->GetData1() & 0x06) >> 1;
+                    _lastMode = qfmode;
                     DoSync(qfmode, qfhours, qfmins, qfsecs, qfframes);
                     break;
                 default:

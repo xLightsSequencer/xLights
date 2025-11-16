@@ -212,6 +212,7 @@ public:
         _lastLoop = false;
     }
     std::string GetStepStartTime(PlayListStep* step) const;
+    std::string GetStepRemoteStartTime(PlayListStep* step) const;
     long GetStepStartTimeMS(size_t index) const;
     bool IsSimple();
     std::string GetActiveSyncItemFSEQ();

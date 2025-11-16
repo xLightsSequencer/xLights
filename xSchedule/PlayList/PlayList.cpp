@@ -1286,6 +1286,27 @@ std::string PlayList::GetStepStartTime(PlayListStep* step) const {
     return FORMATTIME(ms);
 }
 
+std::string PlayList::GetStepRemoteStartTime(PlayListStep* step) const {
+
+    int baseTimecodeTime = step->GetBaseTimeCodeTime();
+
+    if (baseTimecodeTime > 0)
+    {
+        return FORMATTIME_H_M_S(baseTimecodeTime * 1000);
+    } else {
+        long ms = 0;
+        for (const auto& it : _steps) {
+            if (it == step)
+                break;
+            if (!it->GetEveryStep()) {
+                ms += it->GetLengthMS();
+            }
+        }
+
+        return FORMATTIME_H_M_S(ms);
+    }
+}
+
 long PlayList::GetStepStartTimeMS(size_t index) const {
     long ms = 0;
     auto it = begin(_steps);

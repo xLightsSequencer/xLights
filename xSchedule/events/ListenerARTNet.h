@@ -19,6 +19,7 @@ class wxDatagramSocket;
 class ListenerARTNet : public ListenerBase
 {
     wxDatagramSocket* _socket;
+    uint8_t _lastMode = 0;
 
     bool IsValidHeader(uint8_t* buffer);
 
@@ -31,4 +32,7 @@ public:
     virtual void StartProcess(const std::string& localIP) override;
     virtual void StopProcess() override;
     virtual void Poll() override;
+    virtual std::string FormatTime(size_t timems) const override {
+        return ListenerBase::FormatTime(_lastMode, timems);
+    }
 };

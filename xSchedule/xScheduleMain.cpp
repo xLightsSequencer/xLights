@@ -109,7 +109,15 @@
 
 ScheduleManager* xScheduleFrame::__schedule = nullptr;
 
-//helper functions
+std::string FormatTime(size_t timems, bool ms = false) {
+    if (ms) {
+        return wxString::Format(wxT("%i:%02i.%03i"), (int)(timems / 60000), (int)((timems % 60000) / 1000), (int)(timems % 1000)).ToStdString();
+    } else {
+        return wxString::Format(wxT("%i:%02i"), (int)(timems / 60000), (int)((timems % 60000) / 1000)).ToStdString();
+    }
+}
+
+// helper functions
 enum class wxbuildinfoformat {
     short_f, long_f };
 
@@ -135,87 +143,89 @@ wxString wxbuildinfo(wxbuildinfoformat format)
 }
 
 //(*IdInit(xScheduleFrame)
-const long xScheduleFrame::ID_BITMAPBUTTON1 = wxNewId();
-const long xScheduleFrame::ID_BITMAPBUTTON3 = wxNewId();
-const long xScheduleFrame::ID_BITMAPBUTTON6 = wxNewId();
-const long xScheduleFrame::ID_BITMAPBUTTON2 = wxNewId();
-const long xScheduleFrame::ID_BITMAPBUTTON4 = wxNewId();
-const long xScheduleFrame::ID_BITMAPBUTTON5 = wxNewId();
-const long xScheduleFrame::ID_BITMAPBUTTON7 = wxNewId();
-const long xScheduleFrame::ID_BITMAPBUTTON10 = wxNewId();
-const long xScheduleFrame::ID_CUSTOM1 = wxNewId();
-const long xScheduleFrame::ID_BITMAPBUTTON11 = wxNewId();
-const long xScheduleFrame::ID_BITMAPBUTTON8 = wxNewId();
-const long xScheduleFrame::ID_CUSTOM2 = wxNewId();
-const long xScheduleFrame::ID_BITMAPBUTTON9 = wxNewId();
-const long xScheduleFrame::ID_PANEL2 = wxNewId();
-const long xScheduleFrame::ID_TREECTRL1 = wxNewId();
-const long xScheduleFrame::ID_BUTTON1 = wxNewId();
-const long xScheduleFrame::ID_BUTTON2 = wxNewId();
-const long xScheduleFrame::ID_BUTTON5 = wxNewId();
-const long xScheduleFrame::ID_BUTTON3 = wxNewId();
-const long xScheduleFrame::ID_BUTTON4 = wxNewId();
-const long xScheduleFrame::ID_PANEL6 = wxNewId();
-const long xScheduleFrame::ID_LISTVIEW2 = wxNewId();
-const long xScheduleFrame::ID_PANEL7 = wxNewId();
-const long xScheduleFrame::ID_SPLITTERWINDOW2 = wxNewId();
-const long xScheduleFrame::ID_PANEL3 = wxNewId();
-const long xScheduleFrame::ID_LISTVIEW1 = wxNewId();
-const long xScheduleFrame::ID_PANEL5 = wxNewId();
-const long xScheduleFrame::ID_SPLITTERWINDOW1 = wxNewId();
-const long xScheduleFrame::ID_PANEL1 = wxNewId();
-const long xScheduleFrame::ID_STATICTEXT1 = wxNewId();
-const long xScheduleFrame::ID_STATICTEXT3 = wxNewId();
-const long xScheduleFrame::ID_STATICTEXT6 = wxNewId();
-const long xScheduleFrame::ID_STATICTEXT4 = wxNewId();
-const long xScheduleFrame::ID_STATICTEXT5 = wxNewId();
-const long xScheduleFrame::ID_STATICTEXT2 = wxNewId();
-const long xScheduleFrame::ID_STATICBITMAP2 = wxNewId();
-const long xScheduleFrame::ID_STATICBITMAP1 = wxNewId();
-const long xScheduleFrame::ID_PANEL4 = wxNewId();
-const long xScheduleFrame::ID_MNU_SHOWFOLDER = wxNewId();
-const long xScheduleFrame::ID_MNU_USEXLIGHTSFOLDER = wxNewId();
-const long xScheduleFrame::ID_MNU_SAVE = wxNewId();
-const long xScheduleFrame::idMenuQuit = wxNewId();
-const long xScheduleFrame::ID_MNU_MNUADDPLAYLIST = wxNewId();
-const long xScheduleFrame::ID_MENUITEM1 = wxNewId();
-const long xScheduleFrame::ID_MNU_BACKGROUND = wxNewId();
-const long xScheduleFrame::ID_MNU_MATRICES = wxNewId();
-const long xScheduleFrame::ID_MNU_VIRTUALMATRICES = wxNewId();
-const long xScheduleFrame::ID_MNU_EDITEVENTS = wxNewId();
-const long xScheduleFrame::ID_MNU_OPTIONS = wxNewId();
-const long xScheduleFrame::ID_MNU_VIEW_LOG = wxNewId();
-const long xScheduleFrame::ID_MNU_CHECK_SCHEDULE = wxNewId();
-const long xScheduleFrame::ID_MNU_WEBINTERFACE = wxNewId();
-const long xScheduleFrame::ID_MNU_IMPORT = wxNewId();
-const long xScheduleFrame::ID_MNU_RESETWINDOWS = wxNewId();
-const long xScheduleFrame::ID_MNU_CRASH = wxNewId();
-const long xScheduleFrame::ID_MNU_TEST = wxNewId();
-const long xScheduleFrame::ID_MNU_FPP_BROADCASTMASTER = wxNewId();
-const long xScheduleFrame::ID_MNU_FPP_MULTICAST = wxNewId();
-const long xScheduleFrame::ID_MNU_FPP_UNICASTMASTER = wxNewId();
-const long xScheduleFrame::ID_MNU_FPP_UNICASTCSVMASTER = wxNewId();
-const long xScheduleFrame::IDM_MNU_ARTNETMASTER = wxNewId();
-const long xScheduleFrame::ID_MNU_OSCMASTER = wxNewId();
-const long xScheduleFrame::MNU_MIDITIMECODE_MASTER = wxNewId();
-const long xScheduleFrame::ID_MNU_MASTER = wxNewId();
-const long xScheduleFrame::ID_MNU_MODENORMAL = wxNewId();
-const long xScheduleFrame::ID_MNU_FPPREMOTE = wxNewId();
-const long xScheduleFrame::ID_MNU_FPPCSVREMOTE = wxNewId();
-const long xScheduleFrame::ID_MNU_ARTNETTIMECODESLAVE = wxNewId();
-const long xScheduleFrame::ID_MNU_OSCREMOTE = wxNewId();
-const long xScheduleFrame::MNU_MIDITIMECODEREMOTE = wxNewId();
-const long xScheduleFrame::ID_MNU_SMPTE = wxNewId();
-const long xScheduleFrame::ID_MNU_REMOTECONFIGURE = wxNewId();
-const long xScheduleFrame::ID_MNU_REMOTE = wxNewId();
-const long xScheduleFrame::ID_MNU_EDITFPPREMOTE = wxNewId();
-const long xScheduleFrame::ID_MNU_OSCOPTION = wxNewId();
-const long xScheduleFrame::MNU_CONFIGUREMIDITIMECODE = wxNewId();
-const long xScheduleFrame::ID_MNU_CONFIGURE_TEST = wxNewId();
-const long xScheduleFrame::idMenuAbout = wxNewId();
-const long xScheduleFrame::ID_STATUSBAR1 = wxNewId();
-const long xScheduleFrame::ID_TIMER1 = wxNewId();
-const long xScheduleFrame::ID_TIMER2 = wxNewId();
+const wxWindowID xScheduleFrame::ID_BITMAPBUTTON1 = wxNewId();
+const wxWindowID xScheduleFrame::ID_BITMAPBUTTON3 = wxNewId();
+const wxWindowID xScheduleFrame::ID_BITMAPBUTTON6 = wxNewId();
+const wxWindowID xScheduleFrame::ID_BITMAPBUTTON2 = wxNewId();
+const wxWindowID xScheduleFrame::ID_BITMAPBUTTON4 = wxNewId();
+const wxWindowID xScheduleFrame::ID_BITMAPBUTTON5 = wxNewId();
+const wxWindowID xScheduleFrame::ID_BITMAPBUTTON7 = wxNewId();
+const wxWindowID xScheduleFrame::ID_BITMAPBUTTON10 = wxNewId();
+const wxWindowID xScheduleFrame::ID_CUSTOM1 = wxNewId();
+const wxWindowID xScheduleFrame::ID_BITMAPBUTTON11 = wxNewId();
+const wxWindowID xScheduleFrame::ID_BITMAPBUTTON8 = wxNewId();
+const wxWindowID xScheduleFrame::ID_CUSTOM2 = wxNewId();
+const wxWindowID xScheduleFrame::ID_BITMAPBUTTON9 = wxNewId();
+const wxWindowID xScheduleFrame::ID_PANEL2 = wxNewId();
+const wxWindowID xScheduleFrame::ID_TREECTRL1 = wxNewId();
+const wxWindowID xScheduleFrame::ID_BUTTON1 = wxNewId();
+const wxWindowID xScheduleFrame::ID_BUTTON2 = wxNewId();
+const wxWindowID xScheduleFrame::ID_BUTTON5 = wxNewId();
+const wxWindowID xScheduleFrame::ID_BUTTON3 = wxNewId();
+const wxWindowID xScheduleFrame::ID_BUTTON4 = wxNewId();
+const wxWindowID xScheduleFrame::ID_PANEL6 = wxNewId();
+const wxWindowID xScheduleFrame::ID_LISTVIEW2 = wxNewId();
+const wxWindowID xScheduleFrame::ID_PANEL7 = wxNewId();
+const wxWindowID xScheduleFrame::ID_SPLITTERWINDOW2 = wxNewId();
+const wxWindowID xScheduleFrame::ID_PANEL3 = wxNewId();
+const wxWindowID xScheduleFrame::ID_LISTVIEW1 = wxNewId();
+const wxWindowID xScheduleFrame::ID_PANEL5 = wxNewId();
+const wxWindowID xScheduleFrame::ID_SPLITTERWINDOW1 = wxNewId();
+const wxWindowID xScheduleFrame::ID_PANEL1 = wxNewId();
+const wxWindowID xScheduleFrame::ID_STATICTEXT1 = wxNewId();
+const wxWindowID xScheduleFrame::ID_STATICTEXT3 = wxNewId();
+const wxWindowID xScheduleFrame::ID_STATICTEXT6 = wxNewId();
+const wxWindowID xScheduleFrame::ID_STATICTEXT4 = wxNewId();
+const wxWindowID xScheduleFrame::ID_STATICTEXT8 = wxNewId();
+const wxWindowID xScheduleFrame::ID_STATICTEXT5 = wxNewId();
+const wxWindowID xScheduleFrame::ID_STATICTEXT7 = wxNewId();
+const wxWindowID xScheduleFrame::ID_STATICTEXT2 = wxNewId();
+const wxWindowID xScheduleFrame::ID_STATICBITMAP2 = wxNewId();
+const wxWindowID xScheduleFrame::ID_STATICBITMAP1 = wxNewId();
+const wxWindowID xScheduleFrame::ID_PANEL4 = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_SHOWFOLDER = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_USEXLIGHTSFOLDER = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_SAVE = wxNewId();
+const wxWindowID xScheduleFrame::idMenuQuit = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_MNUADDPLAYLIST = wxNewId();
+const wxWindowID xScheduleFrame::ID_MENUITEM1 = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_BACKGROUND = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_MATRICES = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_VIRTUALMATRICES = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_EDITEVENTS = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_OPTIONS = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_VIEW_LOG = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_CHECK_SCHEDULE = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_WEBINTERFACE = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_IMPORT = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_RESETWINDOWS = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_CRASH = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_TEST = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_FPP_BROADCASTMASTER = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_FPP_MULTICAST = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_FPP_UNICASTMASTER = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_FPP_UNICASTCSVMASTER = wxNewId();
+const wxWindowID xScheduleFrame::IDM_MNU_ARTNETMASTER = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_OSCMASTER = wxNewId();
+const wxWindowID xScheduleFrame::MNU_MIDITIMECODE_MASTER = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_MASTER = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_MODENORMAL = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_FPPREMOTE = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_FPPCSVREMOTE = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_ARTNETTIMECODESLAVE = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_OSCREMOTE = wxNewId();
+const wxWindowID xScheduleFrame::MNU_MIDITIMECODEREMOTE = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_SMPTE = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_REMOTECONFIGURE = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_REMOTE = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_EDITFPPREMOTE = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_OSCOPTION = wxNewId();
+const wxWindowID xScheduleFrame::MNU_CONFIGUREMIDITIMECODE = wxNewId();
+const wxWindowID xScheduleFrame::ID_MNU_CONFIGURE_TEST = wxNewId();
+const wxWindowID xScheduleFrame::idMenuAbout = wxNewId();
+const wxWindowID xScheduleFrame::ID_STATUSBAR1 = wxNewId();
+const wxWindowID xScheduleFrame::ID_TIMER1 = wxNewId();
+const wxWindowID xScheduleFrame::ID_TIMER2 = wxNewId();
 //*)
 
 const long xScheduleFrame::ID_MNU_EDIT_ADDITIONAL_IPS = wxNewId();
@@ -340,6 +350,7 @@ wxDEFINE_EVENT(EVT_STATUSMSG, wxCommandEvent);
 wxDEFINE_EVENT(EVT_RUNACTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CHANGESHOWFOLDER, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SCHEDULECHANGED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SLOWFRAMEPROCESSING, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SYNC, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DOCHECKSCHEDULE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DOACTION, wxCommandEvent);
@@ -356,6 +367,7 @@ BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_RUNACTION, xScheduleFrame::RunAction)
     EVT_COMMAND(wxID_ANY, EVT_CHANGESHOWFOLDER, xScheduleFrame::ChangeShowFolder)
     EVT_COMMAND(wxID_ANY, EVT_SCHEDULECHANGED, xScheduleFrame::ScheduleChange)
+    EVT_COMMAND(wxID_ANY, EVT_SLOWFRAMEPROCESSING, xScheduleFrame::SlowFrameProcessing)
     EVT_COMMAND(wxID_ANY, EVT_SYNC, xScheduleFrame::Sync)
     EVT_COMMAND(wxID_ANY, EVT_DOCHECKSCHEDULE, xScheduleFrame::DoCheckSchedule)
     EVT_COMMAND(wxID_ANY, EVT_DOACTION, xScheduleFrame::DoAction)
@@ -396,6 +408,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     wxMenuItem* MenuItem2;
 
     Create(parent, id, _("xSchedule"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("id"));
+    SetClientSize(wxSize(696,233));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(1);
@@ -428,18 +441,16 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     BitmapButton_VolumeUp = new wxBitmapButton(Panel2, ID_BITMAPBUTTON9, wxNullBitmap, wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(16,16)), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON9"));
     FlexGridSizer5->Add(BitmapButton_VolumeUp, 1, wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel2->SetSizer(FlexGridSizer5);
-    FlexGridSizer5->Fit(Panel2);
-    FlexGridSizer5->SetSizeHints(Panel2);
     FlexGridSizer1->Add(Panel2, 1, wxALL|wxEXPAND, 0);
     SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxSize(52,39), wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-    SplitterWindow1->SetMinSize(wxSize(10,10));
+    SplitterWindow1->SetMinimumPaneSize(10);
     SplitterWindow1->SetSashGravity(0.5);
     Panel3 = new wxPanel(SplitterWindow1, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
     FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer2->AddGrowableCol(0);
     FlexGridSizer2->AddGrowableRow(0);
     SplitterWindow2 = new wxSplitterWindow(Panel3, ID_SPLITTERWINDOW2, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW2"));
-    SplitterWindow2->SetMinSize(wxSize(10,10));
+    SplitterWindow2->SetMinimumPaneSize(10);
     SplitterWindow2->SetSashGravity(0.5);
     Panel6 = new wxPanel(SplitterWindow2, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
     FlexGridSizer7 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -461,8 +472,6 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     BoxSizer1->Add(Button_Schedule, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer7->Add(BoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel6->SetSizer(FlexGridSizer7);
-    FlexGridSizer7->Fit(Panel6);
-    FlexGridSizer7->SetSizeHints(Panel6);
     Panel7 = new wxPanel(SplitterWindow2, ID_PANEL7, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL7"));
     FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer8->AddGrowableCol(0);
@@ -470,13 +479,9 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     ListView_Ping = new wxListView(Panel7, ID_LISTVIEW2, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_NO_SORT_HEADER|wxVSCROLL, wxDefaultValidator, _T("ID_LISTVIEW2"));
     FlexGridSizer8->Add(ListView_Ping, 1, wxALL|wxEXPAND, 5);
     Panel7->SetSizer(FlexGridSizer8);
-    FlexGridSizer8->Fit(Panel7);
-    FlexGridSizer8->SetSizeHints(Panel7);
     SplitterWindow2->SplitHorizontally(Panel6, Panel7);
     FlexGridSizer2->Add(SplitterWindow2, 1, wxALL|wxEXPAND, 5);
     Panel3->SetSizer(FlexGridSizer2);
-    FlexGridSizer2->Fit(Panel3);
-    FlexGridSizer2->SetSizeHints(Panel3);
     Panel5 = new wxPanel(SplitterWindow1, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
     FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer3->AddGrowableCol(0);
@@ -485,15 +490,11 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     ListView_Running->SetMinSize(wxSize(300,300));
     FlexGridSizer3->Add(ListView_Running, 1, wxALL|wxEXPAND, 5);
     Panel5->SetSizer(FlexGridSizer3);
-    FlexGridSizer3->Fit(Panel5);
-    FlexGridSizer3->SetSizeHints(Panel5);
     SplitterWindow1->SplitVertically(Panel3, Panel5);
     FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 0);
     Panel1 = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     FlexGridSizer4 = new wxFlexGridSizer(0, 0, 0, 0);
     Panel1->SetSizer(FlexGridSizer4);
-    FlexGridSizer4->Fit(Panel1);
-    FlexGridSizer4->SetSizeHints(Panel1);
     FlexGridSizer1->Add(Panel1, 1, wxALL|wxEXPAND, 0);
     Panel4 = new wxPanel(this, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL, _T("ID_PANEL4"));
     FlexGridSizer6 = new wxFlexGridSizer(0, 8, 0, 0);
@@ -507,8 +508,12 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     FlexGridSizer6->Add(StaticText_RemoteWarning, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_PacketsPerSec = new wxStaticText(Panel4, ID_STATICTEXT4, _("Packets/Sec: 0          "), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
     FlexGridSizer6->Add(StaticText_PacketsPerSec, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText2 = new wxStaticText(Panel4, ID_STATICTEXT5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
-    FlexGridSizer6->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText3 = new wxStaticText(Panel4, ID_STATICTEXT8, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+    FlexGridSizer6->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText_SyncTime = new wxStaticText(Panel4, ID_STATICTEXT5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+    FlexGridSizer6->Add(StaticText_SyncTime, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText_SequenceTime = new wxStaticText(Panel4, ID_STATICTEXT7, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+    FlexGridSizer6->Add(StaticText_SequenceTime, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_Time = new wxStaticText(Panel4, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     FlexGridSizer6->Add(StaticText_Time, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     StaticBitmap_Slow = new wxStaticBitmap(Panel4, ID_STATICBITMAP2, wxNullBitmap, wxDefaultPosition, wxSize(24,24), 0, _T("ID_STATICBITMAP2"));
@@ -516,8 +521,6 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     StaticBitmap_WebIcon = new wxStaticBitmap(Panel4, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxSize(24,24), 0, _T("ID_STATICBITMAP1"));
     FlexGridSizer6->Add(StaticBitmap_WebIcon, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel4->SetSizer(FlexGridSizer6);
-    FlexGridSizer6->Fit(Panel4);
-    FlexGridSizer6->SetSizeHints(Panel4);
     FlexGridSizer1->Add(Panel4, 1, wxALL|wxEXPAND, 0);
     SetSizer(FlexGridSizer1);
     MenuBar1 = new wxMenuBar();
@@ -626,75 +629,74 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     _timerSchedule.SetOwner(this, ID_TIMER2);
     _timerSchedule.Start(50000, false);
     FileDialog1 = new wxFileDialog(this, _("Select file"), wxEmptyString, _("xlights_schedule.xml"), _("xlights_schedule.xml"), wxFD_DEFAULT_STYLE|wxFD_OPEN|wxFD_FILE_MUST_EXIST, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
-    SetSizer(FlexGridSizer1);
     Layout();
 
-    Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_OutputToLightsClick);
-    Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_PlayingClick);
-    Connect(ID_BITMAPBUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_IsScheduledClick);
-    Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_RandomClick);
-    Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_PLLoopClick);
-    Connect(ID_BITMAPBUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_StepLoopClick);
-    Connect(ID_BITMAPBUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_UnsavedClick);
-    Connect(ID_BITMAPBUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_BrightnessDownClick);
-    Connect(ID_BITMAPBUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_BrightnessUpClick);
-    Connect(ID_BITMAPBUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_VolumeDownClick);
-    Custom_Volume->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&xScheduleFrame::OnCustom_VolumeLeftDown,0,this);
-    Connect(ID_BITMAPBUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_VolumeUpClick);
-    Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_ACTIVATED,(wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated);
-    Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_SEL_CHANGED,(wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesSelectionChanged);
-    Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_KEY_DOWN,(wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesKeyDown);
-    Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_MENU,(wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemMenu);
-    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_AddClick);
-    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_EditClick);
-    Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_CloneClick);
-    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_DeleteClick);
-    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_ScheduleClick);
-    Connect(ID_LISTVIEW2,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xScheduleFrame::OnListView_PingItemActivated);
-    Connect(ID_LISTVIEW2,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&xScheduleFrame::OnListView_PingItemRClick);
-    Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xScheduleFrame::OnListView_RunningItemActivated);
-    Connect(ID_MNU_SHOWFOLDER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ShowFolderSelected);
-    Connect(ID_MNU_USEXLIGHTSFOLDER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_UsexLightsFolderSelected);
-    Connect(ID_MNU_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_SaveSelected);
-    Connect(idMenuQuit,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnQuit);
-    Connect(ID_MNU_MNUADDPLAYLIST,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_AddPlayListSelected);
-    Connect(ID_MENUITEM1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenu_OutputProcessingSelected);
-    Connect(ID_MNU_BACKGROUND,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_BackgroundPlaylistSelected);
-    Connect(ID_MNU_MATRICES,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_MatricesSelected);
-    Connect(ID_MNU_VIRTUALMATRICES,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_VirtualMatricesSelected);
-    Connect(ID_MNU_EDITEVENTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_EditEventsSelected);
-    Connect(ID_MNU_OPTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OptionsSelected);
-    Connect(ID_MNU_VIEW_LOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ViewLogSelected);
-    Connect(ID_MNU_CHECK_SCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CheckScheduleSelected);
-    Connect(ID_MNU_WEBINTERFACE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_WebInterfaceSelected);
-    Connect(ID_MNU_IMPORT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ImportxLightsSelected);
-    Connect(ID_MNU_RESETWINDOWS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ResetWindowLocationsSelected);
-    Connect(ID_MNU_CRASH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CrashSelected);
-    Connect(ID_MNU_TEST,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_TestSelected);
-    Connect(ID_MNU_FPP_BROADCASTMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPMasterSelected);
-    Connect(ID_MNU_FPP_MULTICAST,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ModeFPPMulticastMasterSelected);
-    Connect(ID_MNU_FPP_UNICASTMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ModeFPPUnicastMasterSelected);
-    Connect(ID_MNU_FPP_UNICASTCSVMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ModeFPPUnicastCSVMasterSelected);
-    Connect(IDM_MNU_ARTNETMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ARTNetTimeCodeMasterSelected);
-    Connect(ID_MNU_OSCMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OSCMasterSelected);
-    Connect(MNU_MIDITIMECODE_MASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_MIDITimeCodeMasterSelected);
-    Connect(ID_MNU_MODENORMAL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_StandaloneSelected);
-    Connect(ID_MNU_FPPREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPRemoteSelected);
-    Connect(ID_MNU_FPPCSVREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ModeFPPCSVRemoteSelected);
-    Connect(ID_MNU_ARTNETTIMECODESLAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ARTNetTimeCodeSlaveSelected);
-    Connect(ID_MNU_OSCREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OSCRemoteSelected);
-    Connect(MNU_MIDITIMECODEREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_MIDITimeCodeSlaveSelected);
-    Connect(ID_MNU_SMPTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_SMPTESelected);
-    Connect(ID_MNU_REMOTECONFIGURE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_RemoteLatencySelected);
-    Connect(ID_MNU_EDITFPPREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_EditFPPRemotesSelected);
-    Connect(ID_MNU_OSCOPTION,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ConfigureOSCSelected);
-    Connect(MNU_CONFIGUREMIDITIMECODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem5MenuItem_ConfigureMIDITimecodeSelected);
-    Connect(ID_MNU_CONFIGURE_TEST,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ConfigureTestSelected);
-    Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnAbout);
-    Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerTrigger);
-    Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerScheduleTrigger);
-    Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xScheduleFrame::OnClose);
-    Connect(wxEVT_SIZE,(wxObjectEventFunction)&xScheduleFrame::OnResize);
+    Connect(ID_BITMAPBUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_OutputToLightsClick);
+    Connect(ID_BITMAPBUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_PlayingClick);
+    Connect(ID_BITMAPBUTTON6, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_IsScheduledClick);
+    Connect(ID_BITMAPBUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_RandomClick);
+    Connect(ID_BITMAPBUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_PLLoopClick);
+    Connect(ID_BITMAPBUTTON5, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_StepLoopClick);
+    Connect(ID_BITMAPBUTTON7, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_UnsavedClick);
+    Connect(ID_BITMAPBUTTON10, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_BrightnessDownClick);
+    Connect(ID_BITMAPBUTTON11, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_BrightnessUpClick);
+    Connect(ID_BITMAPBUTTON8, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_VolumeDownClick);
+    Custom_Volume->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&xScheduleFrame::OnCustom_VolumeLeftDown, NULL, this);
+    Connect(ID_BITMAPBUTTON9, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnBitmapButton_VolumeUpClick);
+    Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_ITEM_ACTIVATED, (wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated);
+    Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_SEL_CHANGED, (wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesSelectionChanged);
+    Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_KEY_DOWN, (wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesKeyDown);
+    Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_ITEM_MENU, (wxObjectEventFunction)&xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemMenu);
+    Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnButton_AddClick);
+    Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnButton_EditClick);
+    Connect(ID_BUTTON5, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnButton_CloneClick);
+    Connect(ID_BUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnButton_DeleteClick);
+    Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xScheduleFrame::OnButton_ScheduleClick);
+    Connect(ID_LISTVIEW2, wxEVT_COMMAND_LIST_ITEM_ACTIVATED, (wxObjectEventFunction)&xScheduleFrame::OnListView_PingItemActivated);
+    Connect(ID_LISTVIEW2, wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK, (wxObjectEventFunction)&xScheduleFrame::OnListView_PingItemRClick);
+    Connect(ID_LISTVIEW1, wxEVT_COMMAND_LIST_ITEM_ACTIVATED, (wxObjectEventFunction)&xScheduleFrame::OnListView_RunningItemActivated);
+    Connect(ID_MNU_SHOWFOLDER, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ShowFolderSelected);
+    Connect(ID_MNU_USEXLIGHTSFOLDER, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_UsexLightsFolderSelected);
+    Connect(ID_MNU_SAVE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_SaveSelected);
+    Connect(idMenuQuit, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnQuit);
+    Connect(ID_MNU_MNUADDPLAYLIST, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_AddPlayListSelected);
+    Connect(ID_MENUITEM1, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenu_OutputProcessingSelected);
+    Connect(ID_MNU_BACKGROUND, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_BackgroundPlaylistSelected);
+    Connect(ID_MNU_MATRICES, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_MatricesSelected);
+    Connect(ID_MNU_VIRTUALMATRICES, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_VirtualMatricesSelected);
+    Connect(ID_MNU_EDITEVENTS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_EditEventsSelected);
+    Connect(ID_MNU_OPTIONS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OptionsSelected);
+    Connect(ID_MNU_VIEW_LOG, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ViewLogSelected);
+    Connect(ID_MNU_CHECK_SCHEDULE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CheckScheduleSelected);
+    Connect(ID_MNU_WEBINTERFACE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_WebInterfaceSelected);
+    Connect(ID_MNU_IMPORT, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ImportxLightsSelected);
+    Connect(ID_MNU_RESETWINDOWS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ResetWindowLocationsSelected);
+    Connect(ID_MNU_CRASH, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CrashSelected);
+    Connect(ID_MNU_TEST, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_TestSelected);
+    Connect(ID_MNU_FPP_BROADCASTMASTER, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPMasterSelected);
+    Connect(ID_MNU_FPP_MULTICAST, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ModeFPPMulticastMasterSelected);
+    Connect(ID_MNU_FPP_UNICASTMASTER, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ModeFPPUnicastMasterSelected);
+    Connect(ID_MNU_FPP_UNICASTCSVMASTER, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ModeFPPUnicastCSVMasterSelected);
+    Connect(IDM_MNU_ARTNETMASTER, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ARTNetTimeCodeMasterSelected);
+    Connect(ID_MNU_OSCMASTER, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OSCMasterSelected);
+    Connect(MNU_MIDITIMECODE_MASTER, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_MIDITimeCodeMasterSelected);
+    Connect(ID_MNU_MODENORMAL, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_StandaloneSelected);
+    Connect(ID_MNU_FPPREMOTE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPRemoteSelected);
+    Connect(ID_MNU_FPPCSVREMOTE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ModeFPPCSVRemoteSelected);
+    Connect(ID_MNU_ARTNETTIMECODESLAVE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ARTNetTimeCodeSlaveSelected);
+    Connect(ID_MNU_OSCREMOTE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OSCRemoteSelected);
+    Connect(MNU_MIDITIMECODEREMOTE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_MIDITimeCodeSlaveSelected);
+    Connect(ID_MNU_SMPTE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_SMPTESelected);
+    Connect(ID_MNU_REMOTECONFIGURE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_RemoteLatencySelected);
+    Connect(ID_MNU_EDITFPPREMOTE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_EditFPPRemotesSelected);
+    Connect(ID_MNU_OSCOPTION, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ConfigureOSCSelected);
+    Connect(MNU_CONFIGUREMIDITIMECODE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem5MenuItem_ConfigureMIDITimecodeSelected);
+    Connect(ID_MNU_CONFIGURE_TEST, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ConfigureTestSelected);
+    Connect(idMenuAbout, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xScheduleFrame::OnAbout);
+    Connect(ID_TIMER1, wxEVT_TIMER, (wxObjectEventFunction)&xScheduleFrame::On_timerTrigger);
+    Connect(ID_TIMER2, wxEVT_TIMER, (wxObjectEventFunction)&xScheduleFrame::On_timerScheduleTrigger);
+    Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&xScheduleFrame::OnClose);
+    Connect(wxEVT_SIZE, (wxObjectEventFunction)&xScheduleFrame::OnResize);
     //*)
 
     Brightness->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&xScheduleFrame::OnCustom_BrightnessLeftDown, 0, this);
@@ -705,6 +707,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxID_ANY, EVT_RUNACTION, (wxObjectEventFunction)&xScheduleFrame::RunAction);
     Connect(wxID_ANY, EVT_CHANGESHOWFOLDER, (wxObjectEventFunction)&xScheduleFrame::ChangeShowFolder);
     Connect(wxID_ANY, EVT_SCHEDULECHANGED, (wxObjectEventFunction)&xScheduleFrame::ScheduleChange);
+    Connect(wxID_ANY, EVT_SLOWFRAMEPROCESSING, (wxObjectEventFunction)&xScheduleFrame::SlowFrameProcessing);
     Connect(wxID_ANY, EVT_SYNC, (wxObjectEventFunction)&xScheduleFrame::Sync);
     Connect(wxID_ANY, EVT_DOCHECKSCHEDULE, (wxObjectEventFunction)&xScheduleFrame::DoCheckSchedule);
     Connect(wxID_ANY, EVT_DOACTION, (wxObjectEventFunction)&xScheduleFrame::DoAction);
@@ -770,6 +773,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     ListView_Running->AppendColumn("Step");
     ListView_Running->AppendColumn("Offset", wxLIST_FORMAT_RIGHT);
+    ListView_Running->AppendColumn("Offset - Remote", wxLIST_FORMAT_RIGHT);
     ListView_Running->AppendColumn("Duration", wxLIST_FORMAT_RIGHT);
     ListView_Running->AppendColumn("");
 
@@ -1097,6 +1101,8 @@ xScheduleFrame::~xScheduleFrame()
     }
 
     //(*Destroy(xScheduleFrame)
+    DirDialog1->Destroy();
+    FileDialog1->Destroy();
     //*)
 
     if (_webServer != nullptr)
@@ -1605,6 +1611,9 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
         _timerOutputFrame = !_timerOutputFrame;
     }
 
+    wxCommandEvent event3(EVT_SLOWFRAMEPROCESSING);
+    wxPostEvent(this, event3);
+
     logger_frame.info("Timer: End Frame: Time %ld", ms);
 }
 
@@ -2111,18 +2120,6 @@ void xScheduleFrame::OnListView_RunningItemActivated(wxListEvent& event)
     }
 }
 
-std::string FormatTime(size_t timems, bool ms = false)
-{
-    if (ms)
-    {
-        return wxString::Format(wxT("%i:%02i.%03i"), (int)(timems / 60000), (int)((timems % 60000) / 1000), (int)(timems % 1000)).ToStdString();
-    }
-    else
-    {
-        return wxString::Format(wxT("%i:%02i"), (int)(timems / 60000), (int)((timems % 60000) / 1000)).ToStdString();
-    }
-}
-
 void xScheduleFrame::UpdateStatus(bool force)
 {
     wxASSERT(wxThread::IsMain());
@@ -2179,8 +2176,9 @@ void xScheduleFrame::UpdateStatus(bool force)
                 if (!it->GetEveryStep()) {
                     ListView_Running->InsertItem(i, it->GetNameNoTime());
                     ListView_Running->SetItem(i, 1, it->GetStartTime(p));
-                    ListView_Running->SetItem(i, 2, FormatTime(it->GetLengthMS()));
-                    ListView_Running->SetItem(i, 3, it->GetFSEQTimeStamp());
+                    ListView_Running->SetItem(i, 2, it->GetRemoteStartTime(p));
+                    ListView_Running->SetItem(i, 3, FormatTime(it->GetLengthMS()));
+                    ListView_Running->SetItem(i, 4, it->GetFSEQTimeStamp());
                     ListView_Running->SetItemData(i, it->GetId());
                     ++i;
                 }
@@ -2202,7 +2200,7 @@ void xScheduleFrame::UpdateStatus(bool force)
             for (int i = 0; i < ListView_Running->GetItemCount(); ++i) {
                 if (!currenthighlighted && ListView_Running->GetItemData(i) == step->GetId()) {
                     currenthighlighted = true;
-                    ListView_Running->SetItem(i, 3, step->GetStatus());
+                    ListView_Running->SetItem(i, 4, step->GetStatus());
                     if (step->GetAudioManager() != nullptr && AudioManager::GetSDLManager()->IsNoAudio()) {
                         ListView_Running->SetItemBackgroundColour(i, wxColor(244, 146, 155));
                         const std::string noaudio = "Audio not playing due to no audio device found.";
@@ -2221,7 +2219,7 @@ void xScheduleFrame::UpdateStatus(bool force)
                     else {
                         ListView_Running->SetItemBackgroundColour(i, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
                     }
-                    ListView_Running->SetItem(i, 3, "");
+                    ListView_Running->SetItem(i, 4, "");
                 }
             }
         }
@@ -2240,8 +2238,11 @@ void xScheduleFrame::UpdateStatus(bool force)
         if (ListView_Running->GetColumnWidth(2) < 80)
             ListView_Running->SetColumnWidth(2, 80);
         ListView_Running->SetColumnWidth(3, wxLIST_AUTOSIZE);
-        if (ListView_Running->GetColumnWidth(3) < 250)
-            ListView_Running->SetColumnWidth(3, 250);
+        if (ListView_Running->GetColumnWidth(3) < 80)
+            ListView_Running->SetColumnWidth(3, 80);
+        ListView_Running->SetColumnWidth(4, wxLIST_AUTOSIZE);
+        if (ListView_Running->GetColumnWidth(4) < 250)
+            ListView_Running->SetColumnWidth(4, 250);
     }
 
     ListView_Running->Thaw();
@@ -3156,9 +3157,37 @@ void xScheduleFrame::ScheduleChange(wxCommandEvent& event)
     UpdateUI();
 }
 
+void xScheduleFrame::SlowFrameProcessing(wxCommandEvent& event)
+{
+    PlayList* p = __schedule->GetRunningPlayList();
+    if (p == nullptr) {
+        StaticText_SequenceTime->SetLabel("NOT PLAYING");
+    } else {
+        size_t seqtime = p->GetPosition();
+        StaticText_SequenceTime->SetLabel(FormatTime(seqtime, true));
+
+        ListenerBase* sync = __schedule->GetListenerManager()->GetSyncListener();
+        if (sync != nullptr)
+        {
+            StaticText3->SetLabel(sync->FormatTime(seqtime));
+        }
+        else
+        {
+            StaticText3->SetLabel("");
+        }
+    }
+}
+
 void xScheduleFrame::Sync(wxCommandEvent& event)
 {
     __schedule->DoSync(event.GetString().ToStdString(), event.GetInt());
+
+    ListenerBase* sync = __schedule->GetListenerManager()->GetSyncListener();
+    if (sync != nullptr) {
+        StaticText_SyncTime->SetLabel(sync->FormatTime(event.GetInt()));
+    } else {
+        StaticText_SyncTime->SetLabel("");
+    }
 }
 
 void xScheduleFrame::DoCheckSchedule(wxCommandEvent& event)

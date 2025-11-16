@@ -37,6 +37,9 @@ class ListenerSMPTE : public ListenerBase
         virtual void StartProcess(const std::string& localIP) override;
         virtual void StopProcess() override;
         virtual void Poll() override;
+        virtual std::string FormatTime(size_t timems) const override {
+            return ListenerBase::FormatTime(_mode, timems);
+        }
 };
 
 #else
