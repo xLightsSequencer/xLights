@@ -28,6 +28,11 @@
         <maxmodels>25</maxmodels>
     </vendor>
     <vendor>
+        <name>Your Pixel Store</name>
+        <link>https://ledpixelshow.com/xlights/yps-models.xml</link>
+        <maxmodels>50</maxmodels>
+    </vendor>
+    <vendor>
         <name>DMX Fixture Library</name>
         <link>https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/dmx_fixtures.xml</link>
     </vendor>
