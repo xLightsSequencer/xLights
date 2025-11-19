@@ -569,7 +569,6 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 EffectLayer* el = element->GetEffectLayer(ri->layerIndex);
                 if (el != nullptr) {
                     mnuLayer.Append(ID_ROW_MNU_ADD_TIMING_TRACK, "Add Timing Track");
-                    mnuLayer.Append(ID_ROW_MNU_GENERATE_SUBDIVIDED_TRACKS, "Generate Subdivided Timing Tracks");
                     mnuLayer.Append(ID_ROW_MNU_RENAME_TIMING_TRACK, "Rename Timing Track");
                     mnuLayer.Append(ID_ROW_MNU_DELETE_TIMING_TRACK, "Delete Timing Track");
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_TIMING_TRACK, "Import Timing Track");
@@ -580,6 +579,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     }
                     mnuLayer.Append(ID_ROW_MNU_ADD_TIMING_TRACK_ALL_VIEWS, "Add Timing Tracks to All Views");
                     mnuLayer.Append(ID_ROW_MNU_SELECT_TIMING_EFFECTS, "Select Timing Marks");
+                    mnuLayer.Append(ID_ROW_MNU_GENERATE_SUBDIVIDED_TRACKS, "Generate Subdivided Timing Tracks");
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_NOTES, "Import Notes");
                     mnuLayer.AppendSeparator();
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_LYRICS, "Import Lyrics");
