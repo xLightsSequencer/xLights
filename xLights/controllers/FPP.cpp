@@ -321,7 +321,7 @@ int FPP::PutToURL(const std::string& url, const std::vector<uint8_t>& val, const
 }
 int FPP::TransferToURL(const std::string& url, const std::vector<uint8_t>& val, const std::string& contentType, bool isPost) const {
 
-    std::string fullUrl = ipAddress + url;
+    std::string fullUrl = (ip_utils::IsIPv6(ipAddress) ? "[" + ipAddress + "]" : ipAddress) + url;
     std::string ipAddForGet = ipAddress;
     if (fppType == FPP_TYPE::ESPIXELSTICK) {
         fullUrl = ipAddress + "/fpp?path=" +  url;
@@ -1032,7 +1032,7 @@ bool FPP::CheckUploadMedia(const std::string &media, std::string &mediaBaseName)
     }
     
     std::string url = "/api/media/" + URLEncode(mediaBaseName) + "/meta";
-    std::string fullUrl = ipAddress + url;
+    std::string fullUrl = (ip_utils::IsIPv6(ipAddress) ? "[" + ipAddress + "]" : ipAddress) + url;
     std::string ipAddForGet = ipAddress;
     if (!_fppProxy.empty()) {
         fullUrl = "http://" + _fppProxy + "/proxy/" + fullUrl;
@@ -1403,6 +1403,9 @@ nlohmann::json FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startC
         Model* model = m.second;
 
         if (model->GetDisplayAs() == "ModelGroup") {
+            continue;
+        }
+        if (!model->IsActive()) {
             continue;
         }
 
