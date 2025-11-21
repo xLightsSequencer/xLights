@@ -3417,7 +3417,8 @@ void xLightsFrame::OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 {
     const char wildcard[] = "MP4 files (*.mp4)|*.mp4";
-    wxFileDialog pExportDlg(this, _("Export House Preview Video"), wxEmptyString, CurrentSeqXmlFile->GetName(), wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    std::string path = CurrentSeqXmlFile->GetName() + ".mp4";
+    wxFileDialog pExportDlg(this, _("Export House Preview Video"), wxEmptyString, path, wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     int exportChoice = pExportDlg.ShowModal();
 
     if (exportChoice != wxID_OK) {
