@@ -409,6 +409,21 @@ static int GetJSONIntValue(const nlohmann::json& val, const std::string &key, in
     }
     return def;
 }
+static int GetJSONIntValueFromString(const nlohmann::json& val, const std::string &key, int def = 0) {
+    if (val.contains(key)) {
+        
+        if (val[key].is_number_integer()) {
+            return val[key].get<int>();
+        }
+        if (val[key].is_string()) {
+            std::string s = val[key].get<std::string>();
+            if (!s.empty()) {
+                return std::atoi(s.c_str());
+            }
+        }
+    }
+    return def;
+}
 static uint32_t GetJSONUInt32Value(const nlohmann::json& val, const std::string &key, uint32_t def = 0) {
     if (val.contains(key) && val[key].is_number_integer()) {
         return val[key].get<uint32_t>();
@@ -1048,9 +1063,12 @@ bool FPP::CheckUploadMedia(const std::string &media, std::string &mediaBaseName)
         if (rc == 200) {
             try {
                 nlohmann::json currentMeta = nlohmann::json::parse(resp, nullptr, false);
-                if (currentMeta.contains("format") && currentMeta["format"].contains("size") &&
-                    (mfn.GetSize() == GetJSONIntValue(currentMeta["format"], "size"))) {
-                    doMediaUpload = false;
+                auto mfnSize = mfn.GetSize();
+                if (currentMeta.contains("format") && currentMeta["format"].contains("size")) {
+                    auto fppsize = GetJSONIntValueFromString(currentMeta["format"], "size");
+                    if (mfnSize == fppsize) {
+                        doMediaUpload = false;
+                    }
                 }
             } catch (...) {
             }
