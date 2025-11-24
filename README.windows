@@ -67,7 +67,8 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
                 b) Edit <basedir>\xLights\.git\config  and remove the section <[submodule "dependencies/log4cpp-codegit"]> and its indented lines
                 c) Run the command: git rm --cached dependencies/log4cpp-codegit
                 d) Run the command: git submodule update --init
-                e) Be sure not to submit these files in any PRs.
+                e) Run the command: git submodule update --init --recursive
+                f) Be sure not to submit these files in any PRs.
    
        3) Open the xLights project <basedir>\xLights\xLights\xLights.sln and build the project in x64 Debug mode
 
