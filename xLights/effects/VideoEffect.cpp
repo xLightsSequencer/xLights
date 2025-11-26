@@ -501,7 +501,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     rdata.bufferData = (void*)&buffer;
                     rdata.sampleSpacing = sampleSpacing;
 
-                    int max = std::min(rdata.width * rdata.height, buffer.BufferHt * buffer.BufferWi);
+                    int max = buffer.BufferHt * buffer.BufferWi;
                     constexpr int bfBlockSize = 4096;
                     int blocks = max / bfBlockSize + 1;
 
@@ -511,8 +511,8 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                         if (end > max) {
                             end = max;
                         }
-                            VideoEffectProcess(rdata, start, end, (ispc::uint8_t4 *)buffer.GetPixels());
-                        });
+                        VideoEffectProcess(rdata, start, end, (ispc::uint8_t4 *)buffer.GetPixels());
+                    });
                 } else {
                     // this handles video sampling where we sample pixels from the image rather than scaling it and thus washing out the colours
                     int xneeded = buffer.BufferWi * sampleSpacing;
