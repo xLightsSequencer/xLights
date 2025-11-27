@@ -301,13 +301,6 @@ bool WLED::SetupInput(Controller* c, nlohmann::json& jsonVal, bool rgbw) {
     int port = 0;
     auto o = controller->GetFirstOutput();
 
-    if (o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_ARTNET) {
-        if (o->GetChannels() > 510) {
-            DisplayError(wxString::Format("Attempt to upload a universe of size %d to the WLED controller, but only a size of 510 or smaller is supported", o->GetChannels()).ToStdString());
-            return false;
-        }
-    }
-
     if (o->GetType() == OUTPUT_E131) {
         port = 5568;
     }
@@ -320,6 +313,11 @@ bool WLED::SetupInput(Controller* c, nlohmann::json& jsonVal, bool rgbw) {
         if (ddp) {
             if (ddp->IsKeepChannelNumbers()) {
                 DisplayError("The DDP 'Keep Channel Numbers' option is not support with WLED, Please Disable");
+                return false;
+            }
+
+            if (rgbw) {
+                DisplayError("Four Channel Pixles and DDP, do not work well in WLED, Please Use E131");
                 return false;
             }
         }
