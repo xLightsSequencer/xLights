@@ -6,6 +6,7 @@
 #include <vector>
 #include <cstdlib>
 #include <cstdio>
+#include <format>
 
 #include "spdlog/spdlog.h"
 #include <argparse/argparse.hpp>
@@ -45,6 +46,7 @@ int main(int argc, char* argv[]) {
     program.add_argument("-f", "--freq").help("Set fseq version (1|2.0|2.2)");
     program.add_argument("-n", "--nosparse").flag().help("No Sparse Format");
     program.add_argument("-l", "--level").help("Compression level").scan<'i', int>();
+    program.add_argument("-j", "--json").flag().help("Print Header As JSON");
 
     try {
         program.parse_args(argc, argv);
@@ -136,15 +138,43 @@ int main(int argc, char* argv[]) {
             }
         }
     }
-    uint32_t const ogNumber_of_Frames = src->getNumFrames();
-    uint32_t const ogNum_Channels = src->getChannelCount();
-    int const ogFrame_Rate = src->getStepTime();
-    if (ranges.empty()) {
-        ranges.push_back(std::pair<uint32_t, uint32_t>(0, ogNum_Channels));
-        channelCount = ogNum_Channels;
-    }
+	
+	if (program.is_used("-f")) {
+        std::string info = std::format("{{\"Name\": \"{}\", \"Version\": \"{}.{}\", \"ID\": \"{}\", \"StepTime\": {}, \"NumFrames\": {}, \"MaxChannel\": {}, \"ChannelCount\": {}",
+                   src->getFilename(),
+                   src->getVersionMajor(), src->getVersionMinor(),
+                   src->getUniqueId(),
+                   src->getStepTime(),
+                   src->getNumFrames(),
+                   src->getMaxChannel(),
+                   src->getChannelCount());
+
+        if (src->getVersionMajor() == 2) {
+            V2FSEQFile* f = (V2FSEQFile*)src.get();
+            info += std::format(", \"Compression\": \"{}\"", f->CompressionTypeString());
+            info += ", \"SparseRanges\": [";
+            bool first = true;
+            for (const auto& a : f->m_sparseRanges) {
+                if (!first) {
+                    info += ", ";
+                }
+                info += std::format("{{\"Start\": {}, \"Length\": {}}}", a.first, a.second);
+                first = false;
+            }
+            info += "]";
+        }
+        info += "}\n";
+        std::cout << info;        
+	}
 
     if (program.is_used("-o")) {
+        uint32_t const ogNumber_of_Frames = src->getNumFrames();
+        uint32_t const ogNum_Channels = src->getChannelCount();
+        int const ogFrame_Rate = src->getStepTime();
+        if (ranges.empty()) {
+            ranges.push_back(std::pair<uint32_t, uint32_t>(0, ogNum_Channels));
+            channelCount = ogNum_Channels;
+        }
         std::string const outputFile = program.get("-o");
         std::unique_ptr<FSEQFile> dest(FSEQFile::createFSEQFile(outputFile,
                                                                 fseqMajVersion,
