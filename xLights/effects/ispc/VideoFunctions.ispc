@@ -35,6 +35,7 @@ export void VideoEffectProcess(const uniform VideoData &data,
     }
 
     uniform int ch = data.ch;
+    uniform int maxidx = ((int)data.buffer_width) * ((int)data.buffer_height);
 
     foreach (index = startIdx...endIdx) {
         float fidx = index;
@@ -57,7 +58,7 @@ export void VideoEffectProcess(const uniform VideoData &data,
             continue;
         }
         
-        if (newIndex >= data.buffer_width * data.buffer_height) {
+        if (newIndex >= maxidx) {
             continue;
         }
 
