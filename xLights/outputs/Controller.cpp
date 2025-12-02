@@ -855,7 +855,7 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
     }
     if (vendors.GetCount() > 0) {
         propertyGrid->Append(new wxEnumProperty("Vendor", "Vendor", vendors, v));
-        wxPGProperty *mp = propertyGrid->Append(new wxEnumProperty("Model", "Model"));
+        wxPGProperty *mp = propertyGrid->Append(new wxEnumProperty("Model/Category", "Model"));
         wxPGProperty *vp = propertyGrid->Append(new wxEnumProperty("Variant", "Variant"));
         AddVariants(vp);
         AddModels(mp, vp);
