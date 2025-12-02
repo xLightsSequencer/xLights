@@ -125,7 +125,7 @@ WavePanel::WavePanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer51->Add(StaticText50, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
-	Slider_Number_Waves = new BulkEditSlider(this, ID_SLIDER_Number_Waves, 900, 1, 3600, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Number_Waves"));
+	Slider_Number_Waves = new BulkEditSlider(this, ID_SLIDER_Number_Waves, 900, 180, 3600, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Number_Waves"));
 	FlexGridSizer1->Add(Slider_Number_Waves, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Number_WavesVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Number_Waves, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_Number_Waves"));
 	FlexGridSizer1->Add(BitmapButton_Number_WavesVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);

@@ -12,7 +12,7 @@
 
 #include "RenderableEffect.h"
 
-#define WAVE_NUMBER_MIN 1
+#define WAVE_NUMBER_MIN 180
 #define WAVE_NUMBER_MAX 3600
 
 #define WAVE_THICKNESS_MIN 0
