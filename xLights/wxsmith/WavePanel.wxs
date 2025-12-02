@@ -125,7 +125,7 @@
 					<object class="sizeritem">
 						<object class="wxSlider" name="ID_SLIDER_Number_Waves" subclass="BulkEditSlider" variable="Slider_Number_Waves" member="yes">
 							<value>900</value>
-							<min>1</min>
+							<min>180</min>
 							<max>3600</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
