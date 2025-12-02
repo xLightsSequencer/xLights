@@ -11,6 +11,31 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2025.13  December 2, 2025
+    - enh (o0charlie0o)     Prevent accidental resize of effects when clicking on them
+    - enh (scott)           Add json printing to fseq utility
+    - enh (dkulp)           Add K8-Max/Pro, organize all K8-* into a group
+    - enh (o0charlie0o)     Add confirmation for Viewpoint Deletion
+    - enh (o0charlie0o)     Add keyboard shortcuts for dividing timings by predefined intervals
+    - enh (o0charlie0o)     Add subdivided timing track generation feature
+    - bug (derwin12)        Fix crash in Twinkly output if twinkly device is offline
+    - bug (derwin12)        Fix a few potential but rare crashes, null pointer exceptions
+    - bug (MartinMMueller)  Fix some crashes in ESPixelStick uploads
+    - bug (dkulp)           Hopefully fix some symbol resolution issues on MacOS11
+    - bug (dkulp)           Fix some hostname -> IP issues when resolving on background threads
+    - bug (dkulp)           FPP Connect -> Fix some issues if FPP is reachable by both direct IP address as well as via a proxy
+    - bug (scott)           Fix a bunch of issues on Linux related to the File Dialog not returning the proper path
+    - bug (dkulp)           Mostly fix Aspect Ratio scaling of Video effect
+    - bug (derwin12)        Filter Label on VU Meter doesn't handle lists
+    - bug (Jason Rodriguez) Update from Base folder not handling multicast controllers
+    - bug (scott)           Remove WLED 510 check, add DDP and RGBW check
+    - bug (derwin12)        LUA Render Script reported wrong time on various OS's
+    - bug (dkulp)           For various exceptions, make sure xLights actually crashes and generates a crash report instead of silently closing
+    - bug (dkulp)           Fix crash at startup if you take too long to select a show folder.
+    - bug (dkulp)           FPP Connect - Only upload "Active" models to FPP model map
+    - bug (dkulp)           FPP Connect - Fix some ipv6 issues
+    - bug (dkulp)           Make sure mp4 extension is added when exporting videos, don't crash if extension isn't there
+    - bug (dkulp)           FIx FPPConnect always uploading media
 2025.12  November 7, 2025
     - enh (scott)           Make State choice bulk editable
     - enh (scott)           Add more scheduling options for HinksPix export
