@@ -1823,15 +1823,7 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, w
 
     //Get Map of HinksPix Port channel locations to xLights channel locations
     int32_t hix_Channels;
-    std::vector<HinksChannelMap> modelStarts;
-    if (hix->IsUniversePerString()) {
-        modelStarts = getModelChannelMap(hix, hix_Channels);
-    } else {
-        hix_Channels = hix->GetChannels();
-        auto const& hmm = modelStarts.emplace_back(hix->GetStartChannel(), hix->GetChannels(), 1);
-        hmm.Dump();
-    }
-
+    std::vector<HinksChannelMap> const modelStarts = getModelChannelMap(hix, hix_Channels);
     int32_t ef_Num_Channel_To_Write = hix_Channels;
 
     if (slave1) {
