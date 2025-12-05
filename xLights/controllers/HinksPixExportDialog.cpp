@@ -319,8 +319,8 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
     AddInstanceHeader("Model");
     AddInstanceHeader("Mode");
     AddInstanceHeader("Drive");
-    AddInstanceHeader("Slave1");
-    AddInstanceHeader("Slave2");
+    AddInstanceHeader("Foreign1");
+    AddInstanceHeader("Foreign2");
     AddInstanceHeader("Audio");
 
     CheckListBox_Sequences->EnableCheckBoxes();
