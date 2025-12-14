@@ -987,12 +987,14 @@ void ModelFaceDialog::GetValue(wxGrid *grid, const int row, const int col, std::
         info[key.ToStdString()] = color;
     } else {
         info[key.ToStdString()] = grid->GetCellValue(row, col);
-        auto nodeArray = wxSplit(grid->GetCellValue(row, col), ',');
-        std::sort(nodeArray.begin(), nodeArray.end(),
+        if (info["Type"] == "NodeRange") {
+            auto nodeArray = wxSplit(grid->GetCellValue(row, col), ',');
+            std::sort(nodeArray.begin(), nodeArray.end(),
                   [](const wxString& a, const wxString& b) {
                       return wxAtoi(a) < wxAtoi(b);
                   });
-        grid->SetCellValue(row, col, CompressNodes(wxJoin(nodeArray, ',')));
+            grid->SetCellValue(row, col, CompressNodes(wxJoin(nodeArray, ',')));
+        }
     }
     UpdatePreview(grid->GetCellValue(row, CHANNEL_COL).ToStdString(), grid->GetCellBackgroundColour(row, COLOR_COL));
 }
