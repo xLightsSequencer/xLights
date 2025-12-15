@@ -428,11 +428,15 @@ void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<st
             }
         }
 
-		for (std::map<std::string, std::string>::iterator it2 = info.begin(); it2 != info.end(); ++it2)
-		{
-			if (it2->first.substr(0, 5) == "Mouth" || it2->first.substr(0, 4) == "Eyes")
+		// Only call FixFile for Matrix faces - NodeRange and SingleNode faces
+		// store node numbers, not file paths
+		if (info["Type"] == "Matrix") {
+			for (std::map<std::string, std::string>::iterator it2 = info.begin(); it2 != info.end(); ++it2)
 			{
-				it2->second = FixFile("", it2->second);
+				if (it2->first.substr(0, 5) == "Mouth" || it2->first.substr(0, 4) == "Eyes")
+				{
+					it2->second = FixFile("", it2->second);
+				}
 			}
 		}
 
