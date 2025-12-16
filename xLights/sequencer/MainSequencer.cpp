@@ -611,7 +611,15 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
                         mSequenceElements->GetXLightsFrame()->ResetPanelDefaultSettings(binding->GetEffectName(), nullptr, true);
                     }
 
-                    Effect* ef = PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + _("\t\n"), binding->GetEffectDataVersion());
+                    // If the binding has no effect string, get the default settings from the panel
+                    // This ensures effects added via keyboard shortcut get proper defaults (like Scale to Buffer)
+                    std::string effectSettings = binding->GetEffectString();
+                    if (effectSettings.empty()) {
+                        std::string palette;
+                        effectSettings = mSequenceElements->GetXLightsFrame()->GetEffectTextFromWindows(palette);
+                    }
+
+                    Effect* ef = PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + effectSettings + _("\t\n"), binding->GetEffectDataVersion());
                     if (ef != nullptr) {
                         SelectEffect(ef);
                     }
