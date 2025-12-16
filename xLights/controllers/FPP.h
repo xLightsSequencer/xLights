@@ -141,6 +141,8 @@ class FPP : public BaseController
     [[nodiscard]] std::vector<std::string> GetProxyList();
     [[nodiscard]] std::vector<std::tuple<std::string, std::string>> GetProxies();
 
+    [[nodiscard]] std::vector<std::string> GetPlaylistItems(const std::string& name);
+
     static void PrepareDiscovery(Discovery &discovery);
     static void PrepareDiscovery(Discovery &discovery, const std::list<std::string> &addresses, bool broadcastPing = true);
     static void MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, OutputManager* outputManager);

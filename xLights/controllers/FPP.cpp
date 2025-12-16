@@ -1386,6 +1386,21 @@ bool FPP::UploadPlaylist(const std::string &name) {
     return false;
 }
 
+std::vector<std::string> FPP::GetPlaylistItems(const std::string& name) {
+    nlohmann::json origJson;
+    GetURLAsJSON("/api/playlist/" + URLEncode(name), origJson, false);
+    std::vector<std::string> items;
+    if (!origJson.is_object()) {
+        return items;
+    }
+    for (int x = 0; x < origJson["mainPlaylist"].size(); x++) {
+        nlohmann::json entry = origJson["mainPlaylist"][x];
+        auto seq = GetJSONStringValue(entry, "sequenceName");
+        items.push_back(seq);
+    }
+    return items;
+}
+
 bool FPP::UploadModels(const nlohmann::json &models) {
     PostJSONToURL("/api/models", models);
     return false;

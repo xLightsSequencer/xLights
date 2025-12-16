@@ -78,7 +78,7 @@ std::pair<std::list<std::string>, bool> LuaRunner::PromptSequences() const
     bool forceHighDefinitionRender = false;
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    BatchRenderDialog dlg(_frame);
+    BatchRenderDialog dlg(_frame, _frame->GetOutputManager());
     dlg.SetTitle("Select Sequences");
     if (dlg.Prepare(_frame->GetShowDirectory()) && dlg.ShowModal() == wxID_OK) {
         wxArrayString files = dlg.GetFileList();
