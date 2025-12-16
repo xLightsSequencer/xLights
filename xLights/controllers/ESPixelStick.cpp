@@ -1003,7 +1003,7 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
                 }
             }
 
-            std::string message = newJson.dump(3);
+            std::string message = newJson.dump(3, ' ', false, nlohmann::json::error_handler_t::replace);
             message = "S2" + message;
 
             if (_wsClient.Send(message)) {

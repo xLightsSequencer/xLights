@@ -240,7 +240,7 @@ static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* d
 }
 
 bool WLED::PostJSON(nlohmann::json const& jsonVal) {
-    std::string str = jsonVal.dump(3);
+    std::string str = jsonVal.dump(3, ' ', false, nlohmann::json::error_handler_t::replace);
     const std::string url = GetCfgURL();
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));

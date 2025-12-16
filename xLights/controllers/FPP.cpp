@@ -645,7 +645,7 @@ static inline void addString(std::vector<uint8_t> &buffer, const std::string &st
 }
 
 int FPP::PostJSONToURL(const std::string& url, const nlohmann::json& val) {
-    std::string const str = val.dump(3);
+    std::string const str = val.dump(3, ' ', false, nlohmann::json::error_handler_t::replace);
     std::vector<uint8_t> memBuffPost;
     addString(memBuffPost, str);
     return PostToURL(url, memBuffPost, "application/json");
@@ -654,7 +654,7 @@ int FPP::PostJSONToURLAsFormData(const std::string& url, const std::string& extr
     std::vector<uint8_t> memBuffPost;
     addString(memBuffPost, extra);
     addString(memBuffPost, "&data={");
-    std::string const str = val.dump(3);
+    std::string const str = val.dump(3, ' ', false, nlohmann::json::error_handler_t::replace);
     addString(memBuffPost, str);
     addString(memBuffPost, "}");
     return PostToURL(url, memBuffPost, "application/x-www-form-urlencoded; charset=UTF-8");
@@ -662,8 +662,18 @@ int FPP::PostJSONToURLAsFormData(const std::string& url, const std::string& extr
 
 void FPP::DumpJSON(const nlohmann::json& json) const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    std::string const str = json.dump(3);
-    logger_base.debug(str);
+
+    std::string str;
+    try {
+        str = json.dump(3, ' ', false, nlohmann::json::error_handler_t::replace);
+        logger_base.debug(str);
+    } catch (const nlohmann::json::type_error& e) {
+        logger_base.error("JSON type_error during dump: " + std::string(e.what()));
+    } catch (const std::exception& e) {
+        logger_base.error("Other exception during JSON dump: " + std::string(e.what()));
+    } catch (...) {
+        logger_base.error("Unknown exception during JSON dump");
+    }
 }
 
 int FPP::PostToURL(const std::string& url, const std::string& val, const std::string& contentType) const {
