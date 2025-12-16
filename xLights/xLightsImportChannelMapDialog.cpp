@@ -189,7 +189,7 @@ bool xLightsImportTreeModel::GetAttr(const wxDataViewItem &item, unsigned int co
     }
 
     if (node->IsGroup()) {
-        attr.SetColour(ColorManager::instance()->CyanOrBlueOverride());
+        attr.SetColour(CyanOrBlue());
         set = true;
     }
 
@@ -1151,7 +1151,7 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
 
             // If importing from xsqPkg flag known groups by color like is currently done in mapped list
             if (m->type == "ModelGroup") {
-                ListCtrl_Available->SetItemTextColour(j, ColorManager::instance()->CyanOrBlueOverride());
+                ListCtrl_Available->SetItemTextColour(j, CyanOrBlue());
             }
             j++;
         }
@@ -2562,7 +2562,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
             // not used
             ImportChannel* im = GetImportChannel(ListCtrl_Available->GetItemText(i).ToStdString());
             if (im != nullptr && im->type == "ModelGroup") {
-                ListCtrl_Available->SetItemTextColour(i, ColorManager::instance()->CyanOrBlueOverride());
+                ListCtrl_Available->SetItemTextColour(i, CyanOrBlue());
             } else {
                 ListCtrl_Available->SetItemTextColour(i, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOXTEXT));
             }
