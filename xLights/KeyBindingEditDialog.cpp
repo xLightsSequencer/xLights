@@ -16,6 +16,7 @@
 #include <wx/headercol.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
+#include <wx/display.h>
 
 #include "KeyBindingEditDialog.h"
 #include "KeyBindings.h"
@@ -146,7 +147,21 @@ KeyBindingEditDialog::KeyBindingEditDialog(xLightsFrame* parent, KeyBindingMap* 
 	_propertyGrid->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&KeyBindingEditDialog::OnControllerPropertyGridChange, 0, this);
     _propertyGrid->SetValidationFailureBehavior(wxPGVFBFlags::MarkCell | wxPGVFBFlags::Beep);
 
-	SetSize(1200, 700);
+	// Constrain dialog size to fit within the display's client area
+	int targetWidth = 1200;
+	int targetHeight = 700;
+	int d = wxDisplay::GetFromWindow(this);
+	if (d < 0) d = 0;
+	wxDisplay display(d);
+	if (display.IsOk()) {
+		wxRect displayRect = display.GetClientArea();
+		// Leave some margin (50 pixels) around the edges
+		int maxWidth = displayRect.GetWidth() - 100;
+		int maxHeight = displayRect.GetHeight() - 100;
+		if (targetWidth > maxWidth) targetWidth = maxWidth;
+		if (targetHeight > maxHeight) targetHeight = maxHeight;
+	}
+	SetSize(targetWidth, targetHeight);
 }
 
 int KeyBindingEditDialog::GetSelectedKeyBindingIndex() const {
