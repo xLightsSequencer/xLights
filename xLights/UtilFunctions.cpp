@@ -284,10 +284,10 @@ wxImage ApplyOrientation(const wxImage& img, int orient) {
     case 2: return res.Mirror(true);  // horizontal flip
     case 3: return res.Rotate180();
     case 4: return res.Mirror(false); // vertical flip
-    case 5: return res.Mirror(true).Rotate90(false); // horizontal flip + 90° CCW
-    case 6: return res.Rotate90(true);  // 90° CW
-    case 7: return res.Mirror(true).Rotate90(true);  // horizontal flip + 90° CW
-    case 8: return res.Rotate90(false); // 90° CCW
+    case 5: return res.Mirror(true).Rotate90(false); // horizontal flip + 90ï¿½ CCW
+    case 6: return res.Rotate90(true);  // 90ï¿½ CW
+    case 7: return res.Mirror(true).Rotate90(true);  // horizontal flip + 90ï¿½ CW
+    case 8: return res.Rotate90(false); // 90ï¿½ CCW
     default: return res;
     }
 }
@@ -1446,6 +1446,15 @@ wxColor LightOrMediumGrey() {
         return medGray;
     } else {
         return *wxLIGHT_GREY;
+    }
+}
+wxColor RedOrLightRed() {
+    if (IsDarkMode()) {
+        // In Dark Mode pure red is hard to read on grey, use a lighter salmon/coral red
+        static const wxColor lightRed(0xFF, 0x6B, 0x6B);
+        return lightRed;
+    } else {
+        return *wxRED;
     }
 }
 void CleanupIpAddress(wxString& IpAddr) {
