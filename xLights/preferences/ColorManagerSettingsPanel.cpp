@@ -89,7 +89,7 @@ ColorManagerSettingsPanel::ColorManagerSettingsPanel(wxWindow* parent, xLightsFr
 	//*)
 
     #ifndef __WXMSW__
-    FlexGridSizer2->Show(false);
+    CheckBox_SuppressDarkMode->Show(false);
     #endif
 
     #ifdef _MSC_VER
@@ -129,7 +129,8 @@ void ColorManagerSettingsPanel::UpdateButtonColors()
         wxString name = "ID_BITMAPBUTTON_" + frame->color_mgr.xLights_color[i].name;
         wxBitmapButton* btn = (wxBitmapButton*)FindWindowByName(name);
         if (btn != nullptr) {
-            SetButtonColor(btn, frame->color_mgr.GetColor(frame->color_mgr.xLights_color[i].id));
+            xlColor c = frame->color_mgr.GetColor(frame->color_mgr.xLights_color[i].id);
+            SetButtonColor(btn, c);
         }
     }
 }
@@ -172,15 +173,13 @@ void ColorManagerSettingsPanel::AddButtonsToDialog()
 void ColorManagerSettingsPanel::SetButtonColor(wxBitmapButton* btn, const wxColour &c) {
 #ifdef __WXOSX__
     SetButtonBackground(btn, c, 1);
-    //A bit smaller to account for the native button's border
-    wxImage image(30,10);
-    image.SetRGB(wxRect(0,0,30,10), c.Red(), c.Green(), c.Blue());
-#else
+#endif
+
     btn->SetBackgroundColour(c);
     btn->SetForegroundColour(c);
     wxImage image(30,10);
     image.SetRGB(wxRect(0,0,30,10), c.Red(), c.Green(), c.Blue());
-#endif
+
     wxBitmap bmp(image);
     btn->SetBitmap(bmp);
 }
