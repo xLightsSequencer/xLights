@@ -157,8 +157,8 @@ class FPP : public BaseController
 #ifndef DISCOVERYONLY
     nlohmann::json CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel);
     static std::string CreateVirtualDisplayMap(ModelManager* allmodels, int previewWi, int previewHi);
-    static nlohmann::json CreateUniverseFile(const std::list<Controller*>& controllers, bool input, std::map<int, int>* rngs = nullptr);
-    static nlohmann::json CreateUniverseFile(Controller* controller, bool input);
+    nlohmann::json CreateUniverseFile(const std::list<Controller*>& controllers, bool input, std::map<int, int>* rngs = nullptr);
+    nlohmann::json CreateUniverseFile(Controller* controller, bool input);
 #endif
     static std::string GetVendor(const std::string& type);
     static std::string GetModel(const std::string& type);

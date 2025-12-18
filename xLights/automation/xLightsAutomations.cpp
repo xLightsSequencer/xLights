@@ -345,10 +345,9 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             return sendResponse("FPP not found '" + ip + "'.", "msg", 503, false);
         }
 
-        std::map<int, int> udpRanges;
-        auto outputs = FPP::CreateUniverseFile(_outputManager.GetControllers(), false, &udpRanges);
-
         if (udp == "all") {
+            std::map<int, int> udpRanges;
+            auto outputs = fpp->CreateUniverseFile(_outputManager.GetControllers(), false, &udpRanges);
             fpp->UploadUDPOut(outputs);
             fpp->SetRestartFlag();
         } else if (udp == "proxy") {

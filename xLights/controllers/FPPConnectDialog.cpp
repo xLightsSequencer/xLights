@@ -1157,8 +1157,6 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
-    std::map<int, int> udpRanges;
-    auto outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
     int pw, ph;
     frame->GetLayoutPreview()->GetVirtualCanvasSize(pw, ph);
     std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels, pw, ph);
@@ -1184,6 +1182,8 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     cancelled |= inst->UploadControllerProxies(_outputManager);
                 }
                 if (GetChoiceValueIndex(UDP_COL + rowStr) == 1) {
+                    std::map<int, int> udpRanges;
+                    auto outputs = inst->CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
                     cancelled |= inst->UploadUDPOut(outputs);
                     //add the UDP ranges into the list of ranges
                     std::map<int, int> rngs(udpRanges);

@@ -1929,7 +1929,19 @@ nlohmann::json FPP::CreateUniverseFile(const std::list<Controller*>& selected, b
                     universes = nlohmann::json::array();
                 }
             } else if (it->GetType() == OUTPUT_ARTNET) {
-                universe["type"] = (int)((eth->GetIP() != "MULTICAST") + 2);
+                ArtNetOutput* ano = dynamic_cast<ArtNetOutput*>(it);
+                if (IsVersionAtLeast(9, 5, 0)) {
+                    bool isForcePort = ano->isForceSourcePort();
+                    if (eth->GetIP() == "MULTICAST") {
+                        universe["type"] = 2;
+                    } else if (isForcePort) {
+                        universe["type"] = 3;
+                    } else {
+                        universe["type"] = 9;
+                    }
+                } else {
+                    universe["type"] = (int)((eth->GetIP() != "MULTICAST") + 2);
+                }
                 if (!input && (it->GetIP() != "MULTICAST")) {
                     universe["address"] = it->GetIP();
                 }
@@ -1941,7 +1953,6 @@ nlohmann::json FPP::CreateUniverseFile(const std::list<Controller*>& selected, b
                     universes.push_back(universe);
                     break;
                 }
-                //ArtNetOutput* ano = dynamic_cast<ArtNetOutput*>(it);
                 universe["universeCount"] = 1;
                 universes.push_back(universe);
             } else if (it->GetType() == OUTPUT_KINET) {
