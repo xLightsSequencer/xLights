@@ -250,6 +250,7 @@ void xLightsFrame::InitSequencer()
     if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->GetSequenceLoaded()) {
         if (_seqData.NumChannels() != roundTo4(GetMaxNumChannels())) {
             logger_base.info("Number of channels has changed ... reallocating sequence data memory.");
+            logger_base.info("Channels prior %d and channels current %d", _seqData.NumChannels(), roundTo4(GetMaxNumChannels()));
 
             AbortRender();
 
