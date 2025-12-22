@@ -186,6 +186,9 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     CheckListBox_Sequences->AppendColumn("Media", wxCOL_WIDTH_AUTOSIZE,
                                          wxALIGN_LEFT,
                                          wxCOL_RESIZABLE | wxCOL_SORTABLE);
+    CheckListBox_Sequences->AppendColumn("Channel Count", wxCOL_WIDTH_AUTOSIZE,
+                                         wxALIGN_LEFT,
+                                         wxCOL_RESIZABLE | wxCOL_SORTABLE);
 
     wxConfigBase* config = wxConfigBase::Get();
     auto seqSortCol = config->ReadLong("xLightsFPPConnectSequenceSortCol", SORT_SEQ_NAME_COL);
@@ -963,6 +966,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
                     if (mediaName != "") {
                         CheckListBox_Sequences->SetItemText(item, 2, mediaName);
                     }
+                    DisplayPixelCount(fseqName, item);
                 }
             }
         }
@@ -990,6 +994,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
                                                                         filename);
 
             DisplayDateModified(filename, item);
+            DisplayPixelCount(filename, item);
         }
     }
 
@@ -1037,6 +1042,7 @@ void FPPConnectDialog::LoadSequences()
         if (!found && FileExists(v)) {
             wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(), v);
             DisplayDateModified(v, item);
+            DisplayPixelCount(v, item);
             FSEQFile *file = FSEQFile::openFSEQFile(v.ToStdString());
             if (file != nullptr) {
                 for (auto& header : file->getVariableHeaders()) {
@@ -1836,5 +1842,19 @@ void FPPConnectDialog::DisplayDateModified(const wxString& filePath, wxTreeListI
     if (FileExists(filePath)) {
         wxDateTime last_modified_time(wxFileModificationTime(filePath));
         CheckListBox_Sequences->SetItemText(item, 1, last_modified_time.Format(wxT("%Y-%m-%d %H:%M:%S")));
+    }
+}
+
+void FPPConnectDialog::DisplayPixelCount(const wxString& filePath, wxTreeListItem &item) const
+{
+    if (FileExists(filePath)) {
+        auto fsf = FSEQFile::openFSEQFile(filePath);
+        wxString channelInfo = "";
+        if (fsf != nullptr) {
+            auto ch = fsf->getChannelCount();
+            channelInfo = wxString::Format("%llu", ch);
+            delete fsf;
+        }
+        CheckListBox_Sequences->SetItemText(item, 3, channelInfo);
     }
 }
