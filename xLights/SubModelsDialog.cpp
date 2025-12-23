@@ -109,6 +109,7 @@ const long SubModelsDialog::SUBMODEL_DIALOG_EXPORT_TOOTHERS = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_GENERATE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_ALIASES = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SHIFT = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_SHIFT_SINGLE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_FLIP_HOR = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_FLIP_VER = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REVERSE = wxNewId();
@@ -823,6 +824,9 @@ void SubModelsDialog::OnButton_EditClick(wxCommandEvent& event)
         mnu.Append(SUBMODEL_DIALOG_SHIFT, "Shift All Nodes in All SubModels");
         mnu.Append(SUBMODEL_DIALOG_REVERSE, "Reverse All Nodes in All SubModels");
     }
+    if (ListCtrl_SubModels->GetSelectedItemCount() == 1) {
+        mnu.Append(SUBMODEL_DIALOG_SHIFT_SINGLE, "Shift All Nodes in Selected SubModel");
+    }
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& SubModelsDialog::OnEditBtnPopup, nullptr, this);
     PopupMenu(&mnu);
     event.Skip();
@@ -1041,6 +1045,9 @@ void SubModelsDialog::OnEditBtnPopup(wxCommandEvent& event)
     }
     else if (event.GetId() == SUBMODEL_DIALOG_SHIFT) {
         Shift();
+    }
+    else if (event.GetId() == SUBMODEL_DIALOG_SHIFT_SINGLE) {
+        ShiftSingleSubmodel();
     }
     else if (event.GetId() == SUBMODEL_DIALOG_REVERSE) {
         Reverse();
@@ -4066,6 +4073,52 @@ void SubModelsDialog::Shift()
         }
     }
 }
+
+void SubModelsDialog::ShiftSingleSubmodel()
+{
+    wxString name = GetSelectedName();
+    if (name == "")
+        return;
+    SubModelInfo* sm = GetSubModelInfo(name);
+
+    long min = 1;
+    long max = model->GetNodeCount();
+
+    wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -(max - 1), max - 1);
+    if (dlg.ShowModal() == wxID_OK) {
+        auto scaleFactor = dlg.GetValue();
+        if (scaleFactor != 0) {
+            if (sm->isRanges) {
+                for (int x = 0; x < sm->strands.size(); x++) {
+                    wxString oldnodes = ExpandNodes(sm->strands[x]);
+                    auto oldNodeArray = wxSplit(oldnodes, ',');
+                    wxArrayString newNodeArray;
+                    for (auto const& node: oldNodeArray) {
+                        long val;
+                        if (node.ToCLong(&val) == true) {
+                            long newVal = val + scaleFactor;
+                            if (newVal > max) {
+                                newVal -= max;
+                            }
+                            else if (newVal < min) {
+                                newVal += max;
+                            }
+                            newNodeArray.Add( wxString::Format("%ld", newVal) );
+                        }
+                    }
+                    sm->strands[x] = CompressNodes(wxJoin(newNodeArray, ','));
+                }
+            }
+            ValidateWindow();
+            Select(name);
+
+            Panel3->SetFocus();
+            TextCtrl_Name->SetFocus();
+            TextCtrl_Name->SelectAll();
+        }
+    }
+}
+
 
 void SubModelsDialog::FlipHorizontal()
 {

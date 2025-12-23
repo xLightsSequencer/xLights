@@ -217,6 +217,7 @@ protected:
     static const long SUBMODEL_DIALOG_GENERATE;
     static const long SUBMODEL_DIALOG_ALIASES;
     static const long SUBMODEL_DIALOG_SHIFT;
+    static const long SUBMODEL_DIALOG_SHIFT_SINGLE;
     static const long SUBMODEL_DIALOG_FLIP_HOR;
     static const long SUBMODEL_DIALOG_FLIP_VER;
     static const long SUBMODEL_DIALOG_REVERSE;
@@ -272,6 +273,7 @@ protected:
     void Generate();
     void Aliases();
     void Shift();
+    void ShiftSingleSubmodel();
     void FlipHorizontal();
     void FlipVertical();
     void Reverse();
