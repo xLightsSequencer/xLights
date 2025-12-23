@@ -197,7 +197,7 @@ void MeteorsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
         buffer.needToInit = false;
         cache->meteors.clear();
         cache->meteorsRadial.clear();
-        cache->effectState = mSpeed * buffer.frameTimeInMs / 50;
+        cache->effectState = std::max(mSpeed * buffer.frameTimeInMs / 50, 1);
     }
 
     switch (MeteorsEffect) {
@@ -302,7 +302,7 @@ void MeteorsEffect::RenderMeteorsHorizontal(RenderBuffer& buffer, int ColorSchem
 
     if (buffer.curPeriod == buffer.curEffStartPer) {
         for (int i = 0; i < warmupFrames; ++i) {
-            cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+            cache->effectState += std::max(mSpeed * buffer.frameTimeInMs / 50, 1);
             int mspeed = cache->effectState / 4;
             cache->effectState -= mspeed * 4;
 
@@ -312,7 +312,7 @@ void MeteorsEffect::RenderMeteorsHorizontal(RenderBuffer& buffer, int ColorSchem
         }
     }
 
-    cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+    cache->effectState += std::max(mSpeed * buffer.frameTimeInMs / 50, 1);
     int speed = cache->effectState / 4;
     cache->effectState -= speed * 4;
 
@@ -445,7 +445,7 @@ void MeteorsEffect::RenderMeteorsVertical(RenderBuffer& buffer, int ColorScheme,
 
     if (buffer.curPeriod == buffer.curEffStartPer) {
         for (int i = 0; i < warmupFrames; ++i) {
-            cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+            cache->effectState += std::max(mSpeed * buffer.frameTimeInMs / 50, 1);
             int mspeed = cache->effectState / 4;
             cache->effectState -= mspeed * 4;
 
@@ -455,7 +455,7 @@ void MeteorsEffect::RenderMeteorsVertical(RenderBuffer& buffer, int ColorScheme,
         }
     }
 
-    cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+    cache->effectState += std::max(mSpeed * buffer.frameTimeInMs / 50, 1);
     int speed = cache->effectState / 4;
     cache->effectState -= speed * 4;
 
@@ -583,7 +583,7 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer& buffer, int ColorScheme, int 
 
     if (buffer.curPeriod == buffer.curEffStartPer) {
         for (int i = 0; i < warmupFrames; ++i) {
-            cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+            cache->effectState += std::max(mSpeed * buffer.frameTimeInMs / 50, 1);
             int mspeed = cache->effectState / 4;
             cache->effectState -= mspeed * 4;
 
@@ -593,7 +593,7 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer& buffer, int ColorScheme, int 
         }
     }
 
-    cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+    cache->effectState += std::max(mSpeed * buffer.frameTimeInMs / 50, 1);
     int speed = cache->effectState / 4;
     cache->effectState -= speed * 4;
 
@@ -783,7 +783,7 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer& buffer, int ColorScheme, 
 
     if (buffer.curPeriod == buffer.curEffStartPer) {
         for (int i = 0; i < warmupFrames; ++i) {
-            cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+            cache->effectState += std::max(mSpeed * buffer.frameTimeInMs / 50, 1);
             int mspeed = cache->effectState / 4;
             cache->effectState -= mspeed * 4;
 
@@ -793,7 +793,7 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer& buffer, int ColorScheme, 
         }
     }
 
-    cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+    cache->effectState += std::max(mSpeed * buffer.frameTimeInMs / 50, 1);
     int speed = cache->effectState / 4;
     cache->effectState -= speed * 4;
 
@@ -978,7 +978,7 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer& buffer, int ColorScheme, 
 
     if (buffer.curPeriod == buffer.curEffStartPer) {
         for (int i = 0; i < warmupFrames; ++i) {
-            cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+            cache->effectState += std::max(mSpeed * buffer.frameTimeInMs / 50, 1);
             int mspeed = cache->effectState / 4;
             cache->effectState -= mspeed * 4;
 
@@ -988,7 +988,7 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer& buffer, int ColorScheme, 
         }
     }
 
-    cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+    cache->effectState += std::max(mSpeed * buffer.frameTimeInMs / 50, 1);
     int speed = cache->effectState / 4;
     cache->effectState -= speed * 4;
 
