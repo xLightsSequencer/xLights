@@ -1361,8 +1361,6 @@ void MovingHeadPanel::UpdateStatusPanel()
 {
     bool headselect_set = false;
     bool hasrealvalues = false;
-    if (TextCtrl_MH1_Settings->GetValue() == "")
-        CheckAllFixtures();
     GetFixturesGroups();
     Button_All->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     Button_None->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
@@ -1600,21 +1598,7 @@ void MovingHeadPanel::CheckAllFixtures() {
 
 void MovingHeadPanel::OnButton_AllClick(wxCommandEvent& event)
 {
-    UncheckAllFixtures();
-
-    auto models = GetActiveModels();
-
-    for (const auto& it : models) {
-        if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
-            DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
-            int num = mhead->GetFixtureVal();
-            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);
-            wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
-            if( checkbox != nullptr ) {
-                checkbox->SetValue(true);
-            }
-       }
-    }
+    CheckAllFixtures();
     wxCommandEvent _event;
     OnCheckBox_MHClick(_event);
 }
@@ -2070,7 +2054,6 @@ void MovingHeadPanel::OnButton_ResetToDefaultClick(wxCommandEvent& event)
     CheckBox_MHIgnorePan->SetValue(false);
     CheckBox_MHIgnoreTilt->SetValue(false);
     UpdatePathSettings();
-    CheckAllFixtures();
     TextCtrl_Status->SetValue("");
     if (m_rgbColorPanel != nullptr) {
         m_rgbColorPanel->ResetColours();
@@ -2089,6 +2072,7 @@ void MovingHeadPanel::OnButton_ResetToDefaultClick(wxCommandEvent& event)
             }
         }
     }
+    CheckAllFixtures();
 
     FireChangeEvent();
     ValidateWindow();
