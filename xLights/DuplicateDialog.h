@@ -52,12 +52,12 @@ class DuplicateDialog: public wxDialog
 	protected:
 
 		//(*Identifiers(DuplicateDialog)
-		static const long ID_SPINCTRL_COUNT;
-		static const long ID_STATICTEXT2;
-		static const long ID_SPINCTRL_GAP;
-		static const long ID_CHECKBOX_RetainDur;
-		static const long ID_BUTTON_OK;
-		static const long ID_BUTTON_CLOSE;
+		static const wxWindowID ID_SPINCTRL_COUNT;
+		static const wxWindowID ID_STATICTEXT2;
+		static const wxWindowID ID_SPINCTRL_GAP;
+		static const wxWindowID ID_CHECKBOX_RetainDur;
+		static const wxWindowID ID_BUTTON_OK;
+		static const wxWindowID ID_BUTTON_CLOSE;
 		//*)
 
 	private:

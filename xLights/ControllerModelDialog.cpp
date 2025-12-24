@@ -45,20 +45,20 @@
 #include <xlsxwriter.h>
 
 //(*IdInit(ControllerModelDialog)
-const long ControllerModelDialog::ID_PANEL1 = wxNewId();
-const long ControllerModelDialog::ID_SCROLLBAR1 = wxNewId();
-const long ControllerModelDialog::ID_SCROLLBAR2 = wxNewId();
-const long ControllerModelDialog::ID_STATICTEXT1 = wxNewId();
-const long ControllerModelDialog::ID_SLIDER_BOX_SCALE = wxNewId();
-const long ControllerModelDialog::ID_STATICTEXT2 = wxNewId();
-const long ControllerModelDialog::ID_SLIDER_FONT_SCALE = wxNewId();
-const long ControllerModelDialog::ID_TEXTCTRL1 = wxNewId();
-const long ControllerModelDialog::ID_PANEL3 = wxNewId();
-const long ControllerModelDialog::ID_CHECKBOX1 = wxNewId();
-const long ControllerModelDialog::ID_PANEL2 = wxNewId();
-const long ControllerModelDialog::ID_SCROLLBAR3 = wxNewId();
-const long ControllerModelDialog::ID_PANEL4 = wxNewId();
-const long ControllerModelDialog::ID_SPLITTERWINDOW1 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_PANEL1 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_SCROLLBAR1 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_SCROLLBAR2 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_STATICTEXT1 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_SLIDER_BOX_SCALE = wxNewId();
+const wxWindowID ControllerModelDialog::ID_STATICTEXT2 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_SLIDER_FONT_SCALE = wxNewId();
+const wxWindowID ControllerModelDialog::ID_TEXTCTRL1 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_PANEL3 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_CHECKBOX1 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_PANEL2 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_SCROLLBAR3 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_PANEL4 = wxNewId();
+const wxWindowID ControllerModelDialog::ID_SPLITTERWINDOW1 = wxNewId();
 //*)
 
 const long ControllerModelDialog::CONTROLLERModel_PRINT = wxNewId();
@@ -290,8 +290,8 @@ public:
     {
         return _size.GetWidth();
     }
-    virtual ~BaseCMObject()
-    {}
+    virtual ~BaseCMObject() {
+    }
     void SetInvalid(bool invalid)
     {
         _invalid = invalid;
@@ -466,9 +466,6 @@ public:
                 }
             }
         }
-
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("HITY port %d %d-%d %s", _port, _location.y, _location.y + totaly, (mouse.y >= _location.y && mouse.y <= _location.y + totaly) ? "HIT" : "");
 
         return (mouse.y >= _location.y &&
                 mouse.y <= _location.y + totaly);
@@ -1524,20 +1521,23 @@ public:
                     srMenu->AppendSubMenu(srType, "Type");
                     srType->Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerModelDialog::OnPopupCommand, nullptr, cmd);
                 }
-                srMenu->AppendSeparator();
-                mi = srMenu->AppendCheckItem(ControllerModelDialog::CONTROLLER_CASCADEDOWNPORT, "Cascade Down Port");
-                mi->Check(GetModel()->GetSRCascadeOnPort());
 
-                wxMenu* srMax = new wxMenu();
-                for (int i = 0; i < srcount; i++) {
-                    mi = srMax->AppendRadioItem(wxNewId(), wxString::Format("%d", i + 1), "Cascade");
-                    if (GetModel()->GetSRMaxCascade() == i + 1) {
-                        mi->Check();
+                if (GetModel()->GetNumPhysicalStrings() > 1) {
+                    srMenu->AppendSeparator();
+                    mi = srMenu->AppendCheckItem(ControllerModelDialog::CONTROLLER_CASCADEDOWNPORT, "Cascade Down Port");
+                    mi->Check(GetModel()->GetSRCascadeOnPort());
+
+                    wxMenu* srMax = new wxMenu();
+                    for (int i = 0; i < srcount; i++) {
+                        mi = srMax->AppendRadioItem(wxNewId(), wxString::Format("%d", i + 1), "Cascade");
+                        if (GetModel()->GetSRMaxCascade() == i + 1) {
+                            mi->Check();
+                        }
                     }
-                }
 
-                srMenu->AppendSubMenu(srMax, "Cascaded Remotes");
-                srMax->Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerModelDialog::OnPopupCommand, nullptr, cmd);
+                    srMenu->AppendSubMenu(srMax, "Cascaded Remotes");
+                    srMax->Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerModelDialog::OnPopupCommand, nullptr, cmd);
+                }
 
                 srMenu->Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerModelDialog::OnPopupCommand, nullptr, cmd);
                 mnu.AppendSubMenu(srMenu, "Smart Remote");
@@ -1650,7 +1650,7 @@ public:
             GetModel()->ClearControllerBrightness();
             return true;
         } else if (id == ControllerModelDialog::CONTROLLER_MODEL_STRINGS) {
-            wxNumberEntryDialog dlg(parent, "Set String Count", "String Count", "Model String Count", GetModel()->GetNumPhysicalStrings(), 1, 48);
+            wxNumberEntryDialog dlg(parent, "Set String Count", "String Count", "Model String Count", GetModel()->GetNumPhysicalStrings(), 1, 100);
             if (dlg.ShowModal() == wxID_OK) {
                 std::string mess;
                 if (!GetModel()->ChangeStringCount(dlg.GetValue(), mess)) {
@@ -2157,6 +2157,10 @@ bool ModelSortName(const BaseCMObject* first, const BaseCMObject* second)
 
 void ControllerModelDialog::ReloadModels()
 {
+    // we are  deleting the models, make sure the deleted stuff is not referenced
+    _dragging = nullptr;
+    _popup = nullptr;
+    
     _cud->Rescan(true);
     std::string check;
     if (_caps != nullptr) {
@@ -2201,7 +2205,7 @@ void ControllerModelDialog::ReloadModels()
     TextCtrl_Check->SetValue(check);
 
     for (const auto& it : *_mm) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != "ModelGroup" && it.second->IsActive() && it.second->GetLayoutGroup() != "Unassigned") {
             if (_cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr &&
                 ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) || // hide models on other controllers not set
                  ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->GetName() == it.second->GetControllerName() || it.second->GetControllerName() == "" || it.second->GetControllerName() == NO_CONTROLLER || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||
@@ -2254,7 +2258,9 @@ void ControllerModelDialog::ReloadModels()
             }
 
             if (_caps != nullptr && _caps->SupportsUniversePerString() && _controller->GetType() == CONTROLLER_ETHERNET) {
-                pp->SetSeparateUniverses(((ControllerEthernet*)_controller)->IsUniversePerString());
+                auto const ups = ((ControllerEthernet*)_controller)->IsUniversePerString();
+                pp->SetPackedStrings(!ups);
+                pp->SetSeparateUniverses(ups);
             }
 
             if (_caps == nullptr || _caps->SupportsVirtualStrings()) {
@@ -2468,11 +2474,11 @@ void ControllerModelDialog::ReloadModels()
         y += VERTICAL_GAP + VERTICAL_SIZE;
     }
 
-    if (_caps != nullptr && _caps->SupportsLEDPanelMatrix()) {
-        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::PANEL_MATRIX, 1, _cud, _caps,
+    for (int i = 0; i < std::max((_caps == nullptr ? 0 : _caps->GetMaxLEDPanelMatrixPort()), _cud->GetMaxLEDPanelMatrixPort()); i++) {
+        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::PANEL_MATRIX, i + 1, _cud, _caps,
                                                 wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
                                                 BaseCMObject::STYLE_CHANNELS, false, _scale));
-        auto sp = _cud->GetControllerLEDPanelMatrixPort(1);
+        auto sp = _cud->GetControllerLEDPanelMatrixPort(i + 1);
         if (sp != nullptr) {
             int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + FIRST_MODEL_GAP_MULTIPLIER * HORIZONTAL_GAP;
             for (const auto& it : sp->GetModels()) {

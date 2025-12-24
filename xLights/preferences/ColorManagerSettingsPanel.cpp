@@ -25,10 +25,10 @@
 #include "xlColourData.h"
 
 //(*IdInit(ColorManagerSettingsPanel)
-const long ColorManagerSettingsPanel::ID_CHECKBOX1 = wxNewId();
-const long ColorManagerSettingsPanel::ID_BUTTON_IMPORT = wxNewId();
-const long ColorManagerSettingsPanel::ID_BUTTON_EXPORT = wxNewId();
-const long ColorManagerSettingsPanel::ID_BUTTON_RESET = wxNewId();
+const wxWindowID ColorManagerSettingsPanel::ID_CHECKBOX1 = wxNewId();
+const wxWindowID ColorManagerSettingsPanel::ID_BUTTON_IMPORT = wxNewId();
+const wxWindowID ColorManagerSettingsPanel::ID_BUTTON_EXPORT = wxNewId();
+const wxWindowID ColorManagerSettingsPanel::ID_BUTTON_RESET = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ColorManagerSettingsPanel,wxPanel)
@@ -68,11 +68,10 @@ ColorManagerSettingsPanel::ColorManagerSettingsPanel(wxWindow* parent, xLightsFr
 	StaticBoxSizer3->Add(Sizer_Layout_Tab, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3->Add(StaticBoxSizer3, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	CheckBox_SuppressDarkMode = new wxCheckBox(this, ID_CHECKBOX1, _("Suppress Dark Mode"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_SuppressDarkMode->SetValue(false);
 	FlexGridSizer2->Add(CheckBox_SuppressDarkMode, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer7 = new wxFlexGridSizer(0, 5, 0, 0);
 	ButtonImport = new wxButton(this, ID_BUTTON_IMPORT, _("Import"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT"));
 	FlexGridSizer7->Add(ButtonImport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -80,18 +79,17 @@ ColorManagerSettingsPanel::ColorManagerSettingsPanel(wxWindow* parent, xLightsFr
 	FlexGridSizer7->Add(ButtonExport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Reset = new wxButton(this, ID_BUTTON_RESET, _("Reset Defaults"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_RESET"));
 	FlexGridSizer7->Add(Button_Reset, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 5);
+	FlexGridSizer2->Add(FlexGridSizer7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 2);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_BUTTON_IMPORT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorManagerSettingsPanel::OnButtonImportClick);
-	Connect(ID_BUTTON_EXPORT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorManagerSettingsPanel::OnButtonExportClick);
-	Connect(ID_BUTTON_RESET,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorManagerSettingsPanel::OnButton_ResetClick);
+	Connect(ID_BUTTON_IMPORT, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorManagerSettingsPanel::OnButtonImportClick);
+	Connect(ID_BUTTON_EXPORT, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorManagerSettingsPanel::OnButtonExportClick);
+	Connect(ID_BUTTON_RESET, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorManagerSettingsPanel::OnButton_ResetClick);
 	//*)
 
     #ifndef __WXMSW__
-    FlexGridSizer2->Show(false);
+    CheckBox_SuppressDarkMode->Show(false);
     #endif
 
     #ifdef _MSC_VER
@@ -131,7 +129,8 @@ void ColorManagerSettingsPanel::UpdateButtonColors()
         wxString name = "ID_BITMAPBUTTON_" + frame->color_mgr.xLights_color[i].name;
         wxBitmapButton* btn = (wxBitmapButton*)FindWindowByName(name);
         if (btn != nullptr) {
-            SetButtonColor(btn, frame->color_mgr.GetColor(frame->color_mgr.xLights_color[i].id));
+            xlColor c = frame->color_mgr.GetColor(frame->color_mgr.xLights_color[i].id);
+            SetButtonColor(btn, c);
         }
     }
 }
@@ -174,15 +173,13 @@ void ColorManagerSettingsPanel::AddButtonsToDialog()
 void ColorManagerSettingsPanel::SetButtonColor(wxBitmapButton* btn, const wxColour &c) {
 #ifdef __WXOSX__
     SetButtonBackground(btn, c, 1);
-    //A bit smaller to account for the native button's border
-    wxImage image(30,10);
-    image.SetRGB(wxRect(0,0,30,10), c.Red(), c.Green(), c.Blue());
-#else
+#endif
+
     btn->SetBackgroundColour(c);
     btn->SetForegroundColour(c);
-    wxImage image(36,18);
-    image.SetRGB(wxRect(0,0,36,18), c.Red(), c.Green(), c.Blue());
-#endif
+    wxImage image(30,10);
+    image.SetRGB(wxRect(0,0,30,10), c.Red(), c.Green(), c.Blue());
+
     wxBitmap bmp(image);
     btn->SetBitmap(bmp);
 }

@@ -61,9 +61,8 @@ class ModelFaceDialog : public wxDialog
     virtual ~ModelFaceDialog();
 
     //(*Declarations(ModelFaceDialog)
-    wxButton* ButtonImport;
+    wxButton* ButtonMore;
     wxButton* Button_DownloadImages;
-    wxButton* DeleteButton;
     wxCheckBox* CheckBox_OutputToLights;
     wxCheckBox* CustomColorNodeRanges;
     wxCheckBox* CustomColorSingleNode;
@@ -86,8 +85,10 @@ class ModelFaceDialog : public wxDialog
     static const long FACES_DIALOG_IMPORT_SUB;
     static const long FACES_DIALOG_IMPORT_MODEL;
     static const long FACES_DIALOG_IMPORT_FILE;
+    static const long FACES_DIALOG_EXPORT_TOOTHERS;
     static const long FACES_DIALOG_COPY;
     static const long FACES_DIALOG_RENAME;
+    static const long FACES_DIALOG_DELETE;
     static const long FACES_DIALOG_SHIFT;
     static const long FACES_DIALOG_REVERSE;
 
@@ -98,9 +99,8 @@ protected:
     //(*Identifiers(ModelFaceDialog)
     static const wxWindowID ID_STATICTEXT2;
     static const wxWindowID ID_CHOICE3;
-    static const wxWindowID ID_BUTTON3;
-    static const wxWindowID ID_BUTTON_IMPORT;
-    static const wxWindowID ID_BUTTON4;
+    static const wxWindowID ID_BUTTON_ADD;
+    static const wxWindowID ID_BUTTON_MORE;
     static const wxWindowID ID_PANEL4;
     static const wxWindowID ID_CHECKBOX1;
     static const wxWindowID ID_GRID_COROFACES;
@@ -126,7 +126,7 @@ private:
     //(*Handlers(ModelFaceDialog)
     void OnMatrixNameChoiceSelect(wxCommandEvent& event);
     void OnButtonMatrixAddClicked(wxCommandEvent& event);
-    void OnButtonMatrixDeleteClick(wxCommandEvent& event);
+    void OnFaceDeleteSelected();
     void OnMatrixModelsGridCellLeftClick(wxGridEvent& event);
     void OnMatrixModelsGridCellChange(wxGridEvent& event);
     void OnMatricImagePlacementChoiceSelect(wxCommandEvent& event);
@@ -152,6 +152,7 @@ private:
     void OnMatrixModelsGridResize(wxSizeEvent& event);
     void OnSingleNodeGridResize(wxSizeEvent& event);
     void OnNodeRangeGridResize(wxSizeEvent& event);
+    void OnButtonMoreClick(wxCommandEvent& event);
     //*)
 
     void OnAddBtnPopup(wxCommandEvent& event);
@@ -198,4 +199,5 @@ private:
     void RenderModel();
     void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
     void SelectAllInBoundingRect(bool shiftdwn);
+    void ExportFacesToOtherModels();
 };

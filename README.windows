@@ -22,14 +22,15 @@ Instructions for MS Visual Studio C++
 Here are the steps to compile xLights for Windows using the Visual Studio compiler.
 
   a) Install Visual Studio 2022 ... the community edition is fine
-  	- Requires Windows 11 SDK build 22000
+    - Requires Windows 11 SDK build 22000
 
   b) Select a base directory to place all your source code in. From now on this is represented as <basedir>
 
 **** Skip "c)" if Using the "clone_&_build_WX_master_x64.cmd" script ****
-  c) Download and build wxWidgets for Windows (currently using a patched version of 3.2.0).
-	
-    git clone  --recurse-submodules -b xlights_2024.20 https://github.com/xLightsSequencer/wxWidgets
+  
+  c) Download and build wxWidgets for Windows (currently using a patched version of 3.3.2).
+    
+    git clone  --recurse-submodules -b xlights_2025.13 https://github.com/xLightsSequencer/wxWidgets
 
      1) Also if you have built wxWidgets before you should delete the following 2 folders
         - <basedir>\wxWidgets\build\msw\vc_mswuddll
@@ -43,30 +44,43 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
         NOTE: I have experienced issues with the use of spectre vs non spectre mitigated libraries. By default I turn spectre mitigation off which can be done in visual studio before building ... except the custom build step where the project file has to be manually added to tell it not to use it even though it doesnt need it. To do so copy the <SpectreMitigation>false</SpectreMitigation> tag under each of the PropertyGroup tags in the wx_custom_build.vcxproj file
      4) In the Windows System Properties -> Advanced -> Environment variables, create a new environment variable WXWIDGETS_ROOT with the value being the directory where wxWidgets is installed.  (example: c:\wxWidgets )
 
-  d) Download and build xLights for Windows
+  d) Download, install and setup ISPC
+  
+    ISPC is a compiler for a variant of the C programming language, with extensions for "single program, multiple data" (SPMD) programming. 
+    It is used in xLights for the generation of AVX1, AVX2, SEE2 and SSE4 optimized code.
+
+    1) Download ISPC from
+        https://github.com/ispc/ispc/releases/download/v1.28.1/ispc-v1.28.1-windows.zip
+    2) Extract the zip file to a folder of your choice.
+    3) Add the path to the ISPC executable to your PATH environment variable.
+  
+  e) Download and build xLights for Windows
+       
        1) If you plan on contributing to the main repo, create a fork on GitHub
-	   2) Now clone that fork to your <basedir>:
+       2) Now clone that fork to your <basedir>:
        
             cd <basedir>
             git clone  --recurse-submodules https://github.com/<youruser>/xLights.git
    
           NOTE: If you get an error or warning during this operation about certificates while getting log4cpp-codegit, follow these instructions:
-		        a) Edit <basedir>\xLights\.gitmodules and remove the section <[submodule "dependencies/log4cpp-codegit"]> and its indented lines
-				b) Edit <basedir>\xLights\.git\config  and remove the section <[submodule "dependencies/log4cpp-codegit"]> and its indented lines
-				c) Run the command: git rm --cached dependencies/log4cpp-codegit
-				d) Run the command: git submodule update --init
-				e) Be sure not to submit these files in any PRs.
+                a) Edit <basedir>\xLights\.gitmodules and remove the section <[submodule "dependencies/log4cpp-codegit"]> and its indented lines
+                b) Edit <basedir>\xLights\.git\config  and remove the section <[submodule "dependencies/log4cpp-codegit"]> and its indented lines
+                c) Run the command: git rm --cached dependencies/log4cpp-codegit
+                d) Run the command: git submodule update --init
+                e) Run the command: git submodule update --init --recursive
+                f) Be sure not to submit these files in any PRs.
    
        3) Open the xLights project <basedir>\xLights\xLights\xLights.sln and build the project in x64 Debug mode
 
 *** Newer Solution Files should automatically do step 4) now, only preform if you encounter build failures ***
+       
        4) Once built, copy the contents of these two folders (in the order below!):
             <basedir>\xLights\bin
             <basedir>\xLights\bin64
-		  to the folder
-		    <basedir>\xLights\xLights\x64\Debug
-		  If you do a Release build, you'll also need to copy them into 
-		    <basedir>\xLights\xLights\x64\Release
+          to the folder
+            <basedir>\xLights\xLights\x64\Debug
+          If you do a Release build, you'll also need to copy them into 
+            <basedir>\xLights\xLights\x64\Release
 
        5) From now on you can Edit/Compile/Debug from within Visual Studio
 
@@ -97,8 +111,8 @@ Here are the steps to Code::Blocks for Editing .wxs files in Windows.
 
      Download the codeblocks '.exe' and 'DLLs' from here:
         http://sourceforge.net/projects/codeblocks/files/Binaries/Nightlies/2024/CB_20240730_rev13538_win64.7z
-	https://sourceforge.net/projects/codeblocks/files/Binaries/Nightlies/Prerequisites/wxmsw32u_gcc_cb_wx325_2D_gcc1410-mingw64.7z
-	http://sourceforge.net/projects/codeblocks/files/Binaries/Nightlies/Prerequisites/Mingw64dlls14.1.0.7z
+    https://sourceforge.net/projects/codeblocks/files/Binaries/Nightlies/Prerequisites/wxmsw32u_gcc_cb_wx325_2D_gcc1410-mingw64.7z
+    http://sourceforge.net/projects/codeblocks/files/Binaries/Nightlies/Prerequisites/Mingw64dlls14.1.0.7z
 
   b) Extract all the EXE and DLLs from above to one folder i.e "C:\Codeblocks_nightly_7_30"
 
@@ -107,17 +121,3 @@ Here are the steps to Code::Blocks for Editing .wxs files in Windows.
   d) Now you are ready to use Code::Blocks to Edit xLights UI Files
      by double-clicking on the .cbp file in the xLights directory.
      Then Open a Dialog, Panel, or Frame in the Left Panel to edit it.
-
-
-Instructions for Setting up ISPC for Windows
-============================================
-
-ISPC is a compiler for a variant of the C programming language, with extensions for "single program, multiple data" (SPMD) programming. 
-It is used in xLights for the generation of AVX1, AVX2, SEE2 and SSE4 optimized code.
-
-  a) Download ISPC from
-        https://github.com/ispc/ispc/releases/download/v1.25.3/ispc-v1.25.3-windows.zip
-
-  b) Extract the zip file to a folder of your choice.
-
-  c) Add the path to the ISPC executable to your PATH environment variable.

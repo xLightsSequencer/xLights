@@ -32,13 +32,13 @@ extern "C" {
 extern void InitVideoToolboxAcceleration();
 extern bool SetupVideoToolboxAcceleration(AVCodecContext *s, bool enabled);
 extern void CleanupVideoToolbox(AVCodecContext *s, void * cache);
-extern bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame, void *& cache);
+extern bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame, void *& cache, int scaleAlgorithm);
 extern bool IsVideoToolboxAcceleratedFrame(AVFrame *frame);
 #else
 extern void InitVideoToolboxAcceleration() {}
 static inline bool SetupVideoToolboxAcceleration(AVCodecContext *s, bool enabled) { return false; }
 static inline void CleanupVideoToolbox(AVCodecContext *s, void * cache) {}
-static inline bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame, void *& cache) { return false; }
+static inline bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame, void *& cache, int scaleAlgorithm) { return false; }
 static inline bool IsVideoToolboxAcceleratedFrame(AVFrame *frame) { return false; }
 #endif
 
@@ -728,12 +728,13 @@ bool VideoReader::readFrame(int timestampMS) {
             logger_base.debug("    Decoding video frame %d.", _curPos);
             #endif
             bool hardwareScaled = false;
+            int scaleAlgorithm = SWS_BICUBIC;
             if (IsVideoToolboxAcceleratedFrame(_srcFrame)) {
                 if (_wantsHWType) {
                     hardwareScaled = true;
                     std::swap(_dstFrame2, _srcFrame);
                 } else {
-                    hardwareScaled = VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2, hwDecoderCache);
+                    hardwareScaled = VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2, hwDecoderCache, scaleAlgorithm);
                 }
             }
 
@@ -781,7 +782,7 @@ bool VideoReader::readFrame(int timestampMS) {
                     if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt && !_abandonHardwareDecode) {
                         logger_base.debug("Hardware format %s -> Software format %s.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame->format), av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
-                            _width, _height, _pixelFmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
+                            _width, _height, _pixelFmt, scaleAlgorithm, nullptr, nullptr, nullptr);
                         if (_swsCtx == nullptr) {
                             logger_base.error("VideoReader: Error creating SWSContext");
                         }
@@ -796,7 +797,7 @@ bool VideoReader::readFrame(int timestampMS) {
                         // software decoding
                         logger_base.debug("Software format %s -> Software format %s.", av_get_pix_fmt_name((AVPixelFormat)f->format), av_get_pix_fmt_name((AVPixelFormat)_pixelFmt));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
-                            _width, _height, _pixelFmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
+                            _width, _height, _pixelFmt, scaleAlgorithm, nullptr, nullptr, nullptr);
                         if (_swsCtx == nullptr) {
                             logger_base.error("VideoReader: Error creating SWSContext");
                         }

@@ -104,6 +104,7 @@ public:
     int GetTimeMSfromPosition(int position);
     int GetAbsoluteTimeMSfromPosition(int position);
     int GetRawTimeMSfromPosition(int position);
+    void SetShowAlternateTimingFormat(bool mode) {mShowAlternateTimingFormat = mode;}
 
     static int RoundToMultipleOfPeriod(int number, double period);
 
@@ -135,6 +136,7 @@ public:
     const static int ZoomLevelValues[];
 
     static const long ID_ZOOMSEL;
+    static const long ID_RESETZOOM;
 
 private:
     DECLARE_EVENT_TABLE()
@@ -177,6 +179,7 @@ private:
     int mMousePosition;
     bool m_dragging;
     bool timeline_initiated_play;
+    bool mShowAlternateTimingFormat;
 
     void Paint(wxPaintEvent& event);
     void render(wxDC& dc);

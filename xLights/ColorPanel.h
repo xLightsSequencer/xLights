@@ -158,6 +158,7 @@ public:
 		BulkEditValueCurveButton* BitmapButton_SparkleFrequencyVC;
 		BulkEditValueCurveButton* BitmapButton_VCBrightness;
 		ColourList* BitmapButton_ColourChoice;
+		wxButton* Button_MenuPalette;
 		wxCheckBox* CheckBox_ResetColorPanel;
 		wxFlexGridSizer* FlexGridSizer1;
 		wxFlexGridSizer* FlexGridSizer_Palette;
@@ -175,86 +176,96 @@ public:
 		xlLockButton* BitmapButton_Contrast;
 		xlLockButton* BitmapButton_MusicSparkles;
 		xlLockButton* BitmapButton_SparkleFrequency;
-		xlSizedBitmapButton* BitmapButton_DeletePalette;
 		xlSizedBitmapButton* BitmapButton_LeftShiftColours;
 		xlSizedBitmapButton* BitmapButton_ReverseColours;
 		xlSizedBitmapButton* BitmapButton_RightShiftColours;
-		xlSizedBitmapButton* BitmapButton_SavePalette;
 		//*)
 
 	protected:
 
 		//(*Identifiers(ColorPanel)
-		static const long ID_BITMAPBUTTON_ReverseColours;
-		static const long ID_BITMAPBUTTON_LeftShiftColours;
-		static const long ID_BITMAPBUTTON_RightShiftColours;
-		static const long ID_CUSTOM1;
-		static const long ID_BUTTON1;
-		static const long ID_BITMAPBUTTON3;
-		static const long ID_BITMAPBUTTON2;
-		static const long ID_CHECKBOX_ResetColorPanel;
-		static const long ID_STATICTEXT1;
-		static const long ID_SLIDER_ChromaSensitivity;
-		static const long ID_COLOURPICKERCTRL_ChromaColour;
-		static const long ID_CHECKBOX_Chroma;
-		static const long ID_STATICTEXT_SparkleFrequency;
-		static const long ID_SLIDER_SparkleFrequency;
-		static const long ID_VALUECURVE_SparkleFrequency;
-		static const long IDD_TEXTCTRL_SparkleFrequency;
-		static const long ID_BITMAPBUTTON_SLIDER_SparkleFrequency;
-		static const long ID_CHECKBOX_MusicSparkles;
-		static const long ID_COLOURPICKERCTRL_SparklesColour;
-		static const long ID_BITMAPBUTTON_MusicSparkles;
-		static const long ID_STATICTEXT_Brightness;
-		static const long ID_SLIDER_Brightness;
-		static const long ID_VALUECURVE_Brightness;
-		static const long IDD_TEXTCTRL_Brightness;
-		static const long ID_BITMAPBUTTON_SLIDER_Brightness;
-		static const long ID_STATICTEXT_Contrast;
-		static const long ID_SLIDER_Contrast;
-		static const long IDD_TEXTCTRL_Contrast;
-		static const long ID_BITMAPBUTTON_SLIDER_Contrast;
-		static const long ID_CHECKBOXBRIGHTNESSLEVEL;
-		static const long ID_STATICTEXT4;
-		static const long ID_STATICTEXT_Color_HueAdjust;
-		static const long ID_SLIDER_Color_HueAdjust;
-		static const long ID_VALUECURVE_Color_HueAdjust;
-		static const long IDD_TEXTCTRL_Color_HueAdjust;
-		static const long ID_STATICTEXT_Color_SaturationAdjust;
-		static const long ID_SLIDER_Color_SaturationAdjust;
-		static const long ID_VALUECURVE_Color_SaturationAdjust;
-		static const long IDD_TEXTCTRL_Color_SaturationAdjust;
-		static const long ID_STATICTEXT_Color_ValueAdjust;
-		static const long ID_SLIDER_Color_ValueAdjust;
-		static const long ID_VALUECURVE_Color_ValueAdjust;
-		static const long IDD_TEXTCTRL_Color_ValueAdjust;
-		static const long ID_SCROLLED_ColorScroll;
-		static const long ID_PANEL1;
+		static const wxWindowID ID_BITMAPBUTTON_ReverseColours;
+		static const wxWindowID ID_BITMAPBUTTON_LeftShiftColours;
+		static const wxWindowID ID_BITMAPBUTTON_RightShiftColours;
+		static const wxWindowID ID_CUSTOM1;
+		static const wxWindowID ID_BUTTON1;
+		static const wxWindowID ID_CHECKBOX_ResetColorPanel;
+		static const wxWindowID ID_STATICTEXT1;
+		static const wxWindowID ID_SLIDER_ChromaSensitivity;
+		static const wxWindowID ID_COLOURPICKERCTRL_ChromaColour;
+		static const wxWindowID ID_CHECKBOX_Chroma;
+		static const wxWindowID ID_STATICTEXT_SparkleFrequency;
+		static const wxWindowID ID_SLIDER_SparkleFrequency;
+		static const wxWindowID ID_VALUECURVE_SparkleFrequency;
+		static const wxWindowID IDD_TEXTCTRL_SparkleFrequency;
+		static const wxWindowID ID_BITMAPBUTTON_SLIDER_SparkleFrequency;
+		static const wxWindowID ID_CHECKBOX_MusicSparkles;
+		static const wxWindowID ID_COLOURPICKERCTRL_SparklesColour;
+		static const wxWindowID ID_BITMAPBUTTON_MusicSparkles;
+		static const wxWindowID ID_STATICTEXT_Brightness;
+		static const wxWindowID ID_SLIDER_Brightness;
+		static const wxWindowID ID_VALUECURVE_Brightness;
+		static const wxWindowID IDD_TEXTCTRL_Brightness;
+		static const wxWindowID ID_BITMAPBUTTON_SLIDER_Brightness;
+		static const wxWindowID ID_STATICTEXT_Contrast;
+		static const wxWindowID ID_SLIDER_Contrast;
+		static const wxWindowID IDD_TEXTCTRL_Contrast;
+		static const wxWindowID ID_BITMAPBUTTON_SLIDER_Contrast;
+		static const wxWindowID ID_CHECKBOXBRIGHTNESSLEVEL;
+		static const wxWindowID ID_STATICTEXT4;
+		static const wxWindowID ID_STATICTEXT_Color_HueAdjust;
+		static const wxWindowID ID_SLIDER_Color_HueAdjust;
+		static const wxWindowID ID_VALUECURVE_Color_HueAdjust;
+		static const wxWindowID IDD_TEXTCTRL_Color_HueAdjust;
+		static const wxWindowID ID_STATICTEXT_Color_SaturationAdjust;
+		static const wxWindowID ID_SLIDER_Color_SaturationAdjust;
+		static const wxWindowID ID_VALUECURVE_Color_SaturationAdjust;
+		static const wxWindowID IDD_TEXTCTRL_Color_SaturationAdjust;
+		static const wxWindowID ID_STATICTEXT_Color_ValueAdjust;
+		static const wxWindowID ID_SLIDER_Color_ValueAdjust;
+		static const wxWindowID ID_VALUECURVE_Color_ValueAdjust;
+		static const wxWindowID IDD_TEXTCTRL_Color_ValueAdjust;
+		static const wxWindowID ID_SCROLLED_ColorScroll;
+		static const wxWindowID ID_PANEL1;
 		//*)
+
+		static const wxWindowID ID_MNU_UPDATE;
+		static const wxWindowID ID_MNU_SAVE;
+		static const wxWindowID ID_MNU_SAVE_AS;
+		static const wxWindowID ID_MNU_DELETE;
+		static const wxWindowID ID_MNU_IMPORT;
+        static const wxWindowID ID_MNU_GENERATE;
+
 
 	private:
 
 		//(*Handlers(ColorPanel)
 		void OnCheckBox_PaletteClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
-		void OnUpdateColorClick(wxCommandEvent& event);
 		void OnCheckBox_MusicSparklesClick(wxCommandEvent& event);
-		void OnBitmapButton_SavePaletteClick(wxCommandEvent& event);
-		void OnBitmapButton_DeletePaletteClick(wxCommandEvent& event);
 		void OnBitmapButton_ReverseColoursClick(wxCommandEvent& event);
 		void UpdateTouchBarSlider(wxScrollEvent& event);
 		void OnCheckBox_ResetColorPanelClick(wxCommandEvent& event);
 		void OnCheckBox_EnableChromakeyClick(wxCommandEvent& event);
 		void OnBitmapButton_ShiftColoursLeftClick(wxCommandEvent& event);
 		void OnBitmapButton_ShiftColoursRightClick(wxCommandEvent& event);
+		void OnBitmapButton_MenuPaletteClick(wxCommandEvent& event);
 		//*)
 
         void OnCCButtonClick(wxCommandEvent& event);
         wxCheckBox* GetPaletteCheckbox(int idx);
         wxButton* GetPaletteButton(int idx);
         void OnColourChoiceDropDown(wxCommandEvent& event);
+        bool ValidateAndFormatPaletteString(wxString& input, wxString& errorMsg);
+        void LoadColorsToButtons(const wxString& colorString);
         void OnColourChoiceSelect(wxCommandEvent& event);
         wxString RemoveNonAlphanumeric(wxString const& str) const;
+        void OnListPopup(wxCommandEvent& event);
+        void ImportPalette();
+        void GeneratePalette();
+        void SavePalette(bool saveAs);
+        void DeletePalette();
+        void UpdateColor();
 
         std::vector<ColorCurveButton*> buttons;
         std::vector<wxCheckBox*> checkBoxes;

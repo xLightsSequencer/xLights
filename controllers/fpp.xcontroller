@@ -98,6 +98,13 @@
         </SmartRemoteTypes>
         <fppStringFileName>co-bbbStrings</fppStringFileName>
     </AbstractVariant>
+    <AbstractVariant Name="FPPShiftStringCape" Base="FPP:FPPStringCapeTTYs">
+        <SmartRemoteTypes>
+            <Type>falcon_v1</Type>
+            <Type>fpp_v2</Type>
+            <Type>falcon_v5</Type>
+        </SmartRemoteTypes>
+    </AbstractVariant>
     <AbstractVariant Name="FPPStringRPIWS281XPiHat" Base="FPP:BaseFPPSettings">
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
         <MaxPixelPortChannels>4200</MaxPixelPortChannels>

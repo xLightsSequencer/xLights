@@ -112,24 +112,24 @@
 			<MaxPixelPortChannels>4800</MaxPixelPortChannels>
 			<SupportsVirtualStrings/>
 			<SupportsAutoLayout/>
-            <SupportsPixelPortEndNullPixels/>
+			<SupportsPixelPortEndNullPixels/>
 			<SupportsLEDPanelMatrix/>
-            <SupportsVirtualMatrix/>
+			<SupportsVirtualMatrix/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>ws2801</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
-                <Protocol>DMX-Pro</Protocol>
-                <Protocol>opendmx</Protocol>
-                <Protocol>GenericSerial</Protocol>
-                <Protocol>LOR</Protocol>
-                <Protocol>Pixelnet-Lynx</Protocol>
-                <Protocol>Pixelnet-Open</Protocol>
-                <Protocol>Renard</Protocol>
+				<Protocol>DMX-Pro</Protocol>
+				<Protocol>DMX-Open</Protocol>
+				<Protocol>GenericSerial</Protocol>
+				<Protocol>LOR</Protocol>
+				<Protocol>Pixelnet-Lynx</Protocol>
+				<Protocol>Pixelnet-Open</Protocol>
+				<Protocol>Renard</Protocol>
 			</SerialProtocols>
-            <fppSerialPort1>ttyAMA0</fppSerialPort1>
-            <fppStringFileName>co-pixelStrings</fppStringFileName>
+			<fppSerialPort1>ttyAMA0</fppSerialPort1>
+			<fppStringFileName>co-pixelStrings</fppStringFileName>
 		</Variant>
 		<Variant Name="rPi-28D-DPIPixels" ID="rPi-28D-DPIPixels" Base="FPP:FPPStringDPIPiHat">
 			<MaxPixelPort>2</MaxPixelPort>
@@ -138,23 +138,23 @@
 			<MaxPixelPortChannels>4800</MaxPixelPortChannels>
 			<SupportsVirtualStrings/>
 			<SupportsAutoLayout/>
-            <SupportsPixelPortEndNullPixels/>
+			<SupportsPixelPortEndNullPixels/>
 			<SupportsLEDPanelMatrix/>
-            <SupportsVirtualMatrix/>
+			<SupportsVirtualMatrix/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
-                <Protocol>DMX-Pro</Protocol>
-                <Protocol>opendmx</Protocol>
-                <Protocol>GenericSerial</Protocol>
-                <Protocol>LOR</Protocol>
-                <Protocol>Pixelnet-Lynx</Protocol>
-                <Protocol>Pixelnet-Open</Protocol>
-                <Protocol>Renard</Protocol>
+				<Protocol>DMX-Pro</Protocol>
+				<Protocol>DMX-Open</Protocol>
+				<Protocol>GenericSerial</Protocol>
+				<Protocol>LOR</Protocol>
+				<Protocol>Pixelnet-Lynx</Protocol>
+				<Protocol>Pixelnet-Open</Protocol>
+				<Protocol>Renard</Protocol>
 			</SerialProtocols>
-            <fppSerialPort1>ttyAMA0</fppSerialPort1>
-            <fppStringFileName>co-pixelStrings</fppStringFileName>
+			<fppSerialPort1>ttyAMA0</fppSerialPort1>
+			<fppStringFileName>co-pixelStrings</fppStringFileName>
 		</Variant>
 		<Variant Name="rPi-28D-DPIPixels-4" ID="rPi-28D-DPIPixels-4" Base="FPP:FPPStringDPIPiHat">
 			<MaxPixelPort>4</MaxPixelPort>
@@ -163,23 +163,23 @@
 			<MaxPixelPortChannels>4800</MaxPixelPortChannels>
 			<SupportsVirtualStrings/>
 			<SupportsAutoLayout/>
-            <SupportsPixelPortEndNullPixels/>
+			<SupportsPixelPortEndNullPixels/>
 			<SupportsLEDPanelMatrix/>
-            <SupportsVirtualMatrix/>
+			<SupportsVirtualMatrix/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
-                <Protocol>DMX-Pro</Protocol>
-                <Protocol>opendmx</Protocol>
-                <Protocol>GenericSerial</Protocol>
-                <Protocol>LOR</Protocol>
-                <Protocol>Pixelnet-Lynx</Protocol>
-                <Protocol>Pixelnet-Open</Protocol>
-                <Protocol>Renard</Protocol>
+				<Protocol>DMX-Pro</Protocol>
+				<Protocol>DMX-Open</Protocol>
+				<Protocol>GenericSerial</Protocol>
+				<Protocol>LOR</Protocol>
+				<Protocol>Pixelnet-Lynx</Protocol>
+				<Protocol>Pixelnet-Open</Protocol>
+				<Protocol>Renard</Protocol>
 			</SerialProtocols>
-            <fppSerialPort1>ttyAMA0</fppSerialPort1>
-            <fppStringFileName>co-pixelStrings</fppStringFileName>
+			<fppSerialPort1>ttyAMA0</fppSerialPort1>
+			<fppStringFileName>co-pixelStrings</fppStringFileName>
 		</Variant>
 	</Controller>
 	<Controller Name="rPi-MFC">
@@ -190,57 +190,57 @@
 			<MaxPixelPortChannels>4800</MaxPixelPortChannels>
 			<SupportsVirtualStrings/>
 			<SupportsLEDPanelMatrix/>
-            <SupportsVirtualMatrix/>
+			<SupportsVirtualMatrix/>
 			<SupportsAutoLayout/>
-            <SupportsPixelPortEndNullPixels/>
+			<SupportsPixelPortEndNullPixels/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 			</PixelProtocols>
 			<SerialProtocols>
-                <Protocol>DMX-Pro</Protocol>
-                <Protocol>opendmx</Protocol>
-                <Protocol>GenericSerial</Protocol>
-                <Protocol>LOR</Protocol>
-                <Protocol>Pixelnet-Lynx</Protocol>
-                <Protocol>Pixelnet-Open</Protocol>
-                <Protocol>Renard</Protocol>
+				<Protocol>DMX-Pro</Protocol>
+				<Protocol>DMX-Open</Protocol>
+				<Protocol>GenericSerial</Protocol>
+				<Protocol>LOR</Protocol>
+				<Protocol>Pixelnet-Lynx</Protocol>
+				<Protocol>Pixelnet-Open</Protocol>
+				<Protocol>Renard</Protocol>
 			</SerialProtocols>
-            <fppSerialPort1>ttyAMA0</fppSerialPort1>
-            <fppStringFileName>co-pixelStrings</fppStringFileName>
+			<fppSerialPort1>ttyAMA0</fppSerialPort1>
+			<fppStringFileName>co-pixelStrings</fppStringFileName>
 		</Variant>
-	</Controller>	
+	</Controller>
 	<Controller Name="HE123">
-                <Variant Name="No Expansions" ID="HE123" Base="FPP:FPPStringCape">
-                        <MaxPixelPort>16</MaxPixelPort>
-                        <MaxSerialPort>0</MaxSerialPort>
-                        <MaxSerialPortChannels>0</MaxSerialPortChannels>
-                        <fpp>2</fpp>
-                        <fpp1>17,-1</fpp1>
-                        <fpp2>33,-1</fpp2>
-                </Variant>
-                <Variant Name="One Expansion" ID="HE123" Base="FPP:FPPStringCape">
-                        <MaxPixelPort>32</MaxPixelPort>
-                        <MaxSerialPort>0</MaxSerialPort>
-                        <MaxSerialPortChannels>0</MaxSerialPortChannels>
-                        <fpp>2</fpp>
-                        <fpp1>17,16</fpp1>
-                        <fpp2>33,-1</fpp2>
-                </Variant>
-                <Variant Name="Two Expansions" ID="HE123" Base="FPP:FPPStringCape">
-                        <MaxPixelPort>48</MaxPixelPort>
-                        <MaxSerialPort>0</MaxSerialPort>
-                        <MaxSerialPortChannels>0</MaxSerialPortChannels>
-                        <fpp>2</fpp>
-                        <fpp1>17,16</fpp1>
-                        <fpp2>33,16</fpp2>
-                </Variant>
+		<Variant Name="No Expansions" ID="HE123" Base="FPP:FPPStringCape">
+			<MaxPixelPort>16</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<fpp>2</fpp>
+			<fpp1>17,-1</fpp1>
+			<fpp2>33,-1</fpp2>
+		</Variant>
+		<Variant Name="One Expansion" ID="HE123" Base="FPP:FPPStringCape">
+			<MaxPixelPort>32</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<fpp>2</fpp>
+			<fpp1>17,16</fpp1>
+			<fpp2>33,-1</fpp2>
+		</Variant>
+		<Variant Name="Two Expansions" ID="HE123" Base="FPP:FPPStringCape">
+			<MaxPixelPort>48</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<fpp>2</fpp>
+			<fpp1>17,16</fpp1>
+			<fpp2>33,16</fpp2>
+		</Variant>
 	</Controller>
 	<Controller Name="HE123D">
-                <Variant Name="" ID="HE123D" Base="FPP:FPPStringCape">
-                        <MaxPixelPort>48</MaxPixelPort>
-                        <MaxSerialPort>0</MaxSerialPort>
-                        <MaxSerialPortChannels>0</MaxSerialPortChannels>
-                </Variant>
+		<Variant Name="" ID="HE123D" Base="FPP:FPPStringCape">
+			<MaxPixelPort>48</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+		</Variant>
 	</Controller>
 	<Controller Name="rPi-P10">
 		<Variant Name="" ID="rPi-P10" Base="FPP:BaseFPPSettings">
@@ -249,7 +249,7 @@
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
 			<MaxPixelPortChannels>0</MaxPixelPortChannels>
 			<SupportsLEDPanelMatrix/>
-            <SupportsVirtualMatrix/>
+			<SupportsVirtualMatrix/>
 			<SupportsAutoLayout/>
 			<PixelProtocols>
 			</PixelProtocols>
@@ -308,7 +308,7 @@
 			<PixelProtocols>
 			</PixelProtocols>
 			<SerialProtocols>
-				<Protocol>opendmx</Protocol>
+				<Protocol>DMX-Open</Protocol>
 			</SerialProtocols>
 			<InputProtocols>
 				<Protocol>opendmx</Protocol>

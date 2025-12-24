@@ -290,7 +290,14 @@ ControllerCaps* ControllerCaps::GetControllerConfigByID(const std::string& ID) {
     }
     return nullptr;
 }
-
+ControllerCaps* ControllerCaps::GetControllerConfigByVendor(const std::string& vendor) {
+    LoadControllers();
+    auto v = __controllers.find(vendor);
+    if (v != __controllers.end()) {
+            return v->second.begin()->second.front();
+    }
+    return nullptr;
+}
 ControllerCaps* ControllerCaps::GetControllerConfigByModel( const std::string& model, const std::string& variant)
 {
     LoadControllers();
@@ -317,6 +324,16 @@ ControllerCaps* ControllerCaps::GetControllerConfigByAlternateName(const std::st
                 auto const& names = vr->GetAlternativeNames();
                 if (std::find(names.begin(), names.end(), model) != names.end() && vr->GetVariantName() == variant) {
                     return vr;
+                }
+            }
+        }
+        // did not find new model/variant, see if the model itself has become a variant
+        if (!model.empty()) {
+            for (auto const &[_, cap] : v->second) {
+                for (auto const& vr : cap) {
+                    if (vr->GetVariantName() == model) {
+                        return vr;
+                    }
                 }
             }
         }
@@ -561,10 +578,8 @@ int ControllerCaps::GetMaxVirtualMatrixPort() const {
     return SupportsVirtualMatrix() ? wxAtoi(GetXmlNodeContent(_config, "MaxVirtualMatrixPorts", "1")): 0;
 }
 int ControllerCaps::GetMaxLEDPanelMatrixPort() const {
-    //FPP internally can map multiple matrices onto the panel outputs
-    //but none of that is exposed in the FPP UI yet so just use a single
-    //matrix at this point
-    return SupportsLEDPanelMatrix() ? 1 : 0;
+    //FPP 9 supports up to 5 PanelMatrices defined
+    return SupportsLEDPanelMatrix() ? 5 : 0;
 }
 
 int ControllerCaps::GetMaxPixelPortChannels() const {

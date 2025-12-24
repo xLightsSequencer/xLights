@@ -272,7 +272,7 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent) : xlEffectPanel(parent)
 	GridBagSizerGalaxyOptions->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	GridBagSizerGalaxyOptions->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_Galaxy_Scale = new BulkEditCheckBox(Panel8, ID_CHECKBOX_Galaxy_Scale, _("Scale To Buffer:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, wxDefaultValidator, _T("ID_CHECKBOX_Galaxy_Scale"));
-	CheckBox_Galaxy_Scale->SetValue(false);
+	CheckBox_Galaxy_Scale->SetValue(true);
 	GridBagSizerGalaxyOptions->Add(CheckBox_Galaxy_Scale, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Panel8->SetSizer(GridBagSizerGalaxyOptions);
 	Notebook_Galaxy->AddPage(Panel6, _("Start"), false);
@@ -280,7 +280,6 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Notebook_Galaxy->AddPage(Panel8, _("Options"), false);
 	FlexGridSizer108->Add(Notebook_Galaxy, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer108);
-	FlexGridSizer108->SetSizeHints(this);
 
 	Connect(ID_VALUECURVE_Galaxy_CenterX, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&GalaxyPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_CenterX, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&GalaxyPanel::OnLockButtonClick);

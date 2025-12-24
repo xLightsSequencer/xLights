@@ -623,6 +623,11 @@ const wxFontInfo& TextDrawingContext::GetTextFont(const std::string& FontString)
             if (font.GetStrikethrough()) {
                 info.Strikethrough();
             }
+            if (font.GetStyle() == wxFONTSTYLE_ITALIC) {
+                info.Italic();
+            } else if (font.GetStyle() == wxFONTSTYLE_SLANT) {
+                info.Slant();
+            }
             info.AntiAliased(false);
             info.Encoding(font.GetEncoding());
             FONT_MAP_TXT[FontString] = info;

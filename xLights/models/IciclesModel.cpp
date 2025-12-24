@@ -251,8 +251,6 @@ void IciclesModel::ExportXlightsModel()
     wxString s0 = ModelXml->GetAttribute("Strings");
     wxString s1 = ModelXml->GetAttribute("Start");
     wxString s2 = ModelXml->GetAttribute("Style");
-    wxString s3 = ModelXml->GetAttribute("StrandPerLine");
-    wxString s4 = ModelXml->GetAttribute("StrandPerLayer");
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<iciclemodel \n");
     f.Write(wxString::Format("name=\"%s\" ", name));
@@ -274,8 +272,6 @@ void IciclesModel::ExportXlightsModel()
     f.Write(wxString::Format("Strings=\"%s\" ", s0));
     f.Write(wxString::Format("Start=\"%s\" ", s1));
     f.Write(wxString::Format("Style=\"%s\" ", s2));
-    f.Write(wxString::Format("StrandsPerLine=\"%s\" ", s3));
-    f.Write(wxString::Format("StrandsPerLayer=\"%s\" ", s4));
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString aliases = SerialiseAliases();
@@ -306,7 +302,7 @@ void IciclesModel::ExportXlightsModel()
     f.Close();
 }
 
-bool IciclesModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool IciclesModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z)
 {
     if (root->GetName() == "iciclemodel") {
         wxString name = root->GetAttribute("name");
@@ -330,8 +326,6 @@ bool IciclesModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, fl
         wxString s0 = root->GetAttribute("Strings");
         wxString s1 = root->GetAttribute("Start");
         wxString s2 = root->GetAttribute("Style");
-        wxString s3 = root->GetAttribute("StrandsPerLine");
-        wxString s4 = root->GetAttribute("StrandsPerLayer");
 
         SetProperty("parm1", p1);
         SetProperty("parm2", p2);
@@ -353,15 +347,13 @@ bool IciclesModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, fl
         SetProperty("Strings", s0);
         SetProperty("Start", s1);
         SetProperty("Style", s2);
-        SetProperty("StrandsPerLine", s3);
-        SetProperty("StrandsPerLayer", s4);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
         GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
 
         ImportSuperStringColours(root);
-        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y, min_z, max_z);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IcicleModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IcicleModel::ImportXlightsModel");

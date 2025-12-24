@@ -44,14 +44,6 @@ void BaseObject::SetLayoutGroup(const std::string &grp) {
     }
 }
 
-void BaseObject::EnableLayoutGroupProperty(wxPropertyGridInterface* grid, bool enable)
-{
-    if (grid->GetProperty("ModelLayoutGroup") != nullptr)
-    {
-        grid->GetProperty("ModelLayoutGroup")->Enable(enable);
-    }
-}
-
 glm::vec3 BaseObject::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
     if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return GetBaseObjectScreenLocation().GetHandlePosition(handle);
@@ -64,6 +56,7 @@ glm::vec3 BaseObject::MoveHandle3D(ModelPreview* preview, int handle, bool Shift
     IncrementChangeCount();
     return GetBaseObjectScreenLocation().GetHandlePosition(handle);
 }
+
 glm::vec3 BaseObject::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
     if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return GetBaseObjectScreenLocation().GetHandlePosition(handle);
 
@@ -335,6 +328,18 @@ float BaseObject::GetHeight() const {
 
 float BaseObject::GetDepth() const {
     return GetBaseObjectScreenLocation().GetMDepth();
+}
+
+float BaseObject::GetRestorableMWidth() const {
+    return GetBaseObjectScreenLocation().GetRestorableMWidth();
+}
+
+float BaseObject::GetRestorableMHeight() const {
+    return GetBaseObjectScreenLocation().GetRestorableMHeight();
+}
+
+float BaseObject::GetRestorableMDepth() const {
+    return GetBaseObjectScreenLocation().GetRestorableMDepth();
 }
 
 float BaseObject::GetHcenterPos() {

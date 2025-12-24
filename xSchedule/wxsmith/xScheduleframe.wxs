@@ -152,9 +152,9 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
+					<minsize>10</minsize>
 					<orientation>vertical</orientation>
 					<size>52,39</size>
-					<minsize>10,10</minsize>
 					<object class="wxPanel" name="ID_PANEL3" variable="Panel3" member="yes">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 							<cols>1</cols>
@@ -162,7 +162,7 @@
 							<growablerows>0</growablerows>
 							<object class="sizeritem">
 								<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW2" variable="SplitterWindow2" member="yes">
-									<minsize>10,10</minsize>
+									<minsize>10</minsize>
 									<object class="wxPanel" name="ID_PANEL6" variable="Panel6" member="yes">
 										<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
 											<cols>1</cols>
@@ -335,7 +335,23 @@
 							<option>1</option>
 						</object>
 						<object class="sizeritem">
-							<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText2" member="yes">
+							<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText3" member="yes">
+								<label></label>
+							</object>
+							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
+							<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText_SyncTime" member="yes">
+								<label></label>
+							</object>
+							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
+							<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText_SequenceTime" member="yes">
 								<label></label>
 							</object>
 							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

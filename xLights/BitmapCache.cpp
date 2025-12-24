@@ -108,8 +108,7 @@
 #include "../include/cc_cw.xpm"
 #include "../include/cc_radialin.xpm"
 #include "../include/cc_radialout.xpm"
-#include "../include/save.xpm"
-#include "../include/delete.xpm"
+#include "../include/menu.xpm"
 #include "../include/reverse.xpm"
 #include "../include/left_shift.xpm"
 #include "../include/right_shift.xpm"
@@ -520,10 +519,12 @@ wxBitmapBundle xlArtProvider::CreateBitmapBundle(const wxArtID& id,
         return CreateBitmapBundleFromXPMs(sz, "colorpanel_left_shift_xpm", { left_shift_xpm, left_shift_xpm });
     } else if ("xlART_colorpanel_right_shift_xpm" == id) {
         return CreateBitmapBundleFromXPMs(sz, "colorpanel_right_shift_xpm", { right_shift_xpm, right_shift_xpm });
-    } else if ("xlART_colorpanel_delete_xpm" == id) {
-        return CreateBitmapBundleFromXPMs(sz, "colorpanel_delete_xpm", {delete_xpm, delete_xpm});
-    } else if ("xlART_colorpanel_save_xpm" == id) {
-        return CreateBitmapBundleFromXPMs(sz, "colorpanel_save_xpm", {save_xpm, save_xpm});
+    //} else if ("xlART_colorpanel_delete_xpm" == id) {
+      //  return CreateBitmapBundleFromXPMs(sz, "colorpanel_delete_xpm", {delete_xpm, delete_xpm});
+    } else if ("xlART_colorpanel_menu_xpm" == id) {
+        return CreateBitmapBundleFromXPMs(sz, "colorpanel_menu_xpm", {menu_xpm, menu_xpm});
+    //} else if ("xlART_colorpanel_save_xpm" == id) {
+      //  return CreateBitmapBundleFromXPMs(sz, "colorpanel_save_xpm", {save_xpm, save_xpm});
     } else if ("xlART_valuecurve_selected" == id) {
         return CreateBitmapBundleFromXPMs(sz, "valuecurve_selected_xpm", {valuecurveselected_24, valuecurveselected_24});
     } else if ("xlART_valuecurve_notselected" == id) {

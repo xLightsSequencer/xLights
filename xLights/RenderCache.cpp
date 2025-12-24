@@ -622,10 +622,10 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
     static log4cpp::Category& logger_rcache = log4cpp::Category::getInstance(std::string("log_rendercache"));
     if (_purged) return false;
 
-    if (wxAtoi(_properties.at("StartMS")) != effect->GetStartTimeMS()) return false;
+    if (std::atoi(_properties.at("StartMS").c_str()) != effect->GetStartTimeMS()) return false;
 
     EffectLayer* el = effect->GetParentEffectLayer();
-    if (wxAtoi(_properties.at("EffectLayer")) != el->GetLayerNumber()) return false;
+    if (std::atoi(_properties.at("EffectLayer").c_str()) != el->GetLayerNumber()) return false;
 
     Element* e = el->GetParentElement();
     if (_properties.at("Element") != e->GetFullName()) return false;
@@ -636,7 +636,7 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
         if (_frameSize.at(mname) != sizeof(xlColor) * buffer->GetPixelCount()) return false;
     }
 
-    if (wxAtoi(_properties.at("EndMS")) != effect->GetEndTimeMS()) return false;
+    if (std::atoi(_properties.at("EndMS").c_str()) != effect->GetEndTimeMS()) return false;
     if (_properties.at("Effect") != effect->GetEffectName()) return false;
 
     // We only log failures from here on because they should be relatively rare
@@ -936,14 +936,14 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& fi
         }
         ps += strlen(ps) + 1;
 
-        int models = wxAtoi(_properties["Models"]);
+        int models = std::atoi(_properties["Models"].c_str());
 
         for (int i = 0; i < models; i++) {
             std::string model(ps);
             ps += strlen(ps) + 1;
             std::string frames(ps);
             ps += strlen(ps) + 1;
-            int fs = wxAtoi(frames);
+            int fs = std::atoi(frames.c_str());
             std::string frameSize(ps);
             ps += strlen(ps) + 1;
             long fsz = wxAtol(frameSize);
@@ -961,31 +961,36 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& fi
             _mmapSize = file.Length();
             _mmap = (uint8_t*)mmap(nullptr, _mmapSize, PROT_READ, MAP_PRIVATE, file.fd(), 0);
             
-            size_t cur = _firstFrameOffset;
-            for (auto& itm : _frames) {
-                for (int i = 0; i < itm.second.size(); i++) {
-                    itm.second[i] = &_mmap[cur];
-                    cur += _frameSize.at(itm.first);
-                }
-            }
-        } else
-#endif
-        {
-            file.Seek(_firstFrameOffset);
-            for (auto& itm : _frames) {
-                for (int i = 0; i < itm.second.size(); i++) {
-                    uint8_t* frameBuffer = (uint8_t *)malloc(_frameSize.at(itm.first));
-                    
-                    if (frameBuffer == nullptr) {
-                        file.Close();
-                        PurgeFrames();
-                        logger_base.debug("Render Cache Item file %s fails due to memory allocation issue.", (const char*)filename.c_str());
-                        return;
+            if (_mmap == MAP_FAILED) {
+                _mmap = nullptr;
+                _mmapSize = 0;
+            } else {
+                size_t cur = _firstFrameOffset;
+                for (auto& itm : _frames) {
+                    for (int i = 0; i < itm.second.size(); i++) {
+                        itm.second[i] = &_mmap[cur];
+                        cur += _frameSize.at(itm.first);
                     }
-                    
-                    file.Read(frameBuffer, _frameSize.at(itm.first));
-                    itm.second[i] = frameBuffer;
                 }
+                file.Close();
+                return;
+            }
+        }
+#endif
+        file.Seek(_firstFrameOffset);
+        for (auto& itm : _frames) {
+            for (int i = 0; i < itm.second.size(); i++) {
+                uint8_t* frameBuffer = (uint8_t *)malloc(_frameSize.at(itm.first));
+                
+                if (frameBuffer == nullptr) {
+                    file.Close();
+                    PurgeFrames();
+                    logger_base.debug("Render Cache Item file %s fails due to memory allocation issue.", (const char*)filename.c_str());
+                    return;
+                }
+                
+                file.Read(frameBuffer, _frameSize.at(itm.first));
+                itm.second[i] = frameBuffer;
             }
         }
         file.Close();
@@ -1020,7 +1025,11 @@ void RenderCacheItem::remmap() {
         file.Seek(0);
         _mmapSize = file.Length();
         _mmap = (uint8_t*)mmap(nullptr, _mmapSize, PROT_READ, MAP_PRIVATE, file.fd(), 0);
-        
+        if (_mmap == MAP_FAILED) {
+            _mmap = nullptr;
+            _mmapSize = 0;
+            return;
+        }
         size_t cur = _firstFrameOffset;
         for (auto& itm : _frames) {
             for (int i = 0; i < itm.second.size(); i++) {

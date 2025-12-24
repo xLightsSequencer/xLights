@@ -25,7 +25,7 @@ class TreeModel : public MatrixModel
         virtual bool SupportsExportAsCustom3D() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
         virtual void ExportXlightsModel() override;
-        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
         virtual int NodeRenderOrder() override {return 1;}
         // we need to override this as the matrix model can set it to true
         virtual bool SupportsLowDefinitionRender() const override { return false; }

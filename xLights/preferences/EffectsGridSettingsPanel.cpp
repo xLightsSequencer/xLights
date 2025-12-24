@@ -23,16 +23,18 @@
 #include "../xLightsMain.h"
 
 //(*IdInit(EffectsGridSettingsPanel)
-const wxWindowID EffectsGridSettingsPanel::ID_CHOICE1 = wxNewId();
-const wxWindowID EffectsGridSettingsPanel::ID_CHECKBOX1 = wxNewId();
-const wxWindowID EffectsGridSettingsPanel::ID_CHECKBOX2 = wxNewId();
-const wxWindowID EffectsGridSettingsPanel::ID_CHECKBOX7 = wxNewId();
-const wxWindowID EffectsGridSettingsPanel::ID_CHECKBOX3 = wxNewId();
-const wxWindowID EffectsGridSettingsPanel::ID_STATICTEXT1 = wxNewId();
-const wxWindowID EffectsGridSettingsPanel::ID_CHOICE2 = wxNewId();
-const wxWindowID EffectsGridSettingsPanel::ID_CHECKBOX4 = wxNewId();
-const wxWindowID EffectsGridSettingsPanel::ID_CHECKBOX6 = wxNewId();
-const wxWindowID EffectsGridSettingsPanel::ID_CHECKBOX5 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHOICE1 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHECKBOX1 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHECKBOX2 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHECKBOX7 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHECKBOX3 = wxNewId();
+const long EffectsGridSettingsPanel::ID_STATICTEXT1 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHOICE2 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHECKBOX4 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHECKBOX6 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHECKBOX5 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHECKBOX8 = wxNewId();
+const long EffectsGridSettingsPanel::ID_CHECKBOX9 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(EffectsGridSettingsPanel,wxPanel)
@@ -58,61 +60,78 @@ EffectsGridSettingsPanel::EffectsGridSettingsPanel(wxWindow* parent, xLightsFram
 	GridSpacingChoice->Append(_("Large"));
 	GridSpacingChoice->Append(_("Extra Large"));
 	GridSizer1->Add(GridSpacingChoice, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	GridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	IconBackgroundsCheckBox = new wxCheckBox(this, ID_CHECKBOX1, _("Icon Backgrounds"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	IconBackgroundsCheckBox = new wxCheckBox(this, ID_CHECKBOX1, _("Effect Backgrounds"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	IconBackgroundsCheckBox->SetValue(false);
+	IconBackgroundsCheckBox->SetToolTip(_("Show gif backgrounds for most effects"));
 	GridSizer1->Add(IconBackgroundsCheckBox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	GridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	NodeValuesCheckBox = new wxCheckBox(this, ID_CHECKBOX2, _("Node Values"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	NodeValuesCheckBox->SetValue(false);
 	GridSizer1->Add(NodeValuesCheckBox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	GridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	GroupEffectIndicator = new wxCheckBox(this, ID_CHECKBOX7, _("Group Effect Indicator"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX7"));
 	GroupEffectIndicator->SetValue(true);
+	GroupEffectIndicator->SetToolTip(_("Show bar on model box to indicate presence of an effect"));
 	GridSizer1->Add(GroupEffectIndicator, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	GridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SnapToTimingCheckBox = new wxCheckBox(this, ID_CHECKBOX3, _("Snap to Timing Marks"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
 	SnapToTimingCheckBox->SetValue(false);
 	GridSizer1->Add(SnapToTimingCheckBox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	GridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Double Click Mode"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	GridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	DoubleClickChoice = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
 	DoubleClickChoice->Append(_("Edit Text"));
 	DoubleClickChoice->SetSelection( DoubleClickChoice->Append(_("Play Timing")) );
 	GridSizer1->Add(DoubleClickChoice, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	GridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SmallWaveformCheckBox = new wxCheckBox(this, ID_CHECKBOX4, _("Small Waveform"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
 	SmallWaveformCheckBox->SetValue(false);
+	SmallWaveformCheckBox->SetToolTip(_("Reduce the vertical size of the waveform"));
 	GridSizer1->Add(SmallWaveformCheckBox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	GridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TransistionMarksCheckBox = new wxCheckBox(this, ID_CHECKBOX6, _("Display Transition Marks"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX6"));
 	TransistionMarksCheckBox->SetValue(true);
 	GridSizer1->Add(TransistionMarksCheckBox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	GridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ColorUpdateWarnCheckBox = new wxCheckBox(this, ID_CHECKBOX5, _("Hide Color Update Warning"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
 	ColorUpdateWarnCheckBox->SetValue(false);
 	GridSizer1->Add(ColorUpdateWarnCheckBox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ShowAlternateTimingFormatCheckBox = new wxCheckBox(this, ID_CHECKBOX8, _("Show Alternate Timing Format"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX8"));
+	ShowAlternateTimingFormatCheckBox->SetValue(false);
+	ShowAlternateTimingFormatCheckBox->SetToolTip(_("Sequencer timing will be displayed in seconds and milliseconds"));
+	GridSizer1->Add(ShowAlternateTimingFormatCheckBox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	GridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	GridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	GridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BellOnRenderCompletion = new wxCheckBox(this, ID_CHECKBOX9, _("Bell on render completion"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX9"));
+	BellOnRenderCompletion->SetValue(false);
+	GridSizer1->Add(BellOnRenderCompletion, 1, wxALL|wxEXPAND, 5);
+	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(GridSizer1);
+	GridSizer1->Fit(this);
+	GridSizer1->SetSizeHints(this);
 
-	Connect(ID_CHOICE1, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnGridSpacingChoiceSelect);
-	Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnIconBackgroundsCheckBoxClick);
-	Connect(ID_CHECKBOX2, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnNodeValuesCheckBoxClick);
-	Connect(ID_CHECKBOX7, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnGroupEffectIndicatorClick);
-	Connect(ID_CHECKBOX3, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnSnapToTimingCheckBoxClick);
-	Connect(ID_CHOICE2, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnDoubleClickChoiceSelect);
-	Connect(ID_CHECKBOX4, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnSmallWaveformCheckBoxClick);
-	Connect(ID_CHECKBOX6, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnTransistionMarksCheckBoxClick);
-	Connect(ID_CHECKBOX5, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnColorUpdateWarnCheckBoxClick);
+	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnGridSpacingChoiceSelect);
+	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnIconBackgroundsCheckBoxClick);
+	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnNodeValuesCheckBoxClick);
+	Connect(ID_CHECKBOX7,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnGroupEffectIndicatorClick);
+	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnSnapToTimingCheckBoxClick);
+	Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnDoubleClickChoiceSelect);
+	Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnSmallWaveformCheckBoxClick);
+	Connect(ID_CHECKBOX6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnTransistionMarksCheckBoxClick);
+	Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnColorUpdateWarnCheckBoxClick);
+	Connect(ID_CHECKBOX8,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsGridSettingsPanel::OnShowAlternateTimingFormatCheckBoxClick);
+    Connect(ID_CHECKBOX9, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnBellOnRenderCompletionClick);
 	//*)
 }
 
@@ -132,6 +151,8 @@ bool EffectsGridSettingsPanel::TransferDataToWindow() {
     TransistionMarksCheckBox->SetValue(!frame->IsSuppressFadeHints());
     ColorUpdateWarnCheckBox->SetValue(frame->SuppressColorWarn());
     GroupEffectIndicator->SetValue(frame->ShowGroupEffectIndicator());
+    ShowAlternateTimingFormatCheckBox->SetValue(frame->ShowAlternateTimingFormat());
+    BellOnRenderCompletion->SetValue(frame->IsRenderBell());
     int gs = frame->GridSpacing();
     switch (gs) {
         case 48:
@@ -180,6 +201,8 @@ bool EffectsGridSettingsPanel::TransferDataFromWindow() {
     frame->SetSuppressFadeHints(!TransistionMarksCheckBox->IsChecked());
     frame->SetSuppressColorWarn(ColorUpdateWarnCheckBox->IsChecked());
     frame->SetShowGroupEffectIndicator(GroupEffectIndicator->IsChecked());
+    frame->SetShowAlternateTimingFormat(ShowAlternateTimingFormatCheckBox->IsChecked());
+    frame->SetRenderBell(BellOnRenderCompletion->IsChecked());
     return true;
 }
 
@@ -241,6 +264,27 @@ void EffectsGridSettingsPanel::OnColorUpdateWarnCheckBoxClick(wxCommandEvent& ev
 }
 
 void EffectsGridSettingsPanel::OnGroupEffectIndicatorClick(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void EffectsGridSettingsPanel::OnAlternateTimingFormatCheckBoxClick(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void EffectsGridSettingsPanel::OnShowAlternateTimingFormatCheckBoxClick(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void EffectsGridSettingsPanel::OnBellOnRenderCompletionClick(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();

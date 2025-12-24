@@ -15,7 +15,7 @@
 #include <wx/sckaddr.h>
 #include <wx/socket.h>
 
-#include "../xSchedule/wxJSON/jsonreader.h"
+#include <nlohmann/json.hpp>
 
 // ******************************************************
 // * This class represents a single universe for DDP
@@ -84,7 +84,7 @@ public:
     static void SendSync(const std::string& localIP);
 
     #ifndef EXCLUDEDISCOVERY
-    static wxJSONValue Query(const std::string& ip, uint8_t type, const std::string& localIP);
+    static nlohmann::json Query(const std::string& ip, uint8_t type, const std::string& localIP);
     static void PrepareDiscovery(Discovery& discovery);
     #endif
 

@@ -61,7 +61,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool SupportsXlightsModel() override {return true;}
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual bool SupportsWiringView() const override { return true; }
-        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
         [[nodiscard]] bool ImportLORModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
         virtual void ExportXlightsModel() override;
 
@@ -78,6 +78,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         static std::string ToCompressed(const std::vector<std::vector<std::vector<int>>>& model);
         static std::string ToCustomModel(const std::vector<std::vector<std::vector<int>>>& model);
         std::vector<std::vector<std::vector<int>>> GetData() const { return locations; }
+        int GetCustomNodeStringNumber(int node) const;
 
     protected:
         virtual void InitModel() override;
@@ -91,7 +92,6 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
             return wxString::Format(wxT("String%i"), idx + 1).ToStdString();  // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
         }
         std::string ComputeStringStartNode(int x) const;
-        int GetCustomNodeStringNumber(int node) const;
 
         int _depth = 1;
         std::string custom_background;

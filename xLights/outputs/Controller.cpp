@@ -855,7 +855,7 @@ void Controller::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* model
     }
     if (vendors.GetCount() > 0) {
         propertyGrid->Append(new wxEnumProperty("Vendor", "Vendor", vendors, v));
-        wxPGProperty *mp = propertyGrid->Append(new wxEnumProperty("Model", "Model"));
+        wxPGProperty *mp = propertyGrid->Append(new wxEnumProperty("Model/Category", "Model"));
         wxPGProperty *vp = propertyGrid->Append(new wxEnumProperty("Variant", "Variant"));
         AddVariants(vp);
         AddModels(mp, vp);
@@ -1086,7 +1086,30 @@ void Controller::ValidateProperties(OutputManager* om, wxPropertyGrid* propGrid)
 
     p = propGrid->GetPropertyByName("ControllerName");
     if (p != nullptr) {
-        if (!_outputManager->IsControllerNameUnique(name)) {
+        wxString value = p->GetValueAsString();
+        bool isValid = true;
+        for (wxChar c : value) {
+            if (c == ':') {
+                isValid = false;
+                break;
+            }
+        }
+        if (!isValid || !_outputManager->IsControllerNameUnique(name)) {
+            p->SetBackgroundColour(*wxRED);
+        } else {
+            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        }
+    }
+
+    p = propGrid->GetPropertyByName("KeepChannelNumbers");
+    if (p != nullptr) {
+        ControllerCaps* c = nullptr;
+        if (!_model.empty()) {
+            c = ControllerCaps::GetControllerConfig(_vendor, _model, _variant);
+        } else {
+            c = ControllerCaps::GetControllerConfigByVendor(_vendor);
+        }
+        if (c && c->DDPStartsAtOne() && p->GetValue() == true) {
             p->SetBackgroundColour(*wxRED);
         } else {
             p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));

@@ -204,6 +204,8 @@ protected:
     static const long ID_TIMER1;
 
     static const long SUBMODEL_DIALOG_IMPORT_MODEL;
+    static const long SUBMODEL_DIALOG_IMPORT_STATE;
+    static const long SUBMODEL_DIALOG_IMPORT_FACE;
     static const long SUBMODEL_DIALOG_IMPORT_FILE;
     static const long SUBMODEL_DIALOG_IMPORT_CUSTOM;
     static const long SUBMODEL_DIALOG_IMPORT_CSV;
@@ -215,6 +217,7 @@ protected:
     static const long SUBMODEL_DIALOG_GENERATE;
     static const long SUBMODEL_DIALOG_ALIASES;
     static const long SUBMODEL_DIALOG_SHIFT;
+    static const long SUBMODEL_DIALOG_SHIFT_SINGLE;
     static const long SUBMODEL_DIALOG_FLIP_HOR;
     static const long SUBMODEL_DIALOG_FLIP_VER;
     static const long SUBMODEL_DIALOG_REVERSE;
@@ -230,6 +233,8 @@ protected:
     static const long SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR;
     static const long SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB;
     static const long SUBMODEL_DIALOG_EVEN_ROWS;
+    static const long SUBMODEL_DIALOG_EVEN_ROWS_FRONT;
+    static const long SUBMODEL_DIALOG_EVEN_ROWS_REAR;
     static const long SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS;
     static const long SUBMODEL_DIALOG_SYMMETRIZE;
     static const long SUBMODEL_DIALOG_SORT_POINTS_ALL;
@@ -254,6 +259,7 @@ protected:
     wxString GenerateSubModelName(wxString basename);
     bool IsUniqueName(wxString const& newname) const;
     void ImportCustomModel(std::string filename);
+    void CreateSubmodel(const std::string& name, const std::list<std::string>& nodes);
     void FixNodes(wxXmlNode* n, const std::string& attribute, std::map<int, int>& nodeMap);
 
     void ApplySubmodelName();
@@ -267,12 +273,15 @@ protected:
     void Generate();
     void Aliases();
     void Shift();
+    void ShiftSingleSubmodel();
     void FlipHorizontal();
     void FlipVertical();
     void Reverse();
     void RemoveDuplicates(bool suppress);
     void RemoveAllDuplicates(bool leftright, bool suppress);
     void MakeRowsUniform();
+    void MakeRowsUniformFront();
+    void MakeRowsUniformRear();
     void PivotRowsColumns();
     void CombineStrands();
     void OrderPoints(bool wholemodel);
@@ -299,6 +308,7 @@ protected:
     void Symmetrize();
 
     void processAllStrands(wxString (*func)(wxString));
+    int CountNodesInRange(const wxString& range);
 
 private:
 

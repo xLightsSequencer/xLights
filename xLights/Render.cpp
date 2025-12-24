@@ -581,6 +581,9 @@ public:
                     } else {
                         tempEffect = new Effect(*ef);
                         ef = tempEffect;
+                        
+                        // disable the background display lists as the "duplicate" effect doesn't support this
+                        tempEffect->EnableBackgroundDisplayLists(false);
 
                         if (orig->GetSetting("E_CHECKBOX_Duplicate_Override_Buffer") == "1") {
                             ef->EraseSettingsStartingWith("B_");
@@ -684,6 +687,14 @@ public:
                             buffer->SetColors(numLayers, &((*seqData)[frame][0]));
                             vl[numLayers] = true;
                             blend = false;
+                        }
+                    } else {
+                        // default if not specified is all valid layers below it except the blend layer
+                        // mark them as being part of the
+                        for (int i = layer + 1; i < vl.size(); i++) {
+                            if (vl[i]) {
+                                partOfCanvas[i] = true;
+                            }
                         }
                     }
 
@@ -1282,6 +1293,9 @@ void xLightsFrame::UpdateRenderStatus() {
         }
 
         if (done) {
+            if (IsRenderBell() && !_renderMode && mRendering) {
+                wxBell();
+            }
             for (size_t row = 0; row < rpi->numRows; ++row) {
                 if (rpi->jobs[row]) {
                     delete rpi->jobs[row];
@@ -1307,8 +1321,7 @@ void xLightsFrame::UpdateRenderStatus() {
     }
 }
 
-void xLightsFrame::RenderDone()
-{
+void xLightsFrame::RenderDone() {
     mainSequencer->PanelEffectGrid->Refresh();
 }
 
@@ -1513,7 +1526,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
                         job->SetModelBlending();
                     }
                     PixelBufferClass *buffer = job->getBuffer();
-                    if (buffer == nullptr) {
+                    if (buffer == nullptr || buffer->GetNodeCount() == 0) {
                         delete job;
                         continue;
                     }
@@ -1594,7 +1607,6 @@ void xLightsFrame::Render(SequenceElements& seqElements,
 
     if (count) {
         if (progressDialog) {
-            renderProgressDialog->SetSize(450, 400);
             renderProgressDialog->scrolledWindow->SetSizer(renderProgressDialog->scrolledWindowSizer);
             renderProgressDialog->scrolledWindow->FitInside();
             renderProgressDialog->scrolledWindow->SetScrollRate(5, 5);

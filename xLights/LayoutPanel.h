@@ -32,6 +32,7 @@ class wxStaticText;
 #include <glm/glm.hpp>
 
 #include "ControllerConnectionDialog.h"
+#include "xlPropertyGrid.h"
 
 #include <vector>
 #include <list>
@@ -120,6 +121,8 @@ class LayoutPanel: public wxPanel
 		wxScrolledWindow* ModelGroupWindow = nullptr;
 		wxTreeListCtrl* TreeListViewModels = nullptr;
         wxDataViewModel* TreeListMiewInternalModel = nullptr;
+        bool ctrlFPressed = false;
+        bool ctrlshiftFPressed = false;
 
 	protected:
 
@@ -230,6 +233,7 @@ class LayoutPanel: public wxPanel
         static const long ID_ADD_DMX_FLOODAREA;
         static const long ID_PREVIEW_MODEL_CAD_EXPORT;
         static const long ID_PREVIEW_LAYOUT_DXF_EXPORT;
+        static const long ID_PREVIEW_EXPORT_FACESSTATESSUBMODELS;
         static const long ID_PREVIEW_FLIP_HORIZONTAL;
         static const long ID_PREVIEW_FLIP_VERTICAL;
         static const long ID_SET_CENTER_OFFSET;
@@ -366,6 +370,7 @@ class LayoutPanel: public wxPanel
         void ShowWiring();
         void ExportModelAsCAD();
         void ExportLayoutDXF();
+        void ExportFacesStatesSubModels();
         bool IsAllSelectedModelsArePixelProtocol() const;
         void AddSingleModelOptionsToBaseMenu(wxMenu &menu);
         void AddBulkEditOptionsToMenu(wxMenu* bulkEditMenu);
@@ -443,7 +448,7 @@ class LayoutPanel: public wxPanel
         wxTreeListItems selectedTreeModels;
         wxTreeListItems selectedTreeSubModels;
 
-        wxPropertyGrid *propertyEditor = nullptr;
+        xlPropertyGrid *propertyEditor = nullptr;
         bool updatingProperty = false;
         BaseObject *selectedBaseObject = nullptr;
         BaseObject *highlightedBaseObject = nullptr;
@@ -496,7 +501,7 @@ class LayoutPanel: public wxPanel
         std::string GetSelectedModelName() const;
         bool Is3d() const;
         void Set3d(bool is3d);
-        wxPropertyGrid* GetPropertyEditor() const { return propertyEditor; }
+        xlPropertyGrid* GetPropertyEditor() const { return propertyEditor; }
 
     private:
         int Col_Model = 0;

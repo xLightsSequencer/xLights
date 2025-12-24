@@ -407,6 +407,13 @@ std::string PlayListStep::GetStartTime(PlayList* pl)
     return pl->GetStepStartTime(this);
 }
 
+std::string PlayListStep::GetRemoteStartTime(PlayList* pl) {
+    if (pl == nullptr)
+        return "";
+
+    return pl->GetStepRemoteStartTime(this);
+}
+
 std::string PlayListStep::GetName(PlayList* pl)
 {
     std::string offset = "";

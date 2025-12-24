@@ -73,6 +73,9 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
         setLabel(tmpBufferBlend, pixelBuffer->GetModelName() + "-BlendBuffer");
     }
     MetalRenderBufferComputeData *slRMRB = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&pixelBuffer->layers[saveLayer]->buffer);
+    if (!slRMRB) {
+        return false;
+    }
     if (slRMRB->isCommitted()) {
         slRMRB->waitForCompletion();
     }

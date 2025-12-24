@@ -847,7 +847,7 @@ int32_t UDControllerPort::Channels() const {
     if (_virtualStrings.size() == 0) {
         if (_models.size() == 0) return 0;
 
-        if (_separateUniverses) {
+        if (_separateUniverses || _packedStrings) {
             int c = 0;
             for (const auto& it : _models) {
                 c += it->Channels();
@@ -1117,8 +1117,9 @@ bool UDControllerPort::Check(Controller* c, bool pixel, const ControllerCaps* ru
         if (ch == -1) ch = it->GetStartChannel() - 1;
         if (it->GetStartChannel() > ch + 1 && lastSmartRemote == it->GetSmartRemote()) {
             if (it->GetSmartRemote() == 0) {
-                if (rules->IsValidSerialProtocol(_protocol)) {
-                    // we dont warn about serial gaps ... they are normal
+                if (rules->IsValidSerialProtocol(_protocol) ||
+                    rules->SupportsUniversePerString()) {
+                    // we dont warn about serial or packed gaps ... they are normal 
                 }
                 else {
                     res += wxString::Format("WARN: Gap in models on pixel port %d channel %d to %d.\n", _port, ch, it->GetStartChannel()).ToStdString();
@@ -1845,7 +1846,9 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
             }
 
             if (rules->SupportsUniversePerString() && _controller->GetType() == CONTROLLER_ETHERNET) {
-                it.second->SetSeparateUniverses(((ControllerEthernet*)_controller)->IsUniversePerString());
+                auto const ups = ((ControllerEthernet*)_controller)->IsUniversePerString();
+                it.second->SetPackedStrings(!ups);
+                it.second->SetSeparateUniverses(ups);
             }
 
             success &= it.second->Check(_controller, true, rules, res);
@@ -2101,6 +2104,22 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
         res += wxString::Format("ERR: Attempt to upload LED Panel Matrix but this controller does not support LED Panel Matrices.\n");
         success = false;
     }
+
+
+    if (rules->SupportsUniversePerString()) {
+        std::string CO;
+
+        for (const auto& it : _pixelPorts) {
+            for (const auto& it2 : it.second->GetModels()) {
+                CO = it2->GetColourOrder("RGB");
+                if (strlen(CO.c_str()) > 3) {
+                    res += wxString::Format("ERR: Controller does NOT Support Color Order %s.\n", CO);
+                    success = false;
+                }
+            }
+        }
+    }
+
 
     return success;
 }

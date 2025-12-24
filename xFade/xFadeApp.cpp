@@ -45,6 +45,7 @@
 #pragma comment(lib, "log4cpplibd.lib")
 #pragma comment(lib, "msvcprtd.lib")
 #pragma comment(lib, "portmidid.lib")
+#pragma comment(lib, "wxwebpd.lib")
 #else
 #pragma comment(lib, "wxbase"WXWIDGETS_VERSION"u.lib")
 #pragma comment(lib, "wxbase"WXWIDGETS_VERSION"u_net.lib")
@@ -61,6 +62,7 @@
 #pragma comment(lib, "log4cpplib.lib")
 #pragma comment(lib, "msvcprt.lib")
 #pragma comment(lib, "portmidi.lib")
+#pragma comment(lib, "wxwebp.lib")
 #endif
 #pragma comment(lib, "libcurl.dll.a")
 #pragma comment(lib, "iphlpapi.lib")

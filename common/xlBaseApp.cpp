@@ -224,7 +224,7 @@ void xlCrashHandler::HandleUnhandledException()
         msg = "An unknown exception occurred.";
     }
 
-    HandleCrash(false, msg);
+    HandleCrash(true, msg);
     wxAbort();
 }
 

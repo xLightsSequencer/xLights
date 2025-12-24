@@ -75,6 +75,7 @@
     #pragma comment(lib, "liquidfund.lib")
     #pragma comment(lib, "libzstdd_static_VS.lib")
     #pragma comment(lib, "xlsxwriterd.lib")
+    #pragma comment(lib, "wxwebpd.lib")
 #else
     #pragma comment(lib, "wxbase" WXWIDGETS_VERSION "u.lib")
     #pragma comment(lib, "wxbase" WXWIDGETS_VERSION "u_net.lib")
@@ -97,6 +98,7 @@
     #pragma comment(lib, "liquidfun.lib")
     #pragma comment(lib, "libzstd_static_VS.lib")
     #pragma comment(lib, "xlsxwriter.lib")
+    #pragma comment(lib, "wxwebp.lib")
 #endif
 #pragma comment(lib, "libcurl.dll.a")
 #pragma comment(lib, "z.lib")
@@ -129,13 +131,12 @@
 #pragma comment(lib, "swscale.lib")
 #pragma comment(lib, "z.lib")
 #pragma comment(lib, "lua5.3.5-static.lib")
-#pragma comment(lib, "libwebp.lib")
-#pragma comment(lib, "libwebpdecoder.lib")
-#pragma comment(lib, "libwebpdemux.lib")
+//#pragma comment(lib, "libwebp.lib")
+//#pragma comment(lib, "libwebpdecoder.lib")
+//#pragma comment(lib, "libwebpdemux.lib")
 #endif
 
 xLightsFrame* xLightsApp::__frame = nullptr;
-wxString cleanupFolder = "";
 
 void InitialiseLogging(bool fromMain)
 {
@@ -373,10 +374,6 @@ int main(int argc, char **argv)
     int rc =  wxEntry(argc, argv);
     logger_base.info("Main: wxWidgets exited with rc=" + wxString::Format("%d", rc));
 
-    if (cleanupFolder != "") {
-        wxDir::Remove(cleanupFolder, wxPATH_RMDIR_RECURSIVE);
-    }
-
     return rc;
 }
 
@@ -449,10 +446,10 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
                     frame->SetDir(xLightsApp::showDir, false);
                     
                     // save the folder and we will remove it when we shutdown
-                    if (!cleanupFolder.empty()) {
-                        wxDir::Remove(cleanupFolder, wxPATH_RMDIR_RECURSIVE);
+                    if (!cleanupDir.empty()) {
+                        wxDir::Remove(cleanupDir, wxPATH_RMDIR_RECURSIVE);
                     }
-                    cleanupFolder = xsqPkg.GetTempDir();
+                    cleanupDir = xsqPkg.GetTempDir();
                     
                     // tell xlights not to allow saving ... at least as much as possible
                     frame->SetReadOnlyMode(true);
@@ -705,7 +702,7 @@ bool xLightsApp::OnInit()
             showDir = xsqPkg.GetTempShowFolder();
 
             // save the folder and we will remove it when we shutdown
-            cleanupFolder = showDir;
+            cleanupDir = showDir;
 
         } else {
             logger_base.debug("Zip file did not contain sequence.");        
@@ -793,4 +790,5 @@ bool xLightsApp::ProcessIdle() {
 //global flags from command line:
 wxString xLightsApp::mediaDir;
 wxString xLightsApp::showDir;
+wxString xLightsApp::cleanupDir;
 wxArrayString xLightsApp::sequenceFiles;

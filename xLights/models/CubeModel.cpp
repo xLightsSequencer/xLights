@@ -403,8 +403,6 @@ std::string CubeModel::GetStrandPerLayer() const {
 
 std::vector<std::tuple<int, int, int>> CubeModel::BuildCube() const
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     int width = parm1;
     int height = parm2;
     int depth = parm3;
@@ -427,8 +425,9 @@ std::vector<std::tuple<int, int, int>> CubeModel::BuildCube() const
     if (abs(yr) == 1) std::swap(width, depth);
     if (abs(xr) == 1) std::swap(height, depth);
 
-    logger_base.debug("%s %s StrandStyle: %s StrandPerLayer: %d", (const char*)ModelXml->GetAttribute("Start", "").c_str(), (const char*)ModelXml->GetAttribute("Style", "").c_str(), (const char*)ModelXml->GetAttribute("StrandPerLine", "").c_str(), IsStrandPerLayer());
-    logger_base.debug("%dx%dx%d -> (%d,%d,%d,%d) -> %dx%dx%d", parm1, parm2, parm3, xr, yr, zr, xf, width, height, depth);
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.debug("%s %s StrandStyle: %s StrandPerLayer: %d", (const char*)ModelXml->GetAttribute("Start", "").c_str(), (const char*)ModelXml->GetAttribute("Style", "").c_str(), (const char*)ModelXml->GetAttribute("StrandPerLine", "").c_str(), IsStrandPerLayer());
+    //logger_base.debug("%dx%dx%d -> (%d,%d,%d,%d) -> %dx%dx%d", parm1, parm2, parm3, xr, yr, zr, xf, width, height, depth);
 
     for(int i = 0; i < width*height*depth; i++)
     {
@@ -1027,7 +1026,7 @@ void CubeModel::ExportXlightsModel()
     wxString sn = ModelXml->GetAttribute("StrandNames");
     wxString nn = ModelXml->GetAttribute("NodeNames");
     wxString da = ModelXml->GetAttribute("DisplayAs");
-    wxString s0 = ModelXml->GetAttribute("Strings");
+    wxString s0 = ModelXml->GetAttribute("Strings","1");
     wxString s1 = ModelXml->GetAttribute("Start");
     wxString s2 = ModelXml->GetAttribute("Style");
     wxString s3 = ModelXml->GetAttribute("StrandPerLine");
@@ -1052,8 +1051,8 @@ void CubeModel::ExportXlightsModel()
     f.Write(wxString::Format("Strings=\"%s\" ", s0));
     f.Write(wxString::Format("Start=\"%s\" ", s1));
     f.Write(wxString::Format("Style=\"%s\" ", s2));
-    f.Write(wxString::Format("StrandsPerLine=\"%s\" ", s3));
-    f.Write(wxString::Format("StrandsPerLayer=\"%s\" ", s4));
+    f.Write(wxString::Format("StrandPerLine=\"%s\" ", s3));
+    f.Write(wxString::Format("StrandPerLayer=\"%s\" ", s4));
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString aliases = SerialiseAliases();
@@ -1084,8 +1083,7 @@ void CubeModel::ExportXlightsModel()
     f.Close();
 }
 
-bool CubeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
-{
+bool CubeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) {
     if (root->GetName() == "Cubemodel") {
         wxString name = root->GetAttribute("name");
         wxString p1 = root->GetAttribute("parm1");
@@ -1105,11 +1103,11 @@ bool CubeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         wxString pc = root->GetAttribute("PixelCount");
         wxString pt = root->GetAttribute("PixelType");
         wxString psp = root->GetAttribute("PixelSpacing");
-        wxString s0 = root->GetAttribute("Strings");
+        wxString s0 = root->GetAttribute("Strings","1");
         wxString s1 = root->GetAttribute("Start");
         wxString s2 = root->GetAttribute("Style");
-        wxString s3 = root->GetAttribute("StrandsPerLine");
-        wxString s4 = root->GetAttribute("StrandsPerLayer");
+        wxString s3 = root->GetAttribute("StrandPerLine");
+        wxString s4 = root->GetAttribute("StrandPerLayer");
 
         // Add any model version conversion logic here
         // Source version will be the program version that created the custom model
@@ -1133,15 +1131,15 @@ bool CubeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         SetProperty("Strings", s0);
         SetProperty("Start", s1);
         SetProperty("Style", s2);
-        SetProperty("StrandsPerLine", s3);
-        SetProperty("StrandsPerLayer", s4);
+        SetProperty("StrandPerLine", s3);
+        SetProperty("StrandPerLayer", s4);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
         GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
 
         ImportSuperStringColours(root);
-        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y, min_z, max_z);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::ImportXlightsModel");

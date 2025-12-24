@@ -74,7 +74,7 @@ StatePanel::StatePanel(wxWindow* parent) : xlEffectPanel(parent)
 	RadioButton1 = new wxRadioButton(this, IDD_RADIOBUTTON_State_State, _("State"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_RADIOBUTTON_State_State"));
 	RadioButton1->SetValue(true);
 	FlexGridSizer97->Add(RadioButton1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_State_State = new wxChoice(this, ID_CHOICE_State_State, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_State_State"));
+	Choice_State_State = new BulkEditChoice(this, ID_CHOICE_State_State, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_State_State"));
 	FlexGridSizer97->Add(Choice_State_State, 1, wxALL|wxEXPAND, 5);
 	RadioButton2 = new wxRadioButton(this, IDD_RADIOBUTTON_State_TimingTrack, _("Timing Track"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_RADIOBUTTON_State_TimingTrack"));
 	FlexGridSizer97->Add(RadioButton2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);

@@ -40,13 +40,16 @@ public:
     int thenEvery{ 0 };
     bool chase{ false };
     bool upload{ false };
+    bool serial{ false };
     void Dump() const;
 };
 
 class SanDevicesOutputV4
 {
 public:
-    SanDevicesOutputV4(int group_) : group(group_) { }
+    explicit SanDevicesOutputV4(int group_) :
+        group(group_) {
+    }
     const int group;
     char protocol{ 'D' };
     int outputSize{ 0 };
@@ -109,7 +112,11 @@ class SanDevices : public BaseController
 {
     #pragma region Member Variables
     enum class FirmwareVersion { Unknown = -1, Four = 4, Five = 5 }; // enum class
-    enum class SanDeviceModel { Unknown = -1, E6804 = 6804, E682 = 682 }; // enum class
+    enum class SanDeviceModel { Unknown = -1,
+                                E6804 = 6804,
+                                E680 = 680,
+                                E681 = 681,
+                                E682 = 682 }; // enum class
 
     SimpleHTTP _http;
     std::string _page;
@@ -129,6 +136,7 @@ class SanDevices : public BaseController
     char EncodeColorOrderV5(const std::string& colorOrder) const;
     int EncodeColorOrderV4(const std::string& colorOrder) const;
     char EncodeBrightness(int brightness) const;
+    char EncoderRenardSpeed(int baud) const;
     bool EncodeDirection(const std::string& direction) const;
     char EncodeUniverse(int universe) const;
     SanDeviceModel DecodeControllerType(const std::string& modelName) const;
@@ -159,14 +167,14 @@ class SanDevices : public BaseController
 
     bool IsFirmware4() const { return _firmware == FirmwareVersion::Four; }
     bool IsFirmware5() const { return _firmware == FirmwareVersion::Five; }
-    bool IsE682() const { return _sdmodel == SanDeviceModel::E682; }
+    bool IsE682() const { return _sdmodel == SanDeviceModel::E680 || _sdmodel == SanDeviceModel::E681 || _sdmodel == SanDeviceModel::E682; }
     bool IsE6804() const { return _sdmodel == SanDeviceModel::E6804; }
 
     SanDevicesProtocol* ExtractProtocalDataV5(const std::string& page, int group);
     SanDevicesOutput* ExtractOutputDataV5(const std::string& page, int group, int port);
     SanDevicesOutputV4* ExtractOutputDataV4(const std::string& page, int group);
 
-    void UpdatePortDataV5(int group, int output, UDControllerPort* stringData);
+    void UpdatePortDataV5(int group, int output, UDControllerPort* stringData, bool serial);
     SanDevicesOutput* FindPortDataV5(int group, int output);
 
     void UpdatePortDataV4(SanDevicesOutputV4* pd, UDControllerPort* stringData) const;

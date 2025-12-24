@@ -16,6 +16,7 @@
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
+#include <wx/textctrl.h>
 //*)
 
 class MetronomeLabelDialog: public wxDialog
@@ -32,9 +33,11 @@ class MetronomeLabelDialog: public wxDialog
 		wxSpinCtrl* SpinCtrlTiming;
 		wxSpinCtrl* SpinCtrl_MinTiming;
 		wxStaticText* StaticTextDialogText;
+		wxStaticText* StaticTextLabel;
 		wxStaticText* StaticTextRepeating;
 		wxStaticText* StaticTextTiming;
 		wxStaticText* StaticText_MinTiming;
+		wxTextCtrl* TextCtrl_TextLabels;
 		//*)
 
 		[[nodiscard]] int GetTiming() const { return SpinCtrlTiming->GetValue(); }
@@ -42,6 +45,7 @@ class MetronomeLabelDialog: public wxDialog
         [[nodiscard]] int GetMinRandomTiming() const { return CheckBox_RandomTiming->IsChecked() ? SpinCtrl_MinTiming->GetValue() : -1; }
         [[nodiscard]] bool IsRandomTags() const { return CheckBox_RandomTagsEnabled->IsChecked(); }
         [[nodiscard]] bool IsRandomTiming() const { return CheckBox_RandomTiming->IsChecked(); }
+		[[nodiscard]] wxString GetTextLabels() const { return TextCtrl_TextLabels->GetValue(); }
 
 	protected:
 
@@ -51,6 +55,8 @@ class MetronomeLabelDialog: public wxDialog
 		static const wxWindowID ID_SPINCTRL_TIMING;
 		static const wxWindowID ID_STATICTEXT_REPEATING;
 		static const wxWindowID ID_SPINCTRL_REPEATING;
+		static const wxWindowID ID_STATICTEXT_TEXTLABELS;
+		static const wxWindowID ID_TEXTCTRL_TEXTLABELS;
 		static const wxWindowID ID_CHECKBOX_RANDOMTIMING;
 		static const wxWindowID ID_STATICTEXT_MINTIMING;
 		static const wxWindowID ID_SPINCTRL1;

@@ -24,20 +24,24 @@
 #include "models/ModelManager.h"
 #include "outputs/Output.h"
 #include "outputs/OutputManager.h"
-
-#include "../xSchedule/wxJSON/jsonreader.h"
-#include "../xSchedule/wxJSON/jsonwriter.h"
+#include "HinksPix.h"
 
 #include <log4cpp/Category.hh>
 
 #include "../include/spxml-0.5/spxmlevent.hpp"
 #include "../include/spxml-0.5/spxmlparser.hpp"
 
+#include <memory>
+#include <wx/zipstrm.h>
+#include <fstream>
+#include <iostream>
+
 static const std::string CHECK_COL = "ID_UPLOAD_";
 static const std::string MODE_COL = "ID_MODE_";
 static const std::string SLAVE1_COL = "ID_SLAVE1_";
 static const std::string SLAVE2_COL = "ID_SLAVE2_";
 static const std::string DISK_COL = "ID_DISK_";
+static const std::string MEDIA_COL = "ID_MEDIA_";
 static const std::string SEL_DISK = "Select Folder";
 
 enum class ScheduleColumn : int { PlayList = 0,
@@ -48,25 +52,26 @@ enum class ScheduleColumn : int { PlayList = 0,
                                   Enabled };
 
 //(*IdInit(HinksPixExportDialog)
-const long HinksPixExportDialog::ID_SCROLLEDWINDOW1 = wxNewId();
-const long HinksPixExportDialog::ID_STATICTEXT3 = wxNewId();
-const long HinksPixExportDialog::ID_CHOICE_PLAYLISTS = wxNewId();
-const long HinksPixExportDialog::ID_BUTTON_ADD_PLAYLIST = wxNewId();
-const long HinksPixExportDialog::ID_BUTTON_REMOVE = wxNewId();
-const long HinksPixExportDialog::ID_STATICTEXT1 = wxNewId();
-const long HinksPixExportDialog::ID_CHOICE_FILTER = wxNewId();
-const long HinksPixExportDialog::ID_STATICTEXT2 = wxNewId();
-const long HinksPixExportDialog::ID_CHOICE_FOLDER = wxNewId();
-const long HinksPixExportDialog::ID_BITMAPBUTTON_MOVE_UP = wxNewId();
-const long HinksPixExportDialog::ID_BITMAPBUTTON_MOVE_DOWN = wxNewId();
-const long HinksPixExportDialog::ID_LISTVIEW_Sequences = wxNewId();
-const long HinksPixExportDialog::ID_PANEL1 = wxNewId();
-const long HinksPixExportDialog::ID_GRID_SCHEDULE = wxNewId();
-const long HinksPixExportDialog::ID_PANEL4 = wxNewId();
-const long HinksPixExportDialog::ID_NOTEBOOK_EXPORT_ITEMS = wxNewId();
-const long HinksPixExportDialog::ID_BUTTON_REFRESH = wxNewId();
-const long HinksPixExportDialog::ID_BUTTON_EXPORT = wxNewId();
-const long HinksPixExportDialog::wxID_Close = wxNewId();
+const wxWindowID HinksPixExportDialog::ID_SCROLLEDWINDOW1 = wxNewId();
+const wxWindowID HinksPixExportDialog::ID_STATICTEXT3 = wxNewId();
+const wxWindowID HinksPixExportDialog::ID_CHOICE_PLAYLISTS = wxNewId();
+const wxWindowID HinksPixExportDialog::ID_BUTTON_ADD_PLAYLIST = wxNewId();
+const wxWindowID HinksPixExportDialog::ID_BUTTON_REMOVE = wxNewId();
+const wxWindowID HinksPixExportDialog::ID_STATICTEXT1 = wxNewId();
+const wxWindowID HinksPixExportDialog::ID_CHOICE_FILTER = wxNewId();
+const wxWindowID HinksPixExportDialog::ID_STATICTEXT2 = wxNewId();
+const wxWindowID HinksPixExportDialog::ID_CHOICE_FOLDER = wxNewId();
+const wxWindowID HinksPixExportDialog::ID_BITMAPBUTTON_MOVE_UP = wxNewId();
+const wxWindowID HinksPixExportDialog::ID_BITMAPBUTTON_MOVE_DOWN = wxNewId();
+const wxWindowID HinksPixExportDialog::ID_LISTVIEW_Sequences = wxNewId();
+const wxWindowID HinksPixExportDialog::ID_PANEL1 = wxNewId();
+const wxWindowID HinksPixExportDialog::ID_GRID_SCHEDULE = wxNewId();
+const wxWindowID HinksPixExportDialog::ID_PANEL4 = wxNewId();
+const wxWindowID HinksPixExportDialog::ID_NOTEBOOK_EXPORT_ITEMS = wxNewId();
+const wxWindowID HinksPixExportDialog::ID_BUTTON_REFRESH = wxNewId();
+const wxWindowID HinksPixExportDialog::ID_BUTTON_EXPORT = wxNewId();
+const wxWindowID HinksPixExportDialog::ID_BUTTON_UPLOAD = wxNewId();
+const wxWindowID HinksPixExportDialog::wxID_Close = wxNewId();
 //*)
 
 const long HinksPixExportDialog::ID_MNU_SELECTALL = wxNewId();
@@ -76,6 +81,14 @@ const long HinksPixExportDialog::ID_MNU_DESELECTHIGH = wxNewId();
 
 const long HinksPixExportDialog::ID_MNU_SETALL = wxNewId();
 const long HinksPixExportDialog::ID_MNU_SETALLPLAY = wxNewId();
+const long HinksPixExportDialog::ID_MNU_SETALLDAYS = wxNewId();
+
+const long HinksPixExportDialog::ID_MNU_UPLOADSCHEDULE = wxNewId();
+const long HinksPixExportDialog::ID_MNU_SETTIME = wxNewId();
+const long HinksPixExportDialog::ID_MNU_SETMASTER = wxNewId();
+const long HinksPixExportDialog::ID_MNU_SETREMOTE = wxNewId();
+const long HinksPixExportDialog::ID_MNU_UPLOADFILE = wxNewId();
+const long HinksPixExportDialog::ID_MNU_UPLOADFIRM = wxNewId();
 
 BEGIN_EVENT_TABLE(HinksPixExportDialog, wxDialog)
 //(*EventTable(HinksPixExportDialog)
@@ -210,10 +223,8 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 	NotebookExportItems->SetMinSize(wxSize(1100,400));
 	HinkControllerList = new wxScrolledWindow(NotebookExportItems, ID_SCROLLEDWINDOW1, wxPoint(-124,-53), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
 	HinkControllerList->SetMinSize(wxDLG_UNIT(NotebookExportItems,wxSize(-1,150)));
-	HinkControllerSizer = new wxFlexGridSizer(0, 8, 0, 0);
+	HinkControllerSizer = new wxFlexGridSizer(0, 9, 0, 0);
 	HinkControllerList->SetSizer(HinkControllerSizer);
-	HinkControllerSizer->Fit(HinkControllerList);
-	HinkControllerSizer->SetSizeHints(HinkControllerList);
 	Panel1 = new wxPanel(NotebookExportItems, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	FlexGridSizer2 = new wxFlexGridSizer(2, 2, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
@@ -251,8 +262,6 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 	CheckListBox_Sequences = new wxListView(Panel1, ID_LISTVIEW_Sequences, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTVIEW_Sequences"));
 	FlexGridSizer2->Add(CheckListBox_Sequences, 1, wxEXPAND, 0);
 	Panel1->SetSizer(FlexGridSizer2);
-	FlexGridSizer2->Fit(Panel1);
-	FlexGridSizer2->SetSizeHints(Panel1);
 	Panel4 = new wxPanel(NotebookExportItems, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
@@ -271,8 +280,6 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 	GridSchedule->SetDefaultCellTextColour( GridSchedule->GetForegroundColour() );
 	FlexGridSizer4->Add(GridSchedule, 0, wxEXPAND, 0);
 	Panel4->SetSizer(FlexGridSizer4);
-	FlexGridSizer4->Fit(Panel4);
-	FlexGridSizer4->SetSizeHints(Panel4);
 	NotebookExportItems->AddPage(HinkControllerList, _("Controllers"), false);
 	NotebookExportItems->AddPage(Panel1, _("Playlists"), false);
 	NotebookExportItems->AddPage(Panel4, _("Schedule"), false);
@@ -284,24 +291,26 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 	BoxSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Export = new wxButton(this, ID_BUTTON_EXPORT, _("Export to SD Card"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_EXPORT"));
 	BoxSizer1->Add(Button_Export, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ButtonUpload = new wxButton(this, ID_BUTTON_UPLOAD, _("Upload to Controller"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_UPLOAD"));
+	BoxSizer1->Add(ButtonUpload, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Close = new wxButton(this, wxID_Close, _("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("wxID_Close"));
 	BoxSizer1->Add(Button_Close, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_BUTTON_ADD_PLAYLIST,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&HinksPixExportDialog::OnButtonAddPlaylistClick);
-	Connect(ID_BUTTON_REMOVE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&HinksPixExportDialog::OnButtonRemoveClick);
-	Connect(ID_BITMAPBUTTON_MOVE_UP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&HinksPixExportDialog::OnBitmapButtonMoveUpClick);
-	Connect(ID_BITMAPBUTTON_MOVE_DOWN,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&HinksPixExportDialog::OnBitmapButtonMoveDownClick);
-	Connect(ID_LISTVIEW_Sequences,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&HinksPixExportDialog::SequenceListPopup);
-	Connect(ID_GRID_SCHEDULE,wxEVT_GRID_CELL_RIGHT_CLICK,(wxObjectEventFunction)&HinksPixExportDialog::OnGridScheduleCellRightClick);
-	Connect(ID_GRID_SCHEDULE,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&HinksPixExportDialog::OnGridScheduleCellChanged);
-	Connect(ID_BUTTON_REFRESH,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&HinksPixExportDialog::OnAddRefreshButtonClick);
-	Connect(ID_BUTTON_EXPORT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&HinksPixExportDialog::OnButton_ExportClick);
-	Connect(wxID_Close,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&HinksPixExportDialog::OnButton_CloseClick);
-	Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&HinksPixExportDialog::OnClose);
+	Connect(ID_BUTTON_ADD_PLAYLIST, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&HinksPixExportDialog::OnButtonAddPlaylistClick);
+	Connect(ID_BUTTON_REMOVE, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&HinksPixExportDialog::OnButtonRemoveClick);
+	Connect(ID_BITMAPBUTTON_MOVE_UP, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&HinksPixExportDialog::OnBitmapButtonMoveUpClick);
+	Connect(ID_BITMAPBUTTON_MOVE_DOWN, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&HinksPixExportDialog::OnBitmapButtonMoveDownClick);
+	Connect(ID_LISTVIEW_Sequences, wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK, (wxObjectEventFunction)&HinksPixExportDialog::SequenceListPopup);
+	Connect(ID_GRID_SCHEDULE, wxEVT_GRID_CELL_RIGHT_CLICK, (wxObjectEventFunction)&HinksPixExportDialog::OnGridScheduleCellRightClick);
+	Connect(ID_GRID_SCHEDULE, wxEVT_GRID_CELL_CHANGED, (wxObjectEventFunction)&HinksPixExportDialog::OnGridScheduleCellChanged);
+	Connect(ID_BUTTON_REFRESH, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&HinksPixExportDialog::OnAddRefreshButtonClick);
+	Connect(ID_BUTTON_EXPORT, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&HinksPixExportDialog::OnButton_ExportClick);
+	Connect(ID_BUTTON_UPLOAD, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&HinksPixExportDialog::OnButtonUploadClick);
+	Connect(wxID_Close, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&HinksPixExportDialog::OnButton_CloseClick);
+	Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&HinksPixExportDialog::OnClose);
 	//*)
 
     AddInstanceHeader("Create");
@@ -310,8 +319,9 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
     AddInstanceHeader("Model");
     AddInstanceHeader("Mode");
     AddInstanceHeader("Drive");
-    AddInstanceHeader("Slave1");
-    AddInstanceHeader("Slave2");
+    AddInstanceHeader("Foreign1");
+    AddInstanceHeader("Foreign2");
+    AddInstanceHeader("Audio");
 
     CheckListBox_Sequences->EnableCheckBoxes();
 
@@ -358,6 +368,7 @@ void HinksPixExportDialog::PopulateControllerList(OutputManager* outputManager) 
         wxStaticText* label = new wxStaticText(HinkControllerList, wxID_ANY, l, wxDefaultPosition, wxDefaultSize, 0, "ID_IPADDRESS_" + rowStr);
         HinkControllerSizer->Add(label, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 1);
         label = new wxStaticText(HinkControllerList, wxID_ANY, it->GetName(), wxDefaultPosition, wxDefaultSize, 0, "ID_DESCRIPTION_" + rowStr);
+        label->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&HinksPixExportDialog::ControllerPopupMenu, nullptr, this);
         HinkControllerSizer->Add(label, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 1);
         label = new wxStaticText(HinkControllerList, wxID_ANY, it->GetModel(), wxDefaultPosition, wxDefaultSize, 0, "ID_MODEL_" + rowStr);
         HinkControllerSizer->Add(label, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 1);
@@ -398,7 +409,9 @@ void HinksPixExportDialog::PopulateControllerList(OutputManager* outputManager) 
         } else if (otherControllers.size() == 1) {
             Choice3->Enable(false);
         }
-
+        wxCheckBox* CheckBoxMedia = new wxCheckBox(HinkControllerList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, MEDIA_COL + rowStr);
+        CheckBoxMedia->SetValue(true);
+        HinkControllerSizer->Add(CheckBoxMedia, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
         row++;
     }
 
@@ -413,6 +426,284 @@ void HinksPixExportDialog::PopulateControllerList(OutputManager* outputManager) 
     HinkControllerList->SetScrollRate(10, 10);
     HinkControllerList->ShowScrollbars(wxSHOW_SB_ALWAYS, wxSHOW_SB_ALWAYS);
     HinkControllerList->Thaw();
+}
+
+void HinksPixExportDialog::ControllerPopupMenu(wxContextMenuEvent& event) {
+    wxStaticText* label = dynamic_cast<wxStaticText*>(event.GetEventObject());
+    wxMenu mnu;
+
+    mnu.Append(ID_MNU_SETTIME, "Set Time");
+    mnu.Append(ID_MNU_SETMASTER, "Set Master");
+    mnu.Append(ID_MNU_SETREMOTE, "Set Remote");
+    mnu.AppendSeparator();
+    mnu.Append(ID_MNU_UPLOADSCHEDULE, "Upload Schedules");
+    mnu.Append(ID_MNU_UPLOADFIRM, "Upload Firmware");
+    mnu.Append(ID_MNU_UPLOADFILE, "Upload File");
+
+    mnu.Bind(wxEVT_COMMAND_MENU_SELECTED, [this, label](wxCommandEvent& e) {
+        if (ID_MNU_SETTIME == e.GetId()) {
+            auto name = label->GetLabel();
+            auto contrl = std::find_if(m_hixControllers.begin(), m_hixControllers.end(), [&name](auto po) { return po->GetName() == name; });
+            if (contrl != m_hixControllers.end()) {
+                wxProgressDialog prgs(
+                    "Connecting to HinksPix", "Connecting to HinksPix...", 100, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+                prgs.Show();
+                wxSafeYield();
+                std::unique_ptr<HinksPix> hixpix = std::make_unique<HinksPix>((*contrl)->GetIP(), (*contrl)->GetFPPProxy());
+                if (!hixpix->IsConnected()) {
+                    DisplayError(wxString::Format("Could not connect to '%s'", (*contrl)->GetIP()));
+                    return;
+                }
+
+                if (!hixpix->FirmwareSupportsUpload()) {
+                    DisplayError(wxString::Format("'%s' CPU Firmware is too old (v%d) Update to a Newer Version.", (*contrl)->GetIP(), hixpix->GetMPUVersion()));
+                    return;
+                }
+                prgs.Pulse("Uploading Time To Controller...");
+                hixpix->UploadTimeToController();
+            }
+        } else if (e.GetId() == ID_MNU_UPLOADFILE) {
+            auto name = label->GetLabel();
+            auto contrl = std::find_if(m_hixControllers.begin(), m_hixControllers.end(), [&name](auto po) { return po->GetName() == name; });
+            if (contrl != m_hixControllers.end()) {
+                UploadFile(*contrl);
+            }
+        } else if(e.GetId() == ID_MNU_UPLOADFIRM) {
+            auto name = label->GetLabel();
+            auto contrl = std::find_if(m_hixControllers.begin(), m_hixControllers.end(), [&name](auto po) { return po->GetName() == name; });
+            if (contrl != m_hixControllers.end()) {
+                ExtractFirmware(*contrl);
+            }
+        } else if (e.GetId() == ID_MNU_UPLOADSCHEDULE) {
+            auto name = label->GetLabel();
+            auto contrl = std::find_if(m_hixControllers.begin(), m_hixControllers.end(), [&name](auto po) { return po->GetName() == name; });
+            if (contrl != m_hixControllers.end()) {
+                UploadSchedules(*contrl);
+            }
+        } else if (e.GetId() == ID_MNU_SETMASTER) {
+            auto name = label->GetLabel();
+            auto contrl = std::find_if(m_hixControllers.begin(), m_hixControllers.end(), [&name](auto po) { return po->GetName() == name; });
+            if (contrl != m_hixControllers.end()) {
+                std::unique_ptr<HinksPix> hixpix = std::make_unique<HinksPix>((*contrl)->GetIP(), (*contrl)->GetFPPProxy());
+                if (!hixpix->IsConnected()) {
+                    DisplayError(wxString::Format("Could not connect to '%s'", (*contrl)->GetIP()));
+                    return;
+                }
+                if (!hixpix->FirmwareSupportsUpload()) {
+                    DisplayError(wxString::Format("'%s' CPU Firmware is too old (v%d) Update to a Newer Version.", (*contrl)->GetIP(), hixpix->GetMPUVersion()));
+                    return;
+                }
+                hixpix->UploadModeToController('G'); // master
+            }
+        } else if (e.GetId() == ID_MNU_SETREMOTE) {
+            auto name = label->GetLabel();
+            auto contrl = std::find_if(m_hixControllers.begin(), m_hixControllers.end(), [&name](auto po) { return po->GetName() == name; });
+            if (contrl != m_hixControllers.end()) {
+                std::unique_ptr<HinksPix> hixpix = std::make_unique<HinksPix>((*contrl)->GetIP(), (*contrl)->GetFPPProxy());
+                if (!hixpix->IsConnected()) {
+                    DisplayError(wxString::Format("Could not connect to '%s'", (*contrl)->GetIP()));
+                    return;
+                }
+                if (!hixpix->FirmwareSupportsUpload()) {
+                    DisplayError(wxString::Format("'%s' CPU Firmware is too old (v%d) Update to a Newer Version.", (*contrl)->GetIP(), hixpix->GetMPUVersion()));
+                    return;
+                }
+                hixpix->UploadModeToController('H'); // remote
+            }
+        }
+    });
+
+    PopupMenu(&mnu);
+}
+
+void HinksPixExportDialog::ExtractFirmware(ControllerEthernet* controller) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxFileDialog file(this, "Select Firmware File", "", "", "Firmware Package (*.zip)|*.zip");
+
+    if (file.ShowModal() == wxID_OK) {
+        wxProgressDialog prgs("Connecting to HinksPix", "Connecting to HinksPix", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+        prgs.Show();
+
+        std::unique_ptr<HinksPix> hixpix = std::make_unique<HinksPix>(controller->GetIP(), controller->GetFPPProxy());
+        if (!hixpix->IsConnected()) {
+            DisplayError(wxString::Format("Could not connect to '%s'", controller->GetName()));
+            return;
+        }
+
+        if (!hixpix->FirmwareSupportsUpload()) {
+            DisplayError(wxString::Format("'%s' CPU Firmware is too old (v%d) Update to a Newer Version.", controller->GetName(), hixpix->GetMPUVersion()));
+            return;
+        }
+
+        std::function<bool(int, int, std::string)> updateProg = [&prgs](int val, int tol, std::string msg) {
+            if (prgs.GetRange() != tol) {
+                prgs.SetRange(tol);
+            }
+            prgs.Update(val, msg);
+            // wxSafeYield();
+            return !prgs.WasCancelled();
+        };
+
+        prgs.Update(0, "Extracting Firmware Package...");
+        wxFileName fn = file.GetPath();
+        wxFileInputStream fis(fn.GetFullPath());
+
+        if (!fis.IsOk()) {
+            logger_base.error("Could not open the Firmware Package '%s'", (const char*)fn.GetFullName().c_str());
+            prgs.Update(100);
+            return;
+        }
+
+        auto tempDir = wxString::Format("%s%c%s_%lld", wxFileName::GetTempDir(), wxFileName::GetPathSeparator(), fn.GetName(), wxGetUTCTimeMillis());
+        wxZipInputStream zis(fis);
+        std::unique_ptr<wxZipEntry> upZe;
+        if (!zis.IsOk()) {
+            logger_base.error("Could not open the zip file '%s'", (const char*)fn.GetFullName().c_str());
+            prgs.Update(100);
+            return;
+        }
+
+        if (zis.GetTotalEntries() == 0) {
+            logger_base.error("No entries found in zip file '%s'", (const char*)fn.GetFullName().c_str());
+            prgs.Update(100);
+            return;
+        }
+
+        // start extracting each entry
+        upZe.reset(zis.GetNextEntry());
+
+        prgs.Update(10);
+
+        while (upZe != nullptr) {
+            wxString fnEntry = wxString::Format("%s%c%s", tempDir, wxFileName::GetPathSeparator(), upZe->GetName());
+
+            if (fnEntry.Contains("__MACOSX")) {
+                logger_base.debug("   skipping MACOS Folder %s.", (const char*)fnEntry.c_str());
+                upZe.reset(zis.GetNextEntry());
+                continue;
+            }
+
+#ifdef __WXMSW__
+            // folder with spaces at begin and end breaks temp folder paths
+            fnEntry.Replace(" " + wxString(wxFileName::GetPathSeparator()), wxFileName::GetPathSeparator());
+            fnEntry.Replace(wxString(wxFileName::GetPathSeparator()) + " ", wxFileName::GetPathSeparator());
+#endif
+
+            wxFileName fnOutput;
+            fnOutput.Assign(fnEntry);
+
+            logger_base.debug("   Extracting %s to %s.", (const char*)fnEntry.c_str(), (const char*)fnOutput.GetFullPath().c_str());
+
+            if (!wxDirExists(fnOutput.GetPath())) {
+                wxFileName::Mkdir(fnOutput.GetPath(), wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
+            }
+
+            // handle file output
+            if (!upZe->IsDir()) {
+                if (!zis.CanRead()) {
+                    logger_base.error("Could not read file from package '%s'", (const char*)upZe->GetName().c_str());
+                } else {
+                    wxFileOutputStream fos(fnOutput.GetFullPath());
+
+                    if (!fos.IsOk()) {
+                        logger_base.error("Could not create file at '%s'", (const char*)fnOutput.GetFullName().c_str());
+                        continue;
+                    } else {
+                        zis.Read(fos);
+                    }
+                    fos.Close();
+
+                    hixpix->UploadFileToController(fnOutput.GetFullPath(), upZe->GetName(), updateProg, wxDateTime::Now());
+                }
+            }
+            // get next zip entry
+            upZe.reset(zis.GetNextEntry());
+        }
+
+        bool worked = false;
+        prgs.Pulse( "Rebooting Controller.");
+        hixpix->SendRebootController(worked);
+    }
+}
+
+void HinksPixExportDialog::UploadFile(ControllerEthernet* controller) {
+    wxFileDialog file(this, "Select File", "", "", "All Files (*.*)|*.*");
+
+    if (file.ShowModal() == wxID_OK) {
+        wxProgressDialog prgs("Connecting to HinksPix", "Connecting to HinksPix", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+        prgs.Show();
+
+        std::unique_ptr<HinksPix> hixpix = std::make_unique<HinksPix>(controller->GetIP(), controller->GetFPPProxy());
+        if (!hixpix->IsConnected()) {
+            DisplayError(wxString::Format("Could not connect to '%s'", controller->GetName()));
+            return;
+        }
+
+        if (!hixpix->FirmwareSupportsUpload()) {
+            DisplayError(wxString::Format("'%s' CPU Firmware is too old (v%d) Update to a Newer Version.", controller->GetName(), hixpix->GetMPUVersion()));
+            return;
+        }
+
+        std::function<bool(int, int, std::string)> updateProg = [&prgs](int val, int tol, std::string msg) {
+            if (prgs.GetRange() != tol) {
+                prgs.SetRange(tol);
+            }
+            prgs.Update(val, msg);
+            // wxSafeYield();
+            return !prgs.WasCancelled();
+        };
+
+        wxFileName const fn = file.GetPath();
+        hixpix->UploadFileToController(fn.GetFullPath(), fn.GetName(), updateProg, wxDateTime::Now());
+    }
+}
+
+void HinksPixExportDialog::UploadSchedules(ControllerEthernet* controller) {
+   
+    wxProgressDialog prgs("Connecting to HinksPix", "Connecting to HinksPix", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    prgs.Show();
+
+    std::unique_ptr<HinksPix> hixpix = std::make_unique<HinksPix>(controller->GetIP(), controller->GetFPPProxy());
+    if (!hixpix->IsConnected()) {
+        DisplayError(wxString::Format("Could not connect to '%s'", controller->GetName()));
+        return;
+    }
+
+    if (!hixpix->FirmwareSupportsUpload()) {
+        DisplayError(wxString::Format("'%s' CPU Firmware is too old (v%d) Update to a Newer Version.", controller->GetName(), hixpix->GetMPUVersion()));
+        return;
+    }
+
+    std::function<bool(int, int, std::string)> updateProg = [&prgs](int val, int tol, std::string msg) {
+        if (prgs.GetRange() != tol) {
+            prgs.SetRange(tol);
+        }
+        prgs.Update(val, msg);
+        // wxSafeYield();
+        return !prgs.WasCancelled();
+    };
+
+    if (!m_selectedPlayList.empty()) {
+        StoreToObjectPlayList(m_selectedPlayList);
+    }
+    StoreToObjectSchedule();
+
+    bool error { false };
+    wxString errorMsg;
+    for (const auto& schedule : m_schedules) {
+        wxString reason;
+        if (!schedule.isValid(reason)) {
+            error = true;
+            errorMsg = wxString::Format("'%s' Schedule was invalid!\n%s", schedule.Day, reason);
+        }
+        auto temp_schedule = ToStdString(wxFileName::CreateTempFileName("schedule"));
+        schedule.saveAsFile(temp_schedule);
+        hixpix->UploadFileToController(temp_schedule, schedule.getFileName(), updateProg, wxDateTime::Now());
+    }
+    if (error) {
+        DisplayError("HinksPix Schedule Upload Error\n" + errorMsg);
+    }
 }
 
 void HinksPixExportDialog::OnPopup(wxCommandEvent& event) {
@@ -448,7 +739,8 @@ void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
 {
     int id = event.GetId();
     int col = GridSchedule->GetGridCursorCol();
-    wxString name = GridSchedule->GetColLabelValue(col);
+    int row = GridSchedule->GetGridCursorRow();
+    wxString const name = GridSchedule->GetColLabelValue(col);
     int min = 0;
     int max = 59;
     if (id == ID_MNU_SETALL) {
@@ -462,12 +754,23 @@ void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
             default:
                 break;
             }
-            wxNumberEntryDialog dlg(this, "", "Set " + name, "Set " + name, 0, min, max);
+            auto const val = GridSchedule->GetCellValue(row, col);
+            int ival = wxAtoi(val);
+            wxNumberEntryDialog dlg(this, "", "Set " + name, "Set " + name, ival, min, max);
             if (dlg.ShowModal() == wxID_OK) {
                 for (int i = 0; i < GridSchedule->GetNumberRows(); ++i) {
                     GridSchedule->SetCellValue(i, col, wxString::Format("%i", dlg.GetValue()));
                 }
             }
+        } else if (col == static_cast<int>(ScheduleColumn::PlayList)) {
+            for (int ccol = static_cast<int>(ScheduleColumn::StartHour);
+                 ccol <= static_cast<int>(ScheduleColumn::Enabled); ++ccol) {
+                auto val = GridSchedule->GetCellValue(row, ccol);
+                for (int i = 0; i < GridSchedule->GetNumberRows(); ++i) {
+                    GridSchedule->SetCellValue(i, ccol, val);
+                }
+            }
+            
         } else if (col <= static_cast<int>(ScheduleColumn::Enabled)) {
             wxTextEntryDialog dlg(this, "Set " + name, "Set " + name, "X");
             if (dlg.ShowModal() == wxID_OK) {
@@ -477,8 +780,8 @@ void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
             }
         }
     } else if (id == ID_MNU_SETALLPLAY) {
-        int row = GridSchedule->GetGridCursorRow();
-        auto playList = GridSchedule->GetCellValue(row, static_cast<int>(ScheduleColumn::PlayList));
+        //int row = GridSchedule->GetGridCursorRow();
+        auto const playList = GridSchedule->GetCellValue(row, static_cast<int>(ScheduleColumn::PlayList));
         if (col <= static_cast<int>(ScheduleColumn::EndMin) &&
             col >= static_cast<int>(ScheduleColumn::StartHour)) {
             switch (static_cast<ScheduleColumn>(col)) {
@@ -489,12 +792,25 @@ void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
             default:
                 break;
             }
-            wxNumberEntryDialog dlg(this, "", "Set " + name, "Set " + name, 0, min, max);
+            auto const val = GridSchedule->GetCellValue(row, col);
+            int ival = wxAtoi(val);
+            wxNumberEntryDialog dlg(this, "", "Set " + name, "Set " + name, ival, min, max);
             if (dlg.ShowModal() == wxID_OK) {
                 for (int i = 0; i < GridSchedule->GetNumberRows(); ++i) {
                     auto row_playList = GridSchedule->GetCellValue(i, static_cast<int>(ScheduleColumn::PlayList));
                     if (row_playList == playList) {
                         GridSchedule->SetCellValue(i, col, wxString::Format("%i", dlg.GetValue()));
+                    }
+                }
+            }
+        } else if (col == static_cast<int>(ScheduleColumn::PlayList)) {
+            for (int ccol = static_cast<int>(ScheduleColumn::StartHour);
+                 ccol <= static_cast<int>(ScheduleColumn::Enabled); ++ccol) {
+                auto val = GridSchedule->GetCellValue(row, ccol);
+                for (int i = 0; i < GridSchedule->GetNumberRows(); ++i) {
+                    auto row_playList = GridSchedule->GetCellValue(i, static_cast<int>(ScheduleColumn::PlayList));
+                    if (row_playList == playList) {
+                        GridSchedule->SetCellValue(i, ccol, val);
                     }
                 }
             }
@@ -505,6 +821,34 @@ void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
                     auto row_playList = GridSchedule->GetCellValue(i, static_cast<int>(ScheduleColumn::PlayList));
                     if (row_playList == playList) {
                         GridSchedule->SetCellValue(i, col, dlg.GetValue());
+                    }
+                }
+            }
+        }
+    } else if (id == ID_MNU_SETALLDAYS) {
+        // int row = GridSchedule->GetGridCursorRow();
+        auto const playList = GridSchedule->GetCellValue(row, static_cast<int>(ScheduleColumn::PlayList));
+        wxArrayString days;
+        std::transform(DAYS.begin(), DAYS.end(), std::back_inserter(days), [](auto const& s) { return s; });
+
+        wxMultiChoiceDialog dlg(this, "Select Days to Apply Changes", "Select Days", days);
+        if (dlg.ShowModal() == wxID_OK) {
+            wxArrayInt selections = dlg.GetSelections();
+
+            wxArrayString day_selections;
+            std::transform(selections.begin(), selections.end(), std::back_inserter(day_selections),
+                           [days](auto s) { return days[s]; });
+
+            if (col == static_cast<int>(ScheduleColumn::PlayList)) {
+                for (int ccol = static_cast<int>(ScheduleColumn::StartHour);
+                    ccol <= static_cast<int>(ScheduleColumn::Enabled); ++ccol) {
+                    auto val = GridSchedule->GetCellValue(row, ccol);
+                    for (int i = 0; i < GridSchedule->GetNumberRows(); ++i) {
+                        auto const row_playList = GridSchedule->GetCellValue(i, static_cast<int>(ScheduleColumn::PlayList));
+                        auto const row_day = GridSchedule->GetRowLabelValue(i);
+                        if (row_playList == playList && day_selections.Index(row_day) != wxNOT_FOUND) {
+                            GridSchedule->SetCellValue(i, ccol, val);
+                        }
                     }
                 }
             }
@@ -670,7 +1014,7 @@ void HinksPixExportDialog::CreateDriveList() {
 
 #ifdef __WXMSW__
     #ifdef _DEBUG
-    wxArrayString ud = wxFSVolume::GetVolumes();
+    wxArrayString const ud = wxFSVolume::GetVolumes();
     #else
     wxArrayString ud = wxFSVolume::GetVolumes( wxFS_VOL_REMOVABLE | wxFS_VOL_MOUNTED, 0);
     #endif
@@ -707,56 +1051,62 @@ void HinksPixExportDialog::CreateDriveList() {
     m_drives.push_back(SEL_DISK);
 }
 
-void HinksPixExportDialog::SaveSettings()
-{
+void HinksPixExportDialog::SaveSettings() {
     if (!m_selectedPlayList.empty()) {
         StoreToObjectPlayList(m_selectedPlayList);
     }
     StoreToObjectSchedule();
-    wxJSONValue data;
+    nlohmann::json data;
     data["filter"] = ChoiceFilter->GetSelection();
-    data["folder"] = ChoiceFolder->GetString(ChoiceFolder->GetSelection());
+    data["folder"] = ChoiceFolder->GetString(ChoiceFolder->GetSelection()).ToStdString();
     data["tab"] = NotebookExportItems->GetSelection();
 
     int row = 0;
     for (const auto& inst : m_hixControllers) {
-        std::string rowStr = std::to_string(row);
-        wxJSONValue controller;
-        controller["ip"] = wxString(inst->GetIP());
+        std::string const rowStr = std::to_string(row);
+        nlohmann::json controller;
+        controller["ip"] = inst->GetIP();
         controller["enabled"] = GetCheckValue(CHECK_COL + rowStr);
-        controller["mode"] = GetChoiceValue(MODE_COL + rowStr);
-        controller["slave1"] = GetChoiceValue(SLAVE1_COL + rowStr);
-        controller["slave2"] = GetChoiceValue(SLAVE2_COL + rowStr);
-        controller["disk"] = GetChoiceValue(DISK_COL + rowStr);
-        data["controllers"].Append(controller);
+        controller["mode"] = GetChoiceValue(MODE_COL + rowStr).ToStdString();
+        controller["slave1"] = GetChoiceValue(SLAVE1_COL + rowStr).ToStdString();
+        controller["slave2"] = GetChoiceValue(SLAVE2_COL + rowStr).ToStdString();
+        controller["disk"] = GetChoiceValue(DISK_COL + rowStr).ToStdString();
+        controller["media"] = GetCheckValue(MEDIA_COL + rowStr);
+        data["controllers"].push_back(controller);
         row++;
     }
 
     for (const auto& schedule : m_schedules) {
-        data["schedules"].Append(schedule.asJSON());
+        data["schedules"].push_back(schedule.asJSON());
     }
 
     for (const auto& playlist : m_playLists) {
-        data["playlists"].Append(playlist.asJSON());
+        data["playlists"].push_back(playlist.asJSON());
     }
-    wxFileOutputStream hinksfile(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "hinks_export.json");
-    wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
-    writer.Write(data, hinksfile);
-    hinksfile.Close();
+    auto path = xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "hinks_export.json";
+    try {
+        std::ofstream o(path.ToStdString());
+        if (o.is_open()) {
+            o << std::setw(4) << data << std::endl;
+        }
+    } catch (const std::exception& ex) {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.warn("HinksPixExport SaveSettings: Failed: %s", ex.what());
+    }
 }
 
 void HinksPixExportDialog::LoadSettings()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     auto path = xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "hinks_export.json";
     bool loaded{false};
-    if (FileExists(path)) {
-        wxJSONValue data;
-        wxJSONReader reader;
-        wxFileInputStream f(path);
-        int errors = reader.Parse(f, &data);
-        if (!errors) {
-            wxString folderSelect = data.Get("folder", wxJSONValue(wxString())).AsString();
-            int const filterSelect = data.Get("filter", wxJSONValue(-1)).AsInt();
+    try {
+        if (FileExists(path)) {
+            nlohmann::json data;
+            std::ifstream inputFile(path.ToStdString());
+            inputFile >> data;
+            std::string const folderSelect = data.value("folder", std::string());
+            int const filterSelect = data.value("filter", -1);
 
             if (filterSelect != wxNOT_FOUND) {
                 ChoiceFilter->SetSelection(filterSelect);
@@ -764,29 +1114,38 @@ void HinksPixExportDialog::LoadSettings()
             int ifoldSelect = ChoiceFolder->FindString(folderSelect);
             if (ifoldSelect != wxNOT_FOUND) {
                 ChoiceFolder->SetSelection(ifoldSelect);
-            }else {
+            } else {
                 ChoiceFolder->SetSelection(0);
             }
-            auto tab = data.Get("tab", wxJSONValue(0)).AsInt();
+            auto tab = data.value("tab",0);
             NotebookExportItems->SetSelection(tab);
             LoadSequences();
 
-            auto schedules = data["schedules"].AsArray();
-            if (schedules) {
-                for (int i = 0; i < schedules->Count(); ++i) {
-                    m_schedules.emplace_back(schedules->Item(i));
+            if (data.contains("schedules")) {
+                auto schedules = data.at("schedules");
+                m_schedules.reserve(schedules.size());
+                for (const auto& sched : schedules) {
+                    m_schedules.emplace_back(sched);
                 }
             }
-            auto playlists = data["playlists"].AsArray();
-            if (playlists) {
-                for (int i = 0; i < playlists->Count(); ++i) {
-                    auto play = m_playLists.emplace_back(playlists->Item(i));
+            
+            if (data.contains("playlists")) {
+                auto playlists = data.at("playlists");
+                m_playLists.reserve(playlists.size());
+                for (const auto& playlist : playlists) {
+                    auto play = m_playLists.emplace_back(playlist);
                     ChoicePlaylists->AppendString(play.Name);
                 }
             }
             loaded = true;
-            ApplySavedSettings(data["controllers"]);
+            if (data.contains("controllers")) {
+                ApplySavedSettings(data.at("controllers"));
+            }
         }
+    } catch (nlohmann::json::parse_error& ex) {
+        logger_base.warn("HinksPixExport LoadSettings: Failed to parse JSON: %s", ex.what());
+    } catch (std::exception& e) {
+        logger_base.warn("HinksPixExport LoadSettings: Failed to parse JSON: %s", e.what());
     }
 
     if (m_schedules.empty()) {
@@ -805,8 +1164,7 @@ void HinksPixExportDialog::LoadSettings()
     }
 }
 
-void HinksPixExportDialog::ApplySavedSettings(wxJSONValue json)
-{
+void HinksPixExportDialog::ApplySavedSettings(nlohmann::json controllers) {
     /*
     static const std::string CHECK_COL = "ID_UPLOAD_";
     static const std::string MODE_COL = "ID_MODE_";
@@ -815,22 +1173,26 @@ void HinksPixExportDialog::ApplySavedSettings(wxJSONValue json)
     static const std::string DISK_COL = "ID_DISK_";
      */
 
-    auto controllers = json.AsArray();
-    if (!controllers) {
+    if (!controllers.is_array()) {
+        return;
+    }
+    if (controllers.is_null()) {
         return;
     }
     int row = 0;
     for (const auto& hix : m_hixControllers) {
-        std::string rowStr = std::to_string(row);
+        std::string const rowStr = std::to_string(row);
 
-        for (int i = 0; i < controllers->Count(); ++i) {
-            auto controller = controllers->Item(i);
-            if (hix->GetIP() == controller.ItemAt("ip").AsString()) {
-                SetCheckValue(CHECK_COL + rowStr, controller.ItemAt("enabled").AsBool());
-                SetChoiceValue(MODE_COL + rowStr, controller.ItemAt("mode").AsString());
-                SetChoiceValue(SLAVE1_COL + rowStr, controller.ItemAt("slave1").AsString());
-                SetChoiceValue(SLAVE2_COL + rowStr, controller.ItemAt("slave2").AsString());
-                SetChoiceValue(DISK_COL + rowStr, controller.ItemAt("disk").AsString());
+        for (auto const& controller: controllers) {
+            if (hix->GetIP() == controller.at("ip").get<std::string>()) {
+                SetCheckValue(CHECK_COL + rowStr, controller.at("enabled").get<bool>());
+                SetChoiceValue(MODE_COL + rowStr, controller.at("mode").get<std::string>());
+                SetChoiceValue(SLAVE1_COL + rowStr, controller.at("slave1").get<std::string>());
+                SetChoiceValue(SLAVE2_COL + rowStr, controller.at("slave2").get<std::string>());
+                SetChoiceValue(DISK_COL + rowStr, controller.at("disk").get<std::string>());
+                if (controller.contains("media")) {
+                    SetCheckValue(MEDIA_COL + rowStr, controller.at("media").get<bool>());
+                }
                 break;
             }
         }
@@ -855,6 +1217,7 @@ void HinksPixExportDialog::OnGridScheduleCellRightClick(wxGridEvent& event)
     wxMenu mnu;
     mnu.Append(ID_MNU_SETALL, "Set All");
     mnu.Append(ID_MNU_SETALLPLAY, "Set All - PlayList");
+    mnu.Append(ID_MNU_SETALLDAYS, "Copy Row to Other Days");
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&HinksPixExportDialog::OnPopupGrid, nullptr, this);
     PopupMenu(&mnu);
 }
@@ -930,7 +1293,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
     std::vector<wxString> names;
     for (auto& playlist : m_playLists) {
         for (auto& play : playlist.Items) {
-            if (shortNames.find( play.FSEQ) == shortNames.end()) {
+            if (shortNames.find(play.FSEQ) == shortNames.end()) {
                 wxString const shortName = createUniqueShortName(play.FSEQ, names);
                 shortNames.insert({ play.FSEQ, shortName });
                 names.push_back(shortName);
@@ -938,23 +1301,23 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
         }
     }
 
-    bool error = false;
+    bool error{ false };
     wxString errorMsg;
-    int count = 0;
-    int row = 0;
+    int count{ 0 };
+    int row{ 0 };
     for (auto* hix : m_hixControllers) {
         std::string const rowStr = std::to_string(row);
         ++row;
-        bool upload = GetCheckValue(CHECK_COL + rowStr);
+        bool const upload = GetCheckValue(CHECK_COL + rowStr);
         if (!upload) {
             ++count;
             continue;
         }
-
+        bool const uploadMedia = GetCheckValue(MEDIA_COL + rowStr);
         prgs.Update(++count, wxString::Format("Generating HinksPix Files for '%s'", hix->GetName()));
 
-        wxString slaveName1 = GetChoiceValue(SLAVE1_COL + rowStr);
-        wxString slaveName2 = GetChoiceValue(SLAVE2_COL + rowStr);
+        wxString const slaveName1 = GetChoiceValue(SLAVE1_COL + rowStr);
+        wxString const slaveName2 = GetChoiceValue(SLAVE2_COL + rowStr);
 
         if (!slaveName1.IsEmpty() && slaveName1 == slaveName2) {
             error = true;
@@ -1012,7 +1375,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
                 continue;
             }
         }
-        std::vector<wxString> filesDone;
+        std::vector<std::string> filesDone;
         for (auto & playlist : m_playLists) {
             bool worked {true};
             for (auto& play : playlist.Items) {
@@ -1024,11 +1387,11 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
                     worked &= Create_HinksPix_HSEQ_File(play.FSEQ, drive + wxFileName::GetPathSeparator() + shortHseqName, hix, slave1, slave2, errorMsg);
                     filesDone.push_back(play.FSEQ);
                 }
-                if (worked && !play.Audio.IsEmpty()) {
+                if (worked && !play.Audio.empty() && uploadMedia) {
                     wxString auName = shortName + ".au";
                     prgs.Update(count, "Generating AU File " + auName);
                     if (std::find(filesDone.begin(), filesDone.end(), auName) == filesDone.end()) {
-                        AudioLoader audioLoader(play.Audio.ToStdString(), 44100, true);
+                        AudioLoader audioLoader(play.Audio, 44100, true);
                         worked &= audioLoader.loadAudioData();
 
                         if (worked) {
@@ -1048,7 +1411,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
                 play.HSEQ = shortHseqName;
             }
             if (worked) {
-                playlist.saveAsFile(drive);
+                playlist.saveToDrive(drive);
             } else {
                 error = true;
             }
@@ -1061,7 +1424,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
                 error = true;
                 errorMsg = wxString::Format("'%s' Schedule was invalid!\n%s", schedule.Day, reason);
             }
-            schedule.saveAsFile(drive);
+            schedule.saveToDrive(drive);
         }
         createModeFile(drive, GetChoiceValueIndex(MODE_COL + rowStr));
     }
@@ -1074,6 +1437,195 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
         wxMessageBox("HinksPix File Generation Complete");
     }
     // EndDialog(wxID_CLOSE);
+}
+
+void HinksPixExportDialog::OnButtonUploadClick(wxCommandEvent& /*event*/) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (!m_selectedPlayList.empty()) {
+        StoreToObjectPlayList(m_selectedPlayList);
+    }
+    StoreToObjectSchedule();
+
+    if (m_playLists.empty()) {
+        DisplayError("No Playlists found\nPlease Add a Playlist");
+        return;
+    }
+    //int totalProgress{ 0 };
+   // std::for_each(m_playLists.begin(), m_playLists.end(), [&totalProgress](auto const& pl) { totalProgress += pl.Items.size(); });
+    //totalProgress *= m_hixControllers.size();
+    //totalProgress += 2;
+
+    wxProgressDialog prgs(
+        "Generating HinksPix Files", "Generating HinksPix Files", 100, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    prgs.Show();
+
+    std::map<wxString, wxString> shortNames;
+    std::vector<wxString> names;
+    for (auto& playlist : m_playLists) {
+        for (auto& play : playlist.Items) {
+            if (shortNames.find(play.FSEQ) == shortNames.end()) {
+                wxString const shortName = createUniqueShortName(play.FSEQ, names);
+                shortNames.insert({ play.FSEQ, shortName });
+                names.push_back(shortName);
+            }
+        }
+    }
+
+    std::function<bool(int, int, std::string)> updateProg = [&prgs](int val, int tol, std::string msg) {
+        if (prgs.GetRange() != tol){
+            prgs.SetRange(tol);
+        }
+        prgs.Update(val, msg);
+        //wxSafeYield();
+        return !prgs.WasCancelled();
+    };
+
+    bool error{ false };
+    wxString errorMsg;
+    //int count = 0;
+    int row = 0;
+    for (auto* hix : m_hixControllers) {
+        std::string const rowStr = std::to_string(row);
+        ++row;
+        bool upload = GetCheckValue(CHECK_COL + rowStr);
+        if (!upload) {
+            //++count;
+            continue;
+        }
+        bool uploadMedia = GetCheckValue(MEDIA_COL + rowStr);
+        prgs.Pulse( wxString::Format("Connecting to HinksPix for '%s' '%s'", hix->GetName(), hix->GetIP()));
+        wxSafeYield();
+        std::unique_ptr<HinksPix> hixpix = std::make_unique<HinksPix>(hix->GetIP(), hix->GetFPPProxy());
+        if (!hixpix->IsConnected()) {
+            error = true;
+            errorMsg = wxString::Format("Could not connect to '%s'", hix->GetName());
+            continue;
+        }
+
+        if (!hixpix->FirmwareSupportsUpload()) {
+            error = true;
+            errorMsg = wxString::Format("'%s' CPU Firmware is too old (v%d) Update to a Newer Version.", hix->GetName(), hixpix->GetMPUVersion());
+            continue;
+        }
+
+        prgs.Pulse( wxString::Format("Generating HinksPix Files for '%s'", hix->GetName()));
+
+        wxString const slaveName1 = GetChoiceValue(SLAVE1_COL + rowStr);
+        wxString const slaveName2 = GetChoiceValue(SLAVE2_COL + rowStr);
+
+        if (!slaveName1.IsEmpty() && slaveName1 == slaveName2) {
+            error = true;
+            errorMsg = wxString::Format("Slave Controller 1 and 2 cannot not be the same: '%s'", slaveName1);
+            continue;
+        }
+
+        auto* slave1 = getSlaveController(slaveName1);
+        auto* slave2 = getSlaveController(slaveName2);
+
+        if (!slave1 && slave2) {
+            std::swap(slave1, slave2);
+        }
+
+        if (slave1 && slave2) {
+            if (slave2->GetOutputCount() > slave1->GetOutputCount()) {
+                std::swap(slave1, slave2);
+            }
+        }
+
+        if (slave1 || slave2) {
+            if (!CheckSlaveControllerSizes(hix, slave1, slave2)) {
+                error = true;
+                errorMsg = wxString::Format("Too Many Slave Controller Universes for '%s'", hix->GetName());
+                continue;
+            }
+        }
+
+        std::vector<wxString> filesDone;
+        for (auto& playlist : m_playLists) {
+            bool worked{ true };
+            for (auto& play : playlist.Items) {
+                wxString const shortName = shortNames.at(play.FSEQ);
+                wxString const shortHseqName = shortName + ".hseq";
+                prgs.Pulse("Generating HSEQ File " + shortHseqName);
+
+                auto tempFileName = ToStdString(wxFileName::CreateTempFileName(ToWXString(shortName)));
+                if (std::find(filesDone.begin(), filesDone.end(), play.FSEQ) == filesDone.end()) {
+                    wxDateTime fseqtime = wxFileName(play.FSEQ).GetModificationTime();
+                    worked &= Create_HinksPix_HSEQ_File(play.FSEQ, tempFileName, hix, slave1, slave2, errorMsg);
+                    worked &= hixpix->UploadFileToController(tempFileName, shortHseqName, updateProg, fseqtime);
+                    if (!worked) {
+                        break;
+                    }
+                    filesDone.push_back(play.FSEQ);
+                }
+                if (worked && !play.Audio.empty() && uploadMedia) {
+                    wxString auName = shortName + ".au";
+                    prgs.Pulse( "Generating AU File " + auName);
+
+                    if (std::find(filesDone.begin(), filesDone.end(), auName) == filesDone.end()) {
+                        wxDateTime mediatime = wxFileName(play.Audio).GetModificationTime();
+                        AudioLoader audioLoader(play.Audio, 44100, true);
+                        worked &= audioLoader.loadAudioData();
+                        if (worked) {
+                            auto tempFileName2 = ToStdString(wxFileName::CreateTempFileName(ToWXString(shortName)));
+                            worked &= Make_AU_From_ProcessedAudio(audioLoader.processedAudio(), tempFileName2, errorMsg);
+                            worked &= hixpix->UploadFileToController(tempFileName2, auName, updateProg, mediatime);
+                            if (!worked) {
+                                break;
+                            }
+                            filesDone.push_back(auName);
+                        } else {
+                            AudioLoader::State loaderState = audioLoader.state();
+                            AudioReaderDecoderInitState decoderInitState = AudioReaderDecoderInitState::NoInit;
+                            audioLoader.readerDecoderInitState(decoderInitState);
+                            AudioResamplerInitState resamplerInitState = AudioResamplerInitState::NoInit;
+                            audioLoader.resamplerInitState(resamplerInitState);
+                            logger_base.error("HinksPixExportDialog export - loading audio fails - %d : %d : %d", int(loaderState), int(decoderInitState), int(resamplerInitState));
+                        }
+                    }
+                    play.AU = auName;
+                }
+                play.HSEQ = shortHseqName;
+            }
+            if (worked) {
+                auto temp_playlist = ToStdString(wxFileName::CreateTempFileName("playlist"));
+                playlist.saveAsFile(temp_playlist);
+                worked &= hixpix->UploadFileToController(temp_playlist, playlist.getFileName(), updateProg, wxDateTime::Now());
+            } else {
+                error = true;
+            }
+        }
+        //prgs.Pulse( "Generating Schedule File");
+        for (const auto& schedule : m_schedules) {
+            wxString reason;
+            if (!schedule.isValid(reason)) {
+                error = true;
+                errorMsg = wxString::Format("'%s' Schedule was invalid!\n%s", schedule.Day, reason);
+            }
+            auto temp_schedule = ToStdString(wxFileName::CreateTempFileName("schedule"));
+            schedule.saveAsFile(temp_schedule);
+            hixpix->UploadFileToController(temp_schedule, schedule.getFileName(), updateProg, wxDateTime::Now());
+        }
+        prgs.Pulse("Updating Time...");
+        hixpix->UploadTimeToController();
+        auto mode = GetChoiceValueIndex(MODE_COL + rowStr);
+        prgs.Pulse("Updating Mode...");
+        if (mode == 0) {
+            hixpix->UploadModeToController('G');// master
+        } else if(mode == 1) {
+            hixpix->UploadModeToController('H'); // slave
+        }
+    }
+
+    SaveSettings();
+    prgs.Update(0, "HinksPix File Generation Done");
+    prgs.Hide();
+    if (error) {
+        DisplayError("HinksPix File Generation Error\n" + errorMsg);
+    } else {
+        wxMessageBox("HinksPix File Generation Complete");
+    }
 }
 
 void HinksPixExportDialog::OnBitmapButtonMoveDownClick(wxCommandEvent& /*event*/) {
@@ -1112,7 +1664,7 @@ void HinksPixExportDialog::OnButtonAddPlaylistClick(wxCommandEvent& event)
             return;
         }
         ChoicePlaylists->AppendString(n);
-        m_playLists.emplace_back(n);
+        m_playLists.emplace_back(n.ToStdString());
 
         ChoicePlaylists->SetStringSelection(n);
         RedrawPlayList(n);
@@ -1251,11 +1803,19 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, w
     uint32_t const ogNumber_of_Frames = xf->getNumFrames();
     uint32_t const ogNumChannels = xf->getChannelCount();
     int const ogFrame_Rate = xf->getStepTime();
-    if (ogFrame_Rate != 50) {
-        errorMsg = wxString::Format("HinksPix Failed Framerate must be 50Ms FSEQ %s", fseqFile);
-        logger_base.error(errorMsg);
-        return false;
-    }
+    //if (hix->GetName() == "PRO V3") {
+        if (ogFrame_Rate != 50 && ogFrame_Rate != 25) {
+            errorMsg = wxString::Format("HinksPix Failed Framerate must be 25ms or 50ms FSEQ %s", fseqFile);
+            logger_base.error(errorMsg);
+            return false;
+        }
+    //} else {
+    //    if (ogFrame_Rate != 50 ) {
+    //        errorMsg = wxString::Format("HinksPix Failed Framerate must be 50ms FSEQ %s", fseqFile);
+    //        logger_base.error(errorMsg);
+    //        return false;
+    //    }
+    //}
 
     std::vector<std::pair<uint32_t, uint32_t>> rng;
     rng.emplace_back(std::pair<uint32_t, uint32_t>(0, ogNumChannels));
@@ -1263,15 +1823,7 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, w
 
     //Get Map of HinksPix Port channel locations to xLights channel locations
     int32_t hix_Channels;
-    std::vector<HinksChannelMap> modelStarts;
-    if (hix->IsUniversePerString()) {
-        modelStarts = getModelChannelMap(hix, hix_Channels);
-    } else {
-        hix_Channels = hix->GetChannels();
-        auto const& hmm = modelStarts.emplace_back(hix->GetStartChannel(), hix->GetChannels(), 1);
-        hmm.Dump();
-    }
-
+    std::vector<HinksChannelMap> const modelStarts = getModelChannelMap(hix, hix_Channels);
     int32_t ef_Num_Channel_To_Write = hix_Channels;
 
     if (slave1) {
@@ -1513,7 +2065,7 @@ int HinksPixExportDialog::getMaxSlaveControllerUniverses(ControllerEthernet* con
     return 0;
 }
 
-void HinksPixExportDialog::AddInstanceHeader(wxString const& h) {
+wxPanel* HinksPixExportDialog::AddInstanceHeader(wxString const& h) {
     wxPanel* Panel1 = new wxPanel(HinkControllerList, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER | wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     wxBoxSizer* BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
     wxStaticText* StaticText3 = new wxStaticText(Panel1, wxID_ANY, h, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
@@ -1522,6 +2074,7 @@ void HinksPixExportDialog::AddInstanceHeader(wxString const& h) {
     BoxSizer1->Fit(Panel1);
     BoxSizer1->SetSizeHints(Panel1);
     HinkControllerSizer->Add(Panel1, 1, wxALL | wxEXPAND, 0);
+    return Panel1;
 }
 
 bool HinksPixExportDialog::createTestFile(wxString const& drive) const {
@@ -1699,7 +2252,7 @@ void HinksPixExportDialog::StoreToObjectSchedule()
         if (auto dayRef = GetSchedule(day); dayRef) {
             auto& sch = dayRef->get();
             auto use = GetCell(row, ScheduleColumn::Enabled);
-            auto play = GetCell(row, ScheduleColumn::PlayList);
+            auto play = GetCell(row, ScheduleColumn::PlayList).ToStdString();
             auto st_hr = GetCell(row, ScheduleColumn::StartHour);
             auto st_min = GetCell(row, ScheduleColumn::StartMin);
             auto ed_hr = GetCell(row, ScheduleColumn::EndHour);
@@ -1768,7 +2321,7 @@ void HinksPixExportDialog::RedrawSchedules()
         row++;
     };
 
-    for (auto day : DAYS) {
+    for (auto const& day : DAYS) {
         if (auto dayRef = GetSchedule(day); dayRef) {
             auto const& sch = dayRef->get();
             auto playLists = ChoicePlaylists->GetStrings();
@@ -1782,7 +2335,7 @@ void HinksPixExportDialog::RedrawSchedules()
             }
 
             //draw new playlists not already in schedule
-            for (auto play : playLists) {
+            for (auto const& play : playLists) {
                 DrawDefaultPlaylist(day, play);
             }
         } else {

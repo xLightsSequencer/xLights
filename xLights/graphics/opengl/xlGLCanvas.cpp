@@ -424,26 +424,33 @@ wxImage* xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
     if (canScale) {
-        GLuint fbID = 0, rbID = 0;
+        GLuint fbID = 0, rbID = 0, depthRB = 0;
 
         glGenRenderbuffers(1, &rbID);
         glBindRenderbuffer(GL_RENDERBUFFER, rbID);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height);
 
+        glGenRenderbuffers(1, &depthRB);
+        glBindRenderbuffer(GL_RENDERBUFFER, depthRB);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+
         glGenFramebuffers(1, &fbID);
         glBindFramebuffer(GL_FRAMEBUFFER, fbID);
         glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rbID);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRB);
 
         render();
 
         glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
 
         glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, 0);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDeleteFramebuffers(1, &fbID);
 
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
         glDeleteRenderbuffers(1, &rbID);
+        glDeleteRenderbuffers(1, &depthRB);
     }
     else {
         GLint currentReadBuffer = GL_NONE;

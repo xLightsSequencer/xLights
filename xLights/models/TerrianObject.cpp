@@ -138,7 +138,7 @@ void TerrianObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
         p = grid->Append(new wxStringProperty("Terrian Spacing", "RealSpacing",
             RulerObject::PrescaledMeasureDescription(RulerObject::Measure(spacing))
         ));
-        p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
+        p->ChangeFlag(wxPGFlags::ReadOnly, true);
         p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
     }
 }

@@ -17,7 +17,7 @@
 							<pos>-124,-53</pos>
 							<minsize>-1,150d</minsize>
 							<object class="wxFlexGridSizer" variable="HinkControllerSizer" member="yes">
-								<cols>8</cols>
+								<cols>9</cols>
 							</object>
 						</object>
 						<label>Controllers</label>
@@ -202,6 +202,14 @@
 						<object class="wxButton" name="ID_BUTTON_EXPORT" variable="Button_Export" member="yes">
 							<label>Export to SD Card</label>
 							<handler function="OnButton_ExportClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_UPLOAD" variable="ButtonUpload" member="yes">
+							<label>Upload to Controller</label>
+							<handler function="OnButtonUploadClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

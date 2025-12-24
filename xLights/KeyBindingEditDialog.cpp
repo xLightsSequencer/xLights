@@ -16,12 +16,14 @@
 #include <wx/headercol.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
+#include <wx/display.h>
 
 #include "KeyBindingEditDialog.h"
 #include "KeyBindings.h"
 #include "effects/EffectManager.h"
 #include "effects/RenderableEffect.h"
 #include "xLightsMain.h"
+#include "xlPropertyGrid.h"
 
 //(*IdInit(KeyBindingEditDialog)
 const long KeyBindingEditDialog::ID_STATICTEXT1 = wxNewId();
@@ -134,7 +136,7 @@ KeyBindingEditDialog::KeyBindingEditDialog(xLightsFrame* parent, KeyBindingMap* 
     ListCtrl_Bindings->SetColumnWidth(1, wxCOL_WIDTH_AUTOSIZE);
     ListCtrl_Bindings->SetColumnWidth(6, wxCOL_WIDTH_AUTOSIZE);
 
-	_propertyGrid = new wxPropertyGrid(Panel_Properties, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+	_propertyGrid = new xlPropertyGrid(Panel_Properties, wxID_ANY, wxDefaultPosition, wxDefaultSize,
 		// Here are just some of the supported window styles
 		//wxPG_AUTO_SORT | // Automatic sorting after items added
 		wxPG_SPLITTER_AUTO_CENTER | // Automatically center splitter until user manually adjusts it
@@ -145,7 +147,21 @@ KeyBindingEditDialog::KeyBindingEditDialog(xLightsFrame* parent, KeyBindingMap* 
 	_propertyGrid->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&KeyBindingEditDialog::OnControllerPropertyGridChange, 0, this);
     _propertyGrid->SetValidationFailureBehavior(wxPGVFBFlags::MarkCell | wxPGVFBFlags::Beep);
 
-	SetSize(1200, 700);
+	// Constrain dialog size to fit within the display's client area
+	int targetWidth = 1200;
+	int targetHeight = 700;
+	int d = wxDisplay::GetFromWindow(this);
+	if (d < 0) d = 0;
+	wxDisplay display(d);
+	if (display.IsOk()) {
+		wxRect displayRect = display.GetClientArea();
+		// Leave some margin (50 pixels) around the edges
+		int maxWidth = displayRect.GetWidth() - 100;
+		int maxHeight = displayRect.GetHeight() - 100;
+		if (targetWidth > maxWidth) targetWidth = maxWidth;
+		if (targetHeight > maxHeight) targetHeight = maxHeight;
+	}
+	SetSize(targetWidth, targetHeight);
 }
 
 int KeyBindingEditDialog::GetSelectedKeyBindingIndex() const {
@@ -183,7 +199,7 @@ void KeyBindingEditDialog::SetKeyBindingProperties() {
 	KeyBinding& b = _keyBindings->GetBinding(id);
 
 	wxPGProperty* p = _propertyGrid->Append(new wxStringProperty("Type", "KBType", b.GetType()));
-	p->ChangeFlag(wxPGPropertyFlags::ReadOnly, true);
+	p->ChangeFlag(wxPGFlags::ReadOnly, true);
 	p->SetHelpString(b.GetTip());
 
 	int k = b.GetKey();

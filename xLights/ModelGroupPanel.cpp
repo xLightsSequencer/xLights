@@ -18,6 +18,7 @@
 #include <wx/artprov.h>
 #include <wx/xml/xml.h>
 #include <wx/time.h>
+#include <regex>
 
 #include "ModelGroupPanel.h"
 #include "models/ModelManager.h"
@@ -85,38 +86,38 @@ public:
 };
 
 //(*IdInit(ModelGroupPanel)
-const long ModelGroupPanel::ID_STATICTEXT5 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT6 = wxNewId();
-const long ModelGroupPanel::ID_CHOICE1 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT12 = wxNewId();
-const long ModelGroupPanel::ID_CHOICE2 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT4 = wxNewId();
-const long ModelGroupPanel::ID_SPINCTRL1 = wxNewId();
-const long ModelGroupPanel::ID_CHOICE_PREVIEWS = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT7 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT10 = wxNewId();
-const long ModelGroupPanel::ID_SPINCTRL2 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT11 = wxNewId();
-const long ModelGroupPanel::ID_SPINCTRL3 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT8 = wxNewId();
-const long ModelGroupPanel::ID_COLOURPICKERCTRL_MG_TAGCOLOUR = wxNewId();
-const long ModelGroupPanel::ID_BUTTON2 = wxNewId();
-const long ModelGroupPanel::ID_CHECKBOX1 = wxNewId();
-const long ModelGroupPanel::ID_CHECKBOX3 = wxNewId();
-const long ModelGroupPanel::ID_CHECKBOX2 = wxNewId();
-const long ModelGroupPanel::ID_CHECKBOX4 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT3 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT2 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT9 = wxNewId();
-const long ModelGroupPanel::ID_TEXTCTRL1 = wxNewId();
-const long ModelGroupPanel::ID_BUTTON1 = wxNewId();
-const long ModelGroupPanel::ID_LISTCTRL1 = wxNewId();
-const long ModelGroupPanel::ID_BITMAPBUTTON4 = wxNewId();
-const long ModelGroupPanel::ID_BITMAPBUTTON3 = wxNewId();
-const long ModelGroupPanel::ID_BITMAPBUTTON1 = wxNewId();
-const long ModelGroupPanel::ID_BITMAPBUTTON2 = wxNewId();
-const long ModelGroupPanel::ID_STATICTEXT1 = wxNewId();
-const long ModelGroupPanel::ID_LISTCTRL2 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT5 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT6 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_CHOICE1 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT12 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_CHOICE2 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT4 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_SPINCTRL1 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_CHOICE_PREVIEWS = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT7 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT10 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_SPINCTRL2 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT11 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_SPINCTRL3 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT8 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_COLOURPICKERCTRL_MG_TAGCOLOUR = wxNewId();
+const wxWindowID ModelGroupPanel::ID_BUTTON2 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_CHECKBOX1 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_CHECKBOX3 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_CHECKBOX2 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_CHECKBOX4 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT3 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT2 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT9 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_TEXTCTRL1 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_BUTTON1 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_LISTCTRL1 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_BITMAPBUTTON4 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_BITMAPBUTTON3 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_BITMAPBUTTON1 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_BITMAPBUTTON2 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_STATICTEXT1 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_LISTCTRL2 = wxNewId();
 //*)
 
 const long ModelGroupPanel::ID_MNU_CLEARALL = wxNewId();
@@ -242,6 +243,7 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	StaticText9 = new wxStaticText(this, ID_STATICTEXT9, _("Filter:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
 	FlexGridSizer2->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
 	TextCtrl_Filter = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+	TextCtrl_Filter->SetToolTip(_("Allows for basic regex values ^\?.*$"));
 	FlexGridSizer2->Add(TextCtrl_Filter, 1, wxALL|wxEXPAND, 1);
 	ButtonClearFilter = new wxButton(this, ID_BUTTON1, _("x"), wxDefaultPosition, wxSize(20,-1), 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer2->Add(ButtonClearFilter, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
@@ -270,35 +272,33 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	FlexGridSizer3->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 0);
 	Panel_Sizer->Add(FlexGridSizer3, 0, wxEXPAND, 0);
 	SetSizer(Panel_Sizer);
-	Panel_Sizer->Fit(this);
-	Panel_Sizer->SetSizeHints(this);
 
-	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoiceModelLayoutTypeSelect);
-	Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoice_DefaultCameraSelect);
-	Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSizeSpinCtrlChange);
-	Connect(ID_CHOICE_PREVIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoicePreviewsSelect);
-	Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_XCentreOffsetChange);
-	Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_YCentreOffsetChange);
-	Connect(ID_COLOURPICKERCTRL_MG_TAGCOLOUR,wxEVT_COMMAND_COLOURPICKER_CHANGED,(wxObjectEventFunction)&ModelGroupPanel::OnColourPickerCtrl_ModelGroupTagColourColourChanged);
-	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonAliasesClick);
-	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowSubmodelsClick);
-	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowInactiveModelsClick);
-	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowModelGroupsClick);
-	Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowOnlyModelsInCurrentViewClick);
-	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnTextCtrl_FilterText);
-	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonClearFilterClick);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupBeginDrag);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupItemSelect);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_DESELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupItemDeselect);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupItemActivated);
-	Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonAddToModelGroupClick);
-	Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonRemoveFromModelGroupClick);
-	Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonUpClick);
-	Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonDownClick);
-	Connect(ID_LISTCTRL2,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupBeginDrag);
-	Connect(ID_LISTCTRL2,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupItemSelect);
-	Connect(ID_LISTCTRL2,wxEVT_COMMAND_LIST_ITEM_DESELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupItemDeselect);
-	Connect(ID_LISTCTRL2,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupItemActivated);
+	Connect(ID_CHOICE1, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ModelGroupPanel::OnChoiceModelLayoutTypeSelect);
+	Connect(ID_CHOICE2, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ModelGroupPanel::OnChoice_DefaultCameraSelect);
+	Connect(ID_SPINCTRL1, wxEVT_COMMAND_SPINCTRL_UPDATED, (wxObjectEventFunction)&ModelGroupPanel::OnSizeSpinCtrlChange);
+	Connect(ID_CHOICE_PREVIEWS, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ModelGroupPanel::OnChoicePreviewsSelect);
+	Connect(ID_SPINCTRL2, wxEVT_COMMAND_SPINCTRL_UPDATED, (wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_XCentreOffsetChange);
+	Connect(ID_SPINCTRL3, wxEVT_COMMAND_SPINCTRL_UPDATED, (wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_YCentreOffsetChange);
+	Connect(ID_COLOURPICKERCTRL_MG_TAGCOLOUR, wxEVT_COMMAND_COLOURPICKER_CHANGED, (wxObjectEventFunction)&ModelGroupPanel::OnColourPickerCtrl_ModelGroupTagColourColourChanged);
+	Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnButtonAliasesClick);
+	Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowSubmodelsClick);
+	Connect(ID_CHECKBOX3, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowInactiveModelsClick);
+	Connect(ID_CHECKBOX2, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowModelGroupsClick);
+	Connect(ID_CHECKBOX4, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowOnlyModelsInCurrentViewClick);
+	Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&ModelGroupPanel::OnTextCtrl_FilterText);
+	Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnButtonClearFilterClick);
+	Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_BEGIN_DRAG, (wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupBeginDrag);
+	Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_ITEM_SELECTED, (wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupItemSelect);
+	Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_ITEM_DESELECTED, (wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupItemDeselect);
+	Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_ITEM_ACTIVATED, (wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupItemActivated);
+	Connect(ID_BITMAPBUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnButtonAddToModelGroupClick);
+	Connect(ID_BITMAPBUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnButtonRemoveFromModelGroupClick);
+	Connect(ID_BITMAPBUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnButtonUpClick);
+	Connect(ID_BITMAPBUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnButtonDownClick);
+	Connect(ID_LISTCTRL2, wxEVT_COMMAND_LIST_BEGIN_DRAG, (wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupBeginDrag);
+	Connect(ID_LISTCTRL2, wxEVT_COMMAND_LIST_ITEM_SELECTED, (wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupItemSelect);
+	Connect(ID_LISTCTRL2, wxEVT_COMMAND_LIST_ITEM_DESELECTED, (wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupItemDeselect);
+	Connect(ID_LISTCTRL2, wxEVT_COMMAND_LIST_ITEM_ACTIVATED, (wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupItemActivated);
 	//*)
 
     Connect(ID_LISTCTRL2, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&ModelGroupPanel::OnListBoxModelsInGroupItemRClick);
@@ -378,6 +378,40 @@ bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model
     return true;
 }
 
+std::string ModelGroupPanel::WildcardToRegex(const std::string& wildcard) {
+    std::string pattern;
+    pattern.reserve(wildcard.size() + 4); // Account for potential .*
+    bool startsWithCaret = !wildcard.empty() && wildcard[0] == '^';
+    bool endsWithDollar = !wildcard.empty() && wildcard.back() == '$';
+
+    size_t start = startsWithCaret ? 1 : 0;
+    size_t end = endsWithDollar ? wildcard.size() - 1 : wildcard.size();
+    for (size_t i = start; i < end; ++i) {
+        char c = wildcard[i];
+        if (c == '*' || c == '?') {
+            pattern += (c == '*') ? ".*" : ".";
+        } else {
+            if (std::string(".^$+()[{\\|/").find(c) != std::string::npos) {
+                pattern += '\\';
+            }
+            pattern += c;
+        }
+    }
+
+    if (startsWithCaret) {
+        pattern = "^" + pattern;
+    } else {
+        pattern = ".*" + pattern;
+    }
+    if (endsWithDollar) {
+        pattern += "$";
+    } else {
+        pattern += ".*";
+    }
+
+    return pattern;
+}
+
 void ModelGroupPanel::UpdatePanel(const std::string& group)
 {
     // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -455,13 +489,24 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
                         // logger_base.debug("Model not eligible to be added to group or already in group " + group + " : " + it.first);
                     }
                     else {
-                        if (filter == "" || Contains(::Lower(it.first), filter)) {
+                        std::string modelName = ::Lower(it.first);
+                        bool matches = filter == "";
+                        if (!matches) {
+                            try {
+                                std::string pattern = WildcardToRegex(filter.ToStdString());
+                                std::regex regexFilter(pattern, std::regex::icase);
+                                matches = std::regex_match(modelName, regexFilter);
+                            } catch (const std::regex_error& e) {
+                                matches = Contains(modelName, filter);
+                            }
+                        }
+                        if (matches) {
                             long item = ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it.first);
                             if (it.second->GetDisplayAs() == "ModelGroup") {
                                 ListBoxAddToModelGroup->SetItemTextColour(item,
-                                                                          IsDarkMode()
-                                                                              ? BLUE_ON_DARK
-                                                                              : *wxBLUE);
+                                    IsDarkMode()
+                                    ? BLUE_ON_DARK
+                                    : *wxBLUE);
                             }
                         }
                     }
@@ -470,7 +515,17 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
                             Model* sm = smit;
 
                             if (std::find(g->ModelNames().begin(), g->ModelNames().end(), sm->GetFullName()) == g->ModelNames().end()) {
-                                if (filter == "" || Contains(::Lower(sm->GetFullName()), filter)) {
+                                std::string subModelName = ::Lower(sm->GetFullName());
+                                bool matches = filter == "";
+                                if (!matches) {
+                                    try {
+                                        std::regex regexFilter(WildcardToRegex(filter.ToStdString()), std::regex::icase);
+                                        matches = std::regex_match(subModelName, regexFilter);
+                                    } catch (const std::regex_error&) {
+                                        matches = Contains(subModelName, filter);
+                                    }
+                                }
+                                if (matches) {
                                     long item = ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), sm->GetFullName());
                                     ListBoxAddToModelGroup->SetItemTextColour(item, xlORANGE.asWxColor());
                                 }

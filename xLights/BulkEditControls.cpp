@@ -63,6 +63,11 @@ BulkEditColourPickerCtrl::BulkEditColourPickerCtrl(wxWindow* parent, wxWindowID 
     _supportsBulkEdit = true;
     ID_COLOURPICKER_BULKEDIT = wxNewId();
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditColourPickerCtrl::OnRightDown, nullptr, this);
+    wxControl *c = this->GetPickerCtrl();
+    wxBitmapButton *b = dynamic_cast<wxBitmapButton*>(c);
+    if (b) {
+        b->SetBitmapMargins(0, 0);
+    }
     this->GetPickerCtrl()->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditColourPickerCtrl::OnRightDown, nullptr, this);
 }
 
@@ -933,14 +938,14 @@ void BulkEditChoice::OnChoicePopup(wxCommandEvent& event)
             std::string value = GetString(dlg.GetSelection());
             id = FixIdForPanel(GetPanelName(GetParent()), id);
 
-            if (GetPanelName(GetParent()) == "Effect")
-            {
+            if (GetPanelName(GetParent()) == "Effect") {
                 std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
                 xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id, value, nullptr, "");
-            }
-            else
-            {
+            } else {
                 xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id, value, nullptr, "");
+                if (GetPanelName(GetParent()) == "Buffer") {
+                    xLightsApp::GetFrame()->ValidatePanels();
+                }
             }
         }
     }

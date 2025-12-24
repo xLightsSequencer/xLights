@@ -18,9 +18,6 @@
 #include "../outputs/OutputManager.h"
 #include "../outputs/DDPOutput.h"
 
-#include "../xSchedule/wxJSON/jsonreader.h"
-#include "../xSchedule/wxJSON/jsonwriter.h"
-
 #include "../utils/Curl.h"
 
 #include <wx/msgdlg.h>
@@ -31,22 +28,22 @@
 #include <log4cpp/Category.hh>
 
 #pragma region Private Functions
-bool Experience::GetJSONData(std::string const& url, wxJSONValue& val) const {
+bool Experience::GetJSONData(std::string const& url, nlohmann::json& val) const {
     std::string const sval = GetURL(url);
     if (!sval.empty()) {
-        wxJSONReader reader;
-        reader.Parse(sval, &val);
-        return true;
+        try {
+            val = nlohmann::json::parse(sval);
+            return true;
+        } catch (nlohmann::json::parse_error& e) {
+            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn("Experience Outputs Upload: Failed to parse JSON from %s: %s", (const char*)url.c_str(), e.what());
+        }
     }
     return false;
 }
 
-std::string Experience::PostJSONToURL(std::string const& url, wxJSONValue const& val) const {
-    wxString str;
-    wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
-    writer.Write(val, str);
-
-    return PutURL(url, str, "", "", "application/json");
+std::string Experience::PostJSONToURL(std::string const& url, nlohmann::json const& val) const {
+    return PutURL(url, val.dump(3), "", "", "application/json");
 }
 #pragma endregion
 
@@ -60,8 +57,8 @@ bool Experience::UploadSequence(std::string const& seq, std::string const& file,
     wxFileName fn(file);
     return Curl::HTTPUploadFile(url, seq, fn.GetFullName().ToStdString(), progress);
 }
-bool Experience::DecodeFirmwareInformation(wxString const& firmware) {
-
+bool Experience::DecodeFirmwareInformation(std::string const& firmware) {
+    //todo use std::regex
     static wxRegEx firmware_regex(R"(v(\d+)\.(\d+)\.(\d+)?(?:\-(\d+)))", wxRE_EXTENDED | wxRE_ICASE | wxRE_NEWLINE);
     if (firmware_regex.Matches(firmware)) {
         _firmwareMajor = wxAtoi(firmware_regex.GetMatch(firmware, 1));
@@ -148,7 +145,7 @@ Experience::Experience(std::string const& ip, std::string const& proxy) :
     BaseController(ip, proxy) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    wxJSONValue data;
+    nlohmann::json data;
 
     // Get Controller Info
     if (!GetJSONData(GetStateURL(), data)) {
@@ -156,24 +153,24 @@ Experience::Experience(std::string const& ip, std::string const& proxy) :
         return;
     }
 
-    wxJSONValue config;
+    nlohmann::json config;
 
     if (!GetJSONData(GetConfigURL(), config)) {
         logger_base.error("Error connecting to Genius controller on %s.", (const char*)_ip.c_str());
         return;
     }
 
-    if (data.Size() > 0) {
+    if (data.size() > 0) {
         // decode controller type
-        _model = data["system"]["controller_model_name"].AsString();
-        auto const controller_model = data["system"]["controller_model"].AsString();
-        _version = data["system"]["firmware_version"].AsString();
-        _controllerType = data["system"]["controller_line"].AsString();
-        _numberOfPixelOutputs = data["system"]["number_of_local_outputs"].AsInt();
-        _numberOfRemoteOutputs = data["system"]["number_of_long_range_pixel_ports"].AsInt();
-        _numberOfSerialOutputs = data["system"]["number_of_long_range_dmx_ports"].AsInt();
-        if (data["system"].HasMember("has_efuses")) {
-            _has_efuses = data["system"]["has_efuses"].AsBool();
+        _model = data["system"]["controller_model_name"].get<std::string>();
+        auto const controller_model = data["system"]["controller_model"].get<std::string>();
+        _version = data["system"]["firmware_version"].get<std::string>();
+        _controllerType = data["system"]["controller_line"].get<std::string>();
+        _numberOfPixelOutputs = data["system"]["number_of_local_outputs"].get<int>();
+        _numberOfRemoteOutputs = data["system"]["number_of_long_range_pixel_ports"].get<int>();
+        _numberOfSerialOutputs = data["system"]["number_of_long_range_dmx_ports"].get<int>();
+        if (data["system"].contains("has_efuses")) {
+            _has_efuses = data["system"]["has_efuses"].get<bool>();
         }
         DecodeModelInformation(controller_model);
         DecodeFirmwareInformation(ToWXString(_version));
@@ -185,8 +182,8 @@ Experience::Experience(std::string const& ip, std::string const& proxy) :
         DisplayError(wxString::Format("Error connecting to Genius controller on %s.", _ip).ToStdString());
     }
 
-    if (config.Size() > 0) {
-        _opMode = config["system"]["operating_mode"].AsString();
+    if (config.size() > 0) {
+        _opMode = config["system"]["operating_mode"].get<std::string>();
     }
 }
 
@@ -194,8 +191,7 @@ Experience::Experience(std::string const& ip, std::string const& proxy) :
 
 #pragma region Getters and Setters
 
-int32_t Experience::SetInputUniverses(wxJSONValue& data, Controller* controller)
-{
+int32_t Experience::SetInputUniverses(nlohmann::json& data, Controller* controller) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Experience Inputs Upload: Uploading to %s", (const char*)_ip.c_str());
     int32_t startChannel{ -1 };
@@ -215,24 +211,24 @@ int32_t Experience::SetInputUniverses(wxJSONValue& data, Controller* controller)
     startChannel = out->GetStartChannel();
 
     if (out->GetType() == OUTPUT_E131 || out->GetType() == OUTPUT_ARTNET) {
-        wxJSONValue universes;
+        nlohmann::json universes;
         if (allSameSize) {
             // all the same size, make one entry
-            wxJSONValue universe;
+            nlohmann::json universe;
             universe["start_universe"] = out->GetUniverse();
             universe["number_of_universes"] = eth->GetOutputCount();
             universe["channels_per_universe"] = out->GetChannels();
             universe["start_channel"] = 1;
-            universes.Append(universe);
+            universes.push_back(universe);
         } else {
-            //not the same size, loop through them all indivually
+            //not the same size, loop through them all individually
             for (auto const& it : outputs) {
-                wxJSONValue universe;
+                nlohmann::json universe;
                 universe["start_universe"] = it->GetUniverse();
                 universe["number_of_universes"] = 1;
                 universe["channels_per_universe"] = it->GetChannels();
                 universe["start_channel"] = it->GetStartChannel() - out->GetStartChannel() + 1;
-                universes.Append(universe);
+                universes.push_back(universe);
             }
         }
         data["inputs"] = universes;
@@ -254,11 +250,11 @@ int32_t Experience::SetInputUniverses(wxJSONValue& data, Controller* controller)
     }
 
     if (_opMode == "standalone" || _opMode == "remote") {
-        data["system"]["operating_mode"] = wxString(_opMode);
+        data["system"]["operating_mode"] = _opMode;
     } else if (out->GetType() == OUTPUT_DDP) {
-        data["system"]["operating_mode"] = wxString("ddp");
+        data["system"]["operating_mode"] = "ddp";
     } else {
-        data["system"]["operating_mode"] = out->GetType() == OUTPUT_E131 ? wxString("e1.31") : wxString("artnet");
+        data["system"]["operating_mode"] = out->GetType() == OUTPUT_E131 ? "e1.31" : "artnet";
     }
 
     return startChannel;
@@ -304,7 +300,7 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     logger_base.info("Initializing Pixel Output Information.");
     progress.Update(10, "Initializing Pixel Output Information.");
 
-    wxJSONValue stringData;
+    nlohmann::json stringData;
 
     // get controller data from API
     if (!GetJSONData(GetConfigURL(), stringData)) {
@@ -328,8 +324,8 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     progress.Update(30, "Figuring Out Pixel Output Information.");
     //loop to setup string outputs
     for (int p = 1; p <= GetNumberOfPixelOutputs(); p++) {
-        wxJSONValue port;
-        port["long_range_port_index"].SetType(wxJSONTYPE_NULL);
+        nlohmann::json port;
+        port["long_range_port_index"] = nullptr;
         if (has_eFuses) {
             port["power_enabled"] = true;
         }
@@ -337,7 +333,7 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
             UDControllerPort* portData = cud.GetControllerPixelPort(p);
             portData->CreateVirtualStrings(false, true);
             for (const auto& pvs : portData->GetVirtualStrings()) {
-                wxJSONValue vs;
+                nlohmann::json vs;
                 vs["n"] = pvs->_description;
                 vs["sc"] = pvs->_startChannel - startChannel + 1;
                 vs["ec"] = pvs->Channels() / pvs->_channelsPerPixel;
@@ -374,7 +370,7 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                         vs["gc"] = pvs->_groupCount;
                     }
                 }
-                port["virtual_strings"].Append(vs);
+                port["virtual_strings"].push_back(vs);
             }
             port["disabled"] = false;
             stringData["outputs"][p - 1] = port;
@@ -382,17 +378,17 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
             if (has_eFuses) {
                 port["power_enabled"] = true;
             }
-            wxJSONValue vs;
+            nlohmann::json vs;
             vs["sc"] = 0;
             vs["ec"] = 0;
-            port["virtual_strings"].Append(vs);
+            port["virtual_strings"].push_back(vs);
             stringData["outputs"][p - 1] = port;
         }
     }
     for (int lrIdx = 0; lrIdx < GetNumberOfRemoteOutputs(); ++lrIdx) {
         std::unordered_set<int> remoteIds;
         for (int subID = 0; subID < 4; ++subID) {
-            wxJSONValue port;
+            nlohmann::json port;
             port["long_range_port_index"] = lrIdx;
             if (has_eFuses) {
                 port["power_enabled"] = true;
@@ -402,8 +398,9 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
             if (cud.HasPixelPort(portID)) {
                 UDControllerPort* portData = cud.GetControllerPixelPort(portID);
                 portData->CreateVirtualStrings(false, true);
+                int prevousSRID { 0 };
                 for (const auto& pvs : portData->GetVirtualStrings()) {
-                    wxJSONValue vs;
+                    nlohmann::json vs;
 
                     if (pvs->_isDummy) {
                         vs["sc"] = 0;
@@ -446,9 +443,21 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                     }
                     if (pvs->_smartRemote > 0) {
                         vs["ri"] = pvs->_smartRemote - 1;
-                    }
-                    remoteIds.insert(pvs->_smartRemote);
-                    port["virtual_strings"].Append(vs);
+                        if (prevousSRID + 1 != pvs->_smartRemote) {
+                            for (int st_id = prevousSRID + 1; st_id < pvs->_smartRemote; ++st_id) {
+                                nlohmann::json dum_vs;
+                                dum_vs["sc"] = 0;
+                                dum_vs["ec"] = 0;
+                                dum_vs["ri"] = st_id - 1;
+                                port["virtual_strings"].push_back(dum_vs);
+                                remoteIds.insert(st_id);
+                            }
+                        }
+                        remoteIds.insert(pvs->_smartRemote);
+                    }     
+
+                    prevousSRID = pvs->_smartRemote;
+                    port["virtual_strings"].push_back(vs);
                 }
                 port["disabled"] = false;
                 stringData["outputs"][portID - 1] = port;
@@ -456,32 +465,32 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                 if (has_eFuses) {
                     port["power_enabled"] = true;
                 }
-                wxJSONValue vs;
+                nlohmann::json vs;
                 vs["sc"] = 0;
                 vs["ec"] = 0;
                 vs["ri"] = 0;
-                port["virtual_strings"].Append(vs);
+                port["virtual_strings"].push_back(vs);
                 stringData["outputs"][portID - 1] = port;
             }
         }
         //pad end with extra remotes to match other ports on receiver
         for (int subID = 0; subID < 4; ++subID) {
             int portID = GetNumberOfPixelOutputs() + (lrIdx * 4) + subID + 1;
-            while (stringData["outputs"][portID - 1]["virtual_strings"].AsArray()->size() < remoteIds.size()) {
-                wxJSONValue vs;
+            while (stringData["outputs"][portID - 1]["virtual_strings"].size() < remoteIds.size()) {
+                nlohmann::json vs;
                 vs["sc"] = 0;
                 vs["ec"] = 0;
-                vs["ri"] = stringData["outputs"][portID - 1]["virtual_strings"].AsArray()->size();
-                stringData["outputs"][portID - 1]["virtual_strings"].Append(vs);
+                vs["ri"] = stringData["outputs"][portID - 1]["virtual_strings"].size();
+                stringData["outputs"][portID - 1]["virtual_strings"].push_back(vs);
             }
         }
 
         if (remoteIds.size() != 0) {
             stringData["long_range_ports"][lrIdx]["number_of_receivers"] = remoteIds.size();
-            stringData["long_range_ports"][lrIdx]["type"] = wxString("pixel");
+            stringData["long_range_ports"][lrIdx]["type"] = "pixel";
         } else {
             stringData["long_range_ports"][lrIdx]["number_of_receivers"] = 1;
-            stringData["long_range_ports"][lrIdx]["type"] = wxString("pixel");
+            stringData["long_range_ports"][lrIdx]["type"] = "pixel";
         }
     }
 
@@ -495,28 +504,28 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     progress.Update(50, "Figuring Out DMX Output Information.");
 
     for (int sp = 1; sp <= GetNumberOfSerial(); sp++) {
-        wxJSONValue sport;
+        nlohmann::json sport;
         sport["long_range_port_index"] = GetNumberOfRemoteOutputs() + sp - 1;
-        int portID = GetNumberOfPixelOutputs() + (GetNumberOfRemoteOutputs() * 4) + sp;
-        int lrIdx = GetNumberOfRemoteOutputs() + sp - 1;
+        int const portID = GetNumberOfPixelOutputs() + (GetNumberOfRemoteOutputs() * 4) + sp;
+        int const lrIdx = GetNumberOfRemoteOutputs() + sp - 1;
         if (cud.HasSerialPort(sp)) {
             UDControllerPort* portData = cud.GetControllerSerialPort(sp);
-            wxJSONValue vs;
+            nlohmann::json vs;
             vs["sc"] = portData->GetStartChannel() - startChannel + 1;
             vs["ec"] = portData->Channels();
-            sport["virtual_strings"].Append(vs);
+            sport["virtual_strings"].push_back(vs);
             sport["disabled"] = false;
             stringData["outputs"][portID - 1] = sport;
             stringData["long_range_ports"][lrIdx]["number_of_receivers"] = 1;
-            stringData["long_range_ports"][lrIdx]["type"] = wxString("dmx");
+            stringData["long_range_ports"][lrIdx]["type"] = "dmx";
         } else {
-            wxJSONValue vs;
+            nlohmann::json vs;
             vs["sc"] = 0;
             vs["ec"] = 0;
-            sport["virtual_strings"].Append(vs);
+            sport["virtual_strings"].push_back(vs);
             stringData["outputs"][portID - 1] = sport;
             stringData["long_range_ports"][lrIdx]["number_of_receivers"] = 1;
-            stringData["long_range_ports"][lrIdx]["type"] = wxString("dmx");
+            stringData["long_range_ports"][lrIdx]["type"] = "dmx";
         }
     }
 

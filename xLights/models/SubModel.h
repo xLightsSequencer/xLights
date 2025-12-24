@@ -58,7 +58,12 @@ public:
     virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
         std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;
 
-    std::string GetDuplicateNodes() const { return _duplicateNodes; }
+    std::string GetSameLineDuplicates() const {
+        return _sameLineDuplicates;
+    }
+    std::string GetCrossLineDuplicates() const {
+        return _crossLineDuplicates;
+    }
 
     [[nodiscard]] FaceStateData const& GetFaceInfo() const override { return parent->faceInfo; };
     [[nodiscard]] FaceStateNodes const& GetFaceInfoNodes() const override { return parent->faceInfoNodes; };
@@ -77,7 +82,8 @@ public:
     const std::string _type;
     const std::string _bufferStyle;
     std::string _propertyGridDisplay;
-    std::string _duplicateNodes;
+    std::string _sameLineDuplicates;
+    std::string _crossLineDuplicates;
     
     static std::vector<std::string> SUBMODEL_BUFFER_STYLES;
 };

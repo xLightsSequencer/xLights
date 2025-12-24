@@ -17,6 +17,7 @@
 #include <log4cpp/Category.hh>
 
 const long TimeLine::ID_ZOOMSEL = wxNewId();
+const long TimeLine::ID_RESETZOOM = wxNewId();
 
 wxDEFINE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEQUENCE_CHANGED, wxCommandEvent);
@@ -53,6 +54,7 @@ void TimeLine::mouseRightDown(wxMouseEvent& event)
     if (mSelectedPlayMarkerEndMS != mSelectedPlayMarkerStartMS) {
         mnuLayer.Append(ID_ZOOMSEL, "Zoom to Selection");
     }
+    mnuLayer.Append(ID_RESETZOOM, "Reset Zoom");
     for (int i = 0; i < 10; ++i)
     {
         auto mnu = mnuLayer.AppendCheckItem(i+1, wxString::Format("%i", i));
@@ -94,6 +96,10 @@ void TimeLine::OnPopup(wxCommandEvent& event)
 
     if (id + 1 == ID_ZOOMSEL) {
         ZoomSelection();
+    }
+    else if (id + 1 == ID_RESETZOOM) {
+        int maxZoom = GetMaxZoomLevel();
+        SetZoomLevel(maxZoom);
     }
     else if (id == 199)
     {
@@ -968,21 +974,26 @@ void TimeLine::render( wxDC& dc ) {
             seconds = (t-(minutes*60000))/1000;
             subsecs = t - (minutes*60000 + seconds*1000);
 
-            if(minutes > 0)
-            {
-                if(mFrequency>=40)
-                    sTime =  wxString::Format("%d:%02d.%.3d",minutes,seconds,subsecs);
+            if (mShowAlternateTimingFormat) {
+                int totalSeconds = (minutes * 60) + seconds;
+                if (mFrequency >= 40)
+                    sTime = wxString::Format("%d.%.3d", totalSeconds, subsecs);
                 else
-                    sTime =  wxString::Format("%d:%.2d.%.2d",minutes,seconds,subsecs/10);
+                    sTime = wxString::Format("%d.%.2d", totalSeconds, subsecs / 10);
+            } else {
+                if (minutes > 0) {
+                    if (mFrequency >= 40)
+                        sTime = wxString::Format("%d:%02d.%.3d", minutes, seconds, subsecs);
+                    else
+                        sTime = wxString::Format("%d:%.2d.%.2d", minutes, seconds, subsecs / 10);
+                } else {
+                    if (mFrequency >= 40)
+                        sTime = wxString::Format("%2d.%.3d", seconds, subsecs);
+                    else
+                        sTime = wxString::Format("%2d.%.2d", seconds, subsecs / 10);
+                }
             }
-            else
-            {
-                if(mFrequency>=40)
-                    sTime =  wxString::Format("%2d.%.3d",seconds,subsecs);
-                else
-                    sTime =  wxString::Format("%2d.%.2d",seconds,subsecs/10);
-            }
-            dc.DrawLabel(sTime,r,wxALIGN_CENTER);
+            dc.DrawLabel(sTime, r, wxALIGN_CENTER);
         }
     }
 

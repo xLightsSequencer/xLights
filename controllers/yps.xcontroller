@@ -1,0 +1,9 @@
+<Vendor Name="Your Pixel Store">
+	<Controller Name="VIVID 8">
+		<Variant Name="" ID="VIVID_8" Base="Experience Lights:BaseExperienceSettings">
+			<MaxPixelPort>24</MaxPixelPort>
+			<MaxSerialPort>2</MaxSerialPort>
+			<eFuses>true</eFuses>
+		</Variant>
+	</Controller>
+</Vendor>

@@ -240,7 +240,7 @@ int ScheduleManager::DoSync(const std::string& filename, long ms) {
         ms = stepMS;
         if (shouldberunning != nullptr) {
             if (shouldberunning != pl->GetRunningStep()) {
-                logger_sync.debug("Remote sync with no filename ... wrong step was running '%s' switching to '%s'.", (const char*)pl->GetRunningStep()->GetNameNoTime().c_str(), (const char*)shouldberunning->GetNameNoTime().c_str());
+                logger_sync.debug("Remote sync with no filename ... wrong step was running '%s' switching to '%s' at %ldms.", (const char*)pl->GetRunningStep()->GetNameNoTime().c_str(), (const char*)shouldberunning->GetNameNoTime().c_str(), ms);
                 pl->JumpToStep(shouldberunning->GetNameNoTime());
                 wxCommandEvent event2(EVT_SCHEDULECHANGED);
                 wxPostEvent(wxGetApp().GetTopWindow(), event2);
@@ -266,11 +266,11 @@ int ScheduleManager::DoSync(const std::string& filename, long ms) {
             PlayListStep* shouldberunning = pl->GetStepAtTime(ms, stepMS);
             ms = stepMS;
             if (shouldberunning == nullptr) {
-                logger_sync.debug("Remote sync with no filename ... playlist was not sufficiently long for received sync position %ld.", ms);
+                logger_sync.debug("Remote sync with no filename ... playlist was not sufficiently long for received sync position %ldms.", ms);
                 delete pl;
                 pl = nullptr;
             } else {
-                logger_sync.debug("Remote sync with no filename ... starting playlist '%s' step '%s'.", (const char*)pl->GetNameNoTime().c_str(), (const char*)shouldberunning->GetNameNoTime().c_str());
+                logger_sync.debug("Remote sync with no filename ... starting playlist '%s' step '%s' at %ldms.", (const char*)pl->GetNameNoTime().c_str(), (const char*)shouldberunning->GetNameNoTime().c_str(), ms);
                 pl->Start(false, false, false);
                 pl->JumpToStep(shouldberunning->GetNameNoTime());
                 if (pl->GetRunningStep() != nullptr) {

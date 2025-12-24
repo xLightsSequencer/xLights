@@ -25,6 +25,7 @@
 #include "nanosvg/src/nanosvg.h"
 
 #include <regex>
+#include <log4cpp/Category.hh>
 
 #include "../../include/shape-16.xpm"
 #include "../../include/shape-24.xpm"
@@ -666,6 +667,11 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     }
 
     if (Object_To_Draw == RENDER_SHAPE_EMOJI || Object_To_Draw == RENDER_SHAPE_SVG) {
+        if (buffer.BufferWi <= 0 || buffer.BufferHt <= 0 || buffer.BufferWi > 15000) {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.error("Shape Effect (Emoji): Invalid buffer size: width=%d, height=%d", buffer.BufferWi, buffer.BufferHt);
+            return;
+        }
         auto context = buffer.GetTextDrawingContext();
         context->Clear();
     }
@@ -1288,16 +1294,11 @@ static inline uint8_t GetSVGAlpha(uint32_t colour)
     return (colour >> 24);
 }
 
-static inline uint32_t GetSVGExAlpha(uint32_t colour)
-{
-    return (colour & 0xFFFFFF);
-}
-
 void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const
 {
     auto image = cache->GetImage();
     if (image == nullptr) {
-        for (size_t x = 0; x < buffer.BufferWi; ++ x) {
+        for (size_t x = 0; x < buffer.BufferWi; ++x) {
             for (size_t y = 0; y < buffer.BufferHt; ++y) {
                 buffer.SetPixel(x, y, xlRED);
             }
@@ -1311,51 +1312,8 @@ void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc,
 
         for (NSVGshape* shape = image->shapes; shape != nullptr; shape = shape->next) {
 
-            if (GetSVGExAlpha(shape->fill.color) != 0) {
-                if (shape->fill.type == 0) {
-                    context->SetBrush(wxNullBrush);
-                }
-                else if (shape->fill.type == 1) {
-                    wxColor bc(GetSVGRed(shape->fill.color), GetSVGGreen(shape->fill.color), GetSVGBlue(shape->fill.color), /*shape->opacity * */ GetSVGAlpha(shape->fill.color) * color.alpha / 255);
-                    wxBrush brush(bc, wxBrushStyle::wxBRUSHSTYLE_SOLID);
-                    context->SetBrush(brush);
-                } else {
-                    // these are gradients and I know they are not right
-                    if (shape->fill.gradient->nstops == 2) {
-                        wxColor c1(GetSVGRed(shape->fill.gradient->stops[0].color), GetSVGGreen(shape->fill.gradient->stops[0].color), GetSVGBlue(shape->fill.gradient->stops[0].color), /*shape->opacity * */ GetSVGAlpha(shape->fill.gradient->stops[0].color) * color.alpha / 255);
-                        wxColor c2(GetSVGRed(shape->fill.gradient->stops[1].color), GetSVGGreen(shape->fill.gradient->stops[1].color), GetSVGBlue(shape->fill.gradient->stops[1].color), /*shape->opacity * */ GetSVGAlpha(shape->fill.gradient->stops[1].color) * color.alpha / 255);
-                        wxGraphicsBrush brush = context->CreateLinearGradientBrush(0, buffer.BufferHt, 0, 0, c1, c2);
-                        context->SetBrush(brush);
-                    } else {
-                        wxGraphicsGradientStops stops;
-                        for (size_t i = 0; i < shape->fill.gradient->nstops; ++i) {
-                            wxColor sc(GetSVGRed(shape->fill.gradient->stops[i].color), GetSVGGreen(shape->fill.gradient->stops[i].color), GetSVGBlue(shape->fill.gradient->stops[i].color), /*shape->opacity * */ GetSVGAlpha(shape->fill.gradient->stops[i].color) * color.alpha / 255);
-                            if (i == 0) {
-                                stops.SetStartColour(sc);
-                            } else if (i == shape->fill.gradient->nstops - 1) {
-                                stops.SetEndColour(sc);
-                            } else {
-                                stops.Add(sc, 1.0 - shape->fill.gradient->stops[i].offset);
-                            }
-                        }
-                        wxGraphicsBrush brush = context->CreateLinearGradientBrush(0, buffer.BufferHt, 0, 0, stops);
-                        context->SetBrush(brush);
-                    }
-                }
-            }
-
-            if (shape->stroke.type == 0) {
-                context->SetPen(wxNullPen);
-            } else if (shape->stroke.type == 1) {
-                wxColor pc(GetSVGRed(shape->stroke.color), GetSVGGreen(shape->stroke.color), GetSVGBlue(shape->stroke.color), /*shape->opacity * */ GetSVGAlpha(shape->stroke.color) * color.alpha / 255);
-                wxPen pen(pc, thickness);
-                context->SetPen(pen);
-            } else {
-                // we dont fo gradient lines yet
-            }
-
+            wxGraphicsPath cpath = context->CreatePath();
             for (NSVGpath* path = shape->paths; path != nullptr; path = path->next) {
-                wxGraphicsPath cpath = context->CreatePath();
                 for (int i = 0; i < path->npts - 1; i += 3) {
                     float* p = &path->pts[i * 2];
                     auto ih = image->height;
@@ -1376,10 +1334,61 @@ void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc,
                 }
                 if (path->closed) {
                     cpath.CloseSubpath();
-                    context->FillPath(cpath, wxPolygonFillMode::wxODDEVEN_RULE);
-                } 
-                context->StrokePath(cpath);
+                }
             }
+
+            // Fill setup: Use SVG's gradient with ABGR extraction
+            if (shape->fill.type == NSVG_PAINT_LINEAR_GRADIENT && shape->fill.gradient->nstops >= 2) {
+                wxGraphicsGradientStops stops;
+                for (size_t i = 0; i < shape->fill.gradient->nstops; ++i) {
+                    uint32_t c = shape->fill.gradient->stops[i].color;
+                    // Extract ABGR (NanoSVG's order)
+                    uint8_t a = (c >> 24) & 0xFF;
+                    uint8_t b = (c >> 16) & 0xFF;  // Blue
+                    uint8_t g = (c >> 8) & 0xFF;   // Green
+                    uint8_t r = c & 0xFF;          // Red
+                    wxColor sc(r, g, b, a * color.alpha / 255);
+                    if (i == 0) {
+                        stops.SetStartColour(sc);
+                    } else if (i == shape->fill.gradient->nstops - 1) {
+                        stops.SetEndColour(sc);
+                    } else {
+                        stops.Add(sc, shape->fill.gradient->stops[i].offset);
+                    }
+                }
+
+                float minX = shape->bounds[0], maxX = shape->bounds[2];
+                float minY = shape->bounds[1], maxY = shape->bounds[3];
+                wxPoint2DDouble gstart(minX, (minY + maxY) / 2.0);
+                wxPoint2DDouble gend(maxX, (minY + maxY) / 2.0);
+                gstart = ScaleMovePoint(wxPoint2DDouble(gstart.m_x, image->height - gstart.m_y), imageCentre, centre, cache->_svgScaleBase, radius);
+                gend = ScaleMovePoint(wxPoint2DDouble(gend.m_x, image->height - gend.m_y), imageCentre, centre, cache->_svgScaleBase, radius);
+
+                wxGraphicsBrush brush = context->CreateLinearGradientBrush(gstart.m_x, gstart.m_y, gend.m_x, gend.m_y, stops);
+                context->SetBrush(brush);
+            } else if (shape->fill.type == NSVG_PAINT_COLOR) {
+                wxColor bc(GetSVGRed(shape->fill.color), GetSVGGreen(shape->fill.color), GetSVGBlue(shape->fill.color), GetSVGAlpha(shape->fill.color) * color.alpha / 255);
+                wxBrush brush(bc, wxBrushStyle::wxBRUSHSTYLE_SOLID);
+                context->SetBrush(brush);
+            } else {
+                wxBrush brush(color.asWxColor(), wxBrushStyle::wxBRUSHSTYLE_SOLID);
+                context->SetBrush(brush);
+            }
+
+            if (shape->stroke.type == NSVG_PAINT_NONE) {
+                context->SetPen(wxNullPen);
+            } else if (shape->stroke.type == NSVG_PAINT_COLOR) {
+                wxColor pc(GetSVGRed(shape->stroke.color), GetSVGGreen(shape->stroke.color), GetSVGBlue(shape->stroke.color), GetSVGAlpha(shape->stroke.color) * color.alpha / 255);
+                wxPen pen(pc, thickness);
+                context->SetPen(pen);
+            } else {
+                // Fallback to effect color if stroke type is unexpected
+                wxPen pen(color.asWxColor(), thickness);
+                context->SetPen(pen);
+            }
+
+            context->FillPath(cpath, shape->fillRule == NSVG_FILLRULE_EVENODD ? wxODDEVEN_RULE : wxWINDING_RULE);
+            context->StrokePath(cpath);
         }
 
         wxImage* image = buffer.GetPathDrawingContext()->FlushAndGetImage();

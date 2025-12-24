@@ -2,12 +2,32 @@ name: Windows Nightly
 
 on:
   schedule:
-    - cron: '0 5 * * *' # run at 5 AM UTC
-    
+    - cron: '0 5 * * *' # run at 5 AM UTC    
   workflow_dispatch:
 
 jobs:
+  check_for_commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for new commits today
+        id: check-new-commits
+        uses: adriangl/check-new-commits-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          seconds: 86400 # One day in seconds
+          branch: 'master' # Or your target branch
+      - name: Set output if new commits found
+        if: ${{ steps.check-new-commits.outputs.has-new-commits == 'true' }}
+        run: echo "::set-output name=should_run::true"
+      - name: Set output if no new commits
+        if: ${{ steps.check-new-commits.outputs.has-new-commits != 'true' }}
+        run: echo "::set-output name=should_run::false"
+    outputs:
+      should_run: ${{ steps.check-new-commits.outputs.has-new-commits }}
+
   build:
+    needs: check_for_commits
+    if: ${{ needs.check_for_commits.outputs.should_run == 'true' }}
     runs-on: windows-2022
 
     steps:
@@ -20,7 +40,7 @@ jobs:
     - name: install ISPC
       uses: ispc/install-ispc-action@main
       with:
-        version: 1.25.3
+        version: 1.28.1
             
 #    - name: install Inno
 #      run: choco install innosetup   

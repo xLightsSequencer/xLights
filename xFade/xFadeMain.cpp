@@ -30,6 +30,7 @@
 #include "E131Receiver.h"
 #include "ArtNETReceiver.h"
 
+#include <nlohmann/json.hpp>
 
 #ifndef __WXOSX__
 #include "MIDIListener.h"
@@ -894,13 +895,13 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
     TextCtrl_LeftTag->SetValue("");
     TextCtrl_RightTag->SetValue("");
 
-    wxJSONValue result = xLightsRequest(1, "{\"cmd\":\"getJukeboxButtonTooltips\"}", _settings._leftIP);
-    if (result["res"].AsInt() == 200) {
+    auto result = xLightsRequest(1, "{\"cmd\":\"getJukeboxButtonTooltips\"}", _settings._leftIP);
+    if (result["res"].get<int>() == 200) {
         Panel_Left->Enable(true);
 
-        auto tips = result["tooltips"].AsArray();
-        for (uint32_t i = 0; i < tips->Count(); i++) {
-            auto it = tips->Item(i).AsString();
+        auto tips = result["tooltips"].array();
+        for (uint32_t i = 0; i < tips.size(); i++) {
+            auto it = tips.at(i).get<std::string>();
             wxString s = wxString::Format("%d", i + 1);
             auto buttons = Panel_Left->GetChildren();
             for (const auto& b : buttons) {
@@ -915,11 +916,11 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
         }
 
         result = xLightsRequest(1, "{\"cmd\":\"getJukeboxButtonEffectPresent\"}", _settings._leftIP);
-        if (result["res"].AsInt() == 200) {
-            auto bs = result["effects"].AsArray();
+        if (result["res"].get<int>() == 200) {
+            auto bs = result["effects"].array();
 
-            for (uint32_t i = 0; i < bs->Count(); i++) {
-                auto it = bs->Item(i).AsInt();
+            for (uint32_t i = 0; i < bs.size(); i++) {
+                auto it = bs.at(i).get<int>();
                 wxString s = wxString::Format("%d", i + 1);
                 auto buttons = Panel_Left->GetChildren();
                 for (const auto& b : buttons) {
@@ -952,12 +953,12 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
     }
 
     result = xLightsRequest(2, "{\"cmd\":\"getJukeboxButtonTooltips\"}", _settings._rightIP);
-    if (result["res"].AsInt() == 200) {
+    if (result["res"].get<int>() == 200) {
         Panel_Right->Enable(true);
 
-        auto tips = result["tooltips"].AsArray();
-        for (uint32_t i = 0; i < tips->Count(); i++) {
-            auto it = tips->Item(i).AsString();
+        auto tips = result["tooltips"].array();
+        for (uint32_t i = 0; i < tips.size(); i++) {
+            auto it = tips.at(i).get<std::string>();
             wxString s = wxString::Format("%d", i + 1);
             auto buttons = Panel_Right->GetChildren();
             for (const auto& b : buttons) {
@@ -972,11 +973,11 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
         }
 
         result = xLightsRequest(2, "{\"cmd\":\"getJukeboxButtonEffectPresent\"}", _settings._rightIP);
-        if (result["res"].AsInt() == 200) {
-            auto bs = result["effects"].AsArray();
+        if (result["res"].get<int>() == 200) {
+            auto bs = result["effects"].array();
 
-            for (uint32_t i = 0; i < bs->Count(); i++) {
-                auto it = bs->Item(i).AsInt();
+            for (uint32_t i = 0; i < bs.size(); i++) {
+                auto it = bs.at(i).get<int>();
                 wxString s = wxString::Format("%d", i + 1);
                 auto buttons = Panel_Right->GetChildren();
                 for (const auto& b : buttons) {

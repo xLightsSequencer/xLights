@@ -45,16 +45,16 @@ class OtherSettingsPanel: public wxPanel
 		wxChoice* ChoiceCodec;
 		wxChoice* Choice_AliasPromptBehavior;
 		wxChoice* Choice_LinkControllerUpload;
-		wxChoice* Choice_LinkSave;
 		wxChoice* Choice_MinTipLevel;
 		wxChoice* HardwareVideoRenderChoice;
+		wxSpinCtrlDouble* CtrlPingInterval;
 		wxSpinCtrlDouble* SpinCtrlDoubleBitrate;
-		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
 		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
 		wxTextCtrl* eMailTextControl;
 		//*)
 
@@ -64,8 +64,6 @@ class OtherSettingsPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(OtherSettingsPanel)
-		static const wxWindowID ID_STATICTEXT1;
-		static const wxWindowID ID_CHOICE1;
 		static const wxWindowID ID_CHECKBOX1;
 		static const wxWindowID ID_CHOICE4;
 		static const wxWindowID ID_CHECKBOX7;
@@ -87,6 +85,8 @@ class OtherSettingsPanel: public wxPanel
 		static const wxWindowID ID_CHOICE_ALIASPROMPT;
 		static const wxWindowID ID_TEXTCTRL1;
 		static const wxWindowID ID_CHECKBOX9;
+		static const wxWindowID ID_STATICTEXT7;
+		static const wxWindowID ID_CTRLPINGINTERVAL;
 		//*)
 
 	private:

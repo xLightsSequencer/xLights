@@ -59,6 +59,7 @@ private:
     void rightClick(wxMouseEvent& event);
     void leftDoubleClick(wxMouseEvent &event);
     void OnLayerPopup(wxCommandEvent& event);
+    std::vector<std::string> ParseTags(const wxString& tagString);
     void DrawHeading(wxPaintDC* dc, wxXmlNode* model, int width, int row);
     bool HitTestCollapseExpand(int row, int x, bool* IsCollapsed);
     bool HitTestTimingActive(int row, int x, bool* IsActive);
@@ -141,6 +142,7 @@ private:
     static const long ID_ROW_MNU_REMOVE_TIMING_WORDS_PHONEMES;
     static const long ID_ROW_MNU_SHOWALLTIMING;
     static const long ID_ROW_MNU_HIDEALLTIMING;
-    
+    static const long ID_ROW_MNU_GENERATE_SUBDIVIDED_TRACKS;
+
     static const long ID_ROW_MNU_SETLAYERNAME;
 };

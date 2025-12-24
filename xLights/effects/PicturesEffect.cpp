@@ -240,7 +240,7 @@ typedef std::vector< std::pair<wxPoint, xlColor> > PixelVector;
 
 class PicturesRenderCache : public EffectRenderCache {
 public:
-    PicturesRenderCache() : imageCount(0), frame(0),  gifImage(nullptr), maxmovieframes(0) {};
+    PicturesRenderCache() : imageCount(0), frame(0),  gifImage(nullptr), maxmovieframes(0), orientation(1) {};
     virtual ~PicturesRenderCache()
     {
         if (gifImage != nullptr) {
@@ -255,6 +255,7 @@ public:
     int frame;
     int maxmovieframes;
     wxString PictureName;
+    int orientation;
     GIFImage* gifImage;
     std::vector<PixelVector> PixelsByFrame;
 };
@@ -610,6 +611,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
                 }
                 
                 cache->PictureName = NewPictureName;
+                cache->orientation = GetExifOrientation(NewPictureName);
 
                 if (cache->imageCount > 1) {
 #ifdef DEBUG_GIF
@@ -631,6 +633,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
                             logger_base.error("Error loading image file: %s.", (const char*)NewPictureName.c_str());
                             image.Create(5, 5, true);
                         }
+                        image = ApplyOrientation(image, cache->orientation);
                         rawimage = image;
                     } else {
                         image = gifImage->GetFrame(0);
@@ -641,6 +644,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
                         logger_base.error("Error loading image file: %s.", (const char*)NewPictureName.c_str());
                         image.Create(5, 5, true);
                     }
+                    image = ApplyOrientation(image, cache->orientation);
                     rawimage = image;
                 }
             }
@@ -690,12 +694,11 @@ void PicturesEffect::Render(RenderBuffer& buffer,
 
     if (scale_to_fit == "Scale To Fit" && (BufferWi != imgwidth || BufferHt != imght)) {
         image = rawimage;
-// work around wxWidgets image rescaling bug on windows in VS release builds
-//#ifdef __WXMSW__
-//        image.Rescale(BufferWi, BufferHt, wxIMAGE_QUALITY_BILINEAR); // I tried bicubic but it creates visual artefacts
-//#else
+        image.SetOption(wxIMAGE_OPTION_GIF_TRANSPARENCY, wxIMAGE_OPTION_GIF_TRANSPARENCY_UNCHANGED);
+        if (!image.HasAlpha()) {
+            image.InitAlpha();
+        }
         image.Rescale(BufferWi, BufferHt);
-//#endif
         imgwidth = image.GetWidth();
         imght = image.GetHeight();
         yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
@@ -708,12 +711,11 @@ void PicturesEffect::Render(RenderBuffer& buffer,
         float sc = std::min(xr, yr);
         if(scale_to_fit.find("Crop") != std::string::npos)
             sc = std::max(xr, yr);
-// work around wxWidgets image rescaling bug on windows in VS release builds
-//#ifdef __WXMSW__
-//        image.Rescale(image.GetWidth() * sc, image.GetHeight() * sc, wxIMAGE_QUALITY_BILINEAR); // I tried bicubic but it creates visual artefacts
-//#else
+        image.SetOption(wxIMAGE_OPTION_GIF_TRANSPARENCY, wxIMAGE_OPTION_GIF_TRANSPARENCY_UNCHANGED);
+        if (!image.HasAlpha()) {
+            image.InitAlpha();
+        }
         image.Rescale(image.GetWidth() * sc, image.GetHeight() * sc);
-//#endif
         imgwidth = image.GetWidth();
         imght = image.GetHeight();
         yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
@@ -727,11 +729,11 @@ void PicturesEffect::Render(RenderBuffer& buffer,
             imght = (image.GetHeight() * current_scale) / 100;
             imgwidth = std::max(imgwidth, 1);
             imght = std::max(imght, 1);
-//#ifdef __WXMSW__
-//            image.Rescale(imgwidth, imght, wxIMAGE_QUALITY_BILINEAR); // I tried bicubic but it creates visual artefacts
-//#else
+            image.SetOption(wxIMAGE_OPTION_GIF_TRANSPARENCY, wxIMAGE_OPTION_GIF_TRANSPARENCY_UNCHANGED);
+            if (!image.HasAlpha()) {
+                image.InitAlpha();
+            }
             image.Rescale(imgwidth, imght);
-//#endif
             yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
             xoffset = (imgwidth - BufferWi) / 2; //centered if sizes don't match
         }

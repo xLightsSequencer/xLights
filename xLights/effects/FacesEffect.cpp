@@ -116,6 +116,10 @@ wxString FacesEffect::GetEffectString() {
     ret << p->Choice_Faces_EyeBlinkFrequency->GetStringSelection().ToStdString();
     ret << ",";
 
+    ret << "E_CHOICE_Faces_EyeBlinkDuration=";
+    ret << p->Choice_Faces_EyeBlinkDuration->GetStringSelection().ToStdString();
+    ret << ",";
+
     ret << "E_CHOICE_Faces_FaceDefinition=";
     ret << p->Face_FaceDefinitonChoice->GetStringSelection().ToStdString();
     ret << ",";
@@ -251,6 +255,18 @@ int FacesEffect::GetMaxEyeDelay( std::string& eyeBlinkFreqString ) const {
         maxEyeDelay = 2000;
     
     return maxEyeDelay;
+}
+
+int FacesEffect::GetEyeBlinkDuration(std::string& eyeBlinkDurationString) const {
+    int EyeBlinkDuration = 100; // Normal
+    if (eyeBlinkDurationString == "Slower")
+        EyeBlinkDuration = 50;
+    else if (eyeBlinkDurationString == "Long")
+        EyeBlinkDuration = 200;
+    else if (eyeBlinkDurationString == "Longer")
+        EyeBlinkDuration = 400;
+
+    return EyeBlinkDuration;
 }
 
 void FacesEffect::SetPanelStatus(Model* cls) {
@@ -473,6 +489,7 @@ void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                                SettingsMap["CHOICE_Faces_Phoneme"],
                                SettingsMap.Get("CHOICE_Faces_Eyes", "Auto"),
                                SettingsMap.Get("CHOICE_Faces_EyeBlinkFrequency", "Normal"),
+                               SettingsMap.Get("CHOICE_Faces_EyeBlinkDuration", "Normal"),
                                SettingsMap.GetBool("CHECKBOX_Faces_Outline"),
                                alpha, SettingsMap.GetBool("CHECKBOX_Faces_SuppressShimmer", false));
     } else {
@@ -483,6 +500,7 @@ void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                     SettingsMap["CHOICE_Faces_TimingTrack"],
                     SettingsMap["CHOICE_Faces_Eyes"],
                     SettingsMap["CHOICE_Faces_EyeBlinkFrequency"],
+                    SettingsMap["CHOICE_Faces_EyeBlinkDuration"],
                     SettingsMap.GetBool("CHECKBOX_Faces_Outline"),
                     SettingsMap.GetBool("CHECKBOX_Faces_TransparentBlack", false),
                     SettingsMap.GetInt("TEXTCTRL_Faces_TransparentBlack", 0),
@@ -496,7 +514,7 @@ void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
     //}
 }
 
-void FacesEffect::RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, const std::string& eyeBlinkFreq, bool outline, uint8_t alpha, bool suppressShimmer) {
+void FacesEffect::RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, const std::string& eyeBlinkFreq, const std::string& eyeBlinkDuration, bool outline, uint8_t alpha, bool suppressShimmer) {
     if (alpha == 0)
         return; // 0 alpha means there is nothing to do
 
@@ -528,7 +546,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, 
     int Wt = buffer.BufferWi;
 
     // this draws eyes as well
-    drawoutline(buffer, PhonemeInt, outline, eyes, eyeBlinkFreq, buffer.BufferHt, buffer.BufferWi);
+    drawoutline(buffer, PhonemeInt, outline, eyes, eyeBlinkFreq, eyeBlinkDuration, buffer.BufferHt, buffer.BufferWi);
     mouth(buffer, PhonemeInt, Ht, Wt, shimmer); // draw a mouth syllable
 }
 
@@ -693,9 +711,10 @@ void FacesEffect::facesCircle(RenderBuffer& buffer, int Phoneme, int xc, int yc,
     }
 }
 
-void FacesEffect::drawoutline(RenderBuffer& buffer, int Phoneme, bool outline, const std::string& eyes, const std::string& eyeBlinkFreqIn, int BufferHt, int BufferWi) {
+void FacesEffect::drawoutline(RenderBuffer& buffer, int Phoneme, bool outline, const std::string& eyes, const std::string& eyeBlinkFreqIn, const std::string& eyeBlinkDurationIn, int BufferHt, int BufferWi) {
     std::string eye = eyes;
     std::string eyeBlinkFreq = eyeBlinkFreqIn;
+    std::string eyeBlinkDuration = eyeBlinkDurationIn;
 
     FacesRenderCache* cache = (FacesRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
@@ -834,7 +853,7 @@ static bool parse_model(const wxString& want_model)
 // Outline_x_y = list of persistent/sticky elements (stays on after frame ends)
 // Eyes_x_y = list of random elements (intended for eye blinks, etc)
 
-void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, const std::string& eyeBlinkFreq, bool face_outline, uint8_t alpha, bool suppressShimmer)
+void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, const std::string& eyeBlinkFreq, const std::string& eyeBlinkDuration, bool face_outline, uint8_t alpha, bool suppressShimmer)
 {
     if (alpha == 0) return;
 
@@ -850,7 +869,7 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
 
     if (auto_phonemes.find((const char*)Phoneme.c_str()) != auto_phonemes.end())
     {
-        RenderFaces(buffer, auto_phonemes[(const char*)Phoneme.c_str()], eyes, eyeBlinkFreq, face_outline, alpha, suppressShimmer);
+        RenderFaces(buffer, auto_phonemes[(const char*)Phoneme.c_str()], eyes, eyeBlinkFreq, eyeBlinkDuration, face_outline, alpha, suppressShimmer);
         return;
     }
 
@@ -924,13 +943,14 @@ static const std::string &findKey(const std::map<std::string, std::string> &m, c
 void FacesEffect::RenderFaces(RenderBuffer& buffer,
                               SequenceElements* elements, const std::string& faceDef,
                               const std::string& Phoneme, const std::string& trackName,
-                              const std::string& eyesIn, const std::string& eyeBlinkFreqIn, bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha, const std::string& outlineState, bool suppressShimmer)
-{
+                              const std::string& eyesIn, const std::string& eyeBlinkFreqIn, const std::string& eyeBlinkDurationIn,
+                              bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha, const std::string& outlineState, bool suppressShimmer) {
     if (alpha == 0)
         return; // if alpha is zero dont bother.
 
     std::string eyes = eyesIn;
     std::string eyeBlinkFreq = eyeBlinkFreqIn;
+    std::string eyeBlinkDuration = eyeBlinkDurationIn;
 
     FacesRenderCache* cache = (FacesRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
@@ -1118,8 +1138,9 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                         } else {
                             //calculate the blink time taking into account user selection
                             int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
+                            int EyeBlinkDuration = GetEyeBlinkDuration(eyeBlinkDuration);
                             cache->nextBlinkTime += intRand(maxEyeDelay-1000, maxEyeDelay);
-                            cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; // 100ms blink
+                            cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + EyeBlinkDuration + 1; // 100ms blink
                             eyes = "Closed";
                         }
                     } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
@@ -1135,8 +1156,9 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
                     //calculate the blink time, taking into account user selection
                     int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
+                    int EyeBlinkDuration = GetEyeBlinkDuration(eyeBlinkDuration);
                     cache->nextBlinkTime += intRand(maxEyeDelay-1000, maxEyeDelay);
-                    cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; // 100ms blink
+                    cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + EyeBlinkDuration + 1; // 100ms blink
                     eyes = "Closed";
                 } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
                     eyes = "Closed";
@@ -1334,7 +1356,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     }
 
     if (type == 2) {
-        RenderFaces(buffer, phoneme, eyes, eyeBlinkFreq, face_outline, alpha, suppressShimmer);
+        RenderFaces(buffer, phoneme, eyes, eyeBlinkFreq, eyeBlinkDuration, face_outline, alpha, suppressShimmer);
         return;
     }
     if (type == 3) {
@@ -1432,8 +1454,8 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 if (findKey(sts, "CustomColors") == "1") {
                     if (findKey(sts, "Type") == "NodeRange") {
                         for (size_t i = 1; i <= 200; i++) {
-                            auto r = findKey(sts, wxString::Format("s%d", (int)i));
-                            auto c = findKey(sts, wxString::Format("s%d-Color", (int)i));
+                            auto r = findKey(sts, wxString::Format("s%03d", (int)i));
+                            auto c = findKey(sts, wxString::Format("s%03d-Color", (int)i));
                             if (r != "") {
                                 xlColor colour = xlColor(c);
                                 if (c.empty()) {
@@ -1443,7 +1465,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                                 
                                 // use the nodes as it is faster
                                 if (model_info->GetStateInfoNodes().find(outlineState) != model_info->GetStateInfoNodes().end()) {
-                                    const std::string k2 = wxString::Format("s%d", (int)i).ToStdString();
+                                    const std::string k2 = wxString::Format("s%03d", (int)i).ToStdString();
                                     for (const auto it : model_info->GetStateInfoNodes().find(outlineState)->second.find(k2)->second) {
                                         buffer.SetNodePixel(it, colour, true);
                                     }

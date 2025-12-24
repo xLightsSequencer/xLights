@@ -22,6 +22,7 @@
 								<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
 									<cols>5</cols>
 									<growablecols>1</growablecols>
+									<growablerows>0</growablerows>
 									<object class="sizeritem">
 										<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText3" member="yes">
 											<label>Name:</label>
@@ -40,7 +41,7 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON3" variable="AddButton" member="no">
+										<object class="wxButton" name="ID_BUTTON_ADD" variable="AddButton" member="no">
 											<label>Add</label>
 											<handler function="OnButtonMatrixAddClicked" entry="EVT_BUTTON" />
 										</object>
@@ -49,23 +50,14 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON_IMPORT" variable="ButtonImport" member="yes">
+										<object class="wxButton" name="ID_BUTTON_MORE" variable="ButtonMore" member="yes">
 											<label>...</label>
 											<size>20,-1</size>
 											<minsize>20,-1</minsize>
-											<handler function="OnButtonImportClick" entry="EVT_BUTTON" />
+											<handler function="OnButtonMoreClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON4" variable="DeleteButton" member="yes">
-											<label>Delete</label>
-											<handler function="OnButtonMatrixDeleteClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
 									</object>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
@@ -169,6 +161,8 @@
 														<object class="sizeritem">
 															<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
 																<cols>3</cols>
+																<growablecols>2</growablecols>
+																<growablerows>0</growablerows>
 																<object class="sizeritem">
 																	<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CustomColorNodeRanges" member="yes">
 																		<label>Force Custom Colors</label>
@@ -276,6 +270,7 @@
 															<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
 																<cols>3</cols>
 																<growablecols>1</growablecols>
+																<growablerows>0</growablerows>
 																<object class="sizeritem">
 																	<object class="wxStaticText" name="wxID_ANY" variable="StaticText2" member="no">
 																		<label>Image Placement:</label>

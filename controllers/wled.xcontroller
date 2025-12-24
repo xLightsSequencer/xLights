@@ -37,7 +37,7 @@
     </AbstractVariant>
     <AbstractVariant Name="ESP32WLEDSettings" Base="WLED:BaseWLEDSettings">
         <MaxInputUniverses>24</MaxInputUniverses>
-        <MaxPixelPortChannels>3000</MaxPixelPortChannels>
+        <MaxPixelPortChannels>3600</MaxPixelPortChannels>
     </AbstractVariant>
     <Controller Name="WLED">
         <Variant Name="Generic ESP8266" Base="WLED:BaseWLEDSettings">
@@ -141,6 +141,14 @@
             <Port1>2</Port1>
         </Variant>
     </Controller>
+    <Controller Name="E2-WiFi">
+        <Variant Name="V3" Base="WLED:BaseWLEDSettings">
+            <MaxPixelPort>2</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>18</Port1>
+            <Port2>19</Port2>
+        </Variant>
+    </Controller>
     <Controller Name="E8-WiFi">
         <Variant Name="E8-WiFi" Base="WLED:ESP32WLEDSettings">
             <MaxPixelPort>8</MaxPixelPort>
@@ -175,6 +183,32 @@
             <Port2>33</Port2>
             <Port3>16</Port3>
             <Port4>4</Port4>
+        </Variant>
+    </Controller>
+    <Controller Name="Bong69">
+        <Variant Name="8-Port Distro (PCB v1)" Base="WLED:ESP32WLEDSettings">
+            <MaxPixelPort>8</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>15</Port1>
+            <Port2>14</Port2>
+            <Port3>12</Port3>
+            <Port4>4</Port4>
+            <Port5>2</Port5>
+            <Port6>17</Port6>
+            <Port7>5</Port7>
+            <Port8>33</Port8>
+        </Variant>
+        <Variant Name="8-Port Distro (PCB v2/v3)" Base="WLED:ESP32WLEDSettings">
+            <MaxPixelPort>8</MaxPixelPort>
+            <MaxSerialPort>0</MaxSerialPort>
+            <Port1>1</Port1>
+            <Port2>2</Port2>
+            <Port3>3</Port3>
+            <Port4>4</Port4>
+            <Port5>5</Port5>
+            <Port6>12</Port6>
+            <Port7>14</Port7>
+            <Port8>15</Port8>
         </Variant>
     </Controller>
 </Vendor>

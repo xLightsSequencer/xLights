@@ -26,6 +26,13 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
 {
     { "TIMING_ADD", KBSCOPE::Sequence },
     { "TIMING_SPLIT", KBSCOPE::Sequence },
+    { "TIMING_DIVIDE_2", KBSCOPE::Sequence },
+    { "TIMING_DIVIDE_3", KBSCOPE::Sequence },
+    { "TIMING_DIVIDE_4", KBSCOPE::Sequence },
+    { "TIMING_DIVIDE_6", KBSCOPE::Sequence },
+    { "TIMING_DIVIDE_8", KBSCOPE::Sequence },
+    { "TIMING_DIVIDE_12", KBSCOPE::Sequence },
+    { "TIMING_DIVIDE_16", KBSCOPE::Sequence },
     { "ZOOM_IN", KBSCOPE::Sequence },
     { "ZOOM_OUT", KBSCOPE::Sequence },
     { "ZOOM_SEL", KBSCOPE::Sequence },
@@ -150,7 +157,8 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { "JUKEBOX_BTN_2", KBSCOPE::Sequence },
     { "JUKEBOX_BTN_3", KBSCOPE::Sequence },
     { "JUKEBOX_BTN_4", KBSCOPE::Sequence },
-    { "JUKEBOX_BTN_5", KBSCOPE::Sequence }
+    { "JUKEBOX_BTN_5", KBSCOPE::Sequence },
+    { "FPP_CONNECT", KBSCOPE::All }
 };
 
 static  std::vector<std::pair<std::string, std::string>> keyBindingTips = {
@@ -280,7 +288,8 @@ static  std::vector<std::pair<std::string, std::string>> keyBindingTips = {
     { "JUKEBOX_BTN_2", "Jukebox Button 2." },
     { "JUKEBOX_BTN_3", "Jukebox Button 3." },
     { "JUKEBOX_BTN_4", "Jukebox Button 4." },
-    { "JUKEBOX_BTN_5", "Jukebox Button 5." }
+    { "JUKEBOX_BTN_5", "Jukebox Button 5." },
+    { "FPP_CONNECT", "Run FPP Connect" },
 };
 
 const std::vector<KeyBinding> DefaultBindings =
@@ -323,6 +332,7 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("", true, "JUKEBOX_BTN_3", true, true),
     KeyBinding("", true, "JUKEBOX_BTN_4", true, true),
     KeyBinding("", true, "JUKEBOX_BTN_5", true, true),
+    KeyBinding("", true, "FPP_CONNECT", true, true),
 
     KeyBinding("s", false, "SAVE_CURRENT_TAB", true),
     KeyBinding("", true, "SAVE_SEQUENCE", true),

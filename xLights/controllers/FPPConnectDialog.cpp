@@ -26,8 +26,9 @@
 #include "FPPUploadProgressDialog.h"
 #include "ModelPreview.h"
 
+#include "nlohmann/json.hpp"
+
 #include <log4cpp/Category.hh>
-#include "../xSchedule/wxJSON/jsonreader.h"
 
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
@@ -526,7 +527,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
         if (c != nullptr && c->GetActive() == Controller::ACTIVESTATE::ACTIVEINXLIGHTSONLY) {
             if (std::find(discoveredControllers.begin(), discoveredControllers.end(), c->GetResolvedIP()) == discoveredControllers.end()) {
                 FPP* missing = new FPP(c->GetResolvedIP());
-                missing->hostName = c->GetResolvedIP();
+                missing->hostName = c->GetIP();
                 instances.push_back(missing);
             }
         }
@@ -540,12 +541,12 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
 
         std::string l = inst->hostName + " - " + inst->ipAddress;
         std::string lhn = "http://" + inst->hostName;
-        if (!inst->proxy.empty()) {
-            lhn = "http://" + inst->proxy + "/proxy/" + inst->ipAddress;
+        if (!inst->proxy().empty()) {
+            lhn = "http://" + inst->proxy() + "/proxy/" + inst->ipAddress;
         }
         std::string lip = "http://" + inst->ipAddress;
-        if (!inst->proxy.empty()) {
-            lip = "http://" + inst->proxy + "/proxy/" + inst->ipAddress;
+        if (!inst->proxy().empty()) {
+            lip = "http://" + inst->proxy() + "/proxy/" + inst->ipAddress;
         }
         auto link1 = new wxHyperlinkCtrl(FPPInstanceList, wxID_ANY, inst->hostName, lhn, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE, "ID_HOSTNAME_" + rowStr);
         link1->SetNormalColour(CyanOrBlue());
@@ -572,7 +573,11 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
                 doUploadCheckbox->SetValue(false);
                 doUploadCheckbox->Enable(false);
 
-                label = new wxStaticText(FPPInstanceList, wxID_ANY, "Unavailable/Unsupported", wxDefaultPosition, wxDefaultSize, 0, "ID_STATIC_TEXT_FS_" + rowStr);
+                if (!inst->fullVersion.empty()) {
+                    label = new wxStaticText(FPPInstanceList, wxID_ANY, "Unsupported", wxDefaultPosition, wxDefaultSize, 0, "ID_STATIC_TEXT_FS_" + rowStr);
+                }else {
+                    label = new wxStaticText(FPPInstanceList, wxID_ANY, "Unavailable", wxDefaultPosition, wxDefaultSize, 0, "ID_STATIC_TEXT_FS_" + rowStr);
+                }
                 FPPInstanceSizer->Add(label, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             } else {
                 wxChoice *Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, FSEQ_COL + rowStr);
@@ -607,9 +612,6 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
         }
 
         if (inst->fppType == FPP_TYPE::FPP && inst->supportedForFPPConnect()) {
-            if (prgs) {
-                prgs->Pulse("Probing information from " + l);
-            }
             wxCheckBox *CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, MEDIA_COL + rowStr);
             FPPInstanceSizer->Add(CheckBox1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
             wxChoice* Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, MODELS_COL + rowStr);
@@ -643,7 +645,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
 			CheckBoxProxy->SetValue(inst->isaProxy);
 
             //playlist combo box
-            if (StartsWith(inst->mode, "player")) {
+            if (StartsWith(inst->mode, "player") || StartsWith(inst->mode, "master")) {
                 wxComboBox* ComboBox1 = new wxComboBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER, wxDefaultValidator, PLAYLIST_COL + rowStr);
                 ComboBox1->Append(_(""));
                 for (const auto& pl : inst->playlists) {
@@ -1007,22 +1009,22 @@ void FPPConnectDialog::LoadSequences()
 {
     CheckListBox_Sequences->DeleteAllItems();
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
-    wxString freqDir = frame->GetFseqDirectory();
+    wxString fseqDir = frame->GetFseqDirectory();
 
     if (ChoiceFolder->GetSelection() == 0) {
-        LoadSequencesFromFolder(xLightsFrame::CurrentDir);
+        LoadSequencesFromFolder(fseqDir);
     }
     else {
         const wxString folder = ChoiceFolder->GetString(ChoiceFolder->GetSelection());
         LoadSequencesFromFolder(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + folder);
-        freqDir = xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + folder;
+        fseqDir = xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + folder;
     }
 
     wxDir directory;
-    directory.Open(freqDir);
+    directory.Open(fseqDir);
 
     wxArrayString files;
-    GetAllFilesInDir(freqDir, files, "*.?seq");
+    GetAllFilesInDir(fseqDir, files, "*.?seq");
     for (auto &v : files) {
         wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
         bool found = false;
@@ -1155,8 +1157,6 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
-    std::map<int, int> udpRanges;
-    wxJSONValue outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
     int pw, ph;
     frame->GetLayoutPreview()->GetVirtualCanvasSize(pw, ph);
     std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels, pw, ph);
@@ -1182,6 +1182,8 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     cancelled |= inst->UploadControllerProxies(_outputManager);
                 }
                 if (GetChoiceValueIndex(UDP_COL + rowStr) == 1) {
+                    std::map<int, int> udpRanges;
+                    auto outputs = inst->CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
                     cancelled |= inst->UploadUDPOut(outputs);
                     //add the UDP ranges into the list of ranges
                     std::map<int, int> rngs(udpRanges);
@@ -1205,17 +1207,18 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     }
                 }
                 if (GetChoiceValueIndex(MODELS_COL + rowStr) == 1) {
-                    wxJSONValue const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, 0, std::numeric_limits<int32_t>::max());
+                    auto const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, 0, std::numeric_limits<int32_t>::max());
                     cancelled |= inst->UploadModels(memoryMaps);
                     cancelled |= inst->UploadDisplayMap(displayMap);
-                    inst->SetRestartFlag();
+                    // model uploads currently still require a full restart
+                    inst->SetRestartFlag(true);
                 } else if (GetChoiceValueIndex(MODELS_COL + rowStr) == 2) {
                     auto c = _outputManager->GetControllers(inst->ipAddress);
                     if (c.size() == 1) {
-                        wxJSONValue const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());
+                        auto const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());
                         cancelled |= inst->UploadModels(memoryMaps);
                         // cancelled |= inst->UploadDisplayMap(displayMap);
-                        inst->SetRestartFlag();
+                        inst->SetRestartFlag(true);
                     }
                 }
                 //if restart flag is now set, restart and recheck range
@@ -1694,19 +1697,27 @@ void FPPConnectDialog::OnFPPReDiscoverClick(wxCommandEvent& event) {
 
     std::string fppConnectIP = "";
     prgs.Show();
-    instances = FPP::GetInstances(this, _outputManager);
+    std::list<FPP*> newInstances = FPP::GetInstances(this, _outputManager);
     
-    if (curSize < instances.size()) {
-        int cur = 0;
-        for (const auto& fpp : instances) {
-            if (cur >= curSize) {
-                prgs.Pulse("Gathering configuration for " + fpp->hostName + " - " + fpp->ipAddress);
-                fpp->AuthenticateAndUpdateVersions();
-                fpp->probePixelControllerType();
+    for (FPP* fpp : newInstances) {
+        bool found = false;
+        
+        for (auto f : instances) {
+            if (f->ipAddress == fpp->ipAddress) {
+                found = true;
             }
-            cur++;
         }
-
+        
+        if (!found) {
+            prgs.Pulse("Gathering configuration for " + fpp->hostName + " - " + fpp->ipAddress);
+            fpp->AuthenticateAndUpdateVersions();
+            fpp->probePixelControllerType();
+            instances.push_back(fpp);
+        } else {
+            delete fpp;
+        }
+    }
+    if (curSize < instances.size()) {
         instances.sort(sortByIP);
         // it worked, we found some new instances, record this
         wxConfigBase* config = wxConfigBase::Get();
@@ -1727,7 +1738,6 @@ void FPPConnectDialog::OnFPPReDiscoverClick(wxCommandEvent& event) {
         }
         PopulateFPPInstanceList();
     }
-
     prgs.Hide();
 }
 

@@ -138,7 +138,7 @@ void ControllerNull::AddProperties(wxPropertyGrid* propertyGrid, ModelManager* m
     Controller::AddProperties(propertyGrid, modelManager, expandProperties);
 
     auto p = propertyGrid->Append(new wxStringProperty("Models", "Models", modelManager->GetModelsOnChannels(GetStartChannel(), GetEndChannel(), -1)));
-    p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
+    p->ChangeFlag(wxPGFlags::ReadOnly , true);
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
     p = propertyGrid->Append(new wxUIntProperty("Channels", "Channels", GetChannels()));

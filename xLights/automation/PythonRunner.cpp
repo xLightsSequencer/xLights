@@ -84,7 +84,7 @@ std::list<std::string> PythonRunner::PromptSequences() const
     std::list<std::string> sequenceList;
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    BatchRenderDialog dlg(_frame);
+    BatchRenderDialog dlg(_frame, _frame->GetOutputManager());
     dlg.SetTitle("Select Sequences");
     if (dlg.Prepare(_frame->GetShowDirectory()) && dlg.ShowModal() == wxID_OK) {
         wxArrayString files = dlg.GetFileList();
@@ -101,7 +101,7 @@ std::list<std::string> PythonRunner::PromptSequences() const
     return sequenceList;
 }
 
-bool PythonRunner::Run_Script(wxString const& filepath, std::function<void (std::string const& msg)> SendResponse)
+bool PythonRunner::Run_Script(std::string const& filepath, std::function<void (std::string const& msg)> SendResponse)
 {
     #if defined(PYTHON_RUNNER)
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -140,23 +140,19 @@ std::string PythonRunner::RunCommand(std::string const& cmd, const pybind11::dic
     return _frame->ProcessxlDoAutomation(CommandtoString(cmd, dict));
 }
 
-wxString PythonRunner::JSONtoString(wxJSONValue const& json) const
+std::string PythonRunner::JSONtoString(nlohmann::json const& json) const
 {
-    wxJSONWriter writer(wxJSONWRITER_NONE, 0, 0);
-    wxString p;
-    writer.Write(json, p);
-    return p;
+    return json.dump(3);
 }
 
-wxString PythonRunner::CommandtoString(std::string const& cmd, const pybind11::dict& dict) const
-{
-    wxJSONValue cmds;
+std::string PythonRunner::CommandtoString(std::string const& cmd, const pybind11::dict& dict) const {
+    nlohmann::json cmds;
     cmds["cmd"] = cmd;
 #if defined(PYTHON_RUNNER)
     for (auto item : dict) {
 
-        wxString key = std::string(py::str(item.first));
-        wxString value =  std::string(py::str(item.second));
+        std::string key = std::string(py::str(item.first));
+        std::string value = std::string(py::str(item.second));
         cmds[key] = value;
     }
 #endif

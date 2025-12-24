@@ -3,5 +3,5 @@
 
 #define MyTitleName "xLights" 
 #define Year 2025
-#define Version 02
-#define Other ""
+#define Version 13
+#define Other "_1"

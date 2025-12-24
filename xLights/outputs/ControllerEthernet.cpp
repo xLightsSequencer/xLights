@@ -34,6 +34,8 @@
 #include "../xLightsMain.h"
 #endif
 
+#include <log4cpp/Category.hh>
+
 #pragma region Property Choices
 wxPGChoices ControllerEthernet::__types;
 
@@ -448,8 +450,11 @@ void ControllerEthernet::SetFPPProxy(const std::string& proxy) {
 
 std::string ControllerEthernet::GetFPPProxy() const {
 
-    if (_fppProxy != "" && _fppProxy != _ip) {
-        return _fppProxy;
+    if (_fppProxy != "") {
+        std::string _resolvedfppProxy = ip_utils::ResolveIP(_fppProxy);
+        if (_resolvedfppProxy != _ip) {
+            return _resolvedfppProxy;
+        }
     }
 
     // a controller should not proxy itself
@@ -739,7 +744,7 @@ Output::PINGSTATE ControllerEthernet::Ping() {
             if (ipOutput) {
                 ipOutput->SetIP(this->GetResolvedIP(), true, true); // Re-resolve IP
                 ip_utils::waitForAllToResolve();
-                _resolvedIp = it->GetResolvedIP();
+                _resolvedIp = ipOutput->GetResolvedIP();
             }
         }
     }
@@ -834,6 +839,7 @@ bool ControllerEthernet::SupportsUpload() const {
 
 bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> models, uint32_t universeSize)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_outputs.size() == 0) return false;
 
     for (auto& it2 : GetOutputs()) {
@@ -869,8 +875,16 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
                 }
             }
         }
-        else {
+        else 
+        {
+            if(SupportsUniversePerString())
+            {
+                if (_outputs.size() != 0) channels_per_universe = universeSize;
+            } 
+            else {
+
             if (_outputs.size() != 0) channels_per_universe = _outputs.front()->GetChannels();
+            }
 
             //calculate required universes
             universes = (channels + channels_per_universe - 1) / channels_per_universe;
@@ -883,6 +897,14 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
 
         auto const oldIP = _outputs.front()->GetIP();
 
+        if (!IsUniversePerString() && SupportsUniversePerString())
+        {
+            while (_outputs.size()) {
+            delete _outputs.back();
+            _outputs.pop_back();
+            }
+         }
+
         //if required universes is less than num of outputs, remove unneeded universes
         while (universes < _outputs.size()) {
             delete _outputs.back();
@@ -892,7 +914,11 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
         //if required universes is greater than  num of outputs, add needed universes
         int diff = universes - _outputs.size();
         for (int i = 0; i < diff; i++) {
-            auto const lastUsedUniverse = _outputs.back()->GetUniverse();
+            auto lastUsedUniverse = 0;
+
+            if(_outputs.size())
+                lastUsedUniverse = _outputs.back()->GetUniverse();
+
             if (_type == OUTPUT_E131) {
                 _outputs.push_back(new E131Output());
                 if (dynamic_cast<E131Output*>(_outputs.back()) != nullptr) {
@@ -960,6 +986,10 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
                         while (chs > 0) {
                             size_t uch = std::min(chs, (size_t)channels_per_universe);
                             wxASSERT(o != end(_outputs));
+                            if (o == end(_outputs)) {
+                                logger_base.debug("Unexpected error. Not enough outputs. Channels remaining: %zu, Outputs size: %zu", chs, _outputs.size());
+                                return false;
+                            }
                             (*o)->SetChannels(uch);
                             chs -= uch;
                             ++o;
@@ -1125,13 +1155,13 @@ void ControllerEthernet::AddProperties(wxPropertyGrid* propertyGrid, ModelManage
     p->SetHelpString("Some controllers can receive data from more than one source and will ignore one of the sources where this priority is lower.");
     
     p = propertyGrid->Append(new wxStringProperty("Models", "Models", ""));
-    p->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
+    p->ChangeFlag(wxPGFlags::ReadOnly , true);
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
     auto p2 = propertyGrid->Append(new wxBoolProperty("Managed", "Managed", _managed));
     p2->SetEditor("CheckBox");
     p2->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p2->ChangeFlag(wxPGPropertyFlags::ReadOnly , true);
+    p2->ChangeFlag(wxPGFlags::ReadOnly , true);
 
     bool allSameSize = AllSameSize();
     if (_outputs.size() >= 1) {

@@ -14,9 +14,7 @@
 #include <wx/socket.h>
 #include <wx/filename.h>
 #include <wx/xml/xml.h>
-#include "../xSchedule/wxJSON/json_defs.h"
-#include "../xSchedule/wxJSON/jsonval.h"
-#include "../xSchedule/wxJSON/jsonreader.h"
+#include <nlohmann/json.hpp>
 
 #include "utils/string_utils.h"
 
@@ -30,7 +28,9 @@
 
 #define AMPS_PER_PIXEL (0.055f)
 #define FORMATTIME(ms) (const char *)wxString::Format("%d:%02d.%03d", ((uint32_t)ms) / 60000, (((uint32_t)ms) % 60000) / 1000, ((uint32_t)ms) % 1000).c_str()
+#define FORMATTIME_H_M_S(ms) (const char*)wxString::Format("%02d:%02d:%02d.%03d", ((uint32_t)ms) / 3600000, ((uint32_t)ms % 360000) / 60000, (((uint32_t)ms) % 60000) / 1000, ((uint32_t)ms) % 1000).c_str()
 #define INTROUNDUPDIV(a, b) (((a) + (b) - 1) / (b))
+#define UNUSED(x) (void)(x)
 constexpr double PI = 3.141592653589793238463;
 
 // Consolidated set of utility functions
@@ -69,8 +69,8 @@ wxString FixEffectFileParameter(const wxString& paramname, const wxString& param
 int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data);
 int GetxFadePort(int xfp);
 void OptimiseDialogPosition(wxDialog* dlg);
-wxJSONValue xLightsRequest(int xFadePort, const wxString& request, const wxString& ipAddress = "127.0.0.1");
-bool xLightsRequest(std::string &result, int xFadePort, const wxString& request, const wxString& ipAddress = "127.0.0.1");
+nlohmann::json xLightsRequest(int xFadePort, const wxString& request, const std::string& ipAddress = "127.0.0.1");
+bool xLightsRequest(std::string& result, int xFadePort, const wxString& request, const std::string& ipAddress = "127.0.0.1");
 
 wxString ExpandNodes(const wxString& nodes);
 wxString CompressNodes(const wxString& nodes);
@@ -79,6 +79,11 @@ wxString CompressNodes(const wxString& nodes);
 void ShiftNodes(std::map<std::string, std::string> & nodes, int shift, int min, int max);
 //reverse nodes, numbering 1->100, 100->1
 void ReverseNodes(std::map<std::string, std::string> & nodes, int max);
+
+wxImage ApplyOrientation(const wxImage& img, int orient);
+int GetExifOrientation(const wxString& filename);
+
+std::string GetResourcesDirectory();
 
 inline long roundTo4(long i) {
     long remainder = i % 4;
@@ -180,6 +185,7 @@ void DumpBinary(uint8_t* buffer, size_t read);
 wxColor CyanOrBlue();
 wxColor LightOrMediumGrey();
 wxColor BlueOrLightBlue();
+wxColor RedOrLightRed();
 bool IsFloat(const std::string& number);
 bool IsDarkMode();
 void SetSuppressDarkMode(bool suppress);

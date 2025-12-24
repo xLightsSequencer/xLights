@@ -29,7 +29,7 @@
 					<object class="sizeritem">
 						<object class="wxSpinCtrl" name="ID_SPINCTRL_TIMING" variable="SpinCtrlTiming" member="yes">
 							<value>50</value>
-							<min>1</min>
+							<min>50</min>
 							<max>60000</max>
 							<handler function="OnSpinCtrlTimingChange" entry="EVT_SPINCTRL" />
 						</object>
@@ -49,6 +49,23 @@
 						<object class="wxSpinCtrl" name="ID_SPINCTRL_REPEATING" variable="SpinCtrlRepeating" member="yes">
 							<value>4</value>
 							<max>10000</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT_TEXTLABELS" variable="StaticTextLabel" member="yes">
+							<label>Text Labels (eg up,down,left)</label>
+							<tooltip>If entered, these labels will be used to populate the timing track</tooltip>
+						</object>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_TEXTLABELS" variable="TextCtrl_TextLabels" member="yes">
+							<tooltip>Optionally enter a list of text labels to use. </tooltip>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
@@ -75,8 +92,9 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT_MINTIMING" variable="StaticText_MinTiming" member="yes">
-							<label>Min Timing</label>
+							<label>Min Timing (ms)</label>
 							<pos>-1,-1</pos>
+							<tooltip>Minimum milliseconds per timing mark</tooltip>
 						</object>
 						<flag>wxTOP|wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>1</border>
@@ -84,9 +102,11 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_MinTiming" member="yes">
-							<value>1</value>
-							<min>1</min>
+							<value>50</value>
+							<min>50</min>
+							<max>60000</max>
 							<enabled>0</enabled>
+							<tooltip>Minimum milliseconds per timing mark</tooltip>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

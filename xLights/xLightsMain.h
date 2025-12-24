@@ -20,6 +20,8 @@
     #endif
 #endif
 
+#define ENABLE_SERVICES
+
 // Every time this regenerates from code blocks you will need to remove wx/led.h
 
 //(*Headers(xLightsFrame)
@@ -84,9 +86,14 @@
 #include "SequencePackage.h"
 #include "ScriptsDialog.h"
 #include "TipOfTheDayDialog.h"
+#include <CheckSequenceReport.h>
+
+#include "ai/aiType.h"
+#include "ai/ServiceManager.h"
 
 class wxDebugReport;
 
+class aiBase;
 class ControllerCaps;
 class EffectTreeDialog;
 class ConvertDialog;
@@ -383,7 +390,6 @@ public:
     };
 
     wxString _userEmail;
-    wxString _linkedSave = "None";
     wxString _linkedControllerUpload = "None";
     wxString _aliasRenameBehavior = "Always Prompt";
     static wxString CurrentDir; //expose current folder name -DJ
@@ -501,7 +507,6 @@ public:
     void OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event);
     void OnMenu_Settings_SequenceSelected(wxCommandEvent& event);
     void OnMenuItem_File_Open_SequenceSelected(wxCommandEvent& event);
-    void OnResize(wxSizeEvent& event);
     void OnAuiToolBarItemRenderAllClick(wxCommandEvent& event);
     void OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event);
     void OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event);
@@ -655,6 +660,9 @@ private :
 	void SetEffectAssistWindowState(bool show);
     void UpdateEffectAssistWindow(Effect* effect, RenderableEffect* ren_effect);
     void AddDebugFilesToReport(wxDebugReport &report);
+    wxTimer* _pingTimer;
+    wxTimer* _statusRefreshTimer;
+    bool _pingInProgress = false;
 
 public:
 
@@ -1000,6 +1008,7 @@ public:
     wxMenuItem* MenuItem_PurgeRenderCache;
     wxMenuItem* MenuItem_PurgeVendorCache;
     wxMenuItem* MenuItem_QuietVol;
+    wxMenuItem* MenuItem_REDO;
     wxMenuItem* MenuItem_RemapCustom;
     wxMenuItem* MenuItem_SD_HP;
     wxMenuItem* MenuItem_SD_MP;
@@ -1116,8 +1125,10 @@ public:
     bool _saveLowDefinitionRender = false; // saves the value of the low definition render during batch render when it may be temporarily overridden
     bool _snapToTimingMarks = true;
     bool _autoSavePerspecive = true;
+    bool _renderBellEnabled = false;
     bool _ignoreVendorModelRecommendations = false;
     bool _purgeDownloadCacheOnStart = false;
+    int _controllerPingInterval = 0;
     int _fseqVersion;
     int _timelineZooming;
     bool _wasMaximised = false;
@@ -1137,16 +1148,19 @@ public:
     HttpServer* _automationServer = nullptr;
     int _xFadePort = 0;
 
+    [[nodiscard]] bool IsRenderBell() const { return _renderBellEnabled; }
+    void SetRenderBell(bool b) { _renderBellEnabled = b; }
+	[[nodiscard]] bool IsIgnoreVendorModelRecommendations() const { return _ignoreVendorModelRecommendations; }
     void StartAutomationListener();
-    bool ProcessHttpRequest(HttpConnection &connection, HttpRequest &request);
-    bool ProcessAutomation(std::vector<std::string> &paths,
+    [[nodiscard]] bool ProcessHttpRequest(HttpConnection& connection, HttpRequest& request);
+    [[nodiscard]] bool ProcessAutomation(std::vector<std::string>& paths,
                            std::map<std::string, std::string> &params,
                            const std::function<bool(const std::string &msg,
                                                     const std::string &jsonKey,
                                                     int responseCode,
                                                     bool msgIsJSON)> &sendResponse);
-    std::string ProcessxlDoAutomation(const std::string& msg);
-    std::string FindSequence(const std::string& seq);
+    [[nodiscard]] std::string ProcessxlDoAutomation(const std::string& msg);
+    [[nodiscard]] std::string FindSequence(const std::string& seq);
 
     void CollectUserEmail();
     void ShowACLights();
@@ -1156,10 +1170,14 @@ public:
     void DoBackup(bool prompt = true, bool startup = false, bool forceallfiles = false);
     void DoBackupPurge();
     void SetBackupPurgeDays(int i);
-    int GetBackupPugeDays() const { return BackupPurgeDays; }
+    [[nodiscard]] int GetBackupPugeDays() const {
+        return BackupPurgeDays;
+    }
     void DoAltBackup(bool prompt = true);
 
-    const std::list<std::string> &GetMediaFolders() { return mediaDirectories; }
+    [[nodiscard]] const std::list<std::string>& GetMediaFolders() const {
+        return mediaDirectories;
+    }
     void SetMediaFolders(const std::list<std::string> &folders);
     void GetFSEQFolder(bool& useShow, std::string& folder);
     void SetFSEQFolder(bool useShow, const std::string& folder);
@@ -1171,18 +1189,29 @@ public:
     void SetBackupFolder(bool useShow, const std::string& folder);
     void GetAltBackupFolder(std::string& folder);
     void SetAltBackupFolder(const std::string& folder);
-    bool BackupOnSave() const {return mBackupOnSave;}
+    [[nodiscard]] bool BackupOnSave() const {
+        return mBackupOnSave;
+    }
     void SetBackupOnSave(bool b) { mBackupOnSave = b;}
-    bool BackupOnLaunch() const {return mBackupOnLaunch;}
+    [[nodiscard]] bool BackupOnLaunch() const {
+        return mBackupOnLaunch;
+    }
     void SetBackupOnLaunch(bool b) { mBackupOnLaunch = b;}
-    bool BackupSubFolders() const {return _backupSubfolders;}
+    [[nodiscard]] bool BackupSubFolders() const {
+        return _backupSubfolders;
+    }
     void SetBackupSubFolders(bool b) { _backupSubfolders = b;}
 
-    bool GridNodeValues() const { return mGridNodeValues; }
+    [[nodiscard]] bool GridNodeValues() const {
+        return mGridNodeValues;
+    }
     void SetGridNodeValues(bool b);
 
     bool GridIconBackgrounds() const { return mGridIconBackgrounds;}
     void SetGridIconBackgrounds(bool b);
+
+    bool ShowAlternateTimingFormat() const { return mShowAlternateTimingFormat;}
+    void SetShowAlternateTimingFormat(bool b);
 
     bool ShowGroupEffectIndicator() const { return mShowGroupEffectIndicator;}
     void SetShowGroupEffectIndicator(bool b);
@@ -1227,9 +1256,6 @@ public:
     const wxString& UserEMAIL() const { return _userEmail; }
     void SetUserEMAIL(const wxString &e);
 
-    const wxString& GetLinkedSave() const { return _linkedSave; }
-    void SetLinkedSave(const wxString& e);
-
     const wxString& GetLinkedControllerUpload() const { return _linkedControllerUpload; }
     void SetLinkedControllerUpload(const wxString& e);
     
@@ -1258,6 +1284,8 @@ public:
 
     bool GetIgnoreVendorModelRecommendations() const { return _ignoreVendorModelRecommendations; }
     void SetIgnoreVendorModelRecommendations(bool b) { _ignoreVendorModelRecommendations = b; }
+    int GetControllerPingInterval() const { return _controllerPingInterval; }
+    void SetControllerPingInterval(int secs) { _controllerPingInterval = secs; }
     void PurgeDownloadCache();
 
     bool GetPurgeDownloadCacheOnStart() const { return _purgeDownloadCacheOnStart; }
@@ -1308,6 +1336,8 @@ public:
 
     bool HidePresetPreview() const { return _hidePresetPreview;}
     void SetHidePresetPreview(bool b);
+
+    aiBase* GetAIService(aiType::TYPE serviceType = aiType::TYPE::PROMPT);
 
     bool IsShowBaseShowFolder() const
     {
@@ -1376,6 +1406,10 @@ public:
     void SelectController(const std::string& controllerName);
     void UnselectAllControllers();
     void InitialiseControllersTab(bool rebuildPropGrid = true);
+    void OnPingTimer(wxTimerEvent& event);
+    void waitForPingsToComplete();
+    void StatusRefreshTimer(wxTimerEvent& event);
+    wxBitmap CreateLedBitmap(bool online);
     void SetControllersProperties(bool rebuildPropGrid = true);
     void DeleteSelectedControllers();
     void UnlinkSelectedControllers();
@@ -1409,7 +1443,6 @@ public:
     bool PromptForShowDirectory(bool permanent, const std::string &defaultDir = "");
     bool PromptForDirectorySelection(const std::string &msg, std::string &dir);
     bool SaveNetworksFile();
-    bool IsControllersAndLayoutTabSaveLinked() { return _linkedSave == "Controllers and Layout Tab"; }
     bool IsControllerUploadLinked() { return _linkedControllerUpload == "Inputs and Outputs"; }
     void NetworkChange();
     void NetworkChannelsChange();
@@ -1556,6 +1589,7 @@ public:
 
     void UpdateSequenceVideoPanel( const wxString& path );
 
+    const wxXmlDocument& GetEffectsXml() const { return EffectsXml; };
 protected:
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
     bool SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels);
@@ -1630,6 +1664,7 @@ private:
     int mIconSize;
     int mGridSpacing;
     bool mGridIconBackgrounds;
+    bool mShowAlternateTimingFormat = false;
     bool mShowGroupEffectIndicator = true;
     bool mTimingPlayOnDClick;
     bool mGridNodeValues;
@@ -1711,6 +1746,7 @@ public:
     ModelPreview* GetLayoutPreview() const {return modelPreview;}
     void SetStoredLayoutGroup(const std::string &group);
     const std::string& GetStoredLayoutGroup() const {return mStoredLayoutGroup;}
+    bool IsSequencerInitialize() {return mSequencerInitialize;}
     bool IsACActive();
     void GetACSettings(ACTYPE& type, ACSTYLE& style, ACTOOL& tool, ACMODE& mode);
     int GetACIntensity();
@@ -1769,7 +1805,8 @@ private:
     SelectPanel *_selectPanel = nullptr;
     SequenceVideoPanel* sequenceVideoPanel = nullptr;
     SearchPanel* _searchPanel = nullptr;
-    std::unique_ptr<ScriptsDialog> _scriptsDialog;
+    std::unique_ptr<ScriptsDialog> _scriptsDialog{ nullptr };
+    std::unique_ptr<ServiceManager> _serviceManager{ nullptr };
     int mMediaLengthMS;
 
     bool mSequencerInitialize = false;
@@ -1861,9 +1898,9 @@ private:
     void ValidateEffectAssets();
     bool CleanupRGBEffectsFileLocations();
     bool CleanupSequenceFileLocations();
-    void CheckElement(Element* e, wxFile& f, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader, std::list<std::string>& allfiles);
-    void CheckEffect(Effect* ef, wxFile& f, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints);
-    bool CheckStart(wxFile& f, const std::string& startmodel, std::list<std::string>& seen, std::string& nextmodel);
+    void CheckElement(Element* e, wxFile& f, CheckSequenceReport& report, bool writeToTextFile, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader, std::list<std::string>& allfiles);
+    void CheckEffect(Effect* ef, wxFile& f, CheckSequenceReport& report, bool writeToTextFile, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints);
+    bool CheckStart(wxFile& f, CheckSequenceReport& report, bool writeToTextFile, size_t& errcount, size_t& warncount, const std::string& startmodel, std::list<std::string>& seen, std::string& nextmodel);
     void ValidateWindow();
     void DoDonate();
     void AutoShowHouse();
@@ -1889,6 +1926,12 @@ private:
     static const long ID_NETWORK_INACTIVE;
     static const long ID_NETWORK_DELETE;
     static const long ID_NETWORK_UPLOADOUTPUT;
+    static const long ID_NETWORK_SORT_NAME;
+    static const long ID_NETWORK_SORT_ID;
+    static const long ID_NETWORK_SORT_IP;
+    static const long ID_NETWORK_SORT_FPP_PROXY;
+    static const long ID_NETWORK_SORT_CONTROLLER_VENDOR;
+    static const long ID_NETWORK_SORT_CONTROLLER_PROTOCOL;
 
     #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 

@@ -35,6 +35,7 @@ public:
     static xLightsFrame* GetFrame() { return __frame; }
     static wxString showDir;
     static wxString mediaDir;
+    static wxString cleanupDir;
     static wxArrayString sequenceFiles;
     static xLightsFrame* __frame;
 

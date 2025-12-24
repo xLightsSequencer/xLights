@@ -110,6 +110,7 @@ void CandleEffect::SetDefaultParameters()
     SetSliderValue(fp->Slider_Candle_WindVariability, 5);
 
     SetCheckBoxValue(fp->CheckBox_PerNode, false);
+    SetCheckBoxValue(fp->CheckBox_UsePalette, false);
 }
 
 void CandleEffect::Update(wxByte& flameprime, wxByte& flame, wxByte& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline)
@@ -160,6 +161,21 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     int windVariability = GetValueCurveInt("Candle_WindVariability", 5, SettingsMap, oset, CANDLE_WINDVARIABILITY_MIN, CANDLE_WINDVARIABILITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int windBaseline = GetValueCurveInt("Candle_WindBaseline", 30, SettingsMap, oset, CANDLE_WINDBASELINE_MIN, CANDLE_WINDBASELINE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool perNode = SettingsMap.GetBool("CHECKBOX_PerNode", false);
+    bool usePalette = SettingsMap.GetBool("CHECKBOX_UsePalette", false);
+
+    const auto& pal = effect->GetPalette();
+    xlColor c1, c2;
+    if (usePalette){  // We're using the palette.
+        if (pal.empty()) {
+            // No colors selected. Default to white. Set black as second color.
+            c1 = xlWHITE;
+            c2 = xlBLACK;
+        } else {
+            // One color selected, set black as second color.
+            c1 = pal[0];
+            c2 = (pal.size() > 1 ? pal[1] : xlBLACK);
+        }
+    }
 
     CandleRenderCache* cache = GetCache(buffer, id);
     std::vector<CandleState>& states = cache->_states;
@@ -185,7 +201,7 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
 
     if (perNode) {
         int maxW = cache->maxWid;
-        parallel_for(0, buffer.BufferHt, [&buffer, &states, maxW, windVariability, flameAgility, windCalmness, windBaseline, this](int y) {
+        parallel_for(0, buffer.BufferHt, [&buffer, &states, maxW, windVariability, flameAgility, windCalmness, windBaseline, usePalette, c1, c2, this](int y) {
             for (size_t x = 0; x < buffer.BufferWi; x++) {
                 size_t index = y * maxW + x;
                 if (index >= states.size()) {
@@ -202,8 +218,15 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
                     if (state->flameg > state->flamer)
                         state->flameprimeg = state->flameprimer;
 
-                    //  Now play Candle
-                    xlColor c = xlColor(state->flameprimer, state->flameprimeg / 2, 0);
+                    xlColor c;
+                    if (usePalette) {
+                        float t = float(state->flameprimer) / 255.0f;
+                        c.red = wxByte(c1.red * (1.0f - t) + c2.red * t);
+                        c.green = wxByte(c1.green * (1.0f - t) + c2.green * t);
+                        c.blue = wxByte(c1.blue * (1.0f - t) + c2.blue * t);
+                    } else {
+                        c = xlColor(state->flameprimer, state->flameprimeg / 2, 0);
+                    }
                     buffer.SetPixel(x, y, c);
                 }
             }
@@ -220,7 +243,15 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
             state->flameprimeg = state->flameprimer;
 
         //  Now play Candle
-        xlColor c = xlColor(state->flameprimer, state->flameprimeg / 2, 0);
+        xlColor c;
+        if (usePalette) {
+            float t = float(state->flameprimer) / 255.0f;
+            c.red = wxByte(c1.red * (1.0f - t) + c2.red * t);
+            c.green = wxByte(c1.green * (1.0f - t) + c2.green * t);
+            c.blue = wxByte(c1.blue * (1.0f - t) + c2.blue * t);
+        } else {
+            c = xlColor(state->flameprimer, state->flameprimeg / 2, 0);
+        }
         for (size_t y = 0; y < buffer.BufferHt; y++) {
             for (size_t x = 0; x < buffer.BufferWi; x++) {
                 buffer.SetPixel(x, y, c);

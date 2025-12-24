@@ -23,14 +23,11 @@
 #include <random>
 #include <thread>
 #include <time.h>
+#include <fstream>
 
 #include "ExternalHooks.h"
 #include "UtilFunctions.h"
 #include "xLightsVersion.h"
-
-#include "../xSchedule/wxJSON/json_defs.h"
-#include "../xSchedule/wxJSON/jsonreader.h"
-#include "../xSchedule/wxJSON/jsonval.h"
 
 #include "utils/Curl.h"
 #include "utils/string_utils.h"
@@ -280,6 +277,133 @@ void ClearNonExistentFiles() {
     std::unique_lock<std::recursive_mutex> lock(__fixFilesMutex);
     __nonExistentFiles.clear();
 }
+
+wxImage ApplyOrientation(const wxImage& img, int orient) {
+    wxImage res = img.Copy();
+    switch (orient) {
+    case 2: return res.Mirror(true);  // horizontal flip
+    case 3: return res.Rotate180();
+    case 4: return res.Mirror(false); // vertical flip
+    case 5: return res.Mirror(true).Rotate90(false); // horizontal flip + 90� CCW
+    case 6: return res.Rotate90(true);  // 90� CW
+    case 7: return res.Mirror(true).Rotate90(true);  // horizontal flip + 90� CW
+    case 8: return res.Rotate90(false); // 90� CCW
+    default: return res;
+    }
+}
+
+int GetExifOrientation(const wxString& filename) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    std::ifstream file(filename.ToStdString(), std::ios::binary);
+    if (!file) {
+        logger_base.debug("Failed to open file: %s", (const char*)filename.c_str());
+        file.close();
+        return 1; // Default orientation
+    }
+
+    unsigned char byte1, byte2;
+    file.read(reinterpret_cast<char*>(&byte1), 1);
+    file.read(reinterpret_cast<char*>(&byte2), 1);
+    if (byte1 != 0xFF || byte2 != 0xD8) {
+        file.close();
+        return 1;
+    }
+
+    while (file) {
+        file.read(reinterpret_cast<char*>(&byte1), 1);
+        if (byte1 != 0xFF) break;
+        file.read(reinterpret_cast<char*>(&byte2), 1);
+        if (byte2 == 0xD9 || byte2 == 0xDA) break;
+
+        unsigned short len;
+        file.read(reinterpret_cast<char*>(&len), 2);
+        len = ((len >> 8) & 0xFF) | ((len << 8) & 0xFF00); // big-endian
+        if (len < 2) break;
+
+        if (byte2 == 0xE1) { // APP1 segment
+            std::vector<char> data(len - 2);
+            file.read(data.data(), len - 2);
+
+            if (data.size() < 14) continue; // too small to hold Exif header
+
+            if (memcmp(data.data(), "Exif\0\0", 6) != 0) {
+                continue;
+            }
+
+            size_t tiff_header = 6; // TIFF header starts right after Exif\0\0
+            bool littleEndian = (data[tiff_header] == 'I' && data[tiff_header + 1] == 'I');
+            unsigned short fortytwo = littleEndian ?
+                ((unsigned char)data[tiff_header + 3] << 8) | (unsigned char)data[tiff_header + 2] :
+                ((unsigned char)data[tiff_header + 2] << 8) | (unsigned char)data[tiff_header + 3];
+
+            if (fortytwo != 42) {
+                logger_base.debug("Invalid TIFF header identifier in %s", (const char*)filename.c_str());
+                return 1;
+            }
+
+            // Read offset to IFD0
+            unsigned int ifd_offset;
+            if (littleEndian) {
+                ifd_offset =  (unsigned char)data[tiff_header + 4]       |
+                    ((unsigned char)data[tiff_header + 5] << 8) |
+                    ((unsigned char)data[tiff_header + 6] << 16)|
+                    ((unsigned char)data[tiff_header + 7] << 24);
+            } else {
+                ifd_offset = ((unsigned char)data[tiff_header + 4] << 24)|
+                    ((unsigned char)data[tiff_header + 5] << 16)|
+                    ((unsigned char)data[tiff_header + 6] << 8) |
+                    (unsigned char)data[tiff_header + 7];
+            }
+
+            size_t pos = tiff_header + ifd_offset;
+            if (pos + 2 > data.size()) return 1;
+
+            unsigned short num_entries = littleEndian ?
+                ((unsigned char)data[pos + 1] << 8) | (unsigned char)data[pos] :
+                ((unsigned char)data[pos] << 8) | (unsigned char)data[pos + 1];
+            pos += 2;
+
+            for (unsigned short i = 0; i < num_entries; ++i) {
+                if (pos + 12 > data.size()) break;
+
+                unsigned short tag = littleEndian ?
+                    ((unsigned char)data[pos + 1] << 8) | (unsigned char)data[pos] :
+                    ((unsigned char)data[pos] << 8) | (unsigned char)data[pos + 1];
+
+                if (tag == 0x0112) { // Orientation
+                    unsigned short orient = littleEndian ?
+                        ((unsigned char)data[pos + 9] << 8) | (unsigned char)data[pos + 8] :
+                        ((unsigned char)data[pos + 8] << 8) | (unsigned char)data[pos + 9];
+                    return static_cast<int>(orient);
+                }
+                pos += 12;
+            }
+        } else {
+            file.seekg(len - 2, std::ios::cur);
+        }
+    }
+
+    // Fallback: wxImage may know the orientation
+    wxLogNull logNo;
+    wxImage img;
+    if (img.LoadFile(filename, wxBITMAP_TYPE_JPEG)) {
+        if (img.HasOption("Orientation")) {
+            int orient = img.GetOptionInt("Orientation");
+            return orient;
+        }
+    }
+    return 1; // default
+}
+
+std::string GetResourcesDirectory() {
+#ifndef __WXMSW__
+    return wxStandardPaths::Get().GetResourcesDir().ToStdString();
+#else
+    auto exec = wxStandardPaths::Get().GetExecutablePath().ToStdString();
+    return exec.substr(0, exec.find_last_of("/\\"));
+#endif
+}
+
 
 wxString FixFile(const wxString& ShowDir, const wxString& file) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -708,12 +832,9 @@ void DownloadVamp() {
     } else {
         ::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/attachments/download/2621/qm-vamp-plugins-1.8.0-win32.zip");
     }
-#elif defined(__WXOSX__) && defined(__aarch64__)
-    // plugin pack is only for x86_64 and won't run native on M1 macs, download build of QM
-    ::wxLaunchDefaultBrowser("https://dankulp.com/xlights/archive/qm-vamp-plugins-1.8.dmg");
 #else
     // likely can/should be used for all platforms
-    ::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/projects/vamp-plugin-pack");
+    ::wxLaunchDefaultBrowser("https://www.vamp-plugins.org/pack.html");
 #endif
 }
 
@@ -782,15 +903,15 @@ bool IsVersionOlder(const std::string& compare, const std::string& version) {
         return true;
     if (wxAtoi(version_parts[1]) > wxAtoi(compare_parts[1]))
         return false;
-    // From 2016 versions only have 2 parts
-    if (version_parts.Count() == 2 || compare_parts.Count() == 2) {
-        if (version_parts.Count() > 2) {
-            return false; // remote version has 2 components but local has three so local must be newer
-        }
-        return true;
-    } else {
-        if (wxAtoi(version_parts[2]) < wxAtoi(compare_parts[2]))
+    if (version_parts.Count() > 2 && compare_parts.Count() == 2)
+        return false; // remote version has 2 components but local has three so local must be newer
+    if (version_parts.Count() == 2 && compare_parts.Count() > 2)
+        return true; // remote version has 3 components but local has two so remote must be newer
+    if (version_parts.Count() > 2 && compare_parts.Count() > 2) {
+        if (wxAtoi(version_parts[2]) <= wxAtoi(compare_parts[2]))
             return true;
+        if (wxAtoi(version_parts[2]) > wxAtoi(compare_parts[2]))
+            return false;
     }
     return false;
 }
@@ -1172,26 +1293,21 @@ void OptimiseDialogPosition(wxDialog* dlg) {
     EnsureWindowHeaderIsOnScreen(dlg);
 }
 
-wxJSONValue xLightsRequest(int xFadePort, const wxString& message, const wxString& ipAddress) {
+nlohmann::json xLightsRequest(int xFadePort, const wxString& message, const std::string& ipAddress) {
     std::string url = "http://" + ipAddress + ":" + std::to_string(GetxFadePort(xFadePort)) + "/xlDoAutomation";
     int responseCode = 0;
     auto resultString = Curl::HTTPSPost(url, message, "", "", "application/json", 30 * 60, {}, &responseCode);
     if (resultString != "" && (responseCode == 200 || responseCode >= 500)) {
-        wxJSONValue result;
-        wxJSONReader reader;
-        reader.Parse(resultString, &result);
+        nlohmann::json result = nlohmann::json::parse(resultString);
         result["res"] = (int)responseCode;
         return result;
     }
 
-    wxString msg = "{\"res\":504,\"msg\":\"Unable to connect.\"}";
-    wxJSONValue result;
-    wxJSONReader reader;
-    reader.Parse(msg, &result);
-
+    std::string const msg = "{\"res\":504,\"msg\":\"Unable to connect.\"}";
+    nlohmann::json result = nlohmann::json::parse(msg);
     return result;
 }
-bool xLightsRequest(std::string& result, int xFadePort, const wxString& request, const wxString& ipAddress) {
+bool xLightsRequest(std::string& result, int xFadePort, const wxString& request, const std::string& ipAddress) {
     std::string url = "http://" + ipAddress + ":" + std::to_string(GetxFadePort(xFadePort)) + "/" + request;
     int responseCode = 0;
     result = Curl::HTTPSGet(url, "", "", 30 * 60, {}, &responseCode);
@@ -1330,6 +1446,15 @@ wxColor LightOrMediumGrey() {
         return medGray;
     } else {
         return *wxLIGHT_GREY;
+    }
+}
+wxColor RedOrLightRed() {
+    if (IsDarkMode()) {
+        // In Dark Mode pure red is hard to read on grey, use a lighter salmon/coral red
+        static const wxColor lightRed(0xFF, 0x6B, 0x6B);
+        return lightRed;
+    } else {
+        return *wxRED;
     }
 }
 void CleanupIpAddress(wxString& IpAddr) {

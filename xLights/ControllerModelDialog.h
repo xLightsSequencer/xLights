@@ -156,20 +156,20 @@ class ControllerModelDialog: public wxDialog
 	protected:
 
 		//(*Identifiers(ControllerModelDialog)
-		static const long ID_PANEL1;
-		static const long ID_SCROLLBAR1;
-		static const long ID_SCROLLBAR2;
-		static const long ID_STATICTEXT1;
-		static const long ID_SLIDER_BOX_SCALE;
-		static const long ID_STATICTEXT2;
-		static const long ID_SLIDER_FONT_SCALE;
-		static const long ID_TEXTCTRL1;
-		static const long ID_PANEL3;
-		static const long ID_CHECKBOX1;
-		static const long ID_PANEL2;
-		static const long ID_SCROLLBAR3;
-		static const long ID_PANEL4;
-		static const long ID_SPLITTERWINDOW1;
+		static const wxWindowID ID_PANEL1;
+		static const wxWindowID ID_SCROLLBAR1;
+		static const wxWindowID ID_SCROLLBAR2;
+		static const wxWindowID ID_STATICTEXT1;
+		static const wxWindowID ID_SLIDER_BOX_SCALE;
+		static const wxWindowID ID_STATICTEXT2;
+		static const wxWindowID ID_SLIDER_FONT_SCALE;
+		static const wxWindowID ID_TEXTCTRL1;
+		static const wxWindowID ID_PANEL3;
+		static const wxWindowID ID_CHECKBOX1;
+		static const wxWindowID ID_PANEL2;
+		static const wxWindowID ID_SCROLLBAR3;
+		static const wxWindowID ID_PANEL4;
+		static const wxWindowID ID_SPLITTERWINDOW1;
 		//*)
 
 	private:

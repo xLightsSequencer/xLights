@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "SaveChangesDialog.h"
+#include "UtilFunctions.h"
 
 //(*InternalHeaders(SaveChangesDialog)
 #include <wx/font.h>
@@ -41,7 +42,7 @@ SaveChangesDialog::SaveChangesDialog(wxWindow* parent)
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("*** The sequence you are closing has unsaved changes. ***"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-	StaticText2->SetForegroundColour(wxColour(255,0,0));
+	StaticText2->SetForegroundColour(RedOrLightRed());
 	wxFont StaticText2Font(12,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,_T("Arial"),wxFONTENCODING_DEFAULT);
 	StaticText2->SetFont(StaticText2Font);
 	FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

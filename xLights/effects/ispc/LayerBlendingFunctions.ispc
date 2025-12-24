@@ -32,7 +32,7 @@ inline uint8 alpha(const uint32 c) {
     return (c >> 24) & 0xFF;
 }
 inline uint32 fromComponents(const uint8 r, const uint8 g, const uint8 b, const uint8 a) {
-    return (((int32)a) << 24) | (((int32)b) << 16) |  (((int32)g) << 8) |  (int32)r;
+    return (((int32)a) << 24) | (((int32)b) << 16) | (((int32)g) << 8) | (int32)r;
 }
 
 inline HSVColor toHSV(const uint32 &c)
@@ -204,11 +204,11 @@ export void GetColorsISPCKernel(uniform const LayerBlendingData &data,
                             nc = cnt;
                         }
                     }
-                }
+              }
             }
         } else if (data.useMask && mask) {
-            int32 x = idx / data.bufferHi;
-            int32 y = idx - (x * data.bufferHi);
+            int32 x = idx % data.bufferWi;
+            int32 y = idx / data.bufferWi;
             int32 midx = x * data.bufferHi + y;
 
             if (mask[midx] > 0) {
@@ -452,10 +452,10 @@ export void NonAlphaFade(uniform const LayerBlendingData &data,
 }
 
 float ColorDistance(const uint32 e1, const uniform uint32 e2) {
-    int rmean = (red(e1) + red(e2)) >> 1;
-    int r = red(e1) - red(e2);
-    int g = green(e1) - green(e2);
-    int b = blue(e1) - blue(e2);
+    int rmean = ((int)red(e1) + (int)red(e2)) >> 1;
+    int r = (int)red(e1) - (int)red(e2);
+    int g = (int)green(e1) - (int)green(e2);
+    int b = (int)blue(e1) - (int)blue(e2);
     int f1 = (((512 + rmean) * r * r) >> 8);
     int f2 = (((767 - rmean) * b * b) >> 8);
     float f3 = f1 + 4 * g * g + f2;
@@ -742,9 +742,9 @@ export void AdditiveFunction(uniform const LayerBlendingData &data,
         if (!data.isChromaKey || !applyChroma(data, fg)) {
             uint32 bg = result[index];
             
-            int r = red(fg) + red(bg);
-            int g = green(fg) + green(bg);
-            int b = blue(fg) + blue(bg);
+            int r = (int)red(fg) + (int)red(bg);
+            int g = (int)green(fg) + (int)green(bg);
+            int b = (int)blue(fg) + (int)blue(bg);
             if (r > 255)
                 r = 255;
             if (g > 255)
@@ -764,9 +764,9 @@ export void SubtractiveFunction(uniform const LayerBlendingData &data,
         uint32 fg = src[index];
         if (!data.isChromaKey || !applyChroma(data, fg)) {
             uint32 bg = result[index];
-            int r = red(bg) - red(fg);
-            int g = green(bg) - green(fg);
-            int b = blue(bg) - blue(fg);
+            int r = (int)red(bg) - (int)red(fg);
+            int g = (int)green(bg) - (int)green(fg);
+            int b = (int)blue(bg) - (int)blue(fg);
             if (r < 0)
                 r = 0;
             if (g < 0)
@@ -820,9 +820,9 @@ export void AsBrightnessFunction(uniform const LayerBlendingData &data,
         if (!data.isChromaKey || !applyChroma(data, fg)) {
             uint32 bg = result[index];
             float alpha = (float)alpha(fg) / 255.0;
-            int r = div_255_fast(red(fg) * red(bg) * alpha);
-            int g = div_255_fast(green(fg) * green(bg) * alpha);
-            int b = div_255_fast(blue(fg) * blue(bg) * alpha);
+            int r = div_255_fast((int)red(fg) * (int)red(bg) * alpha);
+            int g = div_255_fast((int)green(fg) * (int)green(bg) * alpha);
+            int b = div_255_fast((int)blue(fg) * (int)blue(bg) * alpha);
             result[index] = fromComponents((uint8)r, (uint8)g, (uint8)b, 255);
         }
     }
@@ -855,9 +855,9 @@ export void HighlightVibrantFunction(uniform const LayerBlendingData &data,
             uint32 bg = result[index];
             HSVColor hsv1 = toHSV(bg);
             if (hsv1.z > data.effectMixThreshold) {
-                int r = red(fg) + red(bg);
-                int g = green(fg) + green(bg);
-                int b = blue(fg) + blue(bg);
+                int r = (int)red(fg) + (int)red(bg);
+                int g = (int)green(fg) + (int)green(bg);
+                int b = (int)blue(fg) + (int)blue(bg);
 
                 if (r > 255)
                     r = 255;
@@ -923,9 +923,9 @@ bool isBlack(const uint32 &c) {
     return (c & 0xFFFFFF) == 0;
 }
 export void AveragedFunction(uniform const LayerBlendingData &data,
-                                uniform uint32 result[],
-                                const uniform uint32 src[],
-                                const uniform uint32 indexes[]) {
+                            uniform uint32 result[],
+                            const uniform uint32 src[],
+                            const uniform uint32 indexes[]) {
     foreach (index = data.startNode...data.endNode) {
         uint32 fg = src[index];
         if (!data.isChromaKey || !applyChroma(data, fg)) {
@@ -933,8 +933,11 @@ export void AveragedFunction(uniform const LayerBlendingData &data,
             if (isBlack(bg)) {
                 result[index] = fg;
             } else if (!isBlack(fg)) {
-                result[index] = fromComponents((uint8)((red(fg) + red(bg)) >> 1), (uint8)((green(fg) + green(bg)) >> 1),
-                        (uint8)((blue(fg) + blue(bg)) >> 1), (uint8)((alpha(fg) + alpha(bg)) >> 1));
+                uint8 r_avg = ((int)red(fg) + (int)red(bg)) / 2;
+                uint8 g_avg = ((int)green(fg) + (int)green(bg)) / 2;
+                uint8 b_avg = ((int)blue(fg) + (int)blue(bg)) / 2;
+                uint8 a_avg = ((int)alpha(fg) + (int)alpha(bg)) / 2;
+                result[index] = fromComponents(r_avg, g_avg, b_avg, a_avg);
             }
         }
     }

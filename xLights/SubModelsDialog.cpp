@@ -96,6 +96,8 @@ const wxWindowID SubModelsDialog::ID_STATICTEXT3 = wxNewId();
 const long SubModelsDialog::ID_TIMER1 = wxNewId();
 
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_MODEL = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_STATE = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_FACE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_FILE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_CUSTOM = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_IMPORT_CSV = wxNewId();
@@ -107,6 +109,7 @@ const long SubModelsDialog::SUBMODEL_DIALOG_EXPORT_TOOTHERS = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_GENERATE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_ALIASES = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SHIFT = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_SHIFT_SINGLE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_FLIP_HOR = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_FLIP_VER = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REVERSE = wxNewId();
@@ -122,6 +125,8 @@ const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_EVEN_ROWS = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_EVEN_ROWS_FRONT = wxNewId();
+const long SubModelsDialog::SUBMODEL_DIALOG_EVEN_ROWS_REAR = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SYMMETRIZE = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_SORT_POINTS_ALL = wxNewId();
@@ -240,13 +245,14 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
 	FlexGridSizer6->Add(LayoutCheckbox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	FlexGridSizer8->Add(FlexGridSizer6, 1, wxALL|wxFIXED_MINSIZE, 5);
 	NodesGrid = new wxGrid(Panel1, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL, _T("ID_GRID1"));
-	NodesGrid->CreateGrid(5,1);
+	NodesGrid->CreateGrid(5,2);
 	NodesGrid->SetMaxSize(wxSize(400,-1));
 	NodesGrid->EnableEditing(true);
 	NodesGrid->EnableGridLines(true);
 	NodesGrid->SetColLabelSize(18);
 	NodesGrid->SetDefaultColSize(160, true);
 	NodesGrid->SetColLabelValue(0, _("Node Ranges"));
+	NodesGrid->SetColLabelValue(1, _("Node Count"));
 	NodesGrid->SetRowLabelValue(0, _("Strand   1"));
 	NodesGrid->SetDefaultCellFont( NodesGrid->GetFont() );
 	NodesGrid->SetDefaultCellTextColour( NodesGrid->GetForegroundColour() );
@@ -363,6 +369,10 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
     nm0.SetText(_("SubModel"));
     ListCtrl_SubModels->InsertColumn(0, nm0);
 
+    NodesGrid->SetColFormatNumber(1);
+    for (int row = 0; row < NodesGrid->GetNumberRows(); row++) {
+        NodesGrid->SetReadOnly(row, 1);
+    }
     _parent = parent;
 
     modelPreview = new ModelPreview(ModelPreviewPanelLocation);
@@ -433,8 +443,21 @@ void SubModelsDialog::OnInit(wxInitDialogEvent& event)
         SplitterWindow1->SetSashPosition(h);
     }
     if (NodesGrid && NodesGrid->GetNumberCols() > 0) {
-        int colSize = NodesGrid->FromDIP(std::max(h - 210, 300));
-        NodesGrid->SetColSize(0, colSize);
+        int gridWidth = NodesGrid->GetSize().GetWidth();
+        int rowLabelWidth = NodesGrid->GetRowLabelSize();
+        int secondColWidth = NodesGrid->FromDIP(80);
+        int firstColWidth = gridWidth - rowLabelWidth - secondColWidth - NodesGrid->FromDIP(20);
+        NodesGrid->SetColSize(0, firstColWidth);
+        NodesGrid->SetColSize(1, secondColWidth);
+    }
+
+    const wxSize clientSize = GetClientSize();
+    const int buttonAreaHeight = FromDIP(50);
+    const int margin = FromDIP(20);
+    const int maxPanel3Height = clientSize.GetHeight() - buttonAreaHeight - margin;
+    Panel3->SetMaxSize(wxSize(-1, maxPanel3Height));
+    if (Panel3->GetSizer()) {
+        Panel3->GetSizer()->SetSizeHints(Panel3);
     }
 
     EnsureWindowHeaderIsOnScreen(this);
@@ -474,6 +497,32 @@ SubModelsDialog::~SubModelsDialog()
     if (_oldOutputToLights) {
         _outputManager->StartOutput();
     }
+}
+
+int SubModelsDialog::CountNodesInRange(const wxString& range) {
+    if (range.IsEmpty())
+        return 0;
+
+    int count = 0;
+    wxStringTokenizer tokenizer(range, ",");
+    while (tokenizer.HasMoreTokens()) {
+        wxString nodeRange = tokenizer.GetNextToken();
+        if (nodeRange.IsEmpty())
+            continue;
+
+        if (nodeRange.Contains("-")) {
+            int dashPosition = nodeRange.Index('-');
+            int start = wxAtoi(nodeRange.Left(dashPosition));
+            int end = wxAtoi(nodeRange.Right(nodeRange.size() - dashPosition - 1));
+            if (start > 0 && end > 0) {
+                count += std::abs(end - start) + 1;
+            }
+        } else {
+            if (wxAtoi(nodeRange) > 0)
+                count++;
+        }
+    }
+    return count;
 }
 
 //void SubModelsDialog::OnGridChar(wxKeyEvent& event)
@@ -775,6 +824,9 @@ void SubModelsDialog::OnButton_EditClick(wxCommandEvent& event)
         mnu.Append(SUBMODEL_DIALOG_SHIFT, "Shift All Nodes in All SubModels");
         mnu.Append(SUBMODEL_DIALOG_REVERSE, "Reverse All Nodes in All SubModels");
     }
+    if (ListCtrl_SubModels->GetSelectedItemCount() == 1) {
+        mnu.Append(SUBMODEL_DIALOG_SHIFT_SINGLE, "Shift All Nodes in Selected SubModel");
+    }
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& SubModelsDialog::OnEditBtnPopup, nullptr, this);
     PopupMenu(&mnu);
     event.Skip();
@@ -787,6 +839,8 @@ void SubModelsDialog::OnButtonImportClick(wxCommandEvent& event)
     mnu.Append(SUBMODEL_DIALOG_IMPORT_FILE, "Import SubModels From File");
     mnu.Append(SUBMODEL_DIALOG_IMPORT_LAYOUT, "Import SubModels From Layout");
     mnu.Append(SUBMODEL_DIALOG_IMPORT_DOWNLOAD, "Import SubModels From Downloads");
+    mnu.Append(SUBMODEL_DIALOG_IMPORT_STATE, "Import SubModels From State");
+    mnu.Append(SUBMODEL_DIALOG_IMPORT_FACE, "Import SubModels From Face");
     if (_isMatrix) {
         mnu.Append(SUBMODEL_DIALOG_IMPORT_CUSTOM, "Import Custom Model Overlay");
     }
@@ -822,7 +876,135 @@ void SubModelsDialog::OnImportBtnPopup(wxCommandEvent& event)
             ImportSubModelXML(m->GetModelXml());
         }
     }
-    else if (event.GetId() == SUBMODEL_DIALOG_IMPORT_FILE) {
+    else if (event.GetId() == SUBMODEL_DIALOG_IMPORT_STATE) {
+        // Import submodels from states
+        // Get a list of states on this model
+        const FaceStateData& states = model->GetStateInfo();
+        wxArrayString choices;
+        for (const auto& it : states)
+        {
+            // check the type is NodeRange
+            bool ok = false;
+            for (const auto& it2 : it.second)
+            {
+                if (it2.first == "Type" && it2.second == "NodeRange") {
+                    ok = true;
+                    break;
+                }
+            }
+
+            if (ok) choices.Add(it.first);
+        }
+        if (choices.GetCount() > 0) {
+            wxSingleChoiceDialog dlg(GetParent(), "", "Select State", choices);
+            if (dlg.ShowModal() == wxID_OK) {
+                const std::map<std::string, std::string>* state = nullptr;
+                for (const auto& it : states) {
+                    if (it.first == dlg.GetStringSelection()) {
+                        state = &it.second;
+                        break;
+                    }
+                }
+
+                // its just easier to find string in a std list
+                std::list<std::string> choices2z;
+                wxArrayString choices2;
+                for (const auto& it : *state) {
+                    if (it.first.ends_with("-Name")) {
+                        if (std::find(choices2z.begin(), choices2z.end(), it.second) == choices2z.end()) {
+                            choices2z.push_back(it.second);
+                            choices2.Add(it.second);
+                        }
+                    }
+                }
+                if (choices2.GetCount() > 0) {
+                    std::list<std::string> substates;
+                    if (choices2.GetCount() == 1) {
+                        substates.push_back(choices2[0]);
+                    } else {
+                        wxMultiChoiceDialog dlg2(GetParent(), "", "Select Sub-state(s)", choices2);
+                        if (dlg2.ShowModal() == wxID_OK) {
+                            for (auto i : dlg2.GetSelections())
+                            {
+                                substates.push_back(choices2[i]);
+                            }
+                        }
+                    }
+                    if (substates.size() > 0) {
+                        std::list<std::string> nodes;
+                        std::list<std::string> ss;
+                        for (const auto& it : *state)
+                        {
+                            if (it.first.ends_with("-Name")) {
+                                if (std::find(substates.begin(), substates.end(), it.second) != substates.end()) {
+                                    ss.push_back(it.first.substr(0, it.first.size() - 5));
+                                }
+                            }
+                        }
+                        for (const auto& it : *state) {
+                            if (std::find(ss.begin(), ss.end(), it.first) != ss.end()) {
+                                nodes.push_back(it.second);
+                            }
+                        }
+                        CreateSubmodel(dlg.GetStringSelection(), nodes);
+                    }
+                }
+            }
+        }
+    } else if (event.GetId() == SUBMODEL_DIALOG_IMPORT_FACE) {
+        // Import submodels from faces
+        // Get a list of faces on this model - node ones only
+        const FaceStateData& faces = model->GetFaceInfo();
+        wxArrayString choices;
+        for (const auto& it : faces) {
+            // check the type is NodeRange
+            bool ok = false;
+            for (const auto& it2 : it.second) {
+                if (it2.first == "Type" && it2.second == "NodeRange") {
+                    ok = true;
+                    break;
+                }
+            }
+
+            if (ok)
+                choices.Add(it.first);
+        }
+        if (choices.GetCount() > 0) {
+            wxSingleChoiceDialog dlg(GetParent(), "", "Select Face", choices);
+            if (dlg.ShowModal() == wxID_OK) {
+                const std::map<std::string, std::string>* face = nullptr;
+                for (const auto& it : faces) {
+                    if (it.first == dlg.GetStringSelection()) {
+                        face = &it.second;
+                        break;
+                    }
+                }
+                wxArrayString choices2;
+                for (const auto& it : *face) {
+                    if ((it.first.starts_with("Eyes") || it.first.starts_with("Mouth") || it.first.starts_with("Face")) && !it.first.ends_with("-Color") && it.second != "") {
+                        choices2.Add(it.first);
+                    }
+                }
+                wxMultiChoiceDialog dlg2(GetParent(), "", "Select face elements", choices2);
+                if (dlg2.ShowModal() == wxID_OK) {
+                    std::list<std::string> elements;
+                    for (auto i : dlg2.GetSelections()) {
+                        elements.push_back(choices2[i]);
+                    }
+                    if (elements.size() > 0)
+                    {
+                        std::list<std::string> nodes;
+                        for (const auto& it : *face) {
+                            if (std::find(elements.begin(), elements.end(), it.first) != elements.end()) {
+                                nodes.push_back(it.second);
+                            }
+                        }
+                        CreateSubmodel(dlg.GetStringSelection(), nodes);
+                    }
+                }
+            }
+        }
+    } else if (event.GetId() == SUBMODEL_DIALOG_IMPORT_FILE) {
         //Import Submodels xModel File
         wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xModel Files (*.xmodel)|*.xmodel", wxFD_OPEN);
         if (filename.IsEmpty()) return;
@@ -863,6 +1045,9 @@ void SubModelsDialog::OnEditBtnPopup(wxCommandEvent& event)
     }
     else if (event.GetId() == SUBMODEL_DIALOG_SHIFT) {
         Shift();
+    }
+    else if (event.GetId() == SUBMODEL_DIALOG_SHIFT_SINGLE) {
+        ShiftSingleSubmodel();
     }
     else if (event.GetId() == SUBMODEL_DIALOG_REVERSE) {
         Reverse();
@@ -930,7 +1115,10 @@ void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
             logger_base.crit("SubModelsDialog::OnNodesGridCellChange submodel '%s' tried to access strand %d. This should have crashed.", (const char*)GetSelectedName().c_str(), str);
             wxASSERT(false);
         } else {
-            sm->strands[str] = NodesGrid->GetCellValue(r, 0);
+            wxString newValue = NodesGrid->GetCellValue(r, 0);
+            sm->strands[str] = newValue;
+            NodesGrid->SetCellValue(r, 1, wxString::Format("%d", CountNodesInRange(newValue)));
+
         }
     } else {
         logger_base.crit("SubModelsDialog::OnNodesGridCellChange submodel '%s' ... not found. This should have crashed.", (const char*)GetSelectedName().c_str());
@@ -1014,6 +1202,8 @@ void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
     mnu.Append(SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR, "Suppress Duplicates All Left->Right");
     mnu.Append(SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB, "Suppress Duplicates All Top->Bottom");
     mnu.Append(SUBMODEL_DIALOG_EVEN_ROWS, "Uniform Row Length");
+    mnu.Append(SUBMODEL_DIALOG_EVEN_ROWS_FRONT, "Uniform Row Length - Pad Front");
+    mnu.Append(SUBMODEL_DIALOG_EVEN_ROWS_REAR, "Uniform Row Length - Pad Rear");
     mnu.Append(SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS, "Pivot Rows / Columns");
     mnu.Append(SUBMODEL_DIALOG_SORT_POINTS_ALL, "Geometrically Sort Points All Strands...");
 
@@ -1036,47 +1226,37 @@ void SubModelsDialog::OnNodesGridPopup(wxCommandEvent& event)
 {
     if (event.GetId() == SUBMODEL_DIALOG_REMOVE_DUPLICATE) {
         RemoveDuplicates(false);
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_DUPLICATE) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_DUPLICATE) {
         RemoveDuplicates(true);
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR) {
         RemoveAllDuplicates(true, false);
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB) {
         RemoveAllDuplicates(false, false);
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR) {
         RemoveAllDuplicates(true, true);
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB) {
         RemoveAllDuplicates(false, true);
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_EVEN_ROWS) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_EVEN_ROWS) {
         MakeRowsUniform();
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_EVEN_ROWS_FRONT) {
+        MakeRowsUniformFront();
+    } else if (event.GetId() == SUBMODEL_DIALOG_EVEN_ROWS_REAR) {
+        MakeRowsUniformRear();
+    } else if (event.GetId() == SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS) {
         PivotRowsColumns();
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_SYMMETRIZE) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_SYMMETRIZE) {
         Symmetrize();
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_SORT_POINTS) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_SORT_POINTS) {
         OrderPoints(false);
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_SORT_POINTS_ALL) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_SORT_POINTS_ALL) {
         OrderPoints(true);
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_COMBINE_STRANDS) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_COMBINE_STRANDS) {
         CombineStrands();
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_EXPAND_STRANDS_ALL) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_EXPAND_STRANDS_ALL) {
         processAllStrands([](wxString str) { return ExpandNodes(str); });
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL) {
         processAllStrands([](wxString str) { return CompressNodes(str); });
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_ZERO) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_ZERO) {
         processAllStrands([](wxString str) {
             auto ns = wxSplit(str, ',');
             for (auto i = ns.begin(); i != ns.end(); ++i) {
@@ -1085,8 +1265,7 @@ void SubModelsDialog::OnNodesGridPopup(wxCommandEvent& event)
             }
             return wxJoin(ns, ',');
         });
-    }
-    else if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_EMPTY) {
+    } else if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_EMPTY) {
         processAllStrands([](wxString str) {
             auto ns = wxSplit(str, ',');
             for (auto i = ns.begin(); i != ns.end(); ++i) {
@@ -1148,6 +1327,7 @@ void SubModelsDialog::OnListCtrl_SubModelsItemSelect(wxListEvent& event)
     shouldProcessGridCellChanged = false;
     if (ListCtrl_SubModels->GetSelectedItemCount() == 1)
     {
+	SetTitle(wxString::Format("SubModels - %s - %s", model->GetName(), GetSelectedName()));
         Select(GetSelectedName());
     }
 }
@@ -2217,11 +2397,15 @@ void SubModelsDialog::Select(const wxString &name)
         if (NodesGrid->GetNumberRows() > 0) {
             NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
         }
+       
         for (int x = sm->strands.size() - 1; x >= 0; x--) {
             int cellrow = (sm->strands.size() - 1) - x;
             NodesGrid->AppendRows(1);
             NodesGrid->SetCellValue(cellrow, 0, sm->strands[x]);
+            NodesGrid->SetCellValue(cellrow, 1, wxString::Format("%d", CountNodesInRange(sm->strands[x])));
+            NodesGrid->SetReadOnly(cellrow, 1);
         }
+
         applySubmodelRowLabels(name);
         NodesGrid->EndBatch();
         NodesGrid->GoToCell(0, 0);
@@ -3451,6 +3635,28 @@ void SubModelsDialog::FixNodes(wxXmlNode* n, const std::string& attribute, std::
     n->AddAttribute(attribute, row);
 }
 
+void SubModelsDialog::CreateSubmodel(const std::string& name, const std::list<std::string>& nodes)
+{
+    SubModelInfo* sm = new SubModelInfo(GenerateSubModelName(name));
+    sm->vertical = false;
+    sm->strands.clear();
+    sm->isRanges = true;
+
+    for (const auto& n : nodes)
+    {
+        sm->strands.push_back(n);
+    }
+
+    _subModels.push_back(sm);
+    long index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm->name);
+    ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)sm);
+    Select(sm->name);
+    Panel3->SetFocus();
+    TextCtrl_Name->SetFocus();
+    TextCtrl_Name->SelectAll();
+    ValidateWindow();
+}
+
 void SubModelsDialog::ImportCustomModel(std::string filename)
 {
     wxXmlDocument doc(filename);
@@ -3868,6 +4074,52 @@ void SubModelsDialog::Shift()
     }
 }
 
+void SubModelsDialog::ShiftSingleSubmodel()
+{
+    wxString name = GetSelectedName();
+    if (name == "")
+        return;
+    SubModelInfo* sm = GetSubModelInfo(name);
+
+    long min = 1;
+    long max = model->GetNodeCount();
+
+    wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -(max - 1), max - 1);
+    if (dlg.ShowModal() == wxID_OK) {
+        auto scaleFactor = dlg.GetValue();
+        if (scaleFactor != 0) {
+            if (sm->isRanges) {
+                for (int x = 0; x < sm->strands.size(); x++) {
+                    wxString oldnodes = ExpandNodes(sm->strands[x]);
+                    auto oldNodeArray = wxSplit(oldnodes, ',');
+                    wxArrayString newNodeArray;
+                    for (auto const& node: oldNodeArray) {
+                        long val;
+                        if (node.ToCLong(&val) == true) {
+                            long newVal = val + scaleFactor;
+                            if (newVal > max) {
+                                newVal -= max;
+                            }
+                            else if (newVal < min) {
+                                newVal += max;
+                            }
+                            newNodeArray.Add( wxString::Format("%ld", newVal) );
+                        }
+                    }
+                    sm->strands[x] = CompressNodes(wxJoin(newNodeArray, ','));
+                }
+            }
+            ValidateWindow();
+            Select(name);
+
+            Panel3->SetFocus();
+            TextCtrl_Name->SetFocus();
+            TextCtrl_Name->SelectAll();
+        }
+    }
+}
+
+
 void SubModelsDialog::FlipHorizontal()
 {
     wxString name = GetSelectedName();
@@ -4131,6 +4383,86 @@ void SubModelsDialog::MakeRowsUniform()
     ValidateWindow();
 }
 
+void SubModelsDialog::MakeRowsUniformFront() {
+    auto const name = GetSelectedName();
+    if (name.empty()) {
+        return;
+    }
+
+    auto const row = NodesGrid->GetGridCursorRow();
+    SubModelInfo* sm = GetSubModelInfo(name);
+    if (!sm) {
+        return;
+    }
+
+    size_t mlen = 0; // longest length of any row
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        auto row_data = wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ',');
+        mlen = std::max(mlen, row_data.size());
+    }
+
+    // Write back
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        auto row_data = wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ',');
+        int const dlt = mlen - row_data.size();        
+        for (unsigned s = 0; s < dlt; ++s) {
+            row_data.insert(row_data.begin(), "");
+        }
+        sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(row_data, ','));
+    }
+
+    // Update UI
+    Select(GetSelectedName());
+
+    if (row >= 0) {
+        NodesGrid->SetGridCursor(row, 0);
+    }
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+
+    ValidateWindow();
+}
+
+void SubModelsDialog::MakeRowsUniformRear() {
+    auto const name = GetSelectedName();
+    if (name.empty()) {
+        return;
+    }
+
+    auto const row = NodesGrid->GetGridCursorRow();
+    SubModelInfo* sm = GetSubModelInfo(name);
+    if (!sm){
+        return;
+    }
+
+    size_t mlen = 0; // longest length of any row
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        auto row_data = wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ',');
+        mlen = std::max(mlen, row_data.size());
+    }
+
+    // Write back
+    for (unsigned i = 0; i < sm->strands.size(); ++i) {
+        auto row_data = wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ',');
+        auto const dlt = mlen - row_data.size();
+        for (unsigned s = 0; s < dlt; ++s) {
+            row_data.push_back("");
+        }
+        sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(row_data, ','));
+    }
+
+    // Update UI
+    Select(GetSelectedName());
+
+    if (row >= 0) {
+        NodesGrid->SetGridCursor(row, 0);
+    }
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
+
+    ValidateWindow();
+}
+
 void SubModelsDialog::PivotRowsColumns()
 {
     wxString name = GetSelectedName();
@@ -4320,7 +4652,7 @@ void SubModelsDialog::ExportSubmodelToOtherModels()
     xLightsFrame* xlights = xLightsApp::GetFrame();
     wxArrayString choices = getModelList(&xlights->AllModels);
 
-    wxMultiChoiceDialog dlg(this, "Export SubModels to Other Models", "Export SubModels", choices);
+    wxMultiChoiceDialog dlg(this, "Export SubModels to Other Models", "Choose Model(s)", choices);
     OptimiseDialogPosition(&dlg);
 
     if (dlg.ShowModal() == wxID_OK) {

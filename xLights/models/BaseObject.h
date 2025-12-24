@@ -57,7 +57,6 @@ public:
     virtual void AddASAPWork(uint32_t work, const std::string& from);
     virtual void ReloadModelXml() = 0;
 
-    void EnableLayoutGroupProperty(wxPropertyGridInterface* grid, bool enable);
     void SetTop(float y);
     void SetBottom(float y);
     void SetLeft(float x);
@@ -89,6 +88,9 @@ public:
     float GetWidth() const;
     float GetHeight() const;
     float GetDepth() const;
+    float GetRestorableMWidth() const;
+    float GetRestorableMHeight() const;
+    float GetRestorableMDepth() const;
 
     const std::string &Name() const { return name;}
     const std::string &GetName() const { return name;}

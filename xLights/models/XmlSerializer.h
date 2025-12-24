@@ -452,7 +452,8 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         node->AddAttribute(XmlNodeKeys::TransparencyAttribute, std::to_string(model.GetTransparency()));
         node->AddAttribute(XmlNodeKeys::BTransparencyAttribute, std::to_string(model.GetBlackTransparency()));
         node->AddAttribute(XmlNodeKeys::DescriptionAttribute, model.GetDescription());
-        node->AddAttribute(XmlNodeKeys::TagColourAttribute, model.GetTagColour().GetAsString(wxC2S_HTML_SYNTAX));
+        // TBD: Figure out how to fix this since Dan made GetTagColour non-const
+        //node->AddAttribute(XmlNodeKeys::TagColourAttribute, model.GetTagColour().GetAsString(wxC2S_HTML_SYNTAX));
         node->AddAttribute(XmlNodeKeys::StartChannelAttribute, model.GetModelStartChannel());
         node->AddAttribute(XmlNodeKeys::NodeNamesAttribute, model.GetNodeNames());
         node->AddAttribute(XmlNodeKeys::StrandNamesAttribute, model.GetStrandNames());
@@ -1183,13 +1184,6 @@ private:
         std::string name = node->GetAttribute("name");
         wxString newname = xlights->AllModels.GenerateModelName(name);
         model->SetProperty("name", newname, true);
-        
-        // TODO: This section is being replaced by the AddOtherElementsCall
-        //float min_x = (float)(model->GetBaseObjectScreenLocation().GetLeft());
-        //float max_x = (float)(model->GetBaseObjectScreenLocation().GetRight());
-        //float min_y = (float)(model->GetBaseObjectScreenLocation().GetBottom());
-        //float max_y = (float)(model->GetBaseObjectScreenLocation().GetTop());
-        //model->ImportModelChildren(node, xlights, newname, min_x, max_x, min_y, max_y);
     }
 
     Model* DeserializeArches(wxXmlNode* node, xLightsFrame* xlights) {
@@ -1437,8 +1431,9 @@ struct XmlSerializer {
         float max_x = (float)(model->GetBaseObjectScreenLocation().GetRight());
         float min_y = (float)(model->GetBaseObjectScreenLocation().GetBottom());
         float max_y = (float)(model->GetBaseObjectScreenLocation().GetTop());
-        model->ImportModelChildren(model->GetModelXml(), xlights, model->GetName(), min_x, max_x, min_y, max_y);
-
+        float min_z = (float)(model->GetBaseObjectScreenLocation().GetFront());
+        float max_z = (float)(model->GetBaseObjectScreenLocation().GetBack());
+        model->ImportModelChildren(model->GetModelXml(), xlights, model->GetName(), min_x, max_x, min_y, max_y, min_z, max_z);
         return model;
     }
 

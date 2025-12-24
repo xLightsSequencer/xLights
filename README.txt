@@ -11,11 +11,275 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2025.13  December 2, 2025
+    - enh (o0charlie0o)     Prevent accidental resize of effects when clicking on them
+    - enh (scott)           Add json printing to fseq utility
+    - enh (dkulp)           Add K8-Max/Pro, organize all K8-* into a group
+    - enh (o0charlie0o)     Add confirmation for Viewpoint Deletion
+    - enh (o0charlie0o)     Add keyboard shortcuts for dividing timings by predefined intervals
+    - enh (o0charlie0o)     Add subdivided timing track generation feature
+    - bug (derwin12)        Fix crash in Twinkly output if twinkly device is offline
+    - bug (derwin12)        Fix a few potential but rare crashes, null pointer exceptions
+    - bug (MartinMMueller)  Fix some crashes in ESPixelStick uploads
+    - bug (dkulp)           Hopefully fix some symbol resolution issues on MacOS11
+    - bug (dkulp)           Fix some hostname -> IP issues when resolving on background threads
+    - bug (dkulp)           FPP Connect -> Fix some issues if FPP is reachable by both direct IP address as well as via a proxy
+    - bug (scott)           Fix a bunch of issues on Linux related to the File Dialog not returning the proper path
+    - bug (dkulp)           Mostly fix Aspect Ratio scaling of Video effect
+    - bug (derwin12)        Filter Label on VU Meter doesn't handle lists
+    - bug (Jason Rodriguez) Update from Base folder not handling multicast controllers
+    - bug (scott)           Remove WLED 510 check, add DDP and RGBW check
+    - bug (derwin12)        LUA Render Script reported wrong time on various OS's
+    - bug (dkulp)           For various exceptions, make sure xLights actually crashes and generates a crash report instead of silently closing
+    - bug (dkulp)           Fix crash at startup if you take too long to select a show folder.
+    - bug (dkulp)           FPP Connect - Only upload "Active" models to FPP model map
+    - bug (dkulp)           FPP Connect - Fix some ipv6 issues
+    - bug (dkulp)           Make sure mp4 extension is added when exporting videos, don't crash if extension isn't there
+    - bug (dkulp)           FIx FPPConnect always uploading media
+2025.12  November 7, 2025
+    - enh (scott)           Make State choice bulk editable
+    - enh (scott)           Add more scheduling options for HinksPix export
+    - enh (derwin12)        Various UI tweaks to the Restore dialog
+    - enh (derwin12)        LUA Script to time batch rendered sequences
+    - enh (derwin12)        Shorter batch render status line
+    - enh (dkulp)           Faster RenderCache cleanup, closing of sequences by optimizing string -> int
+    - enh (dkulp)           FPP Connect - for massive custom models, just map to horizontal string to prevent overly large memory usage on FPP
+    - enh (derwin12)        Show dates of newer autosave rgb file
+    - enh (PeteMathews)     Update ILT controller config upload
+    - enh (dkulp)           FPP Connect - fseq upload to FPP 9.3+ include embedded sequence details
+    - enh (MartinMueller)   Several updates to ESPixelStick v4 upload
+    - bug (scott)           Fix crash with HinksPix in non Full xLights Control mode
+    - bug (scott)           Fix HinksPix Export not loading saved values
+    - bug (derwin12)        Fix scaling/blurring of singing faces on matrices
+    - bug (derwin12)        Fix sequence version check with three digits
+    - bug (dkulp)           Fix Prepare Audio on Mac to properly create m4a files
+    - bug (scott)           Fix some crashes in ESPixelStick, add more error handling
+    - bug (dkulp)           Fix some crashes in RenderCache/macOS if mmap fails
+    - bug (dkulp)           Fix twinkly output not working
+    - bug (derwin12)        Fix Drag/Drop of imported effect in left list causing colums to get messed up
+    - bug (derwin12)        Fix crash in duplicate effect
+    - bug (derwin12)        MacOS - Fix Face delete dialog was not cancellable
+    - bug (derwin12)        Fix Check Sequence CSS file not loadable on Mac
+    - bug (derwin12)        Fix States being imported multiple times
+2025.11  October 17, 2025
+    - enh (dkulp)           Very minor open sequence optimization when searching for data layers
+    - enh (dkulp)           Don't display warning for full disk access if SIP is disabled
+    - enh (scott)           Add controller sort options
+    - enh (scott)           Add 1200 pixel per port for WLED ESP32
+    - bug (scott)           Fix DDP  channel for DMX outputs on Falcon upload
+    - bug (dkulp)           Fix memory leaks when clicking on "Re-discovery" in FPP Connect dialog
+    - bug (dkulp)           Fix long standing crash in visualizer when dropping models
+    - bug (derwin12)        Add more visible space for colors in Face dialog
+    - bug (derwin12)        Fix issues with vertical text being off buffer
+2025.10.2 October 7, 2025
+    - enh (dkulp)           Change Windows update check and download URL to github release location
+    - bug (scott)           Fix Falcon e1.31 upload
+    - bug (scott)           Fix version check that was causing the wrong BBB driver type
+    - bug (scott)           Fix WLED crash when skipping ports
+    - bug (zackbcom)        Fix FPP Connect upload for virtual matrices and some other outputs that may optional json parameters
+    - bug (scott)           Update Minleon upload to handle float values in json better
+2025.10.1 October 3, 2025
+    - enh (scott)           Show xml error and location if rgbeffects file has an error
+    - bug (dkulp)           Fix crash in FPP discovery if WLED controllers are present
+    - bug (scott)           Fix upload to Falcon controllers
+    - bug (scott)           Fix upload to ESPixelStick
+    - bug (dkulp)           Fix crash with "Duplicate" effect when duplicating effects with backgrounds (Single Strand, etc..)
+2025.10 October 2, 2025
+    - enh (dkulp)           Support ChatGPT for AI Color Palette creation
+    - enh (dkulp)           Warn if "Full Disk Access" is enabled
+    - enh (scott)           Support newer Hinkspix Firmware
+    - enh (scott)           *Internal* - change JSON parser for most places json is used
+    - enh (derwin12)        Use orientation metadata tag for jpg images
+    - bug (dkulp)           Services Test button should depend on enabled services
+    - bug (derwin12)        Remove macOS metadata files from Batch render pick list
+    - bug (scott)           Several Hinkspix configuration issues
+    - bug (derwin12)        Update playlist duration and count during FPP Connect
+    - bug (derwin12)        Support old "master" setting for FPP
+    - bug (scott)           Fix issue with Experience controllers and Dummy Smart Receiver sttrings
+    - bug (dkulp)           Fix crash with scroll wheel navigation on Wavefrom on macOS Tahoe
+    - bug (dkulp)           Fix a crash on macOS if an animation sequence is opened after a music sequence and then the audio device is changed
+2025.09 September 16, 2025
+    - enh (dkulp)           New "Generate Palette" dialog to use AI to generate a color palette
+    - enh (dkulp)           Add "Apple Intelligence" service provider (palette generation only at this point)
+    - enh (scott/dkulp)     Allow Ollama to generate color palettes
+    - enh (scott)           Bunch of updates/enhancements for HinksPix uploads
+    - enh (Dom Hodgson)     Add Baldrick Input8 Controller
+    - bug (dkulp)           iCloud - make sure xsqz files are download from iCloud before trying to open them
+    - bug (derwin12)        Handle crash with Moving Heads when no path is defined
+    - bug (derwin12)        Don't allow submodels/faces to be copied to Image types
+    - bug (derwin12)        Check Sequence improperly flagging FPP Player as inactive
+    - bug (dkulp)           Bunch of minor fixes/adjustments for appearance issues on MacOS Tahoe
+    - bug (derwin12)        Fix tab key navigation/completion for various property grids
+    - bug (derwin12)        Remove macOS metadata files from Batch render pick list
+    - bug (derwin12)        FPP Connect - make sure uploaded playlists have the "random" value included in the json
+2025.08 August 8, 2025
+    - enh (derwin12)        Allow preview edits in 3D mode
+    - enh (derwin12)        Store/restore the last directory used for imports
+    - enh (derwin12)        Add right click option to remove "-shimmer"
+    - enh (scott)           Add serial upload for Sandevice v5 controllers
+    - enh (TheHodge)        Add Baldrick17 controller
+    - enh (scott)           Add YPS VIVID8 controller
+    - enh (dkulp)           Add K16/K16-Pro KulpLights controllers
+    - enh (dkulp)           FPP9 - Support up to 5 matrices
+    - enh (derwin12)        Distinguish between unsupported and unavailable for FPP connect status
+    - enh (keith)           Support creation of submodels from states and faces
+    - enh (dkulp)           Speed up FPP Connect discovery and initial dialog setup
+    - bug (derwin12)        Disallow invalid characters (ex :) for controller names
+    - bug (dkulp)           Fix proxy support for ESPixelStick uploads
+    - bug (derwin12)        Fix crash importing some models that have numbers in the middle of submodel names
+    - bug (derwin12)        ImageEffect - images with alpha channel may display wrong
+    - bug (scott)           Fix HinksPix universe packing issues in some setups
+    - bug (derwin12)        Fix some issues with "Match Size" not actually matching the size for some models
+    - bug (derwin12)        Fix check for xbkp files and properly prompt to restore
+    - bug (mpierreb/derwin12) Fix some issues moving effects up/down in the grid
+    - bug (derwin12)        Fix removing of temp files after opening xsqz files
+    - bug (dkulp)           Fix infrequent crash caused by bg ping threads when changing show dir or closing xLights
+2025.07 July 17, 2025
+    - bug (derwin12)        Handle cursor up/down the sequencer panel consistently
+    - enh (derwin12)        Split multiple effects via right click
+    - enh (derwin12)        Adding models to group now allows regex filter 
+    - enh (derwin12)        Wiring view shows start of strings
+    - enh (derwin12)        Import selected effects now handles submodels
+    - enh (derwin12)        Add default Gamma settings for Falcon controller
+    - enh (derwin12)        Store/restore the display layout size and position
+    - bug (derwin12)        Node layout of start model
+    - enh (scott)           Handle Hinkspix updates and visualiser errors
+    - enh (dkulp)           Compile issues with Xcode 26
+    - enh (derwin12)        Restore the horizontal sash position on layout tab
+    - bug (derwin12)        Fix average layer blending render style
+    - bug (derwin12)        Handle crash when outputs are misconfigured
+    - enh (scott)           Import Model will now match groups via alias if exists
+    - enh (scott)           Added breakdown selected phrases
+    - enh (ebuechner)       Update faces download 
+    - bug (scott)           Fix crash with chatgpt services
+    - enh (derwin12)          Add label and tweak Services preference
+    - enh (derwin12)        Add clear all and clear selected to import effects
+    - bug (derwin12)        Fix faces effect where state as an outline was not working
+    - enh (keith)           Use Github as source for face downloads
+    - bug (derwin12)        Bug with Fan and Shockwave setting scale to buffer setting for older sequences
+    - enh (keith/scott)     Updates to underlying libraries libLTC, wxwidgets and Github Actions
+    - bug (dkulp)           Fix UI of color palette button
+2025.06 June 10, 2025
+    - bug (derwin12)        Add editor Right click options to state dialog
+    - bug (derwin12)        Crash when discovering Falcon v4/v5
+    - bug (MrPierreB)       Correct effect movement with drag selection box
+    - bug (derwin12)        Ensure state item render order
+    - enh (dkulp)           Update to ISPC and wxwidgets
+    - enh (scott)           Add ollama AI api service and refactor
+    - enh (derwin12)        Add ability to import color palettes and ui change
+    - bug (derwin12)        Dont mark universe per string controllers dirty on startup
+    - enh (derwin12)        Add right click find/replace in timing tracks
+    - enh (derwin12)        Skill multi string shadow models in check sequence
+    - enh (derwin12)        Add option to add an empty group during an effect import
+    - enh (derwin12)        Add redo to menu and shortcut key
+    - enh (gstrike)         Optionally use color palette in candle effect
+    - enh (derwin12)        Retain spacing when copying states
+    - bug (derwin12)        Crash on dropdown selection in Windows
+    - bug (derwin12)        Poly line not rendering flat in model preview
+    - enh (dkulp)           Converting controller to a variant
+    - enh (gstrike)         Add Bong69 controller
+    - bug (derwin12)        Chromakey fix
+    - enh (derwin12)        Have linked Controller/Layout always done
+    - enh (derwin12)        Add blink length to face effect
+    - enh (scott)           hinkspix upload support
+    - enh (scott)           Fedora 42 updates
+    - bug (cpinkman)        Add pixel size to FPP virtual display map
+    - enh (keith)           Fix up EFL vendor model upload links
+    - enh (derwin12)        Add text labels as a timing track creation options
+    - enh (derwin12)        Add right click reset zoom level
+    - enh (jasonsomers)     Add Solo2Go Controller
+    - bug (derwin12)        Handle printing 3d mesh (house) object
+    - bug (derwin12)        Correctly show the default face placement in layout
+    - enh (dkulp)           Vendor model documentation
+    - enh (dkulp)           xLights Vendor info
+    - enh (Scott)           Code refactor
+    - enh (Scott)           Add warning on ESEQ not used 50ms fps
+    - bug (derwin12)        Handle submodel window size being too large
+    - enh (keith)           Add check sequence for mh group not defined correctly
+    - bug (derwin12)        Centering of multiline xlfont text effect
+    - enh (keith)           Preference for bell on render
+    - enh (keith)           Include dimension in model export
+    - enh (keith)           Use dimensions provided in downloaded models
+    - bug (derwin12)        Wave bug with low number of waves having no movement
+2025.05 April 14, 2025
+    - enh (cybercop23)      Add optional status led for each controller on Controllers tab (enabled in settings)
+    - enh (derwin12)        Add popup menu option to close gaps between effects
+    - enh (derwin12)        Add "Alternate Nodes" option to Sphere model
+    - enh (derwin12)        Adjust Save and Save As tool tips to reflect if Render on Save is enabled
+    - enh (derwin12)        Allow Seconds + Millisecond for timeline instead of m:s:ms
+    - enh (scott)           Sub Model Dialog - add ability to pad the front/rear of rows to make them uniform
+    - enh (derwin12)        Colorize X/Y/Z coordinates for BoxScreenLocation based models
+    - enh (keith)           Render Progress dialog can save position/size
+    - enh (derwin12)        Handle IPV6 proxy addresses if hostname resolves only to IPV6
+    - enh (dkulp)           MacOS - point Mac VAMP users to new 2.0 plugin pack
+    - enh (cybercop23)      Show stated of effect render status in popup menu
+    - enh (derwin12)        Add number of effects to left side of Import Mapping
+    - enh (cybercop23)      Add Export Faces & States to other Models
+    - enh (derwin12)        Add left-right text effect option
+    - enh (keith)           Mark sm16804 as a supported pixel type
+    - enh (MrPierreB)       Display number of timing marks an effect spans in status bar for active timing track
+    - bug (derwin12)        Only enable media adjustment buttons if media is actually found
+    - bug (derwin12)        Fix problems rendering some multi-path SVG's
+    - bug (derwin12)        Tweak preference panes for smaller screens
+    - bug (cybercop23)      Fix populating properly list when searching for model
+    - bug (cybercop23)      Fix some problems with fade in/out of audio with the prepare audio functions
+    - bug (cybercop23)      Fix settings not properly reflected after bulk edit
+    - bug (MartinMueller)   Fix some issues with ESPixelStick uploads
+    - bug (derwin12)        Fix some crashes with the Video effect
+    - bug (derwin12)        Fix a crash with Pinwheel effect
+    - bug (derwin12)        Fix F48v3 discovery
+    - bug (derwin12)        Account for alt nodes when display node layout
+    - bug (dkulp)           Hopefully fix crash on Mac when using keys to navigate/select choice options on property grids
+    - bug (derwin12)        Abort render if effects moved to prevent crashes
+    - bug (dkulp)           Fix crash with effects on empty groups, don't add render jobs for models/groups with no nodes
+    - bug (dkulp)           Make sure only "active" models are used to compute nodes of groups with named cameras
+    - bug (dkulp)           Catch Crashing Emoji Effect on single line buffer styles
+2025.04 March 7, 2025
+    - enh (cybercop23)      And SubModel name to SubModelDialog title
+    - enh (derwin12)        Rename OK button to "Close" for effect preset dialog
+    - enh (cybercop23)      Support for zipping sequences for upload to latest ESPixelStick
+    - enh (cybercop23/keith) Several updates/fixes for AI Mapping
+    - enh (derwin12)        Disable effect icon backgrounds and effect indicators during batch render
+    - enh (cybercop23)      Add FPP Connect key binding
+    - enh (MrPierreB)       Add Node Count to Submodel Dialog Window
+    - enh (cybercop23)      Add search support for Layout Group/Model & SubModels
+    - enh (cybercop23)      Flag Keep Channel Number for Wled/EsPixelStick
+    - enh (derwin12)        Add option to Import Effects to convert to 'Per Model'
+    - enh (scott)           Default Galaxy, Shockwave, and Fan to Scale to Buffer
+    - enh (derwin12)        Allow entering state names in mixed case
+    - bug (scott)           Don't allow sequence media adjustment options if sequence is an Animation
+    - bug (derwin12)        Fix buffer overflow crash in video effect
+    - bug (derwin12)        Rounding error causing crash and skewed image in Video Effect
+    - bug (derwin12)        Fix the overflow/underflow of Brightness setting
+    - bug (derwin12)        Fix overflow/underflow of Subtractive Function
+    - bug (derwin12)        Fix Wipe, Blend, From Mid Transitions
+    - bug (derwin12)        Fix Up arrow button on Aliases dialog
+    - bug (derwin12)        Wave Effect: Allow wave to reach the Y limit
+    - bug (cybercop23)      Don't allow Visualization of Inactive/Unassigned Preview items
+    - bug (derwin12)        Fix Import of Cube Model
+    - bug (cybercop23)      Fix apply preset from folders using key bindings
+    - bug (dkulp)           Fix visualize/upload of DMXSkull if eye/color channels become disabled
+    - bug (dkulp)           Fix Model list sorting after list rebuild on Layout tab
+    - bug (dkulp)           Fix potential crash on startup on Linux
+    - change (dkulp)        Cleanup FPP Connect to remove support for deprecated FPP API's
+2025.03 February 11, 2025
+    - enh (derwin12)        Use ispc on Windows to match Linux and MacOS
+    - enh (keith)           Start adding infrastructure for API/AI driven features
+    - enh (keith)           Experimental support for using AI to map imported sequences
+    - enh (MrPierreB)       Enhanced HTML "Check Sequence" report
+    - enh (derwin12)        Allow for more than 48 strings for custom models
+    - enh (derwin12)        Use ispc to handle video frame to render buffer transfers
+    - enh (cybercop23)      Add ability to trim audio in sequence settings
+    - enh (derwin12)        Use case insensitive compared when handling import mappings
+    - bug (dkulp)           Fix rendering of brightness and 2 is unmask with ispc rendering
+    - bug (dkulp)           Fix Shadow 1 on 2, Shadow 2 on 1 blending with ispc
+    - bug (derwin12)        Updates for building Shader UI when effect is changed
+    - bug (dkulp)           Fix rendering of Canvas mode effects if layers are not explicitly selected
 2025.02 January 27, 2025
     - enh (cybercop23)      Enable replay button without needing to first hit play
     - enh (cybercop23)      Add ability to remove model(s) from existing groups from popup menus
     - enh (cybercop23)      Add popup menu option to add timing track to all views
-    - enh (cybercop23)      Sort and restore controler tab column order
+    - enh (cybercop23)      Sort and restore controller tab column order
     - enh (derwin12)        Increase maximum size of group buffers
     - enh (cybercop23)      Add status message/indicator during Cleanup File Locations
     - enh (cybercop23)      FPP Connect - show FPP instances that are configured, but could not be found
@@ -47,7 +311,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - enh (scott)           FPP Connect - more sequence selection options, select based on last batch render
     - enh (cybercop23)      FPP Connect - add re-discover button to re-run discovery
     - enh (cybercop23)      FPP Connect - allow option to keep dialog open after uploads complete
-    - enh (cybercop23)      FPP Connect - de-duplicate FPP isntanced based on UUID
+    - enh (cybercop23)      FPP Connect - de-duplicate FPP instance based on UUID
     - enh (derwin12)        Import Mapping Dialog - remove useless timer
     - enh (derwin12)        On Effect - show gradient in background
     - enh (derwin12)        Servo Effect - servo background is clearer and more distinquishable
@@ -57,7 +321,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - enh (keith)           Controller Properties - provide better warnings/indicators if multiple controllers are configured with same IP
     - enh (cybercop23)      Check Sequence - move to simple HTML to make report easier to navigate
     - enh (derwin12)        Layout Tab - add preference to hide/size the Group Crosshair
-    - enh (derwin12)        Layout Tab - Remove invalid controller properies/settings if controller is changed
+    - enh (derwin12)        Layout Tab - Remove invalid controller properties/settings if controller is changed
     - enh (derwin12)        Layout Tab - add ability to export/import native icicles model
     - enh (derwin12)        Model Properties - add ability to re-order the aliases
     - enh (cybercop23)      Model Properties - add ability (and Lua script) to delete all aliases
@@ -68,16 +332,16 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - bug (dkulp)           Fix a potential crash if a controller hostname cannot be resolved
     - bug (dkulp)           Fix a crash if using Linux in parallels if EGL is required
     - bug (dkulp)           Fix a crash on Linux if MovingHeadPanel is resized before being placed on screen (startup)
-    - bug (dkulp)           Fix incompatability with Ubuntu 22.04 and Debian 12
+    - bug (dkulp)           Fix incompatibility with Ubuntu 22.04 and Debian 12
     - bug (derwin12)        Fix getFseqDir Lua command to match conventions, update docs
     - bug (cybercop23)      Experience Controllers - retain/support Remote/Standalone modes
-    - bug (dkulp)           Butteryfly Effect - clamp HSV->RGB routines to 0..1 for Hue
+    - bug (dkulp)           Butterfly Effect - clamp HSV->RGB routines to 0..1 for Hue
 2024.20 December 31, 2024
     - enh (dkulp)           Performance - if effect backgrounds are turned off, don't waste time/memory calculating them during render
     - enh (cyercop23)       Scripting - add command to get fseq dir from preferences
     - enh (scott)           Controllers - Add V5 Receiver types to K16 controllers
     - enh (scott)           Add "Degrees" tag to Moving Head model attributes
-    - enh (scott)           Add ability to disable monitorying by default for certain controllers
+    - enh (scott)           Add ability to disable monitoring by default for certain controllers
     - enh (scott)           New tool to process log files to find recently used show folders
     - enh (scott)           Sort Backups folder list
     - enh (dkulp)           Use buffering when writing xml/xsq files to hopefully speed up saving to slow storage (NAS)
@@ -85,14 +349,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - bug (scott)           Model Face dialog - don't search for face file if the grid attribute is empty (performance)
     - bug (dkulp)           FPP Connect - fix some issues if FPP has a UI password set
     - bug (scott)           HinksPix - Make sure Input Mode is set on every upload
-    - bug (dkulp)           Fix some divide by 0 issues in PlasmaEffect, particularly with single line buffers
+    - bug (dkulp)           Fix some divide by 0 issues in Plasma Effect, particularly with single line buffers
     - bug (scott)           Various operations on DMX/MovingHeads can result in Value Curves being deleted
     - bug (derwin12)        HinksPix - exit upload if SD card selection is cancelled
     - bug (keith)           xScanner - fix a crash
     - bug (keith)           xSchedule - fix timecode options needing a restart to take effect
     - enh (dev8edss)        xSchedule - several RemoteFalcon updates
 2024.19 November 24, 2024
-    - enh (cybercop23)      Re-attempt to resolve host names on CTRL-click or Test if not resolveable when xLights started
+    - enh (cybercop23)      Re-attempt to resolve host names on CTRL-click or Test if not resolvable when xLights started
     - enh (dkulp)           If a sequence cannot be saved, report the error to the user
     - enh (dkulp)           Use better coloring in Dark mode for Import dialog and TwoPoint/PolyPoint model X/Y/Z coords
     - enh (cybercop23)      Add Skip option to Discovery for controllers that match existing
@@ -118,7 +382,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - enh (scott)           Import layer names from original sequences
     - enh (cybercop23)      Add sequence number progress indicator to FPP Connect
     - enh (cybercop23)      Allow models to be "visualized" in either base or show folder
-    - enh (KyleGrymonprez)  Add rondomization functionality to metronome timing track generation
+    - enh (KyleGrymonprez)  Add randomization functionality to metronome timing track generation
     - enh (derwin12)        Add submodel support to auto mapping
     - bug (dkulp)           Fix a potential crash when using host names instead of ip addresses from a base folder
     - bug (scott)           Windows Upgrade Available notification not working
@@ -135,7 +399,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - change(dkulp)         MacOS builds now require MacOS 11 or newer
     - enh (dkulp)           Resolve hostnames in parallel at startup, much faster startup and FPP Connect
     - enh (derwin12)        Add key bindings for Jukebox
-    - enh (derwin12)        Add key bindings for increase/descrease speed, prev/next tags
+    - enh (derwin12)        Add key bindings for increase/decrease speed, prev/next tags
     - enh (derwin12)        Optionally reverse submodels when reversing models
     - enh (thekev)          Add support for default gamma with Experience controllers
     - enh (dkulp)           FSEQ save - allow using more compression blocks for larger channel count sequences
@@ -157,8 +421,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - enh (Kyle Grymonprez) Disable prompting for alias saving of newly generated models by default
     - enh (Kyle Grymonprez) Node Layout: changing the background colors for dark mode
     - enh (dkulp)           Make sure we have access to media directories, re-prompt if required
-    - enh (dkulp)           Optimize the init/cleanup of CandleEffect, particularly when applied to large groups
-    - enh (dkulp)           If submodel buffer is vertial, use left/col/right labels
+    - enh (dkulp)           Optimize the init/cleanup of Candle Effect, particularly when applied to large groups
+    - enh (dkulp)           If submodel buffer is vertical, use left/col/right labels
     - enh (derwin12)        Add RGB support to Image Model
     - enh (derwin12/dkulp)  Various updates to Time Display if Small Waveform is used
     - enh (derwin12)        Save Small Waveform preference
@@ -177,7 +441,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - enh (scott)           Remember position of State Dialog
     - bug (MrPierreB)       Fix moving head effect to not reset effects when "None" selected
     - bug (scott)           Fix Fan Effect: Fan Scale to Buffer giving unexpected results in some cases
-    - bug (dkulp)           Fix: blure/zoom on node level effects
+    - bug (dkulp)           Fix: blur/zoom on node level effects
     - bug (dkulp)           FPP Connect: fix the HDMI connector index for FPP8
     - bug (scott)           Experience Controllers: fix gamma rounding
     - bug (keith)           Fix single channel matrix displaying in wrong location
@@ -204,7 +468,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - enh (cybercop23)      Add pre/post silence to media
     - enh (derwin12)        Add summary to Check Sequence
     - bug (scott)           Fix ESPixelStickv4 DMX upload
-    - bug (derwin12)        Fix inconsitent paste behavior with timing tracks selected
+    - bug (derwin12)        Fix inconsistent paste behavior with timing tracks selected
     - bug (scott)           Fix State Dialog buttons being too squished
     - bug (keith)           Don't allow saving invalid states in State Dialog
     - bug (derwin12)        Allow some larger buffers that were restricting some rendering
@@ -219,7 +483,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - bug (dkulp)           Fix upload of virtualdisplaymap if 2d preview uses 0 for center
     - bug (cybercop23)      Fix some crashes when  creating aliases from mappings
     - bug (keith)           Fix labels in Matrix Dialog
-    - bug (cybercop23)      Fix Moving Head button hightlight color for light mode
+    - bug (cybercop23)      Fix Moving Head button highlight color for light mode
     - bug (scott)           Fix FPP upload for single channel model types
     - bug (scott)           Fix DDP channel number for Genius Pro DMX output
 2024.14 August 5, 2024
@@ -232,7 +496,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - enh (derwin12)    Text Effect - Add Center function for XLFonts and No Repeat
     - enh (keith)       Add LB1908 to the pixel type list
     - enh (keith)       Fix "Prepare Audio" to create proper MP3 files (Windows/Linux)
-    - enh (dan)         Update "Prepare Audio" to create m4a/AAC fles. Use AudioToolbox AAC encoder on MacOS.
+    - enh (dan)         Update "Prepare Audio" to create m4a/AAC files. Use AudioToolbox AAC encoder on MacOS.
     - enh (dan)         Update "Prepare Audio" to copy metadata/tags from source audio to target to no lose that information
     - enh (keith)       Add filter text to value curve timing track events
     - enh (derwin12)    Show colors from Color Wheel in MH Preset
@@ -262,7 +526,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - enh (PeteMatthews) ILightThat controllers: Set universe size in config, add Switchy
     - enh (scott)       Added Undo/Redo to Custom Model Auto Increment
     - enh (scott)       Added ability to rename controller model name
-    - enh (keith)       Change the packeged sequence default extension to xsqz
+    - enh (keith)       Change the packaged sequence default extension to xsqz
     - enh (keith)       Add ability to directly open packaged sequences from zip/xsqz file in read only mode in xlights by double clicking on zip or dragging it onto the icon
     - enh (dkulp)       Support for linking Servo effects so that changes to end will effect the start of the next servo and vice/versa
     - enh (dkulp)       When splitting an effect, use the location of the mouse as the split point (instead of the center)
@@ -284,7 +548,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     - bug (scott)       Fix some issues with Hardware video decoding with Cuda as well as AMD
 2024.11 Jun 15, 2024
    - enh (dkulp)        Add ability to set display names for Model/Submodel layers
-   - enh (dkulp)        For VSA import, set the layer name to mach the servo
+   - enh (dkulp)        For VSA import, set the layer name to match the servo
    - enh (dkulp)        Add effect background for Servo Effect
    - enh (dkulp)        Make Servo effect easier to use for common "Ramp" use cases by not requiring the value curves for those
    - enh (dkulp)        Make sure preview honors the min/max configured for the servo
@@ -305,7 +569,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    - enh (derwin12)     Add middle mouse to pan sequencer
    - enh (derwin12)     Check that timing track name doesnt conflict with models
    - enh (derwin12)     Show Set Center Point dialog for all groups
-   - enh (cybercop23)   Move Delete to lower in thej list to reduce accidental click
+   - enh (cybercop23)   Move Delete to lower in the list to reduce accidental click
    - enh (derwin12)     Optionally retain the effect duration when duplicating an effect
    - bug (derwin12)     Keep buttons visible in submodel dialog
    - bug (gil)          Fix Pan value curve
@@ -333,11 +597,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    - bug (cybercop23)   Suppress "Add To groups" if source model doesn't belong to any groups
    - bug (gil)          Fix crash in MovingHeadPanel with non-moving head models
    - bug (gil)          Fix migration of moving heads with negative range or motion
-   - bug (gil)          Fix DmxMovingHead orientations ot match new model
+   - bug (gil)          Fix DmxMovingHead orientations to match new model
    - bug (gil)          Fix Moving Head default node names
    - bug (gil)          Fix Moving Head Copy/Paste and presets
    - bug (derwin12/scott) Fix some issues with UTF-8 characters in media filenames
-   - bug (scott)        Fix State effect panel using Faces intead of states
+   - bug (scott)        Fix State effect panel using Faces instead of states
    - bug (dkulp)        Fix various layer blending issues with Moving Heads/DMX models
    - bug (dkulp)        Fix some crashes with effects on empty groups
    - bug (dkulp)        Fix Model Preview of Tree/Cube/Sphere in some unusual circumstances
@@ -358,7 +622,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    - enh (dkulp)        Optimize internal "Node" creation/memory for faster loading and reduced overhead
    - bug (dkulp)        Disabling model from rendering should also disable strands/nodes/submodels
    - bug (dkulp)        Disabled Canvas effects shouldn't render or blend
-   - bug (gil)          Fix - 3D export of tree model is Z-Order backwords
+   - bug (gil)          Fix - 3D export of tree model is Z-Order backwards
    - bug (gil)          Fix - "FromBase" XML attribue being set multiple times can corrupt the xlights_rgbeffects.xml file
    - bug (cybercop23)   Remove duplicate Models/SubModels from groups when replacing a model
    - bug (derwin12)     Shape Effect Emoji cannot be Y centered
@@ -387,10 +651,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    - enh (dkulp)        MacOS - transitions handled on GPU
    - enh (derwin12)     Lua script updates to allow updating the master view
    - enh (scott)        Added RGB2Go controllers
-   - enh (derwin12)     Add ability toadd and edit aliases on SubModels
+   - enh (derwin12)     Add ability to add and edit aliases on SubModels
    - enh (derwin12)     Save and use 3D mode selection in xlight_rgbeffects.xml file
    - enh (derwin12)     Show any model warnings (missing nodes, etc..) before allowing users to create faces
-   - bug (dkulp)        Fix some issues where Buffer Styles list would not update to syles valid for submodels
+   - bug (dkulp)        Fix some issues where Buffer Styles list would not update to styles valid for submodels
    - bug (dkulp)        Fix disabled effects still rendering
    - bug (scott)        Fix SVG shape effect (nanosvg update)
    - bug (scott)        Fix Scripting dialog not working
@@ -426,7 +690,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    - enh (derwin12)     Face Dialog - sort and compress entered nodes
    - enh (derwin12)     Lua Scripting - expose the "Force High Definition" option
    - bug (derwin12)     Fix chapter bookmark display issues on Linux
-   - bug (scott)        HinksPix - Fix overlap check and empy playlist name issues
+   - bug (scott)        HinksPix - Fix overlap check and empty playlist name issues
    - bug (scott)        Fix crash in import dialog
    - bug (dkulp)        Fix several crashes due to effects with rendering disabled   
 2024.04 Feb 29, 2024
@@ -436,7 +700,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (gjones)      Expand range from +/- 1000 to +/- 5000 for red cross offsets
    -- enh (derwin12)    Add Select Effects dialog to UI toolbar
    -- enh (derwin12)    Add expand and collapse to import mapping dialog
-   -- enh (derwin12)    Allow editin dimensions for Image type props
+   -- enh (derwin12)    Allow editing dimensions for Image type props
    -- enh (derwin12)    Include creator in the search for Sequence Downloads
    -- enh (derwin12)    Add preference to hide color update warning
    -- enh (derwin12)    Scale the sphere ot get a better 3d export
@@ -956,7 +1220,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (gil)    PolyLine enhancement. Add ability to define which segment owns the pixel at each endpoint.
    -- bug (dkulp)  Fix Shift/Two Finger panning on TouchPad when not viewing from front
    -- bug (dkulp)  Fix problems with GPU rendered effects saving as "black" into RenderCache
-   -- bug (dkulp)  Fix crash when creating new sequence if "More Options" button is used aand certain other values are adjusted
+   -- bug (dkulp)  Fix crash when creating new sequence if "More Options" button is used and certain other values are adjusted
    -- bug (dkulp)  Fix crash in "Log Rendering Status" if models have finished
    -- bug (dkulp)  Fix display of model groups when some models are added/removed
    -- bug (dkulp)  Fix crash with certain effects if they occur after a GPU rendered effect
@@ -1000,7 +1264,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix expanded mode not being set on Advatek boards when it should be
    -- bug (keith)  Fix Twinkly protocol not proxyable via FPP
    -- bug (keith)  Fix not all minleon controllers show the minleon protocols
-   -- bug (keith)  Slightly improve visual artifacts on pixture effect on windows due to wxWidgets bug on visual studio
+   -- bug (keith)  Slightly improve visual artifacts on picture effect on windows due to wxWidgets bug on visual studio
    -- bug (keith)  Fix unnecessary reboot prompt when uploading DDP to F48 V3 controllers
    -- bug (keith)  Fix face shimmer is not frame rate independent
    -- bug (gil)    Fix moving heads don't move smoothly on windows
@@ -1023,7 +1287,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Add ability to match video effect duration to the selected video
    -- enh (keith)  Add DMX512P and SJ1221 pixels to Falcon
    -- enh (keith)  Allow renaming of previews
-   -- enh (keith)  Aldd option to delete model strand and node effects
+   -- enh (keith)  Add option to delete model strand and node effects
    -- bug (keith)  Suppress Tip of the Day if not show folder is set
    -- bug (keith)  More workarounds for image scaling on Windows release builds with MSVC22
    -- bug (keith)  Don't allow opening of _.xbkp files without renaming
@@ -1055,7 +1319,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix hang if indiv start channels refers to a model on no-controller
    -- bug (keith)  Fix crash when xlDo killed while executing a render
    -- bug (keith)  Fix shadow model for errors which cannot be corrected through UI (on load)
-   -- bug (scott)  Fix WLED pixel limis and universe limits to match current capabilities
+   -- bug (scott)  Fix WLED pixel limits and universe limits to match current capabilities
    -- bug (scott)  Escape model names for xmaphints export
    -- bug (scott)  Disable Universe Per String, when Auto Size is disabled as it does nothing
    -- bug (dkulp)  Fix crash for some per model renders
@@ -1340,7 +1604,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
          Pixel sizes are also consistent between 2D and 3D and thus may also need adjusting.
    -- enh (gil)   Add multiple string support to PolyLine
    -- enh (dkulp) Move all UI views from OpenGL to Metal on macOS
-   -- enh (dkulp) 3D and 2D layouts use same code paths (just flattend for 2D) so features like cyan starting
+   -- enh (dkulp) 3D and 2D layouts use same code paths (just flattened for 2D) so features like cyan starting
                   nodes will work on 3D layout.
    -- enh (dkulp) 2D layouts now use flattened 3D meshes for DMX models instead of a red X
    -- enh (scott) Automation: add getModels, getControllerNames and getControllerIPs
@@ -1440,7 +1704,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (dkulp) Fix Life effect not rendering past first frame
    -- bug (keith) Insert Prior seems to max out at 50 but the number box allows larger numbers
    -- bug (keith) Fix crash with Pictures Effect Assist panel
-   -- bug (keith) Fix media upload repeats to FV4 whwn it shouldnt
+   -- bug (keith) Fix media upload repeats to FV4 when it shouldnt
 2021.36 November 9, 2021
    -- enh (dkulp) Fix crashing on OSX 10.12
    -- enh (dkulp) Warn on OSX 10.12 and 10.13 that support will be dropped soon, update to 10.14 will be necessary soon
@@ -2042,7 +2306,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix VU Meter Timing event pulse colour clamps max fade frames to model size
    -- bug (keith)  Fix xSchedule web site not defaulting correctly to index.html
    -- bug (scott)  Fix video/picture effect does not store filenames as xml safe
-   -- bug (scott)  Fix FPPD neets restart on outputs upload
+   -- bug (scott)  Fix FPPD needs restart on outputs upload
    -- bug (dkulp)  Limit render buffers to 2048 to prevent run away render times
 2020.47 November 8 2020
    -- enh (keith)  Optionally suppress xbkp newer and model missing errors when batch rendering
@@ -3051,7 +3315,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Enhance text display in xSchedule
    -- enh (keith)  Force valid show folder on xSchedule start
    -- enh (keith)  Enhance xSchedule ping to show failure count and only count 3 consecutive fails as an actual fail
-   -- enh (keith)  Expand pixture effect frame rate adjustment upper limit to 20
+   -- enh (keith)  Expand picture effect frame rate adjustment upper limit to 20
    -- enh (keith)  Default saving xmap to same name as it was loaded from
    -- enh (scott)  Added Layer Blending Help Button
    -- enh (scott)  Added Import/Export Model to Circle Model

@@ -3132,10 +3132,6 @@ void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
 {
     displayElementsPanel->Initialize();
     wxAuiPaneInfo & info = m_mgr->GetPane("DisplayElements");
-    info.BestSize(wxSize(750, 1050));
-    int w, h;
-    displayElementsPanel->GetSize(&w, &h);
-    info.FloatingSize(std::max(750, w), std::max(1050, h));
     info.Show();
     m_mgr->Update();
     UpdateViewMenu();
@@ -3185,10 +3181,6 @@ void xLightsFrame::ShowHideDisplayElementsWindow(wxCommandEvent& event)
     if (visible) {
         info.Hide();
     } else {
-        info.BestSize(wxSize(750, 1050));
-        int w, h;
-        displayElementsPanel->GetSize(&w, &h);
-        info.FloatingSize(std::max(750, w), std::max(1050, h));
         info.Show();
     }
     m_mgr->Update();
@@ -3750,29 +3742,27 @@ void xLightsFrame::ImportTimingElement()
     wxFileDialog* OpenDialog = new wxFileDialog(this, "Choose Timing file(s)", wxEmptyString, wxEmptyString,
                                                 "Timing files (*.xtiming)|*.xtiming|Papagayo files (*.pgo)|*.pgo|Subrip Subtitle File (*.srt)|*.srt|Text files (*.txt)|*.txt|Vixen 3 (*.tim)|*.tim|LOR (*.lms)|*.lms|LOR (*.las)|*.las|LSP (*.msq)|*.msq|xLights (*.xsq)|*.xsq|Old xLights (*.xml)|*.xml",
                                                 wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
-    wxString fDir;
     if (OpenDialog->ShowModal() == wxID_OK) {
-        fDir = OpenDialog->GetDirectory();
         wxArrayString filenames;
-        OpenDialog->GetFilenames(filenames);
+        OpenDialog->GetPaths(filenames);
         if (filenames.size() > 0) {
             wxFileName file1(filenames[0]);
             if (file1.GetExt().Lower() == "lms" || file1.GetExt().Lower() == "las") {
-                CurrentSeqXmlFile->ProcessLorTiming(fDir, filenames, this);
+                CurrentSeqXmlFile->ProcessLorTiming( filenames, this);
             } else if (file1.GetExt().Lower() == "xtiming") {
-                CurrentSeqXmlFile->ProcessXTiming(fDir, filenames, this);
+                CurrentSeqXmlFile->ProcessXTiming( filenames, this);
             } else if (file1.GetExt().Lower() == "pgo") {
-                CurrentSeqXmlFile->ProcessPapagayo(fDir, filenames, this);
+                CurrentSeqXmlFile->ProcessPapagayo( filenames, this);
             } else if (file1.GetExt().Lower() == "srt") {
-                CurrentSeqXmlFile->ProcessSRT(fDir, filenames, this);
+                CurrentSeqXmlFile->ProcessSRT( filenames, this);
             } else if (file1.GetExt().Lower() == "msq") {
-                CurrentSeqXmlFile->ProcessLSPTiming(fDir, filenames, this);
+                CurrentSeqXmlFile->ProcessLSPTiming( filenames, this);
             } else if (file1.GetExt().Lower() == "xml" || file1.GetExt().Lower() == "xsq") {
-                CurrentSeqXmlFile->ProcessXLightsTiming(fDir, filenames, this);
+                CurrentSeqXmlFile->ProcessXLightsTiming( filenames, this);
             } else if (file1.GetExt().Lower() == "tim") {
-                CurrentSeqXmlFile->ProcessVixen3Timing(fDir, filenames, this);
+                CurrentSeqXmlFile->ProcessVixen3Timing( filenames, this);
             } else {
-                CurrentSeqXmlFile->ProcessAudacityTimingFiles(fDir, filenames, this);
+                CurrentSeqXmlFile->ProcessAudacityTimingFiles( filenames, this);
             }
         }
     }
@@ -4041,7 +4031,7 @@ Effect* xLightsFrame::ApplyEffectsPreset(const std::string& presetName)
     Effect* res = nullptr;
     wxXmlNode* ele = nullptr;
 
-    auto path = wxSplit(presetName, '/');
+    auto path = wxSplit(presetName, '\\');
 
     ele = FindPreset(_sequenceElements.GetEffectsNode(), path, 0);
 

@@ -65,8 +65,84 @@
 			<fpp1>21,16</fpp1>
 		</Variant>
 	</Controller>
-    <Controller Name="K16A-B">
-        <Variant Name="No Expansion" ID="K16A-B" Base="FPP:FPPStringCapeTTYs">
+    <Controller Name="K8">
+        <Variant Name="K8-Max" ID="K8-Max" Base="FPP:FPPShiftStringCape">
+            <MaxPixelPort>24</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fppSerialPort1>DMX1</fppSerialPort1>
+        </Variant>
+        <Variant Name="K8-Pro" ID="K8-Pro" Base="FPP:FPPShiftStringCape">
+            <MaxPixelPort>24</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fppSerialPort1>DMX1</fppSerialPort1>
+        </Variant>
+        <Variant Name="K8" ID="K8" Base="FPP:FPPShiftStringCape">
+            <MaxPixelPort>16</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fppSerialPort1>DMX1</fppSerialPort1>
+        </Variant>
+        <Variant Name="K8-B" ID="K8-B" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>20</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>21,-1</fpp1>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+        <Variant Name="K8-B w/Expansion" ID="K8-B" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>36</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>21,16</fpp1>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+        <Variant Name="K8-PB" ID="K8-PB" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>20</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>21,-1</fpp1>
+            <fppSerialPort1>ttyS2</fppSerialPort1>
+        </Variant>
+        <Variant Name="K8-PB w/Expansion" ID="K8-PB" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>36</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>21,16</fpp1>
+            <fppSerialPort1>ttyS2</fppSerialPort1>
+        </Variant>
+        <Variant Name="K8-B-Scroller" ID="K8-B-Scroller" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>12</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+            <SupportsLEDPanelMatrix/>
+        </Variant>
+        <Variant Name="K8-Pi" ID="K8-Pi" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>20</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fppSerialPort1>ttyAMA0</fppSerialPort1>
+            <SupportsVirtualMatrix/>
+            <SupportsLEDPanelMatrix/>
+            <SupportsAutoLayout/>
+            <fpp>1</fpp>
+            <fpp1>21,-1</fpp1>
+        </Variant>
+        <Variant Name="K8-Pi w/Expansion" ID="K8-Pi" Base="FPP:FPPStringDPIPiHat">
+            <MaxPixelPort>36</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fppSerialPort1>ttyAMA0</fppSerialPort1>
+            <SupportsVirtualMatrix/>
+            <SupportsLEDPanelMatrix/>
+            <SupportsAutoLayout/>
+            <NumberOfBanks>2</NumberOfBanks>
+            <BankSize>16</BankSize>
+            <fpp>1</fpp>
+            <fpp1>21,16</fpp1>
+        </Variant>
+    </Controller>
+    <Controller Name="K16">
+        <Variant Name="K16A-B" ID="K16A-B" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>32</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
             <fpp>1</fpp>
@@ -79,7 +155,7 @@
                 <Type>falcon_v5</Type>
             </SmartRemoteTypes>
         </Variant>
-        <Variant Name="Expansion" ID="K16A-B" Base="FPP:FPPStringCapeTTYs">
+        <Variant Name="K16A-B w/ Expansion" ID="K16A-B" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>48</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
             <fpp>1</fpp>
@@ -91,6 +167,48 @@
                 <Type>fpp_v2</Type>
                 <Type>falcon_v5</Type>
             </SmartRemoteTypes>
+        </Variant>
+        <Variant Name="K16-Max" ID="K16-Max" Base="FPP:FPPShiftStringCape">
+            <MaxPixelPort>48</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fppSerialPort1>DMX1</fppSerialPort1>
+            <fppSerialPort2>DMX2</fppSerialPort2>
+        </Variant>
+        <Variant Name="K16-Pro" ID="K16-Pro" Base="FPP:FPPShiftStringCape">
+            <MaxPixelPort>48</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fppSerialPort1>DMX1</fppSerialPort1>
+            <fppSerialPort2>DMX2</fppSerialPort2>
+        </Variant>
+        <Variant Name="K16" ID="K16" Base="FPP:FPPShiftStringCape">
+            <MaxPixelPort>32</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fppSerialPort1>DMX1</fppSerialPort1>
+        </Variant>
+    </Controller>
+    <Controller Name="K32">
+        <Variant Name="K32A-B" ID="K32A-B" Base="FPP:FPPStringCapeTTYs">
+            <MaxPixelPort>48</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+        </Variant>
+        <Variant Name="K32-Max" ID="K32-Max" Base="FPP:FPPShiftStringCape">
+            <MaxPixelPort>64</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fppSerialPort1>DMX1</fppSerialPort1>
+            <fppSerialPort2>DMX2</fppSerialPort2>
+        </Variant>
+        <Variant Name="K32-Pro" ID="K32-Pro" Base="FPP:FPPShiftStringCape">
+            <MaxPixelPort>64</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fppSerialPort1>DMX1</fppSerialPort1>
+            <fppSerialPort2>DMX2</fppSerialPort2>
+        </Variant>
+        <Variant Name="K32" ID="K32" Base="FPP:FPPShiftStringCape">
+            <MaxPixelPort>48</MaxPixelPort>
+            <MaxSerialPort>1</MaxSerialPort>
+            <fppSerialPort1>DMX1</fppSerialPort1>
         </Variant>
     </Controller>
     <Controller Name="K4-PB">
@@ -105,14 +223,6 @@
             <MaxPixelPort>40</MaxPixelPort>
             <MaxSerialPort>1</MaxSerialPort>
             <fppSerialPort1>ttyS4</fppSerialPort1>
-        </Variant>
-    </Controller>
-    <Controller Name="K32A-B">
-        <Variant Name="" ID="K32A-B" Base="FPP:FPPStringCapeTTYs">
-            <MaxPixelPort>48</MaxPixelPort>
-            <MaxSerialPort>2</MaxSerialPort>
-            <fppSerialPort1>ttyS1</fppSerialPort1>
-            <fppSerialPort2>ttyS2</fppSerialPort2>
         </Variant>
     </Controller>
     <Controller Name="K64D-B">
@@ -133,48 +243,7 @@
             <fppStringDriverType>BBShiftString</fppStringDriverType>
         </Variant>
     </Controller>
-    <Controller Name="K8-B">
-        <Variant Name="No Expansion" ID="K8-B" Base="FPP:FPPStringCapeTTYs">
-            <MaxPixelPort>20</MaxPixelPort>
-            <MaxSerialPort>2</MaxSerialPort>
-            <fpp>1</fpp>
-            <fpp1>21,-1</fpp1>
-            <fppSerialPort1>ttyS1</fppSerialPort1>
-            <fppSerialPort2>ttyS2</fppSerialPort2>
-        </Variant>
-        <Variant Name="w/Expansion" ID="K8-B" Base="FPP:FPPStringCapeTTYs">
-            <MaxPixelPort>36</MaxPixelPort>
-            <MaxSerialPort>2</MaxSerialPort>
-            <fpp>1</fpp>
-            <fpp1>21,16</fpp1>
-            <fppSerialPort1>ttyS1</fppSerialPort1>
-            <fppSerialPort2>ttyS2</fppSerialPort2>
-        </Variant>
-    </Controller>
-    <Controller Name="K8-Pi">
-        <Variant Name="No Expansion" ID="K8-Pi" Base="FPP:FPPStringDPIPiHat">
-            <MaxPixelPort>20</MaxPixelPort>
-            <MaxSerialPort>1</MaxSerialPort>
-            <fppSerialPort1>ttyAMA0</fppSerialPort1>
-            <SupportsVirtualMatrix/>
-            <SupportsLEDPanelMatrix/>
-            <SupportsAutoLayout/>
-            <fpp>1</fpp>
-            <fpp1>21,-1</fpp1>
-        </Variant>
-        <Variant Name="w/Expansion" ID="K8-Pi" Base="FPP:FPPStringDPIPiHat">
-            <MaxPixelPort>36</MaxPixelPort>
-            <MaxSerialPort>1</MaxSerialPort>
-            <fppSerialPort1>ttyAMA0</fppSerialPort1>
-            <SupportsVirtualMatrix/>
-            <SupportsLEDPanelMatrix/>
-            <SupportsAutoLayout/>
-            <NumberOfBanks>2</NumberOfBanks>
-            <BankSize>16</BankSize>
-            <fpp>1</fpp>
-            <fpp1>21,16</fpp1>
-        </Variant>
-    </Controller>
+
     <Controller Name="K2-Pi0">
         <Variant Name="No Expansion" ID="K2-Pi0" Base="FPP:FPPStringDPIPiHat">
             <MaxPixelPort>2</MaxPixelPort>
@@ -212,31 +281,7 @@
             </ExtraProperties>
         </Variant>
     </Controller>
-    <Controller Name="K8-PB">
-        <Variant Name="No Expansion" ID="K8-PB" Base="FPP:FPPStringCapeTTYs">
-            <MaxPixelPort>20</MaxPixelPort>
-            <MaxSerialPort>1</MaxSerialPort>
-            <fpp>1</fpp>
-            <fpp1>21,-1</fpp1>
-            <fppSerialPort1>ttyS2</fppSerialPort1>
-        </Variant>
-        <Variant Name="w/Expansion" ID="K8-PB" Base="FPP:FPPStringCapeTTYs">
-            <MaxPixelPort>36</MaxPixelPort>
-            <MaxSerialPort>1</MaxSerialPort>
-            <fpp>1</fpp>
-            <fpp1>21,16</fpp1>
-            <fppSerialPort1>ttyS2</fppSerialPort1>
-        </Variant>
-    </Controller>
-    <Controller Name="K8-B-Scroller">
-        <Variant Name="" ID="K8-B-Scroller" Base="FPP:FPPStringCapeTTYs">
-            <MaxPixelPort>12</MaxPixelPort>
-            <MaxSerialPort>2</MaxSerialPort>
-            <fppSerialPort1>ttyS1</fppSerialPort1>
-            <fppSerialPort2>ttyS2</fppSerialPort2>
-            <SupportsLEDPanelMatrix/>
-        </Variant>
-    </Controller>
+
     <Controller Name="OctoPlus">
         <Variant Name="" ID="OctoPlus" Base="FPP:BaseFPPSettings">
             <MaxPixelPort>0</MaxPixelPort>

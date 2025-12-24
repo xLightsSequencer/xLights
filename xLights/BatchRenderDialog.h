@@ -26,12 +26,13 @@
 
 class wxMouseEvent;
 class wxCommandEvent;
+class OutputManager;
 
 class BatchRenderDialog: public wxDialog
 {
 	public:
 
-		BatchRenderDialog(wxWindow* parent);
+		BatchRenderDialog(wxWindow* parent, OutputManager* outputManager);
 		virtual ~BatchRenderDialog();
 
 		//(*Declarations(BatchRenderDialog)
@@ -47,19 +48,21 @@ class BatchRenderDialog: public wxDialog
 
 		wxTreeListCtrl* CheckListBox_Sequences;
 
-        bool Prepare(const wxString &dir);
+        [[nodiscard]] bool Prepare(const wxString& dir);
         void SequenceListPopup(wxTreeListEvent& event);
         void OnPopupCommand(wxCommandEvent &event);
     
-        wxArrayString GetFileList();
+        [[nodiscard]] wxArrayString GetFileList() const;
         void GetSeqList(const wxString& folder);
-        void GetFolderList(const wxString& folder);
-        bool isFileInFolder(const wxString &file) const;
+        void GetFolderList(const wxString& folder) const;
+        [[nodiscard]] bool isFileInFolder(const wxString& file) const;
 
 
 protected:
         wxArrayString allFiles;
 		wxString showDirectory;
+
+		OutputManager* m_outputManager;
 
 		//(*Identifiers(BatchRenderDialog)
 		static const wxWindowID ID_CHOICE_FILTER;
@@ -76,6 +79,7 @@ protected:
         static const long ID_MNU_SELECTNONE;
         static const long ID_MNU_SELECTHIGH;
         static const long ID_MNU_DESELECTHIGH;
+        static const long ID_MNU_SELECTFPP;
 
 	public:
 
@@ -91,9 +95,13 @@ protected:
         void DisplayDateRendered(std::string const& fileName, wxTreeListItem& item) const;
 
         void ValidateWindow();
-        uint32_t UpdateCount();
+
         void OnSequenceListToggled(wxDataViewEvent& event);
         void SaveSettings();
 
         DECLARE_EVENT_TABLE()
+
+	private:
+        void SelectFromFPPPlayList();
+        uint32_t UpdateCount();
 };

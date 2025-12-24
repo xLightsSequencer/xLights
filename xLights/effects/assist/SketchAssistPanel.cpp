@@ -1,8 +1,10 @@
 #include "SketchAssistPanel.h"
 #include "SketchCanvasPanel.h"
 
-#include "../../xSchedule/wxJSON/jsonreader.h"
-#include "../../xSchedule/wxJSON/jsonwriter.h"
+#include <fstream>
+#include <iostream>
+#include <nlohmann/json.hpp>
+
 #include "UtilFunctions.h"
 #include <xLightsMain.h>
 #include "../../ExternalHooks.h"
@@ -98,8 +100,8 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     pathUISizer->AddGrowableCol(0);
 
     auto pathSketchCtrlsSizer = new wxFlexGridSizer(1, 3, 0, 5);
+    auto pathCtrlsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Path");
     auto sketchCtrlsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Sketch");
-
     auto importCtrlsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Import/Export");
 
     auto sketchUISizer = new wxFlexGridSizer(2, 1, 5, 0);
@@ -118,18 +120,17 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     canvasFrameSizer->Add(m_sketchCanvasPanel, 1, wxALL | wxEXPAND);
     canvasFrame->SetSizer(canvasFrameSizer);
 
-    // path / sketch controls
-    m_startPathBtn = new wxButton(this, wxID_ANY, "Start");
-    m_endPathBtn = new wxButton(this, wxID_ANY, "End");
-    m_closePathBtn = new wxButton(this, wxID_ANY, "Close");
-    m_continuePathBtn = new wxButton(this, wxID_ANY, "Continue");
+    // path / sketch controls - use GetStaticBox() as parent for controls inside wxStaticBoxSizer
+    m_startPathBtn = new wxButton(pathCtrlsSizer->GetStaticBox(), wxID_ANY, "Start");
+    m_endPathBtn = new wxButton(pathCtrlsSizer->GetStaticBox(), wxID_ANY, "End");
+    m_closePathBtn = new wxButton(pathCtrlsSizer->GetStaticBox(), wxID_ANY, "Close");
+    m_continuePathBtn = new wxButton(pathCtrlsSizer->GetStaticBox(), wxID_ANY, "Continue");
 
-    m_clearSketchBtn = new wxButton(this, wxID_ANY, "Clear");
-    m_importSketchBtn = new wxButton(this, wxID_ANY, "Import");
-    m_exportSketchBtn = new wxButton(this, wxID_ANY, "Export");
-    m_importSVGBtn = new wxButton(this, wxID_ANY, "Import SVG");
+    m_clearSketchBtn = new wxButton(sketchCtrlsSizer->GetStaticBox(), wxID_ANY, "Clear");
+    m_importSketchBtn = new wxButton(importCtrlsSizer->GetStaticBox(), wxID_ANY, "Import");
+    m_exportSketchBtn = new wxButton(importCtrlsSizer->GetStaticBox(), wxID_ANY, "Export");
+    m_importSVGBtn = new wxButton(importCtrlsSizer->GetStaticBox(), wxID_ANY, "Import SVG");
 
-    auto pathCtrlsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Path");
     pathCtrlsSizer->Add(m_startPathBtn, 1, wxALL | wxEXPAND, 3);
     pathCtrlsSizer->Add(m_endPathBtn, 1, wxALL | wxEXPAND, 3);
     pathCtrlsSizer->Add(m_closePathBtn, 1, wxALL | wxEXPAND, 3);
@@ -149,8 +150,8 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     // Hotkeys text
     hotkeysSizer->Add(new wxStaticText(hotkeysSizer->GetStaticBox(), wxID_ANY, HotkeysText), 1, wxALL | wxEXPAND, 3);
 
-    // Paths ListBox
-    m_pathsListBox = new wxListBox(this, wxID_ANY);
+    // Paths ListBox - use GetStaticBox() as parent for controls inside wxStaticBoxSizer
+    m_pathsListBox = new wxListBox(pathsSizer->GetStaticBox(), wxID_ANY);
     pathsSizer->Add(m_pathsListBox, 1, wxALL | wxEXPAND, 3);
 
     sketchUISizer->Add(pathsSizer, 1, wxALL | wxEXPAND, 5);
@@ -324,28 +325,31 @@ void SketchAssistPanel::OnButton_ImportSketch(wxCommandEvent& event)
     wxString filename = wxFileSelector(_("Choose xLights Sketch File"), xLightsFrame::CurrentDir, wxEmptyString, wxEmptyString, "Sketch Files (*.xsketch)|*.xsketch", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
     if (!filename.empty()) {
-        wxJSONReader reader;
-        wxFile skfile(filename);
-        wxString json;
-        wxJSONValue data;
-        skfile.ReadAll(&json);
-        reader.Parse(json, &data);
-        skfile.Close();
+        nlohmann::json data;
 
-        wxString bgImagePath;
+        try {
+            std::ifstream inputFile(filename.ToStdString());
+            inputFile >> data;
+
+        } catch (std::exception& ex) {
+            DisplayError(wxString::Format("Could not open xLights Sketch file %s.\nError: %s", filename, ex.what()).ToStdString());
+            return;
+        }
+
+        std::string bgImagePath;
         unsigned char bitmapAlpha = m_bitmapAlpha;
 
-        if (data.HasMember("imagepath") && data["imagepath"].IsString()) {
-            bgImagePath = data["imagepath"].AsString();
+        if (data.contains("imagepath") && data["imagepath"].is_string()) {
+            bgImagePath = data["imagepath"].get<std::string>();
         }
-        if (data.HasMember("bitmapalpha") && data["bitmapalpha"].AsInt()) {
-            bitmapAlpha = data["bitmapalpha"].AsInt();
+        if (data.contains("bitmapalpha") && data["bitmapalpha"].is_number_integer()) {
+            bitmapAlpha = data["bitmapalpha"].get<int>();
         }
         if (bgImagePath != "" && FileExists(bgImagePath)) {
             UpdateSketchBackground(bgImagePath, bitmapAlpha);
         }
-        if (data.HasMember("sketchdata") && data["sketchdata"].IsString()) {
-            SetSketchDef(data["sketchdata"].AsString());
+        if (data.contains("sketchdata") && data["sketchdata"].is_string()) {
+            SetSketchDef(data["sketchdata"].get<std::string>());
             NotifySketchUpdated();
         }
     }
@@ -356,14 +360,18 @@ void SketchAssistPanel::OnButton_ExportSketch(wxCommandEvent& event)
     wxString filename = wxFileSelector(_("Save xLights Sketch File"), xLightsFrame::CurrentDir, wxEmptyString, wxEmptyString, "Sketch Files (*.xsketch)|*.xsketch", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
     if (!filename.IsEmpty()) {
-        wxJSONValue data;
+        nlohmann::json data;
         data["sketchdata"] = m_sketch.toString();
-        data["imagepath"] = m_bgImagePath;
+        data["imagepath"] = m_bgImagePath.ToStdString();
         data["bitmapalpha"] = m_bitmapAlpha;
-        wxFileOutputStream skfile(filename);
-        wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
-        writer.Write(data, skfile);
-        skfile.Close();
+
+        try {
+            std::ofstream o(filename.ToStdString());
+            if (o.is_open()) {
+                o << std::setw(4) << data << std::endl;
+            }
+        } catch (const std::exception&) {
+        }
     }
 }
 

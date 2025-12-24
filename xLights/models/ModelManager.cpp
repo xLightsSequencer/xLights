@@ -392,25 +392,39 @@ std::string ModelManager::SerialiseModelGroupsForModel(Model* m) const
     return res;
 }
 
-void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string& mname, bool& merge, bool& ask)
-{
+void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string& mname, bool& merge, bool& ask) {
     // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // logger_base.debug("ModelManager adding groups.");
 
     auto grpModels = n->GetAttribute("models");
-    if (grpModels.length() == 0)
+    if (grpModels.empty())
+    {
         return;
+    }
 
     auto mgname = n->GetAttribute("name");
+    bool alias { false };
     if (models.find(mgname) != models.end()) {
-        if (ask) {
+        for (const auto& [name, mm] : models) {
+            if (mm->GetDisplayAs() == "ModelGroup") {
+                if (mm->IsAlias(mgname, false)) {
+                    mgname = name;
+                    alias = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (models.find(mgname) != models.end()) {
+        if (ask && !alias) {
             wxMessageDialog confirm(GetXLightsFrame(), _("Model contains Model Group(s) that Already Exist.\n Would you Like to Add this Model to the Existing Groups?"), _("Model Group(s) Already Exists"), wxYES_NO);
             int returnCode = confirm.ShowModal();
             if (returnCode == wxID_YES)
                 merge = true;
             ask = false;
         }
-        if (merge) { // merge
+        if (merge || alias) { // merge
             Model* mg = GetModel(mgname);
             if (mg->GetDisplayAs() == "ModelGroup") {
                 ModelGroup* mmg = dynamic_cast<ModelGroup*>(mg);
@@ -423,12 +437,66 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                         auto mgmn = wxString(it);
                         mgmn = mname + "/" + mgmn.AfterFirst('/');
                         std::string em = "EXPORTEDMODEL/" + mgmn.AfterFirst('/');
-                        if (ContainsBetweenCommas(grpModels, em) && std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
-                            std::find(prevousNames.begin(), prevousNames.end(), mgmn) == prevousNames.end() &&
-                            !mmg->DirectlyContainsModel(mgmn)) {
-                            mmg->AddModel(mgmn);
-                            prevousNames.push_back(mgmn);
-                            found = true;
+                        if (ContainsBetweenCommas(grpModels, em)) {
+                            if (std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
+                                std::find(prevousNames.begin(), prevousNames.end(), mgmn) == prevousNames.end() &&
+                                !mmg->DirectlyContainsModel(mgmn)) {
+                                mmg->AddModel(mgmn);
+                                prevousNames.push_back(mgmn);
+                                found = true;
+                            }
+                        } else { // look for zero padded
+                            std::string submodel = it.substr(it.find('/') + 1);
+                            size_t pos = submodel.find_last_of(' ');
+                            std::string num_str;
+                            if (pos != std::string::npos) {
+                                std::string before_space = submodel.substr(0, pos);
+                                size_t num_start = before_space.find_last_of(' ') + 1;
+                                if (num_start == 0 || num_start >= before_space.length()) num_start = 0;
+                                size_t i = num_start;
+                                while (i < before_space.length() && std::isdigit(before_space[i])) {
+                                    num_str += before_space[i];
+                                    ++i;
+                                }
+                            }
+                            if (num_str.empty()) {
+                                size_t i = 0;
+                                while (i < submodel.length() && std::isdigit(submodel[i])) {
+                                    num_str += submodel[i];
+                                    ++i;
+                                }
+                            }
+                            if (!num_str.empty()) {
+                                try {
+                                    int num = std::stoi(num_str);
+                                    std::string itZeroPad;
+                                    if (pos != std::string::npos) {
+                                        size_t num_start = submodel.find_last_of(' ', pos - 1) + 1;
+                                        if (num_start >= submodel.length()) num_start = 0;
+                                        itZeroPad = it.substr(0, it.find('/') + 1) + submodel.substr(0, num_start) +
+                                            (num < 10 ? "0" : "") + std::to_string(num);
+                                        size_t num_end = num_start + num_str.length();
+                                        if (num_end < submodel.length()) {
+                                            itZeroPad += submodel.substr(num_end);
+                                        }
+                                    } else {
+                                        itZeroPad = it.substr(0, it.find('/') + 1) +
+                                            (num < 10 ? "0" : "") + std::to_string(num);
+                                    }
+                                    auto mgmn = wxString(itZeroPad);
+                                    mgmn = mname + "/" + mgmn.AfterFirst('/');
+                                    std::string em = "EXPORTEDMODEL/" + mgmn.AfterFirst('/');
+                                    if (ContainsBetweenCommas(grpModels, em) &&
+                                        std::find(mmnmn.begin(), mmnmn.end(), mgmn.ToStdString()) == mmnmn.end() &&
+                                        std::find(prevousNames.begin(), prevousNames.end(), mgmn) == prevousNames.end() &&
+                                        !mmg->DirectlyContainsModel(mgmn)) {
+                                        mmg->AddModel(mgmn);
+                                        prevousNames.push_back(mgmn);
+                                        found = true;
+                                    }
+                                } catch (const std::exception&) {
+                                }
+                            }
                         }
                     } else {
                         if (ContainsBetweenCommas(grpModels, it) && std::find(mmnmn.begin(), mmnmn.end(), mname) == mmnmn.end() &&
@@ -941,16 +1009,18 @@ bool ModelManager::ReworkStartChannel() const
 
         if (it->IsAutoSize()) {
             auto eth = dynamic_cast<const ControllerEthernet*>(it);
-            if (it->GetChannels() != std::max((int32_t)1, (int32_t)ch - 1) || (eth != nullptr && eth->IsUniversePerString())) {
+            if (it->GetChannels() != std::max((int32_t)1, (int32_t)ch - 1) || (eth != nullptr && eth->SupportsUniversePerString())) {
                 logger_zcpp.debug("    Resizing output to %d channels.", std::max((int32_t)1, (int32_t)ch - 1));
 
                 auto oldC = it->GetChannels();
                 // Set channel size won't always change the number of channels for some protocols
                 it->SetChannelSize(std::max((int32_t)1, (int32_t)ch - 1), allSortedModels);
-                if (it->GetChannels() != oldC || (eth != nullptr && eth->IsUniversePerString())) {
+                if (it->GetChannels() != oldC || (eth != nullptr && eth->SupportsUniversePerString())) {
                     outputManager->SomethingChanged();
 
-                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel");
+                    if (it->GetChannels() != oldC || (eth != nullptr && eth->IsUniversePerString() && xlights->IsSequencerInitialize())) { 
+                        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel");
+                    }
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ReworkStartChannel");
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ReworkStartChannel");
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_SAVE_NETWORKS, "ReworkStartChannel");

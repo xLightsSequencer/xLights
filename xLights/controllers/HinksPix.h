@@ -15,6 +15,8 @@
 #include <memory>
 #include <string>
 
+#include <nlohmann/json.hpp>
+
 #include "BaseController.h"
 #include "ControllerUploadData.h"
 #include "../UtilClasses.h"
@@ -22,7 +24,7 @@
 #include <curl/curl.h>
 
 class HinksPix;
-class wxJSONValue;
+class ControllerEthernet;
 
 struct HinksPixOutput {
     HinksPixOutput(int output_ ,int defaultBrightness_) :
@@ -84,7 +86,7 @@ struct HinksPixSerial {
     bool ddpDMXEnabled;
     bool upload;
     void Dump() const;
-    void SetConfig(wxJSONValue const& data);
+    void SetConfig(nlohmann::json const& data);
 
     wxString BuildCommand() const;
     wxString BuildCommandEasyLights(int mode) const;
@@ -128,6 +130,24 @@ struct HinksPixInputUniverse {
     wxString BuildCommandEasyLights() const;
 };
 
+struct HinksPixFileData {
+    std::string FileName;
+    uint16_t Date;
+    uint16_t Time;
+};
+
+class UnPack
+{
+public:
+    int32_t MyStart;
+    int32_t MyEnd;
+    int32_t NewStart;
+    int32_t NewEnd;
+    int32_t NumChans;
+    int32_t Port;
+    bool InActive;
+};
+
 class HinksPix : public BaseController
 {
     static constexpr int UN_PER = 6;
@@ -146,8 +166,9 @@ class HinksPix : public BaseController
     EXPType _EXP_Outputs[EXP_PORTS];
     std::string _controllerType;
     CURL* _curl { nullptr };
-    int _numberOfUniverses;
-    int _MCPU_Version;
+    int _numberOfUniverses{ 0 };
+    int _MCPU_Version{ 0 };
+    bool _hardwareV3{false};
 
     std::vector<HinksPixOutput> _pixelOutputs;
     std::unique_ptr<HinksPixSerial> _serialOutput;
@@ -169,6 +190,7 @@ class HinksPix : public BaseController
     std::unique_ptr<HinksPixSerial> InitSerialData(bool fullControl);
 
     bool UploadInputUniverses(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const;
+    bool UploadUnPack(bool &worked, Controller *controller, std::vector<UnPack *> const &UPA, bool dirty) const;
     
     bool UploadInputUniversesEasyLights(Controller* controller, std::vector<HinksPixInputUniverse> const& inputUniverses) const;
     void UploadPixelOutputsEasyLights(bool& worked);
@@ -185,16 +207,18 @@ class HinksPix : public BaseController
     void UploadSmartReceivers(bool& worked) const;
     void UploadSmartReceiverData(int expan, int bank, std::vector<HinksSmartOutput> const& receivers, bool& worked) const;
     void CalculateSmartReceivers(UDControllerPort* stringData);
-    void SendRebootController(bool& worked) const;
+
     std::string GetJSONControllerData(std::string const& url, std::string const& data) const;
-    bool GetControllerDataJSON(const std::string& url, wxJSONValue& val, std::string const& data) const;
+    bool GetControllerDataJSON(const std::string& url, nlohmann::json& val, std::string const& data) const;
     void PostToControllerNoResponse(std::string const& url, std::string const& data) const;
     bool CheckPixelOutputs(std::string & message);
     bool CheckSmartReceivers(std::string & message);
 
+
     static const std::string GetJSONPostURL() { return "/Xlights_PostData.cgi"; };
     static const std::string GetJSONInfoURL() { return "/XLights_BoardInfo.cgi"; };
     static const std::string GetJSONPortURL() { return "/Xlights_Board_Port_Config.cgi"; };
+    static const std::string GetJSONUnPackURL() { return "/Xlights_UnPack_Config.cgi"; };
     static const std::string GetJSONModeURL() { return "/Xlights_Data_Mode.cgi"; };
     static const std::string GetE131URL() { return"/GetE131Data.cgi"; };
     static const std::string GetInfoURL() { return"/GetInfo.cgi"; };
@@ -202,6 +226,9 @@ class HinksPix : public BaseController
 #pragma endregion
 
 public:
+
+    bool IsUnPackSupported_Hinks(ControllerEthernet *controller);
+
 #pragma region Constructors and Destructors
     HinksPix(const std::string& ip, const std::string& fppProxy);
     virtual ~HinksPix();
@@ -212,5 +239,14 @@ public:
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) override;
 #endif
     virtual bool UsesHTTP() const override { return true; }
+    bool UploadFileToController(std::string const& localpathname, std::string const& remotepathname, std::function<bool(int, int, std::string)> progress_dlg, wxDateTime const& fileTime) const;
+    bool UploadTimeToController() const;
+    bool UploadModeToController(unsigned char mode) const;
+    [[nodiscard]] std::vector<HinksPixFileData> GetFileInfoFromSDCard(uint8_t cmd) const;
+    [[nodiscard]] int GetMPUVersion() const { return _MCPU_Version; }
+    [[nodiscard]] bool IsHardwareV3() const { return _hardwareV3; }
+    [[nodiscard]] bool FirmwareSupportsUpload() const;
+    void SendRebootController(bool& worked) const;
 #pragma endregion
 };
+

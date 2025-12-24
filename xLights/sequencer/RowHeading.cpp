@@ -45,6 +45,111 @@ EVT_MOTION(RowHeading::mouseMove)
 EVT_PAINT(RowHeading::render)
 END_EVENT_TABLE()
 
+// Dialog for selecting subdivision options
+class SubdivisionOptionsDialog : public wxDialog
+{
+public:
+    SubdivisionOptionsDialog(wxWindow* parent)
+        : wxDialog(parent, wxID_ANY, "Select Subdivisions to Generate", wxDefaultPosition, wxDefaultSize)
+    {
+        wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
+
+        // Info text
+        wxStaticText* infoText = new wxStaticText(this, wxID_ANY,
+            "Select which subdivided timing tracks to generate:");
+        mainSizer->Add(infoText, 0, wxALL, 10);
+
+        // Checkboxes - Split timing options
+        m_check_half = new wxCheckBox(this, wxID_ANY, "1/2 - Split each mark into 2 parts");
+        m_check_third = new wxCheckBox(this, wxID_ANY, "1/3 - Split each mark into 3 parts");
+        m_check_quarter = new wxCheckBox(this, wxID_ANY, "1/4 - Split each mark into 4 parts");
+        m_check_sixth = new wxCheckBox(this, wxID_ANY, "1/6 - Split each mark into 6 parts");
+        m_check_eighth = new wxCheckBox(this, wxID_ANY, "1/8 - Split each mark into 8 parts");
+
+        // Checkboxes - Combine timing options
+        m_check_double = new wxCheckBox(this, wxID_ANY, "2x - Combine every 2 marks (half-time)");
+        m_check_quadruple = new wxCheckBox(this, wxID_ANY, "4x - Combine every 4 marks");
+        m_check_octuple = new wxCheckBox(this, wxID_ANY, "8x - Combine every 8 marks");
+
+        // Check split timing options by default, but not combine options
+        m_check_half->SetValue(true);
+        m_check_third->SetValue(true);
+        m_check_quarter->SetValue(true);
+        m_check_sixth->SetValue(true);
+        m_check_eighth->SetValue(true);
+        m_check_double->SetValue(false);
+        m_check_quadruple->SetValue(false);
+        m_check_octuple->SetValue(false);
+
+        mainSizer->Add(m_check_half, 0, wxALL, 5);
+        mainSizer->Add(m_check_third, 0, wxALL, 5);
+        mainSizer->Add(m_check_quarter, 0, wxALL, 5);
+        mainSizer->Add(m_check_sixth, 0, wxALL, 5);
+        mainSizer->Add(m_check_eighth, 0, wxALL, 5);
+        mainSizer->Add(m_check_double, 0, wxALL, 5);
+        mainSizer->Add(m_check_quadruple, 0, wxALL, 5);
+        mainSizer->Add(m_check_octuple, 0, wxALL, 5);
+
+        // Select/Deselect All buttons
+        wxBoxSizer* selectionButtonSizer = new wxBoxSizer(wxHORIZONTAL);
+        wxButton* selectAllBtn = new wxButton(this, wxID_ANY, "Select All");
+        wxButton* deselectAllBtn = new wxButton(this, wxID_ANY, "Deselect All");
+
+        selectAllBtn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+            m_check_half->SetValue(true);
+            m_check_third->SetValue(true);
+            m_check_quarter->SetValue(true);
+            m_check_sixth->SetValue(true);
+            m_check_eighth->SetValue(true);
+            m_check_double->SetValue(true);
+            m_check_quadruple->SetValue(true);
+            m_check_octuple->SetValue(true);
+        });
+
+        deselectAllBtn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+            m_check_half->SetValue(false);
+            m_check_third->SetValue(false);
+            m_check_quarter->SetValue(false);
+            m_check_sixth->SetValue(false);
+            m_check_eighth->SetValue(false);
+            m_check_double->SetValue(false);
+            m_check_quadruple->SetValue(false);
+            m_check_octuple->SetValue(false);
+        });
+
+        selectionButtonSizer->Add(selectAllBtn, 0, wxALL, 5);
+        selectionButtonSizer->Add(deselectAllBtn, 0, wxALL, 5);
+        mainSizer->Add(selectionButtonSizer, 0, wxALIGN_CENTER | wxALL, 5);
+
+        // OK/Cancel buttons
+        wxSizer* buttonSizer = CreateButtonSizer(wxOK | wxCANCEL);
+        mainSizer->Add(buttonSizer, 0, wxALIGN_CENTER | wxALL, 10);
+
+        SetSizer(mainSizer);
+        Fit();
+        CenterOnParent();
+    }
+
+    bool GetHalfSelected() const { return m_check_half->GetValue(); }
+    bool GetThirdSelected() const { return m_check_third->GetValue(); }
+    bool GetQuarterSelected() const { return m_check_quarter->GetValue(); }
+    bool GetSixthSelected() const { return m_check_sixth->GetValue(); }
+    bool GetEighthSelected() const { return m_check_eighth->GetValue(); }
+    bool GetDoubleSelected() const { return m_check_double->GetValue(); }
+    bool GetQuadrupleSelected() const { return m_check_quadruple->GetValue(); }
+    bool GetOctupleSelected() const { return m_check_octuple->GetValue(); }
+
+private:
+    wxCheckBox* m_check_half;
+    wxCheckBox* m_check_third;
+    wxCheckBox* m_check_quarter;
+    wxCheckBox* m_check_sixth;
+    wxCheckBox* m_check_eighth;
+    wxCheckBox* m_check_double;
+    wxCheckBox* m_check_quadruple;
+    wxCheckBox* m_check_octuple;
+};
+
 // Menu constants
 const long RowHeading::ID_ROW_MNU_INSERT_LAYER_ABOVE = wxNewId();
 const long RowHeading::ID_ROW_MNU_INSERT_LAYER_BELOW = wxNewId();
@@ -105,6 +210,7 @@ const long RowHeading::ID_ROW_MNU_REMOVE_TIMING_PHONEMES = wxNewId();
 const long RowHeading::ID_ROW_MNU_REMOVE_TIMING_WORDS_PHONEMES = wxNewId();
 const long RowHeading::ID_ROW_MNU_HIDEALLTIMING = wxNewId();
 const long RowHeading::ID_ROW_MNU_SHOWALLTIMING = wxNewId();
+const long RowHeading::ID_ROW_MNU_GENERATE_SUBDIVIDED_TRACKS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SETLAYERNAME = wxNewId();
 
 int DEFAULT_ROW_HEADING_HEIGHT = 22;
@@ -473,6 +579,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     }
                     mnuLayer.Append(ID_ROW_MNU_ADD_TIMING_TRACK_ALL_VIEWS, "Add Timing Tracks to All Views");
                     mnuLayer.Append(ID_ROW_MNU_SELECT_TIMING_EFFECTS, "Select Timing Marks");
+                    mnuLayer.Append(ID_ROW_MNU_GENERATE_SUBDIVIDED_TRACKS, "Generate Subdivided Timing Tracks");
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_NOTES, "Import Notes");
                     mnuLayer.AppendSeparator();
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_LYRICS, "Import Lyrics");
@@ -511,6 +618,20 @@ void RowHeading::rightClick( wxMouseEvent& event)
         Update();
         PopupMenu(&mnuLayer);
     }
+}
+
+std::vector<std::string> RowHeading::ParseTags(const wxString& tagString) {
+    std::vector<std::string> tags;
+    if (!tagString.empty()) {
+        wxArrayString splitTags = wxSplit(tagString, ',');
+        for (auto& tag : splitTags) {
+            wxString trimmedTag = tag.Trim().Trim(false); // Remove leading/trailing whitespace
+            if (!trimmedTag.empty()) {
+                tags.push_back(trimmedTag.ToStdString());
+            }
+        }
+    }
+    return tags;
 }
 
 void RowHeading::OnLayerPopup(wxCommandEvent& event)
@@ -777,33 +898,44 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                                 timing_added = true;
                             }
                         }
-                    }else if (selected_timing == "Metronome w/ Tags") {
+                    } else if (selected_timing == "Metronome w/ Tags") {
                         int base_timing = xml_file->GetFrameMS();
                         MetronomeLabelDialog dlg(base_timing, this);
-                        if (dlg.ShowModal() == wxID_OK)
-                        {
+                        if (dlg.ShowModal() == wxID_OK) {
                             int ms = (dlg.GetTiming() + base_timing / 2) / base_timing * base_timing;
-                            
-                            if (ms != dlg.GetTiming())
-                            {
+
+                            if (ms != dlg.GetTiming()) {
                                 DisplayWarning(wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetTiming(), ms).ToStdString());
                             }
                             wxString ttn = wxString::Format("%s%dms Metronome %d Tag", dlg.IsRandomTiming() || dlg.IsRandomTags() ? "Random " : "", ms, dlg.GetTagCount());
-                            //Handle new random tag names
-                            if( (dlg.IsRandomTiming() || dlg.IsRandomTags()) && xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame()) ) {
+
+                            // Handle new random tag names
+                            if ((dlg.IsRandomTiming() || dlg.IsRandomTags()) && xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame())) {
                                 int copyNum = 1;
                                 wxString new_ttn = ttn;
                                 do {
-                                    wxString copyString =  wxString::Format(" (%d)", copyNum);
+                                    wxString copyString = wxString::Format("_%d", copyNum);
                                     new_ttn = ttn + copyString;
                                     copyNum++;
                                 } while (xml_file->TimingAlreadyExists(new_ttn.ToStdString(), mSequenceElements->GetXLightsFrame()));
                                 ttn = new_ttn;
                             }
-                                
-                            if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame()))
-                            {
-                                xml_file->AddMetronomeLabelTimingSection(ttn.ToStdString(), ms, dlg.GetTagCount(), mSequenceElements->GetXLightsFrame(), dlg.GetMinRandomTiming(), dlg.IsRandomTags());
+
+                            if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame())) {
+                                // Get and parse custom tags
+                                std::vector<std::string> customTags = ParseTags(dlg.GetTextLabels());
+                                // If no valid custom tags, use default numbered tags (1, 2, 3, ...)
+                                if (customTags.empty()) {
+                                    for (int i = 1; i <= dlg.GetTagCount(); ++i) {
+                                        customTags.push_back(std::to_string(i));
+                                    }
+                                }
+
+                                // Add the timing track with custom or default tags
+                                xml_file->AddMetronomeLabelTimingSection(ttn.ToStdString(), ms, customTags, 
+                                    mSequenceElements->GetXLightsFrame(), 
+                                    dlg.GetMinRandomTiming(), 
+                                    dlg.IsRandomTags());
                                 timing_added = true;
                             }
                         }
@@ -832,6 +964,132 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             std::string oldname = element->GetName();
             mSequenceElements->GetXLightsFrame()->RenameTimingElement(oldname, name);
         }
+    } else if (id == ID_ROW_MNU_GENERATE_SUBDIVIDED_TRACKS) {
+        // Generate subdivided timing tracks from the current timing track
+        xLightsXmlFile* xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+        std::string originalName = element->GetName();
+        EffectLayer* sourceLayer = element->GetEffectLayer(0);
+
+        if (sourceLayer == nullptr || sourceLayer->GetEffectCount() == 0) {
+            wxMessageBox("The selected timing track has no timing marks to subdivide.", "No Timing Marks", wxOK | wxICON_WARNING);
+            return;
+        }
+
+        // Show subdivision options dialog
+        SubdivisionOptionsDialog dialog(this);
+        if (dialog.ShowModal() != wxID_OK) {
+            return;
+        }
+
+        // Build vectors based on user selections
+        std::vector<int> divisors;
+        std::vector<std::string> suffixes;
+
+        if (dialog.GetHalfSelected()) {
+            divisors.push_back(2);
+            suffixes.push_back(" - 1/2");
+        }
+        if (dialog.GetThirdSelected()) {
+            divisors.push_back(3);
+            suffixes.push_back(" - 1/3");
+        }
+        if (dialog.GetQuarterSelected()) {
+            divisors.push_back(4);
+            suffixes.push_back(" - 1/4");
+        }
+        if (dialog.GetSixthSelected()) {
+            divisors.push_back(6);
+            suffixes.push_back(" - 1/6");
+        }
+        if (dialog.GetEighthSelected()) {
+            divisors.push_back(8);
+            suffixes.push_back(" - 1/8");
+        }
+        if (dialog.GetDoubleSelected()) {
+            divisors.push_back(-2);  // negative value indicates multiplication (half-time)
+            suffixes.push_back(" - 2x");
+        }
+        if (dialog.GetQuadrupleSelected()) {
+            divisors.push_back(-4);  // negative value indicates multiplication
+            suffixes.push_back(" - 4x");
+        }
+        if (dialog.GetOctupleSelected()) {
+            divisors.push_back(-8);  // negative value indicates multiplication
+            suffixes.push_back(" - 8x");
+        }
+
+        // If no options selected, nothing to do
+        if (divisors.empty()) {
+            wxMessageBox("No subdivision options selected.", "No Selection", wxOK | wxICON_INFORMATION);
+            return;
+        }
+
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
+
+        for (size_t i = 0; i < divisors.size(); i++) {
+            int divisor = divisors[i];
+            std::string newTrackName = originalName + suffixes[i];
+
+            // Check if track already exists
+            if (xml_file->TimingAlreadyExists(newTrackName, mSequenceElements->GetXLightsFrame())) {
+                wxMessageBox("Timing track '" + newTrackName + "' already exists. Skipping.", "Track Exists", wxOK | wxICON_WARNING);
+                continue;
+            }
+
+            // Create new timing track
+            xml_file->AddNewTimingSection(newTrackName, mSequenceElements->GetXLightsFrame());
+            Element* newElement = mSequenceElements->GetElement(newTrackName);
+
+            if (newElement == nullptr) {
+                wxMessageBox("Failed to create timing track '" + newTrackName + "'", "Error", wxOK | wxICON_ERROR);
+                continue;
+            }
+
+            EffectLayer* newLayer = newElement->GetEffectLayer(0);
+            if (newLayer == nullptr) {
+                wxMessageBox("Failed to get effect layer for '" + newTrackName + "'", "Error", wxOK | wxICON_ERROR);
+                continue;
+            }
+
+            // Copy and subdivide timing marks
+            for (int j = 0; j < sourceLayer->GetEffectCount(); j++) {
+                Effect* sourceEffect = sourceLayer->GetEffect(j);
+                long startTime = sourceEffect->GetStartTimeMS();
+                long endTime = sourceEffect->GetEndTimeMS();
+                long duration = endTime - startTime;
+
+                if (divisor > 0) {
+                    // Subdivision mode (divide by 2, 3, 4, 6, or 8)
+                    float subdivisionDuration = (float)duration / (float)divisor;
+
+                    for (int k = 0; k < divisor; k++) {
+                        long newStart = startTime + (long)(subdivisionDuration * k);
+                        long newEnd = (k == divisor - 1) ? endTime : startTime + (long)(subdivisionDuration * (k + 1));
+
+                        if (newStart < newEnd) {
+                            newLayer->AddEffect(0, "", "", "", newStart, newEnd, EFFECT_NOT_SELECTED, false);
+                        }
+                    }
+                } else {
+                    // Combine mode (multiply - combine every N marks)
+                    int multiplier = -divisor;  // Convert negative divisor to positive multiplier
+                    if (j % multiplier == 0) {
+                        // Only add every Nth timing mark, combining the marks in between
+                        long nextEndTime = endTime;
+
+                        // Find the end time of the (multiplier-1)th mark ahead
+                        for (int m = 1; m < multiplier && (j + m) < sourceLayer->GetEffectCount(); m++) {
+                            nextEndTime = sourceLayer->GetEffect(j + m)->GetEndTimeMS();
+                        }
+
+                        newLayer->AddEffect(0, "", "", "", startTime, nextEndTime, EFFECT_NOT_SELECTED, false);
+                    }
+                }
+            }
+        }
+
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
     } else if (id == ID_ROW_MNU_DELETE_TIMING_TRACK) {
         wxString prompt = wxString::Format("Delete 'Timing Track '%s'?", element->GetName());
         wxString caption = "Confirm Timing Track Deletion";

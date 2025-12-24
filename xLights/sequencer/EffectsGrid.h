@@ -151,6 +151,7 @@ public:
 
     void AlignSelectedEffects(EFF_ALIGN_MODE align_mode);
     void AlignSelectedEffectsToTimingMark();
+    void CloseGap();
 
     int GetEffectRow(Effect* ef);
     Effect* OldPaste(const wxString &data, const wxString &pasteDataVer);
@@ -287,6 +288,12 @@ private:
     void TruncateBrightnessValueCurve(ValueCurve& vc, double startPos, double endPos, int startMS, int endMS, int originalLength);
     uint32_t FindChannel(Element* element, int strandIndex, int nodeIndex, uint8_t& channelsPerNode) const;
     void FindEffectsForData(uint32_t channel, uint8_t chans, uint32_t _findDataMS) const;
+    void Find();
+    void FindNext();
+    void FindPrevious();
+    void Replace();
+    void AddShimmer();
+    void RemoveShimmer();
 
     SequenceElements* mSequenceElements = nullptr;
     bool mIsDrawing = false;
@@ -330,6 +337,7 @@ private:
     int mStartResizeTimeMS;
     bool mResizing;
     bool mDragging;
+    bool mDragThresholdExceeded;
     int mDragStartRow;
     int mDragStartX;
     int mDragStartY;
@@ -358,10 +366,20 @@ private:
     int mRangeCursorRow;
     int mRangeCursorCol;
 
+    std::string mSearchText;
+    int mLastFoundEffectIndex;
+    int mSearchRow;
+
     static const long ID_GRID_MNU_CUT;
     static const long ID_GRID_MNU_COPY;
     static const long ID_GRID_MNU_PASTE;
     static const long ID_GRID_MNU_DELETE;
+    static const long ID_GRID_MNU_FIND;
+    static const long ID_GRID_MNU_FIND_NEXT;
+    static const long ID_GRID_MNU_FIND_PREVIOUS;
+    static const long ID_GRID_MNU_REPLACE;
+    static const long ID_GRID_MNU_ADD_SHIMMER;
+    static const long ID_GRID_MNU_REMOVE_SHIMMER;
     static const long ID_GRID_MNU_RANDOM_EFFECTS;
     static const long ID_GRID_MNU_DESCRIPTION;
     static const long ID_GRID_MNU_RESETEFFECT;
@@ -375,6 +393,7 @@ private:
     static const long ID_GRID_MNU_REDO;
     static const long ID_GRID_MNU_PRESETS;
     static const long ID_GRID_MNU_BREAKDOWN_PHRASE;
+    static const long ID_GRID_MNU_BREAKDOWN_PHRASES;
     static const long ID_GRID_MNU_AUTOLABEL;
     static const long ID_GRID_MNU_HALVETIMINGS;
     static const long ID_GRID_MNU_BREAKDOWN_WORD;
@@ -387,6 +406,7 @@ private:
     static const long ID_GRID_MNU_ALIGN_START_TIMES_SHIFT;
     static const long ID_GRID_MNU_ALIGN_END_TIMES_SHIFT;
     static const long ID_GRID_MNU_ALIGN_TO_TIMING_MARK;
+    static const long ID_GRID_MNU_CLOSE_GAP;
     static const long ID_GRID_MNU_SPLIT_EFFECT;
     static const long ID_GRID_MNU_DUPLICATE_EFFECT;
     static const long ID_GRID_MNU_CREATE_TIMING_FROM_EFFECT;

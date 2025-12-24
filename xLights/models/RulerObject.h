@@ -33,30 +33,39 @@ public:
     virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {}
 
-    int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+    [[nodiscard]] int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
 
-    virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
+    [[nodiscard]] virtual bool Draw(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* solid, xlGraphicsProgram* transparent, bool allowSelected = false) override;
 
-	static RulerObject* GetRuler() { return __rulerObject; }
-	static int GetUnits() { if (__rulerObject != nullptr) return __rulerObject->_units; return RULER_UNITS_M; }
-	static std::string GetUnitDescription();
-    static float Measure(glm::vec3 p1, glm::vec3 p2);
-    static float Measure(float length);
-    static float UnMeasure(float length);
-    static float MeasureWidth(glm::vec3 p1, glm::vec3 p2);
-	static float MeasureHeight(glm::vec3 p1, glm::vec3 p2);
-	static float MeasureDepth(glm::vec3 p1, glm::vec3 p2);
-    static std::string MeasureDescription(float length);
-    static std::string PrescaledMeasureDescription(float length);
-    static std::string MeasureLengthDescription(glm::vec3 p1, glm::vec3 p2);
-	static std::string MeasureWidthDescription(glm::vec3 p1, glm::vec3 p2);
-	static std::string MeasureHeightDescription(glm::vec3 p1, glm::vec3 p2);
-	static std::string MeasureDepthDescription(glm::vec3 p1, glm::vec3 p2);
-    float ConvertDimension(const std::string& units, float measure);
+	[[nodiscard]] static RulerObject* GetRuler() {
+        return __rulerObject;
+    }
+    [[nodiscard]] static int GetUnits() {
+        if (__rulerObject != nullptr)
+            return __rulerObject->_units;
+        return RULER_UNITS_M;
+    }
+    [[nodiscard]] static std::string GetUnitDescription();
+    [[nodiscard]] static float Measure(glm::vec3 p1, glm::vec3 p2);
+    [[nodiscard]] static float Measure(float length);
+    [[nodiscard]] static float UnMeasure(float length);
+    [[nodiscard]] static float MeasureWidth(glm::vec3 p1, glm::vec3 p2);
+    [[nodiscard]] static float MeasureHeight(glm::vec3 p1, glm::vec3 p2);
+    [[nodiscard]] static float MeasureDepth(glm::vec3 p1, glm::vec3 p2);
+    [[nodiscard]] static std::string MeasureDescription(float length);
+    [[nodiscard]] static std::string PrescaledMeasureDescription(float length);
+    [[nodiscard]] static std::string MeasureLengthDescription(glm::vec3 p1, glm::vec3 p2);
+    [[nodiscard]] static std::string MeasureWidthDescription(glm::vec3 p1, glm::vec3 p2);
+    [[nodiscard]] static std::string MeasureHeightDescription(glm::vec3 p1, glm::vec3 p2);
+    [[nodiscard]] static std::string MeasureDepthDescription(glm::vec3 p1, glm::vec3 p2);
+    [[nodiscard]] float ConvertDimension(const std::string& units, float measure);
+    [[nodiscard]] static float Convert(const std::string& fromUnits, int toUnits, float measure);
+    [[nodiscard]] static float Convert(int fromUnits, const std::string& toUnits, float measure);
+    [[nodiscard]] static float Convert(const std::string& fromUnits, const std::string& toUnits, float measure);
 
-protected:
+    protected:
 
-    float GetPerUnit() const;
+    [[nodiscard]] float GetPerUnit() const;
 
 private:
     float _realLength = 1;

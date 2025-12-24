@@ -38,7 +38,7 @@ public:
     virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
 
     virtual bool SupportsXlightsModel() override { return true; }
-    [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+    [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
     virtual void ExportXlightsModel() override;
 
     virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;

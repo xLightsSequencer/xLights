@@ -682,7 +682,7 @@ bool xSMSDaemonFrame::SetText(const std::string& t, const std::string& text, con
         _action("Set current text", (const wchar_t*)p.c_str(), "", result, sizeof(result));
         std::string res(result);
 
-        if (Contains(res, _("result\":\"ok")) && text != "")
+        if (Contains(res, "result\":\"ok") && text != "")
         {
             StaticText_LastDisplayed->SetLabel(wxDateTime::Now().FormatTime());
             ok = true;

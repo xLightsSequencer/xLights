@@ -24,3 +24,6 @@ OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/effects/ispc/PinwheelFunctions.o
 
 OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/effects/ispc/PlasmaFunctions.o
 OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/effects/ispc/PlasmaFunctions.o
+
+OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/effects/ispc/VideoFunctions.o
+OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/effects/ispc/VideoFunctions.o

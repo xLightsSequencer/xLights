@@ -94,9 +94,9 @@ bool S5Group::ParseXML( wxXmlNode* g ) {
     return true;
 }
 
-LORPreview::LORPreview( xLightsFrame* frame, wxString xLigthsPreview ) :
+LORPreview::LORPreview( xLightsFrame* frame, wxString xLightsPreview ) :
     xlights( frame ),
-    xLigths_preview( xLigthsPreview ) {
+    xLights_preview( xLightsPreview ) {
 #ifndef _DEBUG
     DisplayWarning(
         "WARNING: As at this release S5 model import is experimental and its improvement relies on your feedback.\nIf it doesnt do a good job let us know by telling us:\n\
@@ -594,7 +594,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
     //Decode Start Channel
     SetStartChannel( model, m, supportsMultiString );
 
-    m->SetProperty( "LayoutGroup", xLigths_preview );
+    m->SetProperty( "LayoutGroup", xLights_preview );
 
     //rename
     auto newName = xlights->AllModels.GenerateModelName( Model::SafeModelName(model.name ));
@@ -918,7 +918,7 @@ void LORPreview::CreateGroup( S5Group const& grp, std::vector< S5Model > const& 
     node->AddAttribute( "name", newName );
     node->AddAttribute( "layout", "minimalGrid" );
     node->AddAttribute( "GridSize", "400" );
-    node->AddAttribute( "LayoutGroup", xLigths_preview );
+    node->AddAttribute( "LayoutGroup", xLights_preview );
 
     // create group and reload before adding selected models. prior models were added before create and I was seeing frequent
     // crashes in Render() with invalid model pointers especially with mixed selections (groups, submodels & models)

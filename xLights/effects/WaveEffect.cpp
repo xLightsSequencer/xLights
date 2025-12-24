@@ -68,14 +68,6 @@ void WaveEffect::adjustSettings(const std::string& version, Effect* effect, bool
 #define WAVETYPE_DECAYSINE  3
 #define WAVETYPE_IVYFRACTAL  4
 
-//#define WANT_DEBUG_IMPL
-//#define WANT_DEBUG  -99 //unbuffered in case app crashes
-//#include "djdebug.cpp"
-#ifndef debug_function //dummy defs if debug cpp not included above
-#define debug(level, ...)
-#define debug_more(level, ...)
-#define debug_function(level)
-#endif
 
 
 class WaveRenderCache : public EffectRenderCache {
@@ -179,7 +171,6 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     } else if (WaveType == WAVETYPE_IVYFRACTAL) { //generate branches at start of effect
         if (buffer.needToInit || (WaveBuffer0.size() != NumberWaves * buffer.BufferWi)) {
             r = 0;
-            debug(10, "regen wave path, state %0.1f", state);
             int delay = 0;
             int delta = 0; //next branch length, angle
             WaveBuffer0.resize(NumberWaves * buffer.BufferWi);
@@ -197,7 +188,7 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             buffer.needToInit = false;
         }
     }
-    double degree_per_x = NumberWaves / buffer.BufferWi;
+    double degree_per_x = static_cast<double>(NumberWaves) / buffer.BufferWi;
     hsv.saturation = 1.0;
     hsv.value = 1.0;
     hsv.hue = 1.0;
@@ -324,11 +315,10 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             deltay = y2 - y1;
             wxASSERT(deltay > 0);
 
-            for (y = y1; y < y2; y++) {
+            for (y = y1; y <= y2; y++) {
                 int adjustedY = y + roundedWaveYOffset;
                 if (FillColor <= 0) { //default to this if no selection -DJ
                     buffer.SetPixel(x, adjustedY, hsv0);  // fill with color 2
-                    //       hsv.hue=(double)(BufferHt-y)/deltay;
                 } else if (FillColor == 1) {
 
                     hsv.hue = (double)(y - y1) / deltay;
@@ -350,7 +340,7 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                     y1 = y2mirror;
                 }
 
-                for (y = y1; y < y2; y++) {
+                for (y = y1; y <= y2; y++) {
                     int adjustedY = y + roundedWaveYOffset;
                     if (FillColor <= 0) { //default to this if no selection -DJ
                         buffer.SetPixel(x, adjustedY, hsv0);  // fill with color 2

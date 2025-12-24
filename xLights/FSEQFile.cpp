@@ -12,7 +12,8 @@
 #include <stdio.h>
 
 #ifdef _MSC_VER
-#include <wx/wx.h>
+#define NOMINMAX
+#include <windows.h>
 int gettimeofday(struct timeval* tp, struct timezone* tzp) {
     // Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
     // This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
@@ -46,15 +47,61 @@ int gettimeofday(struct timeval* tp, struct timezone* tzp) {
 #define PLATFORM_UNKNOWN
 #endif
 
-#if defined(PLATFORM_PI) || defined(PLATFORM_BBB) || defined(PLATFORM_UNKNOWN) || defined(PLATFORM_DEBIAN) || defined(PLATFORM_FEDORA) || defined(PLATFORM_UBUNTU) || defined(PLATFORM_MINT)
-//for FPP, use FPP logging
-#include "Warnings.h"
-#include "log.h"
-inline void AddSlowStorageWarning() {
-    WarningHolder::AddWarningTimeout("FSEQ Data Block not available - Likely slow storage", 90);
+#if __has_include("spdlog/spdlog.h")
+#define PLATFORM_UNKNOWN
+#include "spdlog/sinks/rotating_file_sink.h"
+#include "spdlog/spdlog.h"
+#include <spdlog/fmt/bundled/printf.h>
+#include <spdlog/fmt/ostr.h>
+
+template<typename T>
+    requires std::is_enum_v<T>
+auto format_as(T t) {
+    return fmt::underlying(t);
 }
-#else
-//compiling within xLights, use log4cpp
+
+template<typename... Args>
+static void LogErr(int i, const char* fmt, Args... args) {
+    char buf[256];
+    const char* nfmt = fmt;
+    if (fmt[strlen(fmt) - 1] == '\n') {
+        strcpy(buf, fmt);
+        buf[strlen(fmt) - 1] = 0;
+        nfmt = buf;
+    }
+    spdlog::error(fmt::sprintf(nfmt, args...));
+}
+template<typename... Args>
+static void LogInfo(int i, const char* fmt, Args... args) {
+    char buf[256];
+    const char* nfmt = fmt;
+    if (fmt[strlen(fmt) - 1] == '\n') {
+        strcpy(buf, fmt);
+        buf[strlen(fmt) - 1] = 0;
+        nfmt = buf;
+    }
+    spdlog::info(fmt::sprintf(nfmt, args...));
+}
+template<typename... Args>
+static void LogDebug(int i, const char* fmt, Args... args) {
+    char buf[256];
+    const char* nfmt = fmt;
+    if (fmt[strlen(fmt) - 1] == '\n') {
+        strcpy(buf, fmt);
+        buf[strlen(fmt) - 1] = 0;
+        nfmt = buf;
+    }
+    spdlog::debug(fmt::sprintf(nfmt, args...));
+}
+
+inline void AddSlowStorageWarning() {
+    spdlog::warn("FSEQ Data Block not available - Likely slow storage");
+    spdlog::warn("This is a warning, not an error.  It is likely that the FSEQ file is on a slow storage device.");
+    spdlog::warn("If you are using a USB drive, please consider using a faster drive.");
+}
+
+#elif __has_include(<log4cpp/Category.hh>)
+// compiling within xLights, use log4cpp
 #define PLATFORM_UNKNOWN
 #include <log4cpp/Category.hh>
 template<typename... Args>
@@ -95,7 +142,26 @@ static void LogDebug(int i, const char* fmt, Args... args) {
 }
 inline void AddSlowStorageWarning() {
 }
+#elif __has_include("fppversion.h")
 
+// for FPP, use FPP logging
+#include "Warnings.h"
+#include "log.h"
+inline void AddSlowStorageWarning() {
+    WarningHolder::AddWarningTimeout("FSEQ Data Block not available - Likely slow storage", 90);
+}
+#else	
+#define PLATFORM_UNKNOWN
+template<typename... Args>
+static void LogErr(int i, const char* fmt, Args... args) { }
+template<typename... Args>
+static void LogInfo(int i, const char* fmt, Args... args) { }
+template<typename... Args>
+static void LogDebug(int i, const char* fmt, Args... args) { }
+inline void AddSlowStorageWarning() {}
+#endif
+
+#ifndef VB_SEQUENCE
 #define VB_SEQUENCE 1
 #define VB_ALL 0
 #endif
@@ -1772,7 +1838,7 @@ void V2FSEQFile::dumpInfo(bool indent) {
     }
 
     LogDebug(VB_SEQUENCE, "%sSequence File Information\n", ind);
-    LogDebug(VB_SEQUENCE, "%scompressionType       : %d\n", ind, m_compressionType);
+    LogDebug(VB_SEQUENCE, "%scompressionType       : %d(%s)\n", ind, m_compressionType, CompressionTypeString().c_str());
     LogDebug(VB_SEQUENCE, "%snumBlocks             : %d\n", ind, m_handler->computeMaxBlocks());
     // Commented out to declutter the logs ... we can add it back in if we start seeing issues
     //for (auto &a : m_frameOffsets) {
@@ -1783,6 +1849,16 @@ void V2FSEQFile::dumpInfo(bool indent) {
     //for (auto &a : m_sparseRanges) {
     //    LogDebug(VB_SEQUENCE, "%s      Start: %d    Len: %d\n", ind, a.first, a.second);
     //}
+}
+
+bool isWithinRange(const std::vector<std::pair<uint32_t, uint32_t>>& ranges, uint32_t start_channel, uint32_t channel_count) {
+    for (auto& a : ranges) {
+        if ((start_channel >= a.first && start_channel < (a.first + a.second) )
+            && ((start_channel + channel_count - 1) < (a.first + a.second))) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void V2FSEQFile::prepareRead(const std::vector<std::pair<uint32_t, uint32_t>>& ranges, uint32_t startFrame) {
@@ -1819,6 +1895,12 @@ void V2FSEQFile::prepareRead(const std::vector<std::pair<uint32_t, uint32_t>>& r
         //and read everything
         m_dataBlockSize = m_seqChannelCount;
         m_rangesToRead = m_sparseRanges;
+    }
+
+    for (auto const& [st, cnt] : ranges) {
+        if (!isWithinRange(m_rangesToRead, st, cnt)) {
+            LogErr(VB_SEQUENCE, "Requested range outside Read Ranges. Requested %d channels starting at %d\n", cnt, st);
+        }
     }
     m_handler->prepareRead(startFrame);
 }

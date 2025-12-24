@@ -183,6 +183,11 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    if (xlights == nullptr || xLightsFrame::CurrentDir.IsEmpty()) {
+        logger_base.warn("UpdateColourButtons called with null xlights or empty CurrentDir. Skipping.");
+        return;
+    }
+
     if (reload) {
         _colours.clear();
         _colourscmp.clear();
@@ -271,12 +276,14 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
 
         if (xlights->CurrentSeqXmlFile != nullptr)
         {
-            // we can bale early if we already have enough colours ... this helps in sequences with a crazy large number of colours
-            for (auto n = xlights->CurrentSeqXmlFile->GetPalettesNode()->GetChildren(); n != nullptr && _colours.size() < MAX_COLOURS; n = n->GetNext())
-            {
-                if (n->GetName() == "ColorPalette" && n->GetChildren() != nullptr)
+            if (xlights->CurrentSeqXmlFile->GetPalettesNode() != nullptr) {
+                // we can bale early if we already have enough colours ... this helps in sequences with a crazy large number of colours
+                for (auto n = xlights->CurrentSeqXmlFile->GetPalettesNode()->GetChildren(); n != nullptr && _colours.size() < MAX_COLOURS; n = n->GetNext())
                 {
-                    ParsePalette(n->GetChildren()->GetContent());
+                    if (n->GetName() == "ColorPalette" && n->GetChildren() != nullptr)
+                    {
+                        ParsePalette(n->GetChildren()->GetContent());
+                    }
                 }
             }
         }

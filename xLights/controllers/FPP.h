@@ -7,11 +7,12 @@
 #include <string>
 #include <vector>
 
+#include <nlohmann/json.hpp>
+
 #include "../models/ModelManager.h"
 #include "ControllerUploadData.h"
 #include "BaseController.h"
 
-class wxJSONValue;
 class FSEQFile;
 typedef void CURL;
 class wxWindow;
@@ -41,6 +42,8 @@ class FPP : public BaseController
     FPP(const FPP &c);
     virtual ~FPP();
     
+    std::string &proxy() { return _fppProxy; }
+    
     std::string hostName;
     std::string description;
     std::string ipAddress;
@@ -57,7 +60,6 @@ class FPP : public BaseController
     std::string uuid = "";
     std::list<std::string> playlists;
 
-    std::string proxy;
     std::set<std::string> proxies;
     bool isaProxy = false;
     bool solePlayer = false;
@@ -70,6 +72,7 @@ class FPP : public BaseController
     std::string controllerModel;
     std::string controllerVariant;
     bool upload;
+    bool canZipUpload = false;
 
     wxWindow *parent = nullptr;
     void setProgress(FPPUploadProgressDialog*d, wxGauge *g) { progressDialog = d; progress = g; }
@@ -109,9 +112,9 @@ class FPP : public BaseController
     bool UploadUDPOutputsForProxy(OutputManager* outputManager);
     
     bool UploadPlaylist(const std::string &playlist);
-    bool UploadModels(const wxJSONValue &models);
+    bool UploadModels(const nlohmann::json& models);
     bool UploadDisplayMap(const std::string &displayMap);
-    bool UploadUDPOut(const wxJSONValue &udp);
+    bool UploadUDPOut(const nlohmann::json& udp);
 
     bool UploadPixelOutputs(ModelManager* allmodels,
                             OutputManager* outputManager,
@@ -132,11 +135,13 @@ class FPP : public BaseController
 
     bool UploadControllerProxies(OutputManager* outputManager);
 
-    bool SetRestartFlag();
+    bool SetRestartFlag(bool forceOn9 = false);
     bool Restart(bool ifNeeded = false);
     void SetDescription(const std::string &st);
     [[nodiscard]] std::vector<std::string> GetProxyList();
     [[nodiscard]] std::vector<std::tuple<std::string, std::string>> GetProxies();
+
+    [[nodiscard]] std::vector<std::string> GetPlaylistItems(const std::string& name);
 
     static void PrepareDiscovery(Discovery &discovery);
     static void PrepareDiscovery(Discovery &discovery, const std::list<std::string> &addresses, bool broadcastPing = true);
@@ -150,10 +155,10 @@ class FPP : public BaseController
     static ReceiverType DecodeReceiverType(int type, bool supportsV5);
 
 #ifndef DISCOVERYONLY
-    wxJSONValue CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel);
+    nlohmann::json CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel);
     static std::string CreateVirtualDisplayMap(ModelManager* allmodels, int previewWi, int previewHi);
-    static wxJSONValue CreateUniverseFile(const std::list<Controller*>& controllers, bool input, std::map<int, int> *rngs = nullptr);
-    static wxJSONValue CreateUniverseFile(Controller* controller, bool input);
+    nlohmann::json CreateUniverseFile(const std::list<Controller*>& controllers, bool input, std::map<int, int>* rngs = nullptr);
+    nlohmann::json CreateUniverseFile(Controller* controller, bool input);
 #endif
     static std::string GetVendor(const std::string& type);
     static std::string GetModel(const std::string& type);
@@ -171,13 +176,13 @@ private:
     FPPUploadProgressDialog *progressDialog = nullptr;
     wxGauge *progress = nullptr;
     
-    void DumpJSON(const wxJSONValue& json) const;
+    void DumpJSON(const nlohmann::json& json) const;
 
-    bool GetURLAsJSON(const std::string& url, wxJSONValue& val, bool recordError = true);
+    bool GetURLAsJSON(const std::string& url, nlohmann::json& val, bool recordError = true);
     bool GetURLAsString(const std::string& url, std::string& val, bool recordError = true);
 
-    int PostJSONToURL(const std::string& url, const wxJSONValue& val);
-    int PostJSONToURLAsFormData(const std::string& url, const std::string &extra, const wxJSONValue& val);
+    int PostJSONToURL(const std::string& url, const nlohmann::json& val);
+    int PostJSONToURLAsFormData(const std::string& url, const std::string& extra, const nlohmann::json& val);
     int PostToURL(const std::string& url, const std::string& val, const std::string& contentType = "application/octet-stream") const;
     int PostToURL(const std::string& url, const std::vector<uint8_t>& val, const std::string& contentType = "application/octet-stream") const;
     int PutToURL(const std::string& url, const std::string& val, const std::string& contentType = "application/octet-stream") const;
@@ -194,10 +199,10 @@ private:
                       const std::string &dir);
     bool callMoveFile(const std::string &filename);
 
-    bool parseSysInfo(wxJSONValue& v);
-    void parseControllerType(wxJSONValue& v);
+    bool parseSysInfo(nlohmann::json& v);
+    void parseControllerType(nlohmann::json& v);
     void parseConfig(const std::string& v);
-    void parseProxies(wxJSONValue& v);
+    void parseProxies(nlohmann::json& v);
 
     bool IsCompatible(const ControllerCaps *rules,
                       std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId,
@@ -210,7 +215,7 @@ private:
         float duration = 0;
     };
     std::map<std::string, PlaylistEntry> sequences;
-    wxJSONValue capeInfo;
+    nlohmann::json capeInfo;
     std::string tempFileName;
     std::string baseSeqName;
     FSEQFile *outputFile = nullptr;

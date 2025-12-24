@@ -87,6 +87,7 @@ class MainSequencer: public wxPanel
 
         void SetLargeWaveform();
         void SetSmallWaveform();
+        void SetShowAlternateTimingMark(bool b);
 
         void TouchButtonEvent(wxCommandEvent &event);
         void ToggleHousePreview();
@@ -143,6 +144,7 @@ class MainSequencer: public wxPanel
         void TimeLineSelectionChanged(wxCommandEvent& event);
         void InsertTimingMarkFromRange();
         void SplitTimingMark();
+        void DivideTimingTrack(int divisor);
         void SetHandlers(wxWindow *);
 
         void ScrollRight( wxCommandEvent& event);
@@ -157,4 +159,5 @@ class MainSequencer: public wxPanel
         bool mCanUndo;
         bool mPasteByCell;
         std::string _savedTopModel;
+        bool mShowAlternateTimingFormat = false;
 };

@@ -20,6 +20,7 @@ class ListenerMIDI : public ListenerBase {
     wxMidiInDevice* _midiIn;
     int _deviceId;
     int _frameMS;
+    int _lastMode = 0;
 
     void DoSync(int mode, int hours, int mins, int secs, int frames);
 
@@ -37,5 +38,8 @@ public:
     virtual void Poll() override;
     int GetDeviceId() const {
         return _deviceId;
+    }
+    virtual std::string FormatTime(size_t timems) const override {
+        return ListenerBase::FormatTime(_lastMode, timems);
     }
 };

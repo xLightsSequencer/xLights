@@ -146,7 +146,8 @@ public:
             if (i < 0) {
                 i = 0;
             }
-            if (i == NAN) {
+            float fnan = std::nanf("0");
+            if (i == fnan) {
                 i = 0;
             }
             data[x] = i;

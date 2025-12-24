@@ -24,6 +24,7 @@
 #include "../ExternalHooks.h"
 #include "outputs/OutputManager.h"
 #include "../ModelPreview.h"
+#include "RulerObject.h"
 
 #include <log4cpp/Category.hh>
 
@@ -113,7 +114,7 @@ void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
 
     p = grid->Append(new wxUIntProperty("# Strings", "CustomModelStrings", _strings));
     p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 48);
+    p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
     p->SetHelpString("This is typically the number of connections from the prop to your controller.");
 
@@ -292,9 +293,6 @@ void CustomModel::UpdateModel(int width, int height, int depth, const std::vecto
 
 void CustomModel::InitModel()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxStopWatch sw;
-
     std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
     std::string compressed = ModelXml->GetAttribute("CustomModelCompressed", "").ToStdString();
     InitCustomMatrix(customModel, compressed);
@@ -307,11 +305,6 @@ void CustomModel::InitModel()
     screenLocation.SetRenderSize(parm1, parm2, _depth);
     if (_depth > 1) {
         screenLocation.SetPerspective2D(0.1f); // if i dont do this you cant see the back nodes in 2D
-    }
-
-    if (sw.Time() > 5)
-    {
-        logger_base.debug("Custom model %s took %lums to initialise.", (const char*)name.c_str(), sw.Time());
     }
 }
 
@@ -1296,7 +1289,7 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
     return html;
 }
 
-bool CustomModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+bool CustomModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z)
 {
     if (root->GetName() == "custommodel") {
         wxString name = root->GetAttribute("name");
@@ -1378,9 +1371,9 @@ bool CustomModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
 
         GetModelScreenLocation().SetMWidth(max_x - min_x);
         GetModelScreenLocation().SetMHeight(max_y - min_y);
-        GetModelScreenLocation().SetMDepth(1.0);
+        GetModelScreenLocation().SetMDepth(max_z - min_z);
 
-        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y);
+        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y, min_z, max_z);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::ImportXlightsModel");
@@ -1683,6 +1676,29 @@ void CustomModel::ExportXlightsModel()
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
     f.Write(wxString::Format("LayoutGroup=\"%s\" ", lg));
     f.Write(wxString::Format("CustomModelCompressed=\"%s\" ", cmc));
+
+    // If we have a ruler then also include the model dimensions so when imported we can bring them in as the right size
+    if (RulerObject::GetRuler() != nullptr)
+    {
+        float widthmm = RulerObject::GetRuler()->Convert(RulerObject::GetRuler()->GetUnits(), "mm", RulerObject::GetRuler()->Measure(GetModelScreenLocation().GetMWidth()));
+        float heightmm = RulerObject::GetRuler()->Convert(RulerObject::GetRuler()->GetUnits(), "mm", RulerObject::GetRuler()->Measure(GetModelScreenLocation().GetMHeight()));
+        float depthmm = RulerObject::GetRuler()->Convert(RulerObject::GetRuler()->GetUnits(), "mm", RulerObject::GetRuler()->Measure(GetModelScreenLocation().GetMDepth()));
+        if (d == "1")
+        {
+            depthmm = -1;
+        }
+        if (widthmm > 0)
+        {
+            f.Write(wxString::Format("widthmm=\"%d\" ", (int)widthmm));
+        }
+        if (heightmm > 0) {
+            f.Write(wxString::Format("heightmm=\"%d\" ", (int)heightmm));
+        }
+        if (depthmm > 0) {
+            f.Write(wxString::Format("depthmm=\"%d\" ", (int)depthmm));
+        }
+    }
+
     f.Write("CustomModel=\"");
     f.Write(cm);
     f.Write("\" ");
@@ -1768,6 +1784,7 @@ bool CustomModel::ChangeStringCount(long count, std::string& message)
     ModelXml->AddAttribute("CustomStrings", wxString::Format("%d", count));
 
     if (count != 1) {    
+        _strings = count;
         wxString nm = StartNodeAttrName(0);
         bool hasIndiv = ModelXml->HasAttribute(nm);
 

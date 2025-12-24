@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <wx/thread.h>
+#include <wx/xml/xml.h>
 
 #include <list>
 #include <map>
@@ -75,6 +76,7 @@ public:
     #pragma region Save and Load
     bool Load(const std::string& showdir, bool syncEnabled = false);
     bool Save();
+    wxXmlDocument SaveToXML();
     bool DidConvert() const { return _didConvert; }
     bool ConvertModelStartChannels(wxXmlNode* modelsNode) const;
     #pragma endregion 
@@ -239,4 +241,12 @@ public:
     TestPreset* CreateTestPreset(std::string preset);
     void DeleteTestPreset();
     #pragma endregion 
+
+    void SortControllersbyName();
+    void SortControllersbyID();
+    void SortControllersbyIP();
+    void SortControllersbyFPPProxy();
+    void SortControllersbyModel();
+    void SortControllersbyProtocal();
+
 };
