@@ -2046,16 +2046,6 @@ void MovingHeadPanel::RecallSettings(const std::string mh_settings)
 void MovingHeadPanel::OnButton_ResetToDefaultClick(wxCommandEvent& event)
 {
     std::string all_settings = xlEMPTY_STRING;
-    for( int i = 1; i <= 8; ++i ) {
-        wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
-        wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
-        if( mh_textbox != nullptr ) {
-            std::string mh_settings = mh_textbox->GetValue();
-            if( mh_settings != xlEMPTY_STRING ) {
-                mh_textbox->SetValue(xlEMPTY_STRING);
-            }
-        }
-    }
 
     ValueCurve_MHPan->SetActive(false);
     ValueCurve_MHTilt->SetActive(false);
@@ -2088,6 +2078,18 @@ void MovingHeadPanel::OnButton_ResetToDefaultClick(wxCommandEvent& event)
     if (m_wheelColorPanel != nullptr) {
         m_wheelColorPanel->ResetColours();
     }
+
+    for( int i = 1; i <= 8; ++i ) {
+        wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+        wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+        if( mh_textbox != nullptr ) {
+            std::string mh_settings = mh_textbox->GetValue();
+            if( mh_settings != xlEMPTY_STRING ) {
+                mh_textbox->SetValue(xlEMPTY_STRING);
+            }
+        }
+    }
+
     FireChangeEvent();
     ValidateWindow();
 }
