@@ -339,7 +339,7 @@ int CandyCaneModel::GetNumStrands() const {
      return parm1;
 }
 
-int CandyCaneModel::CalcCannelsPerString() {
+int CandyCaneModel::CalcChannelsPerString() {
     if (SingleNode) {
         return GetNodeChannelCount(StringType);
     }

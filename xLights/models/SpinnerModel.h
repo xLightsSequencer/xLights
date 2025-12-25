@@ -35,7 +35,7 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
         SpinnerModel(const ModelManager &manager);
         virtual void InitModel() override;
         virtual int MapToNodeIndex(int strand, int node) const override;
-        virtual int CalcCannelsPerString() override;
+        virtual int CalcChannelsPerString() override;
         int EncodeStartLocation();
         void DecodeStartLocation(int sl);
 

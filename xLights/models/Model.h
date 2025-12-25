@@ -302,7 +302,7 @@ protected:
     int FindNodeAtXY(int bufx, int bufy);
     virtual void InitModel() {
     }
-    virtual int CalcCannelsPerString();
+    virtual int CalcChannelsPerString();
     virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString);
     void RecalcStartChannels();
 

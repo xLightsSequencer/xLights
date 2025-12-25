@@ -434,7 +434,7 @@ int ArchesModel::GetMappedStrand(int strand) const
     return strand;
 }
 
-int ArchesModel::CalcCannelsPerString()
+int ArchesModel::CalcChannelsPerString()
 {
     SingleChannel = false;
     return GetNodeChannelCount(StringType) * parm2;

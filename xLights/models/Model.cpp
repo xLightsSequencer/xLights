@@ -2793,7 +2793,7 @@ std::string Model::ComputeStringStartChannel(int i)
 
     wxString stch = ModelXml->GetAttribute("StartChannel", "1");
     wxString priorStringStartChannelAsString = ModelXml->GetAttribute(StartChanAttrName(i - 1));
-    int priorLength = CalcCannelsPerString();
+    int priorLength = CalcChannelsPerString();
     // This will be required once custom model supports multiple strings ... working on that
     // if (DisplayAs == "Custom")
     //{
@@ -2951,7 +2951,7 @@ bool Model::UpdateStartChannelFromChannelString(std::map<std::string, Model*>& m
 
     if (valid) {
         size_t NumberOfStrings = HasOneString(DisplayAs) ? 1 : parm1;
-        int ChannelsPerString = CalcCannelsPerString();
+        int ChannelsPerString = CalcChannelsPerString();
         SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
     }
 
@@ -3244,7 +3244,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
 
     // calculate starting channel numbers for each string
     size_t NumberOfStrings = HasOneString(DisplayAs) ? 1 : parm1;
-    int ChannelsPerString = CalcCannelsPerString();
+    int ChannelsPerString = CalcChannelsPerString();
 
     SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
     GetModelScreenLocation().Read(ModelNode);
@@ -3476,7 +3476,7 @@ void Model::ParseSubModel(wxXmlNode* node)
     sortedSubModels[sm->GetName()] = sm;
 }
 
-int Model::CalcCannelsPerString()
+int Model::CalcChannelsPerString()
 {
     int ChannelsPerString = parm2 * GetNodeChannelCount(StringType);
     if (SingleChannel)

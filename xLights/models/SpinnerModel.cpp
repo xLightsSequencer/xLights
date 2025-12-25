@@ -557,7 +557,7 @@ int SpinnerModel::MapToNodeIndex(int strand, int node) const {
 
     return strand * parm2 + node;
 }
-int SpinnerModel::CalcCannelsPerString() {
+int SpinnerModel::CalcChannelsPerString() {
     if (SingleNode) {
         return GetNodeChannelCount(StringType);
     }
