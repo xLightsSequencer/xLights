@@ -101,4 +101,6 @@ private:
         void ExplodeAddMeteors(RenderBuffer& buffer, int ColorScheme, int Count, int xoffset, int yoffset);
         void ExplodeMoveMeteors(RenderBuffer& buffer, int speed, int xoffset, int yoffset, bool fadeWithDistance);
         void ExplodeRemoveMeteors(RenderBuffer& buffer);
+    
+    float calcEffectStateOffset(int mSpeed, RenderBuffer& buffer);
 };
