@@ -565,7 +565,7 @@ bool ModelManager::RecalcStartChannels() const
             if (first != '>' && first != '@') {
                 modelsDone.emplace(it.first);
                 auto oldsc = it.second->GetFirstChannel();
-                it.second->SetFromXml(it.second->GetModelXml());
+                it.second->UpdateChannels(it.second->GetModelXml());
                 if (oldsc != it.second->GetFirstChannel()) {
                     changed = true;
                 }
@@ -597,7 +597,7 @@ bool ModelManager::RecalcStartChannels() const
                         // the depends on model is done
                         modelsDone.emplace(it.first);
                         auto oldsc = it.second->GetFirstChannel();
-                        it.second->SetFromXml(it.second->GetModelXml());
+                        it.second->UpdateChannels(it.second->GetModelXml());
                         if (oldsc != it.second->GetFirstChannel()) {
                             changed = true;
                         }
@@ -621,7 +621,7 @@ bool ModelManager::RecalcStartChannels() const
             if ((first == '>' || first == '@') && !it.second->CouldComputeStartChannel) {
                 modelsDone.emplace(it.first);
                 auto oldsc = it.second->GetFirstChannel();
-                it.second->SetFromXml(it.second->GetModelXml());
+                it.second->UpdateChannels(it.second->GetModelXml());
                 if (oldsc != it.second->GetFirstChannel()) {
                     changed = true;
                 }

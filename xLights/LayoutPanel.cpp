@@ -3740,7 +3740,6 @@ void LayoutPanel::FinalizeModel()
 
             // Models that support visitors don't use the ImportXlightsModel method
             // If there are import issues we need to try to fix them inside the XmlSerializer
-            // XmlSerializer::IsXmlSerializerFormat is not working as I expect here, the XML already has the type parameter removed
             if (!_newModel->SupportsVisitors() || !XmlSerializer::IsXmlSerializerFormat(_newModel->GetModelXml())) {
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Do the import. " + _lastXlightsModel);
                 xlights->AddTraceMessage("LayoutPanel::FinalizeModel Model type " + _newModel->GetDisplayAs());

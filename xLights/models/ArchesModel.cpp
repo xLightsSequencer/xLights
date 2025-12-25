@@ -434,7 +434,7 @@ int ArchesModel::GetMappedStrand(int strand) const
     return strand;
 }
 
-int ArchesModel::CalcCannelsPerString()
+int ArchesModel::CalcChannelsPerString()
 {
     SingleChannel = false;
     return GetNodeChannelCount(StringType) * parm2;
@@ -557,7 +557,7 @@ void ArchesModel::ExportXlightsModel()
 {
     wxString name = ModelXml->GetAttribute("name");
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, "xmodel", "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty()) return;
     wxFile f(filename);
     

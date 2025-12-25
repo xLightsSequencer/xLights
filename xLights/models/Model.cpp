@@ -2793,7 +2793,7 @@ std::string Model::ComputeStringStartChannel(int i)
 
     wxString stch = ModelXml->GetAttribute("StartChannel", "1");
     wxString priorStringStartChannelAsString = ModelXml->GetAttribute(StartChanAttrName(i - 1));
-    int priorLength = CalcCannelsPerString();
+    int priorLength = CalcChannelsPerString();
     // This will be required once custom model supports multiple strings ... working on that
     // if (DisplayAs == "Custom")
     //{
@@ -2951,7 +2951,7 @@ bool Model::UpdateStartChannelFromChannelString(std::map<std::string, Model*>& m
 
     if (valid) {
         size_t NumberOfStrings = HasOneString(DisplayAs) ? 1 : parm1;
-        int ChannelsPerString = CalcCannelsPerString();
+        int ChannelsPerString = CalcChannelsPerString();
         SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
     }
 
@@ -3091,6 +3091,25 @@ std::list<int> Model::ParseFaceNodes(std::string channels)
     return res;
 }
 
+void Model::UpdateChannels(wxXmlNode* ModelNode)
+{
+    // alternative function that only performs channel calculation instead of calling the full SetFromXml function
+    CouldComputeStartChannel = false;
+    std::string dependsonmodel;
+    int32_t StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel", "1").ToStdString(), CouldComputeStartChannel, dependsonmodel);
+    ModelStartChannel = ModelNode->GetAttribute("StartChannel");
+
+    // calculate starting channel numbers for each string
+    size_t NumberOfStrings = HasOneString(DisplayAs) ? 1 : parm1;
+    int ChannelsPerString = CalcChannelsPerString();
+
+    SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
+
+    InitModel();
+
+    IncrementChangeCount();
+}
+
 void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -3161,11 +3180,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     }
     if (ncc > 3) {
         std::string s = ModelNode->GetAttribute("RGBWHandling").ToStdString();
-        for (int x = 0; x < RGBW_HANDLING.size(); ++x) {
-            if (RGBW_HANDLING[x] == s) {
-                rgbwHandlingType = x;
-            }
-        }
+        SetRGBWHandling(s);
     } else {
         rgbwHandlingType = 1; // RGB
     }
@@ -3244,7 +3259,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
 
     // calculate starting channel numbers for each string
     size_t NumberOfStrings = HasOneString(DisplayAs) ? 1 : parm1;
-    int ChannelsPerString = CalcCannelsPerString();
+    int ChannelsPerString = CalcChannelsPerString();
 
     SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
     GetModelScreenLocation().Read(ModelNode);
@@ -3476,7 +3491,7 @@ void Model::ParseSubModel(wxXmlNode* node)
     sortedSubModels[sm->GetName()] = sm;
 }
 
-int Model::CalcCannelsPerString()
+int Model::CalcChannelsPerString()
 {
     int ChannelsPerString = parm2 * GetNodeChannelCount(StringType);
     if (SingleChannel)
@@ -7595,7 +7610,15 @@ int Model::GetControllerZigZag() const {
 }
 
 std::string Model::GetRGBWHandling() const {
-    return ModelXml->GetAttribute("RGBWHandling", "").ToStdString();
+    return RGBW_HANDLING[rgbwHandlingType];
+}
+
+void Model::SetRGBWHandling(std::string const& handling)
+{
+    for (int x = 0; x < RGBW_HANDLING.size(); ++x) {
+    if (RGBW_HANDLING[x] == handling) {
+        rgbwHandlingType = x;
+    }
 }
 
 // std::list<std::string> Model::GetProtocols()

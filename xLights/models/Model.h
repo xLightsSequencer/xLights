@@ -144,6 +144,9 @@ public:
     long GetParm1() const { return parm1; }
     long GetParm2() const { return parm2; }
     long GetParm3() const { return parm3; }
+    void SetParm1(long val) {parm1 = val;}
+    void SetParm2(long val) {parm2 = val;}
+    void SetParm3(long val) {parm3 = val;}
     int GetTransparency() const { return transparency; }
     int GetBlackTransparency() const { return blackTransparency; }
     std::string GetDescription() const { return description; }
@@ -303,9 +306,8 @@ protected:
     const ModelManager& modelManager;
 
     int FindNodeAtXY(int bufx, int bufy);
-    virtual void InitModel() {
-    }
-    virtual int CalcCannelsPerString();
+    virtual void InitModel() {}
+    virtual int CalcChannelsPerString();
     virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString);
     void RecalcStartChannels();
 
@@ -407,6 +409,7 @@ public:
     [[nodiscard]] int GetControllerZigZag() const;
     [[nodiscard]] int GetControllerReverse() const;
     [[nodiscard]] std::string GetRGBWHandling() const;
+    void SetRGBWHandling(std::string const& handling);
 
     void SetControllerStartNulls(int nulls);
     void SetControllerEndNulls(int nulls);
@@ -475,6 +478,7 @@ public:
     std::string _pixelType{ "" };
     std::string _pixelSpacing{ "" };
 
+    void UpdateChannels(wxXmlNode* ModelNode);
     void SetFromXml(wxXmlNode* ModelNode, bool zeroBased = false) override;
     virtual bool ModelRenamed(const std::string& oldName, const std::string& newName);
     [[nodiscard]] uint32_t GetNodeCount() const;
@@ -534,6 +538,8 @@ public:
 
     bool HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction);
     const std::string& GetStringType() const { return StringType; }
+    void SetStringType(std::string const& st) { StringType = st; }
+
     virtual int NodesPerString() const;
     virtual int NodesPerString(int string) const { return NodesPerString(); }
     virtual int MapPhysicalStringToLogicalString(int string) const { return string; }
@@ -583,6 +589,8 @@ public:
 
     bool GetIsLtoR() const { return IsLtoR; }
     bool GetIsBtoT() const { return isBotToTop; }
+    void SetIsBtoT(bool val) { isBotToTop = val; }
+    void SetIsLtoR(bool val) { IsLtoR = val; }
     virtual int GetStrandLength(int strand) const;
 
     float _savedWidth{ 0.0F };

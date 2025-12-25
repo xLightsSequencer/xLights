@@ -43,7 +43,7 @@ class ChannelBlockModel : public ModelWithScreenLocation<TwoPointScreenLocation>
         virtual void InitModel() override;
         virtual int MapToNodeIndex(int strand, int node) const override;
         virtual int GetNumStrands() const override;
-        virtual int CalcCannelsPerString() override;
+        virtual int CalcChannelsPerString() override;
 
     private:
 		void InitChannelBlock();

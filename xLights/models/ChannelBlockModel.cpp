@@ -240,7 +240,7 @@ int ChannelBlockModel::MapToNodeIndex(int strand, int node) const {
 int ChannelBlockModel::GetNumStrands() const {
      return parm1;
 }
-int ChannelBlockModel::CalcCannelsPerString() {
+int ChannelBlockModel::CalcChannelsPerString() {
 	return GetNodeChannelCount(StringType);
 }
 void ChannelBlockModel::ExportXlightsModel() {}
