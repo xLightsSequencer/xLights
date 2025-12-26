@@ -95,6 +95,7 @@ public:
     const std::string &Name() const { return name;}
     const std::string &GetName() const { return name;}
     const std::string& GetDisplayAs() const { return DisplayAs; }
+    void SetName(std::string const& newname);
 
     void SetDisplayAs(const std::string& type) { DisplayAs = type; }
 

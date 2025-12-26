@@ -23,7 +23,7 @@
 #include "../ModelPreview.h"
 #include "../ModelPreview.h"
 
-ArchesModel::ArchesModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager), arc(180)
+ArchesModel::ArchesModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
     screenLocation.SetModelHandleHeight(true);
     screenLocation.SetSupportsAngle(true);
@@ -78,7 +78,7 @@ void ArchesModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
         p->SetAttribute("Max", 95);
         p->SetEditor("SpinCtrl");
 
-        p = grid->Append(new wxBoolProperty("Zig-Zag Layers", "ZigZag", zigzag));
+        p = grid->Append(new wxBoolProperty("Zig-Zag Layers", "ZigZag", _zigzag));
         p->SetEditor("CheckBox");
     }
 
@@ -87,7 +87,7 @@ void ArchesModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
     p->SetAttribute("Max", 250);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Arc Degrees", "ArchesArc", arc));
+    p = grid->Append(new wxUIntProperty("Arc Degrees", "ArchesArc", _arc));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 180);
     p->SetEditor("SpinCtrl");
@@ -188,7 +188,7 @@ int ArchesModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ArchesModel::HandleLayerSizePropertyChange::LayeredArches");
         return 0;
     } else if ("ZigZag" == event.GetPropertyName()) {
-        zigzag = event.GetPropertyValue().GetBool();
+        _zigzag = event.GetPropertyValue().GetBool();
         ModelXml->DeleteAttribute("ZigZag");
         ModelXml->AddAttribute("ZigZag", event.GetPropertyValue().GetBool() ? "true" : "false");
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesZigZag");
@@ -283,7 +283,7 @@ bool ArchesModel::IsNodeFirst(int n) const
 
 void ArchesModel::InitModel()
 {
-    arc = wxAtoi(ModelXml->GetAttribute("arc", "180"));
+    _arc = wxAtoi(ModelXml->GetAttribute("arc", "180"));
     _hollow = wxAtoi(ModelXml->GetAttribute("Hollow", "70"));
 
     if (ModelXml->HasAttribute("ArchesSkew")) {
@@ -329,7 +329,7 @@ void ArchesModel::InitModel()
         }
         SetArchCoord();
     } else {
-        zigzag = (ModelXml->GetAttribute("ZigZag", "true") == "true");
+        _zigzag = (ModelXml->GetAttribute("ZigZag", "true") == "true");
         int maxLen = 0;
         int lcount = 0;
         int sumNodes = 0;
@@ -391,7 +391,7 @@ void ArchesModel::InitModel()
                     }
                 }
                 y = y + 1;
-                if (zigzag) dir = !dir;
+                if (_zigzag) dir = !dir;
             }
         }
 
@@ -465,7 +465,7 @@ void ArchesModel::SetLayerdArchCoord(int arches, int maxLen)
     double midpt = maxLen * parm3;
     midpt -= 1.0;
     midpt /= 2.0;
-    double total = toRadians(arc);
+    double total = toRadians(_arc);
     double start = (M_PI - total) / 2.0;
     float skew_angle = toRadians(screenLocation.GetAngle());
 
@@ -513,7 +513,7 @@ void ArchesModel::SetArchCoord()
     double midpt = parm2 * parm3;
     midpt -= 1.0;
     midpt /= 2.0;
-    double total = toRadians(arc);
+    double total = toRadians(_arc);
     double start = (M_PI - total) / 2.0;
     float skew_angle = toRadians(screenLocation.GetAngle());
 

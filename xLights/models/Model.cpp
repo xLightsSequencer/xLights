@@ -3091,6 +3091,46 @@ std::list<int> Model::ParseFaceNodes(std::string channels)
     return res;
 }
 
+void Model::SetNodeNames(std::string const& nodes)
+{
+    wxString tempstr = nodes;
+    _nodeNamesString = tempstr;
+    nodeNames.clear();
+    while (tempstr.size() > 0) {
+        std::string t2 = tempstr.ToStdString();
+        if (tempstr[0] == ',') {
+            t2 = "";
+            tempstr = tempstr(1, tempstr.length());
+        } else if (tempstr.Contains(",")) {
+            t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
+            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
+        } else {
+            tempstr = "";
+        }
+        nodeNames.push_back(t2);
+    }
+}
+
+void Model::SetStrandNames(std::string const& strands)
+{
+    wxString tempstr = strands;
+    _strandNamesString = tempstr;
+    strandNames.clear();
+    while (tempstr.size() > 0) {
+        std::string t2 = tempstr.ToStdString();
+        if (tempstr[0] == ',') {
+            t2 = "";
+            tempstr = tempstr(1, tempstr.length());
+        } else if (tempstr.Contains(",")) {
+            t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
+            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
+        } else {
+            tempstr = "";
+        }
+        strandNames.push_back(t2);
+    }
+}
+
 void Model::UpdateChannels(wxXmlNode* ModelNode)
 {
     // alternative function that only performs channel calculation instead of calling the full SetFromXml function
@@ -3193,38 +3233,9 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     tempstr.ToLong(&parm2);
     tempstr = ModelNode->GetAttribute("parm3");
     tempstr.ToLong(&parm3);
-    tempstr = ModelNode->GetAttribute("StrandNames");
-    _strandNamesString = tempstr;
-    strandNames.clear();
-    while (tempstr.size() > 0) {
-        std::string t2 = tempstr.ToStdString();
-        if (tempstr[0] == ',') {
-            t2 = "";
-            tempstr = tempstr(1, tempstr.length());
-        } else if (tempstr.Contains(",")) {
-            t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
-            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
-        } else {
-            tempstr = "";
-        }
-        strandNames.push_back(t2);
-    }
-    tempstr = ModelNode->GetAttribute("NodeNames");
-    _nodeNamesString = tempstr;
-    nodeNames.clear();
-    while (tempstr.size() > 0) {
-        std::string t2 = tempstr.ToStdString();
-        if (tempstr[0] == ',') {
-            t2 = "";
-            tempstr = tempstr(1, tempstr.length());
-        } else if (tempstr.Contains(",")) {
-            t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
-            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
-        } else {
-            tempstr = "";
-        }
-        nodeNames.push_back(t2);
-    }
+
+    SetStrandNames(ModelNode->GetAttribute("StrandNames"));
+    SetNodeNames(ModelNode->GetAttribute("NodeNames"));
 
     CouldComputeStartChannel = false;
     std::string dependsonmodel;
@@ -6116,7 +6127,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         auto lg = model->GetLayoutGroup();
 
         XmlSerializer serializer;
-        model = serializer.DeserializeModel(n, xlights);
+        model = serializer.DeserializeModel(n, xlights, true);
 
         model->SetHcenterPos(x);
         model->SetVcenterPos(y);
@@ -7001,15 +7012,28 @@ bool Model::IsControllerConnectionValid() const
     return ((IsPixelProtocol() || IsSerialProtocol() || IsMatrixProtocol() || IsPWMProtocol()) && GetControllerPort(1) > 0);
 }
 
+std::string Model::GetTagColourAsString() const
+{
+    if (!modelTagColour.IsOk()) {
+        return "#000000";
+    } else {
+        return modelTagColour.GetAsString(wxC2S_HTML_SYNTAX);
+    }
+}
+
 wxColour Model::GetTagColour() {
     if (!modelTagColour.IsOk()) {
-        if (ModelXml->HasAttribute("TagColour")) {
-            modelTagColour = wxColour(ModelXml->GetAttribute("TagColour", "#000000"));
-            if (!modelTagColour.IsOk()) {
+        if (_modelTagColourString != xlEMPTY_STRING) {
+            modelTagColour = wxColour(_modelTagColourString);
+        } else {
+            if (ModelXml->HasAttribute("TagColour")) {
+                modelTagColour = wxColour(ModelXml->GetAttribute("TagColour", "#000000"));
+                if (!modelTagColour.IsOk()) {
+                    modelTagColour = *wxBLACK;
+                }
+            } else {
                 modelTagColour = *wxBLACK;
             }
-        } else {
-            modelTagColour = *wxBLACK;
         }
     }
     return modelTagColour;
@@ -7616,8 +7640,9 @@ std::string Model::GetRGBWHandling() const {
 void Model::SetRGBWHandling(std::string const& handling)
 {
     for (int x = 0; x < RGBW_HANDLING.size(); ++x) {
-    if (RGBW_HANDLING[x] == handling) {
-        rgbwHandlingType = x;
+        if (RGBW_HANDLING[x] == handling) {
+            rgbwHandlingType = x;
+        }
     }
 }
 

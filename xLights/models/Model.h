@@ -150,8 +150,11 @@ public:
     int GetTransparency() const { return transparency; }
     int GetBlackTransparency() const { return blackTransparency; }
     std::string GetDescription() const { return description; }
+    void SetDescription(std::string const& desc) { description = desc; }
     const std::string GetNodeNames() const { return _nodeNamesString; }
     const std::string GetStrandNames() const { return _strandNamesString; }
+    void SetNodeNames(std::string const& nodes);
+    void SetStrandNames(std::string const& strands);
 
     void SetDirection( const std::string dir ) { _dir = dir; }
     void SetStartSide( const std::string start_side ) { _startSide = start_side; }
@@ -328,6 +331,7 @@ protected:
     int transparency = 0;
     int blackTransparency = 0;
     wxColour modelTagColour = wxNullColour;
+    std::string _modelTagColourString = xlEMPTY_STRING;
     uint8_t _lowDefFactor = 100;
     std::string _startSide = "B";
     std::string _dir = "L";
@@ -372,7 +376,9 @@ public:
     static std::string DecodeSmartRemote(int sr);
 
     void SetTagColour(wxColour colour);
+    void SetTagColourAsString(std::string const& colour) { _modelTagColourString = colour; } // used by XmlSerializer
     [[nodiscard]] wxColour GetTagColour();
+    [[nodiscard]] std::string GetTagColourAsString() const; // used by XmlSerializer
     [[nodiscard]] int32_t GetStringStartChan(int x) const;
     void SaveSuperStringColours();
     void SetSuperStringColours(int count);

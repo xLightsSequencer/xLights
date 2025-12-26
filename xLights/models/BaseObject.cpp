@@ -31,6 +31,13 @@ wxXmlNode* BaseObject::GetModelXml() const {
     return this->ModelXml;
 }
 
+void BaseObject::SetName(std::string const& newname)
+{
+    name = newname;
+    ModelXml->DeleteAttribute("name");
+    ModelXml->AddAttribute("name", name);
+}
+
 void BaseObject::SetLayoutGroup(const std::string &grp) {
     if (grp != ModelXml->GetAttribute("LayoutGroup", "xyzzy_kw"))
     {

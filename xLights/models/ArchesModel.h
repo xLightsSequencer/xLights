@@ -38,13 +38,18 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         virtual bool ModelSupportsLayerSizes() const override { return true; }
         virtual void OnLayerSizesChange(bool countChanged) override;
 
-        bool GetZigZag() const { return zigzag; }
-        int GetHollow() const { return _hollow; }
-        int GetGap() const { return _gap; }
-        int GetArc() const { return arc; }
+        [[nodiscard]] bool GetZigZag() const { return _zigzag; }
+        [[nodiscard]] int GetHollow() const { return _hollow; }
+        [[nodiscard]] int GetGap() const { return _gap; }
+        [[nodiscard]] int GetArc() const { return _arc; }
 
-        //virtual bool SupportsVisitors() override {return true;}
-        //void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
+        void SetZigZag(bool zigzag) { _zigzag = zigzag; }
+        void SetHollow(int hollow) { _hollow = hollow; }
+        void SetGap(int gap) { _gap = gap; }
+        void SetArc(int arc) { _arc = arc; }
+
+        virtual bool SupportsVisitors() override {return true;}
+        void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
 
     protected:
         virtual void InitModel() override;
@@ -58,8 +63,8 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
     private:
         void SetLayerdArchCoord(int archcount, int maxLen);
         void SetArchCoord();
-        int arc;
+        int _arc = 180;
         int _gap = 0;
         int _hollow = 70;
-        bool zigzag = true;
+        bool _zigzag = true;
 };

@@ -72,7 +72,6 @@ namespace XmlNodeKeys {
 
     // Shared (by some) Attributes
     constexpr auto ArcAttribute            = "Arc";
-    constexpr auto arcAttribute            = "arc"; // Arches is lowercase - maybe should be fixed
     constexpr auto AlternateNodesAttribute = "AlternateNodes";
     constexpr auto BrightnessAttribute     = "Brightness";      //should fix
     constexpr auto DCBrightnessAttribute   = "brightness";      //should fix
@@ -453,8 +452,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         node->AddAttribute(XmlNodeKeys::TransparencyAttribute, std::to_string(model.GetTransparency()));
         node->AddAttribute(XmlNodeKeys::BTransparencyAttribute, std::to_string(model.GetBlackTransparency()));
         node->AddAttribute(XmlNodeKeys::DescriptionAttribute, model.GetDescription());
-        // TBD: Figure out how to fix this since Dan made GetTagColour non-const
-        //node->AddAttribute(XmlNodeKeys::TagColourAttribute, model.GetTagColour().GetAsString(wxC2S_HTML_SYNTAX));
+        node->AddAttribute(XmlNodeKeys::TagColourAttribute, model.GetTagColourAsString());
         node->AddAttribute(XmlNodeKeys::StartChannelAttribute, model.GetModelStartChannel());
         node->AddAttribute(XmlNodeKeys::NodeNamesAttribute, model.GetNodeNames());
         node->AddAttribute(XmlNodeKeys::StrandNamesAttribute, model.GetStrandNames());
@@ -577,17 +575,6 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         mesh_node->AddAttribute(XmlNodeKeys::OffsetYAttribute, std::to_string(mesh->GetOffsetY()));
         mesh_node->AddAttribute(XmlNodeKeys::OffsetZAttribute, std::to_string(mesh->GetOffsetZ()));
         node->AddChild(mesh_node);
-    }
-
-    wxString vectorToString(const std::vector<int>& v, const std::string& separator = ",") {
-        wxString oss;
-        for (size_t i = 0; i < v.size(); ++i) {
-            oss << v[i];
-            if (i < v.size() - 1) {
-                oss << separator;
-            }
-        }
-        return oss;
     }
 
     void AddPresetAttributes(const DmxPresetAbility* preset_channels, wxXmlNode* node) {
@@ -737,7 +724,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
             groups->AddAttribute(XmlNodeKeys::mgSelectedAttribute, std::to_string(mg1->IsSelected()));
             groups->AddAttribute(XmlNodeKeys::LayoutAttribute, mg1->GetLayout());
             groups->AddAttribute(XmlNodeKeys::mgGridSizeAttribute, std::to_string(mg1->GetGridSize()));
-            groups->AddAttribute(XmlNodeKeys::TagColourAttribute, mg1->GetTagColour().GetAsString(wxC2S_HTML_SYNTAX));
+            groups->AddAttribute(XmlNodeKeys::TagColourAttribute, mg1->GetTagColourAsString());
             groups->AddAttribute(XmlNodeKeys::mgCentreMinxAttribute, std::to_string(mg1->GetCentreMinx()));
             groups->AddAttribute(XmlNodeKeys::mgCentreMinyAttribute, std::to_string(mg1->GetCentreMiny()));
             groups->AddAttribute(XmlNodeKeys::mgCentreMaxxAttribute, std::to_string(mg1->GetCentreMaxx()));
@@ -845,6 +832,132 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         }*/
     }
 
+    void SerializeViewsObject(wxXmlNode* node, xLightsFrame* xlights) {
+        wxXmlNode* viewsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "views");
+        SequenceViewManager* seqViewMgr = xlights->GetViewsManager();
+        std::list<SequenceView*> views = seqViewMgr->GetViews();
+        for (SequenceView* view : views) {
+            std::string name = view->GetName();
+            if (name != "Master View") {
+                wxXmlNode* viewChild = new wxXmlNode(wxXML_ELEMENT_NODE, "view");
+                viewChild->AddAttribute("name", name);
+                viewChild->AddAttribute(XmlNodeKeys::ModelsAttribute, view->GetModelsString());
+                viewsNode->AddChild(viewChild);
+            }
+        }
+        node->AddChild(viewsNode);
+    }
+
+    void SerializeColorsObject(wxXmlNode* node, xLightsFrame* xlights) {
+        wxXmlNode* colorsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "colors");
+        ColorManager* colorMgr = new ColorManager(xlights);
+        std::map<std::string, xlColor> colors = colorMgr->GetColors();
+        for (const auto& c : colors) {
+            wxXmlNode* colorChild = new wxXmlNode(wxXML_ELEMENT_NODE, c.first);
+            colorChild->AddAttribute(XmlNodeKeys::RedAttribute, std::to_string(c.second.red));
+            colorChild->AddAttribute(XmlNodeKeys::GreenAttribute, std::to_string(c.second.green));
+            colorChild->AddAttribute(XmlNodeKeys::BlueAttribute, std::to_string(c.second.blue));
+            colorsNode->AddChild(colorChild);
+        }
+        node->AddChild(colorsNode);
+    }
+
+    void SerializeLayoutGroupsObject(wxXmlNode* node, xLightsFrame* xlights) {
+        std::vector<LayoutGroup*> layoutGroups = xlights->LayoutGroups;
+        wxXmlNode* lgNode = new wxXmlNode(wxXML_ELEMENT_NODE, "layoutGroups");
+        for (LayoutGroup* lg : layoutGroups) {
+            wxXmlNode* lgChild = new wxXmlNode(wxXML_ELEMENT_NODE, "layoutGroup");
+            lgChild->AddAttribute("name", lg->GetName());
+            lgChild->AddAttribute(XmlNodeKeys::BackgroundImageAttribute, lg->GetBackgroundImage());
+            lgChild->AddAttribute(XmlNodeKeys::BackgroundBrightnessAttribute, std::to_string(lg->GetBackgroundBrightness()));
+            lgChild->AddAttribute(XmlNodeKeys::BackgroundAlphaAttribute, std::to_string(lg->GetBackgroundAlpha()));
+            lgChild->AddAttribute(XmlNodeKeys::ScaleImageAttribute, std::to_string(lg->GetBackgroundScaled()));
+            lgNode->AddChild(lgChild);
+        }
+        node->AddChild(lgNode);
+    }
+
+    void SerializePerspectivesObject(wxXmlNode* node, xLightsFrame* xlights) {
+        std::list<std::string> perspectives = xlights->GetPerspectives();
+        wxXmlNode* perspectivesNode = new wxXmlNode(wxXML_ELEMENT_NODE, "perspectives");
+        for (std::string p : perspectives) {
+            wxXmlNode* pChild = new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
+            pChild->AddAttribute("name", p);
+            perspectivesNode->AddChild(pChild);
+        }
+        node->AddChild(perspectivesNode);
+    }
+
+    void SerializeSettingsObject(wxXmlNode* node, xLightsFrame* xlights) {
+        wxXmlNode* settings = new wxXmlNode(wxXML_ELEMENT_NODE, "settings");
+        wxXmlNode* scaleimage = new wxXmlNode(wxXML_ELEMENT_NODE, "scaleImage");
+        scaleimage->AddAttribute("value", std::to_string(xlights->GetDefaultPreviewBackgroundScaled()));
+        settings->AddChild(scaleimage);
+        wxXmlNode* bkgimage = new wxXmlNode(wxXML_ELEMENT_NODE, "backgroundImage");
+        bkgimage->AddAttribute("value", "tbd");
+        settings->AddChild(bkgimage);
+        wxXmlNode* bkgbright = new wxXmlNode(wxXML_ELEMENT_NODE, "backgroundBrightness");
+        bkgbright->AddAttribute("value", std::to_string(xlights->GetDefaultPreviewBackgroundBrightness()));
+        settings->AddChild(bkgbright);
+        wxXmlNode* bkgalpha = new wxXmlNode(wxXML_ELEMENT_NODE, "backgroundAlpha");
+        bkgalpha->AddAttribute("value", std::to_string(xlights->GetDefaultPreviewBackgroundAlpha()));
+        settings->AddChild(bkgalpha);
+        wxXmlNode* boundbox = new wxXmlNode(wxXML_ELEMENT_NODE, "Display2DBoundingBox");
+        boundbox->AddAttribute("value", std::to_string(xlights->GetDisplay2DBoundingBox()));
+        settings->AddChild(boundbox);
+        wxXmlNode* grid = new wxXmlNode(wxXML_ELEMENT_NODE, "Display2DGrid");
+        grid->AddAttribute("value", std::to_string(xlights->GetDisplay2DGrid()));
+        settings->AddChild(grid);
+        wxXmlNode* gridspace = new wxXmlNode(wxXML_ELEMENT_NODE, "Display2DGridSpacing");
+        gridspace->AddAttribute("value", std::to_string(xlights->GetDisplay2DGridSpacing()));
+        settings->AddChild(gridspace);
+        wxXmlNode* center0 = new wxXmlNode(wxXML_ELEMENT_NODE, "Display2DCenter0");
+        center0->AddAttribute("value", std::to_string(xlights->GetDisplay2DCenter0()));
+        settings->AddChild(center0);
+        wxXmlNode* laygrp = new wxXmlNode(wxXML_ELEMENT_NODE, "storedLayourGroup");
+        laygrp->AddAttribute("value", xlights->GetStoredLayoutGroup());
+        settings->AddChild(laygrp);
+        wxXmlNode* layout3d = new wxXmlNode(wxXML_ELEMENT_NODE, "LayoutMode3D");
+        layout3d->AddAttribute("value", "tbd");
+        settings->AddChild(layout3d);
+        wxXmlNode* previewW = new wxXmlNode(wxXML_ELEMENT_NODE, "previewWidth");
+        previewW->AddAttribute("value", std::to_string(0));
+        settings->AddChild(previewW);
+        wxXmlNode* previewH = new wxXmlNode(wxXML_ELEMENT_NODE, "previewHeight");
+        previewH->AddAttribute("value", std::to_string(0));
+        settings->AddChild(previewH);
+        node->AddChild(settings);
+    }
+
+    void Serialize3dObjects(wxXmlNode* node, xLightsFrame* xlights){
+        wxXmlNode* settings = new wxXmlNode(wxXML_ELEMENT_NODE, "view_objects");
+        wxXmlNode* terrain = new wxXmlNode(wxXML_ELEMENT_NODE, "view_object");
+        const ViewObjectManager* om = new ViewObjectManager(xlights);
+        //std::map<std::string, ViewObject*> vo = om->GetViewObjects();
+        //ViewObject* t0 = om->GetViewObject("Terrain");
+        //BaseObject* b0 = om->GetObject("Mesh");
+        TerrianObject* t = new TerrianObject(node, *om);
+        //OutputManager* om0 = new OutputManager();
+        //ModelManager* mm = new ModelManager(om0, xlights);
+        //std::map<std::string, Model*> gm = mm->GetModels();
+
+        terrain->AddAttribute(XmlNodeKeys::ImageAttribute, t->GetAttribute("Image"));
+        terrain->AddAttribute(XmlNodeKeys::BrightnessAttribute, t->GetAttribute("Brightness"));
+        terrain->AddAttribute(XmlNodeKeys::TransparencyAttribute, std::to_string(t->getTransparency()));
+        terrain->AddAttribute(XmlNodeKeys::TerrainLineAttribute, std::to_string(t->getSpacing()));
+        terrain->AddAttribute(XmlNodeKeys::TerrainWidthAttribute, std::to_string(t->getWidth()));
+        terrain->AddAttribute(XmlNodeKeys::TerrainDepthAttribute, std::to_string(t->getDepth()));
+        terrain->AddAttribute(XmlNodeKeys::TerrainBrushAttribute, t->GetAttribute("TerrianBrushSize"));
+        terrain->AddAttribute(XmlNodeKeys::GridColorAttribute, t->getGridColor());
+        terrain->AddAttribute(XmlNodeKeys::HideGridAttribute, std::to_string(t->isHideGrid()));
+        terrain->AddAttribute(XmlNodeKeys::HideImageAttribute, std::to_string(t->isHideImage()));
+        terrain->AddAttribute(XmlNodeKeys::PointDataAttribute, t->getPointData());
+
+        settings->AddChild(terrain);
+
+        node->AddChild(settings);
+    };
+
     [[nodiscard]] wxXmlNode* CommonVisitSteps(const Model& model) {
         wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
         AddBaseObjectAttributes(model, xmlNode);
@@ -859,8 +972,8 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         xmlNode->AddAttribute(XmlNodeKeys::ZigZagAttribute, model.GetZigZag() ? "true": "false");
         xmlNode->AddAttribute(XmlNodeKeys::HollowAttribute, std::to_string(model.GetHollow()));
         xmlNode->AddAttribute(XmlNodeKeys::GapAttribute, std::to_string(model.GetGap()));
-        xmlNode->AddAttribute(XmlNodeKeys::arcAttribute, std::to_string(model.GetArc()));
-        xmlNode->AddAttribute(XmlNodeKeys::LayerSizesAttribute, vectorToString(model.GetLayerSizes()));
+        xmlNode->AddAttribute(XmlNodeKeys::ArcAttribute, std::to_string(model.GetArc()));
+        xmlNode->AddAttribute(XmlNodeKeys::LayerSizesAttribute, model.SerialiseLayerSizes());
         const Model* m = dynamic_cast<const Model*>(&model);
         AddOtherElements(xmlNode, m);
     }
@@ -879,7 +992,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
     void Visit(const CircleModel& model) override {
         wxXmlNode* xmlNode = CommonVisitSteps(model);
         xmlNode->AddAttribute(XmlNodeKeys::InsideOutAttribute, model.IsInsideOut() ? "1" : "0");
-        xmlNode->AddAttribute(XmlNodeKeys::LayerSizesAttribute, vectorToString(model.GetLayerSizes()));
+        xmlNode->AddAttribute(XmlNodeKeys::LayerSizesAttribute,  model.SerialiseLayerSizes());
         const Model* m = dynamic_cast<const Model*>(&model);
         AddOtherElements(xmlNode, m);     
     }
@@ -998,7 +1111,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
 
     void Visit(const StarModel& model) override {
         wxXmlNode* xmlNode = CommonVisitSteps(model);
-        xmlNode->AddAttribute(XmlNodeKeys::LayerSizesAttribute, vectorToString(model.GetLayerSizes()));
+        xmlNode->AddAttribute(XmlNodeKeys::LayerSizesAttribute, model.SerialiseLayerSizes());
         xmlNode->AddAttribute(XmlNodeKeys::StarStartLocationAttribute, model.GetStartLocation());
         xmlNode->AddAttribute(XmlNodeKeys::StarRatioAttribute, std::to_string(model.GetStarRatio()));
         xmlNode->AddAttribute(XmlNodeKeys::StarCenterPercentAttribute, std::to_string(model.GetInnerPercent()));
@@ -1070,78 +1183,102 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
 };
 
 struct XmlDeserializingObjectFactory {
-    Model* Deserialize(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* Deserialize(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         auto type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute);
 
         if (type == XmlNodeKeys::ArchesType) {
-            return DeserializeArches(new wxXmlNode(*node), xlights);
+            return DeserializeArches(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::CandyCaneType) {
-            return DeserializeCandyCane(new wxXmlNode(*node), xlights);
+            return DeserializeCandyCane(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::ChannelBlockType) {
-            return DeserializeChannelBlock(new wxXmlNode(*node), xlights);
+            return DeserializeChannelBlock(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::CircleType) {
-            return DeserializeCircle(new wxXmlNode(*node), xlights);
+            return DeserializeCircle(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::CubeType) {
-            return DeserializeCube(new wxXmlNode(*node), xlights);
+            return DeserializeCube(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::CustomType) {
-            return DeserializeCustom(new wxXmlNode(*node), xlights);
+            return DeserializeCustom(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::DmxMovingHeadType) {
-            return DeserializeDmxMovingHead(new wxXmlNode(*node), xlights);
+            return DeserializeDmxMovingHead(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::DmxMovingHeadAdvType) {
-            return DeserializeDmxMovingHeadAdv(new wxXmlNode(*node), xlights);
+            return DeserializeDmxMovingHeadAdv(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::IciclesType) {
-            return DeserializeIcicles(new wxXmlNode(*node), xlights);
+            return DeserializeIcicles(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::ImageType) {
-            return DeserializeImage(new wxXmlNode(*node), xlights);
-        } else if (type == XmlNodeKeys::MatrixType) {
-            return DeserializeMatrix(new wxXmlNode(*node), xlights);
+            return DeserializeImage(new wxXmlNode(*node), xlights, importing);
+        } else if (type.Contains(XmlNodeKeys::MatrixType)) {
+            return DeserializeMatrix(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::SingleLineType) {
-            return DeserializeSingleLine(new wxXmlNode(*node), xlights);
+            return DeserializeSingleLine(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::PolyLineType) {
-            return DeserializePolyLine(new wxXmlNode(*node), xlights);
+            return DeserializePolyLine(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::SphereType) {
-            return DeserializeSphere(new wxXmlNode(*node), xlights);
+            return DeserializeSphere(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::SpinnerType) {
-            return DeserializeSpinner(new wxXmlNode(*node), xlights);
+            return DeserializeSpinner(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::StarType) {
-            return DeserializeStar(new wxXmlNode(*node), xlights);
-        } else if (type == XmlNodeKeys::TreeType) {
-            return DeserializeTree(new wxXmlNode(*node), xlights);
+            return DeserializeStar(new wxXmlNode(*node), xlights, importing);
+        } else if (type.Contains(XmlNodeKeys::TreeType)) {
+            return DeserializeTree(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::WindowType) {
-            return DeserializeWindow(new wxXmlNode(*node), xlights);
+            return DeserializeWindow(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::WreathType) {
-            return DeserializeWreath(new wxXmlNode(*node), xlights);
+            return DeserializeWreath(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::ViewObjectsType) {
-            return DeserializeEffects(new wxXmlNode(*node), xlights);
+            return DeserializeEffects(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::EffectsType) {
-            return DeserializeViews(new wxXmlNode(*node), xlights);
+            return DeserializeViews(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::ViewsType) {
-            return DeserializePalettes(new wxXmlNode(*node), xlights);
+            return DeserializePalettes(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::PalettesType) {
-            return DeserializeGroups(new wxXmlNode(*node), xlights);
+            return DeserializeGroups(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::LayoutGroupsType) {
-            return DeserializePerspectives(new wxXmlNode(*node), xlights);
+            return DeserializePerspectives(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::PerspectivesType) {
-            return DeserializeSettings(new wxXmlNode(*node), xlights);
+            return DeserializeSettings(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::SettingsType) {
-            return DeserializeColors(new wxXmlNode(*node), xlights);
+            return DeserializeColors(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::ColorsType) {
-            return DeserializeViewPoints(new wxXmlNode(*node), xlights);
+            return DeserializeViewPoints(new wxXmlNode(*node), xlights, importing);
         }
 
         throw std::runtime_error("Unknown object type: " + type);
     }
 
 private:
-    void CommonDeserializeSteps(Model* model, wxXmlNode* node, xLightsFrame* xlights) {
-        std::string name = node->GetAttribute("name");
-        wxString newname = xlights->AllModels.GenerateModelName(name);
-        model->SetProperty("name", newname, true);
-        DeserializeBaseModelAttributes(model, node);
+    void CommonDeserializeSteps(Model* model, wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+        DeserializeBaseModelAttributes(model, node, xlights, importing);
         DeserializeCommonModelAttributes(model, node);
+        DeserializeModelScreenLocationAttributes(model, node, importing);
     }
 
-    void DeserializeBaseModelAttributes(Model* model, wxXmlNode* node) {
+    void DeserializeControllerConnection(Model* model, wxXmlNode* node) {
+        model->SetControllerProtocol(node->GetAttribute(XmlNodeKeys::ProtocolAttribute));
+        model->SetControllerPort(std::stoi(node->GetAttribute(XmlNodeKeys::ProtocolAttribute).ToStdString()));
+        model->SetControllerStartNulls(std::stoi(node->GetAttribute(XmlNodeKeys::StartNullAttribute).ToStdString()));
+        model->SetControllerEndNulls(std::stoi(node->GetAttribute(XmlNodeKeys::EndNullAttribute).ToStdString()));
+        model->SetControllerBrightness(std::stoi(node->GetAttribute(XmlNodeKeys::BrightnessAttribute).ToStdString()));
+        model->SetControllerGamma(std::stof(node->GetAttribute(XmlNodeKeys::GammaAttribute).ToStdString()));
+        model->SetControllerColorOrder(node->GetAttribute(XmlNodeKeys::ColorOrderAttribute));
+        // FIXME:  No setter model->SetControllerReverse(std::stoi(node->GetAttribute(XmlNodeKeys::CReverseAttribute).ToStdString()));
+        // FIXME:  No setter model->SetControllerZigZag(std::stoi(node->GetAttribute(XmlNodeKeys::CZigZagAttribute).ToStdString()));
+        model->SetControllerGroupCount(std::stoi(node->GetAttribute(XmlNodeKeys::GroupCountAttribute).ToStdString()));
+        
+       //     xmlNode->AddAttribute(XmlNodeKeys::SmartRemoteTypeAttribute, m->GetSmartRemoteType());
+       //     xmlNode->AddAttribute(XmlNodeKeys::SmartRemoteAttribute, std::to_string(m->GetSmartRemote()));
+    }
+
+    void DeserializeBaseModelAttributes(Model* model, wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+        std::string name = node->GetAttribute("name");
+        if (importing)
+        {
+            name = xlights->AllModels.GenerateModelName(name);
+            model->SetLayoutGroup(xlights->GetStoredLayoutGroup());
+        } else {
+            model->SetLayoutGroup(node->GetAttribute(XmlNodeKeys::LayoutGroupAttribute).ToStdString());
+        }
+        model->SetName(name);
+        model->SetDisplayAs(node->GetAttribute(XmlNodeKeys::DisplayAsAttribute).ToStdString());
         model->SetActive(std::stoi(node->GetAttribute(XmlNodeKeys::ActiveAttribute).ToStdString()));
     }
 
@@ -1161,31 +1298,42 @@ private:
         model->SetPixelSize(std::stoi(node->GetAttribute(XmlNodeKeys::PixelSizeAttribute, "2").ToStdString()));
         model->SetRGBWHandling((std::string)node->GetAttribute(XmlNodeKeys::RGBWHandleAttribute));
         model->SetStringType(node->GetAttribute(XmlNodeKeys::StringTypeAttribute, "RGB Nodes").ToStdString());
+        model->SetTransparency(std::stol(node->GetAttribute(XmlNodeKeys::TransparencyAttribute,"0").ToStdString()));
+        model->SetBlackTransparency(std::stol(node->GetAttribute(XmlNodeKeys::BTransparencyAttribute,"0").ToStdString()));
+        model->SetDescription(UnXmlSafe(node->GetAttribute(XmlNodeKeys::DescriptionAttribute)));
+        model->SetTagColourAsString(node->GetAttribute(XmlNodeKeys::TagColourAttribute, "#000000"));
+        model->SetStartChannel(node->GetAttribute(XmlNodeKeys::StartChannelAttribute, "1").ToStdString());
+        model->SetNodeNames(node->GetAttribute(XmlNodeKeys::NodeNamesAttribute).ToStdString());
+        model->SetStrandNames(node->GetAttribute(XmlNodeKeys::StrandNamesAttribute).ToStdString());
+        model->SetControllerName(node->GetAttribute(XmlNodeKeys::ControllerAttribute).ToStdString());
+    }
 
-        tempstr = ModelNode->GetAttribute("Transparency", "0");
-        tempstr.ToLong(&n);
-        transparency = n;
-        blackTransparency = wxAtoi(ModelNode->GetAttribute("BlackTransparency", "0"));
-
-
-        node->AddAttribute(XmlNodeKeys::TransparencyAttribute, std::to_string(model.GetTransparency()));
-        node->AddAttribute(XmlNodeKeys::BTransparencyAttribute, std::to_string(model.GetBlackTransparency()));
-        node->AddAttribute(XmlNodeKeys::DescriptionAttribute, model.GetDescription());
-        // TBD: Figure out how to fix this since Dan made GetTagColour non-const
-        //node->AddAttribute(XmlNodeKeys::TagColourAttribute, model.GetTagColour().GetAsString(wxC2S_HTML_SYNTAX));
-        node->AddAttribute(XmlNodeKeys::StartChannelAttribute, model.GetModelStartChannel());
-        node->AddAttribute(XmlNodeKeys::NodeNamesAttribute, model.GetNodeNames());
-        node->AddAttribute(XmlNodeKeys::StrandNamesAttribute, model.GetStrandNames());
-        node->AddAttribute(XmlNodeKeys::ControllerAttribute, model.GetControllerName());
-        node->AddAttribute(XmlNodeKeys::versionNumberAttribute, CUR_MODEL_POS_VER);
-        node->AddAttribute(XmlNodeKeys::xlightsVersionAttr, xlights_version_string);
-        node->AddAttribute(XmlNodeKeys::SerializeAttribute, "1");
+    void DeserializeModelScreenLocationAttributes(Model* model, wxXmlNode* node, bool importing) {
+        glm::vec3 loc;
+        loc.x = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosXAttribute).ToStdString());
+        loc.y = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosYAttribute).ToStdString());
+        loc.z = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosZAttribute).ToStdString());
+        model->GetBaseObjectScreenLocation().SetWorldPosition(loc);
+        glm::vec3 scale;
+        scale.x = std::stof(node->GetAttribute(XmlNodeKeys::ScaleXAttribute).ToStdString());
+        scale.y = std::stof(node->GetAttribute(XmlNodeKeys::ScaleYAttribute).ToStdString());
+        scale.z = std::stof(node->GetAttribute(XmlNodeKeys::ScaleZAttribute).ToStdString());
+        model->GetBaseObjectScreenLocation().SetScaleMatrix(scale);
+        glm::vec3 rotate;
+        rotate.x = std::stof(node->GetAttribute(XmlNodeKeys::RotateXAttribute).ToStdString());
+        rotate.y = std::stof(node->GetAttribute(XmlNodeKeys::RotateYAttribute).ToStdString());
+        rotate.z = std::stof(node->GetAttribute(XmlNodeKeys::RotateZAttribute).ToStdString());
+        model->GetBaseObjectScreenLocation().SetRotation(rotate);
+        if( !importing ) {
+            bool locked = std::stoi(node->GetAttribute(XmlNodeKeys::LockedAttribute).ToStdString()) > 0;
+            model->GetModelScreenLocation().Lock(locked);
+        }
     }
 
     void DeserializeTwoPointScreenLocationAttributes(Model* model, wxXmlNode* node) {
-        float x2 = wxAtoi(node->GetAttribute(XmlNodeKeys::X2Attribute, "0"));
-        float y2 = wxAtoi(node->GetAttribute(XmlNodeKeys::Y2Attribute, "0"));
-        float z2 = wxAtoi(node->GetAttribute(XmlNodeKeys::Z2Attribute, "0"));
+        float x2 = std::stof(node->GetAttribute(XmlNodeKeys::X2Attribute, "0").ToStdString());
+        float y2 = std::stof(node->GetAttribute(XmlNodeKeys::Y2Attribute, "0").ToStdString());
+        float z2 = std::stof(node->GetAttribute(XmlNodeKeys::Z2Attribute, "0").ToStdString());
         TwoPointScreenLocation& screenLoc = dynamic_cast<TwoPointScreenLocation&>(model->GetBaseObjectScreenLocation());
         screenLoc.SetX2(x2);
         screenLoc.SetY2(y2);
@@ -1194,209 +1342,207 @@ private:
 
     void DeserializeThreePointScreenLocationAttributes(Model* model, wxXmlNode* node) {
         DeserializeTwoPointScreenLocationAttributes(model, node);
-        int angle = wxAtoi(node->GetAttribute(XmlNodeKeys::AngleAttribute, "0"));
-        float height = wxAtof(node->GetAttribute("Height", "1.0"));
-        float shear = wxAtof(node->GetAttribute("Shear", "0.0"));
+        int angle = std::stoi(node->GetAttribute(XmlNodeKeys::AngleAttribute, "0").ToStdString());
+        float height = std::stof(node->GetAttribute("Height", "1.0").ToStdString());
+        float shear = std::stof(node->GetAttribute("Shear", "0.0").ToStdString());
         ThreePointScreenLocation& screenLoc = dynamic_cast<ThreePointScreenLocation&>(model->GetBaseObjectScreenLocation());
         screenLoc.SetAngle(angle);
         screenLoc.SetMHeight(height);
         screenLoc.SetYShear(shear);
     }
 
-    Model* DeserializeArches(wxXmlNode* node, xLightsFrame* xlights) {
-        Model* model = new ArchesModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+    Model* DeserializeArches(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+        ArchesModel* model = new ArchesModel(node, xlights->AllModels, false);
+        CommonDeserializeSteps(model, node, xlights, importing);
         DeserializeThreePointScreenLocationAttributes(model, node);
+        model->SetZigZag(node->GetAttribute(XmlNodeKeys::ZigZagAttribute).ToStdString() == "true");
+        model->SetHollow(std::stoi(node->GetAttribute(XmlNodeKeys::HollowAttribute).ToStdString()));
+        model->SetGap(std::stoi(node->GetAttribute(XmlNodeKeys::GapAttribute).ToStdString()));
+        if( node->HasAttribute("arc")) { // special case for legacy Arch model format
+            model->SetArc(std::stoi(node->GetAttribute("arc").ToStdString()));
+        } else if( node->HasAttribute("Arc")) {
+            model->SetArc(std::stoi(node->GetAttribute(XmlNodeKeys::ArcAttribute).ToStdString()));
+        }
+        model->DeserialiseLayerSizes(node->GetAttribute(XmlNodeKeys::LayerSizesAttribute).ToStdString(), false);
+        if (!importing) {
+            DeserializeControllerConnection(model, node);
+        }
         return model;
     }
-    /*void Visit(const ArchesModel& model) override {
-        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
-        AddBaseObjectAttributes(model, xmlNode);
-        AddCommonModelAttributes(model, xmlNode);
-        AddModelScreenLocationAttributes(model, xmlNode);
 
-        xmlNode->AddAttribute(XmlNodeKeys::ZigZagAttribute, model.GetZigZag() ? "true": "false");
-        xmlNode->AddAttribute(XmlNodeKeys::HollowAttribute, std::to_string(model.GetHollow()));
-        xmlNode->AddAttribute(XmlNodeKeys::GapAttribute, std::to_string(model.GetGap()));
-        xmlNode->AddAttribute(XmlNodeKeys::arcAttribute, std::to_string(model.GetArc()));
-        xmlNode->AddAttribute(XmlNodeKeys::LayerSizesAttribute, vectorToString(model.GetLayerSizes()));
-        const Model* m = dynamic_cast<const Model*>(&model);
-        AddOtherElements(xmlNode, m);
-    }*/
-
-    Model* DeserializeCandyCane(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeCandyCane(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model = new CandyCaneModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-     Model* DeserializeChannelBlock(wxXmlNode* node, xLightsFrame* xlights) {
+     Model* DeserializeChannelBlock(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model = new ChannelBlockModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeCircle(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeCircle(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new CircleModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeCube(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeCube(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new CubeModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeCustom(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeCustom(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model = new CustomModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeDmxMovingHead(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeDmxMovingHead(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model = new DmxMovingHead(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeDmxMovingHeadAdv(wxXmlNode *node, xLightsFrame* xlights) {
+    Model* DeserializeDmxMovingHeadAdv(wxXmlNode *node, xLightsFrame* xlights, bool importing) {
         Model *model = new DmxMovingHeadAdv(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeIcicles(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeIcicles(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model = new IciclesModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeImage(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeImage(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new ImageModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeMatrix(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeMatrix(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new MatrixModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeSingleLine(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeSingleLine(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new SingleLineModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializePolyLine(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializePolyLine(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new PolyLineModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeSphere(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeSphere(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new SphereModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeSpinner(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeSpinner(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new SpinnerModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeStar(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeStar(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new StarModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeTree(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeTree(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new TreeModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeWindow(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeWindow(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new WindowFrameModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeWreath(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeWreath(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new WreathModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeEffects(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeEffects(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new WreathModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeViews(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeViews(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new WreathModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializePalettes(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializePalettes(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new WreathModel(node, xlights->AllModels, false);
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeGroups(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeGroups(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new WreathModel(node, xlights->AllModels, false);        // FIXME: Based on class looks like in progress work
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializePerspectives(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializePerspectives(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new WreathModel(node, xlights->AllModels, false);        // FIXME: Based on class looks like in progress work
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeSettings(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeSettings(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new WreathModel(node, xlights->AllModels, false);        // FIXME: Based on class looks like in progress work
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeColors(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeColors(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new WreathModel(node, xlights->AllModels, false);        // FIXME: Based on class looks like in progress work
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
-    Model* DeserializeViewPoints(wxXmlNode* node, xLightsFrame* xlights) {
+    Model* DeserializeViewPoints(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
         model = new WreathModel(node, xlights->AllModels, false);        // FIXME: Based on class looks like in progress work
-        CommonDeserializeSteps(model, node, xlights);
+        CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 };
@@ -1439,26 +1585,20 @@ struct XmlSerializer {
 
         doc.SetRoot(docNode);
 
-        DeserializeLayoutGroupsObject(docNode, xlights);
-        DeserializeViewsObject(docNode, xlights);
-        DeserializeColorsObject(docNode, xlights);
-        DeserializePerspectivesObject(docNode, xlights);
-        DeserializeSettingsObject(docNode, xlights);
-        Deserialize3dObjects(docNode, xlights);
         return doc;
     }
 
     // Deserialize a single model from an XML document
-    Model* DeserializeModel(const wxXmlDocument& doc, xLightsFrame* xlights) {
+    Model* DeserializeModel(const wxXmlDocument& doc, xLightsFrame* xlights, bool importing) {
         wxXmlNode* root = doc.GetRoot();
         wxXmlNode* model_node = root->GetChildren();
-        return DeserializeModel(model_node, xlights);
+        return DeserializeModel(model_node, xlights, importing);
     }
 
     // Deserialize a single model XML node
-    Model* DeserializeModel(wxXmlNode* model_node, xLightsFrame* xlights) {
+    Model* DeserializeModel(wxXmlNode* model_node, xLightsFrame* xlights, bool importing) {
         XmlDeserializingObjectFactory factory{};
-        Model* model = factory.Deserialize(model_node, xlights);
+        Model* model = factory.Deserialize(model_node, xlights, importing);
 
         // TODO: I'd like to get rid of this whole ImportModelChildren call but left it in the flow for now
         /*float min_x = (float)(model->GetBaseObjectScreenLocation().GetLeft());
@@ -1471,129 +1611,4 @@ struct XmlSerializer {
         return model;
     }
 
-    void DeserializeViewsObject(wxXmlNode* node, xLightsFrame* xlights) {
-        wxXmlNode* viewsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "views");
-        SequenceViewManager* seqViewMgr = xlights->GetViewsManager();
-        std::list<SequenceView*> views = seqViewMgr->GetViews();
-        for (SequenceView* view : views) {
-            std::string name = view->GetName();
-            if (name != "Master View") {
-                wxXmlNode* viewChild = new wxXmlNode(wxXML_ELEMENT_NODE, "view");
-                viewChild->AddAttribute("name", name);
-                viewChild->AddAttribute(XmlNodeKeys::ModelsAttribute, view->GetModelsString());
-                viewsNode->AddChild(viewChild);
-            }
-        }
-        node->AddChild(viewsNode);
-    }
-
-    void DeserializeColorsObject(wxXmlNode* node, xLightsFrame* xlights) {
-        wxXmlNode* colorsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "colors");
-        ColorManager* colorMgr = new ColorManager(xlights);
-        std::map<std::string, xlColor> colors = colorMgr->GetColors();
-        for (const auto& c : colors) {
-            wxXmlNode* colorChild = new wxXmlNode(wxXML_ELEMENT_NODE, c.first);
-            colorChild->AddAttribute(XmlNodeKeys::RedAttribute, std::to_string(c.second.red));
-            colorChild->AddAttribute(XmlNodeKeys::GreenAttribute, std::to_string(c.second.green));
-            colorChild->AddAttribute(XmlNodeKeys::BlueAttribute, std::to_string(c.second.blue));
-            colorsNode->AddChild(colorChild);
-        }
-        node->AddChild(colorsNode);
-    }
-
-    void DeserializeLayoutGroupsObject(wxXmlNode* node, xLightsFrame* xlights) {
-        std::vector<LayoutGroup*> layoutGroups = xlights->LayoutGroups;
-        wxXmlNode* lgNode = new wxXmlNode(wxXML_ELEMENT_NODE, "layoutGroups");
-        for (LayoutGroup* lg : layoutGroups) {
-            wxXmlNode* lgChild = new wxXmlNode(wxXML_ELEMENT_NODE, "layoutGroup");
-            lgChild->AddAttribute("name", lg->GetName());
-            lgChild->AddAttribute(XmlNodeKeys::BackgroundImageAttribute, lg->GetBackgroundImage());
-            lgChild->AddAttribute(XmlNodeKeys::BackgroundBrightnessAttribute, std::to_string(lg->GetBackgroundBrightness()));
-            lgChild->AddAttribute(XmlNodeKeys::BackgroundAlphaAttribute, std::to_string(lg->GetBackgroundAlpha()));
-            lgChild->AddAttribute(XmlNodeKeys::ScaleImageAttribute, std::to_string(lg->GetBackgroundScaled()));
-            lgNode->AddChild(lgChild);
-        }
-        node->AddChild(lgNode);
-    }
-
-    void DeserializePerspectivesObject(wxXmlNode* node, xLightsFrame* xlights) {
-        std::list<std::string> perspectives = xlights->GetPerspectives();
-        wxXmlNode* perspectivesNode = new wxXmlNode(wxXML_ELEMENT_NODE, "perspectives");
-        for (std::string p : perspectives) {
-            wxXmlNode* pChild = new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
-            pChild->AddAttribute("name", p);
-            perspectivesNode->AddChild(pChild);
-        }
-        node->AddChild(perspectivesNode);
-    }
-
-    void DeserializeSettingsObject(wxXmlNode* node, xLightsFrame* xlights) {
-        wxXmlNode* settings = new wxXmlNode(wxXML_ELEMENT_NODE, "settings");
-        wxXmlNode* scaleimage = new wxXmlNode(wxXML_ELEMENT_NODE, "scaleImage");
-        scaleimage->AddAttribute("value", std::to_string(xlights->GetDefaultPreviewBackgroundScaled()));
-        settings->AddChild(scaleimage);
-        wxXmlNode* bkgimage = new wxXmlNode(wxXML_ELEMENT_NODE, "backgroundImage");
-        bkgimage->AddAttribute("value", "tbd");
-        settings->AddChild(bkgimage);
-        wxXmlNode* bkgbright = new wxXmlNode(wxXML_ELEMENT_NODE, "backgroundBrightness");
-        bkgbright->AddAttribute("value", std::to_string(xlights->GetDefaultPreviewBackgroundBrightness()));
-        settings->AddChild(bkgbright);
-        wxXmlNode* bkgalpha = new wxXmlNode(wxXML_ELEMENT_NODE, "backgroundAlpha");
-        bkgalpha->AddAttribute("value", std::to_string(xlights->GetDefaultPreviewBackgroundAlpha()));
-        settings->AddChild(bkgalpha);
-        wxXmlNode* boundbox = new wxXmlNode(wxXML_ELEMENT_NODE, "Display2DBoundingBox");
-        boundbox->AddAttribute("value", std::to_string(xlights->GetDisplay2DBoundingBox()));
-        settings->AddChild(boundbox);
-        wxXmlNode* grid = new wxXmlNode(wxXML_ELEMENT_NODE, "Display2DGrid");
-        grid->AddAttribute("value", std::to_string(xlights->GetDisplay2DGrid()));
-        settings->AddChild(grid);
-        wxXmlNode* gridspace = new wxXmlNode(wxXML_ELEMENT_NODE, "Display2DGridSpacing");
-        gridspace->AddAttribute("value", std::to_string(xlights->GetDisplay2DGridSpacing()));
-        settings->AddChild(gridspace);
-        wxXmlNode* center0 = new wxXmlNode(wxXML_ELEMENT_NODE, "Display2DCenter0");
-        center0->AddAttribute("value", std::to_string(xlights->GetDisplay2DCenter0()));
-        settings->AddChild(center0);
-        wxXmlNode* laygrp = new wxXmlNode(wxXML_ELEMENT_NODE, "storedLayourGroup");
-        laygrp->AddAttribute("value", xlights->GetStoredLayoutGroup());
-        settings->AddChild(laygrp);
-        wxXmlNode* layout3d = new wxXmlNode(wxXML_ELEMENT_NODE, "LayoutMode3D");
-        layout3d->AddAttribute("value", "tbd");
-        settings->AddChild(layout3d);
-        wxXmlNode* previewW = new wxXmlNode(wxXML_ELEMENT_NODE, "previewWidth");
-        previewW->AddAttribute("value", std::to_string(0));
-        settings->AddChild(previewW);
-        wxXmlNode* previewH = new wxXmlNode(wxXML_ELEMENT_NODE, "previewHeight");
-        previewH->AddAttribute("value", std::to_string(0));
-        settings->AddChild(previewH);
-        node->AddChild(settings);
-    }
-
-    void Deserialize3dObjects(wxXmlNode* node, xLightsFrame* xlights){
-        wxXmlNode* settings = new wxXmlNode(wxXML_ELEMENT_NODE, "view_objects");
-        wxXmlNode* terrain = new wxXmlNode(wxXML_ELEMENT_NODE, "view_object");
-        const ViewObjectManager* om = new ViewObjectManager(xlights);
-        //std::map<std::string, ViewObject*> vo = om->GetViewObjects();
-        //ViewObject* t0 = om->GetViewObject("Terrain");
-        //BaseObject* b0 = om->GetObject("Mesh");
-        TerrianObject* t = new TerrianObject(node, *om);
-        //OutputManager* om0 = new OutputManager();
-        //ModelManager* mm = new ModelManager(om0, xlights);
-        //std::map<std::string, Model*> gm = mm->GetModels();
-
-        terrain->AddAttribute(XmlNodeKeys::ImageAttribute, t->GetAttribute("Image"));
-        terrain->AddAttribute(XmlNodeKeys::BrightnessAttribute, t->GetAttribute("Brightness"));
-        terrain->AddAttribute(XmlNodeKeys::TransparencyAttribute, std::to_string(t->getTransparency()));
-        terrain->AddAttribute(XmlNodeKeys::TerrainLineAttribute, std::to_string(t->getSpacing()));
-        terrain->AddAttribute(XmlNodeKeys::TerrainWidthAttribute, std::to_string(t->getWidth()));
-        terrain->AddAttribute(XmlNodeKeys::TerrainDepthAttribute, std::to_string(t->getDepth()));
-        terrain->AddAttribute(XmlNodeKeys::TerrainBrushAttribute, t->GetAttribute("TerrianBrushSize"));
-        terrain->AddAttribute(XmlNodeKeys::GridColorAttribute, t->getGridColor());
-        terrain->AddAttribute(XmlNodeKeys::HideGridAttribute, std::to_string(t->isHideGrid()));
-        terrain->AddAttribute(XmlNodeKeys::HideImageAttribute, std::to_string(t->isHideImage()));
-        terrain->AddAttribute(XmlNodeKeys::PointDataAttribute, t->getPointData());
-
-        settings->AddChild(terrain);
-
-        node->AddChild(settings);
-    };
 };
