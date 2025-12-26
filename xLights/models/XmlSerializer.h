@@ -1269,7 +1269,7 @@ private:
     }
 
     void DeserializeBaseObjectAttributes(Model* model, wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        std::string name = node->GetAttribute("name");
+        std::string name = node->GetAttribute("name").Trim(true).Trim(false).ToStdString();
         if (importing)
         {
             name = xlights->AllModels.GenerateModelName(name);
@@ -1279,7 +1279,7 @@ private:
         }
         model->SetName(name);
         model->SetDisplayAs(node->GetAttribute(XmlNodeKeys::DisplayAsAttribute).ToStdString());
-        if( node->HasAttribute(XmlNodeKeys::ActiveAttribute) ) { model->SetActive(std::stoi(node->GetAttribute(XmlNodeKeys::ActiveAttribute).ToStdString())); }
+        model->SetActive(std::stoi(node->GetAttribute(XmlNodeKeys::ActiveAttribute, "1").ToStdString()));
     }
 
     void DeserializeCommonModelAttributes(Model* model, wxXmlNode* node) {
@@ -1298,6 +1298,7 @@ private:
         model->SetPixelSize(std::stoi(node->GetAttribute(XmlNodeKeys::PixelSizeAttribute, "2").ToStdString()));
         model->SetRGBWHandling((std::string)node->GetAttribute(XmlNodeKeys::RGBWHandleAttribute));
         model->SetStringType(node->GetAttribute(XmlNodeKeys::StringTypeAttribute, "RGB Nodes").ToStdString());
+        model->SetLowDefFactor(std::stoi(node->GetAttribute("LowDefinition", "100").ToStdString()));
         model->SetTransparency(std::stol(node->GetAttribute(XmlNodeKeys::TransparencyAttribute,"0").ToStdString()));
         model->SetBlackTransparency(std::stol(node->GetAttribute(XmlNodeKeys::BTransparencyAttribute,"0").ToStdString()));
         model->SetDescription(UnXmlSafe(node->GetAttribute(XmlNodeKeys::DescriptionAttribute)));
@@ -1354,7 +1355,7 @@ private:
     }
 
     Model* DeserializeArches(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        ArchesModel* model = new ArchesModel(node, xlights->AllModels, false);
+        ArchesModel* model = new ArchesModel(xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         DeserializeThreePointScreenLocationAttributes(model, node);
         model->SetZigZag(node->GetAttribute(XmlNodeKeys::ZigZagAttribute).ToStdString() == "true");

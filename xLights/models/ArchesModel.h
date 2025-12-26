@@ -15,7 +15,7 @@
 class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
 {
     public:
-        ArchesModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
+        ArchesModel(const ModelManager &manager, bool zeroBased = false);
         virtual ~ArchesModel();
     
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,

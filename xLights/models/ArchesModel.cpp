@@ -23,12 +23,13 @@
 #include "../ModelPreview.h"
 #include "../ModelPreview.h"
 
-ArchesModel::ArchesModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
+ArchesModel::ArchesModel(const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
     screenLocation.SetModelHandleHeight(true);
     screenLocation.SetSupportsAngle(true);
     screenLocation.SetPreferredSelectionPlane(ModelScreenLocation::MSLPLANE::GROUND);
-    //SetFromXml(node, zeroBased);
+    wxXmlNode *delete_node_later = nullptr;
+    SetFromXml(delete_node_later, zeroBased);
 }
 
 ArchesModel::~ArchesModel()

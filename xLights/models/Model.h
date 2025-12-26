@@ -422,6 +422,7 @@ public:
     [[nodiscard]] int GetControllerReverse() const;
     [[nodiscard]] std::string GetRGBWHandling() const;
     void SetRGBWHandling(std::string const& handling);
+    void SetLowDefFactor(int factor) { _lowDefFactor = factor; }
 
     void SetControllerStartNulls(int nulls);
     void SetControllerEndNulls(int nulls);
@@ -486,9 +487,9 @@ public:
     std::string ModelStartChannel{ "" };
     bool CouldComputeStartChannel = false;
     bool Overlapping = false;
-    std::string _pixelCount{ "" };
-    std::string _pixelType{ "" };
-    std::string _pixelSpacing{ "" };
+    //std::string _pixelCount{ "" };
+    //std::string _pixelType{ "" };
+    //std::string _pixelSpacing{ "" };
     std::string _shadowModelFor{ "" };
 
     void UpdateChannels(wxXmlNode* ModelNode);

@@ -1235,7 +1235,7 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         node->DeleteAttribute("StartSide");
         model = new StarModel(node, *this, false);
     } else if (type == "Arches") {
-        model = new ArchesModel(node, *this, false);
+        model = new ArchesModel(*this, false);
     } else if (type == "Candy Canes") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "3");

@@ -3160,8 +3160,10 @@ void Model::UpdateChannels(wxXmlNode* ModelNode)
     IncrementChangeCount();
 }
 
-void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
+void Model::SetFromXml(wxXmlNode* node, bool zb)
 {
+    // Commenting out code as it becomes handled in the XmlSerializer until we can delete it all
+    
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxStopWatch sw;
 
@@ -3178,26 +3180,26 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     superStringColours.clear();
 
     zeroBased = zb;
-    ModelXml = ModelNode;
+    ModelXml = nullptr;  // lets let this crash until we can get it fully removed
     StrobeRate = 0;
     Nodes.clear();
 
     clearUnusedProtocolProperties(GetControllerConnection());
 
-    DeserialiseLayerSizes(ModelNode->GetAttribute("LayerSizes", ""), false);
-
-    name = ModelNode->GetAttribute("name").Trim(true).Trim(false).ToStdString();
-    if (name != ModelNode->GetAttribute("name")) {
-        ModelNode->DeleteAttribute("name");
-        ModelNode->AddAttribute("name", name);
-    }
-    DisplayAs = ModelNode->GetAttribute("DisplayAs").ToStdString();
-    StringType = ModelNode->GetAttribute("StringType", "RGB Nodes").ToStdString();
-    _pixelCount = ModelNode->GetAttribute("PixelCount", "").ToStdString();
-    _pixelType = ModelNode->GetAttribute("PixelType", "").ToStdString();
-    _pixelSpacing = ModelNode->GetAttribute("PixelSpacing", "").ToStdString();
-    _active = ModelNode->GetAttribute("Active", "1") == "1";
-    _lowDefFactor = wxAtoi(ModelNode->GetAttribute("LowDefinition", "100"));
+    //DeserialiseLayerSizes(ModelNode->GetAttribute("LayerSizes", ""), false)
+    
+    //name = ModelNode->GetAttribute("name").Trim(true).Trim(false).ToStdString();
+    //if (name != ModelNode->GetAttribute("name")) {
+    //    ModelNode->DeleteAttribute("name");
+    //    ModelNode->AddAttribute("name", name);
+    //}
+    //DisplayAs = ModelNode->GetAttribute("DisplayAs").ToStdString();
+    //StringType = ModelNode->GetAttribute("StringType", "RGB Nodes").ToStdString();
+    //_pixelCount = ModelNode->GetAttribute("PixelCount", "").ToStdString();
+    //_pixelType = ModelNode->GetAttribute("PixelType", "").ToStdString();
+    //_pixelSpacing = ModelNode->GetAttribute("PixelSpacing", "").ToStdString();
+    //_active = ModelNode->GetAttribute("Active", "1") == "1";
+    //_lowDefFactor = wxAtoi(ModelNode->GetAttribute("LowDefinition", "100"));
 
     if (GetShadowModelFor() == name) {
         // this is a problem ... models should not be a shadow model for themselves
@@ -7408,8 +7410,10 @@ void Model::AddSuperStringColour(xlColor c, bool saveToXml)
 
 void Model::SetShadowModelFor(const std::string& shadowModelFor)
 {
-    _shadowModelFor = shadowModelFor;
-    IncrementChangeCount();
+    if ( shadowModelFor != name ) { // models should not be a shadow model for themselves
+        _shadowModelFor = shadowModelFor;
+        IncrementChangeCount();
+    }
 }
 
 void Model::SetControllerName(const std::string& controller)
