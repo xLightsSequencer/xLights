@@ -16,7 +16,7 @@
 #define TWINKLE_COUNT_MAX 100
 
 #define TWINKLE_STEPS_MIN 2
-#define TWINKLE_STEPS_MAX 100
+#define TWINKLE_STEPS_MAX 400
 
 class TwinkleEffect : public RenderableEffect
 {
