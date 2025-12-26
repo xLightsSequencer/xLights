@@ -28,7 +28,7 @@ ArchesModel::ArchesModel(wxXmlNode *node, const ModelManager &manager, bool zero
     screenLocation.SetModelHandleHeight(true);
     screenLocation.SetSupportsAngle(true);
     screenLocation.SetPreferredSelectionPlane(ModelScreenLocation::MSLPLANE::GROUND);
-    SetFromXml(node, zeroBased);
+    //SetFromXml(node, zeroBased);
 }
 
 ArchesModel::~ArchesModel()

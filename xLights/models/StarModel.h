@@ -46,7 +46,7 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int GetInnerPercent() const { return innerPercent; }
         std::string GetStartLocation() const override { return _starStartLocation; }
 
-        virtual bool SupportsVisitors() override { return true; }
+        virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     protected:

@@ -47,6 +47,7 @@
 #include "WindowFrameModel.h"
 #include "WreathModel.h"
 #include "xLightsVersion.h"
+#include "xLightsMain.h"
 #include "DMX/DmxColorAbilityCMY.h"
 #include "DMX/DmxColorAbilityRGB.h"
 #include "DMX/DmxColorAbilityWheel.h"
@@ -1247,28 +1248,27 @@ struct XmlDeserializingObjectFactory {
 
 private:
     void CommonDeserializeSteps(Model* model, wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        DeserializeBaseModelAttributes(model, node, xlights, importing);
+        DeserializeBaseObjectAttributes(model, node, xlights, importing);
         DeserializeCommonModelAttributes(model, node);
         DeserializeModelScreenLocationAttributes(model, node, importing);
     }
 
     void DeserializeControllerConnection(Model* model, wxXmlNode* node) {
-        model->SetControllerProtocol(node->GetAttribute(XmlNodeKeys::ProtocolAttribute));
-        model->SetControllerPort(std::stoi(node->GetAttribute(XmlNodeKeys::ProtocolAttribute).ToStdString()));
-        model->SetControllerStartNulls(std::stoi(node->GetAttribute(XmlNodeKeys::StartNullAttribute).ToStdString()));
-        model->SetControllerEndNulls(std::stoi(node->GetAttribute(XmlNodeKeys::EndNullAttribute).ToStdString()));
-        model->SetControllerBrightness(std::stoi(node->GetAttribute(XmlNodeKeys::BrightnessAttribute).ToStdString()));
-        model->SetControllerGamma(std::stof(node->GetAttribute(XmlNodeKeys::GammaAttribute).ToStdString()));
-        model->SetControllerColorOrder(node->GetAttribute(XmlNodeKeys::ColorOrderAttribute));
+        if( node->HasAttribute(XmlNodeKeys::ProtocolAttribute) ) { model->SetControllerProtocol(node->GetAttribute(XmlNodeKeys::ProtocolAttribute).ToStdString()); }
+        if( node->HasAttribute(XmlNodeKeys::PortAttribute) ) { model->SetControllerPort(std::stoi(node->GetAttribute(XmlNodeKeys::PortAttribute).ToStdString())); }
+        if( node->HasAttribute(XmlNodeKeys::StartNullAttribute) ) { model->SetControllerStartNulls(std::stoi(node->GetAttribute(XmlNodeKeys::StartNullAttribute).ToStdString())); }
+        if( node->HasAttribute(XmlNodeKeys::EndNullAttribute) ) { model->SetControllerEndNulls(std::stoi(node->GetAttribute(XmlNodeKeys::EndNullAttribute).ToStdString())); }
+        if( node->HasAttribute(XmlNodeKeys::BrightnessAttribute) ) { model->SetControllerBrightness(std::stoi(node->GetAttribute(XmlNodeKeys::BrightnessAttribute).ToStdString())); }
+        if( node->HasAttribute(XmlNodeKeys::GammaAttribute) ) { model->SetControllerGamma(std::stof(node->GetAttribute(XmlNodeKeys::GammaAttribute).ToStdString())); }
+        if( node->HasAttribute(XmlNodeKeys::ColorOrderAttribute) ) { model->SetControllerColorOrder(node->GetAttribute(XmlNodeKeys::ColorOrderAttribute).ToStdString()); }
         // FIXME:  No setter model->SetControllerReverse(std::stoi(node->GetAttribute(XmlNodeKeys::CReverseAttribute).ToStdString()));
         // FIXME:  No setter model->SetControllerZigZag(std::stoi(node->GetAttribute(XmlNodeKeys::CZigZagAttribute).ToStdString()));
-        model->SetControllerGroupCount(std::stoi(node->GetAttribute(XmlNodeKeys::GroupCountAttribute).ToStdString()));
-        
+        if( node->HasAttribute(XmlNodeKeys::GroupCountAttribute) ) { model->SetControllerGroupCount(std::stoi(node->GetAttribute(XmlNodeKeys::GroupCountAttribute).ToStdString())); }
        //     xmlNode->AddAttribute(XmlNodeKeys::SmartRemoteTypeAttribute, m->GetSmartRemoteType());
        //     xmlNode->AddAttribute(XmlNodeKeys::SmartRemoteAttribute, std::to_string(m->GetSmartRemote()));
     }
 
-    void DeserializeBaseModelAttributes(Model* model, wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+    void DeserializeBaseObjectAttributes(Model* model, wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         std::string name = node->GetAttribute("name");
         if (importing)
         {
@@ -1279,7 +1279,7 @@ private:
         }
         model->SetName(name);
         model->SetDisplayAs(node->GetAttribute(XmlNodeKeys::DisplayAsAttribute).ToStdString());
-        model->SetActive(std::stoi(node->GetAttribute(XmlNodeKeys::ActiveAttribute).ToStdString()));
+        if( node->HasAttribute(XmlNodeKeys::ActiveAttribute) ) { model->SetActive(std::stoi(node->GetAttribute(XmlNodeKeys::ActiveAttribute).ToStdString())); }
     }
 
     void DeserializeCommonModelAttributes(Model* model, wxXmlNode* node) {
@@ -1314,19 +1314,21 @@ private:
         loc.y = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosYAttribute).ToStdString());
         loc.z = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosZAttribute).ToStdString());
         model->GetBaseObjectScreenLocation().SetWorldPosition(loc);
-        glm::vec3 scale;
-        scale.x = std::stof(node->GetAttribute(XmlNodeKeys::ScaleXAttribute).ToStdString());
-        scale.y = std::stof(node->GetAttribute(XmlNodeKeys::ScaleYAttribute).ToStdString());
-        scale.z = std::stof(node->GetAttribute(XmlNodeKeys::ScaleZAttribute).ToStdString());
+        glm::vec3 scale(1.0f, 1.0f, 1.0f);
+        if (node->HasAttribute(XmlNodeKeys::ScaleXAttribute)) { scale.x = std::stof(node->GetAttribute(XmlNodeKeys::ScaleXAttribute).ToStdString()); }
+        if (node->HasAttribute(XmlNodeKeys::ScaleYAttribute)) { scale.y = std::stof(node->GetAttribute(XmlNodeKeys::ScaleYAttribute).ToStdString()); }
+        if (node->HasAttribute(XmlNodeKeys::ScaleZAttribute)) { scale.z = std::stof(node->GetAttribute(XmlNodeKeys::ScaleZAttribute).ToStdString()); }
         model->GetBaseObjectScreenLocation().SetScaleMatrix(scale);
-        glm::vec3 rotate;
-        rotate.x = std::stof(node->GetAttribute(XmlNodeKeys::RotateXAttribute).ToStdString());
-        rotate.y = std::stof(node->GetAttribute(XmlNodeKeys::RotateYAttribute).ToStdString());
-        rotate.z = std::stof(node->GetAttribute(XmlNodeKeys::RotateZAttribute).ToStdString());
+        glm::vec3 rotate(0.0f, 0.0f, 0.0f);
+        if (node->HasAttribute(XmlNodeKeys::RotateXAttribute)) { rotate.x = std::stof(node->GetAttribute(XmlNodeKeys::RotateXAttribute).ToStdString()); }
+        if (node->HasAttribute(XmlNodeKeys::RotateYAttribute)) { rotate.y = std::stof(node->GetAttribute(XmlNodeKeys::RotateYAttribute).ToStdString()); }
+        if (node->HasAttribute(XmlNodeKeys::RotateZAttribute)) { rotate.z = std::stof(node->GetAttribute(XmlNodeKeys::RotateZAttribute).ToStdString()); }
         model->GetBaseObjectScreenLocation().SetRotation(rotate);
         if( !importing ) {
-            bool locked = std::stoi(node->GetAttribute(XmlNodeKeys::LockedAttribute).ToStdString()) > 0;
-            model->GetModelScreenLocation().Lock(locked);
+            if (node->HasAttribute(XmlNodeKeys::LockedAttribute)) {
+                bool locked = std::stoi(node->GetAttribute(XmlNodeKeys::LockedAttribute).ToStdString()) > 0;
+                model->GetModelScreenLocation().Lock(locked);
+            }
         }
     }
 
@@ -1356,8 +1358,8 @@ private:
         CommonDeserializeSteps(model, node, xlights, importing);
         DeserializeThreePointScreenLocationAttributes(model, node);
         model->SetZigZag(node->GetAttribute(XmlNodeKeys::ZigZagAttribute).ToStdString() == "true");
-        model->SetHollow(std::stoi(node->GetAttribute(XmlNodeKeys::HollowAttribute).ToStdString()));
-        model->SetGap(std::stoi(node->GetAttribute(XmlNodeKeys::GapAttribute).ToStdString()));
+        if (node->HasAttribute(XmlNodeKeys::HollowAttribute)) { model->SetHollow(std::stoi(node->GetAttribute(XmlNodeKeys::HollowAttribute).ToStdString())); }
+        if (node->HasAttribute(XmlNodeKeys::GapAttribute)) { model->SetGap(std::stoi(node->GetAttribute(XmlNodeKeys::GapAttribute).ToStdString())); }
         if( node->HasAttribute("arc")) { // special case for legacy Arch model format
             model->SetArc(std::stoi(node->GetAttribute("arc").ToStdString()));
         } else if( node->HasAttribute("Arc")) {

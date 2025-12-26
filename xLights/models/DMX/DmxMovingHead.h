@@ -46,7 +46,7 @@ class DmxMovingHead : public DmxMovingHeadComm, public DmxDimmerAbility
         [[nodiscard]] float GetBeamLength() const { return beam_length; }
         [[nodiscard]] float GetBeamWidth() const { return beam_width; }
         [[nodiscard]] bool GetHideBody() const { return hide_body; }
-        [[nodiscard]] virtual bool SupportsVisitors() override { return true; }
+        [[nodiscard]] virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
 
     protected:

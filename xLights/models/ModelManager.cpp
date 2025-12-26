@@ -40,6 +40,7 @@
 #include "WholeHouseModel.h"
 #include "WindowFrameModel.h"
 #include "WreathModel.h"
+#include "XmlSerializer.h"
 #include "../ModelPreview.h"
 #include "../Pixels.h"
 #include "../controllers/ControllerCaps.h"
@@ -1612,7 +1613,9 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
     if (type == "Star") {
         model = new StarModel(node, *this, zeroBased);
     } else if (type == "Arches") {
-        model = new ArchesModel(node, *this, zeroBased);
+        //model = new ArchesModel(node, *this, zeroBased);
+        XmlSerializer serializer;
+        model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Candy Canes") {
         model = new CandyCaneModel(node, *this, zeroBased);
     } else if (type == "Channel Block") {
@@ -1692,6 +1695,8 @@ void ModelManager::AddModel(Model* model)
         }
         models[model->name] = model;
 
+        if (!model->DeleteXmlLater()) return;
+        
         if ("ModelGroup" == model->GetDisplayAs()) {
             if (model->GetModelXml()->GetParent() != groupNode) {
                 if (model->GetModelXml()->GetParent() != nullptr) {

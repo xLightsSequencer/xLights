@@ -115,7 +115,8 @@ public:
 
 	virtual void UpdateXmlWithScale() = 0;
     
-    virtual bool SupportsVisitors() {return false;}
+    virtual bool SupportsVisitors() const {return false;}
+    bool DeleteXmlLater() const { return !SupportsVisitors(); }
     virtual void Accept(BaseObjectVisitor &visitor) const {};
 
     bool IsActive() const { return _active; }

@@ -34,21 +34,30 @@ wxXmlNode* BaseObject::GetModelXml() const {
 void BaseObject::SetName(std::string const& newname)
 {
     name = newname;
-    ModelXml->DeleteAttribute("name");
-    ModelXml->AddAttribute("name", name);
+    if( DeleteXmlLater() ) {
+        ModelXml->DeleteAttribute("name");
+        ModelXml->AddAttribute("name", name);
+    }
 }
 
 void BaseObject::SetLayoutGroup(const std::string &grp) {
-    if (grp != ModelXml->GetAttribute("LayoutGroup", "xyzzy_kw"))
-    {
-        layout_group = grp;
-        ModelXml->DeleteAttribute("LayoutGroup");
-        ModelXml->AddAttribute("LayoutGroup", grp);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SetLayoutGroup");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SetLayoutGroup");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "SetLayoutGroup");
+    if( DeleteXmlLater() ) {
+        if (grp != ModelXml->GetAttribute("LayoutGroup", "xyzzy_kw"))
+        {
+            layout_group = grp;
+            ModelXml->DeleteAttribute("LayoutGroup");
+            ModelXml->AddAttribute("LayoutGroup", grp);
+        }
+    } else {
+        if (grp != "xyzzy_kw")
+        {
+            layout_group = grp;
+        }
     }
+    IncrementChangeCount();
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SetLayoutGroup");
+    AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SetLayoutGroup");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "SetLayoutGroup");
 }
 
 glm::vec3 BaseObject::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)

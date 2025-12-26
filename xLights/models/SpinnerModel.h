@@ -38,7 +38,7 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
         bool HasAlternateNodes() const { return alternate; }
         int GetStartAngle() const { return startangle; }
 
-        virtual bool SupportsVisitors() override { return true; }
+        virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     protected:

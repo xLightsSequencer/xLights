@@ -138,6 +138,12 @@ public:
     Controller* GetController() const;
     static std::string DetermineClass(const std::string& displayAs, bool isSingingFace, bool isSpiralTree, bool isSticks, const std::string& dropPattern);
 
+    std::string _controller_protocol {""};
+    int _controller_protocol_speed {25000};
+    int _controller_port {0};
+    int _controller_brightness {100};
+    int _controller_start_nulls {0};
+
     std::string GetModelStartChannel() const { return ModelStartChannel; }
     const std::string GetStartSide() const { return _startSide; }
     const std::string GetDirection() const { return _dir; }
@@ -483,6 +489,7 @@ public:
     std::string _pixelCount{ "" };
     std::string _pixelType{ "" };
     std::string _pixelSpacing{ "" };
+    std::string _shadowModelFor{ "" };
 
     void UpdateChannels(wxXmlNode* ModelNode);
     void SetFromXml(wxXmlNode* ModelNode, bool zeroBased = false) override;

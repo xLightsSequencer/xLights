@@ -37,7 +37,7 @@ class TreeModel : public MatrixModel
         float GetTreePerspective() const { return perspective; }
         std::string GetTreeDescription() const { return _displayAs; }
 
-        virtual bool SupportsVisitors() override { return true; }
+        virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     protected:

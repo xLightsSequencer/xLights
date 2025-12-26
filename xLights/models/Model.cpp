@@ -566,17 +566,23 @@ void Model::Rename(std::string const& newName)
 void Model::SetStartChannel(std::string const& startChannel)
 {
     // wxASSERT(!StartsWith(startChannel, "!:"));
-
-    if (startChannel == ModelXml->GetAttribute("StartChannel", "xyzzy_kw"))
-        return;
-
-    ModelXml->DeleteAttribute("StartChannel");
-    ModelXml->AddAttribute("StartChannel", startChannel);
-    ModelStartChannel = startChannel;
-    if (ModelXml->GetAttribute("Advanced") == "1") {
-        ModelXml->DeleteAttribute(StartChanAttrName(0));
-        ModelXml->AddAttribute(StartChanAttrName(0), startChannel);
+    if (DeleteXmlLater() ) {
+        if (startChannel == ModelXml->GetAttribute("StartChannel", "xyzzy_kw"))
+            return;
+    } else {
+        if (startChannel == "xyzzy_kw") return;
     }
+
+    if (DeleteXmlLater() ) {
+        ModelXml->DeleteAttribute("StartChannel");
+        ModelXml->AddAttribute("StartChannel", startChannel);
+        // TODO: Figure out what to do with this when not using XML
+        if (ModelXml->GetAttribute("Advanced") == "1") {
+            ModelXml->DeleteAttribute(StartChanAttrName(0));
+            ModelXml->AddAttribute(StartChanAttrName(0), startChannel);
+        }
+    }
+    ModelStartChannel = startChannel;
     AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetStartChannel");
     IncrementChangeCount();
 }
@@ -2883,7 +2889,11 @@ bool Model::IsValidStartChannelString() const
     if (GetDisplayAs() == "SubModel") {
         sc = this->ModelStartChannel;
     } else {
-        sc = ModelXml->GetAttribute("StartChannel").Trim(true).Trim(false);
+        if ( DeleteXmlLater() ) {
+            sc = ModelXml->GetAttribute("StartChannel").Trim(true).Trim(false);
+        } else {
+            sc = this->ModelStartChannel;
+        }
     }
 
     if (sc.IsNumber() && wxAtol(sc) > 0 && !sc.Contains('.'))
@@ -7050,8 +7060,10 @@ void Model::SetPixelSize(int size)
 {
     if (size != pixelSize) {
         pixelSize = size;
-        ModelXml->DeleteAttribute("PixelSize");
-        ModelXml->AddAttribute("PixelSize", wxString::Format(wxT("%i"), pixelSize));
+        if( DeleteXmlLater() ) {
+            ModelXml->DeleteAttribute("PixelSize");
+            ModelXml->AddAttribute("PixelSize", wxString::Format(wxT("%i"), pixelSize));
+        }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetPixelSize");
     }
@@ -7061,8 +7073,10 @@ void Model::SetTransparency(int t)
 {
     if (t != transparency) {
         transparency = t;
-        ModelXml->DeleteAttribute("Transparency");
-        ModelXml->AddAttribute("Transparency", wxString::Format(wxT("%i"), transparency));
+        if( DeleteXmlLater() ) {
+            ModelXml->DeleteAttribute("Transparency");
+            ModelXml->AddAttribute("Transparency", wxString::Format(wxT("%i"), transparency));
+        }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetTransparency");
     }
@@ -7072,8 +7086,10 @@ void Model::SetBlackTransparency(int t)
 {
     if (t != blackTransparency) {
         blackTransparency = t;
-        ModelXml->DeleteAttribute("BlackTransparency");
-        ModelXml->AddAttribute("BlackTransparency", wxString::Format(wxT("%i"), blackTransparency));
+        if( DeleteXmlLater() ) {
+            ModelXml->DeleteAttribute("BlackTransparency");
+            ModelXml->AddAttribute("BlackTransparency", wxString::Format(wxT("%i"), blackTransparency));
+        }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetBlackTransparency");
     }
@@ -7083,11 +7099,13 @@ void Model::SetPixelStyle(PIXEL_STYLE style)
 {
     if (_pixelStyle != style) {
         _pixelStyle = style;
-        ModelXml->DeleteAttribute("Antialias");
-        ModelXml->AddAttribute("Antialias", wxString::Format(wxT("%i"), (int)_pixelStyle));
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetPixelStyle");
+        if( DeleteXmlLater() ) {
+            ModelXml->DeleteAttribute("Antialias");
+            ModelXml->AddAttribute("Antialias", wxString::Format(wxT("%i"), (int)_pixelStyle));
+        }
     }
+    IncrementChangeCount();
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetPixelStyle");
 }
 
 int32_t Model::GetStringStartChan(int x) const
@@ -7390,9 +7408,7 @@ void Model::AddSuperStringColour(xlColor c, bool saveToXml)
 
 void Model::SetShadowModelFor(const std::string& shadowModelFor)
 {
-    ModelXml->DeleteAttribute("ShadowModelFor");
-    ModelXml->AddAttribute("ShadowModelFor", shadowModelFor);
-    // AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "Model::SetControllerName");
+    _shadowModelFor = shadowModelFor;
     IncrementChangeCount();
 }
 
@@ -7400,12 +7416,15 @@ void Model::SetControllerName(const std::string& controller)
 {
     auto n = Trim(controller);
 
-    if (n == ModelXml->GetAttribute("Controller", "xyzzy_kw").Trim(true).Trim(false))
-        return;
-
-    ModelXml->DeleteAttribute("Controller");
-    if (!n.empty() && n != USE_START_CHANNEL) {
-        ModelXml->AddAttribute("Controller", n);
+    if ( DeleteXmlLater() ) {
+        if (n == ModelXml->GetAttribute("Controller", "xyzzy_kw").Trim(true).Trim(false))
+            return;
+        ModelXml->DeleteAttribute("Controller");
+        if (!n.empty() && n != USE_START_CHANNEL) {
+            ModelXml->AddAttribute("Controller", n);
+        }
+    } else {
+        if (n == "xyzzy_kw") return;
     }
 
     // if we are moving the model to no contoller then clear the start channel and model chain
@@ -7439,14 +7458,17 @@ void Model::SetControllerSerialProtocolSpeed(int speed) {
 
 void Model::SetControllerProtocol(const std::string& protocol)
 {
-    if (protocol == GetControllerConnection()->GetAttribute("Protocol", "xyzzy_kw"))
-        return;
-
-    GetControllerConnection()->DeleteAttribute("Protocol");
-    if (protocol != "") {
-        GetControllerConnection()->AddAttribute("Protocol", protocol);
+    if (DeleteXmlLater()) {
+        if (protocol == GetControllerConnection()->GetAttribute("Protocol", "xyzzy_kw"))
+            return;
+        
+        GetControllerConnection()->DeleteAttribute("Protocol");
+        if (protocol != "") {
+            GetControllerConnection()->AddAttribute("Protocol", protocol);
+        }
+    } else {
+        if (protocol == "xyzzy_kw") return;
     }
-
     AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetControllerProtocol");
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetControllerProtocol");
     AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetControllerProtocol");
@@ -7458,14 +7480,18 @@ void Model::SetControllerProtocol(const std::string& protocol)
 
 void Model::SetControllerPort(int port)
 {
-    if (port == wxAtoi(GetControllerConnection()->GetAttribute("Port", "-999")))
-        return;
-
-    GetControllerConnection()->DeleteAttribute("Port");
-    if (port > 0) {
-        GetControllerConnection()->AddAttribute("Port", wxString::Format("%d", port));
+    if (DeleteXmlLater()) {
+        if (port == wxAtoi(GetControllerConnection()->GetAttribute("Port", "-999")))
+            return;
+        
+        GetControllerConnection()->DeleteAttribute("Port");
+        if (port > 0) {
+            GetControllerConnection()->AddAttribute("Port", wxString::Format("%d", port));
+        }
+    } else {
+        if (port == -999) return;
     }
-
+    _controller_port = port;
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetControllerPort");
     AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetControllerPort");
     AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetControllerPort");
@@ -7477,12 +7503,16 @@ void Model::SetControllerPort(int port)
 
 void Model::SetControllerBrightness(int brightness)
 {
-    if (brightness == wxAtoi(GetControllerConnection()->GetAttribute("brightness", "-1")))
-        return;
-
-    GetControllerConnection()->DeleteAttribute("brightness");
-    GetControllerConnection()->AddAttribute("brightness", wxString::Format("%d", brightness));
-
+    if (DeleteXmlLater()) {
+        if (brightness == wxAtoi(GetControllerConnection()->GetAttribute("brightness", "-1")))
+            return;
+        
+        GetControllerConnection()->DeleteAttribute("brightness");
+        GetControllerConnection()->AddAttribute("brightness", wxString::Format("%d", brightness));
+    } else {
+        if (brightness == -1) return;
+    }
+    _controller_brightness = brightness;
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetConnectionPixelBrightness");
     AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetConnectionPixelBrightness");
     AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetConnectionBrightness");
@@ -7492,12 +7522,16 @@ void Model::SetControllerBrightness(int brightness)
 
 void Model::SetControllerStartNulls(int nulls)
 {
-    if (nulls == wxAtoi(GetControllerConnection()->GetAttribute("nullNodes", "0"))) {
-        return;
+    if (DeleteXmlLater()) {
+        if (nulls == wxAtoi(GetControllerConnection()->GetAttribute("nullNodes", "0"))) {
+            return;
+        }
+        GetControllerConnection()->DeleteAttribute("nullNodes");
+        GetControllerConnection()->AddAttribute("nullNodes", wxString::Format("%d", nulls));
+    } else {
+        if (nulls == 0) return;
     }
-    GetControllerConnection()->DeleteAttribute("nullNodes");
-    GetControllerConnection()->AddAttribute("nullNodes", wxString::Format("%d", nulls));
-
+    _controller_start_nulls = nulls;
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetConnectionStartNulls");
     AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetConnectionStartNulls");
     AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetConnectionStartNulls");
@@ -7608,12 +7642,12 @@ int Model::GetControllerGroupCount() const
 
 bool Model::IsShadowModel() const
 {
-    return ModelXml->GetAttribute("ShadowModelFor", "").size() > 0;
+    return _shadowModelFor.size() > 0;
 }
 
 std::string Model::GetShadowModelFor() const
 {
-    return ModelXml->GetAttribute("ShadowModelFor", "").ToStdString();
+    return _shadowModelFor;
 }
 
 std::string Model::GetControllerName() const
@@ -7755,13 +7789,12 @@ bool Model::HasState(std::string const& state) const
 
 std::string Model::GetControllerProtocol() const
 {
-    wxString s = GetControllerConnection()->GetAttribute("Protocol");
-    return s.ToStdString();
+    return _controller_protocol;
 }
 
 int Model::GetControllerProtocolSpeed() const
 {
-    return wxAtoi(GetControllerConnection()->GetAttribute("Speed", "250000"));
+    return _controller_protocol_speed;
 }
 
 int Model::GetControllerDMXChannel() const

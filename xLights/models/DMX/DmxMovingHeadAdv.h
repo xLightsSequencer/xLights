@@ -55,7 +55,7 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxDimmerAbility
 
         uint32_t GetMHDimmerChannel() const override {return GetDimmerChannel();}
 
-        virtual bool SupportsVisitors() override {return true;}
+        virtual bool SupportsVisitors() const override {return true;}
         void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
 
     protected:

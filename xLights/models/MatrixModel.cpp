@@ -728,7 +728,7 @@ bool MatrixModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         SetProperty("NoZig", nz);
         SetProperty("LowDefinition", ld);
         if (smf != "") {
-            SetProperty("ShadowModelFor", smf);
+            _shadowModelFor = smf;
         }
         if (sc != "") {
             SetControllerName("Use Start Channel");

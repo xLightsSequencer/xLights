@@ -32,7 +32,7 @@ public:
     int GetSphereDegrees() const { return _sphereDegrees; }
     int GetLowDefFactor() const { return _lowDefFactor; }
 
-    virtual bool SupportsVisitors() override { return true; }
+    virtual bool SupportsVisitors() const override { return true; }
     void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
 protected:

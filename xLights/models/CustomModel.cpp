@@ -1352,7 +1352,7 @@ bool CustomModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         SetProperty("PixelSpacing", psp);
         SetProperty("LayoutGroup", lg);
         if (smf != "") {
-            SetProperty("ShadowModelFor", smf);
+            _shadowModelFor = smf;
         }
         if (sc != "") {
             SetControllerName("Use Start Channel");
