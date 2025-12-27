@@ -73,28 +73,26 @@ public:
     void FlipHorizontal(bool ignoreLock = false);
     void FlipVertical(bool ignoreLock = false);
     bool IsXmlChanged(wxXmlNode* n) const;
-    bool IsFromBase() const;
-    void SetFromBase(bool fromBase);
 
-    float GetTop();
-    float GetBottom();
-    float GetLeft();
-    float GetRight();
-    float GetFront();
-    float GetBack();
-    float GetHcenterPos();
-    float GetVcenterPos();
-    float GetDcenterPos();
-    float GetWidth() const;
-    float GetHeight() const;
-    float GetDepth() const;
-    float GetRestorableMWidth() const;
-    float GetRestorableMHeight() const;
-    float GetRestorableMDepth() const;
+    [[nodiscard]] float GetTop();
+    [[nodiscard]] float GetBottom();
+    [[nodiscard]] float GetLeft();
+    [[nodiscard]] float GetRight();
+    [[nodiscard]] float GetFront();
+    [[nodiscard]] float GetBack();
+    [[nodiscard]] float GetHcenterPos();
+    [[nodiscard]] float GetVcenterPos();
+    [[nodiscard]] float GetDcenterPos();
+    [[nodiscard]] float GetWidth() const;
+    [[nodiscard]] float GetHeight() const;
+    [[nodiscard]] float GetDepth() const;
+    [[nodiscard]] float GetRestorableMWidth() const;
+    [[nodiscard]] float GetRestorableMHeight() const;
+    [[nodiscard]] float GetRestorableMDepth() const;
 
-    const std::string &Name() const { return name;}
-    const std::string &GetName() const { return name;}
-    const std::string& GetDisplayAs() const { return DisplayAs; }
+    [[nodiscard]] const std::string &Name() const { return name;}
+    [[nodiscard]] const std::string &GetName() const { return name;}
+    [[nodiscard]] const std::string& GetDisplayAs() const { return DisplayAs; }
     void SetName(std::string const& newname);
 
     void SetDisplayAs(const std::string& type) { DisplayAs = type; }
@@ -109,18 +107,21 @@ public:
 
 	void AddOffset(double deltax, double deltay, double deltaz);
     void RotateAboutPoint(glm::vec3 position, glm::vec3 angle);
-    bool Scale(const glm::vec3& factor);
+    [[nodiscard]] bool Scale(const glm::vec3& factor);
 
-    bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
+    [[nodiscard]] bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
 
 	virtual void UpdateXmlWithScale() = 0;
     
-    virtual bool SupportsVisitors() const {return false;}
-    bool DeleteXmlLater() const { return !SupportsVisitors(); }
+    [[nodiscard]] virtual bool SupportsVisitors() const {return false;}
+    [[nodiscard]] bool DeleteXmlLater() const { return !SupportsVisitors(); }
     virtual void Accept(BaseObjectVisitor &visitor) const {};
 
-    bool IsActive() const { return _active; }
+    [[nodiscard]] bool IsActive() const { return _active; }
     void SetActive(bool active);
+
+    [[nodiscard]] bool IsFromBase() const { return _fromBase; }
+    void SetFromBase(bool fromBase) { _fromBase = fromBase; }
 
     std::string name;
     bool Selected = false;
@@ -133,6 +134,7 @@ protected:
     std::string layout_group;
     unsigned long changeCount = 0;
     bool _active = true;
+    bool _fromBase = false;
     
     bool uiObjectsInvalid = true;
 

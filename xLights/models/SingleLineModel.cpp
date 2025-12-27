@@ -51,7 +51,7 @@ void SingleLineModel::Reset(int lights, const Model &pbc, int strand, int node, 
     SingleNode = pbc.SingleNode;
     SingleChannel = pbc.SingleChannel;
     IsLtoR = pbc.GetIsLtoR();
-    customColor = pbc.customColor;
+    SetCustomColor(pbc.GetCustomColor());
 
     bool flip = false;
     if (forceDirection) {

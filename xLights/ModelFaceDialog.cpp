@@ -53,6 +53,7 @@
 #include "models/CustomModel.h"
 #include "outputs/OutputManager.h"
 #include "xlColourData.h"
+#include "XmlSerializer.h"
 
 #include <log4cpp/Category.hh>
 
@@ -1565,7 +1566,6 @@ void ModelFaceDialog::ImportFacesFromModel()
         NameChoice->SetSelection(NameChoice->GetCount() - 1);
         NameChoice->SetStringSelection(NameChoice->GetString(NameChoice->GetCount() - 1));
         SelectFaceModel(NameChoice->GetString(NameChoice->GetCount() - 1).ToStdString());
-
     }
 }
 
@@ -1583,7 +1583,7 @@ void ModelFaceDialog::ImportFaces(const wxString& filename)
             if (n->GetName() == "faceInfo")
             {
                 std::map<std::string, std::map<std::string, std::string> > faceInfo;
-                Model::ParseFaceInfo(n, faceInfo);
+                XmlSerialize::DeserializeFaceInfo(n, faceInfo);
                 if (faceInfo.size() == 0)
                 {
                     continue;

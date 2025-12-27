@@ -299,17 +299,6 @@ bool BaseObject::IsXmlChanged(wxXmlNode* n) const
     return false;
 }
 
-bool BaseObject::IsFromBase() const
-{
-    return ModelXml->GetAttribute("FromBase", "0") == "1";
-}
-
-void BaseObject::SetFromBase(bool fromBase) 
-{
-    if (ModelXml->HasAttribute("FromBase")) ModelXml->DeleteAttribute("FromBase");
-    ModelXml->AddAttribute("FromBase", fromBase ? "1" : "0");
-}
-
 float BaseObject::GetTop() {
     return GetBaseObjectScreenLocation().GetTop();
 }
@@ -404,14 +393,7 @@ bool BaseObject::IsContained(ModelPreview* preview, int x1, int y1, int x2, int 
 
 void BaseObject::SetActive(bool active) {
 	_active = active; 
-    ModelXml->DeleteAttribute("Active");
-    if (active) {
-        ModelXml->AddAttribute("Active", "1");
-    }
-    else
-    {
-        ModelXml->AddAttribute("Active", "0");
-    }
+
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BaseObject::SetActive");
     AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BaseObject::SetActive");
     AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BaseObject::SetActive"); // because the names are displayed differently

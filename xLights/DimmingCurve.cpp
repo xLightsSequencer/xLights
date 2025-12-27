@@ -258,6 +258,7 @@ static const std::string &validate(const std::string &in, const std::string &def
     }
     return in;
 }
+
 DimmingCurve *createCurve(wxXmlNode *dcn, int channel = -1) {
     DimmingCurve *dc = nullptr;
     if (dcn->HasAttribute("filename")) {

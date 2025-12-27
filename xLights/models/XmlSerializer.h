@@ -48,6 +48,7 @@
 #include "WreathModel.h"
 #include "xLightsVersion.h"
 #include "xLightsMain.h"
+#include "../Pixels.h"
 #include "DMX/DmxColorAbilityCMY.h"
 #include "DMX/DmxColorAbilityRGB.h"
 #include "DMX/DmxColorAbilityWheel.h"
@@ -63,13 +64,14 @@ namespace XmlNodeKeys {
     constexpr auto ModelsNodeName    = "models";
     constexpr auto ModelNodeName     = "model";
     constexpr auto ExportedAttribute = "exported";
+    constexpr auto DimmingCurveName  = "dimmingCurve";
 
     // Common BaseObject Attributes
     constexpr auto NameAttribute        = "name";
-    constexpr auto StateNameAttribute   = "Name";  //should fix this
-    constexpr auto FaceNameAttribute    = "Name";  //should fix this
+    constexpr auto StateNameAttribute   = "Name";
     constexpr auto DisplayAsAttribute   = "DisplayAs";
     constexpr auto LayoutGroupAttribute = "LayoutGroup";
+    constexpr auto FromBaseAttribute    = "FromBase";
 
     // Shared (by some) Attributes
     constexpr auto ArcAttribute            = "Arc";
@@ -81,37 +83,42 @@ namespace XmlNodeKeys {
     constexpr auto CZigZagAttribute        = "zigZag";      //fix it
     constexpr auto CustomColorsAttribute   = "CustomColors";
     constexpr auto TypeAttribute           = "type";
+    constexpr auto StateTypeAttribute      = "Type";
     constexpr auto CReverseAttribute       = "reverse";     //fix it
     constexpr auto ReverseAttribute        = "Reverse";     //fix it
     constexpr auto PointDataAttribute      = "PointData";
 
     // Common Model Attributes
-    constexpr auto StartSideAttribute     = "StartSide";
-    constexpr auto DirAttribute           = "Dir";
-    constexpr auto Parm1Attribute         = "parm1";
-    constexpr auto Parm2Attribute         = "parm2";
-    constexpr auto Parm3Attribute         = "parm3";
-    constexpr auto AntialiasAttribute     = "Antialias";
-    constexpr auto PixelSizeAttribute     = "PixelSize";
-    constexpr auto StringTypeAttribute    = "StringType";
-    constexpr auto RGBWHandleAttribute    = "RGBWHandling";
-    constexpr auto TransparencyAttribute  = "Transparency";
-    constexpr auto BTransparencyAttribute = "BlackTransparency";
-    constexpr auto StartChannelAttribute  = "StartChannel";
-    constexpr auto NodeNamesAttribute     = "NodeNames";
-    constexpr auto StrandNamesAttribute   = "StrandNames";
-    constexpr auto ControllerAttribute    = "Controller";
-    constexpr auto xlightsVersionAttr     = "SourceVersion";
-    constexpr auto versionNumberAttribute = "versionNumber";
-    constexpr auto ActiveAttribute        = "Active";
-    constexpr auto FromBaaseAttribute     = "FromBase";
-    constexpr auto DescriptionAttribute   = "Description";
-    constexpr auto CustomStringsAttribute = "String";
-    constexpr auto TagColourAttribute     = "TagColour";
-    constexpr auto XLVersionAttribute     = "xLightsVersion";
-    constexpr auto SettingsAttribute      = "settings";
-    constexpr auto SerializeAttribute     = "Serialize";
-
+    constexpr auto StartSideAttribute       = "StartSide";
+    constexpr auto DirAttribute             = "Dir";
+    constexpr auto Parm1Attribute           = "parm1";
+    constexpr auto Parm2Attribute           = "parm2";
+    constexpr auto Parm3Attribute           = "parm3";
+    constexpr auto AdvancedAttribute        = "Advanced";
+    constexpr auto AntialiasAttribute       = "Antialias";
+    constexpr auto PixelSizeAttribute       = "PixelSize";
+    constexpr auto StringTypeAttribute      = "StringType";
+    constexpr auto RGBWHandleAttribute      = "RGBWHandling";
+    constexpr auto TransparencyAttribute    = "Transparency";
+    constexpr auto BTransparencyAttribute   = "BlackTransparency";
+    constexpr auto StartChannelAttribute    = "StartChannel";
+    constexpr auto NodeNamesAttribute       = "NodeNames";
+    constexpr auto StrandNamesAttribute     = "StrandNames";
+    constexpr auto ShadowModelAttribute     = "ShadowModelFor";
+    constexpr auto ControllerAttribute      = "Controller";
+    constexpr auto xlightsVersionAttr       = "SourceVersion";
+    constexpr auto versionNumberAttribute   = "versionNumber";
+    constexpr auto ActiveAttribute          = "Active";
+    constexpr auto FromBaaseAttribute       = "FromBase";
+    constexpr auto DescriptionAttribute     = "Description";
+    constexpr auto CustomStringsAttribute   = "String";
+    constexpr auto TagColourAttribute       = "TagColour";
+    constexpr auto XLVersionAttribute       = "xLightsVersion";
+    constexpr auto SettingsAttribute        = "settings";
+    constexpr auto SerializeAttribute       = "Serialize";
+    constexpr auto CustomColorAttribute     = "CustomColor";
+    constexpr auto ModelBrightnessAttribute = "ModelBrightness";
+    constexpr auto LowDefinitionAttribute   = "LowDefinition";
 
     // Common SubModel Attributes
     constexpr auto SubModelNodeName        = "subModel";
@@ -248,6 +255,7 @@ namespace XmlNodeKeys {
     // Arch Attributes
     constexpr auto HollowAttribute = "Hollow";
     constexpr auto GapAttribute    = "Gap";
+    constexpr auto ArchesSkewAttribute = "ArchesSkew";
 
     // Candy Canes
     constexpr auto CCHeightAttribute  = "CandyCaneHeight";
@@ -271,7 +279,6 @@ namespace XmlNodeKeys {
     constexpr auto CustomModelAttribute  = "CustomModel";
     constexpr auto StrandsAttribute      = "Strands";
     constexpr auto NodesAttribute        = "Nodes";
-    constexpr auto PixelCountAttribute   = "PixelCount";
     constexpr auto PixelTypeAttribute    = "PixelType";
     constexpr auto PixelSpacingAttribute = "PixelSpacing";
     constexpr auto PixelAttribute        = "Pixel";
@@ -292,7 +299,6 @@ namespace XmlNodeKeys {
     constexpr auto DropPatternAttribute = "DropPattern";
 
     // Matrix
-    constexpr auto LowDefinitionAttribute = "LowDefinition";
     constexpr auto NoZigZagAttribute      = "NoZig";
 
     // Poly Line Model
@@ -424,7 +430,78 @@ namespace XmlNodeKeys {
     constexpr auto SettingsType     = "settings";
     constexpr auto ColorsType       = "colors";
     constexpr auto ViewPointsType   = "Viewpoints";
-};
+}; // end namespace XmlNodeKeys
+
+namespace XmlSerialize {
+
+static void DeserializeFaceInfo(wxXmlNode* f, FaceStateData & faceInfo) {
+    std::string name = f->GetAttribute(XmlNodeKeys::StateNameAttribute, "SingleNode").ToStdString();
+    std::string type = f->GetAttribute(XmlNodeKeys::StateTypeAttribute, "SingleNode").ToStdString();
+    if (name == xlEMPTY_STRING) {
+        name = type;
+    }
+    if (!(type == "SingleNode" || type == "NodeRange" || type == "Matrix")) {
+        if (type == "Coro") {
+            type = "SingleNode";
+        } else {
+            type = "Matrix";
+        }
+    }
+    wxXmlAttribute* att = f->GetAttributes();
+    while (att != nullptr) {
+        if (att->GetName() != XmlNodeKeys::StateNameAttribute) {
+            if (att->GetName().Left(5) == "Mouth" || att->GetName().Left(4) == "Eyes") {
+                if (type == XmlNodeKeys::MatrixType) {
+                    faceInfo[name][att->GetName().ToStdString()] = FixFile("", att->GetValue());
+                    if (att->GetValue() != faceInfo[name][att->GetName().ToStdString()])
+                        att->SetValue(faceInfo[name][att->GetName().ToStdString()]);
+                } else {
+                    faceInfo[name][att->GetName().ToStdString()] = att->GetValue();
+                }
+            } else {
+                faceInfo[name][att->GetName().ToStdString()] = att->GetValue();
+            }
+        }
+        att = att->GetNext();
+    }
+}
+
+static void DeserializeStateInfo(wxXmlNode* f, FaceStateData & stateInfo) {
+    std::string name = f->GetAttribute(XmlNodeKeys::StateNameAttribute, "SingleNode").ToStdString();
+    std::string type = f->GetAttribute(XmlNodeKeys::StateTypeAttribute, "SingleNode").ToStdString();
+    if (name == "") {
+        name = type;
+    }
+    if (!(type == "SingleNode" || type == "NodeRange")) {
+        if (type == "Coro") {
+            type = "SingleNode";
+        }
+    }
+    wxXmlAttribute* att = f->GetAttributes();
+    while (att != nullptr) {
+        if (att->GetName() != "Name") {
+            if (att->GetValue() != "") { // we only save non default values to keep xml file small
+                std::string key = att->GetName().ToStdString();
+                std::string value = att->GetValue().ToStdString();
+                std::string storedKey = key;
+                if (key.find('s') == 0) { // Handle all keys starting with 's'
+                    size_t sPos = key.find('s');
+                    size_t dashPos = key.find('-');
+                    size_t endPos = (dashPos != std::string::npos) ? dashPos : key.length();
+                    if (sPos == 0 && sPos + 1 < endPos) {
+                        std::string numStr = key.substr(sPos + 1, endPos - sPos - 1);
+                        int num = std::stoi(numStr);
+                        std::string paddedNum = wxString::Format("%03d", num).ToStdString();
+                        storedKey = "s" + paddedNum + (dashPos != std::string::npos ? key.substr(dashPos) : "");
+                    }
+                }
+                stateInfo[name][storedKey] = value;
+            }
+        }
+        att = att->GetNext();
+    }
+}
+} // end namespace XmlSerialize
 
 struct XmlSerializingVisitor : BaseObjectVisitor {
     XmlSerializingVisitor(wxXmlNode* parentNode) :
@@ -634,7 +711,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         FaceStateData faces = m->GetFaceInfo();
         for (const auto& f : faces) {
             wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::FaceNodeName);
-            xmlNode->AddAttribute(XmlNodeKeys::FaceNameAttribute, f.first);
+            xmlNode->AddAttribute(XmlNodeKeys::StateNameAttribute, f.first);
             for (const auto& f2 : f.second) {
                 if (f2.first != "") xmlNode->AddAttribute(f2.first, f2.second);
             }
@@ -833,6 +910,15 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         }*/
     }
 
+    void SerializeSuperStrings(Model const& model, wxXmlNode* node) {
+        int num_colors = model.GetNumSuperStringColours();
+        if (num_colors == 0) return;
+        for (int i = 0; i < num_colors; ++i) {
+            std::string key = std::format("SuperStringColour{}",i);
+            node->AddAttribute(key, model.GetSuperStringColour(i));
+        }
+    }
+
     void SerializeViewsObject(wxXmlNode* node, xLightsFrame* xlights) {
         wxXmlNode* viewsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "views");
         SequenceViewManager* seqViewMgr = xlights->GetViewsManager();
@@ -964,6 +1050,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddBaseObjectAttributes(model, xmlNode);
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
+        SerializeSuperStrings(model, xmlNode);
         return xmlNode;
     }
 
@@ -1249,11 +1336,32 @@ struct XmlDeserializingObjectFactory {
 private:
     void CommonDeserializeSteps(Model* model, wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         DeserializeBaseObjectAttributes(model, node, xlights, importing);
-        DeserializeCommonModelAttributes(model, node);
+        DeserializeCommonModelAttributes(model, node, importing);
         DeserializeModelScreenLocationAttributes(model, node, importing);
+        DeserializeSuperStrings(model, node);
     }
 
     void DeserializeControllerConnection(Model* model, wxXmlNode* node) {
+        std::string protocol = node->GetAttribute(XmlNodeKeys::ProtocolAttribute);
+        bool isDMX = IsSerialProtocol(protocol);
+        bool isPixel = IsPixelProtocol(protocol);
+
+        if (!isPixel) {
+            node->DeleteAttribute("gamma");
+            node->DeleteAttribute("brightness");
+            node->DeleteAttribute("nullNodes");
+            node->DeleteAttribute("endNullNodes");
+            node->DeleteAttribute("colorOrder");
+            node->DeleteAttribute("reverse");
+            node->DeleteAttribute("groupCount");
+            node->DeleteAttribute("zigZag");
+            node->DeleteAttribute("ts");
+        }
+        if (!isDMX) {
+            node->DeleteAttribute("channel");
+            node->DeleteAttribute("Speed");
+        }
+
         if( node->HasAttribute(XmlNodeKeys::ProtocolAttribute) ) { model->SetControllerProtocol(node->GetAttribute(XmlNodeKeys::ProtocolAttribute).ToStdString()); }
         if( node->HasAttribute(XmlNodeKeys::PortAttribute) ) { model->SetControllerPort(std::stoi(node->GetAttribute(XmlNodeKeys::PortAttribute).ToStdString())); }
         if( node->HasAttribute(XmlNodeKeys::StartNullAttribute) ) { model->SetControllerStartNulls(std::stoi(node->GetAttribute(XmlNodeKeys::StartNullAttribute).ToStdString())); }
@@ -1273,16 +1381,17 @@ private:
         if (importing)
         {
             name = xlights->AllModels.GenerateModelName(name);
-            model->SetLayoutGroup(xlights->GetStoredLayoutGroup());
+            model->SetLayoutGroup("Unassigned");
         } else {
-            model->SetLayoutGroup(node->GetAttribute(XmlNodeKeys::LayoutGroupAttribute).ToStdString());
+            model->SetLayoutGroup(node->GetAttribute(XmlNodeKeys::LayoutGroupAttribute, "Unassigned").ToStdString());
         }
         model->SetName(name);
         model->SetDisplayAs(node->GetAttribute(XmlNodeKeys::DisplayAsAttribute).ToStdString());
         model->SetActive(std::stoi(node->GetAttribute(XmlNodeKeys::ActiveAttribute, "1").ToStdString()));
+        model->SetFromBase(std::stoi(node->GetAttribute(XmlNodeKeys::FromBaseAttribute, "0").ToStdString()));
     }
 
-    void DeserializeCommonModelAttributes(Model* model, wxXmlNode* node) {
+    void DeserializeCommonModelAttributes(Model* model, wxXmlNode* node, bool importing) {
         if (node->HasAttribute(XmlNodeKeys::StartSideAttribute)) {
             model->SetStartSide(node->GetAttribute(XmlNodeKeys::StartSideAttribute, "B"));
             model->SetIsBtoT(node->GetAttribute(XmlNodeKeys::StartSideAttribute, "B") == "B");
@@ -1298,7 +1407,8 @@ private:
         model->SetPixelSize(std::stoi(node->GetAttribute(XmlNodeKeys::PixelSizeAttribute, "2").ToStdString()));
         model->SetRGBWHandling((std::string)node->GetAttribute(XmlNodeKeys::RGBWHandleAttribute));
         model->SetStringType(node->GetAttribute(XmlNodeKeys::StringTypeAttribute, "RGB Nodes").ToStdString());
-        model->SetLowDefFactor(std::stoi(node->GetAttribute("LowDefinition", "100").ToStdString()));
+        model->SetLowDefFactor(std::stoi(node->GetAttribute(XmlNodeKeys::LowDefinitionAttribute, "100").ToStdString()));
+        model->SetShadowModelFor(node->GetAttribute(XmlNodeKeys::ShadowModelAttribute, "").ToStdString());
         model->SetTransparency(std::stol(node->GetAttribute(XmlNodeKeys::TransparencyAttribute,"0").ToStdString()));
         model->SetBlackTransparency(std::stol(node->GetAttribute(XmlNodeKeys::BTransparencyAttribute,"0").ToStdString()));
         model->SetDescription(UnXmlSafe(node->GetAttribute(XmlNodeKeys::DescriptionAttribute)));
@@ -1306,7 +1416,66 @@ private:
         model->SetStartChannel(node->GetAttribute(XmlNodeKeys::StartChannelAttribute, "1").ToStdString());
         model->SetNodeNames(node->GetAttribute(XmlNodeKeys::NodeNamesAttribute).ToStdString());
         model->SetStrandNames(node->GetAttribute(XmlNodeKeys::StrandNamesAttribute).ToStdString());
-        model->SetControllerName(node->GetAttribute(XmlNodeKeys::ControllerAttribute).ToStdString());
+        model->SetControllerName(node->GetAttribute(XmlNodeKeys::ControllerAttribute).Trim(true).Trim(false).ToStdString());
+        model->SetCustomColor(node->GetAttribute(XmlNodeKeys::CustomColorAttribute, "#000000").ToStdString());
+        
+        bool hasIndiv = std::stol(node->GetAttribute(XmlNodeKeys::AdvancedAttribute,"0").ToStdString());
+        model->SetHasIndividualStartChannels(hasIndiv);
+        if (hasIndiv ) {
+            model->AddIndivStartChannel(model->GetModelStartChannel());
+        }
+
+        wxXmlNode* f = node->GetChildren();
+        while (f != nullptr) {
+            if ("faceInfo" == f->GetName()) {
+                FaceStateData newFaceInfo;
+                XmlSerialize::DeserializeFaceInfo(f, newFaceInfo);
+                model->SetFaceInfo(newFaceInfo);
+                model->UpdateFaceInfoNodes();
+            } else if ("stateInfo" == f->GetName()) {
+                FaceStateData newStateInfo;
+                XmlSerialize::DeserializeStateInfo(f, newStateInfo);
+                model->SetStateInfo(newStateInfo);
+                model->UpdateStateInfoNodes();
+            } else if (XmlNodeKeys::DimmingCurveName == f->GetName()) {
+                model->modelDimmingCurve = DimmingCurve::createFromXML(f);
+            } else if ("subModel" == f->GetName()) {
+                DeserializeSubModel(model, f);
+            } else if ("ControllerConnection" == f->GetName()) {
+                if (!importing) {
+                    DeserializeControllerConnection(model, node);
+                }
+            }
+            f = f->GetNext();
+        }
+        
+        if (node->HasAttribute(XmlNodeKeys::ModelBrightnessAttribute) && model->modelDimmingCurve == nullptr) {
+            int b = std::stoi(node->GetAttribute(XmlNodeKeys::ModelBrightnessAttribute, "0").ToStdString());
+            if (b != 0) {
+                model->modelDimmingCurve = DimmingCurve::createBrightnessGamma(b, 1.0);
+            }
+        }
+    }
+    
+    void DeserializeSubModel(Model* model, wxXmlNode* node)
+    {
+        SubModel *sm = new SubModel(model, node);
+        model->AddSubmodel(sm);
+    }
+
+    void DeserializeSuperStrings(Model* model, wxXmlNode* node)
+    {
+        bool found = true;
+        int index = 0;
+        while (found) {
+            auto an = std::format("SuperStringColour{}", index);
+            if (node->HasAttribute(an)) {
+                model->AddSuperStringColour(xlColor(node->GetAttribute(an)));
+            } else {
+                found = false;
+            }
+            index++;
+        }
     }
 
     void DeserializeModelScreenLocationAttributes(Model* model, wxXmlNode* node, bool importing) {
@@ -1367,9 +1536,12 @@ private:
             model->SetArc(std::stoi(node->GetAttribute(XmlNodeKeys::ArcAttribute).ToStdString()));
         }
         model->DeserialiseLayerSizes(node->GetAttribute(XmlNodeKeys::LayerSizesAttribute).ToStdString(), false);
-        if (!importing) {
-            DeserializeControllerConnection(model, node);
+        if (node->HasAttribute(XmlNodeKeys::ArchesSkewAttribute)) {
+            int angle = std::stoi(node->GetAttribute(XmlNodeKeys::ArchesSkewAttribute, "0").ToStdString());
+            ThreePointScreenLocation& screenLoc = dynamic_cast<ThreePointScreenLocation&>(model->GetBaseObjectScreenLocation());
+            screenLoc.SetAngle(angle);
         }
+        model->SetFromXml(nullptr); // hopefully can delete this later
         return model;
     }
 

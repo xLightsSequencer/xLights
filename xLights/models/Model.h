@@ -39,6 +39,7 @@ class wxPropertyGridInterface;
 class wxPropertyGridEvent;
 class ModelScreenLocation;
 class ModelManager;
+class SubModel;
 class xLightsFrame;
 class OutputManager;
 class wxPGProperty;
@@ -161,7 +162,9 @@ public:
     const std::string GetStrandNames() const { return _strandNamesString; }
     void SetNodeNames(std::string const& nodes);
     void SetStrandNames(std::string const& strands);
-
+    void SetCustomColor(std::string const& color) { customColor = color; }
+    [[nodiscard]] xlColor GetCustomColor() const { return customColor; }
+    
     void SetDirection( const std::string dir ) { _dir = dir; }
     void SetStartSide( const std::string start_side ) { _startSide = start_side; }
 
@@ -169,7 +172,6 @@ public:
     virtual bool ChangeStringCount(long count,  std::string& message) { return false; };
 
     std::string description;
-    xlColor customColor;
     DimmingCurve* modelDimmingCurve = nullptr;
     int _controller = 0; // this is used to pass the selected controller name between property create and property change only
 
@@ -182,7 +184,6 @@ public:
     std::string GetRulerDim() const;
 
     virtual bool AllNodesAllocated() const { return true; }
-    static void ParseFaceInfo(wxXmlNode* fiNode, FaceStateData& faceInfo);
     static void WriteFaceInfo(wxXmlNode* fiNode, const FaceStateData& faceInfo);
     wxString SerialiseFace() const;
     wxString SerialiseState() const;
@@ -193,8 +194,7 @@ public:
     void UpdateFaceInfoNodes();
     void UpdateStateInfoNodes();
 
-    static void ParseStateInfo(wxXmlNode* fiNode, FaceStateData& stateInfo);
-    static void WriteStateInfo(wxXmlNode* fiNode, const FaceStateData& stateInfo, bool customColours = false);
+     static void WriteStateInfo(wxXmlNode* fiNode, const FaceStateData& stateInfo, bool customColours = false);
 
     [[nodiscard]] virtual FaceStateData const& GetFaceInfo() const { return faceInfo; };
     [[nodiscard]] virtual FaceStateNodes const& GetFaceInfoNodes() const { return faceInfoNodes; };
@@ -208,6 +208,7 @@ public:
 
     void AddFace(wxXmlNode* n);
     void AddState(wxXmlNode* n);
+    void AddSubmodel(SubModel* sm);
     void AddSubmodel(wxXmlNode* n);
     void AddSubmodel(wxXmlNode* n, bool skipPrompt);
     void AddModelAliases(wxXmlNode* n);
@@ -291,8 +292,11 @@ public:
     virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event);
     virtual const ModelScreenLocation& GetModelScreenLocation() const = 0;
     virtual ModelScreenLocation& GetModelScreenLocation() = 0;
-    bool HasIndividualStartChannels() const;
-    wxString GetIndividualStartChannel(size_t s) const;
+
+    [[nodiscard]] bool HasIndividualStartChannels() const { return hasIndiv; }
+    void SetHasIndividualStartChannels(bool indiv) { hasIndiv = indiv; }
+    [[nodiscard]] std::string GetIndividualStartChannel(size_t s) const;
+    void AddIndivStartChannel(const std::string& channel) { indivStartChannels.push_back(channel); }
 
     bool IsNodeInBufferRange(size_t nodeNum, int x1, int y1, int x2, int y2);
 
@@ -358,7 +362,10 @@ protected:
     std::string StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
     int rgbwHandlingType = 0;
     std::vector<xlColor> superStringColours;
+    xlColor customColor;
 
+    bool hasIndiv = false;
+    std::vector<std::string> indivStartChannels;
     mutable std::list<std::string> aliases;
     std::vector<Model*> subModels;
     std::map<std::string, Model*> sortedSubModels;
@@ -386,10 +393,12 @@ public:
     [[nodiscard]] wxColour GetTagColour();
     [[nodiscard]] std::string GetTagColourAsString() const; // used by XmlSerializer
     [[nodiscard]] int32_t GetStringStartChan(int x) const;
-    void SaveSuperStringColours();
+
+    [[nodiscard]] int GetNumSuperStringColours() const { return superStringColours.size(); }
+    [[nodiscard]] std::string GetSuperStringColour(int index) const { return superStringColours[index]; }
     void SetSuperStringColours(int count);
     void SetSuperStringColour(int index, xlColor c);
-    void AddSuperStringColour(xlColor c, bool saveToXml = true);
+    void AddSuperStringColour(xlColor c);
     void SetShadowModelFor(const std::string& shadowFor);
     void SetControllerName(const std::string& controllerName);
     void SetControllerProtocol(const std::string& protocol);
@@ -400,7 +409,7 @@ public:
     [[nodiscard]] bool IsControllerBrightnessSet() const;
     [[nodiscard]] bool IsShadowModel() const;
     [[nodiscard]] std::string GetShadowModelFor() const;
-    [[nodiscard]] std::string GetControllerName() const;
+    [[nodiscard]] std::string GetControllerName() const { return _controllerName; }
     [[nodiscard]] std::string GetControllerProtocol() const;
     [[nodiscard]] int GetControllerProtocolSpeed() const;
     [[nodiscard]] int GetControllerBrightness() const;
@@ -490,6 +499,7 @@ public:
     //std::string _pixelCount{ "" };
     //std::string _pixelType{ "" };
     //std::string _pixelSpacing{ "" };
+    std::string _controllerName{ "" };
     std::string _shadowModelFor{ "" };
 
     void UpdateChannels(wxXmlNode* ModelNode);
@@ -650,6 +660,7 @@ public:
     {
         return std::string("String") + std::to_string(idx + 1); // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
     }
+
     // returns true for models that only have 1 string and where parm1 does NOT represent the # of strings
     static bool HasOneString(const std::string& DispAs)
     {

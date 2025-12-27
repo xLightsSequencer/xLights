@@ -24,6 +24,7 @@
 #include "utils/string_utils.h"
 #include "xlColourData.h"
 #include "VendorModelDialog.h"
+#include "XmlSerializer.h"
 
 #include <log4cpp/Category.hh>
 #include <algorithm>
@@ -1270,7 +1271,7 @@ void ModelStateDialog::ImportStates(const wxString & filename)
             if (n->GetName() == "stateInfo")
             {
                 std::map<std::string, std::map<std::string, std::string> > stateInfo;
-                Model::ParseStateInfo(n, stateInfo);
+                XmlSerialize::DeserializeStateInfo(n, stateInfo);
                 if (stateInfo.size() == 0)
                 {
                     continue;
