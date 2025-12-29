@@ -549,7 +549,11 @@ void xLightsFrame::LoadEffectsFile()
 
     displayElementsPanel->SetSequenceElementsModelsViews(&_seqData, &_sequenceElements, ModelsNode, ModelGroupsNode, &_sequenceViewManager);
     layoutPanel->ClearUndo();
-    GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LoadEffectsFile");
+    
+    // TODO: Need to load model but can't use this ASAP command any longer...just calling the function it called direct for now
+    //GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LoadEffectsFile");
+    UpdateModelsList();
+
     mSequencerInitialize = false;
 
     // load the perspectives
