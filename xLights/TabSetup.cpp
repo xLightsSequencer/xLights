@@ -439,6 +439,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     }
 
     logger_base.debug("Get start channels right.");
+    _outputModelManager.RemoveWork("ASAP", OutputModelManager::WORK_CALCULATE_START_CHANNELS);
+    _outputModelManager.RemoveWork("ASAP", OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG);
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SetDir");
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "SetDir");
     logger_base.debug("Start channels done.");
