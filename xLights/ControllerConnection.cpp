@@ -357,7 +357,7 @@ int ControllerConnection::GetSortableSmartRemote() const
 
 void ControllerConnection::SetSRCascadeOnPort(bool cascade)
 {
-    if (_smartRemoteCascadeOnPort != cascade) return;
+    if (_smartRemoteCascadeOnPort == cascade) return;
     _smartRemoteCascadeOnPort = cascade;
     _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetSRCascadeOnPort");
     _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetSRCascadeOnPort");
@@ -370,7 +370,7 @@ void ControllerConnection::SetSRCascadeOnPort(bool cascade)
 
 void ControllerConnection::SetSRMaxCascade(int max)
 {
-    if (_smartRemoteMaxCascade != max) return;
+    if (_smartRemoteMaxCascade == max) return;
     _smartRemoteMaxCascade = max;
     _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetSRMaxCascade");
     _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetSRMaxCascade");
@@ -382,7 +382,7 @@ void ControllerConnection::SetSRMaxCascade(int max)
 
 void ControllerConnection::SetSmartRemote(int sr)
 {
-    if (_smartRemote != sr) return;
+    if (_smartRemote == sr) return;
     // Find the last model on this smart remote
     if (!_name.empty()) {
         _model->SetModelChain(_model->modelManager.GetLastModelOnPort(_name, _port, _model->GetName(), _protocol, sr));
@@ -405,7 +405,7 @@ void ControllerConnection::SetSmartRemote(int sr)
 
 void ControllerConnection::SetSmartRemoteType(const std::string& type)
 {
-    if (_smartRemoteType != type) return;
+    if (_smartRemoteType == type) return;
     if (!type.empty()) {
         _smartRemoteType = type;
     }
@@ -420,7 +420,7 @@ void ControllerConnection::SetSmartRemoteType(const std::string& type)
 
 void ControllerConnection::SetSmartRemoteTs(int ts)
 {
-    if (_smartRemoteTs != ts) return;
+    if (_smartRemoteTs == ts) return;
     _smartRemoteTs = ts;
     _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetTs");
     _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetTs");
