@@ -551,7 +551,6 @@ bool TreeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         SetProperty("StrandDir", sdr);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-        GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
 
         ImportSuperStringColours(root);

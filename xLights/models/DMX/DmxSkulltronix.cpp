@@ -1280,7 +1280,6 @@ bool DmxSkulltronix::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, 
         color_ability->ImportParameters(root, this);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-        GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
 
         ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y, min_z, max_z);

@@ -2868,17 +2868,6 @@ void LayoutPanel::OnCheckBoxOverlapClick(wxCommandEvent& event)
 
 bool LayoutPanel::SaveEffects()
 {
-    // update xml with offsets and scale
-    for (const auto& it : modelPreview->GetModels()) {
-        if (xlights->AllModels.IsModelValid(it) ||
-            IsNewModel(it)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
-            it->UpdateXmlWithScale();
-        }
-    }
-    for (const auto& it : xlights->AllObjects) {
-        ViewObject* view_object = it.second;
-        view_object->UpdateXmlWithScale();
-    }
     xlights->SaveEffectsFile();
     xlights->SetStatusText(_("Preview layout saved"));
     SetDirtyHiLight(false);
@@ -3323,7 +3312,6 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
             if (wi > 0 && ht > 0)
             {
                 modelPreview->SetCursor(_newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
-                _newModel->UpdateXmlWithScale();
             }
             bool z_scale = selectedBaseObject->GetBaseObjectScreenLocation().GetSupportsZScaling();
             // this is designed to pretend the control and shift keys are down when creating models to
@@ -3451,7 +3439,6 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     {
         Model *m = _newModel;
         m->AddHandle(modelPreview, event.GetX(), event.GetY());
-        m->UpdateXmlWithScale();
         m->InitModel();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewLeftDown");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewLeftDown");
@@ -3538,7 +3525,6 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
             UnSelectAllModels();
             _newModel->Selected = true;
             modelPreview->SetCursor(_newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
-            _newModel->UpdateXmlWithScale();
             lastModelName = _newModel->name;
             modelPreview->SetAdditionalModel(_newModel);
         }
@@ -3793,7 +3779,6 @@ void LayoutPanel::FinalizeModel()
         }
         xlights->AddTraceMessage("LayoutPanel::FinalizeModel Adding the model.");
         CreateUndoPoint("All", "", "");
-        _newModel->UpdateXmlWithScale();
         xlights->AllModels.AddModel(_newModel);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "FinalizeModel");
 
@@ -3881,7 +3866,6 @@ void LayoutPanel::OnPreviewMotion3D(Motion3DEvent &event) {
             last_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
             last_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotationAngles();
             last_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
-            selectedBaseObject->UpdateXmlWithScale();
 
             SetupPropGrid(selectedBaseObject);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewMotion3D");
@@ -3893,7 +3877,6 @@ void LayoutPanel::OnPreviewMotion3D(Motion3DEvent &event) {
             last_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
             last_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotationAngles();
             last_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
-            selectedBaseObject->UpdateXmlWithScale();
             
             SetupPropGrid(selectedBaseObject);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewMotion3D");
@@ -4526,7 +4509,6 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                         CreateUndoPoint("SingleModel", m->name, "location");
                     }
                     modelPreview->GetModels()[i]->AddOffset(delta_x, delta_y, 0.0);
-                    modelPreview->GetModels()[i]->UpdateXmlWithScale();
                     //SetupPropGrid(modelPreview->GetModels()[i]);
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewMouseMove");
                     // dont need these until finished moving
@@ -5062,7 +5044,6 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             render_ht = render_ht / wi_ratio;
             md->GetBaseObjectScreenLocation().SetMHeight((int)render_ht);
         }
-        md->GetBaseObjectScreenLocation().Write(md->ModelXml);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO", nullptr, nullptr, GetSelectedModelName());
@@ -5087,7 +5068,6 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         int handle = md->GetSelectedSegment();
         CreateUndoPoint("SingleModel", md->name, std::to_string(handle + 0x8000));
         md->InsertHandle(handle, modelPreview->GetCameraZoomForHandles(), modelPreview->GetHandleScale());
-        md->UpdateXmlWithScale();
         md->InitModel();
         // SetupPropGrid(md);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDPOINT");
@@ -5102,7 +5082,6 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             md->DeleteHandle(selected_handle);
             md->SelectHandle(-1);
             md->GetModelScreenLocation().SelectSegment(-1);
-            md->UpdateXmlWithScale();
             md->InitModel();
             // SetupPropGrid(md);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELETEPOINT");
@@ -5115,7 +5094,6 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         int seg = md->GetSelectedSegment();
         CreateUndoPoint("SingleModel", md->name, std::to_string(seg + 0x2000));
         md->SetCurve(seg, true);
-        md->UpdateXmlWithScale();
         md->InitModel();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDCURVE");
     } else if (event.GetId() == ID_PREVIEW_MODEL_DELCURVE) {
@@ -5125,7 +5103,6 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         int seg = md->GetSelectedSegment();
         CreateUndoPoint("SingleModel", md->name, std::to_string(seg + 0x1000));
         md->SetCurve(seg, false);
-        md->UpdateXmlWithScale();
         md->InitModel();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELCURVE");
     } else if (event.GetId() == ID_PREVIEW_VIEWPOINT_DEFAULT) {
@@ -6351,7 +6328,6 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
         Notebook_Objects->ChangeSelection(1);
         editing_models = false;
         SelectViewObject(vobj, true);
-        vobj->UpdateXmlWithScale();
         //SetupPropGrid(vobj);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_ADD_OBJECT_MESH");
     }
@@ -6642,7 +6618,6 @@ void LayoutPanel::Nudge(int key)
                 {
                     it->AddOffset(deltax, deltay, 0.0);
                 }
-                it->UpdateXmlWithScale();
                 //SetupPropGrid(it);
             }
         }
@@ -7190,8 +7165,10 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 						if (!editing_models)//dont paste model in View Object mode
 							return;
 
+						Model *newModel = xlights->AllModels.CreateModel(nd);
+
                         // Remove any existing controller port config
-                        nd->DeleteAttribute("ModelChain");
+                        newModel->SetModelChain("");
                         nd->DeleteAttribute("Controller");
                         for (auto n = nd->GetChildren(); n != nullptr; n = n->GetNext()) {
                             if (n->GetName() == "ControllerConnection") {
@@ -7200,11 +7177,8 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                                 break;
                             }
                         }
-
-						nd->DeleteAttribute("StartChannel");
-						nd->AddAttribute("StartChannel", "1");
-
-						Model *newModel = xlights->AllModels.CreateModel(nd);
+                        newModel->SetStartChannel("1");
+                        
 						name = xlights->AllModels.GenerateModelName(newModel->name);
                         newModel->SetControllerName(NO_CONTROLLER);
 						newModel->name = name;
@@ -7212,7 +7186,6 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 						newModel->Lock(false);
 						newModel->GetModelXml()->AddAttribute("name", name);
 						newModel->AddOffset(0.02, 0.02, 0.0);
-						newModel->UpdateXmlWithScale();
 						xlights->AllModels.AddModel(newModel);
 						lastModelName = name;
 					}
@@ -7228,7 +7201,6 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 						newViewObject->Lock(false);
 						newViewObject->GetModelXml()->AddAttribute("name", name);
 						newViewObject->AddOffset(50.0, 0.0, 0.0);
-						newViewObject->UpdateXmlWithScale();
 						xlights->AllObjects.AddViewObject(newViewObject);
 						lastModelName = name;
 					}
@@ -7647,7 +7619,6 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             render_ht = render_ht / wi_ratio;
             md->GetBaseObjectScreenLocation().SetMHeight((int)render_ht);
         }
-        md->GetBaseObjectScreenLocation().Write(md->ModelXml);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO", nullptr, nullptr, GetSelectedModelName());
@@ -7672,7 +7643,6 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         int handle = md->GetSelectedSegment();
         CreateUndoPoint("SingleModel", md->name, std::to_string(handle + 0x8000));
         md->InsertHandle(handle, modelPreview->GetCameraZoomForHandles(), modelPreview->GetHandleScale());
-        md->UpdateXmlWithScale();
         md->InitModel();
         //SetupPropGrid(md);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDPOINT");
@@ -7687,7 +7657,6 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             md->DeleteHandle(selected_handle);
             md->SelectHandle(-1);
             md->GetModelScreenLocation().SelectSegment(-1);
-            md->UpdateXmlWithScale();
             md->InitModel();
             //SetupPropGrid(md);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELETEPOINT");
@@ -7700,7 +7669,6 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         int seg = md->GetSelectedSegment();
         CreateUndoPoint("SingleModel", md->name, std::to_string(seg + 0x2000));
         md->SetCurve(seg, true);
-        md->UpdateXmlWithScale();
         md->InitModel();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDCURVE");
     } else if (event.GetId() == ID_PREVIEW_MODEL_DELCURVE) {
@@ -7710,7 +7678,6 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         int seg = md->GetSelectedSegment();
         CreateUndoPoint("SingleModel", md->name, std::to_string(seg + 0x1000));
         md->SetCurve(seg, false);
-        md->UpdateXmlWithScale();
         md->InitModel();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELCURVE");
     } else if (event.GetId() == ID_PREVIEW_ALIGN_BOTTOM) {
@@ -8924,11 +8891,13 @@ void LayoutPanel::HandleSelectionChanged() {
             } else {
                 logger_base.crit("LayoutPanel::HandleSelectionChanged Model was selected and now is null, this should not have happened.");
             }
-            if (selectedBaseObject->GetModelXml()->HasAttribute("X2")) {
-                float x1 = wxAtof(selectedBaseObject->GetModelXml()->GetAttribute("X1", "0"));
-                float x2 = wxAtof(selectedBaseObject->GetModelXml()->GetAttribute("X2", "0"));
-                float y1 = wxAtof(selectedBaseObject->GetModelXml()->GetAttribute("Y1", "0"));
-                float y2 = wxAtof(selectedBaseObject->GetModelXml()->GetAttribute("Y2", "0"));
+            if (selectedBaseObject->GetBaseObjectScreenLocation().hasX2()) {
+                const TwoPointScreenLocation& screenLoc = dynamic_cast<const TwoPointScreenLocation&>(selectedBaseObject->GetBaseObjectScreenLocation());
+                glm::vec3 loc = screenLoc.GetWorldPosition();
+                float x1 = loc.x;
+                float y1 = loc.y;
+                float x2 = screenLoc.GetX2();
+                float y2 = screenLoc.GetY2();
                 if (x2 < x1 && std::abs(x2 - x1) > 30.0) {
                     if (!tooltip.empty()) {
                         tooltip += "\n";

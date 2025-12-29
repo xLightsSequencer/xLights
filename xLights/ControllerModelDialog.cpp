@@ -1647,7 +1647,8 @@ public:
             }
             return true;
         } else if (id == ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR) {
-            GetModel()->ClearControllerBrightness();
+            // This was deleting an attribute that we don't use anymore
+            // GetModel()->ClearControllerBrightness();
             return true;
         } else if (id == ControllerModelDialog::CONTROLLER_MODEL_STRINGS) {
             wxNumberEntryDialog dlg(parent, "Set String Count", "String Count", "Model String Count", GetModel()->GetNumPhysicalStrings(), 1, 100);

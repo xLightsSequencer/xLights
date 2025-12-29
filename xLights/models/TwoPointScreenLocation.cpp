@@ -38,6 +38,7 @@ static glm::mat4 Identity(glm::mat4(1.0f));
 
 TwoPointScreenLocation::TwoPointScreenLocation() : ModelScreenLocation(3)
 {
+    _hasX2 = true;
     mSelectableHandles = 3;
     handle_aabb_min.push_back(glm::vec3(0.0f));
     handle_aabb_min.push_back(glm::vec3(0.0f));
@@ -103,26 +104,6 @@ void TwoPointScreenLocation::Read(wxXmlNode *ModelNode) {
         y2 = wxAtof(ModelNode->GetAttribute("Y2", "0.0"));
         z2 = wxAtof(ModelNode->GetAttribute("Z2", "0.0"));
         _locked = (wxAtoi(ModelNode->GetAttribute("Locked", "0")) == 1);
-    }
-}
-
-void TwoPointScreenLocation::Write(wxXmlNode *ModelXml) {
-    ModelXml->DeleteAttribute("WorldPosX");
-    ModelXml->DeleteAttribute("WorldPosY");
-    ModelXml->DeleteAttribute("WorldPosZ");
-    ModelXml->DeleteAttribute("Locked");
-    ModelXml->AddAttribute("WorldPosX", wxString::Format("%6.4f", worldPos_x));
-    ModelXml->AddAttribute("WorldPosY", wxString::Format("%6.4f", worldPos_y));
-    ModelXml->AddAttribute("WorldPosZ", wxString::Format("%6.4f", worldPos_z));
-    ModelXml->DeleteAttribute("X2");
-    ModelXml->DeleteAttribute("Y2");
-    ModelXml->DeleteAttribute("Z2");
-    ModelXml->AddAttribute("X2", std::to_string(x2));
-    ModelXml->AddAttribute("Y2", std::to_string(y2));
-    ModelXml->AddAttribute("Z2", std::to_string(z2));
-    if (_locked)
-    {
-        ModelXml->AddAttribute("Locked", "1");
     }
 }
 

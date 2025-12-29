@@ -417,32 +417,3 @@ void TerrianScreenLocation::Read(wxXmlNode* node) {
     handle_aabb_min.resize(num_points + 1);
     handle_aabb_max.resize(num_points + 1);
 }
-
-void TerrianScreenLocation::Write(wxXmlNode* node) {
-    BoxedScreenLocation::Write(node);
-
-    node->DeleteAttribute("PointData");
-    wxString point_data = "";
-    // store the number of points in each axis to allow for smart resizing  
-    // when grid is altered after terrain points have already been established
-    point_data += wxString::Format("%f,%f,", (float)num_points_wide, (float)num_points_deep);
-    int num_zeroes = 0;
-    for (int i = 0; i < num_points; ++i) {
-        if (mPos[i] != 0) {
-            if (num_zeroes > 0) {
-                point_data += wxString::Format("%f,%f,", 0.0f, (float)num_zeroes);
-                num_zeroes = 0;
-            }
-            point_data += wxString::Format("%f", mPos[i]);
-            if (i != num_points - 1) {
-                point_data += ",";
-            }
-        } else {
-            num_zeroes++;
-            if (i == num_points - 1) {
-                point_data += wxString::Format("%f,%f", 0.0f, (float)num_zeroes);
-            }
-        }
-    }
-    node->AddAttribute("PointData", point_data);
-}

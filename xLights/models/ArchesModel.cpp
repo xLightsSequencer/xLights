@@ -654,7 +654,6 @@ bool ArchesModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         }
 
         wxString newname = xlights->AllModels.GenerateModelName(name);
-        GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
         ImportSuperStringColours(root);
         ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y, min_z, max_z);
@@ -689,8 +688,7 @@ void ArchesModel::OnLayerSizesChange(bool countChanged)
 {
     // if string count is 1 then adjust nodes per string to match sum of nodes
     if (parm1 == 1 && GetLayerSizeCount() > 0) {
-        ModelXml->DeleteAttribute("parm2");
-        ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)GetLayerSizesTotalNodes()));
+        SetParm2((int)GetLayerSizesTotalNodes());
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ArchesModel::OnLayerSizesChange");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ArchesModel::OnLayerSizesChange");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ArchesModel::OnLayerSizesChange");

@@ -36,7 +36,6 @@ public:
     }
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
     void SetFromXml(wxXmlNode* ObjectNode, bool zeroBased=false) override;
-    void UpdateXmlWithScale() override;
     virtual void InitModel() = 0;
 
     void ReloadModelXml() override {

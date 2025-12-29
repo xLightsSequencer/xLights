@@ -77,15 +77,8 @@ int ViewObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
     }
 
     int i = GetObjectScreenLocation().OnPropertyGridChange(grid, event);
-    GetObjectScreenLocation().Write(ModelXml);
+
     AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ViewObject::OnPropertyGridChange");
 
     return i;
-}
-
-void ViewObject::UpdateXmlWithScale() {
-    GetObjectScreenLocation().Write(ModelXml);
-    if (ModelXml->HasAttribute("versionNumber"))
-        ModelXml->DeleteAttribute("versionNumber");
-    ModelXml->AddAttribute("versionNumber", CUR_MODEL_POS_VER);
 }

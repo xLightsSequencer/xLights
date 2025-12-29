@@ -623,7 +623,6 @@ bool DmxServo::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float&
         SetProperty("Transparency", trans);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-        GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
 
         wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();

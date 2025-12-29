@@ -1024,7 +1024,6 @@ bool DmxSkull::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float&
         color_ability->ImportParameters(root, this);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-        GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
 
         wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();

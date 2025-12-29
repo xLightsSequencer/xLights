@@ -808,7 +808,6 @@ bool StarModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         }
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-        GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
 
         ImportSuperStringColours(root);

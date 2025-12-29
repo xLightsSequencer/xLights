@@ -914,7 +914,6 @@ bool DmxServo3d::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
         }
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-        GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
         SetProperty("Bits16", bits);
 

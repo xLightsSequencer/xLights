@@ -2127,6 +2127,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     }
 
     ValidateWindow();
+    
+    GetOutputModelManager()->DisableASAPWork(false);
 
     logger_base.debug("xLightsFrame construction complete.");
 }
@@ -4220,18 +4222,6 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
 
 void xLightsFrame::SaveWorkingLayout()
 {
-    // update xml with offsets and scale
-    for (const auto& it : modelPreview->GetModels()) {
-        if (AllModels.IsModelValid(it) || IsNewModel(it)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models - looks like we are missing a LayoutPanel::UpdateModelList call in some situation
-            it->UpdateXmlWithScale();
-        } else {
-            wxASSERT(false); // why did we get here
-        }
-    }
-    for (const auto& it : AllObjects) {
-        ViewObject* view_object = it.second;
-        view_object->UpdateXmlWithScale();
-    }
     SaveEffectsFile(true);
 }
 

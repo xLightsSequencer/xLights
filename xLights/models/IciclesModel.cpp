@@ -349,7 +349,6 @@ bool IciclesModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, fl
         SetProperty("Style", s2);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-        GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
 
         ImportSuperStringColours(root);

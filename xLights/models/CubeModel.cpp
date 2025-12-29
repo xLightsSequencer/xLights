@@ -1135,7 +1135,6 @@ bool CubeModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float
         SetProperty("StrandPerLayer", s4);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-        GetModelScreenLocation().Write(ModelXml);
         SetProperty("name", newname, true);
 
         ImportSuperStringColours(root);

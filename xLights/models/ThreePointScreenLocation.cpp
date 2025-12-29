@@ -64,27 +64,6 @@ void ThreePointScreenLocation::Read(wxXmlNode *node) {
     rotatex = wxAtof(node->GetAttribute("RotateX", "0"));
 }
 
-void ThreePointScreenLocation::Write(wxXmlNode *node) {
-    TwoPointScreenLocation::Write(node);
-    node->DeleteAttribute("Height");
-    node->DeleteAttribute("Locked");
-    node->DeleteAttribute("RotateX");
-    node->AddAttribute("RotateX", wxString::Format("%4.8f", rotatex));
-    node->AddAttribute("Height", std::to_string(height));
-    if (supportsAngle) {
-        node->DeleteAttribute("Angle");
-        node->AddAttribute("Angle", std::to_string(angle));
-    }
-    if (supportsShear) {
-        node->DeleteAttribute("Shear");
-        node->AddAttribute("Shear", std::to_string(shear));
-    }
-    if (_locked)
-    {
-        node->AddAttribute("Locked", "1");
-    }
-}
-
 void ThreePointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const
 {
     TwoPointScreenLocation::AddDimensionProperties(propertyEditor, 1.0);

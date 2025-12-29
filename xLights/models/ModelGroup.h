@@ -94,8 +94,8 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         int GetCentreMaxx() const { return maxx; }
         int GetCentreMaxy() const { return maxy; }
         std::string GetLayout() const { return layout_group; }
-        std::string GetTagColourAsString() const { return modelTagColour.GetAsString(wxC2S_HTML_SYNTAX); };
-        wxColour GetTagColour() const { return modelTagColour; }
+        std::string GetTagColourAsString() const { return _modelTagColourString; };
+        wxColour GetTagColour() const { return _modelTagColour; }
 
     protected:
         static std::vector<std::string> GROUP_BUFFER_STYLES;

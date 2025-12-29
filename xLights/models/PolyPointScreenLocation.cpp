@@ -262,49 +262,6 @@ void PolyPointScreenLocation::Read(wxXmlNode* ModelNode)
     }
 }
 
-void PolyPointScreenLocation::Write(wxXmlNode* node)
-{
-    node->DeleteAttribute("WorldPosX");
-    node->DeleteAttribute("WorldPosY");
-    node->DeleteAttribute("WorldPosZ");
-    node->DeleteAttribute("ScaleX");
-    node->DeleteAttribute("ScaleY");
-    node->DeleteAttribute("ScaleZ");
-    node->AddAttribute("WorldPosX", wxString::Format("%6.4f", worldPos_x));
-    node->AddAttribute("WorldPosY", wxString::Format("%6.4f", worldPos_y));
-    node->AddAttribute("WorldPosZ", wxString::Format("%6.4f", worldPos_z));
-    node->AddAttribute("ScaleX", wxString::Format("%6.4f", scalex));
-    node->AddAttribute("ScaleY", wxString::Format("%6.4f", scaley));
-    node->AddAttribute("ScaleZ", wxString::Format("%6.4f", scalez));
-
-    node->DeleteAttribute("NumPoints");
-    node->DeleteAttribute("PointData");
-    node->DeleteAttribute("cPointData");
-    node->DeleteAttribute("Locked");
-    wxString point_data = "";
-    for (int i = 0; i < num_points; ++i) {
-        point_data += wxString::Format("%f,", mPos[i].x);
-        point_data += wxString::Format("%f,", mPos[i].y);
-        point_data += wxString::Format("%f", mPos[i].z);
-        if (i != num_points - 1) {
-            point_data += ",";
-        }
-    }
-    wxString cpoint_data = "";
-    for (int i = 0; i < num_points; ++i) {
-        if (mPos[i].has_curve && mPos[i].curve != nullptr) {
-            cpoint_data += wxString::Format("%d,%f,%f,%f,%f,%f,%f,", i, mPos[i].curve->get_cp0x(), mPos[i].curve->get_cp0y(), mPos[i].curve->get_cp0z(),
-                mPos[i].curve->get_cp1x(), mPos[i].curve->get_cp1y(), mPos[i].curve->get_cp1z());
-        }
-    }
-    node->AddAttribute("NumPoints", std::to_string(num_points));
-    node->AddAttribute("PointData", point_data);
-    node->AddAttribute("cPointData", cpoint_data);
-    if (_locked) {
-        node->AddAttribute("Locked", "1");
-    }
-}
-
 void PolyPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const
 {
     std::unique_lock<std::mutex> locker(_mutex);

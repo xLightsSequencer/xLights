@@ -16,6 +16,7 @@
 #include <list>
 #include <tuple>
 
+#include "../ControllerConnection.h"
 #include "ModelScreenLocation.h"
 #include "BoxedScreenLocation.h"
 #include "TwoPointScreenLocation.h"
@@ -127,7 +128,6 @@ public:
         return n.ToStdString();
     }
 
-    bool RenameController(const std::string& oldName, const std::string& newName);
     virtual std::string GetFullName() const { return name; }
     void Rename(std::string const& newName);
     int GetNumStrings() const { return parm1; }
@@ -138,12 +138,6 @@ public:
     ControllerCaps* GetControllerCaps() const;
     Controller* GetController() const;
     static std::string DetermineClass(const std::string& displayAs, bool isSingingFace, bool isSpiralTree, bool isSticks, const std::string& dropPattern);
-
-    std::string _controller_protocol {""};
-    int _controller_protocol_speed {25000};
-    int _controller_port {0};
-    int _controller_brightness {100};
-    int _controller_start_nulls {0};
 
     std::string GetModelStartChannel() const { return ModelStartChannel; }
     const std::string GetStartSide() const { return _startSide; }
@@ -296,7 +290,8 @@ public:
     [[nodiscard]] bool HasIndividualStartChannels() const { return hasIndiv; }
     void SetHasIndividualStartChannels(bool indiv) { hasIndiv = indiv; }
     [[nodiscard]] std::string GetIndividualStartChannel(size_t s) const;
-    void AddIndivStartChannel(const std::string& channel) { indivStartChannels.push_back(channel); }
+    void AddIndividualStartChannel(const std::string& channel) { indivStartChannels.push_back(channel); }
+    void SetIndividualStartChannel(int index, const std::string& channel) { indivStartChannels[index] = channel; }
 
     bool IsNodeInBufferRange(size_t nodeNum, int x1, int y1, int x2, int y2);
 
@@ -340,7 +335,7 @@ protected:
     int pixelSize = 2;
     int transparency = 0;
     int blackTransparency = 0;
-    wxColour modelTagColour = wxNullColour;
+    wxColour _modelTagColour = wxNullColour;
     std::string _modelTagColourString = xlEMPTY_STRING;
     uint8_t _lowDefFactor = 100;
     std::string _startSide = "B";
@@ -359,7 +354,7 @@ protected:
     bool IsLtoR = true;     // true = left to right, false = right to left
     std::vector<int32_t> stringStartChan;
     bool isBotToTop = true;
-    std::string StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
+    std::string StringType = "RGB Nodes"; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
     int rgbwHandlingType = 0;
     std::vector<xlColor> superStringColours;
     xlColor customColor;
@@ -369,6 +364,7 @@ protected:
     mutable std::list<std::string> aliases;
     std::vector<Model*> subModels;
     std::map<std::string, Model*> sortedSubModels;
+    std::string _modelChain = "";
     void ParseSubModel(wxXmlNode* subModelNode);
     void ColourClashingChains(wxPGProperty* p);
     [[nodiscard]] uint32_t ApplyLowDefinition(uint32_t val) const;
@@ -379,7 +375,6 @@ protected:
     FaceStateNodes stateInfoNodes;
 
 public:
-    [[nodiscard]] bool IsControllerConnectionValid() const;
     [[nodiscard]] wxXmlNode* GetControllerConnection() const;
     [[nodiscard]] std::string GetControllerConnectionString() const;
     [[nodiscard]] std::string GetControllerConnectionRangeString() const;
@@ -400,44 +395,11 @@ public:
     void SetSuperStringColour(int index, xlColor c);
     void AddSuperStringColour(xlColor c);
     void SetShadowModelFor(const std::string& shadowFor);
-    void SetControllerName(const std::string& controllerName);
-    void SetControllerProtocol(const std::string& protocol);
-    void SetControllerSerialProtocolSpeed(int speed);
-    void SetControllerPort(int port);
-    void SetControllerBrightness(int brightness);
-    void ClearControllerBrightness();
-    [[nodiscard]] bool IsControllerBrightnessSet() const;
     [[nodiscard]] bool IsShadowModel() const;
     [[nodiscard]] std::string GetShadowModelFor() const;
-    [[nodiscard]] std::string GetControllerName() const { return _controllerName; }
-    [[nodiscard]] std::string GetControllerProtocol() const;
-    [[nodiscard]] int GetControllerProtocolSpeed() const;
-    [[nodiscard]] int GetControllerBrightness() const;
-    [[nodiscard]] int GetControllerDMXChannel() const;
-    [[nodiscard]] int GetSmartRemote() const;
-    [[nodiscard]] bool GetSRCascadeOnPort() const;
-    [[nodiscard]] int GetSRMaxCascade() const;
-    [[nodiscard]] std::vector<std::string> GetSmartRemoteTypes() const;
-    [[nodiscard]] std::string GetSmartRemoteType() const;
-    [[nodiscard]] int GetSmartRemoteTypeIndex(const std::string& srType) const;
-    [[nodiscard]] std::string GetSmartRemoteTypeName(int idx) const;
-    [[nodiscard]] int GetSmartRemoteCount() const;
-    [[nodiscard]] int GetControllerStartNulls() const;
-    [[nodiscard]] int GetControllerEndNulls() const;
-    [[nodiscard]] wxString GetControllerColorOrder() const;
-    [[nodiscard]] int GetControllerGroupCount() const;
-    [[nodiscard]] float GetControllerGamma() const;
-    [[nodiscard]] int GetControllerZigZag() const;
-    [[nodiscard]] int GetControllerReverse() const;
     [[nodiscard]] std::string GetRGBWHandling() const;
     void SetRGBWHandling(std::string const& handling);
     void SetLowDefFactor(int factor) { _lowDefFactor = factor; }
-
-    void SetControllerStartNulls(int nulls);
-    void SetControllerEndNulls(int nulls);
-    void SetControllerColorOrder(wxString const& color);
-    void SetControllerGroupCount(int grouping);
-    void SetControllerGamma(float gamma);
 
     bool IsAlias(const std::string& alias, bool oldnameOnly = false) const;
     void AddAlias(const std::string& alias);
@@ -446,19 +408,7 @@ public:
     const std::list<std::string> &GetAliases() const;
     void SetAliases(const std::list<std::string>& aliases);
 
-    void GetPortSR(int string, int& outport, int& outsr) const;
-    [[nodiscard]] char GetSmartRemoteLetter() const;
-    [[nodiscard]] char GetSmartRemoteLetterForString(int string = 1) const;
-    [[nodiscard]] int GetSortableSmartRemote() const;
-    [[nodiscard]] int GetSmartTs() const;
-    [[nodiscard]] int GetSmartRemoteForString(int string = 1) const;
-    [[nodiscard]] int GetControllerPort(int string = 1) const;
     void SetModelChain(const std::string& modelChain);
-    void SetSmartRemote(int sr);
-    void SetSRCascadeOnPort(bool cascade);
-    void SetSRMaxCascade(int max);
-    void SetSmartRemoteType(const std::string& type);
-    void SetControllerDMXChannel(int ch);
     [[nodiscard]] std::string GetModelChain() const;
     [[nodiscard]] const std::vector<Model*>& GetSubModels() const {
         return subModels;
@@ -474,13 +424,6 @@ public:
     void RemoveSubModel(const std::string& name);
     [[nodiscard]] std::list<int> ParseFaceNodes(std::string channels);
 
-    [[nodiscard]] bool IsPixelProtocol() const;
-    [[nodiscard]] bool IsSerialProtocol() const;
-    [[nodiscard]] bool IsMatrixProtocol() const;
-    [[nodiscard]] bool IsLEDPanelMatrixProtocol() const;
-    [[nodiscard]] bool IsVirtualMatrixProtocol() const;
-    [[nodiscard]] bool IsPWMProtocol() const;
-    
     virtual std::vector<PWMOutput> GetPWMOutputs() const;
 
     static wxArrayString GetSmartRemoteValues(int smartRemoteCount);
@@ -499,7 +442,6 @@ public:
     //std::string _pixelCount{ "" };
     //std::string _pixelType{ "" };
     //std::string _pixelSpacing{ "" };
-    std::string _controllerName{ "" };
     std::string _shadowModelFor{ "" };
 
     void UpdateChannels(wxXmlNode* ModelNode);
@@ -512,7 +454,6 @@ public:
     [[nodiscard]] int GetChanCountPerNode() const;
     [[nodiscard]] uint32_t GetCoordCount(size_t nodenum) const;
     [[nodiscard]] int GetNodeStringNumber(size_t nodenum) const;
-    void UpdateXmlWithScale() override;
     void SetPosition(double posx, double posy);
     [[nodiscard]] std::string GetChannelInStartChannelFormat(OutputManager* outputManager, uint32_t channel);
     [[nodiscard]] std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager);
@@ -785,6 +726,72 @@ public:
     uint32_t GetChannelForNode(int strandIndex, int node) const;
     
     [[nodiscard]] std::string GetAttributesAsJSON() const;
+
+    // Controller Connection Functions
+    friend class ControllerConnection;
+    void SetControllerName(const std::string& controllerName) { _controllerConnection.SetName(controllerName); }
+    void SetControllerProtocol(const std::string& protocol) { _controllerConnection.SetProtocol(protocol); }
+    void SetControllerSerialProtocolSpeed(int speed) { _controllerConnection.SetSerialProtocolSpeed(speed); }
+    void SetControllerPort(int port) { _controllerConnection.SetPort(port); }
+    void SetControllerStartNulls(int nulls) { _controllerConnection.SetStartNulls(nulls); }
+    void SetControllerEndNulls(int nulls) { _controllerConnection.SetEndNulls(nulls); }
+    void SetControllerBrightness(int brightness)  { _controllerConnection.SetBrightness(brightness); }
+    void SetControllerColorOrder(std::string const& color) { _controllerConnection.SetColorOrder(color); }
+    void SetControllerGroupCount(int grouping) { _controllerConnection.SetGroupCount(grouping); }
+    void SetControllerGamma(float gamma) { _controllerConnection.SetGamma(gamma); }
+    void SetControllerReverse(int reverse) { _controllerConnection.SetReverse(reverse); }
+    void SetControllerZigZag(int zigzag)  { _controllerConnection.SetZigZag(zigzag); }
+    void ClearControllerBrightness() { _controllerConnection.ClearBrightness(); }
+    [[nodiscard]] bool RenameController(const std::string& oldName, const std::string& newName) { return _controllerConnection.Rename(oldName, newName); }
+
+    [[nodiscard]] std::string GetControllerName() const { return _controllerConnection.GetName(); }
+    [[nodiscard]] std::string GetControllerProtocol() const { return _controllerConnection.GetProtocol(); }
+    [[nodiscard]] int GetControllerProtocolSpeed() const { return _controllerConnection.GetProtocolSpeed(); }
+    [[nodiscard]] int GetControllerPort(int string = 1) const { return _controllerConnection.GetPort(); }
+    [[nodiscard]] int GetControllerStartNulls() const { return _controllerConnection.GetStartNulls(); }
+    [[nodiscard]] int GetControllerEndNulls() const { return _controllerConnection.GetEndNulls(); }
+    [[nodiscard]] int GetControllerBrightness() const { return _controllerConnection.GetBrightness(); }
+    [[nodiscard]] std::string GetControllerColorOrder() const { return _controllerConnection.GetColorOrder(); }
+    [[nodiscard]] int GetControllerGroupCount() const { return _controllerConnection.GetGroupCount(); }
+    [[nodiscard]] float GetControllerGamma() const { return _controllerConnection.GetGamma(); }
+    [[nodiscard]] int GetControllerReverse() const { return _controllerConnection.GetReverse(); }
+    [[nodiscard]] int GetControllerZigZag() const { return _controllerConnection.GetZigZag(); }
+
+    [[nodiscard]] int GetControllerDMXChannel() const { return _controllerConnection.GetDMXChannel(); }
+    [[nodiscard]] bool IsControllerConnectionValid() const { return _controllerConnection.IsValid(); }
+    [[nodiscard]] bool IsControllerBrightnessSet() const { return _controllerConnection.IsBrightnessSet(); }
+    [[nodiscard]] bool IsPixelProtocol() const { return _controllerConnection.IsPixelProtocol(); }
+    [[nodiscard]] bool IsSerialProtocol() const { return _controllerConnection.IsSerialProtocol(); }
+    [[nodiscard]] bool IsMatrixProtocol() const { return _controllerConnection.IsMatrixProtocol(); }
+    [[nodiscard]] bool IsLEDPanelMatrixProtocol() const { return _controllerConnection.IsLEDPanelMatrixProtocol(); }
+    [[nodiscard]] bool IsVirtualMatrixProtocol() const { return _controllerConnection.IsVirtualMatrixProtocol(); }
+    [[nodiscard]] bool IsPWMProtocol() const { return _controllerConnection.IsPWMProtocol(); }
+
+    // Smart Remote Functions
+    void GetPortSR(int string, int& outport, int& outsr) const { return _controllerConnection.GetPortSR(string, outport, outsr); }
+    [[nodiscard]] char GetSmartRemoteLetter() const { return _controllerConnection.GetSmartRemoteLetter(); }
+    [[nodiscard]] char GetSmartRemoteLetterForString(int string = 1) const { return _controllerConnection.GetSmartRemoteLetterForString(); }
+    [[nodiscard]] int GetSortableSmartRemote() const { return _controllerConnection.GetSortableSmartRemote(); }
+    [[nodiscard]] int GetSmartTs() const { return _controllerConnection.GetSmartTs(); }
+    [[nodiscard]] int GetSmartRemoteForString(int string = 1) const { return _controllerConnection.GetSmartRemoteForString(); }
+    void SetSmartRemote(int sr) { return _controllerConnection.SetSmartRemote(sr); }
+    void SetSRCascadeOnPort(bool cascade) { return _controllerConnection.SetSRCascadeOnPort(cascade); }
+    void SetSRMaxCascade(int max) { return _controllerConnection.SetSRMaxCascade(max); }
+    void SetSmartRemoteType(const std::string& type) { return _controllerConnection.SetSmartRemoteType(type); }
+    void SetControllerDMXChannel(int ch) { return _controllerConnection.SetDMXChannel(ch); }
+    [[nodiscard]] int GetSmartRemote() const { return _controllerConnection.GetSmartRemote(); }
+    [[nodiscard]] bool GetSRCascadeOnPort() const { return _controllerConnection.GetSRCascadeOnPort(); }
+    [[nodiscard]] int GetSRMaxCascade() const { return _controllerConnection.GetSRMaxCascade(); }
+    [[nodiscard]] std::vector<std::string> GetSmartRemoteTypes() const { return _controllerConnection.GetSmartRemoteTypes(); }
+    [[nodiscard]] std::string GetSmartRemoteType() const { return _controllerConnection.GetSmartRemoteType(); }
+    [[nodiscard]] int GetSmartRemoteTypeIndex(const std::string& srType) const { return _controllerConnection.GetSmartRemoteTypeIndex(srType); }
+    [[nodiscard]] std::string GetSmartRemoteTypeName(int idx) const { return _controllerConnection.GetSmartRemoteTypeName(idx); }
+    [[nodiscard]] int GetSmartRemoteCount() const { return _controllerConnection.GetSmartRemoteCount(); }
+
+    ControllerConnection& GetCtrlConn() { return _controllerConnection; }
+    const ControllerConnection& GetConstCtrlConn() const { return _controllerConnection; }
+private:
+    ControllerConnection _controllerConnection;
 
 protected:
     std::vector<int> layerSizes; // inside to outside

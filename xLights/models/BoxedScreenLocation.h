@@ -19,7 +19,6 @@ public:
     virtual ~BoxedScreenLocation() {}
 
     virtual void Read(wxXmlNode *node) override;
-    virtual void Write(wxXmlNode *node) override;
     virtual MSLUPGRADE CheckUpgrade(wxXmlNode *node) override;
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;

@@ -101,7 +101,6 @@ protected:
 
     MSLAXIS NextAxis(MSLAXIS axis);
     virtual void Read(wxXmlNode* node) = 0;
-    virtual void Write(wxXmlNode *node) = 0;
     virtual MSLUPGRADE CheckUpgrade(wxXmlNode *node) = 0;
     void Reload() { rotation_init = true; }
 
@@ -254,9 +253,9 @@ protected:
     virtual bool IsXYTransHandle() const { return false; }
     virtual bool IsElevationHandle() const { return false; }
     bool GetSupportsZScaling() const { return supportsZScaling; }
-    void SetSupportsZScaling(bool b) {
-        supportsZScaling = b;
-    }
+    void SetSupportsZScaling(bool b) { supportsZScaling = b; }
+    [[nodiscard]] bool hasX2() const { return _hasX2; }
+
     MSLPLANE GetPreferredSelectionPlane() { return preferred_selection_plane; }
     void SetPreferredSelectionPlane( MSLPLANE plane ) { preferred_selection_plane = plane; }
     void SetActivePlane( MSLPLANE plane ) { active_plane = plane; }
@@ -337,6 +336,7 @@ protected:
     MSLAXIS active_axis = MSLAXIS::NO_AXIS;
     MSLTOOL axis_tool = MSLTOOL::TOOL_TRANSLATE;
     int tool_size = 1;
+    bool _hasX2 = false;
     bool supportsZScaling = false;
     bool createWithDepth =  false;
     bool _startOnXAxis = false;

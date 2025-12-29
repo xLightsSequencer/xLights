@@ -192,32 +192,6 @@ void BoxedScreenLocation::Read(wxXmlNode *ModelNode) {
     }
 }
 
-void BoxedScreenLocation::Write(wxXmlNode *ModelXml) {
-    ModelXml->DeleteAttribute("WorldPosX");
-    ModelXml->DeleteAttribute("WorldPosY");
-    ModelXml->DeleteAttribute("WorldPosZ");
-    ModelXml->DeleteAttribute("ScaleX");
-    ModelXml->DeleteAttribute("ScaleY");
-    ModelXml->DeleteAttribute("ScaleZ");
-    ModelXml->DeleteAttribute("RotateX");
-    ModelXml->DeleteAttribute("RotateY");
-    ModelXml->DeleteAttribute("RotateZ");
-    ModelXml->DeleteAttribute("Locked");
-    ModelXml->AddAttribute("WorldPosX", wxString::Format("%6.4f", worldPos_x));
-    ModelXml->AddAttribute("WorldPosY", wxString::Format("%6.4f", worldPos_y));
-    ModelXml->AddAttribute("WorldPosZ", wxString::Format("%6.4f", worldPos_z));
-    ModelXml->AddAttribute("ScaleX", wxString::Format("%6.4f", scalex));
-    ModelXml->AddAttribute("ScaleY", wxString::Format("%6.4f", scaley));
-    ModelXml->AddAttribute("ScaleZ", wxString::Format("%6.4f", scalez));
-    ModelXml->AddAttribute("RotateX", wxString::Format("%4.8f", rotatex));
-    ModelXml->AddAttribute("RotateY", wxString::Format("%4.8f", rotatey));
-    ModelXml->AddAttribute("RotateZ", wxString::Format("%4.8f", rotatez));
-    if (_locked)
-    {
-        ModelXml->AddAttribute("Locked", "1");
-    }
-}
-
 void BoxedScreenLocation::TranslatePoint(float &sx, float &sy, float &sz) const {
     sx = (sx*scalex);
     sy = (sy*scaley);

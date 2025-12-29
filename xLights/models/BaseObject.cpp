@@ -28,6 +28,7 @@ BaseObject::~BaseObject()
 }
 
 wxXmlNode* BaseObject::GetModelXml() const {
+    wxASSERT(TRUE);  // This flags code to be deleted/reworked
     return this->ModelXml;
 }
 
@@ -65,7 +66,6 @@ glm::vec3 BaseObject::MoveHandle3D(ModelPreview* preview, int handle, bool Shift
     if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return GetBaseObjectScreenLocation().GetHandlePosition(handle);
 
     int i = GetBaseObjectScreenLocation().MoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
-    GetBaseObjectScreenLocation().Write(ModelXml);
     if (i) {
         SetFromXml(ModelXml);
     }
@@ -77,7 +77,6 @@ glm::vec3 BaseObject::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm:
     if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return GetBaseObjectScreenLocation().GetHandlePosition(handle);
 
     int i = GetBaseObjectScreenLocation().MoveHandle3D(scale, handle, rot, mov);
-    GetBaseObjectScreenLocation().Write(ModelXml);
     if (i) {
         SetFromXml(ModelXml);
     }
@@ -92,17 +91,12 @@ void BaseObject::SelectHandle(int handle) {
 void BaseObject::Lock(bool lock)
 {
     GetBaseObjectScreenLocation().Lock(lock);
-    GetModelXml()->DeleteAttribute("Locked");
-    if (lock)
-    {
-        GetModelXml()->AddAttribute("Locked", "1");
-    }
     IncrementChangeCount();
 }
 
 bool BaseObject::IsLocked() const
 {
-    return GetModelXml()->GetAttribute("Locked", "0") == "1";
+    return GetBaseObjectScreenLocation().IsLocked();
 }
 
 void BaseObject::AddASAPWork(uint32_t work, const std::string& from)
@@ -115,7 +109,6 @@ void BaseObject::SetTop(float y) {
    if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().SetTop(y);
-    GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
@@ -124,7 +117,6 @@ void BaseObject::SetBottom(float y) {
     if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().SetBottom(y);
-    GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
@@ -133,7 +125,6 @@ void BaseObject::SetLeft(float x) {
     if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().SetLeft(x);
-    GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
@@ -142,7 +133,6 @@ void BaseObject::SetRight(float x) {
     if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().SetRight(x);
-    GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
@@ -151,7 +141,6 @@ void BaseObject::SetFront(float z) {
     if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().SetFront(z);
-    GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
@@ -160,7 +149,6 @@ void BaseObject::SetBack(float z) {
     if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().SetBack(z);
-    GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
@@ -171,7 +159,6 @@ void BaseObject::SetWidth(float w, bool ignoreLock) {
     if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) return;
 
     GetBaseObjectScreenLocation().SetMWidth(w);
-    GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
@@ -182,7 +169,6 @@ void BaseObject::SetDepth(float d, bool ignoreLock) {
     if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) return;
 
     GetBaseObjectScreenLocation().SetMDepth(d);
-    GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
@@ -193,7 +179,6 @@ void BaseObject::SetHeight(float h, bool ignoreLock) {
     if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) return;
 
     GetBaseObjectScreenLocation().SetMHeight(h);
-    GetBaseObjectScreenLocation().Write(ModelXml);
     SetFromXml(ModelXml);
     IncrementChangeCount();
 }
@@ -203,7 +188,6 @@ void BaseObject::SetHcenterPos(float pos) {
     if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().SetHcenterPos(pos);
-    GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
@@ -212,7 +196,6 @@ void BaseObject::SetVcenterPos(float pos) {
     if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().SetVcenterPos(pos);
-    GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
@@ -221,7 +204,6 @@ void BaseObject::SetDcenterPos(float pos) {
     if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().SetDcenterPos(pos);
-    GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
@@ -230,7 +212,6 @@ bool BaseObject::Rotate(ModelScreenLocation::MSLAXIS axis, float factor)
     if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return false;
 
     bool b = GetBaseObjectScreenLocation().Rotate(axis, factor);
-    GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
     return b;
 }
@@ -242,7 +223,6 @@ void BaseObject::FlipHorizontal(bool ignoreLock) {
         return;
     
     GetBaseObjectScreenLocation().Rotate(ModelScreenLocation::MSLAXIS::Y_AXIS, 180.0);
-    GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
@@ -253,7 +233,6 @@ void BaseObject::FlipVertical(bool ignoreLock) {
         return;
     
     GetBaseObjectScreenLocation().Rotate(ModelScreenLocation::MSLAXIS::X_AXIS, 180.0);
-    GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
@@ -363,7 +342,6 @@ void BaseObject::AddOffset(double deltax, double deltay, double deltaz) {
 	if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
 	GetBaseObjectScreenLocation().AddOffset(deltax, deltay, deltaz);
-	GetBaseObjectScreenLocation().Write(ModelXml);
 	IncrementChangeCount();
 }
 
@@ -371,7 +349,6 @@ void BaseObject::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) {
     if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return;
 
     GetBaseObjectScreenLocation().RotateAboutPoint(position, angle);
-    GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
     SetFromXml(ModelXml);  // only needed when rotating PolyLine...hope to remove this later and do what's needed in the PolyLine rotate call
 }
@@ -382,7 +359,6 @@ bool BaseObject::Scale(const glm::vec3& factor)
     if (GetBaseObjectScreenLocation().IsLocked() || IsFromBase()) return false;
 
     return_value = GetBaseObjectScreenLocation().Scale(factor);
-    GetBaseObjectScreenLocation().Write(ModelXml);
     IncrementChangeCount();
     return return_value;
 }
