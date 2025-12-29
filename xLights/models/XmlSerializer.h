@@ -738,7 +738,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         }
     }
 
-    void AddAliases(wxXmlNode* node, const std::list<std::string> aliases) {
+    void AddAliases(wxXmlNode* node, const std::list<std::string>& aliases) {
         wxXmlNode* aliashdr = new wxXmlNode(wxXML_ELEMENT_NODE, "Aliases");
 
         if (aliases.size() > 0) {
@@ -1355,25 +1355,29 @@ private:
     }
 
     void DeserializeControllerConnection(Model* model, wxXmlNode* node) {
-        ControllerConnection& cc = model->GetCtrlConn();
-        cc.SetName(node->GetAttribute(XmlNodeKeys::ControllerAttribute, "").Trim(true).Trim(false).ToStdString());
-        cc.SetProtocol(node->GetAttribute(XmlNodeKeys::ProtocolAttribute, "").ToStdString());
-        cc.SetSerialProtocolSpeed(std::stoi(node->GetAttribute(XmlNodeKeys::ProtocolSpeedAttribute, "250000").ToStdString()));
-        cc.SetPort(std::stoi(node->GetAttribute(XmlNodeKeys::PortAttribute, "0").ToStdString()));
-        cc.SetBrightness(std::stoi(node->GetAttribute(XmlNodeKeys::BrightnessAttribute, "100").ToStdString()));
-        cc.SetStartNulls(std::stoi(node->GetAttribute(XmlNodeKeys::StartNullAttribute, "0").ToStdString()));
-        cc.SetEndNulls(std::stoi(node->GetAttribute(XmlNodeKeys::EndNullAttribute, "0").ToStdString()));
-        cc.SetColorOrder(node->GetAttribute(XmlNodeKeys::ColorOrderAttribute, "RGB").ToStdString());
-        cc.SetGroupCount(std::stoi(node->GetAttribute(XmlNodeKeys::GroupCountAttribute, "1").ToStdString()));
-        cc.SetGamma(std::stof(node->GetAttribute(XmlNodeKeys::GammaAttribute, "1.0").ToStdString()));
-        cc.SetReverse(std::stoi(node->GetAttribute(XmlNodeKeys::CReverseAttribute, "0").ToStdString()));
-        cc.SetZigZag(std::stoi(node->GetAttribute(XmlNodeKeys::CZigZagAttribute, "0").ToStdString()));
-
-        cc.SetSmartRemote(std::stoi(node->GetAttribute(XmlNodeKeys::SmartRemoteAttribute, "0").ToStdString()));
-        cc.SetSRMaxCascade(std::stoi(node->GetAttribute(XmlNodeKeys::SRMaxCascadeAttribute, "1").ToStdString()));
-        cc.SetSRCascadeOnPort(node->GetAttribute(XmlNodeKeys::SRCascadeOnPortAttribute, "FALSE").ToStdString() == "TRUE");
-        cc.SetSmartRemoteTs(std::stoi(node->GetAttribute(XmlNodeKeys::SmartRemoteTsAttribute, "0").ToStdString()));
-        cc.SetSmartRemoteType(node->GetAttribute(XmlNodeKeys::SmartRemoteTypeAttribute, ""));
+        for (wxXmlNode* p = node->GetChildren(); p != nullptr; p = p->GetNext()) {
+            if (p->GetName() == "ControllerConnection") {
+                ControllerConnection& cc = model->GetCtrlConn();
+                cc.SetName(p->GetAttribute(XmlNodeKeys::ControllerAttribute, "").Trim(true).Trim(false).ToStdString());
+                cc.SetProtocol(p->GetAttribute(XmlNodeKeys::ProtocolAttribute, "").ToStdString());
+                cc.SetSerialProtocolSpeed(std::stoi(p->GetAttribute(XmlNodeKeys::ProtocolSpeedAttribute, "250000").ToStdString()));
+                cc.SetPort(std::stoi(p->GetAttribute(XmlNodeKeys::PortAttribute, "0").ToStdString()));
+                cc.SetBrightness(std::stoi(p->GetAttribute(XmlNodeKeys::BrightnessAttribute, "100").ToStdString()));
+                cc.SetStartNulls(std::stoi(p->GetAttribute(XmlNodeKeys::StartNullAttribute, "0").ToStdString()));
+                cc.SetEndNulls(std::stoi(p->GetAttribute(XmlNodeKeys::EndNullAttribute, "0").ToStdString()));
+                cc.SetColorOrder(p->GetAttribute(XmlNodeKeys::ColorOrderAttribute, "RGB").ToStdString());
+                cc.SetGroupCount(std::stoi(p->GetAttribute(XmlNodeKeys::GroupCountAttribute, "1").ToStdString()));
+                cc.SetGamma(std::stof(p->GetAttribute(XmlNodeKeys::GammaAttribute, "1.0").ToStdString()));
+                cc.SetReverse(std::stoi(p->GetAttribute(XmlNodeKeys::CReverseAttribute, "0").ToStdString()));
+                cc.SetZigZag(std::stoi(p->GetAttribute(XmlNodeKeys::CZigZagAttribute, "0").ToStdString()));
+                
+                cc.SetSmartRemote(std::stoi(p->GetAttribute(XmlNodeKeys::SmartRemoteAttribute, "0").ToStdString()));
+                cc.SetSRMaxCascade(std::stoi(p->GetAttribute(XmlNodeKeys::SRMaxCascadeAttribute, "1").ToStdString()));
+                cc.SetSRCascadeOnPort(p->GetAttribute(XmlNodeKeys::SRCascadeOnPortAttribute, "FALSE").ToStdString() == "TRUE");
+                cc.SetSmartRemoteTs(std::stoi(p->GetAttribute(XmlNodeKeys::SmartRemoteTsAttribute, "0").ToStdString()));
+                cc.SetSmartRemoteType(p->GetAttribute(XmlNodeKeys::SmartRemoteTypeAttribute, ""));
+            }
+        }
     }
 
     void DeserializeBaseObjectAttributes(Model* model, wxXmlNode* node, xLightsFrame* xlights, bool importing) {
@@ -1738,7 +1742,7 @@ struct XmlSerializer {
 
     // Serializes and Saves a single model into an XML document
     void SerializeAndSaveModel(const BaseObject& object, xLightsFrame* xlights) {
-        wxString name = object.GetModelXml()->GetAttribute("name");
+        wxString name = object.GetName();
 
         wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (filename.IsEmpty())

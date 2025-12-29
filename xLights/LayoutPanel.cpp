@@ -7422,7 +7422,7 @@ void LayoutPanel::CreateUndoPoint(const std::string &tp, const std::string &mode
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::CreateUndoPoint");
     size_t idx = undoBuffer.size();
-    
+
     std::string type = tp;
 
     //printf("%s   %s   %s  %s\n", type.c_str(), model.c_str(), key.c_str(), data.c_str());
@@ -7474,10 +7474,16 @@ void LayoutPanel::CreateUndoPoint(const std::string &tp, const std::string &mode
             wxASSERT(m != nullptr);
         }
         wxXmlDocument doc;
+        
+       // XmlSerializer serializer;
+       // wxXmlDocument doc = SerializeModel(object, xlights);
+
+ //       serializer.SerializeAndSaveModel(*md, xlights);
+        
         wxXmlNode *parent = m->GetModelXml()->GetParent();
         if (parent == nullptr) {
             undoBuffer.resize(idx); // restore undo buffer back to its old size
-            return; // this shouldnt happend but it does and when it does it crashes.
+            return; // this shouldnt happen but it does and when it does it crashes.
         }
         wxXmlNode *next = m->GetModelXml()->GetNext();
         parent->RemoveChild(m->GetModelXml());

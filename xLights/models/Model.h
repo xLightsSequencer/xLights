@@ -362,6 +362,8 @@ protected:
     bool hasIndiv = false;
     std::vector<std::string> indivStartChannels;
     mutable std::list<std::string> aliases;
+    friend class DimmingCurveDialogAdapter; // let this class alter dimmingInfo
+    std::map<std::string, std::map<std::string, std::string>> dimmingInfo;
     std::vector<Model*> subModels;
     std::map<std::string, Model*> sortedSubModels;
     std::string _modelChain = "";
