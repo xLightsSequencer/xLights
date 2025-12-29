@@ -1387,7 +1387,7 @@ private:
         }
         model->SetName(name);
         model->SetDisplayAs(node->GetAttribute(XmlNodeKeys::DisplayAsAttribute).ToStdString());
-        model->SetActive(std::stoi(node->GetAttribute(XmlNodeKeys::ActiveAttribute, "0").ToStdString()));
+        model->SetActive(std::stoi(node->GetAttribute(XmlNodeKeys::ActiveAttribute, "1").ToStdString()));
         model->SetFromBase(std::stoi(node->GetAttribute(XmlNodeKeys::FromBaseAttribute, "0").ToStdString()));
     }
 
