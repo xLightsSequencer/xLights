@@ -263,18 +263,6 @@ void ControllerConnection::SetDMXChannel(int ch)
     _model->IncrementChangeCount();
 }
 
-void ControllerConnection::ClearBrightness()
-{
-    if (_brightnessIsSet) {
-        _brightnessIsSet = false;
-        _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::ClearBrightness");
-        _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::ClearBrightness");
-        _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::ClearBrightness");
-        _model->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::ClearBrightness");
-        _model->IncrementChangeCount();
-    }
-}
-
 void ControllerConnection::GetPortSR(int string, int& outport, int& outsr) const
 {
     // we need to work with 0 based strings

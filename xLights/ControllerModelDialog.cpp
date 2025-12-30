@@ -28,6 +28,7 @@
 #include <wx/position.h>
 
 #include "ControllerModelDialog.h"
+#include "ControllerConnection.h"
 #include "Pixels.h"
 #include "UtilFunctions.h"
 #include "xLightsMain.h"
@@ -1546,7 +1547,7 @@ public:
             if (_caps->SupportsPixelPortBrightness()) {
                 mnu.AppendSeparator();
                 mnu.Append(ControllerModelDialog::CONTROLLER_BRIGHTNESS, "Set Brightness");
-                if (GetModel()->IsControllerBrightnessSet()) {
+                if (GetModel()->IsCtrlPropertySet(CtrlProps::BRIGHTNESS_ACTIVE)) {
                     mnu.Append(ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR, "Clear Brightness");
                 }
             }
@@ -1648,7 +1649,7 @@ public:
             return true;
         } else if (id == ControllerModelDialog::CONTROLLER_BRIGHTNESSCLEAR) {
             // This was deleting an attribute that we don't use anymore
-            // GetModel()->ClearControllerBrightness();
+            GetModel()->ClearControllerProperty(ControllerConnection::BRIGHTNESS_ACTIVE);
             return true;
         } else if (id == ControllerModelDialog::CONTROLLER_MODEL_STRINGS) {
             wxNumberEntryDialog dlg(parent, "Set String Count", "String Count", "Model String Count", GetModel()->GetNumPhysicalStrings(), 1, 100);

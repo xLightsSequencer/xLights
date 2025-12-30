@@ -731,6 +731,12 @@ public:
 
     // Controller Connection Functions
     friend class ControllerConnection;
+
+    void SetControllerProperty(enum ControllerConnection::CTRL_PROPS prop) { _controllerConnection.SetProperty(prop); }
+    void ClearControllerProperty(enum ControllerConnection::CTRL_PROPS prop) { _controllerConnection.ClearProperty(prop); }
+    void UpdateControllerProperty(enum ControllerConnection::CTRL_PROPS prop, bool value) { _controllerConnection.UpdateProperty(prop, value); }
+    bool IsCtrlPropertySet(enum ControllerConnection::CTRL_PROPS prop) { return _controllerConnection.IsPropertySet(prop); }
+
     void SetControllerName(const std::string& controllerName) { _controllerConnection.SetName(controllerName); }
     void SetControllerProtocol(const std::string& protocol) { _controllerConnection.SetProtocol(protocol); }
     void SetControllerSerialProtocolSpeed(int speed) { _controllerConnection.SetSerialProtocolSpeed(speed); }
@@ -743,7 +749,6 @@ public:
     void SetControllerGamma(float gamma) { _controllerConnection.SetGamma(gamma); }
     void SetControllerReverse(int reverse) { _controllerConnection.SetReverse(reverse); }
     void SetControllerZigZag(int zigzag)  { _controllerConnection.SetZigZag(zigzag); }
-    void ClearControllerBrightness() { _controllerConnection.ClearBrightness(); }
     [[nodiscard]] bool RenameController(const std::string& oldName, const std::string& newName) { return _controllerConnection.Rename(oldName, newName); }
 
     [[nodiscard]] std::string GetControllerName() const { return _controllerConnection.GetName(); }
@@ -761,7 +766,6 @@ public:
 
     [[nodiscard]] int GetControllerDMXChannel() const { return _controllerConnection.GetDMXChannel(); }
     [[nodiscard]] bool IsControllerConnectionValid() const { return _controllerConnection.IsValid(); }
-    [[nodiscard]] bool IsControllerBrightnessSet() const { return _controllerConnection.IsBrightnessSet(); }
     [[nodiscard]] bool IsPixelProtocol() const { return _controllerConnection.IsPixelProtocol(); }
     [[nodiscard]] bool IsSerialProtocol() const { return _controllerConnection.IsSerialProtocol(); }
     [[nodiscard]] bool IsMatrixProtocol() const { return _controllerConnection.IsMatrixProtocol(); }
@@ -777,6 +781,7 @@ public:
     [[nodiscard]] int GetSmartTs() const { return _controllerConnection.GetSmartTs(); }
     [[nodiscard]] int GetSmartRemoteForString(int string = 1) const { return _controllerConnection.GetSmartRemoteForString(); }
     void SetSmartRemote(int sr) { return _controllerConnection.SetSmartRemote(sr); }
+    void SetSmartRemoteTs(int ts ) { _controllerConnection.SetSmartRemoteTs(ts); }
     void SetSRCascadeOnPort(bool cascade) { return _controllerConnection.SetSRCascadeOnPort(cascade); }
     void SetSRMaxCascade(int max) { return _controllerConnection.SetSRMaxCascade(max); }
     void SetSmartRemoteType(const std::string& type) { return _controllerConnection.SetSmartRemoteType(type); }

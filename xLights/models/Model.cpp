@@ -1131,10 +1131,8 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
         }
     }
 
-    wxXmlNode* node = GetControllerConnection();
     if (IsSerialProtocol()) {
-        int chan = wxAtoi(node->GetAttribute("channel", "1"));
-        sp = grid->AppendIn(p, new wxUIntProperty(protocol + " Channel", "ModelControllerConnectionDMXChannel", chan));
+        sp = grid->AppendIn(p, new wxUIntProperty(protocol + " Channel", "ModelControllerConnectionDMXChannel", GetControllerDMXChannel()));
         sp->SetAttribute("Min", 1);
         if (caps == nullptr) {
             sp->SetAttribute("Max", 512);
@@ -1152,8 +1150,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
 
     } else if (IsPWMProtocol()) {
         if (DisplayAs.rfind("Dmx", 0) != 0) { //DMX models handle this themselves
-            double gamma = wxAtof(GetControllerConnection()->GetAttribute("gamma", "1.0"));
-            auto sp2 = grid->AppendIn(sp, new wxFloatProperty("Gamma", "ModelControllerConnectionPixelGamma", gamma));
+            auto sp2 = grid->AppendIn(sp, new wxFloatProperty("Gamma", "ModelControllerConnectionPixelGamma", GetControllerGamma()));
             sp2->SetAttribute("Min", 0.1);
             sp2->SetAttribute("Max", 5.0);
             sp2->SetAttribute("Precision", 1);
@@ -1168,145 +1165,118 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
         }
     } else if (IsPixelProtocol()) {
         if (caps == nullptr || caps->SupportsPixelPortNullPixels()) {
-            sp = grid->AppendIn(p, new wxBoolProperty("Set Start Null Pixels", "ModelControllerConnectionPixelSetNullNodes", GetControllerStartNulls() > 0));
+            sp = grid->AppendIn(p, new wxBoolProperty("Set Start Null Pixels", "ModelControllerConnectionPixelSetNullNodes", IsCtrlPropertySet(CtrlProps::START_NULLS_ACTIVE)));
             sp->SetAttribute("UseCheckbox", true);
             auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Start Null Pixels", "ModelControllerConnectionPixelNullNodes", GetControllerStartNulls()));
             sp2->SetAttribute("Min", 0);
             sp2->SetAttribute("Max", 100);
             sp2->SetEditor("SpinCtrl");
-            if (GetControllerStartNulls() == 0) {
+            if (!IsCtrlPropertySet(CtrlProps::START_NULLS_ACTIVE)) {
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
             }
         }
 
         if (caps == nullptr || caps->SupportsPixelPortEndNullPixels()) {
-            sp = grid->AppendIn(p, new wxBoolProperty("Set End Null Pixels", "ModelControllerConnectionPixelSetEndNullNodes", GetControllerEndNulls() > 0));
+            sp = grid->AppendIn(p, new wxBoolProperty("Set End Null Pixels", "ModelControllerConnectionPixelSetEndNullNodes", IsCtrlPropertySet(CtrlProps::END_NULLS_ACTIVE)));
             sp->SetAttribute("UseCheckbox", true);
             auto sp2 = grid->AppendIn(sp, new wxUIntProperty("End Null Pixels", "ModelControllerConnectionPixelEndNullNodes", GetControllerEndNulls()));
             sp2->SetAttribute("Min", 0);
             sp2->SetAttribute("Max", 100);
             sp2->SetEditor("SpinCtrl");
-            if (GetControllerEndNulls() == 0) {
+            if (!IsCtrlPropertySet(CtrlProps::END_NULLS_ACTIVE)) {
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
             }
         }
 
         if (caps == nullptr || caps->SupportsPixelPortBrightness()) {
-            sp = grid->AppendIn(p, new wxBoolProperty("Set Brightness", "ModelControllerConnectionPixelSetBrightness", IsControllerBrightnessSet()));
+            sp = grid->AppendIn(p, new wxBoolProperty("Set Brightness", "ModelControllerConnectionPixelSetBrightness", IsCtrlPropertySet(CtrlProps::BRIGHTNESS_ACTIVE)));
             sp->SetAttribute("UseCheckbox", true);
             auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Brightness", "ModelControllerConnectionPixelBrightness", GetControllerBrightness()));
             sp2->SetAttribute("Min", 0);
             sp2->SetAttribute("Max", 100);
             sp2->SetEditor("SpinCtrl");
-            if (!IsControllerBrightnessSet()) {
+            if (!IsCtrlPropertySet(CtrlProps::BRIGHTNESS_ACTIVE)) {
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
             }
-        } else {
-            ClearControllerBrightness();
         }
-/*
+
         if (caps == nullptr || caps->SupportsPixelPortGamma()) {
-            sp = grid->AppendIn(p, new wxBoolProperty("Set Gamma", "ModelControllerConnectionPixelSetGamma", GetControllerGamma() != 1.0f));
+            sp = grid->AppendIn(p, new wxBoolProperty("Set Gamma", "ModelControllerConnectionPixelSetGamma", IsCtrlPropertySet(CtrlProps::GAMMA_ACTIVE)));
             sp->SetAttribute("UseCheckbox", true);
-            double gamma = wxAtof(GetControllerConnection()->GetAttribute("gamma", "1.0"));
-            auto sp2 = grid->AppendIn(sp, new wxFloatProperty("Gamma", "ModelControllerConnectionPixelGamma", gamma));
+            auto sp2 = grid->AppendIn(sp, new wxFloatProperty("Gamma", "ModelControllerConnectionPixelGamma", GetControllerGamma()));
             sp2->SetAttribute("Min", 0.1);
             sp2->SetAttribute("Max", 5.0);
             sp2->SetAttribute("Precision", 1);
             sp2->SetAttribute("Step", 0.1);
             sp2->SetEditor("SpinCtrl");
-            if (!node->HasAttribute("gamma")) {
+            if (!IsCtrlPropertySet(CtrlProps::GAMMA_ACTIVE)) {
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
-            }
-        } else {
-            if (node->HasAttribute("gamma")) {
-                node->DeleteAttribute("gamma");
             }
         }
 
         if (caps == nullptr || caps->SupportsPixelPortColourOrder()) {
-            sp = grid->AppendIn(p, new wxBoolProperty("Set Color Order", "ModelControllerConnectionPixelSetColorOrder", node->HasAttribute("colorOrder")));
+            sp = grid->AppendIn(p, new wxBoolProperty("Set Color Order", "ModelControllerConnectionPixelSetColorOrder", IsCtrlPropertySet(CtrlProps::COLOR_ORDER_ACTIVE)));
             sp->SetAttribute("UseCheckbox", true);
-            int cidx = CONTROLLER_COLORORDER.Index(GetControllerConnection()->GetAttribute("colorOrder", "RGB"));
+            int cidx = CONTROLLER_COLORORDER.Index(GetControllerColorOrder());
             auto sp2 = grid->AppendIn(sp, new wxEnumProperty("Color Order", "ModelControllerConnectionPixelColorOrder", CONTROLLER_COLORORDER, wxArrayInt(), cidx < 0 ? 0 : cidx));
-            if (!node->HasAttribute("colorOrder")) {
+            if (!IsCtrlPropertySet(CtrlProps::COLOR_ORDER_ACTIVE)) {
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
             }
-        } else {
-            if (node->HasAttribute("colorOrder")) {
-                node->DeleteAttribute("colorOrder");
-            }
-        } 
+        }
 
         if (caps == nullptr || caps->SupportsPixelPortDirection()) {
-            sp = grid->AppendIn(p, new wxBoolProperty("Set Pixel Direction", "ModelControllerConnectionPixelSetDirection", node->HasAttribute("reverse")));
+            sp = grid->AppendIn(p, new wxBoolProperty("Set Pixel Direction", "ModelControllerConnectionPixelSetDirection", IsCtrlPropertySet(CtrlProps::REVERSE_ACTIVE)));
             sp->SetAttribute("UseCheckbox", true);
-            auto sp2 = grid->AppendIn(sp, new wxEnumProperty("Direction", "ModelControllerConnectionPixelDirection", CONTROLLER_DIRECTION, wxArrayInt(),
-                                                             wxAtoi(GetControllerConnection()->GetAttribute("reverse", "0"))));
-            if (!node->HasAttribute("reverse")) {
+            auto sp2 = grid->AppendIn(sp, new wxEnumProperty("Direction", "ModelControllerConnectionPixelDirection", CONTROLLER_DIRECTION, wxArrayInt(), GetControllerReverse()));
+            if (!IsCtrlPropertySet(CtrlProps::REVERSE_ACTIVE)) {
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
             }
-        } else {
-            if (node->HasAttribute("reverse")) {
-                node->DeleteAttribute("reverse");
-            }
-        } 
+        }
 
         if (caps == nullptr || caps->SupportsPixelPortGrouping()) {
-            sp = grid->AppendIn(p, new wxBoolProperty("Set Group Count", "ModelControllerConnectionPixelSetGroupCount", node->HasAttribute("groupCount")));
+            sp = grid->AppendIn(p, new wxBoolProperty("Set Group Count", "ModelControllerConnectionPixelSetGroupCount", IsCtrlPropertySet(CtrlProps::GROUP_COUNT_ACTIVE)));
             sp->SetAttribute("UseCheckbox", true);
-            auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Group Count", "ModelControllerConnectionPixelGroupCount",
-                                                             wxAtoi(GetControllerConnection()->GetAttribute("groupCount", "1"))));
+            auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Group Count", "ModelControllerConnectionPixelGroupCount", GetControllerGroupCount()));
             sp2->SetAttribute("Min", 1);
             sp2->SetAttribute("Max", 500);
             sp2->SetEditor("SpinCtrl");
-            if (!node->HasAttribute("groupCount")) {
+            if (!IsCtrlPropertySet(CtrlProps::GROUP_COUNT_ACTIVE)) {
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
-            }
-        } else {
-            if (node->HasAttribute("groupCount")) {
-                node->DeleteAttribute("groupCount");
             }
         }
 
         if (caps == nullptr || caps->SupportsPixelZigZag()) {
-            sp = grid->AppendIn(p, new wxBoolProperty("Set Zig Zag", "ModelControllerConnectionPixelSetZigZag", node->HasAttribute("zigZag")));
+            sp = grid->AppendIn(p, new wxBoolProperty("Set Zig Zag", "ModelControllerConnectionPixelSetZigZag", IsCtrlPropertySet(CtrlProps::ZIG_ZAG_ACTIVE)));
             sp->SetAttribute("UseCheckbox", true);
-            auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Zig Zag", "ModelControllerConnectionPixelZigZag",
-                                                             wxAtoi(GetControllerConnection()->GetAttribute("zigZag", "0"))));
+            auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Zig Zag", "ModelControllerConnectionPixelZigZag", GetControllerZigZag()));
             sp2->SetAttribute("Min", 0);
             sp2->SetAttribute("Max", 1000);
             sp2->SetEditor("SpinCtrl");
-            if (!node->HasAttribute("zigZag")) {
+            if (!IsCtrlPropertySet(CtrlProps::ZIG_ZAG_ACTIVE)) {
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
-            }
-        } else {
-            if (node->HasAttribute("zigZag")) {
-                node->DeleteAttribute("zigZag");
             }
         }
 
         if (caps == nullptr || caps->SupportsTs()) {
-            sp = grid->AppendIn(p, new wxBoolProperty("Set Smart Ts", "ModelControllerConnectionPixelSetTs", node->HasAttribute("ts")));
+            sp = grid->AppendIn(p, new wxBoolProperty("Set Smart Ts", "ModelControllerConnectionPixelSetTs", IsCtrlPropertySet(CtrlProps::TS_ACTIVE)));
             sp->SetAttribute("UseCheckbox", true);
-            auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Smart Ts", "ModelControllerConnectionPixelTs",
-                                                             GetSmartTs()));
+            auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Smart Ts", "ModelControllerConnectionPixelTs", GetSmartTs()));
             sp2->SetAttribute("Min", 0);
             sp2->SetAttribute("Max", 20);
             sp2->SetEditor("SpinCtrl");
-            if (!node->HasAttribute("ts")) {
+            if (!IsCtrlPropertySet(CtrlProps::TS_ACTIVE)) {
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
             }
-        } */
+        }
     }
 }
 
@@ -1344,10 +1314,9 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid)
         ColourClashingChains(grid->GetPropertyByName("ModelChain"));
     }
 
-    wxXmlNode* node = GetControllerConnection();
     if (IsPixelProtocol()) {
         if (grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes") != nullptr) {
-            if (GetControllerStartNulls() == 0) {
+            if (!IsCtrlPropertySet(CtrlProps::START_NULLS_ACTIVE)) {
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes")->SetExpanded(false);
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes.ModelControllerConnectionPixelNullNodes")->Enable(false);
             } else {
@@ -1355,9 +1324,9 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid)
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes.ModelControllerConnectionPixelNullNodes")->Enable();
             }
         }
-/*
+
         if (grid->GetPropertyByName("ModelControllerConnectionPixelSetEndNullNodes") != nullptr) {
-            if (!node->HasAttribute("endNullNodes")) {
+            if (!IsCtrlPropertySet(CtrlProps::END_NULLS_ACTIVE)) {
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetEndNullNodes")->SetExpanded(false);
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetEndNullNodes.ModelControllerConnectionPixelEndNullNodes")->Enable(false);
             } else {
@@ -1367,7 +1336,7 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid)
         }
 
         if (grid->GetPropertyByName("ModelControllerConnectionPixelSetBrightness") != nullptr) {
-            if (!node->HasAttribute("brightness")) {
+            if (!IsCtrlPropertySet(CtrlProps::BRIGHTNESS_ACTIVE)) {
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetBrightness")->SetExpanded(false);
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetBrightness.ModelControllerConnectionPixelBrightness")->Enable(false);
             } else {
@@ -1377,7 +1346,7 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid)
         }
 
         if (grid->GetPropertyByName("ModelControllerConnectionPixelSetGamma") != nullptr) {
-            if (!node->HasAttribute("gamma")) {
+            if (!IsCtrlPropertySet(CtrlProps::GAMMA_ACTIVE)) {
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetGamma")->SetExpanded(false);
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetGamma.ModelControllerConnectionPixelGamma")->Enable(false);
             } else {
@@ -1387,7 +1356,7 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid)
         }
 
         if (grid->GetPropertyByName("ModelControllerConnectionPixelSetColorOrder") != nullptr) {
-            if (!node->HasAttribute("colorOrder")) {
+            if (!IsCtrlPropertySet(CtrlProps::COLOR_ORDER_ACTIVE)) {
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetColorOrder")->SetExpanded(false);
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetColorOrder.ModelControllerConnectionPixelColorOrder")->Enable(false);
             } else {
@@ -1397,7 +1366,7 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid)
         }
 
         if (grid->GetPropertyByName("ModelControllerConnectionPixelSetDirection") != nullptr) {
-            if (!node->HasAttribute("reverse")) {
+            if (!IsCtrlPropertySet(CtrlProps::REVERSE_ACTIVE)) {
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetDirection")->SetExpanded(false);
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetDirection.ModelControllerConnectionPixelDirection")->Enable(false);
             } else {
@@ -1407,7 +1376,7 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid)
         }
 
         if (grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount") != nullptr) {
-            if (!node->HasAttribute("groupCount")) {
+            if (!IsCtrlPropertySet(CtrlProps::GROUP_COUNT_ACTIVE)) {
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount")->SetExpanded(false);
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount.ModelControllerConnectionPixelGroupCount")->Enable(false);
             } else {
@@ -1417,7 +1386,7 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid)
         }
 
         if (grid->GetPropertyByName("ModelControllerConnectionPixelSetZigZag") != nullptr) {
-            if (!node->HasAttribute("zigZag")) {
+            if (!IsCtrlPropertySet(CtrlProps::ZIG_ZAG_ACTIVE)) {
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetZigZag")->SetExpanded(false);
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetZigZag.ModelControllerConnectionPixelZigZag")->Enable(false);
             } else {
@@ -1427,14 +1396,14 @@ void Model::UpdateControllerProperties(wxPropertyGridInterface* grid)
         }
 
         if (grid->GetPropertyByName("ModelControllerConnectionPixelSetTs") != nullptr) {
-            if (!node->HasAttribute("ts")) {
+            if (!IsCtrlPropertySet(CtrlProps::TS_ACTIVE)) {
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetTs")->SetExpanded(false);
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetTs.ModelControllerConnectionPixelTs")->Enable(false);
             } else {
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetTs")->SetExpanded(true);
                 grid->GetPropertyByName("ModelControllerConnectionPixelSetTs.ModelControllerConnectionPixelTs")->Enable();
             }
-        }*/
+        }
     }
     grid->RefreshGrid();
 }
@@ -1480,40 +1449,30 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
 
     if (event.GetPropertyName() == "ModelPixelSize") {
         pixelSize = event.GetValue().GetLong();
-        ModelXml->DeleteAttribute("PixelSize");
-        ModelXml->AddAttribute("PixelSize", wxString::Format(wxT("%i"), pixelSize));
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelPixelSize");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::OnPropertyGridChange::ModelPixelSize");
         IncrementChangeCount();
         return 0;
     } else if (event.GetPropertyName() == "ModelPixelStyle") {
         _pixelStyle = (PIXEL_STYLE)event.GetValue().GetLong();
-        ModelXml->DeleteAttribute("Antialias");
-        ModelXml->AddAttribute("Antialias", wxString::Format(wxT("%i"), (int)_pixelStyle));
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelPixelStyle");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::OnPropertyGridChange::ModelPixelStyle");
         return 0;
     } else if (event.GetPropertyName() == "ModelPixelTransparency") {
         transparency = event.GetValue().GetLong();
-        ModelXml->DeleteAttribute("Transparency");
-        ModelXml->AddAttribute("Transparency", wxString::Format(wxT("%i"), transparency));
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelPixelTransparency");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::OnPropertyGridChange::ModelPixelTransparency");
         return 0;
     } else if (event.GetPropertyName() == "ModelPixelBlackTransparency") {
         blackTransparency = event.GetValue().GetLong();
-        ModelXml->DeleteAttribute("BlackTransparency");
-        ModelXml->AddAttribute("BlackTransparency", wxString::Format(wxT("%i"), blackTransparency));
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelPixelBlackTransparency");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::OnPropertyGridChange::ModelPixelBlackTransparency");
         return 0;
     } else if (event.GetPropertyName() == "LowDefinition") {
         _lowDefFactor = event.GetValue().GetLong();
-        ModelXml->DeleteAttribute("LowDefinition");
-        ModelXml->AddAttribute("LowDefinition", wxString::Format(wxT("%i"), _lowDefFactor));
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::LowDefinition");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MatrixModel::OnPropertyGridChange::LowDefinition");
@@ -1542,7 +1501,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         }
         SetModelChain(modelChain);
         if (modelChain != "") {
-            ModelXml->DeleteAttribute("Advanced");
+            hasIndiv = false;
             AdjustStringProperties(grid, parm1);
             if (grid->GetPropertyByName("ModelStartChannel") != nullptr) {
                 grid->GetPropertyByName("ModelStartChannel")->SetValue(ModelStartChannel);
@@ -1594,7 +1553,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
                 grid->GetPropertyByName("ModelIndividualStartChannels")->Enable();
             }
         } else {
-            ModelXml->DeleteAttribute("Advanced");
+            hasIndiv = false;
             AdjustStringProperties(grid, parm1);
             if (grid->GetPropertyByName("ModelStartChannel") != nullptr) {
                 grid->GetPropertyByName("ModelStartChannel")->SetValue(ModelStartChannel);
@@ -1752,14 +1711,14 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         SetControllerDMXChannel((int)event.GetValue().GetLong());
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetBrightness") {
-        GetControllerConnection()->DeleteAttribute("brightness");
         wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
         grid->EnableProperty(prop, event.GetValue().GetBool());
         if (event.GetValue().GetBool()) {
-            GetControllerConnection()->AddAttribute("brightness", "100");
-            prop->SetValueFromInt(100);
+            SetControllerProperty(CtrlProps::BRIGHTNESS_ACTIVE);
+            prop->SetValueFromInt(GetControllerBrightness());
             grid->Expand(event.GetProperty());
         } else {
+            ClearControllerProperty(CtrlProps::BRIGHTNESS_ACTIVE);
             grid->Collapse(event.GetProperty());
         }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetBrightness");
@@ -1768,25 +1727,22 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetBrightness");
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetBrightness.ModelControllerConnectionPixelBrightness") {
-        GetControllerConnection()->DeleteAttribute("brightness");
-        if (event.GetValue().GetLong() > 0) {
-            GetControllerConnection()->AddAttribute("brightness", wxString::Format("%i", (int)event.GetValue().GetLong()));
-        }
+        SetControllerBrightness((int)event.GetValue().GetLong());
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelBrightness");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelControllerConnectionPixelBrightness");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelControllerConnectionBrightness");
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionBrightness");
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetGamma") {
-        GetControllerConnection()->DeleteAttribute("gamma");
         wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
         grid->EnableProperty(prop, event.GetValue().GetBool());
         if (event.GetValue().GetBool()) {
-            GetControllerConnection()->AddAttribute("gamma", "1.0");
-            prop->SetValue(1.0f);
+            SetControllerProperty(CtrlProps::GAMMA_ACTIVE);
+            prop->SetValue(GetControllerGamma());
             grid->Expand(event.GetProperty());
         } else {
-            grid->Collapse(event.GetProperty());
+           ClearControllerProperty(CtrlProps::GAMMA_ACTIVE);
+           grid->Collapse(event.GetProperty());
         }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetGamma");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetGamma");
@@ -1794,22 +1750,21 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetGamma");
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetGamma.ModelControllerConnectionPixelGamma") {
-        GetControllerConnection()->DeleteAttribute("gamma");
-        GetControllerConnection()->AddAttribute("gamma", wxString::Format("%g", (float)event.GetValue().GetDouble()));
+        SetControllerGamma((float)event.GetValue().GetDouble());
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelGamma");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelControllerConnectionPixelGamma");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelControllerConnectionPixelGamma");
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelGamma");
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetDirection") {
-        GetControllerConnection()->DeleteAttribute("reverse");
         wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
         grid->EnableProperty(prop, event.GetValue().GetBool());
         if (event.GetValue().GetBool()) {
-            GetControllerConnection()->AddAttribute("reverse", "0");
-            prop->SetValueFromInt(0);
+            SetControllerProperty(CtrlProps::REVERSE_ACTIVE);
+            prop->SetValueFromInt(GetControllerReverse());
             grid->Expand(event.GetProperty());
         } else {
+            ClearControllerProperty(CtrlProps::REVERSE_ACTIVE);
             grid->Collapse(event.GetProperty());
         }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetDirection");
@@ -1818,24 +1773,21 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetDirection");
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetDirection.ModelControllerConnectionPixelDirection") {
-        GetControllerConnection()->DeleteAttribute("reverse");
-        if (event.GetValue().GetLong() > 0) {
-            GetControllerConnection()->AddAttribute("reverse", wxString::Format("%i", (int)event.GetValue().GetLong()));
-        }
+        SetControllerReverse((int)event.GetValue().GetLong());
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelDirection");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelControllerConnectionPixelDirection");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelControllerConnectionPixelDirection");
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelDirection");
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetColorOrder") {
-        GetControllerConnection()->DeleteAttribute("colorOrder");
         wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
         grid->EnableProperty(prop, event.GetValue().GetBool());
         if (event.GetValue().GetBool()) {
-            GetControllerConnection()->AddAttribute("colorOrder", "RGB");
-            prop->SetValueFromString("RGB");
+            SetControllerProperty(CtrlProps::COLOR_ORDER_ACTIVE);
+            prop->SetValueFromString(GetControllerColorOrder());
             grid->Expand(event.GetProperty());
         } else {
+            ClearControllerProperty(CtrlProps::COLOR_ORDER_ACTIVE);
             grid->Collapse(event.GetProperty());
         }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetColorOrder");
@@ -1844,8 +1796,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetColorOrder");
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetColorOrder.ModelControllerConnectionPixelColorOrder") {
-        GetControllerConnection()->DeleteAttribute("colorOrder");
-        GetControllerConnection()->AddAttribute("colorOrder", CONTROLLER_COLORORDER[event.GetValue().GetLong()]);
+        SetControllerColorOrder(CONTROLLER_COLORORDER[event.GetValue().GetLong()]);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelColorOrder");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelControllerConnectionPixelColorOrder");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelControllerConnectionPixelColorOrder");
@@ -1855,11 +1806,11 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
         grid->EnableProperty(prop, event.GetValue().GetBool());
         if (event.GetValue().GetBool()) {
-            SetControllerStartNulls(1);
-            prop->SetValueFromInt(1);
+            SetControllerProperty(CtrlProps::START_NULLS_ACTIVE);
+            prop->SetValueFromInt(GetControllerStartNulls());
             grid->Expand(event.GetProperty());
         } else {
-            SetControllerStartNulls(0);
+            ClearControllerProperty(CtrlProps::START_NULLS_ACTIVE);
             grid->Collapse(event.GetProperty());
         }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetNullNodes");
@@ -1868,14 +1819,14 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetNullNodes");
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetEndNullNodes") {
-        GetControllerConnection()->DeleteAttribute("endNullNodes");
         wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
         grid->EnableProperty(prop, event.GetValue().GetBool());
         if (event.GetValue().GetBool()) {
-            GetControllerConnection()->AddAttribute("endNullNodes", "0");
-            prop->SetValueFromInt(0);
+            SetControllerProperty(CtrlProps::END_NULLS_ACTIVE);
+            prop->SetValueFromInt(GetControllerEndNulls());
             grid->Expand(event.GetProperty());
         } else {
+            ClearControllerProperty(CtrlProps::END_NULLS_ACTIVE);
             grid->Collapse(event.GetProperty());
         }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetEndNullNodes");
@@ -1884,33 +1835,28 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetEndNullNodes");
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetNullNodes.ModelControllerConnectionPixelNullNodes") {
-        if (event.GetValue().GetLong() >= 0) {
-            SetControllerStartNulls((int)event.GetValue().GetLong());
-        }
+        SetControllerStartNulls((int)event.GetValue().GetLong());
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelNullNodes");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelControllerConnectionPixelNullNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelControllerConnectionPixelNullNodes");
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelNullNodes");
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetEndNullNodes.ModelControllerConnectionPixelEndNullNodes") {
-        GetControllerConnection()->DeleteAttribute("endNullNodes");
-        if (event.GetValue().GetLong() >= 0) {
-            GetControllerConnection()->AddAttribute("endNullNodes", wxString::Format("%i", (int)event.GetValue().GetLong()));
-        }
+        SetControllerEndNulls((int)event.GetValue().GetLong());
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelEndNullNodes");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelControllerConnectionPixelEndNullNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelControllerConnectionPixelEndNullNodes");
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelEndNullNodes");
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetGroupCount") {
-        GetControllerConnection()->DeleteAttribute("groupCount");
         wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
         grid->EnableProperty(prop, event.GetValue().GetBool());
         if (event.GetValue().GetBool()) {
-            GetControllerConnection()->AddAttribute("groupCount", "1");
-            prop->SetValueFromInt(1);
+            SetControllerProperty(CtrlProps::GROUP_COUNT_ACTIVE);
+            prop->SetValueFromInt(GetControllerGroupCount());
             grid->Expand(event.GetProperty());
         } else {
+            ClearControllerProperty(CtrlProps::GROUP_COUNT_ACTIVE);
             grid->Collapse(event.GetProperty());
         }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetGroupCount");
@@ -1919,24 +1865,21 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetGroupCount");
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetGroupCount.ModelControllerConnectionPixelGroupCount") {
-        GetControllerConnection()->DeleteAttribute("groupCount");
-        if (event.GetValue().GetLong() >= 0) {
-            GetControllerConnection()->AddAttribute("groupCount", wxString::Format("%i", (int)event.GetValue().GetLong()));
-        }
+        SetControllerGroupCount((int)event.GetValue().GetLong());
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelGroupCount");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelControllerConnectionPixelGroupCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelControllerConnectionPixelGroupCount");
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelGroupCount");
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetZigZag") {
-        GetControllerConnection()->DeleteAttribute("zigZag");
         wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
         grid->EnableProperty(prop, event.GetValue().GetBool());
         if (event.GetValue().GetBool()) {
-            GetControllerConnection()->AddAttribute("zigZag", "0");
-            prop->SetValueFromInt(0);
+            SetControllerProperty(CtrlProps::ZIG_ZAG_ACTIVE);
+            prop->SetValueFromInt(GetControllerZigZag());
             grid->Expand(event.GetProperty());
         } else {
+            ClearControllerProperty(CtrlProps::ZIG_ZAG_ACTIVE);
             grid->Collapse(event.GetProperty());
         }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetZigZag");
@@ -1945,24 +1888,21 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetZigZag");
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetZigZag.ModelControllerConnectionPixelZigZag") {
-        GetControllerConnection()->DeleteAttribute("zigZag");
-        if (event.GetValue().GetLong() >= 0) {
-            GetControllerConnection()->AddAttribute("zigZag", wxString::Format("%i", (int)event.GetValue().GetLong()));
-        }
+        SetControllerZigZag((int)event.GetValue().GetLong());
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelZigZag");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelControllerConnectionPixelZigZag");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelControllerConnectionPixelZigZag");
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelZigZag");
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetTs") {
-        GetControllerConnection()->DeleteAttribute("ts");
         wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
         grid->EnableProperty(prop, event.GetValue().GetBool());
         if (event.GetValue().GetBool()) {
-            GetControllerConnection()->AddAttribute("ts", "0");
-            prop->SetValueFromInt(0);
+            SetControllerProperty(CtrlProps::TS_ACTIVE);
+            prop->SetValueFromInt(GetSmartTs());
             grid->Expand(event.GetProperty());
         } else {
+            ClearControllerProperty(CtrlProps::TS_ACTIVE);
             grid->Collapse(event.GetProperty());
         }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetTs");
@@ -1971,10 +1911,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetTs");
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetTs.ModelControllerConnectionPixelTs") {
-        GetControllerConnection()->DeleteAttribute("ts");
-        if (event.GetValue().GetLong() >= 0) {
-            GetControllerConnection()->AddAttribute("ts", wxString::Format("%i", (int)event.GetValue().GetLong()));
-        }
+        SetSmartRemoteTs((int)event.GetValue().GetLong());
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelTs");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelControllerConnectionPixelTs");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelControllerConnectionPixelTs");

@@ -1358,19 +1358,32 @@ private:
         for (wxXmlNode* p = node->GetChildren(); p != nullptr; p = p->GetNext()) {
             if (p->GetName() == "ControllerConnection") {
                 ControllerConnection& cc = model->GetCtrlConn();
-                cc.SetName(p->GetAttribute(XmlNodeKeys::ControllerAttribute, "").Trim(true).Trim(false).ToStdString());
-                cc.SetProtocol(p->GetAttribute(XmlNodeKeys::ProtocolAttribute, "").ToStdString());
-                cc.SetSerialProtocolSpeed(std::stoi(p->GetAttribute(XmlNodeKeys::ProtocolSpeedAttribute, "250000").ToStdString()));
-                cc.SetPort(std::stoi(p->GetAttribute(XmlNodeKeys::PortAttribute, "0").ToStdString()));
-                cc.SetBrightness(std::stoi(p->GetAttribute(XmlNodeKeys::BrightnessAttribute, "100").ToStdString()));
-                cc.SetStartNulls(std::stoi(p->GetAttribute(XmlNodeKeys::StartNullAttribute, "0").ToStdString()));
-                cc.SetEndNulls(std::stoi(p->GetAttribute(XmlNodeKeys::EndNullAttribute, "0").ToStdString()));
-                cc.SetColorOrder(p->GetAttribute(XmlNodeKeys::ColorOrderAttribute, "RGB").ToStdString());
-                cc.SetGroupCount(std::stoi(p->GetAttribute(XmlNodeKeys::GroupCountAttribute, "1").ToStdString()));
-                cc.SetGamma(std::stof(p->GetAttribute(XmlNodeKeys::GammaAttribute, "1.0").ToStdString()));
-                cc.SetReverse(std::stoi(p->GetAttribute(XmlNodeKeys::CReverseAttribute, "0").ToStdString()));
-                cc.SetZigZag(std::stoi(p->GetAttribute(XmlNodeKeys::CZigZagAttribute, "0").ToStdString()));
+                cc.SetName(p->GetAttribute(XmlNodeKeys::ControllerAttribute, xlEMPTY_STRING).Trim(true).Trim(false).ToStdString());
+                cc.SetProtocol(p->GetAttribute(XmlNodeKeys::ProtocolAttribute, xlEMPTY_STRING).ToStdString());
+                cc.SetSerialProtocolSpeed(std::stoi(p->GetAttribute(XmlNodeKeys::ProtocolSpeedAttribute, std::to_string(CtrlDefs::DEFAULT_PROTOCOL_SPEED)).ToStdString()));
+                cc.SetPort(std::stoi(p->GetAttribute(XmlNodeKeys::PortAttribute, std::to_string(CtrlDefs::DEFAULT_PORT)).ToStdString()));
+                cc.SetBrightness(std::stoi(p->GetAttribute(XmlNodeKeys::BrightnessAttribute, std::to_string(CtrlDefs::DEFAULT_BRIGHTNESS)).ToStdString()));
+                cc.SetStartNulls(std::stoi(p->GetAttribute(XmlNodeKeys::StartNullAttribute, std::to_string(CtrlDefs::DEFAULT_NULLS)).ToStdString()));
+                cc.SetEndNulls(std::stoi(p->GetAttribute(XmlNodeKeys::EndNullAttribute, std::to_string(CtrlDefs::DEFAULT_NULLS)).ToStdString()));
+                cc.SetColorOrder(p->GetAttribute(XmlNodeKeys::ColorOrderAttribute, CtrlDefs::DEFAULT_COLOR_ORDER).ToStdString());
+                cc.SetGroupCount(std::stoi(p->GetAttribute(XmlNodeKeys::GroupCountAttribute, std::to_string(CtrlDefs::DEFAULT_GROUP_COUNT)).ToStdString()));
+                cc.SetGamma(std::stof(p->GetAttribute(XmlNodeKeys::GammaAttribute, std::to_string(CtrlDefs::DEFAULT_GAMMA)).ToStdString()));
+                cc.SetReverse(std::stoi(p->GetAttribute(XmlNodeKeys::CReverseAttribute, std::to_string(CtrlDefs::DEFAULT_REVERSE)).ToStdString()));
+                cc.SetZigZag(std::stoi(p->GetAttribute(XmlNodeKeys::CZigZagAttribute, std::to_string(CtrlDefs::DEFAULT_ZIGZAG)).ToStdString()));
                 
+                // Set all the property checkbox active states
+                cc.UpdateProperty(CtrlProps::USE_SMART_REMOTE,   p->HasAttribute(XmlNodeKeys::SmartRemoteAttribute));
+                cc.UpdateProperty(CtrlProps::START_NULLS_ACTIVE, p->HasAttribute(XmlNodeKeys::StartNullAttribute));
+                cc.UpdateProperty(CtrlProps::END_NULLS_ACTIVE,   p->HasAttribute(XmlNodeKeys::EndNullAttribute));
+                cc.UpdateProperty(CtrlProps::BRIGHTNESS_ACTIVE,  p->HasAttribute(XmlNodeKeys::BrightnessAttribute));
+                cc.UpdateProperty(CtrlProps::GAMMA_ACTIVE,       p->HasAttribute(XmlNodeKeys::GammaAttribute));
+                cc.UpdateProperty(CtrlProps::COLOR_ORDER_ACTIVE, p->HasAttribute(XmlNodeKeys::ColorOrderAttribute));
+                cc.UpdateProperty(CtrlProps::REVERSE_ACTIVE,     p->HasAttribute(XmlNodeKeys::CReverseAttribute));
+                cc.UpdateProperty(CtrlProps::GROUP_COUNT_ACTIVE, p->HasAttribute(XmlNodeKeys::GroupCountAttribute));
+                cc.UpdateProperty(CtrlProps::ZIG_ZAG_ACTIVE,     p->HasAttribute(XmlNodeKeys::CZigZagAttribute));
+                cc.UpdateProperty(CtrlProps::TS_ACTIVE,          p->HasAttribute(XmlNodeKeys::SmartRemoteTsAttribute));
+
+                // Set all the Smart Remote values
                 cc.SetSmartRemote(std::stoi(p->GetAttribute(XmlNodeKeys::SmartRemoteAttribute, "0").ToStdString()));
                 cc.SetSRMaxCascade(std::stoi(p->GetAttribute(XmlNodeKeys::SRMaxCascadeAttribute, "1").ToStdString()));
                 cc.SetSRCascadeOnPort(p->GetAttribute(XmlNodeKeys::SRCascadeOnPortAttribute, "FALSE").ToStdString() == "TRUE");

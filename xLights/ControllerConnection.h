@@ -13,11 +13,41 @@
 
 class Model;
 
+namespace CONTROLLER_CONNECTION_DEFAULTS {
+
+constexpr int DEFAULT_PROTOCOL_SPEED = 25000;
+constexpr int DEFAULT_PORT = 0;
+constexpr int DEFAULT_NULLS = 0;
+constexpr int DEFAULT_BRIGHTNESS = 100;
+constexpr int DEFAULT_GROUP_COUNT = 0;
+constexpr int DEFAULT_REVERSE = 0;
+constexpr int DEFAULT_ZIGZAG = 0;
+constexpr float DEFAULT_GAMMA = 1.0f;
+constexpr std::string DEFAULT_COLOR_ORDER = "RGB";
+
+} // end namespace CTRL_CONN
+
+#define CtrlProps ControllerConnection::CTRL_PROPS
+#define CtrlDefs CONTROLLER_CONNECTION_DEFAULTS
+
 class ControllerConnection
 {
 public:
     ControllerConnection(Model* model);
     virtual ~ControllerConnection();
+
+    enum CTRL_PROPS {
+        USE_SMART_REMOTE,
+        START_NULLS_ACTIVE,
+        END_NULLS_ACTIVE,
+        BRIGHTNESS_ACTIVE,
+        GAMMA_ACTIVE,
+        COLOR_ORDER_ACTIVE,
+        REVERSE_ACTIVE,
+        GROUP_COUNT_ACTIVE,
+        ZIG_ZAG_ACTIVE,
+        TS_ACTIVE
+    };
 
     [[nodiscard]] std::string GetName() const { return _name; }
     [[nodiscard]] std::string GetProtocol() const { return _protocol; }
@@ -34,13 +64,17 @@ public:
     [[nodiscard]] int GetDMXChannel() const { return _dmxChannel; }
 
     [[nodiscard]] bool IsValid() const;
-    [[nodiscard]] bool IsBrightnessSet() const { return _brightnessIsSet; }
     [[nodiscard]] bool IsPixelProtocol() const;
     [[nodiscard]] bool IsSerialProtocol() const;
     [[nodiscard]] bool IsMatrixProtocol() const;
     [[nodiscard]] bool IsLEDPanelMatrixProtocol() const;
     [[nodiscard]] bool IsVirtualMatrixProtocol() const;
     [[nodiscard]] bool IsPWMProtocol() const;
+    [[nodiscard]] bool IsPropertySet(enum CTRL_PROPS prop) { return active_props[prop]; }
+
+    void SetProperty(enum CTRL_PROPS prop) { active_props[prop] = true; }
+    void ClearProperty(enum CTRL_PROPS prop) { active_props[prop] = false; }
+    void UpdateProperty(enum CTRL_PROPS prop, bool value) { value ? active_props[prop] = true : active_props[prop] = false; }
 
     void SetName(std::string const& controller);
     void SetProtocol(std::string const& protocol);
@@ -55,7 +89,6 @@ public:
     void SetReverse(int reverse);
     void SetZigZag(int zigzag);
     void SetDMXChannel(int ch);
-    void ClearBrightness();
     bool Rename(const std::string& oldName, const std::string& newName);
 
     // Smart Remote Functions
@@ -82,16 +115,16 @@ public:
 private:
     std::string _name {""};
     std::string _protocol {""};
-    int _protocolSpeed {25000};
-    int _port {0};
-    int _brightness {100};
-    int _startNulls {0};
-    int _endNulls {0};
-    std::string _colorOrder {"RGB"};
-    int _groupCount {0};
-    float _gamma {1.0};
-    int _reverse {0};
-    int _zigzag {0};
+    int _protocolSpeed {CtrlDefs::DEFAULT_PROTOCOL_SPEED};
+    int _port {CtrlDefs::DEFAULT_PORT};
+    int _brightness {CtrlDefs::DEFAULT_BRIGHTNESS};
+    int _startNulls {CtrlDefs::DEFAULT_NULLS};
+    int _endNulls {CtrlDefs::DEFAULT_NULLS};
+    std::string _colorOrder {CtrlDefs::DEFAULT_COLOR_ORDER};
+    int _groupCount {CtrlDefs::DEFAULT_GROUP_COUNT};
+    float _gamma {CtrlDefs::DEFAULT_GAMMA};
+    int _reverse {CtrlDefs::DEFAULT_REVERSE};
+    int _zigzag {CtrlDefs::DEFAULT_ZIGZAG};
     int _dmxChannel {0};
     bool _brightnessIsSet {false};
 
@@ -100,6 +133,19 @@ private:
     int _smartRemoteMaxCascade {1};
     int _smartRemoteTs {0};
     std::string _smartRemoteType {""};
+    
+    std::map<int, bool> active_props = {
+        { USE_SMART_REMOTE,   false },
+        { START_NULLS_ACTIVE, false },
+        { END_NULLS_ACTIVE,   false },
+        { BRIGHTNESS_ACTIVE,  false },
+        { GAMMA_ACTIVE,       false },
+        { COLOR_ORDER_ACTIVE, false },
+        { REVERSE_ACTIVE,     false },
+        { GROUP_COUNT_ACTIVE, false },
+        { ZIG_ZAG_ACTIVE,     false },
+        { TS_ACTIVE,          false }
+    };  // tracks the active status of the controller connection properties
 
     Model* _model;
 };
