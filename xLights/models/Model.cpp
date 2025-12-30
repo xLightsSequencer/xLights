@@ -506,7 +506,7 @@ void Model::SetStartChannel(std::string const& startChannel)
 void Model::SetProperty(wxString const& property, wxString const& value, bool apply)
 {
     // TODO:  Need to get rid of all these calls
-    wxASSERT(FALSE);
+    wxASSERT(false);
     if (ModelXml->HasAttribute(property)) {
         ModelXml->DeleteAttribute(property);
         ModelXml->AddAttribute(property, value);
@@ -5906,7 +5906,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
 
 Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int&depthmm)
 {
-    wxASSERT(FALSE);  // TODO: Are we keeping this?
+    wxASSERT(false);  // TODO: Are we keeping this?
     wxXmlDocument doc;
     bool docLoaded = false;
     if (last_model.empty()) {

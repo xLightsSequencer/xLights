@@ -828,7 +828,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
     }
 
     void AddControllerConnection(wxXmlNode* node, const Model* m) {
-        auto cc = m->GetConstCtrlConn();
+        auto const& cc = m->GetConstCtrlConn();
         int p = cc.GetPort();
         if (p != 0) {
             wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::CtrlConnectionName);
@@ -1375,7 +1375,7 @@ private:
     void DeserializeControllerConnection(Model* model, wxXmlNode* node) {
         for (wxXmlNode* p = node->GetChildren(); p != nullptr; p = p->GetNext()) {
             if (p->GetName() == "ControllerConnection") {
-                auto cc = model->GetCtrlConn();
+                auto& cc = model->GetCtrlConn();
                 cc.SetName(p->GetAttribute(XmlNodeKeys::ControllerAttribute, xlEMPTY_STRING).Trim(true).Trim(false).ToStdString());
                 cc.SetProtocol(p->GetAttribute(XmlNodeKeys::ProtocolAttribute, xlEMPTY_STRING).ToStdString());
                 cc.SetSerialProtocolSpeed(std::stoi(p->GetAttribute(XmlNodeKeys::ProtocolSpeedAttribute, std::to_string(CtrlDefs::DEFAULT_PROTOCOL_SPEED)).ToStdString()));

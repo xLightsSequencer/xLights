@@ -74,7 +74,7 @@ public:
     void SetProperty(enum CTRL_PROPS prop) { active_props[prop] = true; }
     void ClearProperty(enum CTRL_PROPS prop) { active_props[prop] = false; }
     void UpdateProperty(enum CTRL_PROPS prop, bool value) { value ? active_props[prop] = true : active_props[prop] = false; }
-    [[nodiscard]] bool IsPropertySet(enum CTRL_PROPS prop) { return active_props[prop]; }
+    [[nodiscard]] bool IsPropertySet(enum CTRL_PROPS prop) const { return active_props.at(prop); }
 
     void SetName(std::string const& controller);
     void SetProtocol(std::string const& protocol);
