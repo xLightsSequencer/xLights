@@ -832,19 +832,37 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         int p = cc.GetPort();
         if (p != 0) {
             wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::CtrlConnectionName);
-            // TODO: make sure this matches the deserialize steps
+            xmlNode->AddAttribute(XmlNodeKeys::ControllerAttribute, m->GetControllerName());
             xmlNode->AddAttribute(XmlNodeKeys::ProtocolAttribute, m->GetControllerProtocol());
+            xmlNode->AddAttribute(XmlNodeKeys::ProtocolAttribute, std::to_string(m->GetControllerProtocolSpeed()));
             xmlNode->AddAttribute(XmlNodeKeys::PortAttribute, std::to_string(m->GetControllerPort()));
+            xmlNode->AddAttribute(XmlNodeKeys::BrightnessAttribute, std::to_string(m->GetControllerBrightness()));
             xmlNode->AddAttribute(XmlNodeKeys::StartNullAttribute, std::to_string(m->GetControllerStartNulls()));
             xmlNode->AddAttribute(XmlNodeKeys::EndNullAttribute, std::to_string(m->GetControllerEndNulls()));
-            xmlNode->AddAttribute(XmlNodeKeys::BrightnessAttribute, std::to_string(m->GetControllerBrightness()));
-            xmlNode->AddAttribute(XmlNodeKeys::GammaAttribute, std::to_string(m->GetControllerGamma()));
             xmlNode->AddAttribute(XmlNodeKeys::ColorOrderAttribute, m->GetControllerColorOrder());
+            xmlNode->AddAttribute(XmlNodeKeys::GroupCountAttribute, std::to_string(m->GetControllerGroupCount()));
+            xmlNode->AddAttribute(XmlNodeKeys::GammaAttribute, std::to_string(m->GetControllerGamma()));
             xmlNode->AddAttribute(XmlNodeKeys::CReverseAttribute, std::to_string(m->GetControllerReverse()));
             xmlNode->AddAttribute(XmlNodeKeys::CZigZagAttribute, std::to_string(m->GetControllerZigZag()));
-            xmlNode->AddAttribute(XmlNodeKeys::GroupCountAttribute, std::to_string(m->GetControllerGroupCount()));
+
+            // Save all the property checkbox active states
+            if (cc.IsPropertySet(CtrlProps::USE_SMART_REMOTE)) xmlNode->AddAttribute(XmlNodeKeys::SmartRemoteAttribute, std::to_string(cc.GetSmartRemote()));
+            if (cc.IsPropertySet(CtrlProps::START_NULLS_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::StartNullAttribute, std::to_string(cc.GetStartNulls()));
+            if (cc.IsPropertySet(CtrlProps::END_NULLS_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::EndNullAttribute, std::to_string(cc.GetEndNulls()));
+            if (cc.IsPropertySet(CtrlProps::BRIGHTNESS_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::BrightnessAttribute, std::to_string(cc.GetBrightness()));
+            if (cc.IsPropertySet(CtrlProps::GAMMA_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::GammaAttribute, std::to_string(cc.GetGamma()));
+            if (cc.IsPropertySet(CtrlProps::COLOR_ORDER_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::ColorOrderAttribute, cc.GetColorOrder());
+            if (cc.IsPropertySet(CtrlProps::REVERSE_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::CReverseAttribute, std::to_string(cc.GetReverse()));
+            if (cc.IsPropertySet(CtrlProps::GROUP_COUNT_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::GroupCountAttribute, std::to_string(cc.GetGroupCount()));
+            if (cc.IsPropertySet(CtrlProps::ZIG_ZAG_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::CZigZagAttribute, std::to_string(cc.GetZigZag()));
+            if (cc.IsPropertySet(CtrlProps::TS_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::SmartRemoteTsAttribute, std::to_string(cc.GetSmartTs()));
+
+            // Set all the Smart Remote values
+            xmlNode->AddAttribute(XmlNodeKeys::SRMaxCascadeAttribute, std::to_string(m->GetSRMaxCascade()));
+            xmlNode->AddAttribute(XmlNodeKeys::SRCascadeOnPortAttribute, std::to_string(m->GetSRMaxCascade()));
+            xmlNode->AddAttribute(XmlNodeKeys::SmartRemoteTsAttribute, std::to_string(m->GetSmartTs()));
             xmlNode->AddAttribute(XmlNodeKeys::SmartRemoteTypeAttribute, m->GetSmartRemoteType());
-            xmlNode->AddAttribute(XmlNodeKeys::SmartRemoteAttribute, std::to_string(m->GetSmartRemote()));
+
             node->AddChild(xmlNode);
         }
     }
@@ -1357,7 +1375,7 @@ private:
     void DeserializeControllerConnection(Model* model, wxXmlNode* node) {
         for (wxXmlNode* p = node->GetChildren(); p != nullptr; p = p->GetNext()) {
             if (p->GetName() == "ControllerConnection") {
-                ControllerConnection& cc = model->GetCtrlConn();
+                auto cc = model->GetCtrlConn();
                 cc.SetName(p->GetAttribute(XmlNodeKeys::ControllerAttribute, xlEMPTY_STRING).Trim(true).Trim(false).ToStdString());
                 cc.SetProtocol(p->GetAttribute(XmlNodeKeys::ProtocolAttribute, xlEMPTY_STRING).ToStdString());
                 cc.SetSerialProtocolSpeed(std::stoi(p->GetAttribute(XmlNodeKeys::ProtocolSpeedAttribute, std::to_string(CtrlDefs::DEFAULT_PROTOCOL_SPEED)).ToStdString()));

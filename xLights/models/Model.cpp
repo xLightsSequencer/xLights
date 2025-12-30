@@ -478,11 +478,8 @@ wxArrayString Model::GetLayoutGroups(const ModelManager& mm)
 
 void Model::Rename(std::string const& newName)
 {
-    auto oldname = ModelXml->GetAttribute("name", "");
-
+    auto oldname = GetName();
     name = Trim(newName);
-    ModelXml->DeleteAttribute("name");
-    ModelXml->AddAttribute("name", name);
     bool shouldPrompt = modelManager.GetXLightsFrame()->GetRenameModelAliasPromptBehavior() == "Always Prompt" &&
         oldname != modelManager.GetLastGeneratedModelName() ;
     
@@ -508,6 +505,8 @@ void Model::SetStartChannel(std::string const& startChannel)
 
 void Model::SetProperty(wxString const& property, wxString const& value, bool apply)
 {
+    // TODO:  Need to get rid of all these calls
+    wxASSERT(FALSE);
     if (ModelXml->HasAttribute(property)) {
         ModelXml->DeleteAttribute(property);
         ModelXml->AddAttribute(property, value);
@@ -2109,16 +2108,12 @@ void Model::AdjustStringProperties(wxPropertyGridInterface* grid, int newNum)
                 if (sp != nullptr) {
                     grid->DeleteProperty(sp);
                 }
-                ModelXml->DeleteAttribute(nm);
+                indivStartChannels.pop_back();
             }
             while (count < newNum) {
                 wxString nm = StartChanAttrName(count);
-                std::string val = ModelXml->GetAttribute(nm).ToStdString();
-                if (val == "") {
-                    val = ComputeStringStartChannel(count);
-                    ModelXml->DeleteAttribute(nm);
-                    ModelXml->AddAttribute(nm, val);
-                }
+                std::string val = ComputeStringStartChannel(count);
+                SetIndividualStartChannel(count, val);
                 grid->AppendIn(p, new StartChannelProperty(this, count, nm, nm, val, modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
                 p->Enable(GetControllerName() == "" || _controller == 0);
                 count++;
@@ -2942,16 +2937,13 @@ void Model::ReplaceIPInStartChannels(const std::string& oldIP, const std::string
 
     size_t NumberOfStrings = HasOneString(DisplayAs) ? 1 : parm1;
     for (int i = 0; i < NumberOfStrings; ++i) {
-        auto tempstr = StartChanAttrName(i);
-        if (ModelXml->HasAttribute(tempstr)) {
-            wxString sc = ModelXml->GetAttribute(tempstr, "");
-            if (Contains(sc, oldIP)) {
-                sc.Replace(oldIP, newIP);
-                ModelXml->DeleteAttribute(tempstr);
-                ModelXml->AddAttribute(tempstr, sc);
-                changed = true;
-            }
+        wxString sc = indivStartChannels[i];
+        if (Contains(sc, oldIP)) {
+            sc.Replace(oldIP, newIP);
+            indivStartChannels[i] = sc;
+            changed = true;
         }
+
     }
     if (changed) {
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::ReplaceIPInStartChannels");
@@ -4113,12 +4105,7 @@ bool Model::HandleLayerSizePropertyChange(wxPropertyGridInterface* grid, wxPrope
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::HandleLayerSizePropertyChange::Layers");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::HandleLayerSizePropertyChange::Layers");
         IncrementChangeCount();
-
-        ModelXml->DeleteAttribute("LayerSizes");
-        ModelXml->AddAttribute("LayerSizes", SerialiseLayerSizes());
-
         OnLayerSizesChange(true);
-
         return true;
     } else if (event.GetPropertyName().StartsWith("Layers.Layer")) {
         int layer = wxAtoi(event.GetPropertyName().AfterLast('r'));
@@ -4128,12 +4115,7 @@ bool Model::HandleLayerSizePropertyChange(wxPropertyGridInterface* grid, wxPrope
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::HandleLayerSizePropertyChange::Layer");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::HandleLayerSizePropertyChange::Layer");
         IncrementChangeCount();
-
-        ModelXml->DeleteAttribute("LayerSizes");
-        ModelXml->AddAttribute("LayerSizes", SerialiseLayerSizes());
-
         OnLayerSizesChange(false);
-
         return true;
     }
     return false;
@@ -4185,8 +4167,6 @@ void Model::HandlePropertyGridContextMenu(wxCommandEvent& event)
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::HandlePropertyGridContextMenu::Delete");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::HandlePropertyGridContextMenu::Delete");
         IncrementChangeCount();
-        ModelXml->DeleteAttribute("LayerSizes");
-        ModelXml->AddAttribute("LayerSizes", SerialiseLayerSizes());
         OnLayerSizesChange(true);
     } else if (event.GetId() == ID_LAYERSIZE_INSERT) {
         InsertLayerSizeBefore(layerSizeMenu);
@@ -4196,8 +4176,6 @@ void Model::HandlePropertyGridContextMenu(wxCommandEvent& event)
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::HandlePropertyGridContextMenu::Insert");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::HandlePropertyGridContextMenu::Insert");
         IncrementChangeCount();
-        ModelXml->DeleteAttribute("LayerSizes");
-        ModelXml->AddAttribute("LayerSizes", SerialiseLayerSizes());
         OnLayerSizesChange(true);
     }
 }
@@ -5547,7 +5525,9 @@ std::string Model::GetDimension() const
 }
 
 void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) {
-    bool merge = false;
+    // TODO:  This function should be removed from all models once XmlSerializer is completed
+    wxASSERT(false);
+/*    bool merge = false;
     bool showPopup = true;
     importAliases = 0;
     for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext()) {
@@ -5564,7 +5544,7 @@ void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString
             if (n->HasAttribute("zigZag")) {
                 wxXmlNode* nn = GetControllerConnection();
                 if (nn->HasAttribute("zigZag")) {
-                    nn->DeleteAttribute("zigZag");
+                    nn->Delete Attribute("zigZag");
                 }
                 nn->AddAttribute("zigZag", n->GetAttribute("zigZag"));
             }
@@ -5584,7 +5564,7 @@ void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString
         } else if (n->GetName().Lower() == "associatedmodels") {
             ImportExtraModels(n, xlights, xlights->GetLayoutPreview(), GetLayoutGroup());
         }
-    }
+    }*/
 }
 
 Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, wxXmlNode* node, xLightsFrame* xlights, const std::string& startChannel, bool& cancelled) const {
@@ -5926,6 +5906,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
 
 Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int&depthmm)
 {
+    wxASSERT(FALSE);  // TODO: Are we keeping this?
     wxXmlDocument doc;
     bool docLoaded = false;
     if (last_model.empty()) {
@@ -6515,10 +6496,6 @@ void Model::SetPixelSize(int size)
 {
     if (size != pixelSize) {
         pixelSize = size;
-        if( DeleteXmlLater() ) {
-            ModelXml->DeleteAttribute("PixelSize");
-            ModelXml->AddAttribute("PixelSize", wxString::Format(wxT("%i"), pixelSize));
-        }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetPixelSize");
     }
@@ -6528,10 +6505,6 @@ void Model::SetTransparency(int t)
 {
     if (t != transparency) {
         transparency = t;
-        if( DeleteXmlLater() ) {
-            ModelXml->DeleteAttribute("Transparency");
-            ModelXml->AddAttribute("Transparency", wxString::Format(wxT("%i"), transparency));
-        }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetTransparency");
     }
@@ -6541,10 +6514,6 @@ void Model::SetBlackTransparency(int t)
 {
     if (t != blackTransparency) {
         blackTransparency = t;
-        if( DeleteXmlLater() ) {
-            ModelXml->DeleteAttribute("BlackTransparency");
-            ModelXml->AddAttribute("BlackTransparency", wxString::Format(wxT("%i"), blackTransparency));
-        }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetBlackTransparency");
     }
@@ -6554,10 +6523,6 @@ void Model::SetPixelStyle(PIXEL_STYLE style)
 {
     if (_pixelStyle != style) {
         _pixelStyle = style;
-        if( DeleteXmlLater() ) {
-            ModelXml->DeleteAttribute("Antialias");
-            ModelXml->AddAttribute("Antialias", wxString::Format(wxT("%i"), (int)_pixelStyle));
-        }
     }
     IncrementChangeCount();
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetPixelStyle");
