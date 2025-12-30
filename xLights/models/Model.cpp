@@ -767,11 +767,8 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
             for (int x = 0; x < c; ++x) {
                 std::string nm = StartChanAttrName(x);
                 std::string val = ModelXml->GetAttribute(nm).ToStdString();
-                if (val == "") {
-                    val = ComputeStringStartChannel(x);
-                    ModelXml->DeleteAttribute(nm);
-                    ModelXml->AddAttribute(nm, val);
-                }
+                val = ComputeStringStartChannel(x);
+                SetIndividualStartChannel(x, val);
                 if (x == 0) {
                     sp->SetLabel(nm);
                     sp->SetValue(val);
@@ -1085,11 +1082,11 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
         if (smartRemoteCount != 0) {
             int sr = GetSmartRemote();
 
-            sp = grid->AppendIn(p, new wxBoolProperty("Use Smart Remote", "UseSmartRemote", sr));
+            sp = grid->AppendIn(p, new wxBoolProperty("Use Smart Remote", "UseSmartRemote", IsCtrlPropertySet(CtrlProps::USE_SMART_REMOTE)));
             sp->SetAttribute("UseCheckbox", true);
             p->SetHelpString("Enable Smart Remote for this Model.");
 
-            if (sr != 0) {
+            if (IsCtrlPropertySet(CtrlProps::USE_SMART_REMOTE)) {
                 if (GetSmartRemote() != 0) {
                     auto const& srTypes = GetSmartRemoteTypes();
                     if (srTypes.size() > 1) {
@@ -1636,8 +1633,10 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
     } else if (event.GetPropertyName() == "UseSmartRemote") {
         auto usr = event.GetValue().GetBool();
         if (!usr) {
+            ClearControllerProperty(CtrlProps::USE_SMART_REMOTE);
             SetSmartRemote(0);
         } else {
+            SetControllerProperty(CtrlProps::USE_SMART_REMOTE);
             SetSmartRemote(1);
         }
         return 0;
@@ -1932,10 +1931,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         return 0;
     } else if (event.GetPropertyName() == "Description") {
         description = event.GetValue().GetString();
-        ModelXml->DeleteAttribute("Description");
-        if (description != "") {
-            ModelXml->AddAttribute("Description", XmlSafe(description));
-        }
+        SetDescription(XmlSafe(description));
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::Description");
         return 0;
@@ -1986,8 +1982,6 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
     } else if (event.GetPropertyName() == "ModelStringColor" || event.GetPropertyName() == "ModelStringType" || event.GetPropertyName() == "ModelRGBWHandling") {
         wxPGProperty* p2 = grid->GetPropertyByName("ModelStringType");
         int i = p2->GetValue().GetLong();
-        ModelXml->DeleteAttribute("StringType");
-        ModelXml->DeleteAttribute("RGBWHandling");
         if (NODE_TYPES[i] == "Single Color" || NODE_TYPES[i] == "Single Color Intensity" || NODE_TYPES[i] == "Node Single Color") {
             wxPGProperty* p = grid->GetPropertyByName("ModelStringColor");
             xlColor c;
@@ -2003,18 +1997,17 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
             if (p != nullptr)
                 p->Enable();
             if (tp == "Single Color Custom" || tp == "Single Color Intensity" || tp == "Node Single Color") {
-                ModelXml->DeleteAttribute("CustomColor");
                 xlColor xc = c;
-                ModelXml->AddAttribute("CustomColor", xc);
+                SetCustomColor(xc);
             }
-            ModelXml->AddAttribute("StringType", tp);
+            SetStringType(tp);
         } else {
-            ModelXml->AddAttribute("StringType", NODE_TYPES[i]);
+            SetStringType(NODE_TYPES[i]);
             AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelStringType");
         }
-        if (GetNodeChannelCount(ModelXml->GetAttribute("StringType")) > 3) {
+        if (GetNodeChannelCount(GetStringType()) > 3) {
             p2 = grid->GetPropertyByName("ModelRGBWHandling");
-            ModelXml->AddAttribute("RGBWHandling", RGBW_HANDLING[p2->GetValue().GetLong()]);
+            SetRGBWHandling(RGBW_HANDLING[p2->GetValue().GetLong()]);
         }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::OnPropertyGridChange::ModelStringType");
@@ -2035,42 +2028,27 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
             event.GetProperty()->SetValue(val);
         }
 
-        ModelXml->DeleteAttribute("StartChannel");
-        ModelXml->AddAttribute("StartChannel", val);
+        SetStartChannel(val);
         SetControllerName("");
-        if (ModelXml->GetAttribute("Advanced") == "1") {
-            ModelXml->DeleteAttribute(StartChanAttrName(0));
-            ModelXml->AddAttribute(StartChanAttrName(0), val);
+        if (hasIndiv) {
+            SetIndividualStartChannel(0, val);
         }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelStartChannel");
-        // AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelStartChannel");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelStartChannel");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::OnPropertyGridChange::ModelStartChannel");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelStartChannel");
         return 0;
     } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
-        ModelXml->DeleteAttribute("Advanced");
         int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
         if (event.GetValue().GetBool()) {
-            ModelXml->AddAttribute("Advanced", "1");
+            hasIndiv = true;
             for (int x = 0; x < c; ++x) {
-                if (ModelXml->GetAttribute(StartChanAttrName(x)) == "") {
-                    ModelXml->DeleteAttribute(StartChanAttrName(x));
-                    ModelXml->AddAttribute(StartChanAttrName(x),
-                                           ComputeStringStartChannel(x));
-                }
+                SetIndividualStartChannel(x, ComputeStringStartChannel(x));
             }
         } else {
-            // overkill but just delete any that are there
-            for (int x = 0; x < MOST_STRINGS_WE_EXPECT; ++x) {
-                ModelXml->DeleteAttribute(StartChanAttrName(x));
-            }
-            wxASSERT(!ModelXml->HasAttribute(StartChanAttrName(MOST_STRINGS_WE_EXPECT)));
+            indivStartChannels.clear();
         }
-        // Not sure if i can just remove these
-        // RecalcStartChannels();
-        // AdjustStringProperties(grid, parm1);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelIndividualStartChannels");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelIndividualStartChannels");
@@ -2088,25 +2066,22 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
             event.GetProperty()->SetValue(val);
         }
 
-        ModelXml->DeleteAttribute(str);
+        //TODO:  Fix this when I have a model that supports indiv start channels
+       // SetIndividualStartChannel(, val);
         ModelXml->AddAttribute(str, val);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelIndividualStartChannels2");
-        // AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelIndividualStartChannels2");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelIndividualStartChannels2");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::OnPropertyGridChange::ModelIndividualStartChannels2");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelIndividualStartChannels2");
         return 0;
     } else if (event.GetPropertyName() == "ModelLayoutGroup") {
-        layout_group = LAYOUT_GROUPS[event.GetValue().GetLong()];
-        ModelXml->DeleteAttribute("LayoutGroup");
-        ModelXml->AddAttribute("LayoutGroup", layout_group);
+        SetLayoutGroup(LAYOUT_GROUPS[event.GetValue().GetLong()]);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelLayoutGroup");
         AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "Model::OnPropertyGridChange::ModelLayoutGroup");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelLayoutGroup");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::OnPropertyGridChange::ModelLayoutGroup");
-        // AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::OnPropertyGridChange::ModelLayoutGroup");
         return 0;
     }
 

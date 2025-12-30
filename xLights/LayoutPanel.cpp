@@ -3724,50 +3724,6 @@ void LayoutPanel::FinalizeModel()
                 return;
             }
 
-            // Models that support visitors don't use the ImportXlightsModel method
-            // If there are import issues we need to try to fix them inside the XmlSerializer
-            if (!_newModel->SupportsVisitors() || !XmlSerializer::IsXmlSerializerFormat(_newModel->GetModelXml())) {
-                xlights->AddTraceMessage("LayoutPanel::FinalizeModel Do the import. " + _lastXlightsModel);
-                xlights->AddTraceMessage("LayoutPanel::FinalizeModel Model type " + _newModel->GetDisplayAs());
-
-                // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-                if (RulerObject::GetRuler() != nullptr && (widthmm != -1 || heightmm != -1 || depthmm != -1)) {
-                    if (widthmm != -1) {
-                        float measure = RulerObject::GetRuler()->UnMeasure(RulerObject::GetRuler()->ConvertDimension("mm", widthmm));
-                        max_x = measure / 2.0;
-                        min_x = -1 * max_x;
-                    }
-                    if (heightmm != -1) {
-                        float measure = RulerObject::GetRuler()->UnMeasure(RulerObject::GetRuler()->ConvertDimension("mm", heightmm));
-                        max_y = measure / 2.0;
-                        min_y = -1 * max_y;
-                    }
-                    if (depthmm != -1) {
-                        float measure = RulerObject::GetRuler()->UnMeasure(RulerObject::GetRuler()->ConvertDimension("mm", depthmm));
-						max_z = measure / 2.0;
-						min_z = -1 * max_z;
-					}
-                }
-
-                bool success = _newModel->ImportXlightsModel(_lastXlightsModel, xlights, min_x, max_x, min_y, max_y, min_z, max_z);
-                if (!success) {
-                    _lastXlightsModel = "";
-                    xlights->GetOutputModelManager()->ClearSelectedModel();
-                    modelPreview->SetAdditionalModel(nullptr);
-                    if (_newModel != nullptr) {
-                        delete _newModel; // I am not sure this may cause issues ... but if we dont have it i think it leaks
-                        _newModel = nullptr;
-                    }
-                    modelPreview->SetCursor(wxCURSOR_DEFAULT);
-                    b->SetState(0);
-                    selectedButton = nullptr;
-                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "FinalizeModel");
-                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "FinalizeModel");
-                    return;
-                }
-                xlights->AddTraceMessage("LayoutPanel::FinalizeModel Import done.");
-            }
-
             if (_newModel->GetDisplayAs() == "Poly Line")
             {
                 _newModel->SetPosition(pos.x, pos.y);
@@ -5051,12 +5007,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr)
             return;
-        if (md->SupportsVisitors()) {
-            XmlSerializer serializer;
-            serializer.SerializeAndSaveModel(*md, xlights);
-        } else {
-            md->ExportXlightsModel();
-        }
+        XmlSerializer serializer;
+        serializer.SerializeAndSaveModel(*md, xlights);
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
         DeleteCurrentPreview();
     } else if (event.GetId() == ID_PREVIEW_RENAME_ACTIVE) {
@@ -7632,12 +7584,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr)
             return;
-        if (md->SupportsVisitors()) {
-            XmlSerializer serializer;
-            serializer.SerializeAndSaveModel(*md, xlights);
-        } else {
-            md->ExportXlightsModel();
-        }
+        XmlSerializer serializer;
+        serializer.SerializeAndSaveModel(*md, xlights);
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
         DeleteCurrentPreview();
     } else if (event.GetId() == ID_PREVIEW_RENAME_ACTIVE) {
