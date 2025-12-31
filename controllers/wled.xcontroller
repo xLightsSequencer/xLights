@@ -21,6 +21,7 @@
             <Protocol>tm1829</Protocol>
             <Protocol>ucs8903</Protocol>
             <Protocol>ucs8904</Protocol>
+            <Protocol>sm16825</Protocol>
             <Protocol>ws2801</Protocol>
             <Protocol>apa102</Protocol>
             <Protocol>lpd8806</Protocol>
