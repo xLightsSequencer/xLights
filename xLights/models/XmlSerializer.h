@@ -120,6 +120,9 @@ namespace XmlNodeKeys {
     constexpr auto ModelBrightnessAttribute = "ModelBrightness";
     constexpr auto LowDefinitionAttribute   = "LowDefinition";
     constexpr auto ModelChainAttribute      = "ModelChain";
+    constexpr auto AliasesAttribute         = "Aliases";
+    constexpr auto AliasNodeName            = "alias";
+
 
     // Common SubModel Attributes
     constexpr auto SubModelNodeName        = "subModel";
@@ -739,12 +742,12 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
     }
 
     void AddAliases(wxXmlNode* node, const std::list<std::string>& aliases) {
-        wxXmlNode* aliashdr = new wxXmlNode(wxXML_ELEMENT_NODE, "Aliases");
+        wxXmlNode* aliashdr = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::AliasesAttribute);
 
         if (aliases.size() > 0) {
             for (const auto& a : aliases) {
-                wxXmlNode* alias = new wxXmlNode(wxXML_ELEMENT_NODE, "alias");
-                alias->AddAttribute("name", a);
+                wxXmlNode* alias = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::AliasNodeName);
+                alias->AddAttribute(XmlNodeKeys::NameAttribute, a);
                 aliashdr->AddChild(alias);
             }
             node->AddChild(aliashdr);
@@ -834,16 +837,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
             wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::CtrlConnectionName);
             xmlNode->AddAttribute(XmlNodeKeys::ControllerAttribute, m->GetControllerName());
             xmlNode->AddAttribute(XmlNodeKeys::ProtocolAttribute, m->GetControllerProtocol());
-            xmlNode->AddAttribute(XmlNodeKeys::ProtocolAttribute, std::to_string(m->GetControllerProtocolSpeed()));
-            xmlNode->AddAttribute(XmlNodeKeys::PortAttribute, std::to_string(m->GetControllerPort()));
-            xmlNode->AddAttribute(XmlNodeKeys::BrightnessAttribute, std::to_string(m->GetControllerBrightness()));
-            xmlNode->AddAttribute(XmlNodeKeys::StartNullAttribute, std::to_string(m->GetControllerStartNulls()));
-            xmlNode->AddAttribute(XmlNodeKeys::EndNullAttribute, std::to_string(m->GetControllerEndNulls()));
-            xmlNode->AddAttribute(XmlNodeKeys::ColorOrderAttribute, m->GetControllerColorOrder());
-            xmlNode->AddAttribute(XmlNodeKeys::GroupCountAttribute, std::to_string(m->GetControllerGroupCount()));
-            xmlNode->AddAttribute(XmlNodeKeys::GammaAttribute, std::to_string(m->GetControllerGamma()));
-            xmlNode->AddAttribute(XmlNodeKeys::CReverseAttribute, std::to_string(m->GetControllerReverse()));
-            xmlNode->AddAttribute(XmlNodeKeys::CZigZagAttribute, std::to_string(m->GetControllerZigZag()));
+            xmlNode->AddAttribute(XmlNodeKeys::ProtocolSpeedAttribute, std::to_string(m->GetControllerProtocolSpeed()));
 
             // Save all the property checkbox active states
             if (cc.IsPropertySet(CtrlProps::USE_SMART_REMOTE)) xmlNode->AddAttribute(XmlNodeKeys::SmartRemoteAttribute, std::to_string(cc.GetSmartRemote()));
@@ -1480,6 +1474,8 @@ private:
                 if (!importing) {
                     DeserializeControllerConnection(model, node);
                 }
+            } else if (f->GetName() == XmlNodeKeys::AliasesAttribute) {
+                DeserializeAliases(model, f);
             }
             f = f->GetNext();
         }
@@ -1496,6 +1492,23 @@ private:
     {
         SubModel *sm = new SubModel(model, node);
         model->AddSubmodel(sm);
+    }
+
+    void DeserializeAliases(Model* model, wxXmlNode* node)
+    {
+        std::list<std::string> aliases;
+
+        wxXmlNode* f = node->GetChildren();
+        while (f != nullptr) {
+            if (f->HasAttribute(XmlNodeKeys::NameAttribute)) {
+                aliases.push_back(f->GetAttribute(XmlNodeKeys::NameAttribute));
+            }
+            f = f->GetNext();
+        }
+
+        if (aliases.size() > 0) {
+            model->SetAliases(aliases);
+        }
     }
 
     void DeserializeSuperStrings(Model* model, wxXmlNode* node)

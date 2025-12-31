@@ -2825,18 +2825,6 @@ void Model::SetFromXml(wxXmlNode* node, bool zb)
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxStopWatch sw;
 
-    if (modelDimmingCurve != nullptr) {
-        delete modelDimmingCurve;
-        modelDimmingCurve = nullptr;
-    }
-
-    while (subModels.size() > 0) {
-        delete subModels.back();
-        subModels.pop_back();
-    }
-    sortedSubModels.clear();
-    superStringColours.clear();
-
     zeroBased = zb;
     ModelXml = nullptr;  // lets let this crash until we can get it fully removed
     StrobeRate = 0;
