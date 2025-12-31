@@ -135,6 +135,7 @@ SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, w
     mainSequencer = sequencer;
 
     ListCtrl_Select_Effects->AppendColumn("", wxLIST_FORMAT_LEFT, 1000);
+    SetMinSize(wxSize(50, 50));
 }
 
 SelectPanel::~SelectPanel()

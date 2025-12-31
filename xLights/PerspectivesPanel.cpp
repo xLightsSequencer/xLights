@@ -77,6 +77,8 @@ PerspectivesPanel::PerspectivesPanel(wxWindow* parent,wxWindowID id,const wxPoin
 	Connect(ID_LISTBOX_PERSPECTIVES,wxEVT_COMMAND_LISTBOX_DOUBLECLICKED,(wxObjectEventFunction)&PerspectivesPanel::OnListBoxPerspectivesDClick);
 	Connect(wxEVT_PAINT,(wxObjectEventFunction)&PerspectivesPanel::OnPaint);
 	//*)
+    
+    SetMinSize(wxSize(50, 50));
 }
 
 PerspectivesPanel::~PerspectivesPanel()
