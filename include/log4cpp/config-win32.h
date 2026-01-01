@@ -158,7 +158,7 @@ typedef int mode_t;
 #endif
 
 #if defined(_MSC_VER) && _MSC_VER == 1310
-// warning C4275: interface non dll class 'std::runtime_error' utilisée comme base 
+// warning C4275: interface non dll class 'std::runtime_error' utilisÃ©e comme base 
 // d'une interface dll class 'log4cpp::ConfigureFailure'
 #pragma warning(disable: 4275)
 #endif

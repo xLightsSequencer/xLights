@@ -291,37 +291,32 @@ struct Schedule {
 
     [[nodiscard]] bool isValid(wxString &reason) const
     {
+        //bool anyEnabled { false };
         auto sItems = GetSortedSchedule();
         for (auto const& it : sItems) {
             if (!it.Enabled) {
                 continue;
             }
+            //anyEnabled = true;
             if (!it.isValid(reason)) {
                 return false;
             }
         }
-        //check for overlapping times
-        //for (auto it1 = std::cbegin(sItems); it1 != std::cend(sItems); ++it1) {
-        //    auto& schItm1 = *it1;
-        //    if (!schItm1.Enabled) {
-        //        continue;
-        //    }
-        //    for (auto it2 = std::next(it1); it2 != std::cend(sItems); ++it2) {
-        //        auto& schItm2 = *it2;
-        //        if (!schItm2.Enabled) {
-        //            continue;
-        //        }
-        //        if (schItm1.EndHour > schItm2.StartHour) {
-        //            reason = wxString::Format("%s End Hour overlaps %s Start Hour", schItm1.Playlist, schItm2.Playlist);
-        //            return false;
-        //        }
-        //        if (schItm1.EndHour == schItm2.StartHour && schItm1.EndMin >= schItm1.StartMin) {
-        //            reason = wxString::Format("%s End Minute overlaps %s Start Minute", schItm1.Playlist, schItm2.Playlist);
-        //            return false;
-        //        }
-        //    }
+        //if (!anyEnabled) {
+        //    reason = Day + " has no enabled schedule items.";
+        //    return false;
         //}
         return true;
+    }
+
+    [[nodiscard]] bool hasEnabledItems() const
+    {
+        for (auto const& it : Items) {
+            if (it.Enabled) {
+                return true;
+            }
+        }
+        return false;
     }
 };
 
