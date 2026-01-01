@@ -136,6 +136,7 @@ JukeboxPanel::JukeboxPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     GridSizer1->SetSizeHints(this);
 
     ValidateWindow();
+    SetMinSize(wxSize(50, 50));
 }
 
 JukeboxPanel::~JukeboxPanel()
