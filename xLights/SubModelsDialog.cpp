@@ -543,7 +543,7 @@ void SubModelsDialog::Setup(Model *m)
 
     SetTitle(GetTitle() + " - " + m->GetName());
 
-    ReadSubModelXML(m->GetModelXml());
+    RetrieveSubModelInfo(m);
 }
 
 #pragma region helpers
@@ -3404,45 +3404,32 @@ void SubModelsDialog::ImportSubModel(std::string filename)
     }
 }
 
-void SubModelsDialog::ReadSubModelXML(wxXmlNode* xmlData)
+void SubModelsDialog::RetrieveSubModelInfo(Model* model)
 {
-    wxXmlNode * child = xmlData->GetChildren();
-    while (child != nullptr) {
-        if (child->GetName() == "subModel") {
-            wxString name = child->GetAttribute("name");
 
-            SubModelInfo *sm = new SubModelInfo(name);
-            sm->name = name;
-            sm->oldName = name;
-            sm->isRanges = child->GetAttribute("type", "ranges") == "ranges";
-            sm->vertical = child->GetAttribute("layout") == "vertical";
-            sm->subBuffer = child->GetAttribute("subBuffer");
-            sm->bufferStyle = child->GetAttribute("bufferstyle", "Default");
-            sm->strands.resize(1);
-            sm->strands[0] = "";
+    const std::vector<Model*>& submodels = model->GetSubModels();
+
+    for (const auto& m : submodels) {
+        SubModel* sub = dynamic_cast<SubModel*>(m);
+        SubModelInfo *sm = new SubModelInfo(sub->GetName());
+        sm->isRanges = sub->IsRanges();
+        sm->vertical = sub->IsVertical();
+        sm->bufferStyle = sub->GetSubModelBufferStyle();
+        sm->strands.resize(1);
+        sm->strands[0] = "";
+        if (sm->isRanges) {
+            sm->subBuffer = "";
+            wxArrayString lines = wxSplit(sub->GetSubModelLines(), ',');
+            sm->strands.resize(lines.size());
             int x = 0;
-            while (child->HasAttribute(wxString::Format("line%d", x))) {
-                if (x >= sm->strands.size()) {
-                    sm->strands.resize(x + 1);
-                }
-                sm->strands[x] = child->GetAttribute(wxString::Format("line%d", x));
+            for (const auto& line : lines) {
+                sm->strands[x] = line;
                 x++;
             }
-
-            //cannot have duplicate submodels names, what to do?
-            if (GetSubModelInfoIndex(name) != -1)
-            {
-                //Are the submodels The Same?
-                SubModelInfo *prevSm = GetSubModelInfo(name);
-                if (*sm == *prevSm) //skip if exactly the same
-                {
-                    child = child->GetNext();
-                    continue;
-                }
-            }
-            _subModels.push_back(sm);
+        } else {
+            sm->subBuffer = sub->GetSubModelLines();
         }
-        child = child->GetNext();
+        _subModels.push_back(sm);
     }
     PopulateList();
     ValidateWindow();

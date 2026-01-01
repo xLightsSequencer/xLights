@@ -18,12 +18,11 @@
 
 #include <log4cpp/Category.hh>
 
-CandyCaneModel::CandyCaneModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
+CandyCaneModel::CandyCaneModel(const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
     screenLocation.SetModelHandleHeight(true);
     screenLocation.SetSupportsAngle(true);
     screenLocation.SetPreferredSelectionPlane(ModelScreenLocation::MSLPLANE::GROUND);
-    SetFromXml(node, zeroBased);
 }
 
 CandyCaneModel::~CandyCaneModel()
@@ -102,9 +101,7 @@ void CandyCaneModel::UpdateTypeProperties(wxPropertyGridInterface* grid) {
 
 int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("CandyCaneCount" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm1");
-        ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        //AdjustStringProperties(grid, event.GetPropertyValue().GetLong());
+        parm1 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
@@ -116,8 +113,7 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
         return 0;
     } else if ("CandyCaneNodes" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm2");
-        ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        parm2 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
@@ -127,8 +123,7 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
         return 0;
     } else if ("CandyCaneLights" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm3");
-        ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        parm3 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneLights");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneLights");
@@ -137,8 +132,7 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneLights");
         return 0;
     } else if ("CandyCaneReverse" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("CandyCaneReverse");
-		ModelXml->AddAttribute("CandyCaneReverse", event.GetPropertyValue().GetBool()? "true" : "false");
+        _reverse = event.GetPropertyValue().GetBool() ? "true" : "false";
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneReverse");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneReverse");
@@ -147,8 +141,6 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
         return 0;
     } else if ("CandyCaneSkew" == event.GetPropertyName()) {
         screenLocation.SetAngle(event.GetPropertyValue().GetLong());
-        ModelXml->DeleteAttribute("Angle");
-        ModelXml->AddAttribute("Angle", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneSkew");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneSkew");
@@ -156,8 +148,7 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneSkew");
         return 0;
     } else if ("CandyCaneHeight" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("CandyCaneHeight");
-        ModelXml->AddAttribute("CandyCaneHeight", wxString::Format("%lf", event.GetPropertyValue().GetDouble()));
+        _caneheight = event.GetPropertyValue().GetDouble();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneHeight");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneHeight");
@@ -165,8 +156,7 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneHeight");
         return 0;
     } else if ("CandyCaneSticks" == event.GetPropertyName()) {
-		ModelXml->DeleteAttribute("CandyCaneSticks");
-		ModelXml->AddAttribute("CandyCaneSticks", event.GetPropertyValue().GetBool() ? "true" : "false");
+        _sticks = event.GetPropertyValue().GetBool() ? "true" : "false";
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
@@ -175,8 +165,7 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
         AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
         return 0;
     } else if ("AlternateNodes" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("AlternateNodes");
-        ModelXml->AddAttribute("AlternateNodes", event.GetPropertyValue().GetBool() ? "true" : "false");
+        _alternateNodes = event.GetPropertyValue().GetBool() ? "true" : "false";
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
@@ -184,8 +173,7 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
         return 0;
     } else if ("CandyCaneStart" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("Dir");
-        ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 ? "L" : "R");
+        SetDirection(event.GetValue().GetLong() == 0 ? "L" : "R");
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneStart");
@@ -267,17 +255,8 @@ void CandyCaneModel::InitRenderBufferNodes(const std::string &tp, const std::str
 }
 
 void CandyCaneModel::InitModel() {
-    int NumCanes=parm1;
-    int SegmentsPerCane=parm2;
-	_reverse = (ModelXml->GetAttribute("CandyCaneReverse", "false") == "true");
-	_sticks = (ModelXml->GetAttribute("CandyCaneSticks", "false") == "true");
-    _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
-    if (ModelXml->HasAttribute("CandyCaneSkew")) {
-        ModelXml->DeleteAttribute("CandyCaneSkew");
-        int skew = wxAtoi(ModelXml->GetAttribute("CandyCaneSkew", "0"));
-        screenLocation.SetAngle(skew);
-    }
-    _caneheight = wxAtof(ModelXml->GetAttribute("CandyCaneHeight", "1.0"));
+    int NumCanes = parm1;
+    int SegmentsPerCane = parm2;
 
     SetNodeCount(NumCanes, SegmentsPerCane, rgbOrder);
     if (SingleNode) {

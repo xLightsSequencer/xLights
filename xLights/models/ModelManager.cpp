@@ -1241,7 +1241,7 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         node->AddAttribute("parm1", "3");
         node->DeleteAttribute("parm2");
         node->AddAttribute("parm2", "18");
-        model = new CandyCaneModel(node, *this, false);
+        model = new CandyCaneModel(*this, false);
     } else if (type == "Channel Block") {
         protocol = "";
         node->DeleteAttribute("parm1");
@@ -1610,14 +1610,14 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
     }
 
     Model* model;
+    XmlSerializer serializer;
+    // TODO: Probably can combine all these once all models are done
     if (type == "Star") {
         model = new StarModel(node, *this, zeroBased);
     } else if (type == "Arches") {
-        //model = new ArchesModel(node, *this, zeroBased);
-        XmlSerializer serializer;
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Candy Canes") {
-        model = new CandyCaneModel(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Channel Block") {
         model = new ChannelBlockModel(node, *this, zeroBased);
     } else if (type == "Circle") {

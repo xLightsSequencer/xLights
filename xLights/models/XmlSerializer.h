@@ -129,7 +129,7 @@ namespace XmlNodeKeys {
     constexpr auto LayoutAttribute         = "layout";
     constexpr auto SMTypeAttribute         = "type";
     constexpr auto BufferStyleAttribute    = "bufferstyle";
-    constexpr auto SubBufferStyleAttribute = "subBuffer";
+    constexpr auto SubBufferAttribute      = "subBuffer";
     constexpr auto LineAttribute           = "line";
 
     // ModelGroup
@@ -271,7 +271,6 @@ namespace XmlNodeKeys {
     constexpr auto CCHeightAttribute  = "CandyCaneHeight";
     constexpr auto CCReverseAttribute = "CandyCaneReverse";
     constexpr auto CCSticksAttribute  = "CandyCaneSticks";
-    constexpr auto CCAngleAttribute   = "CandyCaneSticks";
 
     // Channel Block Model
     // Since this is dynamic it all gets done by the visitor
@@ -772,7 +771,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
 
     void AddSubmodels(wxXmlNode* node, const Model* m) {
         const std::vector<Model*>& submodelList = m->GetSubModels();
-       
+        
         for (Model* s : submodelList) {
             wxXmlNode* submodels = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::SubModelNodeName);
             const SubModel* submodel = dynamic_cast<const SubModel*>(s);
@@ -785,17 +784,79 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
             
             // FIXME: Just want to get it compiling
             /*if (submodelType == "subbuffer") {
-                submodels->AddAttribute(XmlNodeKeys::SubBufferStyleAttribute, submodel->GetSubModelNodeRanges());
-            } else {
-                wxArrayString nodeInfo = wxSplit(submodel->GetSubModelNodeRanges(), ',');
-                for (auto i = 0; i < nodeInfo.size(); i++) {
-                    submodels->AddAttribute("line" + std::to_string(i), nodeInfo[i]);
-                }
-            }*/
+             submodels->AddAttribute(XmlNodeKeys::SubBufferStyleAttribute, submodel->GetSubModelNodeRanges());
+             } else {
+             wxArrayString nodeInfo = wxSplit(submodel->GetSubModelNodeRanges(), ',');
+             for (auto i = 0; i < nodeInfo.size(); i++) {
+             submodels->AddAttribute("line" + std::to_string(i), nodeInfo[i]);
+             }
+             }*/
             SortAttributes(submodels);
             AddAliases(submodels, s->GetAliases());
             node->AddChild(submodels);
         }
+        /*wxXmlNode * root = m->GetModelXml();
+         wxXmlNode * child = root->GetChildren();
+         std::vector<std::pair<wxString, wxString>> submodelAliases;
+         while (child != nullptr) {
+         if (child->GetName() == "subModel") {
+         for (auto node = child->GetChildren(); node != nullptr; node = node->GetNext()) {
+         if (node->GetName() == "Aliases") {
+         for (auto a = node->GetChildren(); a != nullptr; a = a->GetNext()) {
+         submodelAliases.push_back(std::make_pair(child->GetAttribute("name"), a->GetAttribute("name")));
+         }
+         }
+         }
+         wxXmlNode *n = child;
+         child = child->GetNext();
+         root->RemoveChild(n);
+         delete n;
+         } else {
+         child = child->GetNext();
+         }
+         }
+         
+         for (auto a = _subModels.begin(); a != _subModels.end(); ++a) {
+         child = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
+         child->AddAttribute("name", (*a)->name);
+         child->AddAttribute("layout", (*a)->vertical ? "vertical" : "horizontal");
+         child->AddAttribute("type", (*a)->isRanges ? "ranges" : "subbuffer");
+         child->AddAttribute("bufferstyle", (*a)->bufferStyle);
+         
+         auto aliases = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "Aliases");
+         for (const auto& entry : submodelAliases) {
+         if (entry.first == (*a)->name) {
+         auto n = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "alias");
+         n->AddAttribute("name", entry.second.Lower());
+         aliases->AddChild(n);
+         }
+         }
+         child->AddChild(aliases);
+         
+         // If the submodel name has changed ... we need to rename the model
+         if ((*a)->oldName != (*a)->name)
+         {
+         xlights->RenameModel(m->GetName() + std::string("/") + (*a)->oldName.ToStdString(), m->GetName() + std::string("/") + (*a)->name.ToStdString());
+         }
+         
+         if ((*a)->isRanges) {
+         for (int x = 0; x < (*a)->strands.size(); x++) {
+         child->AddAttribute(wxString::Format("line%d", x), (*a)->strands[x]);
+         }
+         } else {
+         child->AddAttribute("subBuffer", (*a)->subBuffer);
+         }
+         root->AddChild(child);
+         }
+         
+         std::vector<std::string> submodelOrder;
+         for (auto it = _subModels.begin(); it != _subModels.end(); ++it)
+         {
+         submodelOrder.push_back((*it)->name);
+         }
+         
+         xlights->EnsureSequenceElementsAreOrderedCorrectly(m->GetName(), submodelOrder);
+         }*/
     }
 
     void AddGroups(wxXmlNode* node, const Model* m) {
@@ -1490,8 +1551,35 @@ private:
     
     void DeserializeSubModel(Model* model, wxXmlNode* node)
     {
-        SubModel *sm = new SubModel(model, node);
+        const std::string name = node->GetAttribute(XmlNodeKeys::NameAttribute).Trim(true).Trim(false).ToStdString();
+        const std::string layout = node->GetAttribute(XmlNodeKeys::LayoutAttribute, "vertical").ToStdString();
+        const std::string type = node->GetAttribute(XmlNodeKeys::TypeAttribute, "ranges").ToStdString();
+        const std::string bufferStyle = node->GetAttribute(XmlNodeKeys::BufferStyleAttribute, "Default").ToStdString();
+        SubModel *sm = new SubModel(model, name, layout, type, bufferStyle);
         model->AddSubmodel(sm);
+
+        if (sm->IsRanges()) {
+            if (sm->IsXYBufferStyle()) {
+                int line = 0;
+                std::vector<int> nodeIndexes;
+                while (node->HasAttribute(wxString::Format("line%d", line))) {
+                    sm->AddRangeXY( node->GetAttribute(wxString::Format("line%d", line)) );
+                    line++;
+                }
+                sm->CheckDuplicates();
+                sm->CalcRangeXYBufferSize();
+            } else { //default and stacked buffer styles
+                int line = 0;
+                while (node->HasAttribute(wxString::Format("line%d", line))) {
+                    wxString nodes = node->GetAttribute(wxString::Format("line%d", line));
+                    sm->AddDefaultBuffer(nodes);
+                    line++;
+                }
+                sm->CheckDuplicates();
+            }
+        } else {
+            sm->AddSubbuffer(node->GetAttribute(XmlNodeKeys::SubBufferAttribute) );
+        }
     }
 
     void DeserializeAliases(Model* model, wxXmlNode* node)
@@ -1594,142 +1682,140 @@ private:
     }
 
     Model* DeserializeCandyCane(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        Model* model = new CandyCaneModel(node, xlights->AllModels, false);
+        CandyCaneModel* model = new CandyCaneModel(xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        DeserializeThreePointScreenLocationAttributes(model, node);
+        model->SetReverse(node->GetAttribute("CandyCaneReverse", "false") == "true");
+        model->SetSticks(node->GetAttribute("CandyCaneSticks", "false") == "true");
+        model->SetAlternateNodes(node->GetAttribute("AlternateNodes", "false") == "true");
+        if (node->HasAttribute("CandyCaneSkew")) {
+            int angle = wxAtoi(node->GetAttribute("CandyCaneSkew", "0"));
+            ThreePointScreenLocation& screenLoc = dynamic_cast<ThreePointScreenLocation&>(model->GetBaseObjectScreenLocation());
+            screenLoc.SetAngle(angle);
+        }
+        model->SetCaneHeight(std::stof(node->GetAttribute("CandyCaneHeight", "1.0").ToStdString()));
+        model->SetFromXml(nullptr); // hopefully can delete this later
         return model;
     }
 
      Model* DeserializeChannelBlock(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        Model* model = new ChannelBlockModel(node, xlights->AllModels, false);
+        ChannelBlockModel* model = new ChannelBlockModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
     Model* DeserializeCircle(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        Model* model;
-        model = new CircleModel(node, xlights->AllModels, false);
+        CircleModel* model = new CircleModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
     Model* DeserializeCube(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        Model* model;
-        model = new CubeModel(node, xlights->AllModels, false);
+        CubeModel* model = new CubeModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
     Model* DeserializeCustom(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        Model* model = new CustomModel(node, xlights->AllModels, false);
+        CustomModel* model = new CustomModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
     Model* DeserializeDmxMovingHead(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        Model* model = new DmxMovingHead(node, xlights->AllModels, false);
+        DmxMovingHead* model = new DmxMovingHead(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
     Model* DeserializeDmxMovingHeadAdv(wxXmlNode *node, xLightsFrame* xlights, bool importing) {
-        Model *model = new DmxMovingHeadAdv(node, xlights->AllModels, false);
+        DmxMovingHeadAdv *model = new DmxMovingHeadAdv(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
     Model* DeserializeIcicles(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        Model* model = new IciclesModel(node, xlights->AllModels, false);
+        IciclesModel* model = new IciclesModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
     Model* DeserializeImage(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        Model* model;
-        model = new ImageModel(node, xlights->AllModels, false);
+        ImageModel* model = new ImageModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
     Model* DeserializeMatrix(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        Model* model;
-        model = new MatrixModel(node, xlights->AllModels, false);
+        MatrixModel* model = new MatrixModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
     Model* DeserializeSingleLine(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        Model* model;
-        model = new SingleLineModel(node, xlights->AllModels, false);
+        SingleLineModel* model = new SingleLineModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
     Model* DeserializePolyLine(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        Model* model;
-        model = new PolyLineModel(node, xlights->AllModels, false);
+        PolyLineModel* model = new PolyLineModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
     Model* DeserializeSphere(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        Model* model;
-        model = new SphereModel(node, xlights->AllModels, false);
+        SphereModel* model = new SphereModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
     Model* DeserializeSpinner(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        Model* model;
-        model = new SpinnerModel(node, xlights->AllModels, false);
+        SpinnerModel* model = new SpinnerModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
     Model* DeserializeStar(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        Model* model;
-        model = new StarModel(node, xlights->AllModels, false);
+        StarModel* model = new StarModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
     Model* DeserializeTree(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        Model* model;
-        model = new TreeModel(node, xlights->AllModels, false);
+        TreeModel* model = new TreeModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
     Model* DeserializeWindow(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        Model* model;
-        model = new WindowFrameModel(node, xlights->AllModels, false);
+        WindowFrameModel* model = new WindowFrameModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
     Model* DeserializeWreath(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        Model* model;
-        model = new WreathModel(node, xlights->AllModels, false);
+        WreathModel* model = new WreathModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
     Model* DeserializeEffects(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        Model* model;
-        model = new WreathModel(node, xlights->AllModels, false);
+        WreathModel* model = new WreathModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
     Model* DeserializeViews(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
-        model = new WreathModel(node, xlights->AllModels, false);
+        model = new WreathModel(node, xlights->AllModels, false);        // FIXME: Based on class looks like in progress work
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }
 
     Model* DeserializePalettes(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         Model* model;
-        model = new WreathModel(node, xlights->AllModels, false);
+        model = new WreathModel(node, xlights->AllModels, false);        // FIXME: Based on class looks like in progress work
         CommonDeserializeSteps(model, node, xlights, importing);
         return model;
     }

@@ -294,7 +294,7 @@ protected:
     wxString ReverseRow(wxString row);
 
     void ImportSubModel(std::string filename);
-    void ReadSubModelXML(wxXmlNode* xmlData);
+    void RetrieveSubModelInfo(Model* model);
     void ImportSubModelXML(wxXmlNode* xmlData);
     void ImportCSVSubModel(wxString const& filename);
     wxArrayString getModelList(ModelManager* modelManager);

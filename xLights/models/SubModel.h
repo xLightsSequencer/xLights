@@ -16,7 +16,8 @@
 
 class SubModel : public Model {
 public:
-    SubModel(Model *p, wxXmlNode *n);
+    SubModel(Model *p, wxXmlNode* node);  // TODO:  delete this
+    SubModel(Model *p, const std::string _name, const std::string layout, const std::string type, const std::string bufferStyle);
     virtual ~SubModel() {}
 
     static const std::vector<std::string> BUFFER_STYLES;
@@ -71,20 +72,43 @@ public:
     std::string GetSubModelLayout() const { return _layout; }
     std::string GetSubModelType() const { return _type; }
     std::string GetSubModelBufferStyle() const { return _bufferStyle; }
-    //std::string GetSubModelNodeRanges() const { return _properyGridDisplay; }
+    std::string GetSubModelLines() const { return _propertyGridDisplay; }
+
+    // Functions for adding the different buffer types
+    void AddDefaultBuffer( wxString const& nodes );
+    void AddRangeXY( wxString const& nodes );
+    void AddSubbuffer(std::string const& range );
+    
+    void CheckDuplicates();
+    void CalcRangeXYBufferSize();
+
+    [[nodiscard]] bool IsRanges() const { return _isRanges; }
+    [[nodiscard]] bool IsVertical() const { return _vert; }
+    [[nodiscard]] bool IsXYBufferStyle();
 
     private:
-    void CheckDuplicates(const std::vector<int>& nodeIndexes);
-
     Model *parent = nullptr;
     bool _nodesAllValid = false;
+    bool _vert = false;
+    bool _isRanges = true;
     const std::string _layout;
     const std::string _type;
     const std::string _bufferStyle;
     std::string _propertyGridDisplay;
     std::string _sameLineDuplicates;
     std::string _crossLineDuplicates;
-    
+    std::vector<int> _nodeIndexes;
+    std::set<int> _nodeIdx;
+    unsigned int _startChannel = UINT32_MAX;
+
     static std::vector<std::string> SUBMODEL_BUFFER_STYLES;
+
+    // variables only used for default buffer
+    int _row = 0;
+    int _col = 0;
+    int _maxRow = 0;
+    int _maxCol = 0;
+    std::map<int, int> _nodeIndexMap;
+
 };
 

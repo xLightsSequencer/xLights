@@ -2293,7 +2293,7 @@ void Model::AddSubmodel(wxXmlNode* n, bool skipPrompt) {
     AddSubmodel(n);
  }
 
-     wxString Model::SerialiseFace() const
+wxString Model::SerialiseFace() const
 {
     wxString res = "";
 
