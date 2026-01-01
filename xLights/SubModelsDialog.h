@@ -245,7 +245,7 @@ protected:
     static const long SUBMODEL_DIALOG_BLANKS_AS_EMPTY;
     static const long SUBMODEL_DIALOG_REMOVE_BLANKS_ZEROS;
 
-    void SaveXML(Model* m);
+    void SaveSubModelInfoIntoThisModel(Model* m);
     wxString GetSelectedName() const;
     int GetSelectedIndex() const;
     wxString GetSelectedNames();

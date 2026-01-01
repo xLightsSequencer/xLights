@@ -7202,6 +7202,9 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 }
 
 void LayoutPanel::DoUndo(wxCommandEvent& event) {
+
+    return;  // TODO:  Undo needs to be reworked for XML removal
+
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("LayoutPanel::DoUndo");
     int sz = undoBuffer.size() - 1;
@@ -7371,6 +7374,9 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
 }
 
 void LayoutPanel::CreateUndoPoint(const std::string &tp, const std::string &model, const std::string &key, const std::string &data) {
+    
+    return;  // TODO:  Undo needs to be reworked for XML removal
+    
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::CreateUndoPoint");
     size_t idx = undoBuffer.size();

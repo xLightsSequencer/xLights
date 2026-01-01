@@ -86,6 +86,7 @@ public:
 class Model : public BaseObject
 {
     friend class LayoutPanel;
+    friend class ModelManager;
     friend class SubModel;
 
 public:
@@ -424,6 +425,7 @@ public:
         return i < (int)subModels.size() ? subModels[i] : nullptr;
     }
     void RemoveSubModel(const std::string& name);
+    void RemoveAllSubModels();
     [[nodiscard]] std::list<int> ParseFaceNodes(std::string channels);
 
     virtual std::vector<PWMOutput> GetPWMOutputs() const;
@@ -447,7 +449,8 @@ public:
     std::string _shadowModelFor{ "" };
 
     void UpdateChannels(wxXmlNode* ModelNode);
-    void SetFromXml(wxXmlNode* ModelNode, bool zeroBased = false) override;
+    void SetFromXml(wxXmlNode* ModelNode, bool zeroBased = false) override; // TODO: Delete when xml removeal is done
+    void Setup(bool zeroBased = false) override;
     virtual bool ModelRenamed(const std::string& oldName, const std::string& newName);
     [[nodiscard]] uint32_t GetNodeCount() const;
     [[nodiscard]] NodeBaseClass* GetNode(uint32_t node) const;

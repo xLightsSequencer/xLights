@@ -1555,13 +1555,12 @@ private:
         const std::string layout = node->GetAttribute(XmlNodeKeys::LayoutAttribute, "vertical").ToStdString();
         const std::string type = node->GetAttribute(XmlNodeKeys::TypeAttribute, "ranges").ToStdString();
         const std::string bufferStyle = node->GetAttribute(XmlNodeKeys::BufferStyleAttribute, "Default").ToStdString();
-        SubModel *sm = new SubModel(model, name, layout, type, bufferStyle);
+        SubModel *sm = new SubModel(model, name, layout == "vertical", type == "ranges", bufferStyle);
         model->AddSubmodel(sm);
 
         if (sm->IsRanges()) {
             if (sm->IsXYBufferStyle()) {
                 int line = 0;
-                std::vector<int> nodeIndexes;
                 while (node->HasAttribute(wxString::Format("line%d", line))) {
                     sm->AddRangeXY( node->GetAttribute(wxString::Format("line%d", line)) );
                     line++;
@@ -1677,7 +1676,7 @@ private:
             ThreePointScreenLocation& screenLoc = dynamic_cast<ThreePointScreenLocation&>(model->GetBaseObjectScreenLocation());
             screenLoc.SetAngle(angle);
         }
-        model->SetFromXml(nullptr); // hopefully can delete this later
+        model->Setup(); // hopefully can delete this later
         return model;
     }
 

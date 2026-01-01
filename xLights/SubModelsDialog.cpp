@@ -622,64 +622,60 @@ int SubModelsDialog::GetSubModelInfoIndex(const wxString &name) {
 
 void SubModelsDialog::Save()
 {
-    SaveXML(model);
+    SaveSubModelInfoIntoThisModel(model);
 }
 
-void SubModelsDialog::SaveXML(Model *m)
+// The dialog save all SubModel changes into a SubModelInfo structure so that the original Model's submodels are
+// not altered until the user decides to Save.  This function is also used to copy these submodels into other models.
+void SubModelsDialog::SaveSubModelInfoIntoThisModel(Model *m)
 {
     xLightsFrame* xlights = xLightsApp::GetFrame();
-    wxXmlNode * root = m->GetModelXml();
-    wxXmlNode * child = root->GetChildren();
+
+    // Create a list of all current aliases in the target model
     std::vector<std::pair<wxString, wxString>> submodelAliases;
-    while (child != nullptr) {
-        if (child->GetName() == "subModel") {
-            for (auto node = child->GetChildren(); node != nullptr; node = node->GetNext()) {
-                if (node->GetName() == "Aliases") {
-                    for (auto a = node->GetChildren(); a != nullptr; a = a->GetNext()) {
-                        submodelAliases.push_back(std::make_pair(child->GetAttribute("name"), a->GetAttribute("name")));
-                    }
-                }
-            }
-            wxXmlNode *n = child;
-            child = child->GetNext();
-            root->RemoveChild(n);
-            delete n;
-        } else {
-            child = child->GetNext();
+    const std::vector<Model*>& subs = m->GetSubModels();
+    for (auto& sub : subs) {
+        const std::list<std::string> & aliases = m->GetAliases();
+        for (auto& alias : aliases) {
+            submodelAliases.push_back(std::make_pair(sub->GetName(), alias));
         }
     }
 
-    for (auto a = _subModels.begin(); a != _subModels.end(); ++a) {
-        child = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
-        child->AddAttribute("name", (*a)->name);
-        child->AddAttribute("layout", (*a)->vertical ? "vertical" : "horizontal");
-        child->AddAttribute("type", (*a)->isRanges ? "ranges" : "subbuffer");
-        child->AddAttribute("bufferstyle", (*a)->bufferStyle);
+    // Delete all current submodels from the target model
+    m->RemoveAllSubModels();
 
-        auto aliases = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "Aliases");
+    // Now create new submodels in the target model from the SubModelInfo
+    for (auto a = _subModels.begin(); a != _subModels.end(); ++a) {
+        SubModel *sm = new SubModel(m, (*a)->name, (*a)->vertical, (*a)->isRanges, (*a)->bufferStyle);
+        m->AddSubmodel(sm);
+
+        if ((*a)->isRanges) {
+            if ((*a)->bufferStyle == KEEP_XY) {
+                for (int x = 0; x < (*a)->strands.size(); x++) {
+                    sm->AddRangeXY( (*a)->strands[x] );
+                }
+                sm->CalcRangeXYBufferSize();
+            } else { //default and stacked buffer styles
+                for (int x = 0; x < (*a)->strands.size(); x++) {
+                    sm->AddDefaultBuffer( (*a)->strands[x] );
+                }
+            }
+        } else {
+            sm->AddSubbuffer((*a)->subBuffer);
+        }
+
+        // transfer aliases
         for (const auto& entry : submodelAliases) {
             if (entry.first == (*a)->name) {
-                auto n = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "alias");
-                n->AddAttribute("name", entry.second.Lower());
-                aliases->AddChild(n);
+                sm->AddAlias(entry.second.Lower());
             }
         }
-        child->AddChild(aliases);
 
         // If the submodel name has changed ... we need to rename the model
         if ((*a)->oldName != (*a)->name)
         {
             xlights->RenameModel(m->GetName() + std::string("/") + (*a)->oldName.ToStdString(), m->GetName() + std::string("/") + (*a)->name.ToStdString());
         }
-
-        if ((*a)->isRanges) {
-            for (int x = 0; x < (*a)->strands.size(); x++) {
-                child->AddAttribute(wxString::Format("line%d", x), (*a)->strands[x]);
-            }
-        } else {
-            child->AddAttribute("subBuffer", (*a)->subBuffer);
-        }
-        root->AddChild(child);
     }
 
     std::vector<std::string> submodelOrder;
@@ -4645,7 +4641,7 @@ void SubModelsDialog::ExportSubmodelToOtherModels()
     if (dlg.ShowModal() == wxID_OK) {
         for (auto const& idx : dlg.GetSelections()) {
             Model* m = xlights->GetModel(choices.at(idx));
-            SaveXML(m);
+            SaveSubModelInfoIntoThisModel(m);
             for (auto& it : m->GetSubModels()) {
                 it->IncrementChangeCount();
             }

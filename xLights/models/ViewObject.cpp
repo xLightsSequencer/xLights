@@ -28,6 +28,10 @@ void ViewObject::AddSizeLocationProperties(wxPropertyGridInterface *grid) {
     GetObjectScreenLocation().AddSizeLocationProperties(grid);
 }
 
+void ViewObject::Setup(bool zeroBased) {
+    SetFromXml(nullptr, zeroBased);
+}
+
 void ViewObject::SetFromXml(wxXmlNode* ObjectNode, bool zeroBased) {
 
     ModelXml=ObjectNode;

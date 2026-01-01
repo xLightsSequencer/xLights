@@ -14,10 +14,12 @@
 
 #include "Model.h"
 
+static const std::string KEEP_XY("Keep XY");
+
 class SubModel : public Model {
 public:
     SubModel(Model *p, wxXmlNode* node);  // TODO:  delete this
-    SubModel(Model *p, const std::string _name, const std::string layout, const std::string type, const std::string bufferStyle);
+    SubModel(Model *p, const std::string _name, bool vertical, bool ranges, const std::string bufferStyle);
     virtual ~SubModel() {}
 
     static const std::vector<std::string> BUFFER_STYLES;
@@ -89,8 +91,8 @@ public:
     private:
     Model *parent = nullptr;
     bool _nodesAllValid = false;
-    bool _vert = false;
-    bool _isRanges = true;
+    bool _vert;
+    bool _isRanges;
     const std::string _layout;
     const std::string _type;
     const std::string _bufferStyle;

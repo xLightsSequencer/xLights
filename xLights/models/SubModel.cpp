@@ -19,7 +19,6 @@
 #include <log4cpp/Category.hh>
 
 static const std::string DEFAULT("Default");
-static const std::string KEEP_XY("Keep XY");
 static const std::string STACKED_STRANDS("Stacked Strands");
 
 const std::vector<std::string> SubModel::BUFFER_STYLES{ DEFAULT, KEEP_XY, STACKED_STRANDS };
@@ -30,11 +29,13 @@ SubModel::SubModel(Model *p, wxXmlNode* node)  // TODO:  delete this
     wxASSERT(false);
 }
 
-SubModel::SubModel(Model *p, const std::string _name, const std::string layout, const std::string type, const std::string bufferStyle) :
+SubModel::SubModel(Model *p, const std::string _name, bool vertical, bool ranges, const std::string bufferStyle) :
     Model(p->GetModelManager()),
     parent(p),
-    _layout(layout),
-    _type(type),
+    _vert(vertical),
+    _isRanges(ranges),
+    _layout(vertical ? "vertical" : "horizontal"),
+    _type(ranges ? "ranges" : "subbuffer"),
     _bufferStyle(bufferStyle)
  {
     // copy change count from owning model ... otherwise we lose track of changes when the model is recreated
@@ -57,9 +58,6 @@ SubModel::SubModel(Model *p, const std::string _name, const std::string layout, 
      transparency = p->transparency;
      blackTransparency = p->blackTransparency;
      pixelSize = p->pixelSize;
-
-    _vert = _layout == "vertical";
-    _isRanges = _type == "ranges";
 }
 
 bool SubModel::IsXYBufferStyle() { return _bufferStyle == KEEP_XY; }

@@ -1209,23 +1209,23 @@ std::string ModelManager::GenerateModelName(const std::string& candidateName) co
 Model* ModelManager::CreateDefaultModel(const std::string& type, const std::string& startChannel) const
 {
     Model* model;
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "model");
-    node->AddAttribute("DisplayAs", type);
-    node->AddAttribute("StringType", "RGB Nodes");
-    node->AddAttribute("StartSide", "B");
-    node->AddAttribute("Dir", "L");
-    node->AddAttribute("Antialias", "1");
-    node->AddAttribute("PixelSize", "2");
-    node->AddAttribute("Transparency", "0");
-    node->AddAttribute("parm1", "1");
-    node->AddAttribute("parm2", "50");
-    node->AddAttribute("parm3", "1");
-    node->AddAttribute("StartChannel", startChannel);
-    node->AddAttribute("LayoutGroup", "Unassigned");
+    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "model");  // TODO: Delete this when all models are updated to not use the node*
+    //node->AddAttribute("DisplayAs", type);
+    //node->AddAttribute("StringType", "RGB Nodes");
+    //node->AddAttribute("StartSide", "B");
+    //node->AddAttribute("Dir", "L");
+    //node->AddAttribute("Antialias", "1");
+    //node->AddAttribute("PixelSize", "2");
+    //node->AddAttribute("Transparency", "0");
+    //node->AddAttribute("StartChannel", startChannel);
+    //node->AddAttribute("LayoutGroup", "Unassigned");
 
-    std::string name = GenerateModelName(type);
-    node->AddAttribute("name", name);
+    //std::string name = GenerateModelName(type);
+    //node->AddAttribute("name", name);
     std::string protocol = "ws2811";
+    int parm1 = 1;
+    int parm2 = 50;
+    int parm3 = 1;
 
     if (type == "Star") {
         node->DeleteAttribute("parm3");
@@ -1425,8 +1425,20 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         return nullptr;
     }
 
+    model->SetName(GenerateModelName(type));
+    model->SetDisplayAs(type);
+    model->SetStartChannel(startChannel);
+    model->SetParm1(parm1);
+    model->SetParm2(parm2);
+    model->SetParm3(parm3);
+
+    // TODO:  remove this later we aren't using xml nodes anymore
+    delete node;
+    
     model->SetControllerProtocol(protocol);
     model->SetControllerName(NO_CONTROLLER);
+
+    model->Setup();
 
     return model;
 }
@@ -1695,6 +1707,7 @@ void ModelManager::AddModel(Model* model)
         }
         models[model->name] = model;
 
+        // TODO:  Probably can delete all this now
         if (!model->DeleteXmlLater()) return;
         
         if ("ModelGroup" == model->GetDisplayAs()) {

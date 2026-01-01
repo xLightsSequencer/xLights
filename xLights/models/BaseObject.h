@@ -98,8 +98,9 @@ public:
     void SetDisplayAs(const std::string& type) { DisplayAs = type; }
 
     wxXmlNode* GetModelXml() const;
-    virtual void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false) = 0;
-
+    virtual void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false) = 0;  // TODO: Delete when xml removeal is done
+    virtual void Setup(bool zeroBased=false) = 0;
+    
     virtual const std::string &GetLayoutGroup() const {return layout_group;}
     void SetLayoutGroup(const std::string &grp);
 

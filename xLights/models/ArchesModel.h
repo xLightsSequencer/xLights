@@ -66,5 +66,5 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         int _arc = 180;
         int _gap = 0;
         int _hollow = 70;
-        bool _zigzag = true;
+        bool _zigzag = false;
 };

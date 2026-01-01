@@ -515,7 +515,7 @@ void Model::SetProperty(wxString const& property, wxString const& value, bool ap
     }
     if (apply) {
         modelManager.GetXLightsFrame()->AbortRender();
-        SetFromXml(ModelXml);
+        Setup();
     }
 }
 
@@ -2538,7 +2538,7 @@ bool Model::ModelRenamed(const std::string& oldName, const std::string& newName)
         }
     }
     if (changed) {
-        SetFromXml(ModelXml, zeroBased);
+        Setup(zeroBased);
     }
     return changed;
 }
@@ -2820,6 +2820,11 @@ void Model::UpdateChannels(wxXmlNode* ModelNode)
     IncrementChangeCount();
 }
 
+void Model::Setup(bool zb)
+{
+    SetFromXml(nullptr, zb);
+}
+
 void Model::SetFromXml(wxXmlNode* node, bool zb)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -2975,6 +2980,16 @@ void Model::RemoveSubModel(const std::string& name)
             subModels.erase(a);
             sortedSubModels.erase(name);
         }
+    }
+}
+
+void Model::RemoveAllSubModels()
+{
+    for (auto a = subModels.begin(); a != subModels.end(); ++a) {
+        Model* m = *a;
+        delete m;
+        subModels.erase(a);
+        sortedSubModels.erase(name);
     }
 }
 
@@ -5409,7 +5424,7 @@ glm::vec3 Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPres
 
     int i = GetModelScreenLocation().MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
     if (i) {
-        SetFromXml(ModelXml);
+        Setup();
     }
     IncrementChangeCount();
 
