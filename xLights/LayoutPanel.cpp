@@ -3761,6 +3761,7 @@ void LayoutPanel::FinalizeModel()
             _newModel = nullptr;
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "FinalizeModel");
         }
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "FinalizeModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "FinalizeModel");
     }
 }
