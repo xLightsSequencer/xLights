@@ -61,10 +61,11 @@
 
 namespace XmlNodeKeys {
     // Model Node Names
-    constexpr auto ModelsNodeName    = "models";
-    constexpr auto ModelNodeName     = "model";
-    constexpr auto ExportedAttribute = "exported";
-    constexpr auto DimmingCurveName  = "dimmingCurve";
+    constexpr auto ModelsNodeName      = "models";
+    constexpr auto ModelNodeName       = "model";
+    constexpr auto ExportedAttribute   = "exported";
+    constexpr auto RGBEffectsAttribute = "rgb_effects";
+    constexpr auto DimmingCurveName    = "dimmingCurve";
 
     // Common BaseObject Attributes
     constexpr auto NameAttribute        = "name";
@@ -690,17 +691,20 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
 
     void SortAttributes(wxXmlNode* input) {
         const wxString attributeToPrioritize = "name";
+        const wxString attributeToPrioritizeSecond = "DisplayAs";
         const wxString attributeToDePrioritize = "CustomModel";
         std::vector<std::pair<std::string, std::string>> attributes;
         for (wxXmlAttribute* attr = input->GetAttributes(); attr != nullptr; attr = attr->GetNext()) {
             attributes.push_back({ std::string(attr->GetName()), std::string(attr->GetValue()) });
         }
-        auto custom_comparator = [&attributeToPrioritize, &attributeToDePrioritize](const std::pair<wxString, wxString>& a, const std::pair<wxString, wxString>& b) {
+        auto custom_comparator = [&attributeToPrioritize, &attributeToPrioritizeSecond, &attributeToDePrioritize](const std::pair<wxString, wxString>& a, const std::pair<wxString, wxString>& b) {
             if (a.first == b.first) return false;
             if (a.first == attributeToPrioritize) return true;
             if (b.first == attributeToPrioritize) return false;
+            if (a.first == attributeToPrioritizeSecond ) return true;
+            if (b.first == attributeToPrioritizeSecond) return false;
             if (a.first.Contains(attributeToDePrioritize)) return false;
-            if (b.first.Contains(attributeToDePrioritize)) return true;
+            if (b.first.Contains(attributeToDePrioritize)) return false;
             return Lower(a.first) < Lower(b.first);
         };
         std::sort(attributes.begin(), attributes.end(), custom_comparator);
@@ -937,14 +941,13 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
     void AddOtherElements(wxXmlNode* xmlNode, const Model* m)
     {
         SortAttributes(xmlNode);
-        AddAliases(xmlNode, m->GetAliases());
-        AddDimmingCurve(xmlNode,m);
         AddFacesandStates(xmlNode, m);
+        AddControllerConnection(xmlNode, m);
+        AddDimmingCurve(xmlNode,m);
+        AddAliases(xmlNode, m->GetAliases());
         AddSubmodels(xmlNode, m);
         AddGroups(xmlNode, m);
-        AddControllerConnection(xmlNode, m);
         AddDimensions(xmlNode, m);
-        parentNode->AddChild(xmlNode);
     }
     
     void AddCustomModel(wxXmlNode* xmlNode, const CustomModel& m) {
@@ -1133,6 +1136,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddCommonModelAttributes(model, xmlNode);
         AddModelScreenLocationAttributes(model, xmlNode);
         SerializeSuperStrings(model, xmlNode);
+        parentNode->AddChild(xmlNode);
         return xmlNode;
     }
 
@@ -1867,6 +1871,23 @@ struct XmlSerializer {
             return true;
         }
         return false;
+    }
+
+    
+    // Serialize all model into an XML document
+    void SerializeAllModels(const ModelManager & allModels, xLightsFrame* xlights, wxXmlNode* root) {
+
+        wxXmlNode* modelsNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelsNodeName);
+        modelsNode->AddAttribute(XmlNodeKeys::TypeAttribute, XmlNodeKeys::RGBEffectsAttribute);
+
+        XmlSerializingVisitor visitor{ modelsNode };
+
+        for (auto m = allModels.begin(); m != allModels.end(); ++m) {
+            Model* model = m->second;
+            model->Accept(visitor);
+        }
+        
+        root->AddChild(modelsNode);
     }
 
     // Serializes and Saves a single model into an XML document

@@ -25,6 +25,7 @@
 //#define XLIGHTS_CHANNEL_FILE       "xlights_channels.csv"
 //#define XLIGHTS_SCHEDULE_FILE      "xlights_schedule.xml"
 #define XLIGHTS_RGBEFFECTS_FILE    "xlights_rgbeffects.xml"
+#define XLIGHTS_RGBEFFECTS_FILE_NEW    "xlights_rgbeffects_new.xml"  // used for debugging XML removal work
 #define XLIGHTS_RGBEFFECTS_FILE_BACKUP    "xlights_rgbeffects.xbkp"
 #define XLIGHTS_KEYBINDING_FILE    "xlights_keybindings.xml"
 #define XLIGHTS_PGOFACES_FILE      "xlights_papagayo.xml"

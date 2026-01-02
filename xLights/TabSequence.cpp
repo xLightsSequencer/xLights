@@ -41,6 +41,7 @@
 #include "sequencer/MainSequencer.h"
 #include "HousePreviewPanel.h"
 #include "ExternalHooks.h"
+#include "XmlSerializer.h"
 
 #include "xLightsVersion.h"
 #include "TopEffectsPanel.h"
@@ -714,25 +715,35 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     if (!lock.owns_lock())
         return false;
 
+    // New XML Serializer Code Section
+    wxXmlDocument doc;
+    wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, "xrgb" );
+    doc.SetRoot( root );
+    wxXmlDoctype dt("");
+    doc.SetDoctype(dt);
+
+    XmlSerializer serializer;
+    serializer.SerializeAllModels(AllModels, this, root);
+
     // Make sure the views are up to date before we save it
-    _sequenceViewManager.Save(&EffectsXml);
+    //_sequenceViewManager.Save(&EffectsXml);
 
-    color_mgr.Save(&EffectsXml);
+    //color_mgr.Save(&EffectsXml);
 
-    viewpoint_mgr.Save(&EffectsXml);
+    //viewpoint_mgr.Save(&EffectsXml);
 
     wxFileName effectsFile;
     effectsFile.AssignDir(CurrentDir);
     if (backup) {
         effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE_BACKUP));
     } else {
-        effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
+        effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE_NEW));
     }
 
     wxFileOutputStream fout(effectsFile.GetFullPath());
     wxBufferedOutputStream *bout = new wxBufferedOutputStream(fout, 2 * 1024 * 1024);
 
-    if (!EffectsXml.Save(*bout)) {
+    if (!doc.Save(*bout)) {
         if (backup) {
             logger_base.warn("Unable to save backup of RGB effects file");
         } else {
