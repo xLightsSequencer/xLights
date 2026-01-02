@@ -2550,11 +2550,7 @@ bool Model::IsValidStartChannelString() const
     if (GetDisplayAs() == "SubModel") {
         sc = this->ModelStartChannel;
     } else {
-        if ( DeleteXmlLater() ) {
-            sc = ModelXml->GetAttribute("StartChannel").Trim(true).Trim(false);
-        } else {
-            sc = this->ModelStartChannel;
-        }
+        sc = this->ModelStartChannel;
     }
 
     if (sc.IsNumber() && wxAtol(sc) > 0 && !sc.Contains('.'))

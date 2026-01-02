@@ -35,25 +35,12 @@ wxXmlNode* BaseObject::GetModelXml() const {
 void BaseObject::SetName(std::string const& newname)
 {
     name = newname;
-    if( DeleteXmlLater() ) {
-        ModelXml->DeleteAttribute("name");
-        ModelXml->AddAttribute("name", name);
-    }
 }
 
 void BaseObject::SetLayoutGroup(const std::string &grp) {
-    if( DeleteXmlLater() ) {
-        if (grp != ModelXml->GetAttribute("LayoutGroup", "xyzzy_kw"))
-        {
-            layout_group = grp;
-            ModelXml->DeleteAttribute("LayoutGroup");
-            ModelXml->AddAttribute("LayoutGroup", grp);
-        }
-    } else {
-        if (grp != "xyzzy_kw")
-        {
-            layout_group = grp;
-        }
+    if (grp != "xyzzy_kw")
+    {
+        layout_group = grp;
     }
     IncrementChangeCount();
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SetLayoutGroup");

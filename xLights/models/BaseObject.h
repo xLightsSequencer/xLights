@@ -113,7 +113,6 @@ public:
     [[nodiscard]] bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
 
     [[nodiscard]] virtual bool SupportsVisitors() const {return false;}
-    [[nodiscard]] bool DeleteXmlLater() const { return !SupportsVisitors(); }
     virtual void Accept(BaseObjectVisitor &visitor) const {};
 
     [[nodiscard]] bool IsActive() const { return _active; }

@@ -1425,6 +1425,9 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         return nullptr;
     }
 
+    model->SetControllerProtocol(protocol);
+    model->SetControllerName(NO_CONTROLLER);
+
     model->SetName(GenerateModelName(type));
     model->SetDisplayAs(type);
     model->SetStartChannel(startChannel);
@@ -1435,9 +1438,6 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
     // TODO:  remove this later we aren't using xml nodes anymore
     delete node;
     
-    model->SetControllerProtocol(protocol);
-    model->SetControllerName(NO_CONTROLLER);
-
     model->Setup();
 
     return model;
@@ -1708,8 +1708,7 @@ void ModelManager::AddModel(Model* model)
         models[model->name] = model;
 
         // TODO:  Probably can delete all this now
-        if (!model->DeleteXmlLater()) return;
-        
+/*
         if ("ModelGroup" == model->GetDisplayAs()) {
             if (model->GetModelXml()->GetParent() != groupNode) {
                 if (model->GetModelXml()->GetParent() != nullptr) {
@@ -1724,7 +1723,7 @@ void ModelManager::AddModel(Model* model)
                 }
                 modelNode->AddChild(model->GetModelXml());
             }
-        }
+        }*/
     }
 }
 void ModelManager::ReplaceModel(const std::string &name, Model* nm) {

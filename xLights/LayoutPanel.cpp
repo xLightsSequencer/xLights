@@ -6366,11 +6366,10 @@ Model *LayoutPanel::CreateNewModel(const std::string &type) const
     {
         t = "Custom";
     }
-    //std::string startChannel = xlights->AllModels.GenerateNewStartChannel( lastModelName );
 
+    xlights->GetOutputModelManager()->DisableASAPWork(true);
     Model* m = xlights->AllModels.CreateDefaultModel(t, "1");
-
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "LayoutPanel::CreateNewModel");
+    xlights->GetOutputModelManager()->DisableASAPWork(false);
 
     return m;
 }

@@ -74,10 +74,10 @@ void OutputModelManager::SetSelectedControllerIfASAPWorkExists(const std::string
 
 void OutputModelManager::AddASAPWork(uint32_t work, const std::string& from, BaseObject* m, Controller* o, const std::string& selectedModel)
 {
+    if (_disableASAPWork) return;
 #ifdef _DEBUG
     _sourceASAP.push_back({ work, from });
 #endif
-    if (_disableASAPWork) return;  // We disable all this during initial model loading
     if (selectedModel != "") _selectedModel = selectedModel;
     if (o != nullptr) _selectedController = o->GetName();
 
