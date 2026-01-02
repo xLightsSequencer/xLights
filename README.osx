@@ -4,9 +4,13 @@ To build/debug xLights on macOS, you need to checkout the macOS updates, scripts
 
 The easiest way to do that is to run:
 git submodule update --init macOS
+git submodule update --init --recursive
 
-That will checkout the code as a submodule.  There will be a README.macOS file in the macOS directory
-that explains how to build the various 3rd party dependencies that xLights needs.
+The first command checks out the macOS build system as a submodule.
+The second command recursively initializes all dependencies (like nanosvg, etc.).
+
+There will be a README.macOS file in the macOS directory that explains how to build 
+the various 3rd party dependencies that xLights needs.
 
 Once the dependencies are built, open up the xcodeproject file in Xcode and you should be able to
 build and run xLights.

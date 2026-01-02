@@ -28,6 +28,7 @@
 
 #define AMPS_PER_PIXEL (0.055f)
 #define FORMATTIME(ms) (const char *)wxString::Format("%d:%02d.%03d", ((uint32_t)ms) / 60000, (((uint32_t)ms) % 60000) / 1000, ((uint32_t)ms) % 1000).c_str()
+#define FORMATTIME_H_M_S(ms) (const char*)wxString::Format("%02d:%02d:%02d.%03d", ((uint32_t)ms) / 3600000, ((uint32_t)ms % 360000) / 60000, (((uint32_t)ms) % 60000) / 1000, ((uint32_t)ms) % 1000).c_str()
 #define INTROUNDUPDIV(a, b) (((a) + (b) - 1) / (b))
 #define UNUSED(x) (void)(x)
 constexpr double PI = 3.141592653589793238463;
@@ -184,6 +185,7 @@ void DumpBinary(uint8_t* buffer, size_t read);
 wxColor CyanOrBlue();
 wxColor LightOrMediumGrey();
 wxColor BlueOrLightBlue();
+wxColor RedOrLightRed();
 bool IsFloat(const std::string& number);
 bool IsDarkMode();
 void SetSuppressDarkMode(bool suppress);

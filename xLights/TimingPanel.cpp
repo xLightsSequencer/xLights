@@ -390,6 +390,7 @@ TimingPanel::TimingPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     CheckBox_ResetTimingPanel->SetValue(reset);
 
     ValidateWindow();
+    SetMinSize(wxSize(50, 50));
 }
 
 TimingPanel::~TimingPanel()

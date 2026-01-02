@@ -19,26 +19,25 @@
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
 
-#include <nlohmann/json.hpp>
-
 #include <curl/curl.h>
 
-#include "./utils/spdlog_macros.h"
+#include <nlohmann/json.hpp>
+
+#include <log4cpp/Category.hh>
 #include <utils/CurlManager.h>
 
 #pragma region Constructors and Destructors
 ILightThat::ILightThat(const std::string& ip, const std::string& proxy) :
     BaseController(ip, proxy)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::string const json = GetURL("/settings");
     if (!json.empty()) {
-        //nlohmann::json val = nlohmann::json::parse(json);
         _connected = true;
-        LOG_DEBUG("Connected to ILightThat controller model %s.", (const char*)GetFullName().c_str());
+        logger_base.debug("Connected to ILightThat controller model %s.", (const char*)GetFullName().c_str());
     } else {
         _connected = false;
-        LOG_ERROR("Error connecting to ILightThat controller on %s.", (const char*)_ip.c_str());
+        logger_base.error("Error connecting to ILightThat controller on %s.", (const char*)_ip.c_str());
     }
 }
 
@@ -56,34 +55,43 @@ ILightThat::~ILightThat()
 #pragma region Getters and Setters
 bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent)
 {
-    
-    LOG_DEBUG("ILightThat Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("ILightThat Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
 
     std::unordered_map<std::string, int> model_test_cols = {};
     std::string const json = GetURL("/settings");
     if (!json.empty()) {
-        nlohmann::json jsonVal = nlohmann::json::parse(json);
-
-        if (jsonVal["ports"].is_array()) {
-            for (int i = 0; i < jsonVal["ports"].size(); i++) {
-                for (int j = 0; j < jsonVal["ports"][i]["models"].size(); j++) {
-                    auto model = jsonVal["ports"][i]["models"][j];
-                    if (model.contains("test_colour")) {
-                        model_test_cols[model["name"].get<std::string>()] = model["test_colour"].get<int>();
+        try {
+            nlohmann::json jsonVal = nlohmann::json::parse(json);
+            if (jsonVal["ports"].is_array()) {
+                for (int i = 0; i < jsonVal["ports"].size(); i++) {
+                    if (jsonVal["ports"][i].contains("models")) {
+                        for (int j = 0; j < jsonVal["ports"][i]["models"].size(); j++) {
+                            auto model = jsonVal["ports"][i]["models"][j];
+                            if (model.contains("test_colour")) {
+                                model_test_cols[model["name"].get<std::string>()] = model["test_colour"].get<int>();
+                            }
+                        }
                     }
                 }
             }
+        } catch (nlohmann::json::parse_error& ex) {
+            logger_base.warn("ILightThat Outputs Upload: Failed to parse JSON: %s", ex.what());
+            logger_base.warn((const char*)json.c_str());
+        } catch (std::exception& e) {
+            logger_base.warn("ILightThat Outputs Upload: Failed to parse JSON: %s", e.what());
+            logger_base.warn((const char*)json.c_str());
         }
     }
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
     auto rules = ControllerCaps::GetControllerConfig(controller);
-    bool success = cud.Check(rules, check);
+    bool const success = cud.Check(rules, check);
 
     if (success) {
         nlohmann::json outputConfig;
-        int first_channel = cud.GetFirstOutput()->GetStartChannel();
+        int const first_channel = cud.GetFirstOutput()->GetStartChannel();
         outputConfig["start_address"] = first_channel;
         outputConfig["start_universe"] = cud.GetFirstOutput()->GetUniverse();
         if (cud.GetFirstOutput()->GetType() == OUTPUT_E131 ||
@@ -121,8 +129,8 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                 }
 
                 outputConfig["ports"][x]["models"][i]["brightness"] = brightness;
-                outputConfig["ports"][x]["models"][i]["start"] = (model->GetStartChannel() - port->GetFirstModel()->GetStartChannel()) / 3;
-                outputConfig["ports"][x]["models"][i]["num_pixels"] = ((model->GetEndChannel() - model->GetStartChannel()) + 1) / 3;
+                outputConfig["ports"][x]["models"][i]["start_channel"] = model->GetStartChannel() - port->GetFirstModel()->GetStartChannel();
+                outputConfig["ports"][x]["models"][i]["num_channels"] = (model->GetEndChannel() - model->GetStartChannel()) + 1;
 
                 const std::string colorOrder = model->GetColourOrder("unknown");
                 if (colorOrder != "unknown") {
@@ -137,9 +145,10 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
         }
 
         for (int i = cud.GetMaxPixelPort(); i < controller->GetControllerCaps()->GetMaxPixelPort(); i++) {
-            outputConfig["ports"][i]["num_pixels"] = 0;
+            outputConfig["ports"][i]["port_type"] = std::string("Pixel");
         }
-        std::string response = PutURL("/settings", outputConfig.dump(), "", "", "application/json");
+
+        std::string const response = PutURL("/settings", outputConfig.dump(), "", "", "application/json");
         return (response == "OK");
     }
     return false;

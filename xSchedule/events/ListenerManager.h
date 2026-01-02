@@ -45,6 +45,7 @@ public:
     void ProcessPacket(const std::string& source, const std::string& topic, const std::string& data);
     void Stop();
     void StartListeners(const std::string& localIP);
+    ListenerBase* GetSyncListener() const;
     void SetRemoteOSC();
     void SetRemoteFPP();
     void SetRemoteCSVFPP();

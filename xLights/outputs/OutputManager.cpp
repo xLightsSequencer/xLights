@@ -361,8 +361,8 @@ bool OutputManager::MergeFromBase(bool prompt)
             // check if the controller already exists
             for (const auto& it : GetControllers())
             {
-                // if ip and id match or the names match then assume it is the same
-                if ((it->GetIP() == baseit->GetIP() && it->GetId() == baseit->GetId()) || it->GetName() == baseit->GetName()) {
+                // if controller name is unique allow it to be added 
+                if (it->GetName() == baseit->GetName()) {
                     // this is a match
                     found = true;
 
@@ -399,8 +399,7 @@ bool OutputManager::MergeFromBase(bool prompt)
     return changed;
 }
 
-bool OutputManager::Save() {
-
+wxXmlDocument OutputManager::SaveToXML() {
     wxXmlDocument doc;
     wxXmlNode* root = new wxXmlNode(wxXML_ELEMENT_NODE, "Networks");
 
@@ -432,6 +431,11 @@ bool OutputManager::Save() {
     for (const auto& it : _testPresets) {
         root->AddChild(it->Save());
     }
+    return doc;
+}
+
+bool OutputManager::Save() {
+    wxXmlDocument doc = SaveToXML();
 
     wxFileOutputStream fout(_filename);
     wxBufferedOutputStream *bout = new wxBufferedOutputStream(fout, 2 * 1024 * 1024);

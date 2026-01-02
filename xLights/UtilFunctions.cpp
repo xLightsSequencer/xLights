@@ -23,6 +23,7 @@
 #include <random>
 #include <thread>
 #include <time.h>
+#include <fstream>
 
 #include "ExternalHooks.h"
 #include "UtilFunctions.h"
@@ -51,7 +52,7 @@
 #include <sys/sysinfo.h>
 #endif
 
-#include "./utils/spdlog_macros.h"
+#include <log4cpp/Category.hh>
 
 #if defined(_MSC_VER) // Visual studio
 #define thread_local __declspec(thread)
@@ -60,30 +61,30 @@
 #endif
 
 void DisplayError(const std::string& err, wxWindow* win) {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    LOG_ERROR("DisplayError: %s", (const char*)err.c_str());
+    logger_base.error("DisplayError: %s", (const char*)err.c_str());
     wxMessageBox(err, "Error", wxICON_ERROR | wxOK, win);
 }
 
 void DisplayWarning(const std::string& warn, wxWindow* win) {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    LOG_WARN("DisplayWarning: %s", (const char*)warn.c_str());
+    logger_base.warn("DisplayWarning: %s", (const char*)warn.c_str());
     wxMessageBox(warn, "Warning", wxICON_WARNING | wxOK, win);
 }
 
 void DisplayInfo(const std::string& info, wxWindow* win) {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    LOG_INFO("DisplayInfo: %s", (const char*)info.c_str());
+    logger_base.info("DisplayInfo: %s", (const char*)info.c_str());
     wxMessageBox(info, "Information", wxICON_INFORMATION | wxOK, win);
 }
 
 void DisplayCrit(const std::string& crit, wxWindow* win) {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    LOG_CRIT("DisplayCrit: %s", (const char*)crit.c_str());
+    logger_base.crit("DisplayCrit: %s", (const char*)crit.c_str());
     wxMessageBox(crit, "CRITICAL", wxICON_ERROR | wxOK, win);
 }
 
@@ -208,11 +209,11 @@ wxArrayString Split(const wxString& s, const std::vector<char>& delimiters) {
 }
 
 static bool doesFileExist(const wxString& dir, const wxString& origFileWin, const wxString& origFileUnix, wxString& path) {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (origFileWin != "") {
         wxFileName fn3(dir, origFileWin);
         if (FileExists(fn3, false)) {
-            LOG_DEBUGWX("File location fixed: " + origFileWin + " -> " + fn3.GetFullPath());
+            logger_base.debug("File location fixed: " + origFileWin + " -> " + fn3.GetFullPath());
             path = fn3.GetFullPath();
             return true;
         }
@@ -220,7 +221,7 @@ static bool doesFileExist(const wxString& dir, const wxString& origFileWin, cons
     if (origFileUnix != "") {
         wxFileName fn4(dir, origFileUnix);
         if (FileExists(fn4, false)) {
-            LOG_DEBUGWX("File location fixed: " + origFileWin + " -> " + fn4.GetFullPath());
+            logger_base.debug("File location fixed: " + origFileWin + " -> " + fn4.GetFullPath());
             path = fn4.GetFullPath();
             return true;
         }
@@ -280,29 +281,22 @@ void ClearNonExistentFiles() {
 wxImage ApplyOrientation(const wxImage& img, int orient) {
     wxImage res = img.Copy();
     switch (orient) {
-    case 2:
-        return res.Mirror(true); // horizontal flip
-    case 3:
-        return res.Rotate180();
-    case 4:
-        return res.Mirror(false); // vertical flip
-    case 5:
-        return res.Mirror(true).Rotate90(false); // horizontal flip + 90° CCW
-    case 6:
-        return res.Rotate90(true); // 90° CW
-    case 7:
-        return res.Mirror(true).Rotate90(true); // horizontal flip + 90° CW
-    case 8:
-        return res.Rotate90(false); // 90° CCW
-    default:
-        return res;
+    case 2: return res.Mirror(true);  // horizontal flip
+    case 3: return res.Rotate180();
+    case 4: return res.Mirror(false); // vertical flip
+    case 5: return res.Mirror(true).Rotate90(false); // horizontal flip + 90ï¿½ CCW
+    case 6: return res.Rotate90(true);  // 90ï¿½ CW
+    case 7: return res.Mirror(true).Rotate90(true);  // horizontal flip + 90ï¿½ CW
+    case 8: return res.Rotate90(false); // 90ï¿½ CCW
+    default: return res;
     }
 }
 
 int GetExifOrientation(const wxString& filename) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::ifstream file(filename.ToStdString(), std::ios::binary);
     if (!file) {
-        LOG_DEBUG("Failed to open file: %s", (const char*)filename.c_str());
+        logger_base.debug("Failed to open file: %s", (const char*)filename.c_str());
         file.close();
         return 1; // Default orientation
     }
@@ -317,24 +311,20 @@ int GetExifOrientation(const wxString& filename) {
 
     while (file) {
         file.read(reinterpret_cast<char*>(&byte1), 1);
-        if (byte1 != 0xFF)
-            break;
+        if (byte1 != 0xFF) break;
         file.read(reinterpret_cast<char*>(&byte2), 1);
-        if (byte2 == 0xD9 || byte2 == 0xDA)
-            break;
+        if (byte2 == 0xD9 || byte2 == 0xDA) break;
 
         unsigned short len;
         file.read(reinterpret_cast<char*>(&len), 2);
         len = ((len >> 8) & 0xFF) | ((len << 8) & 0xFF00); // big-endian
-        if (len < 2)
-            break;
+        if (len < 2) break;
 
         if (byte2 == 0xE1) { // APP1 segment
             std::vector<char> data(len - 2);
             file.read(data.data(), len - 2);
 
-            if (data.size() < 14)
-                continue; // too small to hold Exif header
+            if (data.size() < 14) continue; // too small to hold Exif header
 
             if (memcmp(data.data(), "Exif\0\0", 6) != 0) {
                 continue;
@@ -342,42 +332,48 @@ int GetExifOrientation(const wxString& filename) {
 
             size_t tiff_header = 6; // TIFF header starts right after Exif\0\0
             bool littleEndian = (data[tiff_header] == 'I' && data[tiff_header + 1] == 'I');
-            unsigned short fortytwo = littleEndian ? ((unsigned char)data[tiff_header + 3] << 8) | (unsigned char)data[tiff_header + 2] : ((unsigned char)data[tiff_header + 2] << 8) | (unsigned char)data[tiff_header + 3];
+            unsigned short fortytwo = littleEndian ?
+                ((unsigned char)data[tiff_header + 3] << 8) | (unsigned char)data[tiff_header + 2] :
+                ((unsigned char)data[tiff_header + 2] << 8) | (unsigned char)data[tiff_header + 3];
 
             if (fortytwo != 42) {
-                LOG_DEBUG("Invalid TIFF header identifier in %s", (const char*)filename.c_str());
+                logger_base.debug("Invalid TIFF header identifier in %s", (const char*)filename.c_str());
                 return 1;
             }
 
             // Read offset to IFD0
             unsigned int ifd_offset;
             if (littleEndian) {
-                ifd_offset = (unsigned char)data[tiff_header + 4] |
-                             ((unsigned char)data[tiff_header + 5] << 8) |
-                             ((unsigned char)data[tiff_header + 6] << 16) |
-                             ((unsigned char)data[tiff_header + 7] << 24);
+                ifd_offset =  (unsigned char)data[tiff_header + 4]       |
+                    ((unsigned char)data[tiff_header + 5] << 8) |
+                    ((unsigned char)data[tiff_header + 6] << 16)|
+                    ((unsigned char)data[tiff_header + 7] << 24);
             } else {
-                ifd_offset = ((unsigned char)data[tiff_header + 4] << 24) |
-                             ((unsigned char)data[tiff_header + 5] << 16) |
-                             ((unsigned char)data[tiff_header + 6] << 8) |
-                             (unsigned char)data[tiff_header + 7];
+                ifd_offset = ((unsigned char)data[tiff_header + 4] << 24)|
+                    ((unsigned char)data[tiff_header + 5] << 16)|
+                    ((unsigned char)data[tiff_header + 6] << 8) |
+                    (unsigned char)data[tiff_header + 7];
             }
 
             size_t pos = tiff_header + ifd_offset;
-            if (pos + 2 > data.size())
-                return 1;
+            if (pos + 2 > data.size()) return 1;
 
-            unsigned short num_entries = littleEndian ? ((unsigned char)data[pos + 1] << 8) | (unsigned char)data[pos] : ((unsigned char)data[pos] << 8) | (unsigned char)data[pos + 1];
+            unsigned short num_entries = littleEndian ?
+                ((unsigned char)data[pos + 1] << 8) | (unsigned char)data[pos] :
+                ((unsigned char)data[pos] << 8) | (unsigned char)data[pos + 1];
             pos += 2;
 
             for (unsigned short i = 0; i < num_entries; ++i) {
-                if (pos + 12 > data.size())
-                    break;
+                if (pos + 12 > data.size()) break;
 
-                unsigned short tag = littleEndian ? ((unsigned char)data[pos + 1] << 8) | (unsigned char)data[pos] : ((unsigned char)data[pos] << 8) | (unsigned char)data[pos + 1];
+                unsigned short tag = littleEndian ?
+                    ((unsigned char)data[pos + 1] << 8) | (unsigned char)data[pos] :
+                    ((unsigned char)data[pos] << 8) | (unsigned char)data[pos + 1];
 
                 if (tag == 0x0112) { // Orientation
-                    unsigned short orient = littleEndian ? ((unsigned char)data[pos + 9] << 8) | (unsigned char)data[pos + 8] : ((unsigned char)data[pos + 8] << 8) | (unsigned char)data[pos + 9];
+                    unsigned short orient = littleEndian ?
+                        ((unsigned char)data[pos + 9] << 8) | (unsigned char)data[pos + 8] :
+                        ((unsigned char)data[pos + 8] << 8) | (unsigned char)data[pos + 9];
                     return static_cast<int>(orient);
                 }
                 pos += 12;
@@ -410,7 +406,7 @@ std::string GetResourcesDirectory() {
 
 
 wxString FixFile(const wxString& ShowDir, const wxString& file) {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     static std::map<wxString, wxString> __fileMap;
 
@@ -456,7 +452,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file) {
     // done with __nonExistentFiles and __fileMap for right now, we'll unlock
     // so other threads can access them, but we'll need to relock when we add entries later
     lock.unlock();
-    LOG_DEBUGWX("File not found ... attempting to fix location (" + sd + ") : " + file);
+    logger_base.debug("File not found ... attempting to fix location (" + sd + ") : " + file);
 
     // I dont know what this is trying to fix but it blows up on windows
     wxFileName fnUnix(file, wxPATH_UNIX);
@@ -592,8 +588,8 @@ wxString FixFile(const wxString& ShowDir, const wxString& file) {
     if (ShowDir == "" && fnUnix.GetDirCount() > 0) {
         return FixFile(sd + "/" + fnUnix.GetDirs().Last(), file);
     }
-    LOG_DEBUGWX("   could not find a fixed file location for : " + file);
-    LOG_DEBUG("   We will not look for this file again until a new sequence is loaded.");
+    logger_base.debug("   could not find a fixed file location for : " + file);
+    logger_base.debug("   We will not look for this file again until a new sequence is loaded.");
     lock.lock();
     __nonExistentFiles.push_back(file.ToStdString());
     return file;
@@ -907,24 +903,15 @@ bool IsVersionOlder(const std::string& compare, const std::string& version) {
         return true;
     if (wxAtoi(version_parts[1]) > wxAtoi(compare_parts[1]))
         return false;
-    if (version_parts.Count() == 3 && compare_parts.Count() == 3) {
-        // actually they are the same but we return true when they are the same
-        return true;
-    }
-        // From 2016 versions only have 2 parts
-    else if (version_parts.Count() == 2 || compare_parts.Count() == 2) {
-        if (version_parts.Count() > 2) {
-            return false; // remote version has 2 components but local has three so local must be newer
-        }
-        return true;
-    } else {
-    if (version_parts.Count() == 2 || compare_parts.Count() == 2) {
-        if (version_parts.Count() > 2) {
-            return false; // remote version has 2 components but local has three so local must be newer
-        }
-        return true;
-    }        if (wxAtoi(version_parts[2]) < wxAtoi(compare_parts[2]))
+    if (version_parts.Count() > 2 && compare_parts.Count() == 2)
+        return false; // remote version has 2 components but local has three so local must be newer
+    if (version_parts.Count() == 2 && compare_parts.Count() > 2)
+        return true; // remote version has 3 components but local has two so remote must be newer
+    if (version_parts.Count() > 2 && compare_parts.Count() > 2) {
+        if (wxAtoi(version_parts[2]) <= wxAtoi(compare_parts[2]))
             return true;
+        if (wxAtoi(version_parts[2]) > wxAtoi(compare_parts[2]))
+            return false;
     }
     return false;
 }
@@ -1089,11 +1076,11 @@ std::list<std::string> GetLocalIPs() {
     std::list<std::string> res;
 
 #ifdef __WXMSW__
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
     PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO*)malloc(sizeof(IP_ADAPTER_INFO));
     if (pAdapterInfo == nullptr) {
-        LOG_ERROR("Error getting adapter info.");
+        logger_base.error("Error getting adapter info.");
         return res;
     }
 
@@ -1101,7 +1088,7 @@ std::list<std::string> GetLocalIPs() {
         free(pAdapterInfo);
         pAdapterInfo = (IP_ADAPTER_INFO*)malloc(ulOutBufLen);
         if (pAdapterInfo == nullptr) {
-            LOG_ERROR("Error getting adapter info.");
+            logger_base.error("Error getting adapter info.");
             return res;
         }
     }
@@ -1180,23 +1167,23 @@ bool IsInSameSubnet(const std::string& ip1, const std::string& ip2, const std::s
 }
 
 bool DeleteDirectory(std::string directory) {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     bool res = true;
-    LOG_DEBUG("  Processing directory: %s.", (const char*)directory.c_str());
+    logger_base.debug("  Processing directory: %s.", (const char*)directory.c_str());
     if (wxDirExists(directory)) {
         wxDir d;
         if (d.Open(directory)) {
             wxString filename;
             bool found = d.GetFirst(&filename, "", wxDIR_FILES | wxDIR_HIDDEN | wxDIR_NO_FOLLOW);
             if (!found) {
-                LOG_DEBUG("  No files found.");
+                logger_base.debug("  No files found.");
             }
             while (found && res) {
                 auto ff = directory + GetPathSeparator() + filename;
-                LOG_DEBUG("  Deleting file: %s.", (const char*)ff.c_str());
+                logger_base.debug("  Deleting file: %s.", (const char*)ff.c_str());
                 if (!wxRemoveFile(ff)) {
-                    LOG_ERROR("    Could not delete file %s.", (const char*)ff.c_str());
+                    logger_base.error("    Could not delete file %s.", (const char*)ff.c_str());
                     res = false;
                 }
                 found = d.GetNext(&filename);
@@ -1204,25 +1191,25 @@ bool DeleteDirectory(std::string directory) {
 
             found = d.GetFirst(&filename, "", wxDIR_DIRS | wxDIR_HIDDEN | wxDIR_NO_FOLLOW);
             if (!found) {
-                LOG_DEBUG("  No subdirectories found.");
+                logger_base.debug("  No subdirectories found.");
             }
             while (found && res) {
                 auto dd = directory + GetPathSeparator() + filename;
-                LOG_DEBUG("  Deleting directory: %s.", (const char*)dd.c_str());
+                logger_base.debug("  Deleting directory: %s.", (const char*)dd.c_str());
                 res &= DeleteDirectory(dd);
                 found = d.GetNext(&filename);
             }
 
             if (!wxRmdir(directory)) {
-                LOG_ERROR("    Could not delete folder %s.", (const char*)directory.c_str());
+                logger_base.error("    Could not delete folder %s.", (const char*)directory.c_str());
                 res = false;
             }
         } else {
-            LOG_ERROR("  Thats odd ... the directory cannot be opened: %s.", (const char*)directory.c_str());
+            logger_base.error("  Thats odd ... the directory cannot be opened: %s.", (const char*)directory.c_str());
             res = false;
         }
     } else {
-        LOG_ERROR("  Thats odd ... the directory cannot be found: %s.", (const char*)directory.c_str());
+        logger_base.error("  Thats odd ... the directory cannot be found: %s.", (const char*)directory.c_str());
         res = false;
     }
 
@@ -1306,14 +1293,11 @@ void OptimiseDialogPosition(wxDialog* dlg) {
     EnsureWindowHeaderIsOnScreen(dlg);
 }
 
-nlohmann::json xLightsRequest(int xFadePort, const wxString& message, const wxString& ipAddress) {
-    std::string const url = "http://" + ipAddress + ":" + std::to_string(GetxFadePort(xFadePort)) + "/xlDoAutomation";
+nlohmann::json xLightsRequest(int xFadePort, const wxString& message, const std::string& ipAddress) {
+    std::string url = "http://" + ipAddress + ":" + std::to_string(GetxFadePort(xFadePort)) + "/xlDoAutomation";
     int responseCode = 0;
     auto resultString = Curl::HTTPSPost(url, message, "", "", "application/json", 30 * 60, {}, &responseCode);
     if (resultString != "" && (responseCode == 200 || responseCode >= 500)) {
-        //wxJSONValue result;
-        //wxJSONReader reader;
-        //reader.Parse(resultString, &result);
         nlohmann::json result = nlohmann::json::parse(resultString);
         result["res"] = (int)responseCode;
         return result;
@@ -1323,8 +1307,8 @@ nlohmann::json xLightsRequest(int xFadePort, const wxString& message, const wxSt
     nlohmann::json result = nlohmann::json::parse(msg);
     return result;
 }
-bool xLightsRequest(std::string& result, int xFadePort, const wxString& request, const wxString& ipAddress) {
-    std::string const url = "http://" + ipAddress + ":" + std::to_string(GetxFadePort(xFadePort)) + "/" + request;
+bool xLightsRequest(std::string& result, int xFadePort, const wxString& request, const std::string& ipAddress) {
+    std::string url = "http://" + ipAddress + ":" + std::to_string(GetxFadePort(xFadePort)) + "/" + request;
     int responseCode = 0;
     result = Curl::HTTPSGet(url, "", "", 30 * 60, {}, &responseCode);
     return responseCode == 200;
@@ -1381,7 +1365,7 @@ uint64_t GetPhysicalMemorySizeMB() {
 
 void CheckMemoryUsage(const std::string& reason, bool onchangeOnly) {
 #if defined(TURN_THIS_OFF) && defined(__WXMSW__)
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static long lastPrivate = 0;
     static long lastWorking = 0;
     PROCESS_MEMORY_COUNTERS_EX memoryCounters;
@@ -1390,7 +1374,7 @@ void CheckMemoryUsage(const std::string& reason, bool onchangeOnly) {
     long privateMem = (long)(memoryCounters.PrivateUsage / 1024);
     long workingMem = (long)(memoryCounters.WorkingSetSize / 1024);
     if (!onchangeOnly || privateMem != lastPrivate) {
-        LOG_DEBUG("Memory Usage: %s : private %ldKB (%ldKB) working %ldKB (%ldKB).",
+        logger_base.debug("Memory Usage: %s : private %ldKB (%ldKB) working %ldKB (%ldKB).",
                           (const char*)reason.c_str(),
                           privateMem,
                           privateMem - lastPrivate,
@@ -1419,7 +1403,7 @@ std::string ReverseCSV(const std::string& csv) {
 }
 
 void DumpBinary(uint8_t* buffer, size_t sz) {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     for (size_t i = 0; i < (sz + 15) / 16; i++) {
         std::string out;
         for (size_t j = i * 16; j < std::min(sz, (i + 1) * 16); j++) {
@@ -1433,7 +1417,7 @@ void DumpBinary(uint8_t* buffer, size_t sz) {
                 out += char(buffer[j]);
             }
         }
-        LOG_DEBUG(out);
+        logger_base.debug(out);
     }
 }
 
@@ -1462,6 +1446,15 @@ wxColor LightOrMediumGrey() {
         return medGray;
     } else {
         return *wxLIGHT_GREY;
+    }
+}
+wxColor RedOrLightRed() {
+    if (IsDarkMode()) {
+        // In Dark Mode pure red is hard to read on grey, use a lighter salmon/coral red
+        static const wxColor lightRed(0xFF, 0x6B, 0x6B);
+        return lightRed;
+    } else {
+        return *wxRED;
     }
 }
 void CleanupIpAddress(wxString& IpAddr) {

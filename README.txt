@@ -11,16 +11,66 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2025.13  December 2, 2025
+    - enh (o0charlie0o)     Prevent accidental resize of effects when clicking on them
+    - enh (scott)           Add json printing to fseq utility
+    - enh (dkulp)           Add K8-Max/Pro, organize all K8-* into a group
+    - enh (o0charlie0o)     Add confirmation for Viewpoint Deletion
+    - enh (o0charlie0o)     Add keyboard shortcuts for dividing timings by predefined intervals
+    - enh (o0charlie0o)     Add subdivided timing track generation feature
+    - bug (derwin12)        Fix crash in Twinkly output if twinkly device is offline
+    - bug (derwin12)        Fix a few potential but rare crashes, null pointer exceptions
+    - bug (MartinMMueller)  Fix some crashes in ESPixelStick uploads
+    - bug (dkulp)           Hopefully fix some symbol resolution issues on MacOS11
+    - bug (dkulp)           Fix some hostname -> IP issues when resolving on background threads
+    - bug (dkulp)           FPP Connect -> Fix some issues if FPP is reachable by both direct IP address as well as via a proxy
+    - bug (scott)           Fix a bunch of issues on Linux related to the File Dialog not returning the proper path
+    - bug (dkulp)           Mostly fix Aspect Ratio scaling of Video effect
+    - bug (derwin12)        Filter Label on VU Meter doesn't handle lists
+    - bug (Jason Rodriguez) Update from Base folder not handling multicast controllers
+    - bug (scott)           Remove WLED 510 check, add DDP and RGBW check
+    - bug (derwin12)        LUA Render Script reported wrong time on various OS's
+    - bug (dkulp)           For various exceptions, make sure xLights actually crashes and generates a crash report instead of silently closing
+    - bug (dkulp)           Fix crash at startup if you take too long to select a show folder.
+    - bug (dkulp)           FPP Connect - Only upload "Active" models to FPP model map
+    - bug (dkulp)           FPP Connect - Fix some ipv6 issues
+    - bug (dkulp)           Make sure mp4 extension is added when exporting videos, don't crash if extension isn't there
+    - bug (dkulp)           FIx FPPConnect always uploading media
+2025.12  November 7, 2025
+    - enh (scott)           Make State choice bulk editable
+    - enh (scott)           Add more scheduling options for HinksPix export
+    - enh (derwin12)        Various UI tweaks to the Restore dialog
+    - enh (derwin12)        LUA Script to time batch rendered sequences
+    - enh (derwin12)        Shorter batch render status line
+    - enh (dkulp)           Faster RenderCache cleanup, closing of sequences by optimizing string -> int
+    - enh (dkulp)           FPP Connect - for massive custom models, just map to horizontal string to prevent overly large memory usage on FPP
+    - enh (derwin12)        Show dates of newer autosave rgb file
+    - enh (PeteMathews)     Update ILT controller config upload
+    - enh (dkulp)           FPP Connect - fseq upload to FPP 9.3+ include embedded sequence details
+    - enh (MartinMueller)   Several updates to ESPixelStick v4 upload
+    - bug (scott)           Fix crash with HinksPix in non Full xLights Control mode
+    - bug (scott)           Fix HinksPix Export not loading saved values
+    - bug (derwin12)        Fix scaling/blurring of singing faces on matrices
+    - bug (derwin12)        Fix sequence version check with three digits
+    - bug (dkulp)           Fix Prepare Audio on Mac to properly create m4a files
+    - bug (scott)           Fix some crashes in ESPixelStick, add more error handling
+    - bug (dkulp)           Fix some crashes in RenderCache/macOS if mmap fails
+    - bug (dkulp)           Fix twinkly output not working
+    - bug (derwin12)        Fix Drag/Drop of imported effect in left list causing colums to get messed up
+    - bug (derwin12)        Fix crash in duplicate effect
+    - bug (derwin12)        MacOS - Fix Face delete dialog was not cancellable
+    - bug (derwin12)        Fix Check Sequence CSS file not loadable on Mac
+    - bug (derwin12)        Fix States being imported multiple times
 2025.11  October 17, 2025
-    - enh (dkulp)           Very minory open sequence optimization when searching for data layers
+    - enh (dkulp)           Very minor open sequence optimization when searching for data layers
     - enh (dkulp)           Don't display warning for full disk access if SIP is disabled
     - enh (scott)           Add controller sort options
-    - enh (scott)           Add 1200 pixel per prot for WLED ESP32
+    - enh (scott)           Add 1200 pixel per port for WLED ESP32
     - bug (scott)           Fix DDP  channel for DMX outputs on Falcon upload
     - bug (dkulp)           Fix memory leaks when clicking on "Re-discovery" in FPP Connect dialog
     - bug (dkulp)           Fix long standing crash in visualizer when dropping models
     - bug (derwin12)        Add more visible space for colors in Face dialog
-    - bug (derwin12)        Fix issues with verticle text being off buffer
+    - bug (derwin12)        Fix issues with vertical text being off buffer
 2025.10.2 October 7, 2025
     - enh (dkulp)           Change Windows update check and download URL to github release location
     - bug (scott)           Fix Falcon e1.31 upload

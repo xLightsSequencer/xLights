@@ -2280,9 +2280,14 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
                 if (gp != nullptr) {
                     int cnt = 0;
                     for (const auto& it : inf->shallowModelBuffers) {
-                        int bw, bh;
+                        int bw = 0, bh = 0;
                         it->Nodes.clear();
-                        gp->ActiveModels()[cnt]->InitRenderBufferNodes(type, camera, transform, it->Nodes, bw, bh, 0);
+                        if (cnt < gp->ActiveModels().size()) {
+                            Model *m = gp->ActiveModels()[cnt];
+                            if (m) {
+                                m->InitRenderBufferNodes(type, camera, transform, it->Nodes, bw, bh, 0);
+                            }
+                        }
                         if (bw == 0)
                             bw = 1; // zero sized buffers are a problem
                         if (bh == 0)

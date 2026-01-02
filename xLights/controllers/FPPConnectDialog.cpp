@@ -186,6 +186,9 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     CheckListBox_Sequences->AppendColumn("Media", wxCOL_WIDTH_AUTOSIZE,
                                          wxALIGN_LEFT,
                                          wxCOL_RESIZABLE | wxCOL_SORTABLE);
+    CheckListBox_Sequences->AppendColumn("Channel Count", wxCOL_WIDTH_AUTOSIZE,
+                                         wxALIGN_LEFT,
+                                         wxCOL_RESIZABLE | wxCOL_SORTABLE);
 
     wxConfigBase* config = wxConfigBase::Get();
     auto seqSortCol = config->ReadLong("xLightsFPPConnectSequenceSortCol", SORT_SEQ_NAME_COL);
@@ -541,12 +544,12 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
 
         std::string l = inst->hostName + " - " + inst->ipAddress;
         std::string lhn = "http://" + inst->hostName;
-        if (!inst->proxy.empty()) {
-            lhn = "http://" + inst->proxy + "/proxy/" + inst->ipAddress;
+        if (!inst->proxy().empty()) {
+            lhn = "http://" + inst->proxy() + "/proxy/" + inst->ipAddress;
         }
         std::string lip = "http://" + inst->ipAddress;
-        if (!inst->proxy.empty()) {
-            lip = "http://" + inst->proxy + "/proxy/" + inst->ipAddress;
+        if (!inst->proxy().empty()) {
+            lip = "http://" + inst->proxy() + "/proxy/" + inst->ipAddress;
         }
         auto link1 = new wxHyperlinkCtrl(FPPInstanceList, wxID_ANY, inst->hostName, lhn, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE, "ID_HOSTNAME_" + rowStr);
         link1->SetNormalColour(CyanOrBlue());
@@ -966,6 +969,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
                     if (mediaName != "") {
                         CheckListBox_Sequences->SetItemText(item, 2, mediaName);
                     }
+                    DisplayPixelCount(fseqName, item);
                 }
             }
         }
@@ -993,6 +997,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
                                                                         filename);
 
             DisplayDateModified(filename, item);
+            DisplayPixelCount(filename, item);
         }
     }
 
@@ -1040,6 +1045,7 @@ void FPPConnectDialog::LoadSequences()
         if (!found && FileExists(v)) {
             wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(), v);
             DisplayDateModified(v, item);
+            DisplayPixelCount(v, item);
             FSEQFile *file = FSEQFile::openFSEQFile(v.ToStdString());
             if (file != nullptr) {
                 for (auto& header : file->getVariableHeaders()) {
@@ -1160,8 +1166,6 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload) {
     
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
-    std::map<int, int> udpRanges;
-    auto outputs = FPP::CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
     int pw, ph;
     frame->GetLayoutPreview()->GetVirtualCanvasSize(pw, ph);
     std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels, pw, ph);
@@ -1187,6 +1191,8 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     cancelled |= inst->UploadControllerProxies(_outputManager);
                 }
                 if (GetChoiceValueIndex(UDP_COL + rowStr) == 1) {
+                    std::map<int, int> udpRanges;
+                    auto outputs = inst->CreateUniverseFile(_outputManager->GetControllers(), false, &udpRanges);
                     cancelled |= inst->UploadUDPOut(outputs);
                     //add the UDP ranges into the list of ranges
                     std::map<int, int> rngs(udpRanges);
@@ -1832,5 +1838,19 @@ void FPPConnectDialog::DisplayDateModified(const wxString& filePath, wxTreeListI
     if (FileExists(filePath)) {
         wxDateTime last_modified_time(wxFileModificationTime(filePath));
         CheckListBox_Sequences->SetItemText(item, 1, last_modified_time.Format(wxT("%Y-%m-%d %H:%M:%S")));
+    }
+}
+
+void FPPConnectDialog::DisplayPixelCount(const wxString& filePath, wxTreeListItem &item) const
+{
+    if (FileExists(filePath)) {
+        auto fsf = FSEQFile::openFSEQFile(filePath);
+        wxString channelInfo = "";
+        if (fsf != nullptr) {
+            auto ch = fsf->getChannelCount();
+            channelInfo = wxString::Format("%llu", ch);
+            delete fsf;
+        }
+        CheckListBox_Sequences->SetItemText(item, 3, channelInfo);
     }
 }

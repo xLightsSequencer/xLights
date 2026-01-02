@@ -101,6 +101,16 @@ public:
     void setStepTime(int st) { m_seqStepTime = st; }
     void setChannelCount(int cc) { m_seqChannelCount = cc; }
     void addVariableHeader(const VariableHeader &header) { m_variableHeaders.push_back(header);}
+    void removeVariableHeader(uint8_t code1, uint8_t code2) {
+        auto it = m_variableHeaders.begin();
+        while (it != m_variableHeaders.end()) {
+            if (it->code[0] == code1 && it->code[1] == code2) {
+                m_variableHeaders.erase(it);
+                return;
+            }
+            ++it;
+        }
+    }
 
 
     const std::vector<uint8_t> &getMemoryBuffer() const { return m_memoryBuffer;}

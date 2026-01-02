@@ -84,7 +84,7 @@ std::list<std::string> PythonRunner::PromptSequences() const
     std::list<std::string> sequenceList;
     
 
-    BatchRenderDialog dlg(_frame);
+    BatchRenderDialog dlg(_frame, _frame->GetOutputManager());
     dlg.SetTitle("Select Sequences");
     if (dlg.Prepare(_frame->GetShowDirectory()) && dlg.ShowModal() == wxID_OK) {
         wxArrayString files = dlg.GetFileList();

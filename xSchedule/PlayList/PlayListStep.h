@@ -41,7 +41,7 @@ protected:
     wxUint32 _pause;
     wxUint32 _id;
     wxUint32 _suspend;
-    int _baseTimeCodeTime = -1;
+    int _baseTimeCodeTime = -1; // This is stored in seconds
     int _loops = 0;
     bool _everyStep = false;
     bool _everyStepExcludeFirst = false;
@@ -78,6 +78,7 @@ public:
     bool GetExcludeFromRandom() const { return _excludeFromRandom; }
     void SetExcludeFromRandom(bool efr) { if (_excludeFromRandom != efr) { _excludeFromRandom = efr; ++_changeCount; } }
     std::string GetStartTime(PlayList* pl);
+    std::string GetRemoteStartTime(PlayList* pl);
     std::string GetName(PlayList* pl);
     std::string GetNameNoTime();
     std::string GetRawName() const { return _name; }

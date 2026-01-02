@@ -49,7 +49,7 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         virtual void InitModel() override;
         virtual int MapToNodeIndex(int strand, int node) const override;
         virtual int GetNumStrands() const override;
-        virtual int CalcCannelsPerString() override;
+        virtual int CalcChannelsPerString() override;
         virtual bool IsNodeFirst(int n) const override;
         virtual int GetStrandLength(int strand) const override;
         virtual int GetMappedStrand(int strand) const override;

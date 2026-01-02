@@ -1361,8 +1361,6 @@ void MovingHeadPanel::UpdateStatusPanel()
 {
     bool headselect_set = false;
     bool hasrealvalues = false;
-    if (TextCtrl_MH1_Settings->GetValue() == "")
-        CheckAllFixtures();
     GetFixturesGroups();
     Button_All->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     Button_None->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
@@ -1600,21 +1598,7 @@ void MovingHeadPanel::CheckAllFixtures() {
 
 void MovingHeadPanel::OnButton_AllClick(wxCommandEvent& event)
 {
-    UncheckAllFixtures();
-
-    auto models = GetActiveModels();
-
-    for (const auto& it : models) {
-        if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
-            DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
-            int num = mhead->GetFixtureVal();
-            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);
-            wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
-            if( checkbox != nullptr ) {
-                checkbox->SetValue(true);
-            }
-       }
-    }
+    CheckAllFixtures();
     wxCommandEvent _event;
     OnCheckBox_MHClick(_event);
 }
@@ -2046,16 +2030,6 @@ void MovingHeadPanel::RecallSettings(const std::string mh_settings)
 void MovingHeadPanel::OnButton_ResetToDefaultClick(wxCommandEvent& event)
 {
     std::string all_settings = xlEMPTY_STRING;
-    for( int i = 1; i <= 8; ++i ) {
-        wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
-        wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
-        if( mh_textbox != nullptr ) {
-            std::string mh_settings = mh_textbox->GetValue();
-            if( mh_settings != xlEMPTY_STRING ) {
-                mh_textbox->SetValue(xlEMPTY_STRING);
-            }
-        }
-    }
 
     ValueCurve_MHPan->SetActive(false);
     ValueCurve_MHTilt->SetActive(false);
@@ -2080,7 +2054,6 @@ void MovingHeadPanel::OnButton_ResetToDefaultClick(wxCommandEvent& event)
     CheckBox_MHIgnorePan->SetValue(false);
     CheckBox_MHIgnoreTilt->SetValue(false);
     UpdatePathSettings();
-    CheckAllFixtures();
     TextCtrl_Status->SetValue("");
     if (m_rgbColorPanel != nullptr) {
         m_rgbColorPanel->ResetColours();
@@ -2088,6 +2061,19 @@ void MovingHeadPanel::OnButton_ResetToDefaultClick(wxCommandEvent& event)
     if (m_wheelColorPanel != nullptr) {
         m_wheelColorPanel->ResetColours();
     }
+
+    for( int i = 1; i <= 8; ++i ) {
+        wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+        wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+        if( mh_textbox != nullptr ) {
+            std::string mh_settings = mh_textbox->GetValue();
+            if( mh_settings != xlEMPTY_STRING ) {
+                mh_textbox->SetValue(xlEMPTY_STRING);
+            }
+        }
+    }
+    CheckAllFixtures();
+
     FireChangeEvent();
     ValidateWindow();
 }

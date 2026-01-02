@@ -146,6 +146,10 @@ void GenericVideoExporter::initialize()
     
     // Initialize video & audio
     AVOutputFormat* fmt = (AVOutputFormat*)::av_guess_format(nullptr, _path.c_str(), nullptr);
+    if (fmt == nullptr) {
+        std::string np = _path + ".mp4";
+        fmt = (AVOutputFormat*)::av_guess_format(nullptr, _path.c_str(), nullptr);
+    }
     const AVCodec* videoCodec = ::avcodec_find_encoder(fmt->video_codec);
     int status{-1};
     AVDictionary* av_opts = NULL;

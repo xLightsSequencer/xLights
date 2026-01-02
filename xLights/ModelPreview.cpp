@@ -945,6 +945,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int 
     is3d = false;
     
     Mouse3DManager::INSTANCE.enableMotionEvents(this);
+    SetMinSize(wxSize(50, 50));
 }
 
 ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
@@ -970,6 +971,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
 
     is3d = false;
     Mouse3DManager::INSTANCE.enableMotionEvents(this);
+    SetMinSize(wxSize(50, 50));
 }
 
 ModelPreview::~ModelPreview()

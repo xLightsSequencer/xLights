@@ -84,6 +84,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager, wxTimer *ti
     EffectChoicebook->SetSelection(0);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
+    
+    SetMinSize(wxSize(50, 50));
 }
 
 EffectsPanel::~EffectsPanel()

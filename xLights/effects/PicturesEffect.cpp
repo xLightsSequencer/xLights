@@ -698,7 +698,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
         if (!image.HasAlpha()) {
             image.InitAlpha();
         }
-        image.Rescale(BufferWi, BufferHt, wxIMAGE_QUALITY_HIGH);
+        image.Rescale(BufferWi, BufferHt);
         imgwidth = image.GetWidth();
         imght = image.GetHeight();
         yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
@@ -715,7 +715,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
         if (!image.HasAlpha()) {
             image.InitAlpha();
         }
-        image.Rescale(image.GetWidth() * sc, image.GetHeight() * sc, wxIMAGE_QUALITY_HIGH);
+        image.Rescale(image.GetWidth() * sc, image.GetHeight() * sc);
         imgwidth = image.GetWidth();
         imght = image.GetHeight();
         yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
@@ -733,7 +733,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
             if (!image.HasAlpha()) {
                 image.InitAlpha();
             }
-            image.Rescale(imgwidth, imght, wxIMAGE_QUALITY_HIGH);
+            image.Rescale(imgwidth, imght);
             yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
             xoffset = (imgwidth - BufferWi) / 2; //centered if sizes don't match
         }

@@ -39,7 +39,6 @@ enum class HEADER_INFO_TYPES {
 class xLightsXmlFile : public wxFileName
 {
 public:
-    // xLightsXmlFile();
     xLightsXmlFile(const wxFileName& filename, uint32_t frameMS = 0);
     virtual ~xLightsXmlFile();
 
@@ -50,6 +49,7 @@ public:
 
     void AddJukebox(wxXmlNode* node);
     bool Save(SequenceElements& elements);
+    bool SaveToDoc(SequenceElements& elements);
     wxXmlDocument& GetXmlDocument()
     {
         return seqDocument;
@@ -133,15 +133,15 @@ public:
         return timing_list;
     }
     wxArrayString GetTimingList(const SequenceElements& seq_elements);
-    void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
-    void ProcessLorTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
-    void ProcessXTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
+    void ProcessAudacityTimingFiles( const wxArrayString& filenames, xLightsFrame* xLightsParent);
+    void ProcessLorTiming( const wxArrayString& filenames, xLightsFrame* xLightsParent);
+    void ProcessXTiming( const wxArrayString& filenames, xLightsFrame* xLightsParent);
     void ProcessXTiming(wxXmlNode* node, xLightsFrame* xLightsParent);
-    void ProcessPapagayo(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
-    void ProcessSRT(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
-    void ProcessLSPTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
-    void ProcessXLightsTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
-    void ProcessVixen3Timing(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
+    void ProcessPapagayo( const wxArrayString& filenames, xLightsFrame* xLightsParent);
+    void ProcessSRT( const wxArrayString& filenames, xLightsFrame* xLightsParent);
+    void ProcessLSPTiming( const wxArrayString& filenames, xLightsFrame* xLightsParent);
+    void ProcessXLightsTiming( const wxArrayString& filenames, xLightsFrame* xLightsParent);
+    void ProcessVixen3Timing( const wxArrayString& filenames, xLightsFrame* xLightsParent);
     static void AddMarksToLayer(const std::list<VixenTiming>& marks, EffectLayer* effectLayer, int frameMS);
     wxString UniqueTimingName(xLightsFrame* xLightsParent, wxString name) const;
     void UpdateVersion();

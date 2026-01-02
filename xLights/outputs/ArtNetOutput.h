@@ -92,6 +92,8 @@ public:
     virtual std::string GetUniverseString() const override;
 
     virtual std::string GetExport() const override;
+    
+    bool isForceSourcePort() const { return _forceSourcePort; }
 #pragma endregion
 
 #pragma region Start and Stop

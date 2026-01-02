@@ -26,6 +26,13 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
 {
     { "TIMING_ADD", KBSCOPE::Sequence },
     { "TIMING_SPLIT", KBSCOPE::Sequence },
+    { "TIMING_DIVIDE_2", KBSCOPE::Sequence },
+    { "TIMING_DIVIDE_3", KBSCOPE::Sequence },
+    { "TIMING_DIVIDE_4", KBSCOPE::Sequence },
+    { "TIMING_DIVIDE_6", KBSCOPE::Sequence },
+    { "TIMING_DIVIDE_8", KBSCOPE::Sequence },
+    { "TIMING_DIVIDE_12", KBSCOPE::Sequence },
+    { "TIMING_DIVIDE_16", KBSCOPE::Sequence },
     { "ZOOM_IN", KBSCOPE::Sequence },
     { "ZOOM_OUT", KBSCOPE::Sequence },
     { "ZOOM_SEL", KBSCOPE::Sequence },

@@ -23,7 +23,6 @@
 //*)
 
 #include <nlohmann/json.hpp>
-
 #include "../FSEQFile.h"
 
 class ModelManager;
@@ -67,6 +66,7 @@ struct PlayListItem {
 
     [[nodiscard]] wxString asString() const
     {
+        // switch to std::format if gcc supports it
         return wxString::Format("{\"H\":\"%s\",\"A\":\"%s\",\"D\":2}", HSEQ, AU);//D is a delay, maybe set to zero?
     }
 };
@@ -105,7 +105,7 @@ struct PlayList
         }
     }
 
-    [[nodiscard]] wxString getFileName() const {
+    [[nodiscard]] std::string getFileName() const {
         return Name + ".ply";
     }
 
@@ -158,8 +158,7 @@ struct ScheduleItem {
         vs["rp"] = Repeat;
         return vs;
     }
-    void fromJSON(nlohmann::json const& json)
-    {
+    void fromJSON(nlohmann::json const& json) {
         Playlist = json.at("pl").get<std::string>();
         StartHour = json.at("sh").get<int>();
         StartMin = json.at("sm").get<int>();
@@ -292,37 +291,32 @@ struct Schedule {
 
     [[nodiscard]] bool isValid(wxString &reason) const
     {
+        //bool anyEnabled { false };
         auto sItems = GetSortedSchedule();
         for (auto const& it : sItems) {
             if (!it.Enabled) {
                 continue;
             }
+            //anyEnabled = true;
             if (!it.isValid(reason)) {
                 return false;
             }
         }
-        //check for overlapping times
-        for (auto it1 = std::cbegin(sItems); it1 != std::cend(sItems); ++it1) {
-            auto& schItm1 = *it1;
-            if (!schItm1.Enabled) {
-                continue;
-            }
-            for (auto it2 = std::next(it1); it2 != std::cend(sItems); ++it2) {
-                auto& schItm2 = *it2;
-                if (!schItm2.Enabled) {
-                    continue;
-                }
-                if (schItm1.EndHour > schItm2.StartHour) {
-                    reason = wxString::Format("%s End Hour overlaps %s Start Hour", schItm1.Playlist, schItm2.Playlist);
-                    return false;
-                }
-                if (schItm1.EndHour == schItm2.StartHour && schItm1.EndMin >= schItm1.StartMin) {
-                    reason = wxString::Format("%s End Minute overlaps %s Start Minute", schItm1.Playlist, schItm2.Playlist);
-                    return false;
-                }
+        //if (!anyEnabled) {
+        //    reason = Day + " has no enabled schedule items.";
+        //    return false;
+        //}
+        return true;
+    }
+
+    [[nodiscard]] bool hasEnabledItems() const
+    {
+        for (auto const& it : Items) {
+            if (it.Enabled) {
+                return true;
             }
         }
-        return true;
+        return false;
     }
 };
 
@@ -409,10 +403,14 @@ protected:
 
     static const long ID_MNU_SETALL;
     static const long ID_MNU_SETALLPLAY;
+    static const long ID_MNU_SETALLDAYS;
 
+    static const long ID_MNU_SETMASTER;
+    static const long ID_MNU_SETREMOTE;
     static const long ID_MNU_SETTIME;
     static const long ID_MNU_UPLOADFILE;
     static const long ID_MNU_UPLOADFIRM;
+    static const long ID_MNU_UPLOADSCHEDULE;
 
     ModelManager* m_modelManager = nullptr;
     OutputManager* m_outputManager = nullptr;
@@ -468,7 +466,7 @@ private:
 
     void SaveSettings();
     void LoadSettings();
-    void ApplySavedSettings(nlohmann::json json);
+    void ApplySavedSettings(nlohmann::json controllers);
 
     wxPanel* AddInstanceHeader(wxString const& h);
 
@@ -502,6 +500,7 @@ private:
 
     void UploadFile(ControllerEthernet* controller);
     void ExtractFirmware(ControllerEthernet* controller);
+    void UploadSchedules(ControllerEthernet* controller);
 
     DECLARE_EVENT_TABLE()
 };

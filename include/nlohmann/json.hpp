@@ -10651,7 +10651,7 @@ class binary_reader
                             return std::ldexp(mant, -24);
                         case 31:
                             return (mant == 0)
-                            ? std::numeric_limits<double>::infinity()
+                            ? std::numeric_limits<double>::max()
                             : std::numeric_limits<double>::quiet_NaN();
                         default:
                             return std::ldexp(mant + 1024, exp - 25);
@@ -12208,7 +12208,7 @@ class binary_reader
                             return std::ldexp(mant, -24);
                         case 31:
                             return (mant == 0)
-                            ? std::numeric_limits<double>::infinity()
+                            ? std::numeric_limits<double>::max()
                             : std::numeric_limits<double>::quiet_NaN();
                         default:
                             return std::ldexp(mant + 1024, exp - 25);

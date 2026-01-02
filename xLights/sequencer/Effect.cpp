@@ -412,6 +412,10 @@ bool Effect::FilteredIn(const std::string& filterText, bool isFilterTextRegex) c
                 return true;
             token = strtok(nullptr, tokens.c_str());
         }
+
+        const std::string search = ";" + filterText + ";";
+        const std::string needle = ";" + name + ";";
+        return search.find(needle) != std::string::npos;
     }
 
     return false;

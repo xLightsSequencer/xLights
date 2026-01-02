@@ -2211,7 +2211,7 @@ void xLightsImportChannelMapDialog::OnBeginDrag(wxDataViewEvent& event)
     if (event.GetItem().IsOk()) {
         _dragItem = event.GetItem();
         wxVariant vvalue;
-        event.GetModel()->GetValue(vvalue, event.GetItem(), 1);
+        event.GetModel()->GetValue(vvalue, event.GetItem(), 2);
         std::string mapped = vvalue.GetString().ToStdString();
 
         if (mapped != "") {

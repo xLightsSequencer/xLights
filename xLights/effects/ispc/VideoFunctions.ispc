@@ -35,6 +35,7 @@ export void VideoEffectProcess(const uniform VideoData &data,
     }
 
     uniform int ch = data.ch;
+    uniform int maxidx = ((int)data.buffer_width) * ((int)data.buffer_height);
 
     foreach (index = startIdx...endIdx) {
         float fidx = index;
@@ -56,6 +57,10 @@ export void VideoEffectProcess(const uniform VideoData &data,
         if (col < 0 || col >= (data.image_width * ch)) {
             continue;
         }
+        
+        if (newIndex >= maxidx) {
+            continue;
+        }
 
         uint8* ptr = data.image + (data.image_height - 1 - y - data.yoffset) * (data.image_width * ch) + (data.xoffset * ch) + (x * ch);
         uint8<4> c;
@@ -63,8 +68,8 @@ export void VideoEffectProcess(const uniform VideoData &data,
         c.y = *(ptr + 1);
         c.z = *(ptr + 2);
         c.w = ch == 3 ? 255 : *(ptr + 3);
-        uint16 level = (uint16)c[0] + (uint16)c[1] + (uint16)c[2];
         if (data.transparentBlack) {
+            uint16 level = (uint16)c[0] + (uint16)c[1] + (uint16)c[2];
             if (level > data.transparentBlackLevel) {
                 result[newIndex] = c;
             }

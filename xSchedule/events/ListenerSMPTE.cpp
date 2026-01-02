@@ -51,6 +51,7 @@ void ListenerSMPTE::StartProcess(const std::string& localIP) {
     if (_decoder != nullptr) {
         auto sdl = AudioManager::GetSDLManager()->GetInputSDL(_device);
         if (sdl != nullptr) {
+            logger_base.debug("SMPTE listener starting SDL device: %s", _device.c_str());
             sdl->StartListening();
             sdl->PurgeInput();
             _isOk = true;
@@ -63,6 +64,7 @@ void ListenerSMPTE::StopProcess() {
 
     auto sdl = AudioManager::GetSDLManager()->GetInputSDL(_device);
     if (sdl != nullptr) {
+        logger_base.debug("SMPTE listener stopping SDL device: %s", _device.c_str());
         sdl->StopListening();
     }
 

@@ -100,8 +100,8 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     pathUISizer->AddGrowableCol(0);
 
     auto pathSketchCtrlsSizer = new wxFlexGridSizer(1, 3, 0, 5);
+    auto pathCtrlsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Path");
     auto sketchCtrlsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Sketch");
-
     auto importCtrlsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Import/Export");
 
     auto sketchUISizer = new wxFlexGridSizer(2, 1, 5, 0);
@@ -120,18 +120,17 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     canvasFrameSizer->Add(m_sketchCanvasPanel, 1, wxALL | wxEXPAND);
     canvasFrame->SetSizer(canvasFrameSizer);
 
-    // path / sketch controls
-    m_startPathBtn = new wxButton(this, wxID_ANY, "Start");
-    m_endPathBtn = new wxButton(this, wxID_ANY, "End");
-    m_closePathBtn = new wxButton(this, wxID_ANY, "Close");
-    m_continuePathBtn = new wxButton(this, wxID_ANY, "Continue");
+    // path / sketch controls - use GetStaticBox() as parent for controls inside wxStaticBoxSizer
+    m_startPathBtn = new wxButton(pathCtrlsSizer->GetStaticBox(), wxID_ANY, "Start");
+    m_endPathBtn = new wxButton(pathCtrlsSizer->GetStaticBox(), wxID_ANY, "End");
+    m_closePathBtn = new wxButton(pathCtrlsSizer->GetStaticBox(), wxID_ANY, "Close");
+    m_continuePathBtn = new wxButton(pathCtrlsSizer->GetStaticBox(), wxID_ANY, "Continue");
 
-    m_clearSketchBtn = new wxButton(this, wxID_ANY, "Clear");
-    m_importSketchBtn = new wxButton(this, wxID_ANY, "Import");
-    m_exportSketchBtn = new wxButton(this, wxID_ANY, "Export");
-    m_importSVGBtn = new wxButton(this, wxID_ANY, "Import SVG");
+    m_clearSketchBtn = new wxButton(sketchCtrlsSizer->GetStaticBox(), wxID_ANY, "Clear");
+    m_importSketchBtn = new wxButton(importCtrlsSizer->GetStaticBox(), wxID_ANY, "Import");
+    m_exportSketchBtn = new wxButton(importCtrlsSizer->GetStaticBox(), wxID_ANY, "Export");
+    m_importSVGBtn = new wxButton(importCtrlsSizer->GetStaticBox(), wxID_ANY, "Import SVG");
 
-    auto pathCtrlsSizer = new wxStaticBoxSizer(wxHORIZONTAL, this, "Path");
     pathCtrlsSizer->Add(m_startPathBtn, 1, wxALL | wxEXPAND, 3);
     pathCtrlsSizer->Add(m_endPathBtn, 1, wxALL | wxEXPAND, 3);
     pathCtrlsSizer->Add(m_closePathBtn, 1, wxALL | wxEXPAND, 3);
@@ -151,8 +150,8 @@ SketchAssistPanel::SketchAssistPanel(wxWindow* parent, wxWindowID id /*wxID_ANY*
     // Hotkeys text
     hotkeysSizer->Add(new wxStaticText(hotkeysSizer->GetStaticBox(), wxID_ANY, HotkeysText), 1, wxALL | wxEXPAND, 3);
 
-    // Paths ListBox
-    m_pathsListBox = new wxListBox(this, wxID_ANY);
+    // Paths ListBox - use GetStaticBox() as parent for controls inside wxStaticBoxSizer
+    m_pathsListBox = new wxListBox(pathsSizer->GetStaticBox(), wxID_ANY);
     pathsSizer->Add(m_pathsListBox, 1, wxALL | wxEXPAND, 3);
 
     sketchUISizer->Add(pathsSizer, 1, wxALL | wxEXPAND, 5);

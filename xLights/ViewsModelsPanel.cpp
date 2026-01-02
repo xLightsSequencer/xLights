@@ -267,7 +267,7 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
     int w, h;
     GetSize(&w, &h);
     SetSize(std::max(600, w), std::max(400, h));
-
+    SetMinSize(wxSize(50, 50));
     ValidateWindow();
 }
 

@@ -337,6 +337,7 @@ private:
     int mStartResizeTimeMS;
     bool mResizing;
     bool mDragging;
+    bool mDragThresholdExceeded;
     int mDragStartRow;
     int mDragStartX;
     int mDragStartY;

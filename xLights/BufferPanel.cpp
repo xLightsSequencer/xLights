@@ -480,6 +480,7 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     Connect(subBufferPanel->GetId(),SUBBUFFER_RANGE_CHANGED,(wxObjectEventFunction)&BufferPanel::HandleCommandChange);
     
     ValidateWindow();
+    SetMinSize(wxSize(50, 50));
 }
 
 BufferPanel::~BufferPanel()

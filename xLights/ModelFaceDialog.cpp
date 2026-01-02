@@ -62,9 +62,8 @@
 //(*IdInit(ModelFaceDialog)
 const wxWindowID ModelFaceDialog::ID_STATICTEXT2 = wxNewId();
 const wxWindowID ModelFaceDialog::ID_CHOICE3 = wxNewId();
-const wxWindowID ModelFaceDialog::ID_BUTTON3 = wxNewId();
-const wxWindowID ModelFaceDialog::ID_BUTTON_IMPORT = wxNewId();
-const wxWindowID ModelFaceDialog::ID_BUTTON4 = wxNewId();
+const wxWindowID ModelFaceDialog::ID_BUTTON_ADD = wxNewId();
+const wxWindowID ModelFaceDialog::ID_BUTTON_MORE = wxNewId();
 const wxWindowID ModelFaceDialog::ID_PANEL4 = wxNewId();
 const wxWindowID ModelFaceDialog::ID_CHECKBOX1 = wxNewId();
 const wxWindowID ModelFaceDialog::ID_GRID_COROFACES = wxNewId();
@@ -92,6 +91,7 @@ const long ModelFaceDialog::FACES_DIALOG_IMPORT_FILE = wxNewId();
 const long ModelFaceDialog::FACES_DIALOG_EXPORT_TOOTHERS = wxNewId();
 const long ModelFaceDialog::FACES_DIALOG_COPY = wxNewId();
 const long ModelFaceDialog::FACES_DIALOG_RENAME = wxNewId();
+const long ModelFaceDialog::FACES_DIALOG_DELETE = wxNewId();
 const long ModelFaceDialog::FACES_DIALOG_SHIFT = wxNewId();
 const long ModelFaceDialog::FACES_DIALOG_REVERSE = wxNewId();
 
@@ -153,13 +153,11 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent, OutputManager* outputManager,
 	NameChoice = new wxChoice(Panel3, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
 	NameChoice->SetMinSize(wxDLG_UNIT(Panel3,wxSize(100,-1)));
 	FlexGridSizer7->Add(NameChoice, 1, wxALL|wxEXPAND, 5);
-	AddButton = new wxButton(Panel3, ID_BUTTON3, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	AddButton = new wxButton(Panel3, ID_BUTTON_ADD, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ADD"));
 	FlexGridSizer7->Add(AddButton, 1, wxTOP|wxBOTTOM|wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ButtonImport = new wxButton(Panel3, ID_BUTTON_IMPORT, _T("..."), wxDefaultPosition, wxSize(20,-1), 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT"));
-	ButtonImport->SetMinSize(wxSize(20,-1));
-	FlexGridSizer7->Add(ButtonImport, 0, wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	DeleteButton = new wxButton(Panel3, ID_BUTTON4, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-	FlexGridSizer7->Add(DeleteButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ButtonMore = new wxButton(Panel3, ID_BUTTON_MORE, _T("..."), wxDefaultPosition, wxSize(20,-1), 0, wxDefaultValidator, _T("ID_BUTTON_MORE"));
+	ButtonMore->SetMinSize(wxSize(20,-1));
+	FlexGridSizer7->Add(ButtonMore, 0, wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FaceTypeChoice = new wxChoicebook(Panel3, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
 	CoroPanel = new wxPanel(FaceTypeChoice, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
@@ -320,7 +318,6 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent, OutputManager* outputManager,
 	StdDialogButtonSizer1->AddButton(new wxButton(Panel3, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(Panel3, wxID_CANCEL, wxEmptyString));
 	StdDialogButtonSizer1->Realize();
-	dynamic_cast <wxButton *> (Panel3->FindWindow(wxID_OK))->SetDefault();
 	FlexGridSizer4->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel3->SetSizer(FlexGridSizer4);
 	ModelPreviewPanelLocation = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
@@ -334,9 +331,8 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent, OutputManager* outputManager,
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_CHOICE3, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ModelFaceDialog::OnMatrixNameChoiceSelect);
-	Connect(ID_BUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelFaceDialog::OnButtonMatrixAddClicked);
-	Connect(ID_BUTTON_IMPORT, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelFaceDialog::OnButtonImportClick);
-	Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelFaceDialog::OnButtonMatrixDeleteClick);
+	Connect(ID_BUTTON_ADD, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelFaceDialog::OnButtonMatrixAddClicked);
+	Connect(ID_BUTTON_MORE, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelFaceDialog::OnButtonMoreClick);
 	Panel_SingleNode->Connect(wxEVT_PAINT, (wxObjectEventFunction)&ModelFaceDialog::Paint, NULL, this);
 	Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ModelFaceDialog::OnCustomColorCheckboxClick);
 	Connect(ID_GRID_COROFACES, wxEVT_GRID_CELL_LEFT_CLICK, (wxObjectEventFunction)&ModelFaceDialog::OnSingleNodeGridCellLeftClick);
@@ -432,11 +428,15 @@ void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<st
             }
         }
 
-		for (std::map<std::string, std::string>::iterator it2 = info.begin(); it2 != info.end(); ++it2)
-		{
-			if (it2->first.substr(0, 5) == "Mouth" || it2->first.substr(0, 4) == "Eyes")
+		// Only call FixFile for Matrix faces - NodeRange and SingleNode faces
+		// store node numbers, not file paths
+		if (info["Type"] == "Matrix") {
+			for (std::map<std::string, std::string>::iterator it2 = info.begin(); it2 != info.end(); ++it2)
 			{
-				it2->second = FixFile("", it2->second);
+				if (it2->first.substr(0, 5) == "Mouth" || it2->first.substr(0, 4) == "Eyes")
+				{
+					it2->second = FixFile("", it2->second);
+				}
 			}
 		}
 
@@ -444,12 +444,10 @@ void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<st
     }
 
     if (NameChoice->GetCount() > 0) {
-        DeleteButton->Enable();
         FaceTypeChoice->Enable();
         NameChoice->SetSelection(0);
         SelectFaceModel(NameChoice->GetString(NameChoice->GetSelection()).ToStdString());
     } else {
-        DeleteButton->Disable();
         FaceTypeChoice->Disable();
     }
 
@@ -586,7 +584,6 @@ void ModelFaceDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
             SelectFaceModel(n);
             NameChoice->Enable();
             FaceTypeChoice->Enable();
-            DeleteButton->Enable();
 
             // set the default type of face based on the model type
             if (model->GetDisplayAs() == "Matrix" || StartsWith(model->GetDisplayAs(), "Tree")) {
@@ -619,11 +616,11 @@ void ModelFaceDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
     }
 }
 
-void ModelFaceDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
+void ModelFaceDialog::OnFaceDeleteSelected()
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     int i = wxMessageBox("Delete face definition?", "Are you sure you want to delete " + name + "?",
-                         wxICON_WARNING | wxOK, this);
+                         wxICON_WARNING | wxOK | wxCANCEL, this);
     if (i == wxID_OK || i == wxOK) {
         faceData[name].clear();
         NameChoice->Delete(NameChoice->GetSelection());
@@ -634,7 +631,6 @@ void ModelFaceDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
             NameChoice->SetSelection(wxNOT_FOUND);
             NameChoice->Disable();
             FaceTypeChoice->Disable();
-            DeleteButton->Disable();
         }
     }
 }
@@ -995,12 +991,14 @@ void ModelFaceDialog::GetValue(wxGrid *grid, const int row, const int col, std::
         info[key.ToStdString()] = color;
     } else {
         info[key.ToStdString()] = grid->GetCellValue(row, col);
-        auto nodeArray = wxSplit(grid->GetCellValue(row, col), ',');
-        std::sort(nodeArray.begin(), nodeArray.end(),
+        if (info["Type"] == "NodeRange") {
+            auto nodeArray = wxSplit(grid->GetCellValue(row, col), ',');
+            std::sort(nodeArray.begin(), nodeArray.end(),
                   [](const wxString& a, const wxString& b) {
                       return wxAtoi(a) < wxAtoi(b);
                   });
-        grid->SetCellValue(row, col, CompressNodes(wxJoin(nodeArray, ',')));
+            grid->SetCellValue(row, col, CompressNodes(wxJoin(nodeArray, ',')));
+        }
     }
     UpdatePreview(grid->GetCellValue(row, CHANNEL_COL).ToStdString(), grid->GetCellBackgroundColour(row, COLOR_COL));
 }
@@ -1526,6 +1524,10 @@ void ModelFaceDialog::OnAddBtnPopup(wxCommandEvent& event)
     {
         RenameFace();
     }
+    else if (event.GetId() == FACES_DIALOG_DELETE)
+    {
+        OnFaceDeleteSelected();
+    }
     else if (event.GetId() == FACES_DIALOG_SHIFT)
     {
         ShiftFaceNodes();
@@ -1559,7 +1561,6 @@ void ModelFaceDialog::ImportFacesFromModel()
 
         NameChoice->Enable();
         FaceTypeChoice->Enable();
-        DeleteButton->Enable();
 
         NameChoice->SetSelection(NameChoice->GetCount() - 1);
         NameChoice->SetStringSelection(NameChoice->GetString(NameChoice->GetCount() - 1));
@@ -1596,7 +1597,6 @@ void ModelFaceDialog::ImportFaces(const wxString& filename)
         {
             NameChoice->Enable();
             FaceTypeChoice->Enable();
-            DeleteButton->Enable();
 
             NameChoice->SetSelection(NameChoice->GetCount()-1);
             NameChoice->SetStringSelection(NameChoice->GetString(NameChoice->GetCount() - 1));
@@ -1650,26 +1650,6 @@ void ModelFaceDialog::AddFaces(std::map<std::string, std::map<std::string, std::
 
         faceData[fname] = face.second;
     }
-}
-
-void ModelFaceDialog::OnButtonImportClick(wxCommandEvent& event)
-{
-    wxMenu mnu;
-    if (DeleteButton->IsEnabled())
-    {
-        mnu.Append(FACES_DIALOG_COPY, "Copy");
-        mnu.Append(FACES_DIALOG_RENAME, "Rename");
-        mnu.AppendSeparator();
-    }
-    mnu.Append(FACES_DIALOG_IMPORT_MODEL, "Import From Model");
-    mnu.Append(FACES_DIALOG_IMPORT_FILE, "Import From File");
-    mnu.Append(FACES_DIALOG_EXPORT_TOOTHERS, "Export Faces To Other Model(s)");
-    mnu.AppendSeparator();
-    mnu.Append(FACES_DIALOG_SHIFT, "Shift Nodes");
-    mnu.Append(FACES_DIALOG_REVERSE, "Reverse Nodes");
-
-    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& ModelFaceDialog::OnAddBtnPopup, nullptr, this);
-    PopupMenu(&mnu);
 }
 
 void ModelFaceDialog::CopyFaceData()
@@ -2080,4 +2060,26 @@ void ModelFaceDialog::ExportFacesToOtherModels() {
             targetModel->IncrementChangeCount();
         }
     }
+}
+
+void ModelFaceDialog::OnButtonMoreClick(wxCommandEvent& event)
+{
+    
+    wxMenu mnu;
+    if (NameChoice->GetCount() > 0)
+    {
+        mnu.Append(FACES_DIALOG_COPY, "Copy");
+        mnu.Append(FACES_DIALOG_RENAME, "Rename");
+        mnu.Append(FACES_DIALOG_DELETE, "Delete");
+        mnu.AppendSeparator();
+    }
+    mnu.Append(FACES_DIALOG_IMPORT_MODEL, "Import From Model");
+    mnu.Append(FACES_DIALOG_IMPORT_FILE, "Import From File");
+    mnu.Append(FACES_DIALOG_EXPORT_TOOTHERS, "Export Faces To Other Model(s)");
+    mnu.AppendSeparator();
+    mnu.Append(FACES_DIALOG_SHIFT, "Shift Nodes");
+    mnu.Append(FACES_DIALOG_REVERSE, "Reverse Nodes");
+
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& ModelFaceDialog::OnAddBtnPopup, nullptr, this);
+    PopupMenu(&mnu);
 }

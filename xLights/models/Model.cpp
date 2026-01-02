@@ -54,11 +54,11 @@
 #include "../xLightsXmlFile.h"
 #include "XmlSerializer.h"
 
-#include "./utils/spdlog_macros.h"
-
-//#include "../xSchedule/wxJSON/jsonreader.h"
+#include <log4cpp/Category.hh>
 
 #include <algorithm>
+#include <iostream>
+#include <fstream>
 
 #define MOST_STRINGS_WE_EXPECT 480
 #define MOST_CONTROLLER_PORTS_WE_EXPECT 128
@@ -839,7 +839,7 @@ void Model::SetAliases(const std::list<std::string>& aliases)
 
 void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxStopWatch sw;
 
     LAYOUT_GROUPS = Model::GetLayoutGroups(modelManager);
@@ -886,8 +886,8 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
         bool hasIndiv = ModelXml->GetAttribute("Advanced", "0") == "1";
         p = grid->Append(new wxBoolProperty("Indiv Start Chans", "ModelIndividualStartChannels", hasIndiv));
         p->SetAttribute("UseCheckbox", true);
-        p->Enable(GetNumStrings() > 1 && (GetControllerName() == "" || _controller == 0));
-        if (GetNumStrings() > 1 && (GetControllerName() != "" && _controller != 0)) {
+        p->Enable(parm1 > 1 && (GetControllerName() == "" || _controller == 0));
+        if (parm1 > 1 && (GetControllerName() != "" && _controller != 0)) {
             p->SetHelpString("Individual start channels cannot be set if you have assigned a model to a controller rather than using start channels.");
         } else {
             p->SetHelpString("");
@@ -895,7 +895,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
         sp = grid->AppendIn(p, new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel", "1"), modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
         sp->Enable(GetControllerName() == "" || _controller == 0);
         if (hasIndiv) {
-            int c = Model::HasOneString(DisplayAs) ? 1 : GetNumStrings();
+            int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
             for (int x = 0; x < c; ++x) {
                 wxString nm = StartChanAttrName(x);
                 std::string val = ModelXml->GetAttribute(nm).ToStdString();
@@ -1056,20 +1056,20 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
     sp->SetAttribute("Min", 0);
     sp->SetAttribute("Max", 100);
     sp->SetEditor("SpinCtrl");
-    sp = grid->AppendIn(p, new wxColourProperty("Tag Color", "ModelTagColour", modelTagColour));
+    sp = grid->AppendIn(p, new wxColourProperty("Tag Color", "ModelTagColour", GetTagColour()));
     sp->SetHelpString("A visual color assigned to the model in the model list.");
     UpdateControllerProperties(grid);
     DisableUnusedProperties(grid);
 
     if (sw.Time() > 500)
-        LOG_DEBUG("        Model::AddProperties took %lums", sw.Time());
+        logger_base.debug("        Model::AddProperties took %lums", sw.Time());
 }
 
 void Model::ClearIndividualStartChannels()
 {
     // dont clear custom models
-    //if (IsCustom())
-   //    return;
+    if (IsCustom())
+        return;
 
     ModelXml->DeleteAttribute("Advanced");
     // remove per strand start channels if individual isnt selected
@@ -1624,7 +1624,7 @@ wxString Model::GetIndividualStartChannel(size_t s) const
 
 int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     auto caps = GetControllerCaps();
 
@@ -1700,7 +1700,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         SetModelChain(modelChain);
         if (modelChain != "") {
             ModelXml->DeleteAttribute("Advanced");
-            AdjustStringProperties(grid, GetNumStrings());
+            AdjustStringProperties(grid, parm1);
             if (grid->GetPropertyByName("ModelStartChannel") != nullptr) {
                 grid->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
                 grid->GetPropertyByName("ModelStartChannel")->Enable(false);
@@ -1752,7 +1752,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
             }
         } else {
             ModelXml->DeleteAttribute("Advanced");
-            AdjustStringProperties(grid, GetNumStrings());
+            AdjustStringProperties(grid, parm1);
             if (grid->GetPropertyByName("ModelStartChannel") != nullptr) {
                 grid->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
                 grid->GetPropertyByName("ModelStartChannel")->Enable(false);
@@ -1866,7 +1866,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
 
         // This may be why i see some crashes here
         if (event.GetValue().GetLong() >= cp.size()) {
-            LOG_CRIT("Protocol being set is not in the controller protocols which has %d protocols.", (int)cp.size());
+            logger_base.crit("Protocol being set is not in the controller protocols which has %d protocols.", (int)cp.size());
             return 0;
         }
 
@@ -2480,7 +2480,7 @@ void Model::AddModelAliases(wxXmlNode* n) {
 }
 
 void Model::ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup) {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     int x = GetHcenterPos();
     int y = GetVcenterPos();
@@ -2524,11 +2524,11 @@ void Model::ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview*
                 IncrementChangeCount();
             } else {
                 // remove model that failed to import
-                LOG_ERROR("Unable to import %s.", (const char*)m->GetName().c_str());
+                logger_base.error("Unable to import %s.", (const char*)m->GetName().c_str());
                 delete model;
             }
         } else {
-            LOG_ERROR("Unable to import %s. Create failed.", (const char*)m->GetName().c_str());
+            logger_base.error("Unable to import %s. Create failed.", (const char*)m->GetName().c_str());
         }
     }
 }
@@ -2793,12 +2793,12 @@ std::string Model::ComputeStringStartChannel(int i)
 
     wxString stch = ModelXml->GetAttribute("StartChannel", "1");
     wxString priorStringStartChannelAsString = ModelXml->GetAttribute(StartChanAttrName(i - 1));
-    int priorLength = CalcCannelsPerString();
+    int priorLength = CalcChannelsPerString();
     // This will be required once custom model supports multiple strings ... working on that
-    if (DisplayAs == "Custom")
-    {
-        //priorLength = GetStrandLength(i - 1) * GetChanCountPerNode();
-    }
+    // if (DisplayAs == "Custom")
+    //{
+    //    priorLength = GetStrandLength(i - 1) * GetChanCountPerNode();
+    //}
     int32_t priorStringStartChannel = GetNumberFromChannelString(priorStringStartChannelAsString);
     int32_t startChannel = priorStringStartChannel + priorLength;
     if (stch.Contains(":")) {
@@ -2950,8 +2950,8 @@ bool Model::UpdateStartChannelFromChannelString(std::map<std::string, Model*>& m
     }
 
     if (valid) {
-        size_t NumberOfStrings = HasOneString(DisplayAs) ? 1 : GetNumStrings();
-        int ChannelsPerString = CalcCannelsPerString();
+        size_t NumberOfStrings = HasOneString(DisplayAs) ? 1 : parm1;
+        int ChannelsPerString = CalcChannelsPerString();
         SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
     }
 
@@ -3093,6 +3093,9 @@ std::list<int> Model::ParseFaceNodes(std::string channels)
 
 void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxStopWatch sw;
+
     if (modelDimmingCurve != nullptr) {
         delete modelDimmingCurve;
         modelDimmingCurve = nullptr;
@@ -3234,14 +3237,14 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     tempstr.ToLong(&n);
     transparency = n;
     blackTransparency = wxAtoi(ModelNode->GetAttribute("BlackTransparency", "0"));
-    modelTagColour = wxColour(ModelNode->GetAttribute("TagColour", "Black"));
+    modelTagColour = wxNullColour;
     layout_group = ModelNode->GetAttribute("LayoutGroup", "Unassigned");
 
     ModelStartChannel = ModelNode->GetAttribute("StartChannel");
 
     // calculate starting channel numbers for each string
     size_t NumberOfStrings = HasOneString(DisplayAs) ? 1 : parm1;
-    int ChannelsPerString = CalcCannelsPerString();
+    int ChannelsPerString = CalcChannelsPerString();
 
     SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
     GetModelScreenLocation().Read(ModelNode);
@@ -3306,6 +3309,10 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     }
 
     IncrementChangeCount();
+    
+    if (sw.Time() > 10) {
+        logger_base.debug("%s model %s took %lums to initialise.", GetDisplayAs().c_str(), (const char*)name.c_str(), sw.Time());
+    }
 }
 
 std::string Model::GetControllerConnectionString() const
@@ -3469,7 +3476,7 @@ void Model::ParseSubModel(wxXmlNode* node)
     sortedSubModels[sm->GetName()] = sm;
 }
 
-int Model::CalcCannelsPerString()
+int Model::CalcChannelsPerString()
 {
     int ChannelsPerString = parm2 * GetNodeChannelCount(StringType);
     if (SingleChannel)
@@ -3912,15 +3919,15 @@ char GetPixelDump(int x, int y, std::vector<NodeBaseClassPtr>& newNodes)
 void Model::DumpBuffer(std::vector<NodeBaseClassPtr>& newNodes,
                        int bufferWi, int bufferHt) const
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    LOG_DEBUG("Dumping render buffer for '%s':", (const char*)GetFullName().c_str());
+    logger_base.debug("Dumping render buffer for '%s':", (const char*)GetFullName().c_str());
     for (int y = bufferHt - 1; y >= 0; y--) {
         std::string line = "";
         for (int x = 0; x < bufferWi; ++x) {
             line += GetPixelDump(x, y, newNodes);
         }
-        LOG_DEBUG(">    %s", (const char*)line.c_str());
+        logger_base.debug(">    %s", (const char*)line.c_str());
     }
 }
 
@@ -4009,7 +4016,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
                                   const std::string& transform,
                                   std::vector<NodeBaseClassPtr>& newNodes, int& bufferWi, int& bufferHt, int stagger, bool deep) const
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
     int firstNode = newNodes.size();
 
@@ -4017,7 +4024,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
     if (firstNode + Nodes.size() <= 0) {
         // This seems to happen when an effect is dropped on a strand with zero pixels
         // Like a polyline segment with no nodes
-        LOG_WARN("Model::InitRenderBufferNodes firstNode + Nodes.size() = %d. %s::'%s'. This commonly happens on a polyline segment with zero pixels or a custom model with no nodes but with effects dropped on it.", (int32_t)firstNode + Nodes.size(), (const char*)GetDisplayAs().c_str(), (const char*)GetFullName().c_str());
+        logger_base.warn("Model::InitRenderBufferNodes firstNode + Nodes.size() = %d. %s::'%s'. This commonly happens on a polyline segment with zero pixels or a custom model with no nodes but with effects dropped on it.", (int32_t)firstNode + Nodes.size(), (const char*)GetDisplayAs().c_str(), (const char*)GetFullName().c_str());
     }
 
     // Don't add model group nodes if its a 3D preview render buffer
@@ -4037,7 +4044,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         int cnt = 0;
         for (int x = firstNode; x < newNodes.size(); ++x) {
             if (newNodes[x] == nullptr) {
-                LOG_CRIT("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                logger_base.crit("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                 wxASSERT(false);
             }
             for (auto& it2 : newNodes[x]->Coords) {
@@ -4050,7 +4057,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         bufferWi = 1;
         for (int x = firstNode; x < newNodes.size(); ++x) {
             if (newNodes[x] == nullptr) {
-                LOG_CRIT("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                logger_base.crit("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                 wxASSERT(false);
             }
             for (auto& it2 : newNodes[x]->Coords) {
@@ -4079,7 +4086,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
                 cnt = 0;
             } else {
                 if (newNodes[x] == nullptr) {
-                    LOG_CRIT("AAA Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                    logger_base.crit("AAA Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                     wxASSERT(false);
                 }
                 for (auto& it2 : newNodes[x]->Coords) {
@@ -4111,7 +4118,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
                 cnt = 0;
             } else {
                 if (newNodes[x] == nullptr) {
-                    LOG_CRIT("BBB Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                    logger_base.crit("BBB Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                     wxASSERT(false);
                 }
                 for (auto& it2 : newNodes[x]->Coords) {
@@ -4163,7 +4170,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         outy.reserve(newNodes.size() - firstNode);
         for (int x = firstNode; x < newNodes.size(); ++x) {
             if (newNodes[x] == nullptr) {
-                LOG_CRIT("CCC Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                logger_base.crit("CCC Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                 wxASSERT(false);
             }
             for (auto& it2 : newNodes[x]->Coords) {
@@ -4224,7 +4231,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
             int maxDimension = ((ModelGroup*)this)->GetGridSize();
             if (maxDimension != 0 && (maxX - minX > maxDimension || maxY - minY > maxDimension)) {
                 // we need to resize all the points by this amount
-                LOG_WARN("Model Group (%s), Actual Grid Size of %.0f exceeded the Max Grid Size of %d.",
+                logger_base.warn("Model Group (%s), Actual Grid Size of %.0f exceeded the Max Grid Size of %d.",
                     (const char*)GetFullName().c_str(), 
                     ((maxX - minX) > (maxY - minY) ? (maxX - minX) : (maxY - minY)), 
                     maxDimension);
@@ -4273,7 +4280,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         maxX /= factor;
         minY /= factor;
         maxY /= factor;
-        // LOG_DEBUG("Factor '%f':", factor);
+        // logger_base.debug("Factor '%f':", factor);
 
         float offx = minX;
         float offy = minY;
@@ -4291,7 +4298,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
             auto ity = outy.begin();
             for (int x = firstNode; x < newNodes.size(); ++x) {
                 if (newNodes[x] == nullptr) {
-                    LOG_CRIT("DDD Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                    logger_base.crit("DDD Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                     wxASSERT(false);
                 }
                 for (auto& it2 : newNodes[x]->Coords) {
@@ -4334,20 +4341,20 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
     // Zero buffer sizes are bad
     // This can happen when a strand is zero length ... maybe also a custom model with no nodes
     if (bufferHt == 0) {
-        LOG_WARN("Model::InitRenderBufferNodes BufferHt was 0 ... overridden to be 1.");
+        logger_base.warn("Model::InitRenderBufferNodes BufferHt was 0 ... overridden to be 1.");
         bufferHt = 1;
     }
     if (bufferWi == 0) {
-        LOG_WARN("Model::InitRenderBufferNodes BufferWi was 0 ... overridden to be 1.");
+        logger_base.warn("Model::InitRenderBufferNodes BufferWi was 0 ... overridden to be 1.");
         bufferWi = 1;
     }
     if (bufferWi * bufferHt > 2100000) {
         if (bufferHt > 100000) {
-            LOG_WARN("Model::InitRenderBufferNodes BufferHt was overly large ... overridden to be 100000.");
+            logger_base.warn("Model::InitRenderBufferNodes BufferHt was overly large ... overridden to be 100000.");
             bufferHt = 100000;
         }
         if (bufferWi > 100000) {
-            LOG_WARN("Model::InitRenderBufferNodes BufferWi was overly large ... overridden to be 100000.");
+            logger_base.warn("Model::InitRenderBufferNodes BufferWi was overly large ... overridden to be 100000.");
             bufferWi = 100000;
         }
     }
@@ -5385,7 +5392,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx, 
         int buffFirst = -1;
         int buffLast = -1;
         bool left = true;
-        int const nodeRenderOrder = NodeRenderOrder();
+        int nodeRenderOrder = NodeRenderOrder();
         // int lastChan = -999;
         while (first < last) {
             int n;
@@ -5411,12 +5418,12 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx, 
                 }
             }
 
-            size_t const CoordCount = GetCoordCount(n);
+            size_t CoordCount = GetCoordCount(n);
             for (size_t c2 = 0; c2 < CoordCount; ++c2) {
                 // draw node on screen
-                float const sx = Nodes[n]->Coords[c2].screenX;
-                float const sy = Nodes[n]->Coords[c2].screenY;
-                float const sz = Nodes[n]->Coords[c2].screenZ;
+                float sx = Nodes[n]->Coords[c2].screenX;
+                float sy = Nodes[n]->Coords[c2].screenY;
+                float sz = Nodes[n]->Coords[c2].screenZ;
 
                 if (n == 0 && c2 == 0) {
                     cache->boundingBox[0] = sx;
@@ -5568,7 +5575,7 @@ void Model::GetScreenLocation(float& sx, float& sy, const NodeBaseClass::CoordSt
 wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip)
 {
     int w, h;
-    float const scale = GetPreviewDimScale(preview, w, h);
+    float scale = GetPreviewDimScale(preview, w, h);
 
     float pointScale = scale;
     if (pointScale > 2.5) {
@@ -5606,7 +5613,7 @@ wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip)
 bool Model::GetScreenLocations(ModelPreview* preview, std::map<int, std::pair<float, float>>& coords)
 {
     int w, h;
-    float const scale = GetPreviewDimScale(preview, w, h);
+    float scale = GetPreviewDimScale(preview, w, h);
 
     int i = 1;
     for (const auto& it : Nodes) {
@@ -5626,7 +5633,7 @@ bool Model::GetScreenLocations(ModelPreview* preview, std::map<int, std::pair<fl
 std::vector<int> Model::GetNodesInBoundingBox(ModelPreview* preview, wxPoint start, wxPoint end)
 {
     int w, h;
-    float const scale = GetPreviewDimScale(preview, w, h);
+    float scale = GetPreviewDimScale(preview, w, h);
 
     std::vector<int> nodes;
 
@@ -5967,7 +5974,7 @@ int Model::GetStrandLength(int strand) const
 
 int Model::MapToNodeIndex(int strand, int node) const
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // if ((DisplayAs == wxT("Vert Matrix") || DisplayAs == wxT("Horiz Matrix") || DisplayAs == wxT("Matrix")) && SingleChannel) {
     //     return node;
     // }
@@ -5978,7 +5985,7 @@ int Model::MapToNodeIndex(int strand, int node) const
         return strand;
     }
     if (parm3 == 0) {
-        LOG_CRIT("Map node to index with illegal parm3 = 0.");
+        logger_base.crit("Map node to index with illegal parm3 = 0.");
         return node;
     }
     return (strand * parm2 / parm3) + node;
@@ -6042,6 +6049,7 @@ void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString
     importAliases = 0;
     for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext()) {
         if (n->GetName() == "stateInfo") {
+            stateInfo.clear();
             AddState(n);
         } else if (n->GetName() == "subModel") {
             AddSubmodel(n);
@@ -6078,7 +6086,7 @@ void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString
 
 Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, wxXmlNode* node, xLightsFrame* xlights, const std::string& startChannel, bool& cancelled) const {
 
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // check for XmlSerializer format
     if (XmlSerializer::IsXmlSerializerFormat(node)) {
@@ -6406,7 +6414,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         model->Selected = true;
         return model;
     } else {
-        LOG_ERRORWX("GetXlightsModel no code to convert to " + node->GetName());
+        logger_base.error("GetXlightsModel no code to convert to " + node->GetName());
         xlights->AddTraceMessage("GetXlightsModel no code to convert to " + node->GetName());
         cancelled = true;
     }
@@ -6477,7 +6485,6 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
 						depthmm = wxAtoi(doc.GetRoot()->GetAttribute("depthmm", ""));
 					}
 
-                    /*
 #ifdef __WXMSW__
                     // If a windows user does not want vendor recommendations then dont go looking for them at all
                     // I have allowed this to be off (ie it does the vendor recommendation check) by default but once
@@ -6493,95 +6500,102 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                             json = "";
                         }
                         if (json != "") {
-                            wxJSONValue origJson;
-                            wxJSONReader reader;
-                            wxFileInputStream f(json);
-                            int errors = reader.Parse(f, &origJson);
-                            if (!errors) {
-                                VendorModelDialog* dlg = nullptr;
+                            try {
+                                std::ifstream file(json);
+
+                                // Check if the file was successfully opened
+                                if (file.is_open()) {
+                                    // Create a json object to hold the data
+                                    nlohmann::json origJson = nlohmann::json::parse(file);
+
+                                    VendorModelDialog* dlg = nullptr;
 #ifndef __WXMSW__
-                                bool block = false;
+                                    bool block = false;
 #endif
-                                wxString vendorBlock;
-                                for (auto& name : origJson["mappings"].GetMemberNames()) {
-                                    wxJSONValue v = origJson["mappings"][name];
-                                    bool matches = false;
-                                    wxString newModelName = modelName;
-                                    bool localBlock = false;
-                                    if (v.HasMember("regex") && v["regex"].AsBool()) {
-                                        wxRegEx regex;
-                                        if (regex.Compile(name)) {
-                                            if (regex.Matches(modelName)) {
-                                                wxString nmodel = v["model"].AsString();
-                                                regex.ReplaceAll(&newModelName, nmodel);
-                                                matches = true;
-                                                if (v.HasMember("block")) {
-                                                    localBlock = v["block"].AsBool();
+                                    wxString vendorBlock;
+                                    for (auto& [name, v] : origJson["mappings"].items()) {
+                                        //nlohmann::json v = origJson["mappings"][name];
+                                        bool matches = false;
+                                        wxString newModelName = modelName;
+                                        bool localBlock = false;
+                                        if (v.contains("regex") && v["regex"].get<bool>()) {
+                                            wxRegEx regex;
+                                            if (regex.Compile(name)) {
+                                                if (regex.Matches(modelName)) {
+                                                    wxString nmodel = v["model"].get<std::string>();
+                                                    regex.ReplaceAll(&newModelName, nmodel);
+                                                    matches = true;
+                                                    if (v.contains("block")) {
+                                                        localBlock = v["block"].get<bool>();
+                                                    }
                                                 }
                                             }
+                                        } else if (name == modelName) {
+                                            matches = true;
+                                            newModelName = v["model"].get<std::string>();
+                                            if (v.contains("block")) {
+                                                localBlock = v["block"].get<bool>();
+                                            }
                                         }
-                                    } else if (name == modelName) {
-                                        matches = true;
-                                        newModelName = v["model"].AsString();
-                                        if (v.HasMember("block")) {
-                                            localBlock = v["block"].AsBool();
-                                        }
-                                    }
-                                    if (matches) {
-                                        wxString vendor = v["vendor"].AsString();
-                                        if (dlg == nullptr) {
-                                            dlg = new VendorModelDialog(xlights, xlights->CurrentDir);
-                                            UNUSED(dlg->DlgInit(prog, low, high));
-                                        }
-                                        if (localBlock) {
-                                            vendorBlock = vendor;
-#ifndef __WXMSW__
-                                            block = true;
-#endif
-                                        }
-                                        if (dlg->FindModelFile(vendor, newModelName)) {
+                                        if (matches) {
+                                            wxString vendor = v["vendor"].get<std::string>();
+                                            if (dlg == nullptr) {
+                                                dlg = new VendorModelDialog(xlights, xlights->CurrentDir);
+                                                UNUSED(dlg->DlgInit(prog, low, high));
+                                            }
                                             if (localBlock) {
-                                                wxString msg = "'" + vendor + "' provides a certified model for '" + newModelName + "' in the xLights downloads.  The " + "vendor has requested that the model they provide be the model that is used." + "Use the Vendor provided model instead?";
-                                                if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
-                                                    last_model = dlg->GetModelFile();
-                                                } else {
-                                                    last_model = "";
-                                                }
-                                                docLoaded = false;
-                                                break;
-                                            } else if (!xlights->GetIgnoreVendorModelRecommendations()) {
-                                                // I do not believe we should be saying xLights recommends this as fom what I have seen this claim on quality is historically dubious and I do not believe we have
-                                                // ever actually assessed the quality of their models. My own experience has been the quality of some models is poor or worse. Others are fine. No vendor in
-                                                // my experience is noticably better or worse than any other ... they all have had their poor models.
-                                                // If you want to change the message back then have an OSX specific phrasing.
-                                                wxString msg = "xLights found a '" + vendor + "' provided and certified model for '" + newModelName + "' in the xLights downloads.  The " + "Vendor provided models are strongly recommended by the vendor due to their claimed quality and ease of use.\n\nWould you prefer to " + "use the Vendor provided model instead?";
-                                                if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
-                                                    last_model = dlg->GetModelFile();
+                                                vendorBlock = vendor;
+#ifndef __WXMSW__
+                                                block = true;
+#endif
+                                            }
+                                            if (dlg->FindModelFile(vendor, newModelName)) {
+                                                if (localBlock) {
+                                                    wxString msg = "'" + vendor + "' provides a certified model for '" + newModelName + "' in the xLights downloads.  The " + "vendor has requested that the model they provide be the model that is used." + "Use the Vendor provided model instead?";
+                                                    if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
+                                                        last_model = dlg->GetModelFile();
+                                                    } else {
+                                                        last_model = "";
+                                                    }
                                                     docLoaded = false;
                                                     break;
+                                                } else if (!xlights->GetIgnoreVendorModelRecommendations()) {
+                                                    // I do not believe we should be saying xLights recommends this as fom what I have seen this claim on quality is historically dubious and I do not believe we have
+                                                    // ever actually assessed the quality of their models. My own experience has been the quality of some models is poor or worse. Others are fine. No vendor in
+                                                    // my experience is noticably better or worse than any other ... they all have had their poor models.
+                                                    // If you want to change the message back then have an OSX specific phrasing.
+                                                    wxString msg = "xLights found a '" + vendor + "' provided and certified model for '" + newModelName + "' in the xLights downloads.  The " + "Vendor provided models are strongly recommended by the vendor due to their claimed quality and ease of use.\n\nWould you prefer to " + "use the Vendor provided model instead?";
+                                                    if (wxMessageBox(msg, "Use Vendor Certified Model?", wxYES_NO | wxICON_QUESTION, xlights) == wxYES) {
+                                                        last_model = dlg->GetModelFile();
+                                                        docLoaded = false;
+                                                        break;
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-                                }
 #ifndef __WXMSW__
-                                // I wont incude this code in the windows release ... it is a step way too far ... the vendors should not be dictating what models a user can use
-                                if (block) {
-                                    wxString msg = "'" + vendorBlock + "' has requested that the models they provide be the models that are used.";
-                                    wxMessageBox(msg, "Loading of Model Blocked", wxOK | wxICON_ERROR, xlights);
-                                    last_model = "";
-                                }
+                                    // I wont incude this code in the windows release ... it is a step way too far ... the vendors should not be dictating what models a user can use
+                                    if (block) {
+                                        wxString msg = "'" + vendorBlock + "' has requested that the models they provide be the models that are used.";
+                                        wxMessageBox(msg, "Loading of Model Blocked", wxOK | wxICON_ERROR, xlights);
+                                        last_model = "";
+                                    }
 #endif
-                                if (dlg) {
-                                    delete dlg;
+                                    if (dlg) {
+                                        delete dlg;
+                                    }
                                 }
+                            } 
+                            catch (nlohmann::json::parse_error& e) {
+                                
                             }
                         }
+                        
 #ifdef __WXMSW__
                     }
 #endif
 
-*/
                 }
             }
         }
@@ -6971,7 +6985,6 @@ bool Model::IsControllerConnectionValid() const
 {
     return ((IsPixelProtocol() || IsSerialProtocol() || IsMatrixProtocol() || IsPWMProtocol()) && GetControllerPort(1) > 0);
 }
-
 wxColour Model::GetTagColour() {
     if (!modelTagColour.IsOk()) {
         if (ModelXml->HasAttribute("TagColour")) {
@@ -7210,14 +7223,14 @@ void Model::SetSmartRemoteType(const std::string& type)
 
 void Model::SetModelChain(const std::string& modelChain)
 {
-    
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     std::string mc = modelChain;
     if (!mc.empty() && mc != "Beginning" && !StartsWith(mc, ">")) {
         mc = ">" + mc;
     }
 
-    LOG_DEBUG("Model '%s' chained to '%s'.", (const char*)GetName().c_str(), (const char*)mc.c_str());
+    logger_base.debug("Model '%s' chained to '%s'.", (const char*)GetName().c_str(), (const char*)mc.c_str());
     ModelXml->DeleteAttribute("ModelChain");
     if (!mc.empty() && mc != "Beginning" && mc != ">") {
         ModelXml->AddAttribute("ModelChain", mc);

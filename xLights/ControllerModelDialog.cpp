@@ -1535,20 +1535,23 @@ public:
                     srMenu->AppendSubMenu(srType, "Type");
                     srType->Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerModelDialog::OnPopupCommand, nullptr, cmd);
                 }
-                srMenu->AppendSeparator();
-                mi = srMenu->AppendCheckItem(ControllerModelDialog::CONTROLLER_CASCADEDOWNPORT, "Cascade Down Port");
-                mi->Check(GetModel()->GetSRCascadeOnPort());
 
-                wxMenu* srMax = new wxMenu();
-                for (int i = 0; i < srcount; i++) {
-                    mi = srMax->AppendRadioItem(wxNewId(), wxString::Format("%d", i + 1), "Cascade");
-                    if (GetModel()->GetSRMaxCascade() == i + 1) {
-                        mi->Check();
+                if (GetModel()->GetNumPhysicalStrings() > 1) {
+                    srMenu->AppendSeparator();
+                    mi = srMenu->AppendCheckItem(ControllerModelDialog::CONTROLLER_CASCADEDOWNPORT, "Cascade Down Port");
+                    mi->Check(GetModel()->GetSRCascadeOnPort());
+
+                    wxMenu* srMax = new wxMenu();
+                    for (int i = 0; i < srcount; i++) {
+                        mi = srMax->AppendRadioItem(wxNewId(), wxString::Format("%d", i + 1), "Cascade");
+                        if (GetModel()->GetSRMaxCascade() == i + 1) {
+                            mi->Check();
+                        }
                     }
-                }
 
-                srMenu->AppendSubMenu(srMax, "Cascaded Remotes");
-                srMax->Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerModelDialog::OnPopupCommand, nullptr, cmd);
+                    srMenu->AppendSubMenu(srMax, "Cascaded Remotes");
+                    srMax->Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerModelDialog::OnPopupCommand, nullptr, cmd);
+                }
 
                 srMenu->Connect(wxEVT_MENU, (wxObjectEventFunction)&ControllerModelDialog::OnPopupCommand, nullptr, cmd);
                 mnu.AppendSubMenu(srMenu, "Smart Remote");

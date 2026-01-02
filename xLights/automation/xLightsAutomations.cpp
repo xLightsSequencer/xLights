@@ -21,8 +21,6 @@
 #include "../controllers/ControllerCaps.h"
 #include "../controllers/FPP.h"
 #include "../controllers/Falcon.h"
-#include "../../xSchedule/wxJSON/jsonreader.h"
-#include "../../xSchedule/wxJSON/jsonwriter.h"
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
 #include "../xLightsApp.h"
@@ -35,7 +33,7 @@
 
 #include "LuaRunner.h"
 
-#include "./utils/spdlog_macros.h"
+#include <log4cpp/Category.hh>
 
 std::string xLightsFrame::FindSequence(const std::string& seq)
 {
@@ -117,8 +115,8 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             wxString data = params["_DATA"];
             try {
                 nlohmann::json val = nlohmann::json::parse(data.ToStdString());
-                //wxJSONReader reader;
-                // if (reader.Parse(data, &val) == 0)
+                // wxJSONReader reader;
+                //  if (reader.Parse(data, &val) == 0)
                 {
                     fname = val["seq"].get<std::string>();
                     if (val.contains("promptIssues")) {
@@ -128,12 +126,9 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                         force = ReadBool(params["force"]);
                     }
                 }
-            } catch (const std::exception &e) {
+            } catch (const std::exception& e) {
                 return sendResponse(wxString::Format("Failed to parse JSON data: %s", e.what()), "msg", 503, false);
             }
-            //else {
-            //    fname = "";
-            //}
         } else {
             if (params["seq"] != "") {
                 fname = params["seq"];
@@ -163,9 +158,12 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                 return sendResponse("Sequence already open.", "msg", 503, false);
             }
             auto oldPrompt = _promptBatchRenderIssues;
+            auto oldRenderMode = _renderMode;
+            if (!prompt) _renderMode = true;
             _promptBatchRenderIssues = prompt; // off by default
             OpenSequence(seq, nullptr);
             _promptBatchRenderIssues = oldPrompt;
+            _renderMode = oldRenderMode;
             std::string response = wxString::Format("{\"seq\":\"%s\",\"fullseq\":\"%s\",\"media\":\"%s\",\"len\":%u,\"framems\":%u}",
                                                     JSONSafe(CurrentSeqXmlFile->GetName()),
                                                     JSONSafe(CurrentSeqXmlFile->GetFullPath()),
@@ -347,10 +345,9 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             return sendResponse("FPP not found '" + ip + "'.", "msg", 503, false);
         }
 
-        std::map<int, int> udpRanges;
-        auto const& outputs = FPP::CreateUniverseFile(_outputManager.GetControllers(), false, &udpRanges);
-
         if (udp == "all") {
+            std::map<int, int> udpRanges;
+            auto outputs = fpp->CreateUniverseFile(_outputManager.GetControllers(), false, &udpRanges);
             fpp->UploadUDPOut(outputs);
             fpp->SetRestartFlag();
         } else if (udp == "proxy") {
@@ -359,7 +356,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
 
         if (models == "true" || models == "all") {
-            auto const& memoryMaps = fpp->CreateModelMemoryMap(&AllModels, 0, std::numeric_limits<int32_t>::max());
+            auto memoryMaps = fpp->CreateModelMemoryMap(&AllModels, 0, std::numeric_limits<int32_t>::max());
             fpp->UploadModels(memoryMaps);
         } else if (udp == "local") {
             auto c = _outputManager.GetControllers(fpp->ipAddress);
@@ -453,7 +450,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                     FSEQFile::FrameData* f = seq->getFrame(frame);
                     if (f != nullptr) {
                         if (!f->readFrame(&frames[lastBuffered][0], frames[lastBuffered].size())) {
-                            //LOG_ERROR("FPPConnect FSEQ file corrupt.");
+                            //logger_base.error("FPPConnect FSEQ file corrupt.");
                             res = false;
                         }
                         delete f;
@@ -1179,10 +1176,8 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
         params.clear();
         accept = MIME_JSON;
 
-        nlohmann::json val = nlohmann::json::parse(request.Data().ToStdString());
-        //wxJSONReader reader;
-        //if (reader.Parse(request.Data(), &val) == 0) 
-        {
+        try {
+            nlohmann::json val = nlohmann::json::parse(request.Data().ToStdString());
             if (!val.contains("cmd")) {
                 HttpResponse resp(connection, request, (HttpStatus::HttpStatusCode)503);
                 resp.AddHeader("access-control-allow-origin", "*");
@@ -1191,7 +1186,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
                 return true;
             } else {
                 for (auto [mn, v] : val.items()) {
-                    //nlohmann::json v = val[mn];
+                    // nlohmann::json v = val[mn];
                     if (mn == "cmd") {
                         paths.push_back(v.get<std::string>());
                     } else if (v.is_string()) {
@@ -1217,6 +1212,10 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
                 }
             }
         }
+        catch(std::exception ex) {
+            
+        }
+       
     } else {
         paramMap["_METHOD"] = request.Method();
         if (request.Method() == "POST" || request.Method() == "PUT") {
@@ -1225,7 +1224,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
     }
 
     return ProcessAutomation(paths, paramMap, [&](const std::string& msg, const std::string& jsonKey, int responseCode, bool isJson) {
-        
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         HttpResponse resp(connection, request, (HttpStatus::HttpStatusCode)responseCode);
         resp.AddHeader("access-control-allow-origin", "*");
 
@@ -1253,7 +1252,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
             connection.SendResponse(resp);
             return true;
         } else {
-            LOG_WARN("Automation did not send result because connection lost.");
+            logger_base.warn("Automation did not send result because connection lost.");
         }
         return false;
     });
@@ -1261,7 +1260,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
 
 void xLightsFrame::StartAutomationListener()
 {
-    
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (_automationServer != nullptr) {
         _automationServer->Stop();
@@ -1284,11 +1283,11 @@ void xLightsFrame::StartAutomationListener()
     ctx.ErrorPage404 = HTTP_ERROR_PAGE;
 
     if (!server->Start(ctx)) {
-        LOG_DEBUG("xLights Automation could not listen on %d", ::GetxFadePort(_xFadePort));
+        logger_base.debug("xLights Automation could not listen on %d", ::GetxFadePort(_xFadePort));
         delete server;
         return;
     }
-    LOG_DEBUG("xLights Automation listening on %d", ::GetxFadePort(_xFadePort));
+    logger_base.debug("xLights Automation listening on %d", ::GetxFadePort(_xFadePort));
     _automationServer = server;
 }
 
@@ -1297,23 +1296,21 @@ std::string xLightsFrame::ProcessxlDoAutomation(const std::string& msg)
     std::vector<std::string> paths;
     std::map<std::string, std::string> paramMap;
 
-    
-    nlohmann::json val = nlohmann::json::parse(msg);
-    //wxJSONReader reader;
-    //if (reader.Parse(msg, &val) == 0)
+    try
     {
+        nlohmann::json val = nlohmann::json::parse(msg);
         if (!val.contains("cmd")) {
             return "{\"res\":504,\"msg\":\"Missing cmd.\"}";
         } else {
             for (auto [mn, v] : val.items()) {
-                //wxJSONValue v = val[mn];
-                if (mn == "cmd") {
+                   if (mn == "cmd") {
                     paths.push_back(v.get<std::string>());
                 } else if (v.is_string()) {
                     paramMap[mn] = v.get<std::string>();
                 } else if (v.is_number_integer()) {
                     paramMap[mn] = std::to_string(v.get<int>());
-                } else if (v.is_number_float()) {
+                }
+                else if (v.is_number_float()) {
                     paramMap[mn] = std::to_string(v.get<float>());
                 } else if (v.is_boolean()) {
                     paramMap[mn] = v.get<bool>() ? "true" : "false";
@@ -1354,7 +1351,8 @@ std::string xLightsFrame::ProcessxlDoAutomation(const std::string& msg)
             }
             return result;
         }
-    }
+    } catch (std::exception &)
+    {}
     return "{\"res\":504,\"msg\":\"Error parsing request.\"}";
 }
  

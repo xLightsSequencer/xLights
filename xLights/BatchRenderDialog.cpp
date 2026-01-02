@@ -14,6 +14,7 @@
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
+#include <wx/choicdlg.h>
 #include <wx/intl.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
@@ -30,6 +31,11 @@
 #include "globals.h"
 #include "xLightsMain.h"
 
+
+#include "Discovery.h"
+#include "controllers/FPP.h"
+#include "outputs/OutputManager.h"
+
 //(*IdInit(BatchRenderDialog)
 const wxWindowID BatchRenderDialog::ID_CHOICE_FILTER = wxNewId();
 const wxWindowID BatchRenderDialog::ID_CHOICE_FOLDER = wxNewId();
@@ -45,6 +51,7 @@ const long BatchRenderDialog::ID_MNU_SELECTALL = wxNewId();
 const long BatchRenderDialog::ID_MNU_SELECTNONE = wxNewId();
 const long BatchRenderDialog::ID_MNU_SELECTHIGH = wxNewId();
 const long BatchRenderDialog::ID_MNU_DESELECTHIGH = wxNewId();
+const long BatchRenderDialog::ID_MNU_SELECTFPP = wxNewId();
 
 #define SORT_SEQ_NAME_COL 0
 #define SORT_SEQ_TIME_COL 1
@@ -56,8 +63,7 @@ EVT_TREELIST_ITEM_CONTEXT_MENU(wxID_ANY, BatchRenderDialog::SequenceListPopup)
 
 END_EVENT_TABLE()
 
-BatchRenderDialog::BatchRenderDialog(wxWindow* parent)
-{
+BatchRenderDialog::BatchRenderDialog(wxWindow* parent, OutputManager* outputManager) : m_outputManager(outputManager) {
 	//(*Initialize(BatchRenderDialog)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
@@ -149,14 +155,19 @@ void BatchRenderDialog::SequenceListPopup(wxTreeListEvent& event)
     mnu.Append(ID_MNU_SELECTNONE, "Select None");
     mnu.Append(ID_MNU_SELECTHIGH, "Select Highlighted");
     mnu.Append(ID_MNU_DESELECTHIGH, "Deselect Highlighted");
+    mnu.Append(ID_MNU_SELECTFPP, "Select From FPP Playlist");
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BatchRenderDialog::OnPopupCommand, nullptr, this);
     PopupMenu(&mnu);
 }
 
-void BatchRenderDialog::OnPopupCommand(wxCommandEvent &event)
-{
+void BatchRenderDialog::OnPopupCommand(wxCommandEvent& event) {
     int id = event.GetId();
+    if (id == ID_MNU_SELECTFPP) {
+        SelectFromFPPPlayList();
+        return;
+    }
+
     wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
     while (item.IsOk()) {
         bool isChecked = CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED;
@@ -175,7 +186,7 @@ void BatchRenderDialog::OnPopupCommand(wxCommandEvent &event)
     ValidateWindow();
 }
 
-wxArrayString BatchRenderDialog::GetFileList()
+wxArrayString BatchRenderDialog::GetFileList() const
 {
     wxArrayString lst;
     wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
@@ -214,8 +225,7 @@ void BatchRenderDialog::GetSeqList(const wxString& folder)
     }
 }
 
-void BatchRenderDialog::GetFolderList(const wxString& folder)
-{
+void BatchRenderDialog::GetFolderList(const wxString& folder) const {
     FolderChoice->Append("");
     wxArrayString subfolders;
     wxDir dir(folder);
@@ -224,18 +234,21 @@ void BatchRenderDialog::GetFolderList(const wxString& folder)
     }
     wxString strFile;
 
-    if (dir.GetFirst(&strFile, "*", wxDIR_HIDDEN | wxDIR_DIRS))
+    if (dir.GetFirst(&strFile, "*", wxDIR_HIDDEN | wxDIR_DIRS)) {
         subfolders.Add(strFile);
+    }
 
     while (dir.GetNext(&strFile)) {
         subfolders.Add(strFile);
     }
     subfolders.Sort();
-    for (const auto& subfolder: subfolders) {
-        if(subfolder.StartsWith("Backup/") || subfolder.StartsWith("Backup\\"))
+    for (const auto& subfolder : subfolders) {
+        if (subfolder.StartsWith("Backup/") || subfolder.StartsWith("Backup\\")) {
             continue;
-        if (subfolder.StartsWith("."))
+        }
+        if (subfolder.StartsWith(".")) {
             continue;
+        }
         FolderChoice->Append(subfolder);
     }
 }
@@ -253,14 +266,14 @@ bool BatchRenderDialog::Prepare(const wxString &showDir)
 
     wxConfigBase* config = wxConfigBase::Get();
     if (config != nullptr) {
-        int filterSelect = -1;
-        wxString folderSelect = "";
+        int filterSelect { -1 };
+        wxString folderSelect;
         config->Read("BatchRendererFilterSelection", &filterSelect);
         config->Read("BatchRendererFolderSelection", &folderSelect);
         if (filterSelect != wxNOT_FOUND) {
             FilterChoice->SetSelection(filterSelect);
         }
-        int ifoldSelect = FolderChoice->FindString(folderSelect);
+        int const ifoldSelect = FolderChoice->FindString(folderSelect);
         if(ifoldSelect != wxNOT_FOUND) {
             FolderChoice->SetSelection(ifoldSelect);
         }
@@ -274,7 +287,7 @@ bool BatchRenderDialog::Prepare(const wxString &showDir)
         config->Read("BatchRendererItemList", &itcsv, "");
 
         if (!itcsv.IsEmpty()) {
-            wxArrayString savedUploadItems = wxSplit(itcsv, ',');
+            wxArrayString const savedUploadItems = wxSplit(itcsv, ',');
 
             wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
             while (item.IsOk()) {
@@ -322,7 +335,7 @@ void BatchRenderDialog::OnFilterChoiceSelect(wxCommandEvent& event)
     CheckListBox_Sequences->Freeze();
     CheckListBox_Sequences->DeleteAllItems();
 
-    int type = FilterChoice->GetSelection();
+    int const type = FilterChoice->GetSelection();
     for (const auto& a : allFiles) {
         const wxString name = a;
         switch (type) {
@@ -406,13 +419,14 @@ void BatchRenderDialog::OnSequenceListToggled(wxDataViewEvent& event)
     ValidateWindow();
 }
 
-bool BatchRenderDialog::isFileInFolder(const wxString &file) const
-{
+bool BatchRenderDialog::isFileInFolder(const wxString& file) const {
     const wxString folder = FolderChoice->GetString(FolderChoice->GetSelection());
-    if (folder.IsEmpty())
+    if (folder.IsEmpty()) {
         return true;
-    if (file.StartsWith( folder + "\\") || file.StartsWith( folder + "/"))
+    }
+    if (file.StartsWith(folder + "\\") || file.StartsWith(folder + "/")) {
         return true;
+    }
     return false;
 }
 
@@ -437,9 +451,9 @@ void BatchRenderDialog::SaveSettings()
     wxString selected;
     wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
     while (item.IsOk()) {
-        bool isChecked = CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED;
+        bool const isChecked = CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED;
         if (isChecked) {
-            if (selected != "") {
+            if (not selected.empty()) {
                 selected += ",";
             }
             selected += CheckListBox_Sequences->GetItemText(item);
@@ -482,5 +496,59 @@ void BatchRenderDialog::DisplayDateRendered(std::string const& fileName, wxTreeL
     if (FileExists(fseqName)) {
         wxDateTime last_modified_time(wxFileModificationTime(fseqName));
         CheckListBox_Sequences->SetItemText(item, 2, last_modified_time.Format(wxT(" %Y-%m-%d %H:%M:%S ")));
+    }
+}
+
+void BatchRenderDialog::SelectFromFPPPlayList()
+{
+    Discovery discovery(this, m_outputManager); // unsure why outputManager is needed here
+    FPP::PrepareDiscovery(discovery);
+    std::list<FPP*> instances;
+
+    discovery.Discover();
+
+    FPP::MapToFPPInstances(discovery, instances, m_outputManager);
+    instances.sort(sortByIP);
+
+    wxArrayString itemList;
+    std::transform(instances.begin(), instances.end(), std::back_inserter(itemList),
+                   [](auto const& it) { return it->hostName + " " + it->ipAddress; });
+
+    wxSingleChoiceDialog dlg(this, "Select a FPP Device", "FPP", itemList);
+
+    if (dlg.ShowModal() == wxID_OK) {
+        int const index = dlg.GetSelection();
+
+        if (index >= 0 && index < instances.size()) {
+            FPP* fpp { nullptr };
+            auto it = instances.begin();
+            std::advance(it, index);
+            fpp = *it;
+            if (fpp != nullptr) {
+                wxArrayString wxplaylists;
+                std::transform(fpp->playlists.begin(), fpp->playlists.end(), std::back_inserter(wxplaylists),
+                               [](auto const& it) { return it; });
+
+                wxSingleChoiceDialog dlg(this, "Select a FPP PlayList", "PlayList", wxplaylists);
+
+                if (dlg.ShowModal() == wxID_OK) {
+                    auto const selected_playlist = dlg.GetStringSelection();
+                    auto const playlist_items = fpp->GetPlaylistItems(selected_playlist);
+
+                    wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
+                    while (item.IsOk()) {
+                        auto const seq = CheckListBox_Sequences->GetItemText(item);
+                        wxFileName file(seq);
+                        file.SetExt("fseq");
+                        auto it = std::find(playlist_items.begin(), playlist_items.end(), file.GetFullName());
+                        if (it != playlist_items.end()) {
+                            CheckListBox_Sequences->CheckItem(item);
+                        }
+                        item = CheckListBox_Sequences->GetNextItem(item);
+                    }
+                    ValidateWindow();
+                }
+            }
+        }
     }
 }

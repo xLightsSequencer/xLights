@@ -515,6 +515,7 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
     CheckBox_ResetColorPanel->SetValue(reset);
 
     ValidateWindow();
+    SetMinSize(wxSize(50, 50));
 }
 #ifdef __XLIGHTS_HAS_TOUCHBARS__
 ColorPanelTouchBar* ColorPanel::SetupTouchBar(xlTouchBarSupport &tbs) {

@@ -142,6 +142,7 @@ private:
     static const long ID_ROW_MNU_REMOVE_TIMING_WORDS_PHONEMES;
     static const long ID_ROW_MNU_SHOWALLTIMING;
     static const long ID_ROW_MNU_HIDEALLTIMING;
-    
+    static const long ID_ROW_MNU_GENERATE_SUBDIVIDED_TRACKS;
+
     static const long ID_ROW_MNU_SETLAYERNAME;
 };
