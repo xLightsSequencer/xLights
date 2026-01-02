@@ -198,7 +198,7 @@
             <Port7>5</Port7>
             <Port8>33</Port8>
         </Variant>
-        <Variant Name="8-Port Distro (PCB v2/v3)" Base="WLED:ESP32WLEDSettings">
+        <Variant Name="8-Port Distro (PCB v2/v3/v4)" Base="WLED:ESP32WLEDSettings">
             <MaxPixelPort>8</MaxPixelPort>
             <MaxSerialPort>0</MaxSerialPort>
             <Port1>1</Port1>
