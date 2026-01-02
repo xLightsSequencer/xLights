@@ -1092,7 +1092,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
     }
     maxn++;
     int chssize = (maxn + 1) * sizeof(int);
-    //logger_base.debug("    CheckSequence: Checking custom model %d nodes", maxn);
+    //LOG_DEBUG("    CheckSequence: Checking custom model %d nodes", maxn);
     int* chs = (int*)malloc(chssize);
     if (chs == nullptr) {
         res.push_back(wxString::Format("    WARN: Could not check Custom model '%s' for missing nodes. Error allocating memory for %d nodes.", GetName(), maxn).ToStdString());

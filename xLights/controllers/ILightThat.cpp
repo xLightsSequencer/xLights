@@ -23,21 +23,20 @@
 
 #include <nlohmann/json.hpp>
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include <utils/CurlManager.h>
 
 #pragma region Constructors and Destructors
 ILightThat::ILightThat(const std::string& ip, const std::string& proxy) :
     BaseController(ip, proxy)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::string const json = GetURL("/settings");
     if (!json.empty()) {
         _connected = true;
-        logger_base.debug("Connected to ILightThat controller model %s.", (const char*)GetFullName().c_str());
+        LOG_DEBUG("Connected to ILightThat controller model %s.", (const char*)GetFullName().c_str());
     } else {
         _connected = false;
-        logger_base.error("Error connecting to ILightThat controller on %s.", (const char*)_ip.c_str());
+        LOG_ERROR("Error connecting to ILightThat controller on %s.", (const char*)_ip.c_str());
     }
 }
 
@@ -55,8 +54,7 @@ ILightThat::~ILightThat()
 #pragma region Getters and Setters
 bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("ILightThat Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+    LOG_DEBUG("ILightThat Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
 
     std::unordered_map<std::string, int> model_test_cols = {};
     std::string const json = GetURL("/settings");
@@ -76,11 +74,11 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                 }
             }
         } catch (nlohmann::json::parse_error& ex) {
-            logger_base.warn("ILightThat Outputs Upload: Failed to parse JSON: %s", ex.what());
-            logger_base.warn((const char*)json.c_str());
+            LOG_WARN("ILightThat Outputs Upload: Failed to parse JSON: %s", ex.what());
+            LOG_WARN((const char*)json.c_str());
         } catch (std::exception& e) {
-            logger_base.warn("ILightThat Outputs Upload: Failed to parse JSON: %s", e.what());
-            logger_base.warn((const char*)json.c_str());
+            LOG_WARN("ILightThat Outputs Upload: Failed to parse JSON: %s", e.what());
+            LOG_WARN((const char*)json.c_str());
         }
     }
 

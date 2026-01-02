@@ -1888,8 +1888,6 @@ void MainSequencer::SplitTimingMark()
 
 void MainSequencer::DivideTimingTrack(int divisor)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     int selectedTiming = mSequenceElements->GetSelectedTimingRow();
     if (selectedTiming >= 0)
     {
@@ -1898,13 +1896,13 @@ void MainSequencer::DivideTimingTrack(int divisor)
 
         if (el == nullptr)
         {
-            logger_base.crit("MainSequencer::DivideTimingTrack el is nullptr ... this is going to crash.");
+            LOG_CRIT("MainSequencer::DivideTimingTrack el is nullptr ... this is going to crash.");
             return;
         }
 
         if (el->IsFixedTimingLayer())
         {
-            logger_base.warn("MainSequencer::DivideTimingTrack Cannot divide fixed timing layer.");
+            LOG_WARN("MainSequencer::DivideTimingTrack Cannot divide fixed timing layer.");
             return;
         }
 

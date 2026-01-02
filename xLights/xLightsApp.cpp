@@ -158,7 +158,7 @@ void InitialiseLogging(bool fromMain)
 
     if (!loggingInitialised) {
 
-        #ifdef USE_SPDLOG
+#ifdef USE_SPDLOG
 
         std::string const logFileName = "xLights_spdlog.log";
 #ifdef __WXMSW__
@@ -185,14 +185,17 @@ void InitialiseLogging(bool fromMain)
         auto curl_logger = std::make_shared<spdlog::logger>("curl", rotating_file_sink);
         auto opengl_logger = std::make_shared<spdlog::logger>("opengl", rotating_file_sink);
         auto job_logger = std::make_shared<spdlog::logger>("job", rotating_file_sink);
+        auto work_logger = std::make_shared<spdlog::logger>("work", rotating_file_sink);
         render_logger->set_level(spdlog::level::from_str(SpecialOptions::GetOption("render_logger", "warn")));
         curl_logger->set_level(spdlog::level::from_str(SpecialOptions::GetOption("curl_logger", "info")));
         opengl_logger->set_level(spdlog::level::from_str(SpecialOptions::GetOption("opengl_logger", "info")));
         job_logger->set_level(spdlog::level::from_str(SpecialOptions::GetOption("job_logger", "info")));
+        work_logger->set_level(spdlog::level::from_str(SpecialOptions::GetOption("work_logger", "info")));
         spdlog::register_logger(render_logger);
         spdlog::register_logger(curl_logger);
         spdlog::register_logger(opengl_logger);
         spdlog::register_logger(job_logger);
+        spdlog::register_logger(work_logger);
 
         loggingInitialised = true;
         spdlog::initialize_logger(file_logger);

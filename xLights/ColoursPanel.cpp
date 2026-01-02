@@ -182,7 +182,7 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
     
 
     if (xlights == nullptr || xLightsFrame::CurrentDir.IsEmpty()) {
-        logger_base.warn("UpdateColourButtons called with null xlights or empty CurrentDir. Skipping.");
+        LOG_WARN("UpdateColourButtons called with null xlights or empty CurrentDir. Skipping.");
         return;
     }
 

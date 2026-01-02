@@ -63,7 +63,7 @@
 
 #include "../xFade/wxLED.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 // Thread class to ping a single controller
 class ControllerPingThread : public wxThread {
@@ -254,7 +254,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     /*
     wxString msg="UpdateMRU:\n";
     for (int i=0; i<mru.GetCount(); i++) msg+="\n" + mru[i];
-    logger_base.debug(msg);
+    LOG_DEBUG(msg);
     */
 
     // save config
@@ -322,8 +322,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     SpecialOptions::StashShowDir(CurrentDir.ToStdString());
     SpecialOptions::GetOption("", ""); // resets special options
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Show directory set to : %s.", (const char*)showDirectory.c_str());
+    
+    LOG_DEBUG("Show directory set to : %s.", (const char*)showDirectory.c_str());
 
     if (_logfile != nullptr) {
         wxLog::SetActiveTarget(nullptr);
@@ -348,7 +348,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     if (fseqLinkFlag) {
         fseqDirectory = CurrentDir;
         config->Write(_("FSEQDir"), wxString(fseqDirectory));
-        logger_base.debug("FSEQ Directory set to : %s.", (const char*)fseqDirectory.c_str());
+        LOG_DEBUG("FSEQ Directory set to : %s.", (const char*)fseqDirectory.c_str());
     }
 
     EnableNetworkChanges();
@@ -359,7 +359,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     networkFile.SetFullName(_(XLIGHTS_NETWORK_FILE));
     if (FileExists(networkFile)) {
         ObtainAccessToURL(networkFile.GetFullPath());
-        logger_base.debug("Loading networks.");
+        LOG_DEBUG("Loading networks.");
         wxStopWatch sww;
         if (!_outputManager.Load(CurrentDir.ToStdString())) {
             if (!this->IsVisible()) {
@@ -371,7 +371,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
             }
             DisplayError(wxString::Format("Unable to load network config %s : Time %ldms", networkFile.GetFullPath(), sww.Time()).ToStdString());
         } else {
-            logger_base.debug("Loaded network config %s : Time %ldms", (const char*)networkFile.GetFullPath().c_str(), sww.Time());
+            LOG_DEBUG("Loaded network config %s : Time %ldms", (const char*)networkFile.GetFullPath().c_str(), sww.Time());
             InitialiseControllersTab();
         }
     } else {
@@ -416,9 +416,9 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     // do layout after so button resizes to fit label (only issue on osx, "Restore to Permanent" is cut off)
     ShowDirectoryLabel->GetParent()->Layout();
 
-    logger_base.debug("Updating networks on setup tab.");
+    LOG_DEBUG("Updating networks on setup tab.");
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SetDir");
-    logger_base.debug("    Networks updated.");
+    LOG_DEBUG("    Networks updated.");
 
     wxFileName kbf;
     kbf.AssignDir(CurrentDir);
@@ -429,7 +429,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     LoadEffectsFile();
 
     if (_outputManager.IsAutoUpdateFromBaseShowDir() && _outputManager.GetBaseShowDir() != "") {
-        logger_base.debug("Updating from base folder on show folder open.");
+        LOG_DEBUG("Updating from base folder on show folder open.");
         if (!ObtainAccessToURL(_outputManager.GetBaseShowDir(), true)) {
             std::string dstr = _outputManager.GetBaseShowDir();
             PromptForDirectorySelection("Reselect Base Show Directory", dstr);
@@ -438,17 +438,17 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         UpdateFromBaseShowFolder(false);
     }
 
-    logger_base.debug("Get start channels right.");
+    LOG_DEBUG("Get start channels right.");
     _outputModelManager.RemoveWork("ASAP", OutputModelManager::WORK_CALCULATE_START_CHANNELS);
     _outputModelManager.RemoveWork("ASAP", OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG);
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SetDir");
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "SetDir");
-    logger_base.debug("Start channels done.");
+    LOG_DEBUG("Start channels done.");
 
     if (mBackupOnLaunch && !_renderMode) {
-        logger_base.debug("Backing up show directory before we do anything this session in this folder : %s.", (const char *)CurrentDir.c_str());
+        LOG_DEBUG("Backing up show directory before we do anything this session in this folder : %s.", (const char *)CurrentDir.c_str());
         DoBackup(false, true);
-        logger_base.debug("Backup completed.");
+        LOG_DEBUG("Backup completed.");
     }
 
     if (std::find(mediaDirectories.begin(), mediaDirectories.end(), CurrentDir) == mediaDirectories.end()) {
@@ -903,18 +903,14 @@ void xLightsFrame::NetworkChange() {
 }
 
 void xLightsFrame::NetworkChannelsChange() {
-
-    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
-    logger_work.debug("        NetworkChannelsChange.");
+    spdlog::get("work")->debug("        NetworkChannelsChange.");
 
     _outputManager.SomethingChanged();
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "NetworkChannelsChange");
 }
 
 bool xLightsFrame::SaveNetworksFile() {
-
-    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
-    logger_work.debug("        SaveNetworksFile.");
+    spdlog::get("work")->debug("        SaveNetworksFile.");
 
     // if any of the controllers are in auto layout mode ... recalculate them
     bool autoLayout = false;
@@ -1019,10 +1015,8 @@ void xLightsFrame::PingController(Controller* e) {
 }
 
 #pragma region Work
-void xLightsFrame::DoASAPWork() {
-
-    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
-
+void xLightsFrame::DoASAPWork()
+{
     // If any function called in DoWork yields then this can reenter and we need to stop that
     static bool reenter = false;
     if (reenter) {
@@ -1032,7 +1026,7 @@ void xLightsFrame::DoASAPWork() {
     }
     reenter = true;
 
-    logger_work.debug("Doing ASAP Work.");
+    spdlog::get("work")->debug("Doing ASAP Work.");
     DoWork(_outputModelManager.GetASAPWork(), "ASAP");
 
     reenter = false;
@@ -1040,8 +1034,7 @@ void xLightsFrame::DoASAPWork() {
 
 bool xLightsFrame::DoAllWork() {
 
-    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
-    logger_work.debug("Doing All Work.");
+    spdlog::get("work")->debug("Doing All Work.");
     DoWork(_outputModelManager.GetSetupWork(), "Setup");
     DoWork(_outputModelManager.GetLayoutWork(), "Layout");
     DoWork(_outputModelManager.GetASAPWork(), "ASAP");
@@ -1052,15 +1045,14 @@ bool xLightsFrame::DoAllWork() {
 
 void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m, const std::string& selected) {
 
-    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
-
+    auto work_logger = spdlog::get("work");
     if (work == OutputModelManager::WORK_NOTHING) return;
 
     std::string selectedModel = selected;
     if (selectedModel == "") selectedModel = _outputModelManager.GetSelectedModel();
 
     if (work & OutputModelManager::WORK_NETWORK_CHANGE) {
-        logger_work.debug("    WORK_NETWORK_CHANGE.");
+        work_logger->debug("    WORK_NETWORK_CHANGE.");
         // Mark networks file dirty
         NetworkChange();
     }
@@ -1083,7 +1075,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_SAVE_NETWORKS
     );
     if (work & OutputModelManager::WORK_NETWORK_CHANNELSCHANGE) {
-        logger_work.debug("    WORK_NETWORK_CHANNELSCHANGE.");
+        work_logger->debug("    WORK_NETWORK_CHANNELSCHANGE.");
         // Recalculates all the channels in the outputs
         NetworkChannelsChange();
     }
@@ -1105,7 +1097,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_SAVE_NETWORKS
     );
     if (work & (OutputModelManager::WORK_UPDATE_NETWORK_LIST | OutputModelManager::WORK_UPDATE_NETWORK_PROPERTIES)) {
-        logger_work.debug("    WORK_UPDATE_NETWORK_LIST.");
+        work_logger->debug("    WORK_UPDATE_NETWORK_LIST.");
         // Updates the list of outputs on the screen
         //UpdateNetworkList();
         InitialiseControllersTab((work & OutputModelManager::WORK_UPDATE_NETWORK_PROPERTIES) != 0);
@@ -1131,7 +1123,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_SAVE_NETWORKS
     );
     if (work & OutputModelManager::WORK_RGBEFFECTS_CHANGE) {
-        logger_work.debug("    WORK_RGBEFFECTS_CHANGE.");
+        work_logger->debug("    WORK_RGBEFFECTS_CHANGE.");
         // Mark the rgb effects file as needing to be saved
         MarkEffectsFileDirty();
     }
@@ -1150,7 +1142,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_SAVE_NETWORKS
     );
     if (work & OutputModelManager::WORK_RELOAD_MODEL_FROM_XML && !(work & OutputModelManager::WORK_RELOAD_ALLMODELS)) {
-        logger_work.debug("    WORK_RELOAD_MODEL_FROM_XML.");
+        work_logger->debug("    WORK_RELOAD_MODEL_FROM_XML.");
         BaseObject* mm = m;
         if (mm == nullptr) mm = _outputModelManager.GetModelToReload();
         if (mm != nullptr) {
@@ -1175,7 +1167,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_SAVE_NETWORKS
     );
     if (work & OutputModelManager::WORK_RELOAD_ALLMODELS) {
-        logger_work.debug("    WORK_RELOAD_ALLMODELS.");
+        work_logger->debug("    WORK_RELOAD_ALLMODELS.");
         UpdateModelsList();
         //layoutPanel->RefreshLayout();
     }
@@ -1192,7 +1184,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_SAVE_NETWORKS
     );
     if (work & OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS) {
-        logger_work.debug("    WORK_MODELS_REWORK_STARTCHANNELS.");
+        work_logger->debug("    WORK_MODELS_REWORK_STARTCHANNELS.");
         // Moves all the models around optimally
 
         //abort any render as it will crash if the model changes
@@ -1214,7 +1206,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_SAVE_NETWORKS
     );
     if (work & OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER) {
-        logger_work.debug("    WORK_MODELS_CHANGE_REQUIRING_RERENDER.");
+        work_logger->debug("    WORK_MODELS_CHANGE_REQUIRING_RERENDER.");
         // increment the model count which triggers re-rendering due to models changing
         MarkModelsAsNeedingRender();
     }
@@ -1229,7 +1221,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_SAVE_NETWORKS
     );
     if (work & OutputModelManager::WORK_CALCULATE_START_CHANNELS) {
-        logger_work.debug("    WORK_CALCULATE_START_CHANNELS.");
+        work_logger->debug("    WORK_CALCULATE_START_CHANNELS.");
         // Recalculates the models actual start channels based on changes to the outputs
         RecalcModels();
     }
@@ -1243,7 +1235,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_SAVE_NETWORKS
     );
     if (work & OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG) {
-        logger_work.debug("    WORK_RESEND_CONTROLLER_CONFIG.");
+        work_logger->debug("    WORK_RESEND_CONTROLLER_CONFIG.");
         // Rebuilds generally ZCPP controller config
         // Should happen whenever models are changed or a ZCPP output is changed
         RebuildControllerConfig(&_outputManager, &AllModels);
@@ -1260,12 +1252,12 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
 
         // if we are drawing a new model
         if (layoutPanel->IsNewModel(nullptr)) {
-            logger_work.debug("    WORK_RELOAD_MODELLIST - model being added.");
+            work_logger->debug("    WORK_RELOAD_MODELLIST - model being added.");
             // reload the models list on the layout panel
             layoutPanel->refreshModelList();
         }
         else {
-            logger_work.debug("    WORK_RELOAD_MODELLIST - model NOT being added.");
+            work_logger->debug("    WORK_RELOAD_MODELLIST - model NOT being added.");
             // need to reload the modelPreview model lists or bad things will happen
             layoutPanel->ReloadModelList();
         }
@@ -1278,7 +1270,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_SAVE_NETWORKS
     );
     if (work & OutputModelManager::WORK_RELOAD_OBJECTLIST) {
-        logger_work.debug("    WORK_RELOAD_OBJECTLIST.");
+        work_logger->debug("    WORK_RELOAD_OBJECTLIST.");
         // reload the objects list on the layout panel
         layoutPanel->refreshObjectList();
     }
@@ -1289,12 +1281,12 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_SAVE_NETWORKS
     );
     if (selectedModel != "") {
-        logger_work.debug("    Selecting model '%s'.", (const char*)selectedModel.c_str());
+        work_logger->debug("    Selecting model '%s'.", (const char*)selectedModel.c_str());
         //SelectModel(selectModel);
         layoutPanel->SelectBaseObject(selectedModel);
     }
     if (work & OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW) {
-        logger_work.debug("    WORK_REDRAW_LAYOUTPREVIEW.");
+        work_logger->debug("    WORK_REDRAW_LAYOUTPREVIEW.");
         // repaint the layout panel
         layoutPanel->UpdatePreview();
         // Since the layout panel list selection was implemented the redraw triggers a redraw ... this is a problem .. until that is fix suppress the repeat
@@ -1306,7 +1298,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_SAVE_NETWORKS
     );
     if (work & OutputModelManager::WORK_RELOAD_PROPERTYGRID) {
-        logger_work.debug("    WORK_RELOAD_PROPERTYGRID.");
+        work_logger->debug("    WORK_RELOAD_PROPERTYGRID.");
         // Reload the property grid either because a value changed and needs to be shown or optional properties should be added or removed
         layoutPanel->resetPropertyGrid();
     }
@@ -1315,7 +1307,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_SAVE_NETWORKS
     );
     if (work & OutputModelManager::WORK_UPDATE_PROPERTYGRID) {
-        logger_work.debug("    WORK_UPDATE_PROPERTYGRID.");
+        work_logger->debug("    WORK_UPDATE_PROPERTYGRID.");
         // Update the property grid mainly enabling and disabling of properties
         layoutPanel->updatePropertyGrid();
     }
@@ -1327,7 +1319,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         // I am disabling this. It was originally added when ZCPP was introduced to ensure autosize was not lost but
         // in hindsight i think this is actually confusing and should not happen automatically
 
-        //logger_work.debug("    WORK_SAVE_NETWORKS.");
+        //LOG_DEBUG("    WORK_SAVE_NETWORKS.");
         // write the networks file to disk and clears the dirty flag
         //SaveNetworksFile();
         //if (IsControllersAndLayoutTabSaveLinked()) {
@@ -1347,15 +1339,13 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
 
 void xLightsFrame::DoLayoutWork() {
 
-    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
-    logger_work.debug("Doing Switch To Layout Tab Work.");
+    spdlog::get("work")->debug("Doing Switch To Layout Tab Work.");
     DoWork(_outputModelManager.GetLayoutWork(), "Layout");
 }
 
 void xLightsFrame::DoSetupWork() {
 
-    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
-    logger_work.debug("Doing Switch To Setup Tab Work.");
+    spdlog::get("work")->debug("Doing Switch To Setup Tab Work.");
     DoWork(_outputModelManager.GetLayoutWork(), "Setup");
 }
 #pragma endregion
@@ -1395,8 +1385,8 @@ void xLightsFrame::OnButtonFPPConnectClick(wxCommandEvent& event) {
 }
 void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("[Discovery] Running controller discovery.");
+    
+    LOG_DEBUG("[Discovery] Running controller discovery.");
     SetStatusText("Running controller discovery ...");
     SetCursor(wxCURSOR_WAIT);
 
@@ -1411,7 +1401,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
     discovery.Discover();
 
     SetStatusText("Processing discovered controllers...");
-    logger_base.debug("[Discovery] Processing discovered controllers...");
+    LOG_DEBUG("[Discovery] Processing discovered controllers...");
     struct FPPDiscInfo {
         std::string hostname;
         std::string ip;
@@ -1468,9 +1458,8 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
     std::map<std::string, std::string> renames;
     bool found = false;
 
-    for (int x = 0; x < discovery.GetResults().size(); x++) {
-        auto discovered = discovery.GetResults()[x];
-        logger_base.debug("[Discovery] Processing: %s  IP: %s", discovered->hostname.c_str(), discovered->ip.c_str());
+    for (auto* discovered: discovery.GetResults()) {
+        LOG_DEBUG("[Discovery] Processing: %s  IP: %s", discovered->hostname.c_str(), discovered->ip.c_str());
         SetStatusText("Processing controller " + discovered->hostname + " IP:" + discovered->ip + " ...");
 
         if (!discovered->controller) {
@@ -1524,7 +1513,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
 
                 if (isPingable[it->GetIP()]) {
                     std::string hostName = discovered->hostname;
-                    logger_base.debug("[Discovery] Adding: %s at: %s", hostName.c_str(), it->GetIP().c_str());
+                    LOG_DEBUG("[Discovery] Adding: %s at: %s", hostName.c_str(), it->GetIP().c_str());
                     if (!hostName.empty()) {
                         if (ip_utils::ResolveIP(hostName + ".local") != hostName + ".local") {
                             it->SetIP(::Lower(hostName) + ".local");
@@ -1555,7 +1544,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
         hasChanges = true;
         // update the controller name on any models which use renamed controllers
         for (auto it = renames.begin(); it != renames.end(); ++it) {
-            logger_base.debug("Discovered controller renamed from '%s' to '%s'", (const char*)it->first.c_str(), (const char*)it->second.c_str());
+            LOG_DEBUG("Discovered controller renamed from '%s' to '%s'", (const char*)it->first.c_str(), (const char*)it->second.c_str());
 
             for (auto itm = AllModels.begin(); itm != AllModels.end(); ++itm) {
                 if (itm->second->GetControllerName() == it->first) {
@@ -1573,7 +1562,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
         _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnButton_DiscoverClick");
     }
     SetStatusText("Discovery complete.");
-    logger_base.debug("[Discovery] Controller discovery complete.");
+    LOG_DEBUG("[Discovery] Controller discovery complete.");
 }
 
 void xLightsFrame::OnButtonDeleteAllControllersClick(wxCommandEvent& event) {
@@ -2537,7 +2526,7 @@ void xLightsFrame::OnListControllerPopup(wxCommandEvent& event) {
 #pragma region Selected Controller Actions
 void xLightsFrame::OnButtonVisualiseClick(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     // handle right click on an item
     auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
@@ -2548,7 +2537,7 @@ void xLightsFrame::OnButtonVisualiseClick(wxCommandEvent& event)
         dlg.ShowModal();
     }
     else {
-        logger_base.debug("OnButtonVisualiseClick unable to get controller.");
+        LOG_DEBUG("OnButtonVisualiseClick unable to get controller.");
     }
 }
 
@@ -2596,8 +2585,6 @@ void xLightsFrame::OnButton_OpenProxyClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonUploadInputClick(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (IsControllerUploadLinked() && ButtonUploadOutput->IsEnabled()) {
         SetStatusText("Uploading inputs and outputs.");
     } else {
@@ -2607,7 +2594,7 @@ void xLightsFrame::OnButtonUploadInputClick(wxCommandEvent& event)
     SetCursor(wxCURSOR_WAIT);
 
     auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
-    logger_base.debug("Uploading controller inputs to" + name);
+    LOG_DEBUGWX("Uploading controller inputs to" + name);
     auto controller = _outputManager.GetController(name);
 
     if (controller != nullptr) {
@@ -2629,11 +2616,9 @@ void xLightsFrame::OnButtonUploadInputClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonUploadOutputClick(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     SetCursor(wxCURSOR_WAIT);
     auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
-    logger_base.debug("Uploading controller outputs to " + name);
+    LOG_DEBUGWX("Uploading controller outputs to " + name);
 
     auto controller = _outputManager.GetController(name);
     if (controller != nullptr) {
@@ -2665,7 +2650,6 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
 
     SetStatusText(message);
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (controller == nullptr) return res;
 
     auto caps = GetControllerCaps(controller->GetName());
@@ -2690,12 +2674,12 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
             if (bc != nullptr) {
                 if (bc->IsConnected()) {
                     if (bc->SetInputUniverses(controller, this)) {
-                        logger_base.debug("Attempt to upload controller inputs successful on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
+                        LOG_DEBUG("Attempt to upload controller inputs successful on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
                         message = vendor + " Input Upload complete.";
                         res = true;
                     }
                     else {
-                        logger_base.error("Attempt to upload controller inputs failed on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
+                        LOG_ERROR("Attempt to upload controller inputs failed on controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
                         message = vendor + " Input Upload failed.";
                     }
                 }
@@ -2705,18 +2689,18 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
                 delete bc;
             }
             else {
-                logger_base.error("Unable to create base controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
+                LOG_ERROR("Unable to create base controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
                 message = vendor + " Input Upload not supported.";
             }
         }
         else {
             // This controller does not support uploads
-            logger_base.error("Attempt to upload controller inputs on a unsupported controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
+            LOG_ERROR("Attempt to upload controller inputs on a unsupported controller %s:%s:%s", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
             message = "Upload inputs not supported.";
         }
     }
     else {
-        logger_base.error("Unable to find controller capabilities info.");
+        LOG_ERROR("Unable to find controller capabilities info.");
         message = "Unable to find controller capabilities info.";
         wxASSERT(false);
     }
@@ -2730,7 +2714,7 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
 
     SetStatusText(message);
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (controller == nullptr) return res;
 
     auto caps = GetControllerCaps(controller->GetName());
@@ -2769,11 +2753,11 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
                 message = vendor + " Output Upload Failed.";
             }
         } else {
-            logger_base.error("Controller does not support upload.");
+            LOG_ERROR("Controller does not support upload.");
             message = "Controller does not support upload.";
         }
     } else {
-        logger_base.error("Unable to find controller capabilities info.");
+        LOG_ERROR("Unable to find controller capabilities info.");
         message = "Unable to find controller capabilities info.";
         wxASSERT(false);
     }
@@ -2784,8 +2768,6 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
 
 #pragma region ZCPP
 int xLightsFrame::SetZCPPPort(Controller* controller, std::list<ZCPP_packet_t*>& modelDatas, int index, UDControllerPort* port, int portNum, int virtualString, long baseStart, bool isSerial, ZCPPOutput* zcpp) {
-
-    static log4cpp::Category& logger_zcpp = log4cpp::Category::getInstance(std::string("log_zcpp"));
 
     auto current = modelDatas.back();
     if (current->Configuration.ports >= ZCPP_CONFIG_MAX_PORT_PER_PACKET) {
@@ -2807,7 +2789,7 @@ int xLightsFrame::SetZCPPPort(Controller* controller, std::list<ZCPP_packet_t*>&
         vs = port->GetVirtualString(vvs);
     }
 
-    logger_zcpp.debug("    Port/String/SmartRemote %d/%d", portNum, vvs, ssr);
+    LOG_DEBUG("    Port/String/SmartRemote %d/%d", portNum, vvs, ssr);
 
     ZCPP_PortConfig* p = current->Configuration.PortConfig + (current->Configuration.ports - 1);
     wxASSERT((size_t)p < (size_t)current + sizeof(ZCPP_packet_t) - sizeof(ZCPP_PortConfig)); // check pointer has not gone rogue
@@ -2819,7 +2801,7 @@ int xLightsFrame::SetZCPPPort(Controller* controller, std::list<ZCPP_packet_t*>&
         protocol = port->GetProtocol();
     }
     p->protocol = ZCPPOutput::EncodeProtocol(protocol);
-    logger_zcpp.debug("       Protocol %d/%s", ZCPPOutput::EncodeProtocol(protocol), (const char*)protocol.c_str());
+    LOG_DEBUG("       Protocol %d/%s", ZCPPOutput::EncodeProtocol(protocol), (const char*)protocol.c_str());
 
     int32_t sc = 0;
     if (vs != nullptr) {
@@ -2845,7 +2827,7 @@ int xLightsFrame::SetZCPPPort(Controller* controller, std::list<ZCPP_packet_t*>&
     }
     if (sc < 0) sc = 0;
     p->startChannel = ntohl(sc);
-    logger_zcpp.debug("       Start Channel %d", sc);
+    LOG_DEBUG("       Start Channel %d", sc);
 
     long c = 0;
     if (vs != nullptr) {
@@ -2864,7 +2846,7 @@ int xLightsFrame::SetZCPPPort(Controller* controller, std::list<ZCPP_packet_t*>&
         }
     }
     p->channels = ntohl(c);
-    logger_zcpp.debug("       Channels %d", c);
+    LOG_DEBUG("       Channels %d", c);
 
     wxByte gc = 1;
     if (vs != nullptr) {
@@ -2876,7 +2858,7 @@ int xLightsFrame::SetZCPPPort(Controller* controller, std::list<ZCPP_packet_t*>&
         gc = m->GetGroupCount(1);
     }
     p->grouping = gc;
-    logger_zcpp.debug("       Group Count %d", (int)gc);
+    LOG_DEBUG("       Group Count %d", (int)gc);
 
     wxByte directionColourOrder = 0x00;
     if (vs != nullptr) {
@@ -2895,7 +2877,7 @@ int xLightsFrame::SetZCPPPort(Controller* controller, std::list<ZCPP_packet_t*>&
         directionColourOrder += ZCPPOutput::EncodeColourOrder(port->GetFirstModel()->GetColourOrder("RGB"));
     }
     p->directionColourOrder = directionColourOrder;
-    logger_zcpp.debug("       Direction/Colour Order %d/%d", (int)directionColourOrder & 0x80, (int)directionColourOrder & 0x7F);
+    LOG_DEBUG("       Direction/Colour Order %d/%d", (int)directionColourOrder & 0x80, (int)directionColourOrder & 0x7F);
 
     wxByte np = 0;
     if (vs != nullptr) {
@@ -2907,7 +2889,7 @@ int xLightsFrame::SetZCPPPort(Controller* controller, std::list<ZCPP_packet_t*>&
         np = m->GetStartNullPixels(0);
     }
     p->nullPixels = np;
-    logger_zcpp.debug("       Start Null Pixels %d", (int)np);
+    LOG_DEBUG("       Start Null Pixels %d", (int)np);
 
     wxByte b = controller->GetDefaultBrightnessUnderFullControl();
     if (vs != nullptr) {
@@ -2919,7 +2901,7 @@ int xLightsFrame::SetZCPPPort(Controller* controller, std::list<ZCPP_packet_t*>&
         b = m->GetBrightness(controller->GetDefaultBrightnessUnderFullControl());
     }
     p->brightness = b;
-    logger_zcpp.debug("       Brightness %d", (int)b);
+    LOG_DEBUG("       Brightness %d", (int)b);
 
     wxByte g = 10;
     if (vs != nullptr) {
@@ -2931,14 +2913,13 @@ int xLightsFrame::SetZCPPPort(Controller* controller, std::list<ZCPP_packet_t*>&
         g = m->GetGamma(1) * 10.0;
     }
     p->gamma = g;
-    logger_zcpp.debug("       Gamma %d", (int)g);
+    LOG_DEBUG("       Gamma %d", (int)g);
 
     return sizeof(ZCPP_PortConfig);
 }
 
 void xLightsFrame::SetZCPPExtraConfig(std::list<ZCPP_packet_t*>& extraConfigs, int portNum, int virtualStringNum, const std::string& name, ZCPPOutput* zcpp) {
 
-    static log4cpp::Category& logger_zcpp = log4cpp::Category::getInstance(std::string("log_zcpp"));
     auto current = extraConfigs.back();
     uint16_t pos = ZCPP_GetPacketActualSize(*current);
     wxASSERT(pos < sizeof(ZCPP_packet_t)); // check packet has not gone rogue
@@ -2959,15 +2940,12 @@ void xLightsFrame::SetZCPPExtraConfig(std::list<ZCPP_packet_t*>& extraConfigs, i
     int len = std::min(255, (int)name.size());
     p->descriptionLength = len;
     strncpy(p->description, name.c_str(), len);
-    logger_zcpp.debug("       Extra : %d/%d '%s'", portNum, virtualStringNum, (const char*)name.c_str());
+    LOG_DEBUG("       Extra : %d/%d '%s'", portNum, virtualStringNum, (const char*)name.c_str());
 }
 
 void xLightsFrame::SetModelData(ControllerEthernet* controller, ModelManager* modelManager, OutputManager* outputManager, std::string showDir) {
 
-    static log4cpp::Category& logger_zcpp = log4cpp::Category::getInstance(std::string("log_zcpp"));
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    logger_base.debug("Setting ZCPP model data");
+    LOG_DEBUG("Setting ZCPP model data");
 
     auto zcpp = dynamic_cast<ZCPPOutput*>(controller->GetFirstOutput());
 
@@ -2975,7 +2953,7 @@ void xLightsFrame::SetModelData(ControllerEthernet* controller, ModelManager* mo
 
     long baseStart = zcpp->GetStartChannel();
 
-    logger_zcpp.debug("    Model Change Count : %d", modelsChangeCount);
+    LOG_DEBUG("    Model Change Count : %d", modelsChangeCount);
 
     ZCPP_packet_t* extraConfig = new ZCPP_packet_t();
     std::list<ZCPP_packet_t*> extraConfigs;
@@ -3079,8 +3057,7 @@ void xLightsFrame::SetModelData(ControllerEthernet* controller, ModelManager* mo
 // This is used to build the ZCPP controller config data that will be needed when it comes time to send data to controllers
 bool xLightsFrame::RebuildControllerConfig(OutputManager* outputManager, ModelManager* modelManager) {
 
-    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
-    logger_work.debug("        RebuildControllerConfig.");
+    spdlog::get("work")->debug("        RebuildControllerConfig.");
 
     for (auto& itc : outputManager->GetControllers()) {
         if (itc->NeedsControllerConfig()) {

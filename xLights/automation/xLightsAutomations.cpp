@@ -33,7 +33,7 @@
 
 #include "LuaRunner.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 std::string xLightsFrame::FindSequence(const std::string& seq)
 {
@@ -450,7 +450,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                     FSEQFile::FrameData* f = seq->getFrame(frame);
                     if (f != nullptr) {
                         if (!f->readFrame(&frames[lastBuffered][0], frames[lastBuffered].size())) {
-                            //logger_base.error("FPPConnect FSEQ file corrupt.");
+                            //LOG_ERROR("FPPConnect FSEQ file corrupt.");
                             res = false;
                         }
                         delete f;
@@ -1224,7 +1224,6 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
     }
 
     return ProcessAutomation(paths, paramMap, [&](const std::string& msg, const std::string& jsonKey, int responseCode, bool isJson) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         HttpResponse resp(connection, request, (HttpStatus::HttpStatusCode)responseCode);
         resp.AddHeader("access-control-allow-origin", "*");
 
@@ -1252,7 +1251,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
             connection.SendResponse(resp);
             return true;
         } else {
-            logger_base.warn("Automation did not send result because connection lost.");
+            LOG_WARN("Automation did not send result because connection lost.");
         }
         return false;
     });
@@ -1260,8 +1259,6 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
 
 void xLightsFrame::StartAutomationListener()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (_automationServer != nullptr) {
         _automationServer->Stop();
         delete _automationServer;
@@ -1283,11 +1280,11 @@ void xLightsFrame::StartAutomationListener()
     ctx.ErrorPage404 = HTTP_ERROR_PAGE;
 
     if (!server->Start(ctx)) {
-        logger_base.debug("xLights Automation could not listen on %d", ::GetxFadePort(_xFadePort));
+        LOG_DEBUG("xLights Automation could not listen on %d", ::GetxFadePort(_xFadePort));
         delete server;
         return;
     }
-    logger_base.debug("xLights Automation listening on %d", ::GetxFadePort(_xFadePort));
+    LOG_DEBUG("xLights Automation listening on %d", ::GetxFadePort(_xFadePort));
     _automationServer = server;
 }
 

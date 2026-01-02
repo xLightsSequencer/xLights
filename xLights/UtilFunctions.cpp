@@ -52,7 +52,7 @@
 #include <sys/sysinfo.h>
 #endif
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 #if defined(_MSC_VER) // Visual studio
 #define thread_local __declspec(thread)
@@ -61,30 +61,22 @@
 #endif
 
 void DisplayError(const std::string& err, wxWindow* win) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    logger_base.error("DisplayError: %s", (const char*)err.c_str());
+    LOG_ERROR("DisplayError: %s", (const char*)err.c_str());
     wxMessageBox(err, "Error", wxICON_ERROR | wxOK, win);
 }
 
 void DisplayWarning(const std::string& warn, wxWindow* win) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    logger_base.warn("DisplayWarning: %s", (const char*)warn.c_str());
+    LOG_WARN("DisplayWarning: %s", (const char*)warn.c_str());
     wxMessageBox(warn, "Warning", wxICON_WARNING | wxOK, win);
 }
 
 void DisplayInfo(const std::string& info, wxWindow* win) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    logger_base.info("DisplayInfo: %s", (const char*)info.c_str());
+    LOG_INFO("DisplayInfo: %s", (const char*)info.c_str());
     wxMessageBox(info, "Information", wxICON_INFORMATION | wxOK, win);
 }
 
 void DisplayCrit(const std::string& crit, wxWindow* win) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    logger_base.crit("DisplayCrit: %s", (const char*)crit.c_str());
+    LOG_CRIT("DisplayCrit: %s", (const char*)crit.c_str());
     wxMessageBox(crit, "CRITICAL", wxICON_ERROR | wxOK, win);
 }
 
@@ -209,11 +201,11 @@ wxArrayString Split(const wxString& s, const std::vector<char>& delimiters) {
 }
 
 static bool doesFileExist(const wxString& dir, const wxString& origFileWin, const wxString& origFileUnix, wxString& path) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (origFileWin != "") {
         wxFileName fn3(dir, origFileWin);
         if (FileExists(fn3, false)) {
-            logger_base.debug("File location fixed: " + origFileWin + " -> " + fn3.GetFullPath());
+            LOG_DEBUGWX("File location fixed: " + origFileWin + " -> " + fn3.GetFullPath());
             path = fn3.GetFullPath();
             return true;
         }
@@ -221,7 +213,7 @@ static bool doesFileExist(const wxString& dir, const wxString& origFileWin, cons
     if (origFileUnix != "") {
         wxFileName fn4(dir, origFileUnix);
         if (FileExists(fn4, false)) {
-            logger_base.debug("File location fixed: " + origFileWin + " -> " + fn4.GetFullPath());
+            LOG_DEBUGWX("File location fixed: " + origFileWin + " -> " + fn4.GetFullPath());
             path = fn4.GetFullPath();
             return true;
         }
@@ -293,10 +285,10 @@ wxImage ApplyOrientation(const wxImage& img, int orient) {
 }
 
 int GetExifOrientation(const wxString& filename) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     std::ifstream file(filename.ToStdString(), std::ios::binary);
     if (!file) {
-        logger_base.debug("Failed to open file: %s", (const char*)filename.c_str());
+        LOG_DEBUG("Failed to open file: %s", (const char*)filename.c_str());
         file.close();
         return 1; // Default orientation
     }
@@ -337,7 +329,7 @@ int GetExifOrientation(const wxString& filename) {
                 ((unsigned char)data[tiff_header + 2] << 8) | (unsigned char)data[tiff_header + 3];
 
             if (fortytwo != 42) {
-                logger_base.debug("Invalid TIFF header identifier in %s", (const char*)filename.c_str());
+                LOG_DEBUG("Invalid TIFF header identifier in %s", (const char*)filename.c_str());
                 return 1;
             }
 
@@ -406,7 +398,7 @@ std::string GetResourcesDirectory() {
 
 
 wxString FixFile(const wxString& ShowDir, const wxString& file) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     static std::map<wxString, wxString> __fileMap;
 
@@ -452,7 +444,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file) {
     // done with __nonExistentFiles and __fileMap for right now, we'll unlock
     // so other threads can access them, but we'll need to relock when we add entries later
     lock.unlock();
-    logger_base.debug("File not found ... attempting to fix location (" + sd + ") : " + file);
+    LOG_DEBUGWX("File not found ... attempting to fix location (" + sd + ") : " + file);
 
     // I dont know what this is trying to fix but it blows up on windows
     wxFileName fnUnix(file, wxPATH_UNIX);
@@ -588,8 +580,8 @@ wxString FixFile(const wxString& ShowDir, const wxString& file) {
     if (ShowDir == "" && fnUnix.GetDirCount() > 0) {
         return FixFile(sd + "/" + fnUnix.GetDirs().Last(), file);
     }
-    logger_base.debug("   could not find a fixed file location for : " + file);
-    logger_base.debug("   We will not look for this file again until a new sequence is loaded.");
+    LOG_DEBUGWX("   could not find a fixed file location for : " + file);
+    LOG_DEBUG("   We will not look for this file again until a new sequence is loaded.");
     lock.lock();
     __nonExistentFiles.push_back(file.ToStdString());
     return file;
@@ -1076,11 +1068,11 @@ std::list<std::string> GetLocalIPs() {
     std::list<std::string> res;
 
 #ifdef __WXMSW__
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
     PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO*)malloc(sizeof(IP_ADAPTER_INFO));
     if (pAdapterInfo == nullptr) {
-        logger_base.error("Error getting adapter info.");
+        LOG_ERROR("Error getting adapter info.");
         return res;
     }
 
@@ -1088,7 +1080,7 @@ std::list<std::string> GetLocalIPs() {
         free(pAdapterInfo);
         pAdapterInfo = (IP_ADAPTER_INFO*)malloc(ulOutBufLen);
         if (pAdapterInfo == nullptr) {
-            logger_base.error("Error getting adapter info.");
+            LOG_ERROR("Error getting adapter info.");
             return res;
         }
     }
@@ -1167,23 +1159,23 @@ bool IsInSameSubnet(const std::string& ip1, const std::string& ip2, const std::s
 }
 
 bool DeleteDirectory(std::string directory) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     bool res = true;
-    logger_base.debug("  Processing directory: %s.", (const char*)directory.c_str());
+    LOG_DEBUG("  Processing directory: %s.", (const char*)directory.c_str());
     if (wxDirExists(directory)) {
         wxDir d;
         if (d.Open(directory)) {
             wxString filename;
             bool found = d.GetFirst(&filename, "", wxDIR_FILES | wxDIR_HIDDEN | wxDIR_NO_FOLLOW);
             if (!found) {
-                logger_base.debug("  No files found.");
+                LOG_DEBUG("  No files found.");
             }
             while (found && res) {
                 auto ff = directory + GetPathSeparator() + filename;
-                logger_base.debug("  Deleting file: %s.", (const char*)ff.c_str());
+                LOG_DEBUG("  Deleting file: %s.", (const char*)ff.c_str());
                 if (!wxRemoveFile(ff)) {
-                    logger_base.error("    Could not delete file %s.", (const char*)ff.c_str());
+                    LOG_ERROR("    Could not delete file %s.", (const char*)ff.c_str());
                     res = false;
                 }
                 found = d.GetNext(&filename);
@@ -1191,25 +1183,25 @@ bool DeleteDirectory(std::string directory) {
 
             found = d.GetFirst(&filename, "", wxDIR_DIRS | wxDIR_HIDDEN | wxDIR_NO_FOLLOW);
             if (!found) {
-                logger_base.debug("  No subdirectories found.");
+                LOG_DEBUG("  No subdirectories found.");
             }
             while (found && res) {
                 auto dd = directory + GetPathSeparator() + filename;
-                logger_base.debug("  Deleting directory: %s.", (const char*)dd.c_str());
+                LOG_DEBUG("  Deleting directory: %s.", (const char*)dd.c_str());
                 res &= DeleteDirectory(dd);
                 found = d.GetNext(&filename);
             }
 
             if (!wxRmdir(directory)) {
-                logger_base.error("    Could not delete folder %s.", (const char*)directory.c_str());
+                LOG_ERROR("    Could not delete folder %s.", (const char*)directory.c_str());
                 res = false;
             }
         } else {
-            logger_base.error("  Thats odd ... the directory cannot be opened: %s.", (const char*)directory.c_str());
+            LOG_ERROR("  Thats odd ... the directory cannot be opened: %s.", (const char*)directory.c_str());
             res = false;
         }
     } else {
-        logger_base.error("  Thats odd ... the directory cannot be found: %s.", (const char*)directory.c_str());
+        LOG_ERROR("  Thats odd ... the directory cannot be found: %s.", (const char*)directory.c_str());
         res = false;
     }
 
@@ -1365,7 +1357,7 @@ uint64_t GetPhysicalMemorySizeMB() {
 
 void CheckMemoryUsage(const std::string& reason, bool onchangeOnly) {
 #if defined(TURN_THIS_OFF) && defined(__WXMSW__)
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     static long lastPrivate = 0;
     static long lastWorking = 0;
     PROCESS_MEMORY_COUNTERS_EX memoryCounters;
@@ -1374,7 +1366,7 @@ void CheckMemoryUsage(const std::string& reason, bool onchangeOnly) {
     long privateMem = (long)(memoryCounters.PrivateUsage / 1024);
     long workingMem = (long)(memoryCounters.WorkingSetSize / 1024);
     if (!onchangeOnly || privateMem != lastPrivate) {
-        logger_base.debug("Memory Usage: %s : private %ldKB (%ldKB) working %ldKB (%ldKB).",
+        LOG_DEBUG("Memory Usage: %s : private %ldKB (%ldKB) working %ldKB (%ldKB).",
                           (const char*)reason.c_str(),
                           privateMem,
                           privateMem - lastPrivate,
@@ -1403,7 +1395,7 @@ std::string ReverseCSV(const std::string& csv) {
 }
 
 void DumpBinary(uint8_t* buffer, size_t sz) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     for (size_t i = 0; i < (sz + 15) / 16; i++) {
         std::string out;
         for (size_t j = i * 16; j < std::min(sz, (i + 1) * 16); j++) {
@@ -1417,7 +1409,7 @@ void DumpBinary(uint8_t* buffer, size_t sz) {
                 out += char(buffer[j]);
             }
         }
-        logger_base.debug(out);
+        LOG_DEBUG(out);
     }
 }
 

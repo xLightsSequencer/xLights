@@ -200,9 +200,9 @@ private:
     bool callMoveFile(const std::string &filename);
 
     bool parseSysInfo(nlohmann::json& v);
-    void parseControllerType(nlohmann::json const& v);
+    void parseControllerType(nlohmann::json & v);
     void parseConfig(const std::string& v);
-    void parseProxies(nlohmann::json const& v);
+    void parseProxies(nlohmann::json & v);
 
     bool IsCompatible(const ControllerCaps *rules,
                       std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId,

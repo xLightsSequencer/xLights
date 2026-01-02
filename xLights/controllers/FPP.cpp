@@ -57,7 +57,7 @@
 #include "../ExternalHooks.h"
 #include "../TempFileManager.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include "ControllerUploadData.h"
 #include "FPPUploadProgressDialog.h"
 #include "../FSEQFile.h"
@@ -261,8 +261,8 @@ CURL *FPP::setupCurl(const std::string &url, bool isGet, int timeout) {
 }
 
 bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordError) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
+
+    auto logger = spdlog::get("curl");
 
     std::string fullUrl = (ip_utils::IsIPv6(ipAddress) ? "[" + ipAddress + "]" : ipAddress) + url;
     std::string ipAddForGet = ipAddress;
@@ -276,15 +276,15 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
         fullUrl = "http://" + fullUrl;
     }
     
-    if (username != "") {
+    if (!username.empty()) {
         CurlManager::INSTANCE.setHostUsernamePassword(ipAddForGet, username, password);
     }
     int response_code = 0;
     val = CurlManager::INSTANCE.doGet(fullUrl, response_code);
 
-    logger_curl.debug("RESPONSE START --------- RC: %d ----", response_code);
-    logger_curl.debug(val.c_str());
-    logger_curl.debug("RESPONSE END ---------");
+    logger->debug("RESPONSE START --------- RC: {} ----", response_code);
+    logger->debug(val.c_str());
+    logger->debug("RESPONSE END ---------");
     if (response_code == 401) {
         if (password.empty() && xlPasswordEntryDialog::GetStoredPasswordForService(ipAddress, username, password)) {
             if (!password.empty()) {
@@ -292,7 +292,7 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
             }
         }
         xlPasswordEntryDialog dlg(nullptr, "Password needed to connect to " + ipAddress, "Password Required");
-        int rc = dlg.ShowModal();
+        int const rc = dlg.ShowModal();
         if (rc == wxID_CANCEL) {
             return false;
         }
@@ -307,9 +307,9 @@ bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordEr
         if (recordError) {
             messages.push_back("ERROR - Error on GET \"" + fullUrl + "\"    Response Code: " + std::to_string(response_code));
         }
-        logger_base.info("FPPConnect GET %s  - Return: RC: %d  - %s", fullUrl.c_str(), response_code, val.c_str());
+        logger->info("FPPConnect GET {}  - Return: RC: {}  - {}", fullUrl.c_str(), response_code, val.c_str());
     } else {
-        logger_base.info("FPPConnect GET %s  - Return: RC: %d", fullUrl.c_str(), response_code);
+        logger->info("FPPConnect GET {}  - Return: RC: {}", fullUrl.c_str(), response_code);
     }
     return response_code == 200;
 }
@@ -333,7 +333,7 @@ int FPP::TransferToURL(const std::string& url, const std::vector<uint8_t>& val, 
         fullUrl = "http://" + fullUrl;
     }
     
-    if (username != "") {
+    if (!username.empty()) {
         CurlManager::INSTANCE.setHostUsernamePassword(ipAddForGet, username, password);
     }
     int response_code = 0;
@@ -370,7 +370,7 @@ std::map<int, int> FPP::GetExpansionPorts(ControllerCaps* caps) const
         auto s = caps->GetCustomPropertyByPath(ToUTF8(wxString::Format("fpp%d", i)), "0,0");
         if (s != "0,0")
         {
-            auto ss = Split(s, ',');
+            auto const ss = Split(s, ',');
             if (ss.size() == 2)
             {
                 res[std::stoi(ss[0])] = std::stoi(ss[1]);
@@ -661,18 +661,18 @@ int FPP::PostJSONToURLAsFormData(const std::string& url, const std::string& extr
 }
 
 void FPP::DumpJSON(const nlohmann::json& json) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
 
     std::string str;
     try {
         str = json.dump(3, ' ', false, nlohmann::json::error_handler_t::replace);
-        logger_base.debug(str);
+        LOG_DEBUG(str);
     } catch (const nlohmann::json::type_error& e) {
-        logger_base.error("JSON type_error during dump: " + std::string(e.what()));
+        LOG_ERROR("JSON type_error during dump: " + std::string(e.what()));
     } catch (const std::exception& e) {
-        logger_base.error("Other exception during JSON dump: " + std::string(e.what()));
+        LOG_ERROR("Other exception during JSON dump: " + std::string(e.what()));
     } catch (...) {
-        logger_base.error("Unknown exception during JSON dump");
+        LOG_ERROR("Unknown exception during JSON dump");
     }
 }
 
@@ -702,7 +702,7 @@ bool FPP::updateProgress(int val, bool yield) {
 
 
 bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxString filename = ToWXString(utfFilename);
     wxString fn;
@@ -796,16 +796,16 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
         if (response_code == 200) {
             if (usingMove) {
                 if (!callMoveFile(ToUTF8(filename + ext))) {
-                    logger_base.warn("Error trying to rename file.");
+                    LOG_WARN("Error trying to rename file.");
                 } else {
-                    logger_base.debug("Renaming done.");
+                    LOG_DEBUG("Renaming done.");
                 }
             }
-            logger_base.debug(utfFilename + " upload complete to " + this->hostName + " (" + this->ipAddress + "). Bytes sent:" + std::to_string(data->totalWritten) + ".");
+            LOG_DEBUG(utfFilename + " upload complete to " + this->hostName + " (" + this->ipAddress + "). Bytes sent:" + std::to_string(data->totalWritten) + ".");
         } else {
             messages.push_back("ERROR Uploading file: " + utfFilename + "     Response Code: " + std::to_string(response_code));
             faileduploads.push_back(filename);
-            logger_base.warn("Did not get 200 response code:  %d", response_code);
+            LOG_WARN("Did not get 200 response code:  %d", response_code);
         }
         
         delete data;
@@ -860,8 +860,6 @@ int progress_callback(void *clientp,
 
 
 void prepareCurlForMulti(V7ProgressStruct *ps) {
-    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     constexpr uint64_t BLOCK_SIZE = 16*1024*1024;
     CurlManager::CurlPrivateData *cpd = nullptr;
@@ -889,7 +887,7 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
     cpd->req->resize(remaining);
     uint64_t read = ps->in.Read(cpd->req->data(), remaining);
     if (read != remaining) {
-        logger_curl.info("ERROR Uploading file: " + ps->filename + "     Could not read source file.");
+        LOG_INFO("ERROR Uploading file: " + ps->filename + "     Could not read source file.");
         ps->instance->messages.push_back("ERROR Uploading file: " + ps->filename + "     Could not read source file.");
         ps->instance->faileduploads.push_back(ps->filename);
     }
@@ -905,14 +903,14 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)remaining);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, cpd->req->data());
     
-    logger_curl.info("FPPConnect Adding CURL - URL: %s    Method: PATCH    Start: %zd   Length: %zd   Total: %zd", ps->fullUrl.c_str(), ps->offset, remaining, ps->length);
+    LOG_INFO("FPPConnect Adding CURL - URL: %s    Method: PATCH    Start: %zd   Length: %zd   Total: %zd", ps->fullUrl.c_str(), ps->offset, remaining, ps->length);
     
     CurlManager::INSTANCE.addCURL(ps->fullUrl, curl, [headers, remaining, ps] (CURL *c) {
 
         curl_slist_free_all(headers);
         long response_code = 0;
         curl_easy_getinfo(c, CURLINFO_RESPONSE_CODE, &response_code);
-        logger_curl.info("    FPPConnect CURL Callback - URL: %s    Response: %d", ps->fullUrl.c_str(), response_code);
+        LOG_INFO("    FPPConnect CURL Callback - URL: %s    Response: %d", ps->fullUrl.c_str(), response_code);
         bool cancelled = false;
         if (response_code != 200 && ps->errorCount < 3) {
             // strange error on upload, let's restart and try again (up to three attempts)
@@ -929,7 +927,7 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
         uint64_t pct = (ps->offset * 1000) / ps->length;
         cancelled |= ps->instance->updateProgress(pct, false);
         if (cancelled || ps->offset >= ps->length) {
-            logger_base.debug(ps->filename + " upload complete to " + ps->instance->hostName + " (" + ps->instance->ipAddress + "). Bytes sent:" + std::to_string(ps->length) + ".");
+            LOG_DEBUG(ps->filename + " upload complete to " + ps->instance->hostName + " (" + ps->instance->ipAddress + "). Bytes sent:" + std::to_string(ps->length) + ".");
             delete ps;
         } else {
             prepareCurlForMulti(ps);
@@ -2455,8 +2453,8 @@ bool FPP::UploadSerialOutputs(ModelManager* allmodels,
     std::map<int, int> rngs;
     FillRanges(rngs);
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("FPP Serial Outputs Upload: Uploading to %s", (const char *)ipAddress.c_str());
+    
+    LOG_DEBUG("FPP Serial Outputs Upload: Uploading to %s", (const char *)ipAddress.c_str());
 
     UDController cud(controller, outputManager, allmodels, false);
     if (cud.GetMaxSerialPort() == 0) {
@@ -2668,8 +2666,8 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     std::map<int, int> rngs;
     FillRanges(rngs);
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("FPP Pixel Outputs Upload: Uploading to %s", (const char *)ipAddress.c_str());
+    
+    LOG_DEBUG("FPP Pixel Outputs Upload: Uploading to %s", (const char *)ipAddress.c_str());
 
     UDController cud(controller, outputManager, allmodels, false);
 
@@ -2686,7 +2684,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     nlohmann::json origJson;
     GetURLAsJSON("/api/channel/output/" + fppFileName, origJson, false);
-    logger_base.debug("Original JSON");
+    LOG_DEBUG("Original JSON");
     DumpJSON(origJson);
 
     bool fullcontrol = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
@@ -3062,15 +3060,15 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         }
     }
 
-    logger_base.debug("New JSON");
+    LOG_DEBUG("New JSON");
     DumpJSON(root);
 
     if (origJson != (root)) {
-        logger_base.debug("Uploading New JSON");
+        LOG_DEBUG("Uploading New JSON");
         PostJSONToURL("/api/channel/output/" + fppFileName, root);
         SetRestartFlag();
     } else {
-        logger_base.debug("Skipping JSON upload as it has not changed.");
+        LOG_DEBUG("Skipping JSON upload as it has not changed.");
     }
     SetNewRanges(rngs);
     return false;
@@ -3273,7 +3271,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
         std::string hostName = system[HostNameKey].is_null() ? "" : GetJSONStringValue(system, HostNameKey);
         std::string uuid = system.contains("uuid") ? GetJSONStringValue(system, "uuid") : GetJSONStringValue(system, "UUID");
         
-        //logger_base.info("Processing ip: %s   host: %s    uuid: %s", address.c_str(), hostName.c_str(), uuid.c_str());
+        //LOG_INFO("Processing ip: %s   host: %s    uuid: %s", address.c_str(), hostName.c_str(), uuid.c_str());
         if (!uuid.empty()) {
             fppDiscInfo.insert({ hostName, address, uuid });
         }
@@ -3408,7 +3406,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
    }
 }
 static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const std::string &proxies) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     nlohmann::json origJson;
     try {
         origJson = nlohmann::json::parse(proxies, nullptr, false);
@@ -3441,7 +3439,7 @@ static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const
                 std::string i = ip;
                 inst->extraData["httpConnected"] = true;
 
-                logger_base.info("Found proxied instance ip: %s     proxyip: %s", proxy.c_str(), ip.c_str());
+                LOG_INFO("Found proxied instance ip: %s     proxyip: %s", proxy.c_str(), ip.c_str());
                 discovery.AddCurl(ip, "/proxy/" + proxy + "/api/system/info", [&discovery, p, i](int rc, const std::string &buffer, const std::string &err) {
                     if (rc == 200) {
                         ProcessFPPSysinfo(discovery, p, i, buffer);
@@ -3517,8 +3515,8 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
         val = nlohmann::json::value_t::discarded;
     }
     if (val.is_discarded()) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("Could not parse sysinfo for %s(%s)", ip.c_str(), proxy.c_str());
+    
+        LOG_INFO("Could not parse sysinfo for %s(%s)", ip.c_str(), proxy.c_str());
         DiscoveredData* inst = discovery.FindByIp(ip, "", true);
         inst->extraData["httpConnected"] = false;
         if (proxy != "") {
@@ -3532,8 +3530,8 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
         uuid = GetJSONStringValue(val, "UUID");
     }
     if (uuid.empty()) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("Could not process sysinfo for %s(%s). No UUID found.", ip.c_str(), proxy.c_str());
+    
+        LOG_INFO("Could not process sysinfo for %s(%s). No UUID found.", ip.c_str(), proxy.c_str());
         DiscoveredData* inst = discovery.FindByIp(ip, "", true);
         inst->extraData["httpConnected"] = false;
         if (proxy != "") {
@@ -3663,8 +3661,8 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
         snprintf(ip, sizeof(ip), "%d.%d.%d.%d", (int)buffer[15], (int)buffer[16], (int)buffer[17], (int)buffer[18]);
         //printf("Ping %s\n", ip);
         if (strcmp(ip, "0.0.0.0")) {
-            //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            //logger_base.info("FPP Discovery - Received Ping response from %s", ip);
+            //
+            //LOG_INFO("FPP Discovery - Received Ping response from %s", ip);
             AddTraceMessage("Received UDP result " + std::string(ip));
 
             //we found a system!!!
@@ -3871,8 +3869,8 @@ static bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputMan
             // genuine FPP instance and able to connect via http
             return true;
         } else {
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.info("FPP Discovery - Skipping %s no http connection", (const char *)res->ip.c_str());
+        
+            LOG_INFO("FPP Discovery - Skipping %s no http connection", (const char *)res->ip.c_str());
             return false;
         }
     }
@@ -3920,7 +3918,7 @@ inline void setIfEmpty(uint32_t &val, uint32_t nv) {
 }
 
 void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, OutputManager* outputManager) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     bool foundActiveController = false;
     uint16_t activePlayerCount = 0;
     std::unordered_set<std::string> allProxyList;
@@ -3942,15 +3940,15 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
             }
         }
     }
-    logger_base.info("----------- FPP Discovery Results ------------");
+    LOG_INFO("----------- FPP Discovery Results ------------");
     for (auto res : discovery.GetResults()) {
         bool http = (res->extraData.contains("httpConnected") && res->extraData["httpConnected"].get<bool>() == true);
-        logger_base.info("   Instance: %s (uuid: %s)(hn: %s)(proxy: %s)(ver: %s)(http: %s)(t: %X)", res->ip.c_str(), res->uuid.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->version.c_str(), http ? "true" : "false", res->typeId);
+        LOG_INFO("   Instance: %s (uuid: %s)(hn: %s)(proxy: %s)(ver: %s)(http: %s)(t: %X)", res->ip.c_str(), res->uuid.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->version.c_str(), http ? "true" : "false", res->typeId);
     }
-    logger_base.info("----------------------------------------------");
+    LOG_INFO("----------------------------------------------");
     for (auto res : discovery.GetResults()) {
         if (::supportedForFPPConnect(res, outputManager)) {
-            logger_base.info("FPP Discovery - Found Supported FPP Instance: %s (u: %s)(h: %s)(p: %s)(r: %s)", res->ip.c_str(), res->uuid.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->ranges.c_str());
+            LOG_INFO("FPP Discovery - Found Supported FPP Instance: %s (u: %s)(h: %s)(p: %s)(r: %s)", res->ip.c_str(), res->uuid.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->ranges.c_str());
             FPP *fpp = nullptr;
             bool skipit = false;
 
@@ -3960,7 +3958,7 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
                 }
                 if (!res->uuid.empty() && f->uuid == res->uuid) {
                     if (configuredIPs.count(res->ip) > 0) {
-                        logger_base.info("FPP Discovery - Found Configured IP - %s for the same UUID - %s. Going to use this instead.", res->ip.c_str(), res->uuid.c_str());
+                        LOG_INFO("FPP Discovery - Found Configured IP - %s for the same UUID - %s. Going to use this instead.", res->ip.c_str(), res->uuid.c_str());
                         fpp = f;
                     } else {
                         skipit = true;
@@ -4044,7 +4042,7 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
                 fpp->canZipUpload = res->canZipUpload;
             }
         } else {
-            logger_base.info("FPP Discovery - %s is not a supported FPP Instance", res->ip.c_str());
+            LOG_INFO("FPP Discovery - %s is not a supported FPP Instance", res->ip.c_str());
         }
     }
     for (auto f : instances) {
@@ -4075,7 +4073,7 @@ std::vector<std::string> FPP::GetProxyList() {
 }
 
 std::vector<std::tuple<std::string, std::string>> FPP::GetProxies() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
 
     std::vector<std::tuple<std::string, std::string>> res;
 
@@ -4084,10 +4082,10 @@ std::vector<std::tuple<std::string, std::string>> FPP::GetProxies() {
         if (GetURLAsJSON("/api/proxies", val)) {
             for (int x = 0; x < val.size(); x++) {
                 if (val[x].is_string()) {
-                    logger_base.debug("FPP %s proxies %s.", (const char*)ipAddress.c_str(), (const char*)val[x].get<std::string>().c_str());
+                    LOG_DEBUG("FPP %s proxies %s.", (const char*)ipAddress.c_str(), (const char*)val[x].get<std::string>().c_str());
                     res.push_back({ (val[x].get<std::string>()), std::string() });
                 } else if (val[x].is_object()) { // FPP 8 change
-                    logger_base.debug("FPP %s proxies %s.", (const char*)ipAddress.c_str(), (const char*)val[x]["host"].get<std::string>().c_str());
+                    LOG_DEBUG("FPP %s proxies %s.", (const char*)ipAddress.c_str(), (const char*)val[x]["host"].get<std::string>().c_str());
                     res.push_back({ (val[x]["host"].get<std::string>()), (val[x]["description"].get<std::string>()) });
                 }
             }
@@ -4207,8 +4205,8 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
         config->Flush();
     }
     waitForCurlsComplete(discovery);
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("FPP Discovery Complete.  Found " + std::to_string(instances.size()) + " instances.");
+
+    LOG_INFO("FPP Discovery Complete.  Found " + std::to_string(instances.size()) + " instances.");
     return instances;
 }
 
