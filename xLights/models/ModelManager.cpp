@@ -1237,10 +1237,8 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
     } else if (type == "Arches") {
         model = new ArchesModel(*this, false);
     } else if (type == "Candy Canes") {
-        node->DeleteAttribute("parm1");
-        node->AddAttribute("parm1", "3");
-        node->DeleteAttribute("parm2");
-        node->AddAttribute("parm2", "18");
+        parm1 = 3;
+        parm2 = 18;
         model = new CandyCaneModel(*this, false);
     } else if (type == "Channel Block") {
         protocol = "";

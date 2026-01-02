@@ -132,7 +132,7 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneLights");
         return 0;
     } else if ("CandyCaneReverse" == event.GetPropertyName()) {
-        _reverse = event.GetPropertyValue().GetBool() ? "true" : "false";
+        _reverse = event.GetPropertyValue().GetBool() ? true : false;
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneReverse");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneReverse");
@@ -156,7 +156,7 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneHeight");
         return 0;
     } else if ("CandyCaneSticks" == event.GetPropertyName()) {
-        _sticks = event.GetPropertyValue().GetBool() ? "true" : "false";
+        _sticks = event.GetPropertyValue().GetBool() ? true : false;
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
@@ -165,7 +165,7 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
         AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
         return 0;
     } else if ("AlternateNodes" == event.GetPropertyName()) {
-        _alternateNodes = event.GetPropertyValue().GetBool() ? "true" : "false";
+        _alternateNodes = event.GetPropertyValue().GetBool() ? true : false;
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
