@@ -16,7 +16,7 @@
 class ChannelBlockModel : public ModelWithScreenLocation<TwoPointScreenLocation>
 {
     public:
-        ChannelBlockModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
+        ChannelBlockModel(const ModelManager &manager, bool zeroBased = false);
         virtual ~ChannelBlockModel();
     
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
@@ -33,8 +33,10 @@ class ChannelBlockModel : public ModelWithScreenLocation<TwoPointScreenLocation>
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual bool SupportsWiringView() const override { return false; }
         virtual bool SupportsXlightsModel() override { return true; }
-        virtual void ExportXlightsModel() override;
-        std::vector<std::string> GetChannelProperies() const;
+        std::vector<std::string> const& GetChannelColors() const { return _channelColors; }
+        virtual int GetNumStrands() const override;
+
+        void SetChannelColor(int idx, const std::string & color) { _channelColors[idx] = color; }
 
         virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
@@ -42,10 +44,10 @@ class ChannelBlockModel : public ModelWithScreenLocation<TwoPointScreenLocation>
     protected:
         virtual void InitModel() override;
         virtual int MapToNodeIndex(int strand, int node) const override;
-        virtual int GetNumStrands() const override;
         virtual int CalcChannelsPerString() override;
 
     private:
+        std::vector<std::string> _channelColors;
 		void InitChannelBlock();
         static std::vector<std::string> LINE_BUFFER_STYLES;
         static std::string ChanColorAttrName(int idx)

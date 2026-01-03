@@ -20,9 +20,8 @@
 
 std::vector<std::string> ChannelBlockModel::LINE_BUFFER_STYLES;
 
-ChannelBlockModel::ChannelBlockModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager) 
+ChannelBlockModel::ChannelBlockModel(const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
-    SetFromXml(node, zeroBased);
 }
 
 ChannelBlockModel::~ChannelBlockModel()
@@ -56,26 +55,22 @@ void ChannelBlockModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputM
 
     for (int x = 0; x < parm1; ++x) {
         wxString nm = ChanColorAttrName(x);
-        std::string val = ModelXml->GetAttribute("ChannelProperties." + nm).ToStdString();
-        if (val == "") {
-            val = "white";
-            ModelXml->DeleteAttribute("ChannelProperties." + nm);
-            ModelXml->AddAttribute("ChannelProperties." + nm, val);
-        }
-        grid->AppendIn(p, new wxColourProperty(nm, nm, wxColor(val)));
+        grid->AppendIn(p, new wxColourProperty(nm, nm, wxColor(_channelColors[x])));
     }
 }
 
 int ChannelBlockModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("ChannelBlockCount" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm1");
-        ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        //AdjustChannelProperties(grid, event.GetPropertyValue().GetLong());
-        //AdjustStringProperties(grid, event.GetPropertyValue().GetLong());
+        parm1 = (int)event.GetPropertyValue().GetLong();
+        _channelColors.resize(parm1);
+        for (int x = 0; x < parm1; ++x) {
+            if (_channelColors[x] == xlEMPTY_STRING) {
+                _channelColors[x] = "white";
+            }
+        }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
@@ -86,12 +81,24 @@ int ChannelBlockModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPro
         wxColor c;
         c << event.GetProperty()->GetValue();
         xlColor xc = c;
-        ModelXml->DeleteAttribute(event.GetPropertyName());
-        ModelXml->AddAttribute(event.GetPropertyName(), xc);
+        std::string text = event.GetPropertyName();
+        std::string delimiter = ".";
+        size_t pos = text.find(delimiter);
+        if (pos != std::string::npos) {
+            std::string result = text.substr(pos + delimiter.length());
+            size_t last_non_digit = result.find_last_not_of("0123456789");
+            std::string number_part = result.substr(last_non_digit + 1);
+            if (!number_part.empty()) {
+                int val = std::stoi(number_part); // Convert to integer
+                std::cout << "Number: " << val << std::endl;
+                if (val < 1) val = 1;
+                if (val > parm1) val = parm1;
+                _channelColors[val-1] = std::string(xc);
+            }
+        }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ChannelBlockModel::OnPropertyGridChange::ChannelProperties");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ChannelBlockModel::OnPropertyGridChange::ChannelProperties");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ChannelBlockModel::OnPropertyGridChange::ChannelProperties");
         return 0;
     }
 
@@ -111,17 +118,16 @@ void ChannelBlockModel::AdjustChannelProperties(wxPropertyGridInterface *grid, i
             if (sp != nullptr) {
                 grid->DeleteProperty(sp);
             }
-            ModelXml->DeleteAttribute("ChannelProperties." + nm);
         }
 
         while (count < newNum) {
-            wxString nm = ChanColorAttrName(count);
-            std::string val = ModelXml->GetAttribute("ChannelProperties." + nm).ToStdString();
-            if (val == "") {
-                ModelXml->DeleteAttribute("ChannelProperties." + nm);
-                ModelXml->AddAttribute("ChannelProperties." + nm, "white");
+            for (int x = 0; x < count; ++x) {
+                if (_channelColors[count] == xlEMPTY_STRING) {
+                    _channelColors[count] = "white";
+                }
             }
-            grid->AppendIn(p, new wxColourProperty(nm, nm, wxColor(val)));
+            wxString nm = ChanColorAttrName(count);
+            grid->AppendIn(p, new wxColourProperty(nm, nm, wxColor(_channelColors[count])));
             count++;
         }
 
@@ -203,12 +209,22 @@ void ChannelBlockModel::InitModel() {
 }
 
 void ChannelBlockModel::InitChannelBlock() {
-    SetNodeCount(parm1, 1, rgbOrder);
+    size_t NodeCount = GetNodeCount();
+    if (NodeCount != parm1) {
+        SetNodeCount(parm1, 1, rgbOrder);
+        NodeCount = parm1;
+    }
     SetBufferSize(1, parm1);
     int LastStringNum = -1;
     int chan = 0;
     int ChanIncr = 1;
-    size_t NodeCount = GetNodeCount();
+    _channelColors.resize(parm1);
+
+    for (int x = 0; x < parm1; ++x) {
+        if (_channelColors[x] == xlEMPTY_STRING) {
+            _channelColors[x] = "white";
+        }
+    }
 
     int idx = 0;
     for (size_t n = 0; n<NodeCount; ++n) {
@@ -225,9 +241,7 @@ void ChannelBlockModel::InitChannelBlock() {
             Nodes[n]->Coords[c].bufY = 0;
         }
         idx++;
-        wxString nm = ChanColorAttrName(n);
-        std::string val = ModelXml->GetAttribute("ChannelProperties." + nm).ToStdString();
-        xlColor c = xlColor(val);
+        xlColor c = xlColor(_channelColors[n]);
         NodeClassCustom* ncc = dynamic_cast<NodeClassCustom*>(Nodes[n].get());
         ncc->SetMaskColor(c);
         ncc->SetCustomColor(c);
@@ -242,14 +256,4 @@ int ChannelBlockModel::GetNumStrands() const {
 }
 int ChannelBlockModel::CalcChannelsPerString() {
 	return GetNodeChannelCount(StringType);
-}
-void ChannelBlockModel::ExportXlightsModel() {}
-
-std::vector<std::string> ChannelBlockModel::GetChannelProperies() const {
-    std::vector<std::string> channelPropColour;
-    for (auto i = 0; i < GetNumStrands(); i++) {
-        wxString nm = ChanColorAttrName(i);
-        channelPropColour.push_back(ModelXml->GetAttribute("ChannelProperties." + nm).ToStdString());
-    }
-    return channelPropColour;
 }

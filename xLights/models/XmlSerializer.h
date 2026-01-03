@@ -274,7 +274,7 @@ namespace XmlNodeKeys {
     constexpr auto CCSticksAttribute  = "CandyCaneSticks";
 
     // Channel Block Model
-    // Since this is dynamic it all gets done by the visitor
+    constexpr auto ChannelColorAttribute =  "ChannelProperties.ChannelColor";
 
     // Circle Model
     constexpr auto InsideOutAttribute = "InsideOut";
@@ -1174,9 +1174,9 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
     void Visit(const ChannelBlockModel& model) override {
         wxXmlNode* xmlNode = CommonVisitSteps(model);
         AddTwoPointScreenLocationAttributes(model, xmlNode);
-        std::vector<std::string> cp = model.GetChannelProperies();
+        std::vector<std::string> cp = model.GetChannelColors();
         for (auto i = 0; i < cp.size();  i++) {
-            xmlNode->AddAttribute("ChannelProperties.ChannelColor" + std::to_string(i+1), cp[i]);
+            xmlNode->AddAttribute(XmlNodeKeys::ChannelColorAttribute + std::to_string(i+1), cp[i]);
         }
         const Model* m = dynamic_cast<const Model*>(&model);
         AddOtherElements(xmlNode, m);
@@ -1680,7 +1680,7 @@ private:
             ThreePointScreenLocation& screenLoc = dynamic_cast<ThreePointScreenLocation&>(model->GetBaseObjectScreenLocation());
             screenLoc.SetAngle(angle);
         }
-        model->Setup(); // hopefully can delete this later
+        model->Setup();
         return model;
     }
 
@@ -1697,115 +1697,139 @@ private:
             screenLoc.SetAngle(angle);
         }
         model->SetCaneHeight(std::stof(node->GetAttribute("CandyCaneHeight", "1.0").ToStdString()));
-        model->SetFromXml(nullptr); // hopefully can delete this later
+        model->Setup();
         return model;
     }
 
-     Model* DeserializeChannelBlock(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        ChannelBlockModel* model = new ChannelBlockModel(node, xlights->AllModels, false);
+    Model* DeserializeChannelBlock(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+        ChannelBlockModel* model = new ChannelBlockModel(xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        DeserializeTwoPointScreenLocationAttributes(model, node);
+        // Setup the model early to size the vector for number of colors
+        model->Setup();
+        for (auto i = 0; i < model->GetNumStrands();  i++) {
+            std::string color = node->GetAttribute(XmlNodeKeys::ChannelColorAttribute + std::to_string(i+1), "white");
+            model->SetChannelColor(i, color);
+        }
         return model;
     }
 
     Model* DeserializeCircle(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         CircleModel* model = new CircleModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
     Model* DeserializeCube(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         CubeModel* model = new CubeModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
     Model* DeserializeCustom(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         CustomModel* model = new CustomModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
     Model* DeserializeDmxMovingHead(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         DmxMovingHead* model = new DmxMovingHead(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
     Model* DeserializeDmxMovingHeadAdv(wxXmlNode *node, xLightsFrame* xlights, bool importing) {
         DmxMovingHeadAdv *model = new DmxMovingHeadAdv(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
     Model* DeserializeIcicles(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         IciclesModel* model = new IciclesModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
     Model* DeserializeImage(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         ImageModel* model = new ImageModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
     Model* DeserializeMatrix(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         MatrixModel* model = new MatrixModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
     Model* DeserializeSingleLine(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         SingleLineModel* model = new SingleLineModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
     Model* DeserializePolyLine(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         PolyLineModel* model = new PolyLineModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
     Model* DeserializeSphere(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         SphereModel* model = new SphereModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
     Model* DeserializeSpinner(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         SpinnerModel* model = new SpinnerModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
     Model* DeserializeStar(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         StarModel* model = new StarModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
     Model* DeserializeTree(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         TreeModel* model = new TreeModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
     Model* DeserializeWindow(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         WindowFrameModel* model = new WindowFrameModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
     Model* DeserializeWreath(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         WreathModel* model = new WreathModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
     Model* DeserializeEffects(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         WreathModel* model = new WreathModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
@@ -1813,6 +1837,7 @@ private:
         Model* model;
         model = new WreathModel(node, xlights->AllModels, false);        // FIXME: Based on class looks like in progress work
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
@@ -1820,6 +1845,7 @@ private:
         Model* model;
         model = new WreathModel(node, xlights->AllModels, false);        // FIXME: Based on class looks like in progress work
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
@@ -1827,6 +1853,7 @@ private:
         Model* model;
         model = new WreathModel(node, xlights->AllModels, false);        // FIXME: Based on class looks like in progress work
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
@@ -1834,6 +1861,7 @@ private:
         Model* model;
         model = new WreathModel(node, xlights->AllModels, false);        // FIXME: Based on class looks like in progress work
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
@@ -1841,6 +1869,7 @@ private:
         Model* model;
         model = new WreathModel(node, xlights->AllModels, false);        // FIXME: Based on class looks like in progress work
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
@@ -1848,6 +1877,7 @@ private:
         Model* model;
         model = new WreathModel(node, xlights->AllModels, false);        // FIXME: Based on class looks like in progress work
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 
@@ -1855,6 +1885,7 @@ private:
         Model* model;
         model = new WreathModel(node, xlights->AllModels, false);        // FIXME: Based on class looks like in progress work
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->Setup();
         return model;
     }
 };

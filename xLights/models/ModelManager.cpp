@@ -1210,162 +1210,105 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
 {
     Model* model;
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "model");  // TODO: Delete this when all models are updated to not use the node*
-    //node->AddAttribute("DisplayAs", type);
-    //node->AddAttribute("StringType", "RGB Nodes");
-    //node->AddAttribute("StartSide", "B");
-    //node->AddAttribute("Dir", "L");
-    //node->AddAttribute("Antialias", "1");
-    //node->AddAttribute("PixelSize", "2");
-    //node->AddAttribute("Transparency", "0");
-    //node->AddAttribute("StartChannel", startChannel);
-    //node->AddAttribute("LayoutGroup", "Unassigned");
 
-    //std::string name = GenerateModelName(type);
-    //node->AddAttribute("name", name);
     std::string protocol = "ws2811";
     int parm1 = 1;
     int parm2 = 50;
     int parm3 = 1;
 
     if (type == "Star") {
-        node->DeleteAttribute("parm3");
-        node->AddAttribute("parm3", "5");
-        node->AddAttribute("StarStartLocation", "Bottom Ctr-CW");
-        node->DeleteAttribute("Dir");
-        node->DeleteAttribute("StartSide");
         model = new StarModel(node, *this, false);
+        parm3 = 5;
+        dynamic_cast<StarModel*>(model)->SetStarStarttLocation("Bottom Ctr-CW");
     } else if (type == "Arches") {
         model = new ArchesModel(*this, false);
     } else if (type == "Candy Canes") {
+        model = new CandyCaneModel(*this, false);
         parm1 = 3;
         parm2 = 18;
-        model = new CandyCaneModel(*this, false);
     } else if (type == "Channel Block") {
-        protocol = "";
-        node->DeleteAttribute("parm1");
-        node->AddAttribute("parm1", "16");
-        node->DeleteAttribute("StringType");
-        node->AddAttribute("StringType", "Single Color White");
-        node->DeleteAttribute("PixelSize");
-        node->AddAttribute("PixelSize", "12");
-        model = new ChannelBlockModel(node, *this, false);
+        model = new ChannelBlockModel(*this, false);
+        parm1 = 16;
+        protocol = xlEMPTY_STRING;
+        model->SetStringType("Single Color White");
+        model->SetPixelSize(12);
     } else if (type == "Circle") {
-        node->DeleteAttribute("parm3");
-        node->AddAttribute("parm3", "50");
-        node->AddAttribute("InsideOut", "0");
         model = new CircleModel(node, *this, false);
+        parm3 = 50;
+        node->AddAttribute("InsideOut", "0");
     } else if (type == "DmxMovingHead") {
-        protocol = "";
-        node->DeleteAttribute("parm1");
-        node->AddAttribute("parm1", "8");
-        node->DeleteAttribute("parm2");
-        node->AddAttribute("parm2", "1");
-        node->DeleteAttribute("DmxStyle");
-        node->AddAttribute("DmxStyle", "Moving Head Top");
-        node->DeleteAttribute("StringType");
-        node->AddAttribute("StringType", "Single Color White");
         model = new DmxMovingHead(node, *this, false);
+        protocol = xlEMPTY_STRING;
+        parm1 = 8;
+        parm2 = 1;
+        node->AddAttribute("DmxStyle", "Moving Head Top");
+        model->SetStringType("Single Color White");
     } else if (type == "DmxGeneral") {
-        protocol = "";
-        node->DeleteAttribute("parm1");
-        node->AddAttribute("parm1", "8");
-        node->DeleteAttribute("parm2");
-        node->AddAttribute("parm2", "1");
-        node->DeleteAttribute("StringType");
-        node->AddAttribute("StringType", "Single Color White");
         model = new DmxGeneral(node, *this, false);
+        protocol = xlEMPTY_STRING;
+        parm1 = 8;
+        parm2 = 1;
+        model->SetStringType("Single Color White");
     } else if (type == "DmxMovingHeadAdv") {
-        protocol = "";
-        node->DeleteAttribute("parm1");
-        node->AddAttribute("parm1", "8");
-        node->DeleteAttribute("parm2");
-        node->AddAttribute("parm2", "1");
-        node->DeleteAttribute("StringType");
-        node->AddAttribute("StringType", "Single Color White");
         model = new DmxMovingHeadAdv(node, *this, false);
+        protocol = xlEMPTY_STRING;
+        parm1 = 8;
+        parm2 = 1;
+        model->SetStringType("Single Color White");
     } else if (type == "DmxFloodlight") {
-        protocol = "";
-        node->DeleteAttribute("parm1");
-        node->AddAttribute("parm1", "3");
-        node->DeleteAttribute("parm2");
-        node->AddAttribute("parm2", "1");
-        node->DeleteAttribute("StringType");
-        node->AddAttribute("StringType", "Single Color White");
         model = new DmxFloodlight(node, *this, false);
+        parm1 = 3;
+        parm2 = 1;
+        model->SetStringType("Single Color White");
     } else if (type == "DmxFloodArea") {
-        protocol = "";
-        node->DeleteAttribute("parm1");
-        node->AddAttribute("parm1", "3");
-        node->DeleteAttribute("parm2");
-        node->AddAttribute("parm2", "1");
-        node->DeleteAttribute("StringType");
-        node->AddAttribute("StringType", "Single Color White");
         model = new DmxFloodArea(node, *this, false);
+        protocol = xlEMPTY_STRING;
+        parm1 = 3;
+        parm2 = 1;
+        model->SetStringType("Single Color White");
     } else if (type == "DmxSkull") {
-        protocol = "";
-        node->DeleteAttribute("parm1");
-        node->AddAttribute("parm1", "26");
-        node->DeleteAttribute("parm2");
-        node->AddAttribute("parm2", "1");
-        node->DeleteAttribute("StringType");
-        node->AddAttribute("StringType", "Single Color White");
         model = new DmxSkull(node, *this, false);
+        protocol = xlEMPTY_STRING;
+        parm1 = 26;
+        parm2 = 1;
+        model->SetStringType("Single Color White");
     } else if (type == "DmxServo") {
-        protocol = "";
-        node->DeleteAttribute("parm1");
-        node->AddAttribute("parm1", "2");
-        node->DeleteAttribute("parm2");
-        node->AddAttribute("parm2", "1");
-        node->DeleteAttribute("StringType");
-        node->AddAttribute("StringType", "Single Color White");
         model = new DmxServo(node, *this, false);
+        protocol = xlEMPTY_STRING;
+        parm1 = 2;
+        parm2 = 1;
+        model->SetStringType("Single Color White");
     } else if (type == "DmxServo3d" || type == "DmxServo3Axis") {
-        protocol = "";
-        node->DeleteAttribute("parm1");
-        node->AddAttribute("parm1", "2");
-        node->DeleteAttribute("parm2");
-        node->AddAttribute("parm2", "1");
-        node->DeleteAttribute("StringType");
-        node->AddAttribute("StringType", "Single Color White");
+        model = new DmxServo3d(node, *this, false);
+        protocol = xlEMPTY_STRING;
+        parm1 = 2;
+        parm2 = 1;
+        model->SetStringType("Single Color White");
         if (type == "DmxServo3Axis") {
-            node->DeleteAttribute("DisplayAs");
             node->AddAttribute("DisplayAs", "DmxServo3d");
-            node->DeleteAttribute("NumServos");
             node->AddAttribute("NumServos", "3");
-            node->DeleteAttribute("NumStatic");
             node->AddAttribute("NumStatic", "1");
-            node->DeleteAttribute("NumMotion");
             node->AddAttribute("NumMotion", "3");
-            node->DeleteAttribute("parm1");
             node->AddAttribute("parm1", "6");
         }
-        model = new DmxServo3d(node, *this, false);
     } else if (type == "Image") {
-        protocol = "";
-        node->DeleteAttribute("parm1");
-        node->AddAttribute("parm1", "1");
-        node->DeleteAttribute("parm2");
-        node->AddAttribute("parm2", "1");
-        node->DeleteAttribute("Image");
-        node->AddAttribute("Image", "");
-        node->DeleteAttribute("StringType");
-        node->AddAttribute("StringType", "Single Color White");
         model = new ImageModel(node, *this, false);
+        protocol = xlEMPTY_STRING;
+        parm1 = 1;
+        parm2 = 1;
+        node->AddAttribute("Image", "");
+        model->SetStringType("Single Color White");
     } else if (type == "Window Frame") {
-        node->DeleteAttribute("parm1");
-        node->AddAttribute("parm1", "16");
-        node->DeleteAttribute("parm3");
-        node->AddAttribute("parm3", "16");
-        node->AddAttribute("Rotation", "CW");
         model = new WindowFrameModel(node, *this, false);
+        parm1 = 16;
+        parm3 = 16;
+        node->AddAttribute("Rotation", "CW");
     } else if (type == "Wreath") {
         model = new WreathModel(node, *this, false);
     } else if (type.find("Sphere") == 0) {
-        node->DeleteAttribute("parm1");
-        node->AddAttribute("parm1", "10");
-        node->DeleteAttribute("parm2");
-        node->AddAttribute("parm2", "10");
         model = new SphereModel(node, *this, false);
+        parm1 = 10;
+        parm2 = 10;
     } else if (type == "Single Line") {
         model = new SingleLineModel(node, *this, false);
     } else if (type == "Poly Line") {
@@ -1373,51 +1316,36 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
     } else if (type == "MultiPoint") {
         model = new MultiPointModel(node, *this, false);
     } else if (type == "Cube") {
-        node->DeleteAttribute("parm1");
-        node->AddAttribute("parm1", "5");
-        node->DeleteAttribute("parm2");
-        node->AddAttribute("parm2", "5");
-        node->DeleteAttribute("parm3");
-        node->AddAttribute("parm3", "5");
-        node->DeleteAttribute("Style");
-        node->AddAttribute("Style", "Horizontal Left/Right");
         model = new CubeModel(node, *this, false);
+        parm1 = 5;
+        parm2 = 5;
+        parm3 = 5;
+        node->AddAttribute("Style", "Horizontal Left/Right");
     } else if (type == "Custom") {
-        node->DeleteAttribute("parm1");
-        node->AddAttribute("parm1", "5");
-        node->DeleteAttribute("parm2");
-        node->AddAttribute("parm2", "5");
-        node->AddAttribute("CustomModel", ",,,,;,,,,;,,,,;,,,,;,,,,");
         model = new CustomModel(node, *this, false);
+        parm1 = 5;
+        parm2 = 5;
+        node->AddAttribute("CustomModel", ",,,,;,,,,;,,,,;,,,,;,,,,");
     } else if (type.find("Tree") == 0) {
-        node->DeleteAttribute("parm1");
-        node->AddAttribute("parm1", "16");
-        node->DeleteAttribute("DisplayAs");
-        node->AddAttribute("DisplayAs", "Tree 360");
         model = new TreeModel(node, *this, false);
+        parm1 = 16;
+        node->AddAttribute("DisplayAs", "Tree 360");
     } else if (type == "Matrix") {
-        node->DeleteAttribute("StartSide");
-        node->AddAttribute("StartSide", "T");
-        node->DeleteAttribute("DisplayAs");
-        node->AddAttribute("DisplayAs", "Horiz Matrix");
-        node->DeleteAttribute("parm1");
-        node->AddAttribute("parm1", "16");
         model = new MatrixModel(node, *this, false);
+        parm1 = 16;
+        model->SetStartSide("T");
+        node->AddAttribute("DisplayAs", "Horiz Matrix");
     } else if (type == "Spinner") {
-        node->DeleteAttribute("parm2");
-        node->AddAttribute("parm2", "10");
-        node->DeleteAttribute("parm3");
-        node->AddAttribute("parm3", "5");
-        node->DeleteAttribute("Hollow");
-        node->AddAttribute("Hollow", "20");
-        node->DeleteAttribute("Arc");
-        node->AddAttribute("Arc", "360");
         model = new SpinnerModel(node, *this, false);
+        parm2 = 10;
+        parm3 = 5;
+//        dynamic_cast<SpinnerModel*>(model)->SetHollow(20);
+        node->AddAttribute("Hollow", "20");
+        node->AddAttribute("Arc", "360");
     } else if (type == "Icicles") {
-        node->DeleteAttribute("parm2");
-        node->AddAttribute("parm2", "80");
-        node->AddAttribute("DropPattern", "3,4,5,4");
         model = new IciclesModel(node, *this, false);
+        parm2 = 80;
+        node->AddAttribute("DropPattern", "3,4,5,4");
     } else {
         DisplayError(wxString::Format("'%s' is not a valid model type for model '%s'", type, node->GetAttribute("name")).ToStdString());
         return nullptr;
@@ -1629,7 +1557,7 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
     } else if (type == "Candy Canes") {
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Channel Block") {
-        model = new ChannelBlockModel(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Circle") {
         model = new CircleModel(node, *this, zeroBased);
     } else if (type == "DmxMovingHead") {
