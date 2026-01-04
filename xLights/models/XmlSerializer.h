@@ -80,6 +80,7 @@ namespace XmlNodeKeys {
     constexpr auto BrightnessAttribute     = "Brightness";      //should fix
     constexpr auto DCBrightnessAttribute   = "brightness";      //should fix
     constexpr auto LayerSizesAttribute     = "LayerSizes";
+    constexpr auto StarSizesAttribute      = "starSizes";
     constexpr auto ZigZagAttribute         = "ZigZag";      //fix it
     constexpr auto CZigZagAttribute        = "zigZag";      //fix it
     constexpr auto CustomColorsAttribute   = "CustomColors";
@@ -1674,7 +1675,7 @@ private:
         } else if( node->HasAttribute("Arc")) {
             model->SetArc(std::stoi(node->GetAttribute(XmlNodeKeys::ArcAttribute).ToStdString()));
         }
-        model->DeserialiseLayerSizes(node->GetAttribute(XmlNodeKeys::LayerSizesAttribute).ToStdString(), false);
+        model->DeserializeLayerSizes(node->GetAttribute(XmlNodeKeys::LayerSizesAttribute).ToStdString(), false);
         if (node->HasAttribute(XmlNodeKeys::ArchesSkewAttribute)) {
             int angle = std::stoi(node->GetAttribute(XmlNodeKeys::ArchesSkewAttribute, "0").ToStdString());
             ThreePointScreenLocation& screenLoc = dynamic_cast<ThreePointScreenLocation&>(model->GetBaseObjectScreenLocation());
@@ -1799,8 +1800,27 @@ private:
     }
 
     Model* DeserializeStar(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        StarModel* model = new StarModel(node, xlights->AllModels, false);
+        StarModel* model = new StarModel(xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+
+        // convert old star sizes to new Layer sizes setting
+        std::string layer_sizes = xlEMPTY_STRING;
+        if (node->GetAttribute("starSizes", "") != "") {
+            layer_sizes = node->GetAttribute(XmlNodeKeys::StarSizesAttribute, "");
+        } else {
+            layer_sizes = node->GetAttribute(XmlNodeKeys::LayerSizesAttribute, "");
+        }
+        model->DeserializeLayerSizes(layer_sizes, false);
+
+        auto starStartLocation = node->GetAttribute(XmlNodeKeys::StarStartLocationAttribute, "");
+        if (starStartLocation == "") {
+            starStartLocation = model->ConvertFromDirStartSide();
+        }
+        model->SetStarStartLocation(starStartLocation);
+
+        model->SetStarRatio(wxAtof(node->GetAttribute(XmlNodeKeys::StarRatioAttribute, "2.618034") ));
+        model->SetInnerPercent(wxAtoi(node->GetAttribute(XmlNodeKeys::StarCenterPercentAttribute, "-1")));
+
         model->Setup();
         return model;
     }

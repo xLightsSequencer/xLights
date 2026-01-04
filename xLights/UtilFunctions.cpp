@@ -1012,6 +1012,18 @@ int ExtractInt(std::string& s) {
     return res;
 }
 
+// Extract an integer from the end of a string
+int ExtractTrailingInt(std::string& s) {
+    size_t i = 0;
+    while (i < s.size() && (s[i] > '9' || s[i] < '0')) {
+        i++;
+    }
+    if (i == 0) {
+        return -1;
+    }
+    return std::stoi(s.substr(i));
+}
+
 int NumberAwareStringCompare(const std::string& a, const std::string& b) {
     std::string aa = a;
     std::string bb = b;

@@ -1217,9 +1217,9 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
     int parm3 = 1;
 
     if (type == "Star") {
-        model = new StarModel(node, *this, false);
+        model = new StarModel(*this, false);
         parm3 = 5;
-        dynamic_cast<StarModel*>(model)->SetStarStarttLocation("Bottom Ctr-CW");
+        dynamic_cast<StarModel*>(model)->SetStarStartLocation("Bottom Ctr-CW");
     } else if (type == "Arches") {
         model = new ArchesModel(*this, false);
     } else if (type == "Candy Canes") {
@@ -1551,7 +1551,7 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
     XmlSerializer serializer;
     // TODO: Probably can combine all these once all models are done
     if (type == "Star") {
-        model = new StarModel(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Arches") {
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Candy Canes") {

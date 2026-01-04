@@ -15,6 +15,7 @@
 #include "ChannelBlockModel.h"
 #include "ModelScreenLocation.h"
 #include "../OutputModelManager.h"
+#include "../UtilFunctions.h"
 
 #define MAX_CB_CHANNELS 128
 
@@ -82,20 +83,10 @@ int ChannelBlockModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPro
         c << event.GetProperty()->GetValue();
         xlColor xc = c;
         std::string text = event.GetPropertyName();
-        std::string delimiter = ".";
-        size_t pos = text.find(delimiter);
-        if (pos != std::string::npos) {
-            std::string result = text.substr(pos + delimiter.length());
-            size_t last_non_digit = result.find_last_not_of("0123456789");
-            std::string number_part = result.substr(last_non_digit + 1);
-            if (!number_part.empty()) {
-                int val = std::stoi(number_part); // Convert to integer
-                std::cout << "Number: " << val << std::endl;
-                if (val < 1) val = 1;
-                if (val > parm1) val = parm1;
-                _channelColors[val-1] = std::string(xc);
-            }
-        }
+        int val = ExtractTrailingInt(text);
+        if (val < 1) val = 1;
+        if (val > parm1) val = parm1;
+        _channelColors[val-1] = std::string(xc);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ChannelBlockModel::OnPropertyGridChange::ChannelProperties");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ChannelBlockModel::OnPropertyGridChange::ChannelProperties");

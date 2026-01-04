@@ -644,7 +644,7 @@ bool ArchesModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, flo
         SetNodeNames(nn);
         SetDisplayAs(da);
         screenLocation.SetAngle(std::stoi(an));
-        DeserialiseLayerSizes(ls, false);
+        DeserializeLayerSizes(ls, false);
         SetHollow(std::stoi(h));
         SetZigZag(zz == "true");
 

@@ -765,9 +765,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
             int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
             for (int x = 0; x < c; ++x) {
                 std::string nm = StartChanAttrName(x);
-                std::string val = ModelXml->GetAttribute(nm).ToStdString();
-                val = ComputeStringStartChannel(x);
-                SetIndividualStartChannel(x, val);
+                std::string val = indivStartChannels[x];
                 if (x == 0) {
                     sp->SetLabel(nm);
                     sp->SetValue(val);
@@ -2040,8 +2038,9 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         return 0;
     } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
         int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
-        if (event.GetValue().GetBool()) {
-            hasIndiv = true;
+        hasIndiv = event.GetValue().GetBool();
+        if (hasIndiv) {
+            indivStartChannels.resize(c);
             for (int x = 0; x < c; ++x) {
                 SetIndividualStartChannel(x, ComputeStringStartChannel(x));
             }
@@ -2064,10 +2063,11 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
             val = val + ":1";
             event.GetProperty()->SetValue(val);
         }
-
-        //TODO:  Fix this when I have a model that supports indiv start channels
-       // SetIndividualStartChannel(, val);
-        ModelXml->AddAttribute(str, val);
+        std::string text = str.ToStdString();
+        int s = ExtractTrailingInt(text);
+        if (s < 1) s = 1;
+        if (s > parm1) s = parm1;
+        indivStartChannels[s-1] = val;
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelIndividualStartChannels2");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelIndividualStartChannels2");
@@ -2167,26 +2167,6 @@ void Model::AddState(wxXmlNode* n)
     XmlSerialize::DeserializeStateInfo(n, stateInfo);
     Model::WriteStateInfo(ModelXml, stateInfo);
     UpdateStateInfoNodes();
-}
-
-void Model::AddModelAliases(wxXmlNode* n) {
-    // can't be sure of the order of tags in xml and we don't want to ask twice, so setup breadcrumbs to ensure a single prompt
-    if (importAliases == false) {
-        if (skipImportAliases != true) {
-            if (wxMessageBox("Should I import aliases from the base model?", "Import Aliases?", wxICON_QUESTION | wxYES_NO) == wxYES) {
-                importAliases = true;
-            } else {
-                skipImportAliases = true;
-            }
-        }
-    }
-    if (importAliases == true) {
-        std::list<std::string> aliases;
-        for (auto a = n->GetChildren(); a != nullptr; a = a->GetNext()) {
-            aliases.push_back(a->GetAttribute("name"));
-        }
-        SetAliases(aliases);
-    }
 }
 
 void Model::ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup) {
@@ -2461,13 +2441,13 @@ std::string Model::ComputeStringStartChannel(int i)
         return ModelStartChannel;
     }
 
-    wxString existingStartChannelAsString = ModelXml->GetAttribute(StartChanAttrName(i));
+    wxString existingStartChannelAsString = indivStartChannels[i];
     if (existingStartChannelAsString != "") {
         return existingStartChannelAsString;
     }
 
     wxString stch = ModelStartChannel;
-    wxString priorStringStartChannelAsString = ModelXml->GetAttribute(StartChanAttrName(i - 1));
+    wxString priorStringStartChannelAsString = indivStartChannels[i-1];
     int priorLength = CalcChannelsPerString();
     // This will be required once custom model supports multiple strings ... working on that
     // if (DisplayAs == "Custom")
@@ -2810,7 +2790,7 @@ void Model::UpdateChannels(wxXmlNode* ModelNode)
     int ChannelsPerString = CalcChannelsPerString();
 
     SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
-
+    Nodes.clear();
     InitModel();
 
     IncrementChangeCount();
@@ -2829,7 +2809,6 @@ void Model::SetFromXml(wxXmlNode* node, bool zb)
     zeroBased = zb;
     ModelXml = nullptr;  // lets let this crash until we can get it fully removed
     StrobeRate = 0;
-    Nodes.clear();
 
     SingleNode = HasSingleNode(StringType);
     int ncc = GetNodeChannelCount(StringType);
@@ -5577,7 +5556,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
             n = node->GetChildren();
         }
         // grab the attributes I want to keep
-        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        std::string startChannel = model->GetModelStartChannel();
         auto x = model->GetHcenterPos();
         auto y = model->GetVcenterPos();
         auto lg = model->GetLayoutGroup();
@@ -5596,7 +5575,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         return model;
     } else if (node->GetName() == "polylinemodel") {
         // not a custom model so delete the default model that was created
-        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        std::string startChannel = model->GetModelStartChannel();
         auto lg = model->GetLayoutGroup();
         if (model != nullptr) {
             xlights->AddTraceMessage("GetXlightsModel converted model to PolyLine");
@@ -5607,7 +5586,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         model->Selected = true;
         return model;
     } else if (node->GetName() == "multipointmodel") {
-        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        std::string startChannel = model->GetModelStartChannel();
         auto lg = model->GetLayoutGroup();
         if (model != nullptr) {
             xlights->AddTraceMessage("GetXlightsModel converted model to MultiPoint");
@@ -5619,7 +5598,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         return model;
     } else if (node->GetName() == "matrixmodel") {
         // grab the attributes I want to keep
-        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        std::string startChannel = model->GetModelStartChannel();
         auto x = model->GetHcenterPos();
         auto y = model->GetVcenterPos();
         //auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
@@ -5640,7 +5619,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         return model;
     } else if (node->GetName() == "archesmodel") {
         // grab the attributes I want to keep
-        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        std::string startChannel = model->GetModelStartChannel();
         int l = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetLeft();
         int r = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetRight();
         int t = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetTop();
@@ -5666,7 +5645,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         return model;
     } else if (node->GetName() == "starmodel") {
         // grab the attributes I want to keep
-        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        std::string startChannel = model->GetModelStartChannel();
         auto x = model->GetHcenterPos();
         auto y = model->GetVcenterPos();
         //auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
@@ -5687,7 +5666,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         return model;
     } else if (node->GetName() == "treemodel") {
         // grab the attributes I want to keep
-        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        std::string startChannel = model->GetModelStartChannel();
         auto x = model->GetHcenterPos();
         auto y = model->GetVcenterPos();
         //auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
@@ -5708,7 +5687,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         return model;
     } else if (node->GetName() == "dmxmodel") {
         // grab the attributes I want to keep
-        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        std::string startChannel = model->GetModelStartChannel();
         auto x = model->GetHcenterPos();
         auto y = model->GetVcenterPos();
         auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
@@ -5752,7 +5731,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         return model;
     } else if (node->GetName() == "dmxgeneral") {
         // grab the attributes I want to keep
-        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        std::string startChannel = model->GetModelStartChannel();
         auto x = model->GetHcenterPos();
         auto y = model->GetVcenterPos();
         auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
@@ -5775,7 +5754,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         return model;
     } else if (node->GetName() == "dmxservo") {
         // grab the attributes I want to keep
-        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        std::string startChannel = model->GetModelStartChannel();
         auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
         auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
         auto x = model->GetHcenterPos();
@@ -5799,7 +5778,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
     } else if (node->GetName() == "dmxservo3axis" ||
                node->GetName() == "dmxservo3d") {
         // grab the attributes I want to keep
-        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        std::string startChannel = model->GetModelStartChannel();
         auto x = model->GetHcenterPos();
         auto y = model->GetVcenterPos();
         auto lg = model->GetLayoutGroup();
@@ -5819,7 +5798,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         return model;
     } else if (node->GetName() == "circlemodel") {
         // grab the attributes I want to keep
-        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        std::string startChannel = model->GetModelStartChannel();
         auto x = model->GetHcenterPos();
         auto y = model->GetVcenterPos();
         auto lg = model->GetLayoutGroup();
@@ -5838,7 +5817,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         return model;
     } else if (node->GetName() == "spheremodel") {
         // grab the attributes I want to keep
-        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        std::string startChannel = model->GetModelStartChannel();
         auto x = model->GetHcenterPos();
         auto y = model->GetVcenterPos();
         auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();
@@ -5858,7 +5837,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         return model;
     } else if (node->GetName() == "iciclemodel") {
         // grab the attributes I want to keep
-        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        std::string startChannel =model->GetModelStartChannel();
         auto x = model->GetHcenterPos();
         auto y = model->GetVcenterPos();
         auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();
@@ -5877,7 +5856,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         model->Selected = true;
         return model;
     } else if (node->GetName() == "Cubemodel") {
-        std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        std::string startChannel = model->GetModelStartChannel();
         auto x = model->GetHcenterPos();
         auto y = model->GetVcenterPos();
         auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();

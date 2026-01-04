@@ -16,13 +16,12 @@
 class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
-        StarModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
+        StarModel(const ModelManager &manager, bool zeroBased = false);
         virtual ~StarModel();
     
         virtual bool SupportsXlightsModel() override { return true; }
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
-        virtual void ExportXlightsModel() override;
         [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
 
         virtual int GetStrandLength(int strand) const override;
@@ -42,10 +41,13 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual bool ModelSupportsLayerSizes() const override { return true; }
         virtual void OnLayerSizesChange(bool countChanged) override;
-        float GetStarRatio() const { return starRatio; }
-        int GetInnerPercent() const { return innerPercent; }
+        float GetStarRatio() const { return _starRatio; }
+        void SetStarRatio(float ratio) { _starRatio = ratio; }
+        int GetInnerPercent() const { return _innerPercent; }
+        void SetInnerPercent(int percent) { _innerPercent = percent; }
         std::string GetStartLocation() const override { return _starStartLocation; }
-        void SetStarStarttLocation(const std::string & location) { _starStartLocation = location; }
+        void SetStarStartLocation(const std::string & location) { _starStartLocation = location; }
+        std::string ConvertFromDirStartSide();
         virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
@@ -55,12 +57,11 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
         wxRealPoint GetPointOnCircle(double radius, double angle);
         double LineLength(wxRealPoint start, wxRealPoint end);
         wxRealPoint GetPositionOnLine(wxRealPoint start, wxRealPoint end, double distance);
-        std::string ConvertFromDirStartSide(const wxString& dir, const wxString& startSide);
 
     private:
         // The ratio between the inner and outer radius of the star; default is 2.618034.
-        float starRatio;
+    float _starRatio = 2.618034f;
         // The ratio between the inner start and outer star radius (if more than 1 layer)
-        int innerPercent = -1;
+        int _innerPercent = -1;
         std::string _starStartLocation = "Bottom Ctr-CW";
 };
