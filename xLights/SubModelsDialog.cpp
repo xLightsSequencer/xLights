@@ -53,6 +53,7 @@
 #include "models/SubModel.h"
 #include "CheckboxSelectDialog.h"
 #include "VendorModelDialog.h"
+#include "models/XmlSerializer.h"
 
 #include <log4cpp/Category.hh>
 
@@ -3686,7 +3687,7 @@ void SubModelsDialog::ImportCustomModel(std::string filename)
                     sm->strands.clear();
                     sm->isRanges = true;
 
-                    auto data = CustomModel::ParseCustomModelDataFromXml(root);
+                    auto data = XmlSerialize::ParseCustomModelDataFromXml(root);
 
                     int rnum = yStart;
                     for (size_t row = 0; row < data[0].size(); ++row) {

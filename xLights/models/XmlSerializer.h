@@ -113,7 +113,6 @@ namespace XmlNodeKeys {
     constexpr auto ActiveAttribute          = "Active";
     constexpr auto FromBaaseAttribute       = "FromBase";
     constexpr auto DescriptionAttribute     = "Description";
-    constexpr auto CustomStringsAttribute   = "String";
     constexpr auto TagColourAttribute       = "TagColour";
     constexpr auto XLVersionAttribute       = "xLightsVersion";
     constexpr auto SettingsAttribute        = "settings";
@@ -124,7 +123,7 @@ namespace XmlNodeKeys {
     constexpr auto ModelChainAttribute      = "ModelChain";
     constexpr auto AliasesAttribute         = "Aliases";
     constexpr auto AliasNodeName            = "alias";
-
+    constexpr auto StrandsAttribute         = "Strands";
 
     // Common SubModel Attributes
     constexpr auto SubModelNodeName        = "subModel";
@@ -273,6 +272,7 @@ namespace XmlNodeKeys {
     constexpr auto CCHeightAttribute  = "CandyCaneHeight";
     constexpr auto CCReverseAttribute = "CandyCaneReverse";
     constexpr auto CCSticksAttribute  = "CandyCaneSticks";
+    constexpr auto CCSkewAttribute  = "CandyCaneSkew";
 
     // Channel Block Model
     constexpr auto ChannelColorAttribute =  "ChannelProperties.ChannelColor";
@@ -287,16 +287,17 @@ namespace XmlNodeKeys {
     constexpr auto StrandPerLayerAttribute = "StrandPerLayer";
 
     // Custom Model
-    constexpr auto CustomModelAttribute  = "CustomModel";
-    constexpr auto StrandsAttribute      = "Strands";
-    constexpr auto NodesAttribute        = "Nodes";
-    constexpr auto PixelTypeAttribute    = "PixelType";
-    constexpr auto PixelSpacingAttribute = "PixelSpacing";
-    constexpr auto PixelAttribute        = "Pixel";
-    constexpr auto BkgLightnessAttribute = "CustomBkgLightness";
-    constexpr auto BkgImageAttribute     = "CustomBkgImage";
-    constexpr auto BkgAttribute          = "Bkg";
-    constexpr auto CMDepthAttribute      = "Depth";
+    constexpr auto CustomModelAttribute    = "CustomModel";
+    constexpr auto CustomModelCmpAttribute = "CustomModelCompressed";
+    constexpr auto NodesAttribute          = "Nodes";
+    constexpr auto PixelTypeAttribute      = "PixelType";
+    constexpr auto PixelSpacingAttribute   = "PixelSpacing";
+    constexpr auto PixelAttribute          = "Pixel";
+    constexpr auto BkgLightnessAttribute   = "CustomBkgLightness";
+    constexpr auto BkgImageAttribute       = "CustomBkgImage";
+    constexpr auto BkgAttribute            = "Bkg";
+    constexpr auto CMDepthAttribute        = "Depth";
+    constexpr auto CustomStringsAttribute  = "CustomStrings";
 
     // Dimming Curves
     constexpr auto DimmingNodeName     = "dimmingCurve";
@@ -444,6 +445,132 @@ namespace XmlNodeKeys {
 }; // end namespace XmlNodeKeys
 
 namespace XmlSerialize {
+
+static std::vector<std::vector<std::vector<int>>> ParseCustomModel(const std::string& customModel)
+{
+    // layers - rows - cols
+    std::vector<std::vector<std::vector<int>>> locations;
+
+    uint32_t width = 1;
+    uint32_t height = 1;
+
+    std::vector<std::string> layers;
+    std::vector<std::string> rows;
+    std::vector<std::string> cols;
+    layers.reserve(20);
+    rows.reserve(100);
+    cols.reserve(100);
+
+    Split(customModel, '|', layers);
+    int layer = 0;
+
+    for (auto lv : layers) {
+        locations.emplace_back(std::vector<std::vector<int>>());
+
+        rows.clear();
+        Split(lv, ';', rows);
+        height = rows.size();
+        locations.back().resize(height);
+
+        int row = 0;
+        for (auto rv : rows) {
+            cols.clear();
+            Split(rv, ',', cols);
+            if (cols.size() > width)
+                width = cols.size();
+            int col = 0;
+            locations.back()[row].resize(width, -1);
+            for (auto value : cols) {
+                while (value.length() > 0 && value[0] == ' ') {
+                    value = value.substr(1);
+                }
+                if (!value.empty()) {
+                    try {
+                        locations[layer][row][col] = std::stoi(value);
+                    } catch (...) {
+                        // not a number, treat as 0
+                    }
+                }
+                col++;
+            }
+            row++;
+        }
+        layer++;
+    }
+
+    for (auto& lyr : locations) {
+        lyr.resize(height);
+        for (auto& rw : lyr) {
+            rw.resize(width, -1);
+        }
+    }
+    
+    return locations;
+}
+
+static std::vector<std::vector<std::vector<int>>> ParseCompressed(const std::string& compressed) {
+    // node, row, col, [layer];
+    std::vector<std::vector<std::vector<int>>> locations;
+
+    // parse all the strings
+    std::vector<std::tuple<int,int,int,int>> nodes;
+    nodes.reserve(4000);
+    std::vector<std::string> nodeStrings;
+    nodeStrings.reserve(4000);
+    Split(compressed, ';', nodeStrings);
+    for (const auto& n : nodeStrings) {
+        std::vector<std::string> nodeData;
+        Split(n, ',', nodeData);
+        if (nodeData.size() == 3) {
+            nodes.emplace_back(std::make_tuple(std::stoi(nodeData[0]), std::stoi(nodeData[1]), std::stoi(nodeData[2]), 0));
+        } else if (nodeData.size() == 4) {
+            nodes.emplace_back(std::make_tuple(std::stoi(nodeData[0]), std::stoi(nodeData[1]), std::stoi(nodeData[2]), std::stoi(nodeData[3])));
+        }
+    }
+
+    // work out the required dimensions
+    int layers = 0;
+    int rows = 0;
+    int cols = 0;
+    for (const auto& n : nodes) {
+        layers = std::max(layers, std::get<3>(n));
+        rows = std::max(rows, std::get<1>(n));
+        cols = std::max(cols, std::get<2>(n));
+    }
+
+    // create enough space
+    locations.reserve(layers + 1);
+    for (int l = 0; l <= layers; l++) {
+        locations.emplace_back(std::vector<std::vector<int>>());
+        locations.back().reserve(rows + 1);
+        for (int r = 0; r <= rows; r++) {
+            locations.back().emplace_back(std::vector<int>());
+            locations.back().back().reserve(cols + 1);
+            for (int c = 0; c <= cols; c++) {
+                locations.back().back().emplace_back(-1);
+            }
+        }
+    }
+
+    // fill in data
+    for (const auto& n : nodes)
+    {
+        locations[std::get<3>(n)][std::get<1>(n)][std::get<2>(n)] = std::get<0>(n);
+    }
+
+    return locations;
+}
+
+static std::vector<std::vector<std::vector<int>>> ParseCustomModelDataFromXml(const wxXmlNode* node)
+{
+    std::string compressed = node->GetAttribute(XmlNodeKeys::CustomModelCmpAttribute).ToStdString();
+    if (compressed != "") {
+        return XmlSerialize::ParseCompressed(compressed);
+    } else {
+        std::string customModel = node->GetAttribute(XmlNodeKeys::CustomModelAttribute).ToStdString();
+        return XmlSerialize::ParseCustomModel(customModel);
+    }
+}
 
 static void DeserializeFaceInfo(wxXmlNode* f, FaceStateData & faceInfo) {
     std::string name = f->GetAttribute(XmlNodeKeys::StateNameAttribute, "SingleNode").ToStdString();
@@ -1689,15 +1816,15 @@ private:
         CandyCaneModel* model = new CandyCaneModel(xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         DeserializeThreePointScreenLocationAttributes(model, node);
-        model->SetReverse(node->GetAttribute("CandyCaneReverse", "false") == "true");
-        model->SetSticks(node->GetAttribute("CandyCaneSticks", "false") == "true");
-        model->SetAlternateNodes(node->GetAttribute("AlternateNodes", "false") == "true");
-        if (node->HasAttribute("CandyCaneSkew")) {
-            int angle = wxAtoi(node->GetAttribute("CandyCaneSkew", "0"));
+        model->SetReverse(node->GetAttribute(XmlNodeKeys::CCReverseAttribute, "false") == "true");
+        model->SetSticks(node->GetAttribute(XmlNodeKeys::CCSticksAttribute, "false") == "true");
+        model->SetAlternateNodes(node->GetAttribute(XmlNodeKeys::AlternateNodesAttribute, "false") == "true");
+        if (node->HasAttribute(XmlNodeKeys::CCSkewAttribute)) {
+            int angle = wxAtoi(node->GetAttribute(XmlNodeKeys::CCSkewAttribute, "0"));
             ThreePointScreenLocation& screenLoc = dynamic_cast<ThreePointScreenLocation&>(model->GetBaseObjectScreenLocation());
             screenLoc.SetAngle(angle);
         }
-        model->SetCaneHeight(std::stof(node->GetAttribute("CandyCaneHeight", "1.0").ToStdString()));
+        model->SetCaneHeight(std::stof(node->GetAttribute(XmlNodeKeys::CCHeightAttribute, "1.0").ToStdString()));
         model->Setup();
         return model;
     }
@@ -1730,8 +1857,14 @@ private:
     }
 
     Model* DeserializeCustom(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        CustomModel* model = new CustomModel(node, xlights->AllModels, false);
+        CustomModel* model = new CustomModel(xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->SetCustomDepth(std::stol(node->GetAttribute(XmlNodeKeys::CMDepthAttribute, "1").ToStdString()));
+        model->SetNumStrings(std::stoi(node->GetAttribute(XmlNodeKeys::CustomStringsAttribute, "1").ToStdString()));
+        model->SetCustomBackground(node->GetAttribute(XmlNodeKeys::BkgImageAttribute, xlEMPTY_STRING));
+        model->SetCustomLightness(std::stol(node->GetAttribute(XmlNodeKeys::BkgLightnessAttribute, "0").ToStdString()));
+        std::vector<std::vector<std::vector<int>>>& locations = model->GetData();
+        locations = XmlSerialize::ParseCustomModelDataFromXml(node);
         model->Setup();
         return model;
     }

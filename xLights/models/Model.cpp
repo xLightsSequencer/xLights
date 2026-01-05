@@ -751,7 +751,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
         p = grid->Append(new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelStartChannel, modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
         p->Enable(GetControllerName() == "" || _controller == 0);
     } else {
-        p = grid->Append(new wxBoolProperty("Indiv Start Chans", "ModelIndividualStartChannels", hasIndiv));
+        p = grid->Append(new wxBoolProperty("Indiv Start Chans", "ModelIndividualStartChannels", _hasIndivChans));
         p->SetAttribute("UseCheckbox", true);
         p->Enable(parm1 > 1 && (GetControllerName() == "" || _controller == 0));
         if (parm1 > 1 && (GetControllerName() != "" && _controller != 0)) {
@@ -761,11 +761,11 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
         }
         sp = grid->AppendIn(p, new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelStartChannel, modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
         sp->Enable(GetControllerName() == "" || _controller == 0);
-        if (hasIndiv) {
+        if (_hasIndivChans) {
             int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
             for (int x = 0; x < c; ++x) {
                 std::string nm = StartChanAttrName(x);
-                std::string val = indivStartChannels[x];
+                std::string val = _indivStartChannels[x];
                 if (x == 0) {
                     sp->SetLabel(nm);
                     sp->SetValue(val);
@@ -775,7 +775,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
             }
         } else {
             // remove per strand start channels if individual isnt selected
-            indivStartChannels.clear();
+            _indivStartChannels.clear();
         }
     }
 
@@ -928,7 +928,7 @@ void Model::ClearIndividualStartChannels()
     if (IsCustom())
         return;
 
-    indivStartChannels.clear();
+    _indivStartChannels.clear();
 }
 
 void Model::GetSerialProtocolSpeeds(const std::string& protocol, wxArrayString& cs, int& idxs) const {
@@ -1425,8 +1425,8 @@ static wxString GetColorString(wxPGProperty* p, xlColor& xc)
 
 std::string Model::GetIndividualStartChannel(size_t s) const
 {
-    if (s >= indivStartChannels.size() ) return xlEMPTY_STRING;
-    return indivStartChannels[s];
+    if (s >= _indivStartChannels.size() ) return xlEMPTY_STRING;
+    return _indivStartChannels[s];
 }
 
 int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
@@ -1495,7 +1495,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         }
         SetModelChain(modelChain);
         if (modelChain != "") {
-            hasIndiv = false;
+            _hasIndivChans = false;
             AdjustStringProperties(grid, parm1);
             if (grid->GetPropertyByName("ModelStartChannel") != nullptr) {
                 grid->GetPropertyByName("ModelStartChannel")->SetValue(ModelStartChannel);
@@ -1547,7 +1547,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
                 grid->GetPropertyByName("ModelIndividualStartChannels")->Enable();
             }
         } else {
-            hasIndiv = false;
+            _hasIndivChans = false;
             AdjustStringProperties(grid, parm1);
             if (grid->GetPropertyByName("ModelStartChannel") != nullptr) {
                 grid->GetPropertyByName("ModelStartChannel")->SetValue(ModelStartChannel);
@@ -2027,7 +2027,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
 
         SetStartChannel(val);
         SetControllerName("");
-        if (hasIndiv) {
+        if (_hasIndivChans) {
             SetIndividualStartChannel(0, val);
         }
         IncrementChangeCount();
@@ -2038,14 +2038,14 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         return 0;
     } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
         int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
-        hasIndiv = event.GetValue().GetBool();
-        if (hasIndiv) {
-            indivStartChannels.resize(c);
+        _hasIndivChans = event.GetValue().GetBool();
+        if (_hasIndivChans) {
+            _indivStartChannels.resize(c);
             for (int x = 0; x < c; ++x) {
                 SetIndividualStartChannel(x, ComputeStringStartChannel(x));
             }
         } else {
-            indivStartChannels.clear();
+            _indivStartChannels.clear();
         }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelIndividualStartChannels");
@@ -2067,7 +2067,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         int s = ExtractTrailingInt(text);
         if (s < 1) s = 1;
         if (s > parm1) s = parm1;
-        indivStartChannels[s-1] = val;
+        _indivStartChannels[s-1] = val;
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelIndividualStartChannels2");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelIndividualStartChannels2");
@@ -2108,7 +2108,7 @@ void Model::AdjustStringProperties(wxPropertyGridInterface* grid, int newNum)
                 if (sp != nullptr) {
                     grid->DeleteProperty(sp);
                 }
-                indivStartChannels.pop_back();
+                _indivStartChannels.pop_back();
             }
             while (count < newNum) {
                 wxString nm = StartChanAttrName(count);
@@ -2441,13 +2441,13 @@ std::string Model::ComputeStringStartChannel(int i)
         return ModelStartChannel;
     }
 
-    wxString existingStartChannelAsString = indivStartChannels[i];
+    wxString existingStartChannelAsString = _indivStartChannels[i];
     if (existingStartChannelAsString != "") {
         return existingStartChannelAsString;
     }
 
     wxString stch = ModelStartChannel;
-    wxString priorStringStartChannelAsString = indivStartChannels[i-1];
+    wxString priorStringStartChannelAsString = _indivStartChannels[i-1];
     int priorLength = CalcChannelsPerString();
     // This will be required once custom model supports multiple strings ... working on that
     // if (DisplayAs == "Custom")
@@ -2512,7 +2512,7 @@ bool Model::ModelRenamed(const std::string& oldName, const std::string& newName)
             std::string mn = sc.substr(1, sc.find(':') - 1);
             if (mn == oldName) {
                 sc = sc[0] + newName + sc.substr(sc.find(':'), sc.size());
-                indivStartChannels[i] = sc;
+                _indivStartChannels[i] = sc;
                 changed = true;
             }
         }
@@ -2905,10 +2905,10 @@ void Model::ReplaceIPInStartChannels(const std::string& oldIP, const std::string
 
     size_t NumberOfStrings = HasOneString(DisplayAs) ? 1 : parm1;
     for (int i = 0; i < NumberOfStrings; ++i) {
-        wxString sc = indivStartChannels[i];
+        wxString sc = _indivStartChannels[i];
         if (Contains(sc, oldIP)) {
             sc.Replace(oldIP, newIP);
-            indivStartChannels[i] = sc;
+            _indivStartChannels[i] = sc;
             changed = true;
         }
 
@@ -3012,12 +3012,12 @@ void Model::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int Star
 {
     stringStartChan.clear();
     stringStartChan.resize(NumberOfStrings);
-    int num_indiv_start_channels = indivStartChannels.size();
+    int num_indiv_start_channels = _indivStartChannels.size();
     for (int i = 0; i < NumberOfStrings; ++i) {
-        if (!zeroBased && hasIndiv && (i < num_indiv_start_channels)) {
+        if (!zeroBased && _hasIndivChans && (i < num_indiv_start_channels)) {
             bool b = false;
             std::string dependsonmodel;
-            stringStartChan[i] = GetNumberFromChannelString(indivStartChannels[i], b, dependsonmodel) - 1;
+            stringStartChan[i] = GetNumberFromChannelString(_indivStartChannels[i], b, dependsonmodel) - 1;
             CouldComputeStartChannel &= b;
         } else {
             stringStartChan[i] = (zeroBased ? 0 : StartChannel - 1) + i * ChannelsPerString;
@@ -3150,7 +3150,7 @@ std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
     } else if (s[0] == '>') {
         return s + wxString::Format(" (%u)", GetFirstChannel() + 1);
     } else if (s[0] == '@') {
-        if (hasIndiv) {
+        if (_hasIndivChans) {
             return s;
         } else {
             return s + wxString::Format(" (%u)", GetFirstChannel() + 1);

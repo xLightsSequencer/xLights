@@ -1322,10 +1322,9 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         parm3 = 5;
         node->AddAttribute("Style", "Horizontal Left/Right");
     } else if (type == "Custom") {
-        model = new CustomModel(node, *this, false);
+        model = new CustomModel(*this, false);
         parm1 = 5;
         parm2 = 5;
-        node->AddAttribute("CustomModel", ",,,,;,,,,;,,,,;,,,,;,,,,");
     } else if (type.find("Tree") == 0) {
         model = new TreeModel(node, *this, false);
         parm1 = 16;
@@ -1596,7 +1595,7 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
     } else if (type == "Cube") {
         model = new CubeModel(node, *this, zeroBased);
     } else if (type == "Custom") {
-        model = new CustomModel(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
     } else if (type.find("Tree") == 0) {
         model = new TreeModel(node, *this, zeroBased);
     } else if (type.find("Icicles") == 0) {

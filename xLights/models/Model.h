@@ -287,11 +287,17 @@ public:
     virtual const ModelScreenLocation& GetModelScreenLocation() const = 0;
     virtual ModelScreenLocation& GetModelScreenLocation() = 0;
 
-    [[nodiscard]] bool HasIndividualStartChannels() const { return hasIndiv; }
-    void SetHasIndividualStartChannels(bool indiv) { hasIndiv = indiv; }
+    [[nodiscard]] bool HasIndividualStartChannels() const { return _hasIndivChans; }
+    void SetHasIndividualStartChannels(bool indiv) { _hasIndivChans = indiv; }
     [[nodiscard]] std::string GetIndividualStartChannel(size_t s) const;
-    void AddIndividualStartChannel(const std::string& channel) { indivStartChannels.push_back(channel); }
-    void SetIndividualStartChannel(int index, const std::string& channel) { indivStartChannels[index] = channel; }
+    void AddIndividualStartChannel(const std::string& channel) { _indivStartChannels.push_back(channel); }
+    void SetIndividualStartChannel(int index, const std::string& channel) { _indivStartChannels[index] = channel; }
+
+    [[nodiscard]] bool HasIndivStartNodes() const { return _hasIndivNodes; }
+    void SetHasIndivStartNodes(bool indiv) { _hasIndivNodes = indiv; }
+    [[nodiscard]] int GetIndivStartNode(size_t s) const { return _indivStartNodes[s]; }
+    void AddIndivStartNode(int node) { _indivStartNodes.push_back(node); }
+    void SetIndivStartNode(int index, int node) { _indivStartNodes[index] = node; }
 
     bool IsNodeInBufferRange(size_t nodeNum, int x1, int y1, int x2, int y2);
 
@@ -359,8 +365,11 @@ protected:
     std::vector<xlColor> superStringColours;
     xlColor customColor;
 
-    bool hasIndiv = false;
-    std::vector<std::string> indivStartChannels;
+    bool _hasIndivChans = false;
+    bool _hasIndivNodes = false;
+    std::vector<std::string> _indivStartChannels;
+    std::vector<int> _indivStartNodes;
+
     mutable std::list<std::string> aliases;
     friend class DimmingCurveDialogAdapter; // let this class alter dimmingInfo
     std::map<std::string, std::map<std::string, std::string>> dimmingInfo;

@@ -26,6 +26,7 @@
 #include "models/Model.h"
 #include "models/ModelGroup.h"
 #include "models/CustomModel.h"
+#include "models/XmlSerializer.h"
 #include "ColorManager.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
@@ -3389,7 +3390,7 @@ void xLightsImportChannelMapDialog::LoadRgbEffectsFile() {
                         mm->nodeCount = wxAtoi(node->GetAttribute("param1", "1")) * wxAtoi(node->GetAttribute("param2", "1")) * wxAtoi(node->GetAttribute("param3", "1"));
                     } 
                     else if (mm->type == "Custom") {
-                        auto data = CustomModel::ParseCustomModel(node->GetAttribute("CustomModel", ""));
+                        auto data = XmlSerialize::ParseCustomModel(node->GetAttribute("CustomModel", ""));
 
                         int count = 0;
                         for (int l = 0; l < data.size(); l++) {

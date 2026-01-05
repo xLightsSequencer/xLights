@@ -15,7 +15,7 @@
 class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
-        CustomModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
+        CustomModel(const ModelManager &manager, bool zeroBased = false);
         virtual ~CustomModel();
 
         void UpdateModel(int width, int height, int depth, const std::vector<std::vector<std::vector<int>>>& modelData);
@@ -25,77 +25,77 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
             std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;
 
-        virtual int GetStrandLength(int strand) const override;
-        virtual int MapToNodeIndex(int strand, int node) const override;
+        [[nodiscard]] virtual int GetStrandLength(int strand) const override;
+        [[nodiscard]]  virtual int MapToNodeIndex(int strand, int node) const override;
 
         virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+        [[nodiscard]] virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
-        virtual std::list<std::string> GetFileReferences() override;
-        virtual bool CleanupFileLocations(xLightsFrame* frame) override;
+        [[nodiscard]] virtual std::list<std::string> GetFileReferences() override;
+        [[nodiscard]] virtual bool CleanupFileLocations(xLightsFrame* frame) override;
 
-        virtual std::string GetStartLocation() const override { return "n/a"; }
+        [[nodiscard]] virtual std::string GetStartLocation() const override { return "n/a"; }
 
-        bool IsAllNodesUnique() const;
-        long GetCustomWidth() const { return parm1;}
-        long GetCustomHeight() const { return parm2;}
-        long GetCustomDepth() const { return _depth;}
+        [[nodiscard]] bool IsAllNodesUnique() const;
+        [[nodiscard]] long GetCustomWidth() const { return parm1;}
+        [[nodiscard]] long GetCustomHeight() const { return parm2;}
+        [[nodiscard]] long GetCustomDepth() const { return _depth;}
         void SetCustomWidth(long w);
         void SetCustomHeight(long u);
         void SetCustomDepth(long d);
-        virtual int NodesPerString() const override;
-        virtual int MapPhysicalStringToLogicalString(int string) const override;
+        void SetNumStrings(int strings);
+        [[nodiscard]] virtual int NodesPerString() const override;
+        [[nodiscard]] virtual int MapPhysicalStringToLogicalString(int string) const override;
 
-        virtual int GetNumPhysicalStrings() const override;
-        bool SupportsChangingStringCount() const override{ return true; };
-        bool ChangeStringCount(long count, std::string& message) override;
+        [[nodiscard]] virtual int GetNumPhysicalStrings() const override;
+        [[nodiscard]] bool SupportsChangingStringCount() const override{ return true; };
+        [[nodiscard]] bool ChangeStringCount(long count, std::string& message) override;
 
-        std::string GetCustomData() const;
+        [[nodiscard]] std::string GetCustomData() const;
         void SetCustomData(const std::vector<std::vector<std::vector<int>>>& data);
 
-        std::string GetCustomBackground() const {return custom_background;}
+        [[nodiscard]] std::string GetCustomBackground() const {return _custom_background;}
         void SetCustomBackground(std::string background);
-        long GetCustomLightness() const;
-        void SetCustomLightness(long lightness);
+        [[nodiscard]] long GetCustomLightness() const { return _lightness; }
+        void SetCustomLightness(long lightness) { _lightness = lightness; }
 
-        virtual bool SupportsXlightsModel() override {return true;}
-        virtual bool SupportsExportAsCustom() const override { return false; }
-        virtual bool SupportsWiringView() const override { return true; }
+        [[nodiscard]] virtual bool SupportsXlightsModel() override {return true;}
+        [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return false; }
+        [[nodiscard]] virtual bool SupportsWiringView() const override { return true; }
         [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
         [[nodiscard]] bool ImportLORModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
         virtual void ExportXlightsModel() override;
 
-        virtual std::string ChannelLayoutHtml(OutputManager* outputManager) override;
-        virtual std::string GetNodeName(size_t x, bool def = false) const override;
-        virtual std::list<std::string> CheckModelSettings() override;
-        virtual int NodesPerString(int string) const override;
+        [[nodiscard]] virtual std::string ChannelLayoutHtml(OutputManager* outputManager) override;
+        [[nodiscard]] virtual std::string GetNodeName(size_t x, bool def = false) const override;
+        [[nodiscard]] virtual std::list<std::string> CheckModelSettings() override;
+        [[nodiscard]] virtual int NodesPerString(int string) const override;
 
-        static std::string CustomModelToCompressed(const std::string& customModel);
-        static std::string CompressedToCustomModel(const std::string& compressed);
-        static std::vector<std::vector<std::vector<int>>> ParseCustomModel(const std::string& customModel);
-        static std::vector<std::vector<std::vector<int>>> ParseCompressed(const std::string& compressed);
-        static std::vector<std::vector<std::vector<int>>> ParseCustomModelDataFromXml(const wxXmlNode* node);
-        static std::string ToCompressed(const std::vector<std::vector<std::vector<int>>>& model);
-        static std::string ToCustomModel(const std::vector<std::vector<std::vector<int>>>& model);
-        std::vector<std::vector<std::vector<int>>> GetData() const { return locations; }
-        int GetCustomNodeStringNumber(int node) const;
+        [[nodiscard]] static std::string CustomModelToCompressed(const std::string& customModel);
+        [[nodiscard]] static std::string CompressedToCustomModel(const std::string& compressed);
+        [[nodiscard]] static std::string ToCompressed(const std::vector<std::vector<std::vector<int>>>& model);
+        [[nodiscard]] static std::string ToCustomModel(const std::vector<std::vector<std::vector<int>>>& model);
+        [[nodiscard]] std::vector<std::vector<std::vector<int>>> const& GetDataConst() const { return _locations; }
+        [[nodiscard]] std::vector<std::vector<std::vector<int>>> & GetData() { return _locations; }  // letting the XmlSerializer functions access this member data for speed
+        [[nodiscard]] int GetCustomNodeStringNumber(int node) const;
 
     protected:
         virtual void InitModel() override;
         virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
 
     private:
-        int GetCustomMaxChannel(const std::string& customModel) const;
-        void InitCustomMatrix(const std::string& customModel, const std::string& compressed);
-        static std::string StartNodeAttrName(int idx)
+        [[nodiscard]] int GetCustomMaxChannel() const;
+        void InitCustomMatrix();
+        [[nodiscard]] static std::string StartNodeAttrName(int idx)
         {
             return wxString::Format(wxT("String%i"), idx + 1).ToStdString();  // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
         }
-        std::string ComputeStringStartNode(int x) const;
+        [[nodiscard]] int ComputeStringStartNode(int x) const;
 
-        int _depth = 1;
-        std::string custom_background;
-        int _strings;
+        long _depth = 1;
+        std::string _custom_background;
+        int _strings = 1;
+        long _lightness = 0;
         std::vector<int> stringStartNodes;
-        std::vector<std::vector<std::vector<int>>> locations;
+        std::vector<std::vector<std::vector<int>>> _locations;
 };

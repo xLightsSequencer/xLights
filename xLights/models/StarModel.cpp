@@ -560,8 +560,8 @@ int StarModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGri
 {
     if ("StarStringCount" == event.GetPropertyName()) {
         parm1 = (int)event.GetPropertyValue().GetLong();
-        if (hasIndiv) {
-            indivStartChannels.resize(parm1);
+        if (_hasIndivChans) {
+            _indivStartChannels.resize(parm1);
             for (int x = 0; x < parm1; ++x) {
                 SetIndividualStartChannel(x, ComputeStringStartChannel(x));
             }

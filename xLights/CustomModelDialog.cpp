@@ -769,9 +769,9 @@ void CustomModelDialog::Save(CustomModel *m) {
     m->SetCustomHeight(HeightSpin->GetValue());
     m->SetCustomWidth(WidthSpin->GetValue());
     m->SetCustomDepth(SpinCtrl_Depth->GetValue());
-    m->SetCustomData(GetModelData());
     m->SetCustomLightness(lightness);
     m->SetCustomBackground(FilePickerCtrl1->GetFileName().GetFullPath());
+    m->SetCustomData(GetModelData());  // Do this last so it calls model setup
 }
 
 void CustomModelDialog::OnWidthSpinChange(wxSpinEvent& event)

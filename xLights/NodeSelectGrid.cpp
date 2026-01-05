@@ -32,6 +32,7 @@
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 #include "outputs/OutputManager.h"
+#include "models/XmlSerializer.h"
 
 //(*IdInit(NodeSelectGrid)
 const long NodeSelectGrid::ID_CHECKBOX1 = wxNewId();
@@ -908,7 +909,7 @@ void NodeSelectGrid::ImportModelXML(wxXmlNode* xmlData)
         return;
     }
 
-    auto data = CustomModel::ParseCustomModelDataFromXml(xmlData);
+    auto data = XmlSerialize::ParseCustomModelDataFromXml(xmlData);
 
     size_t height = data[0].size();
     const int gridheight = GridNodes->GetNumberRows();
