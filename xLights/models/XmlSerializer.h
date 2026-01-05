@@ -1905,8 +1905,9 @@ private:
     }
 
     Model* DeserializeSingleLine(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        SingleLineModel* model = new SingleLineModel(node, xlights->AllModels, false);
+        SingleLineModel* model = new SingleLineModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
+        DeserializeTwoPointScreenLocationAttributes(model, node);
         model->Setup();
         return model;
     }

@@ -15,9 +15,8 @@
 class SingleLineModel : public ModelWithScreenLocation<TwoPointScreenLocation>
 {
     public:
-        SingleLineModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
-        SingleLineModel(int lights, const Model &base, int strand, int node = -1);
         SingleLineModel(const ModelManager &manager);
+        //SingleLineModel(int lights, const Model &base, int strand, int node = -1);
         virtual ~SingleLineModel();
 
         void InitLine();

@@ -1310,7 +1310,7 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         parm1 = 10;
         parm2 = 10;
     } else if (type == "Single Line") {
-        model = new SingleLineModel(node, *this, false);
+        model = new SingleLineModel(*this);
     } else if (type == "Poly Line") {
         model = new PolyLineModel(node, *this, false);
     } else if (type == "MultiPoint") {
@@ -1571,9 +1571,6 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
         model = new DmxFloodArea(node, *this, zeroBased);
     } else if (type == "DmxSkull") {
         model = new DmxSkull(node, *this, zeroBased);
-    } else if (type == "DmxSkulltronix") {
-        model = new DmxSkulltronix(node, *this, zeroBased);
-        wxMessageBox("Alert!  The Skulltronix model type is deprecated and may soon be deleted.  Please switch to either the DmxSkull model or one of the DmxServo models if you were just using this model to control servos not in a skull.", "Alert", wxOK | wxCENTER);
     } else if (type == "DmxServo") {
         model = new DmxServo(node, *this, zeroBased);
     } else if (type == "DmxServo3d") {
@@ -1587,7 +1584,7 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
     } else if (type.find("Sphere") == 0) {
         model = new SphereModel(node, *this, zeroBased);
     } else if (type == "Single Line") {
-        model = new SingleLineModel(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Poly Line") {
         model = new PolyLineModel(node, *this, zeroBased);
     } else if (type == "MultiPoint") {
