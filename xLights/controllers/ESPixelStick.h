@@ -24,21 +24,21 @@
 class EspsV4Protocol
 {
 public:
-    void ParseV4Settings(wxString Id, const nlohmann::json& JsonConfig);
-    bool GetSetting(wxString Name, wxString & value);
-    bool PutSetting(wxString Name, wxString value, wxString DefaultValue);
-    bool PutSetting(wxString Name, int value, int DefaultValue);
-    bool PutSetting(wxString Name, float value, float DefaultValue);
+    void ParseV4Settings(std::string const& Id, const nlohmann::json& JsonConfig);
+    bool GetSetting(std::string const& Name, std::string& value);
+    bool PutSetting(std::string const& Name, std::string value, std::string const& DefaultValue);
+    bool PutSetting(std::string const& Name, int value, int DefaultValue);
+    bool PutSetting(std::string const& Name, float value, float DefaultValue);
     int WriteConfigToJson(nlohmann::json& JsonConfig);
     inline bool IsPixel() { return Settings.contains("color_order"); }
-    inline wxString Name() { return _Name; }
-    inline wxString Id() { return _Id; }
+    inline std::string Name() { return _Name; }
+    inline std::string Id() { return _Id; }
     void SetIsFullxLightsControl(bool value) {IsFullxLightsControl = value;}
 
 private:
-    wxString _Id;
-    wxString _Name;
-    std::map<wxString, wxString> Settings;
+    std::string _Id;
+    std::string _Name;
+    std::map<std::string, std::string> Settings;
     uint32_t NumItemsChanged = 0;
     bool IsFullxLightsControl = false;
 };
@@ -46,14 +46,14 @@ private:
 class EspsPort
 {
 public:
-    wxString PortId;
-    wxString CurrentProtocolId = "0";
-    wxString CurrentProtocolName = "disabled";
-    wxString DisabledId = "0";
-    wxString DisabledName = "disabled";
-    std::map<wxString, EspsV4Protocol> ProtocolsByName;
-    std::map<wxString, wxString> ProtocolIdToProtocolName;
-
+    std::string PortId;
+    std::string CurrentProtocolId = "0";
+    std::string CurrentProtocolName = "disabled";
+    std::string DisabledId = "0";
+    std::string DisabledName = "disabled";
+    std::map<std::string, EspsV4Protocol> ProtocolsByName;
+    std::map<std::string, std::string> ProtocolIdToProtocolName;
+        
     bool ParseV4Settings(const nlohmann::json& JsonConfig);
     bool WriteConfigToJson(nlohmann::json& JsonConfig);
     void Disable() {
@@ -83,16 +83,16 @@ private:
     bool CheckWsConnection();
     bool CheckHTTPconnection();
 
-    bool GetAdminInformation(nlohmann::json& Result);
-    bool GetInputConfig(nlohmann::json& Result);
-    bool GetOutputConfig(nlohmann::json& Result);
-    bool GetHttpConfig(std::string const& FileName, std::string const& key, nlohmann::json& Result);
-    bool GetWsConfig(std::string const& FileName, std::string const& key, nlohmann::json& Result);
+    bool GetAdminInformation(nlohmann::json& Response);
+    bool GetInputConfig(nlohmann::json& Response);
+    bool GetOutputConfig(nlohmann::json& Response);
+    bool GetHttpConfig(std::string const& FileName, std::string const& key, nlohmann::json& Response);
+    bool GetWsConfig(std::string const& SectionName, std::string const& key, nlohmann::json& Response);
 
     bool SetInputConfig(nlohmann::json& Data);
     bool SetOutputConfig(nlohmann::json& Data);
-    bool SetHttpConfig(std::string const& FileName, std::string const& key, nlohmann::json const& Data);
-    bool SetWsConfig(std::string const& FileName, std::string const& key, nlohmann::json const& Data);
+    bool SetHttpConfig(std::string const& filename, std::string const& key, nlohmann::json const& Data);
+    bool SetWsConfig(std::string const& SectionName, std::string const& key, nlohmann::json const& Data);
 
     bool SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);
     bool SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);
