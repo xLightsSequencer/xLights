@@ -19,7 +19,7 @@
 #include <string>
 #include <algorithm>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include "Curl.h"
 
@@ -282,7 +282,7 @@ std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const 
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
 
         logger->info("BODY START ----------");
-        logger->info("{}", body);
+        logger->info("{}", body.ToStdString());
         logger->info("BODY END ----------");
         logger->info("BODY SIZE: {}", body.size());
         logger->info("TIMEOUT: {}", timeout);
@@ -353,7 +353,7 @@ std::string Curl::HTTPSPost(const std::string& url, const std::vector<Var>& vars
         for (const auto& it : customHeaders) {
             auto s = wxString::Format("%s: %s", it.first, it.second);
             headerlist = curl_slist_append(headerlist, s.c_str());
-            logger->info("    {}", s);
+            logger->info("    {}", s.ToStdString());
         }
         logger->info("HEADER END ----------");
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
@@ -424,7 +424,7 @@ std::string Curl::HTTPSGet(const std::string& s, const std::string& user, const 
         for (const auto& it : customHeaders) {
             auto s = wxString::Format("%s: %s", it.first, it.second);
             headerlist = curl_slist_append(headerlist, s.c_str());
-            logger->info("    {}", (const char*)s.c_str());
+            logger->info("    {}", s.ToStdString());
         }
         logger->info("HEADER END ----------");
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
@@ -449,9 +449,9 @@ std::string Curl::HTTPSGet(const std::string& s, const std::string& user, const 
         if (r != CURLE_OK) {
             const char* err = curl_easy_strerror(r);
             if (err == nullptr) {
-                logger->error("Failure to access {}: {}.", (const char*)s.c_str(), static_cast<int>(r));
+                logger->error("Failure to access {}: {}.", s, static_cast<int>(r));
             } else {
-                logger->error("Failure to access {}: {}: {}.", (const char*)s.c_str(), static_cast<int>(r), err);
+                logger->error("Failure to access {}: {}: {}.", s, static_cast<int>(r), err);
             }
         } else {
             if (responseCode) {
@@ -898,7 +898,7 @@ std::string Curl::HTTPSDelete(const std::string& url, const wxString& body, cons
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
 
         logger->info("BODY START ----------");
-        logger->info(body);
+        logger->info(body.ToStdString());
         logger->info("BODY END ----------");
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)body.size());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)body.c_str());

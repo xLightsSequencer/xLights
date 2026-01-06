@@ -1080,7 +1080,6 @@
       <Filter>Models\DMX</Filter>
     </ClCompile>
     <ClCompile Include="SpecialOptions.cpp" />
-    <ClCompile Include="controllers\ILightThat.cpp" />
     <ClCompile Include="EditSubmodelAliasesDialog.cpp" />
     <ClCompile Include="effects\MovingHeadPanels\MovingHeadDimmerPanel.cpp">
       <Filter>Effects\MovingHeadPanels</Filter>
@@ -1116,6 +1115,9 @@
     <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
     <ClCompile Include="ai\AIColorPaletteDialog.cpp">
       <Filter>ai</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\ILightThat.cpp">
+      <Filter>Controllers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2172,7 +2174,6 @@
     </ClInclude>
     <ClInclude Include="TempFileManager.h" />
     <ClInclude Include="xlColourData.h" />
-    <ClInclude Include="controllers\ILightThat.h" />
     <ClInclude Include="EditSubmodelAliasesDialog.h" />
     <ClInclude Include="effects\MovingHeadPanels\MHPathPresetBitmapButton.h" />
     <ClInclude Include="effects\MovingHeadPanels\MHPresetBitmapButton.h" />
@@ -2245,6 +2246,9 @@
     </ClInclude>
     <ClInclude Include="ai\AIColorPaletteDialog.h">
       <Filter>ai</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\ILightThat.h">
+      <Filter>Controllers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

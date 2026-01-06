@@ -23,7 +23,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include <utils/CurlManager.h>
 
 #pragma region Constructors and Destructors
@@ -33,10 +33,10 @@ ILightThat::ILightThat(const std::string& ip, const std::string& proxy) :
     std::string const json = GetURL("/settings");
     if (!json.empty()) {
         _connected = true;
-        LOG_DEBUG("Connected to ILightThat controller model %s.", (const char*)GetFullName().c_str());
+        spdlog::debug("Connected to ILightThat controller model {}.", GetFullName());
     } else {
         _connected = false;
-        LOG_ERROR("Error connecting to ILightThat controller on %s.", (const char*)_ip.c_str());
+        spdlog::error("Error connecting to ILightThat controller on {}.", _ip);
     }
 }
 
@@ -54,7 +54,7 @@ ILightThat::~ILightThat()
 #pragma region Getters and Setters
 bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent)
 {
-    LOG_DEBUG("ILightThat Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+    spdlog::debug("ILightThat Outputs Upload: Uploading to {}", _ip);
 
     std::unordered_map<std::string, int> model_test_cols = {};
     std::string const json = GetURL("/settings");
@@ -74,11 +74,11 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                 }
             }
         } catch (nlohmann::json::parse_error& ex) {
-            LOG_WARN("ILightThat Outputs Upload: Failed to parse JSON: %s", ex.what());
-            LOG_WARN((const char*)json.c_str());
+            spdlog::warn("ILightThat Outputs Upload: Failed to parse JSON: {}", ex.what());
+            spdlog::warn(json);
         } catch (std::exception& e) {
-            LOG_WARN("ILightThat Outputs Upload: Failed to parse JSON: %s", e.what());
-            LOG_WARN((const char*)json.c_str());
+            spdlog::warn("ILightThat Outputs Upload: Failed to parse JSON: {}", e.what());
+            spdlog::warn(json);
         }
     }
 

@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include <wx/msgdlg.h>
-#include <wx/regex.h>
 
 #include "ESPixelStick.h"
 #include "../models/Model.h"
@@ -22,6 +21,8 @@
 #include "../outputs/ControllerEthernet.h"
 
 #include "spdlog/spdlog.h"
+
+#include <map>
 
 #pragma region Global Data
 static std::map<std::string, std::string> EspsV4ColorOrders = {
@@ -178,7 +179,7 @@ bool ESPixelStick::GetWsConfig(std::string const& SectionName, std::string const
     newJson["cmd"]["get"] = SectionName;
     // LOG_DEBUG(std::string("GetWsConfig: cmd: ") + newJson.dump());
     _wsClient.Send(newJson.dump());
-    std::string RawData = GetWSResponse();
+    std::string const RawData = GetWSResponse();
     try {
         nlohmann::json ParsedData = nlohmann::json::parse(RawData);
         Response = ParsedData["get"][key];
@@ -205,7 +206,7 @@ bool ESPixelStick::SetWsConfig(std::string const& SectionName, std::string const
     nlohmann::json Response;
     try {
         nlohmann::json ParsedData = nlohmann::json::parse(RawData);
-        nlohmann::json Response = ParsedData["cmd"];
+        Response = ParsedData["cmd"];
     } catch (nlohmann::json::exception ex) {
         spdlog::debug(std::string("SetWsConfig: ERROR: Could not parse json: ") + RawData);
         spdlog::error(std::string("SetWsConfig: ERROR: Could not parse json: ") + ex.what());
@@ -411,16 +412,16 @@ bool ESPixelStick::UploadForImmediateOutput(ModelManager* allmodels, OutputManag
 }
 
 bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
-    if (_version.size() > 0 && _version[0] == '4') {
+    if (!_version.empty() && _version[0] == '4') {
         return SetOutputsV4(allmodels, outputManager, controller, parent);
     }
     return SetOutputsV3(allmodels, outputManager, controller, parent);
 }
 
 bool EspsV4Protocol::GetSetting(std::string const& Name, std::string& value) {
-    // 
+    //
     // LOG_DEBUG("EspsV4Protocol:GetSetting: Start");
-    bool Response = true;
+    bool Response {true };
 
     if (Settings.contains(Name))
     {
@@ -439,7 +440,7 @@ bool EspsV4Protocol::GetSetting(std::string const& Name, std::string& value) {
 bool EspsV4Protocol::PutSetting(std::string const& Name, std::string value, std::string const& DefaultValue) {
     // 
     // LOG_DEBUG("EspsV4Protocol:PutSetting: Start");
-    bool Response = false;
+    bool Response { false };
 
     do // once
     {
@@ -484,7 +485,7 @@ bool EspsV4Protocol::PutSetting(std::string const& Name, std::string value, std:
 bool EspsV4Protocol::PutSetting(std::string const& Name, int value, int DefaultValue) {
     // 
     // LOG_DEBUG("EspsV4Protocol:PutSetting: Start");
-    bool Response = false;
+    bool Response{ false };
 
     do // once
     {
@@ -530,7 +531,7 @@ bool EspsV4Protocol::PutSetting(std::string const& Name, int value, int DefaultV
 bool EspsV4Protocol::PutSetting(std::string const& Name, float value, float DefaultValue) {
     // 
     // LOG_DEBUG("EspsV4Protocol:PutSetting: Start");
-    bool Response = false;
+    bool Response{ false };
 
     do // once
     {
@@ -578,7 +579,7 @@ void EspsV4Protocol::ParseV4Settings(std::string const& Id, const nlohmann::json
     _Id = Id;
 
     // process the element in the protocol
-    for (auto& [ElementId, Elementval] : JsonConfig.items()) {
+    for (auto const& [ElementId, Elementval] : JsonConfig.items()) {
 
         std::string FinalValue;
 
@@ -618,7 +619,7 @@ bool EspsPort::ParseV4Settings(const nlohmann::json& JsonConfig)
 {
     // LOG_DEBUG("EspsPort:ParseV4Config: Start");
 
-    bool Response = true;
+    bool Response { true };
 
     do // once
     {
@@ -673,7 +674,7 @@ bool ESPixelStick::ParseV4Config(nlohmann::json& outputConfig) {
     // 
     // LOG_DEBUG("ParseV4Config: Start");
 
-    bool Response = true;
+    bool Response{ true };
 
     EspsConfig.clear();
 
@@ -843,8 +844,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                 continue;
             }
 
-            wxString targetProtocolName = port->GetProtocol();
-            targetProtocolName = targetProtocolName.Lower();
+            auto targetProtocolName = Lower(port->GetProtocol());
             if (targetProtocolName == "genericserial")
             {
                 targetProtocolName = "serial";

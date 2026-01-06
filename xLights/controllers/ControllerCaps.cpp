@@ -23,7 +23,7 @@
 #include "../ExternalHooks.h"
 #include "../outputs/Controller.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #pragma region Static Functions
 std::map<std::string, std::map<std::string, std::list<ControllerCaps*>>> ControllerCaps::__controllers;
@@ -99,7 +99,7 @@ void ControllerCaps::LoadControllers() {
                 docs[count].Load(fn.GetFullPath());
                 if (!docs[count].IsOk()) {
                     wxASSERT(false);
-                    LOG_ERRORWX("Problem loading " + fn.GetFullPath());
+                    spdlog::error("Problem loading " + fn.GetFullPath().ToStdString());
                 }
                 count++;
             }
@@ -156,7 +156,7 @@ void ControllerCaps::LoadControllers() {
             }
         }
     } else {
-        LOG_ERRORWX("Controllers folder not found " + d);
+        spdlog::error("Controllers folder not found " + d.ToStdString());
     }
 }
 
@@ -775,41 +775,53 @@ std::vector<std::string> ControllerCaps::GetAlternativeNames() const {
     return GetXmlNodeListContent(_config, "AltNames", "AltName");
 }
 
-void ControllerCaps::Dump() const
-{
-    LOG_DEBUG("Controller Capabilities " + _vendor + ":" + _model + ":" + GetVariantName());
+void ControllerCaps::Dump() const {
+    spdlog::debug("Controller Capabilities " + _vendor + ":" + _model + ":" + GetVariantName());
 
-    if (SupportsUpload()) LOG_DEBUG("   Supports upload.");
-    if (SupportsInputOnlyUpload()) LOG_DEBUG("   Supports input only upload.");
-    if (SupportsLEDPanelMatrix()) LOG_DEBUG("   Supports LED panel matrices.");
-    if (SupportsVirtualStrings()) LOG_DEBUG("   Supports virtual strings.");
+    if (SupportsUpload()) {
+        spdlog::debug("   Supports upload.");
+    }
+    if (SupportsInputOnlyUpload()) {
+        spdlog::debug("   Supports input only upload.");
+    }
+    if (SupportsLEDPanelMatrix()) {
+        spdlog::debug("   Supports LED panel matrices.");
+    }
+    if (SupportsVirtualStrings()) {
+        spdlog::debug("   Supports virtual strings.");
+    }
     if (SupportsSmartRemotes()) {
-        LOG_DEBUG("   Supports smart remotes.");
-        LOG_DEBUG("   Supported smart remotes types:");
+        spdlog::debug("   Supports smart remotes.");
+        spdlog::debug("   Supported smart remotes types:");
         for (auto const& it : GetSmartRemoteTypes()) {
-            LOG_DEBUG("      " + it);
+            spdlog::debug("      " + it);
         }
     }
-    if (SupportsMultipleSimultaneousOutputProtocols()) LOG_DEBUG("   Supports multiple simultaneous output protocols.");
-    if (AllInputUniversesMustBeSameSize()) LOG_DEBUG("   All input universes must be the same size.");
-    if (UniversesMustBeInNumericalOrder()) LOG_DEBUG("   All input universes must be in numerical order.");
-    LOG_DEBUG("   Inputs: maximum of %d universes.", GetMaxInputE131Universes());
-    LOG_DEBUG("   Input protocols supported:");
+    if (SupportsMultipleSimultaneousOutputProtocols()) {
+        spdlog::debug("   Supports multiple simultaneous output protocols.");
+    }
+    if (AllInputUniversesMustBeSameSize()) {
+        spdlog::debug("   All input universes must be the same size.");
+    }
+    if (UniversesMustBeInNumericalOrder()){
+        spdlog::debug("   All input universes must be in numerical order.");
+    }
+    spdlog::debug("   Inputs: maximum of {} universes.", GetMaxInputE131Universes());
+    spdlog::debug("   Input protocols supported:");
     for (const auto& it : GetInputProtocols()) {
-        LOG_DEBUG("      " + it);
+        spdlog::debug("      " + it);
     }
-    LOG_DEBUG("   Pixel ports: %d ports with a maximum of %d channels per port.", GetMaxPixelPort(), GetMaxPixelPortChannels());
-    LOG_DEBUG("   Pixel protocols supported:");
+    spdlog::debug("   Pixel ports: {} ports with a maximum of {} channels per port.", GetMaxPixelPort(), GetMaxPixelPortChannels());
+    spdlog::debug("   Pixel protocols supported:");
     for (const auto& it : GetPixelProtocols()) {
-        LOG_DEBUG("      " + it);
+        spdlog::debug("      " + it);
     }
-    LOG_DEBUG("   Serial ports: %d ports with a maximum of %d channels per port.", GetMaxSerialPort(), GetMaxSerialPortChannels());
-    LOG_DEBUG("   Serial protocols supported:");
+    spdlog::debug("   Serial ports: {} ports with a maximum of {} channels per port.", GetMaxSerialPort(), GetMaxSerialPortChannels());
+    spdlog::debug("   Serial protocols supported:");
     for (const auto& it : GetSerialProtocols()) {
-        LOG_DEBUG("      " + it);
+        spdlog::debug("      " + it);
     }
 }
-
 
 void ControllerCaps::AddProperties(Controller *controller, wxPropertyGrid* propertyGrid) {
     for (wxXmlNode* n = _config->GetChildren(); n != nullptr; n = n->GetNext()) {

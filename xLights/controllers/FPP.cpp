@@ -57,7 +57,7 @@
 #include "../ExternalHooks.h"
 #include "../TempFileManager.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include "ControllerUploadData.h"
 #include "FPPUploadProgressDialog.h"
 #include "../FSEQFile.h"
@@ -363,7 +363,7 @@ std::map<int, int> FPP::GetExpansionPorts(ControllerCaps* caps) const
 {
     std::map<int, int> res;
 
-    int const ports = wxAtoi(caps->GetCustomPropertyByPath("fpp", "0"));
+    int const ports = std::stoi(caps->GetCustomPropertyByPath("fpp", "0"));
 
     for (int i = 1; i <= ports; i++)
     {
@@ -460,18 +460,18 @@ bool FPP::parseSysInfo(nlohmann::json& val) {
     }
 
     if (fullVersion != "") {
-        majorVersion = wxAtoi(fullVersion);
+        majorVersion = std::stoi(fullVersion);
         if (fullVersion[2] == 'x') {
-            minorVersion = wxAtoi(fullVersion.substr(4)) + 1000;
+            minorVersion = std::stoi(fullVersion.substr(4)) + 1000;
         } else {
-            minorVersion = wxAtoi(fullVersion.substr(2));
+            minorVersion = std::stoi(fullVersion.substr(2));
         }
         if (fullVersion.size() > 3 && (fullVersion[3] == '-' || fullVersion[3] == '.')) {
-            patchVersion = wxAtoi(fullVersion.substr(4));
+            patchVersion = std::stoi(fullVersion.substr(4));
         }
     }
     if (val.contains("channelRanges")) {
-        std::string r = GetJSONStringValue(val, "channelRanges");
+        std::string const r = GetJSONStringValue(val, "channelRanges");
         if (r.size() > ranges.size()) {
             ranges = r;
         }
@@ -666,13 +666,13 @@ void FPP::DumpJSON(const nlohmann::json& json) const {
     std::string str;
     try {
         str = json.dump(3, ' ', false, nlohmann::json::error_handler_t::replace);
-        LOG_DEBUG(str);
+        spdlog::debug(str);
     } catch (const nlohmann::json::type_error& e) {
-        LOG_ERROR("JSON type_error during dump: " + std::string(e.what()));
+        spdlog::error("JSON type_error during dump: " + std::string(e.what()));
     } catch (const std::exception& e) {
-        LOG_ERROR("Other exception during JSON dump: " + std::string(e.what()));
+        spdlog::error("Other exception during JSON dump: " + std::string(e.what()));
     } catch (...) {
-        LOG_ERROR("Unknown exception during JSON dump");
+        spdlog::error("Unknown exception during JSON dump");
     }
 }
 
@@ -702,8 +702,6 @@ bool FPP::updateProgress(int val, bool yield) {
 
 
 bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
-    
-
     wxString filename = ToWXString(utfFilename);
     wxString fn;
     wxString ext;
@@ -788,7 +786,6 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
 
     data->lastDone = lastDone;
 
-    
     CurlManager::INSTANCE.addCURL(fullUrl, curl, [this, chunk, deleteFile, fullFileName, usingMove, filename, ext, utfFilename, data] (CURL *curl) {
         long response_code = 0;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
@@ -796,16 +793,16 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
         if (response_code == 200) {
             if (usingMove) {
                 if (!callMoveFile(ToUTF8(filename + ext))) {
-                    LOG_WARN("Error trying to rename file.");
+                    spdlog::warn("Error trying to rename file.");
                 } else {
-                    LOG_DEBUG("Renaming done.");
+                    spdlog::debug("Renaming done.");
                 }
             }
-            LOG_DEBUG(utfFilename + " upload complete to " + this->hostName + " (" + this->ipAddress + "). Bytes sent:" + std::to_string(data->totalWritten) + ".");
+            spdlog::debug(utfFilename + " upload complete to " + this->hostName + " (" + this->ipAddress + "). Bytes sent:" + std::to_string(data->totalWritten) + ".");
         } else {
             messages.push_back("ERROR Uploading file: " + utfFilename + "     Response Code: " + std::to_string(response_code));
             faileduploads.push_back(filename);
-            LOG_WARN("Did not get 200 response code:  %d", response_code);
+            spdlog::warn("Did not get 200 response code:  {}", response_code);
         }
         
         delete data;
@@ -887,7 +884,7 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
     cpd->req->resize(remaining);
     uint64_t read = ps->in.Read(cpd->req->data(), remaining);
     if (read != remaining) {
-        LOG_INFO("ERROR Uploading file: " + ps->filename + "     Could not read source file.");
+        spdlog::info("ERROR Uploading file: " + ps->filename + "     Could not read source file.");
         ps->instance->messages.push_back("ERROR Uploading file: " + ps->filename + "     Could not read source file.");
         ps->instance->faileduploads.push_back(ps->filename);
     }
@@ -903,14 +900,14 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)remaining);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, cpd->req->data());
     
-    LOG_INFO("FPPConnect Adding CURL - URL: %s    Method: PATCH    Start: %zd   Length: %zd   Total: %zd", ps->fullUrl.c_str(), ps->offset, remaining, ps->length);
+    spdlog::info("FPPConnect Adding CURL - URL: {}    Method: PATCH    Start: {}   Length: {}   Total: {}", ps->fullUrl, ps->offset, remaining, ps->length);
     
     CurlManager::INSTANCE.addCURL(ps->fullUrl, curl, [headers, remaining, ps] (CURL *c) {
 
         curl_slist_free_all(headers);
         long response_code = 0;
         curl_easy_getinfo(c, CURLINFO_RESPONSE_CODE, &response_code);
-        LOG_INFO("    FPPConnect CURL Callback - URL: %s    Response: %d", ps->fullUrl.c_str(), response_code);
+        spdlog::info("    FPPConnect CURL Callback - URL: {}    Response: {}", ps->fullUrl, response_code);
         bool cancelled = false;
         if (response_code != 200 && ps->errorCount < 3) {
             // strange error on upload, let's restart and try again (up to three attempts)
@@ -927,7 +924,7 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
         uint64_t pct = (ps->offset * 1000) / ps->length;
         cancelled |= ps->instance->updateProgress(pct, false);
         if (cancelled || ps->offset >= ps->length) {
-            LOG_DEBUG(ps->filename + " upload complete to " + ps->instance->hostName + " (" + ps->instance->ipAddress + "). Bytes sent:" + std::to_string(ps->length) + ".");
+            spdlog::debug(ps->filename + " upload complete to " + ps->instance->hostName + " (" + ps->instance->ipAddress + "). Bytes sent:" + std::to_string(ps->length) + ".");
             delete ps;
         } else {
             prepareCurlForMulti(ps);
@@ -2453,8 +2450,7 @@ bool FPP::UploadSerialOutputs(ModelManager* allmodels,
     std::map<int, int> rngs;
     FillRanges(rngs);
 
-    
-    LOG_DEBUG("FPP Serial Outputs Upload: Uploading to %s", (const char *)ipAddress.c_str());
+    spdlog::debug("FPP Serial Outputs Upload: Uploading to {}", ipAddress);
 
     UDController cud(controller, outputManager, allmodels, false);
     if (cud.GetMaxSerialPort() == 0) {
@@ -2666,8 +2662,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     std::map<int, int> rngs;
     FillRanges(rngs);
 
-    
-    LOG_DEBUG("FPP Pixel Outputs Upload: Uploading to %s", (const char *)ipAddress.c_str());
+    spdlog::debug("FPP Pixel Outputs Upload: Uploading to {}", ipAddress);
 
     UDController cud(controller, outputManager, allmodels, false);
 
@@ -2684,7 +2679,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     nlohmann::json origJson;
     GetURLAsJSON("/api/channel/output/" + fppFileName, origJson, false);
-    LOG_DEBUG("Original JSON");
+    spdlog::debug("Original JSON");
     DumpJSON(origJson);
 
     bool fullcontrol = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
@@ -3060,15 +3055,15 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         }
     }
 
-    LOG_DEBUG("New JSON");
+    spdlog::debug("New JSON");
     DumpJSON(root);
 
     if (origJson != (root)) {
-        LOG_DEBUG("Uploading New JSON");
+        spdlog::debug("Uploading New JSON");
         PostJSONToURL("/api/channel/output/" + fppFileName, root);
         SetRestartFlag();
     } else {
-        LOG_DEBUG("Skipping JSON upload as it has not changed.");
+        spdlog::debug("Skipping JSON upload as it has not changed.");
     }
     SetNewRanges(rngs);
     return false;
@@ -3439,7 +3434,7 @@ static void ProcessFPPProxies(Discovery &discovery, const std::string &ip, const
                 std::string i = ip;
                 inst->extraData["httpConnected"] = true;
 
-                LOG_INFO("Found proxied instance ip: %s     proxyip: %s", proxy.c_str(), ip.c_str());
+                spdlog::info("Found proxied instance ip: {}     proxyip: {}", proxy, ip);
                 discovery.AddCurl(ip, "/proxy/" + proxy + "/api/system/info", [&discovery, p, i](int rc, const std::string &buffer, const std::string &err) {
                     if (rc == 200) {
                         ProcessFPPSysinfo(discovery, p, i, buffer);
@@ -3516,7 +3511,7 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
     }
     if (val.is_discarded()) {
     
-        LOG_INFO("Could not parse sysinfo for %s(%s)", ip.c_str(), proxy.c_str());
+        spdlog::info("Could not parse sysinfo for {}({})", ip, proxy);
         DiscoveredData* inst = discovery.FindByIp(ip, "", true);
         inst->extraData["httpConnected"] = false;
         if (proxy != "") {
@@ -3531,7 +3526,7 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
     }
     if (uuid.empty()) {
     
-        LOG_INFO("Could not process sysinfo for %s(%s). No UUID found.", ip.c_str(), proxy.c_str());
+        spdlog::info("Could not process sysinfo for {}({}). No UUID found.", ip, proxy);
         DiscoveredData* inst = discovery.FindByIp(ip, "", true);
         inst->extraData["httpConnected"] = false;
         if (proxy != "") {
@@ -3870,7 +3865,7 @@ static bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputMan
             return true;
         } else {
         
-            LOG_INFO("FPP Discovery - Skipping %s no http connection", (const char *)res->ip.c_str());
+            spdlog::info("FPP Discovery - Skipping {} no http connection", res->ip);
             return false;
         }
     }
@@ -3940,15 +3935,15 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
             }
         }
     }
-    LOG_INFO("----------- FPP Discovery Results ------------");
+    spdlog::info("----------- FPP Discovery Results ------------");
     for (auto res : discovery.GetResults()) {
         bool http = (res->extraData.contains("httpConnected") && res->extraData["httpConnected"].get<bool>() == true);
-        LOG_INFO("   Instance: %s (uuid: %s)(hn: %s)(proxy: %s)(ver: %s)(http: %s)(t: %X)", res->ip.c_str(), res->uuid.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->version.c_str(), http ? "true" : "false", res->typeId);
+        spdlog::info("   Instance: {} (uuid: {})(hn: {})(proxy: {})(ver: {})(http: {})(t: {:X})", res->ip, res->uuid, res->hostname, res->proxy, res->version, http ? "true" : "false", res->typeId);
     }
-    LOG_INFO("----------------------------------------------");
+    spdlog::info("----------------------------------------------");
     for (auto res : discovery.GetResults()) {
         if (::supportedForFPPConnect(res, outputManager)) {
-            LOG_INFO("FPP Discovery - Found Supported FPP Instance: %s (u: %s)(h: %s)(p: %s)(r: %s)", res->ip.c_str(), res->uuid.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->ranges.c_str());
+            spdlog::info("FPP Discovery - Found Supported FPP Instance: {} (u: {})(h: {})(p: {})(r: {})", res->ip, res->uuid, res->hostname, res->proxy, res->ranges);
             FPP *fpp = nullptr;
             bool skipit = false;
 
@@ -3958,7 +3953,7 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
                 }
                 if (!res->uuid.empty() && f->uuid == res->uuid) {
                     if (configuredIPs.count(res->ip) > 0) {
-                        LOG_INFO("FPP Discovery - Found Configured IP - %s for the same UUID - %s. Going to use this instead.", res->ip.c_str(), res->uuid.c_str());
+                        spdlog::info("FPP Discovery - Found Configured IP - {} for the same UUID - {}. Going to use this instead.", res->ip, res->uuid);
                         fpp = f;
                     } else {
                         skipit = true;
@@ -4042,7 +4037,7 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
                 fpp->canZipUpload = res->canZipUpload;
             }
         } else {
-            LOG_INFO("FPP Discovery - %s is not a supported FPP Instance", res->ip.c_str());
+            spdlog::info("FPP Discovery - {} is not a supported FPP Instance", res->ip);
         }
     }
     for (auto f : instances) {
@@ -4082,10 +4077,10 @@ std::vector<std::tuple<std::string, std::string>> FPP::GetProxies() {
         if (GetURLAsJSON("/api/proxies", val)) {
             for (int x = 0; x < val.size(); x++) {
                 if (val[x].is_string()) {
-                    LOG_DEBUG("FPP %s proxies %s.", (const char*)ipAddress.c_str(), (const char*)val[x].get<std::string>().c_str());
+                    spdlog::debug("FPP {} proxies {}.", ipAddress, val[x].get<std::string>());
                     res.push_back({ (val[x].get<std::string>()), std::string() });
                 } else if (val[x].is_object()) { // FPP 8 change
-                    LOG_DEBUG("FPP %s proxies %s.", (const char*)ipAddress.c_str(), (const char*)val[x]["host"].get<std::string>().c_str());
+                    spdlog::debug("FPP {} proxies {}.", ipAddress, val[x]["host"].get<std::string>());
                     res.push_back({ (val[x]["host"].get<std::string>()), (val[x]["description"].get<std::string>()) });
                 }
             }
@@ -4206,7 +4201,7 @@ std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
     }
     waitForCurlsComplete(discovery);
 
-    LOG_INFO("FPP Discovery Complete.  Found " + std::to_string(instances.size()) + " instances.");
+    spdlog::info("FPP Discovery Complete.  Found " + std::to_string(instances.size()) + " instances.");
     return instances;
 }
 

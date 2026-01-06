@@ -20,10 +20,10 @@
 #include "../outputs/ControllerEthernet.h"
 #include "ControllerCaps.h"
 #include "../Discovery.h"
-#include "../xSchedule/wxJSON/jsonreader.h"
+
 #include "../utils/Curl.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #define PIXLITE_PORT 49150
 
@@ -964,12 +964,12 @@ bool Pixlite16::GetConfig(wxIPV4address localAddr, std::string ip, const std::st
     auto discovery = new wxDatagramSocket(localAddr, flags); // dont use NOWAIT as it can result in dropped packets
 
     if (discovery == nullptr) {
-        LOG_ERROR("Error initialising PixLite/PixCon datagram.");
+        spdlog::error("Error initialising PixLite/PixCon datagram.");
     } else if (!discovery->IsOk()) {
-        LOG_ERROR("Error initialising PixLite/PixCon datagram ... is network connected? OK : FALSE");
+        spdlog::error("Error initialising PixLite/PixCon datagram ... is network connected? OK : FALSE");
         delete discovery;
     } else if (discovery->Error()) {
-        LOG_ERROR("Error creating PixLite/PixCon socket => %d : %s.", (int)discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
+        spdlog::error("Error creating PixLite/PixCon socket => {} : {}.", (int)discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
         delete discovery;
     } else {
         discovery->SetTimeout(1);
@@ -981,11 +981,11 @@ bool Pixlite16::GetConfig(wxIPV4address localAddr, std::string ip, const std::st
 
         uint8_t discoveryData[12];
         Pixlite16::CreateDiscovery(discoveryData);
-        LOG_DEBUG("Sending discovery to pixlite: %s:%d.", (const char*)ip.c_str(), PIXLITE_PORT);
+        spdlog::debug("Sending discovery to pixlite: {}:{}.", (const char*)ip.c_str(), PIXLITE_PORT);
         discovery->SendTo(remoteAddr, discoveryData, sizeof(discoveryData));
 
         if (discovery->Error()) {
-            LOG_ERROR("PixLite/PixCon error sending to %s => %d : %s.", (const char*)ip.c_str(), (int)discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
+            spdlog::error("PixLite/PixCon error sending to {} => {} : {}.", (const char*)ip.c_str(), (int)discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
         } else {
             uint32_t count = 0;
 #define SLP_TIME 100
@@ -995,7 +995,7 @@ bool Pixlite16::GetConfig(wxIPV4address localAddr, std::string ip, const std::st
             }
 
             if (!discovery->IsData()) {
-                LOG_WARN("No discovery responses.");
+                spdlog::warn("No discovery responses.");
             }
 
             // look through responses for one that matches my ip
@@ -1006,41 +1006,41 @@ bool Pixlite16::GetConfig(wxIPV4address localAddr, std::string ip, const std::st
                 discovery->RecvFrom(pixliteAddr, data, sizeof(data));
 
                 if (!discovery->Error() && data[10] == 0x02) {
-                    LOG_DEBUG("   Discover response from %s.", (const char*)pixliteAddr.IPAddress().c_str());
+                    spdlog::debug("   Discover response from {}.", (const char*)pixliteAddr.IPAddress().c_str());
 
                     if (desiredip == pixliteAddr.IPAddress()) {
-                        LOG_DEBUG("   This is the one we wanted to see.");
+                        spdlog::debug("   This is the one we wanted to see.");
 
                         bool connected = false;
                         _config._protocolVersion = data[11];
-                        LOG_DEBUG("   Protocol version %d.", _config._protocolVersion);
+                        spdlog::debug("   Protocol version {}.", _config._protocolVersion);
                         switch (_config._protocolVersion) {
                         case 4:
                             connected = ParseV4Config(data, _config);
                             if (!connected) {
-                                LOG_ERROR("   Failed to parse v4 config packet.");
+                                spdlog::error("   Failed to parse v4 config packet.");
                             }
                             break;
                         case 5:
                             connected = ParseV5Config(data, _config);
                             if (!connected) {
-                                LOG_ERROR("   Failed to parse v5 config packet.");
+                                spdlog::error("   Failed to parse v5 config packet.");
                             }
                             break;
                         case 6:
                             connected = ParseV6Config(data, _config);
                             if (!connected) {
-                                LOG_ERROR("   Failed to parse v6 config packet.");
+                                spdlog::error("   Failed to parse v6 config packet.");
                             }
                             break;
                         case 8:
                             connected = ParseV8Config(data, _config);
                             if (!connected) {
-                                LOG_ERROR("   Failed to parse v8 config packet.");
+                                spdlog::error("   Failed to parse v8 config packet.");
                             }
                             break;
                         default:
-                            LOG_ERROR("Unsupported Pixlite protocol version: %d.", _config._protocolVersion);
+                            spdlog::error("Unsupported Pixlite protocol version: {}.", _config._protocolVersion);
                             wxASSERT(false);
                             break;
                         }
@@ -1048,24 +1048,24 @@ bool Pixlite16::GetConfig(wxIPV4address localAddr, std::string ip, const std::st
                         if (connected) {
                             wxString rcvIP = wxString::Format("%i.%i.%i.%i", _config._currentIP[0], _config._currentIP[1], _config._currentIP[2], _config._currentIP[3]);
 
-                            LOG_DEBUG("Found PixLite/PixCon controller on %s.", (const char*)rcvIP.c_str());
-                            LOG_DEBUG("    Model %s %.1f.", (const char*)_config._modelName.c_str(), (float)_config._hwRevision / 10.0);
-                            LOG_DEBUG("    Firmware %s.", (const char*)_config._firmwareVersion.c_str());
-                            LOG_DEBUG("    Nickname %s.", (const char*)_config._nickname.c_str());
-                            LOG_DEBUG("    Brand %d.", _config._brand);
+                            spdlog::debug("Found PixLite/PixCon controller on {}.", rcvIP.ToStdString());
+                            spdlog::debug("    Model {} {:.1f}.", _config._modelName, (float)_config._hwRevision / 10.0);
+                            spdlog::debug("    Firmware {}.", _config._firmwareVersion);
+                            spdlog::debug("    Nickname {}.", _config._nickname);
+                            spdlog::debug("    Brand {}.", _config._brand);
                             res = true;
                             break;
                         } else {
-                            LOG_ERROR("Unable to download PixLite/PixCon controller configuration from %s.", (const char*)ip.c_str());
+                            spdlog::error("Unable to download PixLite/PixCon controller configuration from {}.", ip);
                         }
                     }
                     if (!discovery->Error() && data[10] == 0x01) {
                         // ignore this ... this is the discovery we sent
                     } else {
-                        LOG_DEBUG("   Not the controller we wanted to see.");
+                        spdlog::debug("   Not the controller we wanted to see.");
                     }
                 } else if (discovery->Error()) {
-                    LOG_ERROR("Error reading PixLite/PixCon response => %d : %s.", (int)discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
+                    spdlog::error("Error reading PixLite/PixCon response => {} : {}.", (int)discovery->LastError(), DecodeIPError(discovery->LastError()));
                 }
             }
         }
@@ -1089,12 +1089,12 @@ bool Pixlite16::GetConfig()
     // if we had no luck broadcast to all adapters and see if we can find it
     if (!res)
     {
-        LOG_WARN("Trying broadcast to each adapter to see if we can find");
+        spdlog::warn("Trying broadcast to each adapter to see if we can find");
 
         for (const auto& lip : GetLocalIPs())
         {
             if (!res) {
-                LOG_WARN("   Trying %s.", (const char*)lip.c_str());
+                spdlog::warn("   Trying {}.", lip);
                 localAddr.Hostname(lip);
                 res = GetConfig(localAddr, "255.255.255.255", _ip);
             }
@@ -1200,7 +1200,7 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
 
     discovery.AddBroadcast(PIXLITE_PORT, [&discovery](wxDatagramSocket* socket, uint8_t* data, int len) {
         
-        LOG_ERROR("    Advatech discovery packet type : %d.", data[10]);
+        spdlog::error("    Advatech discovery packet type : {}.", data[10]);
         if (data[10] == 0x02) {
             Pixlite16::Config it;
             memset(&it, 0x00, sizeof(it));
@@ -1220,7 +1220,7 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
                 connected = ParseV8Config(data, it);
                 break;
             default:
-                LOG_ERROR("Unsupported protocol : %d.", it._protocolVersion);
+                spdlog::error("Unsupported protocol : {}.", it._protocolVersion);
                 wxASSERT(false);
                 break;
             }
@@ -1228,11 +1228,11 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
             if (connected) {
                 wxString rcvIP = wxString::Format("%i.%i.%i.%i", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]);
 
-                LOG_DEBUG("Found PixLite/PixCon controller on %s.", (const char*)rcvIP.c_str());
-                LOG_DEBUG("    Model %s %.1f.", (const char*)it._modelName.c_str(), (float)it._hwRevision / 10.0);
-                LOG_DEBUG("    Firmware %s.", (const char*)it._firmwareVersion.c_str());
-                LOG_DEBUG("    Nickname %s.", (const char*)it._nickname.c_str());
-                LOG_DEBUG("    Brand %d.", it._brand);
+                spdlog::debug("Found PixLite/PixCon controller on {}.", rcvIP.ToStdString());
+                spdlog::debug("    Model {} {:.1f}.", it._modelName, (float)it._hwRevision / 10.0);
+                spdlog::debug("    Firmware {}.", it._firmwareVersion);
+                spdlog::debug("    Nickname {}.", it._nickname);
+                spdlog::debug("    Brand {}.", it._brand);
 
                 auto eth = new ControllerEthernet(discovery.GetOutputManager(), false);
                 eth->SetIP(wxString::Format("%i.%i.%i.%i", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]).ToStdString());
@@ -1315,7 +1315,7 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
 
             // this code was referencing the 0x0101 spec so may not work for other versions
             if (ver != 0x0101) {
-                LOG_DEBUG("MK3 discovery protocol version 0x&04x unknown ... this may cause issues.");
+                spdlog::debug("MK3 discovery protocol version 0x&04x unknown ... this may cause issues.");
             }
 
             char cdata[8096];
@@ -1325,9 +1325,9 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
             nlohmann::json jsonVal = nlohmann::json::parse(cdata);
 
             if (!jsonVal.is_null()) {
-                LOG_DEBUG("Found PixLite MK3 controller on %s.", (const char*)jsonVal["ipAddr"].get<std::string>().c_str());
-                LOG_DEBUG("    Model %s %s.", (const char*)jsonVal["prodName"].get<std::string>().c_str(), (const char*)jsonVal["fwVer"].get<std::string>().c_str());
-                LOG_DEBUG("    Nickname %s.", (const char*)jsonVal["nickname"].get<std::string>().c_str());
+                spdlog::debug("Found PixLite MK3 controller on {}.",jsonVal["ipAddr"].get<std::string>());
+                spdlog::debug("    Model {} {}.", jsonVal["prodName"].get<std::string>(), jsonVal["fwVer"].get<std::string>());
+                spdlog::debug("    Nickname {}.", jsonVal["nickname"].get<std::string>());
 
                 std::string protocol = OUTPUT_E131;
 
@@ -1520,13 +1520,10 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     request += "}}}";
 
-    LOG_DEBUG(request);
-
+   spdlog::debug(request);
     auto res = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "JSON");
 
-    LOG_DEBUG(res);
-
-
+    spdlog::debug(res);
     nlohmann::json jsonVal = nlohmann::json::parse(res);
 
     bool result = false;
@@ -1534,7 +1531,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
         if (jsonVal.contains("result")) {
             result = jsonVal["result"]["saved"].get<bool>() == true;
         } else if (jsonVal.contains("err")) {
-            LOG_ERROR(jsonVal["err"]["msg"].get<std::string>());
+            spdlog::error(jsonVal["err"]["msg"].get<std::string>());
         }
     }
     return result;
@@ -1554,21 +1551,21 @@ bool Pixlite16::SendConfig(bool logresult) const
     auto config = new wxDatagramSocket(localAddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
 
     if (config == nullptr) {
-        LOG_ERROR("Error initialising PixLite/PixCon config datagram.");
+        spdlog::error("Error initialising PixLite/PixCon config datagram.");
         return false;
     }
     else if (!config->IsOk()) {
-        LOG_ERROR("Error initialising PixLite/PixCon config datagram ... is network connected? OK : FALSE");
+        spdlog::error("Error initialising PixLite/PixCon config datagram ... is network connected? OK : FALSE");
         delete config;
         return false;
     }
     else if (config->Error()) {
-        LOG_ERROR("Error creating PixLite/PixCon config datagram => %d : %s.", (int)config->LastError(), (const char*)DecodeIPError(config->LastError()).c_str());
+        spdlog::error("Error creating PixLite/PixCon config datagram => {} : {}.", (int)config->LastError(), DecodeIPError(config->LastError()));
         delete config;
         return false;
     }
 
-    LOG_DEBUG("PixLite/PixCon sending config to %s.", (const char*)_ip.c_str());
+    spdlog::debug("PixLite/PixCon sending config to {}.", (const char*)_ip.c_str());
     wxIPV4address toAddr;
     toAddr.Hostname(_ip);
     toAddr.Service(PIXLITE_PORT);
@@ -1591,7 +1588,7 @@ bool Pixlite16::SendConfig(bool logresult) const
         size = PrepareV8Config(data);
         break;
     default:
-        LOG_ERROR("Unsupported protocol : %d.", _protocolVersion);
+        spdlog::error("Unsupported protocol : {}.", _protocolVersion);
         wxASSERT(false);
         break;
     }
@@ -1608,53 +1605,52 @@ bool Pixlite16::SendConfig(bool logresult) const
 
 void Pixlite16::DumpConfiguration(Pixlite16::Config& config)
 {
-    
-    LOG_DEBUG("Dumping PixLite/PixCon configuration: Packet Version: %d.", config._protocolVersion);
-    LOG_DEBUG("    MAC %02x:%02x:%02x:%02x:%02x:%02x:", config._mac[0], config._mac[1], config._mac[2], config._mac[3], config._mac[4], config._mac[5]);
-    LOG_DEBUG("    Nickname %d : %s", config._nicknameLen, (const char*)config._nickname.c_str());
-    LOG_DEBUG("    Model Name %d : %s", config._modelNameLen, (const char*)config._modelName.c_str());
-    LOG_DEBUG("    Firmware Version %d : %s", config._firmwareVersionLen, (const char*)config._firmwareVersion.c_str());
-    LOG_DEBUG("    Brand : %d", config._brand);
-    LOG_DEBUG("    Hardware Revision : %d", config._hwRevision);
-    LOG_DEBUG("    Minimum Assistant Version : %d.%d.%d", config._minAssistantVer[0], config._minAssistantVer[1], config._minAssistantVer[2]);
-    LOG_DEBUG("    Current IP : %d.%d.%d.%d", config._currentIP[0], config._currentIP[1], config._currentIP[2], config._currentIP[3]);
-    LOG_DEBUG("    Subnet Mask : %d.%d.%d.%d", config._currentSubnetMask[0], config._currentSubnetMask[1], config._currentSubnetMask[2], config._currentSubnetMask[3]);
-    LOG_DEBUG("    DHCP : %d", config._dhcp);
-    LOG_DEBUG("    Static IP : %d.%d.%d.%d", config._staticIP[0], config._staticIP[1], config._staticIP[2], config._staticIP[3]);
-    LOG_DEBUG("    Static Subnet Mask : %d.%d.%d.%d", config._staticSubnetMask[0], config._staticSubnetMask[1], config._staticSubnetMask[2], config._staticSubnetMask[3]);
-    LOG_DEBUG("    Network Protocol : %d", config._protocol);
-    LOG_DEBUG("    Hold Last Frame : %d", config._holdLastFrame);
-    LOG_DEBUG("    Pixels on port can span universe : %d", config._pixelsCanBeSplit);
-    LOG_DEBUG("    Simple Config : %d (0 = simple)", config._simpleConfig);
-    LOG_DEBUG("    Max Pixels Per Output : %d", config._maxPixelsPerOutput);
-    LOG_DEBUG("    Num Pixel Outputs : %d but really %d", config._numOutputs, config._realOutputs);
-    LOG_DEBUG("    Pixel Outputs :");
+    spdlog::debug("Dumping PixLite/PixCon configuration: Packet Version: {}.", config._protocolVersion);
+    spdlog::debug("    MAC {:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:", config._mac[0], config._mac[1], config._mac[2], config._mac[3], config._mac[4], config._mac[5]);
+    spdlog::debug("    Nickname {} : {}", config._nicknameLen, config._nickname);
+    spdlog::debug("    Model Name {} : {}", config._modelNameLen, config._modelName);
+    spdlog::debug("    Firmware Version {} : {}", config._firmwareVersionLen, config._firmwareVersion);
+    spdlog::debug("    Brand : {}", config._brand);
+    spdlog::debug("    Hardware Revision : {}", config._hwRevision);
+    spdlog::debug("    Minimum Assistant Version : {}.{}.{}", config._minAssistantVer[0], config._minAssistantVer[1], config._minAssistantVer[2]);
+    spdlog::debug("    Current IP : {}.{}.{}.{}", config._currentIP[0], config._currentIP[1], config._currentIP[2], config._currentIP[3]);
+    spdlog::debug("    Subnet Mask : {}.{}.{}.{}", config._currentSubnetMask[0], config._currentSubnetMask[1], config._currentSubnetMask[2], config._currentSubnetMask[3]);
+    spdlog::debug("    DHCP : %d", config._dhcp);
+    spdlog::debug("    Static IP : {}.{}.{}.{}", config._staticIP[0], config._staticIP[1], config._staticIP[2], config._staticIP[3]);
+    spdlog::debug("    Static Subnet Mask : {}.{}.{}.{}", config._staticSubnetMask[0], config._staticSubnetMask[1], config._staticSubnetMask[2], config._staticSubnetMask[3]);
+    spdlog::debug("    Network Protocol : {}", config._protocol);
+    spdlog::debug("    Hold Last Frame : {}", config._holdLastFrame);
+    spdlog::debug("    Pixels on port can span universe : {}", config._pixelsCanBeSplit);
+    spdlog::debug("    Simple Config : {} (0 = simple)", config._simpleConfig);
+    spdlog::debug("    Max Pixels Per Output : {}", config._maxPixelsPerOutput);
+    spdlog::debug("    Num Pixel Outputs : {} but really {}", config._numOutputs, config._realOutputs);
+    spdlog::debug("    Pixel Outputs :");
     for (int i = 0; i < config._numOutputs; i++) {
-        LOG_DEBUG("        Pixel Output %d", i + 1);
-        LOG_DEBUG("            Pixels %d", config._outputPixels[i]);
-        LOG_DEBUG("            Universe/StartChannel %d/%d", config._outputUniverse[i], config._outputStartChannel[i]);
-        LOG_DEBUG("            Null Pixels %d", config._outputNullPixels[i]);
-        LOG_DEBUG("            Zig Zag %d", config._outputZigZag[i]);
-        LOG_DEBUG("            Brightness %d", config._outputBrightness[i]);
-        LOG_DEBUG("            Colour Order %d", config._outputColourOrder[i]);
-        LOG_DEBUG("            Reverse %d", config._outputReverse[i]);
-        LOG_DEBUG("            Grouping %d", config._outputGrouping[i]);
+        spdlog::debug("        Pixel Output {}", i + 1);
+        spdlog::debug("            Pixels {}", config._outputPixels[i]);
+        spdlog::debug("            Universe/StartChannel {}/{}", config._outputUniverse[i], config._outputStartChannel[i]);
+        spdlog::debug("            Null Pixels {}", config._outputNullPixels[i]);
+        spdlog::debug("            Zig Zag {}", config._outputZigZag[i]);
+        spdlog::debug("            Brightness {}", config._outputBrightness[i]);
+        spdlog::debug("            Colour Order {}", config._outputColourOrder[i]);
+        spdlog::debug("            Reverse {}", config._outputReverse[i]);
+        spdlog::debug("            Grouping {}", config._outputGrouping[i]);
     }
-    LOG_DEBUG("    Num DMX Outputs : %d but really %d", config._numDMX, config._realDMX);
+    spdlog::debug("    Num DMX Outputs : {} but really {}", config._numDMX, config._realDMX);
     for (int i = 0; i < config._numDMX; i++) {
-        LOG_DEBUG("        DMX Output %d", i + 1);
-        LOG_DEBUG("            On %d", config._dmxOn[i]);
-        LOG_DEBUG("            Universe %d", config._dmxUniverse[i]);
+        spdlog::debug("        DMX Output {}", i + 1);
+        spdlog::debug("            On {}", config._dmxOn[i]);
+        spdlog::debug("            Universe {}", config._dmxUniverse[i]);
     }
-    LOG_DEBUG("    Current Driver : %d ", config._currentDriver);
-    LOG_DEBUG("    Current Driver Type : %d ", config._currentDriverType);
-    LOG_DEBUG("    Current Driver Speed : %d ", config._currentDriverSpeed);
-    LOG_DEBUG("    Current Driver Expanded : %d ", config._currentDriverExpanded);
-    LOG_DEBUG("    Gamma : %.1f/%.1f/%.1f ", (float)config._gamma[0] / 10.0, (float)config._gamma[1] / 10.0, (float)config._gamma[2] / 10.0);
-    LOG_DEBUG("    Temperature : %.1f/%d ", (float)config._temperature / 10.0, config._maxTargetTemp);
-    LOG_DEBUG("    Voltage Banks : %d ", config._numBanks);
+    spdlog::debug("    Current Driver : {} ", config._currentDriver);
+    spdlog::debug("    Current Driver Type : {} ", config._currentDriverType);
+    spdlog::debug("    Current Driver Speed : {} ", config._currentDriverSpeed);
+    spdlog::debug("    Current Driver Expanded : {} ", config._currentDriverExpanded);
+    spdlog::debug("    Gamma : {:.1f}/{:.1f}/{:.1f} ", (float)config._gamma[0] / 10.0, (float)config._gamma[1] / 10.0, (float)config._gamma[2] / 10.0);
+    spdlog::debug("    Temperature : {:.1f}/{} ", (float)config._temperature / 10.0, config._maxTargetTemp);
+    spdlog::debug("    Voltage Banks : {} ", config._numBanks);
     for (int i = 0; i < config._numBanks; i++) {
-        LOG_DEBUG("        Voltage Bank %d : %.1f ", i + 1, (float)config._bankVoltage[i] / 10.0);
+        spdlog::debug("        Voltage Bank {} : {:.1f} ", i + 1, (float)config._bankVoltage[i] / 10.0);
     }
 }
 #pragma endregion
@@ -1662,31 +1658,29 @@ void Pixlite16::DumpConfiguration(Pixlite16::Config& config)
 #pragma region Constructors and Destructors
 Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "")
 {
-    
-
     _connected = false;
-    LOG_DEBUG("Requesting pixlite configuration.");
+    spdlog::debug("Requesting pixlite configuration.");
     if (GetConfig()) {
-        LOG_DEBUG("*** Success connecting to PixLite/PixCon controller on %s.", (const char*)_ip.c_str());
+        spdlog::debug("*** Success connecting to PixLite/PixCon controller on {}.", _ip);
         _protocolVersion = _config._protocolVersion;
         _model = _config._modelName;
         _version = _config._firmwareVersion;
         _connected = true;
     }
     else {
-        LOG_DEBUG("Requesting pixlite MK3 configuration.");
+        spdlog::debug("Requesting pixlite MK3 configuration.");
         if (GetMK3Config()) {
            _model = _config._modelName;
            _version = _config._firmwareVersion;
             _connected = true;
-            LOG_DEBUG(_mk3Ver);
-            LOG_DEBUG(_mk3Config);
-            LOG_DEBUG(_mk3Constants);
+            spdlog::debug(_mk3Ver);
+            spdlog::debug(_mk3Config);
+            spdlog::debug(_mk3Constants);
         }
     }
 
     if (!_connected) {
-        LOG_ERROR("Error connecting to PixLite/PixCon controller on %s.", (const char*)_ip.c_str());
+        spdlog::error("Error connecting to PixLite/PixCon controller on {}.", _ip);
     }
 
     if (_connected) {
@@ -1700,9 +1694,7 @@ Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "")
 bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent)
 {
     //ResetStringOutputs(); // this shouldnt be used normally
-
-    
-    LOG_DEBUG("PixLite/PixCon Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+    spdlog::debug("PixLite/PixCon Outputs Upload: Uploading to {}", _ip);
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
@@ -1712,7 +1704,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
     cud.Dump();
 
-    LOG_DEBUG(check);
+    spdlog::debug(check);
 
     if (controller->IsFullxLightsControl()) {
 

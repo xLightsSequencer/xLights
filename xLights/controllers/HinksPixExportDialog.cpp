@@ -26,7 +26,7 @@
 #include "outputs/OutputManager.h"
 #include "HinksPix.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include "../include/spxml-0.5/spxmlevent.hpp"
 #include "../include/spxml-0.5/spxmlparser.hpp"
@@ -197,7 +197,7 @@ void HSEQFile::writeHeader() {
 }
 
 void HinksChannelMap::Dump() const {
-    LOG_DEBUG(" xLights StartChannel %d Channel Count %d Hinkspix StartChannel %d",
+    spdlog::debug(" xLights StartChannel {} Channel Count {} Hinkspix StartChannel {}",
                       OrgStartChannel,
                       ChannelCount,
                       HinksStartChannel);
@@ -552,7 +552,7 @@ void HinksPixExportDialog::ExtractFirmware(ControllerEthernet* controller) {
         wxFileInputStream fis(fn.GetFullPath());
 
         if (!fis.IsOk()) {
-            LOG_ERROR("Could not open the Firmware Package '%s'", (const char*)fn.GetFullName().c_str());
+            spdlog::error("Could not open the Firmware Package '{}'", fn.GetFullName().ToStdString());
             prgs.Update(100);
             return;
         }
@@ -561,13 +561,13 @@ void HinksPixExportDialog::ExtractFirmware(ControllerEthernet* controller) {
         wxZipInputStream zis(fis);
         std::unique_ptr<wxZipEntry> upZe;
         if (!zis.IsOk()) {
-            LOG_ERROR("Could not open the zip file '%s'", (const char*)fn.GetFullName().c_str());
+            spdlog::error("Could not open the zip file '{}'", fn.GetFullName().ToStdString());
             prgs.Update(100);
             return;
         }
 
         if (zis.GetTotalEntries() == 0) {
-            LOG_ERROR("No entries found in zip file '%s'", (const char*)fn.GetFullName().c_str());
+            spdlog::error("No entries found in zip file '{}'", fn.GetFullName().ToStdString());
             prgs.Update(100);
             return;
         }
@@ -581,7 +581,7 @@ void HinksPixExportDialog::ExtractFirmware(ControllerEthernet* controller) {
             wxString fnEntry = wxString::Format("%s%c%s", tempDir, wxFileName::GetPathSeparator(), upZe->GetName());
 
             if (fnEntry.Contains("__MACOSX")) {
-                LOG_DEBUG("   skipping MACOS Folder %s.", (const char*)fnEntry.c_str());
+                spdlog::debug("   skipping MACOS Folder {}.", fnEntry.ToStdString());
                 upZe.reset(zis.GetNextEntry());
                 continue;
             }
@@ -595,7 +595,7 @@ void HinksPixExportDialog::ExtractFirmware(ControllerEthernet* controller) {
             wxFileName fnOutput;
             fnOutput.Assign(fnEntry);
 
-            LOG_DEBUG("   Extracting %s to %s.", (const char*)fnEntry.c_str(), (const char*)fnOutput.GetFullPath().c_str());
+            spdlog::debug("   Extracting {} to {}.", fnEntry.ToStdString(), fnOutput.GetFullPath().ToStdString());
 
             if (!wxDirExists(fnOutput.GetPath())) {
                 wxFileName::Mkdir(fnOutput.GetPath(), wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
@@ -604,12 +604,12 @@ void HinksPixExportDialog::ExtractFirmware(ControllerEthernet* controller) {
             // handle file output
             if (!upZe->IsDir()) {
                 if (!zis.CanRead()) {
-                    LOG_ERROR("Could not read file from package '%s'", (const char*)upZe->GetName().c_str());
+                    spdlog::error("Could not read file from package '{}'", upZe->GetName().ToStdString());
                 } else {
                     wxFileOutputStream fos(fnOutput.GetFullPath());
 
                     if (!fos.IsOk()) {
-                        LOG_ERROR("Could not create file at '%s'", (const char*)fnOutput.GetFullName().c_str());
+                        spdlog::error("Could not create file at '{}'", fnOutput.GetFullName().ToStdString());
                         continue;
                     } else {
                         zis.Read(fos);
@@ -874,7 +874,7 @@ void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
 
 void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets
-    LOG_INFO("Scanning folder for sequences for HinksPix Export: %s", (const char*)dir.c_str());
+    spdlog::info("Scanning folder for sequences for HinksPix Export: {}", dir.ToStdString());
 
     wxDir directory;
     directory.Open(dir);
@@ -970,7 +970,7 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
                     if (!FileExists(mediaName)) {
                         const std::string fixedMN = FixFile(frame->CurrentDir, mediaName);
                         if (!FileExists(fixedMN)) {
-                            LOG_INFO("Could not find media: %s", mediaName.c_str());
+                            spdlog::info("Could not find media: {}", mediaName);
                             mediaName = "";
                         } else {
                             mediaName = fixedMN;
@@ -978,7 +978,7 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
                     }
                 }
             }
-            LOG_DEBUG("XML:  %s   IsSeq:  %d    FSEQ:  %s   Media:  %s", (const char*)file.c_str(), isSequence, (const char*)fseqName.c_str(), (const char*)mediaName.c_str());
+            spdlog::debug("XML:  {}   IsSeq:  {}    FSEQ:  {}   Media:  {}", file.ToStdString(), isSequence, fseqName, mediaName);
             if (isSequence) {
                 long index = CheckListBox_Sequences->GetItemCount();
                 CheckListBox_Sequences->InsertItem(index, fseqName);
@@ -1101,7 +1101,7 @@ void HinksPixExportDialog::SaveSettings() {
             o << std::setw(4) << data << std::endl;
         }
     } catch (const std::exception& ex) {
-        LOG_WARN("HinksPixExport SaveSettings: Failed: %s", ex.what());
+        spdlog::warn("HinksPixExport SaveSettings: Failed: {}", ex.what());
     }
 }
 
@@ -1152,9 +1152,9 @@ void HinksPixExportDialog::LoadSettings()
             }
         }
     } catch (nlohmann::json::parse_error& ex) {
-        LOG_WARN("HinksPixExport LoadSettings: Failed to parse JSON: %s", ex.what());
+        spdlog::warn("HinksPixExport LoadSettings: Failed to parse JSON: {}", ex.what());
     } catch (std::exception& e) {
-        LOG_WARN("HinksPixExport LoadSettings: Failed to parse JSON: %s", e.what());
+        spdlog::warn("HinksPixExport LoadSettings: Failed to parse JSON: {}", e.what());
     }
 
     if (m_schedules.empty()) {
@@ -1411,7 +1411,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
                             audioLoader.readerDecoderInitState(decoderInitState);
                             AudioResamplerInitState resamplerInitState = AudioResamplerInitState::NoInit;
                             audioLoader.resamplerInitState(resamplerInitState);
-                            LOG_ERROR("HinksPixExportDialog export - loading audio fails - %d : %d : %d", int(loaderState), int(decoderInitState), int(resamplerInitState));
+                            spdlog::error("HinksPixExportDialog export - loading audio fails - {} : {} : {}", int(loaderState), int(decoderInitState), int(resamplerInitState));
                         }
                     }
                     play.AU = auName;
@@ -1596,7 +1596,7 @@ void HinksPixExportDialog::OnButtonUploadClick(wxCommandEvent& /*event*/) {
                             audioLoader.readerDecoderInitState(decoderInitState);
                             AudioResamplerInitState resamplerInitState = AudioResamplerInitState::NoInit;
                             audioLoader.resamplerInitState(resamplerInitState);
-                            LOG_ERROR("HinksPixExportDialog export - loading audio fails - %d : %d : %d", int(loaderState), int(decoderInitState), int(resamplerInitState));
+                            spdlog::error("HinksPixExportDialog export - loading audio fails - {} : {} : {}", int(loaderState), int(decoderInitState), int(resamplerInitState));
                         }
                     }
                     play.AU = auName;
@@ -1814,12 +1814,12 @@ void HinksPixExportDialog::createModeFile(wxString const& drive, int mode) const
 }
 
 bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, wxString const& shortHSEQName, ControllerEthernet* hix, ControllerEthernet* slave1, ControllerEthernet* slave2, wxString& errorMsg) {
-    LOG_DEBUGWX(wxString::Format("HinksPix HSEQ Creation from %s", fseqFile));
+    spdlog::debug(wxString::Format("HinksPix HSEQ Creation from %s", fseqFile).ToStdString());
 
     std::unique_ptr<FSEQFile> xf(FSEQFile::openFSEQFile(fseqFile));
     if (!xf) {
         errorMsg = wxString::Format("HinksPix Failed opening FSEQ %s", fseqFile);
-        LOG_ERRORWX(errorMsg);
+        spdlog::error(errorMsg.ToStdString());
         return false;
     }
 
@@ -1829,7 +1829,7 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, w
     //if (hix->GetName() == "PRO V3") {
         if (ogFrame_Rate != 50 && ogFrame_Rate != 25) {
             errorMsg = wxString::Format("HinksPix Failed Framerate must be 25ms or 50ms FSEQ %s", fseqFile);
-            LOG_ERRORWX(errorMsg);
+            spdlog::error(errorMsg.ToStdString());
             return false;
         }
     //} else {
@@ -1861,7 +1861,7 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, w
     std::unique_ptr<FSEQFile> ef(new HSEQFile(shortHSEQName, hix, slave1, slave2, ogNumChannels));
     if (!ef) {
         errorMsg = wxString::Format("HinksPix Failed Write opening FSEQ %s", shortHSEQName);
-        LOG_ERRORWX(errorMsg);
+        spdlog::error(errorMsg.ToStdString());
         return false;
     }
 
@@ -1917,7 +1917,7 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, w
     delete[] tmpBuf;
     delete[] WriteBuf;
 
-    LOG_DEBUGWX(wxString::Format("HinksPix Completed HSEQ %s", shortHSEQName));
+    spdlog::debug(wxString::Format("HinksPix Completed HSEQ %s", shortHSEQName).ToStdString());
     return true;
 }
 
@@ -1965,7 +1965,7 @@ bool HinksPixExportDialog::Make_AU_From_ProcessedAudio(const std::vector<int16_t
     fo.Open(AU_File, wxFile::write);
     if (!fo.IsOpened()) {
         errorMsg = wxString::Format("Error Creating the AU Audio file %s", AU_File);
-        LOG_ERRORWX(errorMsg);
+        spdlog::error(errorMsg.ToStdString());
         return false;
     }
 
@@ -1983,7 +1983,7 @@ bool HinksPixExportDialog::CheckSlaveControllerSizes(ControllerEthernet* control
 
     if (slave1) {
         if (slave1->GetOutputCount() > 32) {
-            LOG_ERROR("HinksPixExportDialog export - Slave Controller '%s' has too many Universes, Max is 32 Currently Used is %d", slave1->GetName().c_str(), slave1->GetOutputCount());
+            spdlog::error("HinksPixExportDialog export - Slave Controller '{}' has too many Universes, Max is 32 Currently Used is {}", slave1->GetName().c_str(), slave1->GetOutputCount());
 
             DisplayError(wxString::Format("Slave Controller '%s' has too many Universes, Max is 32 Currently Used is %d", slave1->GetName().c_str(), slave1->GetOutputCount()));
             return false;
@@ -1993,7 +1993,7 @@ bool HinksPixExportDialog::CheckSlaveControllerSizes(ControllerEthernet* control
 
     if (slave2) {
         if (slave2->GetOutputCount() > 16) {
-            LOG_ERROR("HinksPixExportDialog export - Slave Controller '%s' has too many Universes, Max is 16 Currently Used is %d", slave2->GetName().c_str(), slave2->GetOutputCount());
+            spdlog::error("HinksPixExportDialog export - Slave Controller '{}' has too many Universes, Max is 16 Currently Used is {}", slave2->GetName().c_str(), slave2->GetOutputCount());
 
             DisplayError(wxString::Format("Slave Controller '%s' has too many Universes, Max is 16 Currently Used is %d", slave2->GetName().c_str(), slave2->GetOutputCount()));
             return false;
@@ -2005,7 +2005,7 @@ bool HinksPixExportDialog::CheckSlaveControllerSizes(ControllerEthernet* control
         return true;
     }
 
-    LOG_ERROR("HinksPixExportDialog export - too many Slave Controller Universes - '%s' : Max %d Used %d", controller->GetName().c_str(), slaveUni2, (slaveUni2 - slaveUni));
+    spdlog::error("HinksPixExportDialog export - too many Slave Controller Universes - '{}' : Max {} Used {}", controller->GetName().c_str(), slaveUni2, (slaveUni2 - slaveUni));
 
     DisplayError(wxString::Format("Too Many Slave Controller Universes off '%s': Max %d Used %d\n", controller->GetName().c_str(), slaveUni2, (slaveUni2 - slaveUni)));
 

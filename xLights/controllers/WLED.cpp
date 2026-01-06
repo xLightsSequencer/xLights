@@ -24,7 +24,7 @@
 
 #include <curl/curl.h>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #pragma region Output Classes
 struct WLEDOutput {
@@ -41,7 +41,7 @@ struct WLEDOutput {
 
     explicit WLEDOutput(int output_) : output(output_) { }
     void Dump() const {
-        LOG_DEBUG("    Output %d Start %d Pixels %d Rev %s Ref %s Nulls %d ColorOrder %d Protocol %d Pin %d Upload %s",
+        spdlog::debug("    Output {} Start {} Pixels {} Rev {} Ref {} Nulls {} ColorOrder {} Protocol {} Pin {} Upload {}",
             output,
             startCount,
             pixels,
@@ -87,16 +87,16 @@ WLED::WLED(const std::string& ip, const std::string &proxy) : BaseController(ip,
             _model = jsonVal["arch"].get<std::string>();
             _connected = true;
         } else {
-            LOG_ERROR("Error Determining WLED controller Type.");
+            spdlog::error("Error Determining WLED controller Type.");
             _connected = false;
         }
 
         if (_connected) {
-            LOG_DEBUG("Connected to WLED controller model %s.", (const char*)GetFullName().c_str());
+            spdlog::debug("Connected to WLED controller model {}.", (const char*)GetFullName().c_str());
         }
     } else {
         _connected = false;
-        LOG_ERROR("Error connecting to WLED controller on %s.", (const char *)_ip.c_str());
+        spdlog::error("Error connecting to WLED controller on {}.", (const char*)_ip.c_str());
     }
 }
 
@@ -212,7 +212,7 @@ void WLED::UpdatePortData(WLEDOutput* pd, UDControllerPort* stringData, int star
 
 void WLED::UpdatePixelOutputs(bool& worked, int totalPixelCount, nlohmann::json& jsonVal) {
 
-    LOG_DEBUG("Building pixel upload:");
+    spdlog::debug("Building pixel upload:");
     //total Pixel Count
     jsonVal["hw"]["led"]["total"] = totalPixelCount;
 
@@ -235,12 +235,12 @@ static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* d
 }
 
 bool WLED::PostJSON(nlohmann::json const& jsonVal) {
-    std::string str = jsonVal.dump(3, ' ', false, nlohmann::json::error_handler_t::replace);
+    std::string const str = jsonVal.dump(3, ' ', false, nlohmann::json::error_handler_t::replace);
     const std::string url = GetCfgURL();
 
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
-    LOG_DEBUG("Making request to Controller '%s'.", (const char*)url.c_str());
-    LOG_DEBUG("    With data '%s'.", (const char*)str.c_str());
+    spdlog::debug("Making request to Controller '{}'.", url);
+    spdlog::debug("    With data '{}'.", str);
 
     CURL* hnd = curl_easy_init();
 
@@ -265,13 +265,12 @@ bool WLED::PostJSON(nlohmann::json const& jsonVal) {
         CURLcode ret = curl_easy_perform(hnd);
         if (ret == CURLE_OK) {
             if (buffer.find("error") != std::string::npos) {
-                LOG_ERROR("Error From WLED %s", (const char*)buffer.c_str());
+                spdlog::error("Error From WLED {}", buffer);
                 return false;
             }
             return true;
-        } else {
-            LOG_ERROR("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(ret));
         }
+        spdlog::error("Failure to access {}: {}.", url, curl_easy_strerror(ret));
     }
     return false;
 }
@@ -423,26 +422,26 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
 
-    LOG_DEBUG("WLED Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+    spdlog::debug("WLED Outputs Upload: Uploading to {}", _ip);
 
     //2105110 added json config
     //2105200 added per string null pixel to GUI but older builds have it in the JSON
     if (_vid < 2105110) {
-        LOG_ERROR("Build 2105110 or newer of WLED Is Required, '%d' is Installed .", _vid);
+        spdlog::error("Build 2105110 or newer of WLED Is Required, '{}' is Installed .", _vid);
         DisplayError("WLED Upload Error:\nWLED 0.13b5 or newer is required", parent);
         progress.Update(100, "Aborting.");
         return false;
     }
 
     if (_vid < 2203190 && _vid > 2112080) {
-        LOG_ERROR("WLED Build 2112080 to 2203190 are broken, '%d' is Installed .", _vid);
+        spdlog::error("WLED Build 2112080 to 2203190 are broken, '{}' is Installed .", _vid);
         DisplayError("WLED Upload Error:\nUpload with WLED 0.13 and 0.13.1 is broken.\n(There is a bug in the WLED 0.13/0.13.1 firmware, not xLights)\nSwitch to WLED 0.13.2, WLED 0.13 beta6 or beta5 for the upload to work correctly", parent);
         progress.Update(100, "Aborting.");
         return false;
     }
 
     progress.Update(0, "Scanning models");
-    LOG_INFO("Scanning models.");
+    spdlog::info("Scanning models.");
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
@@ -451,7 +450,7 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     auto caps = ControllerCaps::GetControllerConfig(controller);
     const bool success = cud.Check(caps, check);
 
-    LOG_DEBUG(check);
+    spdlog::debug(check);
 
     cud.Dump();
 
@@ -461,7 +460,7 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
         return false;
     }
 
-    int maxPort = caps->GetMaxPixelPort();
+    int const maxPort = caps->GetMaxPixelPort();
 
     //get current config JSON
     const std::string page = GetURL(GetCfgURL());
@@ -473,21 +472,21 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
     }
     catch (nlohmann::json::parse_error const& e) 
     {
-        LOG_ERROR(e.what());
+        spdlog::error(e.what());
         DisplayError("WLED Upload Error:\n JSON Parse Error", parent);
         progress.Update(100, "Aborting.");
         return false;
     }
     catch (nlohmann::json::exception& e)
     {
-        LOG_ERROR(e.what());
+        spdlog::error(e.what());
         DisplayError("WLED Upload Error:\n JSON Parse Error", parent);
         progress.Update(100, "Aborting.");
         return false;
     }
     catch (std::exception& e) 
     {
-        LOG_ERROR(e.what());
+        spdlog::error(e.what());
         DisplayError("WLED Upload Error:\n JSON Parse Error", parent);
         progress.Update(100, "Aborting.");
         return false;
@@ -500,7 +499,7 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
         return false;
     }
 
-    LOG_INFO("Figuring Out Pixel Output Information.");
+    spdlog::info("Figuring Out Pixel Output Information.");
     progress.Update(20, "Figuring Out Pixel Output Information.");
 
     //loop to setup string outputs
@@ -518,16 +517,16 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
         }
     }
 
-    LOG_INFO("Updating String Output Information.");
+    spdlog::info("Updating String Output Information.");
     progress.Update(40, "Updating String Output Information.");
 
     UpdatePixelOutputs(worked, totalCount, val);
 
     if (!worked) {
-        LOG_ERROR("Error Updating to WLED controller, JSON:%s.", (const char*)page.c_str());
+        spdlog::error("Error Updating to WLED controller, JSON:{}.", page);
     }
 
-    LOG_INFO("Updating Input Information.");
+    spdlog::info("Updating Input Information.");
     progress.Update(50, "Updating Input Information.");
     worked = SetupInput(controller, val, rgbw);
     if (!worked) {
@@ -535,20 +534,20 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
         return false;
     }
 
-    LOG_INFO("Uploading JSON to WLED.");
+    spdlog::info("Uploading JSON to WLED.");
     progress.Update(70, "Uploading JSON to WLED.");
 
     //reboot
     val["rb"] = true;
 
-    bool uploadWorked = PostJSON(val);
+    bool const uploadWorked = PostJSON(val);
 
     if (!uploadWorked) {
-        LOG_ERROR("Error Uploading to WLED controller, JSON:%s.", (const char*)page.c_str());
+        spdlog::error("Error Uploading to WLED controller, JSON:{}.", page);
         worked = false;
     }
 
-    LOG_INFO("WLED Outputs Upload Done.");
+    spdlog::info("WLED Outputs Upload Done.");
     progress.Update(100, "Done.");
     return worked;
 }

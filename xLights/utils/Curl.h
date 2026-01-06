@@ -21,7 +21,7 @@
 #include <string>
 #include <algorithm>
 
-#include "./utils/spdlog_macros.h"
+
 
 class Curl {
 public:

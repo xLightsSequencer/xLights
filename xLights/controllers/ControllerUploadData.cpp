@@ -27,7 +27,7 @@
 
 #include <numeric>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #pragma region UDControllerPortModel
 
@@ -224,12 +224,12 @@ std::string UDControllerPortModel::GetLabel() const {
 
 void UDControllerPortModel::Dump() const {
     if (_string == -1) {
-        LOG_DEBUG("                Model %s. Controller Connection %s. Start Channel %d. End Channel %d. Channels %d. Pixels %d. Start Channel #%d:%d",
-            (const char*)_model->GetName().c_str(), (const char*)_model->GetControllerConnectionRangeString().c_str(),
+        spdlog::debug("                Model {}. Controller Connection {}. Start Channel {}. End Channel {}. Channels {}. Pixels {}. Start Channel #{}:{}",
+            _model->GetName(),_model->GetControllerConnectionRangeString(),
             _startChannel, _endChannel, Channels(),  INTROUNDUPDIV(Channels() , GetChannelsPerPixel()), GetUniverse(), GetUniverseStartChannel());
     } else {
-        LOG_DEBUG("                Model %s. String %d. Controller Connection %s. Start Channel %d. End Channel %d.",
-            (const char*)_model->GetName().c_str(), _string + 1, (const char*)_model->GetControllerConnectionRangeString().c_str(),
+        spdlog::debug("                Model {}. String {}. Controller Connection {}. Start Channel {}. End Channel {}.",
+            _model->GetName(), _string + 1, _model->GetControllerConnectionRangeString(),
             _startChannel, _endChannel);
     }
 }
@@ -385,9 +385,9 @@ UDControllerPortModel * UDControllerPort::AddModel(Model* m, Controller* control
                     // this model overlaps at least slightly
                     if ((*it2)->GetEndChannel() <= (*it)->GetEndChannel()) {
                         // it2 is totally inside it
-                        LOG_DEBUG("CUD add model removed model %s as it totally overlaps with model %s",
-                            (const char*)(*it2)->GetName().c_str(),
-                            (const char*)(*it)->GetName().c_str()
+                        spdlog::debug("CUD add model removed model {} as it totally overlaps with model {}",
+                            (*it2)->GetName(),
+                            (*it)->GetName()
                         );
                         if (eliminateOverlaps) (*it2)->GetModel()->SetControllerPort(0);
                         _models.erase(it2);
@@ -397,9 +397,9 @@ UDControllerPortModel * UDControllerPort::AddModel(Model* m, Controller* control
                              (*it2)->GetEndChannel() > (*it)->GetEndChannel() &&
                              (*it)->GetSmartRemote() == (*it2)->GetSmartRemote()) {
                         // i1 totally inside it2
-                        LOG_DEBUG("CUD add model removed model %s as it totally overlaps with model %s",
-                            (const char*)(*it)->GetName().c_str(),
-                            (const char*)(*it2)->GetName().c_str()
+                        spdlog::debug("CUD add model removed model {} as it totally overlaps with model {}",
+                            (*it)->GetName(),
+                            (*it2)->GetName()
                         );
                         if (eliminateOverlaps) (*it)->GetModel()->SetControllerPort(0);
                         _models.erase(it);
@@ -407,9 +407,9 @@ UDControllerPortModel * UDControllerPort::AddModel(Model* m, Controller* control
                     }
                     else if ((*it)->GetSmartRemote() == (*it2)->GetSmartRemote()) {
                         // so this is the difficult partial overlap case ... to prevent issues i will just erase model 2 and the user will need to fix it
-                        LOG_DEBUG("CUD add model removed model %s as it PARTIALLY overlaps with model %s. This will cause issues but it cannot be handled by the upload.",
-                            (const char*)(*it2)->GetName().c_str(),
-                            (const char*)(*it)->GetName().c_str()
+                        spdlog::debug("CUD add model removed model {} as it PARTIALLY overlaps with model {}. This will cause issues but it cannot be handled by the upload.",
+                            (*it2)->GetName(),
+                            (*it)->GetName()
                         );
                         if (eliminateOverlaps) (*it2)->GetModel()->SetControllerPort(0);
                         _models.erase(it2);
@@ -547,8 +547,8 @@ bool UDControllerPort::EnsureAllModelsAreChained()
             {
                 if (it->GetModel()->GetModelChain() != last)
                 {
-                    LOG_DEBUG("Model '%s' was chained to '%s' but fixed to chain to '%s'.", (const char*)it->GetModel()->GetName().c_str(),
-                        (const char*)it->GetModel()->GetModelChain().c_str(), (const char*)last.c_str());
+                    spdlog::debug("Model '{}' was chained to '{}' but fixed to chain to '{}'.", it->GetModel()->GetName(),
+                        it->GetModel()->GetModelChain(), last);
                     changed = true;
                     it->GetModel()->SetModelChain(last);
                 }
@@ -557,8 +557,8 @@ bool UDControllerPort::EnsureAllModelsAreChained()
             {
                 if (it->GetModel()->GetModelChain() != ">" + last)
                 {
-                    LOG_DEBUG("Model '%s' was chained to '%s' but fixed to chain to '%s'.", (const char*)it->GetModel()->GetName().c_str(),
-                        (const char*)it->GetModel()->GetModelChain().c_str(), (const char*)((">" + last).c_str()));
+                    spdlog::debug("Model '{}' was chained to '{}' but fixed to chain to '{}'.", it->GetModel()->GetName(),
+                        it->GetModel()->GetModelChain(), (">" + last).c_str());
                     changed = true;
                     it->GetModel()->SetModelChain(">" + last);
                 }
@@ -1022,7 +1022,7 @@ std::string UDControllerPort::GetSmartRemoteType(int smartRemote) const {
 }
 
 void UDControllerPort::Dump() const {
-    LOG_DEBUG("            Port %d. Protocol %s. Valid %s. Invalid Reason '%s'. Channels %d. Pixels %d. Start #%d:%d.", _port, (const char*)_protocol.c_str(), toStr( _valid ), (const char*)_invalidReason.c_str(), Channels(),  INTROUNDUPDIV(Channels(), GetChannelsPerPixel(_protocol)), GetUniverse(), GetUniverseStartChannel());
+    spdlog::debug("            Port {}. Protocol {}. Valid {}. Invalid Reason '{}'. Channels {}. Pixels {}. Start #{}:{}.", _port, _protocol, toStr(_valid), _invalidReason, Channels(), INTROUNDUPDIV(Channels(), GetChannelsPerPixel(_protocol)), GetUniverse(), GetUniverseStartChannel());
     for (const auto& it : _models) {
         it->Dump();
     }
@@ -1726,34 +1726,34 @@ bool UDController::IsValid() const {
 
 void UDController::Dump() const {
 
-    LOG_DEBUG("UDController Dump");
+    spdlog::debug("UDController Dump");
 
-    LOG_DEBUG("   IP Address %s.", (const char*)_ipAddress.c_str());
+    spdlog::debug("   IP Address {}.", _ipAddress);
     if (!_hostName.empty() && _hostName != _ipAddress) {
-        LOG_DEBUG("   HostName %s.", (const char*)_hostName.c_str());
+        spdlog::debug("   HostName {}.", _hostName);
     }
-    LOG_DEBUG("   Outputs:");
+    spdlog::debug("   Outputs:");
     auto outputs = _controller->GetOutputs();
     for (const auto& it : outputs) {
-        LOG_DEBUG("        %s", it->GetLongDescription().c_str());
+        spdlog::debug("        {}", it->GetLongDescription());
     }
-    LOG_DEBUG("   Pixel Ports %d. Maximum port Number %d.", (int)_pixelPorts.size(), GetMaxPixelPort());
+    spdlog::debug("   Pixel Ports {}. Maximum port Number {}.", (int)_pixelPorts.size(), GetMaxPixelPort());
     for (const auto& it : _pixelPorts) {
         it.second->Dump();
     }
-    LOG_DEBUG("   Serial Ports %d. Maximum port Number %d.", (int)_serialPorts.size(), GetMaxSerialPort());
+    spdlog::debug("   Serial Ports {}. Maximum port Number {}.", (int)_serialPorts.size(), GetMaxSerialPort());
     for (const auto& it : _serialPorts) {
         it.second->Dump();
     }
-    LOG_DEBUG("   PWM Ports %d. Maximum port Number %d.", (int)_pwmPorts.size(), GetMaxPWMPort());
+    spdlog::debug("   PWM Ports {}. Maximum port Number {}.", (int)_pwmPorts.size(), GetMaxPWMPort());
     for (const auto& it : _pwmPorts) {
         it.second->Dump();
     }
-    LOG_DEBUG("   Virtual Matrices %d.", (int)_virtualMatrixPorts.size());
+    spdlog::debug("   Virtual Matrices {}.", (int)_virtualMatrixPorts.size());
     for (const auto& it : _virtualMatrixPorts) {
         it.second->Dump();
     }
-    LOG_DEBUG("   LED Panel Matrices %d.", (int)_ledPanelMatrixPorts.size());
+    spdlog::debug("   LED Panel Matrices {}.", (int)_ledPanelMatrixPorts.size());
     for (const auto& it : _ledPanelMatrixPorts) {
         it.second->Dump();
     }

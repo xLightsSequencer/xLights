@@ -26,7 +26,7 @@
 #include "../outputs/ControllerEthernet.h"
 #include "../UtilFunctions.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include <curl/curl.h>
 
@@ -45,11 +45,9 @@ public:
     int zigZag{ 0 };
     bool upload{ false };
 
-    AlphaPixOutput(int output_) : output(output_) { }
+    explicit AlphaPixOutput(int output_) : output(output_) { }
     void Dump() const {
-
-        
-        LOG_DEBUG("    Output %d Uni %d StartChan %d Pixels %d Rev %s Nulls %d Brightness %d ZigZag %d ColorOrder %d Upload %s",
+       spdlog::debug("    Output {} Uni {} StartChan {} Pixels {} Rev {} Nulls {} Brightness {} ZigZag {} ColorOrder {} Upload {}",
             output,
             universe,
             startChannel,
@@ -72,11 +70,9 @@ public:
     bool enabled{ false };
     bool upload{ false };
 
-    AlphaPixSerial(int output_) : output(output_) { }
+    explicit AlphaPixSerial(int output_) : output(output_) { }
     void Dump() const {
-
-        
-        LOG_DEBUG("    Output %d Uni %d Enabled %s Upload %s",
+        spdlog::debug("    Output {} Uni {} Enabled {} Upload {}",
             output,
             universe,
             toStr(enabled),
@@ -88,14 +84,12 @@ public:
 class AlphaPixData
 {
 public:
-    wxString name;
+    std::string name;
     int protocol{ 0 };
     int inputMode{ 0 };
-    AlphaPixData() {}
+    AlphaPixData() = default;
     void Dump() const {
-
-        
-        LOG_DEBUG("    Name %s Protocol %d InputMode %d",
+        spdlog::debug("    Name {} Protocol {} InputMode {}",
             (const char*)name.c_str(),
             protocol,
             inputMode
@@ -107,61 +101,56 @@ public:
 #pragma region Constructors and Destructors
 AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseController(ip, proxy) {
 
-    
-
     _page = APGetURL("/");
     if (!_page.empty()) {
         if (_page.Contains("Existing user login")) {
-            LOG_ERROR("AlphaPix Webpage locked out by another computer");
+            spdlog::error("AlphaPix Webpage locked out by another computer");
         }
-        //AlphaPix 4 V2/V3 Classic
-        //AlphaPix Flex Lighting Controller
+        // AlphaPix 4 V2/V3 Classic
+        // AlphaPix Flex Lighting Controller
         static wxRegEx modelregex("(\\d+) Port Ethernet to SPI Controller", wxRE_ADVANCED | wxRE_NEWLINE);
         static wxRegEx modelregex2("AlphaPix (\\d+) ", wxRE_ADVANCED | wxRE_NEWLINE);
         if (modelregex.Matches(_page)) {
             _modelnum = wxAtoi(modelregex.GetMatch(_page, 1).ToStdString());
             _connected = true;
-        }
-        else if (modelregex2.Matches(_page)) {
+        } else if (modelregex2.Matches(_page)) {
             _modelnum = wxAtoi(modelregex2.GetMatch(_page, 1).ToStdString());
             _connected = true;
-        }
-        else if (_page.Contains("AlphaPix Flex Lighting Controller") || _page.Contains("AlphaPix Evolution Lighting Controller")) {
+        } else if (_page.Contains("AlphaPix Flex Lighting Controller") || _page.Contains("AlphaPix Evolution Lighting Controller")) {
             _modelnum = 48;
             _connected = true;
-        }
-        else {
-            LOG_ERROR("Error Determining AlphaPix controller Type.");
+        } else {
+            spdlog::error("Error Determining AlphaPix controller Type.");
             _connected = false;
         }
 
-        //Currently Installed Firmware Version:  2.08
+        // Currently Installed Firmware Version:  2.08
         static wxRegEx firmwareregex("(Currently Installed Firmware Version:  ([0-9]+.[0-9]+))", wxRE_ADVANCED | wxRE_NEWLINE);
         if (firmwareregex.Matches(wxString(_page))) {
             _version = firmwareregex.GetMatch(wxString(_page), 2).ToStdString();
         }
 
-        if (_page.Contains("name=\"U01\"")) {//look for certain web element. Fix for new webUI on firmware 2.16, 2.18 and maybe 2.12,2.13. Firmware has the same format as Flex Controller
+        if (_page.Contains("name=\"U01\"")) { // look for certain web element. Fix for new webUI on firmware 2.16, 2.18 and maybe 2.12,2.13. Firmware has the same format as Flex Controller
             _revision = 2;
-            LOG_DEBUG("v2 WebPage format, AlphaPix 4/16 Firmware 2.16+ or AlphaPix Flex/Evolution Firmware 4.3+");
+            spdlog::debug("v2 WebPage format, AlphaPix 4/16 Firmware 2.16+ or AlphaPix Flex/Evolution Firmware 4.3+");
         } else {
             _revision = 1;
-            LOG_DEBUG("v1 WebPage format, AlphaPix 4/16 Firmware 2.08 and below or AlphaPix Flex/Evolution Firmware 4.2");
+            spdlog::debug("v1 WebPage format, AlphaPix 4/16 Firmware 2.08 and below or AlphaPix Flex/Evolution Firmware 4.2");
         }
 
         if (_modelnum == 48) {
             _model = wxString::Format("AlphaPix Flex v%d", _revision).ToStdString();
-        }
-        else { 
+        } else {
             _model = wxString::Format("AlphaPix %d v%d", _modelnum, _revision).ToStdString();
         }
 
-        if(_connected)
-            LOG_DEBUG("Connected to AlphaPix controller model %s.", (const char*)GetFullName().c_str());
+        if (_connected) {
+            spdlog::debug("Connected to AlphaPix controller model {}.", GetFullName());
+        }
     }
     else {
         _connected = false;
-        LOG_ERROR("Error connecting to AlphaPix controller on %s.", (const char *)_ip.c_str());
+        spdlog::error("Error connecting to AlphaPix controller on {}.",_ip);
     }
 }
 
@@ -192,10 +181,11 @@ bool AlphaPix::ParseWebpage(const wxString& page, AlphaPixData& data) {
 
     for (int i = 1; i <= GetNumberOfOutputs(); i++) {
         AlphaPixOutput* output;
-        if (_revision == 2)
+        if (_revision == 2) {
             output = ExtractOutputDataV2(page, i);
-        else
+        } else {
             output = ExtractOutputData(page, i);
+        }
         output->Dump();
         _pixelOutputs.push_back(output);
     }
@@ -395,9 +385,6 @@ void AlphaPix::UpdateSerialData(AlphaPixSerial* pd, UDControllerPort* serialData
 }
 
 std::string AlphaPix::ExtractFromPage(const wxString& page, const std::string& parameter, const std::string& type, int start) {
-
-    
-
     const wxString p = wxString(page).Mid(start);
     if (type == "input") {
         //<input  style = " width: 80px ;TEXT-ALIGN: center" type="text" value="1" name="DMX512"/>
@@ -433,8 +420,9 @@ std::string AlphaPix::ExtractFromPage(const wxString& page, const std::string& p
         if (inputregex.Matches(wxString(p))) {
             const std::string res = inputregex.GetMatch(wxString(p), 0).ToStdString();
             const std::string res2 = inputregex.GetMatch(wxString(p), 1).ToStdString();
-            if (!res2.empty())
+            if (!res2.empty()){
                 return "1";
+            }
             return "0";
             //return res;
         }
@@ -450,7 +438,7 @@ std::string AlphaPix::ExtractFromPage(const wxString& page, const std::string& p
         }
     }
     else {
-        LOG_ERROR("AlphaPix::ExtractFromPage   Invalid Regex Type:%s", (const char*)type.c_str());
+        spdlog::error("AlphaPix::ExtractFromPage   Invalid Regex Type:{}", type);
         wxASSERT(false);
     }
 
@@ -533,10 +521,7 @@ AlphaPixSerial* AlphaPix::FindSerialData(int port) {
 }
 
 wxString AlphaPix::BuildStringPortRequest(AlphaPixOutput* po) const {
-
-    
-
-    LOG_DEBUG("     Output String %d, Universe %d StartChannel %d Pixels %d",
+    spdlog::debug("     Output String {}, Universe {} StartChannel {} Pixels {}",
         po->output, po->universe, po->startChannel, po->pixels);
 
     std::string reverseAdd;
@@ -555,10 +540,7 @@ wxString AlphaPix::BuildStringPortRequest(AlphaPixOutput* po) const {
 }
 
 wxString AlphaPix::BuildStringPortRequestV2(AlphaPixOutput* po) const {
-
-    
-
-    LOG_DEBUG("     Output String %d, Universe %d StartChannel %d Pixels %d",
+    spdlog::debug("     Output String {}, Universe {} StartChannel {} Pixels {}",
         po->output, po->universe, po->startChannel, po->pixels);
 
     std::string reverseAdd;
@@ -577,21 +559,18 @@ wxString AlphaPix::BuildStringPortRequestV2(AlphaPixOutput* po) const {
 }
 
 std::string AlphaPix::SafeDescription(const std::string description) const {
-
-    wxString desc(description);
-    return desc.Left(16).ToStdString();
+   return description.substr(0, 16);
 }
 
 std::string AlphaPix::APGetURL(const std::string& url) const
 {
-    
     std::string res;
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
 
     CURL* curl = curl_easy_init();
     if (curl) {
         auto u = std::string("http://" + baseIP + _baseUrl + url);
-        LOG_DEBUG("Curl GET: %s", (const char*)u.c_str());
+        spdlog::debug("Curl GET: {}", u);
         curl_easy_setopt(curl, CURLOPT_URL, u.c_str());
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15);
         curl_easy_setopt(curl, CURLOPT_HTTP09_ALLOWED, 1L);
@@ -604,7 +583,7 @@ std::string AlphaPix::APGetURL(const std::string& url) const
         CURLcode r = curl_easy_perform(curl);
 
         if (r != CURLE_OK) {
-            LOG_ERROR("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(r));
+            ("Failure to access {}: {}.", url, curl_easy_strerror(r));
         } else {
             res = response_string;
         }
@@ -616,17 +595,15 @@ std::string AlphaPix::APGetURL(const std::string& url) const
 
 std::string AlphaPix::APPutURL(const std::string& url, const std::string& request) const
 {
-    
-
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
-    LOG_DEBUG("Making request to Controller '%s'.", (const char*)url.c_str());
-    LOG_DEBUG("    With data '%s'.", (const char*)request.c_str());
+    spdlog::debug("Making request to Controller '{}'.", url);
+    spdlog::debug("    With data '{}'.", request);
 
     CURL* curl = curl_easy_init();
     if (curl != nullptr) {
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
         auto u = std::string("http://" + baseIP + _baseUrl + url);
-        LOG_DEBUG("Curl POST: %s", (const char*)u.c_str());
+        spdlog::debug("Curl POST: {}", u);
         curl_easy_setopt(curl, CURLOPT_URL, u.c_str());
         curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 
@@ -649,7 +626,7 @@ std::string AlphaPix::APPutURL(const std::string& url, const std::string& reques
         if (ret == CURLE_OK) {
             return buffer;
         }
-        LOG_ERROR("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(ret));
+        spdlog::error("Failure to access {}: {}.", url, curl_easy_strerror(ret));
     }
 
     return "";
@@ -658,24 +635,21 @@ std::string AlphaPix::APPutURL(const std::string& url, const std::string& reques
 
 #pragma region Getters and Setters
 bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent) {
-
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
-
-    
-    LOG_DEBUG("AlphaPix Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+    spdlog::debug("AlphaPix Outputs Upload: Uploading to {}", _ip);
 
     progress.Update(0, "Scanning models");
-    LOG_INFO("Scanning models.");
+    spdlog::info("Scanning models.");
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
 
-    //first check rules
+    // first check rules
     auto caps = ControllerCaps::GetControllerConfig(controller);
     const bool success = cud.Check(caps, check);
 
-    LOG_DEBUG(check);
+    spdlog::debug(check);
 
     cud.Dump();
     if (!success) {
@@ -683,7 +657,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         progress.Update(100, "Aborting.");
         return false;
     }
-    //get current config Page
+    // get current config Page
     const wxString page = _page;
 
     if (page.empty()) {
@@ -702,34 +676,36 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         return false;
     }
 
-    LOG_INFO("Figuring Out Pixel Output Information.");
+    spdlog::info("Figuring Out Pixel Output Information.");
     progress.Update(10, "Figuring Out Pixel Output Information.");
 
     bool uploadColor = false;
     std::vector<int> colorOrder;
     std::string pixelType;
 
-    //loop to setup string outputs
+    // loop to setup string outputs
     for (int port = 1; port <= GetNumberOfOutputs(); port++) {
         if (cud.HasPixelPort(port)) {
             UDControllerPort* portData = cud.GetControllerPixelPort(port);
             AlphaPixOutput* pixOut = FindPortData(port);
             UpdatePortData(pixOut, portData, uploadColor);
-            if (pixelType.empty())
+            if (pixelType.empty()) {
                 pixelType = portData->GetFirstModel()->GetProtocol();
-
+            }
             colorOrder.push_back(pixOut->colorOrder);
         }
     }
 
-    LOG_INFO("Uploading String Output Information.");
+    spdlog::info("Uploading String Output Information.");
     progress.Update(20, "Uploading String Output Information.");
-    if (_modelnum == 48)
+    if (_modelnum == 48) {
         UploadFlexPixelOutputs(worked);
-    else
+    }
+    else {
         UploadPixelOutputs(worked);
+    }
 
-    LOG_INFO("Figuring Out DMX Output Information.");
+    spdlog::info("Figuring Out DMX Output Information.");
     progress.Update(30, "Figuring Out DMX Output Information.");
     for (int port = 1; port <= GetNumberOfSerial(); port++) {
         if (cud.HasSerialPort(port)) {
@@ -739,7 +715,7 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         }
     }
 
-    LOG_INFO("Uploading DMX Output Information.");
+    spdlog::info("Uploading DMX Output Information.");
     progress.Update(40, "Uploading DMX Output Information.");
     for (const auto& serial : _serialOutputs) {
         serial->Dump();
@@ -747,132 +723,141 @@ bool AlphaPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
             if (_modelnum == 4) {
                 const std::string serialRequest = wxString::Format("Rever5=1&DMX512=%d", serial->universe);
                 const wxString res = APPutURL(GetDMXURL(), serialRequest);
-                if (res.empty())
+                if (res.empty()){
                     worked = false;
+                }
                 wxMilliSleep(1000);
-            }
-            else {
+            } else {
                 const std::string serialRequest = wxString::Format("Rever%d=1&DMX512_%d=%d",
-                    serial->output, serial->output, serial->universe);
+                                                                   serial->output, serial->output, serial->universe);
                 const wxString res = APPutURL(GetDMXURL(serial->output), serialRequest);
-                if (res.empty())
+                if (res.empty()){
                     worked = false;
+                }
                 wxMilliSleep(1000);
             }
         }
     }
 
-    LOG_INFO("Uploading Protocol Type.");
+    spdlog::info("Uploading Protocol Type.");
     progress.Update(50, "Uploading Protocol Type.");
     const int newProtocol = EncodeStringPortProtocol(pixelType);
     if (newProtocol != -1 && controllerData.protocol != newProtocol) {
         const wxString res = APPutURL(GetProtocolURL(), wxString::Format("IC=%d", newProtocol));
-        if (res.empty())
+        if (res.empty()) {
             worked = false;
+        }
         wxMilliSleep(1000);
     }
 
-    LOG_INFO("Uploading Color Order.");
+    spdlog::info("Uploading Color Order.");
     progress.Update(60, "Uploading Color Order.");
 
     if (uploadColor) {
         std::sort(colorOrder.begin(), colorOrder.end());
         colorOrder.erase(std::unique(colorOrder.begin(), colorOrder.end()), colorOrder.end());
         if (colorOrder.size() == 1) {
-            //all the same color order, "simple mode" will do
+            // all the same color order, "simple mode" will do
             const wxString res = APPutURL(GetColorOrderURL(), wxString::Format("RGBORD=0&RGBS=%d", colorOrder[0]));
-            if (res.empty())
+            if (res.empty()) {
                 worked = false;
+            }
             wxMilliSleep(1000);
-        }
-        else {
+        } else {
             // different color orders, "advance mode" needed
             const wxString res = APPutURL(GetColorOrderURL(), "RGBORD=1");
-            if (res.empty())
+            if (res.empty()) {
                 worked = false;
+            }
             wxMilliSleep(1000);
 
             std::string colorRequestString;
             for (const auto& pixelPort : _pixelOutputs) {
-                if (colorRequestString != "")
+                if (colorRequestString != "") {
                     colorRequestString += "&";
+                }
                 colorRequestString += wxString::Format("%d_RGB=%d",
-                    pixelPort->output, pixelPort->colorOrder);
+                                                       pixelPort->output, pixelPort->colorOrder);
             }
 
             const wxString res2 = APPutURL(GetIndvColorOrderURL(), colorRequestString);
-            if (res2.empty())
+            if (res2.empty()){
                 worked = false;
+            }
             wxMilliSleep(1000);
         }
     }
 
-    LOG_INFO("Uploading Output Description.");
+    spdlog::info("Uploading Output Description.");
     progress.Update(70, "Uploading Output Description.");
     const std::string outName = SafeDescription(controller->GetName());
-    if (!outName.empty() && !controllerData.name.IsSameAs(outName)) {
+    if (!outName.empty() && controllerData.name != outName) {
         const wxString res = APPutURL(GetNameURL(), "name=" + outName);
-        if (res.empty())
+        if (res.empty()) {
             worked = false;
+        }
         wxMilliSleep(1000);
     }
 
-    //upload Input Type
+    // upload Input Type
     auto o = controller->GetFirstOutput();
     std::string requestInputString;
     if (o->GetType() == OUTPUT_E131) {
-        if (controllerData.inputMode != 0)
+        if (controllerData.inputMode != 0) {
             requestInputString = "EP=0";
-    }
-    else if (o->GetType() == OUTPUT_ARTNET) {
-        if (controllerData.inputMode != 1)
+        }
+    } else if (o->GetType() == OUTPUT_ARTNET) {
+        if (controllerData.inputMode != 1) {
             requestInputString = "EP=1";
+        }
     }
 
-    LOG_INFO("Uploading Output Type.");
+    spdlog::info("Uploading Output Type.");
     progress.Update(80, "Updating Output Type.");
     if (!requestInputString.empty()) {
         const wxString res = APPutURL(GetInputTypeURL(), requestInputString);
-        if (res.empty())
+        if (res.empty()) {
             worked = false;
-        //wait for reboot
+        }
+        // wait for reboot
         wxMilliSleep(5000);
     }
 
-    if(!worked)
-        LOG_ERROR("Error Uploading to AlphaPix controller, Page HTML:%s.", (const char*)_page.c_str());
-
+    if (!worked) {
+        spdlog::error("Error Uploading to AlphaPix controller, Page HTML:{}.", (const char*)_page.c_str());
+    }
     return worked;
 }
 
 void AlphaPix::UploadPixelOutputs(bool& worked) {
 
-    
-    LOG_DEBUG("Building pixel upload:");
+    spdlog::debug("Building pixel upload:");
     std::string requestString;
     for (const auto& pixelPort : _pixelOutputs) {
-        if (requestString != "")
+        if (requestString != "") {
             requestString += "&";
-        if(_revision == 2)
+        }
+        if (_revision == 2) {
             requestString += BuildStringPortRequestV2(pixelPort);
-        else
+        } else{
             requestString += BuildStringPortRequest(pixelPort);
+        }
     }
 
-    LOG_INFO("PUT String Output Information.");
+    spdlog::info("PUT String Output Information.");
 
     if (!requestString.empty()) {
         const wxString res = APPutURL(GetOutputURL(), requestString);
-        if (res.empty())
+        if (res.empty()) {
             worked = false;
+        }
         wxMilliSleep(2000);
     }
 }
 
 void AlphaPix::UploadFlexPixelOutputs(bool& worked) {
 
-    
-    LOG_DEBUG("Building pixel upload:");
+    spdlog::debug("Building pixel upload:");
 
     for (int i = 0; i < 3; i++) {
         const int startPort = (i * 16) + 1;
@@ -881,20 +866,22 @@ void AlphaPix::UploadFlexPixelOutputs(bool& worked) {
         bool upload = false;
         for (int port = startPort; port <= endPort; port++) {
             AlphaPixOutput* pixelPort = FindPortData(port);
-            if (requestString != "")
+            if (requestString != "") {
                 requestString += "&";
-            if (_revision == 2)
+            }
+            if (_revision == 2) {
                 requestString += BuildStringPortRequestV2(pixelPort);
-            else
+            } else{
                 requestString += BuildStringPortRequest(pixelPort);
+            }
             upload |= pixelPort->upload;
         }
-
-        LOG_INFO("PUT String Output Information.");
+        spdlog::info("PUT String Output Information.");
         if (!requestString.empty() && upload) {
             const wxString res = APPutURL(GetOutputURL(i + 1), requestString);
-            if (res.empty())
+            if (res.empty())    {
                 worked = false;
+            }
             wxMilliSleep(2000);
         }
     }
