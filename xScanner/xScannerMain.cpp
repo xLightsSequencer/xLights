@@ -32,7 +32,7 @@
 
 #include "../xLights/automation/automation.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #ifndef __WXMSW__
 #include <netinet/in.h>
@@ -176,11 +176,9 @@ xScannerFrame::xScannerFrame(wxWindow* parent, bool singleThreaded, wxWindowID i
 
 void xScannerFrame::Scan()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     _tree->DeleteAllItems();
 
-    logger_base.debug("Launching scan ...");
+    spdlog::debug("Launching scan ...");
 
     _workManager.Start();
     _workManager.AddComputer();

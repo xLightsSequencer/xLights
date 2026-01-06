@@ -14,7 +14,7 @@
 #include "ScheduleOptions.h"
 #include "MatrixMapper.h"
 #include <wx/config.h>
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include "xScheduleApp.h"
 #include "../xLights/UtilFunctions.h"
 
@@ -51,8 +51,8 @@ void XyzzyBase::BaseReset()
 
 void Xyzzy2::Reset()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Xyzzy2 reset.");
+    
+    LOG_DEBUG("Xyzzy2 reset.");
     BaseReset();
     _board.clear();
     _body.clear();
@@ -72,8 +72,8 @@ void Xyzzy2::Reset()
 
 void Xyzzy::Reset()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Xyzzy reset.");
+    
+    LOG_DEBUG("Xyzzy reset.");
     BaseReset();
     memset(_board, 0xFF, sizeof(_board));
     if (_nextPiece != nullptr)
@@ -103,14 +103,14 @@ void Xyzzy::Reset()
 
 Xyzzy::Xyzzy()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Xyzzy created.");
+    
+    LOG_DEBUG("Xyzzy created.");
 
     wxConfigBase* config = wxConfigBase::Get();
     _highScore = config->ReadLong(_("XyzzyHighScore"), 0);
     _highScoreOwner = config->Read(_("XyzzyHighScoreOwner"), "").ToStdString();
 
-    logger_base.debug("High score %d %s.", _highScore, (const char *)_highScoreOwner.c_str());
+    LOG_DEBUG("High score %d %s.", _highScore, (const char *)_highScoreOwner.c_str());
 
     _nextPiece = nullptr;
     _currentPiece = nullptr;
@@ -128,14 +128,14 @@ Xyzzy::Xyzzy()
 
 Xyzzy2::Xyzzy2()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Xyzzy2 created.");
+    
+    LOG_DEBUG("Xyzzy2 created.");
 
     wxConfigBase* config = wxConfigBase::Get();
     _highScore = config->ReadLong(_("Xyzzy2HighScore"), 0);
     _highScoreOwner = config->Read(_("Xyzzy2HighScoreOwner"), "").ToStdString();
 
-    logger_base.debug("High score %d %s.", _highScore, (const char*)_highScoreOwner.c_str());
+    LOG_DEBUG("High score %d %s.", _highScore, (const char*)_highScoreOwner.c_str());
 
     _matrixMapper = nullptr;
 #ifdef SHOWVIRTUALMATRIX
@@ -422,8 +422,8 @@ void Xyzzy2::GetHighScoreJSON(wxString& result, const wxString& reference)
 // <matrix name>
 void XyzzyBase::DoInitialise(const wxString& parameters, wxString& result, const wxString& reference, OutputManager* om)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Xyzzy initialising.");
+    
+    LOG_DEBUG("Xyzzy initialising.");
 
     Close(result, reference);
 
@@ -523,8 +523,8 @@ void XyzzyBase::DoInitialise(const wxString& parameters, wxString& result, const
 
 void Xyzzy::Close(wxString& result, const wxString& reference)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Xyzzy closing.");
+    
+    LOG_DEBUG("Xyzzy closing.");
 
 #ifdef SHOWVIRTUALMATRIX
     if (_virtualMatrix != nullptr)
@@ -560,8 +560,8 @@ void Xyzzy::Close(wxString& result, const wxString& reference)
 
 void Xyzzy2::Close(wxString& result, const wxString& reference)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Xyzzy2 closing.");
+    
+    LOG_DEBUG("Xyzzy2 closing.");
 
 #ifdef SHOWVIRTUALMATRIX
     if (_virtualMatrix != nullptr)
@@ -1499,7 +1499,7 @@ std::list<wxPoint> XyzzyPiece::DrawPoints() const
 // true when game over
 bool Xyzzy::AdvanceGame()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (!_gameRunning) return false;
 
     if (_fullTime != 0 && (wxGetUTCTimeMillis() - _fullTime) < PAUSEONCOMPLETEROWTIME)
@@ -1564,7 +1564,7 @@ bool Xyzzy::AdvanceGame()
         }
         else
         {
-            logger_base.debug("Xyzzy piece landed.");
+            LOG_DEBUG("Xyzzy piece landed.");
 
             auto loc = _currentPiece->DrawPoints();
             for (auto it = loc.begin(); it != loc.end(); ++it)
@@ -1594,7 +1594,7 @@ bool Xyzzy::AdvanceGame()
 // true when game over
 bool Xyzzy2::AdvanceGame()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (!_gameRunning) return false;
 
     auto elapsed = (wxGetUTCTimeMillis() - _lastUpdatedMovement).ToLong();
@@ -1672,7 +1672,7 @@ bool Xyzzy2::AdvanceGame()
 
 void Xyzzy::CheckFullRow()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     // now check if any row is complete
     int fullcount = 0;
@@ -1701,7 +1701,7 @@ void Xyzzy::CheckFullRow()
 
     if (fullcount > 0)
     {
-        logger_base.debug("Xyzzy %d full rows completed.");
+        LOG_DEBUG("Xyzzy %d full rows completed.");
         _dropSpeed += ROWADJUSTSPEED;
         if (_dropSpeed < MINDROPSPEED)
         {

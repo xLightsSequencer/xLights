@@ -12,7 +12,7 @@
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
 #include "PlayListItemScreenMapPanel.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include "../MatrixMapper.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
@@ -139,7 +139,7 @@ size_t PlayListItemScreenMap::GetDurationMS() const
 
 void PlayListItemScreenMap::Start(long stepLengthMS)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     PlayListItem::Start(stepLengthMS);
 
     auto m = xScheduleFrame::GetScheduleManager()->GetOptions()->GetMatrices();
@@ -148,11 +148,11 @@ void PlayListItemScreenMap::Start(long stepLengthMS)
         if (wxString((*it)->GetName()).Lower() == wxString(_matrix).Lower())
         {
             _matrixMapper = *it;
-            logger_base.debug("PlayListItemScreenMap %s matrix %s", (const char *)GetNameNoTime().c_str(), _matrixMapper->GetConfigDescription().c_str());
-            logger_base.debug("    0,0 = %ld", _matrixMapper->Map(0, 0));
-            logger_base.debug("    0,%d = %ld", _matrixMapper->GetHeight() - 1, _matrixMapper->Map(0, _matrixMapper->GetHeight() - 1));
-            logger_base.debug("    %d,0 = %ld", _matrixMapper->GetWidth() - 1, _matrixMapper->Map(_matrixMapper->GetWidth()-1, 0));
-            logger_base.debug("    %d,%d = %ld", _matrixMapper->GetWidth() - 1, _matrixMapper->GetHeight() - 1, _matrixMapper->Map(_matrixMapper->GetWidth() - 1, _matrixMapper->GetHeight() - 1));
+            LOG_DEBUG("PlayListItemScreenMap %s matrix %s", (const char *)GetNameNoTime().c_str(), _matrixMapper->GetConfigDescription().c_str());
+            LOG_DEBUG("    0,0 = %ld", _matrixMapper->Map(0, 0));
+            LOG_DEBUG("    0,%d = %ld", _matrixMapper->GetHeight() - 1, _matrixMapper->Map(0, _matrixMapper->GetHeight() - 1));
+            LOG_DEBUG("    %d,0 = %ld", _matrixMapper->GetWidth() - 1, _matrixMapper->Map(_matrixMapper->GetWidth()-1, 0));
+            LOG_DEBUG("    %d,%d = %ld", _matrixMapper->GetWidth() - 1, _matrixMapper->GetHeight() - 1, _matrixMapper->Map(_matrixMapper->GetWidth() - 1, _matrixMapper->GetHeight() - 1));
             break;
         }
     }
@@ -164,7 +164,7 @@ void PlayListItemScreenMap::Stop()
 
 void PlayListItemScreenMap::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // 
 
     if (_matrixMapper == nullptr) return;
 

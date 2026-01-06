@@ -1,5 +1,5 @@
 #include "MIDIListener.h"
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 #include "../xSchedule/wxMIDI/src/wxMidi.h"
 
 wxDEFINE_EVENT(EVT_MIDI, wxCommandEvent);
@@ -21,7 +21,6 @@ bool MIDIListener::IsValidDeviceId(int deviceId)
 
 MIDIListener::MIDIListener(int deviceId, wxWindow* win)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _thread = nullptr;
 
     if (deviceId >= 0)
@@ -34,21 +33,20 @@ MIDIListener::MIDIListener(int deviceId, wxWindow* win)
             wxMilliSleep(20);
             if (!_thread->IsOk())
             {
-                logger_base.error("MIDI listening thread failed.");
+                spdlog::error("MIDI listening thread failed.");
                 _thread = nullptr;
             }
         }
         else
         {
-            logger_base.error("MIDI listener not started because device id %d is not valid.", deviceId);
+            spdlog::error("MIDI listener not started because device id {} is not valid.", deviceId);
         }
     }
 }
 
 void MIDIListener::Stop()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("MIDI listener stopping.");
+    spdlog::debug("MIDI listener stopping.");
     if (_thread != nullptr)
     {
         _thread->Stop();
@@ -75,8 +73,6 @@ bool MIDIListener::IsOk() const
 
 ListenerThread::ListenerThread(int deviceId, wxWindow* win)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
 	_target = win;
     _stop = false;
     _running = false;
@@ -85,25 +81,24 @@ ListenerThread::ListenerThread(int deviceId, wxWindow* win)
 	
     if (Run() != wxTHREAD_NO_ERROR)
     {
-        logger_base.error("Failed to start MIDI listener thread");
+        spdlog::error("Failed to start MIDI listener thread");
     }
     else
     {
-        logger_base.info("MIDI Listener thread created.");
+        spdlog::info("MIDI Listener thread created.");
         wxMilliSleep(10);
         _isOk = _running;
         if (!_isOk)
         {
-            logger_base.error("    But it seems to have immediately exited.");
+            spdlog::error("    But it seems to have immediately exited.");
         }
     }
 }
 
 void* ListenerThread::Entry()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _running = true;
-    logger_base.info("MIDI Listener thread running.");
+    spdlog::info("MIDI Listener thread running.");
 
 	_midiIn = nullptr;
 
@@ -113,7 +108,7 @@ void* ListenerThread::Entry()
     {
         if (!_midiIn->IsInputPort() || _midiIn->Open() != wxMIDI_NO_ERROR)
         {
-            logger_base.error("    Failed to open MIDI or not an input.");
+            spdlog::error("    Failed to open MIDI or not an input.");
             delete _midiIn;
             _midiIn = nullptr;
             _running = false;
@@ -126,7 +121,7 @@ void* ListenerThread::Entry()
     }
     else
     {
-        logger_base.error("    Failed to create MIDI.");
+        spdlog::error("    Failed to create MIDI.");
         return nullptr;
     }
 
@@ -142,35 +137,35 @@ void* ListenerThread::Entry()
             if (message->GetType() == wxMIDI_SHORT_MSG)
             {
                 wxMidiShortMessage* msg = (wxMidiShortMessage*)message;
-                logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x", msg->GetStatus(), msg->GetData1(), msg->GetData2());
+                spdlog::debug("MIDI Short Message {:#02X} Data {:#02X} {:#02X}", msg->GetStatus(), msg->GetData1(), msg->GetData2());
                 int status = msg->GetStatus();
                 if (status >= 0x80 && status <= 0x8F)
                 {
-                    logger_base.debug("    Note Off");
+                    spdlog::debug("    Note Off");
                 }
                 else if (status >= 0x90 && status <= 0x9F)
                 {
-                    logger_base.debug("    Note On");
+                    spdlog::debug("    Note On");
                 }
                 else if (status >= 0xA0 && status <= 0xAF)
                 {
-                    logger_base.debug("    Polyphonic Key Pressure");
+                    spdlog::debug("    Polyphonic Key Pressure");
                 }
                 else if (status >= 0xB0 && status <= 0xBF)
                 {
-                    logger_base.debug("    Control Change");
+                    spdlog::debug("    Control Change");
                 }
                 else if (status >= 0xC0 && status <= 0xCF)
                 {
-                    logger_base.debug("    Program Change");
+                    spdlog::debug("    Program Change");
                 }
                 else if (status >= 0xD0 && status <= 0xDF)
                 {
-                    logger_base.debug("    Channel Pressure");
+                    spdlog::debug("    Channel Pressure");
                 }
                 else if (status >= 0xE0 && status <= 0xEF)
                 {
-                    logger_base.debug("    Pitch Bend");
+                    spdlog::debug("    Pitch Bend");
                 }
 
                 if (_target != nullptr)
@@ -224,7 +219,7 @@ void* ListenerThread::Entry()
 
     _running = false;
 
-    logger_base.debug("MIDI listening thread exiting.");
+    spdlog::debug("MIDI listening thread exiting.");
 
     return nullptr;
 }

@@ -52,11 +52,10 @@
 
 #include <memory>
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showDir) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Loading schedule from %s.", (const char*)showDir.c_str());
+    LOG_INFO("Loading schedule from %s.", (const char*)showDir.c_str());
 
     // prime fix file with our show directory for any filename fixups
     SetFixFileShowDir(showDir);
@@ -126,12 +125,12 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
             }
         }
     } else {
-        logger_base.error("Problem loading xml file %s.", (const char*)(showDir + "/" + GetScheduleFile()).c_str());
+        LOG_ERROR("Problem loading xml file %s.", (const char*)(showDir + "/" + GetScheduleFile()).c_str());
     }
 
     if (backgroundPlayList != "" && GetPlayList(backgroundPlayList) != nullptr) {
         _backgroundPlayList = new PlayList(*GetPlayList(backgroundPlayList));
-        logger_base.debug("Background playlist loaded. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
+        LOG_DEBUG("Background playlist loaded. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
     }
 
     if (_scheduleOptions == nullptr) {
@@ -145,20 +144,20 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     VideoReader::SetHardwareAcceleratedVideo(_scheduleOptions->IsHardwareAcceleratedVideo());
 
     if (VideoReader::IsHardwareAcceleratedVideo()) {
-        logger_base.debug("Hardware accelerated video enabled.");
+        LOG_DEBUG("Hardware accelerated video enabled.");
     } else {
-        logger_base.debug("Hardware accelerated video disabled.");
+        LOG_DEBUG("Hardware accelerated video disabled.");
     }
 
     _outputManager->Load(_showDir, _scheduleOptions->IsSync());
-    logger_base.info("Loaded outputs from %s.", (const char*)(_showDir + "/" + _outputManager->GetNetworksFileName()).c_str());
+    LOG_INFO("Loaded outputs from %s.", (const char*)(_showDir + "/" + _outputManager->GetNetworksFileName()).c_str());
 
     SetForceLocalIP(GetForceLocalIP());
 
     if (_scheduleOptions->IsSendOffWhenNotRunning()) {
         if (!_outputManager->IsOutputting()) {
             if (_outputManager->IsOutputOpenInAnotherProcess()) {
-                logger_base.warn("Warning: Lights output is already open in another process. This will cause issues.", "WARNING", 4 | wxCENTRE, frame);
+                LOG_WARN("Warning: Lights output is already open in another process. This will cause issues.");
             }
             DisableRemoteOutputs();
             _outputManager->StartOutput();
@@ -167,7 +166,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
 #endif
         }
         ManageBackground();
-        logger_base.info("Started outputting to lights ... even though nothing is running.");
+        LOG_INFO("Started outputting to lights ... even though nothing is running.");
         StartVirtualMatrices();
     }
 
@@ -176,7 +175,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     _syncManager->Start(_mode, _remoteMode, GetForceLocalIP());
 
     // This is out frame data buffer ... it cannot be resized
-    logger_base.info("Allocated frame buffer of %ld bytes", _outputManager->GetTotalChannels());
+    LOG_INFO("Allocated frame buffer of %ld bytes", _outputManager->GetTotalChannels());
     _buffer = (uint8_t*)malloc(_outputManager->GetTotalChannels());
     memset(_buffer, 0x00, _outputManager->GetTotalChannels());
 
@@ -219,8 +218,8 @@ int ScheduleManager::Sync(const std::string& filename, long ms) {
 }
 
 int ScheduleManager::DoSync(const std::string& filename, long ms) {
-    static log4cpp::Category& logger_sync = log4cpp::Category::getInstance(std::string("log_sync"));
-    // logger_base.debug("DoSync Enter");
+    auto logger = spdlog::get("sync");
+    // LOG_DEBUG("DoSync Enter");
 
     PlayList* pl = GetRunningPlayList();
     PlayListStep* pls = nullptr;
@@ -240,7 +239,7 @@ int ScheduleManager::DoSync(const std::string& filename, long ms) {
         ms = stepMS;
         if (shouldberunning != nullptr) {
             if (shouldberunning != pl->GetRunningStep()) {
-                logger_sync.debug("Remote sync with no filename ... wrong step was running '%s' switching to '%s' at %ldms.", (const char*)pl->GetRunningStep()->GetNameNoTime().c_str(), (const char*)shouldberunning->GetNameNoTime().c_str(), ms);
+                LOGG_DEBUG(logger, "Remote sync with no filename ... wrong step was running '%s' switching to '%s' at %ldms.", (const char*)pl->GetRunningStep()->GetNameNoTime().c_str(), (const char*)shouldberunning->GetNameNoTime().c_str(), ms);
                 pl->JumpToStep(shouldberunning->GetNameNoTime());
                 wxCommandEvent event2(EVT_SCHEDULECHANGED);
                 wxPostEvent(wxGetApp().GetTopWindow(), event2);
@@ -254,7 +253,7 @@ int ScheduleManager::DoSync(const std::string& filename, long ms) {
             } else if (ms == 0xFFFFFFFD || ms == -3) {
                 pl->Suspend(false);
             } else {
-                logger_sync.debug("Remote sync with no filename ... playlist was not sufficiently long for received sync position %ld.", ms);
+                LOGG_DEBUG(logger, "Remote sync with no filename ... playlist was not sufficiently long for received sync position %ld.", ms);
                 pl->Stop();
             }
         }
@@ -266,11 +265,11 @@ int ScheduleManager::DoSync(const std::string& filename, long ms) {
             PlayListStep* shouldberunning = pl->GetStepAtTime(ms, stepMS);
             ms = stepMS;
             if (shouldberunning == nullptr) {
-                logger_sync.debug("Remote sync with no filename ... playlist was not sufficiently long for received sync position %ldms.", ms);
+                LOGG_DEBUG(logger, "Remote sync with no filename ... playlist was not sufficiently long for received sync position %ldms.", ms);
                 delete pl;
                 pl = nullptr;
             } else {
-                logger_sync.debug("Remote sync with no filename ... starting playlist '%s' step '%s' at %ldms.", (const char*)pl->GetNameNoTime().c_str(), (const char*)shouldberunning->GetNameNoTime().c_str(), ms);
+                LOGG_DEBUG(logger, "Remote sync with no filename ... starting playlist '%s' step '%s' at %ldms.", (const char*)pl->GetNameNoTime().c_str(), (const char*)shouldberunning->GetNameNoTime().c_str(), ms);
                 pl->Start(false, false, false);
                 pl->JumpToStep(shouldberunning->GetNameNoTime());
                 if (pl->GetRunningStep() != nullptr) {
@@ -281,7 +280,7 @@ int ScheduleManager::DoSync(const std::string& filename, long ms) {
                 wxPostEvent(wxGetApp().GetTopWindow(), event2);
             }
         } else {
-            logger_sync.warn("Remote sync with no filename ... No playlist found to run.");
+            logger->warn("Remote sync with no filename ... No playlist found to run.");
         }
     } else {
         if (pl != nullptr) {
@@ -327,21 +326,21 @@ int ScheduleManager::DoSync(const std::string& filename, long ms) {
 
     if (pls != nullptr) {
         _listenerManager->SetFrameMS(pls->GetFrameMS());
-        // logger_base.debug("DoSync Leave");
+        // LOG_DEBUG("DoSync Leave");
         return pls->GetFrameMS();
     }
     if (pl != nullptr) {
         _listenerManager->SetFrameMS(pl->GetFrameMS());
-        // logger_base.debug("DoSync Leave");
+        // LOG_DEBUG("DoSync Leave");
         return pl->GetFrameMS();
     }
     _listenerManager->SetFrameMS(50);
-    // logger_base.debug("DoSync Leave");
+    // LOG_DEBUG("DoSync Leave");
     return 50;
 }
 
 ScheduleManager::~ScheduleManager() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     AllOff();
     _outputManager->StopOutput();
 #ifdef __WXMSW__
@@ -349,7 +348,7 @@ ScheduleManager::~ScheduleManager() {
 #endif
     StopVirtualMatrices();
     ManageBackground();
-    logger_base.info("Stopped outputting to lights.");
+    LOG_INFO("Stopped outputting to lights.");
 
     if (IsDirty()) {
         if (wxMessageBox("Unsaved changes to the schedule. Save now?", "Unsaved changes", wxYES_NO) == wxYES) {
@@ -382,7 +381,7 @@ ScheduleManager::~ScheduleManager() {
     }
 
     if (_backgroundPlayList != nullptr) {
-        logger_base.debug("Background playlist stopped and deleted. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
+        LOG_DEBUG("Background playlist stopped and deleted. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
         _backgroundPlayList->Stop();
         delete _backgroundPlayList;
         _backgroundPlayList = nullptr;
@@ -434,7 +433,7 @@ ScheduleManager::~ScheduleManager() {
     ::SetThreadExecutionState(ES_CONTINUOUS);
 #endif
 
-    logger_base.info("Closed schedule.");
+    LOG_INFO("Closed schedule.");
 }
 
 std::list<PlayListItem*> ScheduleManager::GetPlayListIps() const {
@@ -482,7 +481,7 @@ void ScheduleManager::SetDirty() {
 }
 
 void ScheduleManager::Save() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxXmlDocument doc;
     wxXmlNode* root = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "xSchedule");
     doc.SetRoot(root);
@@ -511,7 +510,7 @@ void ScheduleManager::Save() {
 
     doc.Save(_showDir + "/" + GetScheduleFile());
     ClearDirty();
-    logger_base.info("Saved Schedule to %s.", (const char*)(_showDir + "/" + GetScheduleFile()).c_str());
+    LOG_INFO("Saved Schedule to %s.", (const char*)(_showDir + "/" + GetScheduleFile()).c_str());
 }
 
 void ScheduleManager::ClearDirty() {
@@ -529,8 +528,8 @@ void ScheduleManager::ClearDirty() {
 }
 
 void ScheduleManager::RemovePlayList(PlayList* playlist) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Deleting playlist %s.", (const char*)playlist->GetNameNoTime().c_str());
+    
+    LOG_INFO("Deleting playlist %s.", (const char*)playlist->GetNameNoTime().c_str());
     _playLists.remove(playlist);
     _changeCount++;
 }
@@ -566,8 +565,8 @@ PlayList* ScheduleManager::GetRunningPlayList() const {
 }
 
 void ScheduleManager::StopAll(bool sustain) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Stopping all playlists.");
+    
+    LOG_INFO("Stopping all playlists.");
 
     _syncManager->SendStop();
 
@@ -600,25 +599,25 @@ void ScheduleManager::StopAll(bool sustain) {
 }
 
 void ScheduleManager::AllOff() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Turning all the lights off.");
+    
+    LOG_DEBUG("Turning all the lights off.");
 
     memset(_buffer, 0x00, _outputManager->GetTotalChannels()); // clear out any prior frame data
     _outputManager->StartFrame(0);
 
     if ((_backgroundPlayList != nullptr || _eventPlayLists.size() > 0) && _scheduleOptions->IsSendBackgroundWhenNotRunning()) {
         if (_backgroundPlayList != nullptr) {
-            logger_base.debug("   ... except the background lights.");
+            LOG_DEBUG("   ... except the background lights.");
 
             if (!_backgroundPlayList->IsRunning()) {
                 _backgroundPlayList->Start(true);
-                logger_base.debug("Background playlist started. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
+                LOG_DEBUG("Background playlist started. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
             }
             _backgroundPlayList->Frame(_buffer, _outputManager->GetTotalChannels(), true);
         }
 
         if (_eventPlayLists.size() > 0) {
-            logger_base.debug("   ... except the event lights.");
+            LOG_DEBUG("   ... except the event lights.");
 
             auto it = _eventPlayLists.begin();
             while (it != _eventPlayLists.end()) {
@@ -705,8 +704,7 @@ int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame) {
 
     reentry = true;
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static log4cpp::Category& logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
+    auto logger = spdlog::get("frame");
     wxStopWatch sw;
 
     int rate = 0;
@@ -714,7 +712,7 @@ int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame) {
 
     // timeout xyzzy if no api calls for 15 seconds
     if (_xyzzy != nullptr && (wxDateTime::Now() - _lastXyzzyCommand).GetSeconds() > 15) {
-        logger_base.info("Stopping xyzzy due to timeout.");
+        LOG_INFO("Stopping xyzzy due to timeout.");
 
         wxString msg;
         DoXyzzy("close", "", msg, "");
@@ -768,9 +766,9 @@ int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame) {
 
             bool done = false;
             if (running != nullptr) {
-                logger_frame.debug("Frame: About to run step frame %ldms", sw.Time());
+                logger->debug("Frame: About to run step frame {}ms", sw.Time());
                 done = running->Frame(_buffer, totalChannels, outputframe);
-                logger_frame.debug("Frame: step frame done %ldms", sw.Time());
+                logger->debug("Frame: step frame done {}ms", sw.Time());
 
                 if (running->GetRunningStep() != nullptr) {
                     size_t fms;
@@ -807,7 +805,7 @@ int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame) {
             if (_backgroundPlayList != nullptr) {
                 if (!_backgroundPlayList->IsRunning()) {
                     _backgroundPlayList->Start(true);
-                    logger_base.debug("Background playlist restarted. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
+                    LOG_DEBUG("Background playlist restarted. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
                 }
                 _backgroundPlayList->Frame(_buffer, totalChannels, outputframe);
             }
@@ -839,38 +837,38 @@ int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame) {
 
                 frame->ManipulateBuffer(_buffer, totalChannels);
 
-                logger_frame.debug("Frame: Overlay data done %ldms", sw.Time());
+                logger->debug("Frame: Overlay data done {}ms", sw.Time());
 
                 // apply any output processing
                 for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it) {
                     (*it)->Frame(_buffer, totalChannels, _outputProcessing);
                 }
 
-                logger_frame.debug("Frame: Output processing done %ldms", sw.Time());
+                logger->debug("Frame: Output processing done {}ms", sw.Time());
 
                 if (outputframe && _brightness < 100) {
                     ApplyBrightness();
                 }
 
-                logger_frame.debug("Frame: Brightness done %ldms", sw.Time());
+                logger->debug("Frame: Brightness done {}ms", sw.Time());
 
                 for (const auto& it : *GetOptions()->GetVirtualMatrices()) {
                     it->Frame(_buffer, totalChannels);
                 }
 
-                logger_frame.debug("Frame: Virtual matrices done %ldms", sw.Time());
+                logger->debug("Frame: Virtual matrices done {}ms", sw.Time());
 
                 _listenerManager->ProcessFrame(_buffer, totalChannels);
 
-                logger_frame.debug("Frame: Listening done %ldms", sw.Time());
+                logger->debug("Frame: Listening done {}ms", sw.Time());
 
                 _outputManager->SetManyChannels(0, _buffer, totalChannels);
 
-                logger_frame.debug("Frame: Data set %ldms", sw.Time());
+                logger->debug("Frame: Data set {}ms", sw.Time());
 
                 _outputManager->EndFrame();
 
-                logger_frame.debug("Frame: Data sent %ldms", sw.Time());
+                logger->debug("Frame: Data sent {}ms", sw.Time());
             }
 
             if (done) {
@@ -900,7 +898,7 @@ int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame) {
                     if (_backgroundPlayList != nullptr) {
                         if (!_backgroundPlayList->IsRunning()) {
                             _backgroundPlayList->Start(true);
-                            logger_base.debug("Background playlist restarted. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
+                            LOG_DEBUG("Background playlist restarted. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
                         }
                         _backgroundPlayList->Frame(_buffer, totalChannels, outputframe);
                     }
@@ -1036,12 +1034,12 @@ void ScheduleManager::CreateBrightnessArray() {
 bool ScheduleManager::PlayPlayList(PlayList* playlist, size_t& rate, bool loop, const std::string& step, bool forcelast, int plloops, bool random, int steploops) {
     bool result = true;
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (playlist == nullptr) {
-        logger_base.info("Error PlayPlayList called with null playlist.");
+        LOG_INFO("Error PlayPlayList called with null playlist.");
         return false;
     }
-    logger_base.info("Playing playlist %s.", (const char*)playlist->GetNameNoTime().c_str());
+    LOG_INFO("Playing playlist %s.", (const char*)playlist->GetNameNoTime().c_str());
 
     if (_immediatePlay != nullptr) {
         _immediatePlay->Stop();
@@ -1050,14 +1048,14 @@ bool ScheduleManager::PlayPlayList(PlayList* playlist, size_t& rate, bool loop, 
     }
 
     if (_queuedSongs != nullptr && _queuedSongs->IsRunning()) {
-        logger_base.info("Suspending queued playlist so immediate can play.");
+        LOG_INFO("Suspending queued playlist so immediate can play.");
         _queuedSongs->Suspend(true);
     }
 
     // this needs to create a copy of everything ... including steps etc
     for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it) {
         if (!(*it)->GetPlayList()->IsSuspended()) {
-            logger_base.info("Suspending playlist %s due to schedule %s so immediate can play.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char*)(*it)->GetSchedule()->GetName().c_str());
+            LOG_INFO("Suspending playlist %s due to schedule %s so immediate can play.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char*)(*it)->GetSchedule()->GetName().c_str());
             (*it)->GetPlayList()->Suspend(true);
         }
     }
@@ -1090,8 +1088,8 @@ int ScheduleManager::CheckSchedule() {
     if (_syncManager->IsSlave())
         return 50;
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Checking the schedule ...");
+    
+    LOG_DEBUG("Checking the schedule ...");
 
     bool higherThanQueuedPlayListScheduleFound = false;
 
@@ -1099,9 +1097,9 @@ int ScheduleManager::CheckSchedule() {
     for (const auto& it : _playLists) {
         auto schedules = it->GetSchedules();
         for (const auto& it2 : schedules) {
-            logger_base.debug("   Checking playlist %s schedule %s.", (const char*)it->GetNameNoTime().c_str(), (const char*)it2->GetName().c_str());
+            LOG_DEBUG("   Checking playlist %s schedule %s.", (const char*)it->GetNameNoTime().c_str(), (const char*)it2->GetName().c_str());
             if (it2->CheckActive()) {
-                logger_base.debug("   It should be active.");
+                LOG_DEBUG("   It should be active.");
                 bool found = false;
 
                 for (const auto& it3 : _activeSchedules) {
@@ -1127,14 +1125,14 @@ int ScheduleManager::CheckSchedule() {
                     if (_scheduleOptions->IsLateStartingScheduleUsesTime()) {
                         long late = rs->GetSchedule()->GetTimeSinceStartTime().GetSeconds().ToLong();
                         if (late > 5) {
-                            logger_base.debug("Schedule %s started %ld seconds late so jumping ahead.", (const char*)rs->GetSchedule()->GetName().c_str(), late);
+                            LOG_DEBUG("Schedule %s started %ld seconds late so jumping ahead.", (const char*)rs->GetSchedule()->GetName().c_str(), late);
                             rs->GetPlayList()->SetPosition(late);
                         }
                     }
 
-                    logger_base.info("   Scheduler starting suspended playlist %s due to schedule %s.", (const char*)it->GetNameNoTime().c_str(), (const char*)it2->GetName().c_str());
+                    LOG_INFO("   Scheduler starting suspended playlist %s due to schedule %s.", (const char*)it->GetNameNoTime().c_str(), (const char*)it2->GetName().c_str());
                 } else {
-                    logger_base.debug("   It was already in the list.");
+                    LOG_DEBUG("   It was already in the list.");
                 }
             }
         }
@@ -1144,19 +1142,19 @@ int ScheduleManager::CheckSchedule() {
     for (const auto& it : _activeSchedules) {
         if (!it->GetSchedule()->CheckActive()) {
             if (!it->GetPlayList()->IsRunning()) {
-                logger_base.info("   Scheduler removing playlist %s due to schedule %s.", (const char*)it->GetPlayList()->GetNameNoTime().c_str(), (const char*)it->GetSchedule()->GetName().c_str());
+                LOG_INFO("   Scheduler removing playlist %s due to schedule %s.", (const char*)it->GetPlayList()->GetNameNoTime().c_str(), (const char*)it->GetSchedule()->GetName().c_str());
                 // this shouldnt be in the list any longer
                 todelete.push_back(it);
             } else {
                 if (!it->GetPlayList()->IsFinishingUp()) {
                     if (it->GetSchedule()->IsHardStop()) {
-                        logger_base.info("   Scheduler telling playlist %s due to schedule %s it is time to hard stop.", (const char*)it->GetPlayList()->GetNameNoTime().c_str(), (const char*)it->GetSchedule()->GetName().c_str());
+                        LOG_INFO("   Scheduler telling playlist %s due to schedule %s it is time to hard stop.", (const char*)it->GetPlayList()->GetNameNoTime().c_str(), (const char*)it->GetSchedule()->GetName().c_str());
                         // This looks weird but i need to do it this way
                         it->Stop();
                         StopPlayList(it->GetPlayList(), false);
                         todelete.push_back(it);
                     } else {
-                        logger_base.info("   Scheduler telling playlist %s due to schedule %s it is time to finish up.", (const char*)it->GetPlayList()->GetNameNoTime().c_str(), (const char*)it->GetSchedule()->GetName().c_str());
+                        LOG_INFO("   Scheduler telling playlist %s due to schedule %s it is time to finish up.", (const char*)it->GetPlayList()->GetNameNoTime().c_str(), (const char*)it->GetSchedule()->GetName().c_str());
                         it->GetPlayList()->JumpToEndStepsAtEndOfCurrentStep();
                     }
                 }
@@ -1193,7 +1191,7 @@ int ScheduleManager::CheckSchedule() {
                         PlayList* actuallyRunningPlaylist = GetRunningPlayList();
 
                         if (actuallyRunningPlaylist != nullptr && actuallyRunningPlaylist != it->GetPlayList() && it->GetSchedule()->GetGracefullyInterrupt()) {
-                            logger_base.info("   Playlist %s being gracefully interupted by schedule %s on Playlist %s.", (const char*)actuallyRunningPlaylist->GetNameNoTime().c_str(), (const char*)it->GetSchedule()->GetName().c_str(), (const char*)it->GetPlayList()->GetNameNoTime().c_str());
+                            LOG_INFO("   Playlist %s being gracefully interupted by schedule %s on Playlist %s.", (const char*)actuallyRunningPlaylist->GetNameNoTime().c_str(), (const char*)it->GetSchedule()->GetName().c_str(), (const char*)it->GetPlayList()->GetNameNoTime().c_str());
                             actuallyRunningPlaylist->SetSuspendAtEndOfCurrentStep();
                             if (!it->GetPlayList()->IsRunning() &&
                                 it->GetSchedule()->GetFireFrequency() != "Fire once" &&
@@ -1213,13 +1211,13 @@ int ScheduleManager::CheckSchedule() {
                     }
                 } else {
                     if (!it->GetPlayList()->IsSuspended() && toUnsuspend != nullptr) {
-                        logger_base.info("   Suspending playlist %s due to schedule %s.", (const char*)it->GetPlayList()->GetNameNoTime().c_str(), (const char*)it->GetSchedule()->GetName().c_str());
+                        LOG_INFO("   Suspending playlist %s due to schedule %s.", (const char*)it->GetPlayList()->GetNameNoTime().c_str(), (const char*)it->GetSchedule()->GetName().c_str());
                         it->GetPlayList()->Suspend(true);
                     }
                 }
             }
             if (toUnsuspend != nullptr) {
-                logger_base.info("   Unsuspending playlist %s due to schedule %s.", (const char*)toUnsuspend->GetPlayList()->GetNameNoTime().c_str(), (const char*)toUnsuspend->GetSchedule()->GetName().c_str());
+                LOG_INFO("   Unsuspending playlist %s due to schedule %s.", (const char*)toUnsuspend->GetPlayList()->GetNameNoTime().c_str(), (const char*)toUnsuspend->GetSchedule()->GetName().c_str());
                 framems = toUnsuspend->GetPlayList()->Suspend(false);
                 toUnsuspend->GetSchedule()->DidFire();
             }
@@ -1228,7 +1226,7 @@ int ScheduleManager::CheckSchedule() {
             // make sure they are all suspended
             for (const auto& it : _activeSchedules) {
                 if (!it->GetPlayList()->IsSuspended()) {
-                    logger_base.info("   Suspending playlist %s due to schedule %s so immediate can play.", (const char*)it->GetPlayList()->GetNameNoTime().c_str(), (const char*)it->GetSchedule()->GetName().c_str());
+                    LOG_INFO("   Suspending playlist %s due to schedule %s so immediate can play.", (const char*)it->GetPlayList()->GetNameNoTime().c_str(), (const char*)it->GetSchedule()->GetName().c_str());
                     it->GetPlayList()->Suspend(true);
                 }
             }
@@ -1251,13 +1249,13 @@ int ScheduleManager::CheckSchedule() {
         // make sure they are all suspended
         for (const auto& it : _activeSchedules) {
             if (!it->GetPlayList()->IsSuspended()) {
-                logger_base.info("   Suspending playlist %s due to schedule %s so immediate can play.", (const char*)it->GetPlayList()->GetNameNoTime().c_str(), (const char*)it->GetSchedule()->GetName().c_str());
+                LOG_INFO("   Suspending playlist %s due to schedule %s so immediate can play.", (const char*)it->GetPlayList()->GetNameNoTime().c_str(), (const char*)it->GetSchedule()->GetName().c_str());
                 it->GetPlayList()->Suspend(true);
             }
         }
 
         if (_queuedSongs->GetSteps().size() > 0 && !_queuedSongs->IsSuspended()) {
-            logger_base.info("   Suspending queued playlist so immediate can play.");
+            LOG_INFO("   Suspending queued playlist so immediate can play.");
             _queuedSongs->Suspend(true);
         }
 
@@ -1266,7 +1264,7 @@ int ScheduleManager::CheckSchedule() {
         }
     }
 
-    logger_base.debug("   Active scheduled playlists: %d", _activeSchedules.size());
+    LOG_DEBUG("   Active scheduled playlists: %d", _activeSchedules.size());
     for (const auto& it : _activeSchedules) {
         if (it->GetPlayList() != nullptr && it->GetSchedule() != nullptr) {
             PlayListStep* step = it->GetPlayList()->GetRunningStep();
@@ -1278,7 +1276,7 @@ int ScheduleManager::CheckSchedule() {
             std::string pos = std::string(step == nullptr ? _("") : FORMATTIME(step->GetPosition()));
             std::string len = std::string(step == nullptr ? _("") : FORMATTIME(step->GetLengthMS()));
 
-            logger_base.debug("        Playlist %s, Schedule %s Priority %d %s %s Step '%s' Time %s/%s",
+            LOG_DEBUG("        Playlist %s, Schedule %s Priority %d %s %s Step '%s' Time %s/%s",
                               (const char*)it->GetPlayList()->GetName().c_str(),
                               (const char*)it->GetSchedule()->GetName().c_str(),
                               it->GetSchedule()->GetPriority(),
@@ -1288,7 +1286,7 @@ int ScheduleManager::CheckSchedule() {
                               (const char*)pos.c_str(),
                               (const char*)len.c_str());
         } else {
-            logger_base.error("        Weird playlist or schedule was null.");
+            LOG_ERROR("        Weird playlist or schedule was null.");
         }
     }
 
@@ -1349,7 +1347,7 @@ bool ScheduleManager::IsQueuedPlaylistRunning() const {
 
 // localhost/xScheduleCommand?Command=<command>&Parameters=<comma separated parameters>
 bool ScheduleManager::Action(const wxString& command, const wxString& parameters, const wxString& data, PlayList* selplaylist, PlayListStep* selplayliststep, Schedule* selschedule, size_t& rate, wxString& msg) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     bool result = true;
     bool scheduleChanged = false;
@@ -1364,7 +1362,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
             result = false;
         } else {
             if (_mainThread != wxThread::GetCurrentId()) {
-                logger_base.debug("Action '%s':'%s' arrived not on main thread ... switching threads.",
+                LOG_DEBUG("Action '%s':'%s' arrived not on main thread ... switching threads.",
                                   (const char*)command.c_str(), (const char*)parameters.c_str());
 
                 // Because of what this function can do calling it on the main thread is dangerous ... so we need to switch threads
@@ -1373,7 +1371,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                 event.SetClientData(amd);
                 wxPostEvent(wxGetApp().GetTopWindow(), event);
             } else {
-                logger_base.debug("Action '%s':'%s'.",
+                LOG_DEBUG("Action '%s':'%s'.",
                                   (const char*)command.c_str(), (const char*)parameters.c_str());
                 if (command == "Stop all now") {
                     // we cant stop here as this might be in the middle of playing the playlist
@@ -1445,10 +1443,10 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         if (GetRunningPlayList() != nullptr) {
                             rate = GetRunningPlayList()->GetFrameMS();
                         }
-                        logger_base.debug("Frame rate override cleared. Frame rate now %dms", rate);
+                        LOG_DEBUG("Frame rate override cleared. Frame rate now %dms", rate);
                     } else {
                         _overrideMS = rate;
-                        logger_base.debug("Frame rate adjusted by %dms to %dms", wxAtoi(parameters), rate);
+                        LOG_DEBUG("Frame rate adjusted by %dms to %dms", wxAtoi(parameters), rate);
                     }
                 } else if (command == "Set frame interval to ms") {
                     rate = wxAtoi(parameters);
@@ -1463,10 +1461,10 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         if (GetRunningPlayList() != nullptr) {
                             rate = GetRunningPlayList()->GetFrameMS();
                         }
-                        logger_base.debug("Frame rate override cleared. Frame rate now %dms", rate);
+                        LOG_DEBUG("Frame rate override cleared. Frame rate now %dms", rate);
                     } else {
                         _overrideMS = rate;
-                        logger_base.debug("Frame rate set to %dms", rate);
+                        LOG_DEBUG("Frame rate set to %dms", rate);
                     }
                 } else if (command == "Play selected playlist looped") {
                     if (selplaylist != nullptr) {
@@ -1825,7 +1823,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         PlayListStep* pls = p->GetStep(step);
 
                         if (pls != nullptr) {
-                            logger_base.info("Playing event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char*)pls->GetNameNoTime().c_str());
+                            LOG_INFO("Playing event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char*)pls->GetNameNoTime().c_str());
 
                             _eventPlayLists.push_back(new PlayList(*p));
                             _eventPlayLists.back()->Start(false, false, false);
@@ -1845,7 +1843,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         PlayListStep* pls = p->GetStep(step);
 
                         if (pls != nullptr) {
-                            logger_base.info("Playing event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char*)pls->GetNameNoTime().c_str());
+                            LOG_INFO("Playing event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char*)pls->GetNameNoTime().c_str());
 
                             _eventPlayLists.push_back(new PlayList(*p));
                             _eventPlayLists.back()->Start(false, false, false);
@@ -1878,7 +1876,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                                 }
                             }
 
-                            logger_base.info("Playing event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char*)pls->GetNameNoTime().c_str());
+                            LOG_INFO("Playing event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char*)pls->GetNameNoTime().c_str());
 
                             _eventPlayLists.push_back(new PlayList(*p));
                             _eventPlayLists.back()->Start(false, false, false);
@@ -1908,7 +1906,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                                     (*temp)->Stop();
                                     delete *temp;
                                     _eventPlayLists.remove(*temp);
-                                    logger_base.info("Stopped event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char*)pls->GetNameNoTime().c_str());
+                                    LOG_INFO("Stopped event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char*)pls->GetNameNoTime().c_str());
                                 } else {
                                     ++it2;
                                 }
@@ -1921,15 +1919,15 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                     PlayList* p = GetPlayList(pl);
                     if (p != nullptr) {
                         SetBackgroundPlayList(p);
-                        logger_base.info("Set playlist as background %s.", (const char*)p->GetNameNoTime().c_str());
+                        LOG_INFO("Set playlist as background %s.", (const char*)p->GetNameNoTime().c_str());
                     }
                 } else if (command == "Clear background playlist") {
                     SetBackgroundPlayList(nullptr);
-                    logger_base.info("Clear background playlist.");
+                    LOG_INFO("Clear background playlist.");
                 } else if (command == "Stop all event playlists") {
                     auto it2 = _eventPlayLists.begin();
                     while (it2 != _eventPlayLists.end()) {
-                        logger_base.info("Stopped event playlist %s.", (const char*)(*it2)->GetNameNoTime().c_str());
+                        LOG_INFO("Stopped event playlist %s.", (const char*)(*it2)->GetNameNoTime().c_str());
                         auto temp = it2;
                         ++it2;
                         (*temp)->Stop();
@@ -1949,7 +1947,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                                 (*temp)->Stop();
                                 delete *temp;
                                 _eventPlayLists.remove(*temp);
-                                logger_base.info("Stopped event playlist %s.", (const char*)p->GetNameNoTime().c_str());
+                                LOG_INFO("Stopped event playlist %s.", (const char*)p->GetNameNoTime().c_str());
                             } else {
                                 ++it2;
                             }
@@ -1981,7 +1979,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                                 }
                             }
 
-                            logger_base.info("Playing event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char*)pls->GetNameNoTime().c_str());
+                            LOG_INFO("Playing event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char*)pls->GetNameNoTime().c_str());
 
                             _eventPlayLists.push_back(new PlayList(*p));
                             _eventPlayLists.back()->Start(false, false, false);
@@ -2013,7 +2011,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                             PlayListStep* pls = p->GetStep(step);
 
                             if (pls != nullptr) {
-                                logger_base.info("Playing event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char*)pls->GetNameNoTime().c_str());
+                                LOG_INFO("Playing event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char*)pls->GetNameNoTime().c_str());
 
                                 _eventPlayLists.push_back(new PlayList(*p));
                                 _eventPlayLists.back()->Start(false, false, false);
@@ -2021,7 +2019,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                                 _eventPlayLists.back()->StopAtEndOfCurrentStep();
                             }
                         } else {
-                            logger_base.info("Event playlist %s step %s not started because playlist is already playing.", (const char*)p->GetNameNoTime().c_str(), (const char*)step.c_str());
+                            LOG_INFO("Event playlist %s step %s not started because playlist is already playing.", (const char*)p->GetNameNoTime().c_str(), (const char*)step.c_str());
                         }
                     }
                 } else if (command == "Run event playlist step if idle looped") {
@@ -2049,14 +2047,14 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                             PlayListStep* pls = p->GetStep(step);
 
                             if (pls != nullptr) {
-                                logger_base.info("Playing event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char*)pls->GetNameNoTime().c_str());
+                                LOG_INFO("Playing event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char*)pls->GetNameNoTime().c_str());
 
                                 _eventPlayLists.push_back(new PlayList(*p));
                                 _eventPlayLists.back()->Start(false, false, false);
                                 _eventPlayLists.back()->LoopStep(step);
                             }
                         } else {
-                            logger_base.info("Event playlist %s step %s not started because playlist is already playing.", (const char*)p->GetNameNoTime().c_str(), (const char*)step.c_str());
+                            LOG_INFO("Event playlist %s step %s not started because playlist is already playing.", (const char*)p->GetNameNoTime().c_str(), (const char*)step.c_str());
                         }
                     }
                 } else if (command == "Play specified playlist step once only") {
@@ -2275,10 +2273,10 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                                 }
                             }
                             if (start == -1) {
-                                logger_base.error("Unable to find model '%s' in models JSON", (const char*)pp[1].c_str());
+                                LOG_ERROR("Unable to find model '%s' in models JSON", (const char*)pp[1].c_str());
                             }
                         } else {
-                            logger_base.error("Unable to load models JSON");
+                            LOG_ERROR("Unable to load models JSON");
                         }
                         GetOptions()->GetTestOptions()->SetBounds(start, end);
                     }
@@ -2598,10 +2596,10 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         if (it->GetStartChannel() == sc) {
                             p = it;
                             if (data.length() == 0) {
-                                logger_base.debug("Pixel overlay data removed.");
+                                LOG_DEBUG("Pixel overlay data removed.");
                                 _overlayData.remove(p);
                             } else {
-                                logger_base.debug("Pixel overlay data changed.");
+                                LOG_DEBUG("Pixel overlay data changed.");
                                 p->SetData(data, blendMode);
                             }
                             break;
@@ -2609,7 +2607,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                     }
 
                     if (p == nullptr && data.length() != 0) {
-                        logger_base.debug("Pixel overlay data removed.");
+                        LOG_DEBUG("Pixel overlay data removed.");
                         p = new PixelData(sc, data, blendMode);
                         _overlayData.push_back(p);
                     }
@@ -2632,12 +2630,12 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                             if (it->GetStartChannel() == sc) {
                                 if (ch == 0) {
                                     p = it;
-                                    logger_base.debug("Pixel overlay data removed.");
+                                    LOG_DEBUG("Pixel overlay data removed.");
                                     _overlayData.remove(p);
                                     break;
                                 } else if (it->GetSize() == ch) {
                                     p = it;
-                                    logger_base.debug("Pixel overlay data changed.");
+                                    LOG_DEBUG("Pixel overlay data changed.");
                                     p->SetColor(c, blendMode);
                                     break;
                                 }
@@ -2645,7 +2643,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                         }
 
                         if (p == nullptr && ch != 0) {
-                            logger_base.debug("Pixel overlay data added.");
+                            LOG_DEBUG("Pixel overlay data added.");
                             p = new PixelData(sc, ch, c, blendMode);
                             _overlayData.push_back(p);
                         }
@@ -2653,7 +2651,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
                 } else if (command == "Clear all overlays") {
                     std::list<PixelData*>::iterator i = _overlayData.begin();
                     while (i != _overlayData.end()) {
-                        logger_base.debug("Pixel overlay data removed.");
+                        LOG_DEBUG("Pixel overlay data removed.");
                         i = _overlayData.erase(i);
                     }
                 } else if (command == "Play specified playlist step n times") {
@@ -2682,7 +2680,7 @@ bool ScheduleManager::Action(const wxString& command, const wxString& parameters
     }
 
     if (!result) {
-        logger_base.error("Action failed: %s", (const char*)msg.c_str());
+        LOG_ERROR("Action failed: %s", (const char*)msg.c_str());
 
         wxCommandEvent event(EVT_STATUSMSG);
         event.SetString(msg);
@@ -3096,8 +3094,8 @@ bool ScheduleManager::Query(const wxString& command, const wxString& parameters,
                    "\",\"passwordset\":\"" + (_scheduleOptions->GetPassword() == "" ? "false" : "true") +
                    "\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") +
                    "\"," + GetPingStatus() + "}";
-            // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            // logger_base.info("%s", (const char*)data.c_str());
+            // 
+            // LOG_INFO("%s", (const char*)data.c_str());
         }
     } else if (c == "getbuttons") {
         data = _scheduleOptions->GetButtonsJSON(_commandManager, reference);
@@ -3114,7 +3112,7 @@ void ScheduleManager::DisableRemoteOutputs() {
     // That is not ideal but solving it would require adding amybe a session disable in output
     // and at this time of year i am not inclined to introduce that change - fix this in 2019
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_syncManager->IsMaster(SYNCMODE::FPPBROADCASTMASTER) || _syncManager->IsMaster(SYNCMODE::FPPUNICASTMASTER) || _syncManager->IsMaster(SYNCMODE::FPPUNICASTCSVMASTER) || _syncManager->IsMaster(SYNCMODE::FPPMULTICASTMASTER)) {
         std::list<std::string> remotes = GetOptions()->GetFPPRemotes();
@@ -3123,8 +3121,8 @@ void ScheduleManager::DisableRemoteOutputs() {
             auto outputs = _outputManager->GetOutputs();
             for (auto ito = outputs.begin(); ito != outputs.end(); ++ito) {
                 if ((*ito)->IsIpOutput() && (*it == (*ito)->GetIP() || *it == (*ito)->GetResolvedIP())) {
-                    logger_base.debug("Output '%s' disabled as this is a listed remote to receive FPP Sync packets.", (const char*)(*ito)->GetLongDescription().c_str());
-                    logger_base.debug("    The only way to re-enable these outputs is to shut down xSchedule and restart it.");
+                    LOG_DEBUG("Output '%s' disabled as this is a listed remote to receive FPP Sync packets.", (const char*)(*ito)->GetLongDescription().c_str());
+                    LOG_DEBUG("    The only way to re-enable these outputs is to shut down xSchedule and restart it.");
                     (*ito)->Enable(false);
                 }
             }
@@ -3322,7 +3320,7 @@ void ScheduleManager::SetOutputToLights(xScheduleFrame* frame, bool otl, bool in
         return;
     reenter = true;
 
-    static log4cpp::Category& logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
+    auto logger = spdlog::get("frame");
     wxStopWatch sw;
 
     if (_outputManager != nullptr) {
@@ -3338,7 +3336,7 @@ void ScheduleManager::SetOutputToLights(xScheduleFrame* frame, bool otl, bool in
 #endif
                 StartVirtualMatrices();
                 ManageBackground();
-                logger_frame.debug("Turned on output to lights %ldms", sw.Time());
+                logger->debug("Turned on output to lights {}ms", sw.Time());
                 GetListenerManager()->ProcessPacket("State", "Lights On");
                 if (!success) {
                     GetListenerManager()->ProcessPacket("State", "Output Open Error");
@@ -3352,7 +3350,7 @@ void ScheduleManager::SetOutputToLights(xScheduleFrame* frame, bool otl, bool in
 #endif
                 StopVirtualMatrices();
                 ManageBackground();
-                logger_frame.debug("Turned off output to lights %ldms", sw.Time());
+                logger->debug("Turned off output to lights {}ms", sw.Time());
                 GetListenerManager()->ProcessPacket("State", "Lights Off");
             }
         }
@@ -3476,10 +3474,10 @@ PlayList* ScheduleManager::GetPlayList(int id) const {
 }
 
 void ScheduleManager::SetBackgroundPlayList(PlayList* playlist) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (playlist == nullptr && _backgroundPlayList != nullptr) {
-        logger_base.debug("Background playlist stopped and deleted. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
+        LOG_DEBUG("Background playlist stopped and deleted. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
         _backgroundPlayList->Stop();
         delete _backgroundPlayList;
         _backgroundPlayList = nullptr;
@@ -3487,15 +3485,15 @@ void ScheduleManager::SetBackgroundPlayList(PlayList* playlist) {
     } else if (playlist != nullptr) {
         if (_backgroundPlayList == nullptr) {
             _backgroundPlayList = new PlayList(*playlist);
-            logger_base.debug("Background playlist loaded. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
+            LOG_DEBUG("Background playlist loaded. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
             _changeCount++;
         } else {
             if (playlist->GetId() != _backgroundPlayList->GetId()) {
-                logger_base.debug("Background playlist stopped and deleted. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
+                LOG_DEBUG("Background playlist stopped and deleted. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
                 _backgroundPlayList->Stop();
                 delete _backgroundPlayList;
                 _backgroundPlayList = new PlayList(*playlist);
-                logger_base.debug("Background playlist loaded. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
+                LOG_DEBUG("Background playlist loaded. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
                 _changeCount++;
             }
         }
@@ -3503,11 +3501,11 @@ void ScheduleManager::SetBackgroundPlayList(PlayList* playlist) {
 }
 
 void ScheduleManager::ManageBackground() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_backgroundPlayList != nullptr) {
         if (IsOutputToLights()) {
-            logger_base.debug("Background playlist stopped and deleted. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
+            LOG_DEBUG("Background playlist stopped and deleted. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
             _backgroundPlayList->Stop();
             int id = _backgroundPlayList->GetId();
             delete _backgroundPlayList;
@@ -3516,10 +3514,10 @@ void ScheduleManager::ManageBackground() {
             if (pl != nullptr) {
                 _backgroundPlayList = new PlayList(*pl);
                 _backgroundPlayList->Start(true);
-                logger_base.debug("Background playlist loaded and started. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
+                LOG_DEBUG("Background playlist loaded and started. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
             }
         } else {
-            logger_base.debug("Background playlist stopped. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
+            LOG_DEBUG("Background playlist stopped. %s.", (const char*)_backgroundPlayList->GetNameNoTime().c_str());
             _backgroundPlayList->Stop();
             AllOff();
         }
@@ -3527,8 +3525,8 @@ void ScheduleManager::ManageBackground() {
 }
 
 void LogAndWrite(wxFile& f, const std::string& msg) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("CheckSchedule: " + msg);
+    
+    LOG_DEBUG("CheckSchedule: " + msg);
     if (f.IsOpened()) {
         f.Write(msg + "\r\n");
     }
@@ -3576,7 +3574,7 @@ bool ScheduleManager::ShowDirectoriesMatch() const {
 }
 
 void ScheduleManager::CheckScheduleIntegrity(bool display) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     int errcount = 0;
     int warncount = 0;
@@ -3589,7 +3587,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display) {
     if (display) {
         f.Open(filename, wxFile::write);
         if (!f.IsOpened()) {
-            logger_base.warn("Unable to create results file for Check Schedule. Aborted.");
+            LOG_WARN("Unable to create results file for Check Schedule. Aborted.");
             wxMessageBox(_("Unable to create results file for Check Schedule. Aborted."), _("Error"));
             return;
         }
@@ -4249,19 +4247,19 @@ void ScheduleManager::CheckScheduleIntegrity(bool display) {
         if (ft) {
             wxString command = ft->GetOpenCommand(filename);
 
-            logger_base.debug("Viewing xSchedule Check Schedule results %s.", (const char*)filename.c_str());
+            LOG_DEBUG("Viewing xSchedule Check Schedule results %s.", (const char*)filename.c_str());
 
             wxExecute(command);
             delete ft;
         } else {
-            logger_base.warn("Unable to view xSchedule Check Schedule results %s.", (const char*)filename.c_str());
+            LOG_WARN("Unable to view xSchedule Check Schedule results %s.", (const char*)filename.c_str());
             wxMessageBox(_("Unable to show xSchedule Check Schedule results."), _("Error"));
         }
     }
 }
 
 void ScheduleManager::ImportxLightsSchedule(const std::string& filename) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxFileName fn(filename);
     std::string base = fn.GetPath().ToStdString();
@@ -4309,7 +4307,7 @@ void ScheduleManager::ImportxLightsSchedule(const std::string& filename) {
             }
         }
     } else {
-        logger_base.error("Invalid xLights schedule file.");
+        LOG_ERROR("Invalid xLights schedule file.");
         wxMessageBox("Invalid xLights schedule file.");
     }
 }
@@ -4502,7 +4500,7 @@ void ScheduleManager::StopVirtualMatrices() {
 }
 
 std::string ScheduleManager::FindStepForFSEQ(const std::string& fseq) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     for (auto it : _playLists) {
         PlayListStep* pls = it->GetStepWithFSEQ(fseq);
@@ -4512,12 +4510,12 @@ std::string ScheduleManager::FindStepForFSEQ(const std::string& fseq) const {
         }
     }
 
-    logger_base.debug("No step with fseq file '%s' found.", (const char*)fseq.c_str());
+    LOG_DEBUG("No step with fseq file '%s' found.", (const char*)fseq.c_str());
     return "";
 }
 
 void ScheduleManager::StartTiming(const std::string timingName) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     // find this fseq file and run it
     PlayList* pl = GetRunningPlayList();
@@ -4539,7 +4537,7 @@ void ScheduleManager::StartTiming(const std::string timingName) {
     }
 
     if (pl != nullptr && pls != nullptr) {
-        logger_base.debug("... Starting %s %s.", (const char*)pl->GetNameNoTime().c_str(), (const char*)pls->GetNameNoTime().c_str());
+        LOG_DEBUG("... Starting %s %s.", (const char*)pl->GetNameNoTime().c_str(), (const char*)pls->GetNameNoTime().c_str());
 
         size_t rate = 0;
         PlayPlayList(pl, rate, false, pls->GetNameNoTime(), true);
@@ -4558,7 +4556,7 @@ void ScheduleManager::StartTiming(const std::string timingName) {
 }
 
 void ScheduleManager::StartStep(const std::string stepName) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     // find this step and run it
     PlayList* pl = GetRunningPlayList();
@@ -4580,7 +4578,7 @@ void ScheduleManager::StartStep(const std::string stepName) {
     }
 
     if (pl != nullptr && pls != nullptr) {
-        logger_base.debug("... Starting %s %s.", (const char*)pl->GetNameNoTime().c_str(), (const char*)pls->GetNameNoTime().c_str());
+        LOG_DEBUG("... Starting %s %s.", (const char*)pl->GetNameNoTime().c_str(), (const char*)pls->GetNameNoTime().c_str());
 
         size_t rate = 0;
         PlayPlayList(pl, rate, false, pls->GetNameNoTime(), true);
@@ -4840,15 +4838,15 @@ void ScheduleManager::SetForceLocalIP(const std::string& forceLocalIP) {
 }
 
 std::string ScheduleManager::GetForceLocalIP() const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxConfigBase* config = wxConfigBase::Get();
     wxString localIP;
     config->Read(_("xLightsLocalIP"), &localIP, "");
     if (localIP != "") {
         if (IsValidLocalIP(localIP)) {
-            logger_base.info("Forcing output via %s.", (const char*)localIP.c_str());
+            LOG_INFO("Forcing output via %s.", (const char*)localIP.c_str());
         } else {
-            logger_base.warn("Forcing output via %s IGNORED as the IP does not exist on this machine at this time.", (const char*)localIP.c_str());
+            LOG_WARN("Forcing output via %s IGNORED as the IP does not exist on this machine at this time.", (const char*)localIP.c_str());
         }
     }
     return localIP;

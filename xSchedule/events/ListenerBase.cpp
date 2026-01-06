@@ -10,7 +10,7 @@
 
 #include "ListenerBase.h"
 #include "../ScheduleManager.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include <wx/wx.h>
 
 ListenerBase::ListenerBase(ListenerManager* listenerManager, const std::string& localIP) {
@@ -23,29 +23,29 @@ ListenerBase::ListenerBase(ListenerManager* listenerManager, const std::string& 
 
 ListenerThread::ListenerThread(ListenerBase* listener, const std::string& localIP) :
     wxThread(wxTHREAD_JOINABLE) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _listener = listener;
     _stop = false;
     _running = false;
     _localIP = localIP;
     if (Run() != wxTHREAD_NO_ERROR) {
-        logger_base.error("Failed to start listener thread for %s", (const char*)listener->GetType().c_str());
+        LOG_ERROR("Failed to start listener thread for %s", (const char*)listener->GetType().c_str());
     } else {
-        logger_base.info("Listener thread for %s created.", (const char*)listener->GetType().c_str());
+        LOG_INFO("Listener thread for %s created.", (const char*)listener->GetType().c_str());
     }
 }
 
 void* ListenerThread::Entry() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_listener == nullptr) {
-        logger_base.info("Listener thread started but listener was null. Exiting.");
+        LOG_INFO("Listener thread started but listener was null. Exiting.");
         return nullptr;
     }
 
     _running = true;
-    logger_base.info("Listener thread for %s running.", (const char*)_listener->GetType().c_str());
+    LOG_INFO("Listener thread for %s running.", (const char*)_listener->GetType().c_str());
 
     _listener->StartProcess(_localIP);
 

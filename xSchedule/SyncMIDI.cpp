@@ -17,7 +17,7 @@
 #include "wxMIDI/src/wxMidi.h"
 
 #include "../xLights/UtilFunctions.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 class MIDITimecodeThread : public wxThread {
     std::atomic<bool> _stop;
@@ -29,7 +29,7 @@ class MIDITimecodeThread : public wxThread {
 
 public:
     MIDITimecodeThread(SyncMIDI* syncMIDI, ScheduleManager* scheduleManager) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
 
         _suspend = false;
         _running = false;
@@ -38,9 +38,9 @@ public:
         _scheduleManager = scheduleManager;
 
         if (Run() != wxTHREAD_NO_ERROR) {
-            logger_base.error("Failed to start MIDI Timecode thread");
+            LOG_ERROR("Failed to start MIDI Timecode thread");
         } else {
-            logger_base.info("MIDI Timecode thread created.");
+            LOG_INFO("MIDI Timecode thread created.");
         }
     }
     virtual ~MIDITimecodeThread() {
@@ -48,8 +48,8 @@ public:
     }
 
     void Stop() {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("MIDI Timecode thread stopping.");
+        
+        LOG_INFO("MIDI Timecode thread stopping.");
         _stop = true;
     }
 
@@ -61,7 +61,7 @@ public:
     }
 
     void* Entry() {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
         wxLongLong last = 0;
         double interval = _syncMidi->GetInterval() * 1000.0; // quarter frame messages
         _running = true;
@@ -97,7 +97,7 @@ public:
             }
         }
         _running = false;
-        logger_base.info("MIDI Timecode thread stopped.");
+        LOG_INFO("MIDI Timecode thread stopped.");
         return nullptr;
     }
 };
@@ -112,7 +112,7 @@ class MIDIClockThread : public wxThread {
 
 public:
     MIDIClockThread(SyncMIDI* syncMIDI, ScheduleManager* scheduleManager) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
 
         _suspend = false;
         _running = false;
@@ -121,9 +121,9 @@ public:
         _scheduleManager = scheduleManager;
 
         if (Run() != wxTHREAD_NO_ERROR) {
-            logger_base.error("Failed to start MIDI Clock thread");
+            LOG_ERROR("Failed to start MIDI Clock thread");
         } else {
-            logger_base.info("MIDI Clock thread created.");
+            LOG_INFO("MIDI Clock thread created.");
         }
     }
     virtual ~MIDIClockThread() {
@@ -131,8 +131,8 @@ public:
     }
 
     void Stop() {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("MIDI Clock thread stopping.");
+        
+        LOG_INFO("MIDI Clock thread stopping.");
         _stop = true;
     }
 
@@ -144,10 +144,10 @@ public:
     }
 
     void* Entry() {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
         wxLongLong last = 0;
         double interval = 1000000.0 / 24.0; // 88 BPM, 24 frames per second
-        logger_base.debug("Clock thread interval %gms", interval / 1000);
+        LOG_DEBUG("Clock thread interval %gms", interval / 1000);
         _running = true;
         while (!_stop) {
             if (!_suspend) {
@@ -172,7 +172,7 @@ public:
             }
         }
         _running = false;
-        logger_base.info("MIDI Clock thread stopped.");
+        LOG_INFO("MIDI Clock thread stopped.");
         return nullptr;
     }
 };
@@ -180,7 +180,7 @@ public:
 
 SyncMIDI::SyncMIDI(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager) :
     SyncBase(sm, rm, options, schm) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _supportsStepMMSSFormat = true;
     _timeCodeDevice = options.GetMIDITimecodeDevice();
@@ -195,9 +195,9 @@ SyncMIDI::SyncMIDI(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, S
                 if (err != wxMIDI_NO_ERROR) {
                     delete _midi;
                     _midi = nullptr;
-                    logger_base.error("MIDI failed to open as a timecode master: %d", err);
+                    LOG_ERROR("MIDI failed to open as a timecode master: %d", (int)err);
                 } else {
-                    logger_base.debug("MIDI opened as a timecode master");
+                    LOG_DEBUG("MIDI opened as a timecode master");
                     // Start the sending thread
                     _threadTimecode = new MIDITimecodeThread(this, listenerManager->GetScheduleManager());
 #ifdef USE_CLOCK_THREAD
@@ -207,7 +207,7 @@ SyncMIDI::SyncMIDI(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, S
             } else {
                 delete _midi;
                 _midi = nullptr;
-                logger_base.debug("Attempt to use input MIDI device as a timecode master. Device must be an output device.");
+                LOG_DEBUG("Attempt to use input MIDI device as a timecode master. Device must be an output device.");
                 wxMessageBox("Invalid MIDI device type for master mode.");
             }
         }
@@ -243,7 +243,7 @@ SyncMIDI::SyncMIDI(SyncMIDI&& from) :
 SyncMIDI::~SyncMIDI() {
     // close the sending thread
     if (_threadTimecode != nullptr) {
-        // logger_base.debug("MIDI Timecode stopping.");
+        // LOG_DEBUG("MIDI Timecode stopping.");
         _threadTimecode->Stop();
         _threadTimecode->Delete();
         _threadTimecode = nullptr;
@@ -252,7 +252,7 @@ SyncMIDI::~SyncMIDI() {
 #ifdef USE_CLOCK_THREAD
     // close the sending thread
     if (_threadClock != nullptr) {
-        // logger_base.debug("MIDI Clock stopping.");
+        // LOG_DEBUG("MIDI Clock stopping.");
         _threadClock->Stop();
         _threadClock->Delete();
         _threadClock = nullptr;
@@ -286,14 +286,14 @@ double SyncMIDI::GetInterval() {
 }
 
 void SyncMIDI::SendClock() const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_midi == nullptr)
         return;
 
     wxMidiShortMessage msg(0xF8, 0, 0);
     msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
-    logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
+    LOG_DEBUG("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
     {
 #ifdef USE_CLOCK_THREAD
         std::unique_lock<std::mutex> lock(_mutex);
@@ -303,7 +303,7 @@ void SyncMIDI::SendClock() const {
 }
 
 void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem, uint32_t stepno, int overridetimeSecs) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     static size_t lastmsec = 999999999;
     static bool firstquarterframe = true;
 
@@ -332,7 +332,7 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
     if (lastmsec == 999999999) {
         wxMidiShortMessage msg(0xFA, 0, 0);
         msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
-        logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
+        LOG_DEBUG("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
 
         {
 #ifdef USE_CLOCK_THREAD
@@ -344,7 +344,7 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
         lastmsec = 999999999;
         wxMidiShortMessage msg(0xFC, 0, 0);
         msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
-        logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
+        LOG_DEBUG("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
         {
 #ifdef USE_CLOCK_THREAD
             std::unique_lock<std::mutex> lock(_mutex);
@@ -438,7 +438,7 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
             break;
         }
 
-        logger_base.debug("%d:%02d:%02d.%02d", hours, mins, secs, frames);
+        LOG_DEBUG("%d:%02d:%02d.%02d", hours, mins, secs, frames);
 
         uint8_t data = 0;
         if (firstquarterframe) {
@@ -460,7 +460,7 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
                 data += (i << 4);
                 wxMidiShortMessage msg(0xF1, data, 0);
                 msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
-                logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
+                LOG_DEBUG("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
                 {
 #ifdef USE_CLOCK_THREAD
                     std::unique_lock<std::mutex> lock(_mutex);
@@ -487,7 +487,7 @@ void SyncMIDI::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS
                 data += (i << 4);
                 wxMidiShortMessage msg(0xF1, data, 0);
                 msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
-                logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
+                LOG_DEBUG("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
                 {
 #ifdef USE_CLOCK_THREAD
                     std::unique_lock<std::mutex> lock(_mutex);

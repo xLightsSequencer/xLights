@@ -16,7 +16,7 @@
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 PlayListItemRunProcess::PlayListItemRunProcess(wxXmlNode* node) : PlayListItem(node)
 {
@@ -113,8 +113,8 @@ void PlayListItemRunProcess::Frame(uint8_t* buffer, size_t size, size_t ms, size
         }
         cmd = ReplaceTags(cmd.ToStdString());
 
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("Launching command %s wait %d.", (const char *)cmd.c_str(), (int)_waitForCompletion);
+        
+        LOG_INFO("Launching command %s wait %d.", (const char *)cmd.c_str(), (int)_waitForCompletion);
 
         // ensure we start in the show directory
         wxExecuteEnv execEnv;
@@ -123,11 +123,11 @@ void PlayListItemRunProcess::Frame(uint8_t* buffer, size_t size, size_t ms, size
         if (cmd != "")
         {
             wxExecute(cmd, flags, nullptr, &execEnv);
-            logger_base.info("Command launched.");
+            LOG_INFO("Command launched.");
         }
         else
         {
-            logger_base.error("Command launched failed as it was blank.");
+            LOG_ERROR("Command launched failed as it was blank.");
         }
     }
 }

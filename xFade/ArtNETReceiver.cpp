@@ -10,7 +10,7 @@
 #include "UniverseData.h"
 #include "../xLights/UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #ifndef __WXMSW__
 #include <netinet/in.h>
@@ -36,8 +36,6 @@ public:
 
     virtual ~ArtNETReceiverThread()
     {
-        //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
         if (!_stop)
         {
             _stop = true;
@@ -46,15 +44,13 @@ public:
 
     void Stop()
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Asking artNET Receiver thread to stop");
+        spdlog::debug("Asking artNET Receiver thread to stop");
         _stop = true;
     }
     
     virtual void* Entry() override
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("artNET Receiver thread started");
+        spdlog::debug("artNET Receiver thread started");
 
         wxIPV4address addr;
         if (_localIP == "")
@@ -71,25 +67,25 @@ public:
 
         if (artNETSocketReceive == nullptr)
         {
-            logger_base.error("Problem listening for artNET. artNET Receiver thread exiting.");
+            spdlog::error("Problem listening for artNET. artNET Receiver thread exiting.");
             return nullptr;
         }
         else if (!artNETSocketReceive->IsOk())
         {
-            logger_base.error("Problem listening for artNET. artNET Receiver thread exiting.");
+            spdlog::error("Problem listening for artNET. artNET Receiver thread exiting.");
             delete artNETSocketReceive;
             artNETSocketReceive = nullptr;
             return nullptr;
         }
         else if (artNETSocketReceive->Error() != wxSOCKET_NOERROR)
         {
-            logger_base.error("Problem listening for artNET => %d : %s, from %s.", artNETSocketReceive->LastError(), (const char*)DecodeIPError(artNETSocketReceive->LastError()).c_str(), (const char*)addr.IPAddress().c_str());
+            spdlog::error("Problem listening for artNET => {} : {}, from {}.", (int)artNETSocketReceive->LastError(), DecodeIPError(artNETSocketReceive->LastError()), addr.IPAddress().ToStdString());
             delete artNETSocketReceive;
             artNETSocketReceive = nullptr;
             return nullptr;
         }
 
-        logger_base.debug("artNET listening on %s", (const char*)addr.IPAddress().c_str());
+        spdlog::debug("artNET listening on {}", addr.IPAddress().ToStdString());
 
         artNETSocketReceive->Notify(false);
         artNETSocketReceive->SetTimeout(1);
@@ -116,7 +112,7 @@ public:
             artNETSocketReceive = nullptr;
         }
 
-        logger_base.debug("artNET Receiving thread exiting.");
+        spdlog::debug("artNET Receiving thread exiting.");
         return nullptr;
     }
 };
@@ -200,8 +196,6 @@ UniverseData* ArtNETReceiver::GetUniverseData(int universe)
 
 void ArtNETReceiver::StashPacket(uint8_t* buffer, int size)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (IsSuspended()) return;
 
     if (size < ARTNET_PACKET_HEADERLEN || size > ARTNET_PACKET_HEADERLEN + 512) {
@@ -217,7 +211,7 @@ void ArtNETReceiver::StashPacket(uint8_t* buffer, int size)
     {
         if (!ud->UpdateLeft(ARTNETPORT, buffer, size))
         {
-            logger_base.debug("Invalid packet.");
+            spdlog::debug("Invalid packet.");
         }
         else
         {
@@ -238,7 +232,7 @@ void ArtNETReceiver::StashPacket(uint8_t* buffer, int size)
     {
         if (!ud->UpdateRight(ARTNETPORT, buffer, size))
         {
-            logger_base.debug("Invalid packet.");
+            spdlog::debug("Invalid packet.");
         }
         else
         {

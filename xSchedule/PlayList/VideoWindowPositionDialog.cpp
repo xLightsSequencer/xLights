@@ -16,7 +16,7 @@
 #include <wx/string.h>
 //*)
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 //(*IdInit(VideoWindowPositionDialog)
 const long VideoWindowPositionDialog::ID_STATICTEXT1 = wxNewId();
@@ -110,12 +110,12 @@ VideoWindowPositionDialog::VideoWindowPositionDialog(wxWindow* parent, ScheduleO
     ValidateWindow();
     SetWindowPositionText();
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     int w, h;
     GetSize(&w, &h);
     int x, y;
     GetPosition(&x, &y);
-    logger_base.info("Position window created location (%d, %d) size (%d, %d).", x, y, w, h);
+    LOG_INFO("Position window created location (%d, %d) size (%d, %d).", x, y, w, h);
 }
 
 VideoWindowPositionDialog::~VideoWindowPositionDialog()

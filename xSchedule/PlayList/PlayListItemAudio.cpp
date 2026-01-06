@@ -16,7 +16,7 @@
 #include "../../xLights/AudioManager.h"
 #include "../../xLights/UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 PlayListItemAudio::PlayListItemAudio(wxXmlNode* node) :
     PlayListItem(node) {
@@ -69,7 +69,7 @@ bool PlayListItemAudio::SetPosition(size_t frame, size_t ms) {
 }
 
 void PlayListItemAudio::LoadFiles() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_audioManager != nullptr) {
         if (_audioManager->FileName() == _audioFile) {
@@ -87,7 +87,7 @@ void PlayListItemAudio::LoadFiles() {
         _audioManager = new AudioManager(_audioFile, -1, _audioDevice);
 
         if (_audioManager == nullptr || !_audioManager->IsOk()) {
-            logger_base.error("Audio: Audio file '%s' has a problem opening.", (const char*)_audioFile.c_str());
+            LOG_ERROR("Audio: Audio file '%s' has a problem opening.", (const char*)_audioFile.c_str());
 
             if (_audioManager != nullptr) {
                 delete _audioManager;
@@ -102,7 +102,7 @@ void PlayListItemAudio::LoadFiles() {
         }
     } else {
         if (_audioFile != "") {
-            logger_base.error("Audio: Audio file '%s' cannot be opened because it does not exist.", (const char*)_audioFile.c_str());
+            LOG_ERROR("Audio: Audio file '%s' cannot be opened because it does not exist.", (const char*)_audioFile.c_str());
         }
     }
 }

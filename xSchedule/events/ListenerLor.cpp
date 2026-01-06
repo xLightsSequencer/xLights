@@ -11,7 +11,7 @@
 #include "ListenerLor.h"
 #include "ListenerManager.h"
 #include "../../xLights/outputs/serial.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 ListenerLor::ListenerLor(ListenerManager* listenerManager, std::string commPort, std::string serialConfig, int baudRate, std::string protocol, std::string unit_id_str) :
     ListenerSerial(listenerManager, commPort, serialConfig, baudRate, protocol), rcv_state(IDLE), new_ids_ready(true) {
@@ -40,7 +40,7 @@ void ListenerLor::AddNewUnitId(int unit_id) {
 }
 
 void ListenerLor::Poll() {
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // 
     wxStopWatch sw3;
     int inputs1 = 0;
     int inputs2 = 0;

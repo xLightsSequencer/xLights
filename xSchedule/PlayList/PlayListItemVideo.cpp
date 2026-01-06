@@ -24,7 +24,7 @@
 #include "PlayerWindow.h"
 #include "../ScheduleOptions.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 PlayListItemVideo::PlayListItemVideo(wxXmlNode* node) : PlayListItem(node)
 {
@@ -239,8 +239,8 @@ void PlayListItemVideo::OpenFiles(bool doCache)
 
 void PlayListItemVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    //logger_base.debug("Video rendering frame %ld for video %s.", (long)ms, (const char *)GetNameNoTime().c_str());
+    
+    //LOG_DEBUG("Video rendering frame %ld for video %s.", (long)ms, (const char *)GetNameNoTime().c_str());
 
     if (ms < _delay) {
         // dont display anything
@@ -262,7 +262,7 @@ void PlayListItemVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fr
                 mediapos = mediapos % _durationMS;
                 // loop early to try and prevent black screen
                 if (mediapos > _durationMS - framems) {
-                    //logger_base.debug("Looping early");
+                    //LOG_DEBUG("Looping early");
                     mediapos = 0;
                 }
             }
@@ -275,7 +275,7 @@ void PlayListItemVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fr
                 long jitter = std::abs(videopos - mediapos);
                 if (jitter > MAXMEDIAJITTER) {
                     _frame->Seek(mediapos);
-                    //logger_base.debug("Sequence pos %ld, Desired video pos %ld, Video pos %ld, Jitter %ld, Length %ld, %s", adjustedMS, mediapos, videopos, jitter, (long)_durationMS, (const char*)_videoFile.c_str());
+                    //LOG_DEBUG("Sequence pos %ld, Desired video pos %ld, Video pos %ld, Jitter %ld, Length %ld, %s", adjustedMS, mediapos, videopos, jitter, (long)_durationMS, (const char*)_videoFile.c_str());
                 }
             }
         }
@@ -311,9 +311,9 @@ void PlayListItemVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fr
             }
         }
         if (sw.Time() > framems / 2) {
-            logger_base.warn("   Getting frame %ld from video %s took more than half a frame: %ld.", (long)ms - _delay, (const char*)GetNameNoTime().c_str(), (long)sw.Time());
+            LOG_WARN("   Getting frame %ld from video %s took more than half a frame: %ld.", (long)ms - _delay, (const char*)GetNameNoTime().c_str(), (long)sw.Time());
         }
-        //logger_base.debug("   Done rendering frame %ld for video %s.", (long)ms - _delay, (const char *)GetNameNoTime().c_str());
+        //LOG_DEBUG("   Done rendering frame %ld for video %s.", (long)ms - _delay, (const char *)GetNameNoTime().c_str());
     }
 }
 

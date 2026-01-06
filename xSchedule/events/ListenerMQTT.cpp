@@ -18,7 +18,7 @@
 
 #include <wx/socket.h>
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 ListenerMQTT::ListenerMQTT(ListenerManager* listenerManager, const std::string& ip, int port, const std::string& username, const std::string& password, const std::string& clientId, const std::string& localIP) : ListenerBase(listenerManager, localIP)
 {
@@ -31,17 +31,17 @@ ListenerMQTT::ListenerMQTT(ListenerManager* listenerManager, const std::string& 
 
 void ListenerMQTT::Start()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("MQTT listener starting.");
+    
+    LOG_DEBUG("MQTT listener starting.");
     _thread = new ListenerThread(this, _localIP);
 }
 
 void ListenerMQTT::Stop()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (!_stop)
     {
-        logger_base.debug("MQTT listener stopping.");
+        LOG_DEBUG("MQTT listener stopping.");
         if (_thread != nullptr)
         {
             _stop = true;
@@ -55,7 +55,7 @@ void ListenerMQTT::Stop()
 
 void ListenerMQTT::StartProcess(const std::string& localIP)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _isOk = false;
     wxIPV4address addr;
@@ -64,12 +64,12 @@ void ListenerMQTT::StartProcess(const std::string& localIP)
 
     //int keepalive = 60;
     //if (!_client.SetOption(SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(keepalive))) {
-    //    logger_base.error("Failed to set MQTT Socket keepalive.");
+    //    LOG_ERROR("Failed to set MQTT Socket keepalive.");
     //}
 
     if (_client.Connect(addr, false) || _client.WaitOnConnect(0, 500))
     {
-        logger_base.debug("ListenerMQTT connected to %s:%d", (const char*)_ip.c_str(), _port);
+        LOG_DEBUG("ListenerMQTT connected to %s:%d", (const char*)_ip.c_str(), _port);
         uint8_t buffer[1444];
         memset(buffer, 0x00, sizeof(buffer));
         int index = 0;
@@ -119,24 +119,24 @@ void ListenerMQTT::StartProcess(const std::string& localIP)
             }
         }
         if (_isOk) {
-            logger_base.debug("ListenerMQTT listening");
+            LOG_DEBUG("ListenerMQTT listening");
         }
     }
 
     if (!_isOk) {
-        logger_base.error("Failed to start MQTT Listener.");
+        LOG_ERROR("Failed to start MQTT Listener.");
     }
 }
 
 bool ListenerMQTT::Subscribe(const std::string& topic)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     static int __msgid = 1;
 
     if (!_isOk)
     {
-        logger_base.warn("MQTT trying to subscribe to topic %s but listener not in a good state.", (const char*)topic.c_str());
+        LOG_WARN("MQTT trying to subscribe to topic %s but listener not in a good state.", (const char*)topic.c_str());
 
         std::unique_lock<std::mutex> lock(_topicLock);
 
@@ -161,7 +161,7 @@ bool ListenerMQTT::Subscribe(const std::string& topic)
     index += PlayListItemMQTT::EncodeString(&buffer[index], topic);
     buffer[index++] = 0x00;
 
-    logger_base.info("MQTT subscribing to topic %s.", (const char*)topic.c_str());
+    LOG_INFO("MQTT subscribing to topic %s.", (const char*)topic.c_str());
     _client.Write(buffer, index);
     wxASSERT(_client.LastWriteCount() == index);
 
@@ -170,29 +170,29 @@ bool ListenerMQTT::Subscribe(const std::string& topic)
 
 void ListenerMQTT::StopProcess()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("MQTT Listener stopping.");
+    
+    LOG_INFO("MQTT Listener stopping.");
     if (_client.IsConnected()) {
         _client.Close();
-        logger_base.info("MQTT Listener closed.");
+        LOG_INFO("MQTT Listener closed.");
     }
     _isOk = false;
 }
 
 void ListenerMQTT::Poll()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_isOk)
     {
         if (!_client.IsConnected()) {
-            logger_base.error("MQTT client has disconnected.");
+            LOG_ERROR("MQTT client has disconnected.");
             _isOk = false;
         } else {
             unsigned char buffer[1500];
             memset(buffer, 0x00, sizeof(buffer));
 
-            //logger_base.debug("Polling for MQTT packet.");
+            //LOG_DEBUG("Polling for MQTT packet.");
             _client.WaitForRead(0, 500);
             if (_stop)
                 return;
@@ -200,9 +200,9 @@ void ListenerMQTT::Poll()
 
             if (_client.LastCount() > 0) {
                 //wxStopWatch sw;
-                logger_base.debug("Trying to read MQTT packet.");
+                LOG_DEBUG("Trying to read MQTT packet.");
                 _client.Read(buffer, std::min((int)_client.LastCount(), (int)sizeof(buffer)));
-                //logger_base.debug(" MQTT Read done. %ldms", sw.Time());
+                //LOG_DEBUG(" MQTT Read done. %ldms", sw.Time());
 
                 if (_stop)
                     return;
@@ -213,7 +213,7 @@ void ListenerMQTT::Poll()
                         int pktsize = PlayListItemMQTT::DecodeInt(&buffer[index], index);
                         std::string topic = PlayListItemMQTT::DecodeString(&buffer[index], index);
 
-                        logger_base.debug("MQTT Topic: %s.", (const char*)topic.c_str());
+                        LOG_DEBUG("MQTT Topic: %s.", (const char*)topic.c_str());
 
                         std::string data = "";
                         for (int i = 0; i < pktsize - topic.length() - 2; i++) {
@@ -221,10 +221,10 @@ void ListenerMQTT::Poll()
                         }
                         _listenerManager->ProcessPacket(GetType(), topic, data);
                     } else {
-                        logger_base.error("Unexpected MQTT Packet: %d.", (buffer[0] & 0xF0) >> 4);
+                        LOG_ERROR("Unexpected MQTT Packet: %d.", (buffer[0] & 0xF0) >> 4);
                     }
                 } else {
-                    logger_base.error("Invalid MQTT Packet.");
+                    LOG_ERROR("Invalid MQTT Packet.");
                 }
             }
 
@@ -237,7 +237,7 @@ void ListenerMQTT::Poll()
                     if (Subscribe(_toSubscribe.front())) {
                         _toSubscribe.pop_front();
                     } else {
-                        logger_base.debug("MQTT Failed to subscribe to %s", (const char*)_toSubscribe.front().c_str());
+                        LOG_DEBUG("MQTT Failed to subscribe to %s", (const char*)_toSubscribe.front().c_str());
                     }
                 }
             }

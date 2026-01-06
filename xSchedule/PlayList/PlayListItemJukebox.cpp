@@ -18,7 +18,7 @@
 #include "PlayListItemJukeboxPanel.h"
 #include "../xLights/UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 PlayListItemJukebox::PlayListItemJukebox(wxXmlNode* node) :
     PlayListItem(node)
@@ -93,17 +93,17 @@ void PlayListItemJukebox::Frame(uint8_t* buffer, size_t size, size_t ms, size_t 
     if (ms >= _delay && !_started) {
         _started = true;
 
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("Launching xLights Jukebox Button %d.", _jukeboxButton);
+        
+        LOG_INFO("Launching xLights Jukebox Button %d.", _jukeboxButton);
 
         nlohmann::json result = xLightsRequest(GetPort(), "{\"cmd\":\"lightsOn\"}");
         if (result["res"].get<int>() != 200) {
-            logger_base.error("Failed to turn on output to lights: %s", (const char*)result["msg"].get<std::string>().c_str());
+            LOG_ERROR("Failed to turn on output to lights: %s", (const char*)result["msg"].get<std::string>().c_str());
         }
 
         result = xLightsRequest(GetPort(), wxString::Format("{\"cmd\":\"playJukebox\",\"button\":%d}", _jukeboxButton));
         if (result["res"].get<int>() != 200) {
-            logger_base.error("Failed to send jukebox button press: %s", (const char*)result["msg"].get<std::string>().c_str());
+            LOG_ERROR("Failed to send jukebox button press: %s", (const char*)result["msg"].get<std::string>().c_str());
         }
     }
 }

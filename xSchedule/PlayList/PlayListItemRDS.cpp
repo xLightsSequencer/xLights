@@ -12,7 +12,7 @@
 #include "PlayListItemRDSPanel.h"
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include "../../xLights/outputs/serial.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
@@ -35,15 +35,15 @@ public:
 
     virtual void* Entry() override
     {
-        log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
 
-        logger_base.debug("PlayListRDS in thread.");
+        LOG_DEBUG("PlayListRDS in thread.");
 
-        logger_base.info("RDS: PS '%s' DPS '%s'.", (const char*)_stationName.c_str(), (const char*)_text.c_str());
+        LOG_INFO("RDS: PS '%s' DPS '%s'.", (const char*)_stationName.c_str(), (const char*)_text.c_str());
 
         if (_commPort == "")
         {
-            logger_base.warn("RDS: No comm port specified.");
+            LOG_WARN("RDS: No comm port specified.");
             return nullptr;
         }
 
@@ -54,12 +54,12 @@ public:
         int errcode = serial->Open(_commPort, 19200, serialConfig);
         if (errcode < 0)
         {
-            logger_base.warn("RDS: Unable to open serial port %s. Error code = %d", (const char*)_commPort.c_str(), errcode);
+            LOG_WARN("RDS: Unable to open serial port %s. Error code = %d", (const char*)_commPort.c_str(), errcode);
             delete serial;
             return nullptr;
         }
 
-        logger_base.debug("Serial port open %s, %d baud, %s.", (const char*)_commPort.c_str(), 19200, serialConfig);
+        LOG_DEBUG("Serial port open %s, %d baud, %s.", (const char*)_commPort.c_str(), 19200, serialConfig);
 
         PlayListItemRDS::InitialiseDTRCTS(serial);
 
@@ -149,8 +149,8 @@ public:
 
         delete serial;
 
-        logger_base.debug("Serial port closed.");
-        logger_base.debug("PlayListRDS thread done.");
+        LOG_DEBUG("Serial port closed.");
+        LOG_DEBUG("PlayListRDS thread done.");
 
         return nullptr;
     }
@@ -227,13 +227,13 @@ std::string PlayListItemRDS::GetTooltip()
 
 void PlayListItemRDS::Dump(unsigned char* buffer, int buflen)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxString debug = "Serial: ";
     for (int i = 0; i < buflen; i++)
     {
         debug += wxString::Format("0x%02X ", (uint8_t)buffer[i]);
     }
-    logger_base.debug("%s", (const char*)debug.c_str());
+    LOG_DEBUG("%s", (const char*)debug.c_str());
 }
 
 void PlayListItemRDS::Write(SerialPort* serial, unsigned char* buffer, int buflen)
@@ -303,11 +303,11 @@ int PlayListItemRDS::SendWithDTRCTS(SerialPort* serial, char* buf, size_t len)
 
 void PlayListItemRDS::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (ms >= _delay && !_started)
     {
-        logger_base.warn("Kicking off RDS thread.");
+        LOG_WARN("Kicking off RDS thread.");
 
         _started = true;
 

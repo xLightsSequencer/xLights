@@ -15,7 +15,7 @@
 #include "PlayListItemMIDIPanel.h"
 #include "../../xLights/UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include "../wxMIDI/src/wxMidi.h"
 
 PlayListItemMIDI::PlayListItemMIDI(wxXmlNode* node) : PlayListItem(node)
@@ -98,7 +98,7 @@ std::string PlayListItemMIDI::GetNameNoTime() const
 
 void PlayListItemMIDI::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
-	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+	
     if (ms >= _delay && !_started)
     {
         _started = true;
@@ -116,12 +116,12 @@ void PlayListItemMIDI::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
                 int status = wxHexToDec(s);
                 wxMidiShortMessage msg(status + channel, data1, data2);
                 msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
-                logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
+                LOG_DEBUG("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
                 midi->Write(&msg);
             }
             else
             {
-                logger_base.error("PlayListItemMIDI failed to open MIDI device %s : %d", (const char*)_device.c_str(), err);
+                LOG_ERROR("PlayListItemMIDI failed to open MIDI device %s : %d", (const char*)_device.c_str(), (int)err);
             }
         }
         midi->Close();

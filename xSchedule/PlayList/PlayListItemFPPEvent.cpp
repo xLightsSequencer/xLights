@@ -16,7 +16,7 @@
 #include "../xLights/outputs/IPOutput.h"
 #include "../xLights/utils/ip_utils.h"
 #include "utils/Curl.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include <wx/notebook.h>
 #include <wx/protocol/http.h>
 #include <wx/socket.h>
@@ -39,29 +39,29 @@ public:
     }
 
     virtual void* Entry() override {
-        log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
 
-        logger_base.debug("PlayListFPPEvent in thread.");
+        LOG_DEBUG("PlayListFPPEvent in thread.");
 
         if (ip_utils::IsIPValidOrHostname(_ip) && _ip != "255.255.255.255") {
 #ifdef EXTREME_FPPEVENT_LOGGING
-            logger_base.debug("   Getting URL");
+            LOG_DEBUG("   Getting URL");
 #endif
             if (_method == 0) {
                 std::string eventString = GetEventString();
                 std::string url = "http://" + _ip + "/fppxml.php?command=triggerEvent&id=" + eventString;
-                logger_base.debug("FPP Event sent %s:%s", (const char*)_ip.c_str(), (const char*)url.c_str());
+                LOG_DEBUG("FPP Event sent %s:%s", (const char*)_ip.c_str(), (const char*)url.c_str());
                 auto res = Curl::HTTPSGet(url, "", "", 1);
-                logger_base.info("CURL GET: %s", (const char*)res.c_str());
+                LOG_INFO("CURL GET: %s", (const char*)res.c_str());
             } else if (_method == 1) {
                 std::string url = "http://" + _ip + "/api/command";
                 std::string body = wxString::Format("{\"command\":\"Trigger Event\",\"args\":[\"%u\",\"%u\"]}", _major, _minor).ToStdString();
-                logger_base.debug("FPP Event sent %s:%s:%s", (const char*)_ip.c_str(), (const char*)url.c_str(), (const char*)body.c_str());
+                LOG_DEBUG("FPP Event sent %s:%s:%s", (const char*)_ip.c_str(), (const char*)url.c_str(), (const char*)body.c_str());
                 auto res = Curl::HTTPSPost("http://" + _ip + "/api/command", body);
             } else {
                 std::string url = "http://" + _ip + "/api/command";
                 std::string body = wxString::Format("{\"command\":\"Trigger Command Preset Slot\",\"args\":[\"%u\"]}", _major).ToStdString();
-                logger_base.debug("FPP Event sent %s:%s:%s", (const char*)_ip.c_str(), (const char*)url.c_str(), (const char*)body.c_str());
+                LOG_DEBUG("FPP Event sent %s:%s:%s", (const char*)_ip.c_str(), (const char*)url.c_str(), (const char*)body.c_str());
                 auto res = Curl::HTTPSPost("http://" + _ip + "/api/command", body);
             }
         } else {
@@ -77,17 +77,17 @@ public:
 
             wxDatagramSocket* socket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
             if (socket == nullptr) {
-                logger_base.error("Error opening datagram for FPP Event send. %s", (const char*)localaddr.IPAddress().c_str());
+                LOG_ERROR("Error opening datagram for FPP Event send. %s", (const char*)localaddr.IPAddress().c_str());
             } else if (!socket->IsOk()) {
-                logger_base.error("Error opening datagram for FPP Event send. %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
+                LOG_ERROR("Error opening datagram for FPP Event send. %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
                 delete socket;
                 socket = nullptr;
             } else if (socket->Error()) {
-                logger_base.error("Error opening datagram for FPP Event send. %d : %s %s", socket->LastError(), (const char*)DecodeIPError(socket->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+                LOG_ERROR("Error opening datagram for FPP Event send. %d : %s %s", (int)socket->LastError(), (const char*)DecodeIPError(socket->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
                 delete socket;
                 socket = nullptr;
             } else {
-                logger_base.info("FPP Event send datagram opened successfully.");
+                LOG_INFO("FPP Event send datagram opened successfully.");
             }
 
             if (socket != nullptr) {
@@ -111,18 +111,18 @@ public:
                     strcpy((char*)(dbuffer + sizeof(ControlPkt)), eventString.c_str());
 
                     socket->SendTo(remoteAddr, dbuffer, dbufsize - 1);
-                    logger_base.info("FPP Event broadcast %s.", (const char*)eventString.c_str());
+                    LOG_INFO("FPP Event broadcast %s.", (const char*)eventString.c_str());
 
                     free(dbuffer);
                 }
 
-                logger_base.info("FPP Event send datagram closed.");
+                LOG_INFO("FPP Event send datagram closed.");
                 socket->Close();
                 delete socket;
             }
         }
 
-        logger_base.debug("PlayListFPPEvent thread done.");
+        LOG_DEBUG("PlayListFPPEvent thread done.");
 
         return nullptr;
     }
@@ -196,7 +196,7 @@ std::string PlayListItemFPPEvent::GetTooltip() {
 // #define EXTREME_FPPEVENT_LOGGING
 
 void PlayListItemFPPEvent::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (ms >= _delay && !_started) {
         _started = true;
 

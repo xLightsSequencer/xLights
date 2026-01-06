@@ -21,7 +21,7 @@ extern "C"
     #include <libavutil/frame.h>
 }
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 BEGIN_EVENT_TABLE(PlayerWindow, wxWindow)
     EVT_MOTION(PlayerWindow::OnMouseMove)
@@ -64,12 +64,12 @@ PlayerWindow::PlayerWindow(wxWindow* parent, bool topMost, wxImageResizeQuality 
         wind->SetFocus();
     }
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     int w, h;
     GetSize(&w, &h);
     int x, y;
     GetPosition(&x, &y);
-    logger_base.info("Player window created location (%d, %d) size (%d, %d) Quality: %s.", x, y, w, h, (const char*)VirtualMatrix::DecodeScalingQuality(quality, swsQuality).c_str());
+    LOG_INFO("Player window created location (%d, %d) size (%d, %d) Quality: %s.", x, y, w, h, (const char*)VirtualMatrix::DecodeScalingQuality(quality, swsQuality).c_str());
 }
 
 PlayerWindow::~PlayerWindow()
@@ -78,14 +78,14 @@ PlayerWindow::~PlayerWindow()
 
 bool PlayerWindow::PrepareImage()
 {
-    static log4cpp::Category& logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
+    auto logger = spdlog::get("frame");
 
     if (_imageChanged) {
         if (_mutex.try_lock_for(std::chrono::milliseconds(1))) {
             wxStopWatch sw;
 
             if (_inputImage.IsOk()) {
-                logger_frame.debug("Updating Player Window image");
+                logger->debug("Updating Player Window image");
 
                 int width = 0;
                 int height = 0;
@@ -132,7 +132,7 @@ bool PlayerWindow::PrepareImage()
                         _image = _inputImage.Copy();
                     }
                 }
-                logger_frame.debug("Player Window image updated %ldms", sw.Time());
+                logger->debug("Player Window image updated {}ms", sw.Time());
             }
             _mutex.unlock();
         }
@@ -146,8 +146,6 @@ bool PlayerWindow::PrepareImage()
 
 void PlayerWindow::SetImage(const wxImage& image)
 {
-    static log4cpp::Category& logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
-
     if (image.IsOk()) {
         int srcWidth = image.GetWidth();
         int srcHeight = image.GetHeight();

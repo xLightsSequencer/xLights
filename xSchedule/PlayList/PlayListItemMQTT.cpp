@@ -18,7 +18,7 @@
 #include "../ScheduleManager.h"
 #include "../../xLights/UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 class MQTTThread : public wxThread
 {
@@ -36,19 +36,19 @@ public:
 
     virtual void* Entry() override
     {
-        log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
 
-        logger_base.debug("PlayListMQTT in thread.");
+        LOG_DEBUG("PlayListMQTT in thread.");
 
         wxSocketClient client(wxSOCKET_BLOCK);
         wxIPV4address addr;
         addr.Hostname(_brokerIP);
         addr.Service(_port);
 
-        logger_base.debug("PlayListMQTT Connecting to broker %s:%d.", (const char*)_brokerIP.c_str(), _port);
+        LOG_DEBUG("PlayListMQTT Connecting to broker %s:%d.", (const char*)_brokerIP.c_str(), _port);
         if (client.Connect(addr, false) || client.WaitOnConnect(0, 500))
         {
-            logger_base.debug("    PlayListMQTT Connected to MQTT Broker.");
+            LOG_DEBUG("    PlayListMQTT Connected to MQTT Broker.");
             uint8_t buffer[1444];
             memset(buffer, 0x00, sizeof(buffer));
             int index = 0;
@@ -75,7 +75,7 @@ public:
             }
             PlayListItemMQTT::EncodeInt(&buffer[1], index - 2); // set the packet length
 
-            logger_base.debug("    PlayListMQTT Sending connect packet.");
+            LOG_DEBUG("    PlayListMQTT Sending connect packet.");
             client.Write(buffer, index);
             wxASSERT(client.LastWriteCount() == index);
             memset(buffer, 0x00, sizeof(buffer));
@@ -83,10 +83,10 @@ public:
             client.Read(buffer, std::min((int)client.LastCount(), (int)sizeof(buffer)));
             if (client.GetLastIOReadSize() > 0)
             {
-                logger_base.debug("    PlayListMQTT Response received.");
+                LOG_DEBUG("    PlayListMQTT Response received.");
                 if ((buffer[0] & 0xF0) >> 4 == 2)
                 {
-                    logger_base.debug("    PlayListMQTT Connected ok.");
+                    LOG_DEBUG("    PlayListMQTT Connected ok.");
                     int used = 0;
                     unsigned char* pdata = PlayListItemMQTT::PrepareData(_data, used);
 
@@ -104,28 +104,28 @@ public:
                     index += used;
                     client.Write(buffer, index);
                     wxASSERT(client.LastWriteCount() == index);
-                    logger_base.info("PlayListMQTT MQTT Sent.");
+                    LOG_INFO("PlayListMQTT MQTT Sent.");
                     client.WaitForRead(0, 500);
                     client.Read(buffer, std::min((int)client.LastCount(), (int)sizeof(buffer)));
                 }
                 else
                 {
-                    logger_base.error("PlayListMQTT Illegal response from MQTT broker for connect.");
+                    LOG_ERROR("PlayListMQTT Illegal response from MQTT broker for connect.");
                 }
             }
             else
             {
-                logger_base.error("PlayListMQTT No response from MQTT broker for connect.");
+                LOG_ERROR("PlayListMQTT No response from MQTT broker for connect.");
             }
-            logger_base.debug("    PlayListMQTT Disconnecting from MQTT Broker.");
+            LOG_DEBUG("    PlayListMQTT Disconnecting from MQTT Broker.");
             client.Close();
         }
         else
         {
-            logger_base.error("PlayListMQTT Unable to connect to MQTT broker.");
+            LOG_ERROR("PlayListMQTT Unable to connect to MQTT broker.");
         }
 
-        logger_base.debug("PlayListMQTT thread done");
+        LOG_DEBUG("PlayListMQTT thread done");
 
         return nullptr;
     }
@@ -337,7 +337,7 @@ int PlayListItemMQTT::EncodeString(uint8_t* pb, const std::string& str)
 
 void PlayListItemMQTT::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (ms >= _delay && !_started)
     {
         _started = true;
@@ -345,7 +345,7 @@ void PlayListItemMQTT::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
         std::string topic = ReplaceTags(_topic);
         wxString working = ReplaceTags(_data);
 
-        logger_base.info("Sending MQTT Event to %s:%d %s", (const char*)_brokerIP.c_str(), _port, (const char*)_topic.c_str());
+        LOG_INFO("Sending MQTT Event to %s:%d %s", (const char*)_brokerIP.c_str(), _port, (const char*)_topic.c_str());
 
         MQTTThread* thread = new MQTTThread(_brokerIP, _port, _clientId, _username, _password, topic, working);
         thread->Run();

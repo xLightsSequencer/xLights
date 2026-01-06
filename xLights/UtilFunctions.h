@@ -69,8 +69,8 @@ wxString FixEffectFileParameter(const wxString& paramname, const wxString& param
 int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data);
 int GetxFadePort(int xfp);
 void OptimiseDialogPosition(wxDialog* dlg);
-nlohmann::json xLightsRequest(int xFadePort, const wxString& request, const wxString& ipAddress = "127.0.0.1");
-bool xLightsRequest(std::string &result, int xFadePort, const wxString& request, const wxString& ipAddress = "127.0.0.1");
+nlohmann::json xLightsRequest(int xFadePort, const std::string& request, const std::string& ipAddress = "127.0.0.1");
+bool xLightsRequest(std::string& result, int xFadePort, const std::string& request, const std::string& ipAddress = "127.0.0.1");
 
 wxString ExpandNodes(const wxString& nodes);
 wxString CompressNodes(const wxString& nodes);

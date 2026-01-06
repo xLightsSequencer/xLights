@@ -13,7 +13,7 @@
 #include "../xLights/UtilFunctions.h"
 
 #include "../xLights/outputs/OutputManager.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include <wx/string.h>
 #include <wx/wx.h>
 #include <wx/xml/xml.h>
@@ -478,7 +478,7 @@ long MatrixMapper::GetStartChannelAsNumber() const {
 }
 
 MMORIENTATION MatrixMapper::EncodeOrientation(const std::string orientation) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxString o = wxString(orientation).Lower();
 
@@ -488,7 +488,7 @@ MMORIENTATION MatrixMapper::EncodeOrientation(const std::string orientation) {
         return MMORIENTATION::VERTICAL;
     }
 
-    logger_base.error("Unknown orientation %s", (const char*)o.c_str());
+    LOG_ERROR("Unknown orientation %s", (const char*)o.c_str());
     return MMORIENTATION::VERTICAL;
 }
 
@@ -501,7 +501,7 @@ std::string MatrixMapper::DecodeOrientation(MMORIENTATION orientation) {
 }
 
 MMSTARTLOCATION MatrixMapper::EncodeStartLocation(const std::string startLocation) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxString sl = wxString(startLocation).Lower();
 
@@ -515,7 +515,7 @@ MMSTARTLOCATION MatrixMapper::EncodeStartLocation(const std::string startLocatio
         return MMSTARTLOCATION::TOP_RIGHT;
     }
 
-    logger_base.error("Unknown start location %s", (const char*)sl.c_str());
+    LOG_ERROR("Unknown start location %s", (const char*)sl.c_str());
 
     return MMSTARTLOCATION::TOP_LEFT;
 }

@@ -14,7 +14,6 @@
 #include "xCaptureMain.h"
 #include <wx/msgdlg.h>
 #include <wx/config.h>
-#include <log4cpp/Category.hh>
 #include <wx/file.h>
 #include <wx/filename.h>
 #include "../xLights/xLightsVersion.h"
@@ -25,6 +24,10 @@
 #include <wx/numdlg.h>
 #include "ResultDialog.h"
 #include "../xLights/IPEntryDialog.h"
+
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/rotating_file_sink.h"
+#include "spdlog/common.h"
 
 #ifndef __WXMSW__
 #include <netinet/in.h>
@@ -180,7 +183,6 @@ bool xCaptureFrame::IsUniverseToBeCaptured(int universe, bool ignoreall /*= fals
 
 int xCaptureFrame::GuessFrameMS()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     Collector* c = _capturedData.front();
 
     bool first = true;
@@ -201,7 +203,7 @@ int xCaptureFrame::GuessFrameMS()
         }
         last = (*it)->_timeStamp;
     }
-    logger_base.debug("Guessing frame time. Total time %fms. Intervals %d, Average Frame %fms, Estimate %dms",
+    spdlog::debug("Guessing frame time. Total time {}ms. Intervals {}, Average Frame {}ms, Estimate {}ms",
         totalgap,
         count,
         totalgap / count,
@@ -560,7 +562,7 @@ void xCaptureFrame::SaveState()
 
 void xCaptureFrame::FillInMissingFrames(int frameTime)
 {
-    for (auto& it : _capturedData)         {
+    for (auto& it : _capturedData) {
         it->FillInMissingFrames(frameTime);
     }
 }
@@ -597,7 +599,6 @@ void xCaptureFrame::OnAbout(wxCommandEvent& event)
 
 PacketData::PacketData(long type, wxByte* packet, int len)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _timeStamp = wxDateTime::UNow();
     _frameTimeMS = -1;
     _seq = 0;
@@ -623,8 +624,8 @@ PacketData::PacketData(long type, wxByte* packet, int len)
         _length = (((int)packet[115] - 0x70) << 8) + (int)packet[116] - 11;
         if (_length > len - 126)
         {
-            logger_base.warn("E131 packet of claimed length %d truncated to actual packet length %d.", _length, len - 126);
-            logger_base.warn("    Packet looks unlikely to be valid.");
+            spdlog::warn("E131 packet of claimed length {} truncated to actual packet length {}.", _length, len - 126);
+            spdlog::warn("    Packet looks unlikely to be valid.");
             _length = len - 126;
         }
         _pdata = (wxByte*)malloc(_length);
@@ -647,8 +648,8 @@ PacketData::PacketData(long type, wxByte* packet, int len)
         _length = ((int)packet[16] << 8) + (int)packet[17];
         if (_length > len - 18)
         {
-            logger_base.warn("ArtNet packet of claimed length %d truncated to actual packet length %d.", _length, len - 18);
-            logger_base.warn("    Packet looks unlikely to be valid.");
+            spdlog::warn("ArtNet packet of claimed length {} truncated to actual packet length {}.", _length, len - 18);
+            spdlog::warn("    Packet looks unlikely to be valid.");
             _length = len - 18;
         }
         _pdata = (wxByte*)malloc(_length);
@@ -679,8 +680,6 @@ Collector::~Collector()
 // relies on missing sequence numbers to detect missing frames
 void Collector::CalculateFrames(wxDateTime startTime, int frameMS)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     bool first = true;
     int ms = 0;
     int lastseq = 255;
@@ -709,7 +708,7 @@ void Collector::CalculateFrames(wxDateTime startTime, int frameMS)
 
             if (next != _packets.end() && (*next)->_seq == lastseq)
             {
-                logger_base.warn("Universe %d missing one packet sequence lastSeq %d", _universe, lastseq);
+                spdlog::warn("Universe {} missing one packet sequence lastSeq {}", _universe, lastseq);
                 // only one frame was missing so assume it was lost
                 ms += frameMS;
                 lastseq += 1;
@@ -719,7 +718,7 @@ void Collector::CalculateFrames(wxDateTime startTime, int frameMS)
             {
                 if (!first)
                 {
-                    logger_base.warn("Universe %d missing multiple packets from sequence %d", _universe, lastseq);
+                    spdlog::warn("Universe {} missing multiple packets from sequence {}", _universe, lastseq);
                 }
                 lastseq = (*it)->_seq;
             }
@@ -877,7 +876,6 @@ void xCaptureFrame::ValidateWindow()
 
 void xCaptureFrame::CreateE131Listener()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_e131Socket != nullptr) return;
 
     //Local address to bind to
@@ -889,7 +887,7 @@ void xCaptureFrame::CreateE131Listener()
 
     if (_e131Socket->IsOk())
     {
-        logger_base.debug("E131 listening on %s", (const char*)_localIP.c_str());
+        spdlog::debug("E131 listening on {}", _localIP.ToStdString());
 
         for (int i = 0; i < ListView_Universes->GetItemCount(); i++)
         {
@@ -901,12 +899,12 @@ void xCaptureFrame::CreateE131Listener()
                 {
                     struct ip_mreq mreq;
                     wxString ip = wxString::Format("239.255.%d.%d", u >> 8, u & 0xFF);
-                    logger_base.debug("E131 registering for multicast on %s.", (const char *)ip.c_str());
+                    spdlog::debug("E131 registering for multicast on {}.", ip.ToStdString());
                     mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
                     mreq.imr_interface.s_addr = inet_addr(_localIP.c_str()); // this will only listen on the default interface
                     if (!_e131Socket->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)))
                     {
-                        logger_base.warn("    Error opening E131 multicast listener %s.", (const char *)ip.c_str());
+                        spdlog::warn("    Error opening E131 multicast listener {}.", ip.ToStdString());
                     }
                 }
             }
@@ -923,14 +921,13 @@ void xCaptureFrame::CreateE131Listener()
     {
         delete _e131Socket;
         _e131Socket = nullptr;
-        logger_base.warn("Error opening socket to listen for e131 data");
+        spdlog::warn("Error opening socket to listen for e131 data");
         wxMessageBox("Error listening for E1.31 data.");
     }
 }
 
 void xCaptureFrame::CreateArtNETListener()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_artNETSocket != nullptr) return;
 
     //Local address to bind to
@@ -942,7 +939,7 @@ void xCaptureFrame::CreateArtNETListener()
 
     if (_artNETSocket->IsOk())
     {
-        logger_base.debug("ARTNet listening on %s", (const char*)_localIP.c_str());
+        spdlog::debug("ARTNet listening on {}", _localIP.ToStdString());
 
         for (int i = 0; i < ListView_Universes->GetItemCount(); i++)
         {
@@ -954,12 +951,12 @@ void xCaptureFrame::CreateArtNETListener()
                 {
                     struct ip_mreq mreq;
                     wxString ip = wxString::Format("239.255.%d.%d", u >> 8, u & 0xFF);
-                    logger_base.debug("ARTNet registering for multicast on %s.", (const char *)ip.c_str());
+                    spdlog::debug("ARTNet registering for multicast on {}.", ip.ToStdString());
                     mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
                     mreq.imr_interface.s_addr = inet_addr(_localIP.c_str()); // this will only listen on the default interface
                     if (!_artNETSocket->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)))
                     {
-                        logger_base.warn("    Error opening ARTNet multicast listener %s.", (const char *)ip.c_str());
+                        spdlog::warn("    Error opening ARTNet multicast listener {}.", ip.ToStdString());
                     }
                 }
             }
@@ -976,7 +973,7 @@ void xCaptureFrame::CreateArtNETListener()
     {
         delete _artNETSocket;
         _artNETSocket = nullptr;
-        logger_base.warn("Error opening socket to listen for ArtNET data");
+        spdlog::warn("Error opening socket to listen for ArtNET data");
         wxMessageBox("Error listening for E1.ArtNET data.");
     }
 }
@@ -1075,8 +1072,6 @@ void xCaptureFrame::OnKeyDown(wxKeyEvent& event)
 
 void xCaptureFrame::OnButton_StartStopClick(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     _capturing = !_capturing;
     if (_capturing)
     {
@@ -1091,7 +1086,7 @@ void xCaptureFrame::OnButton_StartStopClick(wxCommandEvent& event)
         Button_StartStop->SetLabel("Start");
         UpdateCaptureDesc();
 
-        logger_base.debug("Capture stopped.");
+        spdlog::debug("Capture stopped.");
 
         if (CheckBox_FillInMissingFrames->GetValue()) {
             int frameTime = -1;
@@ -1106,7 +1101,7 @@ void xCaptureFrame::OnButton_StartStopClick(wxCommandEvent& event)
 
         for (const auto& it : _capturedData)
         {
-            logger_base.debug("    Protocol %s, Universe %d, Size %d, Frames %d",
+            spdlog::debug("    Protocol {}, Universe {}, Size {}, Frames {}",
                 it->_protocol == ID_E131SOCKET ? "E131" : "ArtNET",
                 it->_universe,
                 it->_packets.size() > 0 ? it->_packets.front()->_length : 0,
@@ -1132,8 +1127,6 @@ inline long RoundTo4(long i) {
 
 void xCaptureFrame::OnButton_SaveClick(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     // make sure the collectors are sorted
     _capturedData.sort(cmp);
 
@@ -1179,7 +1172,7 @@ void xCaptureFrame::OnButton_SaveClick(wxCommandEvent& event)
             SaveESEQ(fn.GetFullPath(), frameMS, channelsPerFrame, frames, log);
         }
 
-        logger_base.debug(log);
+        spdlog::debug(log.ToStdString());
 
         ResultDialog dlgLog(this, log);
         dlgLog.ShowModal();
@@ -1286,8 +1279,6 @@ void xCaptureFrame::OnCheckBox_ArtNETClick(wxCommandEvent& event)
 
 void xCaptureFrame::OnE131SocketEvent(wxSocketEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxIPV4address addr;
     addr.Service(E131PORT);
     wxByte buf[126+512];
@@ -1298,24 +1289,22 @@ void xCaptureFrame::OnE131SocketEvent(wxSocketEvent& event)
         _e131Socket->Notify(false);
         size_t n = _e131Socket->RecvFrom(addr, buf, sizeof(buf)).LastCount();
         if (!n) {
-            logger_base.error("ERROR: failed to receive E131 data");
+            spdlog::error("ERROR: failed to receive E131 data");
             return;
         }
-        //logger_base.debug("E131 packet received.");
+        //spdlog::debug("E131 packet received.");
         StashPacket(ID_E131SOCKET, buf, n);
         _e131Socket->Notify(true);
     }
         break;
     default:
-        logger_base.warn("OnE131SocketEvent: Unexpected event !");
+        spdlog::warn("OnE131SocketEvent: Unexpected event !");
         break;
     }
 }
 
 void xCaptureFrame::OnArtNETSocketEvent(wxSocketEvent & event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxIPV4address addr;
     addr.Service(ARTNETPORT);
     wxByte buf[18 + 512];
@@ -1326,16 +1315,16 @@ void xCaptureFrame::OnArtNETSocketEvent(wxSocketEvent & event)
         _artNETSocket->Notify(false);
         size_t n = _artNETSocket->RecvFrom(addr, buf, sizeof(buf)).LastCount();
         if (!n) {
-            logger_base.error("ERROR: failed to receive ArtNET data");
+            spdlog::error("ERROR: failed to receive ArtNET data");
             return;
         }
-        //logger_base.debug("ArtNet packet received.");
+        //spdlog::debug("ArtNet packet received.");
         StashPacket(ID_ARTNETSOCKET, buf, n);
         _artNETSocket->Notify(true);
     }
         break;
     default:
-        logger_base.warn("OnArtNETSocketEvent: Unexpected event !");
+        spdlog::warn("OnArtNETSocketEvent: Unexpected event !");
         break;
     }
 }
@@ -1379,8 +1368,6 @@ void xCaptureFrame::OnUITimerTrigger(wxTimerEvent& event)
 
 void xCaptureFrame::SaveFSEQ(wxString file, int frameMS, long channelsPerFrame, int frames, wxString& log)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxUint8 vMinor = 0;
     wxUint8 vMajor = 1;
     wxUint16 fixedHeaderLength = 28;
@@ -1403,7 +1390,7 @@ void xCaptureFrame::SaveFSEQ(wxString file, int frameMS, long channelsPerFrame, 
 
     if (overrideFrameMS != 0)
     {
-        logger_base.debug("Frame time overriden to %s->%d. It was %d.", (const char*)Choice_Timing->GetStringSelection().c_str(), overrideFrameMS, stepTime);
+        spdlog::debug("Frame time overriden to {}->{}. It was {}.", Choice_Timing->GetStringSelection().ToStdString(), overrideFrameMS, stepTime);
         log += "Frame time override to " + wxString::Format("%d", overrideFrameMS) + "ms";
         stepTime = overrideFrameMS;
     }
@@ -1467,7 +1454,7 @@ void xCaptureFrame::SaveFSEQ(wxString file, int frameMS, long channelsPerFrame, 
                 }
                 else
                 {
-                    logger_base.debug("   No data found uni %d ch %ld ", it->_universe, it->_startChannel);
+                    spdlog::debug("   No data found uni {} ch {} ", it->_universe, it->_startChannel);
                 }
             }
             f.Write(buf, stepSize);
@@ -1513,8 +1500,6 @@ void xCaptureFrame::UpdateCaptureDesc()
 
 void xCaptureFrame::SaveESEQ(wxString file, int frameMS, long channelsPerFrame, int frames, wxString& log)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     long startAddr = wxGetNumberFromUser("Start channel for the model", "", "Start Channel", 1, 1, 10000000, this);
     if (startAddr == -1)
     {
@@ -1533,7 +1518,7 @@ void xCaptureFrame::SaveESEQ(wxString file, int frameMS, long channelsPerFrame, 
 
     if (overrideFrameMS != 0)
     {
-        logger_base.debug("Frame time overriden to %s->%d. It was detected as %d", (const char*)Choice_Timing->GetStringSelection().c_str(), overrideFrameMS, frameMS);
+        spdlog::debug("Frame time overriden to {}->{}. It was detected as {}", Choice_Timing->GetStringSelection().ToStdString(), overrideFrameMS, frameMS);
         log += "Frame time override to " + wxString::Format("%d", overrideFrameMS) + "ms";
         frameMS = overrideFrameMS;
     }
@@ -1588,7 +1573,7 @@ void xCaptureFrame::SaveESEQ(wxString file, int frameMS, long channelsPerFrame, 
                 }
                 else
                 {
-                    logger_base.debug("   No data found uni %d ch %ld ", it->_universe, it->_startChannel);
+                    spdlog::debug("   No data found uni {} ch {} ", it->_universe, it->_startChannel);
                 }
             }
             f.Write(buf, frameSize);

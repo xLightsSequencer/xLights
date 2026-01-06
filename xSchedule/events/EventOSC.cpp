@@ -10,7 +10,7 @@
 
 #include "EventOSC.h"
 #include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include "../ScheduleManager.h"
 
 EventOSC::EventOSC() : EventBase()
@@ -42,7 +42,7 @@ wxXmlNode* EventOSC::Save()
 
 void EventOSC::Process(const std::string& path, const std::string& p1, const std::string& p2, const std::string& p3, ScheduleManager* scheduleManager)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (_path != path) return;
 
     wxString pp1 = _parm1;
@@ -137,13 +137,13 @@ void EventOSC::Process(const std::string& path, const std::string& p1, const std
     if (pp2 != "") parameters += "," + pp2.ToStdString();
     if (pp3 != "") parameters += "," + pp3.ToStdString();
 
-    logger_base.debug("Event fired %s:%s -> %s:%s", (const char *)GetType().c_str(), (const char *)GetName().c_str(),
+    LOG_DEBUG("Event fired %s:%s -> %s:%s", (const char *)GetType().c_str(), (const char *)GetName().c_str(),
         (const char *)_command.c_str(), (const char *)parameters.c_str());
 
     size_t rate = 0;
     wxString msg;
     scheduleManager->Action(_command, parameters, "", nullptr, nullptr, nullptr, rate, msg);
-    logger_base.debug("    Event processed.");
+    LOG_DEBUG("    Event processed.");
 }
 
 std::string EventOSC::GetParmToolTip()

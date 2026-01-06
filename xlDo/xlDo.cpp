@@ -22,11 +22,6 @@
 #include "../xLights/automation/automation.h"
 
 #ifdef _MSC_VER
-    #ifdef _DEBUG
-        #pragma comment(lib, "log4cpplibd.lib")
-    #else
-        #pragma comment(lib, "log4cpplib.lib")
-    #endif
     #pragma comment(lib, "libcurl.dll.a")
 #endif
 

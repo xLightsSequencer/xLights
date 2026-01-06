@@ -6,7 +6,7 @@
 #include "../xSchedule/wxMIDI/src/wxMidi.h"
 #endif
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 Settings::Settings(std::string settings)
 {

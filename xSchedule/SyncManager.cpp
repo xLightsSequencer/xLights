@@ -20,7 +20,7 @@
 #include "SyncOSC.h"
 #include "SyncSMPTE.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 std::unique_ptr<SyncBase> SyncManager::CreateSync(SYNCMODE sm, REMOTEMODE rm) const {
     wxASSERT(_scheduleManager != nullptr);
@@ -54,11 +54,11 @@ std::unique_ptr<SyncBase> SyncManager::CreateSync(SYNCMODE sm, REMOTEMODE rm) co
 
 SyncManager::SyncManager(ScheduleManager* scheduleManager) :
     _scheduleManager(scheduleManager) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (scheduleManager == nullptr) {
-        logger_base.crit("SyncManager::SyncManager created with nullptr to scheduleManager ... this will not end well.");
+        spdlog::critical("SyncManager::SyncManager created with nullptr to scheduleManager ... this will not end well.");
     } else {
-        logger_base.debug("SyncManager::SyncManager created ok.");
+        spdlog::debug("SyncManager::SyncManager created ok.");
     }
 }
 

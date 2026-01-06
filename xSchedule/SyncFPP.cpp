@@ -12,7 +12,7 @@
 #include "ScheduleOptions.h"
 #include "events/ListenerManager.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include "../xLights/UtilFunctions.h"
 #include <wx/filename.h>
 #include "Control.h"
@@ -26,7 +26,7 @@
 
 void SyncFPP::Ping(bool remote, const std::string& localIP)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxIPV4address remoteAddr;
     remoteAddr.Hostname("255.255.255.255");
@@ -46,18 +46,18 @@ void SyncFPP::Ping(bool remote, const std::string& localIP)
     wxDatagramSocket* fppBroadcastSocket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
     if (fppBroadcastSocket == nullptr)
     {
-        logger_base.error("Error opening datagram for FPP ping. %s", (const char*)localaddr.IPAddress().c_str());
+        LOG_ERROR("Error opening datagram for FPP ping. %s", (const char*)localaddr.IPAddress().c_str());
         return;
     }
     else if (!fppBroadcastSocket->IsOk())
     {
-        logger_base.error("Error opening datagram for FPP ping. %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
+        LOG_ERROR("Error opening datagram for FPP ping. %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
         delete fppBroadcastSocket;
         return;
     }
     else if (fppBroadcastSocket->Error())
     {
-        logger_base.error("Error opening datagram for FPP ping. %d : %s", fppBroadcastSocket->LastError(), (const char*)DecodeIPError(fppBroadcastSocket->LastError()).c_str());
+        LOG_ERROR("Error opening datagram for FPP ping. %d : %s", (int)fppBroadcastSocket->LastError(), (const char*)DecodeIPError(fppBroadcastSocket->LastError()).c_str());
         delete fppBroadcastSocket;
         return;
     }
@@ -443,7 +443,7 @@ SyncMulticastFPP::~SyncMulticastFPP()
 SyncBroadcastFPP::SyncBroadcastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP) :
     SyncFPP(sm, rm, options, schm)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (sm == SYNCMODE::FPPBROADCASTMASTER)
     {
@@ -463,23 +463,23 @@ SyncBroadcastFPP::SyncBroadcastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOpt
         _fppBroadcastSocket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
         if (_fppBroadcastSocket == nullptr)
         {
-            logger_base.error("Error opening datagram for FPP Sync as master. %s", (const char *)localaddr.IPAddress().c_str());
+            LOG_ERROR("Error opening datagram for FPP Sync as master. %s", (const char *)localaddr.IPAddress().c_str());
         }
         else if (!_fppBroadcastSocket->IsOk())
         {
-            logger_base.error("Error opening datagram for FPP Sync as master. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
+            LOG_ERROR("Error opening datagram for FPP Sync as master. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
             delete _fppBroadcastSocket;
             _fppBroadcastSocket = nullptr;
         }
         else if (_fppBroadcastSocket->Error())
         {
-            logger_base.error("Error opening datagram for FPP Sync as master. %d : %s", _fppBroadcastSocket->LastError(), (const char*)DecodeIPError(_fppBroadcastSocket->LastError()).c_str());
+            LOG_ERROR("Error opening datagram for FPP Sync as master. %d : %s", (int)_fppBroadcastSocket->LastError(), (const char*)DecodeIPError(_fppBroadcastSocket->LastError()).c_str());
             delete _fppBroadcastSocket;
             _fppBroadcastSocket = nullptr;
         }
         else
         {
-            logger_base.info("FPP Sync as master datagram opened successfully.");
+            LOG_INFO("FPP Sync as master datagram opened successfully.");
         }
     }
 
@@ -492,7 +492,7 @@ SyncBroadcastFPP::SyncBroadcastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOpt
 SyncUnicastFPP::SyncUnicastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP) :
     SyncFPP(sm, rm, options, schm)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (sm == SYNCMODE::FPPUNICASTMASTER)
     {
@@ -512,23 +512,23 @@ SyncUnicastFPP::SyncUnicastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions
             _fppUnicastSocket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
             if (_fppUnicastSocket == nullptr)
             {
-                logger_base.error("Error opening unicast datagram for FPP Sync as master %s.", (const char *)localaddr.IPAddress().c_str());
+                LOG_ERROR("Error opening unicast datagram for FPP Sync as master %s.", (const char *)localaddr.IPAddress().c_str());
             }
             else if (!_fppUnicastSocket->IsOk())
             {
-                logger_base.error("Error opening unicast datagram for FPP Sync as master %s. OK : FALSE", (const char *)localaddr.IPAddress().c_str());
+                LOG_ERROR("Error opening unicast datagram for FPP Sync as master %s. OK : FALSE", (const char *)localaddr.IPAddress().c_str());
                 delete _fppUnicastSocket;
                 _fppUnicastSocket = nullptr;
             }
             else if (_fppUnicastSocket->Error())
             {
-                logger_base.error("Error opening unicast datagram for FPP Sync as master. %d : %s %s", _fppUnicastSocket->LastError(), (const char*)DecodeIPError(_fppUnicastSocket->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
+                LOG_ERROR("Error opening unicast datagram for FPP Sync as master. %d : %s %s", (int)_fppUnicastSocket->LastError(), (const char*)DecodeIPError(_fppUnicastSocket->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
                 delete _fppUnicastSocket;
                 _fppUnicastSocket = nullptr;
             }
             else
             {
-                logger_base.info("FPP Sync as master unicast datagram opened successfully.");
+                LOG_INFO("FPP Sync as master unicast datagram opened successfully.");
             }
         }
     }
@@ -541,7 +541,7 @@ SyncUnicastFPP::SyncUnicastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions
 
 SyncUnicastCSVFPP::SyncUnicastCSVFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP) :
     SyncFPP(sm, rm, options, schm) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (sm == SYNCMODE::FPPUNICASTCSVMASTER)
     {
@@ -561,23 +561,23 @@ SyncUnicastCSVFPP::SyncUnicastCSVFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleO
             _fppUnicastSocket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
             if (_fppUnicastSocket == nullptr)
             {
-                logger_base.error("Error opening unicast datagram for FPP Sync as master %s.", (const char*)localaddr.IPAddress().c_str());
+                LOG_ERROR("Error opening unicast datagram for FPP Sync as master %s.", (const char*)localaddr.IPAddress().c_str());
             }
             else if (!_fppUnicastSocket->IsOk())
             {
-                logger_base.error("Error opening unicast datagram for FPP Sync as master %s. OK : FALSE", (const char*)localaddr.IPAddress().c_str());
+                LOG_ERROR("Error opening unicast datagram for FPP Sync as master %s. OK : FALSE", (const char*)localaddr.IPAddress().c_str());
                 delete _fppUnicastSocket;
                 _fppUnicastSocket = nullptr;
             }
             else if (_fppUnicastSocket->Error())
             {
-                logger_base.error("Error opening unicast datagram for FPP Sync as master. %d : %s %s", _fppUnicastSocket->LastError(), (const char*)DecodeIPError(_fppUnicastSocket->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+                LOG_ERROR("Error opening unicast datagram for FPP Sync as master. %d : %s %s", (int)_fppUnicastSocket->LastError(), (const char*)DecodeIPError(_fppUnicastSocket->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
                 delete _fppUnicastSocket;
                 _fppUnicastSocket = nullptr;
             }
             else
             {
-                logger_base.info("FPP Sync as master unicast datagram opened successfully.");
+                LOG_INFO("FPP Sync as master unicast datagram opened successfully.");
             }
         }
     }
@@ -590,7 +590,7 @@ SyncUnicastCSVFPP::SyncUnicastCSVFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleO
 
 SyncMulticastFPP::SyncMulticastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP) :
     SyncFPP(sm, rm, options, schm) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (sm == SYNCMODE::FPPMULTICASTMASTER)
     {
@@ -610,23 +610,23 @@ SyncMulticastFPP::SyncMulticastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOpt
         _fppMulticastSocket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
         if (_fppMulticastSocket == nullptr)
         {
-            logger_base.error("Error opening multicast datagram for FPP Sync as master %s.", (const char*)localaddr.IPAddress().c_str());
+            LOG_ERROR("Error opening multicast datagram for FPP Sync as master %s.", (const char*)localaddr.IPAddress().c_str());
         }
         else if (!_fppMulticastSocket->IsOk())
         {
-            logger_base.error("Error opening multicast datagram for FPP Sync as master %s. OK : FALSE", (const char*)localaddr.IPAddress().c_str());
+            LOG_ERROR("Error opening multicast datagram for FPP Sync as master %s. OK : FALSE", (const char*)localaddr.IPAddress().c_str());
             delete _fppMulticastSocket;
             _fppMulticastSocket = nullptr;
         }
         else if (_fppMulticastSocket->Error())
         {
-            logger_base.error("Error opening multicast datagram for FPP Sync as master. %d : %s %s", _fppMulticastSocket->LastError(), (const char*)DecodeIPError(_fppMulticastSocket->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+            LOG_ERROR("Error opening multicast datagram for FPP Sync as master. %d : %s %s", (int)_fppMulticastSocket->LastError(), (const char*)DecodeIPError(_fppMulticastSocket->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
             delete _fppMulticastSocket;
             _fppMulticastSocket = nullptr;
         }
         else
         {
-            logger_base.info("FPP Sync as master multicast datagram opened successfully.");
+            LOG_INFO("FPP Sync as master multicast datagram opened successfully.");
         }
     }
 
@@ -638,7 +638,7 @@ SyncMulticastFPP::SyncMulticastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOpt
 
 void SyncUnicastFPP::SendUnicastSync(const std::string& ip, const std::string& item, size_t msec, size_t frameMS, int action) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxIPV4address remoteAddr;
     remoteAddr.Hostname(ip);
 
@@ -700,7 +700,7 @@ void SyncUnicastFPP::SendUnicastSync(const std::string& ip, const std::string& i
 
 void SyncUnicastCSVFPP::SendUnicastSync(const std::string& ip, const std::string& item, size_t msec, size_t frameMS, int action) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxIPV4address remoteAddr;
     remoteAddr.Hostname(ip);
 
@@ -712,15 +712,15 @@ void SyncUnicastCSVFPP::SendUnicastSync(const std::string& ip, const std::string
     {
     case SYNC_PKT_SYNC:
         buffer = wxString::Format("FPP,%d,%d,%d,%s,%d,%d\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, item.c_str(), static_cast<int>(msec / 1000), static_cast<int>(msec) % 1000).ToStdString();
-        //logger_base.debug("Sending remote sync unicast packet to %s.", (const char*)ip.c_str());
+        //LOG_DEBUG("Sending remote sync unicast packet to %s.", (const char*)ip.c_str());
         break;
     case SYNC_PKT_STOP:
         buffer = wxString::Format("FPP,%d,%d,%d,%s\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, item.c_str()).ToStdString();
-        logger_base.debug("Sending remote stop unicast packet to %s : %s.", (const char*)ip.c_str(), (const char*)buffer.c_str());
+        LOG_DEBUG("Sending remote stop unicast packet to %s : %s.", (const char*)ip.c_str(), (const char*)buffer.c_str());
         break;
     case SYNC_PKT_START:
         buffer = wxString::Format("FPP,%d,%d,%d,%s\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, item.c_str()).ToStdString();
-        logger_base.debug("Sending remote start unicast packet to %s : %s.", (const char*)ip.c_str(), (const char*)buffer.c_str());
+        LOG_DEBUG("Sending remote start unicast packet to %s : %s.", (const char*)ip.c_str(), (const char*)buffer.c_str());
         break;
     case CTRL_PKT_BLANK:
         buffer = wxString::Format("FPP,%d\n", CTRL_PKT_BLANK).ToStdString();

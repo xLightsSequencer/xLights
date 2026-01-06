@@ -50,7 +50,7 @@
 #include <wx/filename.h>
 #include <wx/xml/xml.h>
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 int __playliststepid = 0;
 
@@ -162,14 +162,12 @@ void PlayListStep::ClearDirty()
 
 PlayListStep::~PlayListStep()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     {
         ReentrancyCounter rec(_reentrancyCounter);
 
         if (!rec.SoleReference())
         {
-            logger_base.warn("PlayListStep being destroyed but we appear to be manipulating it elsewhere. This may not end well.");
+            LOG_WARN("PlayListStep being destroyed but we appear to be manipulating it elsewhere. This may not end well.");
         }
 
         while (_items.size() > 0)
@@ -385,14 +383,12 @@ bool PlayListStep::IsDirty()
 
 void PlayListStep::RemoveItem(PlayListItem* item)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     {
         ReentrancyCounter rec(_reentrancyCounter);
 
         if (!rec.SoleReference())
         {
-            logger_base.warn("PlayListStep removing an item but we appear to be manipulating it elsewhere. This may not end well.");
+            LOG_WARN("PlayListStep removing an item but we appear to be manipulating it elsewhere. This may not end well.");
         }
 
         _items.remove(item);
@@ -534,8 +530,6 @@ bool PlayListStep::Frame(uint8_t* buffer, size_t size, bool outputframe)
 {
     ReentrancyCounter rec(_reentrancyCounter);
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     _currentFrame++;
 
     size_t msPerFrame = 1000;
@@ -556,7 +550,7 @@ bool PlayListStep::Frame(uint8_t* buffer, size_t size, bool outputframe)
         frameMS = wxGetUTCTimeMillis().GetLo() - _startTime;
     }
 
-    //logger_base.debug("Step %s frame %ld start.", (const char *)GetNameNoTime().c_str(), (long)frameMS);
+    //LOG_DEBUG("Step %s frame %ld start.", (const char *)GetNameNoTime().c_str(), (long)frameMS);
 
     //if (frameMS >= GetLengthMS())
     //{
@@ -573,10 +567,10 @@ bool PlayListStep::Frame(uint8_t* buffer, size_t size, bool outputframe)
 
     if (sw.Time() > (float)msPerFrame * 0.8)
     {
-        logger_base.warn("Step %s frame %ld took longer than 80%% frame time to output: %ldms.", (const char *)GetNameNoTime().c_str(), (long)frameMS, (long)sw.Time());
+        LOG_WARN("Step %s frame %ld took longer than 80%% frame time to output: %ldms.", (const char *)GetNameNoTime().c_str(), (long)frameMS, (long)sw.Time());
     }
 
-    //logger_base.debug("    Step %s frame %ld done in %ld.", (const char *)GetNameNoTime().c_str(), (long)frameMS, (long)sw.Time());
+    //LOG_DEBUG("    Step %s frame %ld done in %ld.", (const char *)GetNameNoTime().c_str(), (long)frameMS, (long)sw.Time());
 
     if (timesource != nullptr)
     {
@@ -597,8 +591,8 @@ size_t PlayListStep::GetFrameMS()
 
 void PlayListStep::Start(int loops)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("         ######## Playlist step %s starting.", (const char*)GetNameNoTime().c_str());
+    
+    LOG_INFO("         ######## Playlist step %s starting.", (const char*)GetNameNoTime().c_str());
 
     _loops = loops;
     _startTime = wxGetUTCTimeMillis().GetLo();
@@ -613,16 +607,14 @@ void PlayListStep::Start(int loops)
 
 void PlayListStep::Pause(bool pause)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (pause)
     {
         _pause = wxGetUTCTimeMillis().GetLo();
-        logger_base.info("                  Playlist step %s pausing.", (const char*)GetNameNoTime().c_str());
+        LOG_INFO("                  Playlist step %s pausing.", (const char*)GetNameNoTime().c_str());
     }
     else
     {
-        logger_base.info("                  Playlist step %s unpausing.", (const char*)GetNameNoTime().c_str());
+        LOG_INFO("                  Playlist step %s unpausing.", (const char*)GetNameNoTime().c_str());
         _pause = 0;
     }
 
@@ -675,18 +667,18 @@ std::string PlayListStep::GetFSEQTimeStamp() const
 
 void PlayListStep::Suspend(bool suspend)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!IsPaused())
     {
         if (suspend)
         {
             _suspend = wxGetUTCTimeMillis().GetLo();
-            logger_base.info("                  Playlist step %s suspending.", (const char*)GetNameNoTime().c_str());
+            LOG_INFO("                  Playlist step %s suspending.", (const char*)GetNameNoTime().c_str());
         }
         else
         {
-            logger_base.info("                  Playlist step %s unsuspending.", (const char*)GetNameNoTime().c_str());
+            LOG_INFO("                  Playlist step %s unsuspending.", (const char*)GetNameNoTime().c_str());
             _suspend = 0;
         }
     }
@@ -702,8 +694,8 @@ void PlayListStep::Suspend(bool suspend)
 
 void PlayListStep::Restart()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Playlist step %s restarting.", (const char*)GetNameNoTime().c_str());
+    
+    LOG_INFO("Playlist step %s restarting.", (const char*)GetNameNoTime().c_str());
 
     _startTime = wxGetUTCTimeMillis().GetLo();
     {
@@ -717,8 +709,8 @@ void PlayListStep::Restart()
 
 void PlayListStep::Stop()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("         ######## Playlist step %s stopping.", (const char*)GetNameNoTime().c_str());
+    
+    LOG_INFO("         ######## Playlist step %s stopping.", (const char*)GetNameNoTime().c_str());
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
@@ -865,8 +857,8 @@ bool PlayListStep::IsRunningFSEQ(const std::string& fseqFile)
 
 void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool force)
 {
-    static log4cpp::Category& logger_sync = log4cpp::Category::getInstance(std::string("log_sync"));
-    logger_sync.debug("SetSyncPosition: MS %ld Force %s.", (long)ms, force ? "true" : "false");
+    auto logger = spdlog::get("sync");
+    logger->debug("SetSyncPosition: MS {} Force {}.", (long)ms, force ? "true" : "false");
 
     bool handled = false;
     std::string fseq = GetActiveSyncItemFSEQ();
@@ -892,11 +884,11 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
 
                             if (timeDiff != 0) // if this is zero then we are less than one frame out
                             {
-                                logger_sync.debug("Sync: Position was %d:%d - should be %d:%d: %ld:%ld. FORCED ReSync.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, posDiff);
+                                LOGG_DEBUG(logger, "Sync: Position was %d:%d - should be %d:%d: %ld:%ld. FORCED ReSync.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, posDiff);
 
                                 if (posDiff > (acceptableJitter * 2)) {
                                     pli->SetPosition(frame, ms);
-                                    logger_sync.debug("Way OFF!! Need to SKIP (%ld).", timeDiff); // Add time to current position
+                                    LOGG_DEBUG(logger, "Way OFF!! Need to SKIP (%ld).", timeDiff); // Add time to current position
                                 }
                                 else {
                                     long mscorrection = 0;
@@ -904,12 +896,12 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                                     if (timeDiff > 0) {		// Ahead or Behind? 
                                         mscorrection = (long)(acceptableJitter / 20);
                                         fcorrection = 1;
-                                        logger_sync.debug("Behind:(%ld)- Need to move Forward - Correction(%ld).", posDiff, mscorrection); // Add time to current position
+                                        LOGG_DEBUG( logger,"Behind:(%ld)- Need to move Forward - Correction(%ld).", posDiff, mscorrection); // Add time to current position
                                     }
                                     else {
                                         mscorrection = -(long)(acceptableJitter / 20);
                                         fcorrection = -1;
-                                        logger_sync.debug("Ahead:(%ld)- Need to move Back - Correction(%ld).", posDiff, mscorrection); // Subtract time from current position
+                                        LOGG_DEBUG( logger,"Ahead:(%ld)- Need to move Back - Correction(%ld).", posDiff, mscorrection); // Subtract time from current position
                                     }
 
                                     //pli->SetPosition(frame, pli->GetPositionMS() + mscorrection);
@@ -933,7 +925,7 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                                     adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
                                 }
 
-                                logger_sync.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
+                                LOGG_DEBUG( logger,"Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
                                 if (xScheduleFrame::GetScheduleManager() != nullptr)
                                     xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
                             }
@@ -958,7 +950,7 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                         int frame = ms / pli->GetFrameMS();
                         if (force) {
                             long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
-                            logger_sync.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff);
+                            LOGG_DEBUG(logger, "Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff);
                             pli->SetPosition(frame, ms);
                             if (xScheduleFrame::GetScheduleManager() != nullptr)
                                 xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
@@ -977,7 +969,7 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                                 adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
                             }
 
-                            logger_sync.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
+                            LOGG_DEBUG(logger, "Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
 
                             if (xScheduleFrame::GetScheduleManager() != nullptr)
                                 xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
@@ -1002,7 +994,7 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                 int frame = ms / GetFrameMS();
                 if (force) {
                     long timeDiff = (long)frame * (long)GetFrameMS() - (long)GetPosition();
-                    logger_sync.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", GetCurrentFrame(), GetPosition(), frame, frame * GetFrameMS(), timeDiff);
+                    LOGG_DEBUG(logger, "Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", GetCurrentFrame(), GetPosition(), frame, frame * GetFrameMS(), timeDiff);
                     SetPosition(frame, ms);
                     if (xScheduleFrame::GetScheduleManager() != nullptr)
                         xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
@@ -1021,7 +1013,7 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                         adjustment = timeDiff / abs(timeDiff) * (int)((float)GetFrameMS() * 0.06);
                     }
 
-                    logger_sync.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", GetCurrentFrame(), GetPosition(), frame, frame * GetFrameMS(), timeDiff, adjustment);
+                    LOGG_DEBUG(logger, "Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", GetCurrentFrame(), GetPosition(), frame, frame * GetFrameMS(), timeDiff, adjustment);
 
                     if (xScheduleFrame::GetScheduleManager() != nullptr)
                         xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
@@ -1050,7 +1042,7 @@ std::string PlayListStep::FormatTime(size_t timems, bool ms) const
 
 std::string PlayListStep::GetStatus(bool ms)
 {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //
 
     std::string fps = "Unknown";
 
@@ -1061,7 +1053,7 @@ std::string PlayListStep::GetStatus(bool ms)
     
     std::string res = "Time: " + FormatTime(GetPosition(), ms) + " Left: " + FormatTime(GetLengthMS() - GetPosition(), ms) + " FPS: " + fps;
 
-    //logger_base.debug(res);
+    //LOG_DEBUG(res);
 
     return res;
 }

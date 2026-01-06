@@ -14,7 +14,7 @@
 #include "EventState.h"
 #include "../ScheduleManager.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 EventState::EventState() : EventBase()
 {
@@ -36,19 +36,19 @@ wxXmlNode* EventState::Save()
 
 void EventState::Process(const std::string& state, ScheduleManager* scheduleManager)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_state == state)
     {
-		logger_base.debug("Event fired %s:%s", (const char *)GetType().c_str(), (const char *)GetState().c_str());
+		LOG_DEBUG("Event fired %s:%s", (const char *)GetType().c_str(), (const char *)GetState().c_str());
 		ProcessState(state, scheduleManager);
-		logger_base.debug("    Event processed.");
+		LOG_DEBUG("    Event processed.");
     }
 }
 
 void EventState::ProcessState(const std::string& state, ScheduleManager* scheduleManager)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxString p1 = _parm1;
     wxString p2 = _parm2;
     wxString p3 = _parm3;
@@ -57,13 +57,13 @@ void EventState::ProcessState(const std::string& state, ScheduleManager* schedul
     if (p2 != "") parameters += "," + p2.ToStdString();
     if (p3 != "") parameters += "," + p3.ToStdString();
 
-    logger_base.debug("Event fired %s:%s -> %s:%s", (const char *)GetType().c_str(), (const char *)GetState().c_str(),
+    LOG_DEBUG("Event fired %s:%s -> %s:%s", (const char *)GetType().c_str(), (const char *)GetState().c_str(),
         (const char *)_command.c_str(), (const char *)parameters.c_str());
 
     size_t rate = 0;
     wxString msg;
     scheduleManager->Action(_command, parameters, "", nullptr, nullptr, nullptr, rate, msg);
-    logger_base.debug("    Event processed.");
+    LOG_DEBUG("    Event processed.");
 }
 
 std::list<std::string> EventState::GetStates()

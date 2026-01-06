@@ -10,7 +10,7 @@
 #include "UniverseData.h"
 #include "../xLights/UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #ifndef __WXMSW__
 #include <netinet/in.h>
@@ -39,8 +39,6 @@ public:
 
     virtual ~E131ReceiverThread()
     {
-        //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
         if (!_stop)
         {
             _stop = true;
@@ -49,15 +47,13 @@ public:
 
     void Stop()
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Asking E131 Receiver thread to stop");
+        spdlog::debug("Asking E131 Receiver thread to stop");
         _stop = true;
     }
     
     virtual void* Entry() override
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("E131 Receiver thread started");
+        spdlog::debug("E131 Receiver thread started");
 
         wxIPV4address addr;
         if (_localIP == "")
@@ -74,40 +70,40 @@ public:
 
         if (e131SocketReceive == nullptr)
         {
-            logger_base.error("Problem listening for e131. E131 Receiver thread exiting.");
+            spdlog::error("Problem listening for e131. E131 Receiver thread exiting.");
             return nullptr;
         }
         else if (!e131SocketReceive->IsOk())
         {
-            logger_base.error("Problem listening for e131. E131 Receiver thread exiting.");
+            spdlog::error("Problem listening for e131. E131 Receiver thread exiting.");
             delete e131SocketReceive;
             e131SocketReceive = nullptr;
             return nullptr;
         }
         else if (e131SocketReceive->Error() != wxSOCKET_NOERROR)
         {
-            logger_base.error("Problem listening for e131 => %d : %s, from %s.", e131SocketReceive->LastError(), (const char*)DecodeIPError(e131SocketReceive->LastError()).c_str(), (const char*)addr.IPAddress().c_str());
+            spdlog::error("Problem listening for e131 => {} : {}, from {}.", (int)e131SocketReceive->LastError(), DecodeIPError(e131SocketReceive->LastError()), addr.IPAddress().ToStdString());
             delete e131SocketReceive;
             e131SocketReceive = nullptr;
             return nullptr;
         }
 
-        logger_base.debug("E131 listening on %s", (const char*)addr.IPAddress().c_str());
+        spdlog::debug("E131 listening on {}", addr.IPAddress().ToStdString());
 
         for (const auto& it : _universes)
         {
             struct ip_mreq mreq;
             wxString ip = wxString::Format("239.255.%d.%d", it >> 8, it & 0xFF);
-            logger_base.debug("E131 registering for multicast on %s.", (const char*)ip.c_str());
+            spdlog::debug("E131 registering for multicast on {}.", ip.ToStdString());
             mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
             mreq.imr_interface.s_addr = inet_addr(_localIP.c_str()); // this will only listen on the default interface
             if (!e131SocketReceive->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char*)& mreq, sizeof(mreq)))
             {
-                logger_base.warn("    Error opening E131 multicast listener %s.", (const char*)ip.c_str());
+                spdlog::warn("    Error opening E131 multicast listener {}.", ip.ToStdString());
             }
             else
             {
-                logger_base.debug("    E131 multicast listener %s registered.", (const char*)ip.c_str());
+                spdlog::debug("    E131 multicast listener {} registered.", ip.ToStdString());
             }
         }
 
@@ -136,7 +132,7 @@ public:
             e131SocketReceive = nullptr;
         }
 
-        logger_base.debug("E131 Receiving thread exiting.");
+        spdlog::debug("E131 Receiving thread exiting.");
         return nullptr;
     }
 };
@@ -195,8 +191,6 @@ UniverseData* E131Receiver::GetUniverseData(int universe)
 
 void E131Receiver::StashPacket(uint8_t* buffer, int size)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (IsSuspended()) return;
 
     if (size < E131_PACKET_HEADERLEN || size > E131_PACKET_HEADERLEN + 512) {
@@ -222,7 +216,7 @@ void E131Receiver::StashPacket(uint8_t* buffer, int size)
     {
         if (!ud->UpdateLeft(E131PORT, buffer, size))
         {
-            logger_base.debug("Invalid packet.");
+            spdlog::debug("Invalid packet.");
             wxASSERT(false);
         }
         else
@@ -244,7 +238,7 @@ void E131Receiver::StashPacket(uint8_t* buffer, int size)
     {
         if (!ud->UpdateRight(E131PORT, buffer, size))
         {
-            logger_base.debug("Invalid packet.");
+            spdlog::debug("Invalid packet.");
             wxASSERT(false);
         }
         else

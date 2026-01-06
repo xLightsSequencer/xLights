@@ -12,7 +12,7 @@
 #include "../xLights/UtilFunctions.h"
 #include "../xLights/VideoReader.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 // #define VIDEO_EXTRALOGGING
 
@@ -36,7 +36,7 @@ class CVRThread : public wxThread {
 
 public:
     CVRThread(CachedVideoReader* cvr, int maxFrames, const std::string& videoFile, long startMillisecond, int frameMS, const wxSize& size, bool keepAspectRatio) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
         _cvr = cvr;
         _maxFrames = maxFrames;
         _videoFile = videoFile;
@@ -50,12 +50,12 @@ public:
         if (_videoReader != nullptr && _videoReader->IsValid()) {
             _cvr->SetLengthMS(_videoReader->GetLengthMS());
             if (Run() != wxTHREAD_NO_ERROR) {
-                logger_base.error("Failed to start video reading thread for %s (%dx%d)", (const char*)_videoFile.c_str(), size.GetWidth(), size.GetHeight());
+                LOG_ERROR("Failed to start video reading thread for %s (%dx%d)", (const char*)_videoFile.c_str(), size.GetWidth(), size.GetHeight());
                 delete _videoReader;
                 _videoReader = nullptr;
             }
         } else {
-            logger_base.error("Video reading thread not started for %s (%dx%d) because video could not be opened.", (const char*)_videoFile.c_str(), size.GetWidth(), size.GetHeight());
+            LOG_ERROR("Video reading thread not started for %s (%dx%d) because video could not be opened.", (const char*)_videoFile.c_str(), size.GetWidth(), size.GetHeight());
 
             if (_videoReader != nullptr) {
                 delete _videoReader;
@@ -64,10 +64,10 @@ public:
         }
     }
     virtual ~CVRThread() {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
 
         if (_running && !_stop) {
-            logger_base.debug("Asking video reading thread %s (%dx%d) to stop", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
+            LOG_DEBUG("Asking video reading thread %s (%dx%d) to stop", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
             _stop = true;
             std::unique_lock<std::mutex> mutLock(_access);
             _signal.notify_all();
@@ -78,7 +78,7 @@ public:
             wxMilliSleep(1);
         }
 
-        logger_base.debug("Video reading thread %s (%dx%d) has stopped.", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
+        LOG_DEBUG("Video reading thread %s (%dx%d) has stopped.", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
 
         if (_videoReader != nullptr) {
             delete _videoReader;
@@ -89,8 +89,8 @@ public:
         return _videoReader != nullptr;
     }
     void Stop() {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Asking video reading thread %s (%dx%d) to stop", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
+        
+        LOG_DEBUG("Asking video reading thread %s (%dx%d) to stop", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
         _stop = true;
         std::unique_lock<std::mutex> mutLock(_access);
         _signal.notify_all();
@@ -99,8 +99,8 @@ public:
     virtual void* Entry() override {
         _running = true;
 
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Video reading thread %s (%dx%d) started", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
+        
+        LOG_DEBUG("Video reading thread %s (%dx%d) started", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
 
         int lastStart = -1;
 
@@ -112,7 +112,7 @@ public:
                 lastStart = currentStart;
                 long end = std::min((long)currentStart + _maxFrames * _frameMS, (long)_videoReader->GetLengthMS());
 #ifdef VIDEO_EXTRALOGGING
-                logger_base.debug("Video reading thread %s (%dx%d) filling cache %ld-%ld", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight(), currentStart, end);
+                LOG_DEBUG("Video reading thread %s (%dx%d) filling cache %ld-%ld", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight(), currentStart, end);
 #endif
 
                 // we need to refill the cache
@@ -124,25 +124,25 @@ public:
                         _cvr->CacheImage(i, CachedVideoReader::CreateImageFromFrame(_videoReader->GetNextFrame(i), _size));
 
                         if (sw.Time() > _frameMS) {
-                            logger_base.warn("Video reading thread %s (%dx%d) took more than %ldms to decode frame %ldms.", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight(), _frameMS, i);
+                            LOG_WARN("Video reading thread %s (%dx%d) took more than %ldms to decode frame %ldms.", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight(), _frameMS, i);
                         }
 
                         // if we have fallen behind ... jump ahead - this will cause blank frames
                         long s = GetCurrentStart();
                         if (s > i + _frameMS) {
-                            logger_base.warn("Video reading thread %s (%dx%d) has fallen behind ... jumping ahead ... video will go black.", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
+                            LOG_WARN("Video reading thread %s (%dx%d) has fallen behind ... jumping ahead ... video will go black.", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
                             i = s + 3 * _frameMS;
                         }
                     }
                 }
             } else {
 #ifdef VIDEO_EXTRALOGGING
-                logger_base.debug("Video reading thread %s (%dx%d) waiting for start time to change.", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
+                LOG_DEBUG("Video reading thread %s (%dx%d) waiting for start time to change.", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
 #endif
                 std::unique_lock<std::mutex> accessLock(_access);
                 _signal.wait(accessLock);
 #ifdef VIDEO_EXTRALOGGING
-                logger_base.debug("Video reading thread %s (%dx%d) start time changed.", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
+                LOG_DEBUG("Video reading thread %s (%dx%d) start time changed.", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
 #endif
             }
         }
@@ -155,7 +155,7 @@ public:
         _cvr->Done();
         _running = false;
 
-        logger_base.debug("Video reading thread %s (%dx%d) stopped", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
+        LOG_DEBUG("Video reading thread %s (%dx%d) stopped", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
 
         return nullptr;
     }
@@ -172,11 +172,11 @@ void CachedVideoReader::Done() {
 }
 
 CachedVideoReader::~CachedVideoReader() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_thread != nullptr) {
 #ifdef VIDEO_EXTRALOGGING
-        logger_base.debug("Cached Video Reader destructor asking thread to stop. %s", (const char*)_videoFile.c_str());
+        LOG_DEBUG("Cached Video Reader destructor asking thread to stop. %s", (const char*)_videoFile.c_str());
 #endif
         _thread->Stop();
         // threads delete themselves when stopped
@@ -188,7 +188,7 @@ CachedVideoReader::~CachedVideoReader() {
         }
 
 #ifdef VIDEO_EXTRALOGGING
-        logger_base.debug("Cached Video Reader destructor initial check shows thread is done. %s", done ? "TRUE" : "FALSE");
+        LOG_DEBUG("Cached Video Reader destructor initial check shows thread is done. %s", done ? "TRUE" : "FALSE");
 #endif
 
         // we will wait up to 2 seconds for this to happen because this can go bad
@@ -201,10 +201,10 @@ CachedVideoReader::~CachedVideoReader() {
         }
 
         if (!done) {
-            logger_base.warn("Cached Video Reader destructor ... thread never finished");
+            LOG_WARN("Cached Video Reader destructor ... thread never finished");
         } else {
 #ifdef VIDEO_EXTRALOGGING
-            logger_base.debug("Cached Video Reader destructor thread seems to be done.");
+            LOG_DEBUG("Cached Video Reader destructor thread seems to be done.");
 #endif
         }
 
@@ -216,7 +216,7 @@ CachedVideoReader::~CachedVideoReader() {
         std::unique_lock<std::mutex> locker(_cacheAccess);
 
 #ifdef VIDEO_EXTRALOGGING
-        logger_base.debug("Cached Video Reader destructor clearing cache.");
+        LOG_DEBUG("Cached Video Reader destructor clearing cache.");
 #endif
 
         _cache.clear();
@@ -227,19 +227,19 @@ CachedVideoReader::~CachedVideoReader() {
 
 void CachedVideoReader::CacheImage(long millisecond, const wxImage& image) {
 #ifdef VIDEO_EXTRALOGGING
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 #endif
 
     std::unique_lock<std::mutex> locker(_cacheAccess);
     auto it = _cache.find(millisecond);
     if (it == _cache.end()) {
 #ifdef VIDEO_EXTRALOGGING
-        logger_base.debug("Cached image for time %ld.", millisecond);
+        LOG_DEBUG("Cached image for time %ld.", millisecond);
 #endif
         _cache[millisecond] = image.Copy();
     } else {
 #ifdef VIDEO_EXTRALOGGING
-        logger_base.debug("Cache already had the image.");
+        LOG_DEBUG("Cache already had the image.");
 #endif
     }
 }
@@ -250,7 +250,7 @@ void CachedVideoReader::SetLengthMS(long lengthMS) {
 }
 
 wxImage CachedVideoReader::GetNextFrame(long ms) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_thread == nullptr || ms > _lengthMS) {
         return wxImage(_size);
@@ -270,7 +270,7 @@ wxImage CachedVideoReader::GetNextFrame(long ms) {
     }
 
     {
-        logger_base.debug("Video %s (%dx%d) tried to get frame %d from cache but it wasnt there ... give it a bit of time.", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight(), ms);
+        LOG_DEBUG("Video %s (%dx%d) tried to get frame %d from cache but it wasnt there ... give it a bit of time.", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight(), ms);
 
         // give it a bit of time ... say half a frame
         int i = 0;
@@ -288,7 +288,7 @@ wxImage CachedVideoReader::GetNextFrame(long ms) {
         }
     }
 
-    logger_base.debug("Video %s (%dx%d) tried to get frame %d from cache but it wasnt there :(", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight(), ms);
+    LOG_DEBUG("Video %s (%dx%d) tried to get frame %d from cache but it wasnt there :(", (const char*)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight(), ms);
     return wxImage(_size);
 }
 

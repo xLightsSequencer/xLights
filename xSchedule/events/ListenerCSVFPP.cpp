@@ -13,7 +13,7 @@
 #include "../../xLights/UtilFunctions.h"
 #include "../../xLights/outputs/IPOutput.h"
 #include "../Control.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include <wx/socket.h>
 
 bool ListenerCSVFPP::IsValidHeader(uint8_t* buffer) {
@@ -32,15 +32,15 @@ ListenerCSVFPP::ListenerCSVFPP(ListenerManager* listenerManager, const std::stri
 }
 
 void ListenerCSVFPP::Start() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("FPP CSV listener starting.");
+    
+    LOG_DEBUG("FPP CSV listener starting.");
     _thread = new ListenerThread(this, _localIP);
 }
 
 void ListenerCSVFPP::Stop() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (!_stop) {
-        logger_base.debug("FPP CSV listener stopping.");
+        LOG_DEBUG("FPP CSV listener stopping.");
         if (_socket != nullptr)
             _socket->SetTimeout(0);
         if (_thread != nullptr) {
@@ -54,7 +54,7 @@ void ListenerCSVFPP::Stop() {
 }
 
 void ListenerCSVFPP::StartProcess(const std::string& localIP) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxIPV4address localaddr;
     if (localIP == "") {
@@ -66,27 +66,27 @@ void ListenerCSVFPP::StartProcess(const std::string& localIP) {
 
     _socket = new wxDatagramSocket(localaddr, wxSOCKET_NONE);
     if (_socket == nullptr) {
-        logger_base.error("Error opening datagram for FPP CSV reception. %s", (const char*)localaddr.IPAddress().c_str());
+        LOG_ERROR("Error opening datagram for FPP CSV reception. %s", (const char*)localaddr.IPAddress().c_str());
     } else if (!_socket->IsOk()) {
-        logger_base.error("Error opening datagram for FPP CSV reception. %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
+        LOG_ERROR("Error opening datagram for FPP CSV reception. %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     } else if (_socket->Error()) {
-        logger_base.error("Error opening datagram for FPP CSV reception. %d : %s %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+        LOG_ERROR("Error opening datagram for FPP CSV reception. %d : %s %s", (int)_socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     } else {
         _socket->SetTimeout(1);
         _socket->Notify(false);
-        logger_base.info("FPP CSV reception datagram opened successfully.");
+        LOG_INFO("FPP CSV reception datagram opened successfully.");
         _isOk = true;
     }
 }
 
 void ListenerCSVFPP::StopProcess() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (_socket != nullptr) {
-        logger_base.info("FPP CSV Listener closed.");
+        LOG_INFO("FPP CSV Listener closed.");
         _socket->Close();
         delete _socket;
         _socket = nullptr;
@@ -95,18 +95,18 @@ void ListenerCSVFPP::StopProcess() {
 }
 
 void ListenerCSVFPP::Poll() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_socket != nullptr) {
         unsigned char buffer[2048];
         memset(buffer, 0x00, sizeof(buffer));
 
         // wxStopWatch sw;
-        // logger_base.debug("Trying to read FPP unicast packet.");
+        // LOG_DEBUG("Trying to read FPP unicast packet.");
         _socket->Read(&buffer[0], sizeof(buffer));
         if (_stop)
             return;
-        // logger_base.debug(" Read done. %ldms", sw.Time());
+        // LOG_DEBUG(" Read done. %ldms", sw.Time());
 
         if (_socket->GetLastIOReadSize() == 0) {
             _socket->WaitForRead(0, 50);
@@ -124,7 +124,7 @@ void ListenerCSVFPP::Poll() {
                 if (msg == lastMessage) {
                     // we dont want to double process
                 } else {
-                    logger_base.debug("Pkt %s.", (const char*)msg.c_str());
+                    LOG_DEBUG("Pkt %s.", (const char*)msg.c_str());
                     lastMessage = msg;
                     wxArrayString components = wxSplit(msg, ',');
 
@@ -136,14 +136,14 @@ void ListenerCSVFPP::Poll() {
                             int secondsElapsed = wxAtoi(components[5]) * 1000 + wxAtoi(components[6]);
                             _listenerManager->Sync(fileName, secondsElapsed, GetType());
                         } else if (action == SYNC_PKT_STOP) {
-                            logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote stop %s.", (const char*)fileName.c_str());
+                            LOG_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote stop %s.", (const char*)fileName.c_str());
                             _listenerManager->Sync(fileName, 0xFFFFFFFF, GetType());
                         } else if (action == SYNC_PKT_START) {
-                            logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote start %s.", (const char*)fileName.c_str());
+                            LOG_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote start %s.", (const char*)fileName.c_str());
                             _listenerManager->Sync(fileName, 0, GetType());
                         }
                     }
-                    logger_base.debug("Pkt dispatched.");
+                    LOG_DEBUG("Pkt dispatched.");
                 }
             }
         }

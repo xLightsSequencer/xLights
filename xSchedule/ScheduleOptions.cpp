@@ -34,10 +34,10 @@
 #include "events/EventSerial.h"
 #include "events/EventState.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, CommandManager* commandManager) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     _oscOptions = nullptr;
     _testOptions = nullptr;
     _changeCount = 0;
@@ -129,7 +129,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
                 } else if (n2->GetName() == "EventARTNetTrigger") {
                     _events.push_back(new EventARTNetTrigger(n2));
                 } else {
-                    logger_base.warn("Unrecognised event type %s.", (const char*)n2->GetName().c_str());
+                    LOG_WARN("Unrecognised event type %s.", (const char*)n2->GetName().c_str());
                 }
             }
         } else if (n->GetName() == "FPPRemote") {

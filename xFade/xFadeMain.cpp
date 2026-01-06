@@ -30,15 +30,14 @@
 #include "E131Receiver.h"
 #include "ArtNETReceiver.h"
 
-#include <nlohmann/json.hpp>
+//#include <nlohmann/json.hpp>
 
 #ifndef __WXOSX__
 #include "MIDIListener.h"
 #include "MIDIAssociateDialog.h"
 #endif
 
-
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include "../include/xLights.xpm"
 #include "../include/xLights-16.xpm"
@@ -710,11 +709,8 @@ void xFadeFrame::SetTiming()
 
 void xFadeFrame::OnButtonClickLeft(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     int button = wxAtoi(((wxButton*)event.GetEventObject())->GetLabel());
-
-    logger_base.debug("Playing jukebox left. %d", button);
+    spdlog::debug("Playing jukebox left. {}", button);
 
     PressJukeboxButton(button, true);
 }
@@ -784,12 +780,8 @@ wxButton* xFadeFrame::GetJukeboxButton(int button, wxWindow* panel)
 
 void xFadeFrame::OnButtonClickRight(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     int button = wxAtoi(((wxButton*)event.GetEventObject())->GetLabel());
-
-    logger_base.debug("Playing jukebox right. %d", button);
-
+    spdlog::debug("Playing jukebox right. {}", button);
     PressJukeboxButton(button, false);
 }
 
@@ -864,10 +856,8 @@ void xFadeFrame::OnButton_RightClick(wxCommandEvent& event)
 
 void xFadeFrame::OnButtonClickFT(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     auto label = ((wxButton*)event.GetEventObject())->GetLabel();
-    logger_base.debug("Cross fade time button clicked. %s", (const char*)label.c_str());
+    spdlog::debug("Cross fade time button clicked. {}", label.ToStdString());
     TextCtrl_CrossFadeTime->SetValue(label);
 }
 
@@ -879,8 +869,7 @@ void xFadeFrame::OnButtonRClickFT(wxContextMenuEvent& event)
 
 void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Connecting to xLights ...");
+    spdlog::debug("Connecting to xLights ...");
 
     // suspend listening for packets
     if (_e131Receiver != nullptr)
@@ -1021,7 +1010,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
     if (_artNETReceiver != nullptr)
         _artNETReceiver->Suspend(false);
 
-    logger_base.debug("    Connecting to xLights done!");
+    spdlog::debug("    Connecting to xLights done!");
 }
 
 void xFadeFrame::OnSlider1CmdSliderUpdated(wxScrollEvent& event)
@@ -1031,8 +1020,7 @@ void xFadeFrame::OnSlider1CmdSliderUpdated(wxScrollEvent& event)
 
 void xFadeFrame::OnButton_ConfigureClick(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Configure ...");
+    spdlog::debug("Configure ...");
 
     if (_e131Receiver != nullptr)
         _e131Receiver->Suspend(true);
@@ -1066,8 +1054,7 @@ void xFadeFrame::OnButton_ConfigureClick(wxCommandEvent& event)
     if (_artNETReceiver != nullptr)
         _artNETReceiver->Suspend(false);
 
-    logger_base.debug("    Configuring done!");
-
+    spdlog::debug("    Configuring done!");
     ValidateWindow();
 }
 
@@ -1095,8 +1082,6 @@ void xFadeFrame::OnTextCtrl_CrossFadeTimeText(wxCommandEvent& event)
 
 void xFadeFrame::OnButton_AdvanceClick(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     bool onLeft = ((_direction == -1 && UITimer.IsRunning()) || Slider1->GetValue() <= 5000);
 
     if (onLeft) {
@@ -1106,7 +1091,7 @@ void xFadeFrame::OnButton_AdvanceClick(wxCommandEvent& event)
         if (activeButton > JUKEBOXBUTTONS)
             activeButton = 1;
 
-        logger_base.debug("Advance moving to button %d on right.", activeButton);
+        spdlog::debug("Advance moving to button {} on right.", activeButton);
 
         // press active button
         PressJukeboxButton(activeButton, false);
@@ -1121,7 +1106,7 @@ void xFadeFrame::OnButton_AdvanceClick(wxCommandEvent& event)
         if (activeButton > JUKEBOXBUTTONS)
             activeButton = 1;
 
-        logger_base.debug("Advance moving to button %d on left.", activeButton);
+        spdlog::debug("Advance moving to button {} on left.", activeButton);
 
         // press active button
         PressJukeboxButton(activeButton, true);
@@ -1134,8 +1119,6 @@ void xFadeFrame::OnButton_AdvanceClick(wxCommandEvent& event)
 
 void xFadeFrame::OnTimer_StatusTrigger(wxTimerEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (_settings._minimiseUIUpdates)
         return;
 
@@ -1148,12 +1131,12 @@ void xFadeFrame::OnTimer_StatusTrigger(wxTimerEvent& event)
     if (_emitter != nullptr) {
         StatusBar1->SetStatusText(wxString::Format("Sent: %u", _emitter->GetSent()), 1);
         if (count % 60 == 0) {
-            logger_base.debug("Activity - Left Received %u, Right Received %u, Sent %u.", leftReceived, rightReceived, _emitter->GetSent());
+            spdlog::debug("Activity - Left Received {}, Right Received {}, Sent {}.", leftReceived, rightReceived, _emitter->GetSent());
         }
     } else {
         StatusBar1->SetStatusText("Sending disabled", 1);
         if (count % 60 == 0) {
-            logger_base.debug("Activity - Left Received %u, Right Received %u, Sent DISABLED.", leftReceived, rightReceived);
+            spdlog::debug("Activity - Left Received {}, Right Received {}, Sent DISABLED.", leftReceived, rightReceived);
         }
     }
 }

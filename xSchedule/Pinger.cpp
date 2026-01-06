@@ -17,7 +17,7 @@
 
 #include <atomic>
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 class PingThread : public wxThread {
     APinger* _pinger;
@@ -33,7 +33,7 @@ public:
     }
 
     virtual ~PingThread() {
-        // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        // 
 
         if (_running && !_stop) {
             _stop = true;
@@ -41,8 +41,8 @@ public:
     }
 
     void Stop() {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Asking pinging thread %s to stop", (const char*)_pinger->GetName().c_str());
+        
+        LOG_DEBUG("Asking pinging thread %s to stop", (const char*)_pinger->GetName().c_str());
         _stop = true;
     }
 
@@ -52,8 +52,8 @@ public:
     virtual void* Entry() override {
         _running = true;
 
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Pinging thread %s started", (const char*)_pinger->GetName().c_str());
+        
+        LOG_DEBUG("Pinging thread %s started", (const char*)_pinger->GetName().c_str());
 
         while (!_stop) {
             auto res = Output::PINGSTATE::PING_UNKNOWN;

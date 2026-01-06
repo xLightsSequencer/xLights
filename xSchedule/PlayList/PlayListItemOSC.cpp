@@ -16,7 +16,7 @@
 #include "../ScheduleManager.h"
 #include "../xScheduleMain.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 PlayListItemOSC::PlayListItemOSC(wxXmlNode* node) :
     PlayListItem(node) {
@@ -155,8 +155,8 @@ void PlayListItemOSC::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fram
             values[i] = SubstituteVariables(_values[i]);
         }
 
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("Sending OSC Event to %s:%d %s", (const char*)_ip.c_str(), _port, (const char*)_path.c_str());
+        
+        LOG_INFO("Sending OSC Event to %s:%d %s", (const char*)_ip.c_str(), _port, (const char*)_path.c_str());
 
         OSCPacket packet(path.ToStdString());
         if (packet.IsOk()) {
@@ -169,9 +169,9 @@ void PlayListItemOSC::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fram
             }
 
             packet.Send(_ip, _port, GetLocalIP());
-            logger_base.info("OSC Sent.");
+            LOG_INFO("OSC Sent.");
         } else {
-            logger_base.error("OSC Packet not sent as it was invalid.");
+            LOG_ERROR("OSC Packet not sent as it was invalid.");
         }
     }
 }

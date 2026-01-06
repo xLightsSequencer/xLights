@@ -50,3 +50,10 @@ struct fmt::formatter<wxString> : fmt::formatter<std::string> {
 #define LOG_WARN(format, ...) spdlog::warn(fmt::sprintf(format, __VA_ARGS__))
 #define LOG_ERROR(format, ...) spdlog::error(fmt::sprintf(format, __VA_ARGS__))
 #define LOG_CRIT(format, ...) spdlog::critical(fmt::sprintf(format, __VA_ARGS__))
+
+#define LOGG_TRACE(logger, format, ...) logger->trace(fmt::sprintf(format, __VA_ARGS__))
+#define LOGG_DEBUG(logger, format, ...) logger->debug(fmt::sprintf(format, __VA_ARGS__))
+#define LOGG_INFO(logger, format, ...) logger->info(fmt::sprintf(format, __VA_ARGS__))
+#define LOGG_WARN(logger, format, ...) logger->warn(fmt::sprintf(format, __VA_ARGS__))
+#define LOGG_ERROR(logger, format, ...) logger->error(fmt::sprintf(format, __VA_ARGS__))
+#define LOGG_CRIT(logger, format, ...) logger->critical(fmt::sprintf(format, __VA_ARGS__))

@@ -1285,10 +1285,10 @@ void OptimiseDialogPosition(wxDialog* dlg) {
     EnsureWindowHeaderIsOnScreen(dlg);
 }
 
-nlohmann::json xLightsRequest(int xFadePort, const wxString& message, const std::string& ipAddress) {
+nlohmann::json xLightsRequest(int xFadePort, const std::string& request, const std::string& ipAddress) {
     std::string url = "http://" + ipAddress + ":" + std::to_string(GetxFadePort(xFadePort)) + "/xlDoAutomation";
     int responseCode = 0;
-    auto resultString = Curl::HTTPSPost(url, message, "", "", "application/json", 30 * 60, {}, &responseCode);
+    auto resultString = Curl::HTTPSPost(url, request, "", "", "application/json", 30 * 60, {}, &responseCode);
     if (resultString != "" && (responseCode == 200 || responseCode >= 500)) {
         nlohmann::json result = nlohmann::json::parse(resultString);
         result["res"] = (int)responseCode;
@@ -1299,7 +1299,7 @@ nlohmann::json xLightsRequest(int xFadePort, const wxString& message, const std:
     nlohmann::json result = nlohmann::json::parse(msg);
     return result;
 }
-bool xLightsRequest(std::string& result, int xFadePort, const wxString& request, const std::string& ipAddress) {
+bool xLightsRequest(std::string& result, int xFadePort, const std::string& request, const std::string& ipAddress) {
     std::string url = "http://" + ipAddress + ":" + std::to_string(GetxFadePort(xFadePort)) + "/" + request;
     int responseCode = 0;
     result = Curl::HTTPSGet(url, "", "", 30 * 60, {}, &responseCode);

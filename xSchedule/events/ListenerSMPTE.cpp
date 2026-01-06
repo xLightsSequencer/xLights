@@ -15,7 +15,7 @@
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"
 #include "../xScheduleMain.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 ListenerSMPTE::ListenerSMPTE(int mode, ListenerManager* listenerManager, const std::string& device) :
     ListenerBase(listenerManager, "") {
@@ -25,15 +25,15 @@ ListenerSMPTE::ListenerSMPTE(int mode, ListenerManager* listenerManager, const s
 }
 
 void ListenerSMPTE::Start() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SMPTE listener starting.");
+    
+    LOG_DEBUG("SMPTE listener starting.");
     _thread = new ListenerThread(this, _localIP);
 }
 
 void ListenerSMPTE::Stop() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (!_stop) {
-        logger_base.debug("SMPTE listener stopping.");
+        LOG_DEBUG("SMPTE listener stopping.");
         if (_thread != nullptr) {
             _stop = true;
             _thread->Stop();
@@ -42,7 +42,7 @@ void ListenerSMPTE::Stop() {
 }
 
 void ListenerSMPTE::StartProcess(const std::string& localIP) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _total = 0;
     int apv = 1920;
@@ -51,7 +51,7 @@ void ListenerSMPTE::StartProcess(const std::string& localIP) {
     if (_decoder != nullptr) {
         auto sdl = AudioManager::GetSDLManager()->GetInputSDL(_device);
         if (sdl != nullptr) {
-            logger_base.debug("SMPTE listener starting SDL device: %s", _device.c_str());
+            LOG_DEBUG("SMPTE listener starting SDL device: %s", _device.c_str());
             sdl->StartListening();
             sdl->PurgeInput();
             _isOk = true;
@@ -60,11 +60,11 @@ void ListenerSMPTE::StartProcess(const std::string& localIP) {
 }
 
 void ListenerSMPTE::StopProcess() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     auto sdl = AudioManager::GetSDLManager()->GetInputSDL(_device);
     if (sdl != nullptr) {
-        logger_base.debug("SMPTE listener stopping SDL device: %s", _device.c_str());
+        LOG_DEBUG("SMPTE listener stopping SDL device: %s", _device.c_str());
         sdl->StopListening();
     }
 
@@ -77,7 +77,7 @@ void ListenerSMPTE::StopProcess() {
 }
 
 void ListenerSMPTE::Poll() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_decoder == nullptr || _stop)
         return;
@@ -100,7 +100,7 @@ void ListenerSMPTE::Poll() {
 }
 
 void ListenerSMPTE::DoSync(int mode, int hours, int mins, int secs, int frames) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     static long lastms = -99999;
 
     long stepoffset = _listenerManager->GetStepMMSSOfset(hours, _listenerManager->GetScheduleManager()->GetOptions()->GetMIDITimecodeOffset() / 3600000);
@@ -133,7 +133,7 @@ void ListenerSMPTE::DoSync(int mode, int hours, int mins, int secs, int frames) 
     }
 
     if (ms - lastms > 10000 || ms < lastms) {
-        logger_base.debug("SMPTE DoSync MS: %ld, hours: %d, Mins: %d, Sec: %d, Frames: %d. (FPS %.2g)", ms, hours, mins, secs, frames, fps);
+        LOG_DEBUG("SMPTE DoSync MS: %ld, hours: %d, Mins: %d, Sec: %d, Frames: %d. (FPS %.2g)", ms, hours, mins, secs, frames, fps);
         lastms = ms;
     }
 

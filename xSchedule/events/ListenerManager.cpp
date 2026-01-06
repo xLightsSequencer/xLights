@@ -12,7 +12,7 @@
 #include <wx/wx.h>
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include "EventBase.h"
 #include "EventSerial.h"
 #include "EventLor.h"
@@ -67,7 +67,7 @@ ListenerBase* ListenerManager::GetSyncListener() const
 
 void ListenerManager::StartListeners(const std::string& localIP)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     auto it = _listeners.begin();
     while (it != _listeners.end())
     {
@@ -649,7 +649,7 @@ void ListenerManager::StartListeners(const std::string& localIP)
                 _listeners.back()->Start();
             }
             else                 {
-                logger_base.error("No midi timecode device specified.");
+                LOG_ERROR("No midi timecode device specified.");
             }
         }
     }

@@ -50,7 +50,7 @@ int gettimeofday(struct timeval* tp, struct timezone* tzp) {
 #if __has_include("spdlog/spdlog.h")
 #define PLATFORM_UNKNOWN
 #include "spdlog/sinks/rotating_file_sink.h"
-#include "./utils/spdlog_macros.h"
+#include <spdlog/spdlog.h>
 #include <spdlog/fmt/bundled/printf.h>
 #include <spdlog/fmt/ostr.h>
 
@@ -103,7 +103,7 @@ inline void AddSlowStorageWarning() {
 #elif __has_include(<log4cpp/Category.hh>)
 // compiling within xLights, use log4cpp
 #define PLATFORM_UNKNOWN
-#include "./utils/spdlog_macros.h"
+
 template<typename... Args>
 static void LogErr(int i, const char* fmt, Args... args) {
     static log4cpp::Category& fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));

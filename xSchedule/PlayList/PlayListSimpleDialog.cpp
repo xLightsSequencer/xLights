@@ -35,7 +35,7 @@
 #include <wx/string.h>
 //*)
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 //(*IdInit(PlayListSimpleDialog)
 const long PlayListSimpleDialog::ID_TREECTRL1 = wxNewId();
@@ -61,7 +61,7 @@ END_EVENT_TABLE()
 
 PlayListSimpleDialog::PlayListSimpleDialog(wxWindow* parent, OutputManager* outputManager, PlayList* playlist, ScheduleOptions* options, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     _outputManager = outputManager;
     _playlist = playlist;
     _options = options;

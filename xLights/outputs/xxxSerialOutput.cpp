@@ -137,9 +137,9 @@ void xxxSerialOutput::EndFrame(int suppressFrames) {
 
 uint8_t xxxSerialOutput::GetDeviceFromChannel(uint32_t channel) const {
     uint8_t device = 0;
-    auto deviceChannels = wxSplit(_deviceChannels, ',');
+    auto deviceChannels = Split(_deviceChannels, ',');
     for (const auto& it : deviceChannels) {
-        int ch = wxAtoi(it);
+        int ch = std::stoi(it);
         if (channel < ch) {
             break;
         }
@@ -150,9 +150,9 @@ uint8_t xxxSerialOutput::GetDeviceFromChannel(uint32_t channel) const {
 }
 
 uint8_t xxxSerialOutput::GetChannelOnDevice(uint32_t channel) const {
-    auto deviceChannels = wxSplit(_deviceChannels, ',');
+    auto deviceChannels = Split(_deviceChannels, ',');
     for (const auto& it : deviceChannels) {
-        int ch = wxAtoi(it);
+        int ch = std::stoi(it);
         if (channel < ch) {
             break;
         }
@@ -162,9 +162,9 @@ uint8_t xxxSerialOutput::GetChannelOnDevice(uint32_t channel) const {
 }
 
 uint8_t xxxSerialOutput::GetDeviceChannels(uint8_t device) const {
-	auto deviceChannels = wxSplit(_deviceChannels, ',');
+	auto deviceChannels = Split(_deviceChannels, ',');
     if (device < deviceChannels.size()) {
-		return wxAtoi(deviceChannels[device]);
+        return std::stoi(deviceChannels[device]);
 	}
 	return 0;
 }

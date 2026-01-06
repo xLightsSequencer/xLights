@@ -9,7 +9,7 @@
 #include "PacketData.h"
 #include "../xLights/UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 class EmitterThread : public wxThread
 {
@@ -26,8 +26,6 @@ public:
 
     virtual ~EmitterThread()
     {
-        //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
         if (!_stop)
         {
             _stop = true;
@@ -36,15 +34,13 @@ public:
 
     void Stop()
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Asking emitter thread to stop");
+        spdlog::debug("Asking emitter thread to stop");
         _stop = true;
     }
     
     virtual void* Entry() override
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Emitter thread started");
+        spdlog::debug("Emitter thread started");
 
         wxIPV4address localaddr;
         wxDatagramSocket* e131SocketSend = nullptr;
@@ -62,17 +58,17 @@ public:
         e131SocketSend = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
         if (e131SocketSend == nullptr)
         {
-            logger_base.error("E131 Output: Error opening datagram. Network may not be connected? OK : FALSE, From %s", (const char*)localaddr.IPAddress().c_str());
+            spdlog::error("E131 Output: Error opening datagram. Network may not be connected? OK : FALSE, From {}", localaddr.IPAddress().ToStdString());
         }
         else if (!e131SocketSend->IsOk())
         {
-            logger_base.error("E131 Output: Error opening datagram. Network may not be connected? OK : FALSE, From %s", (const char*)localaddr.IPAddress().c_str());
+            spdlog::error("E131 Output: Error opening datagram. Network may not be connected? OK : FALSE, From {}", localaddr.IPAddress().ToStdString());
             delete e131SocketSend;
             e131SocketSend = nullptr;
         }
         else if (e131SocketSend->Error() != wxSOCKET_NOERROR)
         {
-            logger_base.error("Error creating E131 datagram => %d : %s, from %s.", e131SocketSend->LastError(), (const char*)DecodeIPError(e131SocketSend->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+            spdlog::error("Error creating E131 datagram => {} : {}, from {}.", (int)e131SocketSend->LastError(), DecodeIPError(e131SocketSend->LastError()), localaddr.IPAddress().ToStdString());
             delete e131SocketSend;
             e131SocketSend = nullptr;
         }
@@ -80,17 +76,17 @@ public:
         artNETSocketSend = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
         if (artNETSocketSend == nullptr)
         {
-            logger_base.error("artNET Output: Error opening datagram. Network may not be connected? OK : FALSE, From %s", (const char*)localaddr.IPAddress().c_str());
+            spdlog::error("artNET Output: Error opening datagram. Network may not be connected? OK : FALSE, From {}", localaddr.IPAddress().ToStdString());
         }
         else if (!artNETSocketSend->IsOk())
         {
-            logger_base.error("artNET Output: Error opening datagram. Network may not be connected? OK : FALSE, From %s", (const char*)localaddr.IPAddress().c_str());
+            spdlog::error("artNET Output: Error opening datagram. Network may not be connected? OK : FALSE, From {}", localaddr.IPAddress().ToStdString());
             delete artNETSocketSend;
             artNETSocketSend = nullptr;
         }
         else if (artNETSocketSend->Error() != wxSOCKET_NOERROR)
         {
-            logger_base.error("Error creating artNET datagram => %d : %s, from %s.", artNETSocketSend->LastError(), (const char*)DecodeIPError(artNETSocketSend->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+            spdlog::error("Error creating artNET datagram => {} : {}, from {}.", (int)artNETSocketSend->LastError(), DecodeIPError(artNETSocketSend->LastError()), localaddr.IPAddress().ToStdString());
             delete artNETSocketSend;
             artNETSocketSend = nullptr;
         }
@@ -140,7 +136,7 @@ public:
             artNETSocketSend = nullptr;
         }
 
-        logger_base.debug("Emitter thread exiting.");
+        spdlog::debug("Emitter thread exiting.");
         return nullptr;
     }
 };

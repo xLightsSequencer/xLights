@@ -18,7 +18,7 @@
 
 #include "../xLights/UtilFunctions.h"
 #include "../xLights/outputs/ArtNetOutput.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 class ArtNetTimecodeThread : public wxThread {
     std::atomic<bool> _stop;
@@ -30,7 +30,7 @@ class ArtNetTimecodeThread : public wxThread {
 
 public:
     ArtNetTimecodeThread(SyncArtNet* syncArtNet, ScheduleManager* scheduleManager) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
 
         _suspend = false;
         _running = false;
@@ -39,9 +39,9 @@ public:
         _scheduleManager = scheduleManager;
 
         if (Run() != wxTHREAD_NO_ERROR) {
-            logger_base.error("Failed to start ArtNet Timecode thread");
+            LOG_ERROR("Failed to start ArtNet Timecode thread");
         } else {
-            logger_base.info("ArtNet Timecode thread created.");
+            LOG_INFO("ArtNet Timecode thread created.");
         }
     }
     virtual ~ArtNetTimecodeThread() {
@@ -49,8 +49,8 @@ public:
     }
 
     void Stop() {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("ArtNet Timecode thread stopping.");
+        
+        LOG_INFO("ArtNet Timecode thread stopping.");
         _stop = true;
     }
 
@@ -62,7 +62,7 @@ public:
     }
 
     void* Entry() {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
         wxLongLong last = 0;
         double interval = _syncArtNet->GetInterval() * 1000.0;
         _running = true;
@@ -98,14 +98,14 @@ public:
             }
         }
         _running = false;
-        logger_base.info("ArtNet Timecode thread stopped.");
+        LOG_INFO("ArtNet Timecode thread stopped.");
         return nullptr;
     }
 };
 
 SyncArtNet::SyncArtNet(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP) :
     SyncBase(sm, rm, options, schm) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _supportsStepMMSSFormat = true;
     _timeCodeFormat = options.GetARTNetTimeCodeFormat();
@@ -123,19 +123,19 @@ SyncArtNet::SyncArtNet(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& option
 
         _artnetSocket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
         if (_artnetSocket == nullptr) {
-            logger_base.error("Error opening datagram for ARTNet Sync as master. %s", (const char*)localaddr.IPAddress().c_str());
+            LOG_ERROR("Error opening datagram for ARTNet Sync as master. %s", (const char*)localaddr.IPAddress().c_str());
         } else if (!_artnetSocket->IsOk()) {
-            logger_base.error("Error opening datagram for ARTNet Sync as master. %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
+            LOG_ERROR("Error opening datagram for ARTNet Sync as master. %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
             delete _artnetSocket;
             _artnetSocket = nullptr;
         } else if (_artnetSocket->Error()) {
-            logger_base.error("Error opening datagram for ARTNet Sync as master. %d : %s",
-                              _artnetSocket->LastError(),
+            LOG_ERROR("Error opening datagram for ARTNet Sync as master. %d : %s",
+                              (int)_artnetSocket->LastError(),
                               (const char*)DecodeIPError(_artnetSocket->LastError()).c_str());
             delete _artnetSocket;
             _artnetSocket = nullptr;
         } else {
-            logger_base.info("ARTNet Sync as master datagram opened successfully.");
+            LOG_INFO("ARTNet Sync as master datagram opened successfully.");
             _threadTimecode = new ArtNetTimecodeThread(this, listenerManager->GetScheduleManager());
         }
     }
@@ -161,7 +161,7 @@ SyncArtNet::SyncArtNet(SyncArtNet&& from) noexcept :
 SyncArtNet::~SyncArtNet() {
     // close the sending thread
     if (_threadTimecode != nullptr) {
-        // logger_base.debug("MIDI Timecode stopping.");
+        // LOG_DEBUG("MIDI Timecode stopping.");
         _threadTimecode->Stop();
         _threadTimecode->Delete();
         _threadTimecode = nullptr;
@@ -249,8 +249,8 @@ void SyncArtNet::SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t step
         break;
     }
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("ArtnetSync: %02d:%02d:%02d.%02d", buffer[17], buffer[16], buffer[15], buffer[14]);
+    
+    LOG_DEBUG("ArtnetSync: %02d:%02d:%02d.%02d", buffer[17], buffer[16], buffer[15], buffer[14]);
 
     _artnetSocket->SendTo(_remoteAddr, &buffer[0], buffer.size());
 }

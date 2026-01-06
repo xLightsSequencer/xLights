@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "ListenerSerial.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include "../../xLights/outputs/serial.h"
 #include "../../xLights/outputs/SerialOutput.h"
 #include "ListenerManager.h"
@@ -27,17 +27,17 @@ ListenerSerial::ListenerSerial(ListenerManager* listenerManager, const std::stri
 
 void ListenerSerial::Start()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Serial listener starting.");
+    
+    LOG_DEBUG("Serial listener starting.");
     _thread = new ListenerThread(this, _localIP);
 }
 
 void ListenerSerial::Stop()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (!_stop)
     {
-        logger_base.debug("Serial listener stopping.");
+        LOG_DEBUG("Serial listener stopping.");
         if (_thread != nullptr)
         {
             _stop = true;
@@ -51,18 +51,18 @@ void ListenerSerial::Stop()
 
 void ListenerSerial::StartProcess(const std::string& localIP)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_commPort == "Not Connected") return;
 
     _serial = new SerialPort();
 
-    logger_base.debug("Opening serial port %s. Baud rate = %d. Config = %s.", (const char *)_commPort.c_str(), _baudRate, (const char *)_serialConfig.c_str());
+    LOG_DEBUG("Opening serial port %s. Baud rate = %d. Config = %s.", (const char *)_commPort.c_str(), _baudRate, (const char *)_serialConfig.c_str());
 
     int errcode = _serial->Open(_commPort, _baudRate, _serialConfig.c_str());
     if (errcode < 0)
     {
-        logger_base.warn("Unable to open serial port %s. Error code = %d", (const char *)_commPort.c_str(), errcode);
+        LOG_WARN("Unable to open serial port %s. Error code = %d", (const char *)_commPort.c_str(), errcode);
         delete _serial;
         _serial = nullptr;
 
@@ -89,7 +89,7 @@ void ListenerSerial::StartProcess(const std::string& localIP)
     }
     else
     {
-        logger_base.debug("    Serial port %s open.", (const char *)_commPort.c_str());
+        LOG_DEBUG("    Serial port %s open.", (const char *)_commPort.c_str());
         _isOk = true;
     }
 }

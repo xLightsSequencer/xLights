@@ -17,7 +17,7 @@
 
 #include "../xLights/UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 class City
 {
@@ -43,7 +43,7 @@ public:
 
     static void Test()
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
         City* city = GetCity("Sydney");
         wxDateTime date = wxDateTime::Now();
         date.SetDay(1);
@@ -54,7 +54,7 @@ public:
             date.SetMonth((wxDateTime::Month)m);
             wxDateTime sunrise = city->GetSunrise(date);
             wxDateTime sunset = city->GetSunset(date);
-            logger_base.debug("Date %s Sunrise %02d:%02d Sunset %02d:%02d", (const char*)date.FormatISODate().c_str(), sunrise.GetHour(), sunrise.GetMinute(), sunset.GetHour(), sunset.GetMinute());
+            LOG_DEBUG("Date %s Sunrise %02d:%02d Sunset %02d:%02d", (const char*)date.FormatISODate().c_str(), sunrise.GetHour(), sunrise.GetMinute(), sunset.GetHour(), sunset.GetMinute());
         }
     }
 
@@ -104,7 +104,7 @@ public:
 
     wxDateTime GetSunRiseSet(wxDateTime date, bool sunset)
     {
-        // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        // 
 
         const float zenith = 90.83333333333333f;
 
@@ -213,17 +213,17 @@ public:
         dt.SetSecond(0);
 
         wxTimeSpan timezone = (dt.FromUTC() - dt);
-        //logger_base.debug("Timezone %02d:%02d", timezone.GetHours(), timezone.GetMinutes() % 60);
+        //LOG_DEBUG("Timezone %02d:%02d", timezone.GetHours(), timezone.GetMinutes() % 60);
 
         res.SetHour((int)UT);
         res.SetMinute((int)((UT - (int)UT) * 60));
         res.SetSecond((int)((UT * 60) - (int)(UT * 60)) * 60);
 
-        //logger_base.debug("Time before timezone %02d:%02d", res.GetHour(), res.GetMinute());
+        //LOG_DEBUG("Time before timezone %02d:%02d", res.GetHour(), res.GetMinute());
 
         res += timezone;
 
-        //logger_base.debug("Time after timezone %02d:%02d", res.GetHour(), res.GetMinute());
+        //LOG_DEBUG("Time after timezone %02d:%02d", res.GetHour(), res.GetMinute());
 
         return res;
     }

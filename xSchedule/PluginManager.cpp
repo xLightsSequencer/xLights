@@ -17,15 +17,15 @@
 #include <wx/filename.h>
 #include "xScheduleApp.h"
 #include "ScheduleManager.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 uint32_t __nextId = 1;
 
 void* GetFunction(wxDynamicLibrary* dl, const std::string& filename, const std::string& function)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     void* fn = dl->GetSymbol(function);
-    if (fn == nullptr) logger_base.warn("Plugin DLL %s did not contain %s.", (const char*)filename.c_str(), (const char*)function.c_str());
+    if (fn == nullptr) LOG_WARN("Plugin DLL %s did not contain %s.", (const char*)filename.c_str(), (const char*)function.c_str());
     return fn;
 }
 
@@ -73,9 +73,9 @@ PluginManager::PluginManager()
 
 void PluginManager::ScanFolder(const std::string& folder)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    logger_base.debug("Scanning for plugins");
+    LOG_DEBUG("Scanning for plugins");
 
 #ifdef __WXMSW__
     std::string filespec = "*.dll";
@@ -97,12 +97,12 @@ void PluginManager::ScanFolder(const std::string& folder)
 
     for (auto f : files)
     {
-        logger_base.debug("   Examining " + f);
+        LOG_DEBUGWX("   Examining " + f);
 
         wxFileName filen(f);
         auto it = std::find(fileList.begin(), fileList.end(), (const char*)filen.GetName().c_str());
         if (it != fileList.end()) {
-            logger_base.debug("   Ignored.");
+            LOG_DEBUG("   Ignored.");
             continue;
         }
         // load the dll
@@ -110,7 +110,7 @@ void PluginManager::ScanFolder(const std::string& folder)
         dl->Load(f);
 
         if (dl->IsLoaded()) {
-            logger_base.debug("       Loaded.");
+            LOG_DEBUG("       Loaded.");
             // look for our function
             p_xSchedule_Load fn = (p_xSchedule_Load)dl->GetSymbol("xSchedule_Load");
 
@@ -121,9 +121,9 @@ void PluginManager::ScanFolder(const std::string& folder)
                 wxFileName fn(f);
                 _plugins[fn.GetName()] = pis;
 
-                logger_base.debug("       Plugin found %s : %s", (const char*)fn.GetName().c_str(), (const char*)f.c_str());
+                LOG_DEBUG("       Plugin found %s : %s", (const char*)fn.GetName().c_str(), (const char*)f.c_str());
             } else {
-                logger_base.debug("       xSchedule_Load entry point not found.");
+                LOG_DEBUG("       xSchedule_Load entry point not found.");
                 delete dl;
             }
         } else {
@@ -134,14 +134,14 @@ void PluginManager::ScanFolder(const std::string& folder)
 
 bool PluginManager::DoLoad(const std::string& plugin, char* showDir)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (_plugins.find(plugin) == _plugins.end()) return false;
 
     p_xSchedule_Load fn = _plugins.at(plugin)->_loadFn;
     if (fn != nullptr) {
-        logger_base.debug("Loading plugin %s", (const char*)plugin.c_str());
+        LOG_DEBUG("Loading plugin %s", (const char*)plugin.c_str());
         bool res = fn(showDir);
-        logger_base.debug("Loaded plugin %s -> %d", (const char*)plugin.c_str(), res);
+        LOG_DEBUG("Loaded plugin %s -> %d", (const char*)plugin.c_str(), res);
         return res;
     }
     return false;
@@ -149,27 +149,27 @@ bool PluginManager::DoLoad(const std::string& plugin, char* showDir)
 
 void PluginManager::DoUnload(const std::string& plugin)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (_plugins.find(plugin) == _plugins.end()) return;
 
     p_xSchedule_Unload fn = _plugins.at(plugin)->_unloadFn;
     if (fn != nullptr) {
-        logger_base.debug("Unloading plugin %s", (const char*)plugin.c_str());
+        LOG_DEBUG("Unloading plugin %s", (const char*)plugin.c_str());
         fn();
     }
 }
 
 bool PluginManager::DoStart(const std::string& plugin, char* showDir, char* xScheduleURL)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (_plugins.find(plugin) == _plugins.end()) return false;
     if (_plugins.at(plugin)->_started) return true;
 
     p_xSchedule_Start fn = _plugins.at(plugin)->_startFn;
     if (fn != nullptr) {
-        logger_base.debug("Starting plugin %s", (const char*)plugin.c_str());
+        LOG_DEBUG("Starting plugin %s", (const char*)plugin.c_str());
         _plugins.at(plugin)->_started = fn(showDir, xScheduleURL, Action);
-        logger_base.debug("Started plugin %s -> %d", (const char*)plugin.c_str(), _plugins.at(plugin)->_started);
+        LOG_DEBUG("Started plugin %s -> %d", (const char*)plugin.c_str(), _plugins.at(plugin)->_started);
     }
     return _plugins.at(plugin)->_started;
 }
@@ -207,7 +207,7 @@ void PluginManager::NotifyStatus(const std::string& statusJSON)
 
 bool PluginManager::FirePluginEvent(const std::string& plugin, const std::string& eventType, const std::string& eventParam)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (_plugins.find(plugin) == _plugins.end()) return false;
     if (!_plugins.at(plugin)->_started) return false;
 
@@ -216,7 +216,7 @@ bool PluginManager::FirePluginEvent(const std::string& plugin, const std::string
     p_xSchedule_FireEvent fn = _plugins.at(plugin)->_fireEventFn;
     if (fn != nullptr) {
         res = fn((const char*)eventType.c_str(), (const char*)eventParam.c_str());
-        logger_base.debug("Fired event to plugin %s %s:%s -> %d", (const char*)plugin.c_str(), (const char*)eventType.c_str(), (const char*)eventParam.c_str(), res);
+        LOG_DEBUG("Fired event to plugin %s %s:%s -> %d", (const char*)plugin.c_str(), (const char*)eventType.c_str(), (const char*)eventParam.c_str(), res);
     }
 
     return res;
@@ -272,7 +272,7 @@ bool PluginManager::IsStarted(const std::string& plugin) const
 
 bool PluginManager::DoStop(const std::string& plugin)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_plugins.find(plugin) == _plugins.end()) return false;
     if (!_plugins.at(plugin)->_started) return false;
@@ -280,7 +280,7 @@ bool PluginManager::DoStop(const std::string& plugin)
     p_xSchedule_Stop fn = _plugins.at(plugin)->_stopFn;
     if (fn != nullptr) {
         fn();
-        logger_base.debug("Stopped plugin %s", (const char*)plugin.c_str());
+        LOG_DEBUG("Stopped plugin %s", (const char*)plugin.c_str());
         _plugins.at(plugin)->_started = false;
     }
     return true;

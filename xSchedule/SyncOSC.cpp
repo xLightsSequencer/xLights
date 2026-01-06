@@ -17,11 +17,11 @@
 #include <wx/socket.h>
 
 #include "../xLights/UtilFunctions.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 SyncOSC::SyncOSC(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& options, ScheduleManager* schm, ListenerManager* listenerManager, const std::string& localIP) :
     SyncBase(mode, remoteMode, options, schm) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (mode == SYNCMODE::OSCMASTER) {
         int port = options.GetOSCOptions()->GetServerPort();
@@ -31,7 +31,7 @@ SyncOSC::SyncOSC(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& op
         _frameCode = options.GetOSCOptions()->GetFrameCode();
         _remoteAddr.Hostname(options.GetOSCOptions()->GetIPAddress());
         _remoteAddr.Service(port);
-        logger_base.error("OSC Sync sending to %s port %d", (const char*)options.GetOSCOptions()->GetIPAddress().c_str(), port);
+        LOG_ERROR("OSC Sync sending to %s port %d", (const char*)options.GetOSCOptions()->GetIPAddress().c_str(), port);
 
         wxIPV4address localaddr;
         if (localIP == "") {
@@ -42,19 +42,19 @@ SyncOSC::SyncOSC(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& op
 
         _oscSocket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
         if (_oscSocket == nullptr) {
-            logger_base.error("Error opening datagram for OSC Sync as master. %s", (const char*)localaddr.IPAddress().c_str());
+            LOG_ERROR("Error opening datagram for OSC Sync as master. %s", (const char*)localaddr.IPAddress().c_str());
         } else if (!_oscSocket->IsOk()) {
-            logger_base.error("Error opening datagram for OSC Sync as master. %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
+            LOG_ERROR("Error opening datagram for OSC Sync as master. %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
             delete _oscSocket;
             _oscSocket = nullptr;
         } else if (_oscSocket->Error()) {
-            logger_base.error("Error opening datagram for OSC Sync as master. %d : %s",
-                              _oscSocket->LastError(),
+            LOG_ERROR("Error opening datagram for OSC Sync as master. %d : %s",
+                              (int)_oscSocket->LastError(),
                               (const char*)DecodeIPError(_oscSocket->LastError()).c_str());
             delete _oscSocket;
             _oscSocket = nullptr;
         } else {
-            logger_base.info("OSC Sync as master datagram opened successfully.");
+            LOG_INFO("OSC Sync as master datagram opened successfully.");
         }
     }
 

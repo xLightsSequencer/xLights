@@ -15,7 +15,7 @@
 #include "../../xLights/UtilFunctions.h"
 #include "../../xLights/outputs/OutputManager.h"
 #include "wx/xml/xml.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include <wx/notebook.h>
 
 PlayListItemFSEQ::PlayListItemFSEQ(OutputManager* outputManager, wxXmlNode* node) :
@@ -83,7 +83,7 @@ std::string PlayListItemFSEQ::GetAudioFilename() {
 }
 
 void PlayListItemFSEQ::LoadAudio() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     auto af = GetAudioFilename();
 
     if (_audioManager != nullptr) {
@@ -92,7 +92,7 @@ void PlayListItemFSEQ::LoadAudio() {
 
             // If audio file is shorter than fseq override the duration
             if (_audioManager->LengthMS() < _durationMS) {
-                logger_base.debug("FSEQ length %ld overridden by audio length %ld.", (long)_audioManager->LengthMS(), (long)_durationMS);
+                LOG_DEBUG("FSEQ length %ld overridden by audio length %ld.", (long)_audioManager->LengthMS(), (long)_durationMS);
                 _durationMS = _audioManager->LengthMS();
             }
 
@@ -105,17 +105,17 @@ void PlayListItemFSEQ::LoadAudio() {
 
     if (IsInSlaveMode() && IsSuppressAudioOnSlaves()) {
     } else if (wxFile::Exists(af)) {
-        logger_base.debug("FSEQ: Loading audio file '%s'.", (const char*)af.c_str());
+        LOG_DEBUG("FSEQ: Loading audio file '%s'.", (const char*)af.c_str());
         _audioManager = new AudioManager(af, -1, _audioDevice);
 
         if (!_audioManager->IsOk()) {
-            logger_base.error("FSEQ: Audio file '%s' has a problem opening.", (const char*)af.c_str());
+            LOG_ERROR("FSEQ: Audio file '%s' has a problem opening.", (const char*)af.c_str());
             if (_fseqFile != nullptr)
                 _durationMS = _fseqFile->getTotalTimeMS();
             delete _audioManager;
             _audioManager = nullptr;
         } else {
-            logger_base.debug("    Loaded ok.");
+            LOG_DEBUG("    Loaded ok.");
             _durationMS = _audioManager->LengthMS();
         }
 
@@ -128,13 +128,13 @@ void PlayListItemFSEQ::LoadAudio() {
         if (fseq) {
             size_t durationFSEQ = fseq->getTotalTimeMS();
             if (durationFSEQ < _durationMS) {
-                logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
+                LOG_DEBUG("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
                 _durationMS = durationFSEQ;
             }
         }
     } else {
         if (af != "") {
-            logger_base.error("FSEQ: Audio file '%s' cannot be opened because it does not exist.", (const char*)af.c_str());
+            LOG_ERROR("FSEQ: Audio file '%s' cannot be opened because it does not exist.", (const char*)af.c_str());
         }
     }
 }
@@ -320,7 +320,7 @@ void PlayListItemFSEQ::SetFastStartAudio(bool fastStartAudio) {
 }
 
 void PlayListItemFSEQ::FastSetDuration() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _controlsTimingCache = false;
     std::string af = GetAudioFile();
@@ -337,10 +337,10 @@ void PlayListItemFSEQ::FastSetDuration() {
                 // If the FSEQ is shorter than the audio ... then override the length
                 size_t durationFSEQ = fseq->getTotalTimeMS();
                 if (_durationMS == 0) {
-                    logger_base.debug("Audio length %ld overridden by FSEQ length %ld as zero just cant be right ... likely audio file load failed.", (long)_durationMS, (long)durationFSEQ);
+                    LOG_DEBUG("Audio length %ld overridden by FSEQ length %ld as zero just cant be right ... likely audio file load failed.", (long)_durationMS, (long)durationFSEQ);
                     _durationMS = durationFSEQ;
                 } else if (durationFSEQ < _durationMS) {
-                    logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
+                    LOG_DEBUG("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
                     _durationMS = durationFSEQ;
                 }
             } else {
@@ -358,10 +358,10 @@ void PlayListItemFSEQ::FastSetDuration() {
             durationFSEQ = fseq->getTotalTimeMS();
         }
         if (_durationMS == 0) {
-            logger_base.debug("Audio length %ld overridden by FSEQ length %ld as zero just cant be right ... likely audio file load failed.", (long)_durationMS, (long)durationFSEQ);
+            LOG_DEBUG("Audio length %ld overridden by FSEQ length %ld as zero just cant be right ... likely audio file load failed.", (long)_durationMS, (long)durationFSEQ);
             _durationMS = durationFSEQ;
         } else if (durationFSEQ < _durationMS) {
-            logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
+            LOG_DEBUG("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
             _durationMS = durationFSEQ;
         }
     }
@@ -401,13 +401,13 @@ size_t PlayListItemFSEQ::GetPositionMS() const {
 }
 
 bool PlayListItemFSEQ::Done() const {
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("FSEQ Done %d <- %ld >= %ld - %ld", GetPositionMS() >= GetDurationMS() - _msPerFrame, GetPositionMS(), GetDurationMS(), _msPerFrame);
+    // 
+    // LOG_DEBUG("FSEQ Done %d <- %ld >= %ld - %ld", GetPositionMS() >= GetDurationMS() - _msPerFrame, GetPositionMS(), GetDurationMS(), _msPerFrame);
     return GetPositionMS() >= GetDurationMS() - _msPerFrame;
 }
 
 void PlayListItemFSEQ::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) {
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // 
 
     if (outputframe) {
         if (_fseqFile != nullptr) {
@@ -441,7 +441,7 @@ void PlayListItemFSEQ::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
             }
         }
         _currentFrame++;
-        // logger_base.debug("Current Frame %d", _currentFrame);
+        // LOG_DEBUG("Current Frame %d", _currentFrame);
     }
 }
 

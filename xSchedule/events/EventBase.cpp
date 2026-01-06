@@ -12,7 +12,7 @@
 #include <wx/wx.h>
 #include <wx/xml/xml.h>
 #include "../ScheduleManager.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 int EventBase::__nextId = 0;
 
@@ -66,7 +66,7 @@ std::string EventBase::DefaultParmTooltip()
 
 void EventBase::ProcessCommand(uint8_t value, ScheduleManager* scheduleManager)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxString p1 = _parm1;
     wxString p2 = _parm2;
     wxString p3 = _parm3;
@@ -90,13 +90,13 @@ void EventBase::ProcessCommand(uint8_t value, ScheduleManager* scheduleManager)
     if (p2 != "") parameters += "," + p2.ToStdString();
     if (p3 != "") parameters += "," + p3.ToStdString();
 
-    logger_base.debug("Event fired %s:%s -> %s:%s", (const char *)GetType().c_str(), (const char *)GetName().c_str(),
+    LOG_DEBUG("Event fired %s:%s -> %s:%s", (const char *)GetType().c_str(), (const char *)GetName().c_str(),
         (const char *)_command.c_str(), (const char *)parameters.c_str());
 
     size_t rate = 0;
     wxString msg;
     scheduleManager->Action(_command, parameters, "", nullptr, nullptr, nullptr, rate, msg);
-    logger_base.debug("    Event processed.");
+    LOG_DEBUG("    Event processed.");
 }
 
 bool EventBase::EvaluateCondition(uint8_t value)

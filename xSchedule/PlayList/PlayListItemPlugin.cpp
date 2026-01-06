@@ -20,7 +20,7 @@
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 PlayListItemPlugin::PlayListItemPlugin(wxXmlNode* node) : PlayListItem(node)
 {
@@ -91,7 +91,7 @@ std::string PlayListItemPlugin::GetNameNoTime() const
 
 void PlayListItemPlugin::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
-	//static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+	//
 	if (_plugin == "") return;
 	
     if (ms >= _delay && !_started)

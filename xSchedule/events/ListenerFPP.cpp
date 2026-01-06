@@ -14,7 +14,7 @@
 #include "../../xLights/outputs/IPOutput.h"
 #include "../../xLights/xLightsVersion.h"
 #include "../Control.h"
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include <wx/socket.h>
 
 #include <sys/types.h>
@@ -41,15 +41,15 @@ ListenerFPP::ListenerFPP(ListenerManager* listenerManager, const std::string& lo
 }
 
 void ListenerFPP::Start() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("FPP listener starting.");
+    
+    LOG_DEBUG("FPP listener starting.");
     _thread = new ListenerThread(this, _localIP);
 }
 
 void ListenerFPP::Stop() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (!_stop) {
-        logger_base.debug("FPP listener stopping.");
+        LOG_DEBUG("FPP listener stopping.");
         if (_socket != nullptr)
             _socket->SetTimeout(0);
         if (_thread != nullptr) {
@@ -63,7 +63,7 @@ void ListenerFPP::Stop() {
 }
 
 void ListenerFPP::StartProcess(const std::string& localIP) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxIPV4address localaddr;
     // if (IPOutput::GetLocalIP() == "")
@@ -78,13 +78,13 @@ void ListenerFPP::StartProcess(const std::string& localIP) {
 
     _socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST);
     if (_socket == nullptr) {
-        logger_base.error("Error opening datagram for FPP reception. %s", (const char*)localaddr.IPAddress().c_str());
+        LOG_ERROR("Error opening datagram for FPP reception. %s", (const char*)localaddr.IPAddress().c_str());
     } else if (!_socket->IsOk()) {
-        logger_base.error("Error opening datagram for FPP reception. %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
+        LOG_ERROR("Error opening datagram for FPP reception. %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     } else if (_socket->Error()) {
-        logger_base.error("Error opening datagram for FPP reception. %d : %s %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+        LOG_ERROR("Error opening datagram for FPP reception. %d : %s %s", (int)_socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     } else {
@@ -92,7 +92,7 @@ void ListenerFPP::StartProcess(const std::string& localIP) {
         ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
         PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO*)malloc(sizeof(IP_ADAPTER_INFO));
         if (pAdapterInfo == nullptr) {
-            logger_base.error("Error getting adapter info.");
+            LOG_ERROR("Error getting adapter info.");
             delete _socket;
             _socket = nullptr;
             return;
@@ -102,7 +102,7 @@ void ListenerFPP::StartProcess(const std::string& localIP) {
             free(pAdapterInfo);
             pAdapterInfo = (IP_ADAPTER_INFO*)malloc(ulOutBufLen);
             if (pAdapterInfo == nullptr) {
-                logger_base.error("Error getting adapter info.");
+                LOG_ERROR("Error getting adapter info.");
                 delete _socket;
                 _socket = nullptr;
                 return;
@@ -130,10 +130,10 @@ void ListenerFPP::StartProcess(const std::string& localIP) {
                             p++;
                         }
 
-                        logger_base.debug("FPP Remote Subscribing on adapter %s.", (const char*)ip->IpAddress.String);
+                        LOG_DEBUG("FPP Remote Subscribing on adapter %s.", (const char*)ip->IpAddress.String);
 
                         if (setsockopt(receiveSock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char*)&mreq, sizeof(mreq)) < 0) {
-                            logger_base.warn("   Could not setup Multicast Group for interface %s\n", (const char*)pAdapter->IpAddressList.IpAddress.String);
+                            LOG_WARN("   Could not setup Multicast Group for interface %s\n", (const char*)pAdapter->IpAddressList.IpAddress.String);
                         }
                     }
                     ip = ip->Next;
@@ -160,7 +160,7 @@ void ListenerFPP::StartProcess(const std::string& localIP) {
                 struct sockaddr_in* address = (struct sockaddr_in*)tmp->ifa_addr;
                 mreq.imr_interface.s_addr = address->sin_addr.s_addr;
                 if (setsockopt(receiveSock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
-                    logger_base.warn("   Could not setup Multicast Group for interface %s\n", tmp->ifa_name);
+                    LOG_WARN("   Could not setup Multicast Group for interface %s\n", tmp->ifa_name);
                 }
             } else if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_INET6) {
                 // FIXME for ipv6 multicast
@@ -172,15 +172,15 @@ void ListenerFPP::StartProcess(const std::string& localIP) {
 #endif
         _socket->SetTimeout(1);
         _socket->Notify(false);
-        logger_base.info("FPP reception datagram opened successfully.");
+        LOG_INFO("FPP reception datagram opened successfully.");
         _isOk = true;
     }
 }
 
 void ListenerFPP::StopProcess() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (_socket != nullptr) {
-        logger_base.info("FPP Listener closed.");
+        LOG_INFO("FPP Listener closed.");
         _socket->Close();
         delete _socket;
         _socket = nullptr;
@@ -189,23 +189,23 @@ void ListenerFPP::StopProcess() {
 }
 
 void ListenerFPP::Poll() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_socket != nullptr) {
         unsigned char buffer[2048];
         memset(buffer, 0x00, sizeof(buffer));
 
         // wxStopWatch sw;
-        // logger_base.debug("Trying to read FPP packet.");
+        // LOG_DEBUG("Trying to read FPP packet.");
         _socket->Read(&buffer[0], sizeof(buffer));
         if (_stop)
             return;
-        // logger_base.debug(" Read done. %ldms", sw.Time());
+        // LOG_DEBUG(" Read done. %ldms", sw.Time());
 
         if (_socket->GetLastIOReadSize() == 0) {
-            // logger_base.debug("Waiting for read.");
+            // LOG_DEBUG("Waiting for read.");
             _socket->WaitForRead(0, 50);
-            // logger_base.debug("Waiting for read done.");
+            // LOG_DEBUG("Waiting for read done.");
         } else {
             wxIPV4address from;
             // We only process if it did not come from us or we cant determine where it came from
@@ -221,16 +221,16 @@ void ListenerFPP::Poll() {
                             uint32_t frameNumber = sp->frameNumber;
                             long ms = frameNumber * _frameMS;
 
-                            logger_base.debug("FPP Sync type %d frame %u ms %ld %s.", (int)packetType, frameNumber, ms, (const char*)fileName.c_str());
+                            LOG_DEBUG("FPP Sync type %d frame %u ms %ld %s.", (int)packetType, frameNumber, ms, (const char*)fileName.c_str());
 
                             switch (packetType) {
                             case SYNC_PKT_START: {
-                                logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote start %s.", (const char*)fileName.c_str());
+                                LOG_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote start %s.", (const char*)fileName.c_str());
 
                                 _listenerManager->Sync(fileName, 0, GetType());
                             } break;
                             case SYNC_PKT_STOP: {
-                                logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote stop %s.", (const char*)fileName.c_str());
+                                LOG_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote stop %s.", (const char*)fileName.c_str());
                                 _listenerManager->Sync(fileName, 0xFFFFFFFF, GetType());
                             } break;
                             case SYNC_PKT_SYNC: {

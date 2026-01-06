@@ -4,9 +4,9 @@
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
 
-#include <mutex>
+#include "spdlog/spdlog.h"
 
-#include <log4cpp/Category.hh>
+#include <mutex>
 
 static std::map<std::string, std::string> macLookup;
 static std::mutex _macMutex;
@@ -21,7 +21,6 @@ void ProcessMACLine(const std::string& line)
 
 void LoadMacLookup()
 {
-	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 	#ifndef __WXMSW__
     wxString const MACLOOKUP = wxStandardPaths::Get().GetResourcesDir() + "/xScanner/MacLookup.txt";
 	#else
@@ -29,7 +28,7 @@ void LoadMacLookup()
 	#endif
 
 	if (wxFile::Exists(MACLOOKUP)) {
-		logger_base.debug("Loading %s", (const char*)MACLOOKUP.c_str());
+        spdlog::debug("Loading {}", MACLOOKUP.ToStdString());
 		wxTextFile f;
 		if (f.Open(MACLOOKUP))
 		{
@@ -43,7 +42,7 @@ void LoadMacLookup()
 		}
 	}
 	else {
-		logger_base.warn("%s Not Found!", (const char*)MACLOOKUP.c_str());
+        spdlog::warn("{} Not Found!", MACLOOKUP.ToStdString());
 	}
 
 	if (macLookup.size() == 0) {
@@ -53,7 +52,6 @@ void LoadMacLookup()
 
 std::string LookupMacAddress(const std::string mac)
 {
-	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 	std::unique_lock<std::mutex> lock(_macMutex);
 
 	if (macLookup.size() == 0) {
@@ -73,7 +71,7 @@ std::string LookupMacAddress(const std::string mac)
 
 			if (macLookup.find(s) != end(macLookup)) {
 				res = macLookup[s];
-				logger_base.debug("Mac %s found in lookup file => %s", (const char*)s.c_str(), (const char*)res.c_str());
+                spdlog::debug("Mac {} found in lookup file => {}", s, res);
 			}
 		}
 	}

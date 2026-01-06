@@ -14,9 +14,10 @@
 #include <wx/image.h>
 //*)
 
-#include <log4cpp/Category.hh>
-#include <log4cpp/PropertyConfigurator.hh>
-#include <log4cpp/Configurator.hh>
+#include "./utils/spdlog_macros.h"
+#include "spdlog/common.h"
+#include "spdlog/sinks/rotating_file_sink.h"
+
 #include <wx/file.h>
 #include <wx/msgdlg.h>
 
@@ -46,7 +47,6 @@
         #pragma comment(lib, "wxmsw"WXWIDGETS_VERSION"ud_qa.lib")
         #pragma comment(lib, "wxexpatd.lib")
         #pragma comment(lib, "msvcprtd.lib")
-        #pragma comment(lib, "log4cpplibd.lib")
         #pragma comment(lib, "wxwebpd.lib")
     #else
         #pragma comment(lib, "wxbase"WXWIDGETS_VERSION"u.lib")
@@ -62,7 +62,6 @@
         #pragma comment(lib, "wxmsw"WXWIDGETS_VERSION"u_qa.lib")
         #pragma comment(lib, "wxexpat.lib")
         #pragma comment(lib, "msvcprt.lib")
-        #pragma comment(lib, "log4cpplib.lib")
         #pragma comment(lib, "wxwebp.lib")
     #endif
     #pragma comment(lib, "libcurl.dll.a")
@@ -133,11 +132,10 @@ std::string DecodeOS(wxOperatingSystemId o)
 
 void DumpConfig()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Version: " + std::string(xlights_version_string.c_str()));
-    logger_base.info("Bits: " + std::string(GetBitness().c_str()));
-    logger_base.info("Build Date: " + std::string(xlights_build_date.c_str()));
-    logger_base.info("Machine configuration:");
+   spdlog::info("Version: " + std::string(xlights_version_string.c_str()));
+   spdlog::info("Bits: " + std::string(GetBitness().c_str()));
+   spdlog::info("Build Date: " + std::string(xlights_build_date.c_str()));
+   spdlog::info("Machine configuration:");
     wxMemorySize s = wxGetFreeMemory();
     if (s != -1)
     {
@@ -146,34 +144,34 @@ void DumpConfig()
 #else
         wxString msg = wxString::Format(_T("  Free Memory: %ld."), s);
 #endif
-        logger_base.info("%s", (const char *)msg.c_str());
+        spdlog::info(msg.ToStdString());
     }
-    logger_base.info("  Current directory: " + std::string(wxGetCwd().c_str()));
-    logger_base.info("  Machine name: " + std::string(wxGetHostName().c_str()));
-    logger_base.info("  OS: " + std::string(wxGetOsDescription().c_str()));
+    spdlog::info("  Current directory: " + std::string(wxGetCwd().c_str()));
+    spdlog::info("  Machine name: " + std::string(wxGetHostName().c_str()));
+    spdlog::info("  OS: " + std::string(wxGetOsDescription().c_str()));
     int verMaj = -1;
     int verMin = -1;
     wxOperatingSystemId o = wxGetOsVersion(&verMaj, &verMin);
-    logger_base.info("  OS: %s %d.%d", (const char *)DecodeOS(o).c_str(), verMaj, verMin);
+    spdlog::info("  OS: {} {}.{}", (const char*)DecodeOS(o).c_str(), verMaj, verMin);
     if (wxIsPlatform64Bit())
     {
-        logger_base.info("      64 bit");
+        spdlog::info("      64 bit");
     }
     else
     {
-        logger_base.info("      NOT 64 bit");
+        spdlog::info("      NOT 64 bit");
     }
     if (wxIsPlatformLittleEndian())
     {
-        logger_base.info("      Little Endian");
+        spdlog::info("      Little Endian");
     }
     else
     {
-        logger_base.info("      Big Endian");
+        spdlog::info("      Big Endian");
     }
 #ifdef LINUX
     wxLinuxDistributionInfo l = wxGetLinuxDistributionInfo();
-    logger_base.info("  " + std::string(l.Id.c_str()) \
+    spdlog::info("  " + std::string(l.Id.c_str()) \
         + " " + std::string(l.Release.c_str()) \
         + " " + std::string(l.CodeName.c_str()) \
         + " " + std::string(l.Description.c_str()));
@@ -186,68 +184,61 @@ void InitialiseLogging(bool fromMain)
 
     if (!loggingInitialised)
     {
-
+        std::string const logFileName = "xScanner_spdlog.log";
 #ifdef __WXMSW__
-        std::string initFileName = "xScanner.windows.properties";
+        wxString dir;
+        wxGetEnv("APPDATA", &dir);
+        std::string const logFilePath = std::string(dir.c_str()) + "\\" + logFileName;
 #endif
 #ifdef __WXOSX__
-        std::string initFileName = "xScanner.mac.properties";
-        std::string resourceName = wxStandardPaths::Get().GetResourcesDir().ToStdString() + "/xScanner.mac.properties";
-        if (!wxFile::Exists(initFileName)) {
-            if (fromMain) {
-                return;
-            } else if (wxFile::Exists(resourceName)) {
-                initFileName = resourceName;
-            }
-        }
+        wxFileName home;
+        home.AssignHomeDir();
+        wxString const dir = home.GetFullPath();
+        std::string const logFilePath = std::string(dir.c_str()) + "/Library/Logs/" + logFileName;
+#endif
+#ifdef __LINUX__
+        std::string const logFilePath = "/tmp/" + logFileName;
+#endif
+
+        // wxStandardPaths::Get().Get()
+
+        auto rotating_file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFilePath, 1024 * 1024 * 10, 10);
+
+        auto file_logger = std::make_shared<spdlog::logger>("xScanner", rotating_file_sink);
+        auto curl_logger = std::make_shared<spdlog::logger>("curl", rotating_file_sink);
+        spdlog::register_logger(curl_logger);
+
         loggingInitialised = true;
+        spdlog::initialize_logger(file_logger);
+        spdlog::set_default_logger(file_logger);
+        spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e [%l] %v");
+        spdlog::flush_on(spdlog::level::info);
+        // wxOperatingSystemId os = wxGetOsVersion();
+        // std::string osStr = DecodeOS(os);
+        // std::string initFileName;
 
-#endif
-#ifdef LINUX
-        std::string initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/bin/xscanner.linux.properties";
-        if (!wxFile::Exists(initFileName)) {
-            initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/share/xLights/xscanner.linux.properties";
-        }
-#endif
+        wxDateTime now = wxDateTime::Now();
+        int millis = wxGetUTCTimeMillis().GetLo() % 1000;
+        wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth() + 1, now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
+        // spdlog::info("Start Time: {}.", ts);
 
-        if (!wxFile::Exists(initFileName))
-        {
-#ifdef _MSC_VER
-            // the app is not initialized so GUI is not available and no event loop.
-            wxMessageBox(initFileName + " not found in " + wxGetCwd() + ". Logging disabled.");
-#endif
-        }
-        else
-        {
-            try
-            {
-                log4cpp::PropertyConfigurator::configure(initFileName);
-            }
-            catch (log4cpp::ConfigureFailure& e) {
-                // ignore config failure ... but logging wont work
-                printf("Log issue:  %s\n", e.what());
-            }
-            catch (const std::exception& ex) {
-                printf("Log issue: %s\n", ex.what());
-            }
-        }
+        auto tt = fmt::sprintf("Start Time: %s.", (const char*)ts.c_str());
+        spdlog::info(tt);
+        spdlog::info("Current working directory {}.", wxGetCwd().ToStdString());
+
     }
 }
 
 void xScannerApp::WipeSettings()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.warn("------ Wiping settings ------");
-
+    spdlog::warn("------ Wiping settings ------");
     wxConfigBase* config = wxConfigBase::Get();
     config->DeleteAll();
 }
 
 int xScannerApp::OnExit()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("xScanner exiting.");
-
+    spdlog::info("xScanner exiting.");
     return 0;
 }
 
@@ -265,8 +256,7 @@ bool xScannerApp::OnInit()
 #endif
 
     InitialiseLogging(false);
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("******* OnInit: xScanner started.");
+    spdlog::info("******* OnInit: xScanner started.");
 
     DumpConfig();
 #ifdef __WXMSW__
@@ -294,18 +284,18 @@ bool xScannerApp::OnInit()
         if (parser.Found("w"))
         {
             parmfound = true;
-            logger_base.info("-w: Wiping settings");
+            spdlog::info("-w: Wiping settings");
             WipeSettings();
         }
         if (parser.Found("s")) {
             parmfound = true;
-            logger_base.info("-s: Running single threaded");
+            spdlog::info("-s: Running single threaded");
             singleThreaded = true;
         }
 
         if (!parmfound && parser.GetParamCount() > 0)
         {
-            logger_base.info("Unrecognised command line parameter found.");
+            spdlog::info("Unrecognised command line parameter found.");
             wxMessageBox("Unrecognised command line parameter found.", _("Command Line Options")); //give positive feedback*/
         }
         break;

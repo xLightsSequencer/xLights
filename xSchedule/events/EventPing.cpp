@@ -10,7 +10,7 @@
 
 #include "EventPing.h"
 #include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 #include "../ScheduleManager.h"
 
 EventPing::EventPing() : EventBase()
@@ -42,7 +42,7 @@ wxXmlNode* EventPing::Save()
 
 void EventPing::Process(bool success, const std::string& ip, ScheduleManager* scheduleManager)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_ip != "All" && !wxString(_ip).StartsWith(ip)) return;
 
@@ -68,13 +68,13 @@ void EventPing::Process(bool success, const std::string& ip, ScheduleManager* sc
             if (pp2 != "") parameters += "," + pp2.ToStdString();
             if (pp3 != "") parameters += "," + pp3.ToStdString();
 
-            logger_base.debug("Event fired %s:%s:%s:%s -> %s:%s", (const char *)GetType().c_str(), (const char *)GetName().c_str(), (const char *)_ip.c_str(), (const char *)ip.c_str(),
+            LOG_DEBUG("Event fired %s:%s:%s:%s -> %s:%s", (const char *)GetType().c_str(), (const char *)GetName().c_str(), (const char *)_ip.c_str(), (const char *)ip.c_str(),
                 (const char *)_command.c_str(), (const char *)parameters.c_str());
 
             size_t rate = 0;
             wxString msg;
             scheduleManager->Action(_command, parameters, "", nullptr, nullptr, nullptr, rate, msg);
-            logger_base.debug("    Event processed.");
+            LOG_DEBUG("    Event processed.");
         }
 
         if (!_onceOnly && _count[ip] >= _failures)

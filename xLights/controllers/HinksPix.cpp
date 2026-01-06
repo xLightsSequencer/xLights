@@ -1205,7 +1205,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
         DisplayError(wxString::Format("Controller Reports as PRO V3 BUT You have the Model as PRO V1/V2 - Please Fix"));
         return false;
     }
-    else if (controller->GetModel() == "PRO V3" && _model == "HinksPix PRO") {// Hinkle added 
+    if (controller->GetModel() == "PRO V3" && _model == "HinksPix PRO") {// Hinkle added 
         DisplayError(wxString::Format("Controller Reports as PRO V1/V2 BUT You have the Model as PRO V3 - Please Fix"));
         return false;
     }

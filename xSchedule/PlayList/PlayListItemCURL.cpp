@@ -18,7 +18,7 @@
 #include "PlayListItemCURLPanel.h"
 #include "utils/Curl.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 class CurlThread : public wxThread
 {
@@ -33,24 +33,24 @@ public:
 
     virtual void* Entry() override
     {
-        log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
 
-        logger_base.debug("PlayListCurl in thread.");
+        LOG_DEBUG("PlayListCurl in thread.");
 
-        logger_base.info("Calling URL %s.", (const char*)_url.c_str());
+        LOG_INFO("Calling URL %s.", (const char*)_url.c_str());
 
         if (_curlType == "POST")
         {
             auto res = Curl::HTTPSPost(_url, _body, "", "", _contenttype);
-            logger_base.info("CURL POST : %s", (const char*)res.c_str());
+            LOG_INFO("CURL POST : %s", (const char*)res.c_str());
         }
         else
         {
             auto res = Curl::HTTPSGet(_url);
-            logger_base.info("CURL GET: %s", (const char*)res.c_str());
+            LOG_INFO("CURL GET: %s", (const char*)res.c_str());
         }
 
-        logger_base.debug("PlayListCurl thread done.");
+        LOG_DEBUG("PlayListCurl thread done.");
 
         return nullptr;
     }
@@ -132,7 +132,7 @@ std::string PlayListItemCURL::GetTooltip()
 
 void PlayListItemCURL::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (ms >= _delay && !_started)
     {
         _started = true;
@@ -142,7 +142,7 @@ void PlayListItemCURL::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
 
         if (_url == "")
         {
-            logger_base.warn("PlayListItemCURL: URL '%s' invalid.", (const char*)url.c_str());
+            LOG_WARN("PlayListItemCURL: URL '%s' invalid.", (const char*)url.c_str());
             return;
         }
 

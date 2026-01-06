@@ -27,7 +27,7 @@
 #include "../xScheduleApp.h"
 #include "../xScheduleMain.h"
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 PlayListItemFSEQVideo::PlayListItemFSEQVideo(OutputManager* outputManager, wxXmlNode* node) :
     PlayListItem(node) {
@@ -121,7 +121,7 @@ std::string PlayListItemFSEQVideo::GetAudioFilename() {
 }
 
 void PlayListItemFSEQVideo::LoadAudio() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     auto af = GetAudioFilename();
 
     if (_audioManager != nullptr) {
@@ -130,7 +130,7 @@ void PlayListItemFSEQVideo::LoadAudio() {
 
             // If audio file is shorter than fseq override the duration
             if (_audioManager->LengthMS() < _durationMS) {
-                logger_base.debug("FSEQ length %ld overridden by audio length %ld.", (long)_audioManager->LengthMS(), (long)_durationMS);
+                LOG_DEBUG("FSEQ length %ld overridden by audio length %ld.", (long)_audioManager->LengthMS(), (long)_durationMS);
                 _durationMS = _audioManager->LengthMS();
             }
 
@@ -143,17 +143,17 @@ void PlayListItemFSEQVideo::LoadAudio() {
 
     if (IsInSlaveMode() && IsSuppressAudioOnSlaves()) {
     } else if (wxFile::Exists(af)) {
-        logger_base.debug("FSEQ Video: Loading audio file '%s'.", (const char*)af.c_str());
+        LOG_DEBUG("FSEQ Video: Loading audio file '%s'.", (const char*)af.c_str());
         _audioManager = new AudioManager(af, -1, _audioDevice);
 
         if (!_audioManager->IsOk()) {
-            logger_base.error("FSEQ Video: Audio file '%s' has a problem opening.", (const char*)af.c_str());
+            LOG_ERROR("FSEQ Video: Audio file '%s' has a problem opening.", (const char*)af.c_str());
             if (_fseqFile != nullptr)
                 _durationMS = _fseqFile->getTotalTimeMS();
             delete _audioManager;
             _audioManager = nullptr;
         } else {
-            logger_base.debug("    Loaded ok.");
+            LOG_DEBUG("    Loaded ok.");
             _durationMS = _audioManager->LengthMS();
         }
 
@@ -168,18 +168,18 @@ void PlayListItemFSEQVideo::LoadAudio() {
             durationFSEQ = fseq->getTotalTimeMS();
         }
         if (durationFSEQ < _durationMS) {
-            logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
+            LOG_DEBUG("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
             _durationMS = durationFSEQ;
         }
     } else {
         if (af != "") {
-            logger_base.error("FSEQ Video: Audio file '%s' cannot be opened because it does not exist.", (const char*)af.c_str());
+            LOG_ERROR("FSEQ Video: Audio file '%s' cannot be opened because it does not exist.", (const char*)af.c_str());
         }
     }
 }
 
 void PlayListItemFSEQVideo::LoadFiles(bool doCache) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     CloseFiles();
 
     if (wxFile::Exists(_fseqFileName)) {
@@ -192,7 +192,7 @@ void PlayListItemFSEQVideo::LoadFiles(bool doCache) {
             _durationMS = 0;
         }
     } else {
-        logger_base.error("FSEQ Video: File does not exist. %s", (const char*)_fseqFileName.c_str());
+        LOG_ERROR("FSEQ Video: File does not exist. %s", (const char*)_fseqFileName.c_str());
     }
 
     if (!_useMediaPlayer && _cacheVideo && doCache) {
@@ -423,7 +423,7 @@ void PlayListItemFSEQVideo::SetFastStartAudio(bool fastStartAudio) {
 }
 
 void PlayListItemFSEQVideo::FastSetDuration() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _controlsTimingCache = false;
     std::string af = GetAudioFile();
@@ -439,10 +439,10 @@ void PlayListItemFSEQVideo::FastSetDuration() {
                 // If the FSEQ is shorter than the audio ... then override the length
                 size_t durationFSEQ = fseq->getTotalTimeMS();
                 if (_durationMS == 0) {
-                    logger_base.debug("Audio length %ld overridden by FSEQ length %ld as zero just cant be right ... likely audio file load failed.", (long)_durationMS, (long)durationFSEQ);
+                    LOG_DEBUG("Audio length %ld overridden by FSEQ length %ld as zero just cant be right ... likely audio file load failed.", (long)_durationMS, (long)durationFSEQ);
                     _durationMS = durationFSEQ;
                 } else if (durationFSEQ < _durationMS) {
-                    logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
+                    LOG_DEBUG("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
                     _durationMS = durationFSEQ;
                 }
             } else {
@@ -460,10 +460,10 @@ void PlayListItemFSEQVideo::FastSetDuration() {
             durationFSEQ = fseq->getTotalTimeMS();
         }
         if (_durationMS == 0) {
-            logger_base.debug("Audio length %ld overridden by FSEQ length %ld as zero just cant be right ... likely audio file load failed.", (long)_durationMS, (long)durationFSEQ);
+            LOG_DEBUG("Audio length %ld overridden by FSEQ length %ld as zero just cant be right ... likely audio file load failed.", (long)_durationMS, (long)durationFSEQ);
             _durationMS = durationFSEQ;
         } else if (durationFSEQ < _durationMS) {
-            logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
+            LOG_DEBUG("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
             _durationMS = durationFSEQ;
         }
     }
@@ -506,7 +506,7 @@ size_t PlayListItemFSEQVideo::GetPositionMS() const {
 #define MAXMEDIAJITTER (3 * framems)
 
 void PlayListItemFSEQVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     size_t adjustedMS = ms - _delay;
 
     wxStopWatch sw;
@@ -559,7 +559,7 @@ void PlayListItemFSEQVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_
                 mediapos = mediapos % _videoLength;
                 // loop early to try and prevent black screen when video ends but before we can tell it to loop
                 if (mediapos > _videoLength - framems) {
-                    // logger_base.debug("Looping early");
+                    // LOG_DEBUG("Looping early");
                     mediapos = 0;
                 }
             }
@@ -571,7 +571,7 @@ void PlayListItemFSEQVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_
                 long jitter = std::abs(videopos - mediapos);
                 if (jitter > MAXMEDIAJITTER) {
                     _frame->Seek(mediapos);
-                    // logger_base.debug("Sequence pos %ld, Desired video pos %ld, Video pos %ld, Jitter %ld, Length %ld, %s", adjustedMS, mediapos, videopos, jitter, (long)_durationMS, (const char*)_videoFile.c_str());
+                    // LOG_DEBUG("Sequence pos %ld, Desired video pos %ld, Video pos %ld, Jitter %ld, Length %ld, %s", adjustedMS, mediapos, videopos, jitter, (long)_durationMS, (const char*)_videoFile.c_str());
                 }
             }
         } else {
@@ -606,7 +606,7 @@ void PlayListItemFSEQVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_
     }
 
     if (sw.Time() > framems / 2) {
-        logger_base.warn("   Getting frame %ld from FSEQvideo %s took more than half a frame: %ld.", (long)adjustedMS, (const char*)GetNameNoTime().c_str(), (long)sw.Time());
+        LOG_WARN("   Getting frame %ld from FSEQvideo %s took more than half a frame: %ld.", (long)adjustedMS, (const char*)GetNameNoTime().c_str(), (long)sw.Time());
     }
 }
 

@@ -24,7 +24,7 @@
 
 #include <wx/xml/xml.h>
 
-#include <log4cpp/Category.hh>
+#include "./utils/spdlog_macros.h"
 
 int __playlistid = 0;
 
@@ -54,18 +54,18 @@ PlayList::PlayList(OutputManager* outputManager, wxXmlNode* node) {
     _currentStep = nullptr;
     Load(outputManager, node);
 
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.info("Playlist created from XML %s 0x%lx.", (const char*)GetName().c_str(), this);
+    // 
+    // LOG_INFO("Playlist created from XML %s 0x%lx.", (const char*)GetName().c_str(), this);
 }
 
 void PlayList::ForgetChildren() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
 
         if (!rec.SoleReference()) {
-            logger_base.warn("PlayList forgetting our children but we appear to be manipulating it elsewhere. This may not end well.");
+            LOG_WARN("PlayList forgetting our children but we appear to be manipulating it elsewhere. This may not end well.");
         }
 
         _everySteps.clear();
@@ -111,8 +111,8 @@ PlayList& PlayList::operator=(PlayList& playlist) {
 
 PlayList::PlayList(PlayList& playlist, bool newid) {
     // logging to try to catch a scheduler crash
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Copying playlist %s steps %d.", (const char*)playlist.GetName().c_str(), playlist.GetSteps().size());
+    
+    LOG_DEBUG("Copying playlist %s steps %d.", (const char*)playlist.GetName().c_str(), playlist.GetSteps().size());
 
     _reentrancyCounter = 0;
     _commandAtEndOfCurrentStep = "";
@@ -176,12 +176,12 @@ PlayList::PlayList() {
     _name = "";
     _stopAtEndOfCurrentStep = false;
 
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.info("New playlist created from nothing 0x%lx.", this);
+    // 
+    // LOG_INFO("New playlist created from nothing 0x%lx.", this);
 }
 
 void PlayList::DeleteChildren() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     RemoveAllSteps();
 
@@ -189,7 +189,7 @@ void PlayList::DeleteChildren() {
         ReentrancyCounter rec(_reentrancyCounter);
 
         if (!rec.SoleReference()) {
-            logger_base.warn("PlayList deleting children but we appear to be manipulating it elsewhere. This may not end well.");
+            LOG_WARN("PlayList deleting children but we appear to be manipulating it elsewhere. This may not end well.");
         }
 
         while (_schedules.size() > 0) {
@@ -201,20 +201,20 @@ void PlayList::DeleteChildren() {
 }
 
 PlayList::~PlayList() {
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.info("Playlist being destroyed %s 0x%lx.", (const char*)GetName().c_str(), this);
+    // 
+    // LOG_INFO("Playlist being destroyed %s 0x%lx.", (const char*)GetName().c_str(), this);
 
     DeleteChildren();
 }
 
 void PlayList::RemoveAllSteps() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
 
         if (!rec.SoleReference()) {
-            logger_base.warn("PlayList removing all steps but we appear to be manipulating it elsewhere. This may not end well.");
+            LOG_WARN("PlayList removing all steps but we appear to be manipulating it elsewhere. This may not end well.");
         }
 
         while (_steps.size() > 0) {
@@ -267,13 +267,13 @@ wxXmlNode* PlayList::Save() {
 }
 
 void PlayList::Load(OutputManager* outputManager, wxXmlNode* node) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
 
         if (!rec.SoleReference()) {
-            logger_base.warn("PlayList loading but we appear to be manipulating it elsewhere. This may not end well.");
+            LOG_WARN("PlayList loading but we appear to be manipulating it elsewhere. This may not end well.");
         }
 
         _steps.clear();
@@ -426,13 +426,13 @@ void PlayList::ClearDirty() {
 }
 
 void PlayList::RemoveStep(PlayListStep* step) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
 
         if (!rec.SoleReference()) {
-            logger_base.warn("PlayList removing step but we appear to be manipulating it elsewhere. This may not end well.");
+            LOG_WARN("PlayList removing step but we appear to be manipulating it elsewhere. This may not end well.");
         }
 
         if (step->GetEveryStep() && _everySteps.size() > 0) // if we are editing then this will be empty and the step will be in as a regular step
@@ -446,13 +446,13 @@ void PlayList::RemoveStep(PlayListStep* step) {
 }
 
 void PlayList::RemoveSchedule(Schedule* schedule) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
 
         if (!rec.SoleReference()) {
-            logger_base.warn("PlayList removing schedule but we appear to be manipulating it elsewhere. This may not end well.");
+            LOG_WARN("PlayList removing schedule but we appear to be manipulating it elsewhere. This may not end well.");
         }
 
         _schedules.remove(schedule);
@@ -532,7 +532,7 @@ bool PlayList::IsTimecodeNoAdvance() {
 
 // return true if done
 bool PlayList::Frame(uint8_t* buffer, size_t size, bool outputframe) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (_currentStep != nullptr) {
         if (IsPaused() || IsSuspended()) {
             return false;
@@ -541,7 +541,7 @@ bool PlayList::Frame(uint8_t* buffer, size_t size, bool outputframe) {
         // This returns true if everything is done
         if (_currentStep->Frame(buffer, size, outputframe)) {
             if (!IsInSlaveMode()) {
-                logger_base.debug("PlayList: Frame moving to next step because step '%s' is done.", (const char*)_currentStep->GetNameNoTime().c_str());
+                LOG_DEBUG("PlayList: Frame moving to next step because step '%s' is done.", (const char*)_currentStep->GetNameNoTime().c_str());
                 return !MoveToNextStep(false);
             } else {
                 // now it depends ... if using a timecode and the dont advance option is set then we should stop ... other wise we advance
@@ -591,9 +591,9 @@ void PlayList::Start(bool loop, bool random, int loops, const std::string& step)
         _looping = loop;
         _random = random;
 
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("******** Playlist %s starting to play.", (const char*)GetName().c_str());
-        logger_base.info("********     %s %s %s",
+        
+        LOG_INFO("******** Playlist %s starting to play.", (const char*)GetName().c_str());
+        LOG_INFO("********     %s %s %s",
                          (const char*)(_looping ? wxString::Format("LOOPING%s", (_loops > 0 ? wxString::Format(" Loops %d", _loops) : wxString(""))).c_str() : std::string("").c_str()),
                          (const char*)(IsRandom() ? "RANDOM" : std::string("").c_str()),
                          (const char*)(step == "" ? step.c_str() : wxString::Format("Step: %s", step).c_str()));
@@ -624,7 +624,7 @@ void PlayList::Start(bool loop, bool random, int loops, const std::string& step)
         }
 
         if (_currentStep == nullptr) {
-            logger_base.warn("Playlist %s has no steps.", (const char*)GetName().c_str());
+            LOG_WARN("Playlist %s has no steps.", (const char*)GetName().c_str());
         } else {
             _currentStep->Start(-1);
             StartEveryStep(-1);
@@ -636,8 +636,8 @@ void PlayList::Stop() {
     if (!IsRunning())
         return;
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("******** Playlist %s stopping.", (const char*)GetName().c_str());
+    
+    LOG_INFO("******** Playlist %s stopping.", (const char*)GetName().c_str());
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
@@ -648,22 +648,22 @@ void PlayList::Stop() {
 }
 
 PlayListStep* PlayList::GetNextStep(bool& didloop) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     didloop = false;
     if (_stopAtEndOfCurrentStep) {
-        logger_base.debug("Get next step returning nothing because we have been asked to stop at the end of the current step.");
+        LOG_DEBUG("Get next step returning nothing because we have been asked to stop at the end of the current step.");
         return nullptr;
     }
     if (_currentStep == nullptr) {
         // Commenting out because this just fills the log with an entry every second - uncomment for testing only
-        // logger_base.debug("Get next step returning nothing because there is no current step.");
+        // LOG_DEBUG("Get next step returning nothing because there is no current step.");
         return nullptr;
     }
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
         if (_lastOnlyOnce && _steps.back() == _currentStep) {
-            logger_base.debug("Get next step returning nothing because we are playing last step only once and the last step was playing.");
+            LOG_DEBUG("Get next step returning nothing because we are playing last step only once and the last step was playing.");
             return nullptr;
         }
 
@@ -694,7 +694,7 @@ PlayListStep* PlayList::GetNextStep(bool& didloop) {
         if (IsRandom() && !_lastLoop) {
             auto ns = GetRandomStep();
             if (ns == nullptr) {
-                logger_base.debug("Stopping because GetRandomStep returned no step.");
+                LOG_DEBUG("Stopping because GetRandomStep returned no step.");
             }
             return ns;
         }
@@ -703,14 +703,14 @@ PlayListStep* PlayList::GetNextStep(bool& didloop) {
             if ((*it)->GetId() == _currentStep->GetId()) {
                 ++it;
                 if (_jumpToEndStepsAtEndOfCurrentStep) {
-                    logger_base.debug("Jumping to end because step finished.");
+                    LOG_DEBUG("Jumping to end because step finished.");
                     if (_steps.size() == 1) {
-                        logger_base.debug("   but only one step so ending now.");
+                        LOG_DEBUG("   but only one step so ending now.");
                         return nullptr;
                     }
 
                     if (_lastOnlyOnce) {
-                        logger_base.debug("    But playing last step because play last only once is set.");
+                        LOG_DEBUG("    But playing last step because play last only once is set.");
                         return last;
                     } else {
                         return nullptr;
@@ -721,7 +721,7 @@ PlayListStep* PlayList::GetNextStep(bool& didloop) {
                     didloop = true;
                     if (_firstOnlyOnce) {
                         if (_steps.size() == 1) {
-                            logger_base.debug("Looping is set but only one step that is meant to play only once so this makes no sense so we are done.");
+                            LOG_DEBUG("Looping is set but only one step that is meant to play only once so this makes no sense so we are done.");
                             return nullptr;
                         }
                         auto it2 = _steps.begin();
@@ -731,7 +731,7 @@ PlayListStep* PlayList::GetNextStep(bool& didloop) {
 
                     return _steps.front();
                 } else if (it == _steps.end()) {
-                    // logger_base.debug("We reached the end and we are not looping.");
+                    // LOG_DEBUG("We reached the end and we are not looping.");
                     return nullptr;
                 } else {
                     return (*it);
@@ -740,7 +740,7 @@ PlayListStep* PlayList::GetNextStep(bool& didloop) {
         }
     }
 
-    logger_base.debug("Get next step fell through to the end so returning nothing.");
+    LOG_DEBUG("Get next step fell through to the end so returning nothing.");
     return nullptr;
 }
 
@@ -792,13 +792,13 @@ void PlayList::TogglePause() {
     if (_currentStep == nullptr)
         return;
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (IsPaused()) {
-        logger_base.info("        Unpausing playlist %s.", (const char*)GetName().c_str());
+        LOG_INFO("        Unpausing playlist %s.", (const char*)GetName().c_str());
         _currentStep->AdjustTime(wxDateTime::Now() - _pauseTime);
         _pauseTime = wxDateTime(static_cast<time_t>(0));
     } else {
-        logger_base.info("        Pausing playlist %s.", (const char*)GetName().c_str());
+        LOG_INFO("        Pausing playlist %s.", (const char*)GetName().c_str());
         _pauseTime = wxDateTime::Now();
     }
 
@@ -809,16 +809,16 @@ int PlayList::Suspend(bool suspend) {
     if (_currentStep == nullptr)
         return 50;
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (!IsPaused()) {
         if (!suspend && IsSuspended()) {
             // unsuspend
-            logger_base.info("         Playlist %s unsuspending.", (const char*)GetNameNoTime().c_str());
+            LOG_INFO("         Playlist %s unsuspending.", (const char*)GetNameNoTime().c_str());
             _currentStep->AdjustTime(wxDateTime::Now() - _suspendTime);
             _suspendTime = wxDateTime(static_cast<time_t>(0));
         } else if (suspend && !IsSuspended()) {
             // suspend
-            logger_base.info("         Playlist %s suspending.", (const char*)GetNameNoTime().c_str());
+            LOG_INFO("         Playlist %s suspending.", (const char*)GetNameNoTime().c_str());
             _suspendTime = wxDateTime::Now();
         }
     }
@@ -829,8 +829,8 @@ int PlayList::Suspend(bool suspend) {
 }
 
 bool PlayList::JumpToPriorStep() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("PlayList: JumpToPriorStep");
+    
+    LOG_DEBUG("PlayList: JumpToPriorStep");
     bool success = false;
 
     if (_currentStep == nullptr)
@@ -851,8 +851,8 @@ bool PlayList::JumpToPriorStep() {
 }
 
 bool PlayList::JumpToNextStep() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("PlayList: JumpToNextStep");
+    
+    LOG_DEBUG("PlayList: JumpToNextStep");
 
     bool success = true;
 
@@ -879,8 +879,8 @@ bool PlayList::JumpToNextStep() {
 }
 
 bool PlayList::MoveToNextStep(bool suppressNext) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("PlayList: MoveToNextStep");
+    
+    LOG_DEBUG("PlayList: MoveToNextStep");
 
     bool success = true;
 
@@ -891,7 +891,7 @@ bool PlayList::MoveToNextStep(bool suppressNext) {
     StopEveryStep();
 
     if (_commandAtEndOfCurrentStep != "") {
-        logger_base.info("Step completed so running command: '%s' parameters: '%s'.", (const char*)_commandAtEndOfCurrentStep.c_str(), (const char*)_commandParametersAtEndOfCurrentStep.c_str());
+        LOG_INFO("Step completed so running command: '%s' parameters: '%s'.", (const char*)_commandAtEndOfCurrentStep.c_str(), (const char*)_commandParametersAtEndOfCurrentStep.c_str());
 
         wxCommandEvent event(EVT_RUNACTION);
         event.SetString(_commandAtEndOfCurrentStep + "|" + _commandParametersAtEndOfCurrentStep);
@@ -911,14 +911,14 @@ bool PlayList::MoveToNextStep(bool suppressNext) {
         _forceNextStep = "";
 
         if (_currentStep == nullptr) {
-            logger_base.debug("Move to next step found no step to move to.");
+            LOG_DEBUG("Move to next step found no step to move to.");
             return false;
         }
 
         _currentStep->Start(-1);
         StartEveryStep(-1);
 
-        logger_base.debug("Move to next step moved to %s.", (const char*)_currentStep->GetNameNoTime().c_str());
+        LOG_DEBUG("Move to next step moved to %s.", (const char*)_currentStep->GetNameNoTime().c_str());
 
         if (_suspendAtEndOfStep) {
             Suspend(true);
@@ -926,7 +926,7 @@ bool PlayList::MoveToNextStep(bool suppressNext) {
             return false;
         }
     } else {
-        logger_base.debug("Moved nothing because suppress next was set.");
+        LOG_DEBUG("Moved nothing because suppress next was set.");
         _currentStep = nullptr;
     }
 
@@ -979,11 +979,11 @@ void PlayList::RestartCurrentStep() {
 }
 
 bool PlayList::JumpToStep(PlayListStep* pls) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (pls != nullptr) {
-        logger_base.debug("PlayList: JumpToStep %s", (const char*)pls->GetNameNoTime().c_str());
+        LOG_DEBUG("PlayList: JumpToStep %s", (const char*)pls->GetNameNoTime().c_str());
     } else {
-        logger_base.debug("PlayList: JumpToStep but step not found");
+        LOG_DEBUG("PlayList: JumpToStep but step not found");
     }
     bool success = true;
 
@@ -1014,17 +1014,17 @@ bool PlayList::JumpToStep(PlayListStep* pls) {
 }
 
 bool PlayList::JumpToStep(const std::string& step) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     PlayListStep* pls = nullptr;
 
     int stepid = PlayListStep::GetStepIdFromName(step);
 
     if (stepid >= 0) {
-        logger_base.debug("PlayList: JumpToStep id=%d", stepid);
+        LOG_DEBUG("PlayList: JumpToStep id=%d", stepid);
         pls = GetStep(stepid);
     } else {
-        logger_base.debug("PlayList: JumpToStep %s", (const char*)step.c_str());
+        LOG_DEBUG("PlayList: JumpToStep %s", (const char*)step.c_str());
         pls = GetStep(step);
     }
 
@@ -1096,7 +1096,7 @@ bool PlayList::SupportsRandom() {
 }
 
 void PlayList::SetPosition(long secs) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     long len = GetLengthMS();
     if (len == 0)
         return;
@@ -1106,14 +1106,14 @@ void PlayList::SetPosition(long secs) {
     JumpToStep(pls);
     if (pls != nullptr) {
         pls->Advance(plspos / 1000);
-        logger_base.debug("PlayList::SetPosition %lds %s:%lds", secs, (const char*)pls->GetNameNoTime().c_str(), plspos / 1000);
+        LOG_DEBUG("PlayList::SetPosition %lds %s:%lds", secs, (const char*)pls->GetNameNoTime().c_str(), plspos / 1000);
     } else {
-        logger_base.debug("PlayList::SetPosition failed because could not determine step.");
+        LOG_DEBUG("PlayList::SetPosition failed because could not determine step.");
     }
 }
 
 PlayListStep* PlayList::GetRandomStep() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     {
         int actualsteps = _steps.size();
@@ -1130,7 +1130,7 @@ PlayListStep* PlayList::GetRandomStep() {
             actualsteps = 0;
         int availablesteps = actualsteps - _played.size();
         if (availablesteps <= 0) {
-            logger_base.debug("Resetting random after %d steps were played of an eligible %d steps in a playlist of size %d",
+            LOG_DEBUG("Resetting random after %d steps were played of an eligible %d steps in a playlist of size %d",
                               _played.size(), actualsteps, _steps.size());
             _played.clear();
             availablesteps = actualsteps;
@@ -1169,11 +1169,11 @@ PlayListStep* PlayList::GetRandomStep() {
 
             _played.push_back((*it)->GetId());
 
-            logger_base.info("Playlist %s randomly chose step %d of %d.", (const char*)GetName().c_str(), selected, _steps.size());
+            LOG_INFO("Playlist %s randomly chose step %d of %d.", (const char*)GetName().c_str(), selected, _steps.size());
 
             return *it;
         } else {
-            logger_base.info("Playlist %s random wont work as there are not at least 4 eligible steps. Just taking next available.", (const char*)GetName().c_str());
+            LOG_INFO("Playlist %s random wont work as there are not at least 4 eligible steps. Just taking next available.", (const char*)GetName().c_str());
             bool didloop;
             bool oldrandom = _random;
             bool oldAlwaysShuffle = _alwaysShuffle;
@@ -1367,7 +1367,7 @@ Schedule* PlayList::GetSchedule(const std::string& name) {
 }
 
 void PlayList::RemoveEmptySteps() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::list<PlayListStep*> toremove;
 
@@ -1375,7 +1375,7 @@ void PlayList::RemoveEmptySteps() {
         ReentrancyCounter rec(_reentrancyCounter);
 
         if (!rec.SoleReference()) {
-            logger_base.warn("PlayList removing empty steps but we appear to be manipulating it elsewhere. This may not end well.");
+            LOG_WARN("PlayList removing empty steps but we appear to be manipulating it elsewhere. This may not end well.");
         }
 
         for (const auto& it : _steps) {
@@ -1517,8 +1517,8 @@ PlayListStep* PlayList::GetStepContainingPlayListItem(wxUint32 id) {
 }
 
 std::string PlayList::GetNextScheduledTime() {
-    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("Getting next scheduled time for playlist.");
+    // 
+    // LOG_DEBUG("Getting next scheduled time for playlist.");
     const wxDateTime nullDate = wxDateTime(static_cast<time_t>(0));
     wxDateTime nextdt = nullDate;
 
@@ -1526,33 +1526,33 @@ std::string PlayList::GetNextScheduledTime() {
         ReentrancyCounter rec(_reentrancyCounter);
         for (const auto& it : _schedules) {
             wxDateTime dt = it->GetNextTriggerDateTime();
-            // logger_base.debug("   Is it " + dt.Format("%Y-%m-%d %H:%M").ToStdString());
+            // LOG_DEBUG("   Is it " + dt.Format("%Y-%m-%d %H:%M").ToStdString());
 
             if (dt != nullDate) {
                 if (nextdt == nullDate) {
-                    // logger_base.debug("      This is the first date we found so we will take it.");
+                    // LOG_DEBUG("      This is the first date we found so we will take it.");
                     nextdt = dt;
                 } else {
                     if (dt < nextdt) {
-                        // logger_base.debug("      It is earlier so this is our best candidate so far.");
+                        // LOG_DEBUG("      It is earlier so this is our best candidate so far.");
                         nextdt = dt;
                     } else {
-                        // logger_base.debug("      Date is NOT a better candidate.");
+                        // LOG_DEBUG("      Date is NOT a better candidate.");
                     }
                 }
             }
             // else
             //{
-            // logger_base.debug("      Date is invalid.");
+            // LOG_DEBUG("      Date is invalid.");
             //}
         }
     }
 
     if (nextdt == nullDate) {
-        // logger_base.debug("No good date found.");
+        // LOG_DEBUG("No good date found.");
         return "";
     } else {
-        // logger_base.debug("Our earliest date was " + nextdt.Format("%Y-%m-%d %H:%M").ToStdString());
+        // LOG_DEBUG("Our earliest date was " + nextdt.Format("%Y-%m-%d %H:%M").ToStdString());
         return nextdt.Format("%Y-%m-%d %H:%M").ToStdString();
     }
 }
