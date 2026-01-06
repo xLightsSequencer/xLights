@@ -11,6 +11,28 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+    -enh (scott)            Switch HinksPix Enable Column to Check Box, add Error Checking if all schedules are disabled
+    -enh (gil)              Reduce model loading at startup from 3 times to 2
+    -enh (derwin12)         Added WEC to Minleon
+    -enh (derwin12)         Show channel count on fpp connect dialog
+    -enh (gil)              Add action to move nodes for a single submodel
+    -enh (dkulp)            Support for using the forced source port for ArtNet when uploading to FPP 9.5+
+    -enh (derwin12)         Only show Cascade Remotes for multi-string models
+    -enh (scott)            Add Right Click option to Batch Render to Check Sequences from a FPP Device's Playlist
+    -enh (dkulp)            Support Italics and Slant fonts for text effect
+    -bug (scott)            Fix HinksPix Export model start channels in non Universe Per String mode
+    -bug (scott)            Change Hinkpix Export to Foreign naming
+    -bug (rshambaugh)       Sketch Effect missing buttons on Mac UI
+    -bug (derwin12)         Face Dialog Nodes Incorrectly Sorted and Displayed
+    -bug (rshambaugh)       Face with node range generates file not found error
+    -bug (derwin12)         Crash on bad color pallete in rgbeffects file
+    -bug (derwin12)         Handle json exception when invalid unicode char is used
+    -bug (rshambaugh)       Key Bindings dialog now fits within screen bounds
+    -bug (dkulp)            Fix buttons on ColorManagerSettingsPanel only appearing on Windows
+    -bug (rshambaugh)       Improve red text readability in dark mode
+    -bug (gil)              Fix MH Reset to Defaults....clear settings last so its really clear
+    -bug (derwin12)         Reset FSEQ Channel count when Layout Changes
+    -bug (dkulp)            Use float for meteor effectState to make sure it scales properly with fps
 2025.13  December 2, 2025
     - enh (o0charlie0o)     Prevent accidental resize of effects when clicking on them
     - enh (scott)           Add json printing to fseq utility
