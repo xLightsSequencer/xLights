@@ -16,62 +16,66 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
     
-        CubeModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
+        CubeModel(const ModelManager &manager);
         virtual ~CubeModel();
 
-        virtual const std::vector<std::string> &GetBufferStyles() const override;
+        [[nodiscard]] virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const override;
-        virtual int GetNumPhysicalStrings() const override;
-        virtual bool SupportsXlightsModel() override { return true; }
-        virtual bool SupportsWiringView() const override { return false; }
-        virtual void ExportXlightsModel() override;
-        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
+        [[nodiscard]] virtual int GetNumPhysicalStrings() const override;
+        [[nodiscard]] virtual bool SupportsXlightsModel() override { return true; }
+        [[nodiscard]] virtual bool SupportsWiringView() const override { return false; }
+        [[nodiscard]] [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
             std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;
-        virtual int NodeRenderOrder() override { return 1; }
-        virtual int GetStrandLength(int strand) const override { return _strandLength; }
-        virtual int GetNumStrands() const override { return _strands; };
-        virtual int MapToNodeIndex(int strand, int node) const override;
+        [[nodiscard]] virtual int NodeRenderOrder() override { return 1; }
+        [[nodiscard]] virtual int GetStrandLength(int strand) const override { return _strandLength; }
+        [[nodiscard]] virtual int GetNumStrands() const override { return _strands; };
+        [[nodiscard]] virtual int MapToNodeIndex(int strand, int node) const override;
         virtual void ExportAsCustomXModel3D() const override;
-        virtual bool SupportsExportAsCustom3D() const override { return true; }
-        virtual bool SupportsExportAsCustom() const override { return false; }
-        virtual int NodesPerString() const override;
+        [[nodiscard]] virtual bool SupportsExportAsCustom3D() const override { return true; }
+        [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return false; }
+        [[nodiscard]] virtual int NodesPerString() const override;
 
-        virtual std::string ChannelLayoutHtml(OutputManager * outputManager) override;
+        [[nodiscard]] virtual std::string ChannelLayoutHtml(OutputManager * outputManager) override;
 
         virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+        [[nodiscard]] virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
-        virtual bool SupportsVisitors() const override { return true; }
+        [[nodiscard]] virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
-        std::string GetStrandStyle() const;
-        std::string GetStrandPerLine() const;
-        std::string GetStrandPerLayer() const;
-        std::string GetStrandStart() const;
+        [[nodiscard]] std::string GetCubeStyle() const;
+        [[nodiscard]] std::string GetStrandStyle() const;
+        [[nodiscard]] int GetCubeStrings() const { return _cubeStrings; }
+        [[nodiscard]] std::string GetCubeStart() const;
+        [[nodiscard]] bool IsStrandPerLayer() const { return _strandPerLayer; }
+
+        void SetCubeStyle(const std::string & style);
+        void SetStrandStyle(const std::string & style);
+        void SetCubeStrings(int strings) { _cubeStrings = strings; }
+        void SetCubeStart(const std::string & start);
+        void SetStrandPerLayer(bool val) { _strandPerLayer = val; }
 
     protected:
-        int GetStartIndex() const;
-        int GetStyleIndex() const;
-        int GetStrandStyleIndex() const;
-        std::tuple<int, int, int>& FlipX(std::tuple<int, int, int>& pt, int width) const;
-        std::tuple<int, int, int>& RotateY90Degrees(std::tuple<int, int, int>& pt, int by, int width, int depth) const;
-        std::tuple<int, int, int>& RotateZ90Degrees(std::tuple<int, int, int>& pt, int by, int width, int height) const;
-        std::tuple<int, int, int>& RotateX90Degrees(std::tuple<int, int, int>& pt, int by, int height, int depth) const;
-        int CalcTransformationIndex() const;
-        std::vector<std::tuple<int, int, int>> BuildCube() const;
-        bool IsStrandPerLayer() const;
-        virtual std::string GetStartLocation() const override;
-        int GetStrings() const;
+        void FlipX(std::tuple<int, int, int>& pt, int width) const;
+        void RotateX90Degrees(std::tuple<int, int, int>& pt, int by, int height, int depth) const;
+        void RotateY90Degrees(std::tuple<int, int, int>& pt, int by, int width, int depth) const;
+        void RotateZ90Degrees(std::tuple<int, int, int>& pt, int by, int width, int height) const;
+        [[nodiscard]] int CalcTransformationIndex() const;
+        [[nodiscard]] std::vector<std::tuple<int, int, int>> BuildCube() const;
+        [[nodiscard]] virtual std::string GetStartLocation() const override;
         void DumpNodes(std::vector<std::tuple<int, int, int>> nodes,int width, int height, int depth) const;
-        int FindNodeIndex(std::vector<std::tuple<int, int, int>> nodes, int x, int y, int z) const;
+        [[nodiscard]] int FindNodeIndex(std::vector<std::tuple<int, int, int>> nodes, int x, int y, int z) const;
         void DumpNode(const std::string desc, const std::tuple<int, int, int>& node, int width, int height, int depth) const;
 
-        CubeModel(const ModelManager &manager);
         virtual void InitModel() override;
         
     private:
-        unsigned long _lastChangeCount = -999;
         int _strandLength = 1;
         int _strands = 1;
+        int _cubeStart = 0;
+        int _cubeStrings = 1;
+        int _cubeStyle = 0;
+        int _strandStyle = 0;
+        bool _strandPerLayer = FALSE;
 };

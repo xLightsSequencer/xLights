@@ -284,6 +284,7 @@ namespace XmlNodeKeys {
     // Cube
     constexpr auto StyleAttribute          = "Style";
     constexpr auto CubeStartAttribute      = "Start";
+    constexpr auto CubeStringsAttribute    = "Strings";
     constexpr auto StrandPerLineAttribute  = "StrandPerLine";
     constexpr auto StrandPerLayerAttribute = "StrandPerLayer";
 
@@ -1313,10 +1314,13 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
 
     void Visit(const CubeModel& model) override {
         wxXmlNode* xmlNode = CommonVisitSteps(model);
-        xmlNode->AddAttribute(XmlNodeKeys::StyleAttribute, model.GetStrandStyle());
-        xmlNode->AddAttribute(XmlNodeKeys::CubeStartAttribute, model.GetStrandStart());
-        xmlNode->AddAttribute(XmlNodeKeys::StrandPerLineAttribute, model.GetStrandPerLine());
-        xmlNode->AddAttribute(XmlNodeKeys::StrandPerLayerAttribute, model.GetStrandPerLayer());
+        xmlNode->AddAttribute(XmlNodeKeys::StyleAttribute, model.GetCubeStyle());
+        xmlNode->AddAttribute(XmlNodeKeys::CubeStartAttribute, model.GetCubeStart());
+        xmlNode->AddAttribute(XmlNodeKeys::CubeStringsAttribute, std::to_string(model.GetCubeStrings()));
+        xmlNode->AddAttribute(XmlNodeKeys::StrandPerLineAttribute, model.GetStrandStyle());
+        if (model.IsStrandPerLayer()) {
+            xmlNode->AddAttribute(XmlNodeKeys::StrandPerLayerAttribute, "TRUE");
+        }
         const Model* m = dynamic_cast<const Model*>(&model);
         AddOtherElements(xmlNode, m);
     }
@@ -1331,6 +1335,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         AddCustomModel(xmlNode, model);
         AddOtherElements(xmlNode, m);
     }
+
     void Visit(const IciclesModel& model) override {
         wxXmlNode* xmlNode = CommonVisitSteps(model);
         AddThreePointScreenLocationAttributes(model, xmlNode);
@@ -1863,8 +1868,13 @@ private:
     }
 
     Model* DeserializeCube(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        CubeModel* model = new CubeModel(node, xlights->AllModels, false);
+        CubeModel* model = new CubeModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->SetCubeStrings(std::stoi(node->GetAttribute(XmlNodeKeys::CubeStringsAttribute, "1").ToStdString()));
+        model->SetCubeStart(node->GetAttribute(XmlNodeKeys::CubeStartAttribute, xlEMPTY_STRING).ToStdString());
+        model->SetCubeStyle(node->GetAttribute(XmlNodeKeys::StyleAttribute, xlEMPTY_STRING));
+        model->SetStrandStyle(node->GetAttribute(XmlNodeKeys::StrandPerLineAttribute, xlEMPTY_STRING));
+        model->SetStrandPerLayer(node->GetAttribute(XmlNodeKeys::StrandPerLayerAttribute, "FALSE") == "TRUE");
         model->Setup();
         return model;
     }

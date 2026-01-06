@@ -1316,7 +1316,7 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
     } else if (type == "MultiPoint") {
         model = new MultiPointModel(node, *this, false);
     } else if (type == "Cube") {
-        model = new CubeModel(node, *this, false);
+        model = new CubeModel(*this);
         parm1 = 5;
         parm2 = 5;
         parm3 = 5;
@@ -1590,7 +1590,7 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
     } else if (type == "MultiPoint") {
         model = new MultiPointModel(node, *this, zeroBased);
     } else if (type == "Cube") {
-        model = new CubeModel(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Custom") {
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type.find("Tree") == 0) {
