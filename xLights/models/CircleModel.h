@@ -15,29 +15,29 @@
 class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
-        CircleModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
+        CircleModel(const ModelManager &manager);
         virtual ~CircleModel();
 
-        virtual int GetStrandLength(int strand) const override;
-        virtual int MapToNodeIndex(int strand, int node) const override;
-        virtual int GetNumStrands() const override;
-        virtual bool AllNodesAllocated() const override;
+        [[nodiscard]] virtual int GetStrandLength(int strand) const override;
+        [[nodiscard]] virtual int MapToNodeIndex(int strand, int node) const override;
+        [[nodiscard]] virtual int GetNumStrands() const override;
+        [[nodiscard]] virtual bool AllNodesAllocated() const override;
 
         virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
-        virtual bool SupportsExportAsCustom() const override { return true; } 
-        virtual bool SupportsWiringView() const override { return true; }
+        [[nodiscard]] virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+        [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return true; }
+        [[nodiscard]] virtual bool SupportsWiringView() const override { return true; }
 
-		virtual bool SupportsXlightsModel() override { return true; }
-		virtual void ExportXlightsModel() override;
+        [[nodiscard]] virtual bool SupportsXlightsModel() override { return true; }
         [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
 
-        virtual bool ModelSupportsLayerSizes() const override { return true; }
+        [[nodiscard]] virtual bool ModelSupportsLayerSizes() const override { return true; }
         virtual void OnLayerSizesChange(bool countChanged) override;
 
-        virtual bool SupportsVisitors() const override { return true; }
+        [[nodiscard]] virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
-        bool IsInsideOut() const { return insideOut; }
+        [[nodiscard]] bool IsInsideOut() const { return _insideOut; }
+        void SetInsideOut(bool val) { _insideOut = val; }
 
     protected:
         virtual void InitModel() override;
@@ -45,8 +45,7 @@ class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
     private:
         void SetCircleCoord();
         void InitCircle();
-    
         int maxSize();
 
-        bool insideOut = false;
+        bool _insideOut = false;
 };

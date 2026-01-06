@@ -1738,6 +1738,7 @@ public:
     int GetDefaultPreviewBackgroundBrightness();
     int GetDefaultPreviewBackgroundAlpha();
     void SetPreviewBackgroundBrightness(int brightness, int alpha);
+    void LoadModels();
     void UpdateModelsList();
     void RowHeadingsChanged( wxCommandEvent& event);
     void DoForceSequencerRefresh();

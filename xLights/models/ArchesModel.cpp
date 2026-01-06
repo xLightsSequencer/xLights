@@ -24,7 +24,7 @@
 #include "../ModelPreview.h"
 #include "../ModelPreview.h"
 
-ArchesModel::ArchesModel(const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
+ArchesModel::ArchesModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
     screenLocation.SetModelHandleHeight(true);
     screenLocation.SetSupportsAngle(true);

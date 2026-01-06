@@ -15,7 +15,7 @@
 class CandyCaneModel : public ModelWithScreenLocation<ThreePointScreenLocation>
 {
     public:
-        CandyCaneModel(const ModelManager &manager, bool zeroBased = false);
+        CandyCaneModel(const ModelManager &manager);
         virtual ~CandyCaneModel();
     
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,

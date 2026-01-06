@@ -1176,7 +1176,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
     );
     if (work & OutputModelManager::WORK_RELOAD_ALLMODELS) {
         logger_work.debug("    WORK_RELOAD_ALLMODELS.");
-        // TODO:  We can't reload models from XML anymore so need to deal with this UpdateModelsList();
+        UpdateModelsList();
         //layoutPanel->RefreshLayout();
     }
     work = _outputModelManager.ClearWork(type, work,

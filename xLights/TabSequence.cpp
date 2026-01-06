@@ -551,9 +551,7 @@ void xLightsFrame::LoadEffectsFile()
     displayElementsPanel->SetSequenceElementsModelsViews(&_seqData, &_sequenceElements, ModelsNode, ModelGroupsNode, &_sequenceViewManager);
     layoutPanel->ClearUndo();
     
-    // TODO: Need to load model but can't use this ASAP command any longer...just calling the function it called direct for now
-    //GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LoadEffectsFile");
-    UpdateModelsList();
+    LoadModels();
 
     mSequencerInitialize = false;
 
@@ -969,22 +967,17 @@ static void AddModelsToPreview(ModelGroup* grp, std::vector<Model*>& PreviewMode
     }
 }
 
-void xLightsFrame::UpdateModelsList()
+void xLightsFrame::LoadModels()
 {
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
-    logger_work.debug("        UpdateModelsList.");
+    logger_work.debug("        LoadModels.");
 
-    if (ModelsNode == nullptr 
+    if (ModelsNode == nullptr
         || ViewObjectsNode == nullptr
         || modelPreview == nullptr) return; // this happens when xlights is first loaded
 
-    //abort any render as it will crash if the model changes
-    AbortRender();
-
     playModel = nullptr;
     PreviewModels.clear();
-    UnselectEffect();
-    modelsChangeCount++;
     AllModels.LoadModels(ModelsNode,
         modelPreview->GetVirtualCanvasWidth(),
         modelPreview->GetVirtualCanvasHeight());
@@ -1077,6 +1070,50 @@ void xLightsFrame::UpdateModelsList()
     AllModels.LoadGroups(ModelGroupsNode,
         modelPreview->GetVirtualCanvasWidth(),
         modelPreview->GetVirtualCanvasHeight());
+
+    // Add all models to default House Preview that are set to Default or All Previews
+    for (const auto& it : AllModels) {
+        Model* model = it.second;
+        if (model->GetDisplayAs() != "ModelGroup") {
+            if (model->GetLayoutGroup() == "Default" || model->GetLayoutGroup() == "All Previews") {
+                PreviewModels.push_back(model);
+            }
+        }
+    }
+
+    // Now add all models to default House Preview that are in groups set to Default or All Previews
+    for (const auto& it : AllModels) {
+        Model* model = it.second;
+        if (model->GetDisplayAs() == "ModelGroup") {
+            ModelGroup* grp = (ModelGroup*)model;
+            if (model->GetLayoutGroup() == "All Previews" || model->GetLayoutGroup() == "Default") {
+                AddModelsToPreview(grp, PreviewModels);
+            }
+        }
+    }
+
+    layoutPanel->UpdateModelList(true);
+    displayElementsPanel->UpdateModelsForSelectedView();
+
+    UpdateLayoutSave();
+    UpdateControllerSave();
+}
+
+
+void xLightsFrame::UpdateModelsList()
+{
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        UpdateModelsList.");
+
+    if (modelPreview == nullptr) return; // this happens when xlights is first loaded
+
+    //abort any render as it will crash if the model changes
+    AbortRender();
+
+    playModel = nullptr;
+    PreviewModels.clear();
+    UnselectEffect();
+    modelsChangeCount++;
 
     // Add all models to default House Preview that are set to Default or All Previews
     for (const auto& it : AllModels) {

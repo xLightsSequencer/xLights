@@ -278,7 +278,8 @@ namespace XmlNodeKeys {
     constexpr auto ChannelColorAttribute =  "ChannelProperties.ChannelColor";
 
     // Circle Model
-    constexpr auto InsideOutAttribute = "InsideOut";
+    constexpr auto InsideOutAttribute   = "InsideOut";
+    constexpr auto CircleSizesAttribute = "circleSizes";
 
     // Cube
     constexpr auto StyleAttribute          = "Style";
@@ -1791,7 +1792,7 @@ private:
     }
 
     Model* DeserializeArches(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        ArchesModel* model = new ArchesModel(xlights->AllModels, false);
+        ArchesModel* model = new ArchesModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
         DeserializeThreePointScreenLocationAttributes(model, node);
         model->SetZigZag(node->GetAttribute(XmlNodeKeys::ZigZagAttribute).ToStdString() == "true");
@@ -1813,7 +1814,7 @@ private:
     }
 
     Model* DeserializeCandyCane(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        CandyCaneModel* model = new CandyCaneModel(xlights->AllModels, false);
+        CandyCaneModel* model = new CandyCaneModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
         DeserializeThreePointScreenLocationAttributes(model, node);
         model->SetReverse(node->GetAttribute(XmlNodeKeys::CCReverseAttribute, "false") == "true");
@@ -1830,7 +1831,7 @@ private:
     }
 
     Model* DeserializeChannelBlock(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        ChannelBlockModel* model = new ChannelBlockModel(xlights->AllModels, false);
+        ChannelBlockModel* model = new ChannelBlockModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
         DeserializeTwoPointScreenLocationAttributes(model, node);
         // Setup the model early to size the vector for number of colors
@@ -1843,8 +1844,20 @@ private:
     }
 
     Model* DeserializeCircle(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        CircleModel* model = new CircleModel(node, xlights->AllModels, false);
+        CircleModel* model = new CircleModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
+        // convert old circle sizes to new Layer sizes setting - this also reverses the order
+        std::string layer_sizes = xlEMPTY_STRING;
+        if (node->GetAttribute(XmlNodeKeys::CircleSizesAttribute, xlEMPTY_STRING) != xlEMPTY_STRING) {
+            layer_sizes = ReverseCSV(node->GetAttribute(XmlNodeKeys::CircleSizesAttribute, xlEMPTY_STRING));
+        } else {
+            layer_sizes = node->GetAttribute(XmlNodeKeys::LayerSizesAttribute, xlEMPTY_STRING);
+        }
+        model->DeserializeLayerSizes(layer_sizes, false);
+        if (!node->HasAttribute("StartSide")) {
+            model->SetIsBtoT(false);
+        }
+        model->SetInsideOut(node->GetAttribute(XmlNodeKeys::InsideOutAttribute, "false") == "true");
         model->Setup();
         return model;
     }
@@ -1857,7 +1870,7 @@ private:
     }
 
     Model* DeserializeCustom(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        CustomModel* model = new CustomModel(xlights->AllModels, false);
+        CustomModel* model = new CustomModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
         model->SetCustomDepth(std::stol(node->GetAttribute(XmlNodeKeys::CMDepthAttribute, "1").ToStdString()));
         model->SetNumStrings(std::stoi(node->GetAttribute(XmlNodeKeys::CustomStringsAttribute, "1").ToStdString()));

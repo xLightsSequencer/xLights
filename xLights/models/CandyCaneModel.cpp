@@ -18,7 +18,7 @@
 
 #include <log4cpp/Category.hh>
 
-CandyCaneModel::CandyCaneModel(const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
+CandyCaneModel::CandyCaneModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
     screenLocation.SetModelHandleHeight(true);
     screenLocation.SetSupportsAngle(true);

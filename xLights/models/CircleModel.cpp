@@ -22,16 +22,8 @@
 #include "../UtilFunctions.h"
 #include "../ModelPreview.h"
 
-CircleModel::CircleModel(wxXmlNode* node, const ModelManager& manager, bool zeroBased) : ModelWithScreenLocation(manager), insideOut(false)
+CircleModel::CircleModel(const ModelManager& manager) : ModelWithScreenLocation(manager)
 {
-    // convert old circle sizes to new Layer sizes setting - this also reverses the order
-    if (node->GetAttribute("circleSizes", "") != "") {
-        node->DeleteAttribute("LayerSizes");
-        node->AddAttribute("LayerSizes", ReverseCSV(node->GetAttribute("circleSizes", "")));
-        node->DeleteAttribute("circleSizes");
-    }
-
-    SetFromXml(node, zeroBased);
 }
 
 CircleModel::~CircleModel()
@@ -69,9 +61,6 @@ bool CircleModel::AllNodesAllocated() const
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
 void CircleModel::InitModel()
 {
-    if (!ModelXml->HasAttribute("StartSide")) {
-        isBotToTop = false;
-    }
     if (GetLayerSizeCount() == 0) {
         SetLayerSizeCount(1);
     }
@@ -79,9 +68,6 @@ void CircleModel::InitModel()
         SetLayerSize(0, parm1 * parm2);
     }
 
-    if (ModelXml->HasAttribute("InsideOut")) {
-        insideOut = wxAtoi(ModelXml->GetAttribute("InsideOut"));
-    }
     InitCircle();
     SetCircleCoord();
     screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
@@ -131,7 +117,7 @@ void CircleModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
     AddLayerSizeProperty(grid);
 
     int start = IsLtoR ? 1 : 0;
-    if (insideOut) {
+    if (_insideOut) {
         start += 2;
     }
     if (isBotToTop) {
@@ -143,9 +129,7 @@ void CircleModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
 int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
     if ("CircleStringCount" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm1");
-        ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        //AdjustStringProperties(grid, parm1);
+        parm1 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleStringCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleStringCount");
@@ -157,8 +141,7 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         return 0;
     }
     else if ("CircleLightCount" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm2");
-        ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        parm2 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleLightCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleLightCount");
@@ -170,8 +153,7 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         return 0;
     }
     else if ("CircleCenterPercent" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm3");
-        ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        parm3 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleCenterPercent");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleCenterPercent");
@@ -180,15 +162,10 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         return 0;
     }
     else if ("CircleStart" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("Dir");
-        ModelXml->DeleteAttribute("StartSide");
-        ModelXml->DeleteAttribute("InsideOut");
-
         int v = event.GetValue().GetLong();
-        ModelXml->AddAttribute("Dir", v & 0x1 ? "L" : "R");
-        ModelXml->AddAttribute("StartSide", v < 4 ? "T" : "B");
-        ModelXml->AddAttribute("InsideOut", v & 0x2 ? "1" : "0");
-
+        _dir = (v & 0x1 ? "L" : "R");
+        _startSide = ( v < 4 ? "T" : "B");
+        _insideOut = ( v & 0x2 ? "1" : "0");
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleStart");
@@ -264,12 +241,12 @@ void CircleModel::InitCircle()
             for (size_t c = 0; c < CoordCount; c++) {
                 if (loop_count == 1) {
                     Nodes[node]->Coords[c].bufX = idx;
-                    Nodes[node]->Coords[c].bufY = insideOut ? GetLayerSizeCount() - circle - 1 : circle;
+                    Nodes[node]->Coords[c].bufY = _insideOut ? GetLayerSizeCount() - circle - 1 : circle;
                 }
                 else {
                     int x_pos = (GetStrandLength(circle) == maxLights) ? idx : std::floor(pct * ((double)maxLights - 1.0 + fudge));
                     Nodes[node]->Coords[c].bufX = x_pos;
-                    Nodes[node]->Coords[c].bufY = insideOut? GetLayerSizeCount() - circle - 1 : circle;
+                    Nodes[node]->Coords[c].bufY = _insideOut ? GetLayerSizeCount() - circle - 1 : circle;
                     idx++;
                 }
             }
@@ -292,7 +269,7 @@ void CircleModel::SetCircleCoord()
     for (int c2 = 0; c2 < GetLayerSizeCount(); c2++) {
         int circle = c2;
         int loop_count = std::min(nodesToMap, GetStrandLength(circle));
-        double radius = (GetLayerSizeCount() == 1) ? maxRadius : insideOut ? (double)minRadius + (maxRadius - minRadius) * (1.0 - (double)(GetLayerSizeCount() - circle - 1) / (double)(GetLayerSizeCount() - 1)) : (double)minRadius + (maxRadius - minRadius) * (1.0 - (double)circle / (double)(GetLayerSizeCount() - 1));
+        double radius = (GetLayerSizeCount() == 1) ? maxRadius : _insideOut ? (double)minRadius + (maxRadius - minRadius) * (1.0 - (double)(GetLayerSizeCount() - circle - 1) / (double)(GetLayerSizeCount() - 1)) : (double)minRadius + (maxRadius - minRadius) * (1.0 - (double)circle / (double)(GetLayerSizeCount() - 1));
         for (size_t n = 0; n < loop_count; n++) {
             size_t CoordCount = GetCoordCount(node);
             for (size_t c = 0; c < CoordCount; c++) {
@@ -309,74 +286,6 @@ void CircleModel::SetCircleCoord()
         }
         nodesToMap -= loop_count;
     }
-}
-
-void CircleModel::ExportXlightsModel()
-{
-    wxString name = ModelXml->GetAttribute("name");
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty()) return;
-    wxFile f(filename);
-    
-    if (!f.Create(filename, true) || !f.IsOpened()) {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-        return;
-    }
-
-    wxString p1 = ModelXml->GetAttribute("parm1");
-    wxString p2 = ModelXml->GetAttribute("parm2");
-    wxString p3 = ModelXml->GetAttribute("parm3");
-    wxString st = ModelXml->GetAttribute("StringType");
-    wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency", "0");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
-    wxString a = ModelXml->GetAttribute("Antialias");
-    wxString ss = ModelXml->GetAttribute("StartSide");
-    wxString dir = ModelXml->GetAttribute("Dir");
-    wxString ls = ModelXml->GetAttribute("LayerSizes");
-    wxString io = ModelXml->GetAttribute("InsideOut");
-    wxString da = ModelXml->GetAttribute("DisplayAs");
-
-
-    wxString v = xlights_version_string;
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<circlemodel \n");
-    f.Write(wxString::Format("name=\"%s\" ", name));
-    f.Write(wxString::Format("parm1=\"%s\" ", p1));
-    f.Write(wxString::Format("parm2=\"%s\" ", p2));
-    f.Write(wxString::Format("parm3=\"%s\" ", p3));
-    f.Write(wxString::Format("DisplayAs=\"%s\" ", da));
-    f.Write(wxString::Format("StringType=\"%s\" ", st));
-    f.Write(wxString::Format("Transparency=\"%s\" ", t));
-    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
-    f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
-    f.Write(wxString::Format("Antialias=\"%s\" ", a));
-    f.Write(wxString::Format("StartSide=\"%s\" ", ss));
-    f.Write(wxString::Format("Dir=\"%s\" ", dir));
-    f.Write(wxString::Format("LayerSizes=\"%s\" ", ls));
-    f.Write(wxString::Format("InsideOut=\"%s\" ", io));
-    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
-    f.Write(ExportSuperStringColors());
-    f.Write(" >\n");
-    wxString aliases = SerialiseAliases();
-    if (aliases != "") {
-        f.Write(aliases);
-    }
-    wxString state = SerialiseState();
-    if (state != "") {
-        f.Write(state);
-    }
-    wxString submodel = SerialiseSubmodel();
-    if (submodel != "") {
-        f.Write(submodel);
-    }
-    wxString groups = SerialiseGroups();
-    if (groups != "") {
-        f.Write(groups);
-    }
-    ExportDimensions(f);
-    f.Write("</circlemodel>");
-    f.Close();
 }
 
 bool CircleModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z)

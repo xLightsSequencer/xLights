@@ -1221,19 +1221,19 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         parm3 = 5;
         dynamic_cast<StarModel*>(model)->SetStarStartLocation("Bottom Ctr-CW");
     } else if (type == "Arches") {
-        model = new ArchesModel(*this, false);
+        model = new ArchesModel(*this);
     } else if (type == "Candy Canes") {
-        model = new CandyCaneModel(*this, false);
+        model = new CandyCaneModel(*this);
         parm1 = 3;
         parm2 = 18;
     } else if (type == "Channel Block") {
-        model = new ChannelBlockModel(*this, false);
+        model = new ChannelBlockModel(*this);
         parm1 = 16;
         protocol = xlEMPTY_STRING;
         model->SetStringType("Single Color White");
         model->SetPixelSize(12);
     } else if (type == "Circle") {
-        model = new CircleModel(node, *this, false);
+        model = new CircleModel(*this);
         parm3 = 50;
         node->AddAttribute("InsideOut", "0");
     } else if (type == "DmxMovingHead") {
@@ -1322,7 +1322,7 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         parm3 = 5;
         node->AddAttribute("Style", "Horizontal Left/Right");
     } else if (type == "Custom") {
-        model = new CustomModel(*this, false);
+        model = new CustomModel(*this);
         parm1 = 5;
         parm2 = 5;
     } else if (type.find("Tree") == 0) {
@@ -1558,7 +1558,7 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
     } else if (type == "Channel Block") {
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Circle") {
-        model = new CircleModel(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "DmxMovingHead") {
         model = new DmxMovingHead(node, *this, zeroBased);
     } else if (type == "DmxGeneral") {
@@ -1991,8 +1991,6 @@ bool ModelManager::Delete(const std::string& name)
             Model* model = it->second;
 
             if (model != nullptr) {
-                model->GetModelXml()->GetParent()->RemoveChild(model->GetModelXml());
-
                 for (auto& it2 : models) {
                     if (it2.second->GetDisplayAs() == "ModelGroup") {
                         ModelGroup* group = (ModelGroup*)it2.second;
@@ -2010,8 +2008,8 @@ bool ModelManager::Delete(const std::string& name)
                     }
                 }
 
-                delete model->GetModelXml();
                 delete model;
+                xlights->UnsavedRgbEffectsChanges = true;
                 return true;
             }
         }

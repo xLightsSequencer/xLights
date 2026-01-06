@@ -15,7 +15,7 @@
 class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
-        CustomModel(const ModelManager &manager, bool zeroBased = false);
+        CustomModel(const ModelManager &manager);
         virtual ~CustomModel();
 
         void UpdateModel(int width, int height, int depth, const std::vector<std::vector<std::vector<int>>>& modelData);

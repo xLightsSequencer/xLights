@@ -29,16 +29,20 @@
 
 #include <log4cpp/Category.hh>
 
-CustomModel::CustomModel(const ModelManager &manager,  bool zeroBased) : ModelWithScreenLocation(manager)
+CustomModel::CustomModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
     _depth = 1;
     _strings = 1;
     screenLocation.SetSupportsZScaling(true);
     screenLocation.SetStartOnXAxis(true);
+    _locations.resize(1);
+    _locations.back().resize(1);
+    _locations.back().back().resize(1);
 }
 
 CustomModel::~CustomModel()
 {
+    _locations.clear();
 }
 
 static const std::string CLICK_TO_EDIT("--Click To Edit--");

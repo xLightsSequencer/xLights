@@ -16,7 +16,7 @@
 class ChannelBlockModel : public ModelWithScreenLocation<TwoPointScreenLocation>
 {
     public:
-        ChannelBlockModel(const ModelManager &manager, bool zeroBased = false);
+        ChannelBlockModel(const ModelManager &manager);
         virtual ~ChannelBlockModel();
     
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,

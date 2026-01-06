@@ -5884,7 +5884,6 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
 
 Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int&depthmm)
 {
-    wxASSERT(false);  // TODO: Are we keeping this?
     wxXmlDocument doc;
     bool docLoaded = false;
     if (last_model.empty()) {
