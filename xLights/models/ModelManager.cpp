@@ -1320,7 +1320,7 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         parm1 = 5;
         parm2 = 5;
         parm3 = 5;
-        node->AddAttribute("Style", "Horizontal Left/Right");
+        dynamic_cast<CubeModel*>(model)->SetCubeStyle("Horizontal Left/Right");
     } else if (type == "Custom") {
         model = new CustomModel(*this);
         parm1 = 5;
@@ -1342,9 +1342,9 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         node->AddAttribute("Hollow", "20");
         node->AddAttribute("Arc", "360");
     } else if (type == "Icicles") {
-        model = new IciclesModel(node, *this, false);
+        model = new IciclesModel(*this);
         parm2 = 80;
-        node->AddAttribute("DropPattern", "3,4,5,4");
+        dynamic_cast<IciclesModel*>(model)->SetDropPattern("3,4,5,4");
     } else {
         DisplayError(wxString::Format("'%s' is not a valid model type for model '%s'", type, node->GetAttribute("name")).ToStdString());
         return nullptr;
@@ -1596,7 +1596,7 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
     } else if (type.find("Tree") == 0) {
         model = new TreeModel(node, *this, zeroBased);
     } else if (type.find("Icicles") == 0) {
-        model = new IciclesModel(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "WholeHouse") {
         model = new WholeHouseModel(node, *this, zeroBased);
     } else if (type == "Vert Matrix" || type == "Horiz Matrix") {

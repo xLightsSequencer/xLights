@@ -15,22 +15,23 @@
 class IciclesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
 {
 public:
-    IciclesModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
+    IciclesModel(const ModelManager &manager);
     virtual ~IciclesModel();
     
     virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
-    virtual bool SupportsExportAsCustom() const override { return true; }
-    virtual bool SupportsXlightsModel() override { return true; }
-    virtual bool SupportsWiringView() const override { return true; }
-    virtual std::string GetDimension() const override;
-    virtual void ExportXlightsModel() override;
+    [[nodiscard]] virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+    [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return true; }
+    [[nodiscard]] virtual bool SupportsXlightsModel() override { return true; }
+    [[nodiscard]] virtual bool SupportsWiringView() const override { return true; }
+    [[nodiscard]] virtual std::string GetDimension() const override;
     [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
     virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override;
-    bool HasAlternateNodes() const { return _alternateNodes; }
-    std::string GetDropPattern() const { return _dropPattern; }
+    [[nodiscard]] bool HasAlternateNodes() const { return _alternateNodes; }
+    [[nodiscard]] std::string GetDropPattern() const { return _dropPatternString; }
+    void SetDropPattern(const std::string & pattern);
+    void SetAlternateNodes(bool val) { _alternateNodes = val; }
 
-    virtual bool SupportsVisitors() const override { return true; }
+    [[nodiscard]] virtual bool SupportsVisitors() const override { return true; }
     void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
 protected:
@@ -40,4 +41,7 @@ private:
     void SetIciclesCoord();
     bool _alternateNodes = false;
     std::string _dropPattern = "";
+    std::string _dropPatternString = "";
+    std::vector<size_t> _dropSizes;
+    size_t _maxH = 0;
 };

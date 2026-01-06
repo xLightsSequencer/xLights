@@ -1318,9 +1318,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         xmlNode->AddAttribute(XmlNodeKeys::CubeStartAttribute, model.GetCubeStart());
         xmlNode->AddAttribute(XmlNodeKeys::CubeStringsAttribute, std::to_string(model.GetCubeStrings()));
         xmlNode->AddAttribute(XmlNodeKeys::StrandPerLineAttribute, model.GetStrandStyle());
-        if (model.IsStrandPerLayer()) {
-            xmlNode->AddAttribute(XmlNodeKeys::StrandPerLayerAttribute, "TRUE");
-        }
+        xmlNode->AddAttribute(XmlNodeKeys::StrandPerLayerAttribute, model.IsStrandPerLayer() ? "TRUE" : "FALSE");
         const Model* m = dynamic_cast<const Model*>(&model);
         AddOtherElements(xmlNode, m);
     }
@@ -1907,8 +1905,11 @@ private:
     }
 
     Model* DeserializeIcicles(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        IciclesModel* model = new IciclesModel(node, xlights->AllModels, false);
+        IciclesModel* model = new IciclesModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
+        DeserializeThreePointScreenLocationAttributes(model, node);
+        model->SetDropPattern(node->GetAttribute(XmlNodeKeys::DropPatternAttribute, "3,4,5,4"));
+        model->SetAlternateNodes(node->GetAttribute(XmlNodeKeys::AlternateNodesAttribute, "false") == "true");
         model->Setup();
         return model;
     }
