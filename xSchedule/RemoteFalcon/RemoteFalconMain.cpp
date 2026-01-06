@@ -40,7 +40,7 @@
 #include "../../include/xLights-64.xpm"
 #include "../../include/xLights-128.xpm"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 //helper functions
 enum wxbuildinfoformat {
@@ -150,8 +150,6 @@ void RemoteFalconFrame::AddMessage(MESSAGE_LEVEL msgLevel, const std::string& ms
 
 RemoteFalconFrame::RemoteFalconFrame(wxWindow* parent, const std::string& showDir, const std::string& xScheduleURL, p_xSchedule_Action action, wxWindowID id)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     _toProcess = 0;
     _running = false;
     _showDir = showDir;
@@ -248,7 +246,7 @@ RemoteFalconFrame::RemoteFalconFrame(wxWindow* parent, const std::string& showDi
     SetPosition(wxPoint(x, y));
     SetSize(w, h);
 
-    logger_base.debug("RemoteFalcon UI %d,%d %dx%d.", x, y, w, h);
+    spdlog::debug("RemoteFalcon UI {},{} {}x{}.", x, y, w, h);
 
     LoadOptions();
 
@@ -284,8 +282,7 @@ RemoteFalconFrame::RemoteFalconFrame(wxWindow* parent, const std::string& showDi
 
 RemoteFalconFrame::~RemoteFalconFrame()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("RemoteFalconFrame::~RemoteFalconFrame");
+    spdlog::debug("RemoteFalconFrame::~RemoteFalconFrame");
 
     Stop(true);
 
@@ -360,8 +357,7 @@ void RemoteFalconFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
 
 void RemoteFalconFrame::OnButton_CloseClick(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("RemoteFalconFrame::OnButton_CloseClick");
+    spdlog::debug("RemoteFalconFrame::OnButton_CloseClick");
     Stop();
     Close();
 }
@@ -382,7 +378,6 @@ void RemoteFalconFrame::OnButton_PauseClick(wxCommandEvent& event)
 
 void RemoteFalconFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString dir;
     wxString fileName = "RemoteFalcon_l4cpp.log";
 #ifdef __WXMSW__
@@ -412,14 +407,14 @@ void RemoteFalconFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
         wxString command = ft->GetOpenCommand("foo.txt");
         command.Replace("foo.txt", fn);
 
-        logger_base.debug("Viewing log file %s.", (const char *)fn.c_str());
+       spdlog::debug("Viewing log file {}.", fn.ToStdString());
 
         wxExecute(command);
         delete ft;
     }
     else
     {
-        logger_base.warn("Unable to view log file %s.", (const char *)fn.c_str());
+        spdlog::warn("Unable to view log file {}.", fn.ToStdString());
         wxMessageBox(_("Unable to show log file."), _("Error"));
     }
 }
@@ -456,8 +451,7 @@ void RemoteFalconFrame::Start()
 
 void RemoteFalconFrame::Stop(bool suppressMessage)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("RemoteFalconFrame::Stop");
+    spdlog::debug("RemoteFalconFrame::Stop");
 
     if (_options.IsEnableDisable()) {
         AddMessage(MESSAGE_LEVEL::ML_INFO, "Asking remote falcon to disable viewer control.");
@@ -645,8 +639,6 @@ void RemoteFalconFrame::GetAndPlayEffect() {
 
 void RemoteFalconFrame::DoNotifyStatus(const std::string& status)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     static std::string _lastPlaying;
 
     wxJSONReader reader;
@@ -849,8 +841,7 @@ bool RemoteFalconFrame::SendCommand(const std::string& command, const std::strin
 
 void RemoteFalconFrame::OnClose(wxCloseEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("RemoteFalconFrame::OnClose");
+    spdlog::debug("RemoteFalconFrame::OnClose");
     if (event.CanVeto()) {
         event.Veto();
     } else{

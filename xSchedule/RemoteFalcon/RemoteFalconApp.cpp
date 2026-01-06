@@ -27,14 +27,17 @@
 
 #include "RemoteFalconApp.h"
 
-#include <log4cpp/Category.hh>
-#include <log4cpp/PropertyConfigurator.hh>
-#include <log4cpp/Configurator.hh>
+#include "spdlog/spdlog.h"
+#include "spdlog/common.h"
+#include "spdlog/sinks/rotating_file_sink.h"
+
 #include <wx/file.h>
 #include <wx/msgdlg.h>
 
 #include "../../xLights/xLightsVersion.h"
 #include "../../xLights/SpecialOptions.h"
+
+#include "../../xLights/UtilFunctions.h"
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
@@ -50,7 +53,6 @@
 #pragma comment(lib, "wxzlibd.lib")
 #pragma comment(lib, "wxmsw"WXWIDGETS_VERSION"ud_qa.lib")
 #pragma comment(lib, "wxexpatd.lib")
-#pragma comment(lib, "log4cpplibd.lib")
 #else
 #pragma comment(lib, "wxbase"WXWIDGETS_VERSION"u.lib")
 #pragma comment(lib, "wxbase"WXWIDGETS_VERSION"u_net.lib")
@@ -64,7 +66,6 @@
 #pragma comment(lib, "wxzlib.lib")
 #pragma comment(lib, "wxmsw"WXWIDGETS_VERSION"u_qa.lib")
 #pragma comment(lib, "wxexpat.lib")
-#pragma comment(lib, "log4cpplib.lib")
 #endif
 #pragma comment(lib, "libcurl.dll.a")
 #pragma comment(lib, "iphlpapi.lib")
@@ -100,8 +101,7 @@ RemoteFalconApp::RemoteFalconApp() :
 
 static void WipeSettings()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.warn("------ Wiping RemoteFalcon settings ------");
+    spdlog::warn("------ Wiping RemoteFalcon settings ------");
 
     wxConfigBase* config = wxConfigBase::Get();
     config->DeleteAll();
@@ -114,37 +114,46 @@ static void InitialiseLogging(bool fromMain)
     if (!loggingInitialised)
     {
 
+std::string const logFileName = "xschedule_spdlog.log";
 #ifdef __WXMSW__
-        std::string initFileName = "xschedule.windows.properties";
+        wxString dir;
+        wxGetEnv("APPDATA", &dir);
+        std::string const logFilePath = std::string(dir.c_str()) + "\\" + logFileName;
+#endif
+#ifdef __WXOSX__
+        wxFileName home;
+        home.AssignHomeDir();
+        wxString const dir = home.GetFullPath();
+        std::string const logFilePath = std::string(dir.c_str()) + "/Library/Logs/" + logFileName;
 #endif
 #ifdef __LINUX__
-        std::string initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/bin/xschedule.linux.properties";
-        if (!wxFile::Exists(initFileName)) {
-            initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/share/xLights/xschedule.linux.properties";
-        }
+        std::string const logFilePath = "/tmp/" + logFileName;
 #endif
 
-        if (!wxFile::Exists(initFileName))
-        {
-#ifdef _MSC_VER
-            // the app is not initialized so GUI is not available and no event loop.
-            wxMessageBox(initFileName + " not found in " + wxGetCwd() + ". Logging disabled.");
-#endif
-        }
-        else
-        {
-            try
-            {
-                log4cpp::PropertyConfigurator::configure(initFileName);
-            }
-            catch (log4cpp::ConfigureFailure & e) {
-                // ignore config failure ... but logging wont work
-                printf("Log issue:  %s\n", e.what());
-            }
-            catch (const std::exception & ex) {
-                printf("Log issue: %s\n", ex.what());
-            }
-        }
+        // wxStandardPaths::Get().Get()
+
+        auto rotating_file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFilePath, 1024 * 1024 * 10, 10);
+
+        auto file_logger = std::make_shared<spdlog::logger>("xschedule", rotating_file_sink);
+        auto curl_logger = std::make_shared<spdlog::logger>("curl", rotating_file_sink);
+        spdlog::register_logger(curl_logger);
+
+        loggingInitialised = true;
+        spdlog::initialize_logger(file_logger);
+        spdlog::set_default_logger(file_logger);
+        spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e [%l] %v");
+        spdlog::flush_on(spdlog::level::info);
+        // wxOperatingSystemId os = wxGetOsVersion();
+        // std::string osStr = DecodeOS(os);
+        // std::string initFileName;
+
+        wxDateTime now = wxDateTime::Now();
+        int millis = wxGetUTCTimeMillis().GetLo() % 1000;
+        wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth() + 1, now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
+        // spdlog::info("Start Time: {}.", ts);
+
+        spdlog::info("Start Time: {}.", ts.ToStdString());
+        spdlog::info("Current working directory {}.", wxGetCwd().ToStdString());
     }
 }
 
@@ -201,8 +210,7 @@ static void InitialiseLogging(bool fromMain)
 
     // called when we want the plugin to exit
     void RemoteFalcon_xSchedule_Stop() {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("RemoteFalcon_xSchedule_Stop");
+        spdlog::debug("RemoteFalcon_xSchedule_Stop");
 
         if (!__started) return;
 
@@ -217,8 +225,7 @@ static void InitialiseLogging(bool fromMain)
 
     // called just before xSchedule exits
     void RemoteFalcon_xSchedule_Unload() {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("RemoteFalcon_xSchedule_Unload");
+        spdlog::debug("RemoteFalcon_xSchedule_Unload");
     }
 
     void RemoteFalcon_xSchedule_NotifyStatus(const char* status) {
@@ -277,8 +284,7 @@ extern "C" {
 
 int RemoteFalconApp::OnExit()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("RemoteFalconApp::OnExit");
+    spdlog::info("RemoteFalconApp::OnExit");
 
     return 0;
 }
@@ -287,8 +293,7 @@ bool RemoteFalconApp::OnInit()
 {
     InitialiseLogging(false);
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("******* OnInit: RemoteFalcon started.");
+    spdlog::info("******* OnInit: RemoteFalcon started.");
 
     //(*AppInitialize
     RemoteFalconFrame* Frame = new RemoteFalconFrame(0, __showDir, __xScheduleURL, __action);
@@ -301,19 +306,17 @@ bool RemoteFalconApp::OnInit()
 BOOL APIENTRY DllMain(HANDLE hModule,
     DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
         InitialiseLogging(false);
-        logger_base.info("RemoteFalcon process attach.");
+        spdlog::info("RemoteFalcon process attach.");
         wxSetInstance((HINSTANCE)hModule);
         break;
     case DLL_THREAD_ATTACH: break;
     case DLL_THREAD_DETACH: break;
     case DLL_PROCESS_DETACH:
-        logger_base.info("RemoteFalcon process detach.");
+        spdlog::info("RemoteFalcon process detach.");
         break;
     }
 

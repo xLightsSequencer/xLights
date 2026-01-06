@@ -16,8 +16,6 @@
 #include "../wxJSON/jsonreader.h"
 #include "RemoteFalconOptions.h"
 
-#include <log4cpp/Category.hh>
-
 class xSchedule
 {
 	static p_xSchedule_Action __action;

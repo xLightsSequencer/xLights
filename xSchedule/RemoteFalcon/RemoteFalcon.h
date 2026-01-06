@@ -17,12 +17,12 @@
 
 #include <wx/wx.h>
 
-#include "../../xLights/UtilFunctions.h"
+
 #include "../wxJSON/jsonreader.h"
 #include "RemoteFalconOptions.h"
 #include "../../xLights/SpecialOptions.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 class RemoteFalcon
 {
@@ -93,7 +93,6 @@ class RemoteFalcon
 
         std::string SyncPlayLists(const std::string& playlist, const std::string& steps)
         {
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             std::string body = wxString::Format("{\"remoteToken\":\"%s\",\"playlists\":[", __token);
 
             wxJSONReader reader;
@@ -119,8 +118,8 @@ class RemoteFalcon
         
             body += "]}";
             auto url = _URLBase + "/syncPlaylists";
-            logger_base.debug(RemoteFalcon::DeTokenfy(url));
-            logger_base.debug(RemoteFalcon::DeTokenfy(body));
+            spdlog::debug(RemoteFalcon::DeTokenfy(url));
+            spdlog::debug(RemoteFalcon::DeTokenfy(body));
             return Curl::HTTPSPost(url, body, "", "", "JSON", 10, { {"remotetoken", __token} });
         }
 };
