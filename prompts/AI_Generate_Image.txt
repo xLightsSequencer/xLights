@@ -1,0 +1,5 @@
+MANDATORY OUTPUT REQUIREMENTS: Background: Pure Black background (#000000) with no watermarks or border. 
+Design: 2D Vector Style, Colors aligned to the character design. 
+The design features bold, clean outlines, simple cel-shading, and a limited vibrant color palette with clean edges and no gradients. 
+Ensure the lines are perfectly horizontal and vertical with no diagonal smoothing.
+A minimalist, flat 2D pixel art illustration using a 16-bit kawaii style. 

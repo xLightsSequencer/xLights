@@ -1682,3 +1682,58 @@ bool IsDarkMode() {
 #endif
         ;
 }
+
+std::string GetAIPrompt(const std::string& promptFile, const std::string& showDir) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    std::string showFolderPromptFile = showDir + "/" + promptFile;
+    std::string xlFolder = GetResourcesDirectory();
+    std::string xLightsFolderPromptFile = xlFolder + "/prompts/" + promptFile;
+
+    std::string fileToLoad;
+    if (wxFileExists(showFolderPromptFile)) {
+        logger_base.debug("Using prompt file from show folder: %s", showFolderPromptFile.c_str());
+        fileToLoad = showFolderPromptFile;
+    } else if (wxFileExists(xLightsFolderPromptFile)) {
+        logger_base.debug("Using prompt file from xLights folder: %s", xLightsFolderPromptFile.c_str());
+        fileToLoad = xLightsFolderPromptFile;
+    } else {
+        // This looks for a prompt without the aiEngine prefix
+        std::string pf = AfterFirst(promptFile, '_');
+
+        showFolderPromptFile = showDir + "/" + pf;
+        xLightsFolderPromptFile = xlFolder + "/prompts/" + pf;
+
+        if (wxFileExists(showFolderPromptFile)) {
+            logger_base.debug("Using prompt file from show folder: %s", showFolderPromptFile.c_str());
+            fileToLoad = showFolderPromptFile;
+        } else if (wxFileExists(xLightsFolderPromptFile)) {
+            logger_base.debug("Using prompt file from xLights folder: %s", xLightsFolderPromptFile.c_str());
+            fileToLoad = xLightsFolderPromptFile;
+        } else {
+            logger_base.error("Prompt file not found: %s", promptFile.c_str());
+            return "";
+        }
+    }
+
+    // read the prompt from the ./prompts/<filename>.txt file relative to where this executable is
+    std::string promptText;
+    std::ifstream file(fileToLoad);
+    if (file.is_open()) {
+        std::string line;
+        while (std::getline(file, line)) {
+            if (line != "" && line[0] == '#') {
+                // we skip over lines with a # as the first character so we can add comments into prompt files
+            } else {
+                promptText += line + "  ";
+            }
+        }
+        file.close();
+    }
+
+    if (promptText == "") {
+        wxMessageBox("The prompt file contained no prompt. " + fileToLoad, "Error", wxICON_ERROR | wxOK);
+    }
+
+    return promptText;
+}

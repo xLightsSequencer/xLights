@@ -83,6 +83,8 @@ void ReverseNodes(std::map<std::string, std::string> & nodes, int max);
 wxImage ApplyOrientation(const wxImage& img, int orient);
 int GetExifOrientation(const wxString& filename);
 
+std::string GetAIPrompt(const std::string& promptType, const std::string& showDir);
+
 std::string GetResourcesDirectory();
 
 inline long roundTo4(long i) {

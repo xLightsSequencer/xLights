@@ -1,6 +1,7 @@
 #include "ServiceManager.h"
 #include "aiBase.h"
 #include "chatGPT.h"
+#include "gemini.h"
 #include "ollama.h"
 
 #ifdef __WXOSX__
@@ -28,6 +29,7 @@ ServiceManager::ServiceManager(xLightsFrame* xl)
 #endif
     m_services.push_back(std::make_unique<chatGPT>(this));
     m_services.push_back(std::make_unique<ollama>(this));
+    m_services.push_back(std::make_unique<gemini>(this));
     for (auto& service : m_services) {
         service->LoadSettings();
     }

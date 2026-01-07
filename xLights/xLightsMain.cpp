@@ -118,6 +118,8 @@
 #include "xlColourData.h"
 #include "utils/Curl.h"
 #include "ai/chatGPT.h"
+#include "ai/gemini.h"
+#include "ai/AIImageDialog.h"
 #include "models/DMX/DmxMovingHeadComm.h"
 
 #include "../xSchedule/wxHTTPServer/wxhttpserver.h"
@@ -272,6 +274,7 @@ const wxWindowID xLightsFrame::ID_MNU_DUMPRENDERSTATE = wxNewId();
 const wxWindowID xLightsFrame::ID_MENU_GENERATE2DPATH = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_GenerateCustomModel = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_REMAPCUSTOM = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_GenerateAIImage = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_GENERATELYRICS = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_PREPAREAUDIO = wxNewId();
@@ -606,7 +609,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     AllObjects(this),
     _presetSequenceElements(this),
     color_mgr(this),
-    _renderMode(renderOnlyMode)
+    _renderMode(renderOnlyMode),
+    serviceManager(new ServiceManager(this))
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
@@ -1029,6 +1033,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Menu1->Append(Menu_GenerateCustomModel);
     MenuItem_RemapCustom = new wxMenuItem(Menu1, ID_MNU_REMAPCUSTOM, _("Remap Custom Model"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_RemapCustom);
+    Menu_GenerateAIImage = new wxMenuItem(Menu1, ID_MENUITEM_GenerateAIImage, _("Generate AI Image"), _("Create images using Gemini - if configured."), wxITEM_NORMAL);
+    Menu1->Append(Menu_GenerateAIImage);
     MenuItem_GenerateLyrics = new wxMenuItem(Menu1, ID_MNU_GENERATELYRICS, _("Generate &Lyrics From Data"), _("Generate lyric phenomes from data"), wxITEM_NORMAL);
     Menu1->Append(MenuItem_GenerateLyrics);
     MenuItemConvert = new wxMenuItem(Menu1, ID_MENUITEM_CONVERT, _("&Convert"), wxEmptyString, wxITEM_NORMAL);
@@ -1301,6 +1307,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_MENU_GENERATE2DPATH, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_Generate2DPathSelected);
     Connect(ID_MENUITEM_GenerateCustomModel, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenu_GenerateCustomModelSelected);
     Connect(ID_MNU_REMAPCUSTOM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_RemapCustomSelected);
+    Connect(ID_MENUITEM_GenerateAIImage, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_GenerateAIImageSelected);
     Connect(ID_MNU_GENERATELYRICS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_GenerateLyricsSelected);
     Connect(ID_MENUITEM_CONVERT, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemConvertSelected);
     Connect(ID_MNU_PREPAREAUDIO, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_PrepareAudioSelected);
@@ -1374,9 +1381,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&xLightsFrame::OnClose);
     Connect(wxEVT_CHAR, (wxObjectEventFunction)&xLightsFrame::OnChar);
     //*)
-    
+
     Notebook1->SetArtProvider(new wxAuiGenericTabArt());
-    
+
     wxConfigBase* config = wxConfigBase::Get();
     if (config == nullptr) {
         logger_base.error("Null config ... this wont end well.");
@@ -9046,7 +9053,7 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
     MenuItem_Update->Enable(true);
     int rc = 0;
     logger_base.debug("Downloading %s", (const char*)githubTagURL.c_str());
-    
+
     bool didConnect = false;
     std::string resp;
     nlohmann::json val;
@@ -9620,7 +9627,6 @@ void xLightsFrame::OnCharHook(wxKeyEvent& event)
 
 void xLightsFrame::OnMenuItem_ZoomSelected(wxCommandEvent& event)
 {
-    //::wxLaunchDefaultBrowser("https://zoom.us/j/175801909");
     ::wxLaunchDefaultBrowser("https://zoom.us/j/175801909?pwd=ZU1hNzM5bjJpOGZ1d1BOb1BzMUFndz09");
 }
 
@@ -10746,3 +10752,25 @@ void xLightsFrame::OnMenuItemFindShowFolderSelected(wxCommandEvent& event)
 aiBase* xLightsFrame::GetAIService(aiType::TYPE serviceType) {
     return _serviceManager->findService(serviceType);
 }
+
+void xLightsFrame::OnMenuItem_GenerateAIImageSelected(wxCommandEvent& event) {
+    wxString defaultTopic = "Create A kawaii-style sticker of a happy christmas elf wearing a tiny elf hat. It's munching on a large Candy Cane.";
+    ServiceManager* sm = GetServiceManager();
+    if (!sm) {
+        wxMessageBox("Service manager not initialized!", "Error", wxICON_ERROR);
+        return;
+    }
+
+    gemini* geminiService = dynamic_cast<gemini*>(sm->getService("Gemini"));
+    if (geminiService == nullptr || !geminiService->IsAvailable()) {
+        wxMessageBox("Gemini is not enabled or API key not set.\nGo to Preferences Services to configure it.",
+                     "Gemini Not Available", wxICON_INFORMATION);
+        return;
+    }
+
+    wxString AIPrompt = GetAIPrompt(geminiService->GetLLMName() + "_AI_Generate_Image.txt", GetShowDirectory());
+
+    AIImageDialog dlg(this, sm, defaultTopic, AIPrompt);
+    dlg.ShowModal();
+}
+
