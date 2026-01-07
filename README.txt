@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2026.01  January 7, 2026
     -enh (scott)            Switch HinksPix Enable Column to Check Box, add Error Checking if all schedules are disabled
     -enh (gil)              Reduce model loading at startup from 3 times to 2
     -enh (derwin12)         Added WEC to Minleon
