@@ -1211,6 +1211,7 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
     Model* model;
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "model");  // TODO: Delete this when all models are updated to not use the node*
 
+    std::string type_conversion = type;
     std::string protocol = "ws2811";
     int parm1 = 1;
     int parm2 = 50;
@@ -1292,11 +1293,11 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
             node->AddAttribute("parm1", "6");
         }
     } else if (type == "Image") {
-        model = new ImageModel(node, *this, false);
+        model = new ImageModel(*this);
         protocol = xlEMPTY_STRING;
         parm1 = 1;
         parm2 = 1;
-        node->AddAttribute("Image", "");
+        dynamic_cast<ImageModel*>(model)->SetImageFile("");
         model->SetStringType("Single Color White");
     } else if (type == "Window Frame") {
         model = new WindowFrameModel(node, *this, false);
@@ -1330,10 +1331,9 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         parm1 = 16;
         node->AddAttribute("DisplayAs", "Tree 360");
     } else if (type == "Matrix") {
-        model = new MatrixModel(node, *this, false);
+        model = new MatrixModel(*this);
         parm1 = 16;
         model->SetStartSide("T");
-        node->AddAttribute("DisplayAs", "Horiz Matrix");
     } else if (type == "Spinner") {
         model = new SpinnerModel(node, *this, false);
         parm2 = 10;
@@ -1576,7 +1576,7 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
     } else if (type == "DmxServo3d") {
         model = new DmxServo3d(node, *this, zeroBased);
     } else if (type == "Image") {
-        model = new ImageModel(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Window Frame") {
         model = new WindowFrameModel(node, *this, zeroBased);
     } else if (type == "Wreath") {
@@ -1599,8 +1599,8 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "WholeHouse") {
         model = new WholeHouseModel(node, *this, zeroBased);
-    } else if (type == "Vert Matrix" || type == "Horiz Matrix") {
-        model = new MatrixModel(node, *this, zeroBased);
+    } else if (type == "Matrix" || type == "Vert Matrix" || type == "Horiz Matrix") {
+        model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Spinner") {
         model = new SpinnerModel(node, *this, zeroBased);
     } else {

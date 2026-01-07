@@ -45,7 +45,7 @@ static wxPGChoices TREE_DIRECTIONS(wxArrayString(2, TREE_DIRECTION_VALUES));
 
 void TreeModel::InitModel() {
     _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
-    _noZig = (ModelXml->GetAttribute("NoZig", "false") == "true");
+    _noZigZag = (ModelXml->GetAttribute("NoZig", "false") == "true");
     _displayAs = (ModelXml->GetAttribute("DisplayAs"));
     bool isHMatrix = (ModelXml->GetAttribute("StrandDir", TREE_DIRECTION_VALUES[1]) == TREE_DIRECTION_VALUES[0]);
     wxStringTokenizer tkz(DisplayAs, " ");
@@ -393,13 +393,13 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
 
     p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
     p->SetEditor("CheckBox");
-    p->Enable(_noZig == false);
+    p->Enable(_noZigZag == false);
 
-    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", _noZig));
+    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", _noZigZag));
     p->SetEditor("CheckBox");
     p->Enable(_alternateNodes == false);
 
-    grid->Append(new wxEnumProperty("Strand Direction", "StrandDir", TREE_DIRECTIONS, vMatrix ? 1 : 0));
+    grid->Append(new wxEnumProperty("Strand Direction", "StrandDir", TREE_DIRECTIONS, _vMatrix ? 1 : 0));
 }
 
 void TreeModel::ExportXlightsModel()

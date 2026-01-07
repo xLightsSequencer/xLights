@@ -15,44 +15,46 @@
 class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
-        MatrixModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
+        MatrixModel(const ModelManager &manager);
         virtual ~MatrixModel();
-        virtual int GetNumStrands() const override;
+        [[nodiscard]] virtual int GetNumStrands() const override;
 
-        bool SupportsChangingStringCount() const override{ return true; };
-        bool ChangeStringCount(long count, std::string& message) override;
-        virtual bool SupportsXlightsModel() override { return true; }
-        virtual bool SupportsExportAsCustom() const override { return true; }
-        virtual bool SupportsWiringView() const override { return true; }
-        virtual void ExportXlightsModel() override;
+        [[nodiscard]] bool SupportsChangingStringCount() const override{ return true; };
+        [[nodiscard]] bool ChangeStringCount(long count, std::string& message) override;
+        [[nodiscard]] virtual bool SupportsXlightsModel() override { return true; }
+        [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return true; }
+        [[nodiscard]] virtual bool SupportsWiringView() const override { return true; }
         [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
 
         virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
-        virtual std::list<std::string> CheckModelSettings() override;
+        [[nodiscard]] virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+        [[nodiscard]] virtual std::list<std::string> CheckModelSettings() override;
 
         // we cant do low def on single node matrices
-        virtual bool SupportsLowDefinitionRender() const override { return SingleNode != true; }
-        bool isVerticalMatrix() const { return vMatrix; }
+        [[nodiscard]] virtual bool SupportsLowDefinitionRender() const override { return SingleNode != true; }
+        [[nodiscard]] bool isVerticalMatrix() const { return _vMatrix; }
 
-        virtual bool SupportsVisitors() const override { return true; }
+        [[nodiscard]] virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
-        bool HasAlternateNodes() const { return _alternateNodes; }
-        bool IsNoZigZag() const { return _noZig; }
-        int GetLowDefFactor() const { return _lowDefFactor; }
+        [[nodiscard]] bool HasAlternateNodes() const { return _alternateNodes; }
+        [[nodiscard]] bool IsNoZigZag() const { return _noZigZag; }
+        [[nodiscard]] int GetLowDefFactor() const { return _lowDefFactor; }
+
+        void SetAlternateNodes(bool val) { _alternateNodes = val; }
+        void SetNoZigZag(bool val) { _noZigZag = val; }
+        void SetVertical(bool val) { _vMatrix = val; }
 
     protected:
         virtual void AddStyleProperties(wxPropertyGridInterface *grid);
     
-        MatrixModel(const ModelManager &manager);
         virtual void InitModel() override;
         void InitSingleChannelModel();
 
         void InitVMatrix(int firstExportStrand = 0);
         void InitHMatrix();
     
-        bool vMatrix = false;
+        bool _vMatrix = false;
         bool _alternateNodes = false;
-        bool _noZig = false;
+        bool _noZigZag = false;
     private:
 };

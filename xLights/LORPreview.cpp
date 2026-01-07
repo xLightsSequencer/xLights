@@ -450,6 +450,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         m->SetProperty( "parm3", wxString::Format( "%d", model.parms.at( 2 ) + 1 ) ); //number of folds is one less than number of stands per string in xLights
 
         if( model.shapeName.Contains( "Vertical" ) ) {
+            // TODO:  Matrix is changing to be called Matrix for DisplayAs and new attribute will define vertical or horizontal
             m->SetProperty( "DisplayAs", "Vert Matrix" );
         } else {
             m->SetProperty( "DisplayAs", "Horiz Matrix" );

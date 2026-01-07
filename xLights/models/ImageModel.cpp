@@ -26,25 +26,15 @@
 #include "../graphics/xlGraphicsContext.h"
 
 
-ImageModel::ImageModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
-{
-    _whiteAsAlpha = false;
-    _offBrightness = 80;
-    _imageFile = "";
-    SetFromXml(node, zeroBased);
-}
-
 ImageModel::ImageModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
-    //ctor
-    _imageFile = "";
     _whiteAsAlpha = false;
     _offBrightness = 80;
+    _imageFile = "";
 }
 
 ImageModel::~ImageModel()
 {
-    //dtor
     for (auto it = _images.begin(); it != _images.end(); ++it) {
         delete it->second;
     }
@@ -152,8 +142,6 @@ int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         _images.clear();
         _imageFile = event.GetValue().GetString();
         ObtainAccessToURL(_imageFile);
-        ModelXml->DeleteAttribute("Image");
-        ModelXml->AddAttribute("Image", _imageFile);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::Image");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::Image");
@@ -165,8 +153,6 @@ int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
             delete it->second;
         }
         _images.clear();
-        ModelXml->DeleteAttribute("WhiteAsAlpha");
-        ModelXml->AddAttribute("WhiteAsAlpha", _whiteAsAlpha ? "True" : "False");
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::WhiteAsAlpha");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::WhiteAsAlpha");
@@ -174,8 +160,6 @@ int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         return 0;
     } else if ("OffBrightness" == event.GetPropertyName()) {
         _offBrightness = event.GetValue().GetInteger();
-        ModelXml->DeleteAttribute("OffBrightness");
-        ModelXml->AddAttribute("OffBrightness", wxString::Format("%d", _offBrightness));
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::OffBrightness");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::OffBrightness");
@@ -188,17 +172,8 @@ int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
 
 void ImageModel::InitModel()
 {
-    DisplayAs = "Image";
     parm2 = 1;
     parm3 = 1;
-
-	_imageFile = FixFile("", ModelXml->GetAttribute("Image", ""));
-    if (_imageFile != ModelXml->GetAttribute("Image", "")) {
-        ModelXml->DeleteAttribute("Image");
-        ModelXml->AddAttribute("Image", _imageFile);
-    }
-	_whiteAsAlpha = ModelXml->GetAttribute("WhiteAsAlpha", "False") == "True";
-	_offBrightness = wxAtoi(ModelXml->GetAttribute("OffBrightness", "80"));
 
     SetNodeCount(1, 1, rgbOrder);
 	Nodes[0]->ActChan = stringStartChan[0];
@@ -215,6 +190,12 @@ void ImageModel::InitModel()
     SetBufferSize(1, 1);
     screenLocation.SetRenderSize(1, 1);
     screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
+}
+
+void ImageModel::SetImageFile(const std::string & imageFile)
+{
+    ObtainAccessToURL(imageFile);
+    _imageFile = FixFile("", imageFile);
 }
 
 void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
@@ -521,9 +502,7 @@ bool ImageModel::CleanupFileLocations(xLightsFrame* frame)
     if (FileExists(_imageFile)) {
         if (!frame->IsInShowFolder(_imageFile)) {
             _imageFile = frame->MoveToShowFolder(_imageFile, wxString(wxFileName::GetPathSeparator()) + "Images");
-            ModelXml->DeleteAttribute("Image");
-            ModelXml->AddAttribute("Image", _imageFile);
-            SetFromXml(ModelXml, zeroBased);
+            Setup();
             rc = true;
         }
     }
@@ -567,4 +546,3 @@ int ImageModel::GetChannelValue(int channel)
     return std::max(c.red, std::max(c.green, c.blue));
 }
 
-void ImageModel::ExportXlightsModel() {}

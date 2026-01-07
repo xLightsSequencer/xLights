@@ -302,17 +302,20 @@ namespace XmlNodeKeys {
     constexpr auto CustomStringsAttribute  = "CustomStrings";
 
     // Dimming Curves
-    constexpr auto DimmingNodeName     = "dimmingCurve";
+    constexpr auto DimmingNodeName = "dimmingCurve";
 
     // Image Model
-    constexpr auto ImageAttribute = "Image";
-    constexpr auto BlackAttribute = "Black";
-    constexpr auto ChainAttribute = "Chain";
+    constexpr auto ImageAttribute         = "Image";
+    constexpr auto BlackAttribute         = "Black";
+    constexpr auto ChainAttribute         = "Chain";
+    constexpr auto WhiteAsAlphaAttribute  = "WhiteAsAlpha";
+    constexpr auto OffBrightnessAttribute = "OffBrightness";
 
     // Icicles Model
     constexpr auto DropPatternAttribute = "DropPattern";
 
     // Matrix
+    constexpr auto VertMatrixAttribute    = "Vertical";
     constexpr auto NoZigZagAttribute      = "NoZig";
 
     // Poly Line Model
@@ -1346,6 +1349,8 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
     void Visit(const ImageModel& model) override {
         wxXmlNode* xmlNode = CommonVisitSteps(model);
         xmlNode->AddAttribute(XmlNodeKeys::ImageAttribute, model.GetImageFile());
+        xmlNode->AddAttribute(XmlNodeKeys::WhiteAsAlphaAttribute, model.IsWhiteAsAlpha() ? "True" : "False");
+        xmlNode->AddAttribute(XmlNodeKeys::OffBrightnessAttribute, std::to_string(model.GetOffBrightness()));
         const Model* m = dynamic_cast<const Model*>(&model);
         AddOtherElements(xmlNode, m);
     }
@@ -1915,15 +1920,27 @@ private:
     }
 
     Model* DeserializeImage(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        ImageModel* model = new ImageModel(node, xlights->AllModels, false);
+        ImageModel* model = new ImageModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->SetImageFile(node->GetAttribute(XmlNodeKeys::ImageAttribute, xlEMPTY_STRING));
+        model->SetWhiteAsAlpha(node->GetAttribute(XmlNodeKeys::WhiteAsAlphaAttribute, "False") == "True");
+        model->SetOffBrightness(std::stoi(node->GetAttribute(XmlNodeKeys::OffBrightnessAttribute, "80").ToStdString()));
         model->Setup();
         return model;
     }
 
     Model* DeserializeMatrix(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        MatrixModel* model = new MatrixModel(node, xlights->AllModels, false);
+        MatrixModel* model = new MatrixModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->SetAlternateNodes(node->GetAttribute(XmlNodeKeys::AlternateNodesAttribute, "false") == "true");
+        model->SetNoZigZag(node->GetAttribute(XmlNodeKeys::NoZigZagAttribute, "false") == "true");
+        std::string type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute, "Matrix");
+        if (type == "Vert Matrix") {
+            model->SetVertical(true);
+        } else if (node->GetAttribute(XmlNodeKeys::VertMatrixAttribute, "false") == "true") {
+            model->SetVertical(true);
+        }
+        model->SetDisplayAs("Matrix");
         model->Setup();
         return model;
     }

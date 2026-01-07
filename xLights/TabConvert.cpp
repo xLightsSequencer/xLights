@@ -1169,7 +1169,7 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
                 n.AddAttribute("versionNumber", "5");
                 n.AddAttribute("StartChannel", "1"); // this is going to be a problem
                 ModelManager mm(nullptr, this);
-                _presetModel = new MatrixModel(&n, mm, true);
+                _presetModel = new MatrixModel(mm);
 
                 _presetSequenceElements.AddElement(_presetModel->GetName(), "Model", true, false, false, false, false);
             }

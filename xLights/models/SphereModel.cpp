@@ -41,7 +41,7 @@ void SphereModel::InitModel() {
     _endLatitude = wxAtof(ModelXml->GetAttribute("EndLatitude", "86"));
     _sphereDegrees = wxAtoi(ModelXml->GetAttribute("Degrees", "360"));
     _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
-    _noZig = (ModelXml->GetAttribute("NoZig", "false") == "true");
+    _noZigZag = (ModelXml->GetAttribute("NoZig", "false") == "true");
 
     InitVMatrix(0);
     screenLocation.SetPerspective2D(0.1f);
@@ -179,10 +179,10 @@ void SphereModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
     p->SetEditor("CheckBox");
     if (SingleNode) {
-        p->Enable(_noZig == false);
+        p->Enable(_noZigZag == false);
     }
 
-    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", _noZig));
+    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", _noZigZag));
     p->SetEditor("CheckBox");
     if (SingleNode) {
         p->Enable(_alternateNodes == false);
