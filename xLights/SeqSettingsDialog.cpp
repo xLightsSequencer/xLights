@@ -527,6 +527,10 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     TextCtrl_Xml_Seq_Duration->ChangeValue(xml_file->GetSequenceDurationString());
     BlendingCheckBox->SetValue(xml_file->supportsModelBlending());
 
+    if (xml_file->GetSequenceType() == "Media") {
+        TextCtrl_Xml_Seq_Duration->Enable(false);
+    }
+
     DataLayerSet& data_layers = xml_file->GetDataLayers();
     wxTreeItemId root = TreeCtrl_Data_Layers->GetRootItem();
 
@@ -814,6 +818,7 @@ void SeqSettingsDialog::ProcessSequenceType()
     Button_AddMilliseconds->Enable((type == "Media") && xml_file->HasAudioMedia());
     TextCtrl_Premilliseconds->Enable((type == "Media") && xml_file->HasAudioMedia());
     TextCtrl_Postmilliseconds->Enable((type == "Media") && xml_file->HasAudioMedia());
+    TextCtrl_Xml_Seq_Duration->Enable(type != "Media");
     if( !wizard_active && type == "Media" && !xml_file->HasAudioMedia() )
     {
         StaticText_Warn_No_Media->Show();
@@ -1572,6 +1577,7 @@ void SeqSettingsDialog::MediaLoad(wxFileName name_and_path)
     double length = length_ms / 1000.0f;
     xml_file->SetSequenceDuration(length);
     TextCtrl_Xml_Seq_Duration->ChangeValue(string_format("%.3f", length));
+    TextCtrl_Xml_Seq_Duration->Enable(false);
     if (xml_file->GetSequenceLoaded())
     {
         xLightsParent->LoadAudioData(*xml_file);
