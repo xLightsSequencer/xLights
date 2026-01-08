@@ -485,7 +485,6 @@ void xLightsFrame::CheckForValidModels()
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    //bool cancelled = cancelled_in;
     bool cancelled = false;
 
     logger_base.debug("CheckForValidModels: building model list.");
@@ -504,6 +503,7 @@ void xLightsFrame::CheckForValidModels()
     logger_base.debug("CheckForValidModels: Remove models that already exist.");
 
     std::vector<std::string> missingModels;
+    bool ringBell = _promptBatchRenderIssues;
 
     if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
         for (int x = _sequenceElements.GetElementCount() - 1; x >= 0; x--) {
@@ -543,6 +543,12 @@ void xLightsFrame::CheckForValidModels()
         }
         missings.pop_back();
         missings.pop_back(); //drop last delimiter
+        if (ringBell && _renderMode) {
+            ringBell = false; 
+            if (IsRenderBell()) {
+                wxBell();
+            }
+        }
         auto msg = wxString::Format("The sequence you are opening '%s' contains %d models which are not in your layout (%s). We suggest you import this sequence instead. Do you want to continue to open it?", seqName, (int)missingModels.size(), missings.c_str());
         if (wxMessageBox(msg, "Many missing models in this sequence", wxYES_NO) == wxNO) {
             mapall = true;
@@ -571,6 +577,12 @@ void xLightsFrame::CheckForValidModels()
                 if (m == nullptr) {
                     logger_base.debug("CheckForValidModels:    Missing model: %s.", (const char*)name.c_str());
                     if (!mapall) {
+                        if (ringBell && _renderMode) {
+                            ringBell = false; 
+                            if (IsRenderBell()) {
+                                wxBell();
+                            }
+                        }
                         dialog.StaticTextMessage->SetLabel("Model '" + name + "'\ndoes not exist in your list of models");
                         dialog.ChoiceModels->Set(ToArrayString(AllNames));
                         bool renameAlias = false;
@@ -606,6 +618,12 @@ void xLightsFrame::CheckForValidModels()
 
                         // if mapto is not blank then we can use an oldname alias to remap automagically
                         if (!renameAlias && ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && !cancelled && HasEffects(me)) {
+                            if (ringBell && _renderMode) {
+                                ringBell = false; 
+                                if (IsRenderBell()) {
+                                    wxBell();
+                                }
+                            }
                             cancelled = (dialog.ShowModal() == wxID_CANCEL);
                         }
                     }
@@ -706,6 +724,12 @@ void xLightsFrame::CheckForValidModels()
                     if (m == nullptr) {
                         // If we have effects at any level
                         if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && HasEffects(el)) {
+                            if (ringBell && _renderMode) {
+                                ringBell = false; 
+                                if (IsRenderBell()) {
+                                    wxBell();
+                                }
+                            }
                             HandleChoices(this, AllNames, ModelNames, el,
                                 "Model " + name + " does not exist in your layout.\n"
                                 + "How should we handle this?",
@@ -740,6 +764,12 @@ void xLightsFrame::CheckForValidModels()
                             }
                         }
                         if (((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) && (hasNodeEffects || hasStrandEffects)) {
+                            if (ringBell && _renderMode) {
+                                ringBell = false; 
+                                if (IsRenderBell()) {
+                                    wxBell();
+                                }
+                            }
                             HandleChoices(this, AllNames, ModelNames, el,
                                 "Model " + name + " is a Model Group but has Node/Strand effects.\n"
                                 + "How should we handle this?",
@@ -760,6 +790,12 @@ void xLightsFrame::CheckForValidModels()
                                 }
                                 if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
                                     int priorCnt = el->GetSubModelAndStrandCount();
+                                    if (ringBell && _renderMode) {
+                                        ringBell = false; 
+                                        if (IsRenderBell()) {
+                                            wxBell();
+                                        }
+                                    }
                                     HandleChoices(this, AllSMNames, ModelSMNames, sme,
                                         "SubModel " + sme->GetName() + " of Model " + m->GetName() + " does not exist.\n"
                                         + "How should we handle this?",
