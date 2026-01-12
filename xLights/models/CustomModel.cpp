@@ -128,9 +128,7 @@ void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
     else {
         wxString nm = StartNodeAttrName(0);
 
-        p = grid->Append(new wxBoolProperty("Indiv Start Nodes", "ModelIndividualStartNodes", _hasIndivNodes));
-        p->SetAttribute("UseCheckbox", true);
-
+        p = grid->Append(new wxStringProperty("Start Nodes", "ModelIndividualStartNodes", ""));
         wxPGProperty* psn = grid->AppendIn(p, new wxUIntProperty(nm, nm, _hasIndivNodes ? _indivStartNodes[0] : 1));
         psn->SetAttribute("Min", 1);
         psn->SetAttribute("Max", (int)GetNodeCount());
@@ -190,9 +188,15 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::CustomBkgImage");
         return 0;
     } else if ("CustomModelStrings" == event.GetPropertyName()) {
+        int old_string_count = _strings;
         _strings = event.GetValue().GetInteger();
-        ModelXml->DeleteAttribute("CustomStrings");
-        ModelXml->AddAttribute("CustomStrings", wxString::Format("%d", _strings));
+        _hasIndivNodes = _strings > 1;
+        if (_strings != old_string_count && _hasIndivNodes) {
+            _indivStartNodes.resize(_strings);
+            for (int x = 0; x < _strings; x++) {
+                _indivStartNodes[x] = ComputeStringStartNode(x);
+            }
+        }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::CustomModelStrings");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::OnPropertyGridChange::CustomModelStrings");
@@ -200,32 +204,13 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CustomModel::OnPropertyGridChange::CustomModelStrings");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CustomModel::OnPropertyGridChange::CustomModelStrings");
         return 0;
-    } else if (event.GetPropertyName() == "ModelIndividualStartNodes") {
-        _hasIndivNodes = event.GetValue().GetBool();
-        if (_hasIndivNodes) {
-            for (int x = 0; x < _strings; x++) {
-                _indivStartNodes[x] = ComputeStringStartNode(x);
-            }
-        }
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
-        return 0;
     } else if (event.GetPropertyName().StartsWith("ModelIndividualStartNodes.String")) {
-
         wxString s = event.GetPropertyName().substr(strlen("ModelIndividualStartNodes.String"));
-        int string = wxAtoi(s);
-
+        int string = wxAtoi(s) - 1;
         int value = event.GetValue().GetInteger();
         if (value < 1) value = 1;
         if (value > NodesPerString()) value = NodesPerString();
-
         _indivStartNodes[string] = value;
-
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes2");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes2");
@@ -354,7 +339,6 @@ void CustomModel::SetNumStrings(int strings)
 
 void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString)
 {
-    _strings = NumberOfStrings;
     int maxval = GetCustomMaxChannel();
     // fix NumberOfStrings
     if (SingleNode) {
@@ -370,7 +354,6 @@ void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, in
     else {
         stringStartChan.clear();
         stringStartChan.resize(_strings);
-
         for (int i = 0; i < _strings; i++) {
             int node = _indivStartNodes[i];
             if (node == 0) {
@@ -822,8 +805,6 @@ int CustomModel::GetCustomNodeStringNumber(int node) const
     if (_strings == 1) {
         return 1;
     }
-
-    wxString nm = StartNodeAttrName(0);
 
     int stringStart = -1;
     int string = -1;

@@ -131,7 +131,7 @@ public:
 
     virtual std::string GetFullName() const { return name; }
     void Rename(std::string const& newName);
-    int GetNumStrings() const { return parm1; }
+    virtual int GetNumStrings() const { return parm1; }
     PIXEL_STYLE GetPixelStyle() const { return _pixelStyle; }
     void SetPixelStyle(PIXEL_STYLE style);
     static std::string GetPixelStyleDescription(PIXEL_STYLE pixelStyle);
@@ -290,14 +290,18 @@ public:
     [[nodiscard]] bool HasIndividualStartChannels() const { return _hasIndivChans; }
     void SetHasIndividualStartChannels(bool indiv) { _hasIndivChans = indiv; }
     [[nodiscard]] std::string GetIndividualStartChannel(size_t s) const;
-    void AddIndividualStartChannel(const std::string& channel) { _indivStartChannels.push_back(channel); }
+    void SetIndivStartChannelCount(int count) { _indivStartChannels.resize(count); }
     void SetIndividualStartChannel(int index, const std::string& channel) { _indivStartChannels[index] = channel; }
+    void SetIndivStartNodesCount(int count) { _indivStartNodes.resize(count); }
+    std::vector<int> GetNodeSizes() const { return _indivStartNodes;}
+    void SetNodeSize(int idx, int val) { _indivStartNodes[idx] = val; }
 
     [[nodiscard]] bool HasIndivStartNodes() const { return _hasIndivNodes; }
     void SetHasIndivStartNodes(bool indiv) { _hasIndivNodes = indiv; }
     [[nodiscard]] int GetIndivStartNode(size_t s) const { return _indivStartNodes[s]; }
     void AddIndivStartNode(int node) { _indivStartNodes.push_back(node); }
     void SetIndivStartNode(int index, int node) { _indivStartNodes[index] = node; }
+    const std::string StartNodeAttrName(int idx) const { return ""; }
 
     bool IsNodeInBufferRange(size_t nodeNum, int x1, int y1, int x2, int y2);
 

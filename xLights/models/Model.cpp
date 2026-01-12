@@ -2829,6 +2829,8 @@ void Model::SetFromXml(wxXmlNode* node, bool zb)
 
     // _modelTagColour = wxNullColour; Shouldn't need to keep resetting this anymore
 
+    GetModelScreenLocation().Init();
+
     UpdateChannels(node);
     
     if (sw.Time() > 10) {

@@ -26,7 +26,7 @@
 
 std::vector<std::string> StarModel::STAR_BUFFER_STYLES;
 
-StarModel::StarModel(const ModelManager& manager, bool zeroBased) : ModelWithScreenLocation(manager)
+StarModel::StarModel(const ModelManager& manager) : ModelWithScreenLocation(manager)
 {
 }
 
@@ -560,13 +560,6 @@ int StarModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGri
 {
     if ("StarStringCount" == event.GetPropertyName()) {
         parm1 = (int)event.GetPropertyValue().GetLong();
-        if (_hasIndivChans) {
-            _indivStartChannels.resize(parm1);
-            for (int x = 0; x < parm1; ++x) {
-                SetIndividualStartChannel(x, ComputeStringStartChannel(x));
-            }
-        }
-        //AdjustStringProperties(grid, parm1);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "StarModel::OnPropertyGridChange::StarStringCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "StarModel::OnPropertyGridChange::StarStringCount");

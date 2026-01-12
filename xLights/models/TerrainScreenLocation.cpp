@@ -385,8 +385,9 @@ void TerrianScreenLocation::SetActiveAxis(MSLAXIS axis)
     }
 }
 
-void TerrianScreenLocation::Read(wxXmlNode* node) {
-    BoxedScreenLocation::Read(node);
+void TerrianScreenLocation::Init() {
+    //: TODO Update
+    /*BoxedScreenLocation::Read(node);
     spacing = wxAtoi(node->GetAttribute("TerrianLineSpacing", "50"));
     num_points_wide = wxAtoi(node->GetAttribute("TerrianWidth", "1000")) / spacing + 1;
     num_points_deep = wxAtoi(node->GetAttribute("TerrianDepth", "1000")) / spacing + 1;
@@ -415,5 +416,5 @@ void TerrianScreenLocation::Read(wxXmlNode* node) {
     mHandlePosition.resize(num_points + 1);
     mSelectableHandles = num_points + 1;
     handle_aabb_min.resize(num_points + 1);
-    handle_aabb_max.resize(num_points + 1);
+    handle_aabb_max.resize(num_points + 1);*/
 }

@@ -41,7 +41,9 @@ void ViewObject::SetFromXml(wxXmlNode* ObjectNode, bool zeroBased) {
     layout_group = "Default"; // objects in 3d can only belong to default as only default is 3d
     _active = ObjectNode->GetAttribute("Active", "1") == "1";
 
-    GetObjectScreenLocation().Read(ObjectNode);
+    // TODO:  Delete?
+    //GetObjectScreenLocation().Read(ObjectNode);
+    GetObjectScreenLocation().Init();
 
     InitModel();
 

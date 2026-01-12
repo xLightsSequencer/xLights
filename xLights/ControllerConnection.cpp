@@ -63,16 +63,6 @@ bool ControllerConnection::Rename(const std::string& oldName, const std::string&
         _model->SetStartChannel("!" + newName + _model->ModelStartChannel.substr(oldName.size() + 1));
         changed = true;
     }
-    if (_model->HasIndividualStartChannels()) {
-        for (int i = 0; i < _model->GetParm1(); ++i) {
-            auto str = _model->StartChanAttrName(i);
-            auto sc = _model->GetIndividualStartChannel(i);
-            if (StartsWith(sc, "!" + oldName)) {
-                _model->SetIndividualStartChannel(i, "!" + newName + sc.substr(oldName.size() + 1));
-                changed = true;
-            }
-        }
-    }
     return changed;
 }
 

@@ -92,16 +92,8 @@ protected:
         TOOL_NONE
     };
 
-    enum class MSLUPGRADE {
-        MSLUPGRADE_NOT_NEEDED,
-        MSLUPGRADE_SKIPPED,
-        MSLUPGRADE_EXEC_DONE,
-        MSLUPGRADE_EXEC_READ
-    };
-
     MSLAXIS NextAxis(MSLAXIS axis);
-    virtual void Read(wxXmlNode* node) = 0;
-    virtual MSLUPGRADE CheckUpgrade(wxXmlNode *node) = 0;
+    virtual void Init() = 0;
     void Reload() { rotation_init = true; }
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const = 0;

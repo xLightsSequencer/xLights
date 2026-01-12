@@ -56,139 +56,43 @@ BoxedScreenLocation::BoxedScreenLocation(int points)
 {
 }
 
-ModelScreenLocation::MSLUPGRADE BoxedScreenLocation::CheckUpgrade(wxXmlNode* node)
-{
-    // check for upgrade to world positioning
-    int version = wxAtoi(node->GetAttribute("versionNumber", "0"));
-    if (version < 2) {
-        // skip first upgrade call since preview size is not set
-        node->DeleteAttribute("versionNumber");
-        node->AddAttribute("versionNumber", "2");
-        return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_SKIPPED;
+void BoxedScreenLocation::Init() {
+
+    if (!std::isfinite(worldPos_x)) {
+        worldPos_x = 0.0F;
     }
-    else if (version == 2) {
-        if (node->HasAttribute("offsetXpct")) {
-            float offsetXpct = wxAtof(node->GetAttribute("offsetXpct", "0"));
-            float offsetYpct = wxAtof(node->GetAttribute("offsetYpct", "0"));
-            float previewScaleX = wxAtof(node->GetAttribute("PreviewScaleX", "0"));
-            float previewScaleY = wxAtof(node->GetAttribute("PreviewScaleY", "0"));
-            worldPos_x = previewW * offsetXpct;
-            worldPos_y = previewH * offsetYpct;
-            worldPos_z = 0.0f;
-            scalex = previewW / RenderWi * previewScaleX;
-            scaley = previewH / RenderHt * previewScaleY;
-            scalez = scaley;
-            rotatex = 0.0f;
-            rotatey = 0.0f;
-            rotatez = wxAtof(node->GetAttribute("PreviewRotation", "0.0f"));
-            node->DeleteAttribute("offsetXpct");
-            node->DeleteAttribute("offsetYpct");
-            node->DeleteAttribute("PreviewScaleX");
-            node->DeleteAttribute("PreviewScaleY");
-            node->DeleteAttribute("PreviewRotation");
-            node->DeleteAttribute("WorldPosX");
-            node->DeleteAttribute("WorldPosY");
-            node->DeleteAttribute("WorldPosZ");
-            node->DeleteAttribute("ScaleX");
-            node->DeleteAttribute("ScaleY");
-            node->DeleteAttribute("ScaleZ");
-            node->DeleteAttribute("RotateX");
-            node->DeleteAttribute("RotateY");
-            node->DeleteAttribute("RotateZ");
-            node->AddAttribute("WorldPosX", wxString::Format("%6.4f", worldPos_x));
-            node->AddAttribute("WorldPosY", wxString::Format("%6.4f", worldPos_y));
-            node->AddAttribute("WorldPosZ", wxString::Format("%6.4f", worldPos_z));
-            node->AddAttribute("ScaleX", wxString::Format("%6.4f", scalex));
-            node->AddAttribute("ScaleY", wxString::Format("%6.4f", scaley));
-            node->AddAttribute("ScaleZ", wxString::Format("%6.4f", scalez));
-            node->AddAttribute("RotateX", wxString::Format("%4.8f", rotatex));
-            node->AddAttribute("RotateY", wxString::Format("%4.8f", rotatey));
-            node->AddAttribute("RotateZ", wxString::Format("%4.8f", rotatez));
-            node->DeleteAttribute("versionNumber");
-            node->AddAttribute("versionNumber", CUR_MODEL_POS_VER);
-            glm::mat4 rx = glm::rotate(Identity, glm::radians(rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
-            glm::mat4 ry = glm::rotate(Identity, glm::radians(rotatey), glm::vec3(0.0f, 1.0f, 0.0f));
-            glm::mat4 rz = glm::rotate(Identity, glm::radians(rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
-            rotate_quat = glm::quat_cast(rz * ry * rx);
-            rotation_init = false;
-        }
-        return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_EXEC_DONE;
+    if (!std::isfinite(worldPos_y)) {
+        worldPos_y = 0.0F;
     }
-    else if (version == 3) {
-        node->DeleteAttribute("versionNumber");
-        node->AddAttribute("versionNumber", CUR_MODEL_POS_VER);
-        rotatex = -wxAtof(node->GetAttribute("RotateX", "0.0f"));
-        rotatey = -wxAtof(node->GetAttribute("RotateY", "0.0f"));
-        rotatez = wxAtof(node->GetAttribute("RotateZ", "0.0f"));
-        node->DeleteAttribute("RotateX");
-        node->DeleteAttribute("RotateY");
-        node->DeleteAttribute("RotateZ");
-        node->AddAttribute("RotateX", wxString::Format("%4.8f", rotatex));
-        node->AddAttribute("RotateY", wxString::Format("%4.8f", rotatey));
-        node->AddAttribute("RotateZ", wxString::Format("%4.8f", rotatez));
+    if (!std::isfinite(worldPos_z)) {
+        worldPos_z = 0.0F;
+    }
+
+    if (scalex < 0) {
+        scalex = 1.0f;
+    }
+    if (scaley < 0) {
+        scaley = 1.0f;
+    }
+    if (scalez < 0) {
+        scalez = 1.0f;
+    }
+
+    if (rotatex < -180.0f || rotatex > 180.0f) {
+        rotatex = 0.0f;
+    }
+    if (rotatey < -180.0f || rotatey > 180.0f) {
+        rotatey = 0.0f;
+    }
+    if (rotatez < -180.0f || rotatez > 180.0f) {
+        rotatez = 0.0f;
+    }
+    if (rotation_init) {
         glm::mat4 rx = glm::rotate(Identity, glm::radians(rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
         glm::mat4 ry = glm::rotate(Identity, glm::radians(rotatey), glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 rz = glm::rotate(Identity, glm::radians(rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
-        rotate_quat = glm::quat_cast(rx * ry * rz);
+        rotate_quat = glm::quat_cast(rz * ry * rx);
         rotation_init = false;
-        return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_NOT_NEEDED;
-    }
-    return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_NOT_NEEDED;
-}
-
-void BoxedScreenLocation::Read(wxXmlNode *ModelNode) {
-    ModelScreenLocation::MSLUPGRADE upgrade_result = CheckUpgrade(ModelNode);
-    if (upgrade_result == ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_NOT_NEEDED) {
-        worldPos_x = wxAtof(ModelNode->GetAttribute("WorldPosX", "200.0"));
-        worldPos_y = wxAtof(ModelNode->GetAttribute("WorldPosY", "0.0"));
-        worldPos_z = wxAtof(ModelNode->GetAttribute("WorldPosZ", "0.0"));
-
-        if (!std::isfinite(worldPos_x)) {
-            worldPos_x = 0.0F;
-        }
-        if (!std::isfinite(worldPos_y)) {
-            worldPos_y = 0.0F;
-        }
-        if (!std::isfinite(worldPos_z)) {
-            worldPos_z = 0.0F;
-        }
-
-        scalex = wxAtof(ModelNode->GetAttribute("ScaleX", "1.0"));
-        scaley = wxAtof(ModelNode->GetAttribute("ScaleY", "1.0"));
-        scalez = wxAtof(ModelNode->GetAttribute("ScaleZ", "1.0"));
-
-        if (scalex < 0) {
-            scalex = 1.0f;
-        }
-        if (scaley < 0) {
-            scaley = 1.0f;
-        }
-        if (scalez < 0) {
-            scalez = 1.0f;
-        }
-
-        rotatex = wxAtof(ModelNode->GetAttribute("RotateX", "0.0f"));
-        rotatey = wxAtof(ModelNode->GetAttribute("RotateY", "0.0f"));
-        rotatez = wxAtof(ModelNode->GetAttribute("RotateZ", "0.0f"));
-
-        if (rotatex < -180.0f || rotatex > 180.0f) {
-            rotatex = 0.0f;
-        }
-        if (rotatey < -180.0f || rotatey > 180.0f) {
-            rotatey = 0.0f;
-        }
-        if (rotatez < -180.0f || rotatez > 180.0f) {
-            rotatez = 0.0f;
-        }
-        if (rotation_init) {
-            glm::mat4 rx = glm::rotate(Identity, glm::radians(rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
-            glm::mat4 ry = glm::rotate(Identity, glm::radians(rotatey), glm::vec3(0.0f, 1.0f, 0.0f));
-            glm::mat4 rz = glm::rotate(Identity, glm::radians(rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
-            rotate_quat = glm::quat_cast(rz * ry * rx);
-            rotation_init = false;
-        }
-
-        _locked = (wxAtoi(ModelNode->GetAttribute("Locked", "0")) == 1);
     }
 }
 

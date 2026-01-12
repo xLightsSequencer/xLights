@@ -18,8 +18,10 @@ public:
     PolyPointScreenLocation();
     virtual ~PolyPointScreenLocation();
 
-    virtual void Read(wxXmlNode* node) override;
-    virtual MSLUPGRADE CheckUpgrade(wxXmlNode* node) override;
+    friend class MultiPointModel;
+    friend class PolyLineModel;
+    
+    virtual void Init() override;
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual void TranslatePoint(float& x, float& y, float& z) const override;
@@ -57,7 +59,7 @@ public:
     virtual void AddSizeLocationProperties(wxPropertyGridInterface* grid) const override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual std::string GetDimension(float factor = 1.0) const override;
-
+    
     virtual glm::vec2 GetScreenOffset(ModelPreview* preview) const override;
     virtual float GetHcenterPos() const override;
     virtual float GetVcenterPos() const override;
@@ -96,11 +98,19 @@ public:
     virtual void SetAxisTool(MSLTOOL mode) override;
     virtual void SetActiveAxis(MSLAXIS axis) override;
 
+    int GetNumPoints() const { return num_points; }
+    void SetNumPoints(int points) { num_points = points; }
+    void SetDataFromString(const std::string& point_data);
+    void SetCurveDataFromString(const std::string& cpoint_data);
+    std::string GetPointDataAsString() const;
+    std::string GetCurveDataAsString() const;
+
 protected:
     struct xlPolyPoint {
         float x;
         float y;
         float z;
+        float length;
         mutable xlPoint cp0;
         mutable xlPoint cp1;
         mutable bool has_curve;

@@ -16,7 +16,7 @@
 class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
-        StarModel(const ModelManager &manager, bool zeroBased = false);
+        StarModel(const ModelManager &manager);
         virtual ~StarModel();
     
         virtual bool SupportsXlightsModel() override { return true; }

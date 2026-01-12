@@ -28,6 +28,7 @@
 #include "ImageModel.h"
 #include "LayoutGroup.h"
 #include "MatrixModel.h"
+#include "MultiPointModel.h"
 #include "MeshObject.h"
 #include "ModelManager.h"
 #include "Model.h"
@@ -318,12 +319,16 @@ namespace XmlNodeKeys {
     constexpr auto VertMatrixAttribute    = "Vertical";
     constexpr auto NoZigZagAttribute      = "NoZig";
 
+    // MultiPoint Model
+    constexpr auto MultiStringsAttribute  = "MultiStrings";
+
     // Poly Line Model
     constexpr auto NumPointsAttribute    = "NumPoints";
     constexpr auto cPointDataAttribute   = "cPointData";
     constexpr auto IndivSegAttribute     = "IndivSegs";
     constexpr auto SegsExpandedAttribute = "SegsExpanded";
     constexpr auto ModelHeightAttribute  = "ModelHeight";
+    constexpr auto PolyStringsAttribute  = "PolyStrings";
 
     // Sphere
     constexpr auto DegreesAttribute  = "Degrees";
@@ -428,6 +433,7 @@ namespace XmlNodeKeys {
     constexpr auto IciclesType          = "Icicles";
     constexpr auto ImageType            = "Image";
     constexpr auto MatrixType           = "Matrix";
+    constexpr auto MultiPointType       = "MultiPoint";
     constexpr auto SingleLineType       = "Single Line";
     constexpr auto PolyLineType         = "Poly Line";
     constexpr auto SphereType           = "Sphere";
@@ -719,6 +725,19 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         node->AddAttribute(XmlNodeKeys::ShearAttribute, std::to_string(shear));
         float height = screenLoc.GetMHeight();
         node->AddAttribute(XmlNodeKeys::HeightAttribute, std::to_string(height));
+    }
+
+    void AddPolyPointScreenLocationAttributes(const BaseObject& base, wxXmlNode* node) {
+        const PolyPointScreenLocation& screenLoc = dynamic_cast<const PolyPointScreenLocation&>(base.GetBaseObjectScreenLocation());
+        node->AddAttribute(XmlNodeKeys::NumPointsAttribute, std::to_string(screenLoc.GetNumPoints()));
+        node->AddAttribute(XmlNodeKeys::PointDataAttribute, screenLoc.GetPointDataAsString());
+        node->AddAttribute(XmlNodeKeys::cPointDataAttribute, screenLoc.GetCurveDataAsString());
+    }
+
+    void AddMultiPointScreenLocationAttributes(const BaseObject& base, wxXmlNode* node) {
+        const PolyPointScreenLocation& screenLoc = dynamic_cast<const PolyPointScreenLocation&>(base.GetBaseObjectScreenLocation());
+        node->AddAttribute(XmlNodeKeys::NumPointsAttribute, std::to_string(screenLoc.GetNumPoints()));
+        node->AddAttribute(XmlNodeKeys::PointDataAttribute, screenLoc.GetPointDataAsString());
     }
 
     void AddColorAbilityRGBAttributes(const DmxColorAbilityRGB* colors, wxXmlNode* node) {
@@ -1357,15 +1376,19 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
 
     void Visit(const MatrixModel& model) override {
         wxXmlNode* xmlNode = CommonVisitSteps(model);
-        xmlNode->DeleteAttribute(XmlNodeKeys::DisplayAsAttribute);
-        if (model.isVerticalMatrix()) {
-            xmlNode->AddAttribute(XmlNodeKeys::DisplayAsAttribute, "Vert Matrix");
-        } else {
-            xmlNode->AddAttribute(XmlNodeKeys::DisplayAsAttribute, "Horiz Matrix");
-        }
+        xmlNode->AddAttribute(XmlNodeKeys::VertMatrixAttribute, model.isVerticalMatrix() ? "true" : "false");
         xmlNode->AddAttribute(XmlNodeKeys::LowDefinitionAttribute, std::to_string(model.GetLowDefFactor()));
         xmlNode->AddAttribute(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");
         xmlNode->AddAttribute(XmlNodeKeys::NoZigZagAttribute, model.IsNoZigZag() ? "true" : "false");
+        const Model* m = dynamic_cast<const Model*>(&model);
+        AddOtherElements(xmlNode, m);
+    }
+
+    void Visit(const MultiPointModel& model) override {
+        wxXmlNode* xmlNode = CommonVisitSteps(model);
+        AddMultiPointScreenLocationAttributes(model, xmlNode);
+        xmlNode->AddAttribute(XmlNodeKeys::MultiStringsAttribute, std::to_string(model.GetNumStrings()));
+        xmlNode->AddAttribute(XmlNodeKeys::ModelHeightAttribute, std::to_string(model.GetModelHeight()));
         const Model* m = dynamic_cast<const Model*>(&model);
         AddOtherElements(xmlNode, m);
     }
@@ -1379,20 +1402,22 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
 
     void Visit(const PolyLineModel& model) override {
         wxXmlNode* xmlNode = CommonVisitSteps(model);
+        AddPolyPointScreenLocationAttributes(model, xmlNode);
         xmlNode->AddAttribute(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");
         xmlNode->AddAttribute(XmlNodeKeys::IndivSegAttribute, model.HasIndivSegs() ? "1" : "0");
         xmlNode->AddAttribute(XmlNodeKeys::DropPatternAttribute, model.GetDropPattern());
-        xmlNode->AddAttribute(XmlNodeKeys::NumPointsAttribute, model.GetNumPoints());
+        std::vector<int> nodeSize = model.GetNodeSizes();
+        for (auto i = 0; i < nodeSize.size(); i++) {
+            xmlNode->AddAttribute(model.SegAttrName(i), std::to_string(nodeSize[i]));
+        }
         std::vector<int> segSize = model.GetSegmentsSizes();
         for (auto i = 0; i < segSize.size(); i++) {
-            xmlNode->AddAttribute("Seg" + std::to_string(i + 1), std::to_string(segSize[i] / (segSize.size()+1)));
+            xmlNode->AddAttribute(model.StartNodeAttrName(i), std::to_string(segSize[i]));
         }
         std::vector<std::string> cSize = model.GetCorners();
         for (auto i = 0; i < cSize.size(); i++) {
-            xmlNode->AddAttribute("Corner" + std::to_string(i + 1), cSize[i]);
+            xmlNode->AddAttribute(model.CornerAttrName(i), cSize[i]);
         }
-        xmlNode->AddAttribute(XmlNodeKeys::PointDataAttribute, model.GetPointData());
-        xmlNode->AddAttribute(XmlNodeKeys::cPointDataAttribute, model.GetcPointData());
         xmlNode->AddAttribute(XmlNodeKeys::SegsExpandedAttribute, model.AreSegsExpanded() ? "TRUE" : "FALSE");
         xmlNode->AddAttribute(XmlNodeKeys::ModelHeightAttribute, std::to_string(model.GetHeight()));
         const Model* m = dynamic_cast<const Model*>(&model);
@@ -1519,6 +1544,8 @@ struct XmlDeserializingObjectFactory {
             return DeserializeImage(new wxXmlNode(*node), xlights, importing);
         } else if (type.Contains(XmlNodeKeys::MatrixType)) {
             return DeserializeMatrix(new wxXmlNode(*node), xlights, importing);
+        } else if (type.Contains(XmlNodeKeys::MultiPointType)) {
+            return DeserializeMultiPoint(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::SingleLineType) {
             return DeserializeSingleLine(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::PolyLineType) {
@@ -1558,10 +1585,6 @@ struct XmlDeserializingObjectFactory {
 
 private:
     void CommonDeserializeSteps(Model* model, wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        if (model->GetModelScreenLocation().CheckUpgrade(node) == ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_EXEC_READ) {
-            model->GetModelScreenLocation().Read(node);
-        }
-
         DeserializeBaseObjectAttributes(model, node, xlights, importing);
         DeserializeCommonModelAttributes(model, node, importing);
         DeserializeModelScreenLocationAttributes(model, node, importing);
@@ -1649,11 +1672,16 @@ private:
         model->SetStrandNames(node->GetAttribute(XmlNodeKeys::StrandNamesAttribute).ToStdString());
         model->SetCustomColor(node->GetAttribute(XmlNodeKeys::CustomColorAttribute, "#000000").ToStdString());
         model->SetModelChain(node->GetAttribute(XmlNodeKeys::ModelChainAttribute,""));
-        
-        bool hasIndiv = std::stol(node->GetAttribute(XmlNodeKeys::AdvancedAttribute,"0").ToStdString());
-        model->SetHasIndividualStartChannels(hasIndiv);
-        if (hasIndiv ) {
-            model->AddIndividualStartChannel(model->GetModelStartChannel());
+
+        // Individual Start Channels
+        bool hasIndivChan = std::stol(node->GetAttribute(XmlNodeKeys::AdvancedAttribute,"0").ToStdString());
+        model->SetHasIndividualStartChannels(hasIndivChan);
+        if (hasIndivChan) {
+            int num_strings = model->GetParm1();
+            model->SetIndivStartChannelCount(num_strings);
+            for (auto i = 0; i < num_strings;  i++) {
+                model->SetIndividualStartChannel(i, node->GetAttribute(model->StartChanAttrName(i), "").ToStdString());
+            }
         }
 
         wxXmlNode* f = node->GetChildren();
@@ -1799,6 +1827,14 @@ private:
         screenLoc.SetYShear(shear);
     }
 
+    void DeserializePolyPointScreenLocationAttributes(Model* model, wxXmlNode* node) {
+        int num_points = std::stoi(node->GetAttribute(XmlNodeKeys::NumPointsAttribute, "2").ToStdString());
+        PolyPointScreenLocation& screenLoc = dynamic_cast<PolyPointScreenLocation&>(model->GetBaseObjectScreenLocation());
+        screenLoc.SetNumPoints(num_points);
+        screenLoc.SetDataFromString(node->GetAttribute(XmlNodeKeys::PointDataAttribute, "0.0, 0.0, 0.0, 0.0, 0.0, 0.0").ToStdString());
+        screenLoc.SetCurveDataFromString(node->GetAttribute(XmlNodeKeys::cPointDataAttribute, "").ToStdString());
+    }
+
     Model* DeserializeArches(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         ArchesModel* model = new ArchesModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
@@ -1891,6 +1927,16 @@ private:
         model->SetCustomLightness(std::stol(node->GetAttribute(XmlNodeKeys::BkgLightnessAttribute, "0").ToStdString()));
         std::vector<std::vector<std::vector<int>>>& locations = model->GetData();
         locations = XmlSerialize::ParseCustomModelDataFromXml(node);
+
+        // Individual Start Nodes
+        int num_strings = model->GetNumStrings();
+        if (num_strings > 1) {
+            model->SetHasIndivStartNodes(true);
+            model->SetIndivStartNodesCount(num_strings);
+            for (auto i = 0; i < num_strings;  i++) {
+                model->SetNodeSize(i, std::stoi(node->GetAttribute(model->StartNodeAttrName(i), "0").ToStdString()));
+            }
+        }
         model->Setup();
         return model;
     }
@@ -1945,6 +1991,16 @@ private:
         return model;
     }
 
+    Model* DeserializeMultiPoint(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+        MultiPointModel* model = new MultiPointModel(xlights->AllModels);
+        CommonDeserializeSteps(model, node, xlights, importing);
+        DeserializePolyPointScreenLocationAttributes(model, node);
+        model->SetNumStrings(std::stoi(node->GetAttribute(XmlNodeKeys::MultiStringsAttribute, "1").ToStdString()));
+        model->SetModelHeight(std::stof(node->GetAttribute(XmlNodeKeys::ModelHeightAttribute, "1.0").ToStdString()));
+        model->Setup();
+        return model;
+    }
+
     Model* DeserializeSingleLine(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         SingleLineModel* model = new SingleLineModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
@@ -1954,8 +2010,49 @@ private:
     }
 
     Model* DeserializePolyLine(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        PolyLineModel* model = new PolyLineModel(node, xlights->AllModels, false);
+        PolyLineModel* model = new PolyLineModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
+        DeserializePolyPointScreenLocationAttributes(model, node);
+        int num_strings = std::stoi(node->GetAttribute(XmlNodeKeys::PolyStringsAttribute, "1").ToStdString());
+        model->SetNumStrings(num_strings);
+        model->SetDropPattern(node->GetAttribute(XmlNodeKeys::DropPatternAttribute, "1"));
+        model->SetAlternateNodes(node->GetAttribute(XmlNodeKeys::AlternateNodesAttribute, "false") == "true");
+        PolyPointScreenLocation& screenLoc = dynamic_cast<PolyPointScreenLocation&>(model->GetBaseObjectScreenLocation());
+
+        // Individual Start Nodes
+        bool hasIndivNode = node->HasAttribute(model->StartNodeAttrName(0));
+        model->SetHasIndivStartNodes(hasIndivNode);
+        if (hasIndivNode ) {
+            int num_strings = model->GetNumStrings();
+            model->SetIndivStartNodesCount(num_strings);
+            for (auto i = 0; i < num_strings;  i++) {
+                model->SetNodeSize(i, std::stoi(node->GetAttribute(model->StartNodeAttrName(i), "0").ToStdString()));
+            }
+        }
+
+        // Individual Segments
+        bool hasIndivSegs = node->GetAttribute(XmlNodeKeys::IndivSegAttribute, "0") == "1";
+        model->SetHasIndivSegments(hasIndivSegs);
+        int num_segments = screenLoc.GetNumPoints() - 1;
+        model->SetNumSegments(num_segments);
+        if (hasIndivSegs) {
+            for (auto i = 0; i < num_segments;  i++) {
+                model->SetSegmentSize(i, std::stoi(node->GetAttribute(model->SegAttrName(i), "0").ToStdString()));
+            }
+        }
+        // Corner Settings
+        for (int x = 0; x <= num_segments; x++) {
+            std::string corner = node->GetAttribute(model->CornerAttrName(x), "Neither");
+            model->SetCornerString(x, corner);
+            if( x == 0 ) {
+                model->SetLeadOffset(x, corner == "Leading Segment" ? 1.0 : corner == "Trailing Segment" ? 0.0 : 0.5);
+            } else if( x == num_segments ) {
+                model->SetTrailOffset(x-1, corner == "Leading Segment" ? 0.0 : corner == "Trailing Segment" ? 1.0 : 0.5);
+            } else {
+                model->SetTrailOffset(x-1, corner == "Leading Segment" ? 0.0 : corner == "Trailing Segment" ? 1.0 : 0.5);
+                model->SetLeadOffset(x, corner == "Leading Segment" ? 1.0 : corner == "Trailing Segment" ? 0.0 : 0.5);
+            }
+        }
         model->Setup();
         return model;
     }
@@ -1975,7 +2072,7 @@ private:
     }
 
     Model* DeserializeStar(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        StarModel* model = new StarModel(xlights->AllModels, false);
+        StarModel* model = new StarModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
 
         // convert old star sizes to new Layer sizes setting

@@ -56,12 +56,12 @@ wxCursor ThreePointScreenLocation::InitializeLocation(int &handle, int x, int y,
     return wxCURSOR_SIZING;
 }
 
-void ThreePointScreenLocation::Read(wxXmlNode *node) {
-    TwoPointScreenLocation::Read(node);
-    height = wxAtof(node->GetAttribute("Height", std::to_string(height)));
+void ThreePointScreenLocation::Init() {
+    TwoPointScreenLocation::Init();
+    /*height = wxAtof(node->GetAttribute("Height", std::to_string(height)));
     angle = wxAtoi(node->GetAttribute("Angle", "0"));
     shear = wxAtof(node->GetAttribute("Shear", "0.0"));
-    rotatex = wxAtof(node->GetAttribute("RotateX", "0"));
+    rotatex = wxAtof(node->GetAttribute("RotateX", "0"));*/
 }
 
 void ThreePointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const

@@ -10,37 +10,18 @@
 
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
-//#include <wx/xml/xml.h>
-//#include <wx/msgdlg.h>
-//#include <wx/log.h>
-//#include <wx/filedlg.h>
-
-//#include <glm/glm.hpp>
-//#include <glm/gtx/matrix_transform_2d.hpp>
-//#include <glm/gtx/rotate_vector.hpp>
-//#include <glm/mat3x3.hpp>
 
 #include "MultiPointModel.h"
-//#include "../support/VectorMath.h"
 #include "../xLightsMain.h"
 #include "../xLightsVersion.h"
-//#include "UtilFunctions.h"
-//#include "../ModelPreview.h"
 
-//#include <log4cpp/Category.hh>
-
-MultiPointModel::MultiPointModel(const ModelManager &manager) : ModelWithScreenLocation(manager) {
-    parm1 = parm2 = parm3 = 0;
-}
-
-MultiPointModel::MultiPointModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
+MultiPointModel::MultiPointModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
-    MultiPointModel::SetFromXml(node, zeroBased);
+    parm1 = parm2 = parm3 = 0;
 }
 
 MultiPointModel::~MultiPointModel()
 {
-    //dtor
 }
 
 bool MultiPointModel::IsNodeFirst(int n) const
@@ -49,35 +30,14 @@ bool MultiPointModel::IsNodeFirst(int n) const
 }
 
 int MultiPointModel::MapToNodeIndex(int strand, int node) const {
-    return strand * parm2 + node;
+    return strand * screenLocation.num_points + node;
 }
 
 void MultiPointModel::InitModel()
 {
-    _strings = wxAtoi(ModelXml->GetAttribute("MultiStrings", "1"));
-
-    int num_points = wxAtoi(ModelXml->GetAttribute("NumPoints", "2"));
-
-    if (num_points < 2) {
-        // This is not good ... so add in a second point
-        num_points = 2;
-    }
-
     parm1 = 1;
-    parm2 = num_points;
     
     InitLine();
-
-    // read in the point data from xml
-    std::vector<xlMultiPoint> pPos(num_points);
-    wxString point_data = ModelXml->GetAttribute("PointData", "0.0, 0.0, 0.0, 0.0, 0.0, 0.0");
-    wxArrayString point_array = wxSplit(point_data, ',');
-    while (point_array.size() < num_points * 3) point_array.push_back("0.0");
-    for (int i = 0; i < num_points; ++i) {
-        pPos[i].x = wxAtof(point_array[i * 3]);
-        pPos[i].y = wxAtof(point_array[i * 3 + 1]);
-        pPos[i].z = wxAtof(point_array[i * 3 + 2]);
-    }
 
     // calculate min/max for the model
     float minX = 100000.0f;
@@ -87,40 +47,41 @@ void MultiPointModel::InitModel()
     float maxY = 0.0f;
     float maxZ = 0.0f;
 
-    for (int i = 0; i < num_points; ++i) {
-        if (pPos[i].x < minX) minX = pPos[i].x;
-        if (pPos[i].y < minY) minY = pPos[i].y;
-        if (pPos[i].z < minZ) minZ = pPos[i].z;
-        if (pPos[i].x > maxX) maxX = pPos[i].x;
-        if (pPos[i].y > maxY) maxY = pPos[i].y;
-        if (pPos[i].z > maxZ) maxZ = pPos[i].z;
+    std::vector<PolyPointScreenLocation::xlPolyPoint> pPos(screenLocation.num_points);
+
+    for (int i = 0; i < screenLocation.num_points; ++i) {
+        if (screenLocation.mPos[i].x < minX) minX = screenLocation.mPos[i].x;
+        if (screenLocation.mPos[i].y < minY) minY = screenLocation.mPos[i].y;
+        if (screenLocation.mPos[i].z < minZ) minZ = screenLocation.mPos[i].z;
+        if (screenLocation.mPos[i].x > maxX) maxX = screenLocation.mPos[i].x;
+        if (screenLocation.mPos[i].y > maxY) maxY = screenLocation.mPos[i].y;
+        if (screenLocation.mPos[i].z > maxZ) maxZ = screenLocation.mPos[i].z;
     }
     float deltax = maxX - minX;
     float deltay = maxY - minY;
     float deltaz = maxZ - minZ;
 
     // normalize all the point data
-    for (int i = 0; i < num_points; ++i) {
+    for (int i = 0; i < screenLocation.num_points; ++i) {
         if (deltax == 0.0f) {
             pPos[i].x = 0.0f;
         } else {
-            pPos[i].x = (pPos[i].x - minX) / deltax;
+            pPos[i].x = (screenLocation.mPos[i].x - minX) / deltax;
         }
         if (deltay == 0.0f) {
             pPos[i].y = 0.0f;
         } else {
-            pPos[i].y = (pPos[i].y - minY) / deltay;
+            pPos[i].y = (screenLocation.mPos[i].y - minY) / deltay;
         }
         if (deltaz == 0.0f) {
             pPos[i].z = 0.0f;
         } else {
-            pPos[i].z = (pPos[i].z - minZ) / deltaz;
+            pPos[i].z = (screenLocation.mPos[i].z - minZ) / deltaz;
         }
     }
 
     screenLocation.SetRenderSize(1.0, 1.0);
 
-    height = wxAtof(GetModelXml()->GetAttribute("ModelHeight", "1.0"));
     double model_height = deltay;
     if (model_height < GetModelScreenLocation().GetRenderHt()) {
         model_height = GetModelScreenLocation().GetRenderHt();
@@ -153,9 +114,9 @@ void MultiPointModel::InitModel()
 // parm1=Number of Strings/Arches/Canes
 // parm2=Pixels Per String/Arch/Cane
 void MultiPointModel::InitLine() {
-    int numLights = parm1 * parm2;
+    int numLights = parm1 * screenLocation.num_points;
     Nodes.clear();
-    SetNodeCount(parm1,parm2,rgbOrder);
+    SetNodeCount(parm1,screenLocation.num_points,rgbOrder);
     SetBufferSize(1,SingleNode?parm1:numLights);
     int LastStringNum=-1;
     int chan = 0;
@@ -177,7 +138,7 @@ void MultiPointModel::InitLine() {
         }
         Nodes[n]->ActChan=chan;
         chan+=ChanIncr;
-        Nodes[n]->Coords.resize(SingleNode?parm2:parm3);
+        Nodes[n]->Coords.resize(SingleNode?screenLocation.num_points:parm3);
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++) {
             Nodes[n]->Coords[c].bufX=idx;
@@ -190,14 +151,14 @@ void MultiPointModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputMan
 {
     wxPGProperty* p;
     if (SingleNode) {
-        p = grid->Append(new wxUIntProperty("# Lights", "MultiPointNodes", parm2));
+        p = grid->Append(new wxUIntProperty("# Lights", "MultiPointNodes", screenLocation.num_points));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
         p->Enable(false); // number of nodes is determined by number of points
     }
     else {
-        p = grid->Append(new wxUIntProperty("# Nodes", "MultiPointNodes", parm2));
+        p = grid->Append(new wxUIntProperty("# Nodes", "MultiPointNodes", screenLocation.num_points));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
@@ -214,31 +175,22 @@ void MultiPointModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputMan
         // cant set start node
     } else {
         wxString nm = StartNodeAttrName(0);
-        bool hasIndivNodes = ModelXml->HasAttribute(nm);
 
-        p = grid->Append(new wxBoolProperty("Indiv Start Nodes", "ModelIndividualStartNodes", hasIndivNodes));
+        p = grid->Append(new wxBoolProperty("Indiv Start Nodes", "ModelIndividualStartNodes", _hasIndivNodes));
         p->SetAttribute("UseCheckbox", true);
 
-        wxPGProperty* psn = grid->AppendIn(p, new wxUIntProperty(nm, nm, wxAtoi(ModelXml->GetAttribute(nm, "1"))));
+        wxPGProperty* psn = grid->AppendIn(p, new wxUIntProperty(nm, nm, _hasIndivNodes ? _indivStartNodes[0] : 1));
         psn->SetAttribute("Min", 1);
         psn->SetAttribute("Max", (int)GetNodeCount());
         psn->SetEditor("SpinCtrl");
 
-        if (hasIndivNodes) {
+        if (_hasIndivNodes) {
             int c = _strings;
             for (int x = 0; x < c; x++) {
                 nm = StartNodeAttrName(x);
-                std::string val = ModelXml->GetAttribute(nm, "").ToStdString();
-                if (val == "") {
-                    val = ComputeStringStartNode(x);
-                    ModelXml->DeleteAttribute(nm);
-                    ModelXml->AddAttribute(nm, val);
-                }
-                int v = wxAtoi(val);
-                if (v < 1)
-                    v = 1;
-                if (v > NodesPerString())
-                    v = NodesPerString();
+                int v = _indivStartNodes[x];
+                if (v < 1) v = 1;
+                if (v > NodesPerString()) v = NodesPerString();
                 if (x == 0) {
                     psn->SetValue(v);
                 } else {
@@ -250,7 +202,7 @@ void MultiPointModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputMan
         }
     }
 
-    p = grid->Append(new wxFloatProperty("Height", "ModelHeight", height));
+    p = grid->Append(new wxFloatProperty("Height", "ModelHeight", _height));
     p->SetAttribute("Precision", 2);
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
@@ -259,8 +211,7 @@ void MultiPointModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputMan
 int MultiPointModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
     if ("MultiPointNodes" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm2");
-        ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        screenLocation.num_points = (int)event.GetPropertyValue().GetLong();
         wxPGProperty* sp = grid->GetPropertyByLabel("# Nodes");
         if (sp == nullptr) {
             sp = grid->GetPropertyByLabel("# Lights");
@@ -281,21 +232,13 @@ int MultiPointModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPrope
         int new_string_count = event.GetValue().GetInteger();
         _strings = new_string_count;
         if (old_string_count != new_string_count) {
-            wxString nm = StartNodeAttrName(0);
-            bool hasIndivNodes = ModelXml->HasAttribute(nm);
-            if (hasIndivNodes) {
-                for (int x = 0; x < old_string_count; x++) {
-                    wxString nm = StartNodeAttrName(x);
-                    ModelXml->DeleteAttribute(nm);
-                }
+            if (_hasIndivNodes) {
                 for (int x = 0; x < new_string_count; x++) {
                     wxString nm = StartNodeAttrName(x);
-                    ModelXml->AddAttribute(nm, ComputeStringStartNode(x));
+                    _indivStartNodes[x] = ComputeStringStartNode(x);
                 }
             }
         }
-        ModelXml->DeleteAttribute("MultiStrings");
-        ModelXml->AddAttribute("MultiStrings", wxString::Format("%d", _strings));
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MultiPointModel::OnPropertyGridChange::MultiPointStrings");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MultiPointModel::OnPropertyGridChange::MultiPointStrings");
@@ -304,17 +247,15 @@ int MultiPointModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPrope
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "MultiPointModel::OnPropertyGridChange::MultiPointStrings");
         return 0;
     } else if (!GetModelScreenLocation().IsLocked() && !IsFromBase() && "ModelHeight" == event.GetPropertyName()) {
-        height = event.GetValue().GetDouble();
-        if (std::abs(height) < 0.01f) {
-            if (height < 0.0f) {
-                height = -0.01f;
+        _height = event.GetValue().GetDouble();
+        if (std::abs(_height) < 0.01f) {
+            if (_height < 0.0f) {
+                _height = -0.01f;
             }
             else {
-                height = 0.01f;
+                _height = 0.01f;
             }
         }
-        ModelXml->DeleteAttribute("ModelHeight");
-        ModelXml->AddAttribute("ModelHeight", event.GetPropertyValue().GetString());
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MultiPointModel::OnPropertyGridChange::ModelHeight");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MultiPointModel::OnPropertyGridChange::ModelHeight");
@@ -328,16 +269,15 @@ int MultiPointModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPrope
     return Model::OnPropertyGridChange(grid, event);
 }
 
-std::string MultiPointModel::ComputeStringStartNode(int x) const
+int MultiPointModel::ComputeStringStartNode(int x) const
 {
-    if (x == 0)
-        return "1";
+    if (x == 0) return 1;
 
     int strings = GetNumPhysicalStrings();
     int nodes = GetNodeCount();
     float nodesPerString = (float)nodes / (float)strings;
 
-    return wxString::Format("%d", (int)(x * nodesPerString + 1)).ToStdString();
+    return (int)(x * nodesPerString + 1);
 }
 
 int MultiPointModel::NodesPerString() const
@@ -355,22 +295,17 @@ int MultiPointModel::NodesPerString() const
             return 1;
         } else {
             wxString nm = StartNodeAttrName(0);
-            bool hasIndivNodes = ModelXml->HasAttribute(nm);
             int v1 = 0;
             int v2 = 0;
-            if (hasIndivNodes) {
-                nm = StartNodeAttrName(string);
-                std::string val = ModelXml->GetAttribute(nm, "").ToStdString();
-                v1 = wxAtoi(val);
+            if (_hasIndivNodes) {
+                v1 = _indivStartNodes[string];
                 if (string < _strings - 1) { // not last string
-                    nm = StartNodeAttrName(string + 1);
-                    val = ModelXml->GetAttribute(nm, "").ToStdString();
-                    v2 = wxAtoi(val);
+                    v2 = _indivStartNodes[string+1];
                 }
             } else {
-                v1 = wxAtoi(ComputeStringStartNode(string));
+                v1 = ComputeStringStartNode(string);
                 if (string < _strings - 1) { // not last string
-                    v2 = wxAtoi(ComputeStringStartNode(string + 1));
+                    v2 = ComputeStringStartNode(string + 1);
                 }
             }
             if (string < _strings - 1) { // not last string
@@ -496,7 +431,7 @@ bool MultiPointModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights,
         ModelXml->DeleteAttribute("PointData");
         ModelXml->AddAttribute("PointData", point_data);
 
-        GetModelScreenLocation().Read(ModelXml);
+        GetModelScreenLocation().Init();
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MultiPointModel::ImportXlightsModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MultiPointModel::ImportXlightsModel");
@@ -508,93 +443,16 @@ bool MultiPointModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights,
     }
 }
 
-void MultiPointModel::ExportXlightsModel()
-{
-    wxString name = ModelXml->GetAttribute("name");
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty())
-        return;
-    wxFile f(filename);
-
-    if (!f.Create(filename, true) || !f.IsOpened()) {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-        return;
-    }
-
-    wxString p1 = ModelXml->GetAttribute("parm1");
-    wxString p2 = ModelXml->GetAttribute("parm2");
-    wxString p3 = ModelXml->GetAttribute("parm3");
-    wxString st = ModelXml->GetAttribute("StringType");
-    wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency", "0");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
-    wxString a = ModelXml->GetAttribute("Antialias");
-    wxString ss = ModelXml->GetAttribute("StartSide");
-    wxString dir = ModelXml->GetAttribute("Dir");
-    wxString sn = ModelXml->GetAttribute("StrandNames");
-    wxString nn = ModelXml->GetAttribute("NodeNames");
-    wxString pts = ModelXml->GetAttribute("NumPoints");
-    NormalizePointData();
-    wxString point_data = ModelXml->GetAttribute("PointData");
-    wxString v = xlights_version_string;
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<multipointmodel \n");
-    f.Write(wxString::Format("name=\"%s\" ", name));
-    f.Write(wxString::Format("parm1=\"%s\" ", p1));
-    f.Write(wxString::Format("parm2=\"%s\" ", p2));
-    f.Write(wxString::Format("parm3=\"%s\" ", p3));
-    f.Write(wxString::Format("StringType=\"%s\" ", st));
-    f.Write(wxString::Format("Transparency=\"%s\" ", t));
-    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
-    f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
-    f.Write(wxString::Format("Antialias=\"%s\" ", a));
-    f.Write(wxString::Format("StartSide=\"%s\" ", ss));
-    f.Write(wxString::Format("Dir=\"%s\" ", dir));
-    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
-    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
-    f.Write(wxString::Format("NumPoints=\"%s\" ", pts));
-    f.Write(wxString::Format("PointData=\"%s\" ", point_data));
-    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
-    f.Write(ExportSuperStringColors());
-    f.Write(" >\n");
-    wxString aliases = SerialiseAliases();
-    if (aliases != "") {
-        f.Write(aliases);
-    }
-    wxString state = SerialiseState();
-    if (state != "") {
-        f.Write(state);
-    }
-    wxString submodel = SerialiseSubmodel();
-    if (submodel != "") {
-        f.Write(submodel);
-    }
-    wxString groups = SerialiseGroups();
-    if (groups != "") {
-        f.Write(groups);
-    }
-    //ExportDimensions(f);
-    f.Write("</multipointmodel>");
-    f.Close();
-}
-
+// Call this before exporting the points
 void MultiPointModel::NormalizePointData()
 {
-    // read in the point data from xml
-    int num_points = wxAtoi(ModelXml->GetAttribute("NumPoints"));
-    if (num_points < 2)
-        num_points = 2;
-    std::vector<xlMultiPoint> pPos(num_points);
-    wxString point_data = ModelXml->GetAttribute("PointData");
-    wxArrayString point_array = wxSplit(point_data, ',');
-    while (point_array.size() < num_points * 3)
-        point_array.push_back("0.0");
-    for (int i = 0; i < num_points; ++i) {
-        pPos[i].x = wxAtof(point_array[i * 3]);
-        pPos[i].y = wxAtof(point_array[i * 3 + 1]);
-        pPos[i].z = wxAtof(point_array[i * 3 + 2]);
-    }
 
+}
+
+//TODO:  Do we need this code to Normalize...was used for an export
+/*std::string MultiPointModel::GetPointDataAsString() const
+{
+    // First normalize all the data
     float minX = 100000.0f;
     float minY = 100000.0f;
     float minZ = 100000.0f;
@@ -602,52 +460,53 @@ void MultiPointModel::NormalizePointData()
     float maxY = 0.0f;
     float maxZ = 0.0f;
 
-    for (int i = 0; i < num_points; ++i) {
-        if (pPos[i].x < minX)
-            minX = pPos[i].x;
-        if (pPos[i].y < minY)
-            minY = pPos[i].y;
-        if (pPos[i].z < minZ)
-            minZ = pPos[i].z;
-        if (pPos[i].x > maxX)
-            maxX = pPos[i].x;
-        if (pPos[i].y > maxY)
-            maxY = pPos[i].y;
-        if (pPos[i].z > maxZ)
-            maxZ = pPos[i].z;
+    for (int i = 0; i < screenLocation.num_points; ++i) {
+        if (screenLocation.mPos[i].x < minX)
+            minX = screenLocation.mPos[i].x;
+        if (screenLocation.mPos[i].y < minY)
+            minY = screenLocation.mPos[i].y;
+        if (screenLocation.mPos[i].z < minZ)
+            minZ = screenLocation.mPos[i].z;
+        if (screenLocation.mPos[i].x > maxX)
+            maxX = screenLocation.mPos[i].x;
+        if (screenLocation.mPos[i].y > maxY)
+            maxY = screenLocation.mPos[i].y;
+        if (screenLocation.mPos[i].z > maxZ)
+            maxZ = screenLocation.mPos[i].z;
     }
     float deltax = maxX - minX;
     float deltay = maxY - minY;
     float deltaz = maxZ - minZ;
 
     // normalize all the point data
-    for (int i = 0; i < num_points; ++i) {
+    std::vector<xlMultiPoint> pPos;
+    pPos.resize(screenLocation.num_points);
+    for (int i = 0; i < screenLocation.num_points; ++i) {
         if (deltax == 0.0f) {
             pPos[i].x = 0.0f;
         } else {
-            pPos[i].x = (pPos[i].x - minX) / deltax;
+            pPos[i].x = (screenLocation.mPos[i].x - minX) / deltax;
         }
         if (deltay == 0.0f) {
             pPos[i].y = 0.0f;
         } else {
-            pPos[i].y = (pPos[i].y - minY) / deltay;
+            pPos[i].y = (screenLocation.mPos[i].y - minY) / deltay;
         }
         if (deltaz == 0.0f) {
             pPos[i].z = 0.0f;
         } else {
-            pPos[i].z = (pPos[i].z - minZ) / deltaz;
+            pPos[i].z = (screenLocation.mPos[i].z - minZ) / deltaz;
         }
     }
 
-    ModelXml->DeleteAttribute("PointData");
-    point_data = "";
-    for (int i = 0; i < num_points; ++i) {
-        point_data += wxString::Format("%f,", pPos[i].x);
-        point_data += wxString::Format("%f,", pPos[i].y);
-        point_data += wxString::Format("%f", pPos[i].z);
-        if (i != num_points - 1) {
+    std::string point_data = "";
+    for (int i = 0; i < screenLocation.num_points; ++i) {
+        point_data += wxString::Format("%f,", screenLocation.mPos[i].x);
+        point_data += wxString::Format("%f,", screenLocation.mPos[i].y);
+        point_data += wxString::Format("%f", screenLocation.mPos[i].z);
+        if (i != screenLocation.num_points - 1) {
             point_data += ",";
         }
     }
-    ModelXml->AddAttribute("PointData", point_data);
-}
+    return point_data;
+}*/

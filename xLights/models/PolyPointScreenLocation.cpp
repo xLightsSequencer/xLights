@@ -34,6 +34,7 @@ PolyPointScreenLocation::PolyPointScreenLocation() : ModelScreenLocation(2),
     mPos[0].x = 0.0f;
     mPos[0].y = 0.0f;
     mPos[0].z = 0.0f;
+    mPos[0].length = 0.0f;
     mPos[0].matrix = nullptr;
     mPos[0].mod_matrix = nullptr;
     mPos[0].curve = nullptr;
@@ -41,6 +42,7 @@ PolyPointScreenLocation::PolyPointScreenLocation() : ModelScreenLocation(2),
     mPos[1].x = 0.0f;
     mPos[1].y = 0.0f;
     mPos[1].z = 0.0f;
+    mPos[1].length = 0.0f;
     mPos[1].matrix = nullptr;
     mPos[1].mod_matrix = nullptr;
     mPos[1].curve = nullptr;
@@ -91,175 +93,28 @@ void PolyPointScreenLocation::SetCurve(int seg_num, bool create)
     }
 }
 
-ModelScreenLocation::MSLUPGRADE PolyPointScreenLocation::CheckUpgrade(wxXmlNode* node)
+void PolyPointScreenLocation::Init()
 {
-    // check for upgrade to world positioning
-    int version = wxAtoi(node->GetAttribute("versionNumber", "0"));
-    if (version < 2) {
-        // on first upgrade call need to fix point data so init model won't crash
-        if (node->HasAttribute("NumPoints")) {
-            int num_points = wxAtoi(node->GetAttribute("NumPoints", "2"));
-            wxString point_data = node->GetAttribute("PointData", "0.0, 0.0, 0.0, 0.0, 0.0, 0.0");
-            wxArrayString point_array = wxSplit(point_data, ',');
-            wxString new_point_data = "";
-            for (int i = 0; i < num_points; ++i) {
-                float posx = wxAtof(point_array[i * 2]);
-                float posy = wxAtof(point_array[i * 2 + 1]);
-                new_point_data += wxString::Format("%f,", posx);
-                new_point_data += wxString::Format("%f,", posy);
-                new_point_data += wxString::Format("%f", 0.0f);
-                if (i != num_points - 1) {
-                    new_point_data += ",";
-                }
-            }
-            wxString cpoint_data = node->GetAttribute("cPointData", "");
-            wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
-            int num_curves = cpoint_array.size() / 5;
-            wxString new_cpoint_data = "";
-            for (int i = 0; i < num_curves; ++i) {
-                int seg_num = wxAtoi(cpoint_array[i * 5]);
-                float cp0x = wxAtof(cpoint_array[i * 5 + 1]);
-                float cp0y = wxAtof(cpoint_array[i * 5 + 2]);
-                float cp1x = wxAtof(cpoint_array[i * 5 + 3]);
-                float cp1y = wxAtof(cpoint_array[i * 5 + 4]);
-                new_cpoint_data += wxString::Format("%d,%f,%f,%f,%f,%f,%f,", seg_num, cp0x, cp0y, 0.0f, cp1x, cp1y, 0.0f);
-            }
-            node->DeleteAttribute("PointData");
-            node->DeleteAttribute("cPointData");
-            node->AddAttribute("PointData", new_point_data);
-            node->AddAttribute("cPointData", new_cpoint_data);
-        }
-        node->DeleteAttribute("versionNumber");
-        node->AddAttribute("versionNumber", "2");
-        return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_SKIPPED;
+    if (isnan(worldPos_x)) worldPos_x = 0.0;
+    if (isnan(worldPos_y)) worldPos_y = 0.0;
+    if (isnan(worldPos_z)) worldPos_z = 0.0;
+
+    if (scalex <= 0 || std::isinf(scalex) || isnan(scalex)) {
+        scalex = 1.0f;
     }
-    else if (version == 2) {
-        if (node->HasAttribute("NumPoints")) {
-            float worldPos_x = 0.0;
-            float worldPos_y = 0.0;
-            int num_points = wxAtoi(node->GetAttribute("NumPoints", "2"));
-            wxString point_data = node->GetAttribute("PointData", "0.0, 0.0, 0.0, 0.0, 0.0, 0.0");
-            wxArrayString point_array = wxSplit(point_data, ',');
-            wxString new_point_data = "";
-            for (int i = 0; i < num_points; ++i) {
-                float posx = wxAtof(point_array[i * 3]);
-                float posy = wxAtof(point_array[i * 3 + 1]);
-                if (i == 0) {
-                    worldPos_x = previewW * posx;
-                    worldPos_y = previewH * posy;
-                    worldPos_z = 0.0f;
-                    new_point_data += wxString::Format("%f,", 0.0f);
-                    new_point_data += wxString::Format("%f,", 0.0f);
-                    new_point_data += wxString::Format("%f", 0.0f);
-                }
-                else {
-                    posx = (previewW * posx - worldPos_x) / 100.0f;
-                    posy = (previewH * posy - worldPos_y) / 100.0f;
-                    new_point_data += wxString::Format("%f,", posx);
-                    new_point_data += wxString::Format("%f,", posy);
-                    new_point_data += wxString::Format("%f", 0.0f);
-                }
-                if (i != num_points - 1) {
-                    new_point_data += ",";
-                }
-            }
-            wxString cpoint_data = node->GetAttribute("cPointData", "");
-            wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
-            int num_curves = cpoint_array.size() / 7;
-            wxString new_cpoint_data = "";
-            for (int i = 0; i < num_curves; ++i) {
-                int seg_num = wxAtoi(cpoint_array[i * 7]);
-                float cp0x = wxAtof(cpoint_array[i * 7 + 1]);
-                float cp0y = wxAtof(cpoint_array[i * 7 + 2]);
-                float cp1x = wxAtof(cpoint_array[i * 7 + 4]);
-                float cp1y = wxAtof(cpoint_array[i * 7 + 5]);
-                cp0x = (previewW * cp0x - worldPos_x) / 100.0f;
-                cp0y = (previewH * cp0y - worldPos_y) / 100.0f;
-                cp1x = (previewW * cp1x - worldPos_x) / 100.0f;
-                cp1y = (previewH * cp1y - worldPos_y) / 100.0f;
-                new_cpoint_data += wxString::Format("%d,%f,%f,%f,%f,%f,%f,", seg_num, cp0x, cp0y, 0.0f, cp1x, cp1y, 0.0f);
-            }
-            node->DeleteAttribute("WorldPosX");
-            node->DeleteAttribute("WorldPosY");
-            node->DeleteAttribute("WorldPosZ");
-            node->AddAttribute("WorldPosX", wxString::Format("%6.4f", worldPos_x));
-            node->AddAttribute("WorldPosY", wxString::Format("%6.4f", worldPos_y));
-            node->AddAttribute("WorldPosZ", wxString::Format("%6.4f", worldPos_z));
-            node->DeleteAttribute("PointData");
-            node->DeleteAttribute("cPointData");
-            node->AddAttribute("PointData", new_point_data);
-            node->AddAttribute("cPointData", new_cpoint_data);
-        }
-        node->DeleteAttribute("versionNumber");
-        node->AddAttribute("versionNumber", CUR_MODEL_POS_VER);
-        return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_EXEC_READ;
+    if (scaley <= 0 || std::isinf(scaley) || isnan(scaley)) {
+        scaley = 1.0f;
     }
-    return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_NOT_NEEDED;
-}
-
-void PolyPointScreenLocation::Read(wxXmlNode* ModelNode)
-{
-    ModelScreenLocation::MSLUPGRADE upgrade_result = CheckUpgrade(ModelNode);
-    if (upgrade_result == ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_NOT_NEEDED) {
-        worldPos_x = wxAtof(ModelNode->GetAttribute("WorldPosX", "0.0"));
-        if (isnan(worldPos_x)) worldPos_x = 0.0;
-        worldPos_y = wxAtof(ModelNode->GetAttribute("WorldPosY", "0.0"));
-        if (isnan(worldPos_y)) worldPos_y = 0.0;
-        worldPos_z = wxAtof(ModelNode->GetAttribute("WorldPosZ", "0.0"));
-        if (isnan(worldPos_z)) worldPos_z = 0.0;
-
-        scalex = wxAtof(ModelNode->GetAttribute("ScaleX", "1.0"));
-        scaley = wxAtof(ModelNode->GetAttribute("ScaleY", "1.0"));
-        scalez = wxAtof(ModelNode->GetAttribute("ScaleZ", "1.0"));
-
-        if (scalex <= 0 || std::isinf(scalex) || isnan(scalex)) {
-            scalex = 1.0f;
-        }
-        if (scaley <= 0 || std::isinf(scaley) || isnan(scaley)) {
-            scaley = 1.0f;
-        }
-        if (scalez <= 0 || std::isinf(scalez) || isnan(scalez)) {
-            scalez = 1.0f;
-        }
-
-        num_points = wxAtoi(ModelNode->GetAttribute("NumPoints", "2"));
-        if (num_points < 2) num_points = 2;
-        mPos.resize(num_points);
-        wxString point_data = ModelNode->GetAttribute("PointData", "0.0, 0.0, 0.0, 0.0, 0.0, 0.0");
-        wxArrayString point_array = wxSplit(point_data, ',');
-        while (point_array.size() < num_points * 3) point_array.push_back("0.0");
-        for (int i = 0; i < num_points; ++i) {
-            mPos[i].x = wxAtof(point_array[i * 3]);
-            mPos[i].y = wxAtof(point_array[i * 3 + 1]);
-            mPos[i].z = wxAtof(point_array[i * 3 + 2]);
-            mPos[i].has_curve = false;
-        }
-        mHandlePosition.resize(num_points + 5);
-        mSelectableHandles = num_points + 1;
-        handle_aabb_min.resize(num_points + 5);
-        handle_aabb_max.resize(num_points + 5);
-        seg_aabb_min.resize(num_points - 1);
-        seg_aabb_max.resize(num_points - 1);
-        wxString cpoint_data = ModelNode->GetAttribute("cPointData", "");
-        wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
-        int num_curves = cpoint_array.size() / 7;
-        glm::vec3 scaling(scalex, scaley, scalez);
-        glm::vec3 world_pos(worldPos_x, worldPos_y, worldPos_z);
-        for (int i = 0; i < num_curves; ++i) {
-            int seg_num = wxAtoi(cpoint_array[i * 7]);
-            mPos[seg_num].has_curve = true;
-            if (mPos[seg_num].curve == nullptr) {
-                mPos[seg_num].curve = new BezierCurveCubic3D();
-            }
-            mPos[seg_num].curve->set_p0(mPos[seg_num].x, mPos[seg_num].y, mPos[seg_num].z);
-            mPos[seg_num].curve->set_p1(mPos[seg_num + 1].x, mPos[seg_num + 1].y, mPos[seg_num + 1].z);
-            mPos[seg_num].curve->set_cp0(wxAtof(cpoint_array[i * 7 + 1]), wxAtof(cpoint_array[i * 7 + 2]), wxAtof(cpoint_array[i * 7 + 3]));
-            mPos[seg_num].curve->set_cp1(wxAtof(cpoint_array[i * 7 + 4]), wxAtof(cpoint_array[i * 7 + 5]), wxAtof(cpoint_array[i * 7 + 6]));
-            mPos[seg_num].curve->SetPositioning(scaling, world_pos);
-            mPos[seg_num].curve->UpdatePoints();
-        }
-        _locked = (wxAtoi(ModelNode->GetAttribute("Locked", "0")) == 1);
+    if (scalez <= 0 || std::isinf(scalez) || isnan(scalez)) {
+        scalez = 1.0f;
     }
+
+    mHandlePosition.resize(num_points + 5);
+    mSelectableHandles = num_points + 1;
+    handle_aabb_min.resize(num_points + 5);
+    handle_aabb_max.resize(num_points + 5);
+    seg_aabb_min.resize(num_points - 1);
+    seg_aabb_max.resize(num_points - 1);
 }
 
 void PolyPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const
@@ -1649,6 +1504,7 @@ void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int m
     new_point.x = (ray_origin.x - worldPos_x) / scalex;
     new_point.y = (ray_origin.y - worldPos_y) / scaley;
     new_point.z = 0.0f;
+    new_point.length = 0.0f;
 
     if (draw_3d) {
         // use drag handle function to find plane intersection
@@ -1705,11 +1561,13 @@ void PolyPointScreenLocation::InsertHandle(int after_handle, float zoom, int sca
     new_point.x = (x1_pos+x2_pos)/2.0;
     new_point.y = (y1_pos+y2_pos)/2.0;
     new_point.z = (z1_pos+z2_pos)/2.0;
+    new_point.length = mPos[pos].length/2.0;
     new_point.matrix = nullptr;
     new_point.mod_matrix = nullptr;
     new_point.curve = nullptr;
     new_point.has_curve = false;
     mPos.insert(mPos.begin() + pos + 1, new_point);
+    mPos[pos].length = new_point.length;
     xlPoint new_handle;
     float hw = GetRectHandleWidth(zoom, scale);
     float sx = mPos[pos+1].x * scalex + worldPos_x - hw / 2;
@@ -2315,4 +2173,69 @@ void PolyPointScreenLocation::AdjustAllHandles(glm::mat4& mat)
         }
     }
     FixCurveHandles();
+}
+
+void PolyPointScreenLocation::SetDataFromString(const std::string& point_data)
+{
+    mPos.clear();
+    mPos.resize(num_points);
+    wxArrayString point_array = wxSplit(point_data, ',');
+    while (point_array.size() < num_points * 3) {
+        point_array.push_back("0.0");
+    }
+    for (int i = 0; i < num_points; ++i) {
+        mPos[i].x = wxAtof(point_array[i * 3]);
+        mPos[i].y = wxAtof(point_array[i * 3 + 1]);
+        mPos[i].z = wxAtof(point_array[i * 3 + 2]);
+        mPos[i].has_curve = false;
+        mPos[i].curve = nullptr;
+    }
+}
+
+std::string PolyPointScreenLocation::GetPointDataAsString() const
+{
+    std::string point_data = "";
+    for (int i = 0; i < num_points; ++i) {
+        point_data += wxString::Format("%f,", mPos[i].x);
+        point_data += wxString::Format("%f,", mPos[i].y);
+        point_data += wxString::Format("%f", mPos[i].z);
+        if (i != num_points - 1) {
+            point_data += ",";
+        }
+    }
+    return point_data;
+}
+
+void PolyPointScreenLocation::SetCurveDataFromString(const std::string& cpoint_data)
+{
+    wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
+    int num_curves = cpoint_array.size() / 7;
+    glm::vec3 scaling(scalex, scaley, scalez);
+    glm::vec3 world_pos(worldPos_x, worldPos_y, worldPos_z);
+    for (int i = 0; i < num_curves; ++i) {
+        int seg_num = wxAtoi(cpoint_array[i * 7]);
+        mPos[seg_num].has_curve = true;
+        if (mPos[seg_num].curve == nullptr) {
+            mPos[seg_num].curve = new BezierCurveCubic3D();
+        }
+        mPos[seg_num].curve->set_p0(mPos[seg_num].x, mPos[seg_num].y, mPos[seg_num].z);
+        mPos[seg_num].curve->set_p1(mPos[seg_num + 1].x, mPos[seg_num + 1].y, mPos[seg_num + 1].z);
+        mPos[seg_num].curve->set_cp0(wxAtof(cpoint_array[i * 7 + 1]), wxAtof(cpoint_array[i * 7 + 2]), wxAtof(cpoint_array[i * 7 + 3]));
+        mPos[seg_num].curve->set_cp1(wxAtof(cpoint_array[i * 7 + 4]), wxAtof(cpoint_array[i * 7 + 5]), wxAtof(cpoint_array[i * 7 + 6]));
+        mPos[seg_num].curve->SetPositioning(scaling, world_pos);
+        mPos[seg_num].curve->UpdatePoints();
+        mPos[seg_num].curve->UpdateMatrices();
+    }
+}
+
+std::string PolyPointScreenLocation::GetCurveDataAsString() const
+{
+    std::string cpoint_data = "";
+    for (int i = 0; i < num_points; ++i) {
+        if (mPos[i].has_curve) {
+            cpoint_data += wxString::Format("%d,%f,%f,%f,%f,%f,%f,", i, mPos[i].curve->get_cp0x(), mPos[i].curve->get_cp0y(), mPos[i].curve->get_cp0z(),
+                                            mPos[i].curve->get_cp1x(), mPos[i].curve->get_cp1y(), mPos[i].curve->get_cp1z());
+        }
+    }
+    return cpoint_data;
 }

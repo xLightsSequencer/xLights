@@ -16,7 +16,7 @@ class ThreePointScreenLocation : public TwoPointScreenLocation {
 public:
     ThreePointScreenLocation();
     virtual ~ThreePointScreenLocation();
-    virtual void Read(wxXmlNode *node) override;
+    virtual void Init() override;
     virtual void AddDimensionProperties(wxPropertyGridInterface* grid, float factor = 1.0) const override;
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;

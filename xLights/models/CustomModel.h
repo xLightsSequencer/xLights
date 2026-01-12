@@ -46,6 +46,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetNumStrings(int strings);
         [[nodiscard]] virtual int NodesPerString() const override;
         [[nodiscard]] virtual int MapPhysicalStringToLogicalString(int string) const override;
+        virtual int GetNumStrings() const override{ return _strings; }
 
         [[nodiscard]] virtual int GetNumPhysicalStrings() const override;
         [[nodiscard]] bool SupportsChangingStringCount() const override{ return true; };
@@ -79,6 +80,11 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] std::vector<std::vector<std::vector<int>>> & GetData() { return _locations; }  // letting the XmlSerializer functions access this member data for speed
         [[nodiscard]] int GetCustomNodeStringNumber(int node) const;
 
+        [[nodiscard]] const std::string StartNodeAttrName(int idx) const
+        {
+            return wxString::Format(wxT("String%i"), idx + 1).ToStdString();  // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
+        }
+
     protected:
         virtual void InitModel() override;
         virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
@@ -86,16 +92,11 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
     private:
         [[nodiscard]] int GetCustomMaxChannel() const;
         void InitCustomMatrix();
-        [[nodiscard]] static std::string StartNodeAttrName(int idx)
-        {
-            return wxString::Format(wxT("String%i"), idx + 1).ToStdString();  // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
-        }
         [[nodiscard]] int ComputeStringStartNode(int x) const;
 
         long _depth = 1;
         std::string _custom_background;
         int _strings = 1;
         long _lightness = 0;
-        std::vector<int> stringStartNodes;
         std::vector<std::vector<std::vector<int>>> _locations;
 };

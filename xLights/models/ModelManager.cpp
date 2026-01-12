@@ -1079,31 +1079,14 @@ bool ModelManager::ModelHasNoDependencyOnNoController(Model* m, std::list<std::s
     if (!m->CouldComputeStartChannel) // this should stop this looping forever due to chain loops
         return false;
 
-    if (m->HasIndividualStartChannels()) {
-        size_t c = m->GetNumPhysicalStrings();
-        for (size_t i = 0; i < c; ++i) {
-            wxString sc = m->GetIndividualStartChannel(i);
-            if (sc != "" && (sc[0] == '>' || sc[0] == '@')) {
-                std::string dependson = sc.substr(1).BeforeFirst(':');
-                Model* mm = GetModel(dependson);
-                if (mm != nullptr) {
-                    if (mm->GetControllerName() == NO_CONTROLLER)
-                        return false;
-                    if (!ModelHasNoDependencyOnNoController(mm, visited))
-                        return false;
-                }
-            }
-        }
-    } else {
-        wxString sc = m->ModelStartChannel;
-        if (sc != "" && (sc[0] == '>' || sc[0] == '@')) {
-            std::string dependson = sc.substr(1).BeforeFirst(':');
-            Model* mm = GetModel(dependson);
-            if (mm != nullptr) {
-                if (mm->GetControllerName() == NO_CONTROLLER)
-                    return false;
-                return ModelHasNoDependencyOnNoController(mm, visited);
-            }
+    wxString sc = m->ModelStartChannel;
+    if (sc != "" && (sc[0] == '>' || sc[0] == '@')) {
+        std::string dependson = sc.substr(1).BeforeFirst(':');
+        Model* mm = GetModel(dependson);
+        if (mm != nullptr) {
+            if (mm->GetControllerName() == NO_CONTROLLER)
+                return false;
+            return ModelHasNoDependencyOnNoController(mm, visited);
         }
     }
 
@@ -1218,7 +1201,7 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
     int parm3 = 1;
 
     if (type == "Star") {
-        model = new StarModel(*this, false);
+        model = new StarModel(*this);
         parm3 = 5;
         dynamic_cast<StarModel*>(model)->SetStarStartLocation("Bottom Ctr-CW");
     } else if (type == "Arches") {
@@ -1313,9 +1296,9 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
     } else if (type == "Single Line") {
         model = new SingleLineModel(*this);
     } else if (type == "Poly Line") {
-        model = new PolyLineModel(node, *this, false);
+        model = new PolyLineModel(*this);
     } else if (type == "MultiPoint") {
-        model = new MultiPointModel(node, *this, false);
+        model = new MultiPointModel(*this);
     } else if (type == "Cube") {
         model = new CubeModel(*this);
         parm1 = 5;
@@ -1586,9 +1569,9 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
     } else if (type == "Single Line") {
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Poly Line") {
-        model = new PolyLineModel(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "MultiPoint") {
-        model = new MultiPointModel(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Cube") {
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Custom") {
@@ -1599,7 +1582,7 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "WholeHouse") {
         model = new WholeHouseModel(node, *this, zeroBased);
-    } else if (type == "Matrix" || type == "Vert Matrix" || type == "Horiz Matrix") {
+    } else if (type.find("Matrix") != std::string::npos) {
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Spinner") {
         model = new SpinnerModel(node, *this, zeroBased);
@@ -1609,9 +1592,7 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
     }
     model->GetModelScreenLocation().previewW = previewW;
     model->GetModelScreenLocation().previewH = previewH;
-    if (model->GetModelScreenLocation().CheckUpgrade(node) == ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_EXEC_READ) {
-        model->GetModelScreenLocation().Read(node);
-    }
+
     return model;
 }
 

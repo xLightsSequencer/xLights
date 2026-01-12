@@ -18,8 +18,7 @@ public:
     TwoPointScreenLocation();
     virtual ~TwoPointScreenLocation();
 
-    virtual void Read(wxXmlNode *node) override;
-    virtual MSLUPGRADE CheckUpgrade(wxXmlNode *node) override;
+    virtual void Init() override;
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
