@@ -2697,7 +2697,7 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
             orderedSettings[setting.first] = setting.second;
         }
 
-        SetEffectControls(settings); // DWE DWE
+        SetEffectControls(orderedSettings);
 
         StatePanel* fp = dynamic_cast<StatePanel*>(EffectsPanel1->GetSelectedPanel());
         if (fp != nullptr) {
