@@ -1922,14 +1922,14 @@ private:
         CustomModel* model = new CustomModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
         model->SetCustomDepth(std::stol(node->GetAttribute(XmlNodeKeys::CMDepthAttribute, "1").ToStdString()));
-        model->SetNumStrings(std::stoi(node->GetAttribute(XmlNodeKeys::CustomStringsAttribute, "1").ToStdString()));
+        int num_strings = std::stoi(node->GetAttribute(XmlNodeKeys::CustomStringsAttribute, "1").ToStdString());
+        model->SetNumStrings(num_strings);
         model->SetCustomBackground(node->GetAttribute(XmlNodeKeys::BkgImageAttribute, xlEMPTY_STRING));
         model->SetCustomLightness(std::stol(node->GetAttribute(XmlNodeKeys::BkgLightnessAttribute, "0").ToStdString()));
         std::vector<std::vector<std::vector<int>>>& locations = model->GetData();
         locations = XmlSerialize::ParseCustomModelDataFromXml(node);
 
         // Individual Start Nodes
-        int num_strings = model->GetNumStrings();
         if (num_strings > 1) {
             model->SetHasIndivStartNodes(true);
             model->SetIndivStartNodesCount(num_strings);
@@ -2020,10 +2020,8 @@ private:
         PolyPointScreenLocation& screenLoc = dynamic_cast<PolyPointScreenLocation&>(model->GetBaseObjectScreenLocation());
 
         // Individual Start Nodes
-        bool hasIndivNode = node->HasAttribute(model->StartNodeAttrName(0));
-        model->SetHasIndivStartNodes(hasIndivNode);
-        if (hasIndivNode ) {
-            int num_strings = model->GetNumStrings();
+        if (num_strings > 1) {
+            model->SetHasIndivStartNodes(true);
             model->SetIndivStartNodesCount(num_strings);
             for (auto i = 0; i < num_strings;  i++) {
                 model->SetNodeSize(i, std::stoi(node->GetAttribute(model->StartNodeAttrName(i), "0").ToStdString()));

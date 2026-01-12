@@ -821,10 +821,9 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
     if (_strings == 1) {
         // cant set start node
     } else {
-        p = grid->Append(new wxBoolProperty("Indiv Start Nodes", "ModelIndividualStartNodes", _hasIndivNodes));
-        p->SetAttribute("UseCheckbox", true);
+        p = grid->Append(new wxStringProperty("Start Nodes", "ModelIndividualStartNodes", ""));
 
-        std::string nm = StartNodeAttrName(0);
+        std::string nm = StartChanAttrName(0);
         wxPGProperty* psn = grid->AppendIn(p, new wxUIntProperty(nm, nm, _indivStartNodes[0]));
         psn->SetAttribute("Min", 1);
         psn->SetAttribute("Max", (int)GetNodeCount());
@@ -841,7 +840,7 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
                 if (x == 0) {
                     psn->SetValue(v);
                 } else {
-                    nm = StartNodeAttrName(x);
+                    nm = StartChanAttrName(x);
                     grid->AppendIn(p, new wxUIntProperty(nm, nm, v));
                 }
             }
@@ -978,6 +977,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         int old_string_count = _strings;
         int new_string_count = event.GetValue().GetInteger();
         _strings = new_string_count;
+        _hasIndivNodes = _strings > 1;
         if (old_string_count != new_string_count) {
             if (_hasIndivNodes) {
                 _indivStartNodes.resize(_strings);
@@ -1011,15 +1011,15 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartNodes");
         return 0;
     }
-    else if (event.GetPropertyName().StartsWith("ModelIndividualStartNodes.PolyNode")) {
-        wxString s = event.GetPropertyName().substr(strlen("ModelIndividualStartNodes.PolyNode"));
-        int string = wxAtoi(s);
+    else if (event.GetPropertyName().StartsWith("ModelIndividualStartNodes.String")) {
+        wxString s = event.GetPropertyName().substr(strlen("ModelIndividualStartNodes.String"));
+        int string = wxAtoi(s) - 1;
         int value = event.GetValue().GetInteger();
         if (value < 1)
             value = 1;
         if (value > NodesPerString())
             value = NodesPerString();
-        _indivStartNodes[string-1] = value;
+        _indivStartNodes[string] = value;
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartNodes2");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartNodes2");
