@@ -49,6 +49,7 @@ StatePanel::StatePanel(wxWindow* parent) : xlEffectPanel(parent)
 {
     _effect = nullptr;
     _model = nullptr;
+	_loadingSettings = false;
 
 	//(*Initialize(StatePanel)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -192,12 +193,14 @@ void StatePanel::SetEffect(StateEffect* effect, Model* model)
     _effect = effect;
     _model = model;
 
-    UpdateStateList();
+    if (!_loadingSettings) {
+        UpdateStateList();
+    }
 }
 
 void StatePanel::OnMouthMovementTypeSelected(wxCommandEvent& event)
 {
-	ValidateWindow();
+    ValidateWindow();
 }
 
 void StatePanel::OnState_StateDefinitonChoiceSelect(wxCommandEvent& event)
