@@ -34,3 +34,8 @@
 	path = dependencies/nanosvg
 	url = https://github.com/wxWidgets/nanosvg.git
 	branch = wx
+	
+[submodule "dependencies/spdlog"]
+	path = dependencies/spdlog
+	url = https://github.com/gabime/spdlog.git
+	branch = v1.x
