@@ -76,7 +76,7 @@ jobs:
     - name: install ISPC
       uses: ispc/install-ispc-action@main
       with:
-        version: 1.28.1
+        version: 1.29.1
 
     - name: Download wxWidgets
       run: 

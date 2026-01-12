@@ -51,7 +51,7 @@ public:
     std::string DisabledId = "0";
     std::string DisabledName = "disabled";
     std::map<std::string, EspsV4Protocol> ProtocolsByName;
-    std::map<std::string, wxString> ProtocolIdToProtocolName;
+    std::map<std::string, std::string> ProtocolIdToProtocolName;
 
     bool ParseV4Settings(const nlohmann::json& JsonConfig);
     bool WriteConfigToJson(nlohmann::json& JsonConfig);
@@ -82,16 +82,16 @@ private:
     bool CheckWsConnection();
     bool CheckHTTPconnection();
 
-    bool GetAdminInformation(nlohmann::json& Result);
-    bool GetInputConfig(nlohmann::json& Result);
-    bool GetOutputConfig(nlohmann::json& Result);
-    bool GetHttpConfig(std::string const& FileName, std::string const& key, nlohmann::json& Result);
-    bool GetWsConfig(std::string const& FileName, std::string const& key, nlohmann::json& Result);
+    bool GetAdminInformation(nlohmann::json& Response);
+    bool GetInputConfig(nlohmann::json& Response);
+    bool GetOutputConfig(nlohmann::json& Response);
+    bool GetHttpConfig(std::string const& FileName, std::string const& key, nlohmann::json& Response);
+    bool GetWsConfig(std::string const& SectionName, std::string const& key, nlohmann::json& Response);
 
     bool SetInputConfig(nlohmann::json& Data);
     bool SetOutputConfig(nlohmann::json& Data);
     bool SetHttpConfig(std::string const& FileName, std::string const& key, nlohmann::json const& Data);
-    bool SetWsConfig(std::string const& FileName, std::string const& key, nlohmann::json const& Data);
+    bool SetWsConfig(std::string const& SectionName, std::string const& key, nlohmann::json const& Data);
 
     bool SetOutputsV3(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);
     bool SetOutputsV4(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent);

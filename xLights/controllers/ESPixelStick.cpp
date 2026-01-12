@@ -23,6 +23,7 @@
 #include "spdlog/spdlog.h"
 
 #include <map>
+#include <vector>
 
 #pragma region Global Data
 static std::map<std::string, std::string> EspsV4ColorOrders = {
@@ -135,7 +136,7 @@ bool ESPixelStick::GetHttpConfig(std::string const& FileName, std::string const&
     spdlog::debug("GetHttpConfig: Getting ESPSv4 HTTP config file");
 
     std::string const url = "/conf/" + FileName + ".json";
-    std::string RawData = GetURL(url);
+    std::string const RawData = GetURL(url);
     // LOG_DEBUG(std::string("GetHttpConfig: RawData: ") + RawData);
     try
     {
@@ -153,19 +154,19 @@ bool ESPixelStick::GetHttpConfig(std::string const& FileName, std::string const&
     return (0 != Response.size());
 }
 
-bool ESPixelStick::SetHttpConfig(std::string const& filename, std::string const& key, nlohmann::json const& _Data) {
+bool ESPixelStick::SetHttpConfig(std::string const& filename, std::string const& key, nlohmann::json const& Data) {
     spdlog::debug("SetHttpConfig: Setting ESPSv4 HTTP config file");
 
     std::string const url = "http://" + _ip + "/conf/" + filename + ".json";
 
     nlohmann::json newJson;
-    newJson[key] = _Data;
-    std::string Data = newJson.dump();
-    // LOG_DEBUG(std::string("SetHttpConfig: Data: '") + Data + "'");
+    newJson[key] = Data;
+    std::string newData = newJson.dump();
+    // LOG_DEBUG(std::string("SetHttpConfig: Data: '") + newData + "'");
 
-    std::string contentType = "application/json";
+    std::string const contentType = "application/json";
     int ReturnCode = -1;
-    std::vector<unsigned char> value(Data.begin(), Data.end());
+    std::vector<unsigned char> value(newData.begin(), newData.end());
     CurlManager::INSTANCE.doPost(url, contentType, value, ReturnCode);
 
     // LOG_DEBUG(std::string("SetHttpConfig: ReturnCode: '") + std::to_string(ReturnCode) + "'");
@@ -202,8 +203,7 @@ bool ESPixelStick::SetWsConfig(std::string const& SectionName, std::string const
     _wsClient.Send(newJson.dump());
 
     std::string const RawData = GetWSResponse();
-    // LOG_DEBUG(std::string("SetWsConfig: RawData: ") + RawData);
-    nlohmann::json Response;
+    // LOG_DEBUG(std::string("SetWsConfig: RawData: ") + RawData);    nlohmann::json Response;
     try {
         nlohmann::json ParsedData = nlohmann::json::parse(RawData);
         Response = ParsedData["cmd"];
@@ -214,7 +214,7 @@ bool ESPixelStick::SetWsConfig(std::string const& SectionName, std::string const
 
     std::string const returnValue = Response.get<std::string>();
     // LOG_DEBUG(std::string("SetWsConfig: returnValue: '") + returnValue + "'");
-    bool result = returnValue == "OK";
+    bool const result = returnValue == "OK";
     // LOG_DEBUG(std::string("SetWsConfig: result: ") + std::to_string(result));
     return result;
 }
@@ -238,10 +238,10 @@ std::string ESPixelStick::GetFromJSON(std::string const& section, std::string co
     try {
         for (int x = 0; x < json.size(); x++) {
             if (json[x] == '{' || json[x] == '[') {
-                std::string config = json.substr(x);
+                std::string const config = json.substr(x);
                 nlohmann::json origJson = nlohmann::json::parse(config);
                 nlohmann::json val = origJson;
-                if (section != "") {
+                if (!section.empty()) {
                     val = origJson[section];
                 }
                 if (!val.contains(key)) {
@@ -285,7 +285,7 @@ bool EspsPort::WriteConfigToJson(nlohmann::json& JsonConfig) {
 
 int EspsV4Protocol::WriteConfigToJson(nlohmann::json& JsonConfig)
 {
-    for (auto& [ElementName, ElementValue] : Settings)
+    for (auto const& [ElementName, ElementValue] : Settings)
     {
         if (ElementName == "type")
         {
@@ -314,7 +314,7 @@ int EspsV4Protocol::WriteConfigToJson(nlohmann::json& JsonConfig)
         }
         else if (JsonConfig[ElementName].is_boolean())
         {
-            JsonConfig[ElementName] = (ElementValue == "true" || ElementValue == "True");
+            JsonConfig[ElementName] = Lower(ElementValue) == "true";
         }
         else
         {
@@ -609,10 +609,8 @@ void EspsV4Protocol::ParseV4Settings(std::string const& Id, const nlohmann::json
         Settings[ElementId] = FinalValue;
     }
 
-    _Name = Settings["type"];
-    _Name = Lower(_Name);
+    _Name = Lower(Settings["type"]);
     // LOG_DEBUG("EspsV4Protocol:ParseV4Config: Done");
-
 } // ParseV4Settings
 
 bool EspsPort::ParseV4Settings(const nlohmann::json& JsonConfig)
@@ -624,7 +622,7 @@ bool EspsPort::ParseV4Settings(const nlohmann::json& JsonConfig)
     do // once
     {
         // process the port members
-        for (auto& [ElementId, Elementval] : JsonConfig.items()) {
+        for (auto const& [ElementId, Elementval] : JsonConfig.items()) {
             spdlog::debug("EspsPort:ParseV4Config: ProtocolId: " + ElementId);
 
             // protocol IDs are a one or two character value
@@ -691,7 +689,7 @@ bool ESPixelStick::ParseV4Config(nlohmann::json& outputConfig) {
         nlohmann::json& Ports = outputConfig["channels"];
 
         // process each port
-        for (auto & [Portkey, Portval] : Ports.items())
+        for (auto const& [Portkey, Portval] : Ports.items())
         {
             EspsPort NewEspsPort;
             // LOG_DEBUG("ParseV4Config: Portkey: " + Portkey);
@@ -723,13 +721,12 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
 
     do // once
     {
-        if (!success)
-        {
+        if (!success) {
             // could not set up the data
             break;
         }
 
-        bool changed = false;
+        bool changed { false };
         nlohmann::json outputConfig;
 
         GetOutputConfig(outputConfig);
@@ -737,7 +734,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
         if (!ParseV4Config(outputConfig))
         {
             // no valid config present
-            std::string msg = "ESPixelStick Outputs Upload: Could not parse config from ESPixelstick";
+            std::string const msg = "ESPixelStick Outputs Upload: Could not parse config from ESPixelstick";
             DisplayError(msg);
             success = false;
             break;
@@ -799,7 +796,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                 {
                     // unsupported color order
                     CurrentEspsPort.Disable();
-                    std::string msg = "ESPixelStick Outputs Upload: Color Order '" + colorOrder + "' not supported by ESPS V4";
+                    std::string const msg = "ESPixelStick Outputs Upload: Color Order '" + colorOrder + "' not supported by ESPS V4";
                     DisplayError(msg);
                     return false;
                 }
@@ -914,7 +911,7 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
 
     try {
         if (success && cud.GetMaxPixelPort() > 0) {
-            if (check != "") {
+            if (!check.empty()) {
                 DisplayWarning("Upload warnings:\n" + check);
             }
 
