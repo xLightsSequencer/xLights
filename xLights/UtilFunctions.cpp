@@ -827,11 +827,8 @@ void SetXmlNodeAttribute(wxXmlNode* node, wxString const& property, wxString con
 void DownloadVamp() {
     wxMessageBox("We are about to download the Queen Mary Vamp plugins for your platform. Once downloaded please install them and then close and reopen xLights to use them.");
 #ifdef __WXMSW__
-    if (GetBitness() == "64bit") {
-        ::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/attachments/download/2623/qm-vamp-plugins-1.8.0-win64.msi");
-    } else {
-        ::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/attachments/download/2621/qm-vamp-plugins-1.8.0-win32.zip");
-    }
+    //::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/attachments/download/2623/qm-vamp-plugins-1.8.0-win64.msi");
+    ::wxLaunchDefaultBrowser("https://github.com/vamp-plugins/vamp-plugin-pack/releases/download/v2.0/Vamp.Plugin.Pack.Installer.2.0.exe");
 #else
     // likely can/should be used for all platforms
     ::wxLaunchDefaultBrowser("https://www.vamp-plugins.org/pack.html");
