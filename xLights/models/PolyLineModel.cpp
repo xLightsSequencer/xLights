@@ -50,11 +50,6 @@ std::vector<std::string> PolyLineModel::POLYLINE_BUFFER_STYLES;
 
 const std::vector<std::string> &PolyLineModel::GetBufferStyles() const {
 
-    if (!_hasIndivSeg)
-    {
-        return Model::DEFAULT_BUFFER_STYLES;
-    }
-
     struct Initializer {
         Initializer() {
             POLYLINE_BUFFER_STYLES = Model::DEFAULT_BUFFER_STYLES;
@@ -76,7 +71,7 @@ void PolyLineModel::InitRenderBufferNodes(const std::string& tp, const std::stri
 {
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
 
-    if (type == "Line Segments" && _hasIndivSeg) {
+    if (type == "Line Segments") {
         BufferHi = _numSegments;
         BufferWi = 0;
         for (int x = 0; x < _numSegments; x++) {
@@ -204,7 +199,7 @@ void PolyLineModel::InitModel()
     polyLineSegDropSizes.resize(_numSegments);
     _polyLeadOffset.resize(_numSegments);
     _polyTrailOffset.resize(_numSegments);
-    if (_hasIndivSeg) {
+    if (!_autoDistributeLights) {
         parm1 = SingleNode ? 1 : _numSegments;
         for (int x = 0; x < _numSegments; x++) {
             unsigned int drop_lights_this_segment = 0;
@@ -266,7 +261,7 @@ void PolyLineModel::InitModel()
 
     // fix the string numbers for each node since model is non-standard
     size_t idx = 0;
-    if (_hasIndivChans && _hasIndivSeg && !SingleNode) {
+    if (_hasIndivChans && !SingleNode) {
         for (int x = 0; x < _numSegments; x++) {
             for (int n = 0; n < polyLineSegDropSizes[x]; ++n) {
                 Nodes[idx++]->StringNum = x;
@@ -326,7 +321,7 @@ void PolyLineModel::InitModel()
 
     // calculate segment lengths if we need to auto-distribute lights
     _totalLength = 0.0f;
-    if (!_hasIndivSeg) {
+    if (_autoDistributeLights) {
         for (int i = 0; i < screenLocation.num_points - 1; ++i) {
             if (pPos[i].has_curve) {
                 _totalLength += pPos[i].curve->GetLength();
@@ -517,13 +512,13 @@ void PolyLineModel::InitModel()
 
     // place the nodes/coords along each line segment
     drop_index = 0;
-    if (_hasIndivSeg) {
-        // distribute the lights as defined by the polysize string
-        DistributeLightsAcrossIndivSegments( pPos, _dropSizes, mheight, _maxH );
-    }
-    else {
+    if (_autoDistributeLights) {
         // distribute the lights evenly across the line segments
         DistributeLightsEvenly( pPos, _dropSizes, mheight, _maxH, numLights );
+        _autoDistributeLights = false;
+    } else {
+        // distribute the lights as defined by the polysizes
+        DistributeLightsAcrossIndivSegments( pPos, _dropSizes, mheight, _maxH );
     }
 
     // cleanup curves and matrices
@@ -797,14 +792,12 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
-        p->Enable(!_hasIndivSeg);
     }
     else {
         p = grid->Append(new wxUIntProperty("# Nodes", "PolyLineNodes", parm2));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
-        p->Enable(!_hasIndivSeg);
 
         p = grid->Append(new wxUIntProperty("Lights/Node", "PolyLineLights", parm3));
         p->SetAttribute("Min", 1);
@@ -861,27 +854,19 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxBoolProperty("Indiv Segments", "ModelIndividualSegments", _hasIndivSeg));
-    p->SetAttribute("UseCheckbox", true);
-    p->Enable(_numSegments > 1);
-    if (_hasIndivSeg) {
-        for (int x = 0; x < _numSegments; x++) {
-            wxString nm = wxString::Format("Segment %d", x + 1);
-            grid->AppendIn(p, new wxUIntProperty(nm, SegAttrName(x), _polyLineSizes[x]));
-        }
-        if (_segsCollapsed) grid->Collapse(p);
+    p = grid->Append(new wxStringProperty("Segments", "ModelIndividualSegments", ""));
+    for (int x = 0; x < _numSegments; x++) {
+        wxString nm = wxString::Format("Segment %d", x + 1);
+        grid->AppendIn(p, new wxUIntProperty(nm, SegAttrName(x), _polyLineSizes[x]));
+    }
+    if (_segsCollapsed) grid->Collapse(p);
 
-        p = grid->Append(new wxStringProperty("Corner Settings", "PolyCornerProperties", ""));
-        for (int x = 0; x < _numSegments + 1; x++) {
-            wxString nm = wxString::Format("Corner %d", x + 1);
-            grid->AppendIn(p, new wxEnumProperty(nm, CornerAttrName(x), POLY_CORNERS, _polyCorner[x] == "Leading Segment" ? 0 : _polyCorner[x] == "Trailing Segment" ? 1 : 2 ));
-        }
-        if (_segsCollapsed) grid->Collapse(p);
+    p = grid->Append(new wxStringProperty("Corner Settings", "PolyCornerProperties", ""));
+    for (int x = 0; x < _numSegments + 1; x++) {
+        wxString nm = wxString::Format("Corner %d", x + 1);
+        grid->AppendIn(p, new wxEnumProperty(nm, CornerAttrName(x), POLY_CORNERS, _polyCorner[x] == "Leading Segment" ? 0 : _polyCorner[x] == "Trailing Segment" ? 1 : 2 ));
     }
-    else {
-        // If we dont have individual segments ... then we dont have individual start channels
-        _hasIndivChans = false;
-    }
+    if (_segsCollapsed) grid->Collapse(p);
 }
 
 int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
@@ -893,6 +878,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
             sp = grid->GetPropertyByLabel("# Lights");
         }
         sp->SetValueFromInt(parm2);
+        _autoDistributeLights = true;
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::PolyLineNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::PolyLineNodes");
@@ -921,28 +907,6 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::PolyLineStart");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::PolyLineStart");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyLineModel::OnPropertyGridChange::PolyLineStart");
-        return 0;
-    }
-    else if (event.GetPropertyName() == "ModelIndividualSegments") {
-        wxPGProperty* sp = grid->GetPropertyByLabel("Indiv Segments");
-        if (event.GetValue().GetBool()) {
-            _hasIndivSeg = true;
-            _segsCollapsed = false;
-            grid->Expand(sp);
-        }
-        else {
-            _hasIndivSeg = false;
-            _segsCollapsed = true;
-            grid->Collapse(sp);
-        }
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::ModelIndividualSegments");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::ModelIndividualSegments");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::ModelIndividualSegments");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyLineModel::OnPropertyGridChange::ModelIndividualSegments");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "PolyLineModel::OnPropertyGridChange::ModelIndividualSegments");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "PolyLineModel::OnPropertyGridChange::ModelIndividualSegments");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyLineModel::OnPropertyGridChange::ModelIndividualSegments");
         return 0;
     }
     else if (event.GetPropertyName().StartsWith("ModelIndividualSegments.")) {

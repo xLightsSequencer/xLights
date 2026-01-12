@@ -49,7 +49,6 @@ public:
     virtual int NodesPerString(int string) const override;
     virtual int MapPhysicalStringToLogicalString(int string) const override;
     bool HasAlternateNodes() const { return _alternateNodes; }
-    bool HasIndivSegs() const { return _hasIndivSeg; }
     int GetDropPoints() const { return _numDropPoints; }
     int GetNumSegments() const { return _numSegments; }
     std::vector<int> GetSegmentsSizes() const { return _polyLineSizes;}
@@ -66,12 +65,12 @@ public:
     void SetNumStrings(int strings) { _strings = strings; }
     void SetModelHeight(float height) { _height = height; }
     void SetAlternateNodes(bool val) { _alternateNodes = val; }
-    void SetHasIndivSegments(bool val) { _hasIndivSeg = val; }
     void SetNumSegments(int val) { _polyLineSizes.resize(val); _polyLeadOffset.resize(val); _polyTrailOffset.resize(val); _polyCorner.resize(val+1); }
     void SetSegmentSize(int idx, int val) { _polyLineSizes[idx] = val; }
     void SetLeadOffset(int idx, float val) { _polyLeadOffset[idx] = val; }
     void SetTrailOffset(int idx, float val) { _polyTrailOffset[idx] = val; }
     void SetCornerString( int idx, const std::string & corner) { _polyCorner[idx] = corner; }
+    void SetAutoDistribute(bool val) { _autoDistributeLights = val; }
 
     const std::string StartNodeAttrName(int idx) const
     {
@@ -131,8 +130,8 @@ protected:
     std::vector<int> _polyLineSizes;
     std::vector<float> _polyLeadOffset;
     std::vector<float> _polyTrailOffset;
-    bool _hasIndivSeg = false;
     bool _segsCollapsed = true;
+    bool _autoDistributeLights = false;
     std::vector<int> polyLineSegDropSizes;
     std::vector<int> _dropSizes;
     std::string _dropPatternString = "";

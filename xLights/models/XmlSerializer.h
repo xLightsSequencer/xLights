@@ -325,7 +325,6 @@ namespace XmlNodeKeys {
     // Poly Line Model
     constexpr auto NumPointsAttribute    = "NumPoints";
     constexpr auto cPointDataAttribute   = "cPointData";
-    constexpr auto IndivSegAttribute     = "IndivSegs";
     constexpr auto SegsExpandedAttribute = "SegsExpanded";
     constexpr auto ModelHeightAttribute  = "ModelHeight";
     constexpr auto PolyStringsAttribute  = "PolyStrings";
@@ -1404,7 +1403,6 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         wxXmlNode* xmlNode = CommonVisitSteps(model);
         AddPolyPointScreenLocationAttributes(model, xmlNode);
         xmlNode->AddAttribute(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");
-        xmlNode->AddAttribute(XmlNodeKeys::IndivSegAttribute, model.HasIndivSegs() ? "1" : "0");
         xmlNode->AddAttribute(XmlNodeKeys::DropPatternAttribute, model.GetDropPattern());
         std::vector<int> nodeSize = model.GetNodeSizes();
         for (auto i = 0; i < nodeSize.size(); i++) {
@@ -2029,14 +2027,14 @@ private:
         }
 
         // Individual Segments
-        bool hasIndivSegs = node->GetAttribute(XmlNodeKeys::IndivSegAttribute, "0") == "1";
-        model->SetHasIndivSegments(hasIndivSegs);
         int num_segments = screenLoc.GetNumPoints() - 1;
         model->SetNumSegments(num_segments);
-        if (hasIndivSegs) {
+        if (node->HasAttribute(model->SegAttrName(0))) {  // old models didn't require segment attributes
             for (auto i = 0; i < num_segments;  i++) {
                 model->SetSegmentSize(i, std::stoi(node->GetAttribute(model->SegAttrName(i), "0").ToStdString()));
             }
+        } else {
+            model->SetAutoDistribute(true);
         }
         // Corner Settings
         for (int x = 0; x <= num_segments; x++) {
