@@ -15,13 +15,12 @@
 class SphereModel : public MatrixModel
 {
 public:
-    SphereModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
+    SphereModel(const ModelManager &manager);
     virtual ~SphereModel();
 
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
     virtual bool SupportsXlightsModel() override { return true; }
     virtual bool SupportsWiringView() const override { return false; }
-    virtual void ExportXlightsModel() override;
     [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
     virtual int NodeRenderOrder() override { return 1; }
     virtual void ExportAsCustomXModel3D() const override;
@@ -31,6 +30,9 @@ public:
     int GetEndLatitude() const { return _endLatitude; }
     int GetSphereDegrees() const { return _sphereDegrees; }
     int GetLowDefFactor() const { return _lowDefFactor; }
+    void SetStartLatitude(int lat) { _startLatitude = lat; }
+    void SetEndLatitude(int lat) { _endLatitude = lat; }
+    void SetDegrees(int deg) { _sphereDegrees = deg; }
 
     virtual bool SupportsVisitors() const override { return true; }
     void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }

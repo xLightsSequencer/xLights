@@ -38,7 +38,7 @@ public:
     virtual int NodesPerString(int string) const override;
     virtual int MapPhysicalStringToLogicalString(int string) const override;
     
-    int GetNumStrings() const { return _strings; }
+    virtual int GetNumStrings() const override{ return _strings; }
     float GetModelHeight() const { return _height; }
     void SetNumStrings(int strings) { _strings = strings; }
     void SetModelHeight(float height) { _height = height; }
@@ -63,5 +63,4 @@ protected:
 
     float _height = 1.0f;
     int _strings = 1;
-    std::vector<int> stringStartNodes;
 };

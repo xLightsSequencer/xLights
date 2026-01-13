@@ -2055,8 +2055,12 @@ private:
     }
 
     Model* DeserializeSphere(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        SphereModel* model = new SphereModel(node, xlights->AllModels, false);
+        SphereModel* model = new SphereModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->SetStartLatitude(std::stoi(node->GetAttribute(XmlNodeKeys::StartLatAttribute, "-86").ToStdString()));
+        model->SetDegrees(std::stoi(node->GetAttribute(XmlNodeKeys::DegreesAttribute, "360").ToStdString()));
+        model->SetAlternateNodes(node->GetAttribute(XmlNodeKeys::AlternateNodesAttribute, "false") == "true");
+        model->SetNoZigZag(node->GetAttribute(XmlNodeKeys::NoZigZagAttribute, "false") == "true");
         model->Setup();
         return model;
     }

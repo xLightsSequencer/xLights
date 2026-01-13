@@ -1290,7 +1290,7 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
     } else if (type == "Wreath") {
         model = new WreathModel(node, *this, false);
     } else if (type.find("Sphere") == 0) {
-        model = new SphereModel(node, *this, false);
+        model = new SphereModel(*this);
         parm1 = 10;
         parm2 = 10;
     } else if (type == "Single Line") {
@@ -1565,7 +1565,7 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
     } else if (type == "Wreath") {
         model = new WreathModel(node, *this, zeroBased);
     } else if (type.find("Sphere") == 0) {
-        model = new SphereModel(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Single Line") {
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Poly Line") {

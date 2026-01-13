@@ -234,7 +234,6 @@ int MultiPointModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPrope
         if (old_string_count != new_string_count) {
             if (_hasIndivNodes) {
                 for (int x = 0; x < new_string_count; x++) {
-                    wxString nm = StartNodeAttrName(x);
                     _indivStartNodes[x] = ComputeStringStartNode(x);
                 }
             }
@@ -294,7 +293,6 @@ int MultiPointModel::NodesPerString() const
         if (SingleNode) {
             return 1;
         } else {
-            wxString nm = StartNodeAttrName(0);
             int v1 = 0;
             int v2 = 0;
             if (_hasIndivNodes) {
