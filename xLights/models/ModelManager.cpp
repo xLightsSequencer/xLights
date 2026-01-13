@@ -1318,12 +1318,9 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         parm1 = 16;
         model->SetStartSide("T");
     } else if (type == "Spinner") {
-        model = new SpinnerModel(node, *this, false);
+        model = new SpinnerModel(*this);
         parm2 = 10;
         parm3 = 5;
-//        dynamic_cast<SpinnerModel*>(model)->SetHollow(20);
-        node->AddAttribute("Hollow", "20");
-        node->AddAttribute("Arc", "360");
     } else if (type == "Icicles") {
         model = new IciclesModel(*this);
         parm2 = 80;
@@ -1585,7 +1582,7 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
     } else if (type.find("Matrix") != std::string::npos) {
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Spinner") {
-        model = new SpinnerModel(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
     } else {
         DisplayError(wxString::Format("'%s' is not a valid model type for model '%s'", type, node->GetAttribute("name")).ToStdString());
         return nullptr;

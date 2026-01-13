@@ -2066,8 +2066,14 @@ private:
     }
 
     Model* DeserializeSpinner(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        SpinnerModel* model = new SpinnerModel(node, xlights->AllModels, false);
+        SpinnerModel* model = new SpinnerModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->SetHollow(std::stoi(node->GetAttribute(XmlNodeKeys::HollowAttribute, "20").ToStdString()));
+        model->SetStartAngle(std::stoi(node->GetAttribute(XmlNodeKeys::StartAngleAttribute, "0").ToStdString()));
+        model->SetStartAngle(std::stoi(node->GetAttribute(XmlNodeKeys::StartAngleAttribute, "0").ToStdString()));
+        model->SetArc(std::stoi(node->GetAttribute(XmlNodeKeys::ArcAttribute, "360").ToStdString()));
+        model->SetZigZag(node->GetAttribute(XmlNodeKeys::NoZigZagAttribute, "false") == "true");
+        model->SetAlternate(node->GetAttribute(XmlNodeKeys::AlternateAttribute, "false") == "true");
         model->Setup();
         return model;
     }
