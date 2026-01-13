@@ -207,6 +207,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_MODEL_DELETEPOINT;
         static const long ID_PREVIEW_MODEL_ADDCURVE;
         static const long ID_PREVIEW_MODEL_DELCURVE;
+        static const long ID_PREVIEW_MODEL_SET_SEGMENTS;
         static const long ID_PREVIEW_SAVE_LAYOUT_IMAGE;
         static const long ID_PREVIEW_PRINT_LAYOUT_IMAGE;
         static const long ID_PREVIEW_SAVE_VIEWPOINT;

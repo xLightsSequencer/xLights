@@ -33,6 +33,12 @@
 
 PolyLineModel::PolyLineModel(const ModelManager &manager) : ModelWithScreenLocation(manager) {
     parm1 = parm2 = parm3 = 0;
+    stringStartChan.resize(_strings);
+    _polyCorner.resize(2);
+    _polyLineSizes.resize(1);
+    _polyLineSegDropSizes.resize(1);
+    _polyLeadOffset.resize(1);
+    _polyTrailOffset.resize(1);
 }
 
 PolyLineModel::~PolyLineModel()
@@ -110,8 +116,8 @@ void PolyLineModel::InitRenderBufferNodes(const std::string& tp, const std::stri
 
 int PolyLineModel::GetPolyLineSize(int polyLineLayer) const {
     if (polyLineLayer >= _polyLineSizes.size()) return 0;
-    if (polyLineSegDropSizes[polyLineLayer]) {
-        return polyLineSegDropSizes[polyLineLayer];
+    if (_polyLineSegDropSizes[polyLineLayer]) {
+        return _polyLineSegDropSizes[polyLineLayer];
     }
     return _polyLineSizes[polyLineLayer];
 }
@@ -157,6 +163,22 @@ void PolyLineModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, 
     }
 }
 
+void PolyLineModel::SetSegmentSize(int idx, int val)
+{
+    _polyLineSizes[idx] = val;
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::SetSegmentSize");
+    AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyLineModel::SetSegmentSize");
+}
+
+void PolyLineModel::AddHandle() {
+    _polyLineSizes.push_back(50);
+    _polyLeadOffset.push_back(0.5);
+    _polyTrailOffset.push_back(0.5);
+    _polyCorner.push_back("Neither");
+    _polyLineSegDropSizes.push_back(1);
+    _autoDistributeLights = true;
+}
+
 void PolyLineModel::InsertHandle(int after_handle, float zoom, int scale) {
     if( _polyLineSizes.size() > after_handle ) {
         int segment1_size = _polyLineSizes[after_handle] / 2;
@@ -166,6 +188,7 @@ void PolyLineModel::InsertHandle(int after_handle, float zoom, int scale) {
         _polyLeadOffset.insert(_polyLeadOffset.begin() + after_handle + 1, 0.5);
         _polyTrailOffset.insert(_polyTrailOffset.begin() + after_handle + 1, 0.5);
         _polyCorner.insert(_polyCorner.begin() + after_handle + 1, "Neither");
+        _polyLineSegDropSizes.insert(_polyLineSegDropSizes.begin() + after_handle + 1, 1);
     }
     GetModelScreenLocation().InsertHandle(after_handle, zoom, scale);
 }
@@ -178,6 +201,7 @@ void PolyLineModel::DeleteHandle(int handle_) {
         _polyLeadOffset.erase(_polyLeadOffset.begin() + handle);
         _polyTrailOffset.erase(_polyTrailOffset.begin() + handle);
         _polyCorner.erase(_polyCorner.begin() + handle);
+        _polyLineSegDropSizes.erase(_polyLineSegDropSizes.begin() + handle);
     } else {
         // TODO do we need to do anything here
         //node->DeleteAttribute(SegAttrName(handle-1));
@@ -192,13 +216,14 @@ void PolyLineModel::InitModel()
 
     _numSegments = screenLocation.num_points - 1;
     _numDropPoints = 0;
+    
+    // Detect and fix any size that changed from handle being added or deleted
+    if (_dropSizes.size() == 0) {
+        _dropSizes.push_back(1);
+    }
 
     // setup number of lights per line segment
     unsigned int drop_index = 0;
-    _polyLineSizes.resize(_numSegments);
-    polyLineSegDropSizes.resize(_numSegments);
-    _polyLeadOffset.resize(_numSegments);
-    _polyTrailOffset.resize(_numSegments);
     if (!_autoDistributeLights) {
         parm1 = SingleNode ? 1 : _numSegments;
         for (int x = 0; x < _numSegments; x++) {
@@ -209,7 +234,7 @@ void PolyLineModel::InitModel()
             }
             numLights += drop_lights_this_segment;
             _numDropPoints += _polyLineSizes[x];
-            polyLineSegDropSizes[x] = drop_lights_this_segment;
+            _polyLineSegDropSizes[x] = drop_lights_this_segment;
         }
         parm2 = numLights;
     }
@@ -254,7 +279,7 @@ void PolyLineModel::InitModel()
                 CouldComputeStartChannel &= b;
             }
             else {
-                stringStartChan[i] = (zeroBased ? 0 : StartChannel - 1) + polyLineSegDropSizes[i] * GetNodeChannelCount(StringType);
+                stringStartChan[i] = (zeroBased ? 0 : StartChannel - 1) + _polyLineSegDropSizes[i] * GetNodeChannelCount(StringType);
             }
         }
     }
@@ -263,7 +288,7 @@ void PolyLineModel::InitModel()
     size_t idx = 0;
     if (_hasIndivChans && !SingleNode) {
         for (int x = 0; x < _numSegments; x++) {
-            for (int n = 0; n < polyLineSegDropSizes[x]; ++n) {
+            for (int n = 0; n < _polyLineSegDropSizes[x]; ++n) {
                 Nodes[idx++]->StringNum = x;
             }
         }
@@ -515,7 +540,9 @@ void PolyLineModel::InitModel()
     if (_autoDistributeLights) {
         // distribute the lights evenly across the line segments
         DistributeLightsEvenly( pPos, _dropSizes, mheight, _maxH, numLights );
-        _autoDistributeLights = false;
+        if (!_creatingNewPolyLine) {
+            _autoDistributeLights = false;
+        }
     } else {
         // distribute the lights as defined by the polysizes
         DistributeLightsAcrossIndivSegments( pPos, _dropSizes, mheight, _maxH );
@@ -564,7 +591,7 @@ void PolyLineModel::DistributeLightsEvenly(       std::vector<xlPolyPoint>& pPos
     int xpos = 0;  // the horizontal position in the buffer
     for (int x = 0; x < _polyLineSizes.size(); x++) {
         _polyLineSizes[x] = 0;
-        polyLineSegDropSizes[x] = 0;
+        _polyLineSegDropSizes[x] = 0;
     }
     for (size_t m = 0; m < lights_to_distribute;) {
         while (current_pos > seg_end) {
@@ -650,7 +677,7 @@ void PolyLineModel::DistributeLightsEvenly(       std::vector<xlPolyPoint>& pPos
                 }
             }
         }
-        polyLineSegDropSizes[segment] += drops_this_node;
+        _polyLineSegDropSizes[segment] += drops_this_node;
         drop_index %= dropSizes.size();
         current_pos += offset;
         if( c == 0 ) {
@@ -925,8 +952,16 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
     }
     else if (event.GetPropertyName().StartsWith("PolyCornerProperties.")) {
         std::string corner = event.GetPropertyName().ToStdString();
-        int idx = ExtractTrailingInt(corner) - 1;
-        _polyCorner[idx] = POLY_CORNER_VALUES[event.GetPropertyValue().GetLong()];
+        int x = ExtractTrailingInt(corner) - 1;
+        _polyCorner[x] = POLY_CORNER_VALUES[event.GetPropertyValue().GetLong()];
+        if( x == 0 ) {
+            _polyLeadOffset[x] = (_polyCorner[x] == "Leading Segment" ? 1.0 : _polyCorner[x] == "Trailing Segment" ? 0.0 : 0.5);
+        } else if( x == _numSegments ) {
+            _polyTrailOffset[x-1] = (_polyCorner[x] == "Leading Segment" ? 0.0 : _polyCorner[x] == "Trailing Segment" ? 1.0 : 0.5);
+        } else {
+            _polyTrailOffset[x-1] = (_polyCorner[x] == "Leading Segment" ? 0.0 : _polyCorner[x] == "Trailing Segment" ? 1.0 : 0.5);
+            _polyLeadOffset[x] = (_polyCorner[x] == "Leading Segment" ? 1.0 : _polyCorner[x] == "Trailing Segment" ? 0.0 : 0.5);
+        }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::PolyCornerProperties");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::PolyCornerProperties");

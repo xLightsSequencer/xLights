@@ -211,6 +211,7 @@ const long LayoutPanel::ID_PREVIEW_MODEL_ADDPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_DELETEPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ADDCURVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_DELCURVE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_SET_SEGMENTS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_SAVE_LAYOUT_IMAGE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_PRINT_LAYOUT_IMAGE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_SAVE_VIEWPOINT = wxNewId();
@@ -3439,6 +3440,8 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     {
         Model *m = _newModel;
         m->AddHandle(modelPreview, event.GetX(), event.GetY());
+        PolyLineModel* poly = dynamic_cast<PolyLineModel*>(m);
+        poly->AddHandle();
         m->InitModel();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewLeftDown");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewLeftDown");
@@ -3619,6 +3622,7 @@ void LayoutPanel::FinalizeModel()
             m->DeleteHandle(m_over_handle);
 
             auto plm = dynamic_cast<PolyLineModel*>(m);
+            plm->ClearPolyLineCreate(); // disable the auto-distribute node feature
             if (plm->GetNumHandles() < 2) {
                 // If we end up with less than 2 points then we destroy the polyline
                 highlightedBaseObject = nullptr;
@@ -4512,6 +4516,7 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
             Model* model = dynamic_cast<Model*>(selectedBaseObject);
             int sel_seg = model->GetSelectedSegment();
             if( sel_seg != -1 ) {
+                menu.Append(ID_PREVIEW_MODEL_SET_SEGMENTS,"Enter Segment Size");
                 if( !model->HasCurve(sel_seg) ) {
                     menu.Append(ID_PREVIEW_MODEL_ADDPOINT,"Add Point");
                     if( model->SupportsCurves() ) {
@@ -5058,6 +5063,21 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         md->SetCurve(seg, false);
         md->InitModel();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_DELCURVE");
+    } else if (event.GetId() == ID_PREVIEW_MODEL_SET_SEGMENTS) {
+        Model* md = dynamic_cast<Model*>(selectedBaseObject);
+        PolyLineModel* pmd = dynamic_cast<PolyLineModel*>(md);
+        if (md == nullptr || pmd == nullptr)
+            return;
+        int seg = md->GetSelectedSegment();
+        CreateUndoPoint("SingleModel", md->name, std::to_string(seg + 0x2000));
+        wxTextEntryDialog dlg(this, "Enter New Segment Size:");
+        OptimiseDialogPosition(&dlg);
+        if (dlg.ShowModal() == wxID_OK) {
+            int size = std::stoi(dlg.GetValue().ToStdString());
+            pmd->SetSegmentSize(seg, size);
+            md->InitModel();
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ADDCURVE");
+        }
     } else if (event.GetId() == ID_PREVIEW_VIEWPOINT_DEFAULT) {
         modelPreview->SaveDefaultCameraPosition();
     } else if (event.GetId() == ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE) {

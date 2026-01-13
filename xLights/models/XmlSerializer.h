@@ -2030,12 +2030,12 @@ private:
         int num_segments = screenLoc.GetNumPoints() - 1;
         model->SetNumSegments(num_segments);
         if (node->HasAttribute(model->SegAttrName(0))) {  // old models didn't require segment attributes
+            model->SetAutoDistribute(false);
             for (auto i = 0; i < num_segments;  i++) {
                 model->SetSegmentSize(i, std::stoi(node->GetAttribute(model->SegAttrName(i), "0").ToStdString()));
             }
-        } else {
-            model->SetAutoDistribute(true);
         }
+
         // Corner Settings
         for (int x = 0; x <= num_segments; x++) {
             std::string corner = node->GetAttribute(model->CornerAttrName(x), "Neither");
@@ -2049,6 +2049,7 @@ private:
                 model->SetLeadOffset(x, corner == "Leading Segment" ? 1.0 : corner == "Trailing Segment" ? 0.0 : 0.5);
             }
         }
+        model->ClearPolyLineCreate();
         model->Setup();
         return model;
     }

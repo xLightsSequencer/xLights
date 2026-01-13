@@ -34,6 +34,7 @@ public:
 
     virtual void InsertHandle(int after_handle, float zoom, int scale) override;
     virtual void DeleteHandle(int handle) override;
+    void AddHandle();
 
     virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
 
@@ -65,12 +66,13 @@ public:
     void SetNumStrings(int strings) { _strings = strings; }
     void SetModelHeight(float height) { _height = height; }
     void SetAlternateNodes(bool val) { _alternateNodes = val; }
-    void SetNumSegments(int val) { _polyLineSizes.resize(val); _polyLeadOffset.resize(val); _polyTrailOffset.resize(val); _polyCorner.resize(val+1); }
-    void SetSegmentSize(int idx, int val) { _polyLineSizes[idx] = val; }
+    void SetNumSegments(int val) { _polyLineSizes.resize(val); _polyLeadOffset.resize(val); _polyTrailOffset.resize(val); _polyLineSegDropSizes.resize(val); _polyCorner.resize(val+1); }
+    void SetSegmentSize(int idx, int val);
     void SetLeadOffset(int idx, float val) { _polyLeadOffset[idx] = val; }
     void SetTrailOffset(int idx, float val) { _polyTrailOffset[idx] = val; }
     void SetCornerString( int idx, const std::string & corner) { _polyCorner[idx] = corner; }
     void SetAutoDistribute(bool val) { _autoDistributeLights = val; }
+    void ClearPolyLineCreate() { _creatingNewPolyLine = false; }
 
     const std::string StartNodeAttrName(int idx) const
     {
@@ -131,14 +133,15 @@ protected:
     std::vector<float> _polyLeadOffset;
     std::vector<float> _polyTrailOffset;
     bool _segsCollapsed = true;
-    bool _autoDistributeLights = false;
-    std::vector<int> polyLineSegDropSizes;
+    bool _autoDistributeLights = true;
+    bool _creatingNewPolyLine = true;
+    std::vector<int> _polyLineSegDropSizes;
     std::vector<int> _dropSizes;
-    std::string _dropPatternString = "";
+    std::string _dropPatternString = "1";
     unsigned int _numDropPoints = 0;
     float _height = 1.0f;
     bool _alternateNodes = false;
-    int _strings;
+    int _strings = 1;
     unsigned int _maxH = 0;
     std::vector<std::string> _polyCorner;
 };
