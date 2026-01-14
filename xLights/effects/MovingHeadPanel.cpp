@@ -966,6 +966,24 @@ void MovingHeadPanel::ValidateWindow()
     // updates the status panel if its already active and a new effect is selected
     UpdateStatusPanel();
 
+    // If the effect already has settings then uncheck the fixtures so the user doesn't accidentally click somewhere
+    // and write to all the heads messing up what was there.  We force them to reselect the heads they want to effect.
+    // Only new effects start out with all heads checked.
+    bool has_settings = false;
+    for( int i = 1; i <= 8; ++i ) {
+        wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+        wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+        if (mh_textbox != nullptr) {
+            if (mh_textbox->GetValue() != xlEMPTY_STRING) {
+                has_settings = true;
+                break;
+            }
+        }
+    }
+    if (has_settings) {
+        UncheckAllFixtures();
+    }
+
     // Set current timing track in Dimmer window
     const ModelManager& mgr = model->GetModelManager();
     xLightsFrame* xlights = mgr.GetXLightsFrame();

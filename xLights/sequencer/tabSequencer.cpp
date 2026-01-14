@@ -1151,6 +1151,11 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
             EffectsPanel1->SetEffectType(pageIndex);
             ResetPanelDefaultSettings(EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection(), nullptr, true);
         } else {
+            const std::string eff = EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection();
+            if (eff == "Moving Head") {
+                // We want new dropped moving head effects to start out empty of commands
+                ResetPanelDefaultSettings(eff, nullptr, true);
+            }
             event.updateUI = false;
         }
     }
