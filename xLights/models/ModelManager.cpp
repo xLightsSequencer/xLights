@@ -1310,9 +1310,8 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         parm1 = 5;
         parm2 = 5;
     } else if (type.find("Tree") == 0) {
-        model = new TreeModel(node, *this, false);
+        model = new TreeModel(*this);
         parm1 = 16;
-        node->AddAttribute("DisplayAs", "Tree 360");
     } else if (type == "Matrix") {
         model = new MatrixModel(*this);
         parm1 = 16;
@@ -1574,7 +1573,7 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
     } else if (type == "Custom") {
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type.find("Tree") == 0) {
-        model = new TreeModel(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
     } else if (type.find("Icicles") == 0) {
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "WholeHouse") {

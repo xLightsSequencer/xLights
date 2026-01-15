@@ -346,10 +346,14 @@ namespace XmlNodeKeys {
     constexpr auto StarCenterPercentAttribute = "starCenterPercent";
 
     // Tree Model
-    constexpr auto BottomTopRatioAttribute  = "TreeBottomTopRatio";
-    constexpr auto PerspectiveAttribute     = "TreePerspective";
-    constexpr auto SpiralRotationsAttribute = "TreeSpirals";
-    constexpr auto TreeRotationAttribute    = "TreeSpiralRotations";
+    constexpr auto TreeBottomTopRatioAttribute  = "TreeBottomTopRatio";
+    constexpr auto TreePerspectiveAttribute     = "TreePerspective";
+    constexpr auto TreeRotationAttribute        = "TreeRotation";
+    constexpr auto TreeSpiralRotationsAttribute = "TreeSpiralRotations";
+    constexpr auto StrandDirAttribute           = "StrandDir";
+    constexpr auto exportFirstStrandAttribute   = "exportFirstStrand";
+    constexpr auto TreeTypeAttribute            = "TreeType";
+    constexpr auto TreeDegreesAttribute         = "TreeDegrees";
     
     // Window Frame Model
     constexpr auto RotationAttribute = "Rotation";
@@ -1459,9 +1463,9 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         xmlNode->AddAttribute(XmlNodeKeys::DisplayAsAttribute, model.GetTreeDescription());
         xmlNode->AddAttribute(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");
         xmlNode->AddAttribute(XmlNodeKeys::NoZigZagAttribute, model.IsNoZigZag() ? "true" : "false");
-        xmlNode->AddAttribute(XmlNodeKeys::BottomTopRatioAttribute, std::to_string(model.GetBottomTopRatio()));
-        xmlNode->AddAttribute(XmlNodeKeys::PerspectiveAttribute, std::to_string(model.GetTreePerspective()));
-        xmlNode->AddAttribute(XmlNodeKeys::SpiralRotationsAttribute, std::to_string(model.GetSpiralRotations()));
+        xmlNode->AddAttribute(XmlNodeKeys::TreeBottomTopRatioAttribute, std::to_string(model.GetBottomTopRatio()));
+        xmlNode->AddAttribute(XmlNodeKeys::TreePerspectiveAttribute, std::to_string(model.GetTreePerspective()));
+        xmlNode->AddAttribute(XmlNodeKeys::TreeSpiralRotationsAttribute, std::to_string(model.GetSpiralRotations()));
         xmlNode->AddAttribute(XmlNodeKeys::TreeRotationAttribute, std::to_string(model.GetTreeRotation()));
         const Model* m = dynamic_cast<const Model*>(&model);
         AddOtherElements(xmlNode, m);
@@ -1984,7 +1988,6 @@ private:
         } else if (node->GetAttribute(XmlNodeKeys::VertMatrixAttribute, "false") == "true") {
             model->SetVertical(true);
         }
-        model->SetDisplayAs("Matrix");
         model->Setup();
         return model;
     }
@@ -2070,7 +2073,6 @@ private:
         CommonDeserializeSteps(model, node, xlights, importing);
         model->SetHollow(std::stoi(node->GetAttribute(XmlNodeKeys::HollowAttribute, "20").ToStdString()));
         model->SetStartAngle(std::stoi(node->GetAttribute(XmlNodeKeys::StartAngleAttribute, "0").ToStdString()));
-        model->SetStartAngle(std::stoi(node->GetAttribute(XmlNodeKeys::StartAngleAttribute, "0").ToStdString()));
         model->SetArc(std::stoi(node->GetAttribute(XmlNodeKeys::ArcAttribute, "360").ToStdString()));
         model->SetZigZag(node->GetAttribute(XmlNodeKeys::NoZigZagAttribute, "false") == "true");
         model->SetAlternate(node->GetAttribute(XmlNodeKeys::AlternateAttribute, "false") == "true");
@@ -2105,8 +2107,36 @@ private:
     }
 
     Model* DeserializeTree(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        TreeModel* model = new TreeModel(node, xlights->AllModels, false);
+        TreeModel* model = new TreeModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->SetAlternateNodes(node->GetAttribute(XmlNodeKeys::AlternateNodesAttribute, "false") == "true");
+        model->SetNoZigZag(node->GetAttribute(XmlNodeKeys::NoZigZagAttribute, "false") == "true");
+        model->SetVertical(node->GetAttribute(XmlNodeKeys::StrandDirAttribute, "Vertical") == "Vertical");
+        model->SetFirstStrand(std::stoi(node->GetAttribute(XmlNodeKeys::exportFirstStrandAttribute, "0").ToStdString()) - 1);
+        model->SetTreeRotation(std::stof(node->GetAttribute(XmlNodeKeys::TreeRotationAttribute, "3.0").ToStdString()));
+        model->SetTreeSpiralRotations(std::stof(node->GetAttribute(XmlNodeKeys::TreeSpiralRotationsAttribute, "0.0").ToStdString()));
+        model->SetTreeBottomTopRatio(std::stof(node->GetAttribute(XmlNodeKeys::TreeBottomTopRatioAttribute, "6.0").ToStdString()));
+        model->SetPerspective(std::stof(node->GetAttribute(XmlNodeKeys::TreePerspectiveAttribute, "0.2").ToStdString()));
+        std::string type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute, "Tree");
+        if (type != "Tree") {  // handle old DiaplsyAs format
+            wxStringTokenizer tkz(type, " ");
+            wxString token = tkz.GetNextToken();
+            token = tkz.GetNextToken();
+            if (token == "Flat") {
+                model->SetTreeType(1);
+                model->SetTreeDegrees(0);
+            } else if (token == "Ribbon") {
+                model->SetTreeType(2);
+                model->SetTreeDegrees(-1);
+            } else {
+                long degrees = 0;
+                token.ToLong(&degrees);
+                model->SetTreeDegrees(degrees);
+            }
+        } else {
+            model->SetTreeType(std::stoi(node->GetAttribute(XmlNodeKeys::TreeTypeAttribute, "0").ToStdString()));
+            model->SetTreeDegrees(std::stol(node->GetAttribute(XmlNodeKeys::TreeDegreesAttribute, "360").ToStdString()));
+        }
         model->Setup();
         return model;
     }

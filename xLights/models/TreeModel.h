@@ -15,7 +15,7 @@
 class TreeModel : public MatrixModel
 {
     public:
-        TreeModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
+        TreeModel(const ModelManager &manager);
         virtual ~TreeModel();
     
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
@@ -24,19 +24,26 @@ class TreeModel : public MatrixModel
         virtual void ExportAsCustomXModel3D() const override;
         virtual bool SupportsExportAsCustom3D() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
-        virtual void ExportXlightsModel() override;
         [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
         virtual int NodeRenderOrder() override {return 1;}
         // we need to override this as the matrix model can set it to true
         virtual bool SupportsLowDefinitionRender() const override { return false; }
-        int GetTreeType() const { return treeType; }
-        float GetTreeDegrees() const { return degrees; }
-        float GetTreeRotation() const { return rotation; }
-        float GetSpiralRotations() const { return spiralRotations; }
-        float GetBottomTopRatio() const { return botTopRatio; }
-        float GetTreePerspective() const { return perspective; }
+        int GetTreeType() const { return _treeType; }
+        float GetTreeDegrees() const { return _degrees; }
+        float GetTreeRotation() const { return _rotation; }
+        float GetSpiralRotations() const { return _spiralRotations; }
+        float GetBottomTopRatio() const { return _botTopRatio; }
+        float GetTreePerspective() const { return _perspective; }
         std::string GetTreeDescription() const { return _displayAs; }
-
+        int GetFirstStrand() const { return _firstStrand; }
+        void SetFirstStrand(int val) { _firstStrand = val; }
+        void SetTreeDegrees(long deg) { _degrees = deg; }
+        void SetTreeType(int type) { _treeType = type; }
+        void SetTreeRotation(float rot) { _rotation = rot; }
+        void SetTreeSpiralRotations(float rot) { _spiralRotations = rot; }
+        void SetTreeBottomTopRatio(float ratio) { _botTopRatio = ratio; }
+        void SetPerspective(float pers) { _perspective = pers; }
+    
         virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
@@ -44,12 +51,13 @@ class TreeModel : public MatrixModel
         virtual void AddStyleProperties(wxPropertyGridInterface *grid) override;
         virtual void InitModel() override;
     private:
-        int treeType;
-        long degrees;
-        float rotation;
-        float spiralRotations;
-        float botTopRatio;
-        float perspective;
+        int _treeType = 0;
+        long _degrees = 360;
+        float _rotation = 3.0f;
+        float _spiralRotations = 0.0f;
+        float _botTopRatio = 6.0f;
+        float _perspective = 0.2f;
+        int _firstStrand = 0;
         std::string _displayAs;
         void SetTreeCoord(long degrees);
 };
