@@ -11,12 +11,10 @@
  **************************************************************/
 
 #include "DmxModel.h"
-#include "DmxColorAbility.h"
-#include "DmxShutterAbility.h"
 
-class DmxFloodlight : public DmxModel, public DmxShutterAbility {
+class DmxFloodlight : public DmxModel {
 public:
-    DmxFloodlight(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
+    DmxFloodlight(const ModelManager &manager);
     virtual ~DmxFloodlight();
 
     void EnableFixedChannels(xlColorVector& pixelVector) const override;

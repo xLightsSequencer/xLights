@@ -11,7 +11,6 @@
  **************************************************************/
 
 #include "DmxModel.h"
-#include "DmxColorAbility.h"
 #include "Servo.h"
 
 class Mesh;
@@ -19,7 +18,7 @@ class Mesh;
 class DmxSkull : public DmxModel
 {
     public:
-        DmxSkull(wxXmlNode* node, const ModelManager& manager, bool zeroBased = false);
+        DmxSkull(const ModelManager& manager);
         virtual ~DmxSkull();
 
         virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,

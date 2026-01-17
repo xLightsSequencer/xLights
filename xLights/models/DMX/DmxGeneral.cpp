@@ -23,15 +23,14 @@
 #include "DmxColorAbilityRGB.h"
 #include "DmxPresetAbility.h"
 
-DmxGeneral::DmxGeneral(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
-  : DmxModel(node, manager, zeroBased)
+DmxGeneral::DmxGeneral(const ModelManager &manager)
+  : DmxModel(manager)
 {
-    SetFromXml(node, zeroBased);
+    color_ability = std::make_unique<DmxColorAbilityRGB>();
 }
 
 DmxGeneral::~DmxGeneral()
 {
-    //dtor
 }
 
 void DmxGeneral::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
@@ -56,72 +55,11 @@ int DmxGeneral::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGr
 void DmxGeneral::InitModel()
 {
     DmxModel::InitModel();
-
-    DisplayAs = "DmxGeneral";
-    color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
-
-    StringType = "Single Color White";
-    parm2 = 1;
-    parm3 = 1;
-
     screenLocation.SetRenderSize(1, 1, 1);
-}
-
-void DmxGeneral::ExportXlightsModel()
-{
-    wxString name = ModelXml->GetAttribute("name");
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty())
-        return;
-    wxFile f(filename);
-    
-    if (!f.Create(filename, true) || !f.IsOpened()) {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-        return;
-    }
-
-    wxString sc = ModelXml->GetAttribute("DmxShutterChannel");
-    wxString so = ModelXml->GetAttribute("DmxShutterOpen");
-    wxString sov = ModelXml->GetAttribute("DmxShutterOnValue");
-    wxString bl = ModelXml->GetAttribute("DmxBeamLimit");
-    wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "1");
-    wxString dbw = ModelXml->GetAttribute("DmxBeamWidth", "1");
-
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxgeneral \n");
-
-    f.Write(wxString::Format("DmxShutterChannel=\"%s\" ", sc));
-    f.Write(wxString::Format("DmxShutterOpen=\"%s\" ", so));
-    f.Write(wxString::Format("DmxShutterOnValue=\"%s\" ", sov));
-    f.Write(wxString::Format("DmxBeamLimit=\"%s\" ", bl));
-    f.Write(wxString::Format("DmxBeamLength=\"%s\" ", dbl));
-    f.Write(wxString::Format("DmxBeamWidth=\"%s\" ", dbw));
-    ExportBaseParameters(f);
-    color_ability->ExportParameters(f,ModelXml);
-
-    f.Write(" >\n");
-
-    wxString submodel = SerialiseSubmodel();
-    if (submodel != "") {
-        f.Write(submodel);
-    }
-    wxString state = SerialiseState();
-    if (state != "") {
-        f.Write(state);
-    }
-    wxString groups = SerialiseGroups();
-    if (groups != "") {
-        f.Write(groups);
-    }
-    //ExportDimensions(f);
-    f.Write("</dmxgeneral>");
-    f.Close();
 }
 
 bool DmxGeneral::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) {
     if (root->GetName() == "dmxgeneral") {
-        if (!ImportBaseParameters(root))
-            return false;
 
         wxString name = root->GetAttribute("name");
         //wxString v = root->GetAttribute("SourceVersion");
@@ -142,8 +80,6 @@ bool DmxGeneral::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
         SetProperty("DmxBeamLimit", bl);
         SetProperty("DmxBeamLength", dbl);
         SetProperty("DmxBeamWidth", dbw);
-
-        color_ability->ImportParameters(root, this);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
         SetProperty("name", newname, true);

@@ -19,12 +19,15 @@
 #include "../../Color.h"
 #include "../Node.h"
 
-void DmxColorAbilityCMY::InitColor(wxXmlNode* ModelXml)
+DmxColorAbilityCMY::DmxColorAbilityCMY() :
+    DmxColorAbility()
 {
-    cyan_channel = wxAtoi(ModelXml->GetAttribute("DmxCyanChannel", "1"));
-    magenta_channel = wxAtoi(ModelXml->GetAttribute("DmxMagentaChannel", "2"));
-    yellow_channel = wxAtoi(ModelXml->GetAttribute("DmxYellowChannel", "3"));
-    white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
+    _colorType = DMX_COLOR_TYPE::DMX_COLOR_CMYW;
+    InitColor();
+};
+
+void DmxColorAbilityCMY::InitColor()
+{
 }
 
 bool DmxColorAbilityCMY::IsColorChannel(uint32_t channel) const
@@ -156,37 +159,35 @@ void DmxColorAbilityCMY::AddColorTypeProperties(wxPropertyGridInterface* grid, b
 
 int DmxColorAbilityCMY::OnColorPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base)
 {
-    if ("DmxCyanChannel" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxCyanChannel");
-        ModelXml->AddAttribute("DmxCyanChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DMXCyanChannel");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DMXCyanChannel");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DMXCyanChannel");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::DMXCyanChannel");
+    std::string propName = event.GetPropertyName();
+
+    if ("DmxCyanChannel" == propName) {
+        cyan_channel = (int)event.GetPropertyValue().GetLong();
+        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
+        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
+        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
         return 0;
-    } else if ("DmxMagentaChannel" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxMagentaChannel");
-        ModelXml->AddAttribute("DmxMagentaChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DMXMagentaChannel");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DMXMagentaChannel");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DMXMagentaChannel");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::DMXMagentaChannel");
+    } else if ("DmxMagentaChannel" == propName) {
+        magenta_channel = (int)event.GetPropertyValue().GetLong();
+        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
+        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
+        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
         return 0;
-    } else if ("DmxYellowChannel" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxYellowChannel");
-        ModelXml->AddAttribute("DmxYellowChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DMXYellowChannel");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DMXYellowChannel");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DMXYellowChannel");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::DMXYellowChannel");
+    } else if ("DmxYellowChannel" == propName) {
+        yellow_channel = (int)event.GetPropertyValue().GetLong();
+        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
+        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
+        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
         return 0;
-    } else if ("DmxWhiteChannel" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxWhiteChannel");
-        ModelXml->AddAttribute("DmxWhiteChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DMXWhiteChannel");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DMXWhiteChannel");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DMXWhiteChannel");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::DMXWhiteChannel");
+    } else if ("DmxWhiteChannel" == propName) {
+        white_channel = (int)event.GetPropertyValue().GetLong();
+        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
+        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
+        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
         return 0;
     }
     return -1;
@@ -326,31 +327,6 @@ void DmxColorAbilityCMY::GetColor(xlColor& color, int transparency, int blackTra
         beam_color.blue = pixelVector[white_channel - 1].red;
     }
     return beam_color;
-}
-
-void DmxColorAbilityCMY::ExportParameters(wxFile& f, wxXmlNode* ModelXml) const
-{
-    wxString rc = ModelXml->GetAttribute("DmxCyanChannel", "0");
-    wxString gc = ModelXml->GetAttribute("DmxMagentaChannel", "0");
-    wxString bc = ModelXml->GetAttribute("DmxYellowChannel", "0");
-    wxString wc = ModelXml->GetAttribute("DmxWhiteChannel", "0");
-    f.Write(wxString::Format("DmxCyanChannel=\"%s\" ", rc));
-    f.Write(wxString::Format("DmxMagentaChannel=\"%s\" ", gc));
-    f.Write(wxString::Format("DmxYellowChannel=\"%s\" ", bc));
-    f.Write(wxString::Format("DmxWhiteChannel=\"%s\" ", wc));
-}
-
-void DmxColorAbilityCMY::ImportParameters(wxXmlNode* ImportXml, Model* m) const
-{
-    wxString rc = ImportXml->GetAttribute("DmxCyanChannel");
-    wxString gc = ImportXml->GetAttribute("DmxMagentaChannel");
-    wxString bc = ImportXml->GetAttribute("DmxYellowChannel");
-    wxString wc = ImportXml->GetAttribute("DmxWhiteChannel");
-
-    m->SetProperty("DmxCyanChannel", rc);
-    m->SetProperty("DmxMagentaChannel", gc);
-    m->SetProperty("DmxYellowChannel", bc);
-    m->SetProperty("DmxWhiteChannel", wc);
 }
 
 void DmxColorAbilityCMY::SetNodeNames(std::vector<std::string>& names, const std::string &pfx) const

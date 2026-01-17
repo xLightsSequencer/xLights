@@ -24,18 +24,23 @@ class DmxShutterAbility
         virtual ~DmxShutterAbility();
 
         void AddShutterTypeProperties(wxPropertyGridInterface *grid);
-        int OnShutterPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base);
+        int OnShutterPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base);
+
+        bool IsShutterOpen(const std::vector<NodeBaseClassPtr> &Nodes) const;
 
         int GetShutterChannel() const { return shutter_channel; }
         int GetShutterThreshold() const { return shutter_threshold; }
         int GetShutterOnValue() const { return shutter_on_value; }
 
+        void SetShutterChannel(int chan) { shutter_channel = chan; }
+        void SetShutterThreshold(int thres) { shutter_threshold = thres; }
+        void SetShutterOnValue(int val) { shutter_on_value = val; }
+
     protected:
-        bool IsShutterOpen(const std::vector<NodeBaseClassPtr> &Nodes) const;
     
-        int shutter_channel;
-        int shutter_threshold;
-        int shutter_on_value;
+    int shutter_channel {0};
+    int shutter_threshold {1};
+    int shutter_on_value {0};
 
     private:
 };

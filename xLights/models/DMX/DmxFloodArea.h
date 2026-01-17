@@ -11,13 +11,11 @@
  **************************************************************/
 
 #include "DmxFloodlight.h"
-#include "DmxColorAbility.h"
-#include "DmxShutterAbility.h"
 
 class DmxFloodArea : public DmxFloodlight
 {
     public:
-        DmxFloodArea(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
+        DmxFloodArea(const ModelManager &manager);
         virtual ~DmxFloodArea();
 
     protected:

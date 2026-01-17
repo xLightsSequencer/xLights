@@ -19,13 +19,13 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
+#include "../models/DMX/DmxColorAbility.h"
 #include "../models/DMX/DmxModel.h"
 #include "../models/DMX/DmxMotor.h"
 #include "../models/DMX/DmxMovingHeadAdv.h"
 #include "../models/DMX/DmxServo.h"
 #include "../models/DMX/DmxServo3D.h"
 #include "../models/DMX/DmxSkull.h"
-#include "../models/DMX/DmxSkulltronix.h"
 #include "../models/DMX/Servo.h"
 #include "../models/ModelGroup.h"
 #include "../sequencer/Effect.h"
@@ -264,43 +264,6 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                             }
                         }
                         brt_channel = skull->GetEyeBrightnessChannel();
-                    }
-                    // deprecating soon
-                    else if (model_info->GetDisplayAs() == "DmxSkulltronix") {
-                        DmxSkulltronix* skull = (DmxSkulltronix*)model_info;
-                        if (skull != nullptr) {
-                            int pan_channel = skull->GetPanChannel();
-                            if (pan_channel == (i + 1)) {
-                                min_limit = skull->GetPanMinLimit();
-                                max_limit = skull->GetPanMaxLimit();
-                            }
-                            int tilt_channel = skull->GetTiltChannel();
-                            if (tilt_channel == (i + 1)) {
-                                min_limit = skull->GetTiltMinLimit();
-                                max_limit = skull->GetTiltMaxLimit();
-                            }
-                            int nod_channel = skull->GetNodChannel();
-                            if (nod_channel == (i + 1)) {
-                                min_limit = skull->GetNodMinLimit();
-                                max_limit = skull->GetNodMaxLimit();
-                            }
-                            int jaw_channel = skull->GetJawChannel();
-                            if (jaw_channel == (i + 1)) {
-                                min_limit = skull->GetJawMinLimit();
-                                max_limit = skull->GetJawMaxLimit();
-                            }
-                            int eye_ud_channel = skull->GetEyeUDChannel();
-                            if (eye_ud_channel == (i + 1)) {
-                                min_limit = skull->GetEyeUDMinLimit();
-                                max_limit = skull->GetEyeUDMaxLimit();
-                            }
-                            int eye_lr_channel = skull->GetEyeLRChannel();
-                            if (eye_lr_channel == (i + 1)) {
-                                min_limit = skull->GetEyeLRMinLimit();
-                                max_limit = skull->GetEyeLRMaxLimit();
-                            }
-                            brt_channel = skull->GetEyeBrightnessChannel();
-                        }
                     }
                     if (dmx->HasColorAbility()) {
                         DmxColorAbility* dmx_color = dmx->GetColorAbility();

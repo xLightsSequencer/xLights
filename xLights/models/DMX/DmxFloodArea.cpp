@@ -18,14 +18,13 @@
 #include "../../xLightsMain.h"
 #include "../../xLightsVersion.h"
 
-DmxFloodArea::DmxFloodArea(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
-    : DmxFloodlight(node, manager, zeroBased)
+DmxFloodArea::DmxFloodArea(const ModelManager &manager)
+    : DmxFloodlight(manager)
 {
 }
 
 DmxFloodArea::~DmxFloodArea()
 {
-    //dtor
 }
 
 void DmxFloodArea::InitModel() {

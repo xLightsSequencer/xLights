@@ -32,26 +32,24 @@ struct PresetSetting {
 class DmxPresetAbility
 {
 public:
-    DmxPresetAbility(wxXmlNode* ModelXml)
-    {
-        InitPreset(ModelXml);
-    };
+    DmxPresetAbility() {};
     virtual ~DmxPresetAbility() = default;
 
-    virtual void InitPreset(wxXmlNode* ModelXml);
+    static constexpr int MAX_PRESETS{ 25 };
+
     virtual void SetPresetValues(xlColorVector& pixelVector) const;
 
-    virtual void AddProperties(wxPropertyGridInterface* grid, wxXmlNode* ModelXml);
-    virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base);
+    virtual void AddProperties(wxPropertyGridInterface* grid, int num_channels);
+    virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event, int num_channels, BaseObject* base);
     [[nodiscard]] virtual std::list<std::string> CheckModelSettings(Model* m) const;
     [[nodiscard]] virtual bool IsValidModelSettings(Model* m) const;
-    [[nodiscard]] std::vector<PresetSetting> const& GetPresetSettings() const { return presets; };
-    virtual void ExportParameters(wxFile& f, wxXmlNode* ModelXml) const;
-    virtual void ImportParameters(wxXmlNode* ImportXml, Model* m) const;
+    [[nodiscard]] std::vector<PresetSetting> const& GetPresetSettings() const { return _presets; };
+
     virtual void SetNodeNames(std::vector<std::string> & names) const;
 
+    void AddPreset(uint8_t chan, uint8_t val, const std::string& desc);
+
 private:
-    std::vector<PresetSetting> presets;
-    void ReadXMLSettings(wxXmlNode* ModelXml);
+    std::vector<PresetSetting> _presets;
     void WriteXMLSettings(wxXmlNode* ModelXml) const;
 };

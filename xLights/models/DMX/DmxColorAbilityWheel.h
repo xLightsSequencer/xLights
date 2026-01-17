@@ -31,12 +31,11 @@ struct WheelColor
 class DmxColorAbilityWheel : public DmxColorAbility
 {
     public:
-        DmxColorAbilityWheel(wxXmlNode* ModelXml) :
-            DmxColorAbility()
-        {
-            InitColor(ModelXml);
-        };
-        void InitColor( wxXmlNode* ModelXml) override;
+        DmxColorAbilityWheel();
+
+        static constexpr int MAX_COLORS{25};
+
+        void InitColor() override;
         bool IsColorChannel(uint32_t channel)const override;
         void SetColorPixels(const xlColor& color, xlColorVector & pixelVector ) const override;
         void AddColorTypeProperties(wxPropertyGridInterface *grid, bool pwm)const override;
@@ -48,9 +47,8 @@ class DmxColorAbilityWheel : public DmxColorAbility
                       bool allowSelected, const xlColor *c, const std::vector<NodeBaseClassPtr> &Nodes) const override;
         [[nodiscard]] xlColor GetColorPixels(xlColorVector const& pixelVector ) const override;
         bool ApplyChannelTransparency(xlColor& color,int transparency, uint32_t channel) const override;
-        std::string GetTypeName() const override{ return "ColorWheel" ;};
-        void ExportParameters(wxFile& f, wxXmlNode* ModelXml) const override;
-        void ImportParameters(wxXmlNode* ImportXml, Model* m) const override;
+
+        std::string GetTypeName() const override{ return "ColorWheel"; }
         void SetNodeNames(std::vector<std::string> & names, const std::string &pfx = "") const override;
         int GetNumChannels() const override;
         [[nodiscard]] uint32_t GetWheelChannel() const { return wheel_channel; }
@@ -60,6 +58,10 @@ class DmxColorAbilityWheel : public DmxColorAbility
         [[nodiscard]] std::vector<WheelColor> const& GetWheelColorSettings() const { return colors; };
         [[nodiscard]] size_t GetColorWheelColorSize() const { return colors.size(); };
         [[nodiscard]] int GetDMXWheelIndex(xlColor const& color) const;
+        void SetWheelChannel(uint32_t chan) { wheel_channel = chan; }
+        void SetDimmerChannel(uint32_t chan) { dimmer_channel = chan; }
+        void SetWheelDelay(uint32_t delay) { wheel_delay = delay; }
+        void AddColor(wxString dmxcolor, uint8_t dmxVal);
 
         virtual void GetPWMOutputs(std::map<uint32_t, PWMOutput> &map) const override;
 
@@ -71,6 +73,4 @@ class DmxColorAbilityWheel : public DmxColorAbility
 
         std::optional<xlColor> GetDMXWheelValue(xlColor const & color) const;
         std::optional<xlColor> GetWheelColorFromDMXValue(xlColor const& dmx) const;
-        void ReadColorSettings(wxXmlNode* ModelXml);
-        void WriteColorSettings(wxXmlNode* ModelXml) const;
 };

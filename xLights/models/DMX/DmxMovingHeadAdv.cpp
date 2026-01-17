@@ -75,8 +75,8 @@ static const char* DMX_COLOR_TYPES_ADV_VALUES[] = {
 
 static wxPGChoices DMX_COLOR_TYPES_ADV(wxArrayString(4, DMX_COLOR_TYPES_ADV_VALUES));
 
-DmxMovingHeadAdv::DmxMovingHeadAdv(wxXmlNode *node, const ModelManager &manager, bool zeroBased) :
-    DmxMovingHeadComm(node, manager, zeroBased)
+DmxMovingHeadAdv::DmxMovingHeadAdv(const ModelManager &manager) :
+    DmxMovingHeadComm(manager)
 {
     wxStandardPaths stdp = wxStandardPaths::Get();
 #ifndef __WXMSW__
@@ -89,7 +89,6 @@ DmxMovingHeadAdv::DmxMovingHeadAdv(wxXmlNode *node, const ModelManager &manager,
 #endif
 #endif
     beam_width = GetDefaultBeamWidth();
-    SetFromXml(node, zeroBased);
 }
 
 DmxMovingHeadAdv::~DmxMovingHeadAdv()
@@ -303,7 +302,7 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
         return 0;
     }
 
-    if (OnShutterPropertyGridChange(grid, event, ModelXml, this) == 0) {
+    if (OnShutterPropertyGridChange(grid, event, this) == 0) {
         return 0;
     }
 
@@ -358,11 +357,11 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
         ModelXml->AddAttribute("DmxColorType", wxString::Format("%d", color_type));
 
         if (color_type == 0) {
-            color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
+            color_ability = std::make_unique<DmxColorAbilityRGB>();
         } else  if (color_type == 1) {
-            color_ability = std::make_unique<DmxColorAbilityWheel>(ModelXml);
+            color_ability = std::make_unique<DmxColorAbilityWheel>();
         } else  if (color_type == 2) {
-            color_ability = std::make_unique<DmxColorAbilityCMY>(ModelXml);
+            color_ability = std::make_unique<DmxColorAbilityCMY>();
         }
         else {
             color_ability = nullptr;
@@ -416,11 +415,11 @@ void DmxMovingHeadAdv::InitModel()
     
     int color_type = wxAtoi(ModelXml->GetAttribute("DmxColorType", "0"));
     if (color_type == 0) {
-        color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
+        color_ability = std::make_unique<DmxColorAbilityRGB>();
     } else if (color_type == 1) {
-        color_ability = std::make_unique<DmxColorAbilityWheel>(ModelXml);
+        color_ability = std::make_unique<DmxColorAbilityWheel>();
     } else if (color_type == 2) {
-        color_ability = std::make_unique<DmxColorAbilityCMY>(ModelXml);
+        color_ability = std::make_unique<DmxColorAbilityCMY>();
     }
     else {
         color_ability = nullptr;
@@ -576,7 +575,7 @@ void DmxMovingHeadAdv::InitModel()
             nodestrings[chan] = "Tilt Fine";
         }
         if (nullptr != color_ability) {
-            if (color_ability->GetTypeName() == "RGBW") {
+            if (color_ability->GetColorType() == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_RGBW) {
                 DmxColorAbilityRGB* crgb = dynamic_cast<DmxColorAbilityRGB*>(color_ability.get());
                 chan = crgb->GetRedChannel();
                 MapChannelName(nodestrings, chan, "Red");
@@ -587,7 +586,7 @@ void DmxMovingHeadAdv::InitModel()
                 chan = crgb->GetWhiteChannel();
                 MapChannelName(nodestrings, chan, "White");
             }
-            else if (color_ability->GetTypeName() == "CMYW") {
+            else if (color_ability->GetColorType() == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_CMYW) {
                 DmxColorAbilityCMY* ccmy = dynamic_cast<DmxColorAbilityCMY*>(color_ability.get());
                 chan = ccmy->GetCyanChannel();
                 MapChannelName(nodestrings, chan, "Cyan");
@@ -640,12 +639,12 @@ void DmxMovingHeadAdv::InitModel()
 void DmxMovingHeadAdv::CorrectDefaultColorChannels()
 {
     if (nullptr != color_ability) {
-        if (color_ability->GetTypeName() == "RGBW") {
+        if (color_ability->GetColorType() == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_RGBW) {
             DmxColorAbilityRGB* crgb = dynamic_cast<DmxColorAbilityRGB*>(color_ability.get());
             if (pan_motor->GetChannelCoarse() == crgb->GetRedChannel() && crgb->GetRedChannel() == 1) {
-                crgb->SetRedChannel(ModelXml, 5);
-                crgb->SetGreenChannel(ModelXml, 6);
-                crgb->SetBlueChannel(ModelXml, 7);
+                crgb->SetRedChannel(5);
+                crgb->SetGreenChannel(6);
+                crgb->SetBlueChannel(7);
             }
         }
     }

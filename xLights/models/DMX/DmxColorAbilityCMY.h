@@ -20,12 +20,9 @@ class wxXmlNode;
 class DmxColorAbilityCMY : public DmxColorAbility
 {
 public:
-    DmxColorAbilityCMY(wxXmlNode* ModelXml) :
-        DmxColorAbility()
-    {
-        InitColor(ModelXml);
-    };
-    void InitColor(wxXmlNode* ModelXml) override;
+    DmxColorAbilityCMY();
+
+    void InitColor() override;
     bool IsColorChannel(uint32_t channel) const override;
     void SetColorPixels(const xlColor& color, xlColorVector& pixelVector) const override;
     void AddColorTypeProperties(wxPropertyGridInterface* grid, bool pwm) const override;
@@ -39,31 +36,21 @@ public:
     [[nodiscard]] xlColor GetColorPixels(xlColorVector const& pixelVector) const override;
     bool ApplyChannelTransparency(xlColor& color, int transparency, uint32_t channel) const override;
 
-    [[nodiscard]] std::string GetTypeName() const override
-    {
-        return "CMYW";
-    };
-    void ExportParameters(wxFile& f, wxXmlNode* ModelXml) const override;
-    void ImportParameters(wxXmlNode* ImportXml, Model* m) const override;
+    [[nodiscard]] std::string GetTypeName() const override { return "CMYW";}
+
     void SetNodeNames(std::vector<std::string>& names, const std::string &pfx = "") const override;
     int GetNumChannels() const override;
 
-    [[nodiscard]] uint32_t GetCyanChannel() const
-    {
-        return cyan_channel;
-    }
-    [[nodiscard]] uint32_t GetMagentaChannel() const
-    {
-        return magenta_channel;
-    }
-    [[nodiscard]] uint32_t GetYellowChannel() const
-    {
-        return yellow_channel;
-    }
-    [[nodiscard]] uint32_t GetWhiteChannel() const
-    {
-        return white_channel;
-    }
+    [[nodiscard]] uint32_t GetCyanChannel() const { return cyan_channel; }
+    [[nodiscard]] uint32_t GetMagentaChannel() const { return magenta_channel; }
+    [[nodiscard]] uint32_t GetYellowChannel() const { return yellow_channel; }
+    [[nodiscard]] uint32_t GetWhiteChannel() const { return white_channel; }
+
+    void SetCyanChannel(int chan) { cyan_channel = chan; }
+    void SetMagentaChannel(int chan) { magenta_channel = chan; }
+    void SetYellowChannel(int chan) { yellow_channel = chan; }
+    void SetWhiteChannel(int chan) { white_channel = chan; }
+
     [[nodiscard]] uint8_t GetC(xlColor c) const;
     [[nodiscard]] uint8_t GetM(xlColor c) const;
     [[nodiscard]] uint8_t GetY(xlColor c) const;
@@ -72,8 +59,7 @@ public:
     
     virtual void GetPWMOutputs(std::map<uint32_t, PWMOutput> &map) const override;
 
-
-        private:
+private:
     uint32_t cyan_channel;
     uint32_t magenta_channel;
     uint32_t yellow_channel;

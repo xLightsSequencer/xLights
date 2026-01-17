@@ -25,6 +25,7 @@
 #include "DmxColorAbilityRGB.h"
 #include "DmxColorAbilityCMY.h"
 #include "DmxPresetAbility.h"
+#include "DmxShutterAbility.h"
 #include "../ModelScreenLocation.h"
 #include "../../ModelPreview.h"
 #include "../../RenderBuffer.h"
@@ -32,14 +33,14 @@
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
 
-DmxModel::DmxModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
-    : ModelWithScreenLocation(manager), color_ability(nullptr)
+DmxModel::DmxModel(const ModelManager &manager)
+    : ModelWithScreenLocation(manager)
 {
+    preset_ability = std::make_unique<DmxPresetAbility>();
 }
 
 DmxModel::~DmxModel()
 {
-    //dtor
 }
 
 void DmxModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const
@@ -71,7 +72,7 @@ void DmxModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* o
     p->SetEditor("SpinCtrl");
 
     if (nullptr != preset_ability ) {
-        preset_ability->AddProperties(grid, ModelXml);
+        preset_ability->AddProperties(grid, parm1);
     }
 }
 
@@ -104,8 +105,6 @@ void DmxModel::DisableUnusedProperties(wxPropertyGridInterface* grid)
 void DmxModel::UpdateChannelCount(int num_channels, bool do_work)
 {
     parm1 = num_channels;
-    ModelXml->DeleteAttribute("parm1");
-    ModelXml->AddAttribute("parm1", wxString::Format("%d", num_channels));
     if (do_work) {
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxModel::UpdateChannelCount::DMXChannelCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxModel::UpdateChannelCount::DMXChannelCount");
@@ -126,7 +125,7 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
         return 0;
     }
 
-    if (nullptr != preset_ability && preset_ability->OnPropertyGridChange(grid, event, ModelXml, this) == 0) {
+    if (nullptr != preset_ability && preset_ability->OnPropertyGridChange(grid, event, parm1, this) == 0) {
         IncrementChangeCount();
         return 0;
     }
@@ -136,9 +135,6 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
 
 void DmxModel::InitModel()
 {
-    if (DisplayAs.empty()) {
-        DisplayAs = "DMX";
-    }
     StringType = "Single Color White";
     parm2 = 1;
     parm3 = 1;
@@ -168,7 +164,6 @@ void DmxModel::InitModel()
         curNode++;
     }
     SetBufferSize(1, parm1);
-    preset_ability = std::make_unique<DmxPresetAbility>(ModelXml);
 }
 
 int DmxModel::GetChannelValue(int channel, bool bits16)
@@ -220,35 +215,26 @@ int DmxModel::GetChannelValue(int channel_coarse, int channel_fine)
 
 void DmxModel::SetNodeNames(const std::string& default_names, bool force)
 {
-    wxString nn = ModelXml->GetAttribute("NodeNames", "");
-    bool save_names = false;
-    if (nn == "" || force) {
-        // provide default node names
-        nn = default_names;
-        save_names = true;
-    }
-
-    wxString tempstr = nn;
-    nodeNames.clear();
-    while (tempstr.size() > 0) {
-        std::string t2 = tempstr.ToStdString();
-        if (tempstr[0] == ',') {
-            t2 = "";
-            tempstr = tempstr(1, tempstr.length());
+    if (nodeNames.size() == 0 || force) {
+        wxString nn = default_names;
+        wxString tempstr = nn;
+        nodeNames.clear();
+        while (tempstr.size() > 0) {
+            std::string t2 = tempstr.ToStdString();
+            if (tempstr[0] == ',') {
+                t2 = "";
+                tempstr = tempstr(1, tempstr.length());
+            }
+            else if (tempstr.Contains(",")) {
+                t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
+                tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
+            }
+            else {
+                tempstr = "";
+            }
+            nodeNames.push_back(t2);
         }
-        else if (tempstr.Contains(",")) {
-            t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
-            tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
-        }
-        else {
-            tempstr = "";
-        }
-        nodeNames.push_back(t2);
-    }
-    if (save_names) {
         SetProperty("NodeNames", nn);
-        ModelXml->DeleteAttribute("NodeNames");
-        ModelXml->AddAttribute("NodeNames", nn);
     }
 }
 
@@ -305,83 +291,6 @@ void DmxModel::DrawInvalid(xlGraphicsProgram* pg, ModelScreenLocation* msl, bool
             ctx->PopMatrix();
         });
     }
-}
-
-void DmxModel::ExportBaseParameters(wxFile& f)
-{
-    wxString p1 = ModelXml->GetAttribute("parm1");
-    wxString p2 = ModelXml->GetAttribute("parm2");
-    wxString p3 = ModelXml->GetAttribute("parm3");
-    wxString st = ModelXml->GetAttribute("StringType");
-    wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency", "0");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
-    wxString a = ModelXml->GetAttribute("Antialias");
-    wxString ss = ModelXml->GetAttribute("StartSide");
-    wxString dir = ModelXml->GetAttribute("Dir");
-    wxString sn = ModelXml->GetAttribute("StrandNames");
-    wxString nn = ModelXml->GetAttribute("NodeNames");
-    wxString da = ModelXml->GetAttribute("DisplayAs");
-    wxString v = xlights_version_string;
-
-    f.Write(wxString::Format("name=\"%s\" ", name));
-    f.Write(wxString::Format("parm1=\"%s\" ", p1));
-    f.Write(wxString::Format("parm2=\"%s\" ", p2));
-    f.Write(wxString::Format("parm3=\"%s\" ", p3));
-    f.Write(wxString::Format("DisplayAs=\"%s\" ", da));
-    f.Write(wxString::Format("StringType=\"%s\" ", st));
-    f.Write(wxString::Format("Transparency=\"%s\" ", t));
-    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
-    f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
-    f.Write(wxString::Format("Antialias=\"%s\" ", a));
-    f.Write(wxString::Format("StartSide=\"%s\" ", ss));
-    f.Write(wxString::Format("Dir=\"%s\" ", dir));
-    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
-    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
-    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
-
-    if (nullptr != preset_ability) {
-        preset_ability->ExportParameters(f, ModelXml);
-    }
-}
-
-bool DmxModel::ImportBaseParameters(wxXmlNode* root)
-{
-    wxString p1 = root->GetAttribute("parm1");
-    wxString p2 = root->GetAttribute("parm2");
-    wxString p3 = root->GetAttribute("parm3");
-    wxString st = root->GetAttribute("StringType");
-    wxString ps = root->GetAttribute("PixelSize");
-    wxString t = root->GetAttribute("Transparency", "0");
-    wxString mb = root->GetAttribute("ModelBrightness", "0");
-    wxString a = root->GetAttribute("Antialias");
-    wxString ss = root->GetAttribute("StartSide");
-    wxString dir = root->GetAttribute("Dir");
-    wxString sn = root->GetAttribute("StrandNames");
-    wxString nn = root->GetAttribute("NodeNames");
-    wxString da = root->GetAttribute("DisplayAs");
-
-    SetProperty("parm1", p1);
-    SetProperty("parm2", p2);
-    SetProperty("parm3", p3);
-    SetProperty("StringType", st);
-    SetProperty("PixelSize", ps);
-    SetProperty("Transparency", t);
-    SetProperty("ModelBrightness", mb);
-    SetProperty("Antialias", a);
-    SetProperty("StartSide", ss);
-    SetProperty("Dir", dir);
-    SetProperty("StrandNames", sn);
-    SetProperty("NodeNames", nn);
-    SetProperty("DisplayAs", da);
-
-    _startSide = ss;
-
-    if (nullptr != preset_ability) {
-        preset_ability->ImportParameters(root, this);
-    }
-
-    return true;
 }
 
 std::vector<std::string> DmxModel::GenerateNodeNames() const

@@ -12,7 +12,6 @@
 
 #include "DmxMovingHeadComm.h"
 #include "DmxDimmerAbility.h"
-#include "DmxPanTiltAbility.h"
 #include "DmxShutterAbility.h"
 #include "DmxMotorBase.h"
 #include "DmxMotor.h"
@@ -24,7 +23,7 @@ class MhFeature;
 class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxDimmerAbility
 {
     public:
-    DmxMovingHeadAdv(wxXmlNode* node, const ModelManager& manager, bool zeroBased = false);
+    DmxMovingHeadAdv(const ModelManager& manager);
         virtual ~DmxMovingHeadAdv();
 
         virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,

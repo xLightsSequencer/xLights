@@ -17,19 +17,15 @@
 
 #include <log4cpp/Category.hh>
 
-WindowFrameModel::WindowFrameModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
+WindowFrameModel::WindowFrameModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
-    rotation = (node->GetAttribute("Rotation", "CW") == "Clockwise" || node->GetAttribute("Rotation", "CW") == "CW") ? 0 : 1;
-    SetFromXml(node, zeroBased);
 }
 
 WindowFrameModel::~WindowFrameModel()
 {
-    //dtor
 }
  
 void WindowFrameModel::InitModel() {
-    rotation = (ModelXml->GetAttribute("Rotation", "CW") == "Clockwise" || ModelXml->GetAttribute("Rotation", "CW") == "CW") ? 0 : 1;
     InitFrame();
     screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
 }
@@ -130,7 +126,7 @@ void WindowFrameModel::InitFrame()
     int chan = stringStartChan[0];
     int ChanIncr = GetNodeChannelCount(StringType);
 
-    float dir = (ModelXml->GetAttribute("Rotation", "CW") == "Clockwise" || ModelXml->GetAttribute("Rotation", "CW") == "CW") ? 1.0 : -1.0;
+    float dir = _rotation == 0 ? 1.0 : -1.0;
 
     int wadj = 0;
     int hadj = 0;
@@ -216,7 +212,7 @@ void WindowFrameModel::InitFrame()
             yScreenStart[3] = -(float)(height - 1) / 2.0;
         }
     }
-    else         {
+    else {
         // handle top left and bottom right differently
         if ((!isBotToTop && IsLtoR) || (isBotToTop && !IsLtoR)) {
             xStart[0] = 0;
@@ -435,13 +431,12 @@ void WindowFrameModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
 
     grid->Append(new wxEnumProperty("Starting Location", "WFStartLocation", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
 
-    grid->Append(new wxEnumProperty("Direction", "WFDirection", CLOCKWISE_ANTI, rotation));
+    grid->Append(new wxEnumProperty("Direction", "WFDirection", CLOCKWISE_ANTI, _rotation));
 }
 
 int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("WFTopCount" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm1");
-        ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        parm1 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFTopCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFTopCount");
@@ -450,8 +445,7 @@ int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProp
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "WindowFrameModel::OnPropertyGridChange::WFTopCount");
         return 0;
     } else if ("WFLeftRightCount" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm2");
-        ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        parm2 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFLeftRightCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFLeftRightCount");
@@ -460,8 +454,7 @@ int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProp
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "WindowFrameModel::OnPropertyGridChange::WFLeftRightCount");
         return 0;
     } else if ("WFBottomCount" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm3");
-        ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        parm3 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFBottomCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFBottomCount");
@@ -470,10 +463,8 @@ int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProp
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "WindowFrameModel::OnPropertyGridChange::WFBottomCount");
         return 0;
     } else if ("WFStartLocation" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("StartSide");
-        ModelXml->DeleteAttribute("Dir");
-        ModelXml->AddAttribute("Dir", (event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2) ? "L" : "R");
-        ModelXml->AddAttribute("StartSide", (event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1) ? "T" : "B");
+        _dir = (event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2) ? "L" : "R";
+        _startSide = (event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1) ? "T" : "B";
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFStartLocation");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFStartLocation");
@@ -481,8 +472,7 @@ int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProp
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "WindowFrameModel::OnPropertyGridChange::WFStartLocation");
         return 0;
     } else if ("WFDirection" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("Rotation");
-        ModelXml->AddAttribute("Rotation", event.GetValue().GetLong() == 0 ? "Clockwise" : "Counter Clockwise");
+        _rotation = event.GetValue().GetLong();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFDirection");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFDirection");
@@ -493,4 +483,3 @@ int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProp
 
     return Model::OnPropertyGridChange(grid, event);
 }
-void WindowFrameModel::ExportXlightsModel() {}

@@ -15,15 +15,15 @@
 class WindowFrameModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
-        WindowFrameModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
+        WindowFrameModel(const ModelManager &manager);
         virtual ~WindowFrameModel();
         virtual int GetNumPhysicalStrings() const override { return 1; }
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
         virtual int NodesPerString() const override;
         virtual bool SupportsXlightsModel() override { return true; }
-        virtual void ExportXlightsModel() override;
-        int GetRotation() const { return rotation; }
+        int GetRotation() const { return _rotation; }
+        void SetRotation(int rot) { _rotation = rot; }
 
         virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
@@ -37,6 +37,6 @@ class WindowFrameModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
     private:
         void InitFrame();
-        int rotation;
+        int _rotation = 0;
 };
 

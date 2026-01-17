@@ -54,10 +54,9 @@ enum MOTION_LINK {
     MOTION_LINK_MESH24
 };
 
-DmxServo3d::DmxServo3d(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
-    : DmxModel(node, manager, zeroBased)
+DmxServo3d::DmxServo3d(const ModelManager &manager)
+    : DmxModel(manager)
 {
-    SetFromXml(node, zeroBased);
 }
 
 DmxServo3d::~DmxServo3d()
@@ -818,8 +817,6 @@ void DmxServo3d::ExportXlightsModel()
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxservo3d \n");
 
-    ExportBaseParameters(f);
-
     f.Write(wxString::Format("NumServos=\"%i\" ", num_servos));
     f.Write(wxString::Format("NumStatic=\"%i\" ", num_static));
     f.Write(wxString::Format("NumMotion=\"%i\" ", num_motion));
@@ -881,8 +878,6 @@ void DmxServo3d::ExportXlightsModel()
 bool DmxServo3d::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z)
 {
     if (root->GetName() == "dmxservo3d" || root->GetName() == "dmxservo3axis") {
-        if (!ImportBaseParameters(root))
-            return false;
 
         wxString name = root->GetAttribute("name");
         //wxString v = root->GetAttribute("SourceVersion");

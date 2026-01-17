@@ -15,21 +15,22 @@
 #include "DmxFloodlight.h"
 #include "DmxColorAbilityRGB.h"
 #include "DmxPresetAbility.h"
+#include "DmxShutterAbility.h"
 #include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../UtilFunctions.h"
 #include "../../xLightsMain.h"
 #include "../../xLightsVersion.h"
 
-DmxFloodlight::DmxFloodlight(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
-    : DmxModel(node, manager, zeroBased), beam_length(1)
+DmxFloodlight::DmxFloodlight(const ModelManager &manager)
+    : DmxModel(manager), beam_length(1)
 {
-    SetFromXml(node, zeroBased);
+    color_ability = std::make_unique<DmxColorAbilityRGB>();
+    shutter_ability = std::make_unique<DmxShutterAbility>();
 }
 
 DmxFloodlight::~DmxFloodlight()
 {
-    //dtor
 }
 
 void DmxFloodlight::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
@@ -40,7 +41,7 @@ void DmxFloodlight::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
         ControllerCaps *caps = GetControllerCaps();
         color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
     }
-    AddShutterTypeProperties(grid);
+    shutter_ability->AddShutterTypeProperties(grid);
 
     auto p = grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
 
@@ -83,7 +84,7 @@ int DmxFloodlight::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         return 0;
     }
 
-    if (OnShutterPropertyGridChange(grid, event, ModelXml, this) == 0) {
+    if (shutter_ability->OnShutterPropertyGridChange(grid, event, this) == 0) {
         return 0;
     }
 
@@ -95,11 +96,7 @@ void DmxFloodlight::InitModel()
     DmxModel::InitModel();
     DisplayAs = "DmxFloodlight";
 
-    color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
 
-    shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
-    shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
-    shutter_on_value = wxAtoi(ModelXml->GetAttribute("DmxShutterOnValue", "0"));
     beam_length = wxAtof(ModelXml->GetAttribute("DmxBeamLength", "1.0"));
     screenLocation.SetRenderSize(1, 1, 1);
 }
@@ -141,7 +138,7 @@ void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
     }
 
     // determine if shutter is open for floods that support it
-    bool shutter_open = allowSelected || IsShutterOpen(Nodes);
+    bool shutter_open = allowSelected || shutter_ability->IsShutterOpen(Nodes);
 
     if (!color_ability->IsValidModelSettings(this) || !preset_ability->IsValidModelSettings(this)) {
         DmxModel::DrawInvalid(solidProgram, &(GetModelScreenLocation()), is_3d, true);
@@ -187,7 +184,7 @@ void DmxFloodlight::DisplayEffectOnWindow(ModelPreview* preview, double pointSiz
         return;
     }
 
-    bool shutter_open = IsShutterOpen(Nodes);
+    bool shutter_open = shutter_ability->IsShutterOpen(Nodes);
     if (!shutter_open) {
         return;
     }
@@ -260,8 +257,7 @@ void DmxFloodlight::ExportXlightsModel()
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
 
-    ExportBaseParameters(f);
-    color_ability->ExportParameters(f,ModelXml);
+    //color_ability->ExportParameters(f,ModelXml);
     f.Write(wxString::Format("DmxBeamLength=\"%s\" ", dbl));
 
     f.Write(" >\n");
@@ -284,8 +280,6 @@ void DmxFloodlight::ExportXlightsModel()
 
 bool DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) {
     if (root->GetName() == "dmxmodel") {
-        if (!ImportBaseParameters(root))
-            return false;
 
         wxString name = root->GetAttribute("name");
         //wxString v = root->GetAttribute("SourceVersion");
@@ -295,7 +289,6 @@ bool DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
         // Add any model version conversion logic here
         // Source version will be the program version that created the custom model
 
-        color_ability->ImportParameters(root, this);
         SetProperty("DmxBeamLength", dbl);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
@@ -315,10 +308,10 @@ bool DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
 
 void DmxFloodlight::EnableFixedChannels(xlColorVector& pixelVector) const
 {
-    if (shutter_channel != 0 && shutter_on_value != 0) {
-        if (Nodes.size() > shutter_channel - 1) {
-            xlColor c(shutter_on_value, shutter_on_value, shutter_on_value);
-            pixelVector[shutter_channel - 1] = c;
+    if (shutter_ability->GetShutterChannel() != 0 && shutter_ability->GetShutterOnValue() != 0) {
+        if (Nodes.size() > shutter_ability->GetShutterChannel() - 1) {
+            xlColor c(shutter_ability->GetShutterOnValue(), shutter_ability->GetShutterOnValue(), shutter_ability->GetShutterOnValue());
+            pixelVector[shutter_ability->GetShutterChannel() - 1] = c;
         }
     }
     DmxModel::EnableFixedChannels(pixelVector);
@@ -328,8 +321,8 @@ std::vector<std::string> DmxFloodlight::GenerateNodeNames() const
 {
     std::vector<std::string> names = DmxModel::GenerateNodeNames();
 
-    if (0 != shutter_channel && shutter_channel < names.size()) {
-        names[shutter_channel - 1] = "Shutter";
+    if (0 != shutter_ability->GetShutterChannel() && shutter_ability->GetShutterChannel() < names.size()) {
+        names[shutter_ability->GetShutterChannel() - 1] = "Shutter";
     }
     return names;
 }
@@ -337,7 +330,7 @@ std::vector<std::string> DmxFloodlight::GenerateNodeNames() const
 
 void DmxFloodlight::GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const {
     DmxModel::GetPWMOutputs(channels);
-    if (shutter_channel > 0) {
-        channels[shutter_channel] = PWMOutput(shutter_channel, PWMOutput::Type::LED, 1, "Shutter");
+    if (shutter_ability->GetShutterChannel() > 0) {
+        channels[shutter_ability->GetShutterChannel()] = PWMOutput(shutter_ability->GetShutterChannel(), PWMOutput::Type::LED, 1, "Shutter");
     }
 }

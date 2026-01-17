@@ -27,10 +27,18 @@ enum DMX_FIXTURE {
     DMX_MOVING_HEAD_8
 };
 
+class PanTiltState
+{
+public:
+    uint32_t ms = 0;
+    float pan_angle = 0.0f;
+    float tilt_angle = 0.0f;
+};
+
 class DmxMovingHeadComm : public DmxModel, public DmxShutterAbility {
     public:
-        DmxMovingHeadComm(wxXmlNode* node, const ModelManager& manager, bool zeroBased = false) :
-            DmxModel(node,manager,zeroBased)
+        DmxMovingHeadComm(const ModelManager& manager) :
+            DmxModel(manager)
         {
         }
         virtual ~DmxMovingHeadComm(){};

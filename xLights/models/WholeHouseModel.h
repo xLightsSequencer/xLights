@@ -17,13 +17,12 @@
 class WholeHouseModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
-        WholeHouseModel(wxXmlNode *node, const ModelManager &manager, bool zb = false);
+        WholeHouseModel(const ModelManager &manager);
         virtual ~WholeHouseModel();
         virtual bool SupportsExportAsCustom() const override { return false; } 
         virtual bool SupportsWiringView() const override { return false; }
 
     protected:
-        WholeHouseModel(const ModelManager &manager);
         virtual void InitModel() override;
         void InitWholeHouse(const std::string &WholeHouseData);
     

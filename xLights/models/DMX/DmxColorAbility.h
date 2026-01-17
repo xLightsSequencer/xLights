@@ -27,9 +27,18 @@ class DmxColorAbility
 {
     public:
 
+        enum class DMX_COLOR_TYPE
+        {
+            DMX_COLOR_RGBW,
+            DMX_COLOR_WHEEL,
+            DMX_COLOR_CMYW
+        };
+
         virtual ~DmxColorAbility() = default;
 
-        virtual void InitColor( wxXmlNode* ModelXml) = 0;
+        DMX_COLOR_TYPE GetColorType() const { return _colorType; }
+
+        virtual void InitColor() = 0;
         virtual bool IsColorChannel(uint32_t channel) const = 0;
         virtual void SetColorPixels(const xlColor& color, xlColorVector & pixelVector ) const = 0;
 
@@ -44,8 +53,6 @@ class DmxColorAbility
         [[nodiscard]] virtual xlColor GetBeamColor( const std::vector<NodeBaseClassPtr>& Nodes) const = 0;
         virtual bool ApplyChannelTransparency(xlColor& color, int transparency, uint32_t channel) const = 0;
         [[nodiscard]] virtual std::string GetTypeName() const = 0;
-        virtual void ExportParameters(wxFile& f, wxXmlNode* ModelXml) const = 0;
-        virtual void ImportParameters(wxXmlNode* ImportXml, Model* m) const = 0;
         virtual void SetNodeNames(std::vector<std::string> & names, const std::string &pfx = "") const = 0;
         virtual int GetNumChannels() const = 0;
         [[nodiscard]] virtual xlColorVector GetColors() const { return xlColorVector(); }
@@ -58,5 +65,6 @@ class DmxColorAbility
         {
             return chan > 0 && vecSize >= chan;
         };
-    private:
+
+        DMX_COLOR_TYPE _colorType = DMX_COLOR_TYPE::DMX_COLOR_RGBW;
 };

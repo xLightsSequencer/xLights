@@ -22,20 +22,13 @@
  have one
  */
 
-WholeHouseModel::WholeHouseModel(wxXmlNode *node, const ModelManager &manager, bool zb) : ModelWithScreenLocation(manager)
+WholeHouseModel::WholeHouseModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
-    SetFromXml(node, zb);
 }
-WholeHouseModel::WholeHouseModel(const ModelManager &manager) : ModelWithScreenLocation(manager) {
-    
-}
-
 
 WholeHouseModel::~WholeHouseModel()
 {
-    //dtor
 }
-
 
 void WholeHouseModel::InitModel() {
     std::string WholeHouseData = ModelXml->GetAttribute("WholeHouseData").ToStdString();

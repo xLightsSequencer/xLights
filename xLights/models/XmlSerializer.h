@@ -774,13 +774,13 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         if (dmx_model.HasColorAbility()) {
             DmxColorAbility* color_ability = dmx_model.GetColorAbility();
             std::string color_type = color_ability->GetTypeName();
-            node->AddAttribute(XmlNodeKeys::DmxColorTypeAttribute, std::to_string(dmx_model.DmxColorTypetoID(color_type)));
+            node->AddAttribute(XmlNodeKeys::DmxColorTypeAttribute, color_type);
             if (color_type == "RGBW") {
-                AddColorAbilityRGBAttributes(reinterpret_cast<DmxColorAbilityRGB*>(color_ability), node);
+                AddColorAbilityRGBAttributes(dynamic_cast<DmxColorAbilityRGB*>(color_ability), node);
             } else if (color_type == "ColorWheel") {
-                AddColorWheelAttributes(reinterpret_cast<DmxColorAbilityWheel*>(color_ability), node);
+                AddColorWheelAttributes(dynamic_cast<DmxColorAbilityWheel*>(color_ability), node);
             } else if (color_type == "CMYW") {
-                AddColorAbilityCMYAttributes(reinterpret_cast<DmxColorAbilityCMY*>(color_ability), node);
+                AddColorAbilityCMYAttributes(dynamic_cast<DmxColorAbilityCMY*>(color_ability), node);
             }
         }
     }
@@ -1564,7 +1564,7 @@ struct XmlDeserializingObjectFactory {
             return DeserializeWindow(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::WreathType) {
             return DeserializeWreath(new wxXmlNode(*node), xlights, importing);
-        } else if (type == XmlNodeKeys::ViewObjectsType) {
+        } /*else if (type == XmlNodeKeys::ViewObjectsType) {
             return DeserializeEffects(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::EffectsType) {
             return DeserializeViews(new wxXmlNode(*node), xlights, importing);
@@ -1580,7 +1580,7 @@ struct XmlDeserializingObjectFactory {
             return DeserializeColors(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::ColorsType) {
             return DeserializeViewPoints(new wxXmlNode(*node), xlights, importing);
-        }
+        }*/
 
         throw std::runtime_error("Unknown object type: " + type);
     }
@@ -1944,14 +1944,14 @@ private:
     }
 
     Model* DeserializeDmxMovingHead(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        DmxMovingHead* model = new DmxMovingHead(node, xlights->AllModels, false);
+        DmxMovingHead* model = new DmxMovingHead(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
         model->Setup();
         return model;
     }
 
     Model* DeserializeDmxMovingHeadAdv(wxXmlNode *node, xLightsFrame* xlights, bool importing) {
-        DmxMovingHeadAdv *model = new DmxMovingHeadAdv(node, xlights->AllModels, false);
+        DmxMovingHeadAdv *model = new DmxMovingHeadAdv(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
         model->Setup();
         return model;
@@ -2142,20 +2142,120 @@ private:
     }
 
     Model* DeserializeWindow(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        WindowFrameModel* model = new WindowFrameModel(node, xlights->AllModels, false);
+        WindowFrameModel* model = new WindowFrameModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
+        model->SetRotation(std::stof(node->GetAttribute(XmlNodeKeys::RotationAttribute, "3.0").ToStdString()));
+        model->SetRotation((node->GetAttribute("Rotation", "CW") == "Clockwise" || node->GetAttribute("Rotation", "CW") == "CW") ? 0 : 1);
         model->Setup();
         return model;
     }
 
     Model* DeserializeWreath(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        WreathModel* model = new WreathModel(node, xlights->AllModels, false);
+        WreathModel* model = new WreathModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
         model->Setup();
         return model;
     }
 
-    Model* DeserializeEffects(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+    // ************************************************************************************************************
+    // **********************                        DMX Section                           ************************
+    // ************************************************************************************************************
+    void DeserializeDmxModel(Model* model, wxXmlNode* node) {
+        DmxModel* dmx_model = dynamic_cast<DmxModel*>(model);
+        if (dmx_model != nullptr) {
+            if (dmx_model->HasPresetAbility()) {
+                DeserializePresetAbility(dmx_model, node);
+            }
+            if (dmx_model->HasColorAbility()) {
+                DeserializeColorAbility(dmx_model, node);
+            }
+            if (dmx_model->HasShutterAbility()) {
+                DeserializeShutterAbility(dmx_model, node);
+            }
+        }
+    }
+
+    void DeserializePresetAbility(DmxModel* model, wxXmlNode* node) {
+        DmxPresetAbility* preset_ability = model->GetPresetAbility();
+        for (int i = 0; i < DmxPresetAbility::MAX_PRESETS; ++i) {
+            auto dmxChanKey = wxString::Format("DmxPresetChannel%d", i);
+            auto dmxValueKey = wxString::Format("DmxPresetValue%d", i);
+            auto descKey = wxString::Format("DmxPresetDesc%d", i);
+            if (!node->HasAttribute(dmxChanKey) || !node->HasAttribute(dmxValueKey)) {
+                break;
+            }
+            uint8_t dmxChan = wxAtoi(node->GetAttribute(dmxChanKey, "1"));
+            uint8_t dmxVal = wxAtoi(node->GetAttribute(dmxValueKey, "0"));
+            std::string dmxDesc = node->GetAttribute(descKey);
+            preset_ability->AddPreset(dmxChan, dmxVal, dmxDesc);
+        }
+    }
+
+    void DeserializeColorAbility(DmxModel* model, wxXmlNode* node) {
+        DmxColorAbility* color_ability = model->GetColorAbility();
+        DmxColorAbility::DMX_COLOR_TYPE color_type = color_ability->GetColorType();
+        if (color_type == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_RGBW) {
+            DeserializeColorAbilityRGBAttributes(dynamic_cast<DmxColorAbilityRGB*>(color_ability), node);
+        } else if (color_type == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_WHEEL) {
+            DeserializeColorWheelAttributes(dynamic_cast<DmxColorAbilityWheel*>(color_ability), node);
+        } else if (color_type == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_CMYW) {
+            DeserializeColorAbilityCMYAttributes(dynamic_cast<DmxColorAbilityCMY*>(color_ability), node);
+        }
+    }
+
+    void DeserializeColorAbilityRGBAttributes(DmxColorAbilityRGB* ability, wxXmlNode* node) {
+        ability->SetRedChannel(std::stoi(node->GetAttribute("DmxRedChannel", "1").ToStdString()));
+        ability->SetGreenChannel(std::stoi(node->GetAttribute("DmxGreenChannel", "2").ToStdString()));
+        ability->SetBlueChannel(std::stoi(node->GetAttribute("DmxBlueChannel", "3").ToStdString()));
+        ability->SetWhiteChannel(std::stoi(node->GetAttribute("DmxWhiteChannel", "0").ToStdString()));
+
+        ability->SetRedBrightness(std::stoi(node->GetAttribute("DmxRedBrightness", "100").ToStdString()));
+        ability->SetGreenBrightness(std::stoi(node->GetAttribute("DmxGreenBrightness", "100").ToStdString()));
+        ability->SetBlueBrightness(std::stoi(node->GetAttribute("DmxBlueBrightness", "100").ToStdString()));
+        ability->SetWhiteBrightness(std::stoi(node->GetAttribute("DmxWhiteBrightness", "100").ToStdString()));
+
+        ability->SetRedGamma(std::stof(node->GetAttribute("DmxRedGamma", "1.0").ToStdString()));
+        ability->SetGreenGamma(std::stof(node->GetAttribute("DmxGreenGamma", "1.0").ToStdString()));
+        ability->SetBlueGamma(std::stof(node->GetAttribute("DmxBlueGamma", "1.0").ToStdString()));
+        ability->SetWhiteGamma(std::stof(node->GetAttribute("DmxWhiteGamma", "1.0").ToStdString()));
+     }
+
+    void DeserializeColorWheelAttributes(DmxColorAbilityWheel* ability, wxXmlNode* node) {
+        ability->SetWheelChannel(std::stoi(node->GetAttribute("DmxColorWheelChannel", "0").ToStdString()));
+        ability->SetDimmerChannel(std::stoi(node->GetAttribute("DmxDimmerChannel", "0").ToStdString()));
+        ability->SetWheelDelay(std::stoi(node->GetAttribute("DmxColorWheelDelay", "0").ToStdString()));
+        for (int i = 0; i< DmxColorAbilityWheel::MAX_COLORS; ++i) {
+            auto dmxkey = wxString::Format("DmxColorWheelDMX%d", i);
+            auto colorkey = wxString::Format("DmxColorWheelColor%d", i);
+            if ( !node->HasAttribute(dmxkey) || !node->HasAttribute(colorkey) ) {
+                break;
+            }
+            uint8_t dmxVal = wxAtoi(node->GetAttribute(dmxkey, "1"));
+            wxString dmxcolor = node->GetAttribute(colorkey);
+            ability->AddColor(dmxcolor, dmxVal);
+        }
+    }
+
+    void DeserializeColorAbilityCMYAttributes(DmxColorAbilityCMY* ability, wxXmlNode* node) {
+        ability->SetCyanChannel(std::stoi(node->GetAttribute("DmxCyanChannel", "1").ToStdString()));
+        ability->SetMagentaChannel(std::stoi(node->GetAttribute("DmxMagentaChannel", "2").ToStdString()));
+        ability->SetYellowChannel(std::stoi(node->GetAttribute("DmxYellowChannel", "3").ToStdString()));
+        ability->SetWhiteChannel(std::stoi(node->GetAttribute("DmxWhiteChannel", "0").ToStdString()));
+    }
+
+    void DeserializeShutterAbility(DmxModel* model, wxXmlNode* node) {
+        DmxShutterAbility* shutter_ability = model->GetShutterAbility();
+        shutter_ability->SetShutterChannel(std::stoi(node->GetAttribute("DmxShutterChannel", "0").ToStdString()));
+        shutter_ability->SetShutterThreshold(std::stoi(node->GetAttribute("DmxShutterOpen", "1").ToStdString()));
+        shutter_ability->SetShutterOnValue(std::stoi(node->GetAttribute("DmxShutterOnValue", "0").ToStdString()));
+    }
+
+
+    // ************************************************************************************************************
+    // ************************************************************************************************************
+    // ************************************************************************************************************
+
+    /*Model* DeserializeEffects(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         WreathModel* model = new WreathModel(node, xlights->AllModels, false);
         CommonDeserializeSteps(model, node, xlights, importing);
         model->Setup();
@@ -2216,7 +2316,7 @@ private:
         CommonDeserializeSteps(model, node, xlights, importing);
         model->Setup();
         return model;
-    }
+    }*/
 };
 
 struct XmlSerializer {

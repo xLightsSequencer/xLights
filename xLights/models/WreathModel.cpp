@@ -13,14 +13,12 @@
 #include <wx/propgrid/advprops.h>
 #include "WreathModel.h"
 
-WreathModel::WreathModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased): ModelWithScreenLocation(manager)
+WreathModel::WreathModel(const ModelManager &manager): ModelWithScreenLocation(manager)
 {
-    SetFromXml(node, zeroBased);
 }
 
 WreathModel::~WreathModel()
 {
-    //dtor
 }
 
 void WreathModel::InitModel() {
@@ -92,8 +90,7 @@ void WreathModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
 
 int WreathModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("WreathStringCount" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm1");
-        ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        parm1 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
         //AdjustStringProperties(grid, parm1);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WreathModel::OnPropertyGridChange::WreathStringCount");
@@ -104,8 +101,7 @@ int WreathModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "WreathModel::OnPropertyGridChange::WreathStringCount");
         return 0;
     } else if ("WreathLightCount" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm2");
-        ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        parm2 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WreathModel::OnPropertyGridChange::WreathLightCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WreathModel::OnPropertyGridChange::WreathLightCount");
@@ -115,10 +111,8 @@ int WreathModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "WreathModel::OnPropertyGridChange::WreathLightCount");
         return 0;
     } else if ("WreathStart" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("Dir");
-        ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2 ? "L" : "R");
-        ModelXml->DeleteAttribute("StartSide");
-        ModelXml->AddAttribute("StartSide", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1 ? "T" : "B");
+        _dir = event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2 ? "L" : "R";
+        _startSide = event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1 ? "T" : "B";
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WreathModel::OnPropertyGridChange::WreathStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WreathModel::OnPropertyGridChange::WreathStart");
@@ -129,4 +123,4 @@ int WreathModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
 
     return Model::OnPropertyGridChange(grid, event);
 }
-void WreathModel::ExportXlightsModel() {}
+

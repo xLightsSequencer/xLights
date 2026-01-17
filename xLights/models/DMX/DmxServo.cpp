@@ -31,11 +31,10 @@
 
 static const int SUPPORTED_SERVOS = 24;
 
-DmxServo::DmxServo(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
-    : DmxModel(node, manager, zeroBased), transparency(0), brightness(100),
+DmxServo::DmxServo(const ModelManager &manager)
+    : DmxModel(manager), transparency(0), brightness(100),
       update_node_names(false), num_servos(1), _16bit(true)
 {
-    SetFromXml(node, zeroBased);
 }
 
 DmxServo::~DmxServo()
@@ -542,8 +541,6 @@ void DmxServo::ExportXlightsModel()
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxservo \n");
 
-    ExportBaseParameters(f);
-
     wxString bits = ModelXml->GetAttribute("Bits16", "1");
     wxString brt = ModelXml->GetAttribute("Brightness", "100");
     wxString trans = ModelXml->GetAttribute("Transparency", "0");
@@ -584,8 +581,6 @@ void DmxServo::ExportXlightsModel()
 bool DmxServo::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z)
 {
     if (root->GetName() == "dmxservo") {
-        if (!ImportBaseParameters(root))
-            return false;
 
         wxString name = root->GetAttribute("name");
         //wxString v = root->GetAttribute("SourceVersion");

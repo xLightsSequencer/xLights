@@ -29,9 +29,11 @@
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
 
-DmxSkull::DmxSkull(wxXmlNode* node, const ModelManager& manager, bool zeroBased) :
-    DmxModel(node, manager, zeroBased)
+DmxSkull::DmxSkull(const ModelManager& manager) :
+    DmxModel(manager)
 {
+    color_ability = std::make_unique<DmxColorAbilityRGB>();
+
     wxStandardPaths stdp = wxStandardPaths::Get();
 #ifndef __WXMSW__
     obj_path = wxStandardPaths::Get().GetResourcesDir() + "/meshobjects/Skull/";
@@ -76,13 +78,11 @@ DmxSkull::DmxSkull(wxXmlNode* node, const ModelManager& manager, bool zeroBased)
 
     default_node_names = "Jaw,-Jaw Fine,Pan,-Pan Fine,Tilt,-Tilt Fine,Nod,-Nod Fine,Eye UD,-Eye UD Fine,Eye LR,-Eye LR Fine,-Torso,-Torso Fine,Eye Brightness,Eye Red,Eye Green,Eye Blue";
 
-    SetFromXml(node, zeroBased);
     screenLocation.CreateWithDepth(true);
 }
 
 DmxSkull::~DmxSkull()
 {
-    //dtor
 }
 
 class dmxPoint3 {
@@ -496,8 +496,6 @@ void DmxSkull::InitModel()
     DisplayAs = "DmxSkull";
     screenLocation.SetRenderSize(1, 1, 1);
 
-    color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
-
     eye_brightness_channel = wxAtoi(ModelXml->GetAttribute("DmxEyeBrtChannel", "15"));
     jaw_orient = wxAtoi(ModelXml->GetAttribute("DmxJawOrient", std::to_string(default_orient[JAW])));
     pan_orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", std::to_string(default_orient[PAN])));
@@ -905,7 +903,7 @@ void DmxSkull::ExportXlightsModel()
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
 
-    ExportBaseParameters(f);
+    //ExportBaseParameters(f);
 
     wxString jo = ModelXml->GetAttribute("DmxJawOrient", std::to_string(default_orient[JAW]));
     wxString po = ModelXml->GetAttribute("DmxPanOrient", std::to_string(default_orient[PAN]));
@@ -940,7 +938,6 @@ void DmxSkull::ExportXlightsModel()
     f.Write(wxString::Format("Skulltronix=\"%s\" ", is));
     f.Write(wxString::Format("DmxEyeBrtChannel=\"%s\" ", eb));
     f.Write(wxString::Format("Bits16=\"%s\" ", bits));
-    color_ability->ExportParameters(f,ModelXml);
     f.Write(" >\n");
 
     wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
@@ -978,8 +975,6 @@ void DmxSkull::ExportXlightsModel()
 bool DmxSkull::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z)
 {
     if (root->GetName() == "dmxmodel") {
-        if (!ImportBaseParameters(root))
-            return false;
 
         wxString name = root->GetAttribute("name");
         //wxString v = root->GetAttribute("SourceVersion");
@@ -1020,8 +1015,6 @@ bool DmxSkull::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float&
         SetProperty("Skulltronix", is);
         SetProperty("DmxEyeBrtChannel", eb);
         SetProperty("Bits16", bits);
-
-        color_ability->ImportParameters(root, this);
 
         wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
         SetProperty("name", newname, true);

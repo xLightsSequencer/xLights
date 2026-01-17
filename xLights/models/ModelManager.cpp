@@ -54,7 +54,6 @@
 #include "DMX/DmxServo.h"
 #include "DMX/DmxServo3D.h"
 #include "DMX/DmxSkull.h"
-#include "DMX/DmxSkulltronix.h"
 #include "outputs/Controller.h"
 #include "outputs/ControllerEthernet.h"
 #include "outputs/Output.h"
@@ -1221,49 +1220,50 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         parm3 = 50;
         node->AddAttribute("InsideOut", "0");
     } else if (type == "DmxMovingHead") {
-        model = new DmxMovingHead(node, *this, false);
+        model = new DmxMovingHead(*this);
         protocol = xlEMPTY_STRING;
         parm1 = 8;
         parm2 = 1;
         node->AddAttribute("DmxStyle", "Moving Head Top");
         model->SetStringType("Single Color White");
     } else if (type == "DmxGeneral") {
-        model = new DmxGeneral(node, *this, false);
+        model = new DmxGeneral(*this);
         protocol = xlEMPTY_STRING;
         parm1 = 8;
         parm2 = 1;
+        parm3 = 1;
         model->SetStringType("Single Color White");
     } else if (type == "DmxMovingHeadAdv") {
-        model = new DmxMovingHeadAdv(node, *this, false);
+        model = new DmxMovingHeadAdv(*this);
         protocol = xlEMPTY_STRING;
         parm1 = 8;
         parm2 = 1;
         model->SetStringType("Single Color White");
     } else if (type == "DmxFloodlight") {
-        model = new DmxFloodlight(node, *this, false);
+        model = new DmxFloodlight(*this);
         parm1 = 3;
         parm2 = 1;
         model->SetStringType("Single Color White");
     } else if (type == "DmxFloodArea") {
-        model = new DmxFloodArea(node, *this, false);
+        model = new DmxFloodArea(*this);
         protocol = xlEMPTY_STRING;
         parm1 = 3;
         parm2 = 1;
         model->SetStringType("Single Color White");
     } else if (type == "DmxSkull") {
-        model = new DmxSkull(node, *this, false);
+        model = new DmxSkull(*this);
         protocol = xlEMPTY_STRING;
         parm1 = 26;
         parm2 = 1;
         model->SetStringType("Single Color White");
     } else if (type == "DmxServo") {
-        model = new DmxServo(node, *this, false);
+        model = new DmxServo(*this);
         protocol = xlEMPTY_STRING;
         parm1 = 2;
         parm2 = 1;
         model->SetStringType("Single Color White");
     } else if (type == "DmxServo3d" || type == "DmxServo3Axis") {
-        model = new DmxServo3d(node, *this, false);
+        model = new DmxServo3d(*this);
         protocol = xlEMPTY_STRING;
         parm1 = 2;
         parm2 = 1;
@@ -1283,12 +1283,12 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         dynamic_cast<ImageModel*>(model)->SetImageFile("");
         model->SetStringType("Single Color White");
     } else if (type == "Window Frame") {
-        model = new WindowFrameModel(node, *this, false);
+        model = new WindowFrameModel(*this);
         parm1 = 16;
         parm3 = 16;
         node->AddAttribute("Rotation", "CW");
     } else if (type == "Wreath") {
-        model = new WreathModel(node, *this, false);
+        model = new WreathModel(*this);
     } else if (type.find("Sphere") == 0) {
         model = new SphereModel(*this);
         parm1 = 10;
@@ -1539,27 +1539,35 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
     } else if (type == "Circle") {
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "DmxMovingHead") {
-        model = new DmxMovingHead(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
+        //model = new DmxMovingHead(*this);  // TODO:  Delete when this models file is dones
     } else if (type == "DmxGeneral") {
-        model = new DmxGeneral(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
+        //model = new DmxGeneral(*this);// TODO:  Delete when this models file is dones
     } else if (type == "DmxMovingHeadAdv") {
-        model = new DmxMovingHeadAdv(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
+        //model = new DmxMovingHeadAdv(*this);// TODO:  Delete when this models file is dones
     } else if (type == "DmxFloodlight") {
-        model = new DmxFloodlight(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
+        //model = new DmxFloodlight(node, *this, zeroBased);// TODO:  Delete when this models file is dones
     } else if (type == "DmxFloodArea") {
-        model = new DmxFloodArea(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
+        //model = new DmxFloodArea(node, *this, zeroBased);// TODO:  Delete when this models file is dones
     } else if (type == "DmxSkull") {
-        model = new DmxSkull(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
+        //model = new DmxSkull(node, *this, zeroBased);// TODO:  Delete when this models file is dones
     } else if (type == "DmxServo") {
-        model = new DmxServo(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
+        //model = new DmxServo(node, *this, zeroBased);// TODO:  Delete when this models file is dones
     } else if (type == "DmxServo3d") {
-        model = new DmxServo3d(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
+        //model = new DmxServo3d(node, *this, zeroBased);// TODO:  Delete when this models file is dones
     } else if (type == "Image") {
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Window Frame") {
-        model = new WindowFrameModel(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Wreath") {
-        model = new WreathModel(node, *this, zeroBased);
+        model = serializer.DeserializeModel(node, xlights, false);
     } else if (type.find("Sphere") == 0) {
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Single Line") {
@@ -1577,7 +1585,7 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
     } else if (type.find("Icicles") == 0) {
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "WholeHouse") {
-        model = new WholeHouseModel(node, *this, zeroBased);
+        model = new WholeHouseModel(*this);  // TODO: Do we want to still support this?
     } else if (type.find("Matrix") != std::string::npos) {
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Spinner") {

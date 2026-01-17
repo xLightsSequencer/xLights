@@ -18,16 +18,15 @@
 #include "../Node.h"
 #include "../../Color.h"
 
-constexpr int MAX_COLORS{25};
-
-void DmxColorAbilityWheel::InitColor( wxXmlNode* ModelXml)
+DmxColorAbilityWheel::DmxColorAbilityWheel() :
+    DmxColorAbility()
 {
-    wheel_channel = wxAtoi(ModelXml->GetAttribute("DmxColorWheelChannel", "0"));
-    dimmer_channel = wxAtoi(ModelXml->GetAttribute("DmxDimmerChannel", "0"));
-    wheel_delay = wxAtoi(ModelXml->GetAttribute("DmxColorWheelDelay", "0"));
+    _colorType = DMX_COLOR_TYPE::DMX_COLOR_WHEEL;
+    InitColor();
+};
 
-    ReadColorSettings(ModelXml);
-
+void DmxColorAbilityWheel::InitColor()
+{
     if (colors.empty()) {
         colors.emplace_back(xlWHITE, 10);
         colors.emplace_back(xlRED, 30);
@@ -127,24 +126,21 @@ void DmxColorAbilityWheel::AddColorTypeProperties(wxPropertyGridInterface *grid,
 int DmxColorAbilityWheel::OnColorPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base) {
 
     if ("DmxColorWheelChannel" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxColorWheelChannel");
-        ModelXml->AddAttribute("DmxColorWheelChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        wheel_channel = (int)event.GetPropertyValue().GetLong();
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelChannel");
         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelChannel");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelChannel");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelChannel");
         return 0;
     } else if ("DmxDimmerChannel" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxDimmerChannel");
-        ModelXml->AddAttribute("DmxDimmerChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        dimmer_channel = (int)event.GetPropertyValue().GetLong();
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxDimmerChannel");
         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DmxDimmerChannel");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DmxDimmerChannel");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::DmxDimmerChannel");
         return 0;
     } else if ("DmxColorWheelDelay" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxColorWheelDelay");
-        ModelXml->AddAttribute("DmxColorWheelDelay", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        wheel_delay = (int)event.GetPropertyValue().GetLong();
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelDelay");
         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelDelay");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelDelay");
@@ -163,8 +159,6 @@ int DmxColorAbilityWheel::OnColorPropertyGridChange(wxPropertyGridInterface *gri
             auto const lastValue = (colors.back().dmxValue + 50) % 255;
             colors.emplace_back(xlRED, lastValue);
         }
-        WriteColorSettings(ModelXml);
-
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelSize");
         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelSize");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelSize");
@@ -178,8 +172,6 @@ int DmxColorAbilityWheel::OnColorPropertyGridChange(wxPropertyGridInterface *gri
         int index = wxAtoi(namekey);
         if (index >= 0 && index < colors.size()) {
             colors[index].dmxValue = dxmVal;
-            WriteColorSettings(ModelXml);
-
             base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelDMX");
             base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelDMX");
             base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelDMX");
@@ -194,8 +186,6 @@ int DmxColorAbilityWheel::OnColorPropertyGridChange(wxPropertyGridInterface *gri
         int index = wxAtoi(namekey);
         if (index >= 0 && index<colors.size()) {
             colors[index].color = xlColor(wheeleColour);
-            WriteColorSettings(ModelXml);
-
             base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelColor");
             base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelColor");
             base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelColor");
@@ -292,53 +282,6 @@ void DmxColorAbilityWheel::GetColor(xlColor &color, int transparency, int blackT
     return beam_color;
 }
 
-void DmxColorAbilityWheel::ExportParameters(wxFile& f, wxXmlNode* ModelXml) const
-{
-    wxString cwc = ModelXml->GetAttribute("DmxColorWheelChannel", "0");
-    wxString dc = ModelXml->GetAttribute("DmxDimmerChannel", "0");
-    wxString wd = ModelXml->GetAttribute("DmxColorWheelDelay", "0");
-    f.Write(wxString::Format("DmxColorWheelChannel=\"%s\" ", cwc));
-    f.Write(wxString::Format("DmxDimmerChannel=\"%s\" ", dc));
-    f.Write(wxString::Format("DmxColorWheelDelay=\"%s\" ", wd));
-
-    for (int i = 0; i < MAX_COLORS; ++i) {
-        auto dmxkey = wxString::Format("DmxColorWheelDMX%d", i);
-        auto colorkey = wxString::Format("DmxColorWheelColor%d", i);
-        if (!ModelXml->HasAttribute(dmxkey) || !ModelXml->HasAttribute(colorkey)) {
-            break;
-        }
-
-        wxString dmx = ModelXml->GetAttribute(dmxkey, "0");
-        wxString color = ModelXml->GetAttribute(colorkey, "0");
-        f.Write(wxString::Format("%s=\"%s\" ", dmxkey, dmx));
-        f.Write(wxString::Format("%s=\"%s\" ", colorkey, color));
-    }
-}
-
-void DmxColorAbilityWheel::ImportParameters(wxXmlNode* ImportXml, Model* m) const
-{
-    wxString cwc = ImportXml->GetAttribute("DmxColorWheelChannel");
-    wxString dc = ImportXml->GetAttribute("DmxDimmerChannel");
-    wxString wd = ImportXml->GetAttribute("DmxColorWheelDelay");
-
-    m->SetProperty("DmxColorWheelChannel", cwc);
-    m->SetProperty("DmxDimmerChannel", dc);
-    m->SetProperty("DmxColorWheelDelay", wd);
-
-    for (int i = 0; i < MAX_COLORS; ++i) {
-        auto dmxkey = wxString::Format("DmxColorWheelDMX%d", i);
-        auto colorkey = wxString::Format("DmxColorWheelColor%d", i);
-        if (!ImportXml->HasAttribute(dmxkey) || !ImportXml->HasAttribute(colorkey)) {
-            break;
-        }
-
-        wxString dmx = ImportXml->GetAttribute(dmxkey, "0");
-        wxString color = ImportXml->GetAttribute(colorkey, "0");
-        m->SetProperty( dmxkey, dmx);
-        m->SetProperty( colorkey, color);
-    }
-}
-
 void DmxColorAbilityWheel::SetNodeNames(std::vector<std::string>& names, const std::string &pfx) const
 {
     if (CheckChannel(wheel_channel, names.size())) {
@@ -349,43 +292,9 @@ void DmxColorAbilityWheel::SetNodeNames(std::vector<std::string>& names, const s
     }
 }
 
-void DmxColorAbilityWheel::ReadColorSettings(wxXmlNode* ModelXml)
+void DmxColorAbilityWheel::AddColor(wxString dmxcolor, uint8_t dmxVal)
 {
-    for (int i =0; i< MAX_COLORS; ++i) {
-        auto dmxkey = wxString::Format("DmxColorWheelDMX%d", i);
-        auto colorkey = wxString::Format("DmxColorWheelColor%d", i);
-        if ( !ModelXml->HasAttribute(dmxkey) || !ModelXml->HasAttribute(colorkey) ) {
-            break;
-        }
-        uint8_t dmxVal = wxAtoi(ModelXml->GetAttribute(dmxkey, "1"));
-        wxString dmxcolor = ModelXml->GetAttribute(colorkey);
-        
-        colors.emplace_back(xlColor(dmxcolor), dmxVal);
-    }
-}
-
-void DmxColorAbilityWheel::WriteColorSettings(wxXmlNode* ModelXml) const
-{
-    for (int i = 0; i < MAX_COLORS; ++i) {
-        auto dmxkey = wxString::Format("DmxColorWheelDMX%d", i);
-        auto colorkey = wxString::Format("DmxColorWheelColor%d", i);
-        if (ModelXml->HasAttribute(dmxkey)) {
-            ModelXml->DeleteAttribute(dmxkey);
-        }
-        if (ModelXml->HasAttribute(colorkey)) {
-            ModelXml->DeleteAttribute(colorkey);
-        }
-    }
-    int index = 0;
-    for (auto const& col : colors) {
-        auto dmxkey = wxString::Format("DmxColorWheelDMX%d", index);
-        auto colorkey = wxString::Format("DmxColorWheelColor%d", index);
-        ModelXml->DeleteAttribute(dmxkey);
-        ModelXml->AddAttribute(dmxkey, wxString::Format("%d", col.dmxValue));
-        ModelXml->DeleteAttribute(colorkey);
-        ModelXml->AddAttribute(colorkey, col.color);
-        ++index;
-    }
+    colors.emplace_back(xlColor(dmxcolor), dmxVal);
 }
 
 std::optional<xlColor> DmxColorAbilityWheel::GetDMXWheelValue(xlColor const& color) const

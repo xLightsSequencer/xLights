@@ -18,7 +18,7 @@ class Servo;
 class DmxServo3d : public DmxModel
 {
     public:
-        DmxServo3d(wxXmlNode* node, const ModelManager& manager, bool zeroBased = false);
+        DmxServo3d(const ModelManager& manager);
         virtual ~DmxServo3d();
 
         virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,

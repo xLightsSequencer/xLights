@@ -12,8 +12,6 @@
 
 #include "DmxMovingHeadComm.h"
 #include "DmxDimmerAbility.h"
-#include "DmxPanTiltAbility.h"
-#include "DmxShutterAbility.h"
 #include "DmxMotor.h"
 
 class DmxMotorBase;
@@ -21,7 +19,7 @@ class DmxMotorBase;
 class DmxMovingHead : public DmxMovingHeadComm, public DmxDimmerAbility
 {
     public:
-        DmxMovingHead(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
+        DmxMovingHead(const ModelManager &manager);
         virtual ~DmxMovingHead();
 
         virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;

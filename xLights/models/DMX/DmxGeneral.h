@@ -16,7 +16,7 @@
 class DmxGeneral : public DmxModel
 {
     public:
-        DmxGeneral(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
+        DmxGeneral(const ModelManager &manager);
         virtual ~DmxGeneral();
 
         virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
@@ -26,7 +26,6 @@ class DmxGeneral : public DmxModel
     protected:
         virtual void InitModel() override;
 
-        virtual void ExportXlightsModel() override;
         [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
         virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
                                           xlGraphicsProgram* solidProgram, xlGraphicsProgram* transparentProgram, bool is_3d = false,
