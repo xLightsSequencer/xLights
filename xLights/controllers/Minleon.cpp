@@ -63,33 +63,50 @@ public:
             );
         }
     }
-    MinleonString(nlohmann::json& val)
-    {
-        if (val["port"].is_number_integer()) {
-            // this is the web request response
-            if (val.contains("port")) {
-                _port = val["port"].get<int>();
+    MinleonString(nlohmann::json& val) {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+        if (!val.is_object()) {
+            wxASSERT(false);
+            return;
+        }
+
+        // for (auto it = val.begin(); it != val.end(); ++it) {
+        //     logger_base.debug("Key %s.", it.key().c_str());
+        // }
+
+        // This is the DDP config response
+        if (val.contains("port")) {
+            if (val["port"].is_string()) {
+                _port = std::stoi(val["port"].get<std::string>()) - 1;
             } else {
-                _port = val["p"].get<int>();
+                _port = val["port"].get<int>() - 1;
             }
+        } else {
+            _port = val["p"].get<int>() - 1;
+        }
+        if (val["ts"].is_string()) {
+            _tees = std::stoi(val["ts"].get<std::string>());
+        } else {
             _tees = val["ts"].get<int>();
-            _reverse = (val["rev"].get<int>() == 1);
+        }
+        if (val.contains("rev")) {
+            _reverse = val["rev"].get<int>() == 1;
+        } else {
+            _reverse = false;
+        }
+        if (val["l"].is_string()) {
+            _nodes = std::stoi(val["l"].get<std::string>());
+        } else {
             _nodes = val["l"].get<int>();
+        }
+        if (val["ss"].is_string()) {
+            _startChannel = std::stoi(val["ss"].get<std::string>());
+        } else {
             _startChannel = val["ss"].get<int>();
         }
-        else {
-            // This is the DDP config response
-            if (val.contains("port")) {
-                _port = std::stoi(val["port"].get<std::string>());
-            } else {
-                _port = val["p"].get<int>();
-            }
-            _tees = std::stoi(val["ts"].get<std::string>());
-            _reverse = false;
-            _nodes = std::stoi(val["l"].get<std::string>());
-            _startChannel = std::stoi(val["ss"].get<std::string>());
-        }
     }
+
     MinleonString(int port, int ts, bool reverse, int nodes, int startChannel)
     {
         _port = port;
@@ -98,6 +115,7 @@ public:
         _nodes = nodes;
         _startChannel = startChannel;
     }
+
     MinleonString() {}
 };
 
@@ -219,7 +237,7 @@ void Minleon::SetTimingsFromProtocol()
         _t1h = 930;
         _tbit = 1250;
         _tres = 300;
-    } else if (_protocol == "gs8206/8") {
+    } else if (_protocol == "gs8206/8" || _protocol == "gs8206" || _protocol == "gs8208") {
         _t0h = 310;
         _t1h = 930;
         _tbit = 1250;
@@ -229,12 +247,12 @@ void Minleon::SetTimingsFromProtocol()
         _t1h = 1000;
         _tbit = 1250;
         _tres = 24;
-    } else if (_protocol == "tm18xx") {
-        _t0h = 500;
-        _t1h = 1000;
-        _tbit = 1500;
-        _tres = 10;
-    } else if (_protocol == "tm1804") {
+    } else if (_protocol == "ucs2904") {
+        _t0h = 400;
+        _t1h = 800;
+        _tbit = 1250;
+        _tres = 30;
+    } else if (_protocol == "tm18xx" || _protocol == "tm1804") {
         _t0h = 500;
         _t1h = 1000;
         _tbit = 1500;
@@ -269,6 +287,11 @@ void Minleon::SetTimingsFromProtocol()
         _t1h = 700;
         _tbit = 1250;
         _tres = 250;
+    } else if (_protocol == "rgbw+2") {
+        _t0h = 400;
+        _t1h = 800;
+        _tbit = 1250;
+        _tres = 250;
     } else if (_protocol == "rm2021") {
         _t0h = 300;
         _t1h = 900;
@@ -295,8 +318,12 @@ int Minleon::GetMax8PortPixels(const std::string& chip) const
         return 460;
     if (chip == "rgbw+")
         return 345;
-    if (chip == "rgb+2")
+    if (chip == "rgb+2" || chip == "tls3001")
         return 613;
+    if (chip == "rgbw+2")
+        return 460;
+    if (chip == "ucs2904")
+        return 690;
     return 920;
 }
 
@@ -305,11 +332,30 @@ int Minleon::GetMax16PortPixels(const std::string& chip) const
     if (chip == "rgb+") return 230;
     if (chip == "rgbw+") return 172;
     if (chip == "rgb+2") return 306;
+    if (chip == "rgbw+2") return 229;
     return 460;
 }
 #pragma endregion
 
 #pragma region Port Handling
+
+std::string Minleon::ConvForProtocol(const std::string& chip, const std::string& oldConv) const {
+
+    if (chip == "1") {
+        return "0";
+    } else if (chip == "17") {
+        return "13";
+    } else if (chip == "2") {
+        return "1";
+    } else if (chip == "12") {
+        return "10";
+    } else if (chip == "15") {
+        return "12";
+    }
+
+    return oldConv;
+}
+
 void Minleon::UploadNDBPro(bool reboot)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -317,12 +363,15 @@ void Minleon::UploadNDBPro(bool reboot)
     if (_startUniverse != -1)
         universe = _startUniverse;
 
-    std::string data = wxString::Format("{\"chip\":\"%d\",\"conv\":\"%s\",\"t0h\":\"%d\",\"t1h\":\"%d\",\"tbit\":\"%d\",\"trst\":\"%d\",\"proto\":\"%d\",\"universe\":\"%d\",\"ports\":[", 
+    _conv = ConvForProtocol(_chip, _conv);
+
+    // univ and universe is present because different firmwares use different names
+    std::string data = wxString::Format("{\"chip\":\"%d\",\"conv\":\"%s\",\"t0h\":\"%d\",\"t1h\":\"%d\",\"tbit\":\"%d\",\"trst\":\"%d\",\"proto\":\"%d\",\"univ\":\"%d\",\"universe\":\"%d\",\"ports\":[", 
         EncodeStringPortProtocol(_chip),
         _conv,
         _t0h, _t1h, _tbit, _tres, 
         EncodeInputProtocol(_protocol),
-        universe);
+        universe, universe);
     bool first = true;
     for (const auto& it : _stringPorts) {
         if (!first) {
@@ -499,20 +548,22 @@ void Minleon::UploadNDPPlus(bool reboot)
 
 #pragma region Encode and Decode
 static std::map<int, std::string> NDBProProtocols = {
-    { 1, "ucs8903" },
+    { 1, "rgb+" },
     { 2, "rgbw+" },
     { 3, "sk6812" },
-    { 4, "ws2811" },
-    { 5, "ws2811" },
+    { 4, "ws2812b" },
     { 6, "ws2811" },
-    { 7, "gs820x" },
+    { 7, "gs8206/8" },
     { 8, "ucs2903" },
-    { 9, "tm18xx" },
+    { 9, "tm1804" },
     { 10, "sm16703" },
     { 11, "apa104" },
     { 12, "rgb+2" },
     { 13, "ws2811" },
-    { 14, "rm2021" }
+    { 14, "rm2021" },
+    { 15, "tls3001" },
+    { 16, "ucs2904" },
+    { 17, "rgbw+2" }
 };
 
 std::string Minleon::DecodeStringPortProtocol(int protocol) const
@@ -628,12 +679,12 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
 
         std::string configJSON = GetURL("/01.html");
 
-        if (configJSON.empty() || configJSON == "This URI does not exist") {
+        if (configJSON.empty() || configJSON == "This URI does not exist" || configJSON == "Nothing matches the given URI") {
             logger_base.warn("    Error retrieving 01.html from Minleon controller.");
 
             configJSON = GetURL("/api/config");
 
-            if (configJSON.empty() || configJSON == "This URI does not exist") {
+            if (configJSON.empty() || configJSON == "This URI does not exist" || configJSON == "Nothing matches the given URI") {
 
                 // it may be an original NDB
                 if (!ParseNDBHTML(html, 4).empty()) {
@@ -680,7 +731,12 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
             _t1h = getJSONNum(val["config"], "t1h");
             _tbit = getJSONNum(val["config"], "tbit");
             _tres = getJSONNum(val["config"], "tres");
-            _conv = val["config"].value("conv", std::string());
+            // if conv is a string
+            if (val["config"]["conv"].is_string()) {
+                _conv = val["config"].value("conv", std::string());
+            } else {
+                _conv = std::to_string(val["config"]["conv"].get<int>());
+            }
 
             std::string p;
             if (val["config"].contains("protocol")) {
@@ -818,7 +874,7 @@ bool Minleon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
         int maxpixelsfor16ports = GetMax16PortPixels(_chip);
 
         int maxChannels = cud.GetMaxPixelPortChannels();
-        int maxPorts = 16;
+        int maxPorts = caps->GetMaxPixelPort();
         if (maxChannels > 460 * 3) {
             maxPorts = 8;
         }

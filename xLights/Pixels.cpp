@@ -86,6 +86,8 @@
 // |--------------------------------------------------------------------------------------------------------------------------------------|
 // | TM1829         | RGB, 5 bit, 3 wire     |                                                   |                                        |
 // |--------------------------------------------------------------------------------------------------------------------------------------|
+// | UCS7604        | RGBW, 16 bit, 3 wire   | RGBW+2                                            |                                        |
+// |--------------------------------------------------------------------------------------------------------------------------------------|
 // | UCS8903        | RGB, 16 bit, 3 wire    |                                                   |                                        |
 // |--------------------------------------------------------------------------------------------------------------------------------------|
 // | UCS8904        | RGBW, 16 bit, 3 wire   |                                                   |                                        |
@@ -120,7 +122,7 @@ const static std::vector<std::vector<std::string>> __equivalentPixels =
       "tm1812", "tm1914", "ucs1903", "ucs1904", "ucs1909", "ucs1912", "ucs2903", "ucs2909", "ucs2912", "ucs9812",
       "ws2812", "ws2812b", "ws2813", "ws2815", "ws2818",
       // artificial
-      "tm18xx", "ws281x", " ws2811v1.4", " ws2811 slow", "gs820x"
+      "tm18xx", "ws281x", " ws2811v1.4", " ws2811 slow", "gs820x", "gs8206/8"
     },
     { "9pdot" },
     { "9pdot (16)" },
@@ -147,12 +149,15 @@ const static std::vector<std::vector<std::string>> __equivalentPixels =
     { "tls3008" },
     { "tm1814", "tm1814a" },
     { "tm1829" },
+    { "rm2021" },
     { "ucs8903", "ucs8903 (16)" },
     { "ucs8904", "ucs8904 (16)" },
     { "ucs9812" }, // I have not researched these
     { "my9231" },  // I have not researched these ... they may fit into an existing category
     { "ws2801", "ws2803" },
     { "rgb+" }, // not sure if these have a functional equivalent ... if they do these should be moved to artificial
+    { "rgbw+" }, // not sure if these have a functional equivalent ... if they do these should be moved to artificial
+    { "ucs7604", "rgbw+2" },
     { "sm16825", "sm16825 (16)" }
 };
 
@@ -171,7 +176,7 @@ const static std::vector<std::vector<std::string>> __equivalentSerial = {
 const static std::vector<std::string> __artificalTypes =
 {
     "tm18xx", "ws281x", " ws2811v1.4", " ws2811 slow", "ucs8903 (16)", "ucs8904 (16)", "gs820x", "rgb+2", "dmx512p", "dmx512p-4", 
-    "sm16825 (16)"
+    "sm16825 (16)", "rgbw+2", "gs8206/8"
 };
 
 bool IsArtificialPixelType(const std::string& p)
