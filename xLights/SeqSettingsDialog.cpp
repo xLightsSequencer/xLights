@@ -1808,7 +1808,9 @@ void SeqSettingsDialog::OnBitmapButton_ModifyTimingClick(wxCommandEvent& event)
         xml_file = xLightsParent->CurrentSeqXmlFile;
 
         if ( xLightsParent->_renderCache.IsEnabled() ) {
-            wxMessageBox("Render Cache is enabled. Be sure to do Tools->Purge Render Cache to avoid render artifacts.");
+            auto& se = xLightsParent->GetSequenceElements();
+            xLightsParent->_renderCache.Purge(&se , true);
+            wxMessageBox("Render Cache is enabled. To avoid render artifacts, render cache has been purged.");
         }
     }
 }
