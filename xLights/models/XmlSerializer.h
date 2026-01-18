@@ -50,6 +50,7 @@
 #include "xLightsVersion.h"
 #include "xLightsMain.h"
 #include "../Pixels.h"
+#include "DMX/DmxBeamAbility.h"
 #include "DMX/DmxColorAbilityCMY.h"
 #include "DMX/DmxColorAbilityRGB.h"
 #include "DMX/DmxColorAbilityWheel.h"
@@ -226,7 +227,7 @@ namespace XmlNodeKeys {
     constexpr auto DmxYellowChannelAttribute  = "DmxYellowChannel";
 
     // DmxMovingHeadComm Attributes
-    constexpr auto DmxFixturelAttribute = "DmxFixture";
+    constexpr auto DmxFixtureAttribute = "DmxFixture";
 
     // DmxMotor Attributes
     constexpr auto ChannelCoarseAttribute = "ChannelCoarse";
@@ -743,48 +744,6 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         node->AddAttribute(XmlNodeKeys::PointDataAttribute, screenLoc.GetPointDataAsString());
     }
 
-    void AddColorAbilityRGBAttributes(const DmxColorAbilityRGB* colors, wxXmlNode* node) {
-        node->AddAttribute(XmlNodeKeys::DmxRedChannelAttribute, std::to_string(colors->GetRedChannel()));
-        node->AddAttribute(XmlNodeKeys::DmxGreenChannelAttribute, std::to_string(colors->GetGreenChannel()));
-        node->AddAttribute(XmlNodeKeys::DmxBlueChannelAttribute, std::to_string(colors->GetBlueChannel()));
-        node->AddAttribute(XmlNodeKeys::DmxWhiteChannelAttribute, std::to_string(colors->GetWhiteChannel()));
-    }
-
-    void AddColorWheelAttributes(const DmxColorAbilityWheel* colors, wxXmlNode* node) {
-        node->AddAttribute(XmlNodeKeys::DmxColorWheelChannelAttribute, std::to_string(colors->GetWheelChannel()));
-        node->AddAttribute(XmlNodeKeys::DmxDimmerChannelAttribute, std::to_string(colors->GetDimmerChannel()));
-        node->AddAttribute(XmlNodeKeys::DmxColorWheelDelayAttribute, std::to_string(colors->GetWheelDelay()));
-        std::vector<WheelColor> settings = colors->GetWheelColorSettings();
-        int index = 0;
-        for (const auto& it : settings) {
-            node->AddAttribute(XmlNodeKeys::DmxColorWheelColorAttribute + std::to_string(index), (std::string)it.color);
-            node->AddAttribute(XmlNodeKeys::DmxColorWheelDMXAttribute + std::to_string(index), std::to_string(it.dmxValue));
-            ++index;
-        }
-    }
-
-    void AddColorAbilityCMYAttributes(const DmxColorAbilityCMY* colors, wxXmlNode* node) {
-        node->AddAttribute(XmlNodeKeys::DmxCyanChannelAttribute, std::to_string(colors->GetCyanChannel()));
-        node->AddAttribute(XmlNodeKeys::DmxMagentaChannelAttribute, std::to_string(colors->GetMagentaChannel()));
-        node->AddAttribute(XmlNodeKeys::DmxYellowChannelAttribute, std::to_string(colors->GetYellowChannel()));
-        node->AddAttribute(XmlNodeKeys::DmxWhiteChannelAttribute, std::to_string(colors->GetWhiteChannel()));
-    }
-
-    void AddColorAttributes(const DmxModel& dmx_model, wxXmlNode* node) {
-        if (dmx_model.HasColorAbility()) {
-            DmxColorAbility* color_ability = dmx_model.GetColorAbility();
-            std::string color_type = color_ability->GetTypeName();
-            node->AddAttribute(XmlNodeKeys::DmxColorTypeAttribute, color_type);
-            if (color_type == "RGBW") {
-                AddColorAbilityRGBAttributes(dynamic_cast<DmxColorAbilityRGB*>(color_ability), node);
-            } else if (color_type == "ColorWheel") {
-                AddColorWheelAttributes(dynamic_cast<DmxColorAbilityWheel*>(color_ability), node);
-            } else if (color_type == "CMYW") {
-                AddColorAbilityCMYAttributes(dynamic_cast<DmxColorAbilityCMY*>(color_ability), node);
-            }
-        }
-    }
-
     void AddDmxMotorAttributes(const DmxMotor* motor, wxXmlNode* node) {
         wxXmlNode* motor_node = new wxXmlNode(wxXML_ELEMENT_NODE, motor->GetName());
         motor_node->AddAttribute(XmlNodeKeys::ChannelCoarseAttribute, std::to_string(motor->GetChannelCoarse()));
@@ -820,11 +779,83 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         node->AddChild(mesh_node);
     }
 
-    void AddPresetAttributes(const DmxPresetAbility* preset_channels, wxXmlNode* node) {
-        if (!preset_channels) {
-            return;
+    void AddDmxMovingHeadCommAttributes(const DmxMovingHeadComm& model, wxXmlNode* node) {
+        AddDmxModelAttributes(model, node);
+        node->AddAttribute(XmlNodeKeys::DmxFixtureAttribute, model.GetFixture());
+        AddDmxMotorAttributes(reinterpret_cast<DmxMotor*>(model.GetPanMotor()), node);
+        AddDmxMotorAttributes(reinterpret_cast<DmxMotor*>(model.GetTiltMotor()), node);
+    }
+
+    void AddDmxModelAttributes(const DmxModel& dmx_model, wxXmlNode* node) {
+        if (dmx_model.HasBeamAbility()) {
+            AddBeamAbilityAttributes(dmx_model.GetBeamAbility(), node);
         }
-        auto const& settings = preset_channels->GetPresetSettings();
+        if (dmx_model.HasPresetAbility()) {
+            AddPresetAbilityAttributes(dmx_model.GetPresetAbility(), node);
+        }
+        if (dmx_model.HasColorAbility()) {
+            AddColorAbilityAttributes(dmx_model.GetColorAbility(), node);
+        }
+        if (dmx_model.HasShutterAbility()) {
+            AddShutterAbilityAttributes(dmx_model.GetShutterAbility(), node);
+        }
+        if (dmx_model.HasDimmerAbility()) {
+            AddDimmerAbilityAttributes(dmx_model.GetDimmerAbility(), node);
+        }
+    }
+
+    void AddColorAbilityRGBAttributes(const DmxColorAbilityRGB* colors, wxXmlNode* node) {
+        node->AddAttribute(XmlNodeKeys::DmxRedChannelAttribute, std::to_string(colors->GetRedChannel()));
+        node->AddAttribute(XmlNodeKeys::DmxGreenChannelAttribute, std::to_string(colors->GetGreenChannel()));
+        node->AddAttribute(XmlNodeKeys::DmxBlueChannelAttribute, std::to_string(colors->GetBlueChannel()));
+        node->AddAttribute(XmlNodeKeys::DmxWhiteChannelAttribute, std::to_string(colors->GetWhiteChannel()));
+    }
+
+    void AddColorWheelAttributes(const DmxColorAbilityWheel* colors, wxXmlNode* node) {
+        node->AddAttribute(XmlNodeKeys::DmxColorWheelChannelAttribute, std::to_string(colors->GetWheelChannel()));
+        node->AddAttribute(XmlNodeKeys::DmxDimmerChannelAttribute, std::to_string(colors->GetDimmerChannel()));
+        node->AddAttribute(XmlNodeKeys::DmxColorWheelDelayAttribute, std::to_string(colors->GetWheelDelay()));
+        std::vector<WheelColor> settings = colors->GetWheelColorSettings();
+        int index = 0;
+        for (const auto& it : settings) {
+            node->AddAttribute(XmlNodeKeys::DmxColorWheelColorAttribute + std::to_string(index), (std::string)it.color);
+            node->AddAttribute(XmlNodeKeys::DmxColorWheelDMXAttribute + std::to_string(index), std::to_string(it.dmxValue));
+            ++index;
+        }
+    }
+
+    void AddColorAbilityCMYAttributes(const DmxColorAbilityCMY* colors, wxXmlNode* node) {
+        node->AddAttribute(XmlNodeKeys::DmxCyanChannelAttribute, std::to_string(colors->GetCyanChannel()));
+        node->AddAttribute(XmlNodeKeys::DmxMagentaChannelAttribute, std::to_string(colors->GetMagentaChannel()));
+        node->AddAttribute(XmlNodeKeys::DmxYellowChannelAttribute, std::to_string(colors->GetYellowChannel()));
+        node->AddAttribute(XmlNodeKeys::DmxWhiteChannelAttribute, std::to_string(colors->GetWhiteChannel()));
+    }
+
+    void AddColorAbilityAttributes(const DmxColorAbility* color_ability, wxXmlNode* node) {
+        std::string color_type = color_ability->GetTypeName();
+        node->AddAttribute(XmlNodeKeys::DmxColorTypeAttribute, color_type);
+        if (color_type == "RGBW") {
+            AddColorAbilityRGBAttributes(dynamic_cast<const DmxColorAbilityRGB*>(color_ability), node);
+        } else if (color_type == "ColorWheel") {
+            AddColorWheelAttributes(dynamic_cast<const DmxColorAbilityWheel*>(color_ability), node);
+        } else if (color_type == "CMYW") {
+            AddColorAbilityCMYAttributes(dynamic_cast<const DmxColorAbilityCMY*>(color_ability), node);
+        }
+    }
+
+    void AddBeamAbilityAttributes(const DmxBeamAbility* beam, wxXmlNode* node) {
+        node->AddAttribute("DmxBeamLength", std::to_string(beam->GetBeamLength()));
+        node->AddAttribute("DmxBeamWidth", std::to_string(beam->GetBeamWidth()));
+        if (beam->SupportsOrient()) {
+            node->AddAttribute("DmxBeamOrient", std::to_string(beam->GetBeamOrient()));
+        }
+        if (beam->SupportsYOffset()) {
+            node->AddAttribute("DmxBeamYOffset", std::to_string(beam->GetBeamYOffset()));
+        }
+    }
+
+    void AddPresetAbilityAttributes(const DmxPresetAbility* presets, wxXmlNode* node) {
+        auto const& settings = presets->GetPresetSettings();
         int index { 0 };
         for (auto const& it : settings) {
             node->AddAttribute(XmlNodeKeys::DmxPresetChannelAttribute + std::to_string(index), std::to_string(it.DMXChannel));
@@ -834,14 +865,14 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         }
     }
 
-    void AddShutterAbilityAttributes(const DmxShutterAbility shutter, wxXmlNode* node) {
-        node->AddAttribute(XmlNodeKeys::DmxShutterChannelAttribute, std::to_string(shutter.GetShutterChannel()));
-        node->AddAttribute(XmlNodeKeys::DmxShutterOpenAttribute, std::to_string(shutter.GetShutterThreshold()));
-        node->AddAttribute(XmlNodeKeys::DmxShutterOnValueAttribute, std::to_string(shutter.GetShutterOnValue()));
+    void AddShutterAbilityAttributes(const DmxShutterAbility* shutter, wxXmlNode* node) {
+        node->AddAttribute(XmlNodeKeys::DmxShutterChannelAttribute, std::to_string(shutter->GetShutterChannel()));
+        node->AddAttribute(XmlNodeKeys::DmxShutterOpenAttribute, std::to_string(shutter->GetShutterThreshold()));
+        node->AddAttribute(XmlNodeKeys::DmxShutterOnValueAttribute, std::to_string(shutter->GetShutterOnValue()));
     }
 
-    void AddDimmerAbilityAttributes(const DmxDimmerAbility dimmer, wxXmlNode* node) {
-        node->AddAttribute(XmlNodeKeys::MhDimmerChannelAttribute, std::to_string(dimmer.GetDimmerChannel()));
+    void AddDimmerAbilityAttributes(const DmxDimmerAbility* dimmer, wxXmlNode* node) {
+        node->AddAttribute(XmlNodeKeys::MhDimmerChannelAttribute, std::to_string(dimmer->GetDimmerChannel()));
     }
 
     void SortAttributes(wxXmlNode* input) {
@@ -1486,35 +1517,19 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
 
     void Visit(const DmxMovingHeadAdv& model) override {
         wxXmlNode* xmlNode = CommonVisitSteps(model);
-        AddColorAttributes(model, xmlNode);
-        xmlNode->AddAttribute(XmlNodeKeys::DmxFixturelAttribute, model.GetFixture());
-        xmlNode->AddAttribute(XmlNodeKeys::DmxBeamYOffsetAttribute, std::to_string(model.GetBeamYOffset()));
-        xmlNode->AddAttribute(XmlNodeKeys::DmxBeamLengthAttribute, std::to_string(model.GetBeamLength()));
-        AddDmxMotorAttributes(reinterpret_cast<DmxMotor*>(model.GetPanMotor()), xmlNode);
-        AddDmxMotorAttributes(reinterpret_cast<DmxMotor*>(model.GetTiltMotor()), xmlNode);
+        AddDmxMovingHeadCommAttributes(model, xmlNode);
         AddMeshAttributes(reinterpret_cast<Mesh*>(model.GetBaseMesh()), xmlNode);
         AddMeshAttributes(reinterpret_cast<Mesh*>(model.GetYokeMesh()), xmlNode);
         AddMeshAttributes(reinterpret_cast<Mesh*>(model.GetHeadMesh()), xmlNode);
-        AddDimmerAbilityAttributes(model, xmlNode);
-        AddShutterAbilityAttributes(model, xmlNode);
-        AddPresetAttributes(model.GetPresetAbility(), xmlNode);
         const Model* m = dynamic_cast<const Model*>(&model);
         AddOtherElements(xmlNode, m);
     }
 
     void Visit(const DmxMovingHead& model) override {
         wxXmlNode* xmlNode = CommonVisitSteps(model);
-        AddColorAttributes(model, xmlNode);
-        xmlNode->AddAttribute(XmlNodeKeys::DmxFixturelAttribute, model.GetFixture());
+        AddDmxMovingHeadCommAttributes(model, xmlNode);
         xmlNode->AddAttribute(XmlNodeKeys::DmxStyleAttribute, model.GetDMXStyle());
-        xmlNode->AddAttribute(XmlNodeKeys::DmxBeamLengthAttribute, std::to_string(model.GetBeamLength()));
-        xmlNode->AddAttribute(XmlNodeKeys::DmxBeamWidthAttribute, std::to_string(model.GetBeamWidth()));
         xmlNode->AddAttribute(XmlNodeKeys::HideBodyAttribute, std::to_string(model.GetHideBody()));
-        AddDmxMotorAttributes(reinterpret_cast<DmxMotor*>(model.GetPanMotor()), xmlNode);
-        AddDmxMotorAttributes(reinterpret_cast<DmxMotor*>(model.GetTiltMotor()), xmlNode);
-        AddDimmerAbilityAttributes(model, xmlNode);
-        AddShutterAbilityAttributes(model, xmlNode);
-        AddPresetAttributes(model.GetPresetAbility(), xmlNode);
         const Model* m = dynamic_cast<const Model*>(&model);
         AddOtherElements(xmlNode, m);
     }
@@ -1943,20 +1958,6 @@ private:
         return model;
     }
 
-    Model* DeserializeDmxMovingHead(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-        DmxMovingHead* model = new DmxMovingHead(xlights->AllModels);
-        CommonDeserializeSteps(model, node, xlights, importing);
-        model->Setup();
-        return model;
-    }
-
-    Model* DeserializeDmxMovingHeadAdv(wxXmlNode *node, xLightsFrame* xlights, bool importing) {
-        DmxMovingHeadAdv *model = new DmxMovingHeadAdv(xlights->AllModels);
-        CommonDeserializeSteps(model, node, xlights, importing);
-        model->Setup();
-        return model;
-    }
-
     Model* DeserializeIcicles(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         IciclesModel* model = new IciclesModel(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
@@ -2160,19 +2161,30 @@ private:
     // ************************************************************************************************************
     // **********************                        DMX Section                           ************************
     // ************************************************************************************************************
-    void DeserializeDmxModel(Model* model, wxXmlNode* node) {
-        DmxModel* dmx_model = dynamic_cast<DmxModel*>(model);
-        if (dmx_model != nullptr) {
-            if (dmx_model->HasPresetAbility()) {
-                DeserializePresetAbility(dmx_model, node);
-            }
-            if (dmx_model->HasColorAbility()) {
-                DeserializeColorAbility(dmx_model, node);
-            }
-            if (dmx_model->HasShutterAbility()) {
-                DeserializeShutterAbility(dmx_model, node);
-            }
+    void DeserializeDmxModel(DmxModel* dmx_model, wxXmlNode* node) {
+        if (dmx_model->HasBeamAbility()) {
+            DeserializeBeamAbility(dmx_model, node);
         }
+        if (dmx_model->HasPresetAbility()) {
+            DeserializePresetAbility(dmx_model, node);
+        }
+        if (dmx_model->HasColorAbility()) {
+            DeserializeColorAbility(dmx_model, node);
+        }
+        if (dmx_model->HasShutterAbility()) {
+            DeserializeShutterAbility(dmx_model, node);
+        }
+        if (dmx_model->HasDimmerAbility()) {
+            DeserializeDimmerAbility(dmx_model, node);
+        }
+    }
+
+    void DeserializeBeamAbility(DmxModel* model, wxXmlNode* node) {
+        DmxBeamAbility* beam_ability = model->GetBeamAbility();
+        beam_ability->SetBeamLength(std::stof(node->GetAttribute("DmxBeamLength", std::to_string(beam_ability->GetDefaultBeamLength())).ToStdString()));
+        beam_ability->SetBeamWidth(std::stof(node->GetAttribute("DmxBeamWidth", std::to_string(beam_ability->GetDefaultBeamWidth())).ToStdString()));
+        beam_ability->SetBeamOrient(std::stoi(node->GetAttribute("DmxBeamOrient", "0").ToStdString()));
+        beam_ability->SetBeamYOffset(std::stof(node->GetAttribute("DmxBeamYOffset", std::to_string(beam_ability->GetDefaultBeamYOffset())).ToStdString()));
     }
 
     void DeserializePresetAbility(DmxModel* model, wxXmlNode* node) {
@@ -2189,6 +2201,11 @@ private:
             std::string dmxDesc = node->GetAttribute(descKey);
             preset_ability->AddPreset(dmxChan, dmxVal, dmxDesc);
         }
+    }
+
+    void DeserializeDynamicColorAbility(DmxModel* model, wxXmlNode* node) {
+        int color_type = std::stoi(node->GetAttribute("DmxColorType", "0").ToStdString());
+        model->InitColorAbility(color_type);
     }
 
     void DeserializeColorAbility(DmxModel* model, wxXmlNode* node) {
@@ -2250,6 +2267,112 @@ private:
         shutter_ability->SetShutterOnValue(std::stoi(node->GetAttribute("DmxShutterOnValue", "0").ToStdString()));
     }
 
+    void DeserializeDimmerAbility(DmxModel* model, wxXmlNode* node) {
+        DmxDimmerAbility* dimmer_ability = model->GetDimmerAbility();
+        dimmer_ability->SetDimmerChannel(std::stoi(node->GetAttribute("MHDimmerChannel", "0").ToStdString()));
+    }
+
+    void DeserializeDmxMotor(DmxMotor* motor, wxXmlNode* node) {
+        motor->SetChannelCoarse(std::stoi(node->GetAttribute(XmlNodeKeys::ChannelCoarseAttribute, "0").ToStdString()));
+        motor->SetChannelFine(std::stoi(node->GetAttribute(XmlNodeKeys::ChannelFineAttribute, "0").ToStdString()));
+        motor->SetMinLimit(std::stoi(node->GetAttribute(XmlNodeKeys::MinLimitAttribute, "-180").ToStdString()));
+        motor->SetMaxLimit(std::stoi(node->GetAttribute(XmlNodeKeys::MaxLimitAttribute, "180").ToStdString()));
+        motor->SetRangeOfMOtion(std::stof(node->GetAttribute(XmlNodeKeys::RangeOfMotionAttribute, "180.0").ToStdString()));
+        motor->SetOrientZero(std::stoi(node->GetAttribute(XmlNodeKeys::OrientZeroAttribute, "0").ToStdString()));
+        motor->SetOrientHome(std::stoi(node->GetAttribute(XmlNodeKeys::OrientHomeAttribute, "0").ToStdString()));
+        motor->SetSlewLimit(std::stof(node->GetAttribute(XmlNodeKeys::SlewLimitAttribute, "0.0").ToStdString()));
+        motor->SetReverse(std::stoi(node->GetAttribute(XmlNodeKeys::OrientHomeAttribute, "0").ToStdString()));
+        motor->SetReverse(node->GetAttribute(XmlNodeKeys::ReverseAttribute, "false") == "true");
+        motor->SetUpsideDown(node->GetAttribute(XmlNodeKeys::UpsideDownAttribute, "false") == "true");
+    }
+    
+    void DeserializeMesh(Mesh* mesh, wxXmlNode* node) {
+        mesh->SetObjFile(FixFile("", node->GetAttribute(XmlNodeKeys::ObjFileAttribute, "")));
+        mesh->SetRenderWidth(std::stof(node->GetAttribute(XmlNodeKeys::WidthAttribute, "1.0f").ToStdString()));
+        mesh->SetRenderHeight(std::stof(node->GetAttribute(XmlNodeKeys::HeightAttribute, "1.0f").ToStdString()));
+        mesh->SetRenderDepth(std::stof(node->GetAttribute(XmlNodeKeys::DepthAttribute, "1.0f").ToStdString()));
+        mesh->SetMeshOnly(node->GetAttribute(XmlNodeKeys::MeshOnlyAttribute, "false") == "true");
+        mesh->SetBrightness(std::stof(node->GetAttribute(XmlNodeKeys::BrightnessAttribute, "100.0f").ToStdString()));
+        mesh->SetScaleX(std::stof(node->GetAttribute(XmlNodeKeys::ScaleXAttribute, "1.0f").ToStdString()));
+        mesh->SetScaleY(std::stof(node->GetAttribute(XmlNodeKeys::ScaleYAttribute, "1.0f").ToStdString()));
+        mesh->SetScaleZ(std::stof(node->GetAttribute(XmlNodeKeys::ScaleZAttribute, "1.0f").ToStdString()));
+        mesh->SetRotateX(std::stof(node->GetAttribute(XmlNodeKeys::RotateXAttribute, "0.0f").ToStdString()));
+        mesh->SetRotateY(std::stof(node->GetAttribute(XmlNodeKeys::RotateYAttribute, "0.0f").ToStdString()));
+        mesh->SetRotateZ(std::stof(node->GetAttribute(XmlNodeKeys::RotateZAttribute, "0.0f").ToStdString()));
+        mesh->SetOffsetX(std::stof(node->GetAttribute(XmlNodeKeys::OffsetXAttribute, "0.0f").ToStdString()));
+        mesh->SetOffsetY(std::stof(node->GetAttribute(XmlNodeKeys::OffsetYAttribute, "0.0f").ToStdString()));
+        mesh->SetOffsetZ(std::stof(node->GetAttribute(XmlNodeKeys::OffsetZAttribute, "0.0f").ToStdString()));
+    }
+
+    void DeserializeDmxMovingHeadComm(DmxMovingHeadComm* model, wxXmlNode* node) {
+        model->SetDmxFixture(node->GetAttribute(XmlNodeKeys::DmxFixtureAttribute, "MH1"));
+        DeserializeDmxModel(model, node);
+    }
+
+    Model* DeserializeDmxMovingHead(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+        DmxMovingHead* model = new DmxMovingHead(xlights->AllModels);
+        CommonDeserializeSteps(model, node, xlights, importing);
+        DeserializeDmxMovingHeadComm(model, node);
+        // Incomplete
+        model->Setup();
+        return model;
+    }
+
+    Model* DeserializeDmxMovingHeadAdv(wxXmlNode *node, xLightsFrame* xlights, bool importing) {
+        DmxMovingHeadAdv *model = new DmxMovingHeadAdv(xlights->AllModels);
+        CommonDeserializeSteps(model, node, xlights, importing);
+        DeserializeDmxMovingHeadComm(model, node);
+
+        wxXmlNode* n = node->GetChildren();
+        while (n != nullptr) {
+            std::string name = n->GetName();
+            if ("PanMotor" == name) {
+                DmxMotor* motor = model->CreatePanMotor(name);
+                DeserializeDmxMotor(motor, n);
+            } else if ("TiltMotor" == name) {
+                DmxMotor* motor = model->CreateTiltMotor(name);
+                DeserializeDmxMotor(motor, n);
+            } else if ("BaseMesh" == name) {
+                Mesh* msh = model->CreateBaseMesh(name);
+                DeserializeMesh(msh, n);
+            } else if ("YokeMesh" == name) {
+                Mesh* msh = model->CreateYokeMesh(name);
+                DeserializeMesh(msh, n);
+            } else if ("HeadMesh" == name) {
+                Mesh* msh = model->CreateHeadMesh(name);
+                DeserializeMesh(msh, n);
+            } else if ("Features" == name) {
+                // process features
+              /*  if( features_xml_node == nullptr ) {
+                    features_xml_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Features");
+                    ModelXml->AddChild(features_xml_node);
+                } else {
+                    n = features_xml_node->GetChildren();
+                    while (n != nullptr) {
+                        std::string node_name = n->GetName();
+                        std::string feature_name = n->GetAttribute("Name", node_name);
+                        bool feature_found {false};
+                        for (auto it = features.begin(); it != features.end(); ++it) {
+                            if( (*it)->GetName() == feature_name ) {
+                                feature_found = true;
+                                (*it)->Init();
+                                break;
+                            }
+                        }
+                        if( !feature_found ) {
+                            std::unique_ptr<MhFeature> newFeature(new MhFeature(n, node_name, feature_name));
+                            newFeature->Init();
+                            features.push_back(std::move(newFeature));
+                        }
+                        n = n->GetNext();
+                    }
+                }*/
+            }
+            n = n->GetNext();
+        }
+        model->Setup();
+        return model;
+    }
 
     // ************************************************************************************************************
     // ************************************************************************************************************

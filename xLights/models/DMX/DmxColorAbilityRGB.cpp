@@ -187,7 +187,7 @@ static std::string mapColorString(const std::string &s) {
     }
     return xlEMPTY_STRING;
 }
-int DmxColorAbilityRGB::OnColorPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base) {
+int DmxColorAbilityRGB::OnColorPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base) {
 
     std::string propName = event.GetPropertyName();
 

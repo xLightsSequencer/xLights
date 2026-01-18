@@ -157,7 +157,7 @@ void DmxColorAbilityCMY::AddColorTypeProperties(wxPropertyGridInterface* grid, b
     p->SetEditor("SpinCtrl");
 }
 
-int DmxColorAbilityCMY::OnColorPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base)
+int DmxColorAbilityCMY::OnColorPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event, BaseObject* base)
 {
     std::string propName = event.GetPropertyName();
 

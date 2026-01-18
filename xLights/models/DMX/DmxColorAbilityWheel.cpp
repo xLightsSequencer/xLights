@@ -123,7 +123,7 @@ void DmxColorAbilityWheel::AddColorTypeProperties(wxPropertyGridInterface *grid,
     }
 }
 
-int DmxColorAbilityWheel::OnColorPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base) {
+int DmxColorAbilityWheel::OnColorPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base) {
 
     if ("DmxColorWheelChannel" == event.GetPropertyName()) {
         wheel_channel = (int)event.GetPropertyValue().GetLong();

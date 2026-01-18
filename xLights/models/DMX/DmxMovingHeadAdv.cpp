@@ -18,13 +18,16 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "DmxMovingHeadAdv.h"
+#include "DmxBeamAbility.h"
 #include "DmxColorAbility.h"
 #include "DmxColorAbilityRGB.h"
 #include "DmxColorAbilityCMY.h"
 #include "DmxColorAbilityWheel.h"
+#include "DmxDimmerAbility.h"
 #include "DmxMotor.h"
-#include "DmxMovingHeadAdv.h"
 #include "DmxPresetAbility.h"
+#include "DmxShutterAbility.h"
 #include "Mesh.h"
 #include "MovingHeads/MhFeature.h"
 #include "MovingHeads/MhFeatureDialog.h"
@@ -88,36 +91,46 @@ DmxMovingHeadAdv::DmxMovingHeadAdv(const ModelManager &manager) :
     obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/meshobjects/SimpleMovingHead/";
 #endif
 #endif
-    beam_width = GetDefaultBeamWidth();
+    dimmer_ability = std::make_unique<DmxDimmerAbility>();
+    shutter_ability = std::make_unique<DmxShutterAbility>();
+    beam_ability = std::make_unique<DmxBeamAbility>();
+    beam_ability->SetDefaultBeamLength(4.0);
+    beam_ability->SetDefaultBeamWidth(4.0);
+    beam_ability->SetDefaultBeamYOffset(17.0);
 }
 
 DmxMovingHeadAdv::~DmxMovingHeadAdv()
 {
-    Clear();
 }
 
-void DmxMovingHeadAdv::Clear() {
-    pan_motor.reset();
-    tilt_motor.reset();
-    //if (pan_motor != nullptr) {
-    //    delete pan_motor;
-    //}
-    //
-    //if (tilt_motor != nullptr) {
-    //    delete tilt_motor;
-    //}
+DmxMotor* DmxMovingHeadAdv::CreatePanMotor(const std::string& name)
+{
+    pan_motor = std::make_unique<DmxMotor>(name);
+    return pan_motor.get();
+}
 
-    if (base_mesh != nullptr) {
-        delete base_mesh;
-    }
+DmxMotor* DmxMovingHeadAdv::CreateTiltMotor(const std::string& name)
+{
+    tilt_motor = std::make_unique<DmxMotor>(name);
+    return tilt_motor.get();
+}
 
-    if (yoke_mesh != nullptr) {
-        delete yoke_mesh;
-    }
+Mesh* DmxMovingHeadAdv::CreateBaseMesh(const std::string& name)
+{
+    base_mesh = std::make_unique<Mesh>(name);
+    return base_mesh.get();
+}
 
-    if (head_mesh != nullptr) {
-        delete head_mesh;
-    }
+Mesh* DmxMovingHeadAdv::CreateYokeMesh(const std::string& name)
+{
+    yoke_mesh = std::make_unique<Mesh>(name);
+    return yoke_mesh.get();
+}
+
+Mesh* DmxMovingHeadAdv::CreateHeadMesh(const std::string& name)
+{
+    head_mesh = std::make_unique<Mesh>(name);
+    return head_mesh.get();
 }
 
 static wxPGChoices DMX_FIXTURES;
@@ -213,7 +226,7 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
         DMX_FIXTURES.Add("MH8");
     }
 
-    auto p = grid->Append(new wxEnumProperty("Fixture", "DmxFixture", DMX_FIXTURES, fixture_val));
+    grid->Append(new wxEnumProperty("Fixture", "DmxFixture", DMX_FIXTURES, fixture_val));
 
     DmxModel::AddTypeProperties(grid, outputManager);
 
@@ -232,40 +245,12 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
     }
     grid->Collapse("DmxColorAbility");
 
-    AddDimmerTypeProperties(grid);
-    AddShutterTypeProperties(grid);
+    dimmer_ability->AddDimmerTypeProperties(grid);
+    shutter_ability->AddShutterTypeProperties(grid);
+    beam_ability->AddBeamTypeProperties(grid);
     grid->Collapse("DmxDimmerProperties");
     grid->Collapse("DmxShutterProperties");
-
-    p = grid->Append(new wxPropertyCategory("Beam Properties", "BeamProperties"));
-
-    p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 100);
-    p->SetAttribute("Precision", 2);
-    p->SetAttribute("Step", 0.1);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxFloatProperty("Beam Display Width", "DmxBeamWidth", beam_width));
-    p->SetAttribute("Min", 0.01);
-    p->SetAttribute("Max", 150);
-    p->SetAttribute("Precision", 2);
-    p->SetAttribute("Step", 0.1);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("Beam Orientation", "DmxBeamOrient", beam_orient));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 360);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxFloatProperty("Beam Y Offset", "DmxBeamYOffset", beam_y_offset));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 500);
-    p->SetAttribute("Precision", 1);
-    p->SetAttribute("Step", 1);
-    p->SetEditor("SpinCtrl");
-
-    grid->Collapse("BeamProperties");
+    grid->Collapse("DmxBeamProperties");
 
     base_mesh->AddTypeProperties(grid);
     yoke_mesh->AddTypeProperties(grid);
@@ -298,15 +283,19 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
 {
     std::string name = event.GetPropertyName().ToStdString();
 
-    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
+    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, this) == 0) {
         return 0;
     }
 
-    if (OnShutterPropertyGridChange(grid, event, this) == 0) {
+    if (dimmer_ability->OnDimmerPropertyGridChange(grid, event, this) == 0) {
         return 0;
     }
 
-    if (OnDimmerPropertyGridChange(grid, event, ModelXml, this) == 0) {
+    if (shutter_ability->OnShutterPropertyGridChange(grid, event, this) == 0) {
+        return 0;
+    }
+
+    if (beam_ability->OnBeamPropertyGridChange(grid, event, this) == 0) {
         return 0;
     }
 
@@ -318,54 +307,10 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DmxFixture");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DmxFixture");
         return 0;
-    } else if ("DmxBeamLength" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxBeamLength");
-        ModelXml->AddAttribute("DmxBeamLength", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DMXBeamLength");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHeadAdv::OnPropertyGridChange::DMXBeamLength");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DMXBeamLength");
-        return 0;
-    }
-    else if ("DmxBeamWidth" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxBeamWidth");
-        ModelXml->AddAttribute("DmxBeamWidth", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DMXBeamWidth");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHeadAdv::OnPropertyGridChange::DMXBeamWidth");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DMXBeamWidth");
-        return 0;
-    }
-    else if ("DmxBeamOrient" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxBeamOrient");
-        ModelXml->AddAttribute("DmxBeamOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DmxBeamOrient");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHeadAdv::OnPropertyGridChange::DmxBeamOrient");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DmxBeamOrient");
-        return 0;
-    }
-    else if ("DmxBeamYOffset" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxBeamYOffset");
-        ModelXml->AddAttribute("DmxBeamYOffset", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DmxBeamYOffset");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHeadAdv::OnPropertyGridChange::DmxBeamYOffset");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DmxBeamYOffset");
-        return 0;
     }
     else if ("DmxColorType" == event.GetPropertyName()) {
         int color_type = event.GetPropertyValue().GetInteger();
-
-        ModelXml->DeleteAttribute("DmxColorType");
-        ModelXml->AddAttribute("DmxColorType", wxString::Format("%d", color_type));
-
-        if (color_type == 0) {
-            color_ability = std::make_unique<DmxColorAbilityRGB>();
-        } else  if (color_type == 1) {
-            color_ability = std::make_unique<DmxColorAbilityWheel>();
-        } else  if (color_type == 2) {
-            color_ability = std::make_unique<DmxColorAbilityCMY>();
-        }
-        else {
-            color_ability = nullptr;
-        }
+        InitColorAbility(color_type);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DmxColorType");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHeadAdv::OnPropertyGridChange::DmxColorType");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DmxColorType");
@@ -406,148 +351,63 @@ void DmxMovingHeadAdv::MapChannelName(wxArrayString& array, int chan, std::strin
 void DmxMovingHeadAdv::InitModel()
 {
     DmxModel::InitModel();
-    DisplayAs = "DmxMovingHeadAdv";
-
-    dimmer_channel = wxAtoi(ModelXml->GetAttribute("MhDimmerChannel", "0"));
-    shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
-    shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
-    shutter_on_value = wxAtoi(ModelXml->GetAttribute("DmxShutterOnValue", "0"));
-    
-    int color_type = wxAtoi(ModelXml->GetAttribute("DmxColorType", "0"));
-    if (color_type == 0) {
-        color_ability = std::make_unique<DmxColorAbilityRGB>();
-    } else if (color_type == 1) {
-        color_ability = std::make_unique<DmxColorAbilityWheel>();
-    } else if (color_type == 2) {
-        color_ability = std::make_unique<DmxColorAbilityCMY>();
-    }
-    else {
-        color_ability = nullptr;
-    }
-
-    beam_length = wxAtof(ModelXml->GetAttribute("DmxBeamLength", "4.0"));
-    if (ModelXml->HasAttribute("DmxBeamWidth")) {
-        beam_width = wxAtof(ModelXml->GetAttribute("DmxBeamWidth"));
-    }
-    beam_orient = wxAtoi(ModelXml->GetAttribute("DmxBeamOrient", "0"));
-
-    // Setup some reasonable defaults for new model creation
-    if (ModelXml->HasAttribute("DmxBeamYOffset")) {
-        beam_y_offset = wxAtof(ModelXml->GetAttribute("DmxBeamYOffset"));
-    } else {
-        ModelXml->AddAttribute("DmxBeamYOffset", "17");
-        beam_y_offset = 17.0f;
-    }
-    if (!ModelXml->HasAttribute("DmxRedChannel")) {
-        ModelXml->AddAttribute("DmxRedChannel", "5");
-    }
-    if (!ModelXml->HasAttribute("DmxGreenChannel")) {
-        ModelXml->AddAttribute("DmxGreenChannel", "6");
-    }
-    if (!ModelXml->HasAttribute("DmxBlueChannel")) {
-        ModelXml->AddAttribute("DmxBlueChannel", "7");
-    }
-
-    wxXmlNode* n = ModelXml->GetChildren();
-    while (n != nullptr) {
-        std::string name = n->GetName();
-
-        if ("PanMotor" == name) {
-             if (pan_motor == nullptr) {
-                pan_motor = std::make_unique<DmxMotor>(n, name);
-             }
-        } else if ("TiltMotor" == name) {
-            if (tilt_motor == nullptr) {
-                tilt_motor = std::make_unique<DmxMotor>(n, name);
-            }
-        } else if ("BaseMesh" == name) {
-            if (base_mesh == nullptr) {
-                base_mesh = new Mesh(n, name);
-            }
-        } else if ("YokeMesh" == name) {
-            if (yoke_mesh == nullptr) {
-                yoke_mesh = new Mesh(n, name);
-            }
-        } else if ("HeadMesh" == name) {
-            if (head_mesh == nullptr) {
-                head_mesh = new Mesh(n, name);
-            }
-        } else if ("Features" == name) {
-            if (features_xml_node == nullptr) {
-                features_xml_node = n;
-            }
-        }
-        n = n->GetNext();
-    }
 
     // create pan motor
     if (pan_motor == nullptr) {
         std::string new_name = "PanMotor";
-        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
-        ModelXml->AddChild(new_node);
-        pan_motor = std::make_unique<DmxMotor>(new_node, new_name);
+        pan_motor = std::make_unique<DmxMotor>(new_name);
         pan_motor->SetChannelCoarse(1);
-        new_node->AddAttribute("RangeOfMotion", "540");
-        new_node->AddAttribute("OrientHome", "90");
-        new_node->AddAttribute("SlewLimit", "180");
+        pan_motor->SetRangeOfMOtion(540.0);
+        pan_motor->SetOrientHome(90);
+        pan_motor->SetSlewLimit(180);
     }
 
     // create tilt motor
     if (tilt_motor == nullptr) {
         std::string new_name = "TiltMotor";
-        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
-        ModelXml->AddChild(new_node);
-        new_node->AddAttribute("OrientHome", "90");
-        new_node->AddAttribute("SlewLimit", "180");
-        tilt_motor = std::make_unique<DmxMotor>(new_node, new_name);
+        tilt_motor = std::make_unique<DmxMotor>(new_name);
         tilt_motor->SetChannelCoarse(3);
+        tilt_motor->SetOrientHome(90);
+        tilt_motor->SetSlewLimit(180);
     }
 
     // create base mesh
     if (base_mesh == nullptr) {
         std::string new_name = "BaseMesh";
-        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
-        ModelXml->AddChild(new_node);
+        base_mesh = std::make_unique<Mesh>(new_name);
         wxString f = obj_path + "MovingHeadBase.obj";
-        new_node->AddAttribute("ObjFile", f);
-        new_node->AddAttribute("Brightness", "40");
-        base_mesh = new Mesh(new_node, new_name);
+        base_mesh->SetObjFile(f);
+        base_mesh->SetBrightness(40);
     }
 
     // create yoke mesh
     if (yoke_mesh == nullptr) {
         std::string new_name = "YokeMesh";
-        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
-        ModelXml->AddChild(new_node);
+        yoke_mesh = std::make_unique<Mesh>(new_name);
         wxString f = obj_path + "MovingHeadYoke.obj";
-        new_node->AddAttribute("ObjFile", f);
-        new_node->AddAttribute("RotateY", "90");
-        new_node->AddAttribute("Brightness", "50");
-        yoke_mesh = new Mesh(new_node, new_name);
+        yoke_mesh->SetObjFile(f);
+        yoke_mesh->SetBrightness(50);
+        yoke_mesh->SetRotateY(90);
     }
 
     // create head mesh
     if (head_mesh == nullptr) {
         std::string new_name = "HeadMesh";
-        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
-        ModelXml->AddChild(new_node);
+        head_mesh = std::make_unique<Mesh>(new_name);
         wxString f = obj_path + "MovingHead.obj";
-        new_node->AddAttribute("ObjFile", f);
-        new_node->AddAttribute("RotateX", "90");
-        new_node->AddAttribute("RotateY", "90");
-        new_node->AddAttribute("OffsetY", "17");
-        new_node->AddAttribute("Brightness", "80");
-        head_mesh = new Mesh(new_node, new_name);
+        head_mesh->SetObjFile(f);
+        head_mesh->SetBrightness(80);
+        head_mesh->SetRotateX(90);
+        head_mesh->SetRotateY(90);
+        head_mesh->SetOffsetY(17);
     }
-
-    brightness = wxAtoi(ModelXml->GetAttribute("Brightness", "100"));
 
     bool base_defined = base_mesh->HasObjFile();
     bool yoke_defined = yoke_mesh->HasObjFile();
     bool head_defined = head_mesh->HasObjFile();
 
-    pan_motor->Init(this);
-    tilt_motor->Init(this);
+    pan_motor->Init();
+    tilt_motor->Init();
     base_mesh->Init(this, head_defined ? false : (yoke_defined ? false : true));
     yoke_mesh->Init(this, head_defined ? false : (base_defined ? (yoke_defined ? true : false) : true));
     head_mesh->Init(this, head_defined ? true : (yoke_defined ? true : false));
@@ -558,10 +418,9 @@ void DmxMovingHeadAdv::InitModel()
 
     // create node names
     std::string names = "";
-    wxString nn = ModelXml->GetAttribute("NodeNames", "");
     wxArrayString nodestrings;
     nodestrings.resize(GetNumChannels());
-    if (nn == "") {
+    if (nodeNames.size() == 0) {
         int chan = pan_motor->GetChannelCoarse();
         MapChannelName(nodestrings, chan, "Pan");
         if (pan_motor->Is16Bit()) {
@@ -602,37 +461,10 @@ void DmxMovingHeadAdv::InitModel()
     }
     SetNodeNames(names, update_node_names);
     
-    dmx_fixture = ModelXml->GetAttribute("DmxFixture", "MH1");
     fixture_val = FixtureStringtoID(dmx_fixture);
 
     if (dmx_fixture.empty()) {
         dmx_fixture = "MH1";
-    }
-
-    // process features
-    if( features_xml_node == nullptr ) {
-        features_xml_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Features");
-        ModelXml->AddChild(features_xml_node);
-    } else {
-        n = features_xml_node->GetChildren();
-        while (n != nullptr) {
-            std::string node_name = n->GetName();
-            std::string feature_name = n->GetAttribute("Name", node_name);
-            bool feature_found {false};
-            for (auto it = features.begin(); it != features.end(); ++it) {
-                if( (*it)->GetName() == feature_name ) {
-                    feature_found = true;
-                    (*it)->Init();
-                    break;
-                }
-            }
-            if( !feature_found ) {
-                std::unique_ptr<MhFeature> newFeature(new MhFeature(n, node_name, feature_name));
-                newFeature->Init();
-                features.push_back(std::move(newFeature));
-            }
-            n = n->GetNext();
-        }
     }
 }
 
@@ -771,7 +603,7 @@ int DmxMovingHeadAdv::GetMinChannels()
     if( nullptr != color_ability ) {
         min_channels += color_ability->GetNumChannels();
     }
-    min_channels += shutter_channel > 0 ? 1 : 0;
+    min_channels += shutter_ability->GetShutterChannel() > 0 ? 1 : 0;
     return min_channels;
 }
 
@@ -832,8 +664,8 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     size_t NodeCount = Nodes.size();
     if ((( nullptr != color_ability ) && !color_ability->IsValidModelSettings(this)) ||
         !preset_ability->IsValidModelSettings(this) ||
-        shutter_channel > NodeCount ||
-        dimmer_channel > NodeCount)
+        shutter_ability->GetShutterChannel() > NodeCount ||
+        dimmer_ability->GetDimmerChannel() > NodeCount)
     {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
@@ -929,7 +761,7 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     head_mesh->Draw(this, preview, sprogram, tprogram, Identity, Identity, tilt_angle, pan_angle_raw, 0, false, 0, 0, 0, false, !active);
 
     // Everything below here is for drawing the light beam
-    float beam_length_displayed = beam_length;
+    float beam_length_displayed = beam_ability->GetBeamLength();
     
     float scw = screenLocation.GetRenderWi() * screenLocation.GetScaleX();
     float sch = screenLocation.GetRenderHt() * screenLocation.GetScaleY();
@@ -939,14 +771,14 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
 
     // determine if shutter is open for heads that support it
     bool shutter_open = true;
-    if (shutter_channel > 0 && shutter_channel <= NodeCount && active) {
+    if (shutter_ability->GetShutterChannel() > 0 && shutter_ability->GetShutterChannel() <= NodeCount && active) {
         xlColor proxy;
-        Nodes[shutter_channel - 1]->GetColor(proxy);
+        Nodes[shutter_ability->GetShutterChannel() - 1]->GetColor(proxy);
         int shutter_value = proxy.red;
         if (shutter_value >= 0) {
-            shutter_open = shutter_value >= shutter_threshold;
+            shutter_open = shutter_value >= shutter_ability->GetShutterThreshold();
         } else {
-            shutter_open = shutter_value <= std::abs(shutter_threshold);
+            shutter_open = shutter_value <= std::abs(shutter_ability->GetShutterThreshold());
         }
     }
 
@@ -961,9 +793,9 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
     }
 
     // apply dimmer to beam
-    if (dimmer_channel > 0 && active) {
+    if (dimmer_ability->GetDimmerChannel() > 0 && active) {
         xlColor proxy;
-        Nodes[dimmer_channel - 1]->GetColor(proxy);
+        Nodes[dimmer_ability->GetDimmerChannel() - 1]->GetColor(proxy);
         HSVValue hsv = proxy.asHSV();
         beam_color.red = (beam_color.red * hsv.value);
         beam_color.blue = (beam_color.blue * hsv.value);
@@ -972,14 +804,14 @@ void DmxMovingHeadAdv::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, 
 
     ApplyTransparency(beam_color, trans, trans);
 
-    pan_angle_raw += beam_orient;
+    pan_angle_raw += beam_ability->GetBeamOrient();
     while (pan_angle_raw > 360.0f)
         pan_angle_raw -= 360.0f;
     pan_angle_raw = 360.0f - pan_angle_raw;
 
     auto vac = tprogram->getAccumulator();
     int start = vac->getCount();
-    Draw3DBeam(vac, beam_color, beam_length_displayed, pan_angle_raw, tilt_angle, shutter_open, beam_y_offset);
+    Draw3DBeam(vac, beam_color, beam_length_displayed, pan_angle_raw, tilt_angle, shutter_open, beam_ability->GetBeamYOffset());
     int end = vac->getCount();
     tprogram->addStep([=](xlGraphicsContext *ctx) {
         ctx->drawTriangles(vac, start, end - start);
@@ -995,7 +827,7 @@ void DmxMovingHeadAdv::Draw3DBeam(xlVertexColorAccumulator* tvac, xlColor beam_c
 
     if (beam_color.red != 0 || beam_color.green != 0 || beam_color.blue != 0) {
         if (shutter_open) {
-            float angle1 = float(beam_width) / 2.0f;
+            float angle1 = beam_ability->GetBeamWidth() / 2.0f;
             if (angle1 < 0.0f) {
                 angle1 += 360.0f;
             }
@@ -1047,8 +879,8 @@ void DmxMovingHeadAdv::Draw3DBeam(xlVertexColorAccumulator* tvac, xlColor beam_c
 std::vector<std::string> DmxMovingHeadAdv::GenerateNodeNames() const {
     std::vector<std::string> names = DmxModel::GenerateNodeNames();
 
-    if (0 != shutter_channel && shutter_channel < names.size()) {
-        names[shutter_channel - 1] = "Shutter";
+    if (0 != shutter_ability->GetShutterChannel() && shutter_ability->GetShutterChannel() < names.size()) {
+        names[shutter_ability->GetShutterChannel() - 1] = "Shutter";
     }
     if (0 != pan_motor->GetChannelCoarse() && pan_motor->GetChannelCoarse() < names.size()) {
         names[pan_motor->GetChannelCoarse() - 1] = "Pan";

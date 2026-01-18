@@ -10,8 +10,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "DmxMotorBase.h"
-
 #include <wx/string.h>
 #include <glm/glm.hpp>
 class wxPropertyGridInterface;
@@ -19,17 +17,15 @@ class wxPropertyGridEvent;
 class BaseObject;
 class wxXmlNode;
 
-class DmxMotor : public DmxMotorBase
+class DmxMotor
 {
 protected:
-    DmxMotor() :
-        DmxMotorBase()
-    {}
+    DmxMotor() {}
     public:
-        DmxMotor(wxXmlNode* node, wxString _name);
+        DmxMotor(const std::string& _name);
         virtual ~DmxMotor();
 
-        void Init(BaseObject* base);
+        void Init();
 
         void AddTypeProperties(wxPropertyGridInterface* grid);
 
@@ -39,8 +35,8 @@ protected:
         void Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const;
 
         std::string GetName() const { return base_name; }
-        int GetChannelCoarse() const override { return channel_coarse; }
-        int GetChannelFine() const override { return channel_fine; }
+        int GetChannelCoarse() const { return channel_coarse; }
+        int GetChannelFine() const { return channel_fine; }
         int GetMinLimit() const { return min_limit; }
         int GetMaxLimit() const { return max_limit; }
         int GetMinValue() const { return 0; }
@@ -52,15 +48,23 @@ protected:
         bool GetReverse() const { return reverse; }
         bool GetUpsideDown() const { return upside_down; }
 
-        int ConvertPostoCmd(float position) override;
-        float GetPosition(int channel_value) override;
+        int ConvertPostoCmd(float position);
+        float GetPosition(int channel_value);
         bool Is16Bit() { return channel_fine > 0; }
 
-        void SetChannelCoarse(int chan);
+        void SetChannelCoarse(int chan) { channel_coarse = chan; }
+        void SetChannelFine(int chan) { channel_fine = chan; }
+        void SetMinLimit(int limit) { min_limit = limit; }
+        void SetMaxLimit(int limit) { max_limit = limit; }
+        void SetRangeOfMOtion(float range) { range_of_motion = range; }
+        void SetOrientZero(int val) { orient_zero = val; }
+        void SetOrientHome(int val) { orient_home = val; }
+        void SetSlewLimit(float limit) { slew_limit = limit; }
+        void SetReverse(bool val) { reverse = val; }
+        void SetUpsideDown(bool val) { upside_down = val; }
 
 protected:
 
-    wxXmlNode* node_xml = nullptr;
     wxString base_name;
     int channel_coarse{ 0 };
     int channel_fine{ 0 };
@@ -75,8 +79,5 @@ protected:
     bool reverse{false};
     bool upside_down{false};
     int rev{ 1 };
-
-    BaseObject* base = nullptr;
-
 };
 

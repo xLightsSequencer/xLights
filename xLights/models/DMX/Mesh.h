@@ -29,7 +29,7 @@ class xlMesh;
 class Mesh
 {
 public:
-    Mesh(wxXmlNode* node, wxString _name);
+    Mesh(const std::string _name);
     virtual ~Mesh();
 
     void Init(BaseObject* base, bool set_size);
@@ -65,21 +65,34 @@ public:
     std::string GetObjFile() const { return _objFile; }
     float GetBrightness() const { return brightness; }
     bool GetMeshOnly() const { return mesh_only; }
-    float GetOffsetX() const { return offset_x; }
-    float GetOffsetY() const { return offset_y; }
-    float GetOffsetZ() const { return offset_z; }
     float GetScaleX() const { return scalex; }
     float GetScaleY() const { return scaley; }
     float GetScaleZ() const { return scalez; }
     float GetRotateX() const { return rotatex; }
     float GetRotateY() const { return rotatey; }
     float GetRotateZ() const { return rotatez; }
+    float GetOffsetX() const { return offset_x; }
+    float GetOffsetY() const { return offset_y; }
+    float GetOffsetZ() const { return offset_z; }
+
+    float GetRenderWidth() const { return render_width; }
+    float GetRenderHeight() const { return render_height; }
+    float GetRenderDepth() const { return render_depth; }
+    void SetRenderWidth(float w) { render_width = w; }
+    void SetRenderHeight(float h) { render_height = h; }
+    void SetRenderDepth(float d) { render_depth = d; }
 
     void SetRenderScaling(float s);
     void SetMeshOnly(bool val) { mesh_only = val; }
+    void SetBrightness(float bright) { brightness = bright; }
 
-    // These 3 don't write to XML because currently they are only used to offset built-in models
-    // like the skull which uses the offset to draw the same mesh twice.
+    void SetObjFile(const std::string& file) { _objFile = file; }
+    void SetScaleX(float val) { scalex = val; }
+    void SetScaleY(float val) { scaley = val; }
+    void SetScaleZ(float val) { scalez = val; }
+    void SetRotateX(float val) { rotatex = val; }
+    void SetRotateY(float val) { rotatey = val; }
+    void SetRotateZ(float val) { rotatez = val; }
     void SetOffsetX(float val) { offset_x = val; }
     void SetOffsetY(float val) { offset_y = val; }
     void SetOffsetZ(float val) { offset_z = val; }
@@ -92,16 +105,19 @@ protected:
     void uncacheDisplayObjects();
 
 private:
-    wxXmlNode* node_xml = nullptr;
     std::string _objFile;
     float width = 1.0f;
     float height = 1.0f;
     float depth = 1.0f;
+    float render_width = 1.0f;
+    float render_height = 1.0f;
+    float render_depth = 1.0f;
     float brightness = 100.0f;
     bool obj_loaded = false;
     bool mesh_only = false;
     bool obj_exists = false;
     bool controls_size = false;
+    bool recalc_size = true;
     bool update_color = false;
     std::string color_name;
     xlColor new_color = xlBLACK;

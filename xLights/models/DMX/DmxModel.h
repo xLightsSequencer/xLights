@@ -13,7 +13,9 @@
 #include "../Model.h"
 
 #include <memory>
+class DmxBeamAbility;
 class DmxColorAbility;
+class DmxDimmerAbility;
 class DmxPresetAbility;
 class DmxShutterAbility;
 class wxFile;
@@ -37,12 +39,18 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual std::string GetDimension() const override { return ""; }
 
+        [[nodiscard]] bool HasBeamAbility() const { return nullptr != beam_ability ; }
+        [[nodiscard]] DmxBeamAbility* GetBeamAbility() const { return beam_ability.get(); }
         [[nodiscard]] bool HasColorAbility() const { return nullptr != color_ability ; }
         [[nodiscard]] DmxColorAbility* GetColorAbility() const { return color_ability.get(); }
         [[nodiscard]] bool HasPresetAbility() const { return nullptr != preset_ability ; }
         [[nodiscard]] DmxPresetAbility* GetPresetAbility() const { return preset_ability.get(); }
         [[nodiscard]] bool HasShutterAbility() const { return nullptr != shutter_ability ; }
         [[nodiscard]] DmxShutterAbility* GetShutterAbility() const { return shutter_ability.get(); }
+        [[nodiscard]] bool HasDimmerAbility() const { return nullptr != dimmer_ability ; }
+        [[nodiscard]] DmxDimmerAbility* GetDimmerAbility() const { return dimmer_ability.get(); }
+        void InitColorAbility(int type);
+
         virtual void EnableFixedChannels(xlColorVector& pixelVector) const;
         virtual bool SupportsXlightsModel() override { return true; }
         virtual bool SupportsExportAsCustom() const override { return false; }
@@ -64,9 +72,11 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int GetChannelValue(int channel_coarse, int channel_fine);
         void SetNodeNames(const std::string& default_names, bool force = false);
 
+        std::unique_ptr<DmxBeamAbility> beam_ability{ nullptr };
         std::unique_ptr<DmxColorAbility> color_ability{ nullptr };
         std::unique_ptr<DmxPresetAbility> preset_ability{ nullptr };
         std::unique_ptr<DmxShutterAbility> shutter_ability{ nullptr };
+        std::unique_ptr<DmxDimmerAbility> dimmer_ability{ nullptr };
 
     private:
 };

@@ -22,7 +22,7 @@
 #define MOVING_HEAD_SCALE_MIN -100
 #define MOVING_HEAD_SCALE_MAX 100
 
-class DmxMotorBase;
+class DmxMotor;
 class MovingHeadPanel;
 class DmxColorAbility;
 
@@ -117,7 +117,7 @@ protected:
     {
         return false;
     }
-    void WriteCmdToPixel(DmxMotorBase* motor, int value, RenderBuffer& buffer);
+    void WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer& buffer);
     std::list<const Model*> GetModels(const Model* model);
     void UpdateFixturePositions(const Model* cls){};//missing function body
     void RenderMovingHeads(MovingHeadPanel *p, const Model* model_info, const SettingsMap &SettingsMap, RenderBuffer &buffer);

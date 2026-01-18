@@ -11,19 +11,16 @@
  **************************************************************/
 
 #include "DmxMovingHeadComm.h"
-#include "DmxDimmerAbility.h"
-#include "DmxShutterAbility.h"
-#include "DmxMotorBase.h"
 #include "DmxMotor.h"
+#include "Mesh.h"
 #include <memory>
 
-class Mesh;
 class MhFeature;
 
-class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxDimmerAbility
+class DmxMovingHeadAdv : public DmxMovingHeadComm
 {
     public:
-    DmxMovingHeadAdv(const ModelManager& manager);
+        DmxMovingHeadAdv(const ModelManager& manager);
         virtual ~DmxMovingHeadAdv();
 
         virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
@@ -41,25 +38,28 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxDimmerAbility
         DmxMotor* GetAxis(int num) { return num == 1 ? tilt_motor.get() : pan_motor.get(); }
         [[nodiscard]] std::vector<std::string> GenerateNodeNames() const override;
 
-        DmxMotorBase* GetPanMotor() const override { return pan_motor.get(); }
-        DmxMotorBase* GetTiltMotor() const override { return tilt_motor.get(); }
         void UpdateNodeNames() { update_node_names = true; }
         void UpdateBits() { update_bits = true; }
-        float GetBeamYOffset() const { return beam_y_offset; }
-        float GetBeamLength() const { return beam_length; }
     
-        Mesh* GetBaseMesh() const { return base_mesh; }
-        Mesh* GetYokeMesh() const { return yoke_mesh; }
-        Mesh* GetHeadMesh() const { return head_mesh; }
+        DmxMotor* CreatePanMotor(const std::string& name);
+        DmxMotor* CreateTiltMotor(const std::string& name);
 
-        uint32_t GetMHDimmerChannel() const override {return GetDimmerChannel();}
+        Mesh* CreateBaseMesh(const std::string& name);
+        Mesh* CreateYokeMesh(const std::string& name);
+        Mesh* CreateHeadMesh(const std::string& name);
+
+        DmxMotor* GetPanMotor() const override { return pan_motor.get(); }
+        DmxMotor* GetTiltMotor() const override { return tilt_motor.get(); }
+
+        Mesh* GetBaseMesh() const { return base_mesh.get(); }
+        Mesh* GetYokeMesh() const { return yoke_mesh.get(); }
+        Mesh* GetHeadMesh() const { return head_mesh.get(); }
 
         virtual bool SupportsVisitors() const override {return true;}
         void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
 
     protected:
         virtual void InitModel() override;
-        void Clear();
 
         void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool active, const xlColor *c);
 
@@ -86,15 +86,12 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm, public DmxDimmerAbility
 
         bool update_node_names = false;
         bool update_bits = false;
-        Mesh* base_mesh = nullptr;
-        Mesh* yoke_mesh = nullptr;
-        Mesh* head_mesh = nullptr;
+
+        std::unique_ptr<Mesh> base_mesh = nullptr;
+        std::unique_ptr<Mesh> yoke_mesh = nullptr;
+        std::unique_ptr<Mesh> head_mesh = nullptr;
 
         wxXmlNode* features_xml_node = nullptr;
-        float beam_length;
-        float beam_width = 4;
-        int beam_orient;
-        float beam_y_offset;
         wxString obj_path = "";
         std::vector<std::unique_ptr<MhFeature>> features;
         std::map<std::string, PanTiltState> panTiltStates;

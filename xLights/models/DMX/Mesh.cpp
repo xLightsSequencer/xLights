@@ -32,8 +32,8 @@
 #include "../../graphics/xlMesh.h"
 #include "../../graphics/xlGraphicsContext.h"
 
-Mesh::Mesh(wxXmlNode* node, wxString _name)
- : node_xml(node), _objFile(""), base_name(_name)
+Mesh::Mesh(const std::string _name)
+ : _objFile(""), base_name(_name)
 {
 }
 
@@ -49,28 +49,13 @@ void Mesh::SetRenderScaling(float s) {
 }
 
 void Mesh::Init(BaseObject* base, bool set_size) {
-	_objFile = FixFile("", node_xml->GetAttribute("ObjFile", ""));
-    if (_objFile != node_xml->GetAttribute("ObjFile", "")) {
-        node_xml->DeleteAttribute("ObjFile");
-        node_xml->AddAttribute("ObjFile", _objFile);
-    }
 
-    mesh_only = node_xml->GetAttribute("MeshOnly", "0") == "1";
 
-    brightness = wxAtoi(node_xml->GetAttribute("Brightness", "100"));
     if (brightness > 100) {
         brightness = 100;
     } else if (brightness < 0) {
         brightness = 0;
     }
-
-    offset_x = wxAtof(node_xml->GetAttribute("OffsetX", "0.0"));
-    offset_y = wxAtof(node_xml->GetAttribute("OffsetY", "0.0"));
-    offset_z = wxAtof(node_xml->GetAttribute("OffsetZ", "0.0"));
-
-    scalex = wxAtof(node_xml->GetAttribute("ScaleX", "1.0"));
-    scaley = wxAtof(node_xml->GetAttribute("ScaleY", "1.0"));
-    scalez = wxAtof(node_xml->GetAttribute("ScaleZ", "1.0"));
 
     if (scalex < 0) {
         scalex = 1.0f;
@@ -81,10 +66,6 @@ void Mesh::Init(BaseObject* base, bool set_size) {
     if (scalez < 0) {
         scalez = 1.0f;
     }
-
-    rotatex = wxAtof(node_xml->GetAttribute("RotateX", "0.0f"));
-    rotatey = wxAtof(node_xml->GetAttribute("RotateY", "0.0f"));
-    rotatez = wxAtof(node_xml->GetAttribute("RotateZ", "0.0f"));
 
     if (rotatex < -180.0f || rotatex > 180.0f) {
         rotatex = 0.0f;
@@ -98,9 +79,9 @@ void Mesh::Init(BaseObject* base, bool set_size) {
 
     controls_size = set_size;
     if (controls_size) {
-        width = wxAtof(node_xml->GetAttribute("Width", "1.0f"));
-        height = wxAtof(node_xml->GetAttribute("Height", "1.0f"));
-        depth = wxAtof(node_xml->GetAttribute("Depth", "1.0f"));
+        width = render_width;
+        height = render_height;
+        depth = render_depth;
         base->GetBaseObjectScreenLocation().SetRenderSize(width, height, depth);
     }
 }
@@ -173,15 +154,11 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
             mesh3d = nullptr;
         }
         if (controls_size) {
-            node_xml->DeleteAttribute("Width");
-            node_xml->DeleteAttribute("Height");
-            node_xml->DeleteAttribute("Depth");
+            recalc_size = true;
         }
         uncacheDisplayObjects();
         _objFile = event.GetValue().GetString();
         ObtainAccessToURL(_objFile);
-        node_xml->DeleteAttribute("ObjFile");
-        node_xml->AddAttribute("ObjFile", _objFile);
         
         auto mtfs = xlMesh::GetMaterialFilenamesFromOBJ(_objFile, false);
         bool hasSpaces = false;
@@ -217,8 +194,6 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "Brightness" == name) {
         brightness = (int)event.GetPropertyValue().GetLong();
-        node_xml->DeleteAttribute("Brightness");
-        node_xml->AddAttribute("Brightness", wxString::Format("%d", (int)brightness));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::Brightness");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::Brightness");
         return 0;
@@ -228,11 +203,7 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
         return 0;
     }
     else if (!locked && base_name + "MeshOnly" == name) {
-        node_xml->DeleteAttribute("MeshOnly");
         mesh_only = event.GetValue().GetBool();
-        if (mesh_only) {
-            node_xml->AddAttribute("MeshOnly", "1");
-        }
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::MeshOnly");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::MeshOnly");
         return 0;
@@ -243,8 +214,6 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "ScaleX" == name) {
         scalex = event.GetValue().GetDouble();
-        node_xml->DeleteAttribute("ScaleX");
-        node_xml->AddAttribute("ScaleX", wxString::Format("%6.4f", scalex));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ScaleX");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ScaleX");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ScaleX");
@@ -257,8 +226,6 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "ScaleY" == name) {
         scaley = event.GetValue().GetDouble();
-        node_xml->DeleteAttribute("ScaleY");
-        node_xml->AddAttribute("ScaleY", wxString::Format("%6.4f", scaley));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ScaleY");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ScaleY");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ScaleY");
@@ -271,8 +238,7 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "ScaleZ" == name) {
         scalez = event.GetValue().GetDouble();
-        node_xml->DeleteAttribute("ScaleZ");
-        node_xml->AddAttribute("ScaleZ", wxString::Format("%6.4f", scalez));
+
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ScaleZ");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ScaleZ");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ScaleZ");
@@ -285,8 +251,6 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "OffsetX" == name) {
         offset_x = event.GetValue().GetDouble();
-        node_xml->DeleteAttribute("OffsetX");
-        node_xml->AddAttribute("OffsetX", wxString::Format("%6.4f", offset_x));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ModelX");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ModelX");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ModelX");
@@ -299,8 +263,6 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "OffsetY" == name) {
         offset_y = event.GetValue().GetDouble();
-        node_xml->DeleteAttribute("OffsetY");
-        node_xml->AddAttribute("OffsetY", wxString::Format("%6.4f", offset_y));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ModelY");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ModelY");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ModelY");
@@ -313,8 +275,6 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "OffsetZ" == name) {
         offset_z = event.GetValue().GetDouble();
-        node_xml->DeleteAttribute("OffsetZ");
-        node_xml->AddAttribute("OffsetZ", wxString::Format("%6.4f", offset_z));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ModelZ");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ModelZ");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ModelZ");
@@ -327,8 +287,6 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "RotateX" == name) {
         rotatex = event.GetValue().GetDouble();
-        node_xml->DeleteAttribute("RotateX");
-        node_xml->AddAttribute("RotateX", wxString::Format("%4.8f", rotatex));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::RotateX");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::RotateX");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::RotateX");
@@ -341,8 +299,6 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "RotateY" == name) {
         rotatey = event.GetValue().GetDouble();
-        node_xml->DeleteAttribute("RotateY");
-        node_xml->AddAttribute("RotateY", wxString::Format("%4.8f", rotatey));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::RotateY");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::RotateY");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::RotateY");
@@ -355,8 +311,6 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "RotateZ" == name) {
         rotatez = event.GetValue().GetDouble();
-        node_xml->DeleteAttribute("RotateZ");
-        node_xml->AddAttribute("RotateZ", wxString::Format("%4.8f", rotatez));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::RotateZ");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::RotateZ");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::RotateZ");
@@ -434,11 +388,11 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *spro
         }
 
         if (controls_size) {
-            if (node_xml != nullptr && !node_xml->HasAttribute("Width")) {
-                base->GetBaseObjectScreenLocation().AdjustRenderSize(width * scalex, height * scaley * half_height, depth * scalez, base->GetModelXml());
-                node_xml->AddAttribute("Width", std::to_string(width));
-                node_xml->AddAttribute("Height", std::to_string(height));
-                node_xml->AddAttribute("Depth", std::to_string(depth));
+            if (recalc_size) {
+                base->GetBaseObjectScreenLocation().AdjustRenderSize(width * scalex, height * scaley * half_height, depth * scalez);
+                render_width = width;
+                render_height = height;
+                render_depth = depth;
             }
             base->GetBaseObjectScreenLocation().UpdateBoundingBox(width, height, depth);  // FIXME: Modify to only call this when position changes
         }

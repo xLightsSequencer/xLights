@@ -25,7 +25,6 @@ public:
 protected:
     virtual void InitModel() override;
 
-    virtual void ExportXlightsModel() override;
     [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
 
     virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
@@ -42,6 +41,4 @@ protected:
 
     void GetColors(xlColor &center, xlColor &edge, bool allowSelected, const xlColor *c);
     virtual void DrawModel(xlVertexColorAccumulator *vac, xlColor &center, xlColor &edge, float beam_length);
-
-    float beam_length;
 };

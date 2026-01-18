@@ -349,7 +349,7 @@ int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
     }
 
     if (has_color) {
-        if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
+        if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, this) == 0) {
             return 0;
         }
     }
@@ -483,7 +483,7 @@ void DmxSkull::AddMesh(Mesh** _mesh, const std::string& name, const std::string&
     if (*_mesh == nullptr) {
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, name);
         ModelXml->AddChild(new_node);
-        Mesh* m = new Mesh(new_node, name);
+        Mesh* m = new Mesh(name);
         *_mesh = m;
         FixObjFile(new_node, objfile);
     }
@@ -524,22 +524,22 @@ void DmxSkull::InitModel()
         if ("HeadMesh" == name) {
             if (head_mesh == nullptr) {
                 FixObjFile(n, "SkullHead.obj");
-                head_mesh = new Mesh(n, "HeadMesh");
+                head_mesh = new Mesh("HeadMesh");
             }
         } else if ("JawMesh" == name) {
             if (jaw_mesh == nullptr) {
                 FixObjFile(n, "SkullJaw.obj");
-                jaw_mesh = new Mesh(n, "JawMesh");
+                jaw_mesh = new Mesh("JawMesh");
             }
         } else if ("EyeMeshL" == name) {
             if (eye_l_mesh == nullptr) {
                 FixObjFile(n, "Eyeball.obj");
-                eye_l_mesh = new Mesh(n, "EyeMeshL");
+                eye_l_mesh = new Mesh("EyeMeshL");
             }
         } else if ("EyeMeshR" == name) {
             if (eye_r_mesh == nullptr) {
                 FixObjFile(n, "Eyeball.obj");
-                eye_r_mesh = new Mesh(n, "EyeMeshR");
+                eye_r_mesh = new Mesh("EyeMeshR");
             }
         } else if ("JawServo" == name) {
             if (has_jaw && jaw_servo == nullptr) {
@@ -885,91 +885,6 @@ void DmxSkull::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphi
     jaw_mesh->Draw(this, preview, sprogram, tprogram, head_matrix, jaw_matrix, false, 0, jaw_pivot_y, jaw_pivot_z, true, false);
     eye_l_mesh->Draw(this, preview, sprogram, tprogram, head_matrix, eye_x_matrix, false, 0, 0, 0, false, false);
     eye_r_mesh->Draw(this, preview, sprogram, tprogram, head_matrix, eye_x_matrix, false, 0, 0, 0, false, false);
-}
-
-void DmxSkull::ExportXlightsModel()
-{
-    wxString name = ModelXml->GetAttribute("name");
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty())
-        return;
-    wxFile f(filename);
-
-    if (!f.Create(filename, true) || !f.IsOpened()) {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-        return;
-    }
-
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
-
-    //ExportBaseParameters(f);
-
-    wxString jo = ModelXml->GetAttribute("DmxJawOrient", std::to_string(default_orient[JAW]));
-    wxString po = ModelXml->GetAttribute("DmxPanOrient", std::to_string(default_orient[PAN]));
-    wxString to = ModelXml->GetAttribute("DmxTiltOrient", std::to_string(default_orient[TILT]));
-    wxString no = ModelXml->GetAttribute("DmxNodOrient", std::to_string(default_orient[NOD]));
-    wxString eud = ModelXml->GetAttribute("DmxEyeUDOrient", std::to_string(default_orient[EYE_UD]));
-    wxString elr = ModelXml->GetAttribute("DmxEyeLROrient", std::to_string(default_orient[EYE_LR]));
-    wxString hj = ModelXml->GetAttribute("HasJaw", "1");
-    wxString hp = ModelXml->GetAttribute("HasPan", "1");
-    wxString ht = ModelXml->GetAttribute("HasTilt", "1");
-    wxString hn = ModelXml->GetAttribute("HasNod", "1");
-    wxString heu = ModelXml->GetAttribute("HasEyeUD", "1");
-    wxString hel = ModelXml->GetAttribute("HasEyeLR", "1");
-    wxString hc = ModelXml->GetAttribute("HasColor", "1");
-    wxString is = ModelXml->GetAttribute("Skulltronix", "0");
-    wxString eb = ModelXml->GetAttribute("DmxEyeBrtChannel", "23");
-    wxString bits = ModelXml->GetAttribute("Bits16");
-
-    f.Write(wxString::Format("DmxJawOrient=\"%s\" ", jo));
-    f.Write(wxString::Format("DmxPanOrient=\"%s\" ", po));
-    f.Write(wxString::Format("DmxTiltOrient=\"%s\" ", to));
-    f.Write(wxString::Format("DmxNodOrient=\"%s\" ", no));
-    f.Write(wxString::Format("DmxEyeUDOrient=\"%s\" ", eud));
-    f.Write(wxString::Format("DmxEyeLROrient=\"%s\" ", elr));
-    f.Write(wxString::Format("HasJaw=\"%s\" ", hj));
-    f.Write(wxString::Format("HasPan=\"%s\" ", hp));
-    f.Write(wxString::Format("HasTilt=\"%s\" ", ht));
-    f.Write(wxString::Format("HasNod=\"%s\" ", hn));
-    f.Write(wxString::Format("HasEyeUD=\"%s\" ", heu));
-    f.Write(wxString::Format("HasEyeLR=\"%s\" ", hel));
-    f.Write(wxString::Format("HasColor=\"%s\" ", hc));
-    f.Write(wxString::Format("Skulltronix=\"%s\" ", is));
-    f.Write(wxString::Format("DmxEyeBrtChannel=\"%s\" ", eb));
-    f.Write(wxString::Format("Bits16=\"%s\" ", bits));
-    f.Write(" >\n");
-
-    wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
-
-    if (has_jaw)
-        jaw_servo->Serialise(ModelXml, f, show_dir);
-    if (has_pan)
-        pan_servo->Serialise(ModelXml, f, show_dir);
-    if (has_tilt)
-        tilt_servo->Serialise(ModelXml, f, show_dir);
-    if (has_nod)
-        nod_servo->Serialise(ModelXml, f, show_dir);
-    if (has_eye_lr)
-        eye_lr_servo->Serialise(ModelXml, f, show_dir);
-    if (has_eye_ud)
-        eye_ud_servo->Serialise(ModelXml, f, show_dir);
-
-    wxString submodel = SerialiseSubmodel();
-    if (submodel != "") {
-        f.Write(submodel);
-    }
-    wxString state = SerialiseState();
-    if (state != "") {
-        f.Write(state);
-    }
-    wxString groups = SerialiseGroups();
-    if (groups != "") {
-        f.Write(groups);
-    }
-    //ExportDimensions(f);
-    f.Write("</dmxmodel>");
-    f.Close();
 }
 
 bool DmxSkull::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z)

@@ -3643,6 +3643,7 @@ void LayoutPanel::FinalizeModel()
 
     if (_newModel != nullptr) {
         xlights->AddTraceMessage("LayoutPanel::FinalizeModel New model is not null.");
+        _newModel->GetBaseObjectScreenLocation().SetAxisTool(ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE);
         // cache the selected button as it may change during a download or some such event
         auto b = selectedButton;
         if (b != nullptr && (b->GetModelType() == "Import Custom" || b->GetModelType() == "Download"))

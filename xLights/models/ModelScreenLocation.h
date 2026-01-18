@@ -195,7 +195,7 @@ protected:
     }
 
     void SetRenderSize(float NewWi, float NewHt, float NewDp = 0.0f);
-    void AdjustRenderSize(float NewWi, float NewHt, float NewDp, wxXmlNode* node);
+    void AdjustRenderSize(float NewWi, float NewHt, float NewDp);
     bool IsLocked() const { return _locked; }
     void Lock(bool value = true) { _locked = value; }
     float GetRenderHt() const { return RenderHt; }

@@ -22,21 +22,21 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
+#include "../models/DMX/DmxDimmerAbility.h"
 #include "../models/DMX/DmxMovingHeadAdv.h"
 #include "../models/DMX/DmxMovingHead.h"
 #include "../models/DMX/DmxMovingHeadComm.h"
 #include "../models/DMX/DmxMotor.h"
+#include "../models/DMX/DmxShutterAbility.h"
 #include "../models/ModelGroup.h"
 #include "../models/DMX/DmxColorAbilityWheel.h"
 
 MovingHeadEffect::MovingHeadEffect(int id) : RenderableEffect(id, "Moving Head", moving_head_16, moving_head_24, moving_head_32, moving_head_48, moving_head_64)
 {
-    //ctor
 }
 
 MovingHeadEffect::~MovingHeadEffect()
 {
-    //dtor
 }
 
 xlEffectPanel *MovingHeadEffect::CreatePanel(wxWindow *parent) {
@@ -260,8 +260,8 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
                 WriteCmdToPixel(mhead->GetTiltMotor(), tilt_cmd, buffer);
             }
 
-            if (has_dimmers && mhead->HasDimmerChannel()) {
-                uint32_t dimmer_channel = mhead->GetMHDimmerChannel();
+            if (has_dimmers && mhead->GetDimmerAbility()->GetDimmerChannel() > 0) {
+                uint32_t dimmer_channel = mhead->GetDimmerAbility()->GetDimmerChannel();
                 CalculateDimmer(eff_pos, dimmers, dimmer_channel, buffer);
             }
 
@@ -272,9 +272,9 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
                         if( has_color_wheel ) {
                             xlColor c {GetWheelColor(eff_pos, colors)};
                             buffer.SetPixel(0, 0, c);
-                            auto shutter_chan = mhead->GetShutterChannel();
+                            auto shutter_chan = mhead->GetShutterAbility()->GetShutterChannel();
                             if (0 != shutter_chan && auto_shutter) {
-                                auto shutter_on = mhead->GetShutterOnValue();
+                                auto shutter_on = mhead->GetShutterAbility()->GetShutterOnValue();
                                 CalculateColorWheelShutter(mh_color, eff_pos, colors, shutter_chan, shutter_on, buffer);
                             }
                         } else if (has_color) {
@@ -542,7 +542,7 @@ void MovingHeadEffect::CalculateColorWheelShutter(DmxColorAbility* mh_color, dou
     //vc.SaveXVC(xLightsFrame::CurrentDir.ToStdString() + "//test.xvc");//this changes the point locations for some reason, do after
 }
 
-void MovingHeadEffect::WriteCmdToPixel(DmxMotorBase* motor, int value, RenderBuffer &buffer)
+void MovingHeadEffect::WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer &buffer)
 {
     xlColor lsb_c = xlBLACK;
     xlColor msb_c = xlBLACK;

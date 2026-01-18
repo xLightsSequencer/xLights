@@ -178,7 +178,7 @@ void ModelScreenLocation::SetRenderSize(float NewWi, float NewHt, float NewDp) {
 }
 
 // This function is used when the render size needs to be adjusted after a mesh is loaded during model creation
-void ModelScreenLocation::AdjustRenderSize(float NewWi, float NewHt, float NewDp, wxXmlNode* node) {
+void ModelScreenLocation::AdjustRenderSize(float NewWi, float NewHt, float NewDp) {
     if ((NewWi != RenderWi || NewHt != RenderHt || NewDp != RenderDp) && NewWi != 1.0f) {
         RenderHt = NewHt;
         RenderWi = NewWi;
@@ -186,12 +186,6 @@ void ModelScreenLocation::AdjustRenderSize(float NewWi, float NewHt, float NewDp
         scalex = scaley = scalez = 1.0f;
         saved_scale = glm::vec3(scalex, scaley, scalez);
         saved_size = glm::vec3(RenderWi, RenderHt, RenderWi);
-        node->DeleteAttribute("ScaleX");
-        node->DeleteAttribute("ScaleY");
-        node->DeleteAttribute("ScaleZ");
-        node->AddAttribute("ScaleX", wxString::Format("%6.4f", scalex));
-        node->AddAttribute("ScaleY", wxString::Format("%6.4f", scaley));
-        node->AddAttribute("ScaleZ", wxString::Format("%6.4f", scalez));
     }
     else {
         RenderHt = NewHt;

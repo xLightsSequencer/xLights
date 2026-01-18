@@ -13,6 +13,7 @@
 #include <wx/xml/xml.h>
 
 #include "DmxFloodlight.h"
+#include "DmxBeamAbility.h"
 #include "DmxColorAbilityRGB.h"
 #include "DmxPresetAbility.h"
 #include "DmxShutterAbility.h"
@@ -23,10 +24,11 @@
 #include "../../xLightsVersion.h"
 
 DmxFloodlight::DmxFloodlight(const ModelManager &manager)
-    : DmxModel(manager), beam_length(1)
+    : DmxModel(manager)
 {
     color_ability = std::make_unique<DmxColorAbilityRGB>();
     shutter_ability = std::make_unique<DmxShutterAbility>();
+    beam_ability = std::make_unique<DmxBeamAbility>();
 }
 
 DmxFloodlight::~DmxFloodlight()
@@ -37,20 +39,14 @@ void DmxFloodlight::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
 {
 
     DmxModel::AddTypeProperties(grid, outputManager);
-    if (nullptr != color_ability) {
-        ControllerCaps *caps = GetControllerCaps();
-        color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
-    }
+    ControllerCaps *caps = GetControllerCaps();
+    color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
     shutter_ability->AddShutterTypeProperties(grid);
+    beam_ability->AddBeamTypeProperties(grid);
+    grid->Collapse("DmxShutterProperties");
+    grid->Collapse("DmxBeamProperties");
 
     auto p = grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
-
-    p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 100);
-    p->SetAttribute("Precision", 2);
-    p->SetAttribute("Step", 0.1);
-    p->SetEditor("SpinCtrl");
 }
 
 void DmxFloodlight::DisableUnusedProperties(wxPropertyGridInterface* grid)
@@ -71,20 +67,15 @@ void DmxFloodlight::DisableUnusedProperties(wxPropertyGridInterface* grid)
 
 int DmxFloodlight::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
-    if ("DmxBeamLength" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxBeamLength");
-        ModelXml->AddAttribute("DmxBeamLength", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxFloodlight::OnPropertyGridChange::DMXBeamLength");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxFloodlight::OnPropertyGridChange::DMXBeamLength");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxFloodlight::OnPropertyGridChange::DMXBeamLength");
-        return 0;
-    }
-
-    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
+    if (color_ability->OnColorPropertyGridChange(grid, event, this) == 0) {
         return 0;
     }
 
     if (shutter_ability->OnShutterPropertyGridChange(grid, event, this) == 0) {
+        return 0;
+    }
+
+    if (beam_ability->OnBeamPropertyGridChange(grid, event, this) == 0) {
         return 0;
     }
 
@@ -94,10 +85,6 @@ int DmxFloodlight::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
 void DmxFloodlight::InitModel()
 {
     DmxModel::InitModel();
-    DisplayAs = "DmxFloodlight";
-
-
-    beam_length = wxAtof(ModelXml->GetAttribute("DmxBeamLength", "1.0"));
     screenLocation.SetRenderSize(1, 1, 1);
 }
 
@@ -155,7 +142,7 @@ void DmxFloodlight::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContex
         if (shutter_open) {
             auto* vac = transparentProgram->getAccumulator();
             int start = vac->getCount();
-            DrawModel(vac, center, edge, is_3d ? beam_length * min_size : 0);
+            DrawModel(vac, center, edge, is_3d ? beam_ability->GetBeamLength() * min_size : 0);
             int end = vac->getCount();
             transparentProgram->addStep([=, this](xlGraphicsContext* ctx) {
                 ctx->PushMatrix();
@@ -236,46 +223,6 @@ void DmxFloodlight::DisplayEffectOnWindow(ModelPreview* preview, double pointSiz
     if (mustEnd) {
         preview->EndDrawing();
     }
-}
-
-void DmxFloodlight::ExportXlightsModel()
-{
-    wxString name = ModelXml->GetAttribute("name");
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty())
-        return;
-    wxFile f(filename);
-    
-    if (!f.Create(filename, true) || !f.IsOpened()) {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-        return;
-    }
-
-
-    wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "1");
-
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
-
-    //color_ability->ExportParameters(f,ModelXml);
-    f.Write(wxString::Format("DmxBeamLength=\"%s\" ", dbl));
-
-    f.Write(" >\n");
-    wxString submodel = SerialiseSubmodel();
-    if (submodel != "") {
-        f.Write(submodel);
-    }
-    wxString state = SerialiseState();
-    if (state != "") {
-        f.Write(state);
-    }
-    wxString groups = SerialiseGroups();
-    if (groups != "") {
-        f.Write(groups);
-    }
-    //ExportDimensions(f);
-    f.Write("</dmxmodel>");
-    f.Close();
 }
 
 bool DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) {

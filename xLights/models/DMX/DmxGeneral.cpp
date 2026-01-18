@@ -45,7 +45,7 @@ void DmxGeneral::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager*
 
 int DmxGeneral::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
-    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
+    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, this) == 0) {
         return 0;
     }
 

@@ -21,11 +21,14 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "DmxModel.h"
+#include "DmxBeamAbility.h"
 #include "DmxColorAbility.h"
 #include "DmxColorAbilityRGB.h"
 #include "DmxColorAbilityCMY.h"
+#include "DmxColorAbilityWheel.h"
 #include "DmxPresetAbility.h"
 #include "DmxShutterAbility.h"
+#include "DmxDimmerAbility.h"
 #include "../ModelScreenLocation.h"
 #include "../../ModelPreview.h"
 #include "../../RenderBuffer.h"
@@ -234,7 +237,6 @@ void DmxModel::SetNodeNames(const std::string& default_names, bool force)
             }
             nodeNames.push_back(t2);
         }
-        SetProperty("NodeNames", nn);
     }
 }
 
@@ -333,4 +335,17 @@ std::vector<PWMOutput> DmxModel::GetPWMOutputs() const {
         ret.back().startChannel += startChannel - 1;
     }
     return ret;
+}
+
+void DmxModel::InitColorAbility(int type)
+{
+    if (type == static_cast<int>(DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_RGBW)) {
+        color_ability = std::make_unique<DmxColorAbilityRGB>();
+    } else if (type == static_cast<int>(DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_WHEEL)) {
+        color_ability = std::make_unique<DmxColorAbilityWheel>();
+    } else if (type == static_cast<int>(DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_CMYW)) {
+        color_ability = std::make_unique<DmxColorAbilityCMY>();
+    } else {
+        color_ability = nullptr;
+    }
 }

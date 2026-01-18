@@ -36,12 +36,10 @@ void DmxDimmerAbility::AddDimmerTypeProperties(wxPropertyGridInterface *grid) {
     p->SetEditor("SpinCtrl");
 }
 
-int DmxDimmerAbility::OnDimmerPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base) {
+int DmxDimmerAbility::OnDimmerPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base) {
 
      if ("MhDimmerChannel" == event.GetPropertyName()) {
          dimmer_channel = (int)event.GetPropertyValue().GetLong();
-         ModelXml->DeleteAttribute("MhDimmerChannel");
-         ModelXml->AddAttribute("MhDimmerChannel", wxString::Format("%d", dimmer_channel));
          base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxDimmerAbility::OnPropertyGridChange::DMXDimmerChannel");
          base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxDimmerAbility::OnPropertyGridChange::DMXDimmerChannel");
          base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxDimmerAbility::OnPropertyGridChange::DMXDimmerChannel");

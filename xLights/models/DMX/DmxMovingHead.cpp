@@ -18,10 +18,10 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "DmxMovingHead.h"
+#include "DmxBeamAbility.h"
 #include "DmxColorAbilityRGB.h"
 #include "DmxColorAbilityCMY.h"
 #include "DmxColorAbilityWheel.h"
-#include "DmxMotorPanTilt.h"
 #include "../ModelScreenLocation.h"
 #include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
@@ -33,9 +33,13 @@
 
 DmxMovingHead::DmxMovingHead(const ModelManager &manager) :
     DmxMovingHeadComm(manager), hide_body(false), style_changed(false), dmx_style("Moving Head Top"),
-    dmx_style_val(0), beam_length(4)
+    dmx_style_val(0)
 {
-    beam_width = GetDefaultBeamWidth();
+    dimmer_ability = std::make_unique<DmxDimmerAbility>();
+    shutter_ability = std::make_unique<DmxShutterAbility>();
+    beam_ability = std::make_unique<DmxBeamAbility>();
+    beam_ability->SetDefaultBeamLength(4.0);
+    beam_ability->SetDefaultBeamWidth(30.0);
 }
 
 DmxMovingHead::~DmxMovingHead()
@@ -162,32 +166,19 @@ void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
         ControllerCaps *caps = GetControllerCaps();
         color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
     }
-    AddDimmerTypeProperties(grid);
-    AddShutterTypeProperties(grid);
+    dimmer_ability->AddDimmerTypeProperties(grid);
+    shutter_ability->AddShutterTypeProperties(grid);
+    beam_ability->AddBeamTypeProperties(grid);
     grid->Collapse("DmxDimmerProperties");
+    grid->Collapse("DmxShutterProperties");
+    grid->Collapse("DmxBeamProperties");
 
-    p = grid->Append(new wxPropertyCategory("Beam Properties", "BeamProperties"));
-
-    p = grid->Append(new wxFloatProperty("Beam Display Length", "DmxBeamLength", beam_length));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 100);
-    p->SetAttribute("Precision", 2);
-    p->SetAttribute("Step", 0.1);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxFloatProperty("Beam Display Width", "DmxBeamWidth", beam_width));
-    p->SetAttribute("Min", 0.01);
-    p->SetAttribute("Max", 150);
-    p->SetAttribute("Precision", 2);
-    p->SetAttribute("Step", 0.1);
-    p->SetEditor("SpinCtrl");
-    
     grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
 }
 
 int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
-    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
+    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, this) == 0) {
         return 0;
     }
 
@@ -199,11 +190,11 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         return 0;
     }
 
-    if (OnShutterPropertyGridChange(grid, event, this) == 0) {
+    if (shutter_ability->OnShutterPropertyGridChange(grid, event, this) == 0) {
         return 0;
     }
 
-    if (OnDimmerPropertyGridChange(grid, event, ModelXml, this) == 0) {
+    if (dimmer_ability->OnDimmerPropertyGridChange(grid, event, this) == 0) {
         return 0;
     }
 
@@ -260,18 +251,7 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
     }
     else if ("DmxColorType" == event.GetPropertyName()) {
         int color_type = event.GetPropertyValue().GetInteger();
-
-        ModelXml->DeleteAttribute("DmxColorType");
-        ModelXml->AddAttribute("DmxColorType", wxString::Format("%d", color_type));
-
-        if (color_type == 0) {
-            color_ability = std::make_unique<DmxColorAbilityRGB>();
-        } else  if (color_type == 1) {
-            color_ability = std::make_unique<DmxColorAbilityWheel>();
-        }
-        else {
-            color_ability = std::make_unique<DmxColorAbilityCMY>();
-        }
+        InitColorAbility(color_type);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
@@ -319,11 +299,11 @@ void DmxMovingHead::InitModel() {
 
         if ("PanMotor" == name) {
              if (pan_motor == nullptr) {
-                pan_motor = std::make_unique<DmxMotor>(n, name);
+                pan_motor = std::make_unique<DmxMotor>(name);
              }
         } else if ("TiltMotor" == name) {
             if (tilt_motor == nullptr) {
-                tilt_motor = std::make_unique<DmxMotor>(n, name);
+                tilt_motor = std::make_unique<DmxMotor>(name);
             }
         }
         n = n->GetNext();
@@ -334,7 +314,7 @@ void DmxMovingHead::InitModel() {
         std::string new_name = "PanMotor";
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
         ModelXml->AddChild(new_node);
-        pan_motor = std::make_unique<DmxMotor>(new_node, new_name);
+        pan_motor = std::make_unique<DmxMotor>(new_name);
         pan_motor->SetChannelCoarse(1);
         new_node->AddAttribute("RangeOfMotion", "540");
         new_node->AddAttribute("OrientHome", "90");
@@ -348,22 +328,12 @@ void DmxMovingHead::InitModel() {
         ModelXml->AddChild(new_node);
         new_node->AddAttribute("OrientHome", "90");
         new_node->AddAttribute("SlewLimit", "180");
-        tilt_motor = std::make_unique<DmxMotor>(new_node, new_name);
+        tilt_motor = std::make_unique<DmxMotor>(new_name);
         tilt_motor->SetChannelCoarse(3);
     }
 
-    pan_motor->Init(this);
-    tilt_motor->Init(this);
-
-    dimmer_channel = wxAtoi(ModelXml->GetAttribute("MhDimmerChannel", "0"));
-	shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
-	shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
-    shutter_on_value = wxAtoi(ModelXml->GetAttribute("DmxShutterOnValue", "0"));
-	beam_length = wxAtof(ModelXml->GetAttribute("DmxBeamLength", "4.0"));
-    beam_width = GetDefaultBeamWidth();
-    if (ModelXml->HasAttribute("DmxBeamWidth")) {
-        beam_width = wxAtof(ModelXml->GetAttribute("DmxBeamWidth"));
-    }
+    pan_motor->Init();
+    tilt_motor->Init();
 
     dmx_style_val = DMX_STYLE_MOVING_HEAD_TOP;
     if( dmx_style == "Moving Head Side" ) {
@@ -553,8 +523,8 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
     size_t NodeCount = Nodes.size();
     if ((( nullptr != color_ability ) && !color_ability->IsValidModelSettings(this)) ||
         !preset_ability->IsValidModelSettings(this) ||
-        shutter_channel > NodeCount ||
-        dimmer_channel > NodeCount )
+        shutter_ability->GetShutterChannel() > NodeCount ||
+        dimmer_ability->GetDimmerChannel() > NodeCount )
     {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
@@ -578,9 +548,9 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
     xlColor beam_color = color_ability->GetBeamColor(Nodes);
 
     // apply dimmer to beam
-    if (dimmer_channel > 0 && active) {
+    if (dimmer_ability->GetDimmerChannel() > 0 && active) {
         xlColor proxy;
-        Nodes[dimmer_channel - 1]->GetColor(proxy);
+        Nodes[dimmer_ability->GetDimmerChannel() - 1]->GetColor(proxy);
         HSVValue hsv = proxy.asHSV();
         beam_color.red = (beam_color.red * hsv.value);
         beam_color.blue = (beam_color.blue * hsv.value);
@@ -690,14 +660,14 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
 
     // determine if shutter is open for heads that support it
     bool shutter_open = true;
-    if (shutter_channel > 0 && shutter_channel <= NodeCount && active) {
+    if (shutter_ability->GetShutterChannel() > 0 && shutter_ability->GetShutterChannel() <= NodeCount && active) {
         xlColor proxy;
-        Nodes[shutter_channel - 1]->GetColor(proxy);
+        Nodes[shutter_ability->GetShutterChannel() - 1]->GetColor(proxy);
         int shutter_value = proxy.red;
         if (shutter_value >= 0) {
-            shutter_open = shutter_value >= shutter_threshold;
+            shutter_open = shutter_value >= shutter_ability->GetShutterThreshold();
         } else {
-            shutter_open = shutter_value <= std::abs(shutter_threshold);
+            shutter_open = shutter_value <= std::abs(shutter_ability->GetShutterThreshold());
         }
     }
 
@@ -706,7 +676,7 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
     auto vac = sprogram->getAccumulator();
     int startVert = vac->getCount();
 
-    float beam_length_displayed = beam_length / 2.0f;
+    float beam_length_displayed = beam_ability->GetBeamLength() / 2.0f;
 
     if (dmx_style_val == DMX_STYLE_MOVING_HEAD_BARS ||
         dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP_BARS ||
@@ -722,8 +692,8 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
         beam_length_displayed *= 2;
     }
 
-    float angle1 = angle - beam_width / 2.0f;
-    float angle2 = angle + beam_width / 2.0f;
+    float angle1 = angle - beam_ability->GetBeamWidth() / 2.0f;
+    float angle2 = angle + beam_ability->GetBeamWidth() / 2.0f;
     if (angle1 < 0.0f) {
         angle1 += 360.0f;
     }
@@ -883,7 +853,7 @@ void DmxMovingHead::Draw3DBeam(xlVertexColorAccumulator* tvac, xlColor beam_colo
     float combined_angle = tilt_angle;
     if (beam_color.red != 0 || beam_color.green != 0 || beam_color.blue != 0) {
         if (shutter_open) {
-            float angle1 = float(beam_width) / 2.0f;
+            float angle1 = float(beam_ability->GetBeamWidth()) / 2.0f;
             if (angle1 < 0.0f) {
                 angle1 += 360.0f;
             }
@@ -1181,86 +1151,6 @@ void DmxMovingHead::Draw3DDMXHead(xlVertexColorAccumulator& va, const xlColor& c
     AddVertex(va, p41, c);
 }
 
-void DmxMovingHead::ExportXlightsModel()
-{
-    wxASSERT(false);//shouldnt be used anymore
-    /* wxString name = ModelXml->GetAttribute("name");
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty())
-        return;
-    wxFile f(filename);
-    
-    if (!f.Create(filename, true) || !f.IsOpened()) {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-        return;
-    }
-
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxmodel \n");
-
-    ExportBaseParameters(f);
-
-    wxString s = ModelXml->GetAttribute("DmxStyle", dmx_style);
-    wxString pdr = ModelXml->GetAttribute("DmxPanDegOfRot", "540");
-    wxString tdr = ModelXml->GetAttribute("DmxTiltDegOfRot", "180");
-    wxString pc = ModelXml->GetAttribute("DmxPanChannel", "0");
-    wxString po = ModelXml->GetAttribute("DmxPanOrient", "0");
-    wxString psl = ModelXml->GetAttribute("DmxPanSlewLimit", "0");
-    wxString tc = ModelXml->GetAttribute("DmxTiltChannel", "0");
-    wxString to = ModelXml->GetAttribute("DmxTiltOrient", "0");
-    wxString tsl = ModelXml->GetAttribute("DmxTiltSlewLimit", "0");
-
-    wxString sc = ModelXml->GetAttribute("DmxShutterChannel", "0");
-    wxString so = ModelXml->GetAttribute("DmxShutterOpen", "1");
-    wxString sv = ModelXml->GetAttribute("DmxShutterOnValue", "0");
-    wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "4");
-    wxString dbw = ModelXml->GetAttribute("DmxBeamWidth", "30");
-    wxString dct = ModelXml->GetAttribute("DmxColorType", "0");
-    wxString dfx = ModelXml->GetAttribute("DmxFixture", "MH1");
-
-    if (s.empty()) {
-        s = "Moving Head Top";
-    }
-
-    f.Write(wxString::Format("DmxStyle=\"%s\" ", s));
-    f.Write(wxString::Format("DmxPanDegOfRot=\"%s\" ", pdr));
-    f.Write(wxString::Format("DmxTiltDegOfRot=\"%s\" ", tdr));
-    f.Write(wxString::Format("DmxPanChannel=\"%s\" ", pc));
-    f.Write(wxString::Format("DmxPanOrient=\"%s\" ", po));
-    f.Write(wxString::Format("DmxPanSlewLimit=\"%s\" ", psl));
-    f.Write(wxString::Format("DmxTiltChannel=\"%s\" ", tc));
-    f.Write(wxString::Format("DmxTiltOrient=\"%s\" ", to));
-    f.Write(wxString::Format("DmxTiltSlewLimit=\"%s\" ", tsl));
-
-    f.Write(wxString::Format("DmxShutterChannel=\"%s\" ", sc));
-    f.Write(wxString::Format("DmxShutterOpen=\"%s\" ", so));
-    f.Write(wxString::Format("DmxShutterOnValue=\"%s\" ", sv));
-    f.Write(wxString::Format("DmxBeamLength=\"%s\" ", dbl));
-    f.Write(wxString::Format("DmxBeamWidth=\"%s\" ", dbw));
-    f.Write(wxString::Format("DmxColorType=\"%s\" ", dct));
-    f.Write(wxString::Format("DmxFixture=\"%s\" ", dfx));
-    color_ability->ExportParameters(f,ModelXml);
-
-    f.Write(" >\n");
-
-    wxString submodel = SerialiseSubmodel();
-    if (submodel != "") {
-        f.Write(submodel);
-    }
-    wxString state = SerialiseState();
-    if (state != "") {
-        f.Write(state);
-    }
-    wxString groups = SerialiseGroups();
-    if (groups != "") {
-        f.Write(groups);
-    }
-    //ExportDimensions(f);
-    f.Write("</dmxmodel>");
-    f.Close();
-    */
-}
-
 bool DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) {
     if (XmlSerializer::IsXmlSerializerFormat(root)) {
         return true;
@@ -1338,10 +1228,10 @@ bool DmxMovingHead::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, f
 
 void DmxMovingHead::EnableFixedChannels(xlColorVector& pixelVector) const
 {
-    if (shutter_channel != 0 && shutter_on_value != 0) {
-        if (Nodes.size() > shutter_channel - 1) {
-            xlColor c(shutter_on_value, shutter_on_value, shutter_on_value);
-            pixelVector[shutter_channel - 1] = c;
+    if (shutter_ability->GetShutterChannel() != 0 && shutter_ability->GetShutterOnValue()!= 0) {
+        if (Nodes.size() > shutter_ability->GetShutterChannel() - 1) {
+            xlColor c(shutter_ability->GetShutterOnValue(), shutter_ability->GetShutterOnValue(), shutter_ability->GetShutterOnValue());
+            pixelVector[shutter_ability->GetShutterChannel() - 1] = c;
         }
     }
     DmxModel::EnableFixedChannels(pixelVector);
@@ -1351,8 +1241,8 @@ std::vector<std::string> DmxMovingHead::GenerateNodeNames() const
 {
     std::vector<std::string> names = DmxModel::GenerateNodeNames();
 
-    if (0 != shutter_channel && shutter_channel < names.size()) {
-        names[shutter_channel - 1] = "Shutter";
+    if (0 != shutter_ability->GetShutterChannel() && shutter_ability->GetShutterChannel() < names.size()) {
+        names[shutter_ability->GetShutterChannel() - 1] = "Shutter";
     }
     if (0 != pan_motor->GetChannelCoarse() && pan_motor->GetChannelCoarse() < names.size()) {
         names[pan_motor->GetChannelCoarse() - 1] = "Pan";

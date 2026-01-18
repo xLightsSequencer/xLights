@@ -11,12 +11,11 @@
  **************************************************************/
 
 #include "DmxMovingHeadComm.h"
-#include "DmxDimmerAbility.h"
 #include "DmxMotor.h"
 
-class DmxMotorBase;
+class DmxMotor;
 
-class DmxMovingHead : public DmxMovingHeadComm, public DmxDimmerAbility
+class DmxMovingHead : public DmxMovingHeadComm
 {
     public:
         DmxMovingHead(const ModelManager &manager);
@@ -36,13 +35,10 @@ class DmxMovingHead : public DmxMovingHeadComm, public DmxDimmerAbility
         void EnableFixedChannels(xlColorVector& pixelVector) const override;
         [[nodiscard]] std::vector<std::string> GenerateNodeNames() const override;
 
-        [[nodiscard]] DmxMotorBase* GetPanMotor() const override { return pan_motor.get(); }
-        [[nodiscard]] DmxMotorBase* GetTiltMotor() const override { return tilt_motor.get(); }
+        [[nodiscard]] DmxMotor* GetPanMotor() const override { return pan_motor.get(); }
+        [[nodiscard]] DmxMotor* GetTiltMotor() const override { return tilt_motor.get(); }
 
-        [[nodiscard]] uint32_t GetMHDimmerChannel() const override {return GetDimmerChannel();}
         [[nodiscard]] std::string const& GetDMXStyle() const { return dmx_style; }
-        [[nodiscard]] float GetBeamLength() const { return beam_length; }
-        [[nodiscard]] float GetBeamWidth() const { return beam_width; }
         [[nodiscard]] bool GetHideBody() const { return hide_body; }
         [[nodiscard]] virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
@@ -55,10 +51,7 @@ class DmxMovingHead : public DmxMovingHeadComm, public DmxDimmerAbility
 
         virtual void InitModel() override;
 
-        virtual void ExportXlightsModel() override;
         [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
-
-        virtual float GetDefaultBeamWidth() const { return 30; }
 
         std::unique_ptr<DmxMotor> pan_motor = nullptr;
         std::unique_ptr<DmxMotor> tilt_motor = nullptr;
@@ -68,6 +61,4 @@ class DmxMovingHead : public DmxMovingHeadComm, public DmxDimmerAbility
         bool style_changed;
         std::string dmx_style;
         int dmx_style_val;
-        float beam_length;
-        float beam_width;
 };

@@ -24,7 +24,7 @@ class DmxDimmerAbility
         virtual ~DmxDimmerAbility();
 
         void AddDimmerTypeProperties(wxPropertyGridInterface *grid);
-        int OnDimmerPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base);
+        int OnDimmerPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base);
 
         int GetDimmerChannel() const { return dimmer_channel; }
         void SetDimmerChannel( int chan ) { dimmer_channel = chan; }

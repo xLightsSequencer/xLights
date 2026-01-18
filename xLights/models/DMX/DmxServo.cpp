@@ -525,59 +525,6 @@ void DmxServo::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphi
     }
 }
 
-void DmxServo::ExportXlightsModel()
-{
-    wxString name = ModelXml->GetAttribute("name");
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty())
-        return;
-    wxFile f(filename);
-
-    if (!f.Create(filename, true) || !f.IsOpened()) {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-        return;
-    }
-
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxservo \n");
-
-    wxString bits = ModelXml->GetAttribute("Bits16", "1");
-    wxString brt = ModelXml->GetAttribute("Brightness", "100");
-    wxString trans = ModelXml->GetAttribute("Transparency", "0");
-    f.Write(wxString::Format("Bits16=\"%s\" ", bits));
-    f.Write(wxString::Format("Brightness=\"%s\" ", brt));
-    f.Write(wxString::Format("Transparency=\"%s\" ", trans));
-
-    f.Write(" >\n");
-
-    wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
-    for (auto it = static_images.begin(); it != static_images.end(); ++it) {
-        (*it)->Serialise(ModelXml, f, show_dir);
-    }
-    for (auto it = motion_images.begin(); it != motion_images.end(); ++it) {
-        (*it)->Serialise(ModelXml, f, show_dir);
-    }
-    for (auto it = servos.begin(); it != servos.end(); ++it) {
-        (*it)->Serialise(ModelXml, f, show_dir);
-    }
-
-    wxString submodel = SerialiseSubmodel();
-    if (submodel != "") {
-        f.Write(submodel);
-    }
-    wxString state = SerialiseState();
-    if (state != "") {
-        f.Write(state);
-    }
-    wxString groups = SerialiseGroups();
-    if (groups != "") {
-        f.Write(groups);
-    }
-    //ExportDimensions(f);
-    f.Write("</dmxservo>");
-    f.Close();
-}
-
 bool DmxServo::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z)
 {
     if (root->GetName() == "dmxservo") {
