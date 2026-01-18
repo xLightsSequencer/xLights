@@ -449,7 +449,7 @@ void DmxServo3d::InitModel()
             int id = atoi(num.c_str()) - 1;
             if (id < num_servos) {
                 if (servos[id] == nullptr) {
-                    servos[id] = new Servo(n, name, false);
+                    servos[id] = new Servo(name, false);
                 }
             }
         }
@@ -472,8 +472,8 @@ void DmxServo3d::InitModel()
             std::string new_name = "Servo" + std::to_string(i + 1);
             wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
             ModelXml->AddChild(new_node);
-            servos[i] = new Servo(new_node, new_name, true);
-            servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1, this);
+            servos[i] = new Servo(new_name, true);
+            servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1);
         }
     }
 
@@ -560,7 +560,7 @@ void DmxServo3d::InitModel()
     if (update_bits) {
         for (int i = 0; i < num_servos; ++i) {
             if (servos[i] != nullptr) {
-                servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1, this);
+                servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1);
             }
         }
         update_bits = false;
@@ -862,8 +862,8 @@ bool DmxServo3d::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
                 std::string new_name = "Servo" + std::to_string(i + 1);
                 wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
                 ModelXml->AddChild(new_node);
-                servos[i] = new Servo(new_node, new_name, true);
-                servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1, this);
+                servos[i] = new Servo(new_name, true);
+                servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1);
             }
         }
 
@@ -908,7 +908,7 @@ bool DmxServo3d::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
         }
 
         wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
-        for (auto it = static_meshs.begin(); it != static_meshs.end(); ++it) {
+       /* for (auto it = static_meshs.begin(); it != static_meshs.end(); ++it) {
             (*it)->Serialise(root, ModelXml, show_dir);
         }
         for (auto it = motion_meshs.begin(); it != motion_meshs.end(); ++it) {
@@ -916,7 +916,7 @@ bool DmxServo3d::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, floa
         }
         for (auto it = servos.begin(); it != servos.end(); ++it) {
             (*it)->Serialise(root, ModelXml, show_dir);
-        }
+        }*/
 
         ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y, min_z, max_z);
 

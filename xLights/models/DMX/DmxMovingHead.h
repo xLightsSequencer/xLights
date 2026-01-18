@@ -35,8 +35,16 @@ class DmxMovingHead : public DmxMovingHeadComm
         void EnableFixedChannels(xlColorVector& pixelVector) const override;
         [[nodiscard]] std::vector<std::string> GenerateNodeNames() const override;
 
+        DmxMotor* CreatePanMotor(const std::string& name);
+        DmxMotor* CreateTiltMotor(const std::string& name);
+
         [[nodiscard]] DmxMotor* GetPanMotor() const override { return pan_motor.get(); }
         [[nodiscard]] DmxMotor* GetTiltMotor() const override { return tilt_motor.get(); }
+
+        void SetHideBody(bool val) { hide_body = val; }
+        void SetDmxStyle(const std::string& val) { dmx_style = val; }
+        [[nodiscard]] bool GetHideBody() { return hide_body; }
+        [[nodiscard]] const std::string& GetDmxStyle() { return dmx_style; }
 
         [[nodiscard]] std::string const& GetDMXStyle() const { return dmx_style; }
         [[nodiscard]] bool GetHideBody() const { return hide_body; }
@@ -57,8 +65,8 @@ class DmxMovingHead : public DmxMovingHeadComm
         std::unique_ptr<DmxMotor> tilt_motor = nullptr;
         std::map<std::string, PanTiltState> panTiltStates;
 
-        bool hide_body = false;
-        bool style_changed;
-        std::string dmx_style;
-        int dmx_style_val;
+        bool hide_body {false};
+        bool style_changed {false};
+        std::string dmx_style {"Moving Head Top"};
+        int dmx_style_val {0};
 };

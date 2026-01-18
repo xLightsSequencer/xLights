@@ -466,12 +466,12 @@ void DmxSkull::AddServo(Servo** _servo, const std::string& name, int type, const
     if (*_servo == nullptr) {
         wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, name);
         ModelXml->AddChild(new_node);
-        Servo* s = new Servo(new_node, name, false);
+        Servo* s = new Servo(name, false);
         s->SetMinLimit(default_min_limit[type]);
         s->SetMaxLimit(default_max_limit[type]);
         s->SetRangeOfMotion(default_range_of_motion[type]);
         s->SetStyle(style);
-        s->SetChannel(default_channels[type], this);
+        s->SetChannel(default_channels[type]);
         *_servo = s;
     }
     (*_servo)->Init(this);
@@ -543,27 +543,27 @@ void DmxSkull::InitModel()
             }
         } else if ("JawServo" == name) {
             if (has_jaw && jaw_servo == nullptr) {
-                jaw_servo = new Servo(n, "JawServo", false);
+                jaw_servo = new Servo("JawServo", false);
             }
         } else if ("PanServo" == name) {
             if (has_pan && pan_servo == nullptr) {
-                pan_servo = new Servo(n, "PanServo", false);
+                pan_servo = new Servo("PanServo", false);
             }
         } else if ("TiltServo" == name) {
             if (has_tilt && tilt_servo == nullptr) {
-                tilt_servo = new Servo(n, "TiltServo", false);
+                tilt_servo = new Servo("TiltServo", false);
             }
         } else if ("NodServo" == name) {
             if (has_nod && nod_servo == nullptr) {
-                nod_servo = new Servo(n, "NodServo", false);
+                nod_servo = new Servo("NodServo", false);
             }
         } else if ("EyeUpDownServo" == name) {
             if (has_eye_ud && eye_ud_servo == nullptr) {
-                eye_ud_servo = new Servo(n, "EyeUpDownServo", false);
+                eye_ud_servo = new Servo("EyeUpDownServo", false);
             }
         } else if ("EyeLeftRightServo" == name) {
             if (has_eye_lr && eye_lr_servo == nullptr) {
-                eye_lr_servo = new Servo(n, "EyeLeftRightServo", false);
+                eye_lr_servo = new Servo("EyeLeftRightServo", false);
             }
         }
         n = n->GetNext();
@@ -936,7 +936,7 @@ bool DmxSkull::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float&
 
         wxString show_dir = GetModelManager().GetXLightsFrame()->GetShowDirectory();
 
-        if (hj == "1")
+        /*if (hj == "1")
             jaw_servo->Serialise(root, ModelXml, show_dir);
         if (hp == "1")
             pan_servo->Serialise(root, ModelXml, show_dir);
@@ -948,7 +948,7 @@ bool DmxSkull::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float&
             eye_lr_servo->Serialise(root, ModelXml, show_dir);
         if (heu == "1")
             eye_ud_servo->Serialise(root, ModelXml, show_dir);
-
+*/
         ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y, min_z, max_z);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::ImportXlightsModel");
@@ -967,7 +967,7 @@ void DmxSkull::SetupServo(Servo* _servo, int channel, float min_limit, float max
         _servo->SetMaxLimit(max_limit);
         _servo->SetRangeOfMotion(range_of_motion);
         _servo->Set16Bit(_16bit);
-        _servo->SetChannel(channel, this);
+        _servo->SetChannel(channel);
     }
 }
 

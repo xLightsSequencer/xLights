@@ -68,15 +68,7 @@ public:
     }
 };
 
-// These recreate the DMX color types from DmxModel so that the "Unused" option could be added
-static const char* DMX_COLOR_TYPES_ADV_VALUES[] = {
-    "RGBW",
-    "ColorWheel",
-    "CMYW",
-    "Unused"
-};
-
-static wxPGChoices DMX_COLOR_TYPES_ADV(wxArrayString(4, DMX_COLOR_TYPES_ADV_VALUES));
+static wxPGChoices DMX_COLOR_TYPES(wxArrayString(4, DMX_COLOR_TYPES_VALUES));
 
 DmxMovingHeadAdv::DmxMovingHeadAdv(const ModelManager &manager) :
     DmxMovingHeadComm(manager)
@@ -91,12 +83,19 @@ DmxMovingHeadAdv::DmxMovingHeadAdv(const ModelManager &manager) :
     obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/meshobjects/SimpleMovingHead/";
 #endif
 #endif
+    color_ability = std::make_unique<DmxColorAbilityRGB>();
     dimmer_ability = std::make_unique<DmxDimmerAbility>();
     shutter_ability = std::make_unique<DmxShutterAbility>();
     beam_ability = std::make_unique<DmxBeamAbility>();
     beam_ability->SetDefaultBeamLength(4.0);
     beam_ability->SetDefaultBeamWidth(4.0);
     beam_ability->SetDefaultBeamYOffset(17.0);
+    beam_ability->SetBeamLength(4.0);
+    beam_ability->SetBeamWidth(4.0);
+    beam_ability->SetBeamYOffset(17.0);
+    dynamic_cast<DmxColorAbilityRGB*>(color_ability.get())->SetRedChannel(5);
+    dynamic_cast<DmxColorAbilityRGB*>(color_ability.get())->SetGreenChannel(6);
+    dynamic_cast<DmxColorAbilityRGB*>(color_ability.get())->SetBlueChannel(7);
 }
 
 DmxMovingHeadAdv::~DmxMovingHeadAdv()
@@ -236,9 +235,9 @@ void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputMa
     grid->Append(new wxPropertyCategory("Color Properties", "DmxColorAbility"));
     int selected = 3; // show Unused if not selected
     if (nullptr != color_ability) {
-        selected = DMX_COLOR_TYPES_ADV.Index(color_ability->GetTypeName());
+        selected = DMX_COLOR_TYPES.Index(color_ability->GetTypeName());
     }
-    grid->Append(new wxEnumProperty("Color Type", "DmxColorType", DMX_COLOR_TYPES_ADV, selected));
+    grid->Append(new wxEnumProperty("Color Type", "DmxColorType", DMX_COLOR_TYPES, selected));
     if (nullptr != color_ability) {
         ControllerCaps *caps = GetControllerCaps();
         color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
@@ -300,10 +299,8 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
     }
 
     if ("DmxFixture" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxFixture");
         fixture_val = event.GetPropertyValue().GetLong();
         dmx_fixture = FixtureIDtoString(fixture_val); 
-        ModelXml->AddAttribute("DmxFixture", dmx_fixture);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DmxFixture");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DmxFixture");
         return 0;

@@ -128,7 +128,7 @@ void DmxMotor::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxBoolProperty("Reverse (CCW Rotation)", base_name + "Reverse", reverse));
+    p = grid->Append(new wxBoolProperty("Reverse Rotation", base_name + "Reverse", reverse));
     p->SetAttribute("UseCheckbox", true);
 
     p = grid->Append(new wxBoolProperty("Upside Down", base_name + "UpsideDown", upside_down));
@@ -212,66 +212,4 @@ int DmxMotor::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
     }
 
     return -1;
-}
-
-// Serialise for export
-void DmxMotor::Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const
-{
-    wxString res = "";
-
-    wxXmlNode* child = root->GetChildren();
-    while (child != nullptr) {
-        if (child->GetName() == base_name) {
-            wxXmlDocument new_doc;
-            new_doc.SetRoot(new wxXmlNode(*child));
-            wxStringOutputStream stream;
-            new_doc.Save(stream);
-            wxString s = stream.GetString();
-            s = s.SubString(s.Find("\n") + 1, s.Length()); // skip over xml format header
-            int index = s.Find(show_dir);
-            while (index != wxNOT_FOUND) {
-                s = s.SubString(0, index - 1) + s.SubString(index + show_dir.Length() + 1, s.Length());
-                index = s.Find(show_dir);
-            }
-            res += s;
-        }
-        child = child->GetNext();
-    }
-
-    if (res != "")
-    {
-        f.Write(res);
-    }
-}
-
-// Serialise for input
-void DmxMotor::Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const
-{
-    wxXmlNode* node = nullptr;
-    for (wxXmlNode* n = model_xml->GetChildren(); n != nullptr; n = n->GetNext())
-    {
-        if (n->GetName() == base_name)
-        {
-            node = n;
-            break;
-        }
-    }
-
-    if (node != nullptr) {
-        // add new attributes from import
-        for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
-        {
-            if (n->GetName() == base_name)
-            {
-                for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext())
-                {
-                    if (node->HasAttribute(a->GetName())) {
-                        node->DeleteAttribute(a->GetName());
-                    }
-                    node->AddAttribute(a->GetName(), a->GetValue());
-                }
-                return;
-            }
-        }
-    }
 }

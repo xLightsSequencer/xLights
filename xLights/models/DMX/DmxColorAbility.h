@@ -23,6 +23,13 @@ class Model;
 class xlColor;
 class wxFile;
 
+static const char* DMX_COLOR_TYPES_VALUES[] = {
+    "RGBW",
+    "ColorWheel",
+    "CMYW",
+    "Unused"
+};
+
 class DmxColorAbility
 {
     public:
@@ -31,7 +38,8 @@ class DmxColorAbility
         {
             DMX_COLOR_RGBW,
             DMX_COLOR_WHEEL,
-            DMX_COLOR_CMYW
+            DMX_COLOR_CMYW,
+            DMX_COLOR_UNUSED
         };
 
         virtual ~DmxColorAbility() = default;

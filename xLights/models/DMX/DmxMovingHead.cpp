@@ -32,18 +32,35 @@
 #include "../XmlSerializer.h"
 
 DmxMovingHead::DmxMovingHead(const ModelManager &manager) :
-    DmxMovingHeadComm(manager), hide_body(false), style_changed(false), dmx_style("Moving Head Top"),
-    dmx_style_val(0)
+    DmxMovingHeadComm(manager)
 {
+    color_ability = std::make_unique<DmxColorAbilityRGB>();
     dimmer_ability = std::make_unique<DmxDimmerAbility>();
     shutter_ability = std::make_unique<DmxShutterAbility>();
     beam_ability = std::make_unique<DmxBeamAbility>();
     beam_ability->SetDefaultBeamLength(4.0);
     beam_ability->SetDefaultBeamWidth(30.0);
+    beam_ability->SetBeamLength(4.0);
+    beam_ability->SetBeamWidth(30.0);
+    dynamic_cast<DmxColorAbilityRGB*>(color_ability.get())->SetRedChannel(1);
+    dynamic_cast<DmxColorAbilityRGB*>(color_ability.get())->SetGreenChannel(2);
+    dynamic_cast<DmxColorAbilityRGB*>(color_ability.get())->SetBlueChannel(3);
 }
 
 DmxMovingHead::~DmxMovingHead()
 {
+}
+
+DmxMotor* DmxMovingHead::CreatePanMotor(const std::string& name)
+{
+    pan_motor = std::make_unique<DmxMotor>(name);
+    return pan_motor.get();
+}
+
+DmxMotor* DmxMovingHead::CreateTiltMotor(const std::string& name)
+{
+    tilt_motor = std::make_unique<DmxMotor>(name);
+    return tilt_motor.get();
 }
 
 #define ToRadians(x) ((double)x * PI / (double)180.0)
@@ -98,19 +115,7 @@ public:
     }
 };
 
-/*enum DMX_COLOR_TYPES {
-    DMX_COLOR_TYPE_RGBW,
-    DMX_COLOR_TYPE_WHEEL,
-    DMX_COLOR_TYPE_CMYW
-};*/
-
-static const char* DMX_COLOR_TYPES_VALUES[] = {
-    "RGBW",
-    "ColorWheel",
-    "CMYW"
-};
-
-static wxPGChoices DMX_COLOR_TYPES(wxArrayString(3, DMX_COLOR_TYPES_VALUES));
+static wxPGChoices DMX_COLOR_TYPES(wxArrayString(4, DMX_COLOR_TYPES_VALUES));
 
 static wxPGChoices DMX_STYLES;
 
@@ -159,13 +164,18 @@ void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
     pan_motor->AddTypeProperties(grid);
     tilt_motor->AddTypeProperties(grid);
 
+    grid->Append(new wxPropertyCategory("Color Properties", "DmxColorAbility"));
+    int selected = 3; // show Unused if not selected
     if (nullptr != color_ability) {
-        grid->Append(new wxPropertyCategory("Color Properties", "DmxColorAbility"));
-        int selected = DMX_COLOR_TYPES.Index(color_ability->GetTypeName());
-        grid->Append(new wxEnumProperty("Color Type", "DmxColorType", DMX_COLOR_TYPES, selected));
+        selected = DMX_COLOR_TYPES.Index(color_ability->GetTypeName());
+    }
+    grid->Append(new wxEnumProperty("Color Type", "DmxColorType", DMX_COLOR_TYPES, selected));
+    if (nullptr != color_ability) {
         ControllerCaps *caps = GetControllerCaps();
         color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
     }
+    grid->Collapse("DmxColorAbility");
+
     dimmer_ability->AddDimmerTypeProperties(grid);
     shutter_ability->AddShutterTypeProperties(grid);
     beam_ability->AddBeamTypeProperties(grid);
@@ -198,8 +208,11 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         return 0;
     }
 
+    if (beam_ability->OnBeamPropertyGridChange(grid, event, this) == 0) {
+        return 0;
+    }
+
     if ("DmxStyle" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxStyle");
         dmx_style_val = event.GetPropertyValue().GetLong();
         if (dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP) {
             dmx_style = "Moving Head Top";
@@ -214,7 +227,6 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         } else if (dmx_style_val == DMX_STYLE_MOVING_HEAD_3D) {
             dmx_style = "Moving Head 3D";
         }
-        ModelXml->AddAttribute("DmxStyle", dmx_style);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::DMXStyle");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMovingHead::OnPropertyGridChange::DMXStyle");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHead::OnPropertyGridChange::DMXStyle");
@@ -224,29 +236,10 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMovingHead::OnPropertyGridChange::DMXStyle");
         return 0;
     } else if ("HideBody" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("HideBody");
-        if (event.GetPropertyValue().GetBool()) {
-            ModelXml->AddAttribute("HideBody", "True");
-        }
+        hide_body = event.GetPropertyValue().GetBool();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::HideBody");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHead::OnPropertyGridChange::HideBody");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHead::OnPropertyGridChange::HideBody");
-        return 0;
-    }
-    else if ("DmxBeamLength" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxBeamLength");
-        ModelXml->AddAttribute("DmxBeamLength", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::DMXBeamLength");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHead::OnPropertyGridChange::DMXBeamLength");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHead::OnPropertyGridChange::DMXBeamLength");
-        return 0;
-    }
-    else if ("DmxBeamWidth" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxBeamWidth");
-        ModelXml->AddAttribute("DmxBeamWidth", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::DMXBeamWidth");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHead::OnPropertyGridChange::DMXBeamWidth");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHead::OnPropertyGridChange::DMXBeamWidth");
         return 0;
     }
     else if ("DmxColorType" == event.GetPropertyName()) {
@@ -258,10 +251,8 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
         return 0;
     } else if ("DmxFixture" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DmxFixture");
         fixture_val = event.GetPropertyValue().GetLong();
         dmx_fixture = FixtureIDtoString(fixture_val);
-        ModelXml->AddAttribute("DmxFixture", dmx_fixture);
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::DmxFixture");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHead::OnPropertyGridChange::DmxFixture");
         return 0;
@@ -272,7 +263,6 @@ int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
 
 void DmxMovingHead::InitModel() {
     DmxModel::InitModel();
-    DisplayAs = "DmxMovingHead";
     screenLocation.SetRenderSize(1, 1, 1);
     if (screenLocation.GetScaleZ() < 1.0) {
         screenLocation.SetScaleZ(1.0);
@@ -280,56 +270,24 @@ void DmxMovingHead::InitModel() {
     StringType = "Single Color White";
     parm2 = 1;
     parm3 = 1;
-    hide_body = ModelXml->GetAttribute("HideBody", "False") == "True";
-	dmx_style = ModelXml->GetAttribute("DmxStyle", "Moving Head Top");
-
-    int color_type = wxAtoi(ModelXml->GetAttribute("DmxColorType", "0"));
-    if (color_type == 0) {
-        color_ability = std::make_unique<DmxColorAbilityRGB>();
-    }else if (color_type == 1) {
-        color_ability = std::make_unique<DmxColorAbilityWheel>();
-    }
-    else {
-        color_ability = std::make_unique<DmxColorAbilityCMY>();
-    }
-
-    wxXmlNode* n = ModelXml->GetChildren();
-    while (n != nullptr) {
-        std::string name = n->GetName();
-
-        if ("PanMotor" == name) {
-             if (pan_motor == nullptr) {
-                pan_motor = std::make_unique<DmxMotor>(name);
-             }
-        } else if ("TiltMotor" == name) {
-            if (tilt_motor == nullptr) {
-                tilt_motor = std::make_unique<DmxMotor>(name);
-            }
-        }
-        n = n->GetNext();
-    }
 
     // create pan motor
     if (pan_motor == nullptr) {
         std::string new_name = "PanMotor";
-        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
-        ModelXml->AddChild(new_node);
         pan_motor = std::make_unique<DmxMotor>(new_name);
         pan_motor->SetChannelCoarse(1);
-        new_node->AddAttribute("RangeOfMotion", "540");
-        new_node->AddAttribute("OrientHome", "90");
-        new_node->AddAttribute("SlewLimit", "180");
+        pan_motor->SetRangeOfMOtion(540.0);
+        pan_motor->SetOrientHome(90);
+        pan_motor->SetSlewLimit(180);
     }
 
     // create tilt motor
     if (tilt_motor == nullptr) {
         std::string new_name = "TiltMotor";
-        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
-        ModelXml->AddChild(new_node);
-        new_node->AddAttribute("OrientHome", "90");
-        new_node->AddAttribute("SlewLimit", "180");
         tilt_motor = std::make_unique<DmxMotor>(new_name);
         tilt_motor->SetChannelCoarse(3);
+        tilt_motor->SetOrientHome(90);
+        tilt_motor->SetSlewLimit(180);
     }
 
     pan_motor->Init();
@@ -352,7 +310,6 @@ void DmxMovingHead::InitModel() {
         dmx_style = "Moving Head Top";
     }
 
-    dmx_fixture = ModelXml->GetAttribute("DmxFixture", "MH1");
     fixture_val = FixtureStringtoID(dmx_fixture);
 
     if (dmx_fixture.empty()) {
@@ -545,7 +502,7 @@ void DmxMovingHead::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlG
 
     int trans = color == xlBLACK ? blackTransparency : transparency;
 
-    xlColor beam_color = color_ability->GetBeamColor(Nodes);
+    xlColor beam_color = color_ability == nullptr ? xlWHITE : color_ability->GetBeamColor(Nodes);
 
     // apply dimmer to beam
     if (dimmer_ability->GetDimmerChannel() > 0 && active) {

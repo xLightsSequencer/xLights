@@ -60,6 +60,7 @@
 #include "DMX/DmxMovingHeadAdv.h"
 #include "DMX/DmxMovingHead.h"
 #include "DMX/Mesh.h"
+#include "DMX/Servo.h"
 
 namespace XmlNodeKeys {
     // Model Node Names
@@ -2282,8 +2283,8 @@ private:
         motor->SetOrientHome(std::stoi(node->GetAttribute(XmlNodeKeys::OrientHomeAttribute, "0").ToStdString()));
         motor->SetSlewLimit(std::stof(node->GetAttribute(XmlNodeKeys::SlewLimitAttribute, "0.0").ToStdString()));
         motor->SetReverse(std::stoi(node->GetAttribute(XmlNodeKeys::OrientHomeAttribute, "0").ToStdString()));
-        motor->SetReverse(node->GetAttribute(XmlNodeKeys::ReverseAttribute, "false") == "true");
-        motor->SetUpsideDown(node->GetAttribute(XmlNodeKeys::UpsideDownAttribute, "false") == "true");
+        motor->SetReverse(node->GetAttribute(XmlNodeKeys::ReverseAttribute, "0") == "1");
+        motor->SetUpsideDown(node->GetAttribute(XmlNodeKeys::UpsideDownAttribute, "0") == "1");
     }
     
     void DeserializeMesh(Mesh* mesh, wxXmlNode* node) {
@@ -2291,7 +2292,7 @@ private:
         mesh->SetRenderWidth(std::stof(node->GetAttribute(XmlNodeKeys::WidthAttribute, "1.0f").ToStdString()));
         mesh->SetRenderHeight(std::stof(node->GetAttribute(XmlNodeKeys::HeightAttribute, "1.0f").ToStdString()));
         mesh->SetRenderDepth(std::stof(node->GetAttribute(XmlNodeKeys::DepthAttribute, "1.0f").ToStdString()));
-        mesh->SetMeshOnly(node->GetAttribute(XmlNodeKeys::MeshOnlyAttribute, "false") == "true");
+        mesh->SetMeshOnly(node->GetAttribute(XmlNodeKeys::MeshOnlyAttribute, "0") == "1");
         mesh->SetBrightness(std::stof(node->GetAttribute(XmlNodeKeys::BrightnessAttribute, "100.0f").ToStdString()));
         mesh->SetScaleX(std::stof(node->GetAttribute(XmlNodeKeys::ScaleXAttribute, "1.0f").ToStdString()));
         mesh->SetScaleY(std::stof(node->GetAttribute(XmlNodeKeys::ScaleYAttribute, "1.0f").ToStdString()));
@@ -2304,6 +2305,22 @@ private:
         mesh->SetOffsetZ(std::stof(node->GetAttribute(XmlNodeKeys::OffsetZAttribute, "0.0f").ToStdString()));
     }
 
+    void DeserializeServo(Servo* servo, wxXmlNode* node) {
+        servo->SetChannel(std::stoi(node->GetAttribute("Channel", "0").ToStdString()));
+        servo->SetMinLimit(std::stoi(node->GetAttribute("MinLimit", "1").ToStdString()));
+        servo->SetMaxLimit(std::stoi(node->GetAttribute("MaxLimit", "65535").ToStdString()));
+        servo->SetRangeOfMotion(std::stof(node->GetAttribute("RangeOfMotion", "180.0f").ToStdString()));
+        servo->SetScaledPivotOffsetX(std::stof(node->GetAttribute("PivotOffsetX", "0").ToStdString()));
+        servo->SetScaledPivotOffsetY(std::stof(node->GetAttribute("PivotOffsetY", "0").ToStdString()));
+        servo->SetScaledPivotOffsetZ(std::stof(node->GetAttribute("PivotOffsetZ", "0").ToStdString()));
+        servo->SetStyle(node->GetAttribute("ServoStyle", "Translate X"));
+        servo->SetControllerMin(std::stoi(node->GetAttribute("ControllerMin", "1000").ToStdString()));
+        servo->SetControllerMax(std::stoi(node->GetAttribute("ControllerMax", "2000").ToStdString()));
+        servo->SetControllerReverse(std::stoi(node->GetAttribute("ControllerReverse", "0").ToStdString()) != 0);
+        servo->SetControllerZero(node->GetAttribute("ControllerZeroBehavior", "Hold"));
+        servo->SetControllerDataType(node->GetAttribute("ControllerDataType", "Scaled"));
+    }
+
     void DeserializeDmxMovingHeadComm(DmxMovingHeadComm* model, wxXmlNode* node) {
         model->SetDmxFixture(node->GetAttribute(XmlNodeKeys::DmxFixtureAttribute, "MH1"));
         DeserializeDmxModel(model, node);
@@ -2312,8 +2329,23 @@ private:
     Model* DeserializeDmxMovingHead(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         DmxMovingHead* model = new DmxMovingHead(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
+        DeserializeDynamicColorAbility(model, node);
         DeserializeDmxMovingHeadComm(model, node);
-        // Incomplete
+        model->SetHideBody(node->GetAttribute("HideBody", "False").ToStdString() == "True");
+        model->SetDmxStyle(node->GetAttribute("DmxStyle", "Moving Head Top"));
+
+        wxXmlNode* n = node->GetChildren();
+        while (n != nullptr) {
+            std::string name = n->GetName();
+            if ("PanMotor" == name) {
+                DmxMotor* motor = model->CreatePanMotor(name);
+                DeserializeDmxMotor(motor, n);
+            } else if ("TiltMotor" == name) {
+                DmxMotor* motor = model->CreateTiltMotor(name);
+                DeserializeDmxMotor(motor, n);
+            }
+            n = n->GetNext();
+        }
         model->Setup();
         return model;
     }
@@ -2321,6 +2353,7 @@ private:
     Model* DeserializeDmxMovingHeadAdv(wxXmlNode *node, xLightsFrame* xlights, bool importing) {
         DmxMovingHeadAdv *model = new DmxMovingHeadAdv(xlights->AllModels);
         CommonDeserializeSteps(model, node, xlights, importing);
+        DeserializeDynamicColorAbility(model, node);
         DeserializeDmxMovingHeadComm(model, node);
 
         wxXmlNode* n = node->GetChildren();

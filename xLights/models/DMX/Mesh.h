@@ -50,9 +50,6 @@ public:
             bool show_empty, float pivot_offset_x, float pivot_offset_y, float pivot_offset_z,
             bool rotation, bool use_pivot);
 
-    void Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const;
-    void Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const;
-
     void SetLink(Mesh* val) { link = val; }
     Mesh* GetLink() { return link; }
 

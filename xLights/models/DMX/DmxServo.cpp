@@ -142,7 +142,7 @@ int DmxServo::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
 
         for (int i = 0; i < num_servos; ++i) {
             if (servos[i] != nullptr) {
-                servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1, this);
+                servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1);
             }
         }
 
@@ -296,7 +296,7 @@ void DmxServo::InitModel()
             int id = atoi(num.c_str()) - 1;
             if (id < num_servos) {
                 if (servos[id] == nullptr) {
-                    servos[id] = new Servo(n, name, true);
+                    servos[id] = new Servo(name, true);
                 }
             }
         }
@@ -332,8 +332,8 @@ void DmxServo::InitModel()
             std::string new_name = "Servo" + std::to_string(i + 1);
             wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
             ModelXml->AddChild(new_node);
-            servos[i] = new Servo(new_node, new_name, true);
-            servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1, this);
+            servos[i] = new Servo(new_name, true);
+            servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1);
         }
     }
 
@@ -575,9 +575,9 @@ bool DmxServo::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float&
         for (auto it = motion_images.begin(); it != motion_images.end(); ++it) {
             (*it)->Serialise(root, ModelXml, show_dir);
         }
-        for (auto it = servos.begin(); it != servos.end(); ++it) {
-            (*it)->Serialise(root, ModelXml, show_dir);
-        }
+        //for (auto it = servos.begin(); it != servos.end(); ++it) {
+        //    (*it)->Serialise(root, ModelXml, show_dir);
+        //}
 
         ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y, min_z, max_z);
 

@@ -31,9 +31,6 @@ protected:
 
         int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event, BaseObject* base, bool locked);
 
-        void Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const;
-        void Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const;
-
         std::string GetName() const { return base_name; }
         int GetChannelCoarse() const { return channel_coarse; }
         int GetChannelFine() const { return channel_fine; }
