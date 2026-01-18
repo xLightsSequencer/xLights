@@ -21,7 +21,6 @@ public:
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
     virtual bool SupportsXlightsModel() override { return true; }
     virtual bool SupportsWiringView() const override { return false; }
-    [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
     virtual int NodeRenderOrder() override { return 1; }
     virtual void ExportAsCustomXModel3D() const override;
     bool Find3DCustomModelScale(int scale, float minx, float miny, float minz, float w, float h, float d) const;

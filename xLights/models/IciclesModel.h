@@ -24,7 +24,6 @@ public:
     [[nodiscard]] virtual bool SupportsXlightsModel() override { return true; }
     [[nodiscard]] virtual bool SupportsWiringView() const override { return true; }
     [[nodiscard]] virtual std::string GetDimension() const override;
-    [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
     virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override;
     [[nodiscard]] bool HasAlternateNodes() const { return _alternateNodes; }
     [[nodiscard]] std::string GetDropPattern() const { return _dropPatternString; }

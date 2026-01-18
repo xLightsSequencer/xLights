@@ -343,8 +343,6 @@ static void rotate_point(float cx,float cy, float angle, float &x, float &y)
     y = ynew + cy;
 }
 
-void CandyCaneModel::ExportXlightsModel() {}
-
 void CandyCaneModel::SetCaneCoord() {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));

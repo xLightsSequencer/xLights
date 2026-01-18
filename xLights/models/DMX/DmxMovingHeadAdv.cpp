@@ -87,6 +87,8 @@ DmxMovingHeadAdv::DmxMovingHeadAdv(const ModelManager &manager) :
     dimmer_ability = std::make_unique<DmxDimmerAbility>();
     shutter_ability = std::make_unique<DmxShutterAbility>();
     beam_ability = std::make_unique<DmxBeamAbility>();
+    beam_ability->SetSupportsOrient(true);
+    beam_ability->SetSupportsYOffset(true);
     beam_ability->SetDefaultBeamLength(4.0);
     beam_ability->SetDefaultBeamWidth(4.0);
     beam_ability->SetDefaultBeamYOffset(17.0);

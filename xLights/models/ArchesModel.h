@@ -30,8 +30,6 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
         virtual bool SupportsXlightsModel() override { return true; }
-        virtual void ExportXlightsModel() override;
-        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
         virtual std::string GetDimension() const override;
         virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override;
 

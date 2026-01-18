@@ -58,43 +58,6 @@ void DmxGeneral::InitModel()
     screenLocation.SetRenderSize(1, 1, 1);
 }
 
-bool DmxGeneral::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) {
-    if (root->GetName() == "dmxgeneral") {
-
-        wxString name = root->GetAttribute("name");
-        //wxString v = root->GetAttribute("SourceVersion");
-
-        wxString sc = root->GetAttribute("DmxShutterChannel");
-        wxString so = root->GetAttribute("DmxShutterOpen");
-        wxString sov = root->GetAttribute("DmxShutterOnValue");
-        wxString bl = root->GetAttribute("DmxBeamLimit");
-        wxString dbl = root->GetAttribute("DmxBeamLength", "1");
-        wxString dbw = root->GetAttribute("DmxBeamWidth", "1");
-
-        // Add any model version conversion logic here
-        // Source version will be the program version that created the custom model
-
-        SetProperty("DmxShutterChannel", sc);
-        SetProperty("DmxShutterOpen", so);
-        SetProperty("DmxShutterOnValue", sov);
-        SetProperty("DmxBeamLimit", bl);
-        SetProperty("DmxBeamLength", dbl);
-        SetProperty("DmxBeamWidth", dbw);
-
-        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-        SetProperty("name", newname, true);
-
-        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y, min_z, max_z);
-
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxGeneral::ImportXlightsModel");
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxGeneral::ImportXlightsModel");
-        return true;
-    } else {
-        DisplayError("Failure loading DmxGeneral model file.");
-        return false;
-    }
-}
-
 void DmxGeneral::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c)
 {
     size_t nodeCount = Nodes.size();

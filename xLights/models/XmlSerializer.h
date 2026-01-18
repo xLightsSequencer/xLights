@@ -1382,10 +1382,23 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
 
     void Visit(const CustomModel& model) override {
         wxXmlNode* xmlNode = CommonVisitSteps(model);
-        xmlNode->AddAttribute(XmlNodeKeys::CMDepthAttribute, std::to_string(model.GetCustomDepth()));
+        int depth = model.GetCustomDepth();
+        xmlNode->AddAttribute(XmlNodeKeys::CMDepthAttribute, std::to_string(depth));
         //xmlNode->AddAttribute(XmlNodeKeys::CustomModelAttribute, model.GetCustomData());
         xmlNode->AddAttribute(XmlNodeKeys::BkgImageAttribute, model.GetCustomBackground());
         xmlNode->AddAttribute(XmlNodeKeys::BkgLightnessAttribute, std::to_string(model.GetCustomLightness()));
+
+        // If we have a ruler then also include the model dimensions so if imported we can bring them in as the right size
+        if (RulerObject::GetRuler() != nullptr)
+        {
+            float widthmm = RulerObject::GetRuler()->Convert(RulerObject::GetRuler()->GetUnits(), "mm", RulerObject::GetRuler()->Measure(model.GetModelScreenLocation().GetMWidth()));
+            float heightmm = RulerObject::GetRuler()->Convert(RulerObject::GetRuler()->GetUnits(), "mm", RulerObject::GetRuler()->Measure(model.GetModelScreenLocation().GetMHeight()));
+            float depthmm = RulerObject::GetRuler()->Convert(RulerObject::GetRuler()->GetUnits(), "mm", RulerObject::GetRuler()->Measure(model.GetModelScreenLocation().GetMDepth()));
+            if (widthmm > 0) { xmlNode->AddAttribute("widthmm", std::to_string((int)widthmm)); }
+            if (heightmm > 0) { xmlNode->AddAttribute("heightmm", std::to_string((int)heightmm)); }
+            if (depth != 1 && depthmm > 0) { xmlNode->AddAttribute("depthmm", std::to_string((int)depthmm)); }
+        }
+
         const Model* m = dynamic_cast<const Model*>(&model);
         AddCustomModel(xmlNode, model);
         AddOtherElements(xmlNode, m);
@@ -1540,46 +1553,48 @@ struct XmlDeserializingObjectFactory {
     Model* Deserialize(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         auto type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute);
 
+        std::string node_name = node->GetName();  // need this to support importing old models that did not have the DisplayAs attribute
+
         if (type == XmlNodeKeys::ArchesType) {
-            return DeserializeArches(new wxXmlNode(*node), xlights, importing);
+            return DeserializeArches(node, xlights, importing);
         } else if (type == XmlNodeKeys::CandyCaneType) {
-            return DeserializeCandyCane(new wxXmlNode(*node), xlights, importing);
+            return DeserializeCandyCane(node, xlights, importing);
         } else if (type == XmlNodeKeys::ChannelBlockType) {
-            return DeserializeChannelBlock(new wxXmlNode(*node), xlights, importing);
+            return DeserializeChannelBlock(node, xlights, importing);
         } else if (type == XmlNodeKeys::CircleType) {
-            return DeserializeCircle(new wxXmlNode(*node), xlights, importing);
+            return DeserializeCircle(node, xlights, importing);
         } else if (type == XmlNodeKeys::CubeType) {
-            return DeserializeCube(new wxXmlNode(*node), xlights, importing);
-        } else if (type == XmlNodeKeys::CustomType) {
-            return DeserializeCustom(new wxXmlNode(*node), xlights, importing);
+            return DeserializeCube(node, xlights, importing);
+        } else if (type == XmlNodeKeys::CustomType || node_name == "custommodel") {
+            return DeserializeCustom(node, xlights, importing);
         } else if (type == XmlNodeKeys::DmxMovingHeadType) {
-            return DeserializeDmxMovingHead(new wxXmlNode(*node), xlights, importing);
+            return DeserializeDmxMovingHead(node, xlights, importing);
         } else if (type == XmlNodeKeys::DmxMovingHeadAdvType) {
-            return DeserializeDmxMovingHeadAdv(new wxXmlNode(*node), xlights, importing);
+            return DeserializeDmxMovingHeadAdv(node, xlights, importing);
         } else if (type == XmlNodeKeys::IciclesType) {
-            return DeserializeIcicles(new wxXmlNode(*node), xlights, importing);
+            return DeserializeIcicles(node, xlights, importing);
         } else if (type == XmlNodeKeys::ImageType) {
-            return DeserializeImage(new wxXmlNode(*node), xlights, importing);
+            return DeserializeImage(node, xlights, importing);
         } else if (type.Contains(XmlNodeKeys::MatrixType)) {
-            return DeserializeMatrix(new wxXmlNode(*node), xlights, importing);
+            return DeserializeMatrix(node, xlights, importing);
         } else if (type.Contains(XmlNodeKeys::MultiPointType)) {
-            return DeserializeMultiPoint(new wxXmlNode(*node), xlights, importing);
+            return DeserializeMultiPoint(node, xlights, importing);
         } else if (type == XmlNodeKeys::SingleLineType) {
-            return DeserializeSingleLine(new wxXmlNode(*node), xlights, importing);
+            return DeserializeSingleLine(node, xlights, importing);
         } else if (type == XmlNodeKeys::PolyLineType) {
-            return DeserializePolyLine(new wxXmlNode(*node), xlights, importing);
+            return DeserializePolyLine(node, xlights, importing);
         } else if (type == XmlNodeKeys::SphereType) {
-            return DeserializeSphere(new wxXmlNode(*node), xlights, importing);
+            return DeserializeSphere(node, xlights, importing);
         } else if (type == XmlNodeKeys::SpinnerType) {
-            return DeserializeSpinner(new wxXmlNode(*node), xlights, importing);
+            return DeserializeSpinner(node, xlights, importing);
         } else if (type == XmlNodeKeys::StarType) {
-            return DeserializeStar(new wxXmlNode(*node), xlights, importing);
+            return DeserializeStar(node, xlights, importing);
         } else if (type.Contains(XmlNodeKeys::TreeType)) {
-            return DeserializeTree(new wxXmlNode(*node), xlights, importing);
+            return DeserializeTree(node, xlights, importing);
         } else if (type == XmlNodeKeys::WindowType) {
-            return DeserializeWindow(new wxXmlNode(*node), xlights, importing);
+            return DeserializeWindow(node, xlights, importing);
         } else if (type == XmlNodeKeys::WreathType) {
-            return DeserializeWreath(new wxXmlNode(*node), xlights, importing);
+            return DeserializeWreath(node, xlights, importing);
         } /*else if (type == XmlNodeKeys::ViewObjectsType) {
             return DeserializeEffects(new wxXmlNode(*node), xlights, importing);
         } else if (type == XmlNodeKeys::EffectsType) {
@@ -1729,7 +1744,11 @@ private:
         }
         
         if (node->HasAttribute(XmlNodeKeys::ModelBrightnessAttribute) && model->modelDimmingCurve == nullptr) {
-            int b = std::stoi(node->GetAttribute(XmlNodeKeys::ModelBrightnessAttribute, "0").ToStdString());
+            std::string mb = node->GetAttribute(XmlNodeKeys::ModelBrightnessAttribute, "0").ToStdString();
+            if (mb.empty()) {
+                mb = "0";
+            }
+            int b = std::stoi(mb);
             if (b != 0) {
                 model->modelDimmingCurve = DimmingCurve::createBrightnessGamma(b, 1.0);
             }
@@ -1802,25 +1821,23 @@ private:
 
     void DeserializeModelScreenLocationAttributes(Model* model, wxXmlNode* node, bool importing) {
         glm::vec3 loc;
-        loc.x = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosXAttribute).ToStdString());
-        loc.y = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosYAttribute).ToStdString());
-        loc.z = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosZAttribute).ToStdString());
+        loc.x = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosXAttribute, "0").ToStdString());
+        loc.y = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosYAttribute, "0").ToStdString());
+        loc.z = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosZAttribute, "0").ToStdString());
         model->GetBaseObjectScreenLocation().SetWorldPosition(loc);
         glm::vec3 scale(1.0f, 1.0f, 1.0f);
-        if (node->HasAttribute(XmlNodeKeys::ScaleXAttribute)) { scale.x = std::stof(node->GetAttribute(XmlNodeKeys::ScaleXAttribute).ToStdString()); }
-        if (node->HasAttribute(XmlNodeKeys::ScaleYAttribute)) { scale.y = std::stof(node->GetAttribute(XmlNodeKeys::ScaleYAttribute).ToStdString()); }
-        if (node->HasAttribute(XmlNodeKeys::ScaleZAttribute)) { scale.z = std::stof(node->GetAttribute(XmlNodeKeys::ScaleZAttribute).ToStdString()); }
+        scale.x = std::stof(node->GetAttribute(XmlNodeKeys::ScaleXAttribute, "1.0").ToStdString());
+        scale.y = std::stof(node->GetAttribute(XmlNodeKeys::ScaleYAttribute, "1.0").ToStdString());
+        scale.z = std::stof(node->GetAttribute(XmlNodeKeys::ScaleZAttribute, "1.0").ToStdString());
         model->GetBaseObjectScreenLocation().SetScaleMatrix(scale);
         glm::vec3 rotate(0.0f, 0.0f, 0.0f);
-        if (node->HasAttribute(XmlNodeKeys::RotateXAttribute)) { rotate.x = std::stof(node->GetAttribute(XmlNodeKeys::RotateXAttribute).ToStdString()); }
-        if (node->HasAttribute(XmlNodeKeys::RotateYAttribute)) { rotate.y = std::stof(node->GetAttribute(XmlNodeKeys::RotateYAttribute).ToStdString()); }
-        if (node->HasAttribute(XmlNodeKeys::RotateZAttribute)) { rotate.z = std::stof(node->GetAttribute(XmlNodeKeys::RotateZAttribute).ToStdString()); }
+        rotate.x = std::stof(node->GetAttribute(XmlNodeKeys::RotateXAttribute, "0").ToStdString());
+        rotate.y = std::stof(node->GetAttribute(XmlNodeKeys::RotateYAttribute, "0").ToStdString());
+        rotate.z = std::stof(node->GetAttribute(XmlNodeKeys::RotateZAttribute, "0").ToStdString());
         model->GetBaseObjectScreenLocation().SetRotation(rotate);
         if( !importing ) {
-            if (node->HasAttribute(XmlNodeKeys::LockedAttribute)) {
-                bool locked = std::stoi(node->GetAttribute(XmlNodeKeys::LockedAttribute).ToStdString()) > 0;
-                model->GetModelScreenLocation().Lock(locked);
-            }
+             bool locked = std::stoi(node->GetAttribute(XmlNodeKeys::LockedAttribute, "0").ToStdString()) > 0;
+             model->GetModelScreenLocation().Lock(locked);
         }
     }
 

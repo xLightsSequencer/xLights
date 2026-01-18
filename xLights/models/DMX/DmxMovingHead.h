@@ -59,8 +59,6 @@ class DmxMovingHead : public DmxMovingHeadComm
 
         virtual void InitModel() override;
 
-        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
-
         std::unique_ptr<DmxMotor> pan_motor = nullptr;
         std::unique_ptr<DmxMotor> tilt_motor = nullptr;
         std::map<std::string, PanTiltState> panTiltStates;

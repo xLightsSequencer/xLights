@@ -253,4 +253,3 @@ int SingleLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
     return Model::OnPropertyGridChange(grid, event);
 }
 
-void SingleLineModel::ExportXlightsModel() {}

@@ -2192,7 +2192,7 @@ void Model::ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview*
             float max_y = 0;
             float min_z = 0;
             float max_z = 0;
-            bool success = model->ImportXlightsModel(m, xlights, min_x, max_x, min_y, max_y, min_z, max_z);
+            bool success = true; // = model->ImportXligh tsModel(m, xlights, min_x, max_x, min_y, max_y, min_z, max_z);
             if (success) {
                 model->SetHcenterPos(x);
                 model->SetVcenterPos(y);
@@ -5551,28 +5551,33 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    // check for XmlSerializer format
-    if (XmlSerializer::IsXmlSerializerFormat(node)) {
-        auto n = node;
-        if (node->GetName() == "models") {
-            n = node->GetChildren();
-        }
-        // grab the attributes I want to keep
-        std::string startChannel = model->GetModelStartChannel();
-        auto x = model->GetHcenterPos();
-        auto y = model->GetVcenterPos();
-        auto lg = model->GetLayoutGroup();
+    // This code should work to import model with old formats as well as new Serializer formats
+    auto n = node;
+    if (node->GetName() == "models") {
+        n = node->GetChildren();
+    }
+    // grab the attributes I want to keep
+    std::string sc = model->GetModelStartChannel();
+    auto x = model->GetHcenterPos();
+    auto y = model->GetVcenterPos();
+    auto lg = model->GetLayoutGroup();
 
-        XmlSerializer serializer;
-        model = serializer.DeserializeModel(n, xlights, true);
-
-        model->SetHcenterPos(x);
-        model->SetVcenterPos(y);
-        model->SetLayoutGroup(lg);
-        model->Selected = true;
-        return model;
+    // Delete the Custom model that drew the box
+    if (model != nullptr) {
+        delete model;
     }
 
+    XmlSerializer serializer;
+    model = serializer.DeserializeModel(n, xlights, true);
+
+    model->SetStartChannel(sc);
+    model->SetHcenterPos(x);
+    model->SetVcenterPos(y);
+    model->SetLayoutGroup(lg);
+    model->Selected = true;
+    return model;
+
+/*
     if (node->GetName() == "custommodel") {
         return model;
     } else if (node->GetName() == "polylinemodel") {
@@ -5880,8 +5885,8 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         logger_base.error("GetXlightsModel no code to convert to " + node->GetName());
         xlights->AddTraceMessage("GetXlightsModel no code to convert to " + node->GetName());
         cancelled = true;
-    }
-    return model;
+    }*/
+   // return model;
 }
 
 Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int&depthmm)

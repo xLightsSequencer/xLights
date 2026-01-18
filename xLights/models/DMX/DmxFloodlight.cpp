@@ -225,34 +225,6 @@ void DmxFloodlight::DisplayEffectOnWindow(ModelPreview* preview, double pointSiz
     }
 }
 
-bool DmxFloodlight::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) {
-    if (root->GetName() == "dmxmodel") {
-
-        wxString name = root->GetAttribute("name");
-        //wxString v = root->GetAttribute("SourceVersion");
-
-        wxString dbl = root->GetAttribute("DmxBeamLength", "1");
-
-        // Add any model version conversion logic here
-        // Source version will be the program version that created the custom model
-
-        SetProperty("DmxBeamLength", dbl);
-
-        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-        SetProperty("name", newname, true);
-
-        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y, min_z, max_z);
-
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxFloodlight::ImportXlightsModel");
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxFloodlight::ImportXlightsModel");
-
-        return true;
-    } else {
-        DisplayError("Failure loading DmxFloodlight model file.");
-        return false;
-    }
-}
-
 void DmxFloodlight::EnableFixedChannels(xlColorVector& pixelVector) const
 {
     if (shutter_ability->GetShutterChannel() != 0 && shutter_ability->GetShutterOnValue() != 0) {

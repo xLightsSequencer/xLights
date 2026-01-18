@@ -1540,13 +1540,11 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bo
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "DmxMovingHead") {
         model = serializer.DeserializeModel(node, xlights, false);
-        //model = new DmxMovingHead(*this);  // TODO:  Delete when this models file is dones
     } else if (type == "DmxGeneral") {
         model = serializer.DeserializeModel(node, xlights, false);
         //model = new DmxGeneral(*this);// TODO:  Delete when this models file is dones
     } else if (type == "DmxMovingHeadAdv") {
         model = serializer.DeserializeModel(node, xlights, false);
-        //model = new DmxMovingHeadAdv(*this);// TODO:  Delete when this models file is dones
     } else if (type == "DmxFloodlight") {
         model = serializer.DeserializeModel(node, xlights, false);
         //model = new DmxFloodlight(node, *this, zeroBased);// TODO:  Delete when this models file is dones

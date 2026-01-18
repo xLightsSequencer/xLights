@@ -63,9 +63,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] virtual bool SupportsXlightsModel() override {return true;}
         [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return false; }
         [[nodiscard]] virtual bool SupportsWiringView() const override { return true; }
-        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
         [[nodiscard]] bool ImportLORModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
-        virtual void ExportXlightsModel() override;
 
         [[nodiscard]] virtual std::string ChannelLayoutHtml(OutputManager* outputManager) override;
         [[nodiscard]] virtual std::string GetNodeName(size_t x, bool def = false) const override;

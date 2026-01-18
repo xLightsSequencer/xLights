@@ -139,7 +139,6 @@ class DmxSkull : public DmxModel
         void AddMesh(Mesh** _mesh, const std::string& name, const std::string& objfile, bool set_size);
         float GetServoPos(Servo* _servo, bool active);
 
-        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
         virtual std::list<std::string> CheckModelSettings() override;
 
         Mesh* head_mesh = nullptr;

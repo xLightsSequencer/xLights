@@ -38,7 +38,8 @@ class DmxBeamAbility
 
         void SetBeamLength( float length ) { beam_length = length; }
         void SetDefaultBeamLength( float length ) { default_beam_length = length; }
-        void SetBeamWidth( float width ) { beam_width = width; }
+        void SetBeamWidth( float width ) {
+            beam_width = width; }
         void SetDefaultBeamWidth( float width ) { default_beam_width = width; }
         void SetBeamYOffset(float offset) { default_beam_y_offset = offset; }
         void SetDefaultBeamYOffset(float offset) { beam_y_offset = offset; }

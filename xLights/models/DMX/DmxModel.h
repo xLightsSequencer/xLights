@@ -55,7 +55,6 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool SupportsXlightsModel() override { return true; }
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual bool SupportsWiringView() const override { return false; }
-        [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override = 0;
         virtual int GetNumPhysicalStrings() const override { return 1; }
         virtual bool IsDMXModel() const override { return true; }
         virtual std::list<std::string> CheckModelSettings() override;
