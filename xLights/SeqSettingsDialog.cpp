@@ -1806,12 +1806,6 @@ void SeqSettingsDialog::OnBitmapButton_ModifyTimingClick(wxCommandEvent& event)
         xLightsParent->CloseSequence();
         xLightsParent->OpenSequence( name, nullptr );
         xml_file = xLightsParent->CurrentSeqXmlFile;
-
-        if ( xLightsParent->_renderCache.IsEnabled() ) {
-            auto& se = xLightsParent->GetSequenceElements();
-            xLightsParent->_renderCache.Purge(&se , true);
-            wxMessageBox("Render Cache is enabled. To avoid render artifacts, render cache has been purged.");
-        }
     }
 }
 
