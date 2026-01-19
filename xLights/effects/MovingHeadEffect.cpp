@@ -88,6 +88,16 @@ void MovingHeadEffect::SetDefaultParameters() {
     dp->CheckBoxAutoShutter->SetValue(false);
 
     dp->CheckAllFixtures();
+
+    SetTextValue(dp->TextCtrl_MH1_Settings, xlEMPTY_STRING);
+    SetTextValue(dp->TextCtrl_MH2_Settings, xlEMPTY_STRING);
+    SetTextValue(dp->TextCtrl_MH3_Settings, xlEMPTY_STRING);
+    SetTextValue(dp->TextCtrl_MH4_Settings, xlEMPTY_STRING);
+    SetTextValue(dp->TextCtrl_MH5_Settings, xlEMPTY_STRING);
+    SetTextValue(dp->TextCtrl_MH6_Settings, xlEMPTY_STRING);
+    SetTextValue(dp->TextCtrl_MH7_Settings, xlEMPTY_STRING);
+    SetTextValue(dp->TextCtrl_MH8_Settings, xlEMPTY_STRING);
+
     dp->UpdateStatusPanel();
 }
 

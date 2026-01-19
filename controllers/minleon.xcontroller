@@ -125,16 +125,21 @@
 			<MinInputUniverseChannels>510</MinInputUniverseChannels>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
-				<Protocol>tm18xx</Protocol>
+				<Protocol>ws2818</Protocol>
+				<Protocol>ws2812b</Protocol>
+				<Protocol>tm1804</Protocol>
 				<Protocol>apa104</Protocol>
 				<Protocol>sm16703</Protocol>
 				<Protocol>ucs2903</Protocol>
-				<Protocol>gs820x</Protocol>
+				<Protocol>ucs2904</Protocol>
+				<Protocol>gs8206/8</Protocol>
 				<Protocol>sk6812</Protocol>
+				<Protocol>tls3001</Protocol>
 				<Protocol>rm2021</Protocol>
 				<Protocol>rgb+</Protocol>
 				<Protocol>rgbw+</Protocol>
 				<Protocol>rgb+2</Protocol>
+				<Protocol>rgbw+2</Protocol>
 			</PixelProtocols>
 			<SerialProtocols/>
 			<InputProtocols>

@@ -966,6 +966,57 @@ void MovingHeadPanel::ValidateWindow()
     // updates the status panel if its already active and a new effect is selected
     UpdateStatusPanel();
 
+    // If the effect already has settings then uncheck the fixtures so the user doesn't accidentally click somewhere
+    // and write to all the heads messing up what was there.  We force them to reselect the heads they want to effect.
+    // Only new effects start out with all heads checked.
+    bool has_settings = false;
+    bool all_same = true;
+    std::string last_mh = xlEMPTY_STRING;
+    for( int i = 1; i <= 8; ++i ) {
+        wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+        wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+        if (mh_textbox != nullptr) {
+            std::string val = mh_textbox->GetValue();
+            if ( val != xlEMPTY_STRING) {
+                has_settings = true;
+                if( last_mh == xlEMPTY_STRING ) {
+                    last_mh = val;
+                } else {
+                    if( last_mh != val ) {
+                        all_same = false;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    if (has_settings) {
+        UncheckAllFixtures();
+    }
+
+    // if all settings are the same check the fixtures that are active
+    if (all_same) {
+        wxArrayString all_cmds = wxSplit(last_mh, ';');
+        for (size_t k = 0; k < all_cmds.size(); ++k )
+        {
+            std::string cmd = all_cmds[k];
+            if( cmd == xlEMPTY_STRING ) continue;
+            int pos = cmd.find(":");
+            std::string cmd_type = cmd.substr(0, pos);
+            if( cmd_type == "Heads") {
+                std::string heads = cmd.substr(cmd.find(':') + 2);
+                auto setMH = wxSplit(heads, ',');
+                for (auto i = 0; i < setMH.size(); i++) {
+                    wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%s", setMH[i]);
+                    wxCheckBox* checkbox = (wxCheckBox*)(FindWindowByName(checkbox_ctrl));
+                    if (checkbox != nullptr) {
+                        checkbox->SetValue(true);
+                    }
+                }
+            }
+        }
+    }
+
     // Set current timing track in Dimmer window
     const ModelManager& mgr = model->GetModelManager();
     xLightsFrame* xlights = mgr.GetXLightsFrame();

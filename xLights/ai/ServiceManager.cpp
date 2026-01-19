@@ -121,11 +121,11 @@ void ServiceManager::setSecretServiceToken(std::string const& service, std::stri
     }
 }
 #else
-std::string ServiceManager::getSecretServiceToken(std::string const& service) {
+std::string ServiceManager::getSecretServiceToken(std::string const& service) const {
     return getServiceSetting(service + "_token", std::string());
 }
 
-void ServiceManager::setSecretServiceToken(std::string const& service, std::string const& token){
+void ServiceManager::setSecretServiceToken(std::string const& service, std::string const& token) {
     setServiceSetting(service + "_token", token);
 }
 #endif
