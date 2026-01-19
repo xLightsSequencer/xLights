@@ -52,7 +52,7 @@
 #include "../xLightsMain.h" //for Preview and Other model collections
 #include "../xLightsVersion.h"
 #include "../xLightsXmlFile.h"
-#include "XmlSerializer.h"
+#include "../XmlSerializer/XmlSerializer.h"
 
 #include <log4cpp/Category.hh>
 

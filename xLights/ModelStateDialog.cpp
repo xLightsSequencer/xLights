@@ -24,7 +24,7 @@
 #include "utils/string_utils.h"
 #include "xlColourData.h"
 #include "VendorModelDialog.h"
-#include "XmlSerializer.h"
+#include "XmlSerializer/XmlSerializer.h"
 
 #include <log4cpp/Category.hh>
 #include <algorithm>

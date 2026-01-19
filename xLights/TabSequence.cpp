@@ -41,7 +41,7 @@
 #include "sequencer/MainSequencer.h"
 #include "HousePreviewPanel.h"
 #include "ExternalHooks.h"
-#include "XmlSerializer.h"
+#include "XmlSerializer/XmlSerializer.h"
 
 #include "xLightsVersion.h"
 #include "TopEffectsPanel.h"

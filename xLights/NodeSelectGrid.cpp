@@ -32,7 +32,7 @@
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 #include "outputs/OutputManager.h"
-#include "models/XmlSerializer.h"
+#include "XmlSerializer/XmlSerializer.h"
 
 //(*IdInit(NodeSelectGrid)
 const long NodeSelectGrid::ID_CHECKBOX1 = wxNewId();

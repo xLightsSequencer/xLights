@@ -26,7 +26,7 @@
 #include "models/Model.h"
 #include "models/ModelGroup.h"
 #include "models/CustomModel.h"
-#include "models/XmlSerializer.h"
+#include "XmlSerializer/XmlSerializer.h"
 #include "ColorManager.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"

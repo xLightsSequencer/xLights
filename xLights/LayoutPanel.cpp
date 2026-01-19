@@ -51,7 +51,7 @@
 #include "models/ViewObject.h"
 #include "models/RulerObject.h"
 #include "models/CustomModel.h"
-#include "models/XmlSerializer.h"
+#include "XmlSerializer/XmlSerializer.h"
 #include "WiringDialog.h"
 #include "ModelDimmingCurveDialog.h"
 #include "UtilFunctions.h"

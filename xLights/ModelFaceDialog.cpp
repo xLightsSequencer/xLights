@@ -53,7 +53,7 @@
 #include "models/CustomModel.h"
 #include "outputs/OutputManager.h"
 #include "xlColourData.h"
-#include "XmlSerializer.h"
+#include "XmlSerializer/XmlSerializer.h"
 
 #include <log4cpp/Category.hh>
 

@@ -40,7 +40,7 @@
 #include "WholeHouseModel.h"
 #include "WindowFrameModel.h"
 #include "WreathModel.h"
-#include "XmlSerializer.h"
+#include "XmlSerializer/XmlSerializer.h"
 #include "../ModelPreview.h"
 #include "../Pixels.h"
 #include "../controllers/ControllerCaps.h"

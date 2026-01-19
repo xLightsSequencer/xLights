@@ -19,9 +19,12 @@
 
 #include "DmxMovingHead.h"
 #include "DmxBeamAbility.h"
+#include "DmxDimmerAbility.h"
 #include "DmxColorAbilityRGB.h"
 #include "DmxColorAbilityCMY.h"
 #include "DmxColorAbilityWheel.h"
+#include "DmxPresetAbility.h"
+#include "DmxShutterAbility.h"
 #include "../ModelScreenLocation.h"
 #include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
@@ -29,7 +32,6 @@
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
-#include "../XmlSerializer.h"
 
 DmxMovingHead::DmxMovingHead(const ModelManager &manager) :
     DmxMovingHeadComm(manager)

@@ -18,7 +18,7 @@
 #include "MeshObject.h"
 #include "TerrainObject.h"
 #include "xLightsMain.h"
-#include "XmlSerializer.h"
+#include "XmlSerializer/XmlSerializer.h"
 
 #include <log4cpp/Category.hh>
 

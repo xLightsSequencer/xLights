@@ -25,7 +25,7 @@
 #include "outputs/OutputManager.h"
 #include "../ModelPreview.h"
 #include "RulerObject.h"
-#include "XmlSerializer.h"
+#include "../XmlSerializer/XmlSerializer.h"
 
 #include <log4cpp/Category.hh>
 

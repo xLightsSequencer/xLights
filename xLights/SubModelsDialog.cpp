@@ -53,7 +53,7 @@
 #include "models/SubModel.h"
 #include "CheckboxSelectDialog.h"
 #include "VendorModelDialog.h"
-#include "models/XmlSerializer.h"
+#include "XmlSerializer//XmlSerializer.h"
 
 #include <log4cpp/Category.hh>
 
