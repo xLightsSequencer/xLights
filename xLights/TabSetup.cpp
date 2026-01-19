@@ -1156,7 +1156,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         if (mm != nullptr) {
             //abort any render as it might crash if the model changes
             AbortRender();
-            mm->ReloadModelXml();
+            mm->ReloadModel();
             //must unselect any effect as it might now be pointing at an invalid model/submodel/strand
             UnselectEffect();
         }

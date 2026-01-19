@@ -241,10 +241,10 @@ public:
     std::list<std::string> GetShadowedBy() const;
 
     void SetStartChannel(std::string const& startChannel);
-    void ReloadModelXml() override
+    void ReloadModel() override
     {
         GetModelScreenLocation().Reload();
-        SetFromXml(ModelXml, zeroBased);
+        Setup();
     }
 
     static const std::vector<std::string> DEFAULT_BUFFER_STYLES;
@@ -325,7 +325,7 @@ protected:
     int FindNodeAtXY(int bufx, int bufy);
     virtual void InitModel() {}
     virtual int CalcChannelsPerString();
-    virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString);
+    virtual void SetStringStartChannels(int NumberOfStrings, int StartChannel, int ChannelsPerString);
     void RecalcStartChannels();
 
     void SetBufferSize(int NewHt, int NewWi);
@@ -351,7 +351,6 @@ protected:
     std::string _dir = "L";
 
     int StrobeRate = 0; // 0 = no strobing
-    bool zeroBased =  false;
 
     std::vector<std::string> strandNames;
     std::vector<std::string> nodeNames;
@@ -459,9 +458,8 @@ public:
     //std::string _pixelSpacing{ "" };
     std::string _shadowModelFor{ "" };
 
-    void UpdateChannels(wxXmlNode* ModelNode);
-    void SetFromXml(wxXmlNode* ModelNode, bool zeroBased = false) override; // TODO: Delete when xml removeal is done
-    void Setup(bool zeroBased = false) override;
+    void UpdateChannels();
+    void Setup() override;
     virtual bool ModelRenamed(const std::string& oldName, const std::string& newName);
     [[nodiscard]] uint32_t GetNodeCount() const;
     [[nodiscard]] NodeBaseClass* GetNode(uint32_t node) const;

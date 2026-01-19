@@ -22,7 +22,7 @@ class MeshObject : public ObjectWithScreenLocation<BoxedScreenLocation>
     std::vector<std::string> _warnedTextures;
 
     public:
-        MeshObject(wxXmlNode *node, const ViewObjectManager &manager);
+        MeshObject(const ViewObjectManager &manager);
         virtual ~MeshObject();
 
         virtual void InitModel() override;

@@ -7283,7 +7283,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
                 parent->RemoveChild(m->GetModelXml());
 
                 delete m->GetModelXml();
-                m->SetFromXml(mdoc.GetRoot());
+                m->Setup();
                 mdoc.DetachRoot();
                 parent->InsertChild(m->GetModelXml(), next);
                 SelectModel(undoBuffer[sz].model);
@@ -7302,7 +7302,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
                 parent->RemoveChild(m->GetModelXml());
 
                 delete m->GetModelXml();
-                m->SetFromXml(mdoc.GetRoot());
+                m->Setup();
                 mdoc.DetachRoot();
                 parent->InsertChild(m->GetModelXml(), next);
                 SelectModel(undoBuffer[sz].model);

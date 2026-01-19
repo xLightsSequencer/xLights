@@ -19,7 +19,7 @@ class ModelPreview;
 class ImageObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 {
     public:
-        ImageObject(wxXmlNode *node, const ViewObjectManager &manager);
+        ImageObject(const ViewObjectManager &manager);
         virtual ~ImageObject();
 
         virtual void InitModel() override;

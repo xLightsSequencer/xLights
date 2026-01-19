@@ -986,7 +986,7 @@ void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int laye
 void PixelBufferClass::InitBuffer(const Model& pbc, int layers, int timing, bool zeroBased) {
     modelName = pbc.GetFullName();
     if (zeroBased) {
-        zbModel = pbc.GetModelManager().CreateModel(pbc.GetModelXml(), 0, 0, zeroBased);
+        zbModel = pbc.GetModelManager().CreateModel(pbc.GetModelXml(), 0, 0);
         model = zbModel;
     } else {
         model = &pbc;

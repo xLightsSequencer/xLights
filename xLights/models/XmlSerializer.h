@@ -448,6 +448,9 @@ namespace XmlNodeKeys {
     constexpr auto WindowType           = "Window Frame";
     constexpr auto WreathType           = "Wreath";
 
+    // ViewObject Types
+    constexpr auto GridlinesType = "Gridlines";
+
     //Extra Types
     constexpr auto ViewObjectsType  = "view_objects";
     constexpr auto EffectsType      = "effects";
@@ -1295,12 +1298,12 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         //std::map<std::string, ViewObject*> vo = om->GetViewObjects();
         //ViewObject* t0 = om->GetViewObject("Terrain");
         //BaseObject* b0 = om->GetObject("Mesh");
-        TerrianObject* t = new TerrianObject(node, *om);
+        //TerrianObject* t = new TerrianObject();
         //OutputManager* om0 = new OutputManager();
         //ModelManager* mm = new ModelManager(om0, xlights);
         //std::map<std::string, Model*> gm = mm->GetModels();
 
-        terrain->AddAttribute(XmlNodeKeys::ImageAttribute, t->GetAttribute("Image"));
+       /* terrain->AddAttribute(XmlNodeKeys::ImageAttribute, t->GetAttribute("Image"));
         terrain->AddAttribute(XmlNodeKeys::BrightnessAttribute, t->GetAttribute("Brightness"));
         terrain->AddAttribute(XmlNodeKeys::TransparencyAttribute, std::to_string(t->getTransparency()));
         terrain->AddAttribute(XmlNodeKeys::TerrainLineAttribute, std::to_string(t->getSpacing()));
@@ -1313,7 +1316,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
         terrain->AddAttribute(XmlNodeKeys::PointDataAttribute, t->getPointData());
 
         settings->AddChild(terrain);
-
+*/
         node->AddChild(settings);
     };
 
@@ -1550,6 +1553,72 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
 };
 
 struct XmlDeserializingObjectFactory {
+    ViewObject* Deserialize(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+        auto type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute);
+        
+        std::string node_name = node->GetName();  // need this to support importing old models that did not have the DisplayAs attribute
+        
+        if (type == XmlNodeKeys::GridlinesType) {
+            return DeserializeGridlines(node, xlights, importing);
+        }
+        throw std::runtime_error("Unknown object type: " + type);
+    }
+private:
+    void CommonDeserializeSteps(ViewObject* model, wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+        DeserializeBaseObjectAttributes(model, node, xlights, importing);
+        DeserializeModelScreenLocationAttributes(model, node, importing);
+    }
+
+    void DeserializeBaseObjectAttributes(ViewObject* model, wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+        std::string name = node->GetAttribute("name").Trim(true).Trim(false).ToStdString();
+        if (importing)
+        {
+            name = xlights->AllObjects.GenerateObjectName(name);
+        }
+        model->SetLayoutGroup("Default");
+        model->SetName(name);
+        model->SetDisplayAs(node->GetAttribute(XmlNodeKeys::DisplayAsAttribute).ToStdString());
+        model->SetActive(std::stoi(node->GetAttribute(XmlNodeKeys::ActiveAttribute, "1").ToStdString()));
+    }
+
+    void DeserializeModelScreenLocationAttributes(ViewObject* object, wxXmlNode* node, bool importing) {
+        glm::vec3 loc;
+        loc.x = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosXAttribute, "0").ToStdString());
+        loc.y = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosYAttribute, "0").ToStdString());
+        loc.z = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosZAttribute, "0").ToStdString());
+        object->GetBaseObjectScreenLocation().SetWorldPosition(loc);
+        glm::vec3 scale(1.0f, 1.0f, 1.0f);
+        scale.x = std::stof(node->GetAttribute(XmlNodeKeys::ScaleXAttribute, "1.0").ToStdString());
+        scale.y = std::stof(node->GetAttribute(XmlNodeKeys::ScaleYAttribute, "1.0").ToStdString());
+        scale.z = std::stof(node->GetAttribute(XmlNodeKeys::ScaleZAttribute, "1.0").ToStdString());
+        object->GetBaseObjectScreenLocation().SetScaleMatrix(scale);
+        glm::vec3 rotate(0.0f, 0.0f, 0.0f);
+        rotate.x = std::stof(node->GetAttribute(XmlNodeKeys::RotateXAttribute, "0").ToStdString());
+        rotate.y = std::stof(node->GetAttribute(XmlNodeKeys::RotateYAttribute, "0").ToStdString());
+        rotate.z = std::stof(node->GetAttribute(XmlNodeKeys::RotateZAttribute, "0").ToStdString());
+        object->GetBaseObjectScreenLocation().SetRotation(rotate);
+        if( !importing ) {
+             bool locked = std::stoi(node->GetAttribute(XmlNodeKeys::LockedAttribute, "0").ToStdString()) > 0;
+             object->GetBaseObjectScreenLocation().Lock(locked);
+        }
+    }
+
+    ViewObject* DeserializeGridlines(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+        GridlinesObject* object = new GridlinesObject(xlights->AllObjects);
+        CommonDeserializeSteps(object, node, xlights, importing);
+        object->SetGridLineSpacing(std::stoi(node->GetAttribute("GridLineSpacing","50").ToStdString()));
+        object->SetGridWidth(std::stoi(node->GetAttribute("GridWidth","1000").ToStdString()));
+        object->SetGridHeight(std::stoi(node->GetAttribute("GridHeight","1000").ToStdString()));
+        object->SetGridColor(node->GetAttribute("GridColor","#008000"));
+        object->SetHasAxis(node->GetAttribute("GridAxis","0") == "1");
+        object->SetPointToFront(node->GetAttribute("PointToFront","0") == "1");
+        object->Setup();
+        return object;
+    }
+
+};
+
+struct XmlDeserializingModelFactory {
     Model* Deserialize(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         auto type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute);
 
@@ -1613,7 +1682,7 @@ struct XmlDeserializingObjectFactory {
             return DeserializeViewPoints(new wxXmlNode(*node), xlights, importing);
         }*/
 
-        throw std::runtime_error("Unknown object type: " + type);
+        throw std::runtime_error("Unknown model type: " + type);
     }
 
 private:
@@ -2505,7 +2574,6 @@ struct XmlSerializer {
         }
         return false;
     }
-
     
     // Serialize all model into an XML document
     void SerializeAllModels(const ModelManager & allModels, xLightsFrame* xlights, wxXmlNode* root) {
@@ -2559,18 +2627,22 @@ struct XmlSerializer {
 
     // Deserialize a single model XML node
     Model* DeserializeModel(wxXmlNode* model_node, xLightsFrame* xlights, bool importing) {
-        XmlDeserializingObjectFactory factory{};
+        XmlDeserializingModelFactory factory{};
         Model* model = factory.Deserialize(model_node, xlights, importing);
-
-        // TODO: I'd like to get rid of this whole ImportModelChildren call but left it in the flow for now
-        /*float min_x = (float)(model->GetBaseObjectScreenLocation().GetLeft());
-        float max_x = (float)(model->GetBaseObjectScreenLocation().GetRight());
-        float min_y = (float)(model->GetBaseObjectScreenLocation().GetBottom());
-        float max_y = (float)(model->GetBaseObjectScreenLocation().GetTop());
-        float min_z = (float)(model->GetBaseObjectScreenLocation().GetFront());
-        float max_z = (float)(model->GetBaseObjectScreenLocation().GetBack());
-        model->ImportModelChildren(model->GetModelXml(), xlights, model->GetName(), min_x, max_x, min_y, max_y, min_z, max_z);*/
         return model;
     }
 
+    // Deserialize a single ViewObject from an XML document
+    ViewObject* DeserializeObject(const wxXmlDocument& doc, xLightsFrame* xlights, bool importing) {
+        wxXmlNode* root = doc.GetRoot();
+        wxXmlNode* object_node = root->GetChildren();
+        return DeserializeObject(object_node, xlights, importing);
+    }
+
+    // Deserialize a single ViewObject XML node
+    ViewObject* DeserializeObject(wxXmlNode* model_node, xLightsFrame* xlights, bool importing) {
+        XmlDeserializingObjectFactory factory{};
+        ViewObject* object = factory.Deserialize(model_node, xlights, importing);
+        return object;
+    }
 };

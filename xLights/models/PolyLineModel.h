@@ -36,7 +36,7 @@ public:
     virtual void DeleteHandle(int handle) override;
     void AddHandle();
 
-    virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
+    virtual void SetStringStartChannels(int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
 
     virtual bool SupportsXlightsModel() override { return true; }
 

@@ -922,7 +922,7 @@ void CubeModel::InitModel()
 
     auto locations = BuildCube();
 
-    SetStringStartChannels(false, _cubeStrings, stringStartChan[0]+1 , NodesPerString() * chanPerNode);
+    SetStringStartChannels(_cubeStrings, stringStartChan[0]+1 , NodesPerString() * chanPerNode);
 
     for (size_t n = 0; n < Nodes.size(); n++)
     {

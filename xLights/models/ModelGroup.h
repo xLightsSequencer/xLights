@@ -74,7 +74,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual int GetNumStrands() const override { return 0;}
 
-        bool Reset(bool zeroBased = false);
+        bool Reset();
         void ResetModels();
 
         bool CheckForChanges() const;

@@ -18,6 +18,7 @@
 #include "MeshObject.h"
 #include "TerrianObject.h"
 #include "xLightsMain.h"
+#include "XmlSerializer.h"
 
 #include <log4cpp/Category.hh>
 
@@ -48,26 +49,19 @@ ViewObject* ViewObjectManager::GetViewObject(const std::string &name) const
 
 ViewObject* ViewObjectManager::CreateAndAddObject(const std::string &type) {
     ViewObject *view_object;
-    wxXmlNode *node = new wxXmlNode(wxXML_ELEMENT_NODE, "view_object");
-    node->AddAttribute("LayoutGroup", "Unassigned");
-
-    std::string name = GenerateObjectName(type);
-    node->AddAttribute("name", name);
-
-    node->AddAttribute("DisplayAs", type);
-
+    
     if (type == "Gridlines") {
-        view_object = new GridlinesObject(node, *this);
+        view_object = new GridlinesObject(*this);
     } else if (type == "Ruler") {
-        view_object = new RulerObject(node, *this);
+        view_object = new RulerObject(*this);
     } else if (type == "Image") {
-        view_object = new ImageObject(node, *this);
+        view_object = new ImageObject(*this);
     } else if (type == "Mesh") {
-        view_object = new MeshObject(node, *this);
+        view_object = new MeshObject(*this);
     } else if (type == "Terrian") {
-        view_object = new TerrianObject(node, *this);
+        view_object = new TerrianObject(*this);
     } else {
-        wxMessageBox(type + " is not a valid type for View Object " + node->GetAttribute("name"));
+        wxMessageBox(type + " is not a valid type for View Object ");
         return nullptr;
     }
 
@@ -77,17 +71,20 @@ ViewObject* ViewObjectManager::CreateAndAddObject(const std::string &type) {
 
 ViewObject* ViewObjectManager::CreateObject(wxXmlNode *node) const {
     std::string type = node->GetAttribute("DisplayAs").ToStdString();
-    ViewObject *view_object = nullptr;
+
+    XmlSerializer serializer;
+    ViewObject* view_object {nullptr};
+
     if (type == "Gridlines") {
-        view_object = new GridlinesObject(node, *this);
+        view_object = serializer.DeserializeObject(node, xlights, false);
     } else if (type == "Ruler") {
-        view_object = new RulerObject(node, *this);
+        view_object = new RulerObject(*this);
     } else if (type == "Image") {
-        view_object = new ImageObject(node, *this);
+        view_object = new ImageObject(*this);
     } else if (type == "Mesh") {
-        view_object = new MeshObject(node, *this);
+        view_object = new MeshObject(*this);
     } else if (type == "Terrian") {
-        view_object = new TerrianObject(node, *this);
+        view_object = new TerrianObject(*this);
     } else {
         wxASSERT(false);
     }
@@ -103,6 +100,8 @@ void ViewObjectManager::AddViewObject(ViewObject *view_object) {
         }
         view_objects[view_object->name] = view_object;
 
+        // TODO:  Probably can delete all this now
+/*
         if ("ViewObjectGroup" == view_object->GetDisplayAs()) {
             if (view_object->GetModelXml()->GetParent() != groupNode) {
                 if (view_object->GetModelXml()->GetParent() != nullptr) {
@@ -117,7 +116,7 @@ void ViewObjectManager::AddViewObject(ViewObject *view_object) {
                 }
                 modelNode->AddChild(view_object->GetModelXml());
             }
-        }
+        }*/
     }
 }
 

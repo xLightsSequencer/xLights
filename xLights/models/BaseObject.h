@@ -55,7 +55,7 @@ public:
     void Lock(bool lock);
     bool IsLocked() const;
     virtual void AddASAPWork(uint32_t work, const std::string& from);
-    virtual void ReloadModelXml() = 0;
+    virtual void ReloadModel() = 0;
 
     void SetTop(float y);
     void SetBottom(float y);
@@ -98,8 +98,7 @@ public:
     void SetDisplayAs(const std::string& type) { DisplayAs = type; }
 
     wxXmlNode* GetModelXml() const;
-    virtual void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false) = 0;  // TODO: Delete when xml removeal is done
-    virtual void Setup(bool zeroBased=false) = 0;
+    virtual void Setup() = 0;
     
     virtual const std::string &GetLayoutGroup() const {return layout_group;}
     void SetLayoutGroup(const std::string &grp);

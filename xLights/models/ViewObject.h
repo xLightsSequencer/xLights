@@ -35,13 +35,12 @@ public:
         return "";
     }
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
-    void SetFromXml(wxXmlNode* ObjectNode, bool zeroBased = false) override; // TODO: Delete when xml removeal is done
-    void Setup(bool zeroBased = false) override;
+    void Setup() override;
     virtual void InitModel() = 0;
 
-    void ReloadModelXml() override {
+    void ReloadModel() override {
         GetBaseObjectScreenLocation().Reload();
-        Setup(false);
+        Setup();
     }
 
     bool GetIs3dOnly() { return only_3d; }

@@ -139,12 +139,12 @@ int PolyLineModel::GetNumStrands() const {
     return SingleNode ? 1 : _polyLineSizes.size();
 }
 
-void PolyLineModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) {
+void PolyLineModel::SetStringStartChannels(int NumberOfStrings, int StartChannel, int ChannelsPerString) {
     if( _hasIndivChans && !SingleNode ) {
         // if individual start channels defer to InitModel where we know all the segment length data
     } else {
         if (_strings == 1) {
-            Model::SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
+            Model::SetStringStartChannels(NumberOfStrings, StartChannel, ChannelsPerString);
         } else {
             ChannelsPerString /= _strings;
             stringStartChan.clear();
@@ -157,7 +157,7 @@ void PolyLineModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, 
                 } else {
                     node = ((ChannelsPerString * i) / GetNodeChannelCount(StringType)) + 1;
                 }
-                stringStartChan[i] = (zeroBased ? 0 : StartChannel - 1) + (node - 1) * GetNodeChannelCount(StringType);
+                stringStartChan[i] = (StartChannel - 1) + (node - 1) * GetNodeChannelCount(StringType);
             }
         }
     }
@@ -273,13 +273,13 @@ void PolyLineModel::InitModel()
         stringStartChan.clear();
         stringStartChan.resize(_numSegments);
         for (int i = 0; i < _numSegments; i++) {
-            if (!zeroBased && _hasIndivChans) {
+            if (_hasIndivChans) {
                 bool b = false;
                 stringStartChan[i] = GetNumberFromChannelString(_indivStartChannels[i], b, dependsonmodel) - 1;
                 CouldComputeStartChannel &= b;
             }
             else {
-                stringStartChan[i] = (zeroBased ? 0 : StartChannel - 1) + _polyLineSegDropSizes[i] * GetNodeChannelCount(StringType);
+                stringStartChan[i] = (StartChannel - 1) + _polyLineSegDropSizes[i] * GetNodeChannelCount(StringType);
             }
         }
     }

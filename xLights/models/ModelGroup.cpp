@@ -539,8 +539,7 @@ void ModelGroup::SetCentreMaxy( int maxy )
     ModelXml->AddAttribute("centreMaxy", wxString::Format("%i", maxy));
 }
 
-bool ModelGroup::Reset(bool zeroBased) {
-    this->zeroBased = zeroBased;
+bool ModelGroup::Reset() {
     selected = false;
     name = ModelXml->GetAttribute("name").Trim(true).Trim(false).ToStdString();
 
@@ -713,9 +712,9 @@ bool ModelGroup::Reset(bool zeroBased) {
             BufferHt = std::max(BufferHt, (int)coord.bufY);
             BufferWi = std::max(BufferWi, (int)coord.bufX);
         }
-        if (zeroBased) {
-            it->ActChan = it->ActChan - minChan;
-        }
+        //if (zeroBased) {
+        //    it->ActChan = it->ActChan - minChan;
+        //}
     }
 
     BufferHt++;

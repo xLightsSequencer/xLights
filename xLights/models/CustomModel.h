@@ -85,7 +85,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
     protected:
         virtual void InitModel() override;
-        virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
+        virtual void SetStringStartChannels(int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
 
     private:
         [[nodiscard]] int GetCustomMaxChannel() const;

@@ -19,14 +19,13 @@
 #include "../ExternalHooks.h"
 #include <log4cpp/Category.hh>
 
-TerrianObject::TerrianObject(wxXmlNode *node, const ViewObjectManager &manager)
+TerrianObject::TerrianObject(const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), _imageFile(""), spacing(50), gridColor(xlColor(0,128, 0)),
    width(1000.0f), height(10.0f), depth(1000.0f), editTerrian(false), hide_image(false),
    hide_grid(false), brush_size(1), img_width(1), img_height(1), 
    transparency(0), brightness(100.0f), grid(nullptr), texture(nullptr)
 {
     screenLocation.SetSupportsZScaling(true);
-    SetFromXml(node);
 }
 
 TerrianObject::~TerrianObject()

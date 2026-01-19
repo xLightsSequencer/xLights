@@ -252,7 +252,7 @@ void CustomModel::UpdateModel(int width, int height, int depth, const std::vecto
     parm2 = height;
     _depth = depth;
     _locations = modelData;
-    Setup(zeroBased);
+    Setup();
 }
 
 void CustomModel::InitModel()
@@ -290,7 +290,7 @@ std::string CustomModel::GetCustomData() const
 void CustomModel::SetCustomData(const std::vector<std::vector<std::vector<int>>>& data)
 {
     _locations = data;
-    Setup(zeroBased);
+    Setup();
 }
 
 void CustomModel::SetCustomBackground(std::string background)
@@ -304,7 +304,7 @@ bool CustomModel::CleanupFileLocations(xLightsFrame* frame)
     if (FileExists(_custom_background)) {
         if (!frame->IsInShowFolder(_custom_background)) {
             _custom_background = frame->MoveToShowFolder(_custom_background, wxString(wxFileName::GetPathSeparator()) + "Images");
-            Setup(zeroBased);
+            Setup();
             rc = true;
         }
     }
@@ -337,7 +337,7 @@ void CustomModel::SetNumStrings(int strings)
     _strings = strings;
 }
 
-void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString)
+void CustomModel::SetStringStartChannels(int NumberOfStrings, int StartChannel, int ChannelsPerString)
 {
     int maxval = GetCustomMaxChannel();
     // fix NumberOfStrings
@@ -349,7 +349,7 @@ void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, in
     }
 
     if (_strings == 1) {
-        Model::SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
+        Model::SetStringStartChannels(NumberOfStrings, StartChannel, ChannelsPerString);
     }
     else {
         stringStartChan.clear();
@@ -360,7 +360,7 @@ void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, in
                 node = ((ChannelsPerString * i) / GetNodeChannelCount(StringType)) + 1;
             }
             if (node > maxval) node = maxval;
-            stringStartChan[i] = (zeroBased ? 0 : StartChannel - 1) + (node - 1) * GetNodeChannelCount(StringType);
+            stringStartChan[i] = (StartChannel - 1) + (node - 1) * GetNodeChannelCount(StringType);
         }
     }
 }

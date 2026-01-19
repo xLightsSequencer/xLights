@@ -17,10 +17,9 @@
 #include "Model.h"
 #include "RulerObject.h"
 
-GridlinesObject::GridlinesObject(wxXmlNode *node, const ViewObjectManager &manager)
+GridlinesObject::GridlinesObject(const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), gridColor(xlColor(0,128, 0))
 {
-    SetFromXml(node);
 }
 
 GridlinesObject::~GridlinesObject()
@@ -28,20 +27,6 @@ GridlinesObject::~GridlinesObject()
 }
 
 void GridlinesObject::InitModel() {
-    if (ModelXml->HasAttribute("GridLineSpacing")) {
-        line_spacing = wxAtoi(ModelXml->GetAttribute("GridLineSpacing"));
-    }
-    if (ModelXml->HasAttribute("GridWidth")) {
-        width = wxAtoi(ModelXml->GetAttribute("GridWidth"));
-    }
-    if (ModelXml->HasAttribute("GridHeight")) {
-        height = wxAtoi(ModelXml->GetAttribute("GridHeight"));
-    }
-    if (ModelXml->HasAttribute("GridColor")) {
-        gridColor = xlColor(ModelXml->GetAttribute("GridColor", "#000000").ToStdString());
-    }
-    hasAxis = ModelXml->GetAttribute("GridAxis", "0") == "1";
-    pointToFront = ModelXml->GetAttribute("PointToFront", "0") == "1";
 }
 
 void GridlinesObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
@@ -82,34 +67,25 @@ void GridlinesObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputMan
 int GridlinesObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("GridLineSpacing" == event.GetPropertyName()) {
         line_spacing = (int)event.GetPropertyValue().GetLong();
-        ModelXml->DeleteAttribute("GridLineSpacing");
-        ModelXml->AddAttribute("GridLineSpacing", wxString::Format("%d", line_spacing));
         if (grid->GetPropertyByName("RealSpacing") != nullptr && RulerObject::GetRuler() != nullptr) {
             grid->GetPropertyByName("RealSpacing")->SetValueFromString(RulerObject::PrescaledMeasureDescription(RulerObject::Measure(line_spacing)));
         }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridLineSpacing");
-        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "GridlinesObject::OnPropertyGridChange::GridLineSpacing");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::GridLineSpacing");
         return 0;
     }
     else if ("GridWidth" == event.GetPropertyName()) {
         width = (int)event.GetPropertyValue().GetLong();
-        ModelXml->DeleteAttribute("GridWidth");
-        ModelXml->AddAttribute("GridWidth", wxString::Format("%d", width));
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridWidth");
-        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "GridlinesObject::OnPropertyGridChange::GridWidth");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::GridWidth");
         return 0;
     }
     else if ("GridHeight" == event.GetPropertyName()) {
         height = (int)event.GetPropertyValue().GetLong();
-        ModelXml->DeleteAttribute("GridHeight");
-        ModelXml->AddAttribute("GridHeight", wxString::Format("%d", height));
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridHeight");
-        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "GridlinesObject::OnPropertyGridChange::GridHeight");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::GridHeight");
         return 0;
     }
@@ -118,33 +94,20 @@ int GridlinesObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
         wxColour c;
         c << p->GetValue();
         gridColor = c;
-        ModelXml->DeleteAttribute("GridColor");
-        ModelXml->AddAttribute("GridColor", gridColor);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridColor");
-        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "GridlinesObject::OnPropertyGridChange::GridColor");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::GridColor");
         return 0;
     } else if (event.GetPropertyName() == "GridAxis") {
-        ModelXml->DeleteAttribute("GridAxis");
         hasAxis = event.GetValue().GetBool();
-        if (hasAxis) {
-            ModelXml->AddAttribute("GridAxis", "1");
-        }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridAxis");
-        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "GridlinesObject::OnPropertyGridChange::GridAxis");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::GridAxis");
         return 0;
     } else if (event.GetPropertyName() == "PointToFront") {
-        ModelXml->DeleteAttribute("PointToFront");
         pointToFront = event.GetValue().GetBool();
-        if (pointToFront) {
-            ModelXml->AddAttribute("PointToFront", "1");
-        }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::PointToFront");
-        // AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "GridlinesObject::OnPropertyGridChange::GridAxis");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::PointToFront");
         return 0;
     }

@@ -21,7 +21,7 @@ class xlVertexTextureAccumulator;
 class TerrianObject : public ObjectWithScreenLocation<TerrianScreenLocation>
 {
 public:
-    TerrianObject(wxXmlNode *node, const ViewObjectManager &manager);
+    TerrianObject(const ViewObjectManager &manager);
     virtual ~TerrianObject();
 
     virtual void InitModel() override;

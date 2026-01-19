@@ -54,7 +54,7 @@ glm::vec3 BaseObject::MoveHandle3D(ModelPreview* preview, int handle, bool Shift
 
     int i = GetBaseObjectScreenLocation().MoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
     if (i) {
-        SetFromXml(ModelXml);
+        Setup();
     }
     IncrementChangeCount();
     return GetBaseObjectScreenLocation().GetHandlePosition(handle);
@@ -65,7 +65,7 @@ glm::vec3 BaseObject::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm:
 
     int i = GetBaseObjectScreenLocation().MoveHandle3D(scale, handle, rot, mov);
     if (i) {
-        SetFromXml(ModelXml);
+        Setup();
     }
     IncrementChangeCount();
     return GetBaseObjectScreenLocation().GetHandlePosition(handle);
@@ -166,7 +166,7 @@ void BaseObject::SetHeight(float h, bool ignoreLock) {
     if (!ignoreLock && GetBaseObjectScreenLocation().IsLocked()) return;
 
     GetBaseObjectScreenLocation().SetMHeight(h);
-    SetFromXml(ModelXml);
+    Setup();
     IncrementChangeCount();
 }
 
@@ -337,7 +337,7 @@ void BaseObject::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) {
 
     GetBaseObjectScreenLocation().RotateAboutPoint(position, angle);
     IncrementChangeCount();
-    SetFromXml(ModelXml);  // only needed when rotating PolyLine...hope to remove this later and do what's needed in the PolyLine rotate call
+    Setup();  // only needed when rotating PolyLine...hope to remove this later and do what's needed in the PolyLine rotate call
 }
 
 bool BaseObject::Scale(const glm::vec3& factor)

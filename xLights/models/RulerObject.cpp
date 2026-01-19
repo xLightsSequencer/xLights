@@ -19,11 +19,10 @@
 
 RulerObject* RulerObject::__rulerObject = nullptr;
 
-RulerObject::RulerObject(wxXmlNode *node, const ViewObjectManager &manager)
+RulerObject::RulerObject(const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager)
 {
 	__rulerObject = this;
-    SetFromXml(node);
 
     // we need to call this so we can use it to measure in 2D
     screenLocation.PrepareToDraw(false, false);

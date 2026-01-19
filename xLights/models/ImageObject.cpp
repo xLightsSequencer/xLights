@@ -20,10 +20,9 @@
 
 #include <log4cpp/Category.hh>
 
-ImageObject::ImageObject(wxXmlNode *node, const ViewObjectManager &manager)
+ImageObject::ImageObject(const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), _imageFile(""), width(1), height(1), transparency(0), brightness(100.0f)
 {
-    SetFromXml(node);
 }
 
 ImageObject::~ImageObject()
@@ -231,7 +230,6 @@ bool ImageObject::CleanupFileLocations(xLightsFrame* frame)
             _imageFile = frame->MoveToShowFolder(_imageFile, wxString(wxFileName::GetPathSeparator()) + "Images");
             ModelXml->DeleteAttribute("Image");
             ModelXml->AddAttribute("Image", _imageFile);
-            SetFromXml(ModelXml);
             rc = true;
         }
     }

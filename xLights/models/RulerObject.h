@@ -25,7 +25,7 @@ class ModelPreview;
 class RulerObject : public ObjectWithScreenLocation<TwoPointScreenLocation>
 {
 public:
-    RulerObject(wxXmlNode *node, const ViewObjectManager &manager);
+    RulerObject(const ViewObjectManager &manager);
     virtual ~RulerObject();
 
     virtual void InitModel() override;

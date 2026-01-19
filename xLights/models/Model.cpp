@@ -2518,7 +2518,7 @@ bool Model::ModelRenamed(const std::string& oldName, const std::string& newName)
         }
     }
     if (changed) {
-        Setup(zeroBased);
+        Setup();
     }
     return changed;
 }
@@ -2599,7 +2599,7 @@ bool Model::UpdateStartChannelFromChannelString(std::map<std::string, Model*>& m
     if (valid) {
         size_t NumberOfStrings = HasOneString(DisplayAs) ? 1 : parm1;
         int ChannelsPerString = CalcChannelsPerString();
-        SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
+        SetStringStartChannels(NumberOfStrings, StartChannel, ChannelsPerString);
     }
 
     CouldComputeStartChannel = valid;
@@ -2778,9 +2778,9 @@ void Model::SetStrandNames(std::string const& strands)
     }
 }
 
-void Model::UpdateChannels(wxXmlNode* ModelNode)
+void Model::UpdateChannels()
 {
-    // alternative function that only performs channel calculation instead of calling the full SetFromXml function
+    // alternative function that only performs channel calculation instead of calling the full Setup function
     CouldComputeStartChannel = false;
     std::string dependsonmodel;
     int32_t StartChannel = GetNumberFromChannelString(ModelStartChannel, CouldComputeStartChannel, dependsonmodel);
@@ -2789,24 +2789,18 @@ void Model::UpdateChannels(wxXmlNode* ModelNode)
     size_t NumberOfStrings = HasOneString(DisplayAs) ? 1 : parm1;
     int ChannelsPerString = CalcChannelsPerString();
 
-    SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
+    SetStringStartChannels(NumberOfStrings, StartChannel, ChannelsPerString);
     Nodes.clear();
     InitModel();
 
     IncrementChangeCount();
 }
 
-void Model::Setup(bool zb)
-{
-    SetFromXml(nullptr, zb);
-}
-
-void Model::SetFromXml(wxXmlNode* node, bool zb)
+void Model::Setup()
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxStopWatch sw;
 
-    zeroBased = zb;
     ModelXml = nullptr;  // lets let this crash until we can get it fully removed
     StrobeRate = 0;
 
@@ -2831,7 +2825,7 @@ void Model::SetFromXml(wxXmlNode* node, bool zb)
 
     GetModelScreenLocation().Init();
 
-    UpdateChannels(node);
+    UpdateChannels();
     
     if (sw.Time() > 10) {
         logger_base.debug("%s model %s took %lums to initialise.", GetDisplayAs().c_str(), (const char*)name.c_str(), sw.Time());
@@ -3010,19 +3004,19 @@ int Model::CalcChannelsPerString()
     return ChannelsPerString;
 }
 
-void Model::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString)
+void Model::SetStringStartChannels(int NumberOfStrings, int StartChannel, int ChannelsPerString)
 {
     stringStartChan.clear();
     stringStartChan.resize(NumberOfStrings);
     int num_indiv_start_channels = _indivStartChannels.size();
     for (int i = 0; i < NumberOfStrings; ++i) {
-        if (!zeroBased && _hasIndivChans && (i < num_indiv_start_channels)) {
+        if (_hasIndivChans && (i < num_indiv_start_channels)) {
             bool b = false;
             std::string dependsonmodel;
             stringStartChan[i] = GetNumberFromChannelString(_indivStartChannels[i], b, dependsonmodel) - 1;
             CouldComputeStartChannel &= b;
         } else {
-            stringStartChan[i] = (zeroBased ? 0 : StartChannel - 1) + i * ChannelsPerString;
+            stringStartChan[i] = (StartChannel - 1) + i * ChannelsPerString;
         }
     }
 }

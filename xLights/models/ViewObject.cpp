@@ -28,18 +28,13 @@ void ViewObject::AddSizeLocationProperties(wxPropertyGridInterface *grid) {
     GetObjectScreenLocation().AddSizeLocationProperties(grid);
 }
 
-void ViewObject::Setup(bool zeroBased) {
-    SetFromXml(nullptr, zeroBased);
-}
+void ViewObject::Setup() {
+    ModelXml=nullptr;  // TODO: let this crash until we can remove it
 
-void ViewObject::SetFromXml(wxXmlNode* ObjectNode, bool zeroBased) {
-
-    ModelXml=ObjectNode;
-
-    name=ObjectNode->GetAttribute("name").ToStdString();
-    DisplayAs=ObjectNode->GetAttribute("DisplayAs").ToStdString();
+    //name=ObjectNode->GetAttribute("name").ToStdString();
+    //DisplayAs=ObjectNode->GetAttribute("DisplayAs").ToStdString();
     layout_group = "Default"; // objects in 3d can only belong to default as only default is 3d
-    _active = ObjectNode->GetAttribute("Active", "1") == "1";
+    //_active = ObjectNode->GetAttribute("Active", "1") == "1";
 
     // TODO:  Delete?
     //GetObjectScreenLocation().Read(ObjectNode);

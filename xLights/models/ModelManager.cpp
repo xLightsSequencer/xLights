@@ -565,7 +565,7 @@ bool ModelManager::RecalcStartChannels() const
             if (first != '>' && first != '@') {
                 modelsDone.emplace(it.first);
                 auto oldsc = it.second->GetFirstChannel();
-                it.second->UpdateChannels(it.second->GetModelXml());
+                it.second->UpdateChannels();
                 if (oldsc != it.second->GetFirstChannel()) {
                     changed = true;
                 }
@@ -597,7 +597,7 @@ bool ModelManager::RecalcStartChannels() const
                         // the depends on model is done
                         modelsDone.emplace(it.first);
                         auto oldsc = it.second->GetFirstChannel();
-                        it.second->UpdateChannels(it.second->GetModelXml());
+                        it.second->UpdateChannels();
                         if (oldsc != it.second->GetFirstChannel()) {
                             changed = true;
                         }
@@ -621,7 +621,7 @@ bool ModelManager::RecalcStartChannels() const
             if ((first == '>' || first == '@') && !it.second->CouldComputeStartChannel) {
                 modelsDone.emplace(it.first);
                 auto oldsc = it.second->GetFirstChannel();
-                it.second->UpdateChannels(it.second->GetModelXml());
+                it.second->UpdateChannels();
                 if (oldsc != it.second->GetFirstChannel()) {
                     changed = true;
                 }
@@ -1393,11 +1393,11 @@ void ModelManager::MigrateDmxMotors(wxXmlNode *node) const
     new_node->AddAttribute("OrientZero", wxString::Format("%d", orientation));
 }
 
-Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH, bool zeroBased) const
+Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH) const
 {
     if (node->GetName() == "modelGroup") {
         ModelGroup* grp = new ModelGroup(node, *this, previewWidth, previewHeight);
-        grp->Reset(zeroBased);
+        grp->Reset();
         return grp;
     }
     std::string type = node->GetAttribute("DisplayAs").ToStdString();

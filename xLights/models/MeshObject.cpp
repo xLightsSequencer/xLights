@@ -30,13 +30,12 @@
 
 #include "graphics/xlMesh.h"
 
-MeshObject::MeshObject(wxXmlNode *node, const ViewObjectManager &manager)
+MeshObject::MeshObject(const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), _objFile(""),
     width(100), height(100), depth(100), brightness(100),
     obj_loaded(false), mesh_only(false),
     mesh(nullptr)
 {
-    SetFromXml(node);
     screenLocation.SetSupportsZScaling(true);
 }
 
@@ -159,7 +158,6 @@ bool MeshObject::CleanupFileLocations(xLightsFrame* frame)
 
             ModelXml->DeleteAttribute("ObjFile");
             ModelXml->AddAttribute("ObjFile", _objFile);
-            SetFromXml(ModelXml);
             rc = true;
         }
     }
