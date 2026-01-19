@@ -15,10 +15,10 @@
 class xlGraphicsProgram;
 
 //Default location that uses a terrain grid with handles that can adjust in elevation
-class TerrianScreenLocation : public BoxedScreenLocation {
+class TerrainScreenLocation : public BoxedScreenLocation {
 public:
-    TerrianScreenLocation();
-    virtual ~TerrianScreenLocation() {}
+    TerrainScreenLocation();
+    virtual ~TerrainScreenLocation() {}
 
     virtual void Init() override;
     virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const override;
@@ -36,6 +36,15 @@ public:
     virtual void SetEdit(bool val) override { edit_active = val; }
     virtual void* GetRawData() override { return (void*)&mPos; }
 
+    int GetNumPointsWide() const { return num_points_wide; }
+    int GetNumPointsDeep() const { return num_points_deep; }
+    int GetNumPoints() const { return num_points; }
+
+    void SetPoints(int wide, int deep, int count) { num_points_wide = wide; num_points_deep = deep; num_points = count; }
+    void SetDataFromString(const std::string& point_data);
+
+protected:
+    
 private:
     int num_points_wide = 41;
     int num_points_deep = 21;

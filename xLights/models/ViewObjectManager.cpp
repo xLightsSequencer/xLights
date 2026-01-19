@@ -16,7 +16,7 @@
 #include "RulerObject.h"
 #include "ImageObject.h"
 #include "MeshObject.h"
-#include "TerrianObject.h"
+#include "TerrainObject.h"
 #include "xLightsMain.h"
 #include "XmlSerializer.h"
 
@@ -59,7 +59,7 @@ ViewObject* ViewObjectManager::CreateAndAddObject(const std::string &type) {
     } else if (type == "Mesh") {
         view_object = new MeshObject(*this);
     } else if (type == "Terrian") {
-        view_object = new TerrianObject(*this);
+        view_object = new TerrainObject(*this);
     } else {
         wxMessageBox(type + " is not a valid type for View Object ");
         return nullptr;
@@ -84,7 +84,7 @@ ViewObject* ViewObjectManager::CreateObject(wxXmlNode *node) const {
     } else if (type == "Mesh") {
         view_object = new MeshObject(*this);
     } else if (type == "Terrian") {
-        view_object = new TerrianObject(*this);
+        view_object = serializer.DeserializeObject(node, xlights, false);
     } else {
         wxASSERT(false);
     }

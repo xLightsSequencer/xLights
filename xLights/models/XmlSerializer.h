@@ -41,7 +41,8 @@
 #include "SpinnerModel.h"
 #include "StarModel.h"
 #include "SubModel.h"
-#include "TerrianObject.h"
+#include "TerrainObject.h"
+#include "TerrainScreenLocation.h"
 #include "ThreePointScreenLocation.h"
 #include "TreeModel.h"
 #include "ViewObjectManager.h"
@@ -450,6 +451,7 @@ namespace XmlNodeKeys {
 
     // ViewObject Types
     constexpr auto GridlinesType = "Gridlines";
+    constexpr auto TerrainType = "Terrian";
 
     //Extra Types
     constexpr auto ViewObjectsType  = "view_objects";
@@ -1560,6 +1562,8 @@ struct XmlDeserializingObjectFactory {
         
         if (type == XmlNodeKeys::GridlinesType) {
             return DeserializeGridlines(node, xlights, importing);
+        } else if (type == XmlNodeKeys::TerrainType) {
+            return DeserializeTerrain(node, xlights, importing);
         }
         throw std::runtime_error("Unknown object type: " + type);
     }
@@ -1603,6 +1607,18 @@ private:
         }
     }
 
+    void DeserializeTerrainScreenLocationAttributes(ViewObject* object, wxXmlNode* node) {
+        int spacing = std::stoi(node->GetAttribute(XmlNodeKeys::TerrainLineAttribute,"50").ToStdString());
+        int width = std::stoi(node->GetAttribute(XmlNodeKeys::TerrainWidthAttribute,"1000").ToStdString());
+        int depth = std::stoi(node->GetAttribute(XmlNodeKeys::TerrainDepthAttribute,"1000").ToStdString());
+        int num_points_wide = width / spacing + 1;;
+        int num_points_deep = depth / spacing + 1;
+        int num_points = num_points_wide * num_points_deep;
+        TerrainScreenLocation& screenLoc = dynamic_cast<TerrainScreenLocation&>(object->GetBaseObjectScreenLocation());
+        screenLoc.SetPoints(num_points_wide, num_points_deep, num_points);
+        screenLoc.SetDataFromString(node->GetAttribute(XmlNodeKeys::PointDataAttribute, "").ToStdString());
+    }
+
     ViewObject* DeserializeGridlines(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
         GridlinesObject* object = new GridlinesObject(xlights->AllObjects);
         CommonDeserializeSteps(object, node, xlights, importing);
@@ -1616,6 +1632,22 @@ private:
         return object;
     }
 
+    ViewObject* DeserializeTerrain(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+        TerrainObject* object = new TerrainObject(xlights->AllObjects);
+        CommonDeserializeSteps(object, node, xlights, importing);
+        DeserializeTerrainScreenLocationAttributes(object, node);
+        object->SetImageFile(node->GetAttribute(XmlNodeKeys::ImageAttribute, xlEMPTY_STRING));
+        object->SetTransparency(std::stoi(node->GetAttribute(XmlNodeKeys::TransparencyAttribute,"0").ToStdString()));
+        object->SetBrightness(std::stoi(node->GetAttribute(XmlNodeKeys::BrightnessAttribute,"100").ToStdString()));
+        object->SetSpacing(std::stoi(node->GetAttribute(XmlNodeKeys::TerrainLineAttribute,"50").ToStdString()));
+        object->SetWidth(std::stoi(node->GetAttribute(XmlNodeKeys::TerrainWidthAttribute,"1000").ToStdString()));
+        object->SetDepth(std::stoi(node->GetAttribute(XmlNodeKeys::TerrainDepthAttribute,"1000").ToStdString()));
+        object->SetHideGrid(node->GetAttribute(XmlNodeKeys::HideGridAttribute,"0") == "1");
+        object->SetHideImage(node->GetAttribute(XmlNodeKeys::HideImageAttribute,"0") == "1");
+        object->SetGridColor(node->GetAttribute("GridColor","#008000"));
+        object->Setup();
+        return object;
+    }
 };
 
 struct XmlDeserializingModelFactory {
