@@ -34,16 +34,9 @@ RulerObject::~RulerObject()
 }
 
 void RulerObject::InitModel() {
-    if (ModelXml->HasAttribute("Units")) {
-        _units = wxAtoi(ModelXml->GetAttribute("Units"));
-    }
-    if (ModelXml->HasAttribute("Length")) {
-        _realLength = wxAtof(ModelXml->GetAttribute("Length"));
-    }
     auto start = screenLocation.GetPoint1();
     auto end = screenLocation.GetPoint2();
-    //screenLocation.SetRenderSize(1.0, 1.0, 1.0);
-    screenLocation.SetRenderSize(std::abs(start.x - end.x), std::abs(start.y - end.y), std::abs(start.z - end.z));  // FIXME: Modify to only call this when position changes
+    screenLocation.SetRenderSize(std::abs(start.x - end.x), std::abs(start.y - end.y), std::abs(start.z - end.z));
 }
 
 static const char *UNITS_VALUES[] = {
@@ -53,7 +46,6 @@ static wxArrayString RULER_UNITS(6, UNITS_VALUES);
 
 void RulerObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
-
 	wxPGProperty* p = grid->Append(new wxEnumProperty("Units", "Units", RULER_UNITS, wxArrayInt(), _units));
 
     p = grid->Append(new wxFloatProperty("Real Length", "Length", _realLength));
@@ -66,16 +58,12 @@ void RulerObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
 int RulerObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("Units" == event.GetPropertyName()) {
         _units = (int)event.GetPropertyValue().GetLong();
-        ModelXml->DeleteAttribute("Units");
-        ModelXml->AddAttribute("Units", wxString::Format("%d", _units));
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "RulerObject::OnPropertyGridChange::Units");
         return 0;
     }
     else if ("Length" == event.GetPropertyName()) {
         _realLength = event.GetPropertyValue().GetDouble();
         if (_realLength < 0.01) _realLength = 0.01f;
-        ModelXml->DeleteAttribute("Length");
-        ModelXml->AddAttribute("Length", wxString::Format("%f", _realLength));
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridWidth");
         return 0;
     }

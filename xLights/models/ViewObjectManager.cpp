@@ -78,7 +78,7 @@ ViewObject* ViewObjectManager::CreateObject(wxXmlNode *node) const {
     if (type == "Gridlines") {
         view_object = serializer.DeserializeObject(node, xlights, false);
     } else if (type == "Ruler") {
-        view_object = new RulerObject(*this);
+        view_object = serializer.DeserializeObject(node, xlights, false);
     } else if (type == "Image") {
         view_object = new ImageObject(*this);
     } else if (type == "Mesh") {

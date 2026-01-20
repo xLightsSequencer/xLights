@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 
 /***************************************************************
  * This source files comes from the xLights project
@@ -17,6 +16,58 @@
 #include <wx/xml/xml.h>
 
 namespace XmlSerialize {
+
+void DeserializeModelScreenLocationAttributes(BaseObject* object, wxXmlNode* node, bool importing) {
+    glm::vec3 loc;
+    loc.x = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosXAttribute, "0").ToStdString());
+    loc.y = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosYAttribute, "0").ToStdString());
+    loc.z = std::stof(node->GetAttribute(XmlNodeKeys::WorldPosZAttribute, "0").ToStdString());
+    object->GetBaseObjectScreenLocation().SetWorldPosition(loc);
+    glm::vec3 scale(1.0f, 1.0f, 1.0f);
+    scale.x = std::stof(node->GetAttribute(XmlNodeKeys::ScaleXAttribute, "1.0").ToStdString());
+    scale.y = std::stof(node->GetAttribute(XmlNodeKeys::ScaleYAttribute, "1.0").ToStdString());
+    scale.z = std::stof(node->GetAttribute(XmlNodeKeys::ScaleZAttribute, "1.0").ToStdString());
+    object->GetBaseObjectScreenLocation().SetScaleMatrix(scale);
+    glm::vec3 rotate(0.0f, 0.0f, 0.0f);
+    rotate.x = std::stof(node->GetAttribute(XmlNodeKeys::RotateXAttribute, "0").ToStdString());
+    rotate.y = std::stof(node->GetAttribute(XmlNodeKeys::RotateYAttribute, "0").ToStdString());
+    rotate.z = std::stof(node->GetAttribute(XmlNodeKeys::RotateZAttribute, "0").ToStdString());
+    object->GetBaseObjectScreenLocation().SetRotation(rotate);
+    if( !importing ) {
+         bool locked = std::stoi(node->GetAttribute(XmlNodeKeys::LockedAttribute, "0").ToStdString()) > 0;
+        object->GetBaseObjectScreenLocation().Lock(locked);
+    }
+}
+
+void DeserializeTwoPointScreenLocationAttributes(BaseObject* object, wxXmlNode* node) {
+    float x2 = std::stof(node->GetAttribute(XmlNodeKeys::X2Attribute, "0").ToStdString());
+    float y2 = std::stof(node->GetAttribute(XmlNodeKeys::Y2Attribute, "0").ToStdString());
+    float z2 = std::stof(node->GetAttribute(XmlNodeKeys::Z2Attribute, "0").ToStdString());
+    TwoPointScreenLocation& screenLoc = dynamic_cast<TwoPointScreenLocation&>(object->GetBaseObjectScreenLocation());
+    screenLoc.SetX2(x2);
+    screenLoc.SetY2(y2);
+    screenLoc.SetZ2(z2);
+}
+
+void DeserializeThreePointScreenLocationAttributes(BaseObject* object, wxXmlNode* node) {
+    DeserializeTwoPointScreenLocationAttributes(object, node);
+    int angle = std::stoi(node->GetAttribute(XmlNodeKeys::AngleAttribute, "0").ToStdString());
+    float height = std::stof(node->GetAttribute("Height", "1.0").ToStdString());
+    float shear = std::stof(node->GetAttribute("Shear", "0.0").ToStdString());
+    ThreePointScreenLocation& screenLoc = dynamic_cast<ThreePointScreenLocation&>(object->GetBaseObjectScreenLocation());
+    screenLoc.SetAngle(angle);
+    screenLoc.SetMHeight(height);
+    screenLoc.SetYShear(shear);
+}
+
+void DeserializePolyPointScreenLocationAttributes(BaseObject* object, wxXmlNode* node) {
+    int num_points = std::stoi(node->GetAttribute(XmlNodeKeys::NumPointsAttribute, "2").ToStdString());
+    PolyPointScreenLocation& screenLoc = dynamic_cast<PolyPointScreenLocation&>(object->GetBaseObjectScreenLocation());
+    screenLoc.SetNumPoints(num_points);
+    screenLoc.SetDataFromString(node->GetAttribute(XmlNodeKeys::PointDataAttribute, "0.0, 0.0, 0.0, 0.0, 0.0, 0.0").ToStdString());
+    screenLoc.SetCurveDataFromString(node->GetAttribute(XmlNodeKeys::cPointDataAttribute, "").ToStdString());
+}
+
 
 std::vector<std::vector<std::vector<int>>> ParseCustomModel(const std::string& customModel)
 {

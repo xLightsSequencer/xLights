@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 
 /***************************************************************
  * This source files comes from the xLights project
@@ -36,10 +35,6 @@ private:
     void DeserializeSubModel(Model* model, wxXmlNode* node);
     void DeserializeAliases(Model* model, wxXmlNode* node);
     void DeserializeSuperStrings(Model* model, wxXmlNode* node);
-    void DeserializeModelScreenLocationAttributes(Model* model, wxXmlNode* node, bool importing);
-    void DeserializeTwoPointScreenLocationAttributes(Model* model, wxXmlNode* node);
-    void DeserializeThreePointScreenLocationAttributes(Model* model, wxXmlNode* node);
-    void DeserializePolyPointScreenLocationAttributes(Model* model, wxXmlNode* node);
 
     Model* DeserializeArches(wxXmlNode* node, xLightsFrame* xlights, bool importing);
     Model* DeserializeCandyCane(wxXmlNode* node, xLightsFrame* xlights, bool importing);

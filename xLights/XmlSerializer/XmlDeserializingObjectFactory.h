@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 
 /***************************************************************
  * This source files comes from the xLights project
@@ -26,5 +25,6 @@ private:
 
     ViewObject* DeserializeGridlines(wxXmlNode* node, xLightsFrame* xlights, bool importing);
     ViewObject* DeserializeMesh(wxXmlNode* node, xLightsFrame* xlights, bool importing);
+    ViewObject* DeserializeRuler(wxXmlNode* node, xLightsFrame* xlights, bool importing);
     ViewObject* DeserializeTerrain(wxXmlNode* node, xLightsFrame* xlights, bool importing);
 };

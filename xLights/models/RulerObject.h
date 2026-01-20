@@ -63,6 +63,9 @@ public:
     [[nodiscard]] static float Convert(int fromUnits, const std::string& toUnits, float measure);
     [[nodiscard]] static float Convert(const std::string& fromUnits, const std::string& toUnits, float measure);
 
+    void SetUnits(int val) { _units = val; }
+    void SetLength(float val) { _realLength = val; }
+
     protected:
 
     [[nodiscard]] float GetPerUnit() const;

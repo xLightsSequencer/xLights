@@ -46,7 +46,7 @@ void DmxFloodlight::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
     grid->Collapse("DmxShutterProperties");
     grid->Collapse("DmxBeamProperties");
 
-    auto p = grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
+    grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
 }
 
 void DmxFloodlight::DisableUnusedProperties(wxPropertyGridInterface* grid)

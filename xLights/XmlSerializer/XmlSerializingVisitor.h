@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 
 /***************************************************************
  * This source files comes from the xLights project

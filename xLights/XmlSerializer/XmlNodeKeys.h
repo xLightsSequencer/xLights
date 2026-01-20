@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 
 /***************************************************************
  * This source files comes from the xLights project
@@ -398,9 +397,10 @@ namespace XmlNodeKeys {
     constexpr auto WreathType           = "Wreath";
 
     // ViewObject Types
-    constexpr auto GridlinesType = "Gridlines";
-    constexpr auto TerrainType = "Terrian";
-    constexpr auto MeshType = "Mesh";
+    constexpr auto GridlinesType    = "Gridlines";
+    constexpr auto TerrainType      = "Terrian";
+    constexpr auto MeshType         = "Mesh";
+    constexpr auto RulerType        = "Ruler";
 
     //Extra Types
     constexpr auto ViewObjectsType  = "view_objects";

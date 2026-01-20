@@ -12,16 +12,19 @@
  **************************************************************/
 
 #include "XmlDeserializingObjectFactory.h"
-
+#include "XmlSerializeFunctions.h"
 #include "XmlNodeKeys.h"
 #include "../models/GridlinesObject.h"
 #include "../models/MeshObject.h"
+#include "../models/RulerObject.h"
 #include "../models/TerrainObject.h"
 #include "../models/TerrainScreenLocation.h"
 #include "../models/ViewObject.h"
 #include "../xLightsMain.h"
 
 #include <wx/xml/xml.h>
+
+using namespace XmlSerialize;
 
 ViewObject* XmlDeserializingObjectFactory::Deserialize(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     auto type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute);
@@ -32,6 +35,8 @@ ViewObject* XmlDeserializingObjectFactory::Deserialize(wxXmlNode* node, xLightsF
         return DeserializeMesh(node, xlights, importing);
     } else if (type == XmlNodeKeys::TerrainType) {
         return DeserializeTerrain(node, xlights, importing);
+    } else if (type == XmlNodeKeys::RulerType) {
+        return DeserializeRuler(node, xlights, importing);
     }
     throw std::runtime_error("Unknown object type: " + type);
 }
@@ -117,6 +122,16 @@ ViewObject* XmlDeserializingObjectFactory::DeserializeTerrain(wxXmlNode* node, x
     return object;
 }
 
+ViewObject* XmlDeserializingObjectFactory::DeserializeRuler(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+    RulerObject* object = new RulerObject(xlights->AllObjects);
+    CommonDeserializeSteps(object, node, xlights, importing);
+    DeserializeTwoPointScreenLocationAttributes(object, node);
+    object->SetUnits(std::stoi(node->GetAttribute(XmlNodeKeys::UnitsAttribute, "0").ToStdString()));
+    object->SetLength(std::stof(node->GetAttribute(XmlNodeKeys::LengthAttribute, "1").ToStdString()));
+    object->Setup();
+    return object;
+}
+
 ViewObject* XmlDeserializingObjectFactory::DeserializeMesh(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     MeshObject* object = new MeshObject(xlights->AllObjects);
     CommonDeserializeSteps(object, node, xlights, importing);
@@ -126,4 +141,5 @@ ViewObject* XmlDeserializingObjectFactory::DeserializeMesh(wxXmlNode* node, xLig
     object->Setup();
     return object;
 }
+
 
