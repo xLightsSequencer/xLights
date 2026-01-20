@@ -25,5 +25,6 @@ private:
     void DeserializeTerrainScreenLocationAttributes(ViewObject* object, wxXmlNode* node);
 
     ViewObject* DeserializeGridlines(wxXmlNode* node, xLightsFrame* xlights, bool importing);
+    ViewObject* DeserializeMesh(wxXmlNode* node, xLightsFrame* xlights, bool importing);
     ViewObject* DeserializeTerrain(wxXmlNode* node, xLightsFrame* xlights, bool importing);
 };

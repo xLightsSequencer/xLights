@@ -33,7 +33,7 @@ public:
     virtual xlTexture *createTexture(int w, int h, bool bgr, bool alpha) = 0;
     virtual xlTexture *createTextureForFont(const xlFontInfo &font) = 0;
     virtual xlGraphicsProgram *createGraphicsProgram() = 0;
-    virtual xlMesh *loadMeshFromObjFile(const std::string &file) = 0;
+    virtual std::unique_ptr<xlMesh> loadMeshFromObjFile(const std::string &file) = 0;
 
 
     //manipulating the matrices

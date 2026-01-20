@@ -82,7 +82,7 @@ ViewObject* ViewObjectManager::CreateObject(wxXmlNode *node) const {
     } else if (type == "Image") {
         view_object = new ImageObject(*this);
     } else if (type == "Mesh") {
-        view_object = new MeshObject(*this);
+        view_object = serializer.DeserializeObject(node, xlights, false);
     } else if (type == "Terrian") {
         view_object = serializer.DeserializeObject(node, xlights, false);
     } else {
@@ -165,7 +165,7 @@ void ViewObjectManager::Delete(const std::string &name) {
             ViewObject *view_object = it->second;
 
             if (view_object != nullptr) {
-                view_object->GetModelXml()->GetParent()->RemoveChild(view_object->GetModelXml());
+                //view_object->GetModelXml()->GetParent()->RemoveChild(view_object->GetModelXml());
 
                 /*for (auto it2 = view_objects.begin(); it2 != view_objects.end(); ++it2) {
                     if (it2->second->GetDisplayAs() == "ObjectGroup") {
@@ -174,7 +174,7 @@ void ViewObjectManager::Delete(const std::string &name) {
                     }
                 }*/
                 view_objects.erase(it);
-                delete view_object->GetModelXml();
+                //delete view_object->GetModelXml();
                 delete view_object;
                 return;
             }

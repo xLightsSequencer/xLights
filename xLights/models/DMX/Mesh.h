@@ -99,10 +99,9 @@ public:
 protected:
 
     void loadObject(BaseObject* base, xlGraphicsContext *ctx);
-    void uncacheDisplayObjects();
 
 private:
-    std::string _objFile;
+    std::string _objFile {""};
     float width = 1.0f;
     float height = 1.0f;
     float depth = 1.0f;
@@ -136,6 +135,5 @@ private:
     float bmax[3] = { 0.0, 0.0, 0.0 };
 
     Mesh* link = nullptr;
-    xlMesh *mesh3d = nullptr;
+    std::unique_ptr<xlMesh> mesh3d {nullptr};
 };
-

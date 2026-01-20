@@ -400,6 +400,7 @@ namespace XmlNodeKeys {
     // ViewObject Types
     constexpr auto GridlinesType = "Gridlines";
     constexpr auto TerrainType = "Terrian";
+    constexpr auto MeshType = "Mesh";
 
     //Extra Types
     constexpr auto ViewObjectsType  = "view_objects";

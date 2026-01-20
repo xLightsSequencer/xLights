@@ -15,6 +15,7 @@
 
 #include "XmlNodeKeys.h"
 #include "../models/GridlinesObject.h"
+#include "../models/MeshObject.h"
 #include "../models/TerrainObject.h"
 #include "../models/TerrainScreenLocation.h"
 #include "../models/ViewObject.h"
@@ -25,10 +26,10 @@
 ViewObject* XmlDeserializingObjectFactory::Deserialize(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     auto type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute);
     
-    std::string node_name = node->GetName();  // need this to support importing old models that did not have the DisplayAs attribute
-    
     if (type == XmlNodeKeys::GridlinesType) {
         return DeserializeGridlines(node, xlights, importing);
+    } else if (type == XmlNodeKeys::MeshType) {
+        return DeserializeMesh(node, xlights, importing);
     } else if (type == XmlNodeKeys::TerrainType) {
         return DeserializeTerrain(node, xlights, importing);
     }
@@ -40,16 +41,16 @@ void XmlDeserializingObjectFactory::CommonDeserializeSteps(ViewObject* model, wx
     DeserializeModelScreenLocationAttributes(model, node, importing);
 }
 
-void XmlDeserializingObjectFactory::DeserializeBaseObjectAttributes(ViewObject* model, wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+void XmlDeserializingObjectFactory::DeserializeBaseObjectAttributes(ViewObject* object, wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     std::string name = node->GetAttribute("name").Trim(true).Trim(false).ToStdString();
     if (importing)
     {
         name = xlights->AllObjects.GenerateObjectName(name);
     }
-    model->SetLayoutGroup("Default");
-    model->SetName(name);
-    model->SetDisplayAs(node->GetAttribute(XmlNodeKeys::DisplayAsAttribute).ToStdString());
-    model->SetActive(std::stoi(node->GetAttribute(XmlNodeKeys::ActiveAttribute, "1").ToStdString()));
+    object->SetLayoutGroup("Default");
+    object->SetName(name);
+    object->SetDisplayAs(node->GetAttribute(XmlNodeKeys::DisplayAsAttribute).ToStdString());
+    object->SetActive(std::stoi(node->GetAttribute(XmlNodeKeys::ActiveAttribute, "1").ToStdString()));
 }
 
 void XmlDeserializingObjectFactory::DeserializeModelScreenLocationAttributes(ViewObject* object, wxXmlNode* node, bool importing) {
@@ -112,6 +113,16 @@ ViewObject* XmlDeserializingObjectFactory::DeserializeTerrain(wxXmlNode* node, x
     object->SetHideGrid(node->GetAttribute(XmlNodeKeys::HideGridAttribute,"0") == "1");
     object->SetHideImage(node->GetAttribute(XmlNodeKeys::HideImageAttribute,"0") == "1");
     object->SetGridColor(node->GetAttribute("GridColor","#008000"));
+    object->Setup();
+    return object;
+}
+
+ViewObject* XmlDeserializingObjectFactory::DeserializeMesh(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+    MeshObject* object = new MeshObject(xlights->AllObjects);
+    CommonDeserializeSteps(object, node, xlights, importing);
+    object->SetObjectFile(node->GetAttribute(XmlNodeKeys::ObjFileAttribute, xlEMPTY_STRING));
+    object->SetMeshOnly(node->GetAttribute(XmlNodeKeys::MeshOnlyAttribute, "0") == "1");
+    object->SetBrightness(std::stof(node->GetAttribute(XmlNodeKeys::BrightnessAttribute,"100").ToStdString()));
     object->Setup();
     return object;
 }

@@ -1297,8 +1297,8 @@ public:
     uint32_t linesCount = 0;
 };
 
-xlMesh *xlMetalGraphicsContext::loadMeshFromObjFile(const std::string &file) {
-    return new xlMetalMesh(this, file);
+std::unique_ptr<xlMesh> xlMetalGraphicsContext::loadMeshFromObjFile(const std::string &file) {
+    return std::make_unique<xlMetalMesh>(this, file);
 }
 
 xlGraphicsContext* xlMetalGraphicsContext::drawMeshSolids(xlMesh *mesh, int brightness, bool useViewMatrix) {

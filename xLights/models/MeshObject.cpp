@@ -24,48 +24,34 @@
 
 #include <log4cpp/Category.hh>
 
-
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 
 #include "graphics/xlMesh.h"
 
 MeshObject::MeshObject(const ViewObjectManager &manager)
- : ObjectWithScreenLocation(manager), _objFile(""),
-    width(100), height(100), depth(100), brightness(100),
-    obj_loaded(false), mesh_only(false),
-    mesh(nullptr)
+ : ObjectWithScreenLocation(manager)
 {
     screenLocation.SetSupportsZScaling(true);
 }
 
 MeshObject::~MeshObject()
 {
-    if (mesh) {
-        delete mesh;
-    }
 }
 
 void MeshObject::InitModel() {
-	_objFile = FixFile("", ModelXml->GetAttribute("ObjFile", ""));
-    if (_objFile != ModelXml->GetAttribute("ObjFile", "")) {
-        ModelXml->DeleteAttribute("ObjFile");
-        ModelXml->AddAttribute("ObjFile", _objFile);
+    if (brightness > 100) {
+        brightness = 100;
+    } else if (brightness < 0) {
+        brightness = 0;
     }
-
-    checkAccessToFile(_objFile);
-    mesh_only = ModelXml->GetAttribute("MeshOnly", "0") == "1";
-
-    if (ModelXml->HasAttribute("Brightness")) {
-        brightness = wxAtoi(ModelXml->GetAttribute("Brightness"));
-        if (brightness > 100) {
-            brightness = 100;
-        } else if (brightness < 0) {
-            brightness = 0;
-        }
-    }
-
     screenLocation.SetRenderSize(width, height, depth);
+}
+
+void MeshObject::SetObjectFile(const std::string & objFile)
+{
+    _objFile = FixFile("", objFile);
+    checkAccessToFile(_objFile);
 }
 
 void MeshObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
@@ -110,31 +96,20 @@ int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
             }
         }
         checkAccessToFile(_objFile);
-        ModelXml->DeleteAttribute("ObjFile");
-        ModelXml->AddAttribute("ObjFile", _objFile);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MeshObject::OnPropertyGridChange::ObjFile");
-        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MeshObject::OnPropertyGridChange::ObjFile");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MeshObject::OnPropertyGridChange::ObjFile");
         return 0;
     } else if ("Brightness" == event.GetPropertyName()) {
         brightness = (int)event.GetPropertyValue().GetLong();
-        ModelXml->DeleteAttribute("Brightness");
-        ModelXml->AddAttribute("Brightness", wxString::Format("%d", (int)brightness));
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MeshObject::OnPropertyGridChange::Brightness");
-        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MeshObject::OnPropertyGridChange::Brightness");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MeshObject::OnPropertyGridChange::Brightness");
         return 0;
     } else if ("MeshOnly" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("MeshOnly");
         mesh_only = event.GetValue().GetBool();
-        if (mesh_only) {
-            ModelXml->AddAttribute("MeshOnly", "1");
-        }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MeshObject::OnPropertyGridChange::MeshOnly");
-        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MeshObject::OnPropertyGridChange::MeshOnly");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MeshObject::OnPropertyGridChange::MeshOnly");
         return 0;
     }
@@ -155,9 +130,6 @@ bool MeshObject::CleanupFileLocations(xLightsFrame* frame)
             }
 
             _objFile = frame->MoveToShowFolder(_objFile, wxString(wxFileName::GetPathSeparator()) + "3D");
-
-            ModelXml->DeleteAttribute("ObjFile");
-            ModelXml->AddAttribute("ObjFile", _objFile);
             rc = true;
         }
     }
@@ -324,9 +296,9 @@ bool MeshObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsP
                 ->Rotate(rotations.x, 1, 0, 0)
                 ->Scale(scalingMatrix.x, scalingMatrix.y, scalingMatrix.z);
             if (mesh_only) {
-                ctx->drawMeshWireframe(mesh, brightness);
+                ctx->drawMeshWireframe(mesh.get(), brightness);
             } else {
-                ctx->drawMeshSolids(mesh, brightness, true);
+                ctx->drawMeshSolids(mesh.get(), brightness, true);
             }
             ctx->PopMatrix();
         });
@@ -340,7 +312,7 @@ bool MeshObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsP
                     ->Rotate(rotations.y, 0, 1, 0)
                     ->Rotate(rotations.x, 1, 0, 0)
                     ->Scale(scalingMatrix.x, scalingMatrix.y, scalingMatrix.z)
-                    ->drawMeshTransparents(mesh, brightness)
+                    ->drawMeshTransparents(mesh.get(), brightness)
                     ->PopMatrix();
             });
         }

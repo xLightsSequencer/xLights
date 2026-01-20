@@ -32,15 +32,12 @@
 #include "../../graphics/xlGraphicsContext.h"
 
 Mesh::Mesh(const std::string _name)
- : _objFile(""), base_name(_name)
+: base_name(_name)
 {
 }
 
 Mesh::~Mesh()
 {
-    if (mesh3d) {
-        delete mesh3d;
-    }
 }
 
 void Mesh::SetRenderScaling(float s) {
@@ -148,14 +145,9 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     if (!locked && base_name + "ObjFile" == name) {
         obj_loaded = false;
         obj_exists = false;
-        if (mesh3d) {
-            delete mesh3d;
-            mesh3d = nullptr;
-        }
         if (controls_size) {
             recalc_size = true;
         }
-        uncacheDisplayObjects();
         _objFile = event.GetValue().GetString();
         ObtainAccessToURL(_objFile);
         
@@ -324,16 +316,8 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     return -1;
 }
 
-void Mesh::uncacheDisplayObjects() {
-    if (mesh3d) {
-        delete mesh3d;
-        mesh3d = nullptr;
-    }
-}
-
 void Mesh::loadObject(BaseObject* base, xlGraphicsContext *ctx) {
     if (FileExists(_objFile)) {
-        uncacheDisplayObjects();
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         obj_exists = true;
                 
@@ -448,9 +432,9 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *spro
             ctx->PushMatrix();
             ctx->ApplyMatrix(m);
             if (mesh_only) {
-                ctx->drawMeshWireframe(mesh3d, this->brightness);
+                ctx->drawMeshWireframe(mesh3d.get(), this->brightness);
             } else {
-                ctx->drawMeshSolids(mesh3d, this->brightness, preview->Is3D());
+                ctx->drawMeshSolids(mesh3d.get(), this->brightness, preview->Is3D());
             }
             if (end != start) {
                 if (rotation) {
@@ -465,7 +449,7 @@ void Mesh::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *spro
             tprogram->addStep([=, this](xlGraphicsContext *ctx) {
                 ctx->PushMatrix();
                 ctx->ApplyMatrix(m);
-                ctx->drawMeshTransparents(mesh3d, this->brightness);
+                ctx->drawMeshTransparents(mesh3d.get(), this->brightness);
                 if (end != start) {
                     if (rotation) {
                         ctx->Translate(pivot_offset_x, pivot_offset_y, 0.0f);
