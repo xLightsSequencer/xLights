@@ -32,6 +32,11 @@
         <maxmodels>50</maxmodels>
     </vendor>
     <vendor>
+        <name>Twinkle Forge</name>
+        <link>https://www.twinkle-forge.com/xlights/twinkleforge.xml</link>
+        <maxmodels>5</maxmodels>
+    </vendor>
+    <vendor>
         <name>DMX Fixture Library</name>
         <link>https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/dmx_fixtures.xml</link>
     </vendor>
