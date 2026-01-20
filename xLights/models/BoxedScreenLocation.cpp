@@ -336,7 +336,6 @@ void BoxedScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
     centerz = worldPos_z;
     draw_3d = is_3d;
     if (allow_selected) {
-
         glm::mat4 Translate = translate(Identity, glm::vec3(worldPos_x, worldPos_y, worldPos_z));
         glm::mat4 RotationMatrix = glm::toMat4(rotate_quat);
         ModelMatrix = Translate * RotationMatrix;

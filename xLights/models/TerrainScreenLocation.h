@@ -40,7 +40,10 @@ public:
     int GetNumPointsDeep() const { return num_points_deep; }
     int GetNumPoints() const { return num_points; }
 
-    void SetPoints(int wide, int deep, int count) { num_points_wide = wide; num_points_deep = deep; num_points = count; }
+    void SetNumPointsWide(int val);
+    void SetNumPointsDeep(int val);
+    void SetNumPoints(int val);
+
     void SetDataFromString(const std::string& point_data);
 
 protected:

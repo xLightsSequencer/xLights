@@ -409,6 +409,26 @@ void TerrainScreenLocation::SetDataFromString(const std::string& point_data)
     while (i < num_points) mPos[i++] = 0.0f;
 }
 
+void TerrainScreenLocation::SetNumPointsWide(int val)
+{
+    num_points_wide = val;
+    num_points = num_points_wide * num_points_deep;
+    Init();
+}
+
+void TerrainScreenLocation::SetNumPointsDeep(int val)
+{
+    num_points_deep = val;
+    num_points = num_points_wide * num_points_deep;
+    Init();
+}
+
+void TerrainScreenLocation::SetNumPoints(int val)
+{
+    num_points = val;
+    Init();
+}
+
 void TerrainScreenLocation::Init() {
     mHandlePosition.resize(num_points + 1);
     mSelectableHandles = num_points + 1;

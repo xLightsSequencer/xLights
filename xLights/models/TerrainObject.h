@@ -54,7 +54,7 @@ public:
     int GetImgWidth() const { return img_width; }
     int GetImgHeight() const { return img_height; }
     int GetTransparency() const { return transparency; }
-    float GetBrightness() const { return brightness; }
+    int GetBrightness() const { return brightness; }
 
 protected:
 
@@ -72,7 +72,7 @@ private:
     int img_width {1};
     int img_height {1};
     int transparency {0};
-    float brightness {100.0f};
+    int brightness {100};
     
     std::map<std::string, xlTexture*> _images;
     xlVertexAccumulator *grid {nullptr};

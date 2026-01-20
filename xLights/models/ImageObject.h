@@ -18,32 +18,39 @@ class ModelPreview;
 
 class ImageObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 {
-    public:
-        ImageObject(const ViewObjectManager &manager);
-        virtual ~ImageObject();
+public:
+    ImageObject(const ViewObjectManager &manager);
+    virtual ~ImageObject();
 
-        virtual void InitModel() override;
+    virtual void InitModel() override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {}
+    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
+    virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {}
 
-        int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+    int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
-        virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
+    virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
 
-        virtual std::list<std::string> GetFileReferences() override;
-        virtual bool CleanupFileLocations(xLightsFrame* frame) override;
-        virtual std::list<std::string> CheckModelSettings() override;
+    virtual std::list<std::string> GetFileReferences() override;
+    virtual bool CleanupFileLocations(xLightsFrame* frame) override;
+    virtual std::list<std::string> CheckModelSettings() override;
 
-    protected:
+    void SetImageFile(const std::string & imageFile);
+    void SetTransparency(int val) { transparency = val; }
+    void SetBrightness(float val) { brightness = val; }
 
-    private:
-        std::string _imageFile;
-        int width;
-        int height;
-        std::map<std::string, xlTexture*> _images;
-        int transparency;
-        float brightness;
+    const std::string& GetImageFile() const { return _imageFile; }
+    int GetTransparency() const { return transparency; }
+    int GetBrightness() const { return brightness; }
 
+protected:
+
+private:
+    std::string _imageFile {""};
+    int width {1};
+    int height {1};
+    int transparency {0};
+    int brightness {100};
+    std::map<std::string, xlTexture*> _images;
 };
 

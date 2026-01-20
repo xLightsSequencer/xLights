@@ -71,23 +71,9 @@ ViewObject* ViewObjectManager::CreateAndAddObject(const std::string &type) {
 
 ViewObject* ViewObjectManager::CreateObject(wxXmlNode *node) const {
     std::string type = node->GetAttribute("DisplayAs").ToStdString();
-
     XmlSerializer serializer;
     ViewObject* view_object {nullptr};
-
-    if (type == "Gridlines") {
-        view_object = serializer.DeserializeObject(node, xlights, false);
-    } else if (type == "Ruler") {
-        view_object = serializer.DeserializeObject(node, xlights, false);
-    } else if (type == "Image") {
-        view_object = new ImageObject(*this);
-    } else if (type == "Mesh") {
-        view_object = serializer.DeserializeObject(node, xlights, false);
-    } else if (type == "Terrian") {
-        view_object = serializer.DeserializeObject(node, xlights, false);
-    } else {
-        wxASSERT(false);
-    }
+    view_object = serializer.DeserializeObject(node, xlights, false);
     return view_object;
 }
 

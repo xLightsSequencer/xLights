@@ -147,6 +147,8 @@ int TerrainObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         return 0;
     } else if ("TerrianWidth" == event.GetPropertyName()) {
         width = (int)event.GetPropertyValue().GetLong();
+        TerrainScreenLocation& screenLoc = dynamic_cast<TerrainScreenLocation&>(GetBaseObjectScreenLocation());
+        screenLoc.SetNumPointsWide(width);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrainObject::OnPropertyGridChange::TerrianWidth");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TerrainObject::OnPropertyGridChange::TerrianWidth");
@@ -154,6 +156,8 @@ int TerrainObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         return 0;
     } else if ("TerrianDepth" == event.GetPropertyName()) {
         depth = (int)event.GetPropertyValue().GetLong();
+        TerrainScreenLocation& screenLoc = dynamic_cast<TerrainScreenLocation&>(GetBaseObjectScreenLocation());
+        screenLoc.SetNumPointsDeep(depth);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrainObject::OnPropertyGridChange::TerrianDepth");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TerrainObject::OnPropertyGridChange::TerrianDepth");

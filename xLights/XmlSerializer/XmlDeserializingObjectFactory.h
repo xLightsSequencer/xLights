@@ -20,10 +20,10 @@ private:
     void CommonDeserializeSteps(ViewObject* model, wxXmlNode* node, xLightsFrame* xlights, bool importing);
 
     void DeserializeBaseObjectAttributes(ViewObject* model, wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    void DeserializeModelScreenLocationAttributes(ViewObject* object, wxXmlNode* node, bool importing);
     void DeserializeTerrainScreenLocationAttributes(ViewObject* object, wxXmlNode* node);
 
     ViewObject* DeserializeGridlines(wxXmlNode* node, xLightsFrame* xlights, bool importing);
+    ViewObject* DeserializeImage(wxXmlNode* node, xLightsFrame* xlights, bool importing);
     ViewObject* DeserializeMesh(wxXmlNode* node, xLightsFrame* xlights, bool importing);
     ViewObject* DeserializeRuler(wxXmlNode* node, xLightsFrame* xlights, bool importing);
     ViewObject* DeserializeTerrain(wxXmlNode* node, xLightsFrame* xlights, bool importing);

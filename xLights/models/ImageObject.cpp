@@ -21,7 +21,7 @@
 #include <log4cpp/Category.hh>
 
 ImageObject::ImageObject(const ViewObjectManager &manager)
- : ObjectWithScreenLocation(manager), _imageFile(""), width(1), height(1), transparency(0), brightness(100.0f)
+ : ObjectWithScreenLocation(manager)
 {
 }
 
@@ -32,22 +32,14 @@ ImageObject::~ImageObject()
     }
 }
 
-void ImageObject::InitModel() {
-	_imageFile = FixFile("", ModelXml->GetAttribute("Image", ""));
-    if (_imageFile != ModelXml->GetAttribute("Image", "")) {
-        ModelXml->DeleteAttribute("Image");
-        ModelXml->AddAttribute("Image", _imageFile);
-    }
+void ImageObject::SetImageFile(const std::string & imageFile)
+{
+    ObtainAccessToURL(imageFile);
+    _imageFile = FixFile("", imageFile);
+}
 
-    ObtainAccessToURL(_imageFile);
-
-    if (ModelXml->HasAttribute("Transparency")) {
-        transparency = wxAtoi(ModelXml->GetAttribute("Transparency"));
-    }
-    if (ModelXml->HasAttribute("Brightness")) {
-        brightness = wxAtoi(ModelXml->GetAttribute("Brightness"));
-    }
-
+void ImageObject::InitModel()
+{
     screenLocation.SetRenderSize(width, height, 10.0f);
 }
 
@@ -78,29 +70,20 @@ int ImageObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         _images.clear();
         _imageFile = event.GetValue().GetString();
         ObtainAccessToURL(_imageFile);
-        ModelXml->DeleteAttribute("Image");
-        ModelXml->AddAttribute("Image", _imageFile);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ImageObject::OnPropertyGridChange::Image");
-        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ImageObject::OnPropertyGridChange::Image");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ImageObject::OnPropertyGridChange::Image");
         return 0;
     } else if ("Transparency" == event.GetPropertyName()) {
         transparency = (int)event.GetPropertyValue().GetLong();
-        ModelXml->DeleteAttribute("Transparency");
-        ModelXml->AddAttribute("Transparency", wxString::Format("%d", transparency));
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ImageObject::OnPropertyGridChange::Transparency");
-        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ImageObject::OnPropertyGridChange::Transparency");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ImageObject::OnPropertyGridChange::Transparency");
         return 0;
     } else if ("Brightness" == event.GetPropertyName()) {
         brightness = (int)event.GetPropertyValue().GetLong();
-        ModelXml->DeleteAttribute("Brightness");
-        ModelXml->AddAttribute("Brightness", wxString::Format("%d", (int)brightness));
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ImageObject::OnPropertyGridChange::Brightness");
-        //AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ImageObject::OnPropertyGridChange::Brightness");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ImageObject::OnPropertyGridChange::Brightness");
         return 0;
     }
@@ -228,8 +211,6 @@ bool ImageObject::CleanupFileLocations(xLightsFrame* frame)
     if (FileExists(_imageFile)) {
         if (!frame->IsInShowFolder(_imageFile)) {
             _imageFile = frame->MoveToShowFolder(_imageFile, wxString(wxFileName::GetPathSeparator()) + "Images");
-            ModelXml->DeleteAttribute("Image");
-            ModelXml->AddAttribute("Image", _imageFile);
             rc = true;
         }
     }
