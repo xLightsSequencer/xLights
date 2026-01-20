@@ -1495,7 +1495,7 @@ wxString CompressNodes(const wxString& nodes) {
                 }
             }
             // Add empty and separator
-            res += i + ",";
+            res += i + "0,";
             start = last = -1;
             dir = 0;
             continue;
