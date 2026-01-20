@@ -365,6 +365,7 @@ int WLED::EncodeStringPortProtocol(const std::string& protocol) const {
     if (p == "sk6812rgbw") return 30;
     if (p == "apa109") return 30;//same
     if (p == "tm1814") return 31;
+    if (p == "sm16825") return 34;
 
     //4-wire
     if (p == "ws2801") return 50;
