@@ -12,6 +12,7 @@
 
 #include "aiType.h"
 
+#include <functional>
 #include <utility>
 #include <string>
 #include <list>
@@ -20,6 +21,9 @@
 class ServiceManager;
 class wxPropertyGrid;
 class wxVariant;
+class wxSizer;
+class wxDialog;
+class wxBitmap;
 
 class aiBase {  
 protected:  
