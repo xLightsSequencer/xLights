@@ -533,10 +533,10 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         logger_base.debug("Sequence Num Channels: %d or %d", numChan, _seqData.NumChannels());
         logger_base.debug("Sequence Num Frames: %d", (int)(CurrentSeqXmlFile->GetSequenceDurationMS() / ms));
 
-        if ((numChan != _seqData.NumChannels()) ||
+        if ((roundTo4(numChan) != _seqData.NumChannels()) ||
             (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)_seqData.NumFrames()) {
             if (_seqData.NumChannels() > 0) {
-                if (numChan != _seqData.NumChannels()) {
+                if (roundTo4(numChan) != _seqData.NumChannels()) {
                     logger_base.warn("Fseq file had %u channels but sequence has %u channels so dumping the fseq data.", _seqData.NumChannels(), numChan);
                 } else {
                     if ((CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)_seqData.NumFrames()) {
