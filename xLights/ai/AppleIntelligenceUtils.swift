@@ -8,6 +8,9 @@
 
 import Foundation
 import FoundationModels
+import CoreGraphics
+
+import ImagePlayground
 
 @available(macOS 26.0, *)
 struct DynObjCreator {
@@ -107,5 +110,43 @@ public func RunAppleIntelligenceGeneratePalette(_ prompt: String) -> String {
         return result.result
     }
     return "";
+}
+
+@objcMembers public class ImagesAsyncCaller: NSObject {
+    public func generateImages(prompt: String, fullInstructions: String, style: String) async -> (CGImage, String) {
+        // Handle availability at runtime and catch thrown errors from ImageCreator()
+        let image : CGImage! = nil;
+        if #available(macOS 26.0, *) {
+            do {
+                let imageCreator = try await ImageCreator()
+                
+                guard let style = imageCreator.availableStyles.first(where: { $0.id == style }) else {
+                    return (image, "Could not render image with style: \(style)")
+                }
+                
+                // Generate images by specifying prompts and style
+                let generatedImages = imageCreator.images(
+                    for: [.extracted(from:fullInstructions, title:prompt)],
+                    style: style,
+                    limit: 1
+                )
+
+                // Receive the generated images
+                for try await image in generatedImages {
+                    let cgImage = image.cgImage
+                    return (cgImage, "" as String)
+                }
+                return (image, "No Image Created")
+            } catch ImageCreator.Error.notSupported {
+                return (image, "Image creation is not supported on this device");
+            } catch ImageCreator.Error.creationFailed {
+                return (image, "Image creation failed")
+            } catch {
+                return (image, "An unexpected error occurred: \(error)")
+            }
+        } else {
+            return (image, "Image generation requires macOS 26.0 or later")
+        }
+    }
 }
 

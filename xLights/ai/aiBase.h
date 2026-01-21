@@ -65,4 +65,19 @@ public:
     virtual AIColorPalette GenerateColorPalette(const std::string &prompt) const {
         return AIColorPalette();
     }
+    
+    
+    class AIImageGenerator {
+    public:
+        virtual ~AIImageGenerator() {}
+        
+        virtual void generateImage(const std::string &prompt,
+                                   const std::function<void(const wxBitmap &, const std::string &err)> &callback) = 0;
+        virtual void addControls(wxDialog *parent, wxSizer *sizer) {}
+    };
+    
+    virtual AIImageGenerator *createAIImageGenerator() const {
+        return nullptr;
+    }
+    
 };

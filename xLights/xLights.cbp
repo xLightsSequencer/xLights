@@ -492,6 +492,8 @@
 		<Unit filename="XlightsDrawable.h" />
 		<Unit filename="ai/AIColorPaletteDialog.cpp" />
 		<Unit filename="ai/AIColorPaletteDialog.h" />
+		<Unit filename="ai/AIImageDialog.cpp" />
+		<Unit filename="ai/AIImageDialog.h" />
 		<Unit filename="ai/ServiceManager.cpp" />
 		<Unit filename="ai/ServiceManager.h" />
 		<Unit filename="ai/aiBase.cpp" />
@@ -1169,6 +1171,7 @@
 		<Unit filename="wxModelGridCellRenderer.h" />
 		<Unit filename="wx_pch.h" />
 		<Unit filename="wxsmith/AIColorPaletteDialog.wxs" />
+		<Unit filename="wxsmith/AIImageDialog.wxs" />
 		<Unit filename="wxsmith/AboutDialog.wxs" />
 		<Unit filename="wxsmith/AdjustPanel.wxs" />
 		<Unit filename="wxsmith/AlignmentDialog.wxs" />
@@ -1578,6 +1581,7 @@
 					<wxDialog wxs="wxsmith/ShowFolderSearchDialog.wxs" src="ShowFolderSearchDialog.cpp" hdr="ShowFolderSearchDialog.h" fwddecl="0" i18n="1" name="ShowFolderSearchDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/ServicesPanel.wxs" src="preferences/ServicesPanel.cpp" hdr="preferences/ServicesPanel.h" fwddecl="0" i18n="1" name="ServicesPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/AIColorPaletteDialog.wxs" src="ai/AIColorPaletteDialog.cpp" hdr="ai/AIColorPaletteDialog.h" fwddecl="0" i18n="0" name="AIColorPaletteDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/AIImageDialog.wxs" src="ai/AIImageDialog.cpp" hdr="ai/AIImageDialog.h" fwddecl="0" i18n="0" name="AIImageDialog" language="CPP" />					
 				</resources>
 			</wxsmith>
 		</Extensions>
