@@ -1,6 +1,3 @@
-#pragma once
-#pragma once
-
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
@@ -41,8 +38,12 @@
 #include "../models/DMX/DmxPresetAbility.h"
 #include "../models/DMX/DmxDimmerAbility.h"
 #include "../models/DMX/DmxShutterAbility.h"
+#include "../models/DMX/DmxFloodArea.h"
+#include "../models/DMX/DmxFloodlight.h"
+#include "../models/DMX/DmxGeneral.h"
 #include "../models/DMX/DmxMovingHeadAdv.h"
 #include "../models/DMX/DmxMovingHead.h"
+#include "../models/DMX/DmxServo3D.h"
 #include "../models/DMX/Mesh.h"
 #include "../models/DMX/Servo.h"
 #include "../xLightsMain.h"
@@ -72,6 +73,12 @@ Model* XmlDeserializingModelFactory::Deserialize(wxXmlNode* node, xLightsFrame* 
         return DeserializeDmxMovingHead(node, xlights, importing);
     } else if (type == XmlNodeKeys::DmxMovingHeadAdvType) {
         return DeserializeDmxMovingHeadAdv(node, xlights, importing);
+    } else if (type == XmlNodeKeys::DmxFloodAreaType) {
+        return DeserializeDmxFloodArea(node, xlights, importing);
+    } else if (type == XmlNodeKeys::DmxFloodlightType) {
+        return DeserializeDmxFloodlight(node, xlights, importing);
+    } else if (type == XmlNodeKeys::DmxGeneralType) {
+        return DeserializeDmxGeneral(node, xlights, importing);
     } else if (type == XmlNodeKeys::IciclesType) {
         return DeserializeIcicles(node, xlights, importing);
     } else if (type == XmlNodeKeys::ImageType) {
@@ -96,24 +103,7 @@ Model* XmlDeserializingModelFactory::Deserialize(wxXmlNode* node, xLightsFrame* 
         return DeserializeWindow(node, xlights, importing);
     } else if (type == XmlNodeKeys::WreathType) {
         return DeserializeWreath(node, xlights, importing);
-    } /*else if (type == XmlNodeKeys::ViewObjectsType) {
-        return DeserializeEffects(new wxXmlNode(*node), xlights, importing);
-    } else if (type == XmlNodeKeys::EffectsType) {
-        return DeserializeViews(new wxXmlNode(*node), xlights, importing);
-    } else if (type == XmlNodeKeys::ViewsType) {
-        return DeserializePalettes(new wxXmlNode(*node), xlights, importing);
-    } else if (type == XmlNodeKeys::PalettesType) {
-        return DeserializeGroups(new wxXmlNode(*node), xlights, importing);
-    } else if (type == XmlNodeKeys::LayoutGroupsType) {
-        return DeserializePerspectives(new wxXmlNode(*node), xlights, importing);
-    } else if (type == XmlNodeKeys::PerspectivesType) {
-        return DeserializeSettings(new wxXmlNode(*node), xlights, importing);
-    } else if (type == XmlNodeKeys::SettingsType) {
-        return DeserializeColors(new wxXmlNode(*node), xlights, importing);
-    } else if (type == XmlNodeKeys::ColorsType) {
-        return DeserializeViewPoints(new wxXmlNode(*node), xlights, importing);
-    }*/
-
+    }
     throw std::runtime_error("Unknown model type: " + type);
 }
 
@@ -790,6 +780,42 @@ void XmlDeserializingModelFactory::DeserializeServo(Servo* servo, wxXmlNode* nod
 void XmlDeserializingModelFactory::DeserializeDmxMovingHeadComm(DmxMovingHeadComm* model, wxXmlNode* node) {
     model->SetDmxFixture(node->GetAttribute(XmlNodeKeys::DmxFixtureAttribute, "MH1"));
     DeserializeDmxModel(model, node);
+}
+
+Model* XmlDeserializingModelFactory::DeserializeDmxFloodArea(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+    DmxFloodArea* model = new DmxFloodArea(xlights->AllModels);
+    CommonDeserializeSteps(model, node, xlights, importing);
+    DeserializeDmxModel(model, node);
+    model->Setup();
+    return model;
+}
+
+Model* XmlDeserializingModelFactory::DeserializeDmxFloodlight(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+    DmxFloodlight* model = new DmxFloodlight(xlights->AllModels);
+    CommonDeserializeSteps(model, node, xlights, importing);
+    DeserializeDmxModel(model, node);
+    model->Setup();
+    return model;
+}
+
+Model* XmlDeserializingModelFactory::DeserializeDmxGeneral(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+    DmxGeneral* model = new DmxGeneral(xlights->AllModels);
+    CommonDeserializeSteps(model, node, xlights, importing);
+    DeserializeDmxModel(model, node);
+    model->Setup();
+    return model;
+}
+
+Model* XmlDeserializingModelFactory::DeserializeDmxServo3d(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+    DmxServo3d* model = new DmxServo3d(xlights->AllModels);
+    CommonDeserializeSteps(model, node, xlights, importing);
+    DeserializeDmxModel(model, node);
+    model->SetNumServos(std::stoi(node->GetAttribute("NumServos", "1").ToStdString()));
+    model->SetNumStatic(std::stoi(node->GetAttribute("NumStatic", "1").ToStdString()));
+    model->SetNumMotion(std::stoi(node->GetAttribute("NumMotion", "1").ToStdString()));
+    model->SetIs16Bit(node->GetAttribute("Bits16", "0") == "1");
+    model->Setup();
+    return model;
 }
 
 Model* XmlDeserializingModelFactory::DeserializeDmxMovingHead(wxXmlNode* node, xLightsFrame* xlights, bool importing) {

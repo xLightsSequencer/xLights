@@ -17,53 +17,58 @@ class Servo;
 
 class DmxServo3d : public DmxModel
 {
-    public:
-        DmxServo3d(const ModelManager& manager);
-        virtual ~DmxServo3d();
+public:
+    DmxServo3d(const ModelManager& manager);
+    virtual ~DmxServo3d();
 
-        virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
-                                          xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
-                                          const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
-                                          bool highlightFirst = false, int highlightpixel = 0,
-                                          float *boundingBox = nullptr) override;
-        virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
+    virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
+                                      xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
+                                      const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
+                                      bool highlightFirst = false, int highlightpixel = 0,
+                                      float *boundingBox = nullptr) override;
+    virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
-        virtual std::list<std::string> CheckModelSettings() override;
+    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
+    virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
+    virtual std::list<std::string> CheckModelSettings() override;
 
-        Servo* GetAxis(int num) { return num < num_servos ? servos[num] : servos[0]; }
-        int GetNumServos() const { return num_servos; }
-        int GetNumStatic() const { return num_static; }
-        int GetNumMotion() const { return num_motion; }
-        void UpdateNodeNames() { update_node_names = true; }
-        void UpdateBits() { update_bits = true; }
-        bool Is16Bit() const { return _16bit; }
+    Servo* GetAxis(int num) { return num < num_servos ? servos[num] : servos[0]; }
+    int GetNumServos() const { return num_servos; }
+    int GetNumStatic() const { return num_static; }
+    int GetNumMotion() const { return num_motion; }
+    void UpdateNodeNames() { update_node_names = true; }
+    void UpdateBits() { update_bits = true; }
+    bool Is16Bit() const { return _16bit; }
 
-        void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const override;
+    void SetNumServos(int val) { num_servos = val; }
+    void SetNumStatic(int val) { num_static = val; }
+    void SetNumMotion(int val) { num_motion = val; }
+    void SetIs16Bit(bool val) { _16bit = val; }
 
-    protected:
-        virtual void InitModel() override;
-        void Clear();
+    void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const override;
 
-        void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool active);
+protected:
+    virtual void InitModel() override;
+    void Clear();
 
-        float brightness = 100.0f;
+    void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool active);
 
-    private:
-        static const int SUPPORTED_SERVOS = 24;
+    float brightness = 100.0f;
 
-        bool update_node_names = false;
-        bool update_bits = false;
-        int num_servos = 1;
-        int num_static = 1;
-        int num_motion = 1;
-        bool _16bit = true;
-        bool show_pivot = false;
-        std::vector<Mesh*> static_meshs;
-        std::vector<Mesh*> motion_meshs;
-        std::vector<Servo*> servos;
-        int servo_links[SUPPORTED_SERVOS];
-        int mesh_links[SUPPORTED_SERVOS];
+private:
+    static const int SUPPORTED_SERVOS = 24;
+
+    bool update_node_names = false;
+    bool update_bits = false;
+    int num_servos = 1;
+    int num_static = 1;
+    int num_motion = 1;
+    bool _16bit = true;
+    bool show_pivot = false;
+    std::vector<Mesh*> static_meshs;
+    std::vector<Mesh*> motion_meshs;
+    std::vector<Servo*> servos;
+    int servo_links[SUPPORTED_SERVOS];
+    int mesh_links[SUPPORTED_SERVOS];
 };
 

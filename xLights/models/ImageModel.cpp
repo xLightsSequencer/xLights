@@ -360,7 +360,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
 
-    bool drawColor = preview->GetName() != "Layout" && StringType.rfind("Single Color",0) != 0 && StringType != "Node Single Color";
+    bool drawColor = !allowSelected && StringType.rfind("Single Color",0) != 0 && StringType != "Node Single Color";
 
     xlTexture *texture = _images[preview->GetName().ToStdString()];
     xlTexture* textureColorOverlay = _images[preview->GetName().ToStdString() + "_color_overlay"];

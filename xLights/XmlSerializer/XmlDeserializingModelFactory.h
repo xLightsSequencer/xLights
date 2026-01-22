@@ -73,6 +73,10 @@ private:
     void DeserializeServo(Servo* servo, wxXmlNode* node);
     void DeserializeDmxMovingHeadComm(DmxMovingHeadComm* model, wxXmlNode* node);
 
+    Model* DeserializeDmxGeneral(wxXmlNode* node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeDmxFloodArea(wxXmlNode* node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeDmxFloodlight(wxXmlNode* node, xLightsFrame* xlights, bool importing);
     Model* DeserializeDmxMovingHead(wxXmlNode* node, xLightsFrame* xlights, bool importing);
     Model* DeserializeDmxMovingHeadAdv(wxXmlNode *node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeDmxServo3d(wxXmlNode* node, xLightsFrame* xlights, bool importing);
 };

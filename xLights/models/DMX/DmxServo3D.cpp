@@ -293,7 +293,6 @@ int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGr
     for (int i = 0; i < num_servos; ++i) {
         std::string linkage = "Servo" + std::to_string(i + 1) + "Linkage";
         if (linkage == name) {
-            ModelXml->DeleteAttribute(linkage);
             int link_num = event.GetPropertyValue().GetLong();
             if (link_num >= num_servos) {
                 link_num = i;
@@ -315,7 +314,6 @@ int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGr
         }
         linkage = "Mesh" + std::to_string(i + 1) + "Linkage";
         if (linkage == name) {
-            ModelXml->DeleteAttribute(linkage);
             int link_num = event.GetPropertyValue().GetLong();
             if (link_num >= num_servos) {
                 link_num = i;
@@ -342,12 +340,8 @@ int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGr
 
 void DmxServo3d::InitModel()
 {
-    num_servos = wxAtoi(ModelXml->GetAttribute("NumServos", "1"));
-    num_static = wxAtoi(ModelXml->GetAttribute("NumStatic", "1"));
-    num_motion = wxAtoi(ModelXml->GetAttribute("NumMotion", "1"));
-    _16bit = wxAtoi(ModelXml->GetAttribute("Bits16", "1"));
-
     int min_channels = num_servos * (_16bit ? 2 : 1);
+
     if (parm1 < min_channels) {
         UpdateChannelCount(min_channels, false);
         std::string msg = wxString::Format("Channel count increased to %d to accommodate %d servos at %d bits.", min_channels, num_servos, _16bit ? 16 : 8);
@@ -355,7 +349,6 @@ void DmxServo3d::InitModel()
     }
 
     DmxModel::InitModel();
-    DisplayAs = "DmxServo3d";
 
     // clear links
     for (int i = 0; i < SUPPORTED_SERVOS; ++i) {

@@ -77,6 +77,7 @@ private:
     void AddPresetAbilityAttributes(const DmxPresetAbility* presets, wxXmlNode* node);
     void AddShutterAbilityAttributes(const DmxShutterAbility* shutter, wxXmlNode* node);
     void AddDimmerAbilityAttributes(const DmxDimmerAbility* dimmer, wxXmlNode* node);
+    void AddCustomModel(wxXmlNode* xmlNode, const CustomModel& m);
     void AddFacesandStates(wxXmlNode* node, const Model* m);
     void AddAliases(wxXmlNode* node, const std::list<std::string>& aliases);
     void AddDimmingCurve(wxXmlNode* node, const Model* m);
@@ -84,15 +85,8 @@ private:
     void AddGroups(wxXmlNode* node, const Model* m);
     void AddControllerConnection(wxXmlNode* node, const Model* m);
     void AddDimensions(wxXmlNode* node, const Model* m);
+    void AddSuperStrings(Model const& model, wxXmlNode* node);
     void AddOtherElements(wxXmlNode* xmlNode, const Model* m);
-    void AddCustomModel(wxXmlNode* xmlNode, const CustomModel& m);
-
-    void SerializeSuperStrings(Model const& model, wxXmlNode* node);
-    void SerializeViewsObject(wxXmlNode* node, xLightsFrame* xlights);
-    void SerializeColorsObject(wxXmlNode* node, xLightsFrame* xlights);
-    void SerializeLayoutGroupsObject(wxXmlNode* node, xLightsFrame* xlights);
-    void SerializePerspectivesObject(wxXmlNode* node, xLightsFrame* xlights);
-    void SerializeSettingsObject(wxXmlNode* node, xLightsFrame* xlights);
 
     [[nodiscard]] wxXmlNode* CommonVisitSteps(const Model& model);
 };

@@ -383,6 +383,10 @@ namespace XmlNodeKeys {
     constexpr auto CustomType           = "Custom";
     constexpr auto DmxMovingHeadType    = "DmxMovingHead";
     constexpr auto DmxMovingHeadAdvType = "DmxMovingHeadAdv";
+    constexpr auto DmxFloodAreaType     = "DmxFloodArea";
+    constexpr auto DmxFloodlightType    = "DmxFloodlight";
+    constexpr auto DmxGeneralType       = "DmxGeneral";
+    constexpr auto DmxServo3DType       = "DmxServo3D";
     constexpr auto IciclesType          = "Icicles";
     constexpr auto ImageType            = "Image";
     constexpr auto MatrixType           = "Matrix";

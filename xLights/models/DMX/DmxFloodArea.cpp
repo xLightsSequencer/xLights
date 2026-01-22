@@ -29,7 +29,6 @@ DmxFloodArea::~DmxFloodArea()
 
 void DmxFloodArea::InitModel() {
     DmxFloodlight::InitModel();
-    DisplayAs = "DmxFloodArea";
 }
 void DmxFloodArea::DrawModel(xlVertexColorAccumulator *vac, xlColor &center, xlColor &edge, float beamratio) {
     float beam_length = beamratio/2.0f;
