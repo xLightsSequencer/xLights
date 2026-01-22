@@ -41,6 +41,7 @@
 #include <cctype>
 #include <cstring>
 #include <thread>
+#include <string>
 
 #include "AboutDialog.h"
 #include "BatchRenderDialog.h"
@@ -6377,6 +6378,40 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         if (newlast > last) {
             last = newlast;
             lastm = m;
+        }
+        // Check for single line models with left-to-right physical orientation
+        if (m->GetDisplayAs() == "Single Line") {
+            size_t nodeCount = m->GetNodeCount();
+            if (nodeCount < 2)
+                continue; // Not a valid line
+
+            auto xmlNode = m->GetModelXml();
+
+            float startX = 0.0f, startY = 0.0f, startZ = 0.0f;
+            float endX = 0.0f, endY = 0.0f, endZ = 0.0f;
+
+            double temp;
+
+            if (xmlNode->GetAttribute("X1").ToDouble(&temp)) startX = static_cast<float>(temp);
+            if (xmlNode->GetAttribute("Y1").ToDouble(&temp)) startY = static_cast<float>(temp);
+            if (xmlNode->GetAttribute("Z1").ToDouble(&temp)) startZ = static_cast<float>(temp);
+
+            if (xmlNode->GetAttribute("X2").ToDouble(&temp)) endX = static_cast<float>(temp);
+            if (xmlNode->GetAttribute("Y2").ToDouble(&temp)) endY = static_cast<float>(temp);
+            if (xmlNode->GetAttribute("Z2").ToDouble(&temp)) endZ = static_cast<float>(temp);
+
+            float deltaX = fabs(startX - endX);
+            float deltaY = fabs(startY - endY);
+            float deltaZ = fabs(startZ - endZ);
+            if (deltaX > deltaY && deltaX > deltaZ) {
+                if (startX > endX) {
+                    CheckSequenceReport::ReportIssue::WARNING;
+                    wxString msg;
+                    msg = wxString::Format("    %s: Model '%s' should have the green square on the left of the blue square for best render results.",
+                        "WARN", m->GetName());
+                    LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "config", errcount, warncount);
+                }
+            }
         }
     }
     if (errcount + warncount == errcountsave + warncountsave) {
