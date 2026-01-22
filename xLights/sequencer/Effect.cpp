@@ -706,22 +706,19 @@ void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
 
-    for (std::map<std::string,std::string>::const_iterator it=mSettings.begin(); it!=mSettings.end(); ++it)
-    {
-        std::string name = it->first;
-        if (stripPfx && name[1] == '_')
-        {
+    for (auto &it : mSettings) {
+        std::string name = it.first;
+        if (stripPfx && name[1] == '_') {
             name = name.substr(2);
         }
-        target[name] = it->second;
+        target[name] = it.second;
     }
-    for (std::map<std::string,std::string>::const_iterator it=mPaletteMap.begin(); it!=mPaletteMap.end(); ++it)
-    {
-        std::string name = it->first;
-        if (stripPfx && name[1] == '_'  && (name[2] == 'S' || name[2] == 'C' || name[2] == 'V')) //only need the slider, checkbox and value curve entries
-        {
+    for (auto &it : mPaletteMap) {
+        std::string name = it.first;
+        //only need the slider, checkbox and value curve entries
+        if (stripPfx && name[1] == '_'  && (name[2] == 'S' || name[2] == 'C' || name[2] == 'V')) {
             name = name.substr(2);
-            target[name] = it->second;
+            target[name] = it.second;
         }
     }
 }
