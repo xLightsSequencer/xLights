@@ -604,6 +604,7 @@ public:
     void OnMenuItem_ZoomSelected(wxCommandEvent& event);
     void OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event);
     void OnMenuItem_Generate2DPathSelected(wxCommandEvent& event);
+    void OnMenuItem_GenerateAIImage(wxCommandEvent& event);
     void OnMenuItem_PrepareAudioSelected(wxCommandEvent& event);
     void OnMenuItem_UserManualSelected(wxCommandEvent& event);
     void OnMenuItem_ValueCurvesSelected(wxCommandEvent& event);
@@ -646,13 +647,12 @@ public:
     void OnButton_OpenBaseShowDirClick(wxCommandEvent& event);
     void OnMenuItemFindShowFolderSelected(wxCommandEvent& event);
     void OnMenuItemShiftEffectsAndTimingSelected(wxCommandEvent& event);
+    void OnMenuItem_GenerateAIImageSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
 
 private :
-
-    //void OnMenuItem53Selected(wxCommandEvent& event);
 
     void DoMenuAction(wxMenuEvent &evt);
 	void ShowHideAllSequencerWindows(bool show);
@@ -795,6 +795,7 @@ public:
     static const wxWindowID ID_MENU_GENERATE2DPATH;
     static const wxWindowID ID_MENUITEM_GenerateCustomModel;
     static const wxWindowID ID_MNU_REMAPCUSTOM;
+    static const wxWindowID ID_MENUITEM_GenerateAIImage;
     static const wxWindowID ID_MNU_GENERATELYRICS;
     static const wxWindowID ID_MENUITEM_CONVERT;
     static const wxWindowID ID_MNU_PREPAREAUDIO;
@@ -1026,6 +1027,7 @@ public:
     wxMenuItem* MenuItem_Zoom;
     wxMenuItem* MenuItem_xScanner;
     wxMenuItem* MenuItem_xSchedule;
+    wxMenuItem* Menu_GenerateAIImage;
     wxMenuItem* Menu_GenerateCustomModel;
     wxMenuItem* Menu_Settings_Sequence;
     wxMenuItem* QuitMenuItem;
