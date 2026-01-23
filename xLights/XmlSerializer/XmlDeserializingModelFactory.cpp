@@ -44,6 +44,7 @@
 #include "../models/DMX/DmxMovingHeadAdv.h"
 #include "../models/DMX/DmxMovingHead.h"
 #include "../models/DMX/DmxServo3D.h"
+#include "../models/DMX/DmxSkull.h"
 #include "../models/DMX/Mesh.h"
 #include "../models/DMX/Servo.h"
 #include "../xLightsMain.h"
@@ -79,6 +80,10 @@ Model* XmlDeserializingModelFactory::Deserialize(wxXmlNode* node, xLightsFrame* 
         return DeserializeDmxFloodlight(node, xlights, importing);
     } else if (type == XmlNodeKeys::DmxGeneralType) {
         return DeserializeDmxGeneral(node, xlights, importing);
+    } else if (type == XmlNodeKeys::DmxServo3dType) {
+        return DeserializeDmxServo3d(node, xlights, importing);
+    } else if (type == XmlNodeKeys::DmxSkullType) {
+        return DeserializeDmxSkull(node, xlights, importing);
     } else if (type == XmlNodeKeys::IciclesType) {
         return DeserializeIcicles(node, xlights, importing);
     } else if (type == XmlNodeKeys::ImageType) {
@@ -814,6 +819,147 @@ Model* XmlDeserializingModelFactory::DeserializeDmxServo3d(wxXmlNode* node, xLig
     model->SetNumStatic(std::stoi(node->GetAttribute("NumStatic", "1").ToStdString()));
     model->SetNumMotion(std::stoi(node->GetAttribute("NumMotion", "1").ToStdString()));
     model->SetIs16Bit(node->GetAttribute("Bits16", "0") == "1");
+    model->SetBrightness(std::stoi(node->GetAttribute(XmlNodeKeys::BrightnessAttribute, "100").ToStdString()));
+
+
+    wxXmlNode* n = node->GetChildren();
+    while (n != nullptr) {
+        std::string name = n->GetName();
+        int servo_idx = name.find("Servo");
+        int static_idx = name.find("StaticMesh");
+        int motion_idx = name.find("MotionMesh");
+
+        if ("StaticMesh" == name) { // convert original name that had no number
+            Mesh* msh = model->CreateStaticMesh("StaticMesh1", 0);
+            DeserializeMesh(msh, n);
+        } else if ("MotionMesh" == name) { // convert original name that had no number
+            Mesh* msh = model->CreateStaticMesh("MotionMesh1", 0);
+            DeserializeMesh(msh, n);
+        } else if (static_idx != std::string::npos) {
+            std::string num = name.substr(10, name.length());
+            int id = atoi(num.c_str()) - 1;
+            if (id < model->GetNumStatic()) {
+                Mesh* msh = model->CreateStaticMesh(name, id);
+                DeserializeMesh(msh, n);
+            }
+        } else if (motion_idx != std::string::npos) {
+            std::string num = name.substr(10, name.length());
+            int id = atoi(num.c_str()) - 1;
+            if (id < model->GetNumMotion()) {
+                Mesh* msh = model->CreateMotionMesh(name, id);
+                DeserializeMesh(msh, n);
+            }
+        } else if (servo_idx != std::string::npos) {
+            std::string num = name.substr(5, name.length());
+            int id = atoi(num.c_str()) - 1;
+            if (id < model->GetNumServos()) {
+                Servo* sv = model->CreateServo(name, id);
+                DeserializeServo(sv, n);
+            }
+        }
+        n = n->GetNext();
+    }
+
+    // get servo linkages
+    for (int i = 0; i < model->GetNumServos(); ++i) {
+        std::string num = std::to_string(i + 1);
+        std::string this_link = "Servo" + num + "Linkage";
+        std::string this_default = "Mesh " + num;
+        std::string link = node->GetAttribute(this_link, this_default);
+        if (link.length() < 5) {
+            link = "Mesh 1";
+        }
+        std::string num2 = link.substr(5, link.length());
+        int link_id = atoi(num2.c_str());
+        if (link_id < 1) {
+            link_id = 1;
+        }
+        if (link_id != i + 1) {
+            model->SetServoLink(i, link_id - 1);
+        }
+    }
+
+    // get mesh linkages
+    for (int i = 0; i < model->GetNumServos(); ++i) {
+        std::string num = std::to_string(i + 1);
+        std::string this_link = "Mesh" + num + "Linkage";
+        std::string this_default = "Mesh " + num;
+        std::string link = node->GetAttribute(this_link, this_default);
+        if (link.length() < 5) {
+            link = "Mesh 1";
+        }
+        std::string num2 = link.substr(5, link.length());
+        int link_id = atoi(num2.c_str());
+        if (link_id < 1) {
+            link_id = 1;
+        }
+        if (link_id != i + 1) {
+            model->SetMeshLink(i, link_id - 1);
+        }
+    }
+
+    model->Setup();
+    return model;
+}
+
+Model* XmlDeserializingModelFactory::DeserializeDmxSkull(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+    DmxSkull* model = new DmxSkull(xlights->AllModels);
+    CommonDeserializeSteps(model, node, xlights, importing);
+    DeserializeDmxModel(model, node);
+    model->SetEyeBrightnessChannel(std::stoi(node->GetAttribute("DmxEyeBrtChannel", "15").ToStdString()));
+    model->SetJawOrient(std::stoi(node->GetAttribute("DmxJawOrient", std::to_string(model->GetDefaultOrient(DmxSkull::SERVO_TYPE::JAW))).ToStdString()));
+    model->SetPanOrient(std::stoi(node->GetAttribute("DmxPanOrient", std::to_string(model->GetDefaultOrient(DmxSkull::SERVO_TYPE::PAN))).ToStdString()));
+    model->SetTiltOrient(std::stoi(node->GetAttribute("DmxTiltOrient", std::to_string(model->GetDefaultOrient(DmxSkull::SERVO_TYPE::TILT))).ToStdString()));
+    model->SetNodOrient(std::stoi(node->GetAttribute("DmxNodOrient", std::to_string(model->GetDefaultOrient(DmxSkull::SERVO_TYPE::NOD))).ToStdString()));
+    model->SetEyeUDOrient(std::stoi(node->GetAttribute("DmxEyeUDOrient", std::to_string(model->GetDefaultOrient(DmxSkull::SERVO_TYPE::EYE_UD))).ToStdString()));
+    model->SetEyeLROrient(std::stoi(node->GetAttribute("DmxEyeLROrient", std::to_string(model->GetDefaultOrient(DmxSkull::SERVO_TYPE::EYE_LR))).ToStdString()));
+    model->SetHasJaw(node->GetAttribute("HasJaw", "1") == "1");
+    model->SetHasPan(node->GetAttribute("HasPan", "1") == "1");
+    model->SetHasTilt(node->GetAttribute("HasTilt", "1") == "1");
+    model->SetHasNod(node->GetAttribute("HasNod", "1") == "1");
+    model->SetHasEyeUD(node->GetAttribute("HasEyeUD", "1") == "1");
+    model->SetHasEyeLR(node->GetAttribute("HasEyeLR", "1") == "1");
+    model->SetHasColor(node->GetAttribute("HasColor", "1") == "1");
+    model->SetIs16Bit(node->GetAttribute("Bits16", "1") == "1");
+    model->SetMeshOnly(node->GetAttribute("MeshOnly", "0") == "1");
+
+    wxXmlNode* n = node->GetChildren();
+
+    while (n != nullptr) {
+        std::string name = n->GetName();
+        if ("HeadMesh" == name) {
+            Mesh* mesh = model->CreateMesh("HeadMesh");
+            if (mesh != nullptr) { DeserializeMesh(mesh, n); }
+        } else if ("JawMesh" == name) {
+            Mesh* mesh = model->CreateMesh("JawMesh");
+            if (mesh != nullptr) { DeserializeMesh(mesh, n); }
+        } else if ("EyeMeshL" == name) {
+            Mesh* mesh = model->CreateMesh("EyeMeshL");
+            if (mesh != nullptr) { DeserializeMesh(mesh, n); }
+        } else if ("EyeMeshR" == name) {
+            Mesh* mesh = model->CreateMesh("EyeMeshR");
+            if (mesh != nullptr) { DeserializeMesh(mesh, n); }
+        } else if ("JawServo" == name) {
+            Servo* servo = model->CreateServo("JawServo");
+            if (servo != nullptr) { DeserializeServo(servo, n); }
+        } else if ("PanServo" == name) {
+            Servo* servo = model->CreateServo("PanServo");
+            if (servo != nullptr) { DeserializeServo(servo, n); }
+        } else if ("TiltServo" == name) {
+            Servo* servo = model->CreateServo("TiltServo");
+            if (servo != nullptr) { DeserializeServo(servo, n); }
+        } else if ("NodServo" == name) {
+            Servo* servo = model->CreateServo("NodServo");
+            if (servo != nullptr) { DeserializeServo(servo, n); }
+        } else if ("EyeUpDownServo" == name) {
+            Servo* servo = model->CreateServo("EyeUpDownServo");
+            if (servo != nullptr) { DeserializeServo(servo, n); }
+        } else if ("EyeLeftRightServo" == name) {
+            Servo* servo = model->CreateServo("EyeLeftRightServo");
+            if (servo != nullptr) { DeserializeServo(servo, n); }
+        }
+        n = n->GetNext();
+    }
     model->Setup();
     return model;
 }

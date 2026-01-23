@@ -32,7 +32,7 @@ public:
     virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual std::list<std::string> CheckModelSettings() override;
 
-    Servo* GetAxis(int num) { return num < num_servos ? servos[num] : servos[0]; }
+    const Servo* GetAxis(int num) { return num < num_servos ? servos[num].get() : servos[0].get(); }
     int GetNumServos() const { return num_servos; }
     int GetNumStatic() const { return num_static; }
     int GetNumMotion() const { return num_motion; }
@@ -40,17 +40,22 @@ public:
     void UpdateBits() { update_bits = true; }
     bool Is16Bit() const { return _16bit; }
 
-    void SetNumServos(int val) { num_servos = val; }
-    void SetNumStatic(int val) { num_static = val; }
-    void SetNumMotion(int val) { num_motion = val; }
+    void SetNumServos(int val);
+    void SetNumStatic(int val);
+    void SetNumMotion(int val);
     void SetIs16Bit(bool val) { _16bit = val; }
+    void SetBrightness(float val) {brightness = val; }
+
+    Mesh* CreateStaticMesh(const std::string& name, int idx);
+    Mesh* CreateMotionMesh(const std::string& name, int idx);
+    Servo* CreateServo(const std::string& name, int idx);
+    void SetMeshLink(int idx, int val) { mesh_links[idx] = val; }
+    void SetServoLink(int idx, int val) { servo_links[idx] = val; }
 
     void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const override;
 
 protected:
     virtual void InitModel() override;
-    void Clear();
-
     void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool active);
 
     float brightness = 100.0f;
@@ -65,9 +70,9 @@ private:
     int num_motion = 1;
     bool _16bit = true;
     bool show_pivot = false;
-    std::vector<Mesh*> static_meshs;
-    std::vector<Mesh*> motion_meshs;
-    std::vector<Servo*> servos;
+    std::vector<std::unique_ptr<Mesh>> static_meshs;
+    std::vector<std::unique_ptr<Mesh>> motion_meshs;
+    std::vector<std::unique_ptr<Servo>> servos;
     int servo_links[SUPPORTED_SERVOS];
     int mesh_links[SUPPORTED_SERVOS];
 };

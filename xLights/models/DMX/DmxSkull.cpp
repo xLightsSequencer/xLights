@@ -170,7 +170,7 @@ public:
         dlg.CheckBox_EyeLR->SetValue(m_model->HasEyeLR());
         dlg.CheckBox_EyeUD->SetValue(m_model->HasEyeUD());
         dlg.CheckBox_Color->SetValue(m_model->HasColor());
-        dlg.CheckBox_Skulltronix->SetValue(m_model->IsSkulltronix());
+        dlg.CheckBox_Skulltronix->SetValue(false); // always startout unchecked because selecting this overwrites all the channels
 
         if (dlg.ShowModal() == wxID_OK) {
             bool changed = false;
@@ -183,12 +183,10 @@ public:
             CheckResult(dlg.CheckBox_EyeUD->GetValue(), m_model->HasEyeUD(), m_model, "HasEyeUD", changed);
             CheckResult(dlg.CheckBox_Color->GetValue(), m_model->HasColor(), m_model, "HasColor", changed);
             CheckResult(dlg.CheckBox_16bits->GetValue(), m_model->Is16Bit(), m_model, "Bits16", changed);
-            CheckResult(dlg.CheckBox_Skulltronix->GetValue(), m_model->IsSkulltronix(), m_model, "Skulltronix", changed);
+            CheckResult(dlg.CheckBox_Skulltronix->GetValue(), false, m_model, "Skulltronix", changed);
 
             if (dlg.CheckBox_Skulltronix->GetValue()) {
-                if (!m_model->IsSkulltronix()) {
-                    m_model->SetSkulltronix();
-                }
+                m_model->SetSkulltronix();
             }
 
             if (changed) {
@@ -452,143 +450,104 @@ int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
     return DmxModel::OnPropertyGridChange(grid, event);
 }
 
-void DmxSkull::FixObjFile(wxXmlNode* node, const std::string& objfile)
+std::unique_ptr<Servo> DmxSkull::CreateServo(const std::string& name, int type, const std::string& style)
 {
-    if (node->HasAttribute("ObjFile")) {
-        node->DeleteAttribute("ObjFile");
-    }
-    wxString f = obj_path + objfile;
-    node->AddAttribute("ObjFile", f);
+    std::unique_ptr<Servo> servo = std::make_unique<Servo>(name, false);
+    servo->SetMinLimit(default_min_limit[type]);
+    servo->SetMaxLimit(default_max_limit[type]);
+    servo->SetRangeOfMotion(default_range_of_motion[type]);
+    servo->SetStyle(style);
+    servo->SetChannel(default_channels[type]);
+    servo->Init(this);
+    servo->Set16Bit(_16bit);
+    return servo;
 }
 
-void DmxSkull::AddServo(Servo** _servo, const std::string& name, int type, const std::string& style)
+Servo* DmxSkull::CreateServo(const std::string& name)
 {
-    if (*_servo == nullptr) {
-        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, name);
-        ModelXml->AddChild(new_node);
-        Servo* s = new Servo(name, false);
-        s->SetMinLimit(default_min_limit[type]);
-        s->SetMaxLimit(default_max_limit[type]);
-        s->SetRangeOfMotion(default_range_of_motion[type]);
-        s->SetStyle(style);
-        s->SetChannel(default_channels[type]);
-        *_servo = s;
+    if ("JawServo" == name) {
+        jaw_servo = CreateServo("JawServo", JAW, "Rotate X");
+        return jaw_servo.get();
     }
-    (*_servo)->Init(this);
-    (*_servo)->Set16Bit(_16bit);
+    else if ("PanServo" == name) {
+        pan_servo = CreateServo("PanServo", PAN, "Rotate Y");
+        return pan_servo.get();
+    }
+    else if ("TiltServo" == name) {
+        tilt_servo = CreateServo("TiltServo", TILT, "Rotate Z");
+        return tilt_servo.get();
+    }
+    else if ("NodServo" == name) {
+        nod_servo = CreateServo("NodServo", NOD, "Rotate X");
+        return nod_servo.get();
+    }
+    else if ("EyeUpDownServo" == name) {
+        eye_ud_servo = CreateServo("EyeUpDownServo", EYE_UD, "Rotate X");
+        return eye_ud_servo.get();
+    }
+    else if ("EyeLeftRightServo" == name) {
+        eye_lr_servo = CreateServo("EyeLeftRightServo", EYE_LR, "Rotate Y");
+        return eye_lr_servo.get();
+    }
+    return nullptr;
 }
 
-void DmxSkull::AddMesh(Mesh** _mesh, const std::string& name, const std::string& objfile, bool set_size)
+std::unique_ptr<Mesh> DmxSkull::CreateMesh(const std::string& name, const std::string& objfile)
 {
-    if (*_mesh == nullptr) {
-        wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, name);
-        ModelXml->AddChild(new_node);
-        Mesh* m = new Mesh(name);
-        *_mesh = m;
-        FixObjFile(new_node, objfile);
+    std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>(name);
+    mesh->SetObjFile(objfile);
+    mesh->Init(this, false);
+    return mesh;
+}
+
+Mesh* DmxSkull::CreateMesh(const std::string& name)
+{
+    if ("HeadMesh" == name) {
+        head_mesh = CreateMesh("HeadMesh", "SkullHead.obj");
+        return head_mesh.get();
     }
-    (*_mesh)->Init(this, set_size);
+    else if ("JawMesh" == name) {
+        jaw_mesh = CreateMesh("JawMesh", "SkullJaw.obj");
+        return jaw_mesh.get();
+    }
+    else if ("EyeMeshL" == name) {
+        eye_l_mesh = CreateMesh("EyeMeshL", "Eyeball.obj");
+        return eye_l_mesh.get();
+    }
+    else if ("EyeMeshR" == name) {
+        eye_r_mesh = CreateMesh("EyeMeshR", "Eyeball.obj");
+        return eye_r_mesh.get();
+    }
+    return nullptr;
 }
 
 void DmxSkull::InitModel()
 {
     DmxModel::InitModel();
-    DisplayAs = "DmxSkull";
     screenLocation.SetRenderSize(1, 1, 1);
-
-    eye_brightness_channel = wxAtoi(ModelXml->GetAttribute("DmxEyeBrtChannel", "15"));
-    jaw_orient = wxAtoi(ModelXml->GetAttribute("DmxJawOrient", std::to_string(default_orient[JAW])));
-    pan_orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", std::to_string(default_orient[PAN])));
-    tilt_orient = wxAtoi(ModelXml->GetAttribute("DmxTiltOrient", std::to_string(default_orient[TILT])));
-    nod_orient = wxAtoi(ModelXml->GetAttribute("DmxNodOrient", std::to_string(default_orient[NOD])));
-    eye_ud_orient = wxAtoi(ModelXml->GetAttribute("DmxEyeUDOrient", std::to_string(default_orient[EYE_UD])));
-    eye_lr_orient = wxAtoi(ModelXml->GetAttribute("DmxEyeLROrient", std::to_string(default_orient[EYE_LR])));
-    has_jaw = wxAtoi(ModelXml->GetAttribute("HasJaw", "1"));
-    has_pan = wxAtoi(ModelXml->GetAttribute("HasPan", "1"));
-    has_tilt = wxAtoi(ModelXml->GetAttribute("HasTilt", "1"));
-    has_nod = wxAtoi(ModelXml->GetAttribute("HasNod", "1"));
-    has_eye_ud = wxAtoi(ModelXml->GetAttribute("HasEyeUD", "1"));
-    has_eye_lr = wxAtoi(ModelXml->GetAttribute("HasEyeLR", "1"));
-    has_color = wxAtoi(ModelXml->GetAttribute("HasColor", "1"));
-    is_skulltronix = wxAtoi(ModelXml->GetAttribute("Skulltronix", "0"));
-    _16bit = wxAtoi(ModelXml->GetAttribute("Bits16", "1"));
-    mesh_only = ModelXml->GetAttribute("MeshOnly", "0") == "1";
 
     SetNodeNames(default_node_names);
 
-    wxXmlNode* n = ModelXml->GetChildren();
-
-    while (n != nullptr) {
-        std::string name = n->GetName();
-
-        if ("HeadMesh" == name) {
-            if (head_mesh == nullptr) {
-                FixObjFile(n, "SkullHead.obj");
-                head_mesh = new Mesh("HeadMesh");
-            }
-        } else if ("JawMesh" == name) {
-            if (jaw_mesh == nullptr) {
-                FixObjFile(n, "SkullJaw.obj");
-                jaw_mesh = new Mesh("JawMesh");
-            }
-        } else if ("EyeMeshL" == name) {
-            if (eye_l_mesh == nullptr) {
-                FixObjFile(n, "Eyeball.obj");
-                eye_l_mesh = new Mesh("EyeMeshL");
-            }
-        } else if ("EyeMeshR" == name) {
-            if (eye_r_mesh == nullptr) {
-                FixObjFile(n, "Eyeball.obj");
-                eye_r_mesh = new Mesh("EyeMeshR");
-            }
-        } else if ("JawServo" == name) {
-            if (has_jaw && jaw_servo == nullptr) {
-                jaw_servo = new Servo("JawServo", false);
-            }
-        } else if ("PanServo" == name) {
-            if (has_pan && pan_servo == nullptr) {
-                pan_servo = new Servo("PanServo", false);
-            }
-        } else if ("TiltServo" == name) {
-            if (has_tilt && tilt_servo == nullptr) {
-                tilt_servo = new Servo("TiltServo", false);
-            }
-        } else if ("NodServo" == name) {
-            if (has_nod && nod_servo == nullptr) {
-                nod_servo = new Servo("NodServo", false);
-            }
-        } else if ("EyeUpDownServo" == name) {
-            if (has_eye_ud && eye_ud_servo == nullptr) {
-                eye_ud_servo = new Servo("EyeUpDownServo", false);
-            }
-        } else if ("EyeLeftRightServo" == name) {
-            if (has_eye_lr && eye_lr_servo == nullptr) {
-                eye_lr_servo = new Servo("EyeLeftRightServo", false);
-            }
-        }
-        n = n->GetNext();
-    }
-
     // create any missing servos
-    if (has_jaw)
-        AddServo(&jaw_servo, "JawServo", JAW, "Rotate X");
+    if (has_jaw && jaw_servo == nullptr)
+        CreateServo("JawServo");
     if (has_pan)
-        AddServo(&pan_servo, "PanServo", PAN, "Rotate Y");
+        CreateServo("PanServo");
     if (has_tilt)
-        AddServo(&tilt_servo, "TiltServo", TILT, "Rotate Z");
+        CreateServo("TiltServo");
     if (has_nod)
-        AddServo(&nod_servo, "NodServo", NOD, "Rotate X");
+        CreateServo("NodServo");
     if (has_eye_ud)
-        AddServo(&eye_ud_servo, "EyeUpDownServo", EYE_UD, "Rotate X");
+        CreateServo("EyeUpDownServo");
     if (has_eye_lr)
-        AddServo(&eye_lr_servo, "EyeLeftRightServo", EYE_LR, "Rotate Y");
+        CreateServo("EyeLeftRightServo");
 
     // create any missing meshes
-    AddMesh(&head_mesh, "HeadMesh", "SkullHead.obj", false);
+    //AddMesh(&head_mesh, "HeadMesh", "SkullHead.obj", false);
+    //AddMesh(&jaw_mesh, "JawMesh", "SkullJaw.obj", false);
+    //AddMesh(&eye_l_mesh, "EyeMeshL", "Eyeball.obj", false);
+    //AddMesh(&eye_r_mesh, "EyeMeshR", "Eyeball.obj", false);
     head_mesh->SetHalfHeight(); // obj file is shifted up so its twice as tall as it need to be
-    AddMesh(&jaw_mesh, "JawMesh", "SkullJaw.obj", false);
-    AddMesh(&eye_l_mesh, "EyeMeshL", "Eyeball.obj", false);
-    AddMesh(&eye_r_mesh, "EyeMeshR", "Eyeball.obj", false);
 
     head_mesh->SetMeshOnly(mesh_only);
     jaw_mesh->SetMeshOnly(mesh_only);
@@ -827,12 +786,12 @@ void DmxSkull::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphi
 
     // Get servo positions
     float pan_pos, tilt_pos, nod_pos, jaw_pos, eye_x_pos, eye_y_pos;
-    pan_pos = GetServoPos(pan_servo, active && has_pan) + (active ? pan_orient : 0.0f);
-    tilt_pos = GetServoPos(tilt_servo, active && has_tilt) + (active ? tilt_orient : 0.0f);
-    nod_pos = GetServoPos(nod_servo, active && has_nod) + (active ? nod_orient : 0.0f);
-    jaw_pos = GetServoPos(jaw_servo, active && has_jaw) + (active ? jaw_orient : 0.0f);
-    eye_x_pos = GetServoPos(eye_lr_servo, active && has_eye_lr) + (active ? eye_lr_orient : 0.0f);
-    eye_y_pos = GetServoPos(eye_ud_servo, active && has_eye_ud) + (active ? eye_ud_orient : 0.0f);
+    pan_pos = GetServoPos(pan_servo.get(), active && has_pan) + (active ? pan_orient : 0.0f);
+    tilt_pos = GetServoPos(tilt_servo.get(), active && has_tilt) + (active ? tilt_orient : 0.0f);
+    nod_pos = GetServoPos(nod_servo.get(), active && has_nod) + (active ? nod_orient : 0.0f);
+    jaw_pos = GetServoPos(jaw_servo.get(), active && has_jaw) + (active ? jaw_orient : 0.0f);
+    eye_x_pos = GetServoPos(eye_lr_servo.get(), active && has_eye_lr) + (active ? eye_lr_orient : 0.0f);
+    eye_y_pos = GetServoPos(eye_ud_servo.get(), active && has_eye_ud) + (active ? eye_ud_orient : 0.0f);
 
     glm::mat4 Identity = glm::mat4(1.0f);
     glm::mat4 jaw_matrix = Identity;
@@ -900,40 +859,13 @@ void DmxSkull::SetupServo(Servo* _servo, int channel, float min_limit, float max
 
 void DmxSkull::SetupSkulltronix()
 {
-    SetupServo(jaw_servo, 9, 500, 750, -20, true);
-    SetupServo(pan_servo, 13, 400, 1100, 180, true);
-    SetupServo(tilt_servo, 19, 442, 836, -40, true);
-    SetupServo(nod_servo, 11, 452, 745, 58, true);
-    SetupServo(eye_ud_servo, 15, 575, 1000, 70, true);
-    SetupServo(eye_lr_servo, 17, 499, 878, -70, true);
+    SetupServo(jaw_servo.get(), 9, 500, 750, -20, true);
+    SetupServo(pan_servo.get(), 13, 400, 1100, 180, true);
+    SetupServo(tilt_servo.get(), 19, 442, 836, -40, true);
+    SetupServo(nod_servo.get(), 11, 452, 745, 58, true);
+    SetupServo(eye_ud_servo.get(), 15, 575, 1000, 70, true);
+    SetupServo(eye_lr_servo.get(), 17, 499, 878, -70, true);
 
-    ModelXml->DeleteAttribute("DmxJawOrient");
-    ModelXml->AddAttribute("DmxJawOrient", "0");
-    ModelXml->DeleteAttribute("DmxPanOrient");
-    ModelXml->AddAttribute("DmxPanOrient", "90");
-    ModelXml->DeleteAttribute("DmxTiltOrient");
-    ModelXml->AddAttribute("DmxTiltOrient", "-20");
-    ModelXml->DeleteAttribute("DmxNodOrient");
-    ModelXml->AddAttribute("DmxNodOrient", "29");
-    ModelXml->DeleteAttribute("DmxEyeUDOrient");
-    ModelXml->AddAttribute("DmxEyeUDOrient", "35");
-    ModelXml->DeleteAttribute("DmxEyeLROrient");
-    ModelXml->AddAttribute("DmxEyeLROrient", "-35");
-    ModelXml->DeleteAttribute("DmxEyeBrtChannel");
-    ModelXml->AddAttribute("DmxEyeBrtChannel", "23");
-    ModelXml->DeleteAttribute("DmxRedChannel");
-    ModelXml->AddAttribute("DmxRedChannel", "24");
-    ModelXml->DeleteAttribute("DmxGreenChannel");
-    ModelXml->AddAttribute("DmxGreenChannel", "25");
-    ModelXml->DeleteAttribute("DmxBlueChannel");
-    ModelXml->AddAttribute("DmxBlueChannel", "26");
-    ModelXml->DeleteAttribute("DmxWhiteChannel");
-    ModelXml->AddAttribute("DmxWhiteChannel", "0");
-
-    //red_channel = 24;
-    //green_channel = 25;
-    //blue_channel = 17;
-    //white_channel = 0;
     eye_brightness_channel = 23;
     jaw_orient = 0;
     pan_orient = 90;

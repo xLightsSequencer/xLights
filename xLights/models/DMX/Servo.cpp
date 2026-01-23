@@ -21,12 +21,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 Servo::Servo(const std::string& _name, bool _is2d)
-    : base_name(_name), channel(0),
-    min_limit(1), max_limit(65535), range_of_motion(180.0f),
-    pivot_offset_x(0), pivot_offset_y(0), pivot_offset_z(0),
-    servo_style_val(0), servo_style("Translate X"),
-    _16bit(true), offset_scale(_is2d ? 100.0f : 1.0f),
-    is_2d(_is2d), link(nullptr)
+    : base_name(_name), offset_scale(_is2d ? 100.0f : 1.0f), is_2d(_is2d)
 {
 }
 
@@ -38,21 +33,12 @@ static wxPGChoices SERVO_STYLES;
 static wxPGChoices ZERO_BEHAVIORS;
 static wxPGChoices DATA_TYPES;
 
-enum SERVO_STYLE {
-    SERVO_STYLE_TRANSLATEX,
-    SERVO_STYLE_TRANSLATEY,
-    SERVO_STYLE_TRANSLATEZ,
-    SERVO_STYLE_ROTATEX,
-    SERVO_STYLE_ROTATEY,
-    SERVO_STYLE_ROTATEZ
-};
-
 void Servo::Init(BaseObject* base) {
     this->base = base;
+}
 
-    lastValue = (max_limit + min_limit) / 2;
-
-    servo_style_val = SERVO_STYLE_TRANSLATEX;
+void Servo::SetStyle(const std::string& style) {
+    servo_style = style;
     if (servo_style == "Translate X") {
         servo_style_val = SERVO_STYLE_TRANSLATEX;
     }
@@ -70,6 +56,8 @@ void Servo::Init(BaseObject* base) {
     }
     else if (servo_style == "Rotate Z") {
         servo_style_val = SERVO_STYLE_ROTATEZ;
+    } else {
+        servo_style_val = SERVO_STYLE_TRANSLATEX;
     }
 }
 

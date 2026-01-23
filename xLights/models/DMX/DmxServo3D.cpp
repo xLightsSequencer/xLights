@@ -57,32 +57,14 @@ enum MOTION_LINK {
 DmxServo3d::DmxServo3d(const ModelManager &manager)
     : DmxModel(manager)
 {
+    for (int i = 0; i < SUPPORTED_SERVOS; ++i) {
+        servo_links[i] = -1;
+        mesh_links[i] = -1;
+    }
 }
 
 DmxServo3d::~DmxServo3d()
 {
-    Clear();
-}
-
-void DmxServo3d::Clear() {
-    for (auto it = servos.begin(); it != servos.end(); ++it) {
-        if (*it != nullptr) {
-            delete* it;
-        }
-    }
-    servos.clear();
-    for (auto it = motion_meshs.begin(); it != motion_meshs.end(); ++it) {
-        if (*it != nullptr) {
-            delete* it;
-        }
-    }
-    motion_meshs.clear();
-    for (auto it = static_meshs.begin(); it != static_meshs.end(); ++it) {
-        if (*it != nullptr) {
-            delete* it;
-        }
-    }
-    static_meshs.clear();
 }
 
 static const std::string CLICK_TO_EDIT("--Click To Edit--");
@@ -109,32 +91,23 @@ public:
 
             int _num_servos = dlg.SpinCtrl_NumServos->GetValue();
             if (_num_servos != m_model->GetNumServos()) {
-                m_model->GetModelXml()->DeleteAttribute("NumServos");
-                m_model->GetModelXml()->AddAttribute("NumServos", std::to_string(_num_servos));
+                m_model->SetNumServos(_num_servos);
                 changed = true;
                 m_model->UpdateNodeNames();
             }
             int _num_static = dlg.SpinCtrl_NumStatic->GetValue();
             if (_num_static != m_model->GetNumStatic()) {
-                m_model->GetModelXml()->DeleteAttribute("NumStatic");
-                m_model->GetModelXml()->AddAttribute("NumStatic", std::to_string(_num_static));
+                m_model->SetNumStatic(_num_static);
                 changed = true;
             }
             int _num_motion = dlg.SpinCtrl_NumMotion->GetValue();
             if (_num_motion != m_model->GetNumMotion()) {
-                m_model->GetModelXml()->DeleteAttribute("NumMotion");
-                m_model->GetModelXml()->AddAttribute("NumMotion", std::to_string(_num_motion));
+                m_model->SetNumMotion(_num_motion);
                 changed = true;
             }
             bool _16bit = dlg.CheckBox_16bits->GetValue();
             if (_16bit != m_model->Is16Bit()) {
-                m_model->GetModelXml()->DeleteAttribute("Bits16");
                 changed = true;
-                if (_16bit) {
-                    m_model->GetModelXml()->AddAttribute("Bits16", "1");
-                } else {
-                    m_model->GetModelXml()->AddAttribute("Bits16", "0");
-                }
                 m_model->UpdateBits();
                 m_model->UpdateNodeNames();
             }
@@ -302,7 +275,6 @@ int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGr
             } else {
                 servo_links[i] = link_num;
             }
-            ModelXml->AddAttribute(linkage, "Mesh " + std::to_string(link_num + 1));
             AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3d::OnPropertyGridChange::ServoLinkage");
             AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo3d::OnPropertyGridChange::ServoLinkage");
             AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxServo3d::OnPropertyGridChange::ServoLinkage");
@@ -323,7 +295,6 @@ int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGr
             } else {
                 mesh_links[i] = link_num;
             }
-            ModelXml->AddAttribute(linkage, "Mesh " + std::to_string(link_num + 1));
             AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3d::OnPropertyGridChange::MeshLinkage");
             AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo3d::OnPropertyGridChange::MeshLinkage");
             AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxServo3d::OnPropertyGridChange::MeshLinkage");
@@ -338,6 +309,48 @@ int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGr
     return DmxModel::OnPropertyGridChange(grid, event);
 }
 
+void DmxServo3d::DmxServo3d::SetNumServos(int val)
+{
+    num_servos = val;
+    if (servos.size() < num_servos) {
+        servos.resize(num_servos);
+    }
+}
+
+void DmxServo3d::SetNumStatic(int val)
+{
+    num_static = val;
+    if (static_meshs.size() < num_static) {
+        static_meshs.resize(num_static);
+    }
+}
+
+void DmxServo3d::SetNumMotion(int val)
+{
+    num_motion = val;
+    if (motion_meshs.size() < num_motion) {
+        motion_meshs.resize(num_motion);
+    }
+}
+
+Mesh* DmxServo3d::CreateStaticMesh(const std::string& name, int idx)
+{
+    static_meshs[idx] = std::make_unique<Mesh>(name);
+    return static_meshs[idx].get();
+}
+
+Mesh* DmxServo3d::CreateMotionMesh(const std::string& name, int idx)
+{
+    motion_meshs[idx] = std::make_unique<Mesh>(name);
+    return motion_meshs[idx].get();
+}
+
+Servo* DmxServo3d::CreateServo(const std::string& name, int idx)
+{
+    servos[idx] = std::make_unique<Servo>(name, false);
+    return servos[idx].get();
+}
+
 void DmxServo3d::InitModel()
 {
     int min_channels = num_servos * (_16bit ? 2 : 1);
@@ -350,122 +363,11 @@ void DmxServo3d::InitModel()
 
     DmxModel::InitModel();
 
-    // clear links
-    for (int i = 0; i < SUPPORTED_SERVOS; ++i) {
-        servo_links[i] = -1;
-        mesh_links[i] = -1;
-    }
-
-    // clear any extras
-    while (servos.size() > num_servos) {
-        Servo* ptr = servos.back();
-        if (ptr != nullptr) {
-            delete ptr;
-            ptr = nullptr;
-        }
-        servos.pop_back();
-    }
-    while (static_meshs.size() > num_static) {
-        Mesh* ptr = static_meshs.back();
-        if (ptr != nullptr) {
-            delete ptr;
-            ptr = nullptr;
-        }
-        static_meshs.pop_back();
-    }
-    while (motion_meshs.size() > num_motion) {
-        Mesh* ptr = motion_meshs.back();
-        if (ptr != nullptr) {
-            delete ptr;
-            ptr = nullptr;
-        }
-        motion_meshs.pop_back();
-    }
-
-    // resize vector arrays
-    if (static_meshs.size() < num_static) {
-        static_meshs.resize(num_static);
-    }
-    if (motion_meshs.size() < num_motion) {
-        motion_meshs.resize(num_motion);
-    }
-    if (servos.size() < num_servos) {
-        servos.resize(num_servos);
-    }
-
-    wxXmlNode* n = ModelXml->GetChildren();
-    wxXmlNode* snode = nullptr;
-    wxXmlNode* mnode = nullptr;
-
-    while (n != nullptr) {
-        std::string name = n->GetName();
-        int servo_idx = name.find("Servo");
-        int static_idx = name.find("StaticMesh");
-        int motion_idx = name.find("MotionMesh");
-
-        if ("StaticMesh" == name) { // convert original name that had no number
-            // copy attributes to new name
-            wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "StaticMesh1");
-            ModelXml->AddChild(new_node);
-            for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
-                new_node->AddAttribute(a->GetName(), a->GetValue());
-            }
-            snode = n;
-            static_meshs[0] = new Mesh("StaticMesh1");
-        } else if ("MotionMesh" == name) { // convert original name that had no number
-            // copy attributes to new name
-            wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "MotionMesh1");
-            ModelXml->AddChild(new_node);
-            for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
-                new_node->AddAttribute(a->GetName(), a->GetValue());
-            }
-            mnode = n;
-            motion_meshs[0] = new Mesh("MotionMesh1");
-        } else if (static_idx != std::string::npos) {
-            std::string num = name.substr(10, name.length());
-            int id = atoi(num.c_str()) - 1;
-            if (id < num_static) {
-                if (static_meshs[id] == nullptr) {
-                    static_meshs[id] = new Mesh(name);
-                }
-            }
-        } else if (motion_idx != std::string::npos) {
-            std::string num = name.substr(10, name.length());
-            int id = atoi(num.c_str()) - 1;
-            if (id < num_motion) {
-                if (motion_meshs[id] == nullptr) {
-                    motion_meshs[id] = new Mesh(name);
-                }
-            }
-        } else if (servo_idx != std::string::npos) {
-            std::string num = name.substr(5, name.length());
-            int id = atoi(num.c_str()) - 1;
-            if (id < num_servos) {
-                if (servos[id] == nullptr) {
-                    servos[id] = new Servo(name, false);
-                }
-            }
-        }
-        n = n->GetNext();
-    }
-
-    // clean up any old nodes from version 2020.3
-    if (snode != nullptr) {
-        ModelXml->RemoveChild(snode);
-        delete snode;
-    }
-    if (mnode != nullptr) {
-        ModelXml->RemoveChild(mnode);
-        delete mnode;
-    }
-
     // create any missing servos
     for (int i = 0; i < num_servos; ++i) {
         if (servos[i] == nullptr) {
             std::string new_name = "Servo" + std::to_string(i + 1);
-            wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
-            ModelXml->AddChild(new_node);
-            servos[i] = new Servo(new_name, true);
+            servos[i] = std::make_unique<Servo>(new_name, true);
             servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1);
         }
     }
@@ -474,9 +376,7 @@ void DmxServo3d::InitModel()
     for (int i = 0; i < num_static; ++i) {
         if (static_meshs[i] == nullptr) {
             std::string new_name = "StaticMesh" + std::to_string(i + 1);
-            wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
-            ModelXml->AddChild(new_node);
-            static_meshs[i] = new Mesh(new_name);
+            static_meshs[i] = std::make_unique<Mesh>(new_name);
         }
     }
 
@@ -484,53 +384,9 @@ void DmxServo3d::InitModel()
     for (int i = 0; i < num_motion; ++i) {
         if (motion_meshs[i] == nullptr) {
             std::string new_name = "MotionMesh" + std::to_string(i + 1);
-            wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, new_name);
-            ModelXml->AddChild(new_node);
-            motion_meshs[i] = new Mesh(new_name);
+            motion_meshs[i] = std::make_unique<Mesh>(new_name);
         }
     }
-
-    // get servo linkages
-    for (int i = 0; i < num_servos; ++i) {
-        servo_links[i] = -1;
-        std::string num = std::to_string(i + 1);
-        std::string this_link = "Servo" + num + "Linkage";
-        std::string this_default = "Mesh " + num;
-        std::string link = ModelXml->GetAttribute(this_link, this_default);
-        if (link.length() < 5) {
-            link = "Mesh 1";
-        }
-        std::string num2 = link.substr(5, name.length());
-        int link_id = atoi(num2.c_str());
-        if (link_id < 1) {
-            link_id = 1;
-        }
-        if (link_id != i + 1) {
-            servo_links[i] = link_id - 1;
-        }
-    }
-
-    // get mesh linkages
-    for (int i = 0; i < num_servos; ++i) {
-        mesh_links[i] = -1;
-        std::string num = std::to_string(i + 1);
-        std::string this_link = "Mesh" + num + "Linkage";
-        std::string this_default = "Mesh " + num;
-        std::string link = ModelXml->GetAttribute(this_link, this_default);
-        if (link.length() < 5) {
-            link = "Mesh 1";
-        }
-        std::string num2 = link.substr(5, name.length());
-        int link_id = atoi(num2.c_str());
-        if (link_id < 1) {
-            link_id = 1;
-        }
-        if (link_id != i + 1) {
-            mesh_links[i] = link_id - 1;
-        }
-    }
-
-    brightness = wxAtoi(ModelXml->GetAttribute("Brightness", "100"));
 
     for (const auto& it : servos) {
         it->Init(this);

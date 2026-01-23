@@ -79,4 +79,5 @@ private:
     Model* DeserializeDmxMovingHead(wxXmlNode* node, xLightsFrame* xlights, bool importing);
     Model* DeserializeDmxMovingHeadAdv(wxXmlNode *node, xLightsFrame* xlights, bool importing);
     Model* DeserializeDmxServo3d(wxXmlNode* node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeDmxSkull(wxXmlNode* node, xLightsFrame* xlights, bool importing);
 };
