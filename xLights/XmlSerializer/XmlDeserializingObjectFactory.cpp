@@ -52,7 +52,7 @@ void XmlDeserializingObjectFactory::DeserializeBaseObjectAttributes(ViewObject* 
     {
         name = xlights->AllObjects.GenerateObjectName(name);
     }
-    object->SetLayoutGroup("Default");
+    object->SetLayoutGroup("Default", true);
     object->SetName(name);
     object->SetDisplayAs(node->GetAttribute(XmlNodeKeys::DisplayAsAttribute).ToStdString());
     object->SetActive(std::stoi(node->GetAttribute(XmlNodeKeys::ActiveAttribute, "1").ToStdString()));

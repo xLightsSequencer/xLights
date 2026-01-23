@@ -37,11 +37,10 @@ void BaseObject::SetName(std::string const& newname)
     name = newname;
 }
 
-void BaseObject::SetLayoutGroup(const std::string &grp) {
-    if (grp != "xyzzy_kw")
-    {
-        layout_group = grp;
-    }
+void BaseObject::SetLayoutGroup(const std::string &grp, bool ignore_changes) {
+    if (grp == layout_group) return;
+    layout_group = grp;
+    if (ignore_changes) return;
     IncrementChangeCount();
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SetLayoutGroup");
     AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SetLayoutGroup");

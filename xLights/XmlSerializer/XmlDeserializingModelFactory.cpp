@@ -163,9 +163,9 @@ void XmlDeserializingModelFactory::DeserializeBaseObjectAttributes(Model* model,
     if (importing)
     {
         name = xlights->AllModels.GenerateModelName(name);
-        model->SetLayoutGroup("Unassigned");
+        model->SetLayoutGroup("Unassigned", true);
     } else {
-        model->SetLayoutGroup(node->GetAttribute(XmlNodeKeys::LayoutGroupAttribute, "Unassigned").ToStdString());
+        model->SetLayoutGroup(node->GetAttribute(XmlNodeKeys::LayoutGroupAttribute, "Unassigned").ToStdString(), true);
     }
     model->SetName(name);
     model->SetDisplayAs(node->GetAttribute(XmlNodeKeys::DisplayAsAttribute).ToStdString());
@@ -481,6 +481,7 @@ Model* XmlDeserializingModelFactory::DeserializePolyLine(wxXmlNode* node, xLight
     model->SetNumStrings(num_strings);
     model->SetDropPattern(node->GetAttribute(XmlNodeKeys::DropPatternAttribute, "1"));
     model->SetAlternateNodes(node->GetAttribute(XmlNodeKeys::AlternateNodesAttribute, "false") == "true");
+    model->SetModelHeight(std::stof(node->GetAttribute(XmlNodeKeys::ModelHeightAttribute, "1.0").ToStdString()));
     PolyPointScreenLocation& screenLoc = dynamic_cast<PolyPointScreenLocation&>(model->GetBaseObjectScreenLocation());
 
     // Individual Start Nodes

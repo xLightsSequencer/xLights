@@ -101,7 +101,7 @@ public:
     virtual void Setup() = 0;
     
     virtual const std::string &GetLayoutGroup() const {return layout_group;}
-    void SetLayoutGroup(const std::string &grp);
+    void SetLayoutGroup(const std::string &grp, bool ignore_changes = false);
 
     virtual void IncrementChangeCount() { ++changeCount; uiObjectsInvalid = true; }
 
