@@ -495,27 +495,27 @@ Servo* DmxSkull::CreateServo(const std::string& name)
 std::unique_ptr<Mesh> DmxSkull::CreateMesh(const std::string& name, const std::string& objfile)
 {
     std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>(name);
-    mesh->SetObjFile(objfile);
+    mesh->SetObjFile(FixFile("", objfile));
     mesh->Init(this, false);
     return mesh;
 }
 
-Mesh* DmxSkull::CreateMesh(const std::string& name)
+Mesh* DmxSkull::CreateMesh(const std::string& name, bool add_path)
 {
     if ("HeadMesh" == name) {
-        head_mesh = CreateMesh("HeadMesh", "SkullHead.obj");
+        head_mesh = CreateMesh("HeadMesh", (add_path ? obj_path : "") + "SkullHead.obj");
         return head_mesh.get();
     }
     else if ("JawMesh" == name) {
-        jaw_mesh = CreateMesh("JawMesh", "SkullJaw.obj");
+        jaw_mesh = CreateMesh("JawMesh", (add_path ? obj_path : "") +  "SkullJaw.obj");
         return jaw_mesh.get();
     }
     else if ("EyeMeshL" == name) {
-        eye_l_mesh = CreateMesh("EyeMeshL", "Eyeball.obj");
+        eye_l_mesh = CreateMesh("EyeMeshL", (add_path ? obj_path : "") +  "Eyeball.obj");
         return eye_l_mesh.get();
     }
     else if ("EyeMeshR" == name) {
-        eye_r_mesh = CreateMesh("EyeMeshR", "Eyeball.obj");
+        eye_r_mesh = CreateMesh("EyeMeshR", (add_path ? obj_path : "") +  "Eyeball.obj");
         return eye_r_mesh.get();
     }
     return nullptr;
@@ -531,22 +531,26 @@ void DmxSkull::InitModel()
     // create any missing servos
     if (has_jaw && jaw_servo == nullptr)
         CreateServo("JawServo");
-    if (has_pan)
+    if (has_pan && pan_servo == nullptr)
         CreateServo("PanServo");
-    if (has_tilt)
+    if (has_tilt && tilt_servo == nullptr)
         CreateServo("TiltServo");
-    if (has_nod)
+    if (has_nod && nod_servo == nullptr)
         CreateServo("NodServo");
-    if (has_eye_ud)
+    if (has_eye_ud && eye_ud_servo == nullptr)
         CreateServo("EyeUpDownServo");
-    if (has_eye_lr)
+    if (has_eye_lr && eye_lr_servo == nullptr)
         CreateServo("EyeLeftRightServo");
 
     // create any missing meshes
-    //AddMesh(&head_mesh, "HeadMesh", "SkullHead.obj", false);
-    //AddMesh(&jaw_mesh, "JawMesh", "SkullJaw.obj", false);
-    //AddMesh(&eye_l_mesh, "EyeMeshL", "Eyeball.obj", false);
-    //AddMesh(&eye_r_mesh, "EyeMeshR", "Eyeball.obj", false);
+    if (head_mesh == nullptr)
+        CreateMesh("HeadMesh", true);
+    if (jaw_mesh == nullptr)
+        CreateMesh("JawMesh", true);
+    if (eye_l_mesh == nullptr)
+        CreateMesh("EyeMeshL", true);
+    if (eye_r_mesh == nullptr)
+        CreateMesh("EyeMeshR", true);
     head_mesh->SetHalfHeight(); // obj file is shifted up so its twice as tall as it need to be
 
     head_mesh->SetMeshOnly(mesh_only);

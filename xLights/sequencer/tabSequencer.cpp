@@ -315,7 +315,7 @@ bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClas
     }
     else {
         Model* model = GetModel(modelName);
-        if (model == nullptr || model->GetModelXml() == nullptr) {
+        if (model == nullptr) {
             return false;
         }
         buffer.InitBuffer(*model, layerCount, _seqData.FrameTime(), zeroBased);

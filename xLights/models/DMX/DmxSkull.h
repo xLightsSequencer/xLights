@@ -53,7 +53,7 @@ public:
     void SetSkulltronix() { setup_skulltronix = true; }
 
     Servo* CreateServo(const std::string& name);
-    Mesh* CreateMesh(const std::string& name);
+    Mesh* CreateMesh(const std::string& name, bool add_path = false);
 
     int GetEyeBrightnessChannel() { return eye_brightness_channel; }
     int GetPanChannel() const
