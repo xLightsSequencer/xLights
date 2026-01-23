@@ -13,158 +13,197 @@
 #include <map>
 #include <string>
 #include <algorithm>
+#include <ranges>
+#include <utility>
 
 #include <wx/filepicker.h>
 #include "UtilFunctions.h"
 
 class EffectManager;
 
-
-class MapStringString: public std::map<std::string,std::string> {
+class SettingValue : public std::string {
+    enum Type {
+        STRING,
+        BOOLEAN,
+        INT,
+        FLOAT,
+        DOUBLE
+    };
+    mutable Type curType = STRING;
+    union {
+        bool bt;
+        int it;
+        float ft;
+        double dt;
+    } mutable valHolder;
 public:
-    MapStringString(): std::map<std::string,std::string>() {
+    SettingValue() : std::string(""), curType(STRING) {}
+    SettingValue(const std::string &s) : std::string(s), curType(STRING) {}
+    SettingValue(const char *s) : std::string(s), curType(STRING) {}
+    SettingValue(const SettingValue& v) = default;
+
+    bool getBool() const {
+        if (curType != BOOLEAN) {
+            valHolder.bt = length() >= 1 && this->at(0) == '1';
+            curType = BOOLEAN;
+        }
+        return valHolder.bt;
     }
-    virtual ~MapStringString() {}
+    int getInt(const int &def) const {
+        if (curType != INT) {
+            try {
+                valHolder.it = stoi(*this);
+            } catch ( ... ) {
+                valHolder.it = def;
+            }
+            curType = INT;
+        }
+        return valHolder.it;
+    }
+    float getFloat(const float &def) const {
+        if (curType != FLOAT) {
+            try {
+                valHolder.ft = stof(*this);
+            } catch ( ... ) {
+                valHolder.ft = def;
+            }
+            curType = FLOAT;
+        }
+        return valHolder.ft;
+    }
+    double getDouble(const double &def) const {
+        if (curType != FLOAT) {
+            try {
+                valHolder.dt = stod(*this);
+            } catch ( ... ) {
+                valHolder.dt = def;
+            }
+            curType = DOUBLE;
+        }
+        return valHolder.dt;
+    }
+};
+
+class SettingsMap {
+    std::map<std::string, SettingValue> _internal;
+public:
+    SettingsMap() {}
+    virtual ~SettingsMap() {}
 
     const std::string &operator[](const std::string &key) const {
         return Get(key, xlEMPTY_STRING);
     }
     std::string &operator[](const std::string &key) {
-        return std::map<std::string, std::string>::operator[](key);
+        return _internal[key];
     }
     int GetInt(const std::string &key, const int def = 0) const {
-        std::map<std::string,std::string>::const_iterator i(find(key));
-        if (i == end() || i->second.length() == 0 || i->second.at(0) == ' ') {
+        std::map<std::string, SettingValue>::const_iterator i(_internal.find(key));
+        if (i == _internal.end() || i->second.length() == 0 || i->second.at(0) == ' ') {
             return def;
         }
-        try {
-            return stoi(i->second);
-        } catch ( ... ) {
-            return def;
-        }
+        return i->second.getInt(def);
     }
-    float GetFloat(const std::string& key, const float def = 0.0) const
-    {
-        std::map<std::string, std::string>::const_iterator i(find(key));
-        if (i == end() || i->second.length() == 0 || i->second.at(0) == ' ') {
+    float GetFloat(const std::string& key, const float def = 0.0) const {
+        std::map<std::string, SettingValue>::const_iterator i(_internal.find(key));
+        if (i == _internal.end() || i->second.length() == 0 || i->second.at(0) == ' ') {
             return def;
         }
-        try {
-            return stof(i->second);
-        }
-        catch (...) {
-            return def;
-        }
+        return i->second.getFloat(def);
     }
-    double GetDouble(const std::string& key, const double def = 0.0) const
-    {
-        std::map<std::string, std::string>::const_iterator i(find(key));
-        if (i == end() || i->second.length() == 0 || i->second.at(0) == ' ') {
+    double GetDouble(const std::string& key, const double def = 0.0) const {
+        std::map<std::string, SettingValue>::const_iterator i(_internal.find(key));
+        if (i == _internal.end() || i->second.length() == 0 || i->second.at(0) == ' ') {
             return def;
         }
-        try {
-            return stod(i->second);
-        }
-        catch (...) {
-            return def;
-        }
+        return i->second.getDouble(def);
     }
-    bool GetBool(const std::string& key, const bool def = false) const
-    {
-        std::map<std::string, std::string>::const_iterator i(find(key));
-        if (i == end()) {
+    bool GetBool(const std::string& key, const bool def = false) const {
+        std::map<std::string, SettingValue>::const_iterator i(_internal.find(key));
+        if (i == _internal.end()) {
             return def;
         }
-        return i->second.length() >= 1 && i->second.at(0) == '1';
+        return i->second.getBool();
     }
-    const std::string& Get(const std::string& key, const std::string& def) const
-    {
-        std::map<std::string, std::string>::const_iterator i(find(key));
-        if (i == end()) {
+    const std::string& Get(const std::string& key, const std::string& def) const {
+        std::map<std::string, SettingValue>::const_iterator i(_internal.find(key));
+        if (i == _internal.end()) {
             return def;
         }
         return i->second;
     }
 
-    std::string Get(const std::string& key, const char* def) const
-    {
-        std::map<std::string, std::string>::const_iterator i(find(key));
-        if (i == end()) {
+    std::string Get(const std::string& key, const char* def) const {
+        std::map<std::string, SettingValue>::const_iterator i(_internal.find(key));
+        if (i == _internal.end()) {
             return def;
         }
         return i->second;
     }
 
-    bool Contains(const std::string& key) const
-    {
-        std::map<std::string, std::string>::const_iterator i(find(key));
-        if (i == end()) {
+    bool Contains(const std::string& key) const {
+        std::map<std::string, SettingValue>::const_iterator i(_internal.find(key));
+        if (i == _internal.end()) {
             return false;
         }
         return true;
     }
 
-    const std::string& operator[](const char* key) const
-    {
+    const std::string& operator[](const char* key) const {
         return Get(key, xlEMPTY_STRING);
     }
-    std::string& operator[](const char* ckey)
-    {
+    std::string& operator[](const char* ckey) {
         std::string key(ckey);
-        return std::map<std::string, std::string>::operator[](key);
+        return _internal[key];
     }
-    int GetInt(const char* ckey, const int def = 0) const
-    {
+    int GetInt(const char* ckey, const int def = 0) const {
         return GetInt(std::string(ckey), def);
     }
-    double GetDouble(const char* ckey, const double& def = 0.0) const
-    {
+    double GetDouble(const char* ckey, const double& def = 0.0) const {
         return GetDouble(std::string(ckey), def);
     }
-    float GetFloat(const char* ckey, const float& def = 0.0) const
-    {
+    float GetFloat(const char* ckey, const float& def = 0.0) const {
         return GetFloat(std::string(ckey), def);
     }
-    bool GetBool(const char* ckey, const bool def = false) const
-    {
+    bool GetBool(const char* ckey, const bool def = false) const {
         return GetBool(std::string(ckey), def);
     }
-    const std::string& Get(const char* ckey, const std::string& def) const
-    {
+    const std::string& Get(const char* ckey, const std::string& def) const {
         return Get(std::string(ckey), def);
     }
-    bool Contains(const char* ckey) const
-    {
+    bool Contains(const char* ckey) const {
         std::string key(ckey);
         return Contains(key);
     }
+    
+    bool empty() const { return _internal.empty(); }
+    void clear() { _internal.clear(); }
+    size_t size() const { return _internal.size(); }
+    auto keys() const { return std::views::keys(_internal); }
+    auto begin() const { return _internal.begin(); }
+    auto end() const { return _internal.end(); }
 
-    std::string Get(const char* ckey, const char* def) const
-    {
+    std::string Get(const char* ckey, const char* def) const {
         std::string key(ckey);
-        std::map<std::string, std::string>::const_iterator i(find(key));
-        if (i == end()) {
+        std::map<std::string, SettingValue>::const_iterator i(_internal.find(key));
+        if (i == _internal.end()) {
             return def;
         }
         return i->second;
     }
-    size_type erase(const char* ckey)
-    {
+    size_t erase(const char* ckey) {
         std::string key(ckey);
-        return std::map<std::string, std::string>::erase(key);
+        return _internal.erase(key);
     }
-    size_type erase(const std::string& key)
-    {
-        return std::map<std::string, std::string>::erase(key);
+    size_t erase(const std::string& key) {
+        return _internal.erase(key);
     }
 
     void ParseJson(EffectManager* effectManager, const std::string& str, const std::string& effectName);
     void Parse(EffectManager* effectManager, const std::string& str, const std::string& effectName);
-
-    virtual void RemapKey(std::string &n, std::string &value) {};
+    
     std::string AsString() const {
         std::string ret;
-        for (std::map<std::string,std::string>::const_iterator it=begin(); it!=end(); ++it) {
+        for (std::map<std::string, SettingValue>::const_iterator it=_internal.begin(); it!=_internal.end(); ++it) {
             if (ret.length() != 0) {
                 ret += ",";
             }
@@ -175,24 +214,27 @@ public:
         }
         return ret;
     }
-    [[nodiscard]]std::string AsJSON() const
-    {
+    [[nodiscard]]std::string AsJSON() const {
         std::string ret ;
-        for (std::map<std::string, std::string>::const_iterator it = begin(); it != end(); ++it) {
+        for (auto &it : _internal) {
             if (ret.length() != 0) {
                 ret += ",";
             }
-            std::string value = it->second;
+            std::string value = it.second;
             ReplaceAll(value, "&", "&amp;");   // need to escape the amps
             ReplaceAll(value, ",", "&comma;"); // need to escape the commas
-            ret += "\"" + it->first + "\":\"" + value + "\"";
+            ret += "\"" + it.first + "\":\"" + value + "\"";
         }
         ret.insert(0,"{");
         ret.append("}");
         return ret;
     }
 
+    void RemapKey(std::string &n, std::string &value) {
+        RemapChangedSettingKey(n, value);
+    }
 private:
+    static void RemapChangedSettingKey(std::string &n,  std::string &value);
 
     void ReplaceAll(std::string &str, const std::string& from, const std::string& to) const {
         size_t start_pos = 0;
@@ -202,25 +244,12 @@ private:
         }
     }
 
-    static void Trim(std::string& s)
-    {
+    static void Trim(std::string& s) {
         s.erase(s.begin(), std::find_if_not(s.begin(), s.end(), [](char c) { return std::isspace(c); }));
         s.erase(std::find_if_not(s.rbegin(), s.rend(), [](char c) { return std::isspace(c); }).base(), s.end());
     }
 };
 
-class SettingsMap: public MapStringString {
-public:
-    SettingsMap(): MapStringString() {
-    }
-    virtual ~SettingsMap() {}
-
-    virtual void RemapKey(std::string &n, std::string &value) {
-        RemapChangedSettingKey(n, value);
-    }
-private:
-    static void RemapChangedSettingKey(std::string &n,  std::string &value);
-};
 
 class RangeAccumulator
 {
@@ -397,3 +426,4 @@ public:
 		return sum;
 	}
 };
+

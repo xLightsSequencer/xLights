@@ -64,13 +64,13 @@ public:
         }
     }
     MinleonString(nlohmann::json& val) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
         if (!val.is_object()) {
             wxASSERT(false);
             return;
         }
 
+        // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         // for (auto it = val.begin(); it != val.end(); ++it) {
         //     logger_base.debug("Key %s.", it.key().c_str());
         // }

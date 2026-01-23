@@ -2,9 +2,9 @@
 #include "effects/RenderableEffect.h"
 #include "effects/EffectManager.h"
 
-void MapStringString::ParseJson(EffectManager* effectManager, const std::string& str, const std::string& effectName)
+void SettingsMap::ParseJson(EffectManager* effectManager, const std::string& str, const std::string& effectName)
 {
-    clear();
+    _internal.clear();
     std::string before, after, name, value;
     std::string settings(str);
     ReplaceAll(settings, "{", "");
@@ -30,17 +30,18 @@ void MapStringString::ParseJson(EffectManager* effectManager, const std::string&
         ReplaceAll(value, "&amp;", "&");   // unescape the amps
 
         RemapKey(name, value);
-        if (effectManager != nullptr)
+        if (effectManager != nullptr) {
             value = RenderableEffect::UpgradeValueCurve(effectManager, name, value, effectName);
+        }
         if (!name.empty()) {
-            (*this)[name] = value;
+            _internal.emplace(name, value);
         }
     }
 }
 
-void MapStringString::Parse(EffectManager* effectManager, const std::string& str, const std::string& effectName)
+void SettingsMap::Parse(EffectManager* effectManager, const std::string& str, const std::string& effectName)
 {
-    clear();
+    _internal.clear();
     std::string before, after, name, value;
     std::string settings(str);
     while (!settings.empty()) {
@@ -60,10 +61,11 @@ void MapStringString::Parse(EffectManager* effectManager, const std::string& str
         ReplaceAll(value, "&amp;", "&");   // unescape the amps
 
         RemapKey(name, value);
-        if (effectManager != nullptr)
+        if (effectManager != nullptr) {
             value = RenderableEffect::UpgradeValueCurve(effectManager, name, value, effectName);
+        }
         if (!name.empty()) {
-            (*this)[name] = value;
+            _internal.emplace(name, value);
         }
     }
 }
