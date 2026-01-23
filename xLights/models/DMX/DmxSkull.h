@@ -174,12 +174,12 @@ protected:
     int default_min_limit[6];
     int default_max_limit[6];
     float default_orient[6];
-    int jaw_orient;
-    int pan_orient;
-    int tilt_orient;
-    int nod_orient;
-    int eye_ud_orient;
-    int eye_lr_orient;
+    int jaw_orient {0};
+    int pan_orient {90};
+    int tilt_orient {-20};
+    int nod_orient {29};
+    int eye_ud_orient {35};
+    int eye_lr_orient {-35};
     bool has_jaw {true};
     bool has_pan {true};
     bool has_tilt{true};

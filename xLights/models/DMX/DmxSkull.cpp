@@ -10,7 +10,6 @@
 
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/editors.h>
-#include <wx/xml/xml.h>
 #include <wx/stdpaths.h>
 
 #include <glm/mat4x4.hpp>
@@ -336,11 +335,7 @@ void DmxSkull::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* o
 int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
     if ("MeshOnly" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("MeshOnly");
         mesh_only = event.GetValue().GetBool();
-        if (mesh_only) {
-            ModelXml->AddAttribute("MeshOnly", "1");
-        }
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::OnPropertyGridChange::MeshOnly");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkull::OnPropertyGridChange::MeshOnly");
         return 0;
@@ -357,8 +352,7 @@ int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
             return 0;
         }
         if ("DmxJawOrient" == event.GetPropertyName()) {
-            ModelXml->DeleteAttribute("DmxJawOrient");
-            ModelXml->AddAttribute("DmxJawOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+            jaw_orient = (int)event.GetPropertyValue().GetLong();
             AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::OnPropertyGridChange::DmxJawOrient");
             AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkull::OnPropertyGridChange::DmxJawOrient");
             AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkull::OnPropertyGridChange::DmxJawOrient");
@@ -371,8 +365,7 @@ int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
             return 0;
         }
         if ("DmxPanOrient" == event.GetPropertyName()) {
-            ModelXml->DeleteAttribute("DmxPanOrient");
-            ModelXml->AddAttribute("DmxPanOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+            pan_orient = (int)event.GetPropertyValue().GetLong();
             AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::OnPropertyGridChange::DMXPanOrient");
             AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkull::OnPropertyGridChange::DMXPanOrient");
             AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkull::OnPropertyGridChange::DMXPanOrient");
@@ -385,8 +378,7 @@ int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
             return 0;
         }
         if ("DmxTiltOrient" == event.GetPropertyName()) {
-            ModelXml->DeleteAttribute("DmxTiltOrient");
-            ModelXml->AddAttribute("DmxTiltOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+            tilt_orient = (int)event.GetPropertyValue().GetLong();
             AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::OnPropertyGridChange::DMXTiltOrient");
             AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkull::OnPropertyGridChange::DMXTiltOrient");
             AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkull::OnPropertyGridChange::DMXTiltOrient");
@@ -399,8 +391,7 @@ int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
             return 0;
         }
         if ("DmxNodOrient" == event.GetPropertyName()) {
-            ModelXml->DeleteAttribute("DmxNodOrient");
-            ModelXml->AddAttribute("DmxNodOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+            nod_orient = (int)event.GetPropertyValue().GetLong();
             AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::OnPropertyGridChange::DMXNodOrient");
             AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkull::OnPropertyGridChange::DMXNodOrient");
             AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkull::OnPropertyGridChange::DMXNodOrient");
@@ -413,8 +404,7 @@ int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
             return 0;
         }
         if ("DmxEyeUDOrient" == event.GetPropertyName()) {
-            ModelXml->DeleteAttribute("DmxEyeUDOrient");
-            ModelXml->AddAttribute("DmxEyeUDOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+            eye_ud_orient = (int)event.GetPropertyValue().GetLong();
             AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::OnPropertyGridChange::DmxEyeUDOrient");
             AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkull::OnPropertyGridChange::DmxEyeUDOrient");
             AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkull::OnPropertyGridChange::DmxEyeUDOrient");
@@ -427,8 +417,7 @@ int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
             return 0;
         }
         if ("DmxEyeLROrient" == event.GetPropertyName()) {
-            ModelXml->DeleteAttribute("DmxEyeLROrient");
-            ModelXml->AddAttribute("DmxEyeLROrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+            eye_lr_orient = (int)event.GetPropertyValue().GetLong();
             AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::OnPropertyGridChange::DmxEyeLROrient");
             AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkull::OnPropertyGridChange::DmxEyeLROrient");
             AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkull::OnPropertyGridChange::DmxEyeLROrient");
@@ -438,8 +427,7 @@ int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGrid
 
     if (has_color) {
         if ("DmxEyeBrtChannel" == event.GetPropertyName()) {
-            ModelXml->DeleteAttribute("DmxEyeBrtChannel");
-            ModelXml->AddAttribute("DmxEyeBrtChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+            eye_brightness_channel = (int)event.GetPropertyValue().GetLong();
             AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::OnPropertyGridChange::DMXEyeBrtChannel");
             AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkull::OnPropertyGridChange::DMXEyeBrtChannel");
             AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxSkull::OnPropertyGridChange::DMXEyeBrtChannel");

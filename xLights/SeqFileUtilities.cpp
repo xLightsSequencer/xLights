@@ -62,36 +62,15 @@
 
 void xLightsFrame::AddAllModelsToSequence()
 {
-    if (ModelGroupsNode == nullptr)
-        return;
-    if (ModelsNode == nullptr)
-        return;
-
     std::string models_to_add = "";
     bool first_model = true;
-    for (wxXmlNode* e = ModelGroupsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "modelGroup") {
-            wxString name = e->GetAttribute("name");
-            if (!_sequenceElements.ElementExists(name.ToStdString(), 0)) {
-                if (!first_model) {
-                    models_to_add += ",";
-                }
-                models_to_add += name;
-                first_model = false;
+    for (auto& it : AllModels) {
+        if (!_sequenceElements.ElementExists(it.second->GetName(), 0)) {
+            if (!first_model) {
+                models_to_add += ",";
             }
-        }
-    }
-
-    for (wxXmlNode* e = ModelsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "model") {
-            wxString name = e->GetAttribute("name");
-            if (!_sequenceElements.ElementExists(name.ToStdString(), 0)) {
-                if (!first_model) {
-                    models_to_add += ",";
-                }
-                models_to_add += name;
-                first_model = false;
-            }
+            models_to_add += it.second->GetName();
+            first_model = false;
         }
     }
 
