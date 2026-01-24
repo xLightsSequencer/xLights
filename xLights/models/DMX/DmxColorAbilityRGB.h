@@ -64,10 +64,10 @@ class DmxColorAbilityRGB : public DmxColorAbility
     virtual void GetPWMOutputs(std::map<uint32_t, PWMOutput> &map) const override;
 
 private:
-    uint32_t red_channel;
-    uint32_t green_channel;
-    uint32_t blue_channel;
-    uint32_t white_channel;
+    uint32_t red_channel = 0;
+    uint32_t green_channel = 0;
+    uint32_t blue_channel = 0;
+    uint32_t white_channel = 0;
     
     float red_gamma = 1.0;
     float green_gamma = 1.0;

@@ -66,9 +66,9 @@ class DmxColorAbilityWheel : public DmxColorAbility
         virtual void GetPWMOutputs(std::map<uint32_t, PWMOutput> &map) const override;
 
     private:
-        uint32_t wheel_channel;
-        uint32_t dimmer_channel;
-        uint32_t wheel_delay;
+        uint32_t wheel_channel = 0;
+        uint32_t dimmer_channel = 0;
+        uint32_t wheel_delay = 0;
         std::vector<WheelColor> colors;
 
         std::optional<xlColor> GetDMXWheelValue(xlColor const & color) const;

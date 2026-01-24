@@ -31,7 +31,7 @@ class DmxDimmerAbility
 
     protected:
     
-        int dimmer_channel;
+        int dimmer_channel = 0;
 };
 
 

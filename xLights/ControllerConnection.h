@@ -26,7 +26,7 @@ constexpr int DEFAULT_GROUP_COUNT = 0;
 constexpr int DEFAULT_REVERSE = 0;
 constexpr int DEFAULT_ZIGZAG = 0;
 constexpr float DEFAULT_GAMMA = 1.0f;
-constexpr std::string DEFAULT_COLOR_ORDER = "RGB";
+constexpr auto DEFAULT_COLOR_ORDER = "RGB";
 
 } // end namespace CTRL_CONN
 

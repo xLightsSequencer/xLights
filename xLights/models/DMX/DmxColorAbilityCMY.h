@@ -60,8 +60,8 @@ public:
     virtual void GetPWMOutputs(std::map<uint32_t, PWMOutput> &map) const override;
 
 private:
-    uint32_t cyan_channel;
-    uint32_t magenta_channel;
-    uint32_t yellow_channel;
-    uint32_t white_channel;
+    uint32_t cyan_channel = 0;
+    uint32_t magenta_channel = 0;
+    uint32_t yellow_channel = 0;
+    uint32_t white_channel = 0;
 };
