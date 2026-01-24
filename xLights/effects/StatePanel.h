@@ -35,6 +35,7 @@ class StatePanel: public xlEffectPanel
 
 	public:
         void SetEffect(StateEffect* effect, Model* model);
+		bool _loadingSettings;
 
 		StatePanel(wxWindow* parent);
 		virtual ~StatePanel();
@@ -43,8 +44,8 @@ class StatePanel: public xlEffectPanel
 		//(*Declarations(StatePanel)
 		BulkEditChoice* Choice_State_Color;
 		BulkEditChoice* Choice_State_Mode;
-		BulkEditChoice* Choice_State_TimingTrack;
 		BulkEditChoice* Choice_State_State;
+		BulkEditChoice* Choice_State_TimingTrack;
 		BulkEditSlider* SLIDER_State_Fade_Time;
 		BulkEditStateChoice* Choice_StateDefinitonChoice;
 		BulkEditTextCtrl* TextCtrl_State_Fade_Time;

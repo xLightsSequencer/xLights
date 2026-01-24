@@ -76,6 +76,7 @@ void StateEffect::SetPanelStatus(Model* cls) {
     if (fp == nullptr) {
         return;
     }
+    fp->_loadingSettings = true;
 
     auto lastTiming = fp->Choice_State_TimingTrack->GetStringSelection();
     auto lastState = fp->Choice_StateDefinitonChoice->GetStringSelection();
@@ -118,6 +119,7 @@ void StateEffect::SetPanelStatus(Model* cls) {
     }
 
     fp->SetEffect(this, cls);
+    fp->_loadingSettings = false;
 }
 
 std::list<std::string> StateEffect::GetStates(Model* cls, std::string model) {
