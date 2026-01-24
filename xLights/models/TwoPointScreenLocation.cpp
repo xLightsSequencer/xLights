@@ -446,7 +446,7 @@ void TwoPointScreenLocation::DrawBoundingBox(xlVertexColorAccumulator *vac, bool
     DrawBoundingBoxLines(Box3dColor, start, end, mat, *vac);
 }
 
-int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
+int TwoPointScreenLocation::MslMoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
     if (latch) {
         saved_angle = 0.0f;
@@ -464,10 +464,9 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
         }
     }
 
-    if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
+    if (!DragHandle(preview, mouseX, mouseY, latch)) return MODEL_UNCHANGED;
 
     if (handle == CENTER_HANDLE) {
-
         if (axis_tool == MSLTOOL::TOOL_TRANSLATE) {
             switch (active_axis)
             {
@@ -546,6 +545,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
             saved_position = drag_delta;
             TwoPointScreenLocation::Scale(scaling);
         }
+        return MODEL_UPDATE_RGBEFFECTS;
     }
     else if (handle == START_HANDLE) {
 
@@ -617,6 +617,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
             z2 = end_pt.z - worldPos_z;
             saved_angle = angle;
         }
+        return MODEL_UPDATE_RGBEFFECTS;
     }
     else if (handle == END_HANDLE) {
 
@@ -689,10 +690,11 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
             z2 = end_pt.z - worldPos_z;
             saved_angle = angle;
         }
+        return MODEL_UPDATE_RGBEFFECTS;
     }
-    return 1;
+    return MODEL_UNCHANGED;
 }
-int TwoPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
+int TwoPointScreenLocation::MslMoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
     if (handle == CENTER_HANDLE) {
         constexpr float rscale = 10; //10 degrees per full 1.0 aka: max speed
         Rotate(ModelScreenLocation::MSLAXIS::X_AXIS, rot.x * rscale);
@@ -747,12 +749,12 @@ int TwoPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot
         y2 += sp.y - worldPos_y;
         z2 += sp.z - worldPos_z;
     }
-    return 1;
+    return MODEL_UPDATE_RGBEFFECTS;
 }
 
-int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+int TwoPointScreenLocation::MslMoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
-    if (_locked) return 0;
+    if (_locked) return MODEL_UNCHANGED;
 
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
@@ -798,7 +800,7 @@ int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool S
         y2 = newy - worldPos_y;
     }
 
-    return 0;
+    return MODEL_UPDATE_RGBEFFECTS;
 }
 
 wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {

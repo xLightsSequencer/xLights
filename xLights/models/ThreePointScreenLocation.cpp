@@ -423,9 +423,9 @@ void ThreePointScreenLocation::DrawBoundingBox(xlVertexColorAccumulator *vac, bo
     DrawBoundingBoxLines(Box3dColor, aabb_min, aabb_max, draw_3d ? ModelMatrix : TranslateMatrix, *vac);
 }
 
-int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+int ThreePointScreenLocation::MslMoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
-    if (_locked) return 0;
+    if (_locked) return MODEL_UNCHANGED;
 
     if (handle == SHEAR_HANDLE) {
         glm::vec3 ray_origin;
@@ -451,7 +451,7 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
         }
         //Calculate angle of mouse from center.
         if (supportsAngle) {
-            if (posy == 0.0f) return 0;
+            if (posy == 0.0f) return MODEL_UNCHANGED;
             float tan = (float)posx / (float)posy;
             int angle1 = -toDegrees((float)atan(tan));
             if (x2 < 0.0f) {
@@ -493,15 +493,15 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
                 height = 0.01f;
             }
         }
-        return 1;
+        return MODEL_NEEDS_INIT;
     }
 
-    return TwoPointScreenLocation::MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
+    return TwoPointScreenLocation::MslMoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
 }
 
-int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
+int ThreePointScreenLocation::MslMoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
-    if (_locked) return 0;
+    if (_locked) return MODEL_UNCHANGED;
 
     if (handle == SHEAR_HANDLE) {
         if (latch) {
@@ -510,7 +510,7 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
             saved_position.z = mHandlePosition[SHEAR_HANDLE].z;
         }
 
-        if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
+        if (!DragHandle(preview, mouseX, mouseY, latch)) return MODEL_UNCHANGED;
 
         if (axis_tool == MSLTOOL::TOOL_XY_TRANS) {
             glm::vec3 a = point2 - origin;
@@ -535,7 +535,7 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
 
             //Calculate angle of mouse from center.
             if (supportsAngle) {
-                if (posy == 0.0f) return 0;
+                if (posy == 0.0f) return MODEL_UNCHANGED;
                 float tan = (float)posx / (float)posy;
                 int angle1 = -toDegrees((float)atan(tan));
                 if (posy >= 0) {
@@ -581,7 +581,7 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
                     height = 0.01f;
                 }
             }
-            return 1;
+            return MODEL_NEEDS_INIT;
         }
     }
     else if (handle == CENTER_HANDLE ) {
@@ -601,9 +601,9 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
             }
         }
     }
-    return TwoPointScreenLocation::MoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
+    return TwoPointScreenLocation::MslMoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
 }
-int ThreePointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
+int ThreePointScreenLocation::MslMoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
     if (handle == SHEAR_HANDLE) {
         //we'll handle move, ignore rotations
         if (supportsAngle) {
@@ -622,9 +622,9 @@ int ThreePointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &r
                 height = 0.01f;
             }
         }
-        return 1;
+        return MODEL_NEEDS_INIT;
     }
-    return TwoPointScreenLocation::MoveHandle3D(scale, handle, rot, mov);
+    return TwoPointScreenLocation::MslMoveHandle3D(scale, handle, rot, mov);
 }
 float ThreePointScreenLocation::GetVScaleFactor() const {
     if (modelHandleHeight) {

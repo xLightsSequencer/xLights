@@ -743,7 +743,7 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
             drag_delta = intersect - saved_intersect;
         }
     } else {
-        logger_base.warn("MoveHandle3D: Intersect not found!");
+        logger_base.warn("ModelScreenLocation::DragHandle: Intersect not found!");
     }
     return found;
 }

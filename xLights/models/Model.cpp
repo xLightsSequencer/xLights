@@ -2186,12 +2186,6 @@ void Model::ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview*
             y += 20;
             model->SetLayoutGroup(layoutGroup);
             model->Selected = false;
-            float min_x = 0;
-            float min_y = 0;
-            float max_x = 0;
-            float max_y = 0;
-            float min_z = 0;
-            float max_z = 0;
             bool success = true; // = model->ImportXligh tsModel(m, xlights, min_x, max_x, min_y, max_y, min_z, max_z);
             if (success) {
                 model->SetHcenterPos(x);
@@ -5388,14 +5382,16 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
     }
 }
 
-glm::vec3 Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY)
+glm::vec3 Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool& update_rgbeffects)
 {
     if (GetModelScreenLocation().IsLocked() || IsFromBase())
         return GetModelScreenLocation().GetHandlePosition(handle);
 
-    int i = GetModelScreenLocation().MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
-    if (i) {
+    int i = GetModelScreenLocation().MslMoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
+    if (i == MODEL_NEEDS_INIT) {
         Setup();
+    } else if (i == MODEL_UPDATE_RGBEFFECTS) {
+        update_rgbeffects = true;
     }
     IncrementChangeCount();
 

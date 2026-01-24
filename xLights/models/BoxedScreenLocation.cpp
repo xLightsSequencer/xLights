@@ -891,7 +891,7 @@ bool BoxedScreenLocation::Scale(const glm::vec3& factor) {
     return true;
 }
 
-int BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) {
+int BoxedScreenLocation::MslMoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) {
 
     if (latch) {
         saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
@@ -1029,7 +1029,7 @@ int BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool Sh
     }
     return 1;
 }
-int BoxedScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
+int BoxedScreenLocation::MslMoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
     if (handle == CENTER_HANDLE) {
         constexpr float rscale = 10; //10 degrees per full 1.0 aka: max speed
         Rotate(ModelScreenLocation::MSLAXIS::X_AXIS, rot.x * rscale);
@@ -1048,7 +1048,7 @@ int BoxedScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, g
 }
         
 
-int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+int BoxedScreenLocation::MslMoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
     if (_locked) return 0;
 

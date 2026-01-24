@@ -30,6 +30,10 @@
 #define FROM_BASE_HANDLES_COLOUR xlPURPLETRANSLUCENT
 #define LOCKED_HANDLES_COLOUR xlREDTRANSLUCENT
 
+#define MODEL_UNCHANGED       0
+#define MODEL_NEEDS_INIT      1
+#define MODEL_UPDATE_RGBEFFECTS 2
+
 // Lower 20 bits reserved to store handle positions and these
 // constants are modifiers to indicate special handles
 #define HANDLE_MASK    0x00FFFFF
@@ -113,9 +117,9 @@ protected:
     void DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *program, float zoom, int scale) const;
 
     
-    virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
-    virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) = 0;
-    virtual int MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) = 0;
+    virtual int MslMoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
+    virtual int MslMoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) = 0;
+    virtual int MslMoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) = 0;
     virtual void MouseDown(bool value) { mouse_down = value; }
 
     virtual bool Rotate(MSLAXIS axis, float factor) = 0;
