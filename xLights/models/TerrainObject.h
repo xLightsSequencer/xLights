@@ -12,6 +12,7 @@
 
 #include "ViewObject.h"
 #include "TerrainScreenLocation.h"
+#include <mutex>
 
 class ModelPreview;
 class xlTexture;
@@ -57,6 +58,7 @@ public:
     int GetBrightness() const { return brightness; }
 
 protected:
+    void UpdateSize();
 
 private:
     std::string _imageFile {""};
@@ -77,5 +79,5 @@ private:
     std::map<std::string, xlTexture*> _images;
     xlVertexAccumulator *grid {nullptr};
     xlVertexTextureAccumulator *texture {nullptr};
-
+    std::mutex mtx;
 };

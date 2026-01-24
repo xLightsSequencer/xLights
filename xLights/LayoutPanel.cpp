@@ -7155,9 +7155,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 						name = xlights->AllModels.GenerateModelName(newModel->name);
                         newModel->SetControllerName(NO_CONTROLLER);
 						newModel->name = name;
-						newModel->GetModelXml()->DeleteAttribute("name");
 						newModel->Lock(false);
-						newModel->GetModelXml()->AddAttribute("name", name);
 						newModel->AddOffset(0.02, 0.02, 0.0);
 						xlights->AllModels.AddModel(newModel);
 						lastModelName = name;
@@ -7170,9 +7168,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 						ViewObject *newViewObject = xlights->AllObjects.CreateObject(nd);
 						name = xlights->AllObjects.GenerateObjectName(newViewObject->name);
 						newViewObject->name = name;
-						newViewObject->GetModelXml()->DeleteAttribute("name");
 						newViewObject->Lock(false);
-						newViewObject->GetModelXml()->AddAttribute("name", name);
 						newViewObject->AddOffset(50.0, 0.0, 0.0);
 						xlights->AllObjects.AddViewObject(newViewObject);
 						lastModelName = name;

@@ -40,9 +40,7 @@ public:
     int GetNumPointsDeep() const { return num_points_deep; }
     int GetNumPoints() const { return num_points; }
 
-    void SetNumPointsWide(int val);
-    void SetNumPointsDeep(int val);
-    void SetNumPoints(int val);
+    void UpdateSize(int wide, int deep, int num_points);
 
     void SetDataFromString(const std::string& point_data);
 

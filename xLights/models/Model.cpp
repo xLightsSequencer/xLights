@@ -5556,144 +5556,45 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
     auto y = model->GetVcenterPos();
     auto lg = model->GetLayoutGroup();
 
-    // Delete the Custom model that drew the box
-    if (model != nullptr) {
-        delete model;
-    }
-
     XmlSerializer serializer;
-    model = serializer.DeserializeModel(n, xlights, true);
 
-    model->SetStartChannel(sc);
-    model->SetHcenterPos(x);
-    model->SetVcenterPos(y);
-    model->SetLayoutGroup(lg);
-    model->Selected = true;
-    return model;
-
-/*
     if (node->GetName() == "custommodel") {
         return model;
     } else if (node->GetName() == "polylinemodel") {
-        // not a custom model so delete the default model that was created
-        std::string startChannel = model->GetModelStartChannel();
-        auto lg = model->GetLayoutGroup();
-        if (model != nullptr) {
-            xlights->AddTraceMessage("GetXlightsModel converted model to PolyLine");
-            delete model;
-        }
         model = xlights->AllModels.CreateDefaultModel("Poly Line", startChannel);
-        model->SetLayoutGroup(lg);
-        model->Selected = true;
         return model;
     } else if (node->GetName() == "multipointmodel") {
-        std::string startChannel = model->GetModelStartChannel();
-        auto lg = model->GetLayoutGroup();
-        if (model != nullptr) {
-            xlights->AddTraceMessage("GetXlightsModel converted model to MultiPoint");
-            delete model;
-        }
         model = xlights->AllModels.CreateDefaultModel("MultiPoint", startChannel);
-        model->SetLayoutGroup(lg);
-        model->Selected = true;
         return model;
     } else if (node->GetName() == "matrixmodel") {
-        // grab the attributes I want to keep
-        std::string startChannel = model->GetModelStartChannel();
-        auto x = model->GetHcenterPos();
-        auto y = model->GetVcenterPos();
-        //auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
-        //auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
-        auto lg = model->GetLayoutGroup();
-
-        // not a custom model so delete the default model that was created
-        if (model != nullptr) {
-            xlights->AddTraceMessage("GetXlightsModel converted model to Matrix");
-            delete model;
-        }
         model = xlights->AllModels.CreateDefaultModel("Matrix", startChannel);
-        model->SetHcenterPos(x);
-        model->SetVcenterPos(y);
         ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(1, 1);
-        model->SetLayoutGroup(lg);
-        model->Selected = true;
         return model;
     } else if (node->GetName() == "archesmodel") {
-        // grab the attributes I want to keep
-        std::string startChannel = model->GetModelStartChannel();
         int l = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetLeft();
         int r = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetRight();
         int t = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetTop();
         int b = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetBottom();
-        auto lg = model->GetLayoutGroup();
-
-        // not a custom model so delete the default model that was created
-        if (model != nullptr) {
-            xlights->AddTraceMessage("GetXlightsModel converted model to Arches");
-            delete model;
-        }
-        model = xlights->AllModels.CreateDefaultModel("Arches", startChannel);
-
-        int h1 = 1;
-        model->InitializeLocation(h1, l, b, modelPreview);
+        if (model != nullptr) { delete model; }
+        model = serializer.DeserializeModel(n, xlights, true);
         ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMWidth(std::abs(r - l));
         ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetRight(r);
         ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetLeft(l);
         ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetBottom(b);
         ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMHeight(2 * (float)std::abs(t - b) / (float)std::abs(r - l));
-        model->SetLayoutGroup(lg);
-        model->Selected = true;
-        return model;
     } else if (node->GetName() == "starmodel") {
-        // grab the attributes I want to keep
-        std::string startChannel = model->GetModelStartChannel();
-        auto x = model->GetHcenterPos();
-        auto y = model->GetVcenterPos();
-        //auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
-        //auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
-        auto lg = model->GetLayoutGroup();
-
-        // not a custom model so delete the default model that was created
-        if (model != nullptr) {
-            xlights->AddTraceMessage("GetXlightsModel converted model to Star");
-            delete model;
-        }
         model = xlights->AllModels.CreateDefaultModel("Star", startChannel);
-        model->SetHcenterPos(x);
-        model->SetVcenterPos(y);
         ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(1, 1);
-        model->SetLayoutGroup(lg);
-        model->Selected = true;
         return model;
     } else if (node->GetName() == "treemodel") {
-        // grab the attributes I want to keep
-        std::string startChannel = model->GetModelStartChannel();
-        auto x = model->GetHcenterPos();
-        auto y = model->GetVcenterPos();
-        //auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
-        //auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
-        auto lg = model->GetLayoutGroup();
-
-        // not a custom model so delete the default model that was created
-        if (model != nullptr) {
-            xlights->AddTraceMessage("GetXlightsModel converted model to Tree");
-            delete model;
-        }
         model = xlights->AllModels.CreateDefaultModel("Tree", startChannel);
-        model->SetHcenterPos(x);
-        model->SetVcenterPos(y);
         ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(1, 1);
-        model->SetLayoutGroup(lg);
-        model->Selected = true;
         return model;
     } else if (node->GetName() == "dmxmodel") {
         // grab the attributes I want to keep
         std::string startChannel = model->GetModelStartChannel();
-        auto x = model->GetHcenterPos();
-        auto y = model->GetVcenterPos();
         auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
         auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
-        auto lg = model->GetLayoutGroup();
 
         std::string dmx_type = node->GetAttribute("DisplayAs");
         // not a custom model so delete the default model that was created
@@ -5720,167 +5621,79 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         }
         model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
         if( model != nullptr ) {
-            model->SetHcenterPos(x);
-            model->SetVcenterPos(y);
             // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
-            model->SetLayoutGroup(lg);
-            model->Selected = true;
         } else {
             cancelled = true;
         }
         return model;
     } else if (node->GetName() == "dmxgeneral") {
-        // grab the attributes I want to keep
-        std::string startChannel = model->GetModelStartChannel();
-        auto x = model->GetHcenterPos();
-        auto y = model->GetVcenterPos();
         auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
         auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
-        auto lg = model->GetLayoutGroup();
 
         std::string dmx_type = node->GetAttribute("DisplayAs");
-        // not a custom model so delete the default model that was created
-        if (model != nullptr) {
-            xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
-            delete model;
-        }
         model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
-        model->SetHcenterPos(x);
-        model->SetVcenterPos(y);
         // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
         ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
-        model->SetLayoutGroup(lg);
-        model->Selected = true;
         return model;
     } else if (node->GetName() == "dmxservo") {
         // grab the attributes I want to keep
         std::string startChannel = model->GetModelStartChannel();
         auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
         auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
-        auto x = model->GetHcenterPos();
-        auto y = model->GetVcenterPos();
-        auto lg = model->GetLayoutGroup();
 
         std::string dmx_type = node->GetAttribute("DisplayAs");
-        // not a custom model so delete the default model that was created
-        if (model != nullptr) {
-            xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
-            delete model;
-        }
         model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
-        model->SetHcenterPos(x);
-        model->SetVcenterPos(y);
         // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
         ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
-        model->SetLayoutGroup(lg);
-        model->Selected = true;
         return model;
     } else if (node->GetName() == "dmxservo3axis" ||
                node->GetName() == "dmxservo3d") {
-        // grab the attributes I want to keep
-        std::string startChannel = model->GetModelStartChannel();
-        auto x = model->GetHcenterPos();
-        auto y = model->GetVcenterPos();
-        auto lg = model->GetLayoutGroup();
-
         std::string dmx_type = node->GetAttribute("DisplayAs");
-        // not a custom model so delete the default model that was created
-        if (model != nullptr) {
-            xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
-            delete model;
-        }
+
         model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
-        model->SetHcenterPos(x);
-        model->SetVcenterPos(y);
         model->GetModelScreenLocation().SetScaleMatrix(glm::vec3(1, 1, 1));
-        model->SetLayoutGroup(lg);
-        model->Selected = true;
         return model;
     } else if (node->GetName() == "circlemodel") {
-        // grab the attributes I want to keep
-        std::string startChannel = model->GetModelStartChannel();
-        auto x = model->GetHcenterPos();
-        auto y = model->GetVcenterPos();
-        auto lg = model->GetLayoutGroup();
 
-        // not a custom model so delete the default model that was created
-        if (model != nullptr) {
-            xlights->AddTraceMessage("GetXlightsModel converted model to Circle");
-            delete model;
-        }
         model = xlights->AllModels.CreateDefaultModel("Circle", startChannel);
-        model->SetHcenterPos(x);
-        model->SetVcenterPos(y);
         //((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
-        model->SetLayoutGroup(lg);
-        model->Selected = true;
         return model;
     } else if (node->GetName() == "spheremodel") {
-        // grab the attributes I want to keep
-        std::string startChannel = model->GetModelStartChannel();
-        auto x = model->GetHcenterPos();
-        auto y = model->GetVcenterPos();
         auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();
-        auto lg = model->GetLayoutGroup();
 
-        // not a custom model so delete the default model that was created
-        if (model != nullptr) {
-            xlights->AddTraceMessage("GetXlightsModel converted model to Sphere");
-            delete model;
-        }
         model = xlights->AllModels.CreateDefaultModel("Sphere", startChannel);
-        model->SetHcenterPos(x);
-        model->SetVcenterPos(y);
         ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
-        model->SetLayoutGroup(lg);
-        model->Selected = true;
         return model;
     } else if (node->GetName() == "iciclemodel") {
-        // grab the attributes I want to keep
-        std::string startChannel =model->GetModelStartChannel();
-        auto x = model->GetHcenterPos();
-        auto y = model->GetVcenterPos();
         auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();
-        auto lg = model->GetLayoutGroup();
 
-        // not a custom model so delete the default model that was created
-        if (model != nullptr) {
-            xlights->AddTraceMessage("GetXlightsModel converted model to Icicle");
-            delete model;
-        }
         model = xlights->AllModels.CreateDefaultModel("Icicles", startChannel);
-        model->SetHcenterPos(x);
-        model->SetVcenterPos(y);
         ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
-        model->SetLayoutGroup(lg);
-        model->Selected = true;
         return model;
     } else if (node->GetName() == "Cubemodel") {
-        std::string startChannel = model->GetModelStartChannel();
-        auto x = model->GetHcenterPos();
-        auto y = model->GetVcenterPos();
         auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();
-        auto lg = model->GetLayoutGroup();
 
-        // not a custom model so delete the default model that was created
-        if (model != nullptr) {
-            xlights->AddTraceMessage("GetXlightsModel converted model to Cube");
-            delete model;
-        }
         model = xlights->AllModels.CreateDefaultModel("Cube", startChannel);
+        ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
+    } else {
+        if (model != nullptr) { delete model; }
+        model = serializer.DeserializeModel(n, xlights, true);
+        if (model == nullptr) {
+            logger_base.error("GetXlightsModel no code to convert to " + node->GetName());
+            xlights->AddTraceMessage("GetXlightsModel no code to convert to " + node->GetName());
+            cancelled = true;
+        }
+    }
+
+    if (model != nullptr) {
+        model->SetStartChannel(sc);
         model->SetHcenterPos(x);
         model->SetVcenterPos(y);
-        ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
         model->SetLayoutGroup(lg);
         model->Selected = true;
-        return model;
-    } else {
-        logger_base.error("GetXlightsModel no code to convert to " + node->GetName());
-        xlights->AddTraceMessage("GetXlightsModel no code to convert to " + node->GetName());
-        cancelled = true;
-    }*/
-   // return model;
+    }
+    return model;
 }
 
 Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int&depthmm)

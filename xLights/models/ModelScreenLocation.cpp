@@ -896,15 +896,15 @@ void ModelScreenLocation::UpdateBoundingBox(float width, float height, float dep
 
     // Set minimum bounding rectangle
     if (aabb_max.y - aabb_min.y < 4) {
-        aabb_max.y += 5;
-        aabb_min.y -= 5;
+        aabb_max.y += BOUNDING_RECT_OFFSET;
+        aabb_min.y -= BOUNDING_RECT_OFFSET;
     }
     if (aabb_max.x - aabb_min.x < 4) {
-        aabb_max.x += 5;
-        aabb_min.x -= 5;
+        aabb_max.x += BOUNDING_RECT_OFFSET;
+        aabb_min.x -= BOUNDING_RECT_OFFSET;
     }
     if (aabb_max.z - aabb_min.z < 4) {
-        aabb_max.z += 5;
-        aabb_min.z -= 5;
+        aabb_max.z += BOUNDING_RECT_OFFSET;
+        aabb_min.z -= BOUNDING_RECT_OFFSET;
     }
 }

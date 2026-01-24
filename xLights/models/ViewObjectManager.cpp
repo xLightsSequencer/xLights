@@ -64,8 +64,9 @@ ViewObject* ViewObjectManager::CreateAndAddObject(const std::string &type) {
         wxMessageBox(type + " is not a valid type for View Object ");
         return nullptr;
     }
-
+    view_object->SetName(GenerateObjectName(type));
     AddViewObject(view_object);
+
     return view_object;
 }
 

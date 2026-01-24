@@ -23,6 +23,7 @@ TerrainObject::TerrainObject(const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager)
 {
     screenLocation.SetSupportsZScaling(true);
+    UpdateSize();
 }
 
 TerrainObject::~TerrainObject()
@@ -41,8 +42,19 @@ TerrainObject::~TerrainObject()
     }
 }
 
+void TerrainObject::UpdateSize()
+{
+    // Prevent number of points from changing while drawing the object
+    mtx.lock();
+    int num_points_wide = width / spacing + 1;
+    int num_points_deep = depth / spacing + 1;
+    int num_points = num_points_wide * num_points_deep;
+    screenLocation.UpdateSize(num_points_wide, num_points_deep, num_points);
+    mtx.unlock();
+}
+
 void TerrainObject::InitModel() {
-    GetObjectScreenLocation().SetToolSize(brush_size);
+    screenLocation.SetToolSize(brush_size);
 }
 
 void TerrainObject::SetImageFile(const std::string & imageFile)
@@ -137,6 +149,7 @@ int TerrainObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         return 0;
     } else if ("TerrianLineSpacing" == event.GetPropertyName()) {
         spacing = (int)event.GetPropertyValue().GetLong();
+        UpdateSize();
         if (grid->GetPropertyByName("RealSpacing") != nullptr && RulerObject::GetRuler() != nullptr) {
             grid->GetPropertyByName("RealSpacing")->SetValueFromString(RulerObject::PrescaledMeasureDescription(RulerObject::Measure(spacing)));
         }
@@ -147,8 +160,7 @@ int TerrainObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         return 0;
     } else if ("TerrianWidth" == event.GetPropertyName()) {
         width = (int)event.GetPropertyValue().GetLong();
-        TerrainScreenLocation& screenLoc = dynamic_cast<TerrainScreenLocation&>(GetBaseObjectScreenLocation());
-        screenLoc.SetNumPointsWide(width);
+        UpdateSize();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrainObject::OnPropertyGridChange::TerrianWidth");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TerrainObject::OnPropertyGridChange::TerrianWidth");
@@ -156,8 +168,7 @@ int TerrainObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         return 0;
     } else if ("TerrianDepth" == event.GetPropertyName()) {
         depth = (int)event.GetPropertyValue().GetLong();
-        TerrainScreenLocation& screenLoc = dynamic_cast<TerrainScreenLocation&>(GetBaseObjectScreenLocation());
-        screenLoc.SetNumPointsDeep(depth);
+        UpdateSize();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrainObject::OnPropertyGridChange::TerrianDepth");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TerrainObject::OnPropertyGridChange::TerrianDepth");
@@ -186,19 +197,19 @@ int TerrainObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         return 0;
     } else if ("TerrianBrushSize" == event.GetPropertyName()) {
         brush_size = (int)event.GetPropertyValue().GetLong();
-        GetObjectScreenLocation().SetToolSize(brush_size);
+        screenLocation.SetToolSize(brush_size);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrainObject::OnPropertyGridChange::TerrianBrushSize");
         return 0;
     } else if (event.GetPropertyName() == "TerrianEdit") {
         editTerrian = event.GetValue().GetBool();
         if (editTerrian) {
-            GetObjectScreenLocation().SetActiveHandle(NO_HANDLE);
-            GetObjectScreenLocation().SetEdit(true);
+            screenLocation.SetActiveHandle(NO_HANDLE);
+            screenLocation.SetEdit(true);
         } else {
-            GetObjectScreenLocation().SetActiveHandle(0);
-            GetObjectScreenLocation().SetAxisTool(ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE);
-            GetObjectScreenLocation().SetEdit(false);
+            screenLocation.SetActiveHandle(0);
+            screenLocation.SetAxisTool(ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE);
+            screenLocation.SetEdit(false);
         }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::TerrianEdit");
@@ -216,13 +227,12 @@ bool TerrainObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool exists = false;
 
-    GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
+    mtx.lock();
+    screenLocation.PrepareToDraw(true, allowSelected);
 
-    TerrainScreenLocation& screenLoc = dynamic_cast<TerrainScreenLocation&>(GetBaseObjectScreenLocation());
-
-    int num_points_wide = screenLoc.GetNumPointsWide();
-    int num_points_deep = screenLoc.GetNumPointsDeep();
-    int num_points = screenLoc.GetNumPoints();
+    int num_points_wide = screenLocation.GetNumPointsWide();
+    int num_points_deep = screenLocation.GetNumPointsDeep();
+    int num_points = screenLocation.GetNumPoints();
 
     if (_images.find(preview->GetName().ToStdString()) == _images.end()) {
         if (FileExists(_imageFile)) {
@@ -259,7 +269,7 @@ bool TerrainObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
         float sx,sy,sz;
         screenLocation.SetRenderSize(width, height, depth);
 
-        std::vector<float>& mPos = *reinterpret_cast<std::vector<float>*>(GetObjectScreenLocation().GetRawData());
+        std::vector<float>& mPos = *reinterpret_cast<std::vector<float>*>(screenLocation.GetRawData());
         std::vector<glm::vec3> pos;
         pos.resize(num_points);
         float x_offset = (num_points_wide - 1) * spacing / 2;
@@ -270,7 +280,7 @@ bool TerrainObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
                 sx = i * spacing - x_offset;
                 sz = j * spacing - z_offset;
                 sy = mPos[abs_point];
-                GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+                screenLocation.TranslatePoint(sx, sy, sz);
                 pos[abs_point] = glm::vec3(sx, sy, sz);
             }
         }
@@ -363,10 +373,12 @@ bool TerrainObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
             });
         }
     }
-    GetObjectScreenLocation().UpdateBoundingBox(width, height, depth);
+    screenLocation.UpdateBoundingBox(width, height, depth);
 
     if ((Selected || Highlighted) && allowSelected) {
-        GetObjectScreenLocation().DrawHandles(solid, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true, IsFromBase());
+        screenLocation.DrawHandles(solid, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true, IsFromBase());
     }
+
+    mtx.unlock();
     return true;
 }

@@ -58,7 +58,7 @@ Model* XmlDeserializingModelFactory::Deserialize(wxXmlNode* node, xLightsFrame* 
 
     std::string node_name = node->GetName();  // need this to support importing old models that did not have the DisplayAs attribute
 
-    if (type == XmlNodeKeys::ArchesType) {
+    if (type == XmlNodeKeys::ArchesType || node_name == "archesmodel") {
         return DeserializeArches(node, xlights, importing);
     } else if (type == XmlNodeKeys::CandyCaneType) {
         return DeserializeCandyCane(node, xlights, importing);
@@ -109,7 +109,7 @@ Model* XmlDeserializingModelFactory::Deserialize(wxXmlNode* node, xLightsFrame* 
     } else if (type == XmlNodeKeys::WreathType) {
         return DeserializeWreath(node, xlights, importing);
     }
-    throw std::runtime_error("Unknown model type: " + type);
+    return nullptr;
 }
 
 void XmlDeserializingModelFactory::CommonDeserializeSteps(Model* model, wxXmlNode* node, xLightsFrame* xlights, bool importing) {

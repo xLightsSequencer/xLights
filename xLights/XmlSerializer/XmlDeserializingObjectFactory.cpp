@@ -66,9 +66,7 @@ void XmlDeserializingObjectFactory::DeserializeTerrainScreenLocationAttributes(V
     int num_points_deep = depth / spacing + 1;
     int num_points = num_points_wide * num_points_deep;
     TerrainScreenLocation& screenLoc = dynamic_cast<TerrainScreenLocation&>(object->GetBaseObjectScreenLocation());
-    screenLoc.SetNumPointsWide(num_points_wide);
-    screenLoc.SetNumPointsDeep(num_points_deep);
-    screenLoc.SetNumPoints(num_points);
+    screenLoc.UpdateSize(num_points_wide, num_points_deep, num_points);
     screenLoc.SetDataFromString(node->GetAttribute(XmlNodeKeys::PointDataAttribute, "").ToStdString());
 }
 
