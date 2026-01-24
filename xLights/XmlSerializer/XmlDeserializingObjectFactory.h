@@ -12,6 +12,7 @@
 
 class ViewObject;
 class wxXmlNode;
+class xLightsFrame;
 
 struct XmlDeserializingObjectFactory {
     ViewObject* Deserialize(wxXmlNode* node, xLightsFrame* xlights, bool importing);

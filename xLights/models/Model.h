@@ -753,7 +753,8 @@ public:
     void SetControllerName(const std::string& controllerName) { _controllerConnection.SetName(controllerName); }
     void SetControllerProtocol(const std::string& protocol) { _controllerConnection.SetProtocol(protocol); }
     void SetControllerSerialProtocolSpeed(int speed) { _controllerConnection.SetSerialProtocolSpeed(speed); }
-    void SetControllerPort(int port) { _controllerConnection.SetPort(port); }
+    void SetControllerPort(int port) { _controllerConnection.SetCtrlPort(port); }
+
     void SetControllerStartNulls(int nulls) { _controllerConnection.SetStartNulls(nulls); }
     void SetControllerEndNulls(int nulls) { _controllerConnection.SetEndNulls(nulls); }
     void SetControllerBrightness(int brightness)  { _controllerConnection.SetBrightness(brightness); }
@@ -767,7 +768,7 @@ public:
     [[nodiscard]] std::string GetControllerName() const { return _controllerConnection.GetName(); }
     [[nodiscard]] std::string GetControllerProtocol() const { return _controllerConnection.GetProtocol(); }
     [[nodiscard]] int GetControllerProtocolSpeed() const { return _controllerConnection.GetProtocolSpeed(); }
-    [[nodiscard]] int GetControllerPort(int string = 1) const { return _controllerConnection.GetPort(); }
+    [[nodiscard]] int GetControllerPort(int string = 1) const { return _controllerConnection.GetCtrlPort(); }
     [[nodiscard]] int GetControllerStartNulls() const { return _controllerConnection.GetStartNulls(); }
     [[nodiscard]] int GetControllerEndNulls() const { return _controllerConnection.GetEndNulls(); }
     [[nodiscard]] int GetControllerBrightness() const { return _controllerConnection.GetBrightness(); }

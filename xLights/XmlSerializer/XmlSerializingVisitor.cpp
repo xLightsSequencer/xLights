@@ -485,7 +485,7 @@ void XmlSerializingVisitor::AddGroups(wxXmlNode* node, const Model* m) {
 
 void XmlSerializingVisitor::AddControllerConnection(wxXmlNode* node, const Model* m) {
     auto const& cc = m->GetConstCtrlConn();
-    int p = cc.GetPort();
+    int p = cc.GetCtrlPort();
     if (p != 0) {
         wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::CtrlConnectionName);
         xmlNode->AddAttribute(XmlNodeKeys::ControllerAttribute, m->GetControllerName());

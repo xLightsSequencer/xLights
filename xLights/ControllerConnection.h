@@ -10,6 +10,9 @@
  * Copyright claimed based on commit dates recorded in Github
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
+#include <map>
+#include <string>
+#include <vector>
 
 class Model;
 
@@ -52,7 +55,7 @@ public:
     [[nodiscard]] std::string GetName() const { return _name; }
     [[nodiscard]] std::string GetProtocol() const { return _protocol; }
     [[nodiscard]] int GetProtocolSpeed() const {return _protocolSpeed; }
-    [[nodiscard]] int GetPort(int string = 1) const;
+    [[nodiscard]] int GetCtrlPort(int string = 1) const;
     [[nodiscard]] int GetBrightness() const { return _brightness; }
     [[nodiscard]] int GetStartNulls() const { return _startNulls; }
     [[nodiscard]] int GetEndNulls() const { return _endNulls; }
@@ -79,7 +82,7 @@ public:
     void SetName(std::string const& controller);
     void SetProtocol(std::string const& protocol);
     void SetSerialProtocolSpeed(int speed);
-    void SetPort(int port);
+    void SetCtrlPort(int port);
     void SetBrightness(int brightness);
     void SetStartNulls(int nulls);
     void SetEndNulls(int nulls);

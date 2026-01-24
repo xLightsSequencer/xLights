@@ -12,6 +12,7 @@
 #include "Pixels.h"
 #include "controllers/ControllerCaps.h"
 #include "models/ModelManager.h"
+#include "models/Model.h"
 
 static const int PORTS_PER_SMARTREMOTE = 4;
 
@@ -37,7 +38,7 @@ void ControllerConnection::SetName(const std::string& controller)
     if (_name == NO_CONTROLLER) {
         _model->SetStartChannel("");
         _model->SetModelChain("");
-        SetPort(0);
+        SetCtrlPort(0);
     }
 
     _model->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerConnection::SetName");
@@ -66,7 +67,7 @@ bool ControllerConnection::Rename(const std::string& oldName, const std::string&
     return changed;
 }
 
-int ControllerConnection::GetPort(int string) const
+int ControllerConnection::GetCtrlPort(int string) const
 {
     // TODO:  Delete?  This looks like legacy attributes
     //wxString p = wxString::Format("%d", string);
@@ -84,32 +85,32 @@ int ControllerConnection::GetPort(int string) const
 // This is deliberately ! serial so that it defaults to thinking it is pixel
 bool ControllerConnection::IsPixelProtocol() const
 {
-    return GetPort(1) != 0 && !::IsSerialProtocol(_protocol) && !::IsMatrixProtocol(_protocol) && !::IsPWMProtocol(_protocol);
+    return GetCtrlPort(1) != 0 && !::IsSerialProtocol(_protocol) && !::IsMatrixProtocol(_protocol) && !::IsPWMProtocol(_protocol);
 }
 bool ControllerConnection::IsSerialProtocol() const
 {
-    return GetPort(1) != 0 && ::IsSerialProtocol(_protocol);
+    return GetCtrlPort(1) != 0 && ::IsSerialProtocol(_protocol);
 }
 bool ControllerConnection::IsMatrixProtocol() const
 {
-    return GetPort(1) != 0 && ::IsMatrixProtocol(_protocol);
+    return GetCtrlPort(1) != 0 && ::IsMatrixProtocol(_protocol);
 }
 bool ControllerConnection::IsLEDPanelMatrixProtocol() const
 {
-    return GetPort(1) != 0 && ::IsLEDPanelMatrixProtocol(_protocol);
+    return GetCtrlPort(1) != 0 && ::IsLEDPanelMatrixProtocol(_protocol);
 }
 bool ControllerConnection::IsVirtualMatrixProtocol() const
 {
-    return GetPort(1) != 0 && ::IsVirtualMatrixProtocol(_protocol);
+    return GetCtrlPort(1) != 0 && ::IsVirtualMatrixProtocol(_protocol);
 }
 bool ControllerConnection::IsPWMProtocol() const
 {
-    return GetPort(1) != 0 && ::IsPWMProtocol(_protocol);
+    return GetCtrlPort(1) != 0 && ::IsPWMProtocol(_protocol);
 }
 
 bool ControllerConnection::IsValid() const
 {
-    return ((IsPixelProtocol() || IsSerialProtocol() || IsMatrixProtocol() || IsPWMProtocol()) && GetPort(1) > 0);
+    return ((IsPixelProtocol() || IsSerialProtocol() || IsMatrixProtocol() || IsPWMProtocol()) && GetCtrlPort(1) > 0);
 }
 
 void ControllerConnection::SetProtocol(const std::string& protocol)
@@ -134,7 +135,7 @@ void ControllerConnection::SetSerialProtocolSpeed(int speed) {
     _model->IncrementChangeCount();
 }
 
-void ControllerConnection::SetPort(int port)
+void ControllerConnection::SetCtrlPort(int port)
 {
     if (port == _port) return;
     if (port == -999) return;
@@ -142,11 +143,11 @@ void ControllerConnection::SetPort(int port)
     if (port > 0) {
         _port = port;
     }
-    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetPort");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetPort");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerConnection::SetPort");
-    _model->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerConnection::SetPort");
-    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetPort");
+    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetCtrlPort");
+    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetCtrlPort");
+    _model->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerConnection::SetCtrlPort");
+    _model->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerConnection::SetCtrlPort");
+    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetCtrlPort");
     _model->IncrementChangeCount();
 }
 

@@ -693,9 +693,6 @@
     <ClCompile Include="models\DMX\DmxModel.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
-    <ClCompile Include="models\DMX\DmxSkulltronix.cpp">
-      <Filter>Models\DMX</Filter>
-    </ClCompile>
     <ClCompile Include="models\DMX\DmxFloodlight.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
@@ -703,9 +700,6 @@
       <Filter>Models\DMX</Filter>
     </ClCompile>
     <ClCompile Include="models\DMX\DmxColorAbility.cpp">
-      <Filter>Models\DMX</Filter>
-    </ClCompile>
-    <ClCompile Include="models\DMX\DmxPanTiltAbility.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
     <ClCompile Include="models\DMX\DmxShutterAbility.cpp">
@@ -858,7 +852,7 @@
     <ClCompile Include="models\TerrainScreenLocation.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="models\TerrianObject.cpp">
+    <ClCompile Include="models\TerrainObject.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="CopyFormat1.cpp" />
@@ -1119,6 +1113,22 @@
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
     <ClCompile Include="ai\AIImageDialog.cpp" />
+    <ClCompile Include="XmlSerializer\XmlDeserializingModelFactory.cpp">
+      <Filter>XmlSerializer</Filter>
+    </ClCompile>
+    <ClCompile Include="XmlSerializer\XmlDeserializingObjectFactory.cpp">
+      <Filter>XmlSerializer</Filter>
+    </ClCompile>
+    <ClCompile Include="XmlSerializer\XmlSerializeFunctions.cpp">
+      <Filter>XmlSerializer</Filter>
+    </ClCompile>
+    <ClCompile Include="XmlSerializer\XmlSerializingVisitor.cpp">
+      <Filter>XmlSerializer</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerConnection.cpp" />
+    <ClCompile Include="models\DMX\DmxBeamAbility.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1825,9 +1835,6 @@
     <ClInclude Include="models\DMX\DmxModel.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
-    <ClInclude Include="models\DMX\DmxSkulltronix.h">
-      <Filter>Models\DMX</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\models\modelimages.h" />
     <ClInclude Include="models\DMX\DmxFloodlight.h">
       <Filter>Models\DMX</Filter>
@@ -1836,9 +1843,6 @@
       <Filter>Models\DMX</Filter>
     </ClInclude>
     <ClInclude Include="models\DMX\DmxColorAbility.h">
-      <Filter>Models\DMX</Filter>
-    </ClInclude>
-    <ClInclude Include="models\DMX\DmxPanTiltAbility.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
     <ClInclude Include="models\DMX\DmxShutterAbility.h">
@@ -1982,10 +1986,10 @@
     <ClInclude Include="sequencer\Waveform.h">
       <Filter>sequencer</Filter>
     </ClInclude>
-    <ClInclude Include="models\TerrianObject.h">
+    <ClInclude Include="models\TerrainObject.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="models\TerrianScreenLocation.h">
+    <ClInclude Include="models\TerrainScreenLocation.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="CopyFormat1.h" />
@@ -2186,7 +2190,6 @@
     <ClInclude Include="models\DMX\MovingHeads\MhChannelDialog.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhFeature.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhFeatureDialog.h" />
-    <ClInclude Include="models\XmlSerializer.h" />
     <ClInclude Include="models\DMX\DmxDimmerAbility.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
@@ -2250,6 +2253,31 @@
     <ClInclude Include="..\xSchedule\wxJSON\jsonval.h" />
     <ClInclude Include="..\xSchedule\wxJSON\jsonwriter.h" />
     <ClInclude Include="ai\AIImageDialog.h" />
+    <ClInclude Include="XmlSerializer\XmlSerializer.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlSerializer\XmlDeserializingModelFactory.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlSerializer\XmlDeserializingObjectFactory.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlSerializer\XmlNodeKeys.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlSerializer\XmlSerializeFunctions.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="models\XmlSerializer.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlSerializer\XmlSerializingVisitor.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerConnection.h" />
+    <ClInclude Include="models\DMX\DmxBeamAbility.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -2305,6 +2333,9 @@
     </Filter>
     <Filter Include="ai">
       <UniqueIdentifier>{b7af1744-89fc-4b00-b7a5-fac169948940}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XmlSerializer">
+      <UniqueIdentifier>{a607134a-9f54-4e95-bde9-6ce848d33a6d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

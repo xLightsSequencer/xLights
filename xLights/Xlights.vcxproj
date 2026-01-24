@@ -511,6 +511,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="automation\PythonRunner.cpp" />
     <ClCompile Include="automation\xLightsAutomations.cpp" />
     <ClCompile Include="CheckSequenceReport.cpp" />
+    <ClCompile Include="ControllerConnection.cpp" />
     <ClCompile Include="controllers\ILightThat.cpp" />
     <ClCompile Include="BatchRenderDialog.cpp" />
     <ClCompile Include="BulkEditColourPickerDialog.cpp" />
@@ -615,6 +616,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="ImportPreviewsModelsDialog.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
     <ClCompile Include="MetronomeLabelDialog.cpp" />
+    <ClCompile Include="models\DMX\DmxBeamAbility.cpp" />
     <ClCompile Include="models\DMX\DmxColorAbilityCMY.cpp" />
     <ClCompile Include="models\DMX\DmxDimmerAbility.cpp" />
     <ClCompile Include="models\DMX\DmxMotor.cpp" />
@@ -655,13 +657,11 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="models\DMX\DmxImage.cpp" />
     <ClCompile Include="models\DMX\DmxModel.cpp" />
     <ClCompile Include="models\DMX\DmxMovingHead.cpp" />
-    <ClCompile Include="models\DMX\DmxPanTiltAbility.cpp" />
     <ClCompile Include="models\DMX\DmxPresetAbility.cpp" />
     <ClCompile Include="models\DMX\DmxServo.cpp" />
     <ClCompile Include="models\DMX\DmxServo3D.cpp" />
     <ClCompile Include="models\DMX\DmxShutterAbility.cpp" />
     <ClCompile Include="models\DMX\DmxSkull.cpp" />
-    <ClCompile Include="models\DMX\DmxSkulltronix.cpp" />
     <ClCompile Include="models\DMX\Mesh.cpp" />
     <ClCompile Include="models\DMX\Servo.cpp" />
     <ClCompile Include="models\DMX\ServoConfigDialog.cpp" />
@@ -676,7 +676,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="models\PolyPointScreenLocation.cpp" />
     <ClCompile Include="models\RulerObject.cpp" />
     <ClCompile Include="models\TerrainScreenLocation.cpp" />
-    <ClCompile Include="models\TerrianObject.cpp" />
+    <ClCompile Include="models\TerrainObject.cpp" />
     <ClCompile Include="models\ThreePointScreenLocation.cpp" />
     <ClCompile Include="models\TwoPointScreenLocation.cpp" />
     <ClCompile Include="models\ViewObject.cpp" />
@@ -1008,6 +1008,10 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="xLightsXmlFile.cpp" />
     <ClCompile Include="xlLockButton.cpp" />
     <ClCompile Include="xlSlider.cpp" />
+    <ClCompile Include="XmlSerializer\XmlDeserializingModelFactory.cpp" />
+    <ClCompile Include="XmlSerializer\XmlDeserializingObjectFactory.cpp" />
+    <ClCompile Include="XmlSerializer\XmlSerializeFunctions.cpp" />
+    <ClCompile Include="XmlSerializer\XmlSerializingVisitor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\xlBaseApp.h" />
@@ -1036,6 +1040,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="automation\LuaRunner.h" />
     <ClInclude Include="automation\PythonRunner.h" />
     <ClInclude Include="CheckSequenceReport.h" />
+    <ClInclude Include="ControllerConnection.h" />
     <ClInclude Include="controllers\ILightThat.h" />
     <ClInclude Include="BatchRenderDialog.h" />
     <ClInclude Include="BulkEditColourPickerDialog.h" />
@@ -1151,6 +1156,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="ImportPreviewsModelsDialog.h" />
     <ClInclude Include="MetronomeLabelDialog.h" />
     <ClInclude Include="models\BaseObjectVisitor.h" />
+    <ClInclude Include="models\DMX\DmxBeamAbility.h" />
     <ClInclude Include="models\DMX\DmxColorAbilityCMY.h" />
     <ClInclude Include="models\DMX\DmxDimmerAbility.h" />
     <ClInclude Include="models\DMX\DmxMotor.h" />
@@ -1194,13 +1200,11 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="models\DMX\DmxImage.h" />
     <ClInclude Include="models\DMX\DmxModel.h" />
     <ClInclude Include="models\DMX\DmxMovingHead.h" />
-    <ClInclude Include="models\DMX\DmxPanTiltAbility.h" />
     <ClInclude Include="models\DMX\DmxPresetAbility.h" />
     <ClInclude Include="models\DMX\DmxServo.h" />
     <ClInclude Include="models\DMX\DmxServo3D.h" />
     <ClInclude Include="models\DMX\DmxShutterAbility.h" />
     <ClInclude Include="models\DMX\DmxSkull.h" />
-    <ClInclude Include="models\DMX\DmxSkulltronix.h" />
     <ClInclude Include="models\DMX\Mesh.h" />
     <ClInclude Include="models\DMX\Servo.h" />
     <ClInclude Include="models\DMX\ServoConfigDialog.h" />
@@ -1214,8 +1218,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="models\ObjectManager.h" />
     <ClInclude Include="models\PolyPointScreenLocation.h" />
     <ClInclude Include="models\RulerObject.h" />
-    <ClInclude Include="models\TerrianObject.h" />
-    <ClInclude Include="models\TerrianScreenLocation.h" />
+    <ClInclude Include="models\TerrainObject.h" />
+    <ClInclude Include="models\TerrainScreenLocation.h" />
     <ClInclude Include="models\ThreePointScreenLocation.h" />
     <ClInclude Include="models\tiny_obj_loader.h" />
     <ClInclude Include="models\TwoPointScreenLocation.h" />
@@ -1554,6 +1558,12 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="xLightsXmlFile.h" />
     <ClInclude Include="xlLockButton.h" />
     <ClInclude Include="xlSlider.h" />
+    <ClInclude Include="XmlSerializer\XmlDeserializingModelFactory.h" />
+    <ClInclude Include="XmlSerializer\XmlDeserializingObjectFactory.h" />
+    <ClInclude Include="XmlSerializer\XmlNodeKeys.h" />
+    <ClInclude Include="XmlSerializer\XmlSerializeFunctions.h" />
+    <ClInclude Include="XmlSerializer\XmlSerializer.h" />
+    <ClInclude Include="XmlSerializer\XmlSerializingVisitor.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

@@ -121,10 +121,10 @@ CubeModel::~CubeModel()
 
 int CubeModel::CalcTransformationIndex() const
 {
-    const std::string style = GetStrandStyle();
-    bool leftright = style.contains("Left");
-    bool horizontal = style.contains("Horizontal");
-    bool stacked = style.contains("Stacked");
+    const wxString style = GetStrandStyle();
+    bool leftright = style.Contains("Left");
+    bool horizontal = style.Contains("Horizontal");
+    bool stacked = style.Contains("Stacked");
     return (_cubeStart * CUBE_STYLES.GetCount()) + (horizontal << 1) + (stacked << 2) + leftright;
 }
 

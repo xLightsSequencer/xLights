@@ -22,6 +22,7 @@ class DmxMotor;
 class Mesh;
 class Model;
 class Servo;
+class xLightsFrame;
 
 struct XmlDeserializingModelFactory {
     Model* Deserialize(wxXmlNode* node, xLightsFrame* xlights, bool importing);
