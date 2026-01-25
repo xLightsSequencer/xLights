@@ -501,6 +501,8 @@
 		<Unit filename="ai/aiType.h" />
 		<Unit filename="ai/chatGPT.cpp" />
 		<Unit filename="ai/chatGPT.h" />
+        <Unit filename="ai/gemini.cpp" />
+        <Unit filename="ai/gemini.h" />
 		<Unit filename="ai/ollama.cpp" />
 		<Unit filename="ai/ollama.h" />
 		<Unit filename="automation/LuaRunner.cpp" />
