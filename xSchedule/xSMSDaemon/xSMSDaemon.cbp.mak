@@ -18,7 +18,7 @@ LIBDIR =
 LIB = 
 LDFLAGS = 
 
-INC_LINUX_DEBUG = $(INC) -Iinclude -I../xSchedule/xSMSDaemon -I../include -I../../xLights
+INC_LINUX_DEBUG = $(INC) -Iinclude -I../xSchedule/xSMSDaemon -I../include -I../../include -I../../xLights
 CFLAGS_LINUX_DEBUG =  -Wall -g -fPIC -std=gnu++20 `wx-config --version=3.3 --cflags` `pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` `pkg-config --cflags log4cpp` `curl-config --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -DEXCLUDE_COMMAND_VALIDATION -D__WXDEBUG__ -D__cdecl=""
 RESINC_LINUX_DEBUG = $(RESINC)
 RCFLAGS_LINUX_DEBUG = $(RCFLAGS)
@@ -29,7 +29,7 @@ OBJDIR_LINUX_DEBUG = .objs_debug
 DEP_LINUX_DEBUG = 
 OUT_LINUX_DEBUG = ../../bin/xSMSDaemon.so
 
-INC_LINUX_RELEASE = $(INC) -Iinclude -I../xSchedule/xSMSDaemon -I../include -I../../xLights
+INC_LINUX_RELEASE = $(INC) -Iinclude -I../xSchedule/xSMSDaemon -I../include -I../../include -I../../xLights
 CFLAGS_LINUX_RELEASE = $(CFLAGS) -O2 -Wall -fPIC -std=gnu++20 `wx-config --version=3.3 --cflags` `pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0` `pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --cflags log4cpp` `curl-config --cflags` -Winvalid-pch -DWX_PRECOMP -DLINUX -DNDEBUG -DEXCLUDE_COMMAND_VALIDATION -D__cdecl='' -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
 RESINC_LINUX_RELEASE = $(RESINC)
 RCFLAGS_LINUX_RELEASE = $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
@@ -188,7 +188,7 @@ xSMSDaemonMain.h: SMSService.h ../../xLights/xLightsTimer.h SMSDaemonOptions.h x
 
 SMSService.h: SMSMessage.h SMSDaemonOptions.h MagicWord.h
 
-xSMSDaemonMain.cpp: ../../xLights/xLightsVersion.h xSMSDaemonMain.h SMSSettingsDialog.h SMSDaemonOptions.h SMSService.h TestMessagesDialog.h Bandwidth.h voip_ms.h Twilio.h
+xSMSDaemonMain.cpp: ../../xLights/xLightsVersion.h xSMSDaemonMain.h ../../include/xLights.xpm ../../include/xLights-16.xpm ../../include/xLights-32.xpm ../../include/xLights-64.xpm ../../include/xLights-128.xpm SMSSettingsDialog.h SMSDaemonOptions.h SMSService.h TestMessagesDialog.h Bandwidth.h voip_ms.h Twilio.h
 
 Bandwidth.h: ../../xLights/UtilFunctions.h SMSMessage.h SMSService.h
 
