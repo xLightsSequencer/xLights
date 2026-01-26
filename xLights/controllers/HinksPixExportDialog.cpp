@@ -1814,7 +1814,7 @@ void HinksPixExportDialog::createModeFile(wxString const& drive, int mode) const
 }
 
 bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, wxString const& shortHSEQName, ControllerEthernet* hix, ControllerEthernet* slave1, ControllerEthernet* slave2, wxString& errorMsg) {
-    spdlog::debug(wxString::Format("HinksPix HSEQ Creation from %s", fseqFile).ToStdString());
+    spdlog::debug(wxString::Format("HinksPix HSEQ Creation from {}", fseqFile).ToStdString());
 
     std::unique_ptr<FSEQFile> xf(FSEQFile::openFSEQFile(fseqFile));
     if (!xf) {
@@ -1835,7 +1835,7 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, w
     //} else {
     //    if (ogFrame_Rate != 50 ) {
     //        errorMsg = wxString::Format("HinksPix Failed Framerate must be 50ms FSEQ %s", fseqFile);
-    //        LOG_ERROR(errorMsg);
+    //        spdlog::error(errorMsg);
     //        return false;
     //    }
     //}
@@ -1917,7 +1917,7 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(wxString const& fseqFile, w
     delete[] tmpBuf;
     delete[] WriteBuf;
 
-    spdlog::debug(wxString::Format("HinksPix Completed HSEQ %s", shortHSEQName).ToStdString());
+    spdlog::debug(wxString::Format("HinksPix Completed HSEQ {}", shortHSEQName).ToStdString());
     return true;
 }
 

@@ -41,7 +41,7 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 wxDEFINE_EVENT(EVT_MDDROP, wxCommandEvent);
 
@@ -341,7 +341,7 @@ void xLightsImportTreeModel::GetValue(wxVariant &variant,
             break;
         default:
             {
-                LOG_WARN("xLightsImportTreeModel::GetValue: wrong column %d", col);
+                spdlog::warn("xLightsImportTreeModel::GetValue: wrong column {}", col);
                 wxLogError("xLightsImportTreeModel::GetValue: wrong column %d", col);
             }
     }
@@ -364,7 +364,7 @@ bool xLightsImportTreeModel::SetValue(const wxVariant &variant,
         node->_color = wxColour(variant.GetString());
         return true;
     }
-    LOG_WARN("xLightsImportTreeModel::SetValue: wrong column %d", col);
+    spdlog::warn("xLightsImportTreeModel::SetValue: wrong column {}", col);
     wxLogError("xLightsImportTreeModel::SetValue: wrong column %d", col);
     return false;
 }
@@ -1482,13 +1482,13 @@ void xLightsImportChannelMapDialog::LoadMappingFile(wxString const& filepath, bo
     }
     //else
     //{
-    //    LOG_ERROR("Invalid Mapping file type %s.", (const char*)ext.c_str());
+    //    spdlog::error("Invalid Mapping file type {}.", (const char*)ext.c_str());
     //    return;
     //}
 
     _dirty = false;
 
-    LOG_DEBUG("Mapping %s loaded. %d mappings stashed.", (const char*)filepath.c_str(), _stashedMappings.size());
+    spdlog::debug("Mapping {} loaded. {} mappings stashed.", (const char*)filepath.c_str(), _stashedMappings.size());
 
     // expand all models that have strands that have a value
     wxDataViewItemArray models;
@@ -1612,7 +1612,7 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
             if (mel != nullptr) {
                 mel->Init(*xlights->GetModel(model.ToStdString()));
             } else {
-                LOG_WARNWX("Strange ... load mapping returned null model for " + model);
+                spdlog::warn("Strange ... load mapping returned null model for " + model.ToStdString());
             }
             modelEl = mel;
         }
@@ -1711,7 +1711,7 @@ void xLightsImportChannelMapDialog::LoadXMapMapping(wxString const& filename, bo
             if (mel != nullptr) {
                 mel->Init(*xlights->GetModel(model.ToStdString()));
             } else {
-                LOG_WARNWX("Strange ... load mapping returned null model for " + model);
+                spdlog::warn("Strange ... load mapping returned null model for " + model.ToStdString());
             }
             modelEl = mel;
         }
@@ -2626,10 +2626,10 @@ std::string xLightsImportChannelMapDialog::GetAIPrompt(const std::string& prompt
 
     std::string fileToLoad;
     if (wxFileExists(showFolderPromptFile)) {
-        LOG_DEBUG("Using prompt file from show folder: %s", showFolderPromptFile.c_str());
+        spdlog::debug("Using prompt file from show folder: {}", showFolderPromptFile.c_str());
         fileToLoad = showFolderPromptFile;
     } else if (wxFileExists(xLightsFolderPromptFile)) {
-        LOG_DEBUG("Using prompt file from xLights folder: %s", xLightsFolderPromptFile.c_str());
+        spdlog::debug("Using prompt file from xLights folder: {}", xLightsFolderPromptFile.c_str());
         fileToLoad = xLightsFolderPromptFile;
     } else {
         // This looks for a prompt without the aiEngine prefix
@@ -2639,13 +2639,13 @@ std::string xLightsImportChannelMapDialog::GetAIPrompt(const std::string& prompt
         xLightsFolderPromptFile = xlFolder + "/prompts/" + pf;
 
         if (wxFileExists(showFolderPromptFile)) {
-            LOG_DEBUG("Using prompt file from show folder: %s", showFolderPromptFile.c_str());
+            spdlog::debug("Using prompt file from show folder: {}", showFolderPromptFile.c_str());
             fileToLoad = showFolderPromptFile;
         } else if (wxFileExists(xLightsFolderPromptFile)) {
-            LOG_DEBUG("Using prompt file from xLights folder: %s", xLightsFolderPromptFile.c_str());
+            spdlog::debug("Using prompt file from xLights folder: {}", xLightsFolderPromptFile.c_str());
             fileToLoad = xLightsFolderPromptFile;
         } else {
-            LOG_DEBUG("Prompt file not found: %s", promptFile.c_str());
+            spdlog::debug("Prompt file not found: {}", promptFile.c_str());
             wxMessageBox("The prompt file could not be found " + promptFile, "Error", wxICON_ERROR | wxOK, this);
             return "";
         }
@@ -2694,7 +2694,7 @@ std::string xLightsImportChannelMapDialog::BuildSourceModelPrompt(const std::lis
         }
     }
     sourceDescription += "</sourceModels>";
-    LOG_DEBUG("Source models: %s", sourceDescription.c_str());
+    spdlog::debug("Source models: {}", sourceDescription.c_str());
 
     return sourceDescription;
 }
@@ -2724,7 +2724,7 @@ std::string xLightsImportChannelMapDialog::BuildTargetModelPrompt(const std::lis
         }
     }
     targetDescription += "</targetModels>";
-    LOG_DEBUG("Target models: %s", targetDescription.c_str());
+    spdlog::debug("Target models: {}", targetDescription.c_str());
 
     return targetDescription;
 }
@@ -2746,14 +2746,14 @@ std::string xLightsImportChannelMapDialog::BuildAlreadyMappedPrompt(const std::l
         }
     }
     exampleMappings += "</exampleMappings>";
-    LOG_DEBUG("Example mappings: %s", exampleMappings.c_str());
+    spdlog::debug("Example mappings: {}", exampleMappings.c_str());
 
     return exampleMappings;
 }
 
 bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std::string& prompt, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels) {
 
-    LOG_DEBUG("Prompt: %s", prompt.c_str());
+    spdlog::debug("Prompt: {}", prompt.c_str());
 
     auto ai = xlights->GetAIService();
     if (ai == nullptr)
@@ -2769,18 +2769,18 @@ bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std
         possibleSources += it->name + ", ";
     }
 
-   LOG_DEBUG("Response: %s", response.c_str());
+   spdlog::debug("Response: {}", response.c_str());
 
     bool mapped = false;
 
     try {
         nlohmann::json root = nlohmann::json::parse(response);
 
-        LOG_DEBUG("Parsed response");
+        spdlog::debug("Parsed response");
 
         nlohmann::json mappings = root["mappings"];
         if (mappings.is_null()) {
-            LOG_ERROR("No mappings found in response");
+            spdlog::error("No mappings found in response");
         } else {
             // now go through all the targets
             for (const auto& it : targetModels) {
@@ -2800,7 +2800,7 @@ bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std
             }
         }
     } catch (const std::exception& e) {
-        LOG_ERROR("Error parsing response: %s", e.what());
+        spdlog::error("Error parsing response: {}", e.what());
     }
 
     return mapped;
@@ -3154,7 +3154,7 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                 }
             }
         } else {
-            LOG_WARN("xLightsImportTreeModel::OnButton_AutoMapClick: Weird ... model %d was nullptr", i);
+            spdlog::warn("xLightsImportTreeModel::OnButton_AutoMapClick: Weird ... model {} was nullptr", i);
         }
     }
     // Process selected submodels independently

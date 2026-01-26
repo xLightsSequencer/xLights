@@ -14,7 +14,7 @@
 #include "Output.h"
 #include "../UtilFunctions.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #pragma region Constructors and Destructors
 TestPreset::TestPreset(const std::string& name)

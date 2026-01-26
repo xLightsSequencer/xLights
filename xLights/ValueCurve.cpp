@@ -21,7 +21,7 @@
 #include "ExternalHooks.h"
 #include "sequencer/SequenceElements.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include <limits>
 
@@ -1582,7 +1582,7 @@ void ValueCurve::SaveXVC(const std::string& filename)
 {
     wxFile f(filename);
     
-    LOG_INFO("Saving to xvc file %s.", (const char *)filename.c_str());
+    spdlog::info("Saving to xvc file {}.", (const char *)filename.c_str());
 
     if (!f.Create(filename, true) || !f.IsOpened())
     {

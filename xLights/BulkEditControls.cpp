@@ -24,7 +24,7 @@
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 // Here is how the sliders, labels, value curves and text boxes all work together.
 //
@@ -412,12 +412,10 @@ void BulkEditSlider::BulkEdit()
 #pragma region Do the bulk edit
 void BulkEditSlider::OnSliderPopup(wxCommandEvent &event)
 {
-    
-
     if (event.GetId() == ID_SLIDER_BULKEDIT)
     {
         // Logging this because these dont happen often and I have seen crashes here and I would like to know which slider is crashing
-        LOG_DEBUG("BulkEditSlider::OnSliderPopup %s", (const char *)GetName().c_str());
+        spdlog::debug("BulkEditSlider::OnSliderPopup {}", GetName().ToStdString());
 
         // does it support a value curve - this function should be common
         ValueCurveButton* vcb = GetSettingValueCurveButton(GetParent(), GetName().ToStdString(), "SLIDER");
@@ -443,7 +441,7 @@ void BulkEditSlider::OnSliderPopup(wxCommandEvent &event)
             }
             else
             {
-                LOG_CRIT("BulkEditSlider::OnSliderPopup text control not found %s", (const char *)GetName().c_str());
+                spdlog::critical("BulkEditSlider::OnSliderPopup text control not found {}", GetName().ToStdString());
                 wxASSERT(false);
             }
 
@@ -452,7 +450,7 @@ void BulkEditSlider::OnSliderPopup(wxCommandEvent &event)
             {
                 if (vcb->GetValue() == nullptr)
                 {
-                    LOG_CRIT("BulkEditSlider::OnSliderPopup value curve not present.");
+                    spdlog::critical("BulkEditSlider::OnSliderPopup value curve not present.");
                     wxASSERT(false);
                 }
 
@@ -1307,7 +1305,7 @@ bool IsBulkEditAvailable(wxWindow* w, bool requireOneElement)
     
 
     if (xLightsApp::GetFrame()->GetMainSequencer() == nullptr) {
-        LOG_DEBUG("Bulk edit refused ... no sequencer.");
+        spdlog::debug("Bulk edit refused ... no sequencer.");
         return false;
     }
 
@@ -1315,7 +1313,7 @@ bool IsBulkEditAvailable(wxWindow* w, bool requireOneElement)
     int alleffects = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount("");
     if (alleffects < 2)
     {
-        LOG_DEBUG("Bulk edit refused ... insufficient effects selected.");
+        spdlog::debug("Bulk edit refused ... insufficient effects selected.");
         return false;
     }
 
@@ -1327,7 +1325,7 @@ bool IsBulkEditAvailable(wxWindow* w, bool requireOneElement)
         int thiseffect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount(effect);
         if (thiseffect < 2)
         {
-            LOG_DEBUG("Bulk edit refused ... insufficient effects of type %s selected.", (const char *)effect.c_str());
+            spdlog::debug("Bulk edit refused ... insufficient effects of type {} selected.", effect);
             return false;
         }
 

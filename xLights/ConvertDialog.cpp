@@ -40,7 +40,7 @@
 #include "../include/spxml-0.5/spxmlutils.cpp"
 #include "../include/spxml-0.5/spxmlstag.cpp"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 //(*IdInit(ConvertDialog)
 const long ConvertDialog::ID_STATICTEXT2 = wxNewId();
@@ -238,7 +238,7 @@ void ConvertDialog::OnButtonChooseFileClick(wxCommandEvent& event)
 void ConvertDialog::OnButtonStartConversionClick(wxCommandEvent& event)
 {
     
-    LOG_INFO("Conversion starting.");
+    spdlog::info("Conversion starting.");
 
     ButtonStartConversion->Enable(false);
     wxString OutputFormat = ChoiceOutputFormat->GetStringSelection();
@@ -264,7 +264,7 @@ void ConvertDialog::OnButtonStartConversionClick(wxCommandEvent& event)
 
     ButtonStartConversion->Enable(true);
 
-    LOG_INFO("Conversion complete.");
+    spdlog::info("Conversion complete.");
 }
 
 void ConvertDialog::OnButtonCloseClick(wxCommandEvent& event)
@@ -293,7 +293,7 @@ void ConvertDialog::AppendConvertStatus(const wxString &msg, bool flushBuffer) {
 
     wxString m = msg;
     if (m.EndsWith("\n")) m = m.Left(m.length() - 1);
-    LOG_INFO("ConvertStatus: %s", (const char*)m.c_str());
+    spdlog::info("ConvertStatus: {}", (const char*)m.c_str());
 }
 
 bool ConvertDialog::mapEmptyChannels() {
@@ -1479,7 +1479,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
     bool showChannelMap = showChannelMapping();
 
     //pass 1, read the length, determine number of networks, units/network, channels per unit
-    LOG_INFO("ConvertDialog::ReadLorFile Pass 1");
+    spdlog::info("ConvertDialog::ReadLorFile Pass 1");
     SP_XmlPullEvent * event = parser->getNext();
     bool done = false;
     int savedIndex = 0;
@@ -1650,7 +1650,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
     parser->append(bytes, read);
 
     //pass 2, convert the data
-    LOG_INFO("ConvertDialog::ReadLorFile Pass 2");
+    spdlog::info("ConvertDialog::ReadLorFile Pass 2");
     event = parser->getNext();
     done = false;
     bool empty = false;
@@ -1921,7 +1921,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
     delete parser;
     file.Close();
 
-    LOG_INFO("ConvertDialog::ReadLorFile Done");
+    spdlog::info("ConvertDialog::ReadLorFile Done");
 
     AppendConvertStatus(string_format(wxString("# of mapped channels with effects=%d\n"), MappedChannelCnt), false);
     AppendConvertStatus(string_format(wxString("# of effects=%d\n"), EffectCnt), false);

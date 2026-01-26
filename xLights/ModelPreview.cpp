@@ -29,7 +29,7 @@
 #include "models/ModelGroup.h"
 #include "ExternalHooks.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 BEGIN_EVENT_TABLE(ModelPreview, GRAPHICS_BASE_CLASS)
 	EVT_MOTION(ModelPreview::mouseMoved)
@@ -425,12 +425,12 @@ bool ModelPreview::ValidateModels(const std::vector<Model*>models, const ModelMa
             if (!found) {
                 // pointer to a non-existent model found ... not good
                 wxASSERT(false);
-                LOG_ERROR("Validating models in model preview %s found model that was not valid. This may crash!!!!", (const char*)GetName().c_str());
+                spdlog::error("Validating models in model preview {} found model that was not valid. This may crash!!!!", (const char*)GetName().c_str());
                 return false;
             }
         }
     }
-    //LOG_DEBUG("Validating models in model preview %s ALL OK", (const char*)GetName().c_str());
+    //spdlog::debug("Validating models in model preview {} ALL OK", (const char*)GetName().c_str());
     return true;
 }
 
@@ -1230,16 +1230,16 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         
         if (mBackgroundImageExists) {
             if (background == nullptr) {
-                LOG_DEBUG("Loading background image file %s for preview %s.",
+                spdlog::debug("Loading background image file {} for preview {}.",
                                   (const char *)mBackgroundImage.c_str(),
                                   (const char *)GetName().c_str());
                 wxImage image(mBackgroundImage);
                 if (image.IsOk()) {
                     backgroundSize.Set(image.GetWidth(), image.GetHeight());
                     background = currentContext->createTexture(image, mBackgroundImage, true);
-                    LOG_DEBUG("    Loaded.");
+                    spdlog::debug("    Loaded.");
                 } else {
-                    LOG_DEBUG("    Failed.");
+                    spdlog::debug("    Failed.");
                 }
             }
             if (background != nullptr) {

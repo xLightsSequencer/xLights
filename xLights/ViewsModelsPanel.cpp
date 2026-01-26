@@ -29,7 +29,7 @@
 #include "SequenceViewManager.h"
 #include "UtilFunctions.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 // This event is fired when a model is dropped between lists
 wxDEFINE_EVENT(EVT_VMDROP, wxCommandEvent);
@@ -316,7 +316,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
     }
 
     if (itemSize == 0) {
-        LOG_CRIT("ViewsModelsPanel::Populate models ... itemSize = 0 ... this is going to crash.");
+        spdlog::critical("ViewsModelsPanel::Populate models ... itemSize = 0 ... this is going to crash.");
     }
 
     int visibileM = ListCtrlModels->GetRect().GetHeight() / itemSize - 1;
@@ -724,8 +724,8 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
                 if (ee != nullptr && ee->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
 #ifdef TRACEMOVES
                     
-                    LOG_DEBUG("Timing count in models list: %d", GetTimingCount());
-                    LOG_DEBUG("Adding '%s' to %d '%s'", (const char*)ListCtrlNonModels->GetItemText(i, 1).c_str(),
+                    spdlog::debug("Timing count in models list: {}", GetTimingCount());
+                    spdlog::debug("Adding '{}' to {} '{}'", (const char*)ListCtrlNonModels->GetItemText(i, 1).c_str(),
                         p + selcnt, (const char*)(_sequenceElements->GetElement(p + selcnt) == nullptr) ? "N/A" : _sequenceElements->GetElement(p + selcnt)->GetName().c_str());
 #endif
 
@@ -849,10 +849,10 @@ void ViewsModelsPanel::Initialize()
     }
 
     if (_sequenceElements == nullptr) {
-        LOG_CRIT("ViewsModelsPanel::Initialize _sequenceElements was null ... this is going to crash.");
+        spdlog::critical("ViewsModelsPanel::Initialize _sequenceElements was null ... this is going to crash.");
     }
     if (_sequenceViewManager == nullptr) {
-        LOG_CRIT("ViewsModelsPanel::Initialize _sequenceViewManager was null ... this is going to crash.");
+        spdlog::critical("ViewsModelsPanel::Initialize _sequenceViewManager was null ... this is going to crash.");
     }
 
     _sequenceElements->SetViewsManager(_sequenceViewManager);
@@ -2361,8 +2361,8 @@ void ViewsModelsPanel::MoveSelectedModelsTo(int indexTo)
 
 #ifdef TRACEMOVES
             
-            LOG_DEBUG("Timing count in models list: %d", GetTimingCount());
-            LOG_DEBUG("Moving from %d '%s' to %d '%s'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
+            spdlog::debug("Timing count in models list: {}", GetTimingCount());
+            spdlog::debug("Moving from {} '{}' to {} '{}'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
                 to, (const char*)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
 #endif
 
@@ -2465,8 +2465,8 @@ void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
             }
 #ifdef TRACEMOVES
             
-            LOG_DEBUG("Timing count in models list: %d", GetTimingCount());
-            LOG_DEBUG("Moving from %d '%s' to %d '%s'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
+            spdlog::debug("Timing count in models list: {}", GetTimingCount());
+            spdlog::debug("Moving from {} '{}' to {} '{}'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
                 to, (const char*)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
 #endif
 
@@ -2535,8 +2535,8 @@ void ViewsModelsPanel::OnButton_TopClick(wxCommandEvent& event)
 
 #ifdef TRACEMOVES
             
-            LOG_DEBUG("Timing count in models list: %d", timing_count);
-            LOG_DEBUG("Moving from %d '%s' to %d '%s'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
+            spdlog::debug("Timing count in models list: {}", timing_count);
+            spdlog::debug("Moving from {} '{}' to {} '{}'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
                 to, (const char*)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
 #endif
 
@@ -2728,7 +2728,7 @@ void ViewsModelsPanel::ImportRGBEffectsView()
     if (filename.IsEmpty()) return;
 
     
-    LOG_DEBUG("Importing View From: %s", (const char*)filename.c_str());
+    spdlog::debug("Importing View From: {}", (const char*)filename.c_str());
 
     wxXmlDocument doc;
     doc.Load(filename);
@@ -2781,7 +2781,7 @@ void ViewsModelsPanel::ImportSequenceMasterView()
     if (filename.IsEmpty()) return;
 
     
-    LOG_DEBUG("Importing Master View From: %s", (const char*)filename.c_str());
+    spdlog::debug("Importing Master View From: {}", (const char*)filename.c_str());
 
     wxXmlDocument doc;
     doc.Load(filename);
@@ -2821,7 +2821,7 @@ void ViewsModelsPanel::ImportViewData(std::map<wxString, wxArrayString> const& v
     
 
     if (views.empty()) {
-        LOG_DEBUG("No Views Selected to Import");
+        spdlog::debug("No Views Selected to Import");
         return;
     }
 
@@ -2830,10 +2830,10 @@ void ViewsModelsPanel::ImportViewData(std::map<wxString, wxArrayString> const& v
 		Element* elem = _sequenceElements->GetElement(tim);
 		if (elem && elem->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
 			newtimings.push_back(elem->GetName());
-			LOG_DEBUG("Timing Found: %s", (const char*)tim.c_str());
+			spdlog::debug("Timing Found: {}", (const char*)tim.c_str());
 		}
 		else {
-			LOG_DEBUG("Timing Not Found: %s", (const char*)tim.c_str());
+			spdlog::debug("Timing Not Found: {}", (const char*)tim.c_str());
 		}
 	}
 
@@ -2843,21 +2843,21 @@ void ViewsModelsPanel::ImportViewData(std::map<wxString, wxArrayString> const& v
     {
         auto const sel_view = CreateUniqueName(name);
         lastView = sel_view;
-		LOG_DEBUG("Importing View: %s", (const char*)sel_view.c_str());
+		spdlog::debug("Importing View: {}", (const char*)sel_view.c_str());
 		wxArrayString new_models;
 		for (auto const& new_mod : models) {//check if models exists
 			Model* m = _xlFrame->GetModel(new_mod);
 			if (m != nullptr) {
 				new_models.Add(new_mod);
-				LOG_DEBUG("Model Found: %s", (const char*)new_mod.c_str());
+				spdlog::debug("Model Found: {}", (const char*)new_mod.c_str());
 			}
 			else {
-				LOG_DEBUG("Model Not Found: %s", (const char*)new_mod.c_str());
+				spdlog::debug("Model Not Found: {}", (const char*)new_mod.c_str());
 			}
 		}
 		auto const new_sel_models = wxJoin(new_models, ',');
 
-		LOG_DEBUG("Models Found: %s", (const char*)new_sel_models.c_str());
+		spdlog::debug("Models Found: {}", (const char*)new_sel_models.c_str());
 
 		SequenceView* view = _sequenceViewManager->AddView(sel_view);
 
@@ -2871,7 +2871,7 @@ void ViewsModelsPanel::ImportViewData(std::map<wxString, wxArrayString> const& v
 			_sequenceElements->SetTimingVisibility(view->GetName());
 		}
 		else {
-			LOG_DEBUG("No Timings Added to View");
+			spdlog::debug("No Timings Added to View");
 		}
     }
 
@@ -2940,8 +2940,8 @@ void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
 
 #ifdef TRACEMOVES
             
-            LOG_DEBUG("Timing count in models list: %d", GetTimingCount());
-            LOG_DEBUG("Moving from %d '%s' to %d '%s'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
+            spdlog::debug("Timing count in models list: {}", GetTimingCount());
+            spdlog::debug("Moving from {} '{}' to {} '{}'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
                 to, (const char*)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
 #endif
             if (lastsel < 0) {
@@ -3010,8 +3010,8 @@ void ViewsModelsPanel::OnButton_BottomClick(wxCommandEvent& event)
 
 #ifdef TRACEMOVES
             
-            LOG_DEBUG("Timing count in models list: %d", timing_count);
-            LOG_DEBUG("Moving from %d '%s' to %d '%s'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
+            spdlog::debug("Timing count in models list: {}", timing_count);
+            spdlog::debug("Moving from {} '{}' to {} '{}'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
                 to, (const char*)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
 #endif
 

@@ -13,7 +13,7 @@
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
 #include <wx/log.h>
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include "ExternalHooks.h"
 
 bool MusicXML::IsOk()
@@ -23,7 +23,7 @@ bool MusicXML::IsOk()
 
 void MusicXmlNote::Dump()
 {
-    LOG_INFO("%d, %d, %d", startMS, startMS + durationMS, midi);
+    spdlog::info("{}, {}, {}", startMS, startMS + durationMS, midi);
 }
 
 MusicXML::MusicXML(std::string file)
@@ -32,8 +32,7 @@ MusicXML::MusicXML(std::string file)
 
     if (file != "" && FileExists(file))
     {
-        
-        LOG_INFO("Loading music XML file: %s", (const char*)file.c_str());
+        spdlog::info("Loading music XML file: {}", file);
         wxFileInputStream fin(file);
         if (fin.IsOk())
         {
@@ -45,13 +44,13 @@ MusicXML::MusicXML(std::string file)
 
                 while (ent != nullptr && (ent->GetName().Contains("\\") || ent->GetName().Contains("/")))
                 {
-                    LOG_INFO("    Found in zip file %s ... skipping", (const char*)ent->GetName().c_str());
+                    spdlog::info("    Found in zip file {} ... skipping", ent->GetName().ToStdString());
                     ent = zin.GetNextEntry();
                 }
 
                 if (ent != nullptr)
                 {
-                    LOG_INFO("    Found in zip file %s ... loading", (const char*)ent->GetName().c_str());
+                    spdlog::info("    Found in zip file {} ... loading", ent->GetName().ToStdString());
                     _doc.Load(zin);
                 }
             }
@@ -59,13 +58,13 @@ MusicXML::MusicXML(std::string file)
 
         if (!IsOk())
         {
-            LOG_INFO("    Not a zip file %s ... loading as xml", (const char*)file.c_str());
+            spdlog::info("    Not a zip file {} ... loading as xml", file);
             _doc.Load(file);
         }
 
         if (!IsOk())
         {
-            LOG_WARN("    Error loading music xml file.");
+            spdlog::warn("    Error loading music xml file.");
         }
     }
 }
@@ -148,8 +147,8 @@ std::list<MusicXmlNote> MusicXML::GetNotes(std::string track)
     if (divisions == 0) divisions = 1;
     float timeperduration = ((60.0 * 1000.0) / tempo) / (4.0 * divisions);
 
-    LOG_INFO("BeatTime %.2fms", timeperduration);
-    LOG_INFO("StartMS, EndMS, Note");
+    spdlog::info("BeatTime {:.2f}ms", timeperduration);
+    spdlog::info("StartMS, EndMS, Note");
     for (auto it = res.begin(); it != res.end(); ++it)
     {
         it->ApplyTiming(timeperduration);

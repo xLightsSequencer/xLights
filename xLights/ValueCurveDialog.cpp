@@ -32,7 +32,7 @@
 #include "sequencer/MainSequencer.h"
 #include "sequencer/SequenceElements.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 BEGIN_EVENT_TABLE(ValueCurvePanel, wxWindow)
 EVT_MOTION(ValueCurvePanel::mouseMoved)
@@ -1414,7 +1414,7 @@ void ValueCurveDialog::OnButtonExportClick(wxCommandEvent& event) {
 
 void ValueCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs) {
     
-    LOG_INFO("ValueCurveDialog Scanning directory for *.xvc files: %s.", (const char*)directory.GetNameWithSep().c_str());
+    spdlog::info("ValueCurveDialog Scanning directory for *.xvc files: {}.", (const char*)directory.GetNameWithSep().c_str());
 
     auto existing = PresetSizer->GetChildren();
 
@@ -1444,7 +1444,7 @@ void ValueCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs) {
             Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ValueCurveDialog::OnButtonPresetClick);
         }
     }
-    LOG_INFO("    Found %d.", count);
+    spdlog::info("    Found {}.", count);
 
     if (subdirs) {
         wxString filename;
@@ -1469,7 +1469,7 @@ void ValueCurveDialog::PopulatePresets() {
         dir.Open(d);
         ProcessPresetDir(dir, true);
     } else {
-        LOG_INFO("Directory for *.xvc files not found: %s.", (const char*)d.c_str());
+        spdlog::info("Directory for *.xvc files not found: {}.", (const char*)d.c_str());
     }
 
     wxStandardPaths stdp = wxStandardPaths::Get();
@@ -1483,7 +1483,7 @@ void ValueCurveDialog::PopulatePresets() {
         dir.Open(d);
         ProcessPresetDir(dir, true);
     } else {
-        LOG_INFO("Directory for *.xvc files not found: %s.", (const char*)d.c_str());
+        spdlog::info("Directory for *.xvc files not found: {}.", (const char*)d.c_str());
     }
 
     PresetSizer->Layout();

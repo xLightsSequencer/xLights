@@ -29,7 +29,7 @@
 #include "../TraceLog.h"
 #include "../UtilFunctions.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 static const std::string STR_EMPTY("");
 static const std::string STR_NAME("name");
@@ -135,7 +135,7 @@ EffectLayer* SequenceElements::GetEffectLayer(const Row_Information_Struct *s) c
     else if (s->nodeIndex == -1) {
         SubModelElement *se = dynamic_cast<SubModelElement*>(e);
         if (se == nullptr) {
-            LOG_ERROR("Expected a SubModelElment be found %d", (int)e->GetType());
+            spdlog::error("Expected a SubModelElment be found {}", (int)e->GetType());
             return nullptr;
         }
         return se->GetEffectLayer(s->layerIndex);
@@ -144,7 +144,7 @@ EffectLayer* SequenceElements::GetEffectLayer(const Row_Information_Struct *s) c
         StrandElement *me = dynamic_cast<StrandElement*>(e);
         if (me == nullptr) {
             
-            LOG_ERROR("Expected a StrandElement be found %d", (int)e->GetType());
+            spdlog::error("Expected a StrandElement be found {}", (int)e->GetType());
             return nullptr;
         }
         return me->GetNodeLayer(s->nodeIndex);
@@ -199,7 +199,7 @@ Element* SequenceElements::AddElement(const std::string &name, const std::string
         IncrementChangeCount(el);
         return el;
     }
-    LOG_ERROR("SequenceElements::AddElement %s failed.", (const char *)name.c_str());
+    spdlog::error("SequenceElements::AddElement {} failed.", (const char *)name.c_str());
     return nullptr;
 }
 
@@ -216,7 +216,7 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
         IncrementChangeCount(el);
         return el;
     }
-    LOG_ERROR("SequenceElements::AddElement #2 %s failed.", (const char *)name.c_str());
+    spdlog::error("SequenceElements::AddElement #2 {} failed.", (const char *)name.c_str());
     return nullptr;
 }
 
@@ -667,7 +667,7 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
 
             if (startTime >= endTime) {
                 // effects should not have negative or zero duration ... if they do we drop them
-                LOG_WARN("Effect dropped as its start time was greater than or equal to its end time : '%s' : %s Layer %d Start %d End %d.", 
+                spdlog::warn("Effect dropped as its start time was greater than or equal to its end time : '{}' : {} Layer {} Start {} End {}.", 
                     (const char*)effect->GetAttribute(STR_NAME).c_str(), 
                     (const char*)effectLayer->GetParentElement()->GetName().c_str(), 
                     effectLayer->GetLayerNumber(), 
@@ -685,7 +685,7 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
                     if (effect->GetAttribute(STR_REF) != STR_EMPTY) {
                         int ref = wxAtoi(effect->GetAttribute(STR_REF));
                         if (ref >= effectStrings.size()) {
-                            LOG_WARN("Effect string not found for effect %s between %d and %d. Settings ignored.", (const char*)effectName.c_str(), (int)startTime, (int)endTime);
+                            spdlog::warn("Effect string not found for effect {} between {} and {}. Settings ignored.", (const char*)effectName.c_str(), (int)startTime, (int)endTime);
                             settings = "";
                         } else {
                             settings = effectStrings[ref];
@@ -716,7 +716,7 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
                     effectLayer->AddEffect(id, effectName, settings, pal,
                                            startTime, endTime, EFFECT_NOT_SELECTED, bProtected, false, importing);
                 } else {
-                    LOG_WARN("Random effect not loaded on element %s layer %d (%0.02f-%0.02f)", (const char*)effectLayer->GetParentElement()->GetName().c_str(), effectLayer->GetLayerNumber(), startTime / 1000, endTime / 1000);
+                    spdlog::warn("Random effect not loaded on element {} layer {} ({:.2f}-{:.2f})", (const char*)effectLayer->GetParentElement()->GetName().c_str(), effectLayer->GetLayerNumber(), startTime / 1000, endTime / 1000);
                 }
             }
         }
@@ -860,7 +860,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                                 int newinterval = TimeLine::RoundToMultipleOfPeriod(interval, mFrequency);
                                 if (newinterval == 0)
                                     newinterval = 1000 / mFrequency;
-                                LOG_WARN("Timing interval of %dms not a multiple of frame time so changed to %dms.", interval, newinterval);
+                                spdlog::warn("Timing interval of {}ms not a multiple of frame time so changed to {}ms.", interval, newinterval);
                                 interval = newinterval;
                             }
                             dynamic_cast<TimingElement*>(element)->SetFixedTiming(interval);
@@ -904,7 +904,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                                             se->SetName(effectLayerNode->GetAttribute(STR_NAME).Trim(true).Trim(false).ToStdString());
                                         }
                                     } else {
-                                        LOG_ERROR("Element %s was not a model element: %s. This typically happens when a timing track is created with the same name as a model.", (const char*)element->GetName().c_str());
+                                        spdlog::error("Element {} was not a model element. This typically happens when a timing track is created with the same name as a model.", (const char*)element->GetName().c_str());
                                     }
                                 }
                                 if (effectLayer != nullptr) {
@@ -935,7 +935,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
         }
     }
 
-    LOG_DEBUG("Sequencer file loaded.");
+    spdlog::debug("Sequencer file loaded.");
 
     return true;
 }
@@ -944,7 +944,7 @@ void SequenceElements::PrepareViews(xLightsXmlFile& xml_file)
 {
     
     if (_viewsManager == nullptr) {
-        LOG_CRIT("SequenceElements::PrepareViews called when _viewsManager was null ... this will crash");
+        spdlog::critical("SequenceElements::PrepareViews called when _viewsManager was null ... this will crash");
     }
 
     // Select view and set current view models as visible
@@ -1165,7 +1165,7 @@ void addSubModelElement(SubModelElement* elem,
     std::vector <Element*>& elements) {
     
     if (elem == nullptr) {
-        LOG_ERROR("addSubModelElement attempted to add null element.");
+        spdlog::error("addSubModelElement attempted to add null element.");
         return;
     }
 
@@ -1205,7 +1205,7 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
     
 
     if (elem == nullptr) {
-        LOG_ERROR("addModelElement attempted to add null element.");
+        spdlog::error("addModelElement attempted to add null element.");
         return;
     }
 
@@ -1237,7 +1237,7 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
     }
     Model* cls = xframe->GetModel(elem->GetModelName());
     if (cls == nullptr) {
-        LOG_ERROR("addModelElement model not found %s.", (const char*)elem->GetModelName().c_str());
+        spdlog::error("addModelElement model not found {}.", (const char*)elem->GetModelName().c_str());
         return;
     }
     elem->Init(*cls);

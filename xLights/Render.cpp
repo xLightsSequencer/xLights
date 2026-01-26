@@ -28,7 +28,7 @@
 #include "ExternalHooks.h"
 #include "GPURenderUtils.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #define END_OF_RENDER_FRAME INT_MAX
 
@@ -933,7 +933,7 @@ public:
 		} catch ( ... ) {
             wxASSERT(false); // so when we debug we catch them
             printf("Caught an unknown exception");
-			//LOG_ERROR("Caught an unknown exception on rendering thread.");
+			//spdlog::error("Caught an unknown exception on rendering thread.");
             m_logger->error("Caught an unknown exception on rendering thread.");
         }
         if (HasNext()) {
@@ -1147,12 +1147,12 @@ public:
 void xLightsFrame::LogRenderStatus()
 {
     
-    LOG_DEBUG("Logging render status ***************");
-    LOG_DEBUG("Render tree size. %d entries.", renderTree.data.size());
-    LOG_DEBUG("Render Thread status:\n%s", (const char *)GetThreadStatusReport().c_str());
+    spdlog::debug("Logging render status ***************");
+    spdlog::debug("Render tree size. {} entries.", renderTree.data.size());
+    spdlog::debug("Render Thread status:\n{}", (const char *)GetThreadStatusReport().c_str());
     for (const auto& it : renderProgressInfo) {
         int frames = it->endFrame - it->startFrame + 1;
-        LOG_DEBUG("Render progress rows %d, start frame %d, end frame %d, frames %d.", it->numRows, it->startFrame, it->endFrame, frames);
+        spdlog::debug("Render progress rows {}, start frame {}, end frame {}, frames {}.", it->numRows, it->startFrame, it->endFrame, frames);
         for (int i = 0; i < it->numRows; i++) {
             if (it->jobs[i] != nullptr) {
                 auto job = it->jobs[i];
@@ -1161,21 +1161,21 @@ void xLightsFrame::LogRenderStatus()
                     curFrame = it->endFrame;
                 }
 
-                LOG_DEBUG("    Progress %s - %ld%%.", (const char *)job->GetName().c_str(), (long)(curFrame - it->startFrame + 1) * 100 / frames);
+                spdlog::debug("    Progress {} - {}.", (const char *)job->GetName().c_str(), (long)(curFrame - it->startFrame + 1) * 100 / frames);
                 std::string su = job->GetStatusForUser();
                 if (!su.empty()) {
-                    LOG_DEBUG("             %s.", (const char *)su.c_str());
+                    spdlog::debug("             {}.", (const char *)su.c_str());
                 }
                 su = job->GetStatus();
                 if (!su.empty()) {
-                    LOG_DEBUG("             %s.", (const char *)su.c_str());
+                    spdlog::debug("             {}.", (const char *)su.c_str());
                 }
 
                 auto row = job->GetModelElement();
                 if (row != nullptr) {
                     bool blocked = job->GetwxStatus().StartsWith("Initializing rendering thread");
                     if (blocked || row->GetWaitCount()) {
-                        LOG_DEBUG("             Element %s, Blocked %d, Wait Count %d.",
+                        spdlog::debug("             Element {}, Blocked {}, Wait Count {}.",
                                           (const char *)row->GetModelName().c_str(), blocked,
                                           row->GetWaitCount());
                     }
@@ -1183,7 +1183,7 @@ void xLightsFrame::LogRenderStatus()
             }
         }
     }
-    LOG_DEBUG("*************************************");
+    spdlog::debug("*************************************");
 }
 
 static bool HasEffects(ModelElement *me) {
@@ -1330,7 +1330,7 @@ public:
 
         
         if (e == nullptr) {
-            LOG_CRIT("Render tree has a null model ... this is not going to end well.");
+            spdlog::critical("Render tree has a null model ... this is not going to end well.");
         }
 
         ModelGroup *mg = dynamic_cast<ModelGroup*>(e);
@@ -1423,16 +1423,16 @@ void xLightsFrame::RenderTree::Add(Model *el) {
 }
 
 void xLightsFrame::RenderTree::Print() {
-    LOG_DEBUG("========== RENDER TREE");
+    spdlog::debug("========== RENDER TREE");
     for (const auto& it : data) {
         //printf("%s:   (%d)\n", (*it)->model->GetName().c_str(), (int)(*it)->ranges.size());
-        LOG_DEBUG("   %s:   (%d)", (const char*)it->model->GetName().c_str(), (int)it->ranges.size());
+        spdlog::debug("   {}:   ({})", (const char*)it->model->GetName().c_str(), (int)it->ranges.size());
         for (const auto& it2 : it->renderOrder) {
             //printf("    %s     \n", it2->GetName().c_str());
-            LOG_DEBUG("        %s", (const char*)it2->GetName().c_str());
+            spdlog::debug("        {}", (const char*)it2->GetName().c_str());
         }
     }
-    LOG_DEBUG("========== END RENDER TREE");
+    spdlog::debug("========== END RENDER TREE");
 }
 
 void xLightsFrame::BuildRenderTree() {
@@ -1504,7 +1504,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
                 ModelElement *me = dynamic_cast<ModelElement *>(rowEl);
 
                 if (me == nullptr) {
-                    LOG_CRIT("xLightsFrame::Render me is nullptr ... this is going to crash.");
+                    spdlog::critical("xLightsFrame::Render me is nullptr ... this is going to crash.");
                 }
 
                 bool hasEffects = HasEffects(me);
@@ -1513,7 +1513,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
                     RenderJob *job = new RenderJob(me, seqData, this, false);
 
                     if (job == nullptr) {
-                        LOG_CRIT("xLightsFrame::Render job is nullptr ... this is going to crash.");
+                        spdlog::critical("xLightsFrame::Render job is nullptr ... this is going to crash.");
                     }
 
                     job->setRenderRange(startFrame, endFrame);
@@ -1552,7 +1552,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
         }
     }
 
-    LOG_DEBUG("Aggregators created.");
+    spdlog::debug("Aggregators created.");
 
     channelMaps.clear();
     RenderProgressDialog *renderProgressDialog = nullptr;
@@ -1568,7 +1568,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
         }
     }
 
-    LOG_DEBUG("Data cleared.");
+    spdlog::debug("Data cleared.");
 
     for (row = 0; row < numRows; ++row) {
         if (jobs[row]) {
@@ -1591,7 +1591,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
         }
     }
 
-    LOG_DEBUG("Job pool start size %d.", (int)jobPool.size());
+    spdlog::debug("Job pool start size {}.", (int)jobPool.size());
     for (row = 0; row < numRows; ++row) {
         if (jobs[row] && aggregators[row]->getNumAggregated() != 0) {
             //now start the rest
@@ -1599,7 +1599,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
             ++count;
         }
     }
-    LOG_DEBUG("Job pool new size %d.", (int)jobPool.size());
+    spdlog::debug("Job pool new size {}.", (int)jobPool.size());
 
     if (count) {
         if (progressDialog) {
@@ -1739,7 +1739,7 @@ bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted)
         return false;
     }
     inAbort = true;
-    LOG_INFO("Aborting rendering ...");
+    spdlog::info("Aborting rendering ...");
     int abortCount = 0;
     for (auto rpi : renderProgressInfo) {
         //abort whatever is rendering
@@ -1754,7 +1754,7 @@ bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted)
     int maxLoops = maxTimeMS;
     maxLoops /= 10;   //doing a 10ms sleep
     //must wait for the rendering to complete
-    LOG_INFO("Aborting %d renderers", abortCount);
+    spdlog::info("Aborting {} renderers", abortCount);
     int loops = 0;
     while (!renderProgressInfo.empty() && loops < maxLoops) {
         loops++;
@@ -1770,10 +1770,10 @@ bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted)
             // cases.
         }
         if (loops % 200 == 0) {
-            LOG_INFO("    Waiting for renderers to abort. %d left.", (int)renderProgressInfo.size());
+            spdlog::info("    Waiting for renderers to abort. {} left.", (int)renderProgressInfo.size());
         }
     }
-    LOG_INFO("    Aborting renderers ... Done");
+    spdlog::info("    Aborting renderers ... Done");
     inAbort = false;
     if( numThreadsAborted != nullptr ) {
         *numThreadsAborted = abortCount;
@@ -1792,7 +1792,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void(bool)>&& callback) {
         return;
     }
 
-    LOG_DEBUG("Render tree built. %d entries.", renderTree.data.size());
+    spdlog::debug("Render tree built. {} entries.", renderTree.data.size());
 
     const int numRows = _sequenceElements.GetElementCount();
     if (numRows == 0) {
@@ -1813,7 +1813,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void(bool)>&& callback) {
     }
     std::list<Model*> restricts;
 
-    LOG_DEBUG("Rendering %d models %d frames.", models.size(), _seqData.NumFrames());
+    spdlog::debug("Rendering {} models {} frames.", models.size(), _seqData.NumFrames());
 
 
 #ifdef DOTIMING
@@ -1843,8 +1843,8 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
 
     BuildRenderTree();
 
-    LOG_DEBUG("Render tree built for model %s %dms-%dms. %d entries.",
-        (const char *)model.c_str(),
+    spdlog::debug("Render tree built for model {} {}ms-{}ms. {} entries.",
+        model,
         startms,
         endms,
         renderTree.data.size());
@@ -1897,7 +1897,7 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
             std::list<Model *> m;
             m.push_back(it->model);
 
-            LOG_DEBUG("Rendering %d models %d frames.", m.size(), endframe - startframe + 1);
+            spdlog::debug("Rendering {} models {} frames.", m.size(), endframe - startframe + 1);
 
             Render(_sequenceElements, _seqData, it->renderOrder, m, startframe, endframe, false, true, [] (bool) {});
         }
@@ -1909,7 +1909,7 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
     
 
     BuildRenderTree();
-    LOG_DEBUG("Render tree built for time slice %dms-%dms. %d entries.",
+    spdlog::debug("Render tree built for time slice {}ms-{}ms. {} entries.",
         startms,
         endms,
         renderTree.data.size());
@@ -1956,7 +1956,7 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
     wxStopWatch sw; // start a stopwatch timer
     Render(_sequenceElements, _seqData, models, restricts, startframe, endframe, true, clear, [this, sw] (bool aborted) {
         
-        LOG_INFO("   Effects done.");
+        spdlog::info("   Effects done.");
         ProgressBar->SetValue(100);
         float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
         wxString displayBuff = wxString::Format(_("Rendered in %7.3f seconds"),elapsedTime);
@@ -2138,7 +2138,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
     if (effectObj == nullptr) return false;
     
     if (layer >= buffer.GetLayerCount()) {
-        LOG_ERROR("Model %s Effect %s at frame %d tried to render on a layer %d that does not exist (Only %d found).",
+        spdlog::error("Model {} Effect {} at frame {} tried to render on a layer {} that does not exist (Only {} found).",
             (const char*)buffer.GetModel()->GetName().c_str(), (const char*)effectObj->GetEffectName().c_str(), period, layer + 1, buffer.GetLayerCount());
         wxASSERT(false);
         return false;
@@ -2155,7 +2155,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
     if (buffer.GetModel() != nullptr && buffer.GetModel()->GetNodeCount() == 0) {
         // this happens with custom models with no nodes defined
         if (buffer.BufferForLayer(layer, 0).curEffStartPer == period) {
-            LOG_WARN("Model %s has no nodes so skipping rendering.", (const char*)buffer.GetModel()->GetName().c_str());
+            spdlog::warn("Model {} has no nodes so skipping rendering.", (const char*)buffer.GetModel()->GetName().c_str());
         }
         return false;
     }
@@ -2199,7 +2199,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
             RenderBuffer* b = &buffer.BufferForLayer(layer, -1);
             if (b == nullptr) {
                 // this is bad nothing will work
-                LOG_WARN("render on model %s layer %d effect %s from %dms returned no buffer ... skipping rendering.", (const char*)buffer.GetModelName().c_str(), layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS());
+                spdlog::warn("render on model {} layer {} effect {} from {}ms returned no buffer ... skipping rendering.", (const char*)buffer.GetModelName().c_str(), layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS());
             }
             else {
                 if (bgThread && !reff->CanRenderOnBackgroundThread(effectObj, SettingsMap, *b)) {
@@ -2222,7 +2222,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                         retval = event->returnVal == 1;
                     }
                     else {
-                        LOG_WARN("HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 10 secs.", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
+                        spdlog::warn("HELP!!!!   Frame #{} render on model {} ({}x{}) layer {} effect {} from {}ms (#{}) to {}ms (#{}) timed out 10 secs.", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
                         printf("HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 10 secs.\n", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
 
                         // Give it one more chance
@@ -2230,7 +2230,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                             retval = event->returnVal == 1;
                         }
                         else {
-                            LOG_WARN("DOUBLE HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 70 secs.", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
+                            spdlog::warn("DOUBLE HELP!!!!   Frame #{} render on model {} ({}x{}) layer {} effect {} from {}ms (#{}) to {}ms (#{}) timed out 70 secs.", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
                             printf("DOUBLE HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out 70 secs.\n", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
                         }
                     }
@@ -2243,7 +2243,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
 
                         // After yield who knows what may or may not be valid so we need to revalidate it
                         if (!_sequenceElements.IsValidEffect(event->effect)) {
-                            LOG_ERROR("In RenderEffectFromMap after Yield() call checked the effect was still valid ... and it isnt ... this would likely have crashed.");
+                            spdlog::error("In RenderEffectFromMap after Yield() call checked the effect was still valid ... and it isnt ... this would likely have crashed.");
                         }
                     }
                 }
@@ -2279,7 +2279,7 @@ bool xLightsFrame::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
 
                             // Log slow render frames ... this takes time but at this point it is already slow
                             if (sw.Time() > 150) {
-                                LOG_INFO("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) took more than 150 ms => %dms.", rb->curPeriod, (const char*)buffer.GetModelName().c_str(), rb->BufferWi, rb->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), rb->curEffStartPer, effectObj->GetEndTimeMS(), rb->curEffEndPer, sw.Time());
+                                spdlog::info("Frame #{} render on model {} ({}x{}) layer {} effect {} from {}ms (#{}) to {}ms (#{}) took more than 150 ms => {}ms.", rb->curPeriod, (const char*)buffer.GetModelName().c_str(), rb->BufferWi, rb->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), rb->curEffStartPer, effectObj->GetEndTimeMS(), rb->curEffEndPer, sw.Time());
                             }
 
                             if (suppress && oldBuffer != nullptr) {

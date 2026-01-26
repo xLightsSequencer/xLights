@@ -52,7 +52,7 @@
 #include <sys/sysinfo.h>
 #endif
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #if defined(_MSC_VER) // Visual studio
 #define thread_local __declspec(thread)
@@ -61,22 +61,22 @@
 #endif
 
 void DisplayError(const std::string& err, wxWindow* win) {
-    LOG_ERROR("DisplayError: %s", (const char*)err.c_str());
+    spdlog::error("DisplayError: {}", err);
     wxMessageBox(err, "Error", wxICON_ERROR | wxOK, win);
 }
 
 void DisplayWarning(const std::string& warn, wxWindow* win) {
-    LOG_WARN("DisplayWarning: %s", (const char*)warn.c_str());
+    spdlog::warn("DisplayWarning: {}", warn);
     wxMessageBox(warn, "Warning", wxICON_WARNING | wxOK, win);
 }
 
 void DisplayInfo(const std::string& info, wxWindow* win) {
-    LOG_INFO("DisplayInfo: %s", (const char*)info.c_str());
+    spdlog::info("DisplayInfo: {}", info);
     wxMessageBox(info, "Information", wxICON_INFORMATION | wxOK, win);
 }
 
 void DisplayCrit(const std::string& crit, wxWindow* win) {
-    LOG_CRIT("DisplayCrit: %s", (const char*)crit.c_str());
+    spdlog::critical("DisplayCrit: {}", crit);
     wxMessageBox(crit, "CRITICAL", wxICON_ERROR | wxOK, win);
 }
 
@@ -205,7 +205,7 @@ static bool doesFileExist(const wxString& dir, const wxString& origFileWin, cons
     if (origFileWin != "") {
         wxFileName fn3(dir, origFileWin);
         if (FileExists(fn3, false)) {
-            LOG_DEBUGWX("File location fixed: " + origFileWin + " -> " + fn3.GetFullPath());
+            spdlog::debug("File location fixed: " + origFileWin.ToStdString() + " -> " + fn3.GetFullPath().ToStdString());
             path = fn3.GetFullPath();
             return true;
         }
@@ -213,7 +213,7 @@ static bool doesFileExist(const wxString& dir, const wxString& origFileWin, cons
     if (origFileUnix != "") {
         wxFileName fn4(dir, origFileUnix);
         if (FileExists(fn4, false)) {
-            LOG_DEBUGWX("File location fixed: " + origFileWin + " -> " + fn4.GetFullPath());
+            spdlog::debug("File location fixed: " + origFileWin.ToStdString() + " -> " + fn4.GetFullPath().ToStdString());
             path = fn4.GetFullPath();
             return true;
         }
@@ -288,7 +288,7 @@ int GetExifOrientation(const wxString& filename) {
     
     std::ifstream file(filename.ToStdString(), std::ios::binary);
     if (!file) {
-        LOG_DEBUG("Failed to open file: %s", (const char*)filename.c_str());
+        spdlog::debug("Failed to open file: {}", (const char*)filename.c_str());
         file.close();
         return 1; // Default orientation
     }
@@ -329,7 +329,7 @@ int GetExifOrientation(const wxString& filename) {
                 ((unsigned char)data[tiff_header + 2] << 8) | (unsigned char)data[tiff_header + 3];
 
             if (fortytwo != 42) {
-                LOG_DEBUG("Invalid TIFF header identifier in %s", (const char*)filename.c_str());
+                spdlog::debug("Invalid TIFF header identifier in {}", (const char*)filename.c_str());
                 return 1;
             }
 
@@ -444,7 +444,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file) {
     // done with __nonExistentFiles and __fileMap for right now, we'll unlock
     // so other threads can access them, but we'll need to relock when we add entries later
     lock.unlock();
-    LOG_DEBUGWX("File not found ... attempting to fix location (" + sd + ") : " + file);
+    spdlog::debug("File not found ... attempting to fix location (" + sd.ToStdString() + ") : " + file.ToStdString());
 
     // I dont know what this is trying to fix but it blows up on windows
     wxFileName fnUnix(file, wxPATH_UNIX);
@@ -580,8 +580,8 @@ wxString FixFile(const wxString& ShowDir, const wxString& file) {
     if (ShowDir == "" && fnUnix.GetDirCount() > 0) {
         return FixFile(sd + "/" + fnUnix.GetDirs().Last(), file);
     }
-    LOG_DEBUGWX("   could not find a fixed file location for : " + file);
-    LOG_DEBUG("   We will not look for this file again until a new sequence is loaded.");
+    spdlog::debug("   could not find a fixed file location for : " + file.ToStdString());
+    spdlog::debug("   We will not look for this file again until a new sequence is loaded.");
     lock.lock();
     __nonExistentFiles.push_back(file.ToStdString());
     return file;
@@ -1069,7 +1069,7 @@ std::list<std::string> GetLocalIPs() {
     ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
     PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO*)malloc(sizeof(IP_ADAPTER_INFO));
     if (pAdapterInfo == nullptr) {
-        LOG_ERROR("Error getting adapter info.");
+        spdlog::error("Error getting adapter info.");
         return res;
     }
 
@@ -1077,7 +1077,7 @@ std::list<std::string> GetLocalIPs() {
         free(pAdapterInfo);
         pAdapterInfo = (IP_ADAPTER_INFO*)malloc(ulOutBufLen);
         if (pAdapterInfo == nullptr) {
-            LOG_ERROR("Error getting adapter info.");
+            spdlog::error("Error getting adapter info.");
             return res;
         }
     }
@@ -1159,20 +1159,20 @@ bool DeleteDirectory(std::string directory) {
     
 
     bool res = true;
-    LOG_DEBUG("  Processing directory: %s.", (const char*)directory.c_str());
+    spdlog::debug("  Processing directory: {}.", (const char*)directory.c_str());
     if (wxDirExists(directory)) {
         wxDir d;
         if (d.Open(directory)) {
             wxString filename;
             bool found = d.GetFirst(&filename, "", wxDIR_FILES | wxDIR_HIDDEN | wxDIR_NO_FOLLOW);
             if (!found) {
-                LOG_DEBUG("  No files found.");
+                spdlog::debug("  No files found.");
             }
             while (found && res) {
                 auto ff = directory + GetPathSeparator() + filename;
-                LOG_DEBUG("  Deleting file: %s.", (const char*)ff.c_str());
+                spdlog::debug("  Deleting file: {}.", (const char*)ff.c_str());
                 if (!wxRemoveFile(ff)) {
-                    LOG_ERROR("    Could not delete file %s.", (const char*)ff.c_str());
+                    spdlog::error("    Could not delete file {}.", (const char*)ff.c_str());
                     res = false;
                 }
                 found = d.GetNext(&filename);
@@ -1180,25 +1180,25 @@ bool DeleteDirectory(std::string directory) {
 
             found = d.GetFirst(&filename, "", wxDIR_DIRS | wxDIR_HIDDEN | wxDIR_NO_FOLLOW);
             if (!found) {
-                LOG_DEBUG("  No subdirectories found.");
+                spdlog::debug("  No subdirectories found.");
             }
             while (found && res) {
                 auto dd = directory + GetPathSeparator() + filename;
-                LOG_DEBUG("  Deleting directory: %s.", (const char*)dd.c_str());
+                spdlog::debug("  Deleting directory: {}.", (const char*)dd.c_str());
                 res &= DeleteDirectory(dd);
                 found = d.GetNext(&filename);
             }
 
             if (!wxRmdir(directory)) {
-                LOG_ERROR("    Could not delete folder %s.", (const char*)directory.c_str());
+                spdlog::error("    Could not delete folder {}.", (const char*)directory.c_str());
                 res = false;
             }
         } else {
-            LOG_ERROR("  Thats odd ... the directory cannot be opened: %s.", (const char*)directory.c_str());
+            spdlog::error("  Thats odd ... the directory cannot be opened: {}.", (const char*)directory.c_str());
             res = false;
         }
     } else {
-        LOG_ERROR("  Thats odd ... the directory cannot be found: %s.", (const char*)directory.c_str());
+        spdlog::error("  Thats odd ... the directory cannot be found: {}.", (const char*)directory.c_str());
         res = false;
     }
 
@@ -1363,7 +1363,7 @@ void CheckMemoryUsage(const std::string& reason, bool onchangeOnly) {
     long privateMem = (long)(memoryCounters.PrivateUsage / 1024);
     long workingMem = (long)(memoryCounters.WorkingSetSize / 1024);
     if (!onchangeOnly || privateMem != lastPrivate) {
-        LOG_DEBUG("Memory Usage: %s : private %ldKB (%ldKB) working %ldKB (%ldKB).",
+        spdlog::debug("Memory Usage: {} : private {}KB ({}KB) working {}KB ({}KB).",
                           (const char*)reason.c_str(),
                           privateMem,
                           privateMem - lastPrivate,
@@ -1406,7 +1406,7 @@ void DumpBinary(uint8_t* buffer, size_t sz) {
                 out += char(buffer[j]);
             }
         }
-        LOG_DEBUG(out);
+        spdlog::debug(out);
     }
 }
 

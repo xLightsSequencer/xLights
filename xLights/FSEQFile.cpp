@@ -114,7 +114,7 @@ static void LogErr(int i, const char* fmt, Args... args) {
         buf[strlen(fmt) - 1] = 0;
         nfmt = buf;
     }
-    fseq_LOG_ERROR(nfmt, args...);
+    fseq_spdlog::error(nfmt, args...);
 }
 template<typename... Args>
 static void LogInfo(int i, const char* fmt, Args... args) {
@@ -126,7 +126,7 @@ static void LogInfo(int i, const char* fmt, Args... args) {
         buf[strlen(fmt) - 1] = 0;
         nfmt = buf;
     }
-    fseq_LOG_INFO(nfmt, args...);
+    fseq_spdlog::info(nfmt, args...);
 }
 template<typename... Args>
 static void LogDebug(int i, const char* fmt, Args... args) {
@@ -138,7 +138,7 @@ static void LogDebug(int i, const char* fmt, Args... args) {
         buf[strlen(fmt) - 1] = 0;
         nfmt = buf;
     }
-    fseq_LOG_DEBUG(nfmt, args...);
+    fseq_spdlog::debug(nfmt, args...);
 }
 inline void AddSlowStorageWarning() {
 }

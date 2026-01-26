@@ -17,7 +17,7 @@
 #include <string>
 #include <vector>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 ServiceManager::ServiceManager(xLightsFrame* xl)
 {

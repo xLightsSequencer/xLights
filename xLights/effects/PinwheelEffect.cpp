@@ -20,7 +20,7 @@
 #include "../../include/pinwheel-32.xpm"
 #include "../../include/pinwheel-48.xpm"
 #include "../../include/pinwheel-64.xpm"
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include "../Parallel.h"
 

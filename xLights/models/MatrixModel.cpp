@@ -22,7 +22,7 @@
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 MatrixModel::MatrixModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
@@ -400,7 +400,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
             }
             CopyBufCoord2ScreenCoord();
         } else {
-            LOG_DEBUG("Building low definition buffer at %d%%", _lowDefFactor);
+            spdlog::debug("Building low definition buffer at {}%%", _lowDefFactor);
 
             int xoffset = NumStrands / 2;
             int yoffset = PixelsPerStrand / 2;
@@ -543,7 +543,7 @@ void MatrixModel::InitHMatrix() {
             }
             CopyBufCoord2ScreenCoord();
         } else {
-            LOG_DEBUG("Building low definition buffer at %d%%", _lowDefFactor);
+            spdlog::debug("Building low definition buffer at {}%%", _lowDefFactor);
 
             int xoffset = PixelsPerStrand / 2;
             int yoffset = NumStrands / 2;

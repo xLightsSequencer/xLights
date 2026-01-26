@@ -6,7 +6,7 @@
 #include <thread>
 #include <vector>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include "CurlManager.h"
 
@@ -134,7 +134,7 @@ void CurlManager::add(const std::string& furl, const std::string& method, const 
                       const std::list<std::string>& extraHeaders,
                       std::function<void(int rc, const std::string& resp)>&& callback) {
     
-    LOG_INFO("Adding CURL - URL: %s    Method: %s", furl.c_str(), method.c_str());
+    spdlog::info("Adding CURL - URL: {}    Method: {}", furl.c_str(), method.c_str());
     
     CURL* curl = createCurl(furl);
 
@@ -172,7 +172,7 @@ void CurlManager::add(const std::string& furl, const std::string& method, const 
         curl_easy_getinfo(c, CURLINFO_RESPONSE_CODE, &rc);
 
         
-        LOG_INFO("    CURL Callback - URL: %s    Response Code: %d", furl.c_str(), rc);
+        spdlog::info("    CURL Callback - URL: {}    Response Code: {}", furl.c_str(), rc);
 
         char* urlp = nullptr;
         curl_easy_getinfo(c, CURLINFO_EFFECTIVE_URL, &urlp);
@@ -198,7 +198,7 @@ std::string CurlManager::doGet(const std::string& furl, int& rc) {
     
     CURL* curl = createCurl(furl);
 
-    LOG_INFO("Adding Synchronous CURL - URL: %s    Method: GET", furl.c_str());
+    spdlog::info("Adding Synchronous CURL - URL: {}    Method: GET", furl.c_str());
     
     bool done = false;
     addCURL(furl, curl, [&done](CURL* c) { done = true; }, false);
@@ -217,7 +217,7 @@ std::string CurlManager::doGet(const std::string& furl, int& rc) {
     } else {
         resp = data->errorResp;
     }
-    LOG_INFO("    CURL Synchronous Response - URL: %s    Response Code: %d     Size: %d", furl.c_str(), rc, rc ? data->resp.size() : 0);
+    spdlog::info("    CURL Synchronous Response - URL: {}    Response Code: {}     Size: {}", furl.c_str(), rc, rc ? data->resp.size() : 0);
     delete data;
     curl_easy_cleanup(curl);
 
@@ -249,7 +249,7 @@ static int seek_callback(void *userp, curl_off_t offset, int origin) {
 }
 std::string CurlManager::doPost(const std::string& furl, const std::string& contentType, const std::vector<uint8_t>& data, int& rc) {
     
-    LOG_INFO("Adding Synchronous CURL - URL: %s    Method: POST", furl.c_str());
+    spdlog::info("Adding Synchronous CURL - URL: {}    Method: POST", furl.c_str());
 
     CURL* curl = createCurl(furl);
 
@@ -290,7 +290,7 @@ std::string CurlManager::doPost(const std::string& furl, const std::string& cont
     } else {
         resp = cdata->errorResp;
     }
-    LOG_INFO("    CURL Synchronous Response - URL: %s    Response Code: %d     Size: %d", furl.c_str(), rc, rc ? cdata->resp.size() : 0);
+    spdlog::info("    CURL Synchronous Response - URL: {}    Response Code: {}     Size: {}", furl.c_str(), rc, rc ? cdata->resp.size() : 0);
     delete cdata;
     curl_slist_free_all(head);
     curl_easy_cleanup(curl);
@@ -307,7 +307,7 @@ std::string CurlManager::doPost(const std::string& furl, const std::string& cont
 
 std::string CurlManager::doPut(const std::string& furl, const std::string& contentType, const std::vector<uint8_t>& data, int& rc) {
     
-    LOG_INFO("Adding Synchronous CURL - URL: %s    Method: PUT", furl.c_str());
+    spdlog::info("Adding Synchronous CURL - URL: {}    Method: PUT", furl.c_str());
     CURL* curl = createCurl(furl);
 
     struct curl_slist* head = nullptr;
@@ -346,7 +346,7 @@ std::string CurlManager::doPut(const std::string& furl, const std::string& conte
     } else {
         resp = cdata->errorResp;
     }
-    LOG_INFO("    CURL Synchronous Response - URL: %s    Response Code: %d     Size: %d", furl.c_str(), rc, rc ? cdata->resp.size() : 0);
+    spdlog::info("    CURL Synchronous Response - URL: {}    Response Code: {}     Size: {}", furl.c_str(), rc, rc ? cdata->resp.size() : 0);
     delete cdata;
     curl_slist_free_all(head);
     curl_easy_cleanup(curl);

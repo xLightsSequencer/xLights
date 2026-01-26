@@ -19,7 +19,7 @@
 #include "../../models/Model.h"
 #include "../../sequencer/Element.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 //(*IdInit(AssistPanel)
 const long AssistPanel::ID_SCROLLEDWINDOW_Assist = wxNewId();
@@ -132,11 +132,11 @@ void AssistPanel::SetEffectInfo(Effect* effect_, xLightsFrame* xlights_parent)
     mEffect = effect_;
     EffectLayer* layer = mEffect->GetParentEffectLayer();
     if (layer == nullptr) {
-        LOG_ERROR("No layer found for effect %s", (const char *)mEffect->GetEffectName().c_str());
+        spdlog::error("No layer found for effect {}", (const char *)mEffect->GetEffectName().c_str());
     }
     Element* elem = layer->GetParentElement();
     if (elem == nullptr) {
-        LOG_ERROR("No element found for effect %s", (const char *)mEffect->GetEffectName().c_str());
+        spdlog::error("No element found for effect {}", (const char *)mEffect->GetEffectName().c_str());
     }
     std::string model_name = elem->GetModelName();
     mModel = xlights_parent->GetModel(model_name);
@@ -147,7 +147,7 @@ void AssistPanel::SetEffectInfo(Effect* effect_, xLightsFrame* xlights_parent)
         }
     }
     if (mModel == nullptr) {
-        LOG_ERROR("No model found for effect %s for model %s", (const char *)mEffect->GetEffectName().c_str(), (const char *)model_name.c_str());
+        spdlog::error("No model found for effect {} for model {}", (const char *)mEffect->GetEffectName().c_str(), (const char *)model_name.c_str());
     }
     RefreshEffect();
 }

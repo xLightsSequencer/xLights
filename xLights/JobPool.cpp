@@ -33,11 +33,10 @@
 #include "ExternalHooks.h"
 #include "utils/string_utils.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include "TraceLog.h"
 using namespace TraceLog;
-
 
 std::string Job::GetStatus() {
     return xlEMPTY_STRING;
@@ -102,13 +101,17 @@ JobPoolWorker::JobPoolWorker(JobPool *p) :
     //
     thread = new std::thread(startFunc, this);
     tid = thread->get_id();
-    m_logger->debug("JobPoolWorker created {}", tid);
+    std::ostringstream oss;
+    oss << tid;
+    m_logger->debug("JobPoolWorker created {}", oss.str());//fixed in c++23
 }
 
 JobPoolWorker::~JobPoolWorker()
 {
     //
-    m_logger->debug("JobPoolWorker destroyed {}", tid);
+    std::ostringstream oss;
+    oss << tid;
+    m_logger->debug("JobPoolWorker destroyed {}", oss.str());
     status = UNKNOWN;
     thread->detach();
     delete thread;
@@ -221,7 +224,9 @@ std::string JobPoolWorker::GetThreadName() const
 
 void JobPoolWorker::Entry()
 {
-    m_logger->debug("JobPoolWorker started  {}", tid);
+    std::ostringstream oss;
+    oss << tid;
+    m_logger->debug("JobPoolWorker started  {}", oss.str());
 
     try {
         SetThreadName(pool->threadNameBase);
@@ -257,22 +262,22 @@ void JobPoolWorker::Entry()
 #endif // HAVE_ABI_FORCEDUNWIND
     } catch ( ... ) {
         currentJob = nullptr;
-        m_logger->debug("JobPoolWorker::Entry exiting due to unknown exception. {}", tid);
+        m_logger->debug("JobPoolWorker::Entry exiting due to unknown exception. {}", oss.str());
         --(pool->numThreads);
         status = STOPPED;
         pool->RemoveWorker(this);
         wxTheApp->OnUnhandledException();
-        m_logger->debug("JobPoolWorker done {}", tid);
+        m_logger->debug("JobPoolWorker done {}", oss.str());
         return;
     }
     currentJob = nullptr;
-    m_logger->debug("JobPoolWorker exiting {}", tid);
+    m_logger->debug("JobPoolWorker exiting {}", oss.str());
     --(pool->numThreads);
     status = STOPPED;
     pool->RemoveWorker(this);
     m_logger->debug("JobPoolWorker::Entry removed.  {}", fmt::ptr(this));
     RemoveThreadName();
-    m_logger->debug("JobPoolWorker done {}", tid);
+    m_logger->debug("JobPoolWorker done {}", oss.str());
     //clear trace messages for this thread
     ClearTraceMessages();
 }

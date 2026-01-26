@@ -43,7 +43,7 @@
 #include <cstring>
 
 // xLights
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 // end xLights
 
 #ifdef _WIN32
@@ -81,7 +81,7 @@ Files::listLibraryFilesMatching(Filter filter)
     
     for (const auto& it : filter.libraryNames)
     {
-        LOG_DEBUG("Vamp: List library files matching %s.", (const char*)it.c_str());
+        spdlog::debug("Vamp: List library files matching {}.", (const char*)it.c_str());
     }
     // end xLights
 
@@ -104,7 +104,7 @@ Files::listLibraryFilesMatching(Filter filter)
     for (size_t i = 0; i < path.size(); ++i) {
 
         // xLights
-        LOG_DEBUG("Vamp: Looking in path %s.", (const char*)path[i].c_str());
+        spdlog::debug("Vamp: Looking in path {}.", (const char*)path[i].c_str());
         // end xLights
 
         vector<string> files = listFiles(path[i], PLUGIN_SUFFIX);
@@ -162,7 +162,7 @@ Files::listLibraryFilesMatching(Filter filter)
             fullPath = splicePath(fullPath, *fi);
 
             // xLights
-            LOG_DEBUG("Vamp: Adding file %s.", (const char*)fullPath.c_str());
+            spdlog::debug("Vamp: Adding file {}.", fullPath);
             // end xLights
             
             libraryFiles.push_back(fullPath);
@@ -196,7 +196,7 @@ Files::loadLibrary(string path)
 
         // xLights
         
-        LOG_ERROR("Vamp: HostExt: Unable to load library %s: %ld.", (const char*)path.c_str(), ::GetLastError());
+        spdlog::error("Vamp: HostExt: Unable to load library {}: {}.", path, ::GetLastError());
         // end xLights
        
         cerr << "Vamp::HostExt: Unable to load library \""

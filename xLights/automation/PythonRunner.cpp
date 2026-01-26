@@ -14,7 +14,7 @@
 #include "UtilFunctions.h"
 #include "../ExternalHooks.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include <wx/stdpaths.h>
 
@@ -94,7 +94,7 @@ std::list<std::string> PythonRunner::PromptSequences() const
             if (FileExists(fname)) {
                 sequenceList.push_back(fname.GetFullPath());
             } else {
-                LOG_INFO("PromptSequences: Sequence File not Found: %s.", (const char*)fname.GetFullPath().c_str());
+                spdlog::info("PromptSequences: Sequence File not Found: {}.", (const char*)fname.GetFullPath().c_str());
             }
         }
     }
@@ -124,8 +124,8 @@ bool PythonRunner::Run_Script(std::string const& filepath, std::function<void(st
         py::eval_file(filepath.ToStdString(), py::globals(), locals);
 
     } catch (std::exception& e) {
-        LOG_INFO("PythonRunner: Throw Running Script: %s.", (const char*)filepath.c_str());
-        LOG_INFO("PythonRunner: Error: %s.", e.what());
+        spdlog::info("PythonRunner: Throw Running Script: {}.", (const char*)filepath.c_str());
+        spdlog::info("PythonRunner: Error: {}.", e.what());
         SendResponse(e.what());
         wxMessageBox(e.what(), "Error", wxOK);
         return false;

@@ -10,7 +10,7 @@
 
 #include "GIFImage.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include <wx/filename.h>
 
@@ -108,7 +108,7 @@ void GIFImage::DoCreate(const std::string& filename)
     wxLogNull logNo;  // suppress popups from gif images.
 
 #ifdef DEBUG_GIF
-    LOG_DEBUG("Loading gif %s.", (const char*)filename.c_str());
+    spdlog::debug("Loading gif {}.", (const char*)filename.c_str());
 #endif
     _filename = filename;
     _ok = false;
@@ -137,17 +137,17 @@ void GIFImage::DoCreate(const std::string& filename)
                 ++ito;
             }
 #ifdef DEBUG_GIF
-            LOG_DEBUG("    GIF size (%d,%d)", _gifSize.GetWidth(), _gifSize.GetHeight());
-            LOG_DEBUG("    Frames %d", _gifDecoder.GetFrameCount());
-            LOG_DEBUG("    Background colour %s", (const char*)_backgroundColour.GetAsString().c_str());
+            spdlog::debug("    GIF size ({},{})", _gifSize.GetWidth(), _gifSize.GetHeight());
+            spdlog::debug("    Frames {}", _gifDecoder.GetFrameCount());
+            spdlog::debug("    Background colour {}", (const char*)_backgroundColour.GetAsString().c_str());
 #endif
         } else {
-			LOG_WARN("Error interpreting GIF file %s.", (const char *)filename.c_str());
+			spdlog::warn("Error interpreting GIF file {}.", (const char *)filename.c_str());
 			_gifDecoder.Destroy();
             _ok = false;
 		}
     } else {
-		LOG_WARN("Error opening GIF file %s.", (const char *)filename.c_str());
+		spdlog::warn("Error opening GIF file {}.", (const char *)filename.c_str());
 	}
 }
 
@@ -204,26 +204,26 @@ wxPoint GIFImage::LoadRawImageFrame(wxImage& image, int frame, wxAnimationDispos
 
 	#ifdef DEBUG_GIF
     
-    LOG_DEBUG("Frame %d loaded actual image size (%d,%d)", frame, image.GetWidth(), image.GetHeight());
+    spdlog::debug("Frame {} loaded actual image size ({},{})", frame, image.GetWidth(), image.GetHeight());
 	#endif
 
     wxSize size = _gifDecoder.GetFrameSize(frame);
 	#ifdef DEBUG_GIF
-		LOG_DEBUG("    frame size (%d,%d)", size.GetWidth(), size.GetHeight());
+		spdlog::debug("    frame size ({},{})", size.GetWidth(), size.GetHeight());
 	#endif
     image.Resize(size, wxPoint(0, 0));
     _gifDecoder.ConvertToImage(frame, &image);
     disposal = _gifDecoder.GetDisposalMethod(frame);
 #ifdef DEBUG_GIF
     wxColor color  = _gifDecoder.GetTransparentColour(frame);
-    LOG_DEBUG("    transparent colour %s", (const char*)color.GetAsString().c_str());
-    LOG_DEBUG("    disposal %d %s", disposal, (const char *)DecodeDispose(disposal).c_str());
+    spdlog::debug("    transparent colour {}", (const char*)color.GetAsString().c_str());
+    spdlog::debug("    disposal {} {}", disposal, (const char *)DecodeDispose(disposal).c_str());
     long frameduration = _gifDecoder.GetDelay(frame);
-    LOG_DEBUG("    delay %ldms", frameduration);
+    spdlog::debug("    delay {}ms", frameduration);
 #endif
     wxPoint offset = _gifDecoder.GetFramePosition(frame);
 #ifdef DEBUG_GIF
-    LOG_DEBUG("    frame offset (%d,%d)", offset.x, offset.y);
+    spdlog::debug("    frame offset ({},{})", offset.x, offset.y);
 #endif
 
     return offset;
@@ -257,20 +257,20 @@ const wxImage& GIFImage::GetFrame(int frame)
             wxAnimationDisposal dispose = wxANIM_TOBACKGROUND;
             wxPoint offset = LoadRawImageFrame(newframe, i, dispose);
 #ifdef DEBUG_GIF
-            LOG_DEBUG("    Frame %d loaded offset (%d,%d) frame size (%d,%d) dispose %d %s actual image size (%d,%d)", i, offset.x, offset.y, newframe.GetWidth(), newframe.GetHeight(), dispose, (const char *)DecodeDispose(dispose).c_str(), image.GetWidth(), image.GetHeight());
-            LOG_DEBUG("    Applying dispose from last frame %s", (const char *)DecodeDispose(_lastDispose).c_str());
+            spdlog::debug("    Frame {} loaded offset ({},{}) frame size ({},{}) dispose {} {} actual image size ({},{})", i, offset.x, offset.y, newframe.GetWidth(), newframe.GetHeight(), dispose, (const char *)DecodeDispose(dispose).c_str(), image.GetWidth(), image.GetHeight());
+            spdlog::debug("    Applying dispose from last frame {}", (const char *)DecodeDispose(_lastDispose).c_str());
 #endif
             
             if (_suppressBackground  && (i == 0 || lastDispose == wxANIM_TOBACKGROUND)) {
 #ifdef DEBUG_GIF
-                LOG_DEBUG("    Replacing gif image this frame");
+                spdlog::debug("    Replacing gif image this frame");
 #endif
                 image.UnShare(); // wxWidgets bug https://github.com/wxWidgets/wxWidgets/issues/23553
                 image.Clear();
                 CopyImageToImage(image, newframe, offset, true);
             } else if (i == 0 || lastDispose == wxANIM_TOBACKGROUND) {
 #ifdef DEBUG_GIF
-                LOG_DEBUG("    Replacing gif image this after drawing background colour");
+                spdlog::debug("    Replacing gif image this after drawing background colour");
 #endif
                 unsigned char red = _backgroundColour.Red();
                 unsigned char green = _backgroundColour.Green();
@@ -284,12 +284,12 @@ const wxImage& GIFImage::GetFrame(int frame)
                 CopyImageToImage(image, newframe, offset, true);
             } else if (lastDispose == wxANIM_DONOTREMOVE) {
 #ifdef DEBUG_GIF
-                LOG_DEBUG("    Updating gif image this frame");
+                spdlog::debug("    Updating gif image this frame");
 #endif
                 CopyImageToImage(image, newframe, offset, true, true);
             } else {
 #ifdef DEBUG_GIF
-                LOG_DEBUG("    Updating gif image this frame");
+                spdlog::debug("    Updating gif image this frame");
 #endif
                 CopyImageToImage(image, newframe, offset, true, true);
             }

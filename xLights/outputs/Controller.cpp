@@ -27,7 +27,7 @@
 
 #include <numeric>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 static wxArrayString ACTIVETYPENAMES;
 
@@ -371,7 +371,7 @@ Controller* Controller::Create(OutputManager* om, wxXmlNode* node, std::string s
         return new ControllerSerial(om, node, showDir);
     }
 
-    LOG_WARN("Unknown controller type %s ignored.", (const char*)type.c_str());
+    spdlog::warn("Unknown controller type {} ignored.", (const char*)type.c_str());
     wxASSERT(false);
     return nullptr;
 }

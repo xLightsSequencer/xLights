@@ -26,7 +26,7 @@
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include "../../ModelPreview.h"
 
 static const int SUPPORTED_SERVOS = 24;

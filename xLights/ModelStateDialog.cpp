@@ -25,7 +25,7 @@
 #include "xlColourData.h"
 #include "VendorModelDialog.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include <algorithm>
 #include <vector>
 
@@ -1135,9 +1135,9 @@ void ModelStateDialog::ImportSubmodel(wxGridEvent& event)
         for (auto const& idx : dlg.GetSelections()) {
             Model* sm = model->GetSubModel(choices.at(idx));
             if (sm == nullptr) {
-                LOG_ERROR(
+                spdlog::error(
                     "Strange ... ModelStateDialog::ImportSubmodel returned no model "
-                    "for %s but it was in the list we gave the user.",
+                    "for {} but it was in the list we gave the user.",
                     (const char*)choices.at(idx).c_str());
                 continue;
             }

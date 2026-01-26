@@ -18,7 +18,7 @@
 #include "../UtilFunctions.h"
 #include "../utils/ip_utils.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 static const int32_t xxxCHANNELSPERPACKET = 1200;
 
@@ -60,7 +60,7 @@ void xxxEthernetOutput::Heartbeat(int mode, const std::string& localIP) {
 
         if (__datagram != nullptr) {
             if (!__datagram->IsOk() || __datagram->Error()) {
-                LOG_ERROR("xxxEthernetOutput: %s Error creating xxxEthernet heartbeat datagram => %d : %s.",
+                spdlog::error("xxxEthernetOutput: {} Error creating xxxEthernet heartbeat datagram => {} : {}.",
                     (const char*)localaddr.IPAddress().c_str(),
                           (int)__datagram->LastError(),
                     (const char*)DecodeIPError(__datagram->LastError()).c_str());
@@ -69,7 +69,7 @@ void xxxEthernetOutput::Heartbeat(int mode, const std::string& localIP) {
             }
         }
         else {
-            LOG_ERROR("xxxEthernetOutput: %s Error creating xxxEthernet heartbeat datagram.",
+            spdlog::error("xxxEthernetOutput: {} Error creating xxxEthernet heartbeat datagram.",
                 (const char*)localaddr.IPAddress().c_str());
         }
     }
@@ -98,15 +98,15 @@ void xxxEthernetOutput::OpenDatagram() {
 
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
-        LOG_ERROR("xxxEthernetOutput: %s Error opening datagram.", (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("xxxEthernetOutput: {} Error opening datagram.", (const char*)localaddr.IPAddress().c_str());
     }
     else if (!_datagram->IsOk()) {
-        LOG_ERROR("xxxEthernetOutput: %s Error opening datagram. Network may not be connected? OK : FALSE", (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("xxxEthernetOutput: {} Error opening datagram. Network may not be connected? OK : FALSE", (const char*)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
     }
     else if (_datagram->Error()) {
-        LOG_ERROR("xxxEthernetOutput: %s Error creating xxxEthernet datagram => %d : %s.", (const char*)localaddr.IPAddress().c_str(), (int)_datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str());
+        spdlog::error("xxxEthernetOutput: {} Error creating xxxEthernet datagram => {} : {}.", (const char*)localaddr.IPAddress().c_str(), (int)_datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str());
         delete _datagram;
         _datagram = nullptr;
     }
@@ -224,7 +224,7 @@ void xxxEthernetOutput::StartFrame(long msec) {
     if (_datagram == nullptr && OutputManager::IsRetryOpen()) {
         OpenDatagram();
         if (_ok) {
-            LOG_DEBUG("xxxEthernetOutput: Open retry successful");
+            spdlog::debug("xxxEthernetOutput: Open retry successful");
         }
     }
 

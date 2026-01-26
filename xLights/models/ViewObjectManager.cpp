@@ -19,7 +19,7 @@
 #include "TerrianObject.h"
 #include "xLightsMain.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 ViewObjectManager::ViewObjectManager(xLightsFrame* xl) : xlights(xl)
 {
@@ -217,7 +217,7 @@ bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool promp
                 if (o->HasAttribute("FromBase")) o->DeleteAttribute("FromBase");
                 o->AddAttribute("FromBase", "1");
                 createAndAddObject(new wxXmlNode(*o));
-                LOG_DEBUG("Adding object from base show folder: '%s'.", (const char*)name.c_str());
+                spdlog::debug("Adding object from base show folder: '{}'.", (const char*)name.c_str());
             } else {
                 bool force = false;
                 if (prompt && !curr->IsFromBase()) {
@@ -232,10 +232,10 @@ bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool promp
                         changed = true;
                         Delete(name);
                         createAndAddObject(new wxXmlNode(*o));
-                        LOG_DEBUG("Updating object from base show folder: '%s'.", (const char*)name.c_str());
+                        spdlog::debug("Updating object from base show folder: '{}'.", (const char*)name.c_str());
                     }
                 } else {
-                    LOG_DEBUG("Object '%s' NOT updated from base show folder as it never came from there.", (const char*)name.c_str());
+                    spdlog::debug("Object '{}' NOT updated from base show folder as it never came from there.", (const char*)name.c_str());
                 }
             }
         }

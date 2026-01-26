@@ -54,7 +54,7 @@
 #include "outputs/OutputManager.h"
 #include "xlColourData.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #define CHANNEL_COL 0
 #define COLOR_COL 1
@@ -1315,7 +1315,7 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
                 if (ent->IsDir()) {
                     wxString dirname = dir + wxFileName::GetPathSeparator() + ent->GetName();
                     if (!wxDirExists(dirname)) {
-                        LOG_DEBUG("Extracting dir %s:%s to %s.", (const char*)faceZip.c_str(), (const char*)ent->GetName().c_str(), (const char*)dirname.c_str());
+                        spdlog::debug("Extracting dir {}:{} to {}.", (const char*)faceZip.c_str(), (const char*)ent->GetName().c_str(), (const char*)dirname.c_str());
                         wxFileName::Mkdir(dirname, wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
                     }
                 } else {
@@ -1326,16 +1326,16 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
                     {
 #ifdef __WXMSW__
                         if (filename.length() > MAX_PATH) {
-                            LOG_WARN("Target filename longer than %d chars (%d). This will likely fail. %s.", MAX_PATH, (int)filename.length(), (const char*) filename.c_str());
+                            spdlog::warn("Target filename longer than {} chars ({}). This will likely fail. {}.", MAX_PATH, (int)filename.length(), (const char*) filename.c_str());
                         }
 #endif
 
-                        LOG_DEBUG("Extracting %s:%s to %s.", (const char*)faceZip.c_str(), (const char*)ent->GetName().c_str(), (const char*)filename.c_str());
+                        spdlog::debug("Extracting {}:{} to {}.", (const char*)faceZip.c_str(), (const char*)ent->GetName().c_str(), (const char*)filename.c_str());
                         wxFileOutputStream fout(filename);
                         zin.Read(fout);
                     }
                     if (!FileExists(filename)) {
-                        LOG_ERROR("File extract failed.");
+                        spdlog::error("File extract failed.");
                     }
                 }
                 ent = zin.GetNextEntry();
@@ -1363,7 +1363,7 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
 
                 if (phoneme == "" || !IsValidPhoneme(phoneme))
                 {
-                    LOG_WARN("Phoneme '%s' was not known. File %s ignored.", (const char *)phoneme.c_str(), (const char *)it.c_str());
+                    spdlog::warn("Phoneme '{}' was not known. File {} ignored.", (const char *)phoneme.c_str(), (const char *)it.c_str());
                     error = true;
                 }
                 else
@@ -1449,9 +1449,9 @@ void ModelFaceDialog::ImportSubmodel(wxGridEvent& event)
         for (auto const& idx : dlg.GetSelections()) {
             Model* sm = model->GetSubModel(choices.at(idx));
             if (sm == nullptr) {
-                LOG_ERROR(
+                spdlog::error(
                     "Strange ... ModelFaceDialog::ImportSubmodel returned no model "
-                    "for %s but it was in the list we gave the user.",
+                    "for {} but it was in the list we gave the user.",
                     (const char*)choices.at(idx).c_str());
                 continue;
             }

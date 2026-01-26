@@ -27,7 +27,7 @@
 #include "UtilFunctions.h"
 
 #include "../Parallel.h"
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 KaleidoscopeEffect::KaleidoscopeEffect(int i) : RenderableEffect(i, "Kaleidoscope", kaleidoscope_16, kaleidoscope_24, kaleidoscope_32, kaleidoscope_48, kaleidoscope_64)
 {
@@ -347,7 +347,7 @@ void DumpUsed(const std::vector<std::vector<bool>>& current, int width, int heig
             bool b = current[x][y];
             row += wxString::Format(" %d", (int)b);
         }
-        LOG_DEBUG(row);
+        spdlog::debug(row);
     }
 }
 
@@ -383,12 +383,12 @@ void KaleidoscopeEffect::Render(Effect *eff, const SettingsMap &SettingsMap, Ren
     auto &edges = cache->_edges;
 
     auto edge = edges.begin();
-    //LOG_DEBUG("frame. Edges %d", (int)edges.size());
+    //spdlog::debug("frame. Edges {}", (int)edges.size());
     std::atomic_int setSinceBegin;
     setSinceBegin = 0;
     while (!KaleidoscopeDone(currentUsed) && edges.size() > 0)
     {
-        //LOG_DEBUG("   iterate");
+        //spdlog::debug("   iterate");
         //int set = 0;
 
         //DumpUsed(currentUsed, buffer.BufferWi, buffer.BufferHt);
@@ -408,7 +408,7 @@ void KaleidoscopeEffect::Render(Effect *eff, const SettingsMap &SettingsMap, Ren
                 }
             }
         });
-        //LOG_DEBUG("   set this iteration %d", set);
+        //spdlog::debug("   set this iteration {}", set);
         ++edge;
         if (edge == edges.end()) {
             if (setSinceBegin == 0)

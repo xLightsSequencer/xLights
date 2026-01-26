@@ -50,7 +50,7 @@ int SerialPort::Close() {
 int SerialPort::Open(const std::string& devName, int baudRate, const char* protocol) {
 
     if (strlen(protocol) != 3) {
-        LOG_ERROR("Illegal protocol %s -> returning -1.", protocol);
+        spdlog::error("Illegal protocol {} -> returning -1.", protocol);
         return -1;
     }
 
@@ -65,7 +65,7 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
     _devName = devName;
 
     if(_fd == INVALID_HANDLE_VALUE) {
-        LOG_ERROR("File creation failed opening serial port %s -> returning -1.", devName.c_str());
+        spdlog::error("File creation failed opening serial port {} -> returning -1.", devName.c_str());
         return -1;
     }
 
@@ -148,7 +148,7 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
     // wordlen, valid values are 5,6,7,8
     dcb.ByteSize = protocol[0] - '0';
     if (!SetCommState(_fd, &dcb)) {
-        LOG_ERROR("Failed to set Comm State DevName: %s BaudRate: %d Protocol: %s -> returning -2.", (const char*) devName.c_str(), baudRate, protocol);
+        spdlog::error("Failed to set Comm State DevName: %s BaudRate: {} Protocol: {} -> returning -2.", (const char*)devName.c_str(), baudRate, protocol);
         return -2;
     }
 
@@ -161,13 +161,13 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
                             NULL); // LPTSTR lpszEventName
 
     if (_ov.hEvent == INVALID_HANDLE_VALUE) {
-        LOG_ERROR("Failed to create event for overlapped I/O DevName: %s -> returning -3.", (const char *) devName.c_str());
+        spdlog::error("Failed to create event for overlapped I/O DevName: {} -> returning -3.", (const char*)devName.c_str());
         return -3;
     }
 
     COMMTIMEOUTS cto = {MAXDWORD,0,0,0,0};
     if (!SetCommTimeouts(_fd, &cto)) {
-        LOG_INFO("Failed to set Comm timeouts DevName %s -> returning -5.", (const char*)devName.c_str());
+        spdlog::info("Failed to set Comm timeouts DevName {} -> returning -5.", (const char*)devName.c_str());
         return -5;
     }
 
@@ -191,7 +191,7 @@ int SerialPort::AvailableToRead() {
     COMSTAT comStat;
     DWORD   dwErrors;
     if (!ClearCommError(_fd, &dwErrors, &comStat)) {
-        LOG_ERROR("Failed to clear Comm error.");
+        spdlog::error("Failed to clear Comm error.");
 
         // Report error in ClearCommError.
         return 0;
@@ -206,7 +206,7 @@ int SerialPort::WaitingToWrite() {
     COMSTAT comStat;
     DWORD   dwErrors;
     if (!ClearCommError(_fd, &dwErrors, &comStat)) {
-        LOG_ERROR("Failed to clear Comm error.");
+        spdlog::error("Failed to clear Comm error.");
         // Report error in ClearCommError.
         return 0;
     }
@@ -221,7 +221,7 @@ int SerialPort::Read(char* buf, size_t len) {
         // if we use a asynchrone reading, ReadFile always gives FALSE
         // ERROR_IO_PENDING means ok, other values show an error
         if(GetLastError() != ERROR_IO_PENDING) {
-            LOG_ERROR("Error reading from serial port %d.", GetLastError());
+            spdlog::error("Error reading from serial port {}.", GetLastError());
             // oops..., error in communication
             return -1;
         }
@@ -256,7 +256,7 @@ int SerialPort::Write(char* buf, size_t len) {
     DWORD write;
     if (!WriteFile(_fd, buf, len, &write, &_ov)) {
         if(GetLastError() != ERROR_IO_PENDING) {
-            LOG_ERROR("Error writing to serial port %d.", GetLastError());
+            spdlog::error("Error writing to serial port {}.", GetLastError());
             return -1;
         }
     }
@@ -270,14 +270,14 @@ int SerialPort::Write(char* buf, size_t len) {
 int SerialPort::SendBreak() {
 
     if (!SetCommBreak(_fd)) {
-        LOG_ERROR("Error setting commport break.");
+        spdlog::error("Error setting commport break.");
         return -1;
     }
 
     wxMilliSleep(1);
 
     if (!ClearCommBreak(_fd)) {
-        LOG_ERROR("Error clearing commport break.");
+        spdlog::error("Error clearing commport break.");
         return -1;
     }
 
@@ -287,10 +287,10 @@ int SerialPort::SendBreak() {
 
 int SerialPort::Purge() {
 
-    LOG_DEBUG("Purging commport");
+    spdlog::error("Purging commport");
 
     if (PurgeComm(_fd, PURGE_RXCLEAR | PURGE_TXCLEAR) == 0) {
-        LOG_ERROR("Error purging commport 0x%lx.", (long)GetLastError());
+        spdlog::error("Error purging commport {:#X}.", (long)GetLastError());
         return -1;
     }
 

@@ -96,7 +96,7 @@ static bool canUseFramebufferObjects()
 #include "UtilFunctions.h"
 #include "OpenGLShaders.h"
 #include "graphics/opengl/DrawGLUtils.h"
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include "TraceLog.h"
 using namespace TraceLog;
@@ -117,7 +117,7 @@ namespace
             std::vector<char> errorMessage( infoLogLength + 1 );
             char*             messagePtr = &errorMessage[0];
             glGetProgramInfoLog( programID, infoLogLength, NULL, messagePtr );
-            LOG_ERROR("shader-link failure %s: '%s'", filename.c_str(), messagePtr);
+            spdlog::error("shader-link failure {}: '{}'", filename.c_str(), messagePtr);
          }
       }
       return result == GL_TRUE;
@@ -141,7 +141,7 @@ namespace
              std::string m = "Shader fail message: ";
              m += messagePtr;
              AddTraceMessage(m);
-             LOG_ERROR("shader-compile failure %s: '%s'", filename.c_str(), messagePtr);
+             spdlog::error("shader-compile failure {}: '{}'", filename.c_str(), messagePtr);
          }
       }
       return result == GL_TRUE;
@@ -207,7 +207,7 @@ unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::str
         LOG_GL_ERRORV(glDeleteShader(vertexShader));
         LOG_GL_ERRORV(glDeleteShader(fragmentShader));
 
-        LOG_ERROR("%s", (const char*)PrepareShaderCodeForLogging(fragmentSource).c_str());
+        spdlog::error("{}", (const char*)PrepareShaderCodeForLogging(fragmentSource).c_str());
         return 0;
     }
     AddTraceMessage("Compile successful");

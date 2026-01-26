@@ -27,7 +27,7 @@
 #include <string>
 #include <list>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 class GuitarTiming
 {
@@ -564,7 +564,7 @@ public:
 
         if (max != _notes.size())
         {
-            LOG_WARN("One or more notes not found on %s at %lu.", (const char*)type.c_str(), _startMS);
+            spdlog::warn("One or more notes not found on {} at {}.", (const char*)type.c_str(), _startMS);
         }
 
         bool allZero = false;
@@ -1154,10 +1154,10 @@ std::list<NoteTiming*> GuitarEffect::LoadTimingTrack(const std::string& track, i
 {
     std::list<NoteTiming*> res;
 
-    LOG_DEBUG("Loading timings from timing track " + track);
+    spdlog::debug("Loading timings from timing track " + track);
 
     if (mSequenceElements == nullptr) {
-        LOG_DEBUG("No timing tracks found.");
+        spdlog::debug("No timing tracks found.");
         return res;
     }
 
@@ -1165,7 +1165,7 @@ std::list<NoteTiming*> GuitarEffect::LoadTimingTrack(const std::string& track, i
     EffectLayer* el = GetTiming(track);
 
     if (el == nullptr) {
-        LOG_DEBUG("Timing track not found.");
+        spdlog::debug("Timing track not found.");
         return res;
     }
 

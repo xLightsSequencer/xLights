@@ -17,7 +17,7 @@
 #include "ControllerEthernet.h"
 #include "../utils/ip_utils.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #pragma region Static Variables
 #pragma endregion
@@ -39,17 +39,17 @@ void KinetOutput::OpenDatagram() {
 
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
-        LOG_ERROR("Error initialising Kinet datagram for %s %d. %s", (const char*)_ip.c_str(), GetUniverse(), (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("Error initialising Kinet datagram for {} {}. {}", (const char*)_ip.c_str(), GetUniverse(), (const char*)localaddr.IPAddress().c_str());
         _ok = false;
     }
     else if (!_datagram->IsOk()) {
-        LOG_ERROR("Error initialising Kinet datagram for %s %d. %s OK : FALSE", (const char*)_ip.c_str(), GetUniverse(), (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("Error initialising Kinet datagram for {} {}. {} OK : FALSE", (const char*)_ip.c_str(), GetUniverse(), (const char*)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;
     }
     else if (_datagram->Error()) {
-        LOG_ERROR("Error creating Kinet datagram => %d : %s. %s", (int)_datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("Error creating Kinet datagram => {} : {}. {}", (int)_datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;
@@ -227,7 +227,7 @@ void KinetOutput::StartFrame(long msec) {
     if (_datagram == nullptr && OutputManager::IsRetryOpen()) {
         OpenDatagram();
         if (_ok) {
-            LOG_DEBUG("KinetOutput: Open retry successful");
+            spdlog::debug("KinetOutput: Open retry successful");
         }
     }
 

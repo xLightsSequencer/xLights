@@ -26,7 +26,7 @@
 #include "../../include/liquid-48.xpm"
 #include "../../include/liquid-64.xpm"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 //#define LE_INTERPOLATE
 #define MAX_PARTICLES 100000
@@ -720,8 +720,8 @@ void LiquidEffect::Render(RenderBuffer &buffer,
     // allow up to 1 times physical memory
     if (IsExcessiveMemoryUsage(1.0))
     {
-        LOG_ERROR("LiquidEffect Render abandoned due to insufficient memory. This is not good. Rendering will be slow.");
-        LOG_ERROR("To reduce memory turn off render caching and/or change liquid effect settings.");
+        spdlog::error("LiquidEffect Render abandoned due to insufficient memory. This is not good. Rendering will be slow.");
+        spdlog::error("To reduce memory turn off render caching and/or change liquid effect settings.");
 
         // delete our world to get all our memory back
         delete _world;

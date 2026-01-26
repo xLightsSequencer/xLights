@@ -32,7 +32,7 @@
 #include "MainSequencer.h"
 #include "../NoteRangeDialog.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 wxDEFINE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_WAVE_FORM_HIGHLIGHT, wxCommandEvent);
@@ -64,7 +64,7 @@ Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     GRAPHICS_BASE_CLASS(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "WaveForm")
 {
     
-    LOG_DEBUG("                Creating Waveform");
+    spdlog::debug("                Creating Waveform");
     m_dragging = false;
     m_drag_mode = DRAG_NORMAL;
     mParent = parent;
@@ -205,7 +205,7 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
     
     int id = event.GetId();
     if(id == ID_WAVE_MNU_RENDER) {
-        LOG_DEBUG("OnGridPopup - ID_WAVE_MNU_RENDER");
+        spdlog::debug("OnGridPopup - ID_WAVE_MNU_RENDER");
         RenderCommandEvent rcEvent("", mTimeline->GetSelectedPositionStartMS(), mTimeline->GetSelectedPositionEndMS(), true, false);
         wxPostEvent(mParent, rcEvent);
     } else if (id == ID_WAVE_MNU_RAW) {

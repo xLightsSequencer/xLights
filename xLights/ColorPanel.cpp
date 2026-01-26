@@ -39,7 +39,7 @@
 #include <wx/stdpaths.h>
 #include <wx/regex.h>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 
 #define PALETTE_SIZE 8
@@ -1399,7 +1399,7 @@ void ColorPanel::SavePalette(bool saveAs)
         _loadedPalettes.push_back(pal);
     } else {
         
-        LOG_ERROR("Unable to create file %s.", (const char *)fn.c_str());
+        spdlog::error("Unable to create file {}.", (const char *)fn.c_str());
     }
 
     LoadAllPalettes();

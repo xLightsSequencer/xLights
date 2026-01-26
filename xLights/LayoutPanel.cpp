@@ -75,7 +75,7 @@
 
 #include "LayoutUtils.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include <set>
 
@@ -417,14 +417,14 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     ScrollBarLayoutHorz->Hide();
     ScrollBarLayoutVert->Hide();
 
-    LOG_DEBUG("LayoutPanel basic setup complete");
+    spdlog::debug("LayoutPanel basic setup complete");
     modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights, true, 0, false, true);
     LayoutGLSizer->Insert(0, modelPreview, 1, wxALL | wxEXPAND, 0);
     PreviewGLSizer->Fit(PreviewGLPanel);
     PreviewGLSizer->SetSizeHints(PreviewGLPanel);
     FlexGridSizerPreview->Fit(this);
     FlexGridSizerPreview->SetSizeHints(this);
-    LOG_DEBUG("LayoutPanel ModelPreview created");
+    spdlog::debug("LayoutPanel ModelPreview created");
 
     modelPreview->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&LayoutPanel::OnPreviewLeftDown, nullptr,this);
     modelPreview->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&LayoutPanel::OnPreviewLeftUp, nullptr,this);
@@ -492,7 +492,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     propertyEditor->Connect(wxEVT_PG_RIGHT_CLICK, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridRightClick, 0, this);
     propertyEditor->SetValidationFailureBehavior(wxPGVFBFlags::MarkCell | wxPGVFBFlags::Beep);
 
-    LOG_DEBUG("LayoutPanel property grid created");
+    spdlog::debug("LayoutPanel property grid created");
 
     ToolSizer->SetCols(21);
     AddModelButton("Arches", arches);
@@ -517,7 +517,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     obj_button = AddModelButton("Add Object", object);
     obj_button->Enable(is_3d && ChoiceLayoutGroups->GetStringSelection() == "Default");
 
-    LOG_DEBUG("LayoutPanel model buttons created");
+    spdlog::debug("LayoutPanel model buttons created");
 
     modelPreview->Connect(wxID_CUT, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoCut, nullptr,this);
     modelPreview->Connect(wxID_COPY, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoCopy, nullptr,this);
@@ -539,7 +539,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     sw->SetScrollRate(5,5);
     sw->Hide();
 
-    LOG_DEBUG("LayoutPanel model group panel created");
+    spdlog::debug("LayoutPanel model group panel created");
 
     // Setup the Object List Panel
     //wxScrolledWindow *sw2 = new wxScrolledWindow(ModelSplitter);
@@ -553,7 +553,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     //sw2->SetScrollRate(5,5);
     //sw2->Hide();
     //ViewObjectWindow = sw2;
-    LOG_DEBUG("LayoutPanel object panel created");
+    spdlog::debug("LayoutPanel object panel created");
 
     LeftPanelSizer->Fit(LeftPanel);
     LeftPanelSizer->SetSizeHints(LeftPanel);
@@ -1063,7 +1063,7 @@ void LayoutPanel::RenderLayout()
 void LayoutPanel::UpdatePreview()
 {
     
-    LOG_DEBUG("        UpdatePreview.");
+    spdlog::debug("        UpdatePreview.");
     SetDirtyHiLight(xlights->UnsavedRgbEffectsChanges);
     RenderLayout();
 }
@@ -1082,7 +1082,7 @@ void LayoutPanel::ClearSelectedModelGroup()
 
 void LayoutPanel::resetPropertyGrid() {
     
-    LOG_DEBUG("        resetPropertyGrid.");
+    spdlog::debug("        resetPropertyGrid.");
 
     if (selectedBaseObject != nullptr && selectedBaseObject->GetDisplayAs() == "ModelGroup")
     {
@@ -1159,7 +1159,7 @@ void LayoutPanel::clearPropGrid() {
 
 void LayoutPanel::refreshObjectList() {
     
-    LOG_DEBUG("        refreshObjectList.");
+    spdlog::debug("        refreshObjectList.");
     objects_panel->refreshObjectList();
 }
 
@@ -1265,7 +1265,7 @@ void LayoutPanel::refreshModelList() {
 
     
     
-    LOG_DEBUG("        refreshModelList.");
+    spdlog::debug("        refreshModelList.");
     wxStopWatch sw;
 
     std::list<wxTreeListItem> toExpand;
@@ -1310,7 +1310,7 @@ void LayoutPanel::refreshModelList() {
     ThawTreeListView(toExpand);
 
     if (sw.Time() > 500)
-        LOG_DEBUG("        LayoutPanel::refreshModelList took %lums", sw.Time());
+        spdlog::debug("        LayoutPanel::refreshModelList took {}ms", sw.Time());
 }
 
 void LayoutPanel::RenameModelInTree(Model *model, const std::string& new_name)
@@ -1335,7 +1335,7 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
     
 
     if (model == nullptr) {
-        LOG_CRIT("LayoutPanel::AddModelToTree model is null ... this is going to crash.");
+        spdlog::critical("LayoutPanel::AddModelToTree model is null ... this is going to crash.");
         wxASSERT(false);
     }
 
@@ -1369,9 +1369,9 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
         for (const auto& it : grp->ModelNames()) {
             Model *m = xlights->AllModels[it];
             if (m == nullptr) {
-                LOG_ERROR("Model group %s thought it contained model. '%s' but it didnt. This would have crashed.", (const char *)grp->GetName().c_str(), (const char *)it.c_str());
+                spdlog::error("Model group {} thought it contained model. '{}' but it didnt. This would have crashed.", (const char *)grp->GetName().c_str(), (const char *)it.c_str());
             } else if (m == grp) {
-                LOG_ERROR("Model group contains itself. '%s'", (const char *)grp->GetName().c_str());
+                spdlog::error("Model group contains itself. '{}'", (const char *)grp->GetName().c_str());
             } else {
                 AddModelToTree(m, &item, false, toExpand, i, true);
                 i++;
@@ -1433,7 +1433,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         UpdateModelsForPreview(currentLayoutGroup, nullptr, models, true);
     }
 
-    //LOG_DEBUG("Layout tab preview models updated.");
+    //spdlog::debug("Layout tab preview models updated.");
     xlights->PreviewModels = models;
 
     if (full_refresh) {
@@ -1468,14 +1468,14 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     ThawTreeListView(toExpand);
 
     if (sw.Time() > 500)
-        LOG_DEBUG("        LayoutPanel::UpdateModelList took %lums", sw.Time());
+        spdlog::debug("        LayoutPanel::UpdateModelList took {}ms", sw.Time());
 }
 
 void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering)
 {
     
     wxStopWatch sw;
-    //LOG_DEBUG("Updated models for preview: %s.", (const char*)group.c_str());
+    //spdlog::debug("Updated models for preview: {}.", (const char*)group.c_str());
 
     std::set<std::string> modelsAdded;
 
@@ -1603,7 +1603,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
     }
 
     if (sw.Time() > 500)
-        LOG_DEBUG("        LayoutPanel::UpdateModelsForPreview took %lums", sw.Time());
+        spdlog::debug("        LayoutPanel::UpdateModelsForPreview took {}ms", sw.Time());
 }
 
 void LayoutPanel::BulkEditDimmingCurves()
@@ -2410,7 +2410,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
     // process all models
     for (const auto& m : modelPreview->GetModels()) {
         if (!xlights->AllModels.IsModelValid(m) && m != _newModel) {
-            LOG_ERROR("Really strange ... unselect all models returned an invalid model pointer");
+            spdlog::error("Really strange ... unselect all models returned an invalid model pointer");
         }
         else {
             xlights->AddTraceMessage("LayoutPanel::UnSelectAllModels Model " + m->GetName());
@@ -2428,7 +2428,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
                 }
             }
             else {
-                LOG_ERROR("Really strange ... unselect all models returned a null model pointer");
+                spdlog::error("Really strange ... unselect all models returned a null model pointer");
             }
         }
     }
@@ -2445,7 +2445,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
             view_object->GetBaseObjectScreenLocation().SetActiveHandle(-1);
         }
         else {
-            LOG_ERROR("Really strange ... unselect all models returned a null view object pointer");
+            spdlog::error("Really strange ... unselect all models returned a null view object pointer");
         }
     }
 
@@ -2456,7 +2456,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
     }
 
     if (sw.Time() > 500)
-        LOG_DEBUG("        LayoutPanel::UnSelectAllModels took %lums", sw.Time());
+        spdlog::debug("        LayoutPanel::UnSelectAllModels took {}ms", sw.Time());
 }
 
 void LayoutPanel::showBackgroundProperties()
@@ -2706,7 +2706,7 @@ void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree
             }
             else
             {
-                LOG_WARN("LayoutPanel:SelectBaseObject Unable to select model '%s'.", (const char*)name.c_str());
+                spdlog::warn("LayoutPanel:SelectBaseObject Unable to select model '{}'.", (const char*)name.c_str());
             }
         }
         if (m != selectedBaseObject)
@@ -2717,7 +2717,7 @@ void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree
         ViewObject *v = xlights->AllObjects[name];
         if (v == nullptr)
         {
-            LOG_WARN("LayoutPanel:SelectBaseObject Unable to select object '%s'.", (const char *)name.c_str());
+            spdlog::warn("LayoutPanel:SelectBaseObject Unable to select object '{}'.", (const char *)name.c_str());
         }
         if (v != selectedBaseObject)
         {
@@ -2750,7 +2750,7 @@ void LayoutPanel::SelectModel(const std::string & name, bool highlight_tree)
     Model *m = xlights->AllModels[name];
     if (m == nullptr)
     {
-        LOG_WARN("LayoutPanel:SelectModel Unable to select model '%s'.", (const char *)name.c_str());
+        spdlog::warn("LayoutPanel:SelectModel Unable to select model '{}'.", (const char *)name.c_str());
     }
     else {
         SelectModelInTree(m);
@@ -2781,7 +2781,7 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
     
 
     // TODO need to strip out extra logging once I know for sure what is going on
-    if (modelPreview == nullptr) LOG_CRIT("LayoutPanel::SelectModel modelPreview is nullptr ... this is going to crash.");
+    if (modelPreview == nullptr) spdlog::critical("LayoutPanel::SelectModel modelPreview is nullptr ... this is going to crash.");
 
     SelectModelInTree(m);
     //SelectBaseObject3D();
@@ -2792,7 +2792,7 @@ void LayoutPanel::SelectViewObject(ViewObject *v, bool highlight_tree) {
     
 
     // TODO need to strip out extra logging once I know for sure what is going on
-    if (modelPreview == nullptr) LOG_CRIT("LayoutPanel::SelectViewObject modelPreview is nullptr ... this is going to crash.");
+    if (modelPreview == nullptr) spdlog::critical("LayoutPanel::SelectViewObject modelPreview is nullptr ... this is going to crash.");
 
     bool changed = false;
     if (v != selectedBaseObject)
@@ -4265,7 +4265,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                     if (selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool() == ModelScreenLocation::MSLTOOL::TOOL_SCALE) {
                         glm::vec3 new_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
                         if (last_worldscale.x == 0 || last_worldscale.y == 0 || last_worldscale.z == 0) {
-                            LOG_CRIT("This is not going to end well last_world_scale has a zero parameter and we are about to divide using it.");
+                            spdlog::critical("This is not going to end well last_world_scale has a zero parameter and we are about to divide using it.");
                         }
                         glm::vec3 scale_offset = glm::vec3(new_worldscale / last_worldscale);
                         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
@@ -6201,7 +6201,7 @@ void LayoutPanel::ReselectTreeModels(std::vector<std::list<std::string>> modelPa
                 }
             }
         } else {
-            LOG_CRIT("LayoutPanel::ReselectTreeModels branch could not be found in tree... this shouldn't happen.");
+            spdlog::critical("LayoutPanel::ReselectTreeModels branch could not be found in tree... this shouldn't happen.");
         }
     }
 }
@@ -6302,7 +6302,7 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
     bool object_created = false;
     if (id == ID_ADD_OBJECT_IMAGE)
     {
-        LOG_DEBUG("OnAddObjectPopup - ID_ADD_OBJECT_IMAGE");
+        spdlog::debug("OnAddObjectPopup - ID_ADD_OBJECT_IMAGE");
         CreateUndoPoint("All", "", "");
         vobj = xlights->AllObjects.CreateAndAddObject("Image");
         vobj->SetLayoutGroup("Default"); // only Default supports 3D and hence objects
@@ -6311,7 +6311,7 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
     }
     else if (id == ID_ADD_OBJECT_GRIDLINES)
     {
-        LOG_DEBUG("OnAddObjectPopup - ID_ADD_OBJECT_GRIDLINES");
+        spdlog::debug("OnAddObjectPopup - ID_ADD_OBJECT_GRIDLINES");
         CreateUndoPoint("All", "", "");
         vobj = xlights->AllObjects.CreateAndAddObject("Gridlines");
         vobj->SetLayoutGroup("Default"); // only Default supports 3D and hence objects
@@ -6320,7 +6320,7 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
     }
     else if (id == ID_ADD_OBJECT_TERRIAN)
     {
-        LOG_DEBUG("OnAddObjectPopup - ID_ADD_OBJECT_TERRIAN");
+        spdlog::debug("OnAddObjectPopup - ID_ADD_OBJECT_TERRIAN");
         CreateUndoPoint("All", "", "");
         vobj = xlights->AllObjects.CreateAndAddObject("Terrian");
         vobj->SetLayoutGroup("Default"); // only Default supports 3D and hence objects
@@ -6328,7 +6328,7 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
         object_created = true;
     }
     else if (id == ID_ADD_OBJECT_RULER) {
-        LOG_DEBUG("OnAddObjectPopup - ID_ADD_OBJECT_RULER");
+        spdlog::debug("OnAddObjectPopup - ID_ADD_OBJECT_RULER");
         CreateUndoPoint("All", "", "");
         vobj = xlights->AllObjects.CreateAndAddObject("Ruler");
         vobj->SetLayoutGroup("Default"); // only Default supports 3D and hence objects
@@ -6340,7 +6340,7 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
     }
     else if (id == ID_ADD_OBJECT_MESH)
     {
-        LOG_DEBUG("OnAddObjectPopup - ID_ADD_OBJECT_MESH");
+        spdlog::debug("OnAddObjectPopup - ID_ADD_OBJECT_MESH");
         CreateUndoPoint("All", "", "");
         vobj = xlights->AllObjects.CreateAndAddObject("Mesh");
         vobj->SetLayoutGroup("Default"); // only Default supports 3D and hence objects
@@ -6383,42 +6383,42 @@ void LayoutPanel::OnAddDmxPopup(wxCommandEvent& event)
     int id = event.GetId();
     bool object_created = false;
     if (id == ID_ADD_DMX_FLOODLIGHT) {
-        LOG_DEBUG("OnAddDmxPopup - ID_ADD_DMX_FLOODLIGHT");
+        spdlog::debug("OnAddDmxPopup - ID_ADD_DMX_FLOODLIGHT");
         selectedDmxModelType = "DmxFloodlight";
         object_created = true;
     }
     else if (id == ID_ADD_DMX_GENERAL) {
-        LOG_DEBUG("OnAddDmxPopup - ID_ADD_DMX_GENERAL");
+        spdlog::debug("OnAddDmxPopup - ID_ADD_DMX_GENERAL");
         selectedDmxModelType = "DmxGeneral";
         object_created = true;
     }
     else if (id == ID_ADD_DMX_FLOODAREA) {
-        LOG_DEBUG("OnAddDmxPopup - ID_ADD_DMX_FLOODAREA");
+        spdlog::debug("OnAddDmxPopup - ID_ADD_DMX_FLOODAREA");
         selectedDmxModelType = "DmxFloodArea";
         object_created = true;
     }
     else if (id == ID_ADD_DMX_MOVING_HEAD) {
-        LOG_DEBUG("OnAddDmxPopup - ID_ADD_DMX_MOVING_HEAD");
+        spdlog::debug("OnAddDmxPopup - ID_ADD_DMX_MOVING_HEAD");
         selectedDmxModelType = "DmxMovingHead";
         object_created = true;
     }
     else if (id == ID_ADD_DMX_MOVING_HEAD_ADV) {
-        LOG_DEBUG("OnAddDmxPopup - ID_ADD_DMX_MOVING_HEAD_ADV");
+        spdlog::debug("OnAddDmxPopup - ID_ADD_DMX_MOVING_HEAD_ADV");
         selectedDmxModelType = "DmxMovingHeadAdv";
         object_created = true;
     }
     else if (id == ID_ADD_DMX_SERVO) {
-        LOG_DEBUG("OnAddDmxPopup - ID_ADD_DMX_SERVO");
+        spdlog::debug("OnAddDmxPopup - ID_ADD_DMX_SERVO");
         selectedDmxModelType = "DmxServo";
         object_created = true;
     }
     else if (id == ID_ADD_DMX_SERVO_3D) {
-        LOG_DEBUG("OnAddDmxPopup - ID_ADD_DMX_SERVO_3D");
+        spdlog::debug("OnAddDmxPopup - ID_ADD_DMX_SERVO_3D");
         selectedDmxModelType = "DmxServo3d";
         object_created = true;
     }
     else if (id == ID_ADD_DMX_SKULL) {
-        LOG_DEBUG("OnAddDmxPopup - ID_ADD_DMX_SKULL");
+        spdlog::debug("OnAddDmxPopup - ID_ADD_DMX_SKULL");
         selectedDmxModelType = "DmxSkull";
         object_created = true;
     }
@@ -7272,7 +7272,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
             else
             {
                 
-                LOG_WARN("LayoutPanel: Error trying to parse XML for paste. Paste request ignored. %s.", (const char *)data.GetText().c_str());
+                spdlog::warn("LayoutPanel: Error trying to parse XML for paste. Paste request ignored. {}.", (const char *)data.GetText().c_str());
             }
         }
     }
@@ -7280,7 +7280,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 
 void LayoutPanel::DoUndo(wxCommandEvent& event) {
     
-    LOG_DEBUG("LayoutPanel::DoUndo");
+    spdlog::debug("LayoutPanel::DoUndo");
     int sz = undoBuffer.size() - 1;
     if (sz >= 0) {
         UnSelectAllModels();
@@ -7288,7 +7288,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
 
 
         if (undoBuffer[sz].type == "Background") {
-            LOG_DEBUG("LayoutPanel::DoUndo Background");
+            spdlog::debug("LayoutPanel::DoUndo Background");
             wxPropertyGridEvent pgEvent;
             pgEvent.SetPropertyGrid(propertyEditor);
             wxStringProperty wsp("Background", undoBuffer[sz].key, undoBuffer[sz].data);
@@ -7298,7 +7298,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             OnPropertyGridChange(pgEvent);
             UnSelectAllModels();
         } else if (undoBuffer[sz].type == "ModelProperty") {
-            LOG_DEBUG("LayoutPanel::DoUndo ModelProperty");
+            spdlog::debug("LayoutPanel::DoUndo ModelProperty");
             SelectModel(undoBuffer[sz].model);
             wxPropertyGridEvent event2;
             event2.SetPropertyGrid(propertyEditor);
@@ -7311,7 +7311,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::DoUndo");
         } else if (undoBuffer[sz].type == "ObjectProperty") {
-            LOG_DEBUG("LayoutPanel::DoUndo ObjectProperty");
+            spdlog::debug("LayoutPanel::DoUndo ObjectProperty");
             ViewObject* vobj = xlights->AllObjects[undoBuffer[sz].model];
             SelectViewObject(vobj);
             wxPropertyGridEvent event2;
@@ -7325,7 +7325,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::DoUndo");
         } else if (undoBuffer[sz].type == "SingleModel") {
-            LOG_DEBUG("LayoutPanel::DoUndo SingleModel");
+            spdlog::debug("LayoutPanel::DoUndo SingleModel");
             Model *m = xlights->AllModels[undoBuffer[sz].model];
             if (m != nullptr) {
                 wxStringInputStream min(undoBuffer[sz].data);
@@ -7344,7 +7344,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
             }
         } else if (undoBuffer[sz].type == "SingleObject") {
-            LOG_DEBUG("LayoutPanel::DoUndo SingleObject");
+            spdlog::debug("LayoutPanel::DoUndo SingleObject");
             ViewObject *m = xlights->AllObjects[undoBuffer[sz].model];
             if (m != nullptr) {
                 wxStringInputStream min(undoBuffer[sz].data);
@@ -7363,7 +7363,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
             }
         } else if (undoBuffer[sz].type == "All") {
-            LOG_DEBUG("LayoutPanel::DoUndo All");
+            spdlog::debug("LayoutPanel::DoUndo All");
             UnSelectAllModels();
 
             wxStringInputStream gin(undoBuffer[sz].groups);
@@ -7417,7 +7417,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::DoUndo", nullptr, nullptr, undoBuffer[sz].model);
         } else if (undoBuffer[sz].type == "ModelName") {
-            LOG_DEBUG("LayoutPanel::DoUndo ModelName");
+            spdlog::debug("LayoutPanel::DoUndo ModelName");
             std::string origName = undoBuffer[sz].model;
             std::string newName = undoBuffer[sz].key;
             if (lastModelName == newName) {
@@ -7429,7 +7429,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoUndo");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
         } else if (undoBuffer[sz].type == "ObjectName") {
-            LOG_DEBUG("LayoutPanel::DoUndo ObjectName");
+            spdlog::debug("LayoutPanel::DoUndo ObjectName");
             std::string origName = undoBuffer[sz].model;
             std::string newName = undoBuffer[sz].key;
             xlights->RenameObject(newName, origName);
@@ -7555,7 +7555,7 @@ void LayoutPanel::CreateUndoPoint(const std::string &tp, const std::string &mode
         parent->InsertChild(xlights->ModelsNode, next);
 
         parent = xlights->ViewObjectsNode->GetParent();
-        if (parent == nullptr) LOG_CRIT("LayoutPanel::CreateUndoPoint ViewObjectsNode Parent was NULL ... this is going to get ugly.");
+        if (parent == nullptr) spdlog::critical("LayoutPanel::CreateUndoPoint ViewObjectsNode Parent was NULL ... this is going to get ugly.");
         next = xlights->ViewObjectsNode->GetNext();
         parent->RemoveChild(xlights->ViewObjectsNode);
         doc.SetRoot(xlights->ViewObjectsNode);
@@ -7587,10 +7587,10 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
 
     int id = event.GetId();
     if (id == ID_MNU_DELETE_MODEL) {
-        LOG_DEBUG("LayoutPanel::OnModelsPopup DELETE_MODEL");
+        spdlog::debug("LayoutPanel::OnModelsPopup DELETE_MODEL");
         DeleteSelectedModels();
     } else if (id == ID_MNU_REMOVE_MODEL_FROM_GROUP) {
-        LOG_DEBUG("LayoutPanel::OnModelsPopup REMOVE_MODEL_FROM_GROUP");
+        spdlog::debug("LayoutPanel::OnModelsPopup REMOVE_MODEL_FROM_GROUP");
         RemoveSelectedModelsFromGroup();
     } else if (id == ID_MNU_EDIT_SUBMODEL_ALIAS) {
         EditSubModelAlias();
@@ -7846,10 +7846,10 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             objects_panel->PreviewObjectResize(true, true);
         }
     } else if (id == ID_MNU_DELETE_MODEL_GROUP) {
-        LOG_DEBUG("LayoutPanel::OnModelsPopup DELETE_MODEL_GROUP");
+        spdlog::debug("LayoutPanel::OnModelsPopup DELETE_MODEL_GROUP");
         DeleteSelectedGroups();
     } else if (id == ID_MNU_DELETE_ALL_ALIASES) {
-        LOG_DEBUG("LayoutPanel::Popup DELETE_ALL_ALIASES");
+        spdlog::debug("LayoutPanel::Popup DELETE_ALL_ALIASES");
         if (wxMessageBox("This will remove aliases from *all* models, groups and submodels.\n Do you wish to continue?", "Delete all Aliases...", wxYES_NO, this) == wxYES) {
             bool deleted = false;
             bool rc = false;
@@ -7876,7 +7876,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             }
         }
     } else if (id == ID_MNU_DELETE_EMPTY_MODEL_GROUPS) {
-        LOG_DEBUG("LayoutPanel::OnModelsPopup DELETE_EMPTY_MODEL_GROUPS");
+        spdlog::debug("LayoutPanel::OnModelsPopup DELETE_EMPTY_MODEL_GROUPS");
 
         bool deleted = true;
 
@@ -7946,7 +7946,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             }
         }
     } else if (id == ID_MNU_RENAME_MODEL_GROUP) {
-        LOG_DEBUG("LayoutPanel::OnModelsPopup RENAME_MODEL_GROUP");
+        spdlog::debug("LayoutPanel::OnModelsPopup RENAME_MODEL_GROUP");
         if (selectedTreeGroups[0].IsOk()) {
             wxString sel = TreeListViewModels->GetItemText(selectedTreeGroups[0]);
             wxTextEntryDialog dlg(this, "Enter new name for group " + sel, "Rename " + sel, sel);
@@ -7975,7 +7975,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
     } else if (event.GetId() == ID_PREVIEW_MODEL_CREATEGROUP) {
         CreateModelGroupFromSelected();
     } else if (id == ID_MNU_ADD_MODEL_GROUP) {
-        LOG_DEBUG("LayoutPanel::OnModelsPopup ADD_MODEL_GROUP");
+        spdlog::debug("LayoutPanel::OnModelsPopup ADD_MODEL_GROUP");
         wxTextEntryDialog dlg(this, "Enter name for new group", "Enter name for new group");
         OptimiseDialogPosition(&dlg);
         if (dlg.ShowModal() == wxID_OK) {
@@ -8006,7 +8006,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
         }
     } else if (id == ID_MNU_CLONE_MODEL_GROUP) {
-        LOG_DEBUG("LayoutPanel::OnModelsPopup CLONE_MODEL_GROUP");
+        spdlog::debug("LayoutPanel::OnModelsPopup CLONE_MODEL_GROUP");
 
         wxString sel = TreeListViewModels->GetItemText(selectedTreeGroups[0]);
         ModelGroup* mg = dynamic_cast<ModelGroup*>(xlights->AllModels.GetModel(sel));
@@ -8129,7 +8129,7 @@ void LayoutPanel::PreviewSaveImage()
 	if (image == nullptr)
 	{
 		
-		LOG_ERROR("SavePreviewImage() - problem grabbing ModelPreview image");
+		spdlog::error("SavePreviewImage() - problem grabbing ModelPreview image");
 
 		wxMessageDialog msgDlg(this, _("Error capturing preview image"), _("Image Capture Error"), wxOK | wxCENTRE);
 		msgDlg.ShowModal();
@@ -8167,7 +8167,7 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
             it2->GetModelXml()->AddAttribute("name", newName);
             it2->GetModelXml()->AddAttribute("LayoutGroup", layoutGroup);
             xlights->AllModels.createAndAddModel(it2->GetModelXml(), modelPreview->getWidth(), modelPreview->getHeight());
-            LOG_DEBUG("Imported model '%s' as '%s'.", (const char*)it2->GetName().c_str(), (const char*)newName.c_str());
+            spdlog::debug("Imported model '{}' as '{}'.", (const char*)it2->GetName().c_str(), (const char*)newName.c_str());
         }
     }
 
@@ -8185,7 +8185,7 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
                 }), models.end());
 
             if (!includeEmptyGroups && models.empty()) {
-                LOG_WARN("Import model group '%s' failed as no models in the group exist in this display.", (const char*)it2->GetName().c_str());
+                spdlog::warn("Import model group '{}' failed as no models in the group exist in this display.", (const char*)it2->GetName().c_str());
                 continue;
             }
 
@@ -8195,7 +8195,7 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
                 it2->GetModelXml()->DeleteAttribute("LayoutGroup");
                 it2->GetModelXml()->AddAttribute("LayoutGroup", layoutGroup);
                 model = xlights->AllModels.createAndAddModel(it2->GetModelXml(), modelPreview->getWidth(), modelPreview->getHeight());
-                LOG_DEBUG("Imported model group '%s'.", (const char*)name.c_str());
+                spdlog::debug("Imported model group '{}'.", (const char*)name.c_str());
             }
 
             if (model->GetDisplayAs() == "ModelGroup") {
@@ -8204,7 +8204,7 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
                     // only add model to group if it doesn't already exist
                     if (group->GetModel(m) == nullptr) {
                         group->AddModel(m);
-                        LOG_DEBUG("    Models model group '%s' added model '%s'.", (const char*)name.c_str(), (const char*)m.c_str());
+                        spdlog::debug("    Models model group '{}' added model '{}'.", (const char*)name.c_str(), (const char*)m.c_str());
                     }
                 }
             }
@@ -8825,7 +8825,7 @@ void LayoutPanel::HandleSelectionChanged() {
     resetPropertyGrid();
 
     if (sw.Time() > 500)
-        LOG_DEBUG("        LayoutPanel::HandleSelectionChanged after reset of property grid %lums", sw.Time());
+        spdlog::debug("        LayoutPanel::HandleSelectionChanged after reset of property grid {}ms", sw.Time());
 
     if (selectedItems.size() > 0) {
         bool isPrimary = false;
@@ -8839,7 +8839,7 @@ void LayoutPanel::HandleSelectionChanged() {
                 #ifdef __LINUX__
                                 // This seems to happen only on Linux so prevent the crash
                                 if (!xlights->AllModels.IsModelValid(model)) {
-                                    LOG_DEBUG("LINUX ONLY Error: LayoutPanel::OnSelectionChanged Model is Not Valid pointer. This would have crashed. Ignoring.");
+                                    spdlog::debug("LINUX ONLY Error: LayoutPanel::OnSelectionChanged Model is Not Valid pointer. This would have crashed. Ignoring.");
                                     return;
                                 }
                 #elif defined(__WXOSX__)
@@ -8847,7 +8847,7 @@ void LayoutPanel::HandleSelectionChanged() {
                                 // If is likely due to differences in the order messages arrive on the different platforms that results in invalid pointers
                                 // This code will prove that theory
                                 if (!xlights->AllModels.IsModelValid(model)) {
-                                    LOG_CRIT("LayoutPanel::OnSelectionChanged model was not valid ... this is going to crash.");
+                                    spdlog::critical("LayoutPanel::OnSelectionChanged model was not valid ... this is going to crash.");
                                 }
                 #else
                                 wxASSERT(xlights->AllModels.IsModelValid(model));
@@ -8870,7 +8870,7 @@ void LayoutPanel::HandleSelectionChanged() {
             }
         }
         if (sw.Time() > 500)
-            LOG_DEBUG("        LayoutPanel::HandleSelectionChanged after select in tree %lums", sw.Time());
+            spdlog::debug("        LayoutPanel::HandleSelectionChanged after select in tree {}ms", sw.Time());
 
         // if we still don't have a primary model selected then force one if we can
         if (selectedPrimaryTreeItem == nullptr) {
@@ -8888,7 +8888,7 @@ void LayoutPanel::HandleSelectionChanged() {
         }
 
         if (sw.Time() > 500)
-            LOG_DEBUG("        LayoutPanel::HandleSelectionChanged after force select %lums", sw.Time());
+            spdlog::debug("        LayoutPanel::HandleSelectionChanged after force select {}ms", sw.Time());
 
         // determine which panel and tooltip to show if any
         int mSize = selectedTreeModels.size();
@@ -8923,7 +8923,7 @@ void LayoutPanel::HandleSelectionChanged() {
                     tooltip += "\nFrom Base Show Folder";
                 }
             } else {
-                LOG_CRIT("LayoutPanel::HandleSelectionChanged Model was selected and now is null, this should not have happened.");
+                spdlog::critical("LayoutPanel::HandleSelectionChanged Model was selected and now is null, this should not have happened.");
             }
             if (selectedBaseObject->GetModelXml()->HasAttribute("X2")) {
                 float x1 = wxAtof(selectedBaseObject->GetModelXml()->GetAttribute("X1", "0"));
@@ -8946,14 +8946,14 @@ void LayoutPanel::HandleSelectionChanged() {
             SetupPropGrid(model);
             ShowPropGrid(true);
         } else {
-            LOG_CRIT("LayoutPanel::HandleSelectionChanged No models selected after processing, this should not have happen, when we started there were %d selections.", selectedItems.size());
+            spdlog::critical("LayoutPanel::HandleSelectionChanged No models selected after processing, this should not have happen, when we started there were {} selections.", selectedItems.size());
             showBackgroundProperties();
         }
 
         SetToolTipForTreeList(TreeListViewModels, tooltip);
 
         if (sw.Time() > 500)
-            LOG_DEBUG("        LayoutPanel::HandleSelectionChanged after tooltip %lums", sw.Time());
+            spdlog::debug("        LayoutPanel::HandleSelectionChanged after tooltip {}ms", sw.Time());
 
         // removing below or Keyboard Cut/Copy/Paste/etc will not fire when making selections in preview
         // #ifndef LINUX
@@ -8979,7 +8979,7 @@ void LayoutPanel::HandleSelectionChanged() {
     }
 
     if (sw.Time() > 500)
-        LOG_DEBUG("        LayoutPanel::HandleSelectionChanged took %lums", sw.Time());
+        spdlog::debug("        LayoutPanel::HandleSelectionChanged took {}ms", sw.Time());
 }
 
 void LayoutPanel::ModelGroupUpdated(ModelGroup *grp) {
@@ -9253,7 +9253,7 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event) {
         } else if (type == "MODEL_FLIP_HORIZ") {
             PreviewModelFlipH();
         } else {
-            LOG_WARN("Keybinding '%s' not recognised.", (const char*)type.c_str());
+            spdlog::warn("Keybinding '{}' not recognised.", (const char*)type.c_str());
             wxASSERT(false);
             return false;
         }

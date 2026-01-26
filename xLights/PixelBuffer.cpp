@@ -17,7 +17,7 @@
 #include "models/ModelGroup.h"
 #include "models/ModelManager.h"
 #include "models/SingleLineModel.h"
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include <wx/tokenzr.h>
 
 #include "DissolveTransitionPattern.h"
@@ -1381,7 +1381,7 @@ void PixelBufferClass::GetMixedColor(int lx, int ly, xlColor& c, const std::vect
 
             // TEMPORARY - THIS SHOULD BE REMOVED BUT I WANT TO SEE WHAT IS CAUSING SOME RANDOM CRASHES - KW - 2017.7
             if (thelayer == nullptr) {
-                LOG_CRIT("PixelBufferClass::GetMixedColor thelayer is nullptr ... this is going to crash.");
+                spdlog::critical("PixelBufferClass::GetMixedColor thelayer is nullptr ... this is going to crash.");
             }
 
             if (x >= thelayer->BufferWi || y >= thelayer->BufferHt || x < 0 || y < 0) {
@@ -2356,9 +2356,9 @@ void PixelBufferClass::UnMergeBuffersForLayer(int layer) {
                     // To find the cause uncomment the model group function TestNodeInit and the call in PixelBuffer::SetLayerSettings
 
                     if (layers[layer]->buffer.curPeriod == layers[layer]->buffer.curEffStartPer) {
-                        LOG_WARN("PixelBufferClass::UnMergeBuffersForLayer(%d) Model '%s' Mismatch in number of nodes across layers.", layer, (const char*)modelName.c_str());
+                        spdlog::warn("PixelBufferClass::UnMergeBuffersForLayer({}) Model '{}' Mismatch in number of nodes across layers.", layer, (const char*)modelName.c_str());
                         for (int i = 0; i < GetLayerCount(); i++) {
-                            LOG_WARN("    Layer %d node count %d buffer '%s'", i, (int)layers[i]->buffer.Nodes.size(), (const char*)layers[i]->bufferType.c_str());
+                            spdlog::warn("    Layer {} node count {} buffer '{}'", i, (int)layers[i]->buffer.Nodes.size(), (const char*)layers[i]->bufferType.c_str());
                         }
                         int mbnodes = 0;
                         for (const auto& mb : *(layers[layer]->modelBuffers)) {
@@ -2396,9 +2396,9 @@ void PixelBufferClass::MergeBuffersForLayer(int layer) {
                     // To find the cause uncomment the model group function TestNodeInit and the call in PixelBuffer::SetLayerSettings
 
                     if (layers[layer]->buffer.curPeriod == layers[layer]->buffer.curEffStartPer) {
-                        LOG_WARN("PixelBufferClass::MergeBuffersForLayer(%d) Model '%s' Mismatch in number of nodes across layers.", layer, (const char*)modelName.c_str());
+                        spdlog::warn("PixelBufferClass::MergeBuffersForLayer({}) Model '{}' Mismatch in number of nodes across layers.", layer, (const char*)modelName.c_str());
                         for (int i = 0; i < GetLayerCount(); i++) {
-                            LOG_WARN("    Layer %d node count %d buffer '%s'", i, (int)layers[i]->buffer.Nodes.size(), (const char*)layers[i]->bufferType.c_str());
+                            spdlog::warn("    Layer {} node count {} buffer '{}'", i, (int)layers[i]->buffer.Nodes.size(), (const char*)layers[i]->bufferType.c_str());
                         }
                         int mbnodes = 0;
                         for (const auto& mb : *(layers[layer]->modelBuffers)) {
@@ -3594,7 +3594,7 @@ void PixelBufferClass::LayerInfo::calculateMask(const std::string& type, bool mo
         break;
     default:
         if (isFirstFrame) {
-            LOG_WARN("Unrecognised transition type '%s'.", (const char*)type.c_str());
+            spdlog::warn("Unrecognised transition type '{}'.", (const char*)type.c_str());
         }
         break;
     }

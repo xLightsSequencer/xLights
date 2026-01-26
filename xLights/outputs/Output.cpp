@@ -36,7 +36,7 @@
 #include "../utils/ip_utils.h"
 #include "Controller.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #pragma region Private Functions
 void Output::Save(wxXmlNode* node) {
@@ -169,7 +169,7 @@ Output* Output::Create(Controller* c, wxXmlNode* node, std::string showDir) {
         return new TwinklyOutput(node, c && c->IsActive());
     }
 
-    LOG_WARN("Unknown network type %s ignored.", (const char *)type.c_str());
+    spdlog::warn("Unknown network type {} ignored.", (const char *)type.c_str());
     wxASSERT(false);
     return nullptr;
 }

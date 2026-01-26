@@ -16,7 +16,7 @@
 
 #include "PhonemeDictionary.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 
@@ -78,12 +78,12 @@ void PhonemeDictionary::LoadDictionary(const wxString &filename, const wxString 
     }
 
     if (!FileExists(phonemeFile.GetFullPath())) {
-        LOG_WARN("Failed to open phoneme dictionary. '%s'", (const char *)filename.c_str());
+        spdlog::warn("Failed to open phoneme dictionary. '{}'", (const char *)filename.c_str());
         DisplayError("Failed to open Phoneme dictionary!");
         return;
     }
 
-    LOG_DEBUG("Loading phoneme dictionary. '%s'", (const char *)phonemeFile.GetFullPath().c_str());
+    spdlog::debug("Loading phoneme dictionary. '{}'", (const char *)phonemeFile.GetFullPath().c_str());
 
     wxProgressDialog dlg("Loading", "Loading dictionary " + phonemeFile.GetName(), 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
 

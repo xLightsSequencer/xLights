@@ -27,7 +27,7 @@
 
 #include "ExternalHooks.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 //(*InternalHeaders(MovingHeadPanel)
 #include <wx/bitmap.h>
@@ -563,7 +563,7 @@ void MovingHeadPanel::OnResize(wxSizeEvent& event)
 void MovingHeadPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
 {
     
-    LOG_INFO("MovingHeadPanel Scanning directory for *.xmh files: %s.", (const char *)directory.GetNameWithSep().c_str());
+    spdlog::info("MovingHeadPanel Scanning directory for *.xmh files: {}.", (const char *)directory.GetNameWithSep().c_str());
 
     auto existing = FlexGridSizerPresets->GetChildren();
     auto existing_path = FlexGridSizerPathPresets->GetChildren();
@@ -595,7 +595,7 @@ void MovingHeadPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
             }
         }
     }
-    LOG_INFO("    Found %d.", count);
+    spdlog::info("    Found {}.", count);
 
     if (subdirs) {
         wxString filename;
@@ -699,7 +699,7 @@ void MovingHeadPanel::PopulatePresets()
     }
     else
     {
-        LOG_INFO("Directory for *.xmh files not found: %s.", (const char *)d.c_str());
+        spdlog::info("Directory for *.xmh files not found: {}.", (const char *)d.c_str());
     }
 
     wxStandardPaths stdp = wxStandardPaths::Get();
@@ -717,7 +717,7 @@ void MovingHeadPanel::PopulatePresets()
     }
     else
     {
-        LOG_INFO("Directory for *.xmh files not found: %s.", (const char *)d.c_str());
+        spdlog::info("Directory for *.xmh files not found: {}.", (const char *)d.c_str());
     }
 }
 
@@ -785,7 +785,7 @@ void MovingHeadPanel::SavePreset(const wxArrayString& preset, bool is_path, bool
     wxFile f(filename);
 
     
-    LOG_INFO("Saving to xcc file %s.", (const char *)filename.c_str());
+    spdlog::info("Saving to xcc file {}.", (const char *)filename.c_str());
 
     bool replace_existing {false};
     if( f.Exists(filename) ) {

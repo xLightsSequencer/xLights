@@ -17,7 +17,7 @@
 #include "Model.h"
 #include "RulerObject.h"
 #include "../ExternalHooks.h"
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 TerrianObject::TerrianObject(wxXmlNode *node, const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), _imageFile(""), spacing(50), gridColor(xlColor(0,128, 0)),
@@ -273,7 +273,7 @@ bool TerrianObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
 
     if (_images.find(preview->GetName().ToStdString()) == _images.end()) {
         if (FileExists(_imageFile)) {
-            LOG_DEBUG("Loading image model %s file %s for preview %s.",
+            spdlog::debug("Loading image model {} file {} for preview {}.",
                 (const char *)GetName().c_str(),
                 (const char *)_imageFile.c_str(),
                 (const char *)preview->GetName().c_str());

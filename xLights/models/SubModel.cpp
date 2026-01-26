@@ -16,7 +16,7 @@
 #include <wx/tokenzr.h>
 #include <wx/propgrid/propgrid.h>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 static const std::string DEFAULT("Default");
 static const std::string KEEP_XY("Keep XY");
@@ -97,7 +97,7 @@ SubModel::SubModel(Model* p, wxXmlNode* n) :
     StringType = p->StringType;
 
     //
-    //LOG_DEBUG("Submodel init %s:%s", (const char*)p->GetFullName().c_str(), (const char*)name.c_str());
+    //spdlog::debug("Submodel init {}:{}", (const char*)p->GetFullName().c_str(), (const char*)name.c_str());
 
     bool vert = _layout == "vertical";
     bool isRanges = _type == "ranges";

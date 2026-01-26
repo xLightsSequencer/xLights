@@ -35,12 +35,8 @@
 
 #include <map>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
-#define DO_LOG_GL_MSG(a, ...)                         \
-    m_logger->error(fmt::sprintf(a, __VA_ARGS__)); \
-    printf(a, ##__VA_ARGS__);                         \
-    printf("\n")
 
 static bool isDebugEnabled = false;
 static bool isTraceDebugEnabled = false;
@@ -90,16 +86,16 @@ void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
             }
             if (isTraceDebugEnabled) {
                 if (msg) {
-                    m_logger->debug("%s/%d - %s:   %X", f2, line, msg, er);
+                    m_logger->debug("{}/{} - {}:   {:X}", f2, line, msg, er);
                 } else {
-                    m_logger->debug("%s/%d:   %X", f2, line, er);
+                    m_logger->debug("{}/{}:   {:X}", f2, line, er);
                 }
             }
             if (er) {
                 if (msg) {
-                    DO_LOG_GL_MSG("%s/%d - %s:   %X", f2, line, msg, er);
+                    m_logger->error("{}/{} - {}:   {:X}", f2, line, msg, er);
                 } else {
-                    DO_LOG_GL_MSG("%s/%d:   %X", f2, line, er);
+                    m_logger->error("{}/{}:   {:X}", f2, line, er);
                 }
             }
         }

@@ -391,7 +391,7 @@ std::string AlphaPix::ExtractFromPage(const wxString& page, const std::string& p
         //<input\s+style\s=\s\".*\"\stype="text"\s+value=\")([0-9\\.]*?)\"
         //<input\s+style\s=\s\".*\"\stype=\"text\"\s+value=\"(.*)\"\s+name=\"SU1\"
         const wxString regex = "<input\\s+style\\s?=\\s?\\\".*\\\"\\stype=\\\"text\\\"\\s+value=\\\"(.*)\\\"\\s+name=\\\"" + parameter + "\\\"";
-        //LOG_DEBUG("Regex:%s", (const char*)regex.c_str());
+        //spdlog::debug("Regex:{}", (const char*)regex.c_str());
 
         wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
         if (inputregex.Matches(wxString(p))) {
@@ -405,7 +405,7 @@ std::string AlphaPix::ExtractFromPage(const wxString& page, const std::string& p
         //<select name="RGBS"
         //<option value="([0-9])\"\sselected=\"selected\"
         const wxString regex = "<option\\s+value=\"([0-9])\\\"\\sselected=\\\"selected\\\"";
-        //LOG_DEBUG("Regex:%s", (const char*)regex.c_str());
+        //spdlog::debug("Regex:{}", (const char*)regex.c_str());
         wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
         if (inputregex.Matches(wxString(pSel))) {
             const std::string res = inputregex.GetMatch(wxString(pSel), 1).ToStdString();
@@ -415,7 +415,7 @@ std::string AlphaPix::ExtractFromPage(const wxString& page, const std::string& p
     else if (type == "checkbox") {
         //<input\s+(?:style\s=\s\".*\"\s+)?type=\"checkbox\"\s+name=\"(\w+)\"\s+(checked=\"checked\"\s+)?value=\"[0-9]\"
         const wxString regex = "<input\\s+(?:style\\s?=\\s?\\\".*\\\"\\s+)?type=\"checkbox\"\\s+name=\\\"" + parameter + "\"\\s+(checked=\\\"checked\\\"\\s+)?value=\\\"[0-9]\\\"";
-        //LOG_DEBUG("Regex:%s", (const char*)regex.c_str());
+        //spdlog::debug("Regex:{}", (const char*)regex.c_str());
         wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
         if (inputregex.Matches(wxString(p))) {
             const std::string res = inputregex.GetMatch(wxString(p), 0).ToStdString();
@@ -430,7 +430,7 @@ std::string AlphaPix::ExtractFromPage(const wxString& page, const std::string& p
     else if (type == "radio") {
         // <input\s+type="radio"\s+(?:id="\w+")?\s+name=\"\w+"\s+value=\"([0-9])\"\s+checked="checked"
         const wxString regex = "<input\\s+type=\"radio\"\\s+(?:id=\"\\w+\")?\\s+name=\\\"" + parameter + "\"\\s+value=\\\"([0-9])\\\"\\s+checked=\"checked\"";
-        //LOG_DEBUG("Regex:%s", (const char*)regex.c_str());
+        //spdlog::debug("Regex:{}", (const char*)regex.c_str());
         wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
         if (inputregex.Matches(wxString(p))) {
             const std::string res = inputregex.GetMatch(wxString(p), 1).ToStdString();

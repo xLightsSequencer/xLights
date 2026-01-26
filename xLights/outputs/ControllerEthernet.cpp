@@ -34,7 +34,7 @@
 #include "../xLightsMain.h"
 #endif
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #pragma region Property Choices
 wxPGChoices ControllerEthernet::__types;
@@ -987,7 +987,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
                             size_t uch = std::min(chs, (size_t)channels_per_universe);
                             wxASSERT(o != end(_outputs));
                             if (o == end(_outputs)) {
-                                LOG_DEBUG("Unexpected error. Not enough outputs. Channels remaining: %zu, Outputs size: %zu", chs, _outputs.size());
+                                spdlog::debug("Unexpected error. Not enough outputs. Channels remaining: {}, Outputs size: {}", chs, _outputs.size());
                                 return false;
                             }
                             (*o)->SetChannels(uch);

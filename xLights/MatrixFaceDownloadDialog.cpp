@@ -38,7 +38,7 @@
 #include <wx/stopwatch.h>
 #include "CachedFileDownloader.h"
 #include <wx/log.h>
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 
@@ -138,7 +138,7 @@ public:
                 else if (nn == "id")
                 {
                     _id = l->GetNodeContent().ToStdString();
-                    //LOG_DEBUG("Face id %s", (const char *)_id.c_str());
+                    //spdlog::debug("Face id {}", (const char *)_id.c_str());
                 }
                 else if (nn == "categoryid")
                 {
@@ -418,7 +418,7 @@ MatrixFaceDownloadDialog::MatrixFaceDownloadDialog(wxWindow* parent, wxWindowID 
     SetSize(800, 600);
 
     
-    LOG_DEBUG("File cache size: %d", GetCache().size());
+    spdlog::debug("File cache size: {}", GetCache().size());
 
     PopulateFacePanel((MFace*)nullptr);
 

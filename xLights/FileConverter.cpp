@@ -36,7 +36,7 @@
 #endif
 #include "xLightsVersion.h"
 #include "ExternalHooks.h"
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 static const int MAX_READ_BLOCK_SIZE = 4096 * 1024;
 
@@ -51,7 +51,7 @@ void ConvertParameters::AppendConvertStatus(const wxString& msg, bool flushbuffe
         convertLogDialog->AppendConvertStatus(msg + "\n", flushbuffer);
     }
     
-    LOG_INFOWX("Convert Status: " + msg);
+    spdlog::info("Convert Status: " + msg.ToStdString());
 }
 
 
@@ -237,10 +237,10 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
 {
     
 
-    LOG_DEBUG("ReadLorFile %s.", (const char *)params.inp_filename.c_str());
-    LOG_DEBUG("     Channels Off At End? %s.", toStr(params.channels_off_at_end ));
-    LOG_DEBUG("     Map Empty Channels? %s.", toStr(params.map_empty_channels));
-    LOG_DEBUG("     Map No Network Channels? %s.", toStr(params.map_no_network_channels));
+    spdlog::debug("ReadLorFile {}.", (const char *)params.inp_filename.c_str());
+    spdlog::debug("     Channels Off At End? {}.", toStr(params.channels_off_at_end ));
+    spdlog::debug("     Map Empty Channels? {}.", toStr(params.map_empty_channels));
+    spdlog::debug("     Map No Network Channels? {}.", toStr(params.map_no_network_channels));
 
     wxString NodeName, deviceType, networkAsString;
     wxArrayString context;
@@ -1530,7 +1530,7 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
 
     FSEQFile *file = FSEQFile::openFSEQFile(params.inp_filename);
     if (!file) {
-        LOG_DEBUG("Unable to load sequence: %s.", (const char*)params.inp_filename.c_str());
+        spdlog::debug("Unable to load sequence: {}.", (const char*)params.inp_filename.c_str());
         params.PlayerError(wxString("Unable to load sequence:\n") + params.inp_filename);
         return;
     }
@@ -1592,7 +1592,7 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
             if (!data->readFrame(&params.seq_data[periodsRead][0], params.seq_data.NumChannels()))
             {
                 // fseq file corrupt
-                LOG_ERROR("FSEQ file seems to be corrupt.");
+                spdlog::error("FSEQ file seems to be corrupt.");
             }
         } else {
             if (data->readFrame(tmpBuf, numChannels))
@@ -1613,7 +1613,7 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
             else
             {
                 // fseq file corrupt
-                LOG_ERROR("FSEQ file seems to be corrupt.");
+                spdlog::error("FSEQ file seems to be corrupt.");
             }
         }
         delete data;
@@ -1652,7 +1652,7 @@ static int compressMemoryBuffer(const wxMemoryOutputStream &out, uint8_t *outbuf
 void FileConverter::WriteFalconPiFile(ConvertParameters& params)
 {
     
-    LOG_DEBUG("Start fseq write");
+    spdlog::debug("Start fseq write");
        
     const wxUint8 fType = params.xLightsFrm->_fseqVersion;
     int vMajor = 2;
@@ -1715,7 +1715,7 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
         for (auto &r : params.ranges) {
             V2FSEQFile* v2file = (V2FSEQFile*)file;
             v2file->m_sparseRanges.push_back(r);
-            LOG_INFO("Sparse range - Start: %d  End: %d   Size: %d\n", r.first + 1, (r.first + r.second), r.second);
+            spdlog::info("Sparse range - Start: {}  End: {}   Size: {}\n", r.first + 1, (r.first + r.second), r.second);
         }
     }
     if (vMajor == 2 && params.elements) {
@@ -1831,5 +1831,5 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
     }
     file->finalize();
     delete file;
-    LOG_DEBUG("End fseq write");
+    spdlog::debug("End fseq write");
 }

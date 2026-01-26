@@ -32,7 +32,7 @@
 #include "controllers/Falcon.h"
 #endif
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include "utils/CurlManager.h"
 
@@ -362,7 +362,7 @@ void Discovery::AddCurl(const std::string &host, const std::string &url, std::fu
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 3000L);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 10000L);
 
-    LOG_INFO("Discovery Adding CURL - URL: %s    Method: GET", furl.c_str());
+    spdlog::info("Discovery Adding CURL - URL: {}    Method: GET", furl.c_str());
 
     int authStatus = data->authStatus;
     CurlManager::INSTANCE.addCURL(furl, curl, [this, url, furl, host, callback, authStatus, data](CURL* c) {
@@ -374,7 +374,7 @@ void Discovery::AddCurl(const std::string &host, const std::string &url, std::fu
         curl_easy_getinfo(c, CURLINFO_PRIVATE, &cpd);
         curl_easy_getinfo(c, CURLINFO_RESPONSE_CODE, &rc);
 
-        LOG_INFO("    Discovery CURL Callback - URL: %s  RC: %d    Size: %d", furl.c_str(), rc, cpd ? cpd->resp.size() : -1);
+        spdlog::info("    Discovery CURL Callback - URL: {}  RC: {}    Size: {}", furl.c_str(), rc, cpd ? cpd->resp.size() : -1);
         if (rc == 401) {
             if (HandleAuth(host, c, authStatus) || authStatus != data->authStatus) {
                 data->urls.erase(furl);
@@ -382,7 +382,7 @@ void Discovery::AddCurl(const std::string &host, const std::string &url, std::fu
                     return callback(rc, buffer, errorBuffer);
                 });
             } else {
-                LOG_INFO("    Discovery CURL Callback - Unauthorized");
+                spdlog::info("    Discovery CURL Callback - Unauthorized");
             }
         } else {
             std::string resp(reinterpret_cast<char*>(cpd->resp.data()), cpd->resp.size());

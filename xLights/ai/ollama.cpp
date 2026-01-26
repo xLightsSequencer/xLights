@@ -9,7 +9,7 @@
 #include <vector>
 #include <string>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include <nlohmann/json.hpp>
 

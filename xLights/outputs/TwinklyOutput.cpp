@@ -14,7 +14,7 @@
 #include "../UtilFunctions.h"
 
 #include "../utils/Curl.h"
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include <wx/base64.h>
 #include <wx/protocol/http.h>
 #include <wx/sstream.h>
@@ -768,7 +768,7 @@ nlohmann::json TwinklyOutput::Query(const std::string& ip, uint8_t type, const s
                 lastread = datagram->LastReadCount();
 
                 if (lastread > 0) {
-                    spdlog::debug(" Read done. %d bytes %ldms", lastread, sw.Time());
+                    spdlog::debug(" Read done. {} bytes {}ms", lastread, sw.Time());
 
                     if (response[0] == 0x01 && response[1] == 'd' && response[2] == 'i') {
                         // getting my own QUERY request, ignore

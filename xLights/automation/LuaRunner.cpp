@@ -14,7 +14,7 @@
 #include "UtilFunctions.h"
 #include "../ExternalHooks.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include <wx/stdpaths.h>
 
@@ -87,7 +87,7 @@ std::pair<std::list<std::string>, bool> LuaRunner::PromptSequences() const
             if (FileExists(fname)) {
                 sequenceList.push_back(fname.GetFullPath());
             } else {
-                LOG_INFO("PromptSequences: Sequence File not Found: %s.", (const char*)fname.GetFullPath().c_str());
+                spdlog::info("PromptSequences: Sequence File not Found: {}.", (const char*)fname.GetFullPath().c_str());
             }
         }
         if (dlg.CheckBox_ForceHighDefinition->IsChecked()) {
@@ -153,8 +153,8 @@ bool LuaRunner::Run_Script(std::string const& filepath, std::function<void(std::
         // check if it's successfully loaded
         if (!lr.valid()) {
             sol::error err = lr;
-            LOG_INFO("LuaRunner: Script is Invalid: %s.", (const char*)filepath.c_str());
-            LOG_INFO("LuaRunner: Error: %s.", err.what());
+            spdlog::info("LuaRunner: Script is Invalid: {}.", (const char*)filepath.c_str());
+            spdlog::info("LuaRunner: Error: {}.", err.what());
             wxMessageBox("Script is Invalid: " + filepath + "\n\n" + err.what(), "Load Script Error", wxOK);
             return false;
         }
@@ -163,15 +163,15 @@ bool LuaRunner::Run_Script(std::string const& filepath, std::function<void(std::
         // check if it was done properly
         if (!result2.valid()) {
             sol::error err2 = result2;
-            LOG_INFO("LuaRunner: Error Running Script: %s.", (const char*)filepath.c_str());
-            LOG_INFO("LuaRunner: Error: %s.", err2.what());
+            spdlog::info("LuaRunner: Error Running Script: {}.", (const char*)filepath.c_str());
+            spdlog::info("LuaRunner: Error: {}.", err2.what());
             SendResponse(err2.what());
             wxMessageBox("Error Running Script: " + filepath + "\n\n" + err2.what(), "Script Error", wxOK);
             return false;
         }
     } catch (std::exception& e) {
-        LOG_INFO("LuaRunner: Throw Running Script: %s.", (const char*)filepath.c_str());
-        LOG_INFO("LuaRunner: Error: %s.", e.what());
+        spdlog::info("LuaRunner: Throw Running Script: {}.", (const char*)filepath.c_str());
+        spdlog::info("LuaRunner: Error: {}.", e.what());
         SendResponse(e.what());
         wxMessageBox(e.what(), "Error", wxOK);
         return false;
@@ -239,7 +239,7 @@ sol::object LuaRunner::JSONToTable(std::string const& json, sol::this_state s) c
         return getObjectType(val, lua);
     } catch (std::exception&) {
     }
-    LOG_INFO("LuaRunner: Could not Parse JSON: %s.", (const char*)json.c_str());
+    spdlog::info("LuaRunner: Could not Parse JSON: {}.", (const char*)json.c_str());
     return sol::make_object(lua, json);
 }
 

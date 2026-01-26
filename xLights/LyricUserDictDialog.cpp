@@ -21,7 +21,7 @@
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 #include <wx/msgdlg.h>
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 
@@ -255,7 +255,7 @@ void LyricUserDictDialog::ReadUserDictionary() const
     }
 
     if (!FileExists(phonemeFile.GetFullPath())) {
-        LOG_ERROR("Could Not Find user_dictionary file");
+        spdlog::error("Could Not Find user_dictionary file");
         return;
     }
 
@@ -295,7 +295,7 @@ void LyricUserDictDialog::WriteUserDictionary() const
         f.Close();
     }
     else {
-        LOG_ERROR("Could Not Save user_dictionary file");
+        spdlog::error("Could Not Save user_dictionary file");
     }
 }
 

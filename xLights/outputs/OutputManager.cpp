@@ -37,7 +37,7 @@
 
 #include <numeric>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #pragma region Static Variables
 int OutputManager::_lastSecond = -10;
@@ -87,12 +87,12 @@ bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc
                         if (ipo->GetIP() == "MULTICAST") {
                             newsc = wxString::Format("#%d:%d", it->first->GetUniverse(), scc);
                             changed = true;
-                            LOG_DEBUG("Networks conversion MULTICAST %s converted start channel '%s' to '%s'.", (const char*)it->first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
+                            spdlog::debug("Networks conversion MULTICAST {} converted start channel '{}' to '{}'.", (const char*)it->first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
                         }
                         else {
                             newsc = wxString::Format("#%s:%d:%d", it->first->GetIP(), it->first->GetUniverse(), scc);
                             changed = true;
-                            LOG_DEBUG("Networks conversion %s converted start channel '%s' to '%s'.", (const char*)it->first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
+                            spdlog::debug("Networks conversion {} converted start channel '{}' to '{}'.", (const char*)it->first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
                         }
                     }
                     else {
@@ -101,7 +101,7 @@ bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc
                         // convert to !name:sc if description isnt blank
                         newsc = wxString::Format("!%s:%d", it->second->GetName(), scc);
                         changed = true;
-                        LOG_DEBUG("Networks conversion %s converted start channel '%s' to '%s'.", (const char*)it->first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
+                        spdlog::debug("Networks conversion {} converted start channel '{}' to '{}'.", (const char*)it->first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
                     }
                 }
             }
@@ -123,7 +123,7 @@ bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc
 
                     newsc = wxString::Format("!%s:%d", it.second->GetName(), nsc + scc);
                     changed = true;
-                    LOG_DEBUG("Networks conversion %s converted start channel '%s' to '%s'.", (const char*)it.first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
+                    spdlog::debug("Networks conversion {} converted start channel '{}' to '{}'.", (const char*)it.first->GetType().c_str(), (const char*)sc.c_str(), (const char*)newsc.c_str());
                     break;
                 }
             }
@@ -288,7 +288,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
                 _suppressFrames = wxAtoi(e->GetAttribute("frames"));
             }
             else if (e->GetName() == "testpreset") {
-                LOG_DEBUG("Loading test presets.");
+                spdlog::debug("Loading test presets.");
                 TestPreset* tp = new TestPreset(e);
 
                 bool exists = false;
@@ -315,7 +315,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
         }
     }
     else {
-        LOG_WARN("Error loading networks file: %s.", (const char*)fn.GetFullPath().c_str());
+        spdlog::warn("Error loading networks file: {}.", (const char*)fn.GetFullPath().c_str());
         return false;
     }
 
@@ -325,7 +325,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
             dynamic_cast<ControllerEthernet*>(it)->SetGlobalForceLocalIP(_globalForceLocalIP);
     }
 
-    LOG_DEBUG("Networks loaded.");
+    spdlog::debug("Networks loaded.");
 
     AsyncPingAll();
     UpdateUnmanaged();
@@ -346,12 +346,12 @@ bool OutputManager::MergeFromBase(bool prompt)
 
         if (_globalFPPProxy == "" && baseOM.GetGlobalFPPProxy() != "") {
             SetGlobalFPPProxy(baseOM.GetGlobalFPPProxy());
-            LOG_DEBUG("Updating global FPP Proxy from base show folder.");
+            spdlog::debug("Updating global FPP Proxy from base show folder.");
         }
 
         if (_globalForceLocalIP == "" && baseOM.GetGlobalForceLocalIP() != "") {
             SetGlobalForceLocalIP(baseOM.GetGlobalForceLocalIP());
-            LOG_DEBUG("Updating global Force Local IP from base show folder.");
+            spdlog::debug("Updating global Force Local IP from base show folder.");
         }
 
         for (const auto& baseit : baseOM.GetControllers())
@@ -376,9 +376,9 @@ bool OutputManager::MergeFromBase(bool prompt)
                         if (force) it->SetFromBase(true);
                         bool thischanged = it->UpdateFrom(baseit);
                         changed = thischanged || changed;
-                        if (thischanged) LOG_DEBUG("Controller '%s' updated from base show folder.", (const char*)it->GetName().c_str());
+                        if (thischanged) spdlog::debug("Controller '{}' updated from base show folder.", (const char*)it->GetName().c_str());
                     } else {
-                        LOG_DEBUG("Controller '%s' NOT updated from base show folder as it never came from there.", (const char*)it->GetName().c_str());
+                        spdlog::debug("Controller '{}' NOT updated from base show folder as it never came from there.", (const char*)it->GetName().c_str());
                     }
                 }
             }
@@ -388,7 +388,7 @@ bool OutputManager::MergeFromBase(bool prompt)
                 c->SetFromBase(true);
                 AddController(c);
                 changed = true;
-                LOG_DEBUG("Adding controller '%s' from base show folder.", (const char*)c->GetName().c_str());
+                spdlog::debug("Adding controller '{}' from base show folder.", (const char*)c->GetName().c_str());
             }
         }
 
@@ -1149,7 +1149,7 @@ bool OutputManager::IsOutputOpenInAnotherProcess() {
             delete xlconfig;
 
             if (state) {
-                LOG_WARN("Output already seems to be happening. This may generate odd results.");
+                spdlog::warn("Output already seems to be happening. This may generate odd results.");
             }
 
             return state;
@@ -1167,7 +1167,7 @@ bool OutputManager::StartOutput() {
     if (_outputting) return false;
     if (!_outputCriticalSection.TryEnter()) return false;
 
-    LOG_DEBUG("Starting light output.");
+    spdlog::debug("Starting light output.");
 
     int started = 0;
     bool ok = true;
@@ -1192,7 +1192,7 @@ bool OutputManager::StartOutput() {
             auto name = it->GetIP();
             if (name == "") name = it->GetCommPort();
 
-            LOG_ERROR("An error occurred opening output %d (%s). Do you want to continue trying to start output?", started + 1, (const char*)name.c_str());
+            spdlog::error("An error occurred opening output {} ({}). Do you want to continue trying to start output?", started + 1, (const char*)name.c_str());
             if (OutputManager::IsInteractive()) {
                 if (wxMessageBox(wxString::Format(wxT("An error occurred opening output %d (%s). Do you want to continue trying to start output?"), started + 1, name), "Continue?", wxYES_NO) == wxNO) return _outputting;
             }
@@ -1223,7 +1223,7 @@ void OutputManager::StopOutput() {
     if (!_outputting) return;
     if (!_outputCriticalSection.TryEnter()) return;
 
-    LOG_DEBUG("Stopping light output.");
+    spdlog::debug("Stopping light output.");
 
     _outputting = false;
 

@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "WebSocketClient.h"
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 WebSocketClient::WebSocketClient()
 {
@@ -18,8 +18,7 @@ WebSocketClient::WebSocketClient()
 
 bool WebSocketClient::Connect(std::string ip, std::string url)
 {
-    
-    LOG_DEBUG("Connecting to websocket %s %s.", (const char *)ip.c_str(), (const char *)url.c_str());
+    spdlog::debug("Connecting to websocket {} {}.", (const char *)ip.c_str(), (const char *)url.c_str());
 
     wxIPV4address addr;
     addr.Hostname(ip);
@@ -28,13 +27,13 @@ bool WebSocketClient::Connect(std::string ip, std::string url)
     _socket.WaitOnConnect(10);
 
     if (!_socket.IsConnected()) {
-        LOG_ERROR("    Failed to connect.");
+        spdlog::error("    Failed to connect.");
         return false;
     }
 
     _connected = true;
 
-    LOG_DEBUG("    Connected.");
+    spdlog::debug("    Connected.");
 
     if (url == "") url = "/";
     wxString line = wxString::Format("GET %s HTTP/1.1\r\nHost: %s\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\r\nSec-WebSocket-Version: 13\r\nOrigin:http://%s/\r\n\r\n", url, ip, ip);
@@ -43,14 +42,14 @@ bool WebSocketClient::Connect(std::string ip, std::string url)
     wxString answer = ReadSocket();
 
     if (answer.StartsWith("HTTP/1.1 ") && wxAtoi(answer.substr(9)) == 101) {
-        LOG_DEBUG("    Converted to websocket.");
+        spdlog::debug("    Converted to websocket.");
 
         ClearIncomingData();
 
         return true;
     }
 
-    LOG_ERROR("     Failed to convert to web socket %d.", wxAtoi(answer.substr(9)));
+    spdlog::error("     Failed to convert to web socket {}.", wxAtoi(answer.substr(9)));
 
     _socket.Close();
     _connected = false;
@@ -61,7 +60,7 @@ bool WebSocketClient::Connect(std::string ip, std::string url)
 bool WebSocketClient::Send(std::string message)
 {
     
-    LOG_DEBUG("WebSocket Sent: %s", (const char *)message.c_str());
+    spdlog::debug("WebSocket Sent: {}", (const char *)message.c_str());
     //printf("Send: %s\n", message.c_str());
 
     bool useMask = false;
@@ -178,7 +177,7 @@ std::string WebSocketClient::Receive()
 
                     res += std::string((char*)&buffer[header_size]);
                     if (fin) {
-                        LOG_DEBUG("WebSocket Received: %s", (const char *)res.c_str());
+                        spdlog::debug("WebSocket Received: {}", (const char *)res.c_str());
                         //printf("Receive: %s\n", res.c_str());
                         return res;
                     }

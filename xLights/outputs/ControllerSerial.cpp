@@ -32,7 +32,7 @@
 #include "GenericSerialOutput.h"
 #include "../models/ModelManager.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #pragma region Property Choices
 wxPGChoices ControllerSerial::__types;
@@ -439,7 +439,7 @@ void ControllerSerial::SetProtocol(const std::string& type)
         o = new GenericSerialOutput();
     } else {
         wxASSERT(false);
-        LOG_ERROR("Could not create serial output of type %s.", (const char*)type.c_str());
+        spdlog::error("Could not create serial output of type {}.", (const char*)type.c_str());
     }
 
     if (o != nullptr) {

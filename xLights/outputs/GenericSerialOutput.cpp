@@ -1,7 +1,7 @@
 #include "GenericSerialOutput.h"
 
 #include <wx/xml/xml.h>
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #define MAX_PREFIX_POSTFIX 256
 

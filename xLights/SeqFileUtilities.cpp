@@ -58,7 +58,7 @@
 #include "xLightsApp.h"
 #include "xLightsMain.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 void xLightsFrame::AddAllModelsToSequence()
 {
@@ -155,7 +155,7 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
     int ms = atoi(mss.c_str());
 
     
-    LOG_INFO("New sequence created Type %s Timing %dms.", (const char*)(CurrentSeqXmlFile->GetSequenceType().c_str()), ms);
+    spdlog::info("New sequence created Type {} Timing {}ms.", (const char*)(CurrentSeqXmlFile->GetSequenceType().c_str()), ms);
     LoadSequencer(*CurrentSeqXmlFile);
     CurrentSeqXmlFile->SetSequenceLoaded(true);
     if (_sequenceElements.GetNumberOfTimingElements() == 0) {
@@ -248,7 +248,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
     } else {
         filename = passed_filename;
     }
-    LOG_DEBUG("Opening File: %s", (const char*)filename.ToStdString().c_str());
+    spdlog::debug("Opening File: {}", (const char*)filename.ToStdString().c_str());
     if (!filename.empty()) {
         if (filename.Contains(XLIGHTS_RGBEFFECTS_FILE) || filename.Contains(XLIGHTS_NETWORK_FILE) || filename.Contains(XLIGHTS_KEYBINDING_FILE)) {
             wxMessageBox("the 'xlights_rgbeffects.xml', 'xlights_networks.xml' or 'xlights_keybindings.xml' files are not valid sequence files", "Error");
@@ -335,7 +335,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                 // no FSEQ file found in FSEQ Folder, look for it next to the SEQ File
                 if (FileExists(fseq_file_SEQ_fold)) {
                     // if found, move file to fseq folder
-                    LOG_DEBUG("Moving FSEQ File: '%s' to '%s'", (const char*)fseq_file_SEQ_fold.GetPath().c_str(), (const char*)fseq_file.GetPath().c_str());
+                    spdlog::debug("Moving FSEQ File: '{}' to '{}'", fseq_file_SEQ_fold.GetPath().ToStdString(), fseq_file.GetPath().ToStdString());
                     wxRenameFile(fseq_file_SEQ_fold.GetFullPath(), fseq_file.GetFullPath());
                 }
             } else {
@@ -344,7 +344,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                 // TODO: Maybe remove this if Keith/Gil/Dan think it's bad - Scott
                 if (FileExists(fseq_file_SEQ_fold)) {
                     // remove FSEQ file next to seg file
-                    LOG_DEBUG("Deleting old FSEQ File: '%s'", (const char*)fseq_file_SEQ_fold.GetPath().c_str());
+                    spdlog::debug("Deleting old FSEQ File: '{}'", fseq_file_SEQ_fold.GetPath().ToStdString());
                     wxRemoveFile(fseq_file_SEQ_fold.GetFullPath()); //
                 }
             }
@@ -354,7 +354,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 
         // load the fseq data file if it exists
         if (FileExists(fseq_file)) {
-            LOG_DEBUG("Opening FSEQ File at: '%s'", (const char*)fseq_file.GetFullPath().c_str());
+            spdlog::debug("Opening FSEQ File at: '{}'", fseq_file.GetFullPath().ToStdString());
             if (plog != nullptr) {
                 plog->Show(true);
             }
@@ -378,13 +378,13 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
             SeqChanCtrlColor = false;
             loaded_fseq = true;
 
-            LOG_DEBUG("    Fseq file loaded.");
-            LOG_DEBUG("        Channels %u", _seqData.NumChannels());
-            LOG_DEBUG("        Frame Time %u", _seqData.FrameTime());
-            LOG_DEBUG("        Frames %u", _seqData.NumFrames());
-            LOG_DEBUG("        Length %u", _seqData.TotalTime());
+            spdlog::debug("    Fseq file loaded.");
+            spdlog::debug("        Channels {}", _seqData.NumChannels());
+            spdlog::debug("        Frame Time {}", _seqData.FrameTime());
+            spdlog::debug("        Frames {}", _seqData.NumFrames());
+            spdlog::debug("        Length {}", _seqData.TotalTime());
         } else {
-            LOG_DEBUG("Could not Find FSEQ File at: '%s'", (const char*)fseq_file.GetFullPath().c_str());
+            spdlog::debug("Could not Find FSEQ File at: '{}'", fseq_file.GetFullPath().ToStdString());
         }
 
         
@@ -408,7 +408,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         }
 
         if (media_file.GetName() != "") {
-            LOG_DEBUG("Media file from sequence: '%s'", (const char*)media_file.GetFullPath().c_str());
+            spdlog::debug("Media file from sequence: '{}'", media_file.GetFullPath().ToStdString());
 
             // double-check file existence
             if (!FileExists(media_file) || !wxFileName(media_file).IsFileReadable()) {
@@ -431,7 +431,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                         }
                     }
                 }
-                LOG_DEBUG("    Did not exist, attepting to map to: '%s'", (const char*)media_file.GetFullPath().c_str());
+                spdlog::debug("    Did not exist, attepting to map to: '{}'", media_file.GetFullPath().ToStdString());
             }
 
             // search for missing media file in media directory and show directory
@@ -456,7 +456,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                         }
                     }
                 }
-                LOG_DEBUG("    Still did not exist, attepting to map to: '%s'", (const char*)media_file.GetFullPath().c_str());
+                spdlog::debug("    Still did not exist, attepting to map to: '{}'", media_file.GetFullPath().ToStdString());
             }
 
             // search for missing media file in the show directory one folder deep
@@ -478,7 +478,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                     }
                     fcont = audDirectory.GetNext(&audFile);
                 }
-                LOG_DEBUG("    Still did not exist, attepting to map to: '%s'", (const char*)media_file.GetFullPath().c_str());
+                spdlog::debug("    Still did not exist, attepting to map to: '{}'", media_file.GetFullPath().ToStdString());
             }
         }
 
@@ -494,7 +494,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         }
 
         if (CurrentSeqXmlFile->WasConverted()) {
-            LOG_DEBUG("Loaded Sequence was Converted, need to check settings");
+            spdlog::debug("Loaded Sequence was Converted, need to check settings");
             // abort any in progress render ... as it may be using any already open media
             bool aborted = false;
             if (CurrentSeqXmlFile->GetMedia() != nullptr) {
@@ -517,7 +517,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 
         wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
         int ms = atoi(mss.c_str());
-        LOG_DEBUG("Sequence Timing: %d", ms);
+        spdlog::debug("Sequence Timing: {}", ms);
         Notebook1->SetSelection(Notebook1->GetPageIndex(PanelSequencer));
         bool loaded_xml = SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
 
@@ -530,17 +530,17 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
             DisplayWarning(wxString::Format("The setup requires a large amount of memory (%lu MB) which could result in performance issues.", (unsigned long)memRequired), this);
         }
 
-        LOG_DEBUG("Sequence Num Channels: %d or %d", numChan, _seqData.NumChannels());
-        LOG_DEBUG("Sequence Num Frames: %d", (int)(CurrentSeqXmlFile->GetSequenceDurationMS() / ms));
+        spdlog::debug("Sequence Num Channels: {} or {}", numChan, _seqData.NumChannels());
+        spdlog::debug("Sequence Num Frames: {}", (int)(CurrentSeqXmlFile->GetSequenceDurationMS() / ms));
 
         if ((numChan != _seqData.NumChannels()) ||
             (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)_seqData.NumFrames()) {
             if (_seqData.NumChannels() > 0) {
                 if (numChan != _seqData.NumChannels()) {
-                    LOG_WARN("Fseq file had %u channels but sequence has %u channels so dumping the fseq data.", _seqData.NumChannels(), numChan);
+                    spdlog::warn("Fseq file had {} channels but sequence has {} channels so dumping the fseq data.", _seqData.NumChannels(), numChan);
                 } else {
                     if ((CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)_seqData.NumFrames()) {
-                        LOG_WARN("Fseq file had %u frames but sequence has %u frames so dumping the fseq data.",
+                        spdlog::warn("Fseq file had {} frames but sequence has {} frames so dumping the fseq data.",
                                          CurrentSeqXmlFile->GetSequenceDurationMS() / ms,
                                          _seqData.NumFrames());
                     }
@@ -551,7 +551,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
             _seqData.init(numChan, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
         }
 
-        LOG_DEBUG("Initializing Display Elements");
+        spdlog::debug("Initializing Display Elements");
         displayElementsPanel->Initialize();
 
         // if we loaded the fseq but not the xml then we need to populate views
@@ -563,7 +563,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
             displayElementsPanel->SelectView("Master View");
         }
 
-        LOG_DEBUG("Starting timers");
+        spdlog::debug("Starting timers");
         StartOutputTimer();
         if (loaded_fseq) {
             GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleLayoutKey::OpenSequence");
@@ -601,14 +601,14 @@ void xLightsFrame::AddToMRU(const std::string& filename)
 bool xLightsFrame::CloseSequence()
 {
     
-    LOG_DEBUG("Closing sequence.");
+    spdlog::debug("Closing sequence.");
 
     if (_autoSavePerspecive && CurrentSeqXmlFile != nullptr) {
         // save perspective on this machine so we can restore it next time
         wxConfigBase* config = wxConfigBase::Get();
         wxString machinePerspective = m_mgr->SavePerspective();
         config->Write("xLightsMachinePerspective", machinePerspective);
-        LOG_DEBUG("AutoSave perspective");
+        spdlog::debug("AutoSave perspective");
         LogPerspective(machinePerspective);
     }
 
@@ -735,7 +735,7 @@ void xLightsFrame::ClearSequenceData()
 void xLightsFrame::RenderIseqData(bool bottom_layers, ConvertLogDialog* plog)
 {
     
-    LOG_DEBUG("xLightsFrame::RenderIseqData bottom_layers %d", bottom_layers);
+    spdlog::debug("xLightsFrame::RenderIseqData bottom_layers {}", bottom_layers);
 
     DataLayerSet& data_layers = CurrentSeqXmlFile->GetDataLayers();
     ConvertParameters::ReadMode read_mode;
@@ -749,7 +749,7 @@ void xLightsFrame::RenderIseqData(bool bottom_layers, ConvertLogDialog* plog)
     }
 
     if (bottom_layers) {
-        LOG_DEBUG("xLightsFrame::RenderIseqData clearing sequence data.");
+        spdlog::debug("xLightsFrame::RenderIseqData clearing sequence data.");
         ClearSequenceData();
         read_mode = ConvertParameters::READ_MODE_NORMAL;
     } else {
@@ -763,7 +763,7 @@ void xLightsFrame::RenderIseqData(bool bottom_layers, ConvertLogDialog* plog)
         DataLayer* data_layer = data_layers.GetDataLayer(i);
         if (data_layer->GetName() != "Nutcracker") {
             if (start_rendering) {
-                LOG_DEBUG("xLightsFrame::RenderIseqData rendering %s.", (const char*)data_layer->GetDataSource().c_str());
+                spdlog::debug("xLightsFrame::RenderIseqData rendering {}.", (const char*)data_layer->GetDataSource().c_str());
                 if (plog != nullptr) {
                     plog->Show(true);
                 }
@@ -1023,7 +1023,7 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
         if (config != nullptr && file.GetFilterIndex() >= 0 && file.GetFilterIndex() < filters.size()) {
             config->Write("xLightsLastImportType", filters[file.GetFilterIndex()]);
         } else {
-            LOG_WARN("XLightsLastImportType not saved due to invalid filter index %d.", file.GetFilterIndex());
+            spdlog::warn("XLightsLastImportType not saved due to invalid filter index {}.", file.GetFilterIndex());
         }
         if (config != nullptr) {
             ldir = file.GetDirectory();
@@ -1187,9 +1187,9 @@ void MapXLightsEffects(Element* target,
     
     if (target->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
         wxString strandName = wxString::Format("Strand %d", ((StrandElement*)target)->GetStrand() + 1);
-        LOG_DEBUG("Mapping xLights effect from %s to %s%s.", (const char*)name.c_str(), (const char*)target->GetFullName().c_str(), (const char*)strandName.c_str());
+        spdlog::debug("Mapping xLights effect from {} to {}{}.", (const char*)name.c_str(), (const char*)target->GetFullName().c_str(), (const char*)strandName.c_str());
     } else {
-        LOG_DEBUG("Mapping xLights effect from %s to %s.", (const char*)name.c_str(), (const char*)target->GetFullName().c_str());
+        spdlog::debug("Mapping xLights effect from {} to {}.", (const char*)name.c_str(), (const char*)target->GetFullName().c_str());
     }
 
     EffectLayer* src = layerMap[name];
@@ -1215,7 +1215,7 @@ void MapXLightsEffects(Element* target,
     }
 
     if (el == nullptr) {
-        LOG_DEBUG("Mapping xLights effect from %s to %s failed as the effect was not found in the source sequence.", (const char*)name.c_str(), (const char*)target->GetName().c_str());
+        spdlog::debug("Mapping xLights effect from {} to {} failed as the effect was not found in the source sequence.", (const char*)name.c_str(), (const char*)target->GetName().c_str());
         // printf("Source element %s doesn't exist\n", name.c_str());
         return;
     }
@@ -1452,7 +1452,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 model = AddModel(GetModel(modelName), _sequenceElements);
             }
             if (model == nullptr) {
-                LOG_ERROR("Attempt to add model %s during xLights import failed.", (const char*)modelName.c_str());
+                spdlog::error("Attempt to add model {} during xLights import failed.", (const char*)modelName.c_str());
             } else {
                 MapXLightsEffects(model, m->_mapping, se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock, mapping, convertRender, mappingModelType);
             }
@@ -1467,7 +1467,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                     model = AddModel(GetModel(modelName), _sequenceElements);
                 }
                 if (model == nullptr) {
-                    LOG_ERROR("Attempt to add model %s during xLights import failed.", (const char*)modelName.c_str());
+                    spdlog::error("Attempt to add model {} during xLights import failed.", (const char*)modelName.c_str());
                 } else {
                     SubModelElement* ste = model->GetSubModel(str);
                     if (ste != nullptr) {
@@ -1482,7 +1482,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                         model = AddModel(GetModel(modelName), _sequenceElements);
                     }
                     if (model == nullptr) {
-                        LOG_ERROR("Attempt to add model %s during xLights import failed.", (const char*)modelName.c_str());
+                        spdlog::error("Attempt to add model {} during xLights import failed.", (const char*)modelName.c_str());
                     } else {
                         SubModelElement* ste = model->GetSubModel(str);
                         StrandElement* stre = dynamic_cast<StrandElement*>(ste);
@@ -1617,7 +1617,7 @@ void MapHLSChannelInformation(xLightsFrame* xlights, EffectLayer* layer, wxXmlNo
     }
     if (redNode == nullptr) {
         printf("Did not map %s\n", (const char*)cn.c_str());
-        LOG_INFOWX("Did not map " + cn);
+        spdlog::info("Did not map " + cn.ToStdString());
         return;
     }
     std::vector<unsigned char> redData(frames);
@@ -1809,7 +1809,7 @@ void xLightsFrame::ImportVix(const wxFileName& filename)
 {
     
 
-    LOG_DEBUG("Importing vixen file %s.", (const char*)filename.GetFullName().c_str());
+    spdlog::debug("Importing vixen file {}.", (const char*)filename.GetFullName().c_str());
 
     std::vector<unsigned char> VixSeqData;
     std::vector<std::string> context;
@@ -1834,7 +1834,7 @@ void xLightsFrame::ImportVix(const wxFileName& filename)
     int chanColor = -1;
 
     // pass 1, read the length, determine number of networks, units/network, channels per unit
-    LOG_DEBUG("Reading vixen file.");
+    spdlog::debug("Reading vixen file.");
     SP_XmlPullEvent* event = parser->getNext();
     int done = 0;
     long cnt = 0;
@@ -1949,14 +1949,14 @@ void xLightsFrame::ImportVix(const wxFileName& filename)
 
     dlg.SortChannels();
 
-    LOG_DEBUG("Showing mapping dialog.");
+    spdlog::debug("Showing mapping dialog.");
     dlg.InitImport();
 
     if (dlg.ShowModal() != wxID_OK || dlg._dataModel == nullptr) {
         return;
     }
 
-    LOG_DEBUG("Doing the import of the mapped channels.");
+    spdlog::debug("Doing the import of the mapped channels.");
     for (size_t i = 0; i < dlg._dataModel->GetChildCount(); i++) {
         xLightsImportModelNode* m = dlg._dataModel->GetNthChild(i);
         std::string modelName = m->_model;
@@ -1973,7 +1973,7 @@ void xLightsFrame::ImportVix(const wxFileName& filename)
                 model = AddModel(GetModel(modelName), _sequenceElements);
             }
             if (model == nullptr) {
-                LOG_ERROR("Attempt to add model %s during Vixen import failed.", (const char*)modelName.c_str());
+                spdlog::error("Attempt to add model {} during Vixen import failed.", (const char*)modelName.c_str());
             } else {
                 MapVixChannelInformation(this, model->GetEffectLayer(0),
                                          VixSeqData, frameTime, numFrames,
@@ -1993,7 +1993,7 @@ void xLightsFrame::ImportVix(const wxFileName& filename)
                     model = AddModel(GetModel(modelName), _sequenceElements);
                 }
                 if (model == nullptr) {
-                    LOG_ERROR("Attempt to add model %s during Vixen import failed.", (const char*)modelName.c_str());
+                    spdlog::error("Attempt to add model {} during Vixen import failed.", (const char*)modelName.c_str());
                 } else {
                     SubModelElement* ste = model->GetSubModel(str);
                     if (ste != nullptr) {
@@ -2012,7 +2012,7 @@ void xLightsFrame::ImportVix(const wxFileName& filename)
                         model = AddModel(GetModel(modelName), _sequenceElements);
                     }
                     if (model == nullptr) {
-                        LOG_ERROR("Attempt to add model %s during Vixen import failed.", (const char*)modelName.c_str());
+                        spdlog::error("Attempt to add model {} during Vixen import failed.", (const char*)modelName.c_str());
                     } else {
                         SubModelElement* ste = model->GetSubModel(str);
                         StrandElement* stre = dynamic_cast<StrandElement*>(ste);
@@ -2920,7 +2920,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument& input_xml, const wxFileName& filenam
                 model = AddModel(GetModel(modelName), _sequenceElements);
             }
             if (model == nullptr) {
-                LOG_ERROR("Attempt to add model %s during LMS import failed.", (const char*)modelName.c_str());
+                spdlog::error("Attempt to add model {} during LMS import failed.", (const char*)modelName.c_str());
             } else {
                 if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), m->_mapping) != dlg.ccrNames.end()) {
                     MapCCR(dlg.GetChannelNames(), model, m, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
@@ -2942,14 +2942,14 @@ bool xLightsFrame::ImportLMS(wxXmlDocument& input_xml, const wxFileName& filenam
                     model = AddModel(GetModel(modelName), _sequenceElements);
                 }
                 if (model == nullptr) {
-                    LOG_ERROR("Attempt to add model %s during LMS import failed.", (const char*)modelName.c_str());
+                    spdlog::error("Attempt to add model {} during LMS import failed.", (const char*)modelName.c_str());
                 } else {
                     if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), s->_mapping) != dlg.ccrNames.end()) {
                         StrandElement* se = model->GetStrand(str);
                         if (se != nullptr) {
                             MapCCRStrand(dlg.GetChannelNames(), se, s, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
                         } else {
-                            LOG_DEBUG("LMS Import: Strand %d not found.", str);
+                            spdlog::debug("LMS Import: Strand {} not found.", str);
                         }
                     } else {
                         SubModelElement* ste = model->GetSubModel(str);
@@ -2959,7 +2959,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument& input_xml, const wxFileName& filenam
                                                   s->_mapping,
                                                   s->_color, *mc, dlg.CheckBox_EraseExistingEffects->GetValue());
                         } else {
-                            LOG_DEBUG("LMS Import: SubModel %d not found.", str);
+                            spdlog::debug("LMS Import: SubModel {} not found.", str);
                         }
                     }
                 }
@@ -2971,7 +2971,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument& input_xml, const wxFileName& filenam
                         model = AddModel(GetModel(modelName), _sequenceElements);
                     }
                     if (model == nullptr) {
-                        LOG_ERROR("Attempt to add model %s during LMS import failed.", (const char*)modelName.c_str());
+                        spdlog::error("Attempt to add model {} during LMS import failed.", (const char*)modelName.c_str());
                     } else {
                         SubModelElement* ste = model->GetSubModel(str);
                         StrandElement* stre = dynamic_cast<StrandElement*>(ste);
@@ -3434,13 +3434,13 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
 
             // No xLights equivalent
 
-            LOG_WARN("LPE conversion for Lines Horizontal does not exist.");
+            spdlog::warn("LPE conversion for Lines Horizontal does not exist.");
         } else if (effectType == "linesvertical") {
             // Left_to_Right,4,32
 
             // No xLights equivalent
 
-            LOG_WARN("LPE conversion for Lines Vertical does not exist.");
+            spdlog::warn("LPE conversion for Lines Vertical does not exist.");
         } else if (effectType == "curtain") {
             // center,open,0,once_at_speed,12
             wxString edge = parms[0];
@@ -3762,9 +3762,9 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
                 settings += ",E_CHECKBOX_Twinkle_Strobe=1";
             }
 
-            LOG_WARN("LPE conversion for Twinkle not created yet.");
+            spdlog::warn("LPE conversion for Twinkle not created yet.");
         } else {
-            LOG_WARN("LPE conversion for %s not created yet.", (const char*)effectType.c_str());
+            spdlog::warn("LPE conversion for {} not created yet.", (const char*)effectType.c_str());
             wxASSERT(false);
         }
     }
@@ -3800,7 +3800,7 @@ void MapLPE(const EffectManager& effect_manager, int i, EffectLayer* layer, cons
                                     wxString type = effect->GetAttribute("type");
 
                                     if (effect->GetName() != "effect" || type != "pixelEffect") {
-                                        LOG_WARN("LPE import node %s type %s not known.", (const char*)effect->GetName().c_str(), (const char*)type.c_str());
+                                        spdlog::warn("LPE import node {} type {} not known.", (const char*)effect->GetName().c_str(), (const char*)type.c_str());
                                     } else {
                                         int startCentisecond = wxAtoi(effect->GetAttribute("startCentisecond"));
                                         int endCentisecond = wxAtoi(effect->GetAttribute("endCentisecond"));
@@ -3830,7 +3830,7 @@ void MapLPE(const EffectManager& effect_manager, int i, EffectLayer* layer, cons
                                             wxString ourEffectType = MapLPEEffectType(effectType);
 
                                             if (ourEffectType == "") {
-                                                LOG_WARN("LPE import effect %s not known.", (const char*)effectType.c_str());
+                                                spdlog::warn("LPE import effect {} not known.", (const char*)effectType.c_str());
                                             } else {
                                                 // skip over the multiple nodes PE creates when fading isnt perfectly even
                                                 int fadeInCS, fadeOutCS;
@@ -3901,7 +3901,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
 
     int layer = 0;
     if (LPEHasEffects(input_xml, mapping, 0, true)) {
-        LOG_DEBUG("Creating effects on model %s layer %d from %s layer 0 left hand side",
+        spdlog::debug("Creating effects on model {} layer {} from {} layer 0 left hand side",
                           (const char*)model->GetFullName().c_str(), layer + 1, (const char*)mapping.c_str());
         MapLPE(effectManager, 0, model->GetEffectLayer(layer), input_xml, mapping, true, frequency, eraseExisting);
     }
@@ -3910,7 +3910,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
         if (model->GetEffectLayerCount() < layer + 1) {
             model->AddEffectLayer();
         }
-        LOG_DEBUG("Creating effects on model %s layer %d from %s layer 0 right hand side",
+        spdlog::debug("Creating effects on model {} layer {} from {} layer 0 right hand side",
                           (const char*)model->GetFullName().c_str(), layer + 1, (const char*)mapping.c_str());
         MapLPE(effectManager, 0, model->GetEffectLayer(layer), input_xml, mapping, false, frequency, eraseExisting);
     }
@@ -3919,7 +3919,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
         if (model->GetEffectLayerCount() < layer + 1) {
             model->AddEffectLayer();
         }
-        LOG_DEBUG("Creating effects on model %s layer %d from %s layer 1 left hand side",
+        spdlog::debug("Creating effects on model {} layer {} from {} layer 1 left hand side",
                           (const char*)model->GetFullName().c_str(), layer + 1, (const char*)mapping.c_str());
         MapLPE(effectManager, 1, model->GetEffectLayer(layer), input_xml, mapping, true, frequency, eraseExisting);
     }
@@ -3928,7 +3928,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
         if (model->GetEffectLayerCount() < layer + 1) {
             model->AddEffectLayer();
         }
-        LOG_DEBUG("Creating effects on model %s layer %d from %s layer 1 right hand side",
+        spdlog::debug("Creating effects on model {} layer {} from {} layer 1 right hand side",
                           (const char*)model->GetFullName().c_str(), layer + 1, (const char*)mapping.c_str());
         MapLPE(effectManager, 1, model->GetEffectLayer(layer), input_xml, mapping, false, frequency, eraseExisting);
     }
@@ -4249,7 +4249,7 @@ bool xLightsFrame::ImportS5(wxXmlDocument& input_xml, const wxFileName& filename
         return false;
     }
 
-    LOG_DEBUG("Importing S5 effects from %s.", (const char*)filename.GetFullPath().c_str());
+    spdlog::debug("Importing S5 effects from {}.", (const char*)filename.GetFullPath().c_str());
 
     int offset = dlg.TimeAdjustSpinCtrl->GetValue();
 
@@ -4294,7 +4294,7 @@ bool xLightsFrame::ImportS5(wxXmlDocument& input_xml, const wxFileName& filename
                     model = AddModel(GetModel(modelName), _sequenceElements);
                 }
                 if (model == nullptr) {
-                    LOG_ERROR("Attempt to add model %s during S5 import failed.", (const char*)modelName.c_str());
+                    spdlog::error("Attempt to add model {} during S5 import failed.", (const char*)modelName.c_str());
                 } else {
                     if (!LOREdit::IsNodeStrandMapping(m->_mapping))
                         MapS5Effects(effectManager, model, lorEdit, m->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
@@ -4312,7 +4312,7 @@ bool xLightsFrame::ImportS5(wxXmlDocument& input_xml, const wxFileName& filename
                         model = AddModel(GetModel(modelName), _sequenceElements);
                     }
                     if (model == nullptr) {
-                        LOG_ERROR("Attempt to add model %s during S5 import failed.", (const char*)modelName.c_str());
+                        spdlog::error("Attempt to add model {} during S5 import failed.", (const char*)modelName.c_str());
                     } else {
                         SubModelElement* ste = model->GetSubModel(str);
                         if (ste != nullptr) {
@@ -4330,7 +4330,7 @@ bool xLightsFrame::ImportS5(wxXmlDocument& input_xml, const wxFileName& filename
                             model = AddModel(GetModel(modelName), _sequenceElements);
                         }
                         if (model == nullptr) {
-                            LOG_ERROR("Attempt to add model %s during S5 import failed.", (const char*)modelName.c_str());
+                            spdlog::error("Attempt to add model {} during S5 import failed.", (const char*)modelName.c_str());
                         } else {
                             SubModelElement* ste = model->GetSubModel(str);
                             StrandElement* stre = dynamic_cast<StrandElement*>(ste);
@@ -4358,7 +4358,7 @@ bool xLightsFrame::ImportS5(wxXmlDocument& input_xml, const wxFileName& filename
         }
     }
 
-    LOG_DEBUG("    Importing S5 effects done.");
+    spdlog::debug("    Importing S5 effects done.");
 
     return true;
 }
@@ -4409,7 +4409,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument& input_xml, const wxFileName& filenam
         return false;
     }
 
-    LOG_DEBUG("Importing LPE effects from %s.", (const char*)filename.GetFullPath().c_str());
+    spdlog::debug("Importing LPE effects from {}.", (const char*)filename.GetFullPath().c_str());
 
     if (dlg.TimeAdjustSpinCtrl->GetValue() != 0) {
         int offset = dlg.TimeAdjustSpinCtrl->GetValue();
@@ -4432,7 +4432,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument& input_xml, const wxFileName& filenam
                 model = AddModel(GetModel(modelName), _sequenceElements);
             }
             if (model == nullptr) {
-                LOG_ERROR("Attempt to add model %s during LPE import failed.", (const char*)modelName.c_str());
+                spdlog::error("Attempt to add model {} during LPE import failed.", (const char*)modelName.c_str());
             } else {
                 MapLPEEffects(effectManager, model, input_xml, m->_mapping, CurrentSeqXmlFile->GetFrequency(), dlg.CheckBox_EraseExistingEffects->GetValue());
             }
@@ -4447,7 +4447,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument& input_xml, const wxFileName& filenam
                     model = AddModel(GetModel(modelName), _sequenceElements);
                 }
                 if (model == nullptr) {
-                    LOG_ERROR("Attempt to add model %s during LPE import failed.", (const char*)modelName.c_str());
+                    spdlog::error("Attempt to add model {} during LPE import failed.", (const char*)modelName.c_str());
                 } else {
                     SubModelElement* ste = model->GetSubModel(str);
                     if (ste != nullptr) {
@@ -4462,7 +4462,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument& input_xml, const wxFileName& filenam
                         model = AddModel(GetModel(modelName), _sequenceElements);
                     }
                     if (model == nullptr) {
-                        LOG_ERROR("Attempt to add model %s during LPE import failed.", (const char*)modelName.c_str());
+                        spdlog::error("Attempt to add model {} during LPE import failed.", (const char*)modelName.c_str());
                     } else {
                         SubModelElement* ste = model->GetSubModel(str);
                         StrandElement* stre = dynamic_cast<StrandElement*>(ste);
@@ -4479,7 +4479,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument& input_xml, const wxFileName& filenam
         }
     }
 
-    LOG_DEBUG("    Importing LPE effects done.");
+    spdlog::debug("    Importing LPE effects done.");
 
     return true;
 }
@@ -4518,7 +4518,7 @@ void MapVixen3(Element* model, const Vixen3& vixen, const wxString& modelName, l
         std::string type = it.GetXLightsType();
         if (type != "") {
             if (layer->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(type) < 0) {
-                LOG_DEBUG("Vixen 3 import %s -> %s is not a valid effect.", (const char*)it.type.c_str(), (const char*)type.c_str());
+                spdlog::debug("Vixen 3 import {} -> {} is not a valid effect.", (const char*)it.type.c_str(), (const char*)type.c_str());
             } else {
                 layer->AddEffect(0, type, newsettings, newpalette, s, e, false, false);
             }
@@ -4530,7 +4530,7 @@ void MapVixen3Effects(const EffectManager& effectManager, Element* model, const 
 {
     
 
-    LOG_DEBUG("Creating effects on model %s from %s",
+    spdlog::debug("Creating effects on model {} from {}",
                       (const char*)model->GetFullName().c_str(), (const char*)mapping.c_str());
     MapVixen3(model, vixen, mapping, offset, frameMS, eraseExisting);
 }
@@ -4580,7 +4580,7 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
         return false;
     }
 
-    LOG_DEBUG("Importing Vixen 3 effects from %s.", (const char*)filename.GetFullPath().c_str());
+    spdlog::debug("Importing Vixen 3 effects from {}.", (const char*)filename.GetFullPath().c_str());
 
     int offset = dlg.TimeAdjustSpinCtrl->GetValue();
 
@@ -4628,7 +4628,7 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
                 model = AddModel(GetModel(modelName), _sequenceElements);
             }
             if (model == nullptr) {
-                LOG_ERROR("Attempt to add model %s during Vixen 3 import failed.", (const char*)modelName.c_str());
+                spdlog::error("Attempt to add model {} during Vixen 3 import failed.", (const char*)modelName.c_str());
             } else {
                 MapVixen3Effects(effectManager, model, vixen, m->_mapping, offset, CurrentSeqXmlFile->GetFrameMS(), dlg.CheckBox_EraseExistingEffects->GetValue());
             }
@@ -4643,7 +4643,7 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
                     model = AddModel(GetModel(modelName), _sequenceElements);
                 }
                 if (model == nullptr) {
-                    LOG_ERROR("Attempt to add model %s during Vixen 3 import failed.", (const char*)modelName.c_str());
+                    spdlog::error("Attempt to add model {} during Vixen 3 import failed.", (const char*)modelName.c_str());
                 } else {
                     SubModelElement* ste = model->GetSubModel(str);
                     if (ste != nullptr) {
@@ -4658,7 +4658,7 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
                         model = AddModel(GetModel(modelName), _sequenceElements);
                     }
                     if (model == nullptr) {
-                        LOG_ERROR("Attempt to add model %s during Vixen 3 import failed.", (const char*)modelName.c_str());
+                        spdlog::error("Attempt to add model {} during Vixen 3 import failed.", (const char*)modelName.c_str());
                     } else {
                         SubModelElement* ste = model->GetSubModel(str);
                         StrandElement* stre = dynamic_cast<StrandElement*>(ste);
@@ -4675,7 +4675,7 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
         }
     }
 
-    LOG_DEBUG("    Importing Vixen 3 effects done.");
+    spdlog::debug("    Importing Vixen 3 effects done.");
 
     return true;
 }
@@ -5758,7 +5758,7 @@ void xLightsFrame::ImportLSP(const wxFileName& filename)
                     }
                 }
             } else {
-                LOG_WARN("Could not parse XML file %s.", (const char*)ent->GetName().c_str());
+                spdlog::warn("Could not parse XML file {}.", (const char*)ent->GetName().c_str());
                 wxLogError("Could not parse XML file %s", ent->GetName().c_str());
             }
         }
@@ -5838,14 +5838,14 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
 {
     
 
-    LOG_DEBUG("Importing servo data for " + name);
+    spdlog::debug("Importing servo data for " + name);
 
     if (min_limit == max_limit) {
-        LOG_ERROR("ImportServoData cannot have min limit and max limit equal. Aborting import as it would crash.");
+        spdlog::error("ImportServoData cannot have min limit and max limit equal. Aborting import as it would crash.");
         return;
     }
     if (layer == nullptr) {
-        LOG_CRIT("ImportServoData cannot have null layer to import onto - this is going to crash.");
+        spdlog::critical("ImportServoData cannot have null layer to import onto - this is going to crash.");
     }
 
     if (layer->GetLayerName().empty()) {
@@ -5932,7 +5932,7 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
             }
         }
     }
-    LOG_DEBUG("Importing servo data done.");
+    spdlog::debug("Importing servo data done.");
 }
 
 void xLightsFrame::ImportVsa(const wxFileName& filename)
@@ -5988,10 +5988,10 @@ void xLightsFrame::ImportVsa(const wxFileName& filename)
                             }
                             ImportServoData(tracks[idx].min_limit, tracks[idx].max_limit, layer, dlg.selectedChannels[m], events[idx], _sequenceElements.GetSequenceEnd(), vsa_timing, is_16bit);
                         } else {
-                            LOG_ERROR("ImportVSA: idx exceeds available events.");
+                            spdlog::error("ImportVSA: idx exceeds available events.");
                         }
                     } else {
-                        LOG_ERROR("ImportVSA: m exceeds available tracks.");
+                        spdlog::error("ImportVSA: m exceeds available tracks.");
                     }
                 }
             }
@@ -6032,7 +6032,7 @@ bool xLightsFrame::CloneXLightsEffects(const std::string& target,
     Element* to = seqEl.GetElement(target);
 
     if (from == nullptr || to == nullptr) {
-        LOG_DEBUG("Mapping xLights effect from %s to %s failed as the effect was not found in the source sequence.", (const char*)source.c_str(), (const char*)target.c_str());
+        spdlog::debug("Mapping xLights effect from {} to {} failed as the effect was not found in the source sequence.", (const char*)source.c_str(), (const char*)target.c_str());
         // printf("Source element %s doesn't exist\n", name.c_str());
         return false;
     }

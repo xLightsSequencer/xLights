@@ -33,7 +33,7 @@
 #include "PianoEffect.h"
 #include "UtilFunctions.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 //(*IdInit(PianoPanel)
 const long PianoPanel::ID_STATICTEXT_Piano_Type = wxNewId();

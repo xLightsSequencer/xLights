@@ -29,7 +29,7 @@
 #include "UtilFunctions.h"
 #include "EditAliasesDialog.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 // This event is fired when a model is dropped between lists
 wxDEFINE_EVENT(EVT_MGDROP, wxCommandEvent);
@@ -486,7 +486,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
                     if (std::find(modelsInGroup.begin(), modelsInGroup.end(), it.first) != modelsInGroup.end() ||
                         (it.second->GetDisplayAs() == "ModelGroup" && (!CheckBox_ShowModelGroups->GetValue() || it.first == group || dynamic_cast<ModelGroup*>(it.second)->ContainsModelGroup(g)))) {
                         // dont add this group
-                        // LOG_DEBUG("Model not eligible to be added to group or already in group " + group + " : " + it.first);
+                        // spdlog::debug("Model not eligible to be added to group or already in group " + group + " : " + it.first);
                     }
                     else {
                         std::string modelName = ::Lower(it.first);

@@ -16,7 +16,7 @@
 #include "CandyCaneModel.h"
 #include "ModelScreenLocation.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 CandyCaneModel::CandyCaneModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
@@ -414,7 +414,7 @@ void CandyCaneModel::SetCaneCoord() {
                     for (size_t c = 0; c < CoordCount; c++) {
                         if (node == -1)
                         {
-                            LOG_ERROR("Candy Cane buffer x,y %d, %d not found.", i, y);
+                            spdlog::error("Candy Cane buffer x,y {}, {} not found.", i, y);
                         }
                         else
                         {
@@ -470,7 +470,7 @@ void CandyCaneModel::SetCaneCoord() {
                     for (size_t c = 0; c < CoordCount; c++) {
                         if (node == -1)
                         {
-                            LOG_ERROR("Candy Cane buffer x,y %d, %d not found.", i, y);
+                            spdlog::error("Candy Cane buffer x,y {}, {} not found.", i, y);
                         }
                         else
                         {
@@ -526,7 +526,7 @@ void CandyCaneModel::SetCaneCoord() {
                         double x2 = cos(aangle) * widthPerCane / 2 * screenLocation.GetMHeight();
                         if (node == -1)
                         {
-                            LOG_ERROR("Candy Cane buffer x,y %d, %d not found.", i, curLight);
+                            spdlog::error("Candy Cane buffer x,y {}, {} not found.", i, curLight);
                         }
                         else
                         {

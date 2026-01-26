@@ -2250,6 +2250,7 @@
     <ClInclude Include="controllers\ILightThat.h">
       <Filter>Controllers</Filter>
     </ClInclude>
+    <ClInclude Include="utils\spdlog_macros.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

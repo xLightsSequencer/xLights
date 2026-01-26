@@ -20,7 +20,7 @@ extern "C"
 #include <libswscale/swscale.h>
 }
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include <wx/progdlg.h>
 #include <wx/appprogress.h>
@@ -49,7 +49,7 @@ void my_av_log_callback(void* ptr, int level, const char* fmt, va_list vargs)
     }
 
     
-    LOG_DEBUG("WriteVideoFile: lvl: %d msg: %s.", level, static_cast<const char*>(message));
+    spdlog::debug("WriteVideoFile: lvl: {} msg: {}.", level, static_cast<const char*>(message));
 }
 
 namespace
@@ -295,7 +295,7 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
             _videoCodecContext = nullptr;
         }
         
-        LOG_INFO("VideoExporter - Error opening video codec context: %d", status);
+        spdlog::info("VideoExporter - Error opening video codec context: {}", status);
         return false;
     }
 
@@ -709,17 +709,17 @@ bool VideoExporter::Export(wxAppProgressIndicator* appIndicator)
         initialize();
         auto ip = inputParams();
         auto op = outputParams();
-        LOG_INFO("VideoExporter - exporting %d x %d video from %d x %d", op.width, op.height, ip.width, ip.height);
+        spdlog::info("VideoExporter - exporting {} x {} video from {} x {}", op.width, op.height, ip.width, ip.height);
 
         exportFrames(_frameCount);
         bool canceled = dlg.WasCancelled();
         if (canceled)
-            LOG_INFO("VideoExporter - exporting was canceled");
+            spdlog::info("VideoExporter - exporting was canceled");
 
         if (!canceled)
             completeExport();
     } catch (const std::runtime_error& re) {
-        LOG_ERROR("Exception caught in VideoExporter - '%s'", (const char*)re.what());
+        spdlog::error("Exception caught in VideoExporter - '{}'", (const char*)re.what());
         status = false;
     }
     appIndicator->SetValue(0);

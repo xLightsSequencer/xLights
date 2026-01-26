@@ -29,7 +29,7 @@
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 PolyLineModel::PolyLineModel(const ModelManager &manager) : ModelWithScreenLocation(manager) {
     parm1 = parm2 = parm3 = 0;
@@ -742,7 +742,7 @@ void PolyLineModel::DistributeLightsEvenly( const std::vector<xlPolyPoint>& pPos
                     node = FindNodeAtXY(xpos, maxH - z - 1);
                 }
                 if (node == -1) {
-                    LOG_ERROR("Polyline buffer x,y %d, %d not found.", xpos, maxH - z - 1);
+                    spdlog::error("Polyline buffer x,y {}, {} not found.", xpos, maxH - z - 1);
                 }
                 else {
                     size_t current_coord = c;
@@ -871,7 +871,7 @@ void PolyLineModel::DistributeLightsAcrossSegment( const int                    
             for (size_t z = 0; z < drops_this_node; z++) {
                 auto node = FindNodeAtXY(xpos, maxH - z - 1);
                 if (node == -1) {
-                    LOG_ERROR("Polyline buffer x,y %d, %d not found.", xpos, maxH - z - 1);
+                    spdlog::error("Polyline buffer x,y {}, {} not found.", xpos, maxH - z - 1);
                 }
                 else {
                     size_t current_coord = c;

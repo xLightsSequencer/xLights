@@ -17,7 +17,7 @@
 #include <wx/xml/xml.h>
 #include <wx/process.h>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #ifdef __linux__
 #include <sys/socket.h>
@@ -34,7 +34,7 @@ void OPCOutput::OpenSocket() {
 
     _socket = new wxSocketClient();
     if (_socket == nullptr) {
-        LOG_ERROR("OPCOutput: Error opening socket to connect to %s.", (const char*)_remoteAddr.IPAddress().c_str());
+        spdlog::error("OPCOutput: Error opening socket to connect to {}.", (const char*)_remoteAddr.IPAddress().c_str());
     }
     else
     {
@@ -50,25 +50,25 @@ void OPCOutput::OpenSocket() {
         _socket->SetLocal(localaddr);
         _socket->Connect(_remoteAddr, true);
         if (!_socket->IsOk()) {
-            LOG_ERROR("OPCOutput: %s Error connecting to socket. Network may not be connected? OK : FALSE", (const char*)_remoteAddr.IPAddress().c_str());
+            spdlog::error("OPCOutput: {} Error connecting to socket. Network may not be connected? OK : FALSE", (const char*)_remoteAddr.IPAddress().c_str());
             delete _socket;
             _socket = nullptr;
         }
         else if (_socket->Error()) {
-            LOG_ERROR("OPCOutput: %s Error connecting OPC socket => %d : %s.", (const char*)_remoteAddr.IPAddress().c_str(), (int)_socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str());
+            spdlog::error("OPCOutput: {} Error connecting OPC socket => {} : {}.", (const char*)_remoteAddr.IPAddress().c_str(), (int)_socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str());
             delete _socket;
             _socket = nullptr;
         }
         else
         {
-            LOG_ERROR("OPCOutput: OPC socket connected to %s.", (const char*)_remoteAddr.IPAddress().c_str());
+            spdlog::error("OPCOutput: OPC socket connected to {}.", (const char*)_remoteAddr.IPAddress().c_str());
             #ifdef __linux__
             // The pixels sent is timing sensitive, TCP_NODELAY disables
             // Nagle algorithm to delay sending out TCP packets to combine
             // with later data.  This needs to not delay or combine writes.
             int optval = 1;
             if(setsockopt(_socket->GetSocket(), IPPROTO_TCP, TCP_NODELAY, &optval, sizeof(optval)) == -1)
-                LOG_ERROR("OPCOutput: failed to set TCP_NODELAY");
+                spdlog::error("OPCOutput: failed to set TCP_NODELAY");
             #endif
         }
     }
@@ -218,7 +218,7 @@ void OPCOutput::StartFrame(long msec) {
     if (_socket == nullptr && OutputManager::IsRetryOpen()) {
         OpenSocket();
         if (_ok) {
-            LOG_DEBUG("OPCOutput: Open retry successful");
+            spdlog::debug("OPCOutput: Open retry successful");
         }
     }
 

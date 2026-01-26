@@ -24,7 +24,7 @@
 #include "ValueCurve.h"
 #include "ExternalHooks.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 //(*IdInit(PathGenerationDialog)
 const long PathGenerationDialog::ID_PANEL1 = wxNewId();

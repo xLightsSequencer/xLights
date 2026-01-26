@@ -20,7 +20,7 @@
 #include "xLightsMain.h"
 #include "ExternalHooks.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 static const std::string IMPORTED_MEDIA = "ImportedMedia";
 static const std::string SUBFLD_IMAGES = "Images";
@@ -140,25 +140,25 @@ void SequencePackage::Extract()
     wxFileInputStream fis(_pkgFile.GetFullPath());
 
     if (!fis.IsOk()) {
-        LOG_ERROR("Could not open the Sequence Package '%s'", (const char*)_pkgFile.GetFullName().c_str());
+        spdlog::error("Could not open the Sequence Package '{}'", (const char*)_pkgFile.GetFullName().c_str());
         prog.Update(100);
         return;
     }
 
     _tempDir = wxString::Format("%s%c%s_%lld", wxFileName::GetTempDir(), wxFileName::GetPathSeparator(), _pkgFile.GetName(), wxGetUTCTimeMillis());
-    LOG_DEBUG("Extracting Sequence Package '%s' to '%s'", (const char*)_pkgFile.GetFullName().c_str(), (const char*)_tempDir.GetFullPath().c_str());
+    spdlog::debug("Extracting Sequence Package '{}' to '{}'", (const char*)_pkgFile.GetFullName().c_str(), (const char*)_tempDir.GetFullPath().c_str());
 
     wxZipInputStream zis(fis);
     std::unique_ptr<wxZipEntry> upZe;
 
     if (!zis.IsOk()) {
-        LOG_ERROR("Could not open the zip file '%s'", (const char*)_pkgFile.GetFullName().c_str());
+        spdlog::error("Could not open the zip file '{}'", (const char*)_pkgFile.GetFullName().c_str());
         prog.Update(100);
         return;
     }
 
     if (zis.GetTotalEntries() == 0) {
-        LOG_ERROR("No entries found in zip file '%s'", (const char*)_pkgFile.GetFullName().c_str());
+        spdlog::error("No entries found in zip file '{}'", (const char*)_pkgFile.GetFullName().c_str());
         prog.Update(100);
         return;
     }
@@ -174,7 +174,7 @@ void SequencePackage::Extract()
         wxString fnEntry = wxString::Format("%s%c%s", _tempDir.GetFullPath(), wxFileName::GetPathSeparator(), upZe->GetName());
 
         if (fnEntry.Contains("__MACOSX")) {
-            LOG_DEBUG("   skipping MACOS Folder %s.", (const char*)fnEntry.c_str());
+            spdlog::debug("   skipping MACOS Folder {}.", (const char*)fnEntry.c_str());
             upZe.reset(zis.GetNextEntry());
             continue;
         }
@@ -188,11 +188,11 @@ void SequencePackage::Extract()
         wxFileName fnOutput;
         upZe->IsDir() ? fnOutput.AssignDir(fnEntry) : fnOutput.Assign(fnEntry);
 
-        LOG_DEBUG("   Extracting %s to %s.", (const char*)fnEntry.c_str(), (const char*)fnOutput.GetFullPath().c_str());
+        spdlog::debug("   Extracting {} to {}.", (const char*)fnEntry.c_str(), (const char*)fnOutput.GetFullPath().c_str());
 
 #ifdef __WXMSW__
         if (fnOutput.GetFullPath().length() > MAX_PATH) {
-            LOG_WARN("Target filename longer than %d chars (%d). This will likely fail. %s.", MAX_PATH, (int)fnOutput.GetFullPath().length(), (const char*) fnOutput.GetFullPath().c_str());
+            spdlog::warn("Target filename longer than {} chars ({}). This will likely fail. {}.", MAX_PATH, (int)fnOutput.GetFullPath().length(), (const char*) fnOutput.GetFullPath().c_str());
         }
 #endif
 
@@ -204,12 +204,12 @@ void SequencePackage::Extract()
         // handle file output
         if (!upZe->IsDir()) {
             if (!zis.CanRead()) {
-                LOG_ERROR("Could not read file from package '%s'", (const char*)upZe->GetName().c_str());
+                spdlog::error("Could not read file from package '{}'", (const char*)upZe->GetName().c_str());
             } else {
                 wxFileOutputStream fos(fnOutput.GetFullPath());
 
                 if (!fos.IsOk()) {
-                    LOG_ERROR("Could not create sequence file at '%s'", (const char*)fnOutput.GetFullName().c_str());
+                    spdlog::error("Could not create sequence file at '{}'", (const char*)fnOutput.GetFullName().c_str());
                 } else {
                     zis.Read(fos);
                     wxString ext = fnOutput.GetExt();
@@ -260,7 +260,7 @@ void SequencePackage::Extract()
     prog.Update(100);
 
     if (!_xsqFile.IsOk() || !FileExists(_xsqFile)) {
-        LOG_ERROR("No sequence file found in package '%s'", (const char*)_pkgFile.GetFullName().c_str());
+        spdlog::error("No sequence file found in package '{}'", (const char*)_pkgFile.GetFullName().c_str());
     } else {
         InitDefaultImportOptions();
     }

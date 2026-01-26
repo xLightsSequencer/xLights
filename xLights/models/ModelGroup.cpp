@@ -18,7 +18,7 @@
 #include "ModelScreenLocation.h"
 #include "../UtilFunctions.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 static const std::string HORIZ("Horizontal Stack");
 static const std::string VERT("Vertical Stack");
@@ -1430,7 +1430,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
                 int endBM = Nodes.size();
                 if ((endBM - startBM) != m->GetNodeCount()) {
                     
-                    LOG_WARN("Model group '%s' had problems creating render buffer for Per Strand/Model. Problem model '%s'.",
+                    spdlog::warn("Model group '{}' had problems creating render buffer for Per Strand/Model. Problem model '{}'.",
                                      (const char*)GetFullName().c_str(),
                                      (const char*)m->GetFullName().c_str());
                 }

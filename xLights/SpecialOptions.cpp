@@ -16,7 +16,7 @@
 #include <wx/xml/xml.h>
 #include <string>
 #include <map>
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 
 std::string SpecialOptions::StashShowDir(const std::string& showDir)
@@ -49,7 +49,7 @@ std::string SpecialOptions::GetOption(const std::string& option, const std::stri
         }
         else
         {
-            LOG_DEBUG("Special options file not found at " + file);
+            spdlog::debug("Special options file not found at " + file);
             __loaded = true;
         }
         __cache.clear();
@@ -58,7 +58,7 @@ std::string SpecialOptions::GetOption(const std::string& option, const std::stri
 
     if (!__loaded)
     {
-        LOG_DEBUG("Loading special options from " + file);
+        spdlog::debug("Loading special options from " + file);
         wxXmlDocument doc;
         doc.Load(file);
         if (doc.IsOk() && doc.GetRoot() != nullptr)
@@ -73,14 +73,14 @@ std::string SpecialOptions::GetOption(const std::string& option, const std::stri
                     if (name != "")
                     {
                         __cache[name] = value;
-                        LOG_DEBUG("   Option '" + name + "' = '" + value + "'");
+                        spdlog::debug("   Option '" + name + "' = '" + value + "'");
                     }
                 }
             }
         }
         else
         {
-            LOG_ERROR("Unable to load " + file + " invalid xml.");
+            spdlog::error("Unable to load " + file + " invalid xml.");
             return defaultValue;
         }
     }

@@ -44,6 +44,7 @@ struct fmt::formatter<wxString> : fmt::formatter<std::string> {
 #define LOG_ERRORWX(s){ wxString ss(s); spdlog::error(std::string(ss.data(), ss.length()));}
 #define LOG_CRITWX(s){ wxString ss(s); spdlog::critical(std::string(ss.data(), ss.length()));}
 
+
 #define LOG_TRACE(format, ...) spdlog::trace(fmt::sprintf(format, __VA_ARGS__))
 #define LOG_DEBUG(format, ...) spdlog::debug(fmt::sprintf(format, __VA_ARGS__))
 #define LOG_INFO(format, ...) spdlog::info(fmt::sprintf(format, __VA_ARGS__))

@@ -35,7 +35,7 @@
 
 #include "UtilFunctions.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #define MINFONTSIZE 8
 #define FONTSIZEINCREMENT 4

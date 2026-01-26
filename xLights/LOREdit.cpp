@@ -30,7 +30,7 @@
 #include "effects/SnowflakesEffect.h"
 #include "effects/RippleEffect.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 // Current working assumptions
 //
@@ -455,14 +455,14 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
 
         // No xLights equivalent
 
-        LOG_WARN("LPE conversion for Lines Horizontal does not exist.");
+        spdlog::warn("LPE conversion for Lines Horizontal does not exist.");
     }
     else if (et == "linesvertical") {
         // Left_to_Right,4,32
 
         // No xLights equivalent
 
-        LOG_WARN("LPE conversion for Lines Vertical does not exist.");
+        spdlog::warn("LPE conversion for Lines Vertical does not exist.");
     }
     else if (et == "curtain") {
         // center,open,0,once_at_speed,12
@@ -1017,10 +1017,10 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         }
 
         // I dont have enough samples to know what the rest of the settings are
-        LOG_WARN("Wave effects I have never seen enough samples to truly decode the settings.");
+        spdlog::warn("Wave effects I have never seen enough samples to truly decode the settings.");
     }
     else {
-        LOG_WARN("S5 conversion for %s not created yet.", (const char*)et.c_str());
+        spdlog::warn("S5 conversion for {} not created yet.", (const char*)et.c_str());
         wxASSERT(false);
     }
 

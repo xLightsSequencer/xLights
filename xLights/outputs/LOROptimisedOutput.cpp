@@ -17,7 +17,7 @@
 #include <wx/xml/xml.h>
 #include <wx/propgrid/propgrid.h>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #define MINIMUM_MILLIS_AFTER_WRITE_BEFORE_CLOSE 100
 
@@ -274,7 +274,7 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
     if (!_enabled || _serial == nullptr || !_ok) return;
 
     if (!TxEmpty()) {
-        LOG_DEBUG("    LOROptimisedOutput: SetManyChannels skipped due to transmit buffer stackup");
+        spdlog::debug("    LOROptimisedOutput: SetManyChannels skipped due to transmit buffer stackup");
         return;
     }
 
@@ -441,13 +441,13 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
             ++unit_id;
         }
     }
-    //LOG_DEBUG("    LOROptimisedOutput: Sent %d bytes", total_bytes_sent);
+    //spdlog::debug("    LOROptimisedOutput: Sent {} bytes", total_bytes_sent);
 }
 
 void LOROptimisedOutput::AllOff() {
 
     //
-    //LOG_DEBUG("    LOROptimisedOutput: AllOff starting");
+    //spdlog::debug("    LOROptimisedOutput: AllOff starting");
 
     if (!_enabled) return;
 
@@ -496,7 +496,7 @@ void LOROptimisedOutput::AllOff() {
     SendHeartbeat();
     _lastheartbeat = _timer_msec;
 
-    //LOG_DEBUG("    LOROptimisedOutput: AllOff finished");
+    //spdlog::debug("    LOROptimisedOutput: AllOff finished");
 }
 #pragma endregion
 

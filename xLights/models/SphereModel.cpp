@@ -24,7 +24,7 @@
 #include "../ModelPreview.h"
 #include "CustomModel.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 SphereModel::SphereModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : MatrixModel(manager)
 {
@@ -64,7 +64,7 @@ void SphereModel::SetSphereCoord() {
     double Hradius = RenderWi / 2.0;
     double Vradius = RenderHt / 2.0;
 
-    //LOG_DEBUG("Buffer %d,%d Render %f,%f Radius %f,%f",
+    //spdlog::debug("Buffer {},{} Render {},{} Radius {},{}",
     //    BufferWi, BufferHt,
     //    (float)RenderWi, (float)RenderHt,
     //    (float)Hradius, (float)Vradius);
@@ -74,13 +74,13 @@ void SphereModel::SetSphereCoord() {
     double HStartAngle = Hradians / 4.0 + 0.003 - remove / 2.0;
     double HAngleIncr = (-Hradians + remove - fudge) / (double)BufferWi;
 
-    //LOG_DEBUG("Horizontal Start %d: +%f x %d",
+    //spdlog::debug("Horizontal Start {}: +{} x {}",
     //    (int)toDegrees(HStartAngle), (float)toDegrees(HAngleIncr), BufferWi);
 
     double VStartAngle = toRadians(_startLatitude-90);
     double VAngleIncr = (toRadians(-1 * _startLatitude) + toRadians(_endLatitude)) / (BufferHt-1);
 
-    //LOG_DEBUG("Vertical Start %d: +%f x %d",
+    //spdlog::debug("Vertical Start {}: +{} x {}",
     //    (int)toDegrees(VStartAngle), (float)toDegrees(VAngleIncr), BufferHt);
 
     size_t NodeCount = GetNodeCount();
@@ -97,7 +97,7 @@ void SphereModel::SetSphereCoord() {
             Nodes[n]->Coords[c].screenZ = Hradius * sin(hangle) * sv;
             Nodes[n]->Coords[c].screenY = Vradius * cos(vangle);
 
-            //LOG_DEBUG("%d: %d,%d -> hangle %d vangle %d -> %f,%f,%f",
+            //spdlog::debug("{}: {},{} -> hangle {} vangle {} -> {},{},{}",
             //    n,
             //    (int)bufferX, (int)bufferY,
             //    (int)toDegrees(hangle), (int)toDegrees(vangle),

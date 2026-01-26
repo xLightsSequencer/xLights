@@ -13,7 +13,7 @@
 #include <list>
 #include <numeric>
 #include "UtilFunctions.h"
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include "SequenceElements.h"
 #include "xLightsMain.h"
 

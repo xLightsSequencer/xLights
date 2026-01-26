@@ -21,7 +21,7 @@
 #include <wx/string.h>
 #include <wx/xml/xml.h>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include "../xLights/UtilFunctions.h"
 
@@ -241,7 +241,7 @@ void RestoreBackupDialog::ListBackupDir()
     StaticTextBackUpFolder->SetLabel("Backup Folder: " + _backupDir);
 
     if (!wxDir::Exists(_backupDir)) {
-        LOG_INFO("Backup folder doesnt exist: %s", (const char*)_backupDir.c_str());
+        spdlog::info("Backup folder doesnt exist: {}", (const char*)_backupDir.c_str());
         StaticTextBackUpFolder->SetLabel(_backupDir + " Not Found");
         StaticTextBackUpFolder->SetForegroundColour(wxColor(*wxRED));
     }
@@ -250,7 +250,7 @@ void RestoreBackupDialog::ListBackupDir()
         ListBoxBackups->Delete(0);
     }
 
-    LOG_INFO("Scanning Backup folder: %s", (const char*)_backupDir.c_str());
+    spdlog::info("Scanning Backup folder: {}", (const char*)_backupDir.c_str());
 
     wxDir directory;
     directory.Open(_backupDir);
@@ -353,10 +353,10 @@ std::vector<BController> RestoreBackupDialog::LoadNetworkFile(wxString const& fo
                 }
             }
         } else {
-            LOG_WARN("Error loading networks file: %s.", (const char*)networkFile.GetFullPath().c_str());
+            spdlog::warn("Error loading networks file: {}.", (const char*)networkFile.GetFullPath().c_str());
         }
     } else {
-        LOG_WARN("Network file not found: %s.", (const char*)networkFile.GetFullPath().c_str());
+        spdlog::warn("Network file not found: {}.", (const char*)networkFile.GetFullPath().c_str());
     }
 
     std::sort(controllers.begin(), controllers.end(), [](const auto& lhs, const auto& rhs) {
@@ -395,13 +395,13 @@ std::vector<BModel> RestoreBackupDialog::LoadRGBEffectsFile(wxString const& fold
                     }
                 }
             } else {
-                LOG_WARN("Error loading RGB Effects file: %s.", (const char*)modelFile.GetFullPath().c_str());
+                spdlog::warn("Error loading RGB Effects file: {}.", (const char*)modelFile.GetFullPath().c_str());
             }
         } else {
-            LOG_WARN("Error loading RGB Effects file: %s.", (const char*)modelFile.GetFullPath().c_str());
+            spdlog::warn("Error loading RGB Effects file: {}.", (const char*)modelFile.GetFullPath().c_str());
         }
     } else {
-        LOG_WARN("RGB Effects file not found: %s.", (const char*)modelFile.GetFullPath().c_str());
+        spdlog::warn("RGB Effects file not found: {}.", (const char*)modelFile.GetFullPath().c_str());
     }
     std::sort(models.begin(), models.end(), [](const auto& lhs, const auto& rhs) {
         return lhs.Name < rhs.Name;

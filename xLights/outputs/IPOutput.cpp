@@ -27,7 +27,7 @@
 #include "utils/Curl.h"
 #include "utils/ip_utils.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #pragma region Private Functions
 void IPOutput::Save(wxXmlNode* node) {

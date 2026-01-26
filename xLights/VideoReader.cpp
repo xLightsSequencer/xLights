@@ -26,7 +26,7 @@ extern "C" {
 }
 
 #include "SpecialOptions.h"
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #ifdef __WXOSX__
 extern void InitVideoToolboxAcceleration();
@@ -58,10 +58,10 @@ static enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelF
         }
     }
     
-    LOG_ERROR("Failed to get HW surface format. This is bad - we will have to abandon video read. Suggest you turn off hardware video decoding or force change the device.");
-    LOG_ERROR("   Looking for %s but only found:", av_get_pix_fmt_name(__hw_pix_fmt));
+    spdlog::error("Failed to get HW surface format. This is bad - we will have to abandon video read. Suggest you turn off hardware video decoding or force change the device.");
+    spdlog::error("   Looking for {} but only found:", av_get_pix_fmt_name(__hw_pix_fmt));
     for (p = pix_fmts; *p != -1; p++) {
-        LOG_ERROR("       %s", av_get_pix_fmt_name(*p));
+        spdlog::error("       {}", av_get_pix_fmt_name(*p));
     }
 
     return AV_PIX_FMT_NONE;
@@ -131,15 +131,15 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
             _frameMS = _windowsHardwareVideoReader->GetFrameMS();
             _valid = true;
 
-            LOG_INFO("Video loaded: " + filename);
-            LOG_INFO("      Length MS: %.2f", _lengthMS);
-            LOG_INFO("      _frames: %d", _frames);
-            LOG_INFO("      Frames per second %.2f", (double)_frames * 1000.0 / _lengthMS);
-            LOG_INFO("      Source size: %dx%d", _windowsHardwareVideoReader->GetNativeWidth(), _windowsHardwareVideoReader->GetNativeHeight());
-            LOG_INFO("      Output size: %dx%d", _width, _height);
+            spdlog::info("Video loaded: " + filename);
+            spdlog::info("      Length MS: {}", _lengthMS);
+            spdlog::info("      _frames: {}", _frames);
+            spdlog::info("      Frames per second {}", (double)_frames * 1000.0 / _lengthMS);
+            spdlog::info("      Source size: {}x{}", _windowsHardwareVideoReader->GetNativeWidth(), _windowsHardwareVideoReader->GetNativeHeight());
+            spdlog::info("      Output size: {}x{}", _width, _height);
             if (_wantAlpha)
-                LOG_INFO("      Alpha: TRUE");
-            LOG_INFO("      Frame ms %d", _frameMS);
+                spdlog::info("      Alpha: TRUE");
+            spdlog::info("      Frame ms {}", _frameMS);
             return;
         } else {
             delete _windowsHardwareVideoReader;
@@ -154,12 +154,12 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 
 	int res = avformat_open_input(&_formatContext, filename.c_str(), nullptr, nullptr);
 	if (res != 0) {
-        LOG_ERROR("Error opening the file " + filename);
+        spdlog::error("Error opening the file " + filename);
 		return;
 	}
 
 	if (avformat_find_stream_info(_formatContext, nullptr) < 0) {
-        LOG_ERROR("VideoReader: Error finding the stream info in " + filename);
+        spdlog::error("VideoReader: Error finding the stream info in " + filename);
 		return;
 	}
 
@@ -172,7 +172,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     _decoder = decoder;
 #endif
 	if (_streamIndex < 0) {
-        LOG_ERROR("VideoReader: Could not find any video stream in " + filename);
+        spdlog::error("VideoReader: Could not find any video stream in " + filename);
 		return;
 	}
 
@@ -198,7 +198,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
       {
          if ( _codecContext->width == 0 || _codecContext->height == 0 )
          {
-            LOG_ERROR( "VideoReader: Invalid input reader dimensions (%d,%d) %s", _codecContext->width, _codecContext->height, (const char *)filename.c_str() );
+            spdlog::error("VideoReader: Invalid input reader dimensions ({},{}) {}", _codecContext->width, _codecContext->height, (const char*)filename.c_str());
             return;
          }
 
@@ -226,8 +226,8 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     {
         if (_frames == 0 || _videoStream->avg_frame_rate.den == 0)
         {
-            LOG_WARN("VideoReader: dtspersec calc error _videoStream->nb_frames %d and _videoStream->avg_frame_rate.den %d cannot be zero. %s", (int)_videoStream->nb_frames, (int)_videoStream->avg_frame_rate.den, (const char *)filename.c_str());
-            LOG_WARN("VideoReader: Video seeking will only work back to the start of the video.");
+            spdlog::warn("VideoReader: dtspersec calc error _videoStream->nb_frames {} and _videoStream->avg_frame_rate.den {} cannot be zero. {}", (int)_videoStream->nb_frames, (int)_videoStream->avg_frame_rate.den, (const char*)filename.c_str());
+            spdlog::warn("VideoReader: Video seeking will only work back to the start of the video.");
             _dtspersec = 1.0;
         }
         else
@@ -248,7 +248,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
             if (_videoStream->avg_frame_rate.num != 0) {
                 _lengthMS = ((double)_frames * (double)_videoStream->avg_frame_rate.den * 1000.0) / (double)_videoStream->avg_frame_rate.num;
             } else {
-                LOG_INFO("VideoReader: _videoStream->avg_frame_rate.num = 0");
+                spdlog::info("VideoReader: _videoStream->avg_frame_rate.num = 0");
             }
         }
     }
@@ -263,7 +263,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
         }
         else
         {
-            LOG_INFO("VideoReader: _videoStream->avg_frame_rate.den = 0");
+            spdlog::info("VideoReader: _videoStream->avg_frame_rate.den = 0");
         }
     }
 
@@ -281,7 +281,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 	if (_lengthMS <= 0 || _frames <= 0)
 	{
 		// This is bad ... it still does not look right
-        LOG_WARN("Attempts to determine length of video have not been successful. Problems ahead.");
+        spdlog::warn("Attempts to determine length of video have not been successful. Problems ahead.");
 	}
 
     // Guess the keyframe frequency
@@ -307,33 +307,33 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     //av_init_packet(&_packet);
 	_valid = true;
 
-    LOG_INFO("Video loaded: " + filename);
-    LOG_INFO("      Length MS: %.2f", _lengthMS);
-    LOG_INFO("      _videoStream->time_base.num: %d", _videoStream->time_base.num);
-    LOG_INFO("      _videoStream->time_base.den: %d", _videoStream->time_base.den);
-    LOG_INFO("      _videoStream->r_frame_rate.num: %d", _videoStream->r_frame_rate.num);
-    LOG_INFO("      _videoStream->r_frame_rate.den: %d", _videoStream->r_frame_rate.den);
-    LOG_INFO("      _videoStream->avg_frame_rate.num: %d", _videoStream->avg_frame_rate.num);
-    LOG_INFO("      _videoStream->avg_frame_rate.den: %d", _videoStream->avg_frame_rate.den);
-    LOG_INFO("      DTS per sec: %f", _dtspersec);
-    LOG_INFO("      _videoStream->nb_frames: %d", _videoStream->nb_frames);
-    LOG_INFO("      _frames: %d", _frames);
-    LOG_INFO("      Frames per second %.2f", (double)_frames * 1000.0 / _lengthMS);
-    LOG_INFO("      Source size: %dx%d", _codecContext->width, _codecContext->height);
-    LOG_INFO("      Source coded size: %dx%d", _codecContext->coded_width, _codecContext->coded_height);
-    LOG_INFO("      Output size: %dx%d", _width, _height);
-    LOG_INFO("      Guessed key frame frequency: %d", _keyFrameCount);
+    spdlog::info("Video loaded: " + filename);
+    spdlog::info("      Length MS: {}", _lengthMS);
+    spdlog::info("      _videoStream->time_base.num: {}", _videoStream->time_base.num);
+    spdlog::info("      _videoStream->time_base.den: {}", _videoStream->time_base.den);
+    spdlog::info("      _videoStream->r_frame_rate.num: {}", _videoStream->r_frame_rate.num);
+    spdlog::info("      _videoStream->r_frame_rate.den: {}", _videoStream->r_frame_rate.den);
+    spdlog::info("      _videoStream->avg_frame_rate.num: {}", _videoStream->avg_frame_rate.num);
+    spdlog::info("      _videoStream->avg_frame_rate.den: {}", _videoStream->avg_frame_rate.den);
+    spdlog::info("      DTS per sec: {}", _dtspersec);
+    spdlog::info("      _videoStream->nb_frames: {}", _videoStream->nb_frames);
+    spdlog::info("      _frames: {}", _frames);
+    spdlog::info("      Frames per second {}", (double)_frames * 1000.0 / _lengthMS);
+    spdlog::info("      Source size: {}x{}", _codecContext->width, _codecContext->height);
+    spdlog::info("      Source coded size: {}x{}", _codecContext->coded_width, _codecContext->coded_height);
+    spdlog::info("      Output size: {}x{}", _width, _height);
+    spdlog::info("      Guessed key frame frequency: {}", _keyFrameCount);
     if (_wantAlpha)
-        LOG_INFO("      Alpha: TRUE");
+        spdlog::info("      Alpha: TRUE");
     if (_frames != 0)
     {
-        LOG_INFO("      Frame ms %f", _lengthMS / (double)_frames);
+        spdlog::info("      Frame ms {}", _lengthMS / (double)_frames);
         _frameMS = _lengthMS / _frames;
-        LOG_INFO("      Used frame ms %d", _frameMS);
+        spdlog::info("      Used frame ms {}", _frameMS);
     }
     else
     {
-        LOG_WARN("      Frame ms <unknown as _frames is 0>");
+        spdlog::warn("      Frame ms <unknown as _frames is 0>");
         _frameMS = 0;
     }
     
@@ -405,7 +405,7 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
 
     _codecContext = avcodec_alloc_context3(_decoder);
     if (!_codecContext) {
-        LOG_ERROR("VideoReader: Failed to allocate codec context for %s", _filename.c_str());
+        spdlog::error("VideoReader: Failed to allocate codec context for {}", _filename.c_str());
         return;
     }
 
@@ -418,7 +418,7 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
 
     // Copy codec parameters from input stream to output codec context
     if (avcodec_parameters_to_context(_codecContext, _videoStream->codecpar) < 0) {
-        LOG_ERROR("VideoReader: Failed to copy %s codec parameters to decoder context", _filename.c_str());
+        spdlog::error("VideoReader: Failed to copy {} codec parameters to decoder context", _filename.c_str());
         return;
     }
 
@@ -430,7 +430,7 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
             const char* opt = nullptr;
             if (av_hwdevice_ctx_create(&_hw_device_ctx, type, opt, nullptr, 0) < 0)
             {
-                LOG_DEBUG("Failed to create specified HW device.");
+                spdlog::debug("Failed to create specified HW device.");
                 type = AV_HWDEVICE_TYPE_NONE;
             }
             else
@@ -441,12 +441,12 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
 #if __has_include(<libavdevice/avdevice.h>)
                 devName = av_hwdevice_get_type_name(type);
 #endif
-                LOG_DEBUG("Hardware decoding('%s') enabled for codec '%s'", devName, _codecContext->codec->long_name);
+                spdlog::debug("Hardware decoding('{}') enabled for codec '{}'", devName, _codecContext->codec->long_name);
             }
         }
         else
         {
-            LOG_DEBUG("Software decoding enabled for codec '%s'", _codecContext->codec->long_name);
+            spdlog::debug("Software decoding enabled for codec '{}'", _codecContext->codec->long_name);
         }
     }
     #endif
@@ -456,7 +456,7 @@ void VideoReader::reopenContext(bool allowHWDecoder) {
     AVDictionary *opts = nullptr;
     //av_dict_set(&opts, "refcounted_frames", "0", 0);
     if (avcodec_open2(_codecContext, _decoder, &opts) < 0) {
-        LOG_ERROR("VideoReader: Couldn't open the context with the decoder in %s", _filename.c_str());
+        spdlog::error("VideoReader: Couldn't open the context with the decoder in {}", _filename.c_str());
         return;
     }
 }
@@ -584,22 +584,22 @@ VideoReader::~VideoReader()
         _packet = nullptr;
     }
     if (_swsCtx != nullptr) {
-        //LOG_DEBUG("Releasing sws Context.");
+        //spdlog::debug("Releasing sws Context.");
         sws_freeContext(_swsCtx);
         _swsCtx = nullptr;
     }
     if (_srcFrame != nullptr) {
-        //LOG_DEBUG("Releasing srcFrame.");
+        //spdlog::debug("Releasing srcFrame.");
         av_free(_srcFrame);
         _srcFrame = nullptr;
     }
     if (_srcFrame2 != nullptr) {
-        //LOG_DEBUG("Releasing srcFrame2.");
+        //spdlog::debug("Releasing srcFrame2.");
         av_free(_srcFrame2);
         _srcFrame2 = nullptr;
     }
     if (_dstFrame != nullptr) {
-        //LOG_DEBUG("Releasing dstFrame.");
+        //spdlog::debug("Releasing dstFrame.");
         if (_dstFrame->data[0] != nullptr) {
             av_free(_dstFrame->data[0]);
         }
@@ -607,7 +607,7 @@ VideoReader::~VideoReader()
         _dstFrame = nullptr;
     }
     if (_dstFrame2 != nullptr) {
-        //LOG_DEBUG("Releasing dstFrame2.");
+        //spdlog::debug("Releasing dstFrame2.");
         if (_dstFrame2->data[0] != nullptr) {
             av_free(_dstFrame2->data[0]);
         }
@@ -618,22 +618,22 @@ VideoReader::~VideoReader()
 
         if (_keyFrameCount != _codecContext->keyint_min)
         {
-            LOG_DEBUG("Key frame count was adjusted from %d to %d.", _codecContext->keyint_min, _keyFrameCount);
+            spdlog::debug("Key frame count was adjusted from {} to {}.", _codecContext->keyint_min, _keyFrameCount);
         }
 
-        //LOG_DEBUG("Releasing codecContext.");
+        //spdlog::debug("Releasing codecContext.");
         CleanupVideoToolbox(_codecContext, hwDecoderCache);
         hwDecoderCache = nullptr;
         avcodec_free_context(&_codecContext);
 		_codecContext = nullptr;
 	}
 	if (_formatContext != nullptr) {
-        //LOG_DEBUG("Releasing formatContext.");
+        //spdlog::debug("Releasing formatContext.");
         avformat_close_input(&_formatContext);
 		_formatContext = nullptr;
 	}
     if (_hw_device_ctx != nullptr) {
-        //LOG_DEBUG("Releasing hardware device context.");
+        //spdlog::debug("Releasing hardware device context.");
         av_buffer_unref(&_hw_device_ctx);
         _hw_device_ctx = nullptr;
     }
@@ -659,7 +659,7 @@ void VideoReader::Seek(int timestampMS, bool readFrame)
     // we have to be valid
 	if (_valid) {
 #ifdef VIDEO_EXTRALOGGING
-        LOG_INFO("VideoReader: Seeking to %d ms.", timestampMS);
+        spdlog::info("VideoReader: Seeking to {} ms.", timestampMS);
 #endif
         if (_atEnd && (_videoToolboxAccelerated || _hw_device_ctx)) {
             // once the end is reached, the hardware decoder is done
@@ -682,12 +682,12 @@ void VideoReader::Seek(int timestampMS, bool readFrame)
         if (timestampMS <= 0) {
             int f = av_seek_frame(_formatContext, _streamIndex, 0, AVSEEK_FLAG_FRAME);
             if (f != 0) {
-                LOG_INFO("       VideoReader: Error seeking to %d.", timestampMS);
+                spdlog::info("       VideoReader: Error seeking to {}.", timestampMS);
             }
         } else {
             int f = av_seek_frame(_formatContext, _streamIndex, MStoDTS(timestampMS, _dtspersec), AVSEEK_FLAG_BACKWARD);
             if (f != 0) {
-                LOG_INFO("       VideoReader: Error seeking to %d.", timestampMS);
+                spdlog::info("       VideoReader: Error seeking to {}.", timestampMS);
             }
         }
 
@@ -725,7 +725,7 @@ bool VideoReader::readFrame(int timestampMS) {
         bool unrefSrcFrame2 = false;
         if ((double)_curPos / (double)_frames >= ((double)timestampMS / (double)_frames) - 2.0) {
             #ifdef VIDEO_EXTRALOGGING
-            LOG_DEBUG("    Decoding video frame %d.", _curPos);
+            spdlog::debug("    Decoding video frame {}.", _curPos);
             #endif
             bool hardwareScaled = false;
             int scaleAlgorithm = SWS_BICUBIC;
@@ -758,7 +758,7 @@ bool VideoReader::readFrame(int timestampMS) {
 
                     if (_abandonHardwareDecode && _swsCtx != nullptr)
                     {
-                        LOG_WARN("VideoReader: This could get ugly ... we have abandoned hardware decode but we already had a sws Context.");
+                        spdlog::warn("VideoReader: This could get ugly ... we have abandoned hardware decode but we already had a sws Context.");
                     }
                 }
                 else
@@ -769,41 +769,41 @@ bool VideoReader::readFrame(int timestampMS) {
 
                 // make sure f is valid
                 if (f == nullptr) {
-                    LOG_WARN("VideoReader: Strange f was not valid so setting it to the source frame.");
+                    spdlog::warn("VideoReader: Strange f was not valid so setting it to the source frame.");
                     f = _srcFrame;
                 }
 
                 // first time through we wont have a scale context so create it
                 if (_swsCtx == nullptr) {
                     if (_abandonHardwareDecode) {
-                        LOG_WARN("VideoReader: Hardware decoding abandoned due to directx error.");
+                        spdlog::warn("VideoReader: Hardware decoding abandoned due to directx error.");
                     }
                     #if LIBAVFORMAT_VERSION_MAJOR > 57
                     if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt && !_abandonHardwareDecode) {
-                        LOG_DEBUG("Hardware format %s -> Software format %s.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame->format), av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format));
+                        spdlog::debug("Hardware format {} -> Software format {}.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame->format), av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
                             _width, _height, _pixelFmt, scaleAlgorithm, nullptr, nullptr, nullptr);
                         if (_swsCtx == nullptr) {
-                            LOG_ERROR("VideoReader: Error creating SWSContext");
+                            spdlog::error("VideoReader: Error creating SWSContext");
                         }
                         else {
-                            LOG_DEBUG("Hardware Decoding Pixel format conversion %s -> %s.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format), av_get_pix_fmt_name(_pixelFmt));
-                            LOG_DEBUG("Size conversion %d,%d -> %d,%d.", f->width, f->height, _width, _height);
+                            spdlog::debug("Hardware Decoding Pixel format conversion {} -> {}.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format), av_get_pix_fmt_name(_pixelFmt));
+                            spdlog::debug("Size conversion {},{} -> {},{}.", f->width, f->height, _width, _height);
                         }
                     }
                     else
                     #endif
                     {
                         // software decoding
-                        LOG_DEBUG("Software format %s -> Software format %s.", av_get_pix_fmt_name((AVPixelFormat)f->format), av_get_pix_fmt_name((AVPixelFormat)_pixelFmt));
+                        spdlog::debug("Software format {} -> Software format {}.", av_get_pix_fmt_name((AVPixelFormat)f->format), av_get_pix_fmt_name((AVPixelFormat)_pixelFmt));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
                             _width, _height, _pixelFmt, scaleAlgorithm, nullptr, nullptr, nullptr);
                         if (_swsCtx == nullptr) {
-                            LOG_ERROR("VideoReader: Error creating SWSContext");
+                            spdlog::error("VideoReader: Error creating SWSContext");
                         }
                         else {
-                            LOG_DEBUG("Software Decoding Pixel format conversion %s -> %s.", av_get_pix_fmt_name(_codecContext->pix_fmt), av_get_pix_fmt_name(_pixelFmt));
-                            LOG_DEBUG("Size conversion %d,%d -> %d,%d.", f->width, f->height, _width, _height);
+                            spdlog::debug("Software Decoding Pixel format conversion {} -> {}.", av_get_pix_fmt_name(_codecContext->pix_fmt), av_get_pix_fmt_name(_pixelFmt));
+                            spdlog::debug("Size conversion {},{} -> {},{}.", f->width, f->height, _width, _height);
                         }
                     }
                 }
@@ -822,7 +822,7 @@ bool VideoReader::readFrame(int timestampMS) {
         }
         return true;
     } else if (rc != AVERROR(EAGAIN)) {
-        LOG_DEBUG("avcodec_receive_frame failed %d - abandoning video read.", rc);
+        spdlog::debug("avcodec_receive_frame failed {} - abandoning video read.", rc);
         _abort = true;
     }
     return false;
@@ -858,7 +858,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
 #endif
 
 #ifdef VIDEO_EXTRALOGGING
-    LOG_DEBUG("Video %s getting frame %d.", (const char *)_filename.c_str(), timestampMS);
+    spdlog::debug("Video {} getting frame {}.", (const char *)_filename.c_str(), timestampMS);
 #endif
 
     int currenttime = GetPos();
@@ -888,7 +888,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
     if (currenttime > timestampMS + gracetime || timestampMS - currenttime > 1000)
     {
 #ifdef VIDEO_EXTRALOGGING
-        LOG_DEBUG("    Video %s seeking from %d to %d.", (const char *)_filename.c_str(), currenttime, timestampMS);
+        spdlog::debug("    Video {} seeking from {} to {}.", (const char *)_filename.c_str(), currenttime, timestampMS);
 #endif
         Seek(timestampMS, false);
         currenttime = GetPos();
@@ -913,7 +913,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
                 int ret = avcodec_send_packet(_codecContext, _packet);
                 while (!_abort && ret != 0) {
                     if (ret != AVERROR(EAGAIN) && (_videoToolboxAccelerated || _hw_device_ctx )) {
-                        LOG_DEBUG("    Hardware video decoding failed for %s. Reverting to software decoding.", (const char*)_filename.c_str());
+                        spdlog::debug("    Hardware video decoding failed for {}. Reverting to software decoding.", (const char*)_filename.c_str());
                         reopenContext(false);
                         Seek(timestampMS, false);
                         currenttime = GetPos();
@@ -946,7 +946,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
                     {
                         seekedForward = true;
 #ifdef VIDEO_EXTRALOGGING
-                        LOG_DEBUG("    Video %s seeking forward from %d to %d.", (const char*)_filename.c_str(), currenttime, timestampMS);
+                        spdlog::debug("    Video {} seeking forward from {} to {}.", (const char*)_filename.c_str(), currenttime, timestampMS);
 #endif
                         Seek(timestampMS, false);
                         currenttime = GetPos();

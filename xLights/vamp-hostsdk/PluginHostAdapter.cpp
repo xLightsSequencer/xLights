@@ -39,7 +39,7 @@
 #include "Files.h"
 
 // xLights
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 // end xLights
 
 #if ( VAMP_SDK_MAJOR_VERSION != 2 || VAMP_SDK_MINOR_VERSION != 8 )
@@ -61,7 +61,7 @@ PluginHostAdapter::PluginHostAdapter(const VampPluginDescriptor *descriptor,
     if (!m_handle) {
         // xLights
         
-        LOG_WARN("PluginHostAdapter: Plugin instantiation failed for plugin " + std::string(m_descriptor->name));
+        spdlog::warn("PluginHostAdapter: Plugin instantiation failed for plugin " + std::string(m_descriptor->name));
         // end xLights
 //        std::cerr << "WARNING: PluginHostAdapter: Plugin instantiation failed for plugin " << m_descriptor->name << std::endl;
     }
@@ -86,12 +86,12 @@ PluginHostAdapter::getPluginPath()
     if (Files::isNonNative32Bit()) {
         (void)Files::getEnvUtf8("VAMP_PATH_32", envPath);
         // xLights
-        LOG_INFO("VAMP_PATH_32 was '%s'", (const char*)envPath.c_str());
+        spdlog::info("VAMP_PATH_32 was '{}'", (const char*)envPath.c_str());
         // end xLights
     } else {
         (void)Files::getEnvUtf8("VAMP_PATH", envPath);
         // xLights
-        LOG_INFO("VAMP_PATH was '%s'", (const char*)envPath.c_str());
+        spdlog::info("VAMP_PATH was '{}'", (const char*)envPath.c_str());
         // end xLights
     }
 
@@ -130,7 +130,7 @@ PluginHostAdapter::getPluginPath()
 #endif
     }
     // xLights
-    LOG_INFO("VAMP_PATH final value '%s'", (const char *)envPath.c_str());
+    spdlog::info("VAMP_PATH final value '{}'", (const char *)envPath.c_str());
     // end xLights
     std::string::size_type index = 0, newindex = 0;
 
@@ -351,13 +351,13 @@ PluginHostAdapter::getOutputDescriptors() const
     OutputList list;
     if (!m_handle) {
         // xLights
-        LOG_WARN("PluginHostAdapter::getOutputDescriptors: no handle");
+        spdlog::warn("PluginHostAdapter::getOutputDescriptors: no handle");
         // end xLights
 //        std::cerr << "PluginHostAdapter::getOutputDescriptors: no handle " << std::endl;
         return list;
     }
     // xLights
-    LOG_DEBUG("Getting vamp descriptors for %s", (const char *)getName().c_str());
+    spdlog::debug("Getting vamp descriptors for {}", (const char *)getName().c_str());
     //end xLights
 
     unsigned int count = m_descriptor->getOutputCount(m_handle);

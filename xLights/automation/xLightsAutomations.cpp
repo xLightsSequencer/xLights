@@ -33,7 +33,7 @@
 
 #include "LuaRunner.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 std::string xLightsFrame::FindSequence(const std::string& seq)
 {
@@ -450,7 +450,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                     FSEQFile::FrameData* f = seq->getFrame(frame);
                     if (f != nullptr) {
                         if (!f->readFrame(&frames[lastBuffered][0], frames[lastBuffered].size())) {
-                            //LOG_ERROR("FPPConnect FSEQ file corrupt.");
+                            //spdlog::error("FPPConnect FSEQ file corrupt.");
                             res = false;
                         }
                         delete f;
@@ -1251,7 +1251,7 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
             connection.SendResponse(resp);
             return true;
         } else {
-            LOG_WARN("Automation did not send result because connection lost.");
+            spdlog::warn("Automation did not send result because connection lost.");
         }
         return false;
     });
@@ -1280,11 +1280,11 @@ void xLightsFrame::StartAutomationListener()
     ctx.ErrorPage404 = HTTP_ERROR_PAGE;
 
     if (!server->Start(ctx)) {
-        LOG_DEBUG("xLights Automation could not listen on %d", ::GetxFadePort(_xFadePort));
+        spdlog::debug("xLights Automation could not listen on {}", ::GetxFadePort(_xFadePort));
         delete server;
         return;
     }
-    LOG_DEBUG("xLights Automation listening on %d", ::GetxFadePort(_xFadePort));
+    spdlog::debug("xLights Automation listening on {}", ::GetxFadePort(_xFadePort));
     _automationServer = server;
 }
 

@@ -13,7 +13,7 @@
 #include "ColorManager.h"
 #include "xLightsMain.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 ColorManager::ColorManager(xLightsFrame* frame)
 : xlights(frame)
@@ -36,7 +36,7 @@ ColorManager* ColorManager::instance()
         // this should not be possible since the main application should
         // always have constructed this object before any clients need it
         
-        LOG_ERROR("Color Manager instance was still a nullptr.");
+        spdlog::error("Color Manager instance was still a nullptr.");
     }
     return pInstance;
 }

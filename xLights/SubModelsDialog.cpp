@@ -54,7 +54,7 @@
 #include "CheckboxSelectDialog.h"
 #include "VendorModelDialog.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 wxDEFINE_EVENT(EVT_SMDROP, wxCommandEvent);
 
@@ -1112,7 +1112,7 @@ void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
     if (sm != nullptr) {
         int str = (int)sm->strands.size() - 1 - r;
         if (str < 0) {
-            LOG_CRIT("SubModelsDialog::OnNodesGridCellChange submodel '%s' tried to access strand %d. This should have crashed.", (const char*)GetSelectedName().c_str(), str);
+            spdlog::critical("SubModelsDialog::OnNodesGridCellChange submodel '{}' tried to access strand {}. This should have crashed.", GetSelectedName().ToStdString(), str);
             wxASSERT(false);
         } else {
             wxString newValue = NodesGrid->GetCellValue(r, 0);
@@ -1121,7 +1121,7 @@ void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
 
         }
     } else {
-        LOG_CRIT("SubModelsDialog::OnNodesGridCellChange submodel '%s' ... not found. This should have crashed.", (const char*)GetSelectedName().c_str());
+        spdlog::critical("SubModelsDialog::OnNodesGridCellChange submodel '{}' ... not found. This should have crashed.", GetSelectedName().ToStdString());
         wxASSERT(false);
     }
     SelectRow(r);
@@ -1394,7 +1394,7 @@ void SubModelsDialog::ApplySubmodelName()
         }
     }
     else {
-        LOG_WARN("SubModelsDialog::ApplySubmodelName submodel not found for index %d.", index);
+        spdlog::warn("SubModelsDialog::ApplySubmodelName submodel not found for index {}.", index);
     }
 
     ValidateWindow();
@@ -1439,7 +1439,7 @@ void SubModelsDialog::OnButton_SearchClick(wxCommandEvent& event)
 static void LogAndWrite(wxFile& f, const std::string& msg)
 {
     
-    LOG_DEBUG("CheckSequence: " + msg);
+    spdlog::debug("CheckSequence: " + msg);
     if (f.IsOpened()) {
         f.Write(msg + "\r\n");
     }
@@ -3570,7 +3570,7 @@ void SubModelsDialog::ImportCSVSubModel(wxString const& filename)
         TextCtrl_Name->SelectAll();
     } else {
         
-        LOG_WARN("Failed to Open File %s", (const char *)filename.c_str());
+        spdlog::warn("Failed to Open File {}", (const char *)filename.c_str());
     }
 }
 

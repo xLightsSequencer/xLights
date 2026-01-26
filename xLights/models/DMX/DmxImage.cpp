@@ -22,7 +22,7 @@
 #include "../../ModelPreview.h"
 #include "../../xLightsMain.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -331,7 +331,7 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *
 
     if (_images.find(preview->GetName().ToStdString()) == _images.end()) {
         if (FileExists(_imageFile)) {
-            LOG_DEBUG("Loading image model %s file %s for preview %s.",
+            spdlog::debug("Loading image model {} file {} for preview {}.",
                 (const char*)base->GetName().c_str(),
                 (const char*)_imageFile.c_str(),
                 (const char*)preview->GetName().c_str());

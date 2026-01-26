@@ -12,7 +12,7 @@
 #include "../ExternalHooks.h"
 #include "../UtilFunctions.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : graphicsContext(ctx), filename(f) {
     
@@ -25,12 +25,12 @@ xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : graphicsContext(c
 
     if (!objects.ParseFromFile(filename, reader_config)) {
         if (!objects.Error().empty()) {
-            LOG_ERROR("TinyObjReader: %s", objects.Error().c_str());
+            spdlog::error("TinyObjReader: {}", objects.Error().c_str());
             return;
         }
     }
     if (!objects.Warning().empty()) {
-        LOG_WARN("TinyObjReader: %s", objects.Warning().c_str());
+        spdlog::warn("TinyObjReader: {}", objects.Warning().c_str());
     }
     objectsLoaded = true;
     

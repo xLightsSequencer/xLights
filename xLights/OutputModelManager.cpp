@@ -12,21 +12,21 @@
 #include "outputs/Controller.h"
 #include "xLightsMain.h"
 #include "OutputModelManager.h"
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #ifdef _DEBUG
 void OutputModelManager::Dump(const std::string& type, const std::list<std::pair<uint32_t, std::string>>& source)
 {
     
 
-    LOG_DEBUG("    Dump explaining how we got here : %s", (const char*)type.c_str());
+    spdlog::debug("    Dump explaining how we got here : {}", (const char*)type.c_str());
     for (const auto& it : source)
     {
-        LOG_DEBUG("          0x%04x  %s  %s", it.first, (const char*)DecodeWork(it.first).c_str(), (const char*)it.second.c_str());
+        spdlog::debug("          {:04X}  {}  {}", it.first, (const char*)DecodeWork(it.first).c_str(), (const char*)it.second.c_str());
     }
-    if (_selectedModel != "") LOG_DEBUG("    Select model '%s'", (const char*)_selectedModel.c_str());
-    if (_selectedController != "") LOG_DEBUG("    Select controller '%s'", (const char*)_selectedController.c_str());
-    if (_modelToModelFromXml != nullptr) LOG_DEBUG("    Model to reload xml '%s'", (const char*)_modelToModelFromXml->GetName().c_str());
+    if (_selectedModel != "") spdlog::debug("    Select model '{}'", (const char*)_selectedModel.c_str());
+    if (_selectedController != "") spdlog::debug("    Select controller '{}'", (const char*)_selectedController.c_str());
+    if (_modelToModelFromXml != nullptr) spdlog::debug("    Model to reload xml '{}'", (const char*)_modelToModelFromXml->GetName().c_str());
 }
 
 std::string OutputModelManager::DecodeWork(uint32_t work)
@@ -174,9 +174,9 @@ void OutputModelManager::AddImmediateWork(uint32_t work, const std::string& from
         }
     }
 #ifdef _DEBUG
-    LOG_DEBUG("Doing Immediate Work. Called from %s", (const char*)from.c_str());
+    spdlog::debug("Doing Immediate Work. Called from {}", (const char*)from.c_str());
 #else
-    LOG_DEBUG("Doing Immediate Work.");
+    spdlog::debug("Doing Immediate Work.");
 #endif
     _frame->DoWork(work, "Immediate", m, selectedModel);
 }

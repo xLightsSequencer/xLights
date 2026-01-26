@@ -26,7 +26,7 @@
 #include "models/Model.h"
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include "xLightsXmlFile.h"
 #include "outputs/TestPreset.h"
 #include "outputs/Output.h"
@@ -98,11 +98,10 @@ void ChannelTracker::FixOverlaps()
 
 void ChannelTracker::Dump()
 {
-    
-    LOG_DEBUG("Selected channels dump:");
+    spdlog::debug("Selected channels dump:");
     for (const auto& it : _ranges)
     {
-        LOG_DEBUG("   %ld-%ld", GetStart(it), GetEnd(it));
+        spdlog::debug("   {}-{}", GetStart(it), GetEnd(it));
     }
 }
 
@@ -2808,9 +2807,9 @@ void PixelTestDialog::OnButton_SaveClick(wxCommandEvent& event)
         _channelTracker.GetNextRange(start, end);
     }
     
-    LOG_DEBUG("Saving test preset: %s", (const char*)name.c_str());
+    spdlog::debug("Saving test preset: {}", (const char*)name.c_str());
     _outputManager->Save();
-    LOG_DEBUG("   Save done.");
+    spdlog::debug("   Save done.");
 }
 #pragma endregion
 

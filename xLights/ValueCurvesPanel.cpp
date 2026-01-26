@@ -25,7 +25,7 @@
 #include <wx/artprov.h>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 //(*IdInit(ValueCurvesPanel)
 const long ValueCurvesPanel::ID_SCROLLEDWINDOW1 = wxNewId();
@@ -40,7 +40,7 @@ END_EVENT_TABLE()
 int ValueCurvesPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
 {
     
-    LOG_INFO("ValueCurvesPanel Scanning directory for *.xvc files: %s.", (const char*)directory.GetNameWithSep().c_str());
+    spdlog::info("ValueCurvesPanel Scanning directory for *.xvc files: {}.", (const char*)directory.GetNameWithSep().c_str());
 
     int added = 0;
     int count = 0;
@@ -73,11 +73,11 @@ int ValueCurvesPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
                 GridSizer1->Add(bmb);
                 added++;
             } else {
-                LOG_WARNWX("ValueCurvesPanel::ProcessPresetDir Unable to load " + fn.GetFullPath());
+                spdlog::warn("ValueCurvesPanel::ProcessPresetDir Unable to load " + fn.GetFullPath().ToStdString());
             }
         }
     }
-    LOG_INFO("    Found %d.", count);
+    spdlog::info("    Found {}.", count);
 
     if (subdirs) {
         wxString filename;
@@ -151,7 +151,7 @@ void ValueCurvesPanel::UpdateValueCurveButtons(bool reload) {
     }
     else
     {
-        LOG_INFO("Directory for *.xvc files not found: %s.", (const char*)d.c_str());
+        spdlog::info("Directory for *.xvc files not found: {}.", (const char*)d.c_str());
     }
 
     wxStandardPaths stdp = wxStandardPaths::Get();
@@ -168,7 +168,7 @@ void ValueCurvesPanel::UpdateValueCurveButtons(bool reload) {
     }
     else
     {
-        LOG_INFO("Directory for *.xvc files not found: %s.", (const char*)d.c_str());
+        spdlog::info("Directory for *.xvc files not found: {}.", (const char*)d.c_str());
     }
 
     if (added != 0 && xLightsApp::GetFrame() != nullptr)

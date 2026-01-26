@@ -30,7 +30,7 @@
 #include "../effects/RenderableEffect.h"
 #include "../graphics/xlGraphicsBase.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 //(*IdInit(MainSequencer)
 const wxWindowID MainSequencer::ID_CHOICE_VIEW_CHOICE = wxNewId();
@@ -232,7 +232,7 @@ END_EVENT_TABLE()
 MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
     
-    LOG_DEBUG("                Creating main sequencer");
+    spdlog::debug("                Creating main sequencer");
 
     //(*Initialize(MainSequencer)
     wxFlexGridSizer* FlexGridSizer1;
@@ -309,7 +309,7 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     CheckBox_SuspendRender->SetFont(fnt);
 #endif
 
-    LOG_DEBUG("                Create time display control");
+    spdlog::debug("                Create time display control");
     timeDisplay = new TimeDisplayControl(this, wxID_ANY);
     FlexGridSizer2->Add(timeDisplay, 1, wxALL |wxEXPAND, 0);
     FlexGridSizer2->AddGrowableRow(3);
@@ -326,10 +326,10 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     _savedTopModel = "";
     mParent = parent;
 
-    LOG_DEBUG("                Set handlers");
+    spdlog::debug("                Set handlers");
     SetHandlers(this);
 
-    LOG_DEBUG("                Load key bindings");
+    spdlog::debug("                Load key bindings");
     keyBindings.LoadDefaults();
     mCanUndo = false;
     mPasteByCell = false;
@@ -337,7 +337,7 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     SetName("MainSequencer");
     // ReSharper restore CppVirtualFunctionCallInsideCtor
 
-    LOG_DEBUG("                Initialise touch bar");
+    spdlog::debug("                Initialise touch bar");
 #ifdef __XLIGHTS_HAS_TOUCHBARS__
     touchBarSupport.Init(this);
 #endif
@@ -760,11 +760,11 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
                     mSequenceElements->GetXLightsFrame()->SetStatusText(wxString::Format("Speed now set %.2f ", t - 0.25));
                 }
             } else if (type == "PLAY_PRIOR_TAG") {
-                LOG_DEBUG("play prior tag");
+                spdlog::debug("play prior tag");
                 wxCommandEvent playEvent(EVT_SEQUENCE_PRIOR_TAG);
                 wxPostEvent(mSequenceElements->GetXLightsFrame(), playEvent);
             } else if (type == "PLAY_NEXT_TAG") {
-                LOG_DEBUG("play next tag");
+                spdlog::debug("play next tag");
                 wxCommandEvent playEvent(EVT_SEQUENCE_NEXT_TAG);
                 wxPostEvent(mSequenceElements->GetXLightsFrame(), playEvent);
             }
@@ -871,7 +871,7 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
 
             }
             else {
-                LOG_WARN("Keybinding '%s' not recognised.", (const char*)type.c_str());
+                spdlog::warn("Keybinding '{}' not recognised.", (const char*)type.c_str());
                 wxASSERT(false);
                 return false;
             }
@@ -1397,7 +1397,7 @@ bool MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
                     {
                         if (tel == nullptr)
                         {
-                            LOG_CRIT("MainSequencer::GetSelectedEffectsData tel is nullptr ... this is going to crash.");
+                            spdlog::critical("MainSequencer::GetSelectedEffectsData tel is nullptr ... this is going to crash.");
                         }
 
                         if( tel->HitTestEffectByTime(ef->GetStartTimeMS()+1,start_column) )
@@ -1415,16 +1415,16 @@ bool MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
                             {
                                 if (tel == nullptr)
                                 {
-                                    LOG_CRIT("MainSequencer::GetSelectedEffectsData tel is nullptr ... this is going to crash.");
+                                    spdlog::critical("MainSequencer::GetSelectedEffectsData tel is nullptr ... this is going to crash.");
                                 }
 
                                 if (te_start->GetEndTimeMS() == te_start->GetStartTimeMS()) {
-                                    LOG_CRIT("MainSequencer::GetSelectedEffectsData start effect start and end time is the same ... this is going to crash.");
+                                    spdlog::critical("MainSequencer::GetSelectedEffectsData start effect start and end time is the same ... this is going to crash.");
                                 }
                                 int start_pct = ((ef->GetStartTimeMS() - te_start->GetStartTimeMS()) * 100) / (te_start->GetEndTimeMS() - te_start->GetStartTimeMS());
 
                                 if (te_end->GetEndTimeMS() == te_end->GetStartTimeMS()) {
-                                    LOG_CRIT("MainSequencer::GetSelectedEffectsData end effect start and end time is the same ... this is going to crash.");
+                                    spdlog::critical("MainSequencer::GetSelectedEffectsData end effect start and end time is the same ... this is going to crash.");
                                 }
                                 int end_pct = ((ef->GetEndTimeMS() - te_end->GetStartTimeMS()) * 100) / (te_end->GetEndTimeMS() - te_end->GetStartTimeMS());
                                 int start_index;
@@ -1544,7 +1544,7 @@ bool MainSequencer::GetACEffectsData(wxString& copy_data) {
                         {
                             if (tel == nullptr)
                             {
-                                LOG_CRIT("MainSequencer::GetSelectedEffectsData tel is nullptr ... this is going to crash.");
+                                spdlog::critical("MainSequencer::GetSelectedEffectsData tel is nullptr ... this is going to crash.");
                             }
 
                             int start_pct = ((adj_start_time - te_start->GetStartTimeMS()) * 100) / (te_start->GetEndTimeMS() - te_start->GetStartTimeMS());
@@ -1858,7 +1858,7 @@ void MainSequencer::SplitTimingMark()
 
         if (el == nullptr)
         {
-            LOG_CRIT("MainSequencer::SplitTimingMark el is nullptr ... this is going to crash.");
+            spdlog::critical("MainSequencer::SplitTimingMark el is nullptr ... this is going to crash.");
         }
 
         int index1, index2;
@@ -1896,13 +1896,13 @@ void MainSequencer::DivideTimingTrack(int divisor)
 
         if (el == nullptr)
         {
-            LOG_CRIT("MainSequencer::DivideTimingTrack el is nullptr ... this is going to crash.");
+            spdlog::critical("MainSequencer::DivideTimingTrack el is nullptr ... this is going to crash.");
             return;
         }
 
         if (el->IsFixedTimingLayer())
         {
-            LOG_WARN("MainSequencer::DivideTimingTrack Cannot divide fixed timing layer.");
+            spdlog::warn("MainSequencer::DivideTimingTrack Cannot divide fixed timing layer.");
             return;
         }
 

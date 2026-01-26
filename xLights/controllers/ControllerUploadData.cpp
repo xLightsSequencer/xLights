@@ -1304,7 +1304,7 @@ void UDController::Rescan(bool eliminateOverlaps) {
             int32_t modelend = modelstart + it.second->GetChanCount() - 1;
             if ((modelstart >= _controller->GetStartChannel() && modelstart <= _controller->GetEndChannel()) ||
                 (modelend >= _controller->GetStartChannel() && modelend <= _controller->GetEndChannel())) {
-                //LOG_DEBUG("Model %s start %d end %d found on controller %s output %d start %d end %d.",
+                //spdlog::debug("Model {} start {} end {} found on controller {} output {} start {} end {}.",
                 //    (const char *)it->first.c_str(), modelstart, modelend,
                 //    (const char *)_ip.c_str(), node, currentcontrollerstartchannel, currentcontrollerendchannel);
                 if (!it.second->IsControllerConnectionValid()) {

@@ -15,7 +15,7 @@
 #include <wx/string.h>
 //*)
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include <wx/msgdlg.h>
 #include <wx/stopwatch.h>
 #include <wx/progdlg.h>
@@ -104,7 +104,7 @@ public:
                     _images.push_back(wxURI(l->GetNodeContent()));
                 }
                 else {
-                    LOG_WARN("MModelWiring: Error processing vendor xml: %s ", (const char*)nn.c_str());
+                    spdlog::warn("MModelWiring: Error processing vendor xml: {} ", (const char*)nn.c_str());
                     wxASSERT(false);
                 }
             }
@@ -223,7 +223,7 @@ public:
             }
         }
 
-        LOG_WARN("Unable to interpret size from '%s'", size.c_str());
+        spdlog::warn("Unable to interpret size from '{}'", size.c_str());
 
         return -1;
     }
@@ -302,7 +302,7 @@ public:
                     // dont handle this until we have processed all the other properties
                 }
                 else {
-                    LOG_WARN("MModel: Error processing vendor xml: %s ", (const char*)nn.c_str());
+                    spdlog::warn("MModel: Error processing vendor xml: {} ", (const char*)nn.c_str());
                     wxASSERT(false);
                 }
             }
@@ -317,7 +317,7 @@ public:
 
                     //if (_wiring.back()->GetWidthMM() != -1 || _wiring.back()->GetHeightMM() != -1 || _wiring.back()->GetDepthMM() != -1)
                     //{
-                    //    LOG_DEBUG("Size W: '%s'->%dmm H: '%s'->%dmm D: '%s'->%dmm", _width.c_str(), _wiring.back()->GetWidthMM(), _height.c_str(), _wiring.back()->GetHeightMM(), _depth.c_str(), _wiring.back()->GetDepthMM());
+                    //    spdlog::debug("Size W: '{}'->{}mm H: '{}'->{}mm D: '{}'->{}mm", _width.c_str(), _wiring.back()->GetWidthMM(), _height.c_str(), _wiring.back()->GetHeightMM(), _depth.c_str(), _wiring.back()->GetDepthMM());
                     //}
                 }
             }
@@ -459,7 +459,7 @@ class MVendorCategory
 
                 }
                 else {
-                    LOG_WARN("MVendorCategory: Error processing vendor categories xml: %s ", (const char*)nn.c_str());
+                    spdlog::warn("MVendorCategory: Error processing vendor categories xml: {} ", (const char*)nn.c_str());
                 }
             }
         }
@@ -531,7 +531,7 @@ public:
                     _categories.push_back(new MVendorCategory(l, nullptr, this));
                 }
                 else {
-                    LOG_WARN("MVendor: Error processing vendor categories xml: %s ", (const char*)nn.c_str());
+                    spdlog::warn("MVendor: Error processing vendor categories xml: {} ", (const char*)nn.c_str());
                     wxASSERT(false);
                 }
             }
@@ -621,7 +621,7 @@ public:
                                         _logoFile = wxFileName(VendorModelDialog::GetCache().GetFile(logo, CACHEFOR::CACHETIME_LONG));
                                     }
                                     else {
-                                        LOG_WARN("MVendor: Error processing vendor xml: %s ", (const char*)nn.c_str());
+                                        spdlog::warn("MVendor: Error processing vendor xml: {} ", (const char*)nn.c_str());
                                         wxASSERT(false);
                                     }
                                 }
@@ -643,7 +643,7 @@ public:
                             }
                         }
                         else {
-                            LOG_WARN("MVendor: Error processing vendor xml: %s ", (const char*)nn.c_str());
+                            spdlog::warn("MVendor: Error processing vendor xml: {} ", (const char*)nn.c_str());
                             wxASSERT(false);
                         }
                     }
@@ -686,7 +686,7 @@ MVendorCategory::MVendorCategory(wxXmlNode* n, MVendorCategory* parent, MVendor*
                 ParseCategories(e);
             }
             else {
-                LOG_WARN("MVendorCategory: Error processing vendor xml: %s : %s : %s : %s", (const char*)vendor->_name.c_str(), (const char*)(parent != nullptr ? parent->_name.c_str() : _("").c_str()), (const char*)nn.c_str(), (const char*)GetPath().c_str());
+                spdlog::warn("MVendorCategory: Error processing vendor xml: {} : {} : {} : {}", (const char*)vendor->_name.c_str(), (const char*)(parent != nullptr ? parent->_name.c_str() : _("").c_str()), (const char*)nn.c_str(), (const char*)GetPath().c_str());
                 wxASSERT(false);
             }
         }
@@ -1012,7 +1012,7 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
                     MVendor* mv = new MVendor(name);
                     _vendors.push_back(mv);
 
-                    LOG_DEBUG("Vendor %s not downloaded as suppressed.", (const char*)name.c_str());
+                    spdlog::debug("Vendor {} not downloaded as suppressed.", (const char*)name.c_str());
                 }
                 else
                 {
@@ -1027,14 +1027,14 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
                             MVendor* mv = new MVendor(d, maxModels);
                             _vendors.push_back(mv);
                             delete d;
-                            LOG_DEBUG("Vendor %s downloaded.", (const char*)name.c_str());
+                            spdlog::debug("Vendor {} downloaded.", (const char*)name.c_str());
                         } else {
-                            LOG_DEBUG("Vendor %s failed to download or validate.", (const char*)name.c_str());
+                            spdlog::debug("Vendor {} failed to download or validate.", (const char*)name.c_str());
                         }
                     }
                     else
                     {
-                        LOG_DEBUG("Vendor %s has no url for its models.", (const char*)name.c_str());
+                        spdlog::debug("Vendor {} has no url for its models.", (const char*)name.c_str());
                     }
                 }
             }
@@ -1223,11 +1223,11 @@ void VendorModelDialog::DownloadModel(MModelWiring* wiring)
     wiring->DownloadXModel();
     if (wiring->_xmodelFile.GetExt().Lower() == "zip") {
         // we need to open the zip ... place the files in the "modeldownload" folder in the show folder
-        LOG_DEBUG("    opening zipped model " + _modelFile);
+        spdlog::debug("    opening zipped model " + _modelFile);
 
         auto dir = _showFolder + GetPathSeparator() + "modeldownload";
         if (!wxDir::Exists(dir)) {
-            LOG_DEBUG("Creating modeldownload directory " + dir);
+            spdlog::debug("Creating modeldownload directory " + dir);
             wxMkdir(dir);
         }
 
@@ -1247,7 +1247,7 @@ void VendorModelDialog::DownloadModel(MModelWiring* wiring)
                         auto createdirs = [](const wxString& parent, const wxString& sub) {
                             auto d = parent + wxFileName::GetPathSeparator() + sub;
                             if (!wxDir::Exists(d)) {
-                                LOG_DEBUGWX("Creating modeldownload subdirectory " + d);
+                                spdlog::debug("Creating modeldownload subdirectory " + d.ToStdString());
                                 wxMkdir(d);
                             }
                             return d;
@@ -1273,24 +1273,24 @@ void VendorModelDialog::DownloadModel(MModelWiring* wiring)
                     }
 
                     if (!FileExists(file)) {
-                        LOG_DEBUGWX("        model file " + file + " downloaded.");
+                        spdlog::debug("        model file " + file.ToStdString() + " downloaded.");
                         wxFileOutputStream fout(file);
                         zin.Read(fout);
                     }
                     else {
-                        LOG_WARNWX("        skipping file " + file + " it already exists.");
+                        spdlog::warn("        skipping file " + file.ToStdString() + " it already exists.");
                     }
 
                     ent = zin.GetNextEntry();
                 }
             }
             else {
-                LOG_ERROR("Failed to open zip file.");
+                spdlog::error("Failed to open zip file.");
                 return;
             }
         }
         else {
-            LOG_ERROR("Failed to open zip file.");
+            spdlog::error("Failed to open zip file.");
             return;
         }
     }

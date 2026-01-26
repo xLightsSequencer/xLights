@@ -18,7 +18,7 @@
 #include <wx/dcclient.h>
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include "wx/artprov.h"
 
@@ -45,11 +45,11 @@ SplashDialog::SplashDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
 
     
 
-    LOG_DEBUG("Loading splash image.");
+    spdlog::debug("Loading splash image.");
     _image = wxArtProvider::GetBitmap("xlART_xLights_SlashImage", wxART_OTHER);
     wxSize sz = _image.GetPreferredBitmapSizeFor(this);
 
-    LOG_DEBUG("Splash loaded. IsOk %s, %dx%d", _image.IsOk() ? "TRUE" : "FALSE", sz.GetWidth(), sz.GetHeight());
+    spdlog::debug("Splash loaded. IsOk {}, {}x{}", _image.IsOk() ? "TRUE" : "FALSE", sz.GetWidth(), sz.GetHeight());
 
     int w = FromPhys(sz.GetWidth());
     int h = FromPhys(sz.GetHeight());
@@ -66,7 +66,7 @@ SplashDialog::~SplashDialog()
 void SplashDialog::OnPaint(wxPaintEvent& event)
 {
     
-    LOG_DEBUG("Splash painting.");
+    spdlog::debug("Splash painting.");
 
     wxPaintDC dc(this);
     dc.SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));

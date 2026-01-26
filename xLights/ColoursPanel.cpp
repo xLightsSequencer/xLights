@@ -25,7 +25,7 @@
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 //(*IdInit(ColoursPanel)
 const long ColoursPanel::ID_SCROLLEDWINDOW1 = wxNewId();
@@ -80,7 +80,7 @@ int ColoursPanel::UpdateButtons()
 
 void ColoursPanel::ProcessColourCurveDir(wxDir& directory, bool subdirs)
 {
-    LOG_INFO("ColoursPanel Scanning directory for *.xcc files: %s.", (const char*)directory.GetNameWithSep().c_str());
+    spdlog::info("ColoursPanel Scanning directory for *.xcc files: {}.", directory.GetNameWithSep().ToStdString());
 
     int count = 0;
 
@@ -95,10 +95,10 @@ void ColoursPanel::ProcessColourCurveDir(wxDir& directory, bool subdirs)
             cc.SetId("ID_BUTTON_PaletteX");
             AddColour(cc.Serialise());
         } else {
-            LOG_WARNWX("ColoursPanel::ProcessColourCurveDir Unable to load " + fn.GetFullPath());
+            spdlog::warn("ColoursPanel::ProcessColourCurveDir Unable to load " + fn.GetFullPath().ToStdString());
         }
     }
-    LOG_INFO("    Found %d.", count);
+    spdlog::info("    Found {}.", count);
 
     if (subdirs) {
         wxString filename;
@@ -113,7 +113,7 @@ void ColoursPanel::ProcessColourCurveDir(wxDir& directory, bool subdirs)
 
 void ColoursPanel::ProcessPaletteDir(wxDir& directory, bool subdirs)
 {
-    LOG_INFO("ColoursPanel Scanning directory for *.xpalette files: %s.", (const char*)directory.GetNameWithSep().c_str());
+    spdlog::info("ColoursPanel Scanning directory for *.xpalette files: {}.", directory.GetNameWithSep().ToStdString());
 
     int count = 0;
 
@@ -131,11 +131,11 @@ void ColoursPanel::ProcessPaletteDir(wxDir& directory, bool subdirs)
                     if (it != "") AddColour(it);
                 }
             } else {
-                LOG_WARNWX("ColoursPanel::ProcessPaletteDir Unable to load " + fn.GetFullPath());
+                spdlog::warn("ColoursPanel::ProcessPaletteDir Unable to load " + fn.GetFullPath().ToStdString());
             }
         }
     }
-    LOG_INFO("    Found %d.", count);
+    spdlog::info("    Found {}.", count);
 
     if (subdirs) {
         wxString filename;
@@ -182,7 +182,7 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
     
 
     if (xlights == nullptr || xLightsFrame::CurrentDir.IsEmpty()) {
-        LOG_WARN("UpdateColourButtons called with null xlights or empty CurrentDir. Skipping.");
+        spdlog::warn("UpdateColourButtons called with null xlights or empty CurrentDir. Skipping.");
         return;
     }
 
@@ -219,7 +219,7 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
     }
     else
     {
-        LOG_INFO("Directory for *.xcc files not found: %s.", (const char*)d.c_str());
+        spdlog::info("Directory for *.xcc files not found: {}.", (const char*)d.c_str());
     }
 
     d = GetPaletteFolder(xLightsFrame::CurrentDir.ToStdString());
@@ -230,7 +230,7 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
     }
     else
     {
-        LOG_INFO("Directory for *.xpalette files not found: %s.", (const char*)d.c_str());
+        spdlog::info("Directory for *.xpalette files not found: {}.", (const char*)d.c_str());
     }
 
     wxStandardPaths stdp = wxStandardPaths::Get();
@@ -247,7 +247,7 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
     }
     else
     {
-        LOG_INFO("Directory for *.xcc files not found: %s.", (const char*)d.c_str());
+        spdlog::info("Directory for *.xcc files not found: {}.", d.ToStdString());
     }
 
 #ifndef __WXMSW__
@@ -262,7 +262,7 @@ void ColoursPanel::UpdateColourButtons(bool reload, xLightsFrame* xlights) {
     }
     else
     {
-        LOG_INFO("Directory for *.xpalette files not found: %s.", (const char*)d.c_str());
+        spdlog::info("Directory for *.xpalette files not found: {}.", d.ToStdString());
     }
 
     if (xlights != nullptr)

@@ -27,7 +27,7 @@
 #include <unordered_map>
 #include <regex>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 wxDEFINE_EVENT(EVT_SETTIMINGTRACKS, wxCommandEvent);
 
@@ -293,7 +293,7 @@ const std::string& Effect::GetEffectName() const
     }
 
     if (GetParentEffectLayer() == nullptr) {
-        LOG_CRIT("Call to Effect::GetEffectName() called but parent effect layer was null ... this will crash.");
+        spdlog::critical("Call to Effect::GetEffectName() called but parent effect layer was null ... this will crash.");
         wxASSERT(false);
     }
     
@@ -305,7 +305,7 @@ const std::string& Effect::GetEffectName(int index) const
     
     if (GetParentEffectLayer() == nullptr) {
         // This really should never happen ... we should be digging into why it does
-        LOG_CRIT("Call to Effect::GetEffectName(int) called but parent effect layer was null ... this will crash.");
+        spdlog::critical("Call to Effect::GetEffectName(int) called but parent effect layer was null ... this will crash.");
         wxASSERT(false);
     }
 
@@ -648,7 +648,7 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
                             }
                         }
                         if (origName == mSettings[realid] && !FileExists(origName)) {
-                            LOG_WARN("Unable to correct show folder '%s' : '%s' to '%s'", (const char*)realid.c_str(), (const char*)origName.c_str(), (const char*)value.c_str());
+                            spdlog::warn("Unable to correct show folder '{}' : '{}' to '{}'", realid.ToStdString(), origName.ToStdString(), value);
                         }
                     }
                 }

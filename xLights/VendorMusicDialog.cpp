@@ -15,7 +15,7 @@
 #include <wx/string.h>
 //*)
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include <wx/msgdlg.h>
 #include <wx/stopwatch.h>
 #include "CachedFileDownloader.h"
@@ -170,7 +170,7 @@ VendorMusicDialog::VendorMusicDialog(wxWindow* parent, wxWindowID id, const wxPo
     SetSize(800, 600);
 
     
-    LOG_DEBUG("File cache size: %d", GetCache().size());
+    spdlog::debug("File cache size: {}", GetCache().size());
 
     PopulateSequenceLyricPanel((MSLSequenceLyric*)nullptr);
     PopulateVendorPanel(nullptr);

@@ -22,7 +22,7 @@
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include "effects/DMXEffect.h"
 
 std::atomic_int EffectLayer::exclusive_index(0);
@@ -228,7 +228,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
         }
         if ((em->GetEffectIndex(name) == -1) && (name != "Random")) {
             
-            LOG_WARN("Unknown effect: " + name + ". Not loaded. " + GetParentElement()->GetModelName());
+            spdlog::warn("Unknown effect: " + name + ". Not loaded. " + GetParentElement()->GetModelName());
             return nullptr;
         }
     }
@@ -1198,14 +1198,14 @@ void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& u
         RenderableEffect* eff1 = effectManager.GetEffect(effectName);
         if (eff1 == nullptr && effectName != "")
         {
-            LOG_ERROR("Effect not found: '%s'", (const char *)effectName.c_str());
+            spdlog::error("Effect not found: '{}'", (const char *)effectName.c_str());
             wxASSERT(false);
         }
         RenderableEffect* eff2 = effectManager.GetEffect(mEffects[i]->GetEffectName());
         if (eff2 == nullptr)
         {
             // this cant happen
-            LOG_ERROR("Effect not found when scanning effects: '%s'", (const char *)mEffects[i]->GetEffectName().c_str());
+            spdlog::error("Effect not found when scanning effects: '{}'", (const char *)mEffects[i]->GetEffectName().c_str());
             wxASSERT(false);
         }
         if ((effectName == "" || eff1 == nullptr || eff1->GetId() == eff2->GetId()) &&
@@ -1229,13 +1229,13 @@ void EffectLayer::ApplyButtonPressToSelected(EffectsGrid* grid, UndoManager& und
     for (int i = 0; i < mEffects.size(); i++) {
         RenderableEffect* eff1 = effectManager.GetEffect(effectName);
         if (eff1 == nullptr && effectName != "") {
-            LOG_ERROR("Effect not found: '%s'", (const char*)effectName.c_str());
+            spdlog::error("Effect not found: '{}'", (const char*)effectName.c_str());
             wxASSERT(false);
         }
         RenderableEffect* eff2 = effectManager.GetEffect(mEffects[i]->GetEffectName());
         if (eff2 == nullptr) {
             // this cant happen
-            LOG_ERROR("Effect not found when scanning effects: '%s'", (const char*)mEffects[i]->GetEffectName().c_str());
+            spdlog::error("Effect not found when scanning effects: '{}'", (const char*)mEffects[i]->GetEffectName().c_str());
             wxASSERT(false);
         }
         if ((effectName == "" || eff1 == nullptr || eff2 == nullptr || eff1->GetId() == eff2->GetId()) &&

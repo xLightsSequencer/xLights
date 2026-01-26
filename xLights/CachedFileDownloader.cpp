@@ -15,7 +15,7 @@
 #include <wx/wx.h>
 #include <wx/protocol/http.h>
 #include <wx/sstream.h>
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include <wx/dir.h>
 #include <wx/xml/xml.h>
 #include <wx/progdlg.h>
@@ -53,10 +53,9 @@ void FileCacheItem::Download(const wxString& forceType, wxProgressDialog* prog, 
 
 void FileCacheItem::Delete() const
 {
-    
     if (Exists())
     {
-        LOG_DEBUG("Removing cached URL %s.", (const char*)_url.BuildURI().c_str());
+        spdlog::debug("Removing cached URL {}.", _url.BuildURI().ToStdString());
         wxRemoveFile(_fileName);
     }
 }
@@ -72,9 +71,7 @@ bool FileCacheItem::operator==(const wxURI& url) const
 // A major constraint of this function is that it does not support https
 bool FileCacheItem::DownloadURL(wxURI url, wxFileName filename, wxProgressDialog* prog, int low, int high, bool keepProgress)
 {
-    
-
-    LOG_DEBUG("Making request to '%s' -> %s.", (const char*)url.BuildURI().c_str(), (const char*)filename.GetFullPath().c_str());
+    spdlog::debug("Making request to '{}' -> {}.", url.BuildURI().ToStdString(), filename.GetFullPath().ToStdString());
     return Curl::HTTPSGetFile(url.BuildURI().ToStdString(), filename.GetFullPath().ToStdString(), "", "", 600, prog, keepProgress);
 }
 
@@ -109,8 +106,6 @@ std::string FileCacheItem::DownloadURLToTemp(wxURI url, const wxString& forceTyp
 
 void FileCacheItem::PurgeIfAged() const
 {
-    
-
     if (!Exists()) return;
 
     wxDateTime modified = wxFileName(_fileName).GetModificationTime();
@@ -122,7 +117,7 @@ void FileCacheItem::PurgeIfAged() const
     case CACHETIME_DAY:
         if (wxDateTime::Now().GetDateOnly() != modified.GetDateOnly())
         {
-            LOG_DEBUG("%s purged from file cache because it was not created today.", (const char *)_url.BuildURI().c_str());
+            spdlog::debug("{} purged from file cache because it was not created today.", _url.BuildURI().ToStdString());
             Delete();
         }
         break;
@@ -133,7 +128,7 @@ void FileCacheItem::PurgeIfAged() const
         wxTimeSpan age = wxDateTime::Now() - modified;
         if (age.GetDays() > LONGCACHEDAYS)
         {
-            LOG_DEBUG("%s purged from file cache because it was more than %d days old: %d.", (const char *)_url.BuildURI().c_str(), LONGCACHEDAYS, age.GetDays());
+            spdlog::debug("{} purged from file cache because it was more than {} days old: {}.", _url.BuildURI().ToStdString(), LONGCACHEDAYS, age.GetDays());
             Delete();
         }
         break;
@@ -142,15 +137,13 @@ void FileCacheItem::PurgeIfAged() const
 
 void CachedFileDownloader::SaveCache()
 {
-    
-
     std::lock_guard<std::recursive_mutex> lock(_cacheItemsLock);
     if (!Initialize())
     {
         return;
     }
 
-    LOG_DEBUG("Saving File Cache %s.", (const char *)_cacheFile.c_str());
+    spdlog::debug("Saving File Cache {}.", _cacheFile);
 
     wxFile f;
     if (f.Create(_cacheFile, true) && f.IsOpened())
@@ -173,18 +166,16 @@ void CachedFileDownloader::SaveCache()
         lit = "</filecache>";
         f.Write(lit.c_str(), lit.size());
         f.Close();
-        LOG_DEBUG("    File Cache %d items saved.", i);
+        spdlog::debug("    File Cache {} items saved.", i);
     }
     else
     {
-        LOG_WARN("    Problem saving File Cache.");
+        spdlog::warn("    Problem saving File Cache.");
     }
 }
 
 void CachedFileDownloader::LoadCache()
 {
-    
-
     std::lock_guard<std::recursive_mutex> lock(_cacheItemsLock);
     _cacheItems.clear();
 
@@ -193,7 +184,7 @@ void CachedFileDownloader::LoadCache()
         return;
     }
 
-    LOG_DEBUG("Loading File Cache %s.", (const char *)_cacheFile.c_str());
+    spdlog::debug("Loading File Cache {}.", _cacheFile);
 
     if (FileExists(_cacheFile) && wxFileName(_cacheFile).GetSize() > 0)
     {
@@ -204,23 +195,23 @@ void CachedFileDownloader::LoadCache()
             wxXmlNode* root = d.GetRoot();
             if (root != nullptr && root->GetName().Lower() == "filecache")
             {
-                LOG_DEBUG("   Cache opened.");
+                spdlog::debug("   Cache opened.");
                 for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
                 {
                     if (n->GetName().Lower() == "item")
                         _cacheItems.push_back(new FileCacheItem(n));
                 }
-                LOG_DEBUG("   %d items loaded.", _cacheItems.size());
+                spdlog::debug("   {} items loaded.", _cacheItems.size());
             }
         }
         else
         {
-            LOG_WARN("File Cache was invalid.");
+            spdlog::warn("File Cache was invalid.");
         }
     }
     else
     {
-        LOG_WARN("File Cache does not exist.");
+        spdlog::warn("File Cache does not exist.");
     }
 }
 
@@ -265,7 +256,7 @@ bool CachedFileDownloader::Initialize() {
     // On linux we disable caching because GetTempDir() fails spectacularly probably due to
     // a lack of wxWidgets initialisation when creating static objects
     _cacheFile="";
-    LOG_WARN("CachedFileDownloaded disabled on Linux.");
+    spdlog::warn("CachedFileDownloaded disabled on Linux.");
     #else
     if (_cacheDir == "" || !wxDirExists(_cacheDir))
     {
@@ -279,7 +270,7 @@ bool CachedFileDownloader::Initialize() {
     }
     else
     {
-        LOG_WARN("CachedFileDownloaded unable to find a temp directory to use. Caching disabled.");
+        spdlog::warn("CachedFileDownloaded unable to find a temp directory to use. Caching disabled.");
     }
     #endif // LINUX
 
@@ -298,7 +289,7 @@ void CachedFileDownloader::ClearCache()
 {
     
 
-    LOG_DEBUG("File Cache cleared.");
+    spdlog::debug("File Cache cleared.");
     std::lock_guard<std::recursive_mutex> lock(_cacheItemsLock);
     for (const auto& it :  _cacheItems)
     {
@@ -308,9 +299,7 @@ void CachedFileDownloader::ClearCache()
 
 void CachedFileDownloader::PurgeAgedItems()
 {
-    
-
-    LOG_DEBUG("File Cache purging aged items.");
+    spdlog::debug("File Cache purging aged items.");
     std::lock_guard<std::recursive_mutex> lock(_cacheItemsLock);
     for (const auto& it : _cacheItems)
     {
@@ -339,19 +328,19 @@ std::string CachedFileDownloader::GetFile(wxURI url, CACHEFOR cacheFor, const wx
     FileCacheItem* fci = Find(url);
     if (fci == nullptr)
     {
-        LOG_DEBUG("File Cache downloading file %s.", (const char *)url.BuildURI().c_str());
+        spdlog::debug("File Cache downloading file {}.", url.BuildURI().ToStdString());
         fci = new FileCacheItem(url, cacheFor, forceType, prog, low, high, keepProgress);
         _cacheItems.push_back(fci);
     }
     else if (!fci->Exists())
     {
-        LOG_DEBUG("File Cache re-downloading file %s.", (const char *)url.BuildURI().c_str());
+        spdlog::debug("File Cache re-downloading file {}.", url.BuildURI().ToStdString());
         fci->Download(forceType, prog, low, high, keepProgress);
     }
 
     if (fci->GetFileName() == "")
     {
-        LOG_DEBUG("File Cache file %s could not be retrieved.", (const char *)url.BuildURI().c_str());
+        spdlog::debug("File Cache file {} could not be retrieved.", url.BuildURI().ToStdString());
     }
 
     if (prog != nullptr)

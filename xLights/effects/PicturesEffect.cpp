@@ -33,7 +33,7 @@
 #include "GIFImage.h"
 #include "../xLightsMain.h" 
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #define wrdebug(...)
 
@@ -600,11 +600,11 @@ void PicturesEffect::Render(RenderBuffer& buffer,
 
                 // There seems to be a bug on linux where this function crashes occasionally
 #ifdef LINUX
-                LOG_DEBUG("About to count images in bitmap %s.", (const char*)NewPictureName.c_str());
+                spdlog::debug("About to count images in bitmap {}.", (const char*)NewPictureName.c_str());
 #endif
                 cache->imageCount = wxImage::GetImageCount(NewPictureName);
                 if (cache->imageCount <= 0) {
-                    LOG_ERROR("Image %s reports %d frames which is invalid. Overriding it to be 1.", (const char*)NewPictureName.c_str(), cache->imageCount);
+                    spdlog::error("Image {} reports {} frames which is invalid. Overriding it to be 1.", (const char*)NewPictureName.c_str(), cache->imageCount);
 
                     // override it to 1
                     cache->imageCount = 1;
@@ -615,7 +615,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
 
                 if (cache->imageCount > 1) {
 #ifdef DEBUG_GIF
-                    LOG_DEBUG("Preparing GIF file for reading: %s", (const char*)NewPictureName.c_str());
+                    spdlog::debug("Preparing GIF file for reading: {}", (const char*)NewPictureName.c_str());
 #endif
                     if (gifImage != nullptr && gifImage->GetFilename() != NewPictureName) {
                         delete gifImage;
@@ -630,7 +630,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
                         gifImage = nullptr;
                         cache->imageCount = 1;
                         if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0)) {
-                            LOG_ERROR("Error loading image file: %s.", (const char*)NewPictureName.c_str());
+                            spdlog::error("Error loading image file: {}.", (const char*)NewPictureName.c_str());
                             image.Create(5, 5, true);
                         }
                         image = ApplyOrientation(image, cache->orientation);
@@ -641,7 +641,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
                     }
                 } else {
                     if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0)) {
-                        LOG_ERROR("Error loading image file: %s.", (const char*)NewPictureName.c_str());
+                        spdlog::error("Error loading image file: {}.", (const char*)NewPictureName.c_str());
                         image.Create(5, 5, true);
                     }
                     image = ApplyOrientation(image, cache->orientation);

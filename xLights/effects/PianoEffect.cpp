@@ -22,7 +22,7 @@
 #include "../xLightsXmlFile.h"
 #include "models/Model.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 PianoEffect::PianoEffect(int id) :
     RenderableEffect(id, "Piano", piano_16, piano_64, piano_64, piano_64, piano_64)
@@ -650,10 +650,10 @@ std::map<int, std::list<std::pair<float, float>>> PianoEffect::LoadTimingTrack(c
 {
     std::map<int, std::list<std::pair<float, float>>> res;
 
-    LOG_DEBUG("Loading timings from timing track " + track);
+    spdlog::debug("Loading timings from timing track " + track);
 
     if (mSequenceElements == nullptr) {
-        LOG_DEBUG("No timing tracks found.");
+        spdlog::debug("No timing tracks found.");
         return res;
     }
 
@@ -661,7 +661,7 @@ std::map<int, std::list<std::pair<float, float>>> PianoEffect::LoadTimingTrack(c
     EffectLayer* el = GetTiming(track);
 
     if (el == nullptr) {
-        LOG_DEBUG("Timing track not found.");
+        spdlog::debug("Timing track not found.");
         return res;
     }
 

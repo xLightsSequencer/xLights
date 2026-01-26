@@ -10,7 +10,7 @@
 
 #include "VSAFile.h"
 #include <wx/file.h>
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include <wx/filename.h>
 #include "UtilFunctions.h"
 
@@ -52,35 +52,35 @@ void VSAFile::Load(const std::string& filename)
     _fh = new wxFile(filename);
     uint32_t num_evt_tracks = 0;
 
-    LOG_DEBUG("Reading %s.", (const char*)filename.c_str());
+    spdlog::debug("Reading {}.", (const char*)filename.c_str());
 
     if (_fh->IsOpened()) {
         uint8_t version[12];
         _fh->Read(version, 12);
-        LOG_DEBUG("    Version %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X.", version[0], version[1], version[2], version[3], version[4], version[5], version[6], version[7], version[8], version[9], version[10], version[11]);
+        spdlog::debug("    Version {:02X}{:02X}{:02X}{:02X} {:02X}{:02X}{:02X}{:02X} {:02X}{:02X}{:02X}{:02X}.", version[0], version[1], version[2], version[3], version[4], version[5], version[6], version[7], version[8], version[9], version[10], version[11]);
         uint8_t num_bytes;
         // Read license level
         _fh->Read(&num_bytes, 1);
         std::string level;
         level.resize(num_bytes);
         _fh->Read(&level[0], num_bytes);
-        LOG_DEBUG("    Level %s.", (const char*)level.c_str());
+        spdlog::debug("    Level {}.", (const char*)level.c_str());
         // Read options
         _fh->Read(&num_bytes, 1);
         std::string options;
         options.resize(num_bytes);
         _fh->Read(&options[0], num_bytes);
-        LOG_DEBUG("    options %s.", (const char*)options.c_str());
+        spdlog::debug("    options {}.", (const char*)options.c_str());
         // Read email
         _fh->Read(&num_bytes, 1);
         std::string email;
         email.resize(num_bytes);
         _fh->Read(&email[0], num_bytes);
-        LOG_DEBUG("    email %s.", (const char*)email.c_str());
+        spdlog::debug("    email {}.", (const char*)email.c_str());
         // Read number of events
         uint32_t num_events;
         _fh->Read(&num_events, 4);
-        LOG_DEBUG("    events %u.", num_events);
+        spdlog::debug("    events {}.", num_events);
         // Read other data
         uint32_t other_data;
         _fh->Read(&other_data, 4);
@@ -91,7 +91,7 @@ void VSAFile::Load(const std::string& filename)
         std::string event_type;
         event_type.resize(str_bytes);
         _fh->Read(&event_type[0], str_bytes);
-        LOG_DEBUG("    event type %s.", (const char*)event_type.c_str());
+        spdlog::debug("    event type {}.", (const char*)event_type.c_str());
 
         // Store event types
         std::string first_event_type = "";
@@ -258,7 +258,7 @@ void VSAFile::Load(const std::string& filename)
         _fh->Read(&unknown_word4, 4);
     }
     else {
-        LOG_ERROR("VSA file %s could not be opened.", (const char*)filename.c_str());
+        spdlog::error("VSA file {} could not be opened.", (const char*)filename.c_str());
         Close();
     }
 }
@@ -271,7 +271,7 @@ void VSAFile::Close()
         delete _fh;
 
         
-        LOG_INFO("VSA file %s closed.", (const char *)_filename.c_str());
+        spdlog::info("VSA file {} closed.", (const char *)_filename.c_str());
     }
 
     // force vector deallocation

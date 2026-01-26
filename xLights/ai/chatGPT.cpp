@@ -10,8 +10,7 @@
 
 #include <vector>
 #include <string>
-
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 bool chatGPT::IsAvailable() const {
     return !bearer_token.empty() && _enabled;
@@ -22,7 +21,7 @@ void chatGPT::SaveSettings() const {
 	_sm->setServiceSetting("ChatGPTEnable", _enabled);    
 	_sm->setServiceSetting("ChatGPTModel", model);
     _sm->setSecretServiceToken("ChatGPTBearerToken", bearer_token);
-	LOG_INFO("ChatGPT settings saved successfully");
+	spdlog::info("ChatGPT settings saved successfully");
 }
 
 void chatGPT::LoadSettings() {
@@ -75,12 +74,12 @@ std::pair<std::string, bool> chatGPT::CallLLM(const std::string& prompt) const {
         { "Authorization", "Bearer " + bearerToken }
     };
 
-    LOG_DEBUG("ChatGPT: %s", request.c_str());
+    spdlog::debug("ChatGPT: {}", request);
 
 	int responseCode = 0;	
 	std::string response = Curl::HTTPSPost(url, request, "", "", "JSON", 60, customHeaders, &responseCode);
 
-    LOG_DEBUG("ChatGPT Response %d: %s", responseCode, response.c_str());
+    spdlog::debug("ChatGPT Response {}: {}", responseCode, response);
 
 	if (responseCode != 200) {
         return { response, false };
@@ -96,19 +95,19 @@ std::pair<std::string, bool> chatGPT::CallLLM(const std::string& prompt) const {
 
 	auto choices = root["choices"];
 	if (choices.is_null() || choices.size() == 0) {
-		LOG_ERROR("ChatGPT: No choices in response");
+		spdlog::error("ChatGPT: No choices in response");
         return { "ChatGPT: No choices in response", false };
 	}
 
 	auto choice = choices[0];
     auto text = choice["message"]["content"];
     if (text.is_null()) {
-		LOG_ERROR("ChatGPT: No text in response");
+		spdlog::error("ChatGPT: No text in response");
         return { "ChatGPT: No text in response", false };
 	}
 
 	response = text.get<std::string>();
-	LOG_DEBUG("ChatGPT: %s", response.c_str());
+    spdlog::debug("ChatGPT: {}", response);
 
     return { response, true };
 }

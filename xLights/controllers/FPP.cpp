@@ -3266,7 +3266,7 @@ static void ProcessFPPSystems(Discovery &discovery, const std::string &systemsSt
         std::string hostName = system[HostNameKey].is_null() ? "" : GetJSONStringValue(system, HostNameKey);
         std::string uuid = system.contains("uuid") ? GetJSONStringValue(system, "uuid") : GetJSONStringValue(system, "UUID");
         
-        //LOG_INFO("Processing ip: %s   host: %s    uuid: %s", address.c_str(), hostName.c_str(), uuid.c_str());
+        //spdlog::info("Processing ip: {}   host: {}    uuid: {}", address.c_str(), hostName.c_str(), uuid.c_str());
         if (!uuid.empty()) {
             fppDiscInfo.insert({ hostName, address, uuid });
         }
@@ -3657,7 +3657,7 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
         //printf("Ping %s\n", ip);
         if (strcmp(ip, "0.0.0.0")) {
             //
-            //LOG_INFO("FPP Discovery - Received Ping response from %s", ip);
+            //spdlog::info("FPP Discovery - Received Ping response from {}", ip);
             AddTraceMessage("Received UDP result " + std::string(ip));
 
             //we found a system!!!

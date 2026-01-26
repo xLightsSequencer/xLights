@@ -13,7 +13,7 @@
 
 #include "serial.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #ifdef __WXMSW__
 # include "serial_win32.cpp"

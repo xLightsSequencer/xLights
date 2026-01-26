@@ -33,7 +33,7 @@
 #include "Vixen3.h"
 #include "ExternalHooks.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #define string_format wxString::Format
 
@@ -200,8 +200,7 @@ int xLightsXmlFile::GetFrequency() const
 
 void xLightsXmlFile::SetSequenceTiming(const wxString& timing)
 {
-    
-    LOG_INFOWX("Sequence timing set to " + timing);
+    spdlog::info("Sequence timing set to " + timing.ToStdString());
 
     seq_timing = timing;
 
@@ -209,7 +208,7 @@ void xLightsXmlFile::SetSequenceTiming(const wxString& timing)
 
     // looking to work out if this is why i have seen a crash in this function
     if (root == nullptr) {
-        LOG_CRIT("SetSequenceTiming is about to crash because sequence XML document has no root. Strange!");
+        spdlog::critical("SetSequenceTiming is about to crash because sequence XML document has no root. Strange!");
     }
 
     for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext()) {
@@ -249,12 +248,12 @@ void xLightsXmlFile::SetMediaFile(const wxString& ShowDir, const wxString& filen
 
     ObtainAccessToURL(filename.ToStdString());
     if ((filename != wxEmptyString) && FileExists(filename) && wxIsReadable(filename)) {
-        LOG_DEBUG("SetMediaFile: Creating audio manager");
+        spdlog::debug("SetMediaFile: Creating audio manager");
         audio = new AudioManager(std::string(filename.c_str()), GetFrameMS());
 
         if (audio != nullptr) {
             ValueCurve::SetAudio(audio);
-            LOG_INFO("SetMediaFile: Audio loaded. Audio frame interval %dms. Our frame interval %dms", audio->GetFrameInterval(), GetFrameMS());
+            spdlog::info("SetMediaFile: Audio loaded. Audio frame interval {}ms. Our frame interval {}ms", audio->GetFrameInterval(), GetFrameMS());
             if (audio->GetFrameInterval() < 0 && GetFrameMS() > 0) {
                 audio->SetFrameInterval(GetFrameMS());
             }
@@ -1049,15 +1048,14 @@ void xLightsXmlFile::ConvertToFixedPointTiming()
 
 bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio, const wxFileName &realFilename)
 {
-    
     if (realFilename.GetFullPath() != GetFullPath()) {
-        LOG_INFOWX("LoadSequence: Loading sequence " + GetFullPath() + " from " + realFilename.GetFullPath());
+        spdlog::info("LoadSequence: Loading sequence " + GetFullPath().ToStdString() + " from " + realFilename.GetFullPath().ToStdString());
     } else {
-        LOG_INFOWX("LoadSequence: Loading sequence " + GetFullPath());
+        spdlog::info("LoadSequence: Loading sequence " + GetFullPath().ToStdString());
     }
 
     if (!seqDocument.Load(realFilename.GetFullPath())) {
-        LOG_ERROR("LoadSequence: XML file load failed.");
+        spdlog::error("LoadSequence: XML file load failed.");
         return false;
     }
     is_open = true;
@@ -1121,20 +1119,20 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio, co
                 }
                 else if (element->GetName() == "sequenceTiming") {
                     seq_timing = element->GetNodeContent();
-                    LOG_DEBUG("LoadSequence: Sequence timing loaded from XML file. %s", (const char*)seq_timing.c_str());
+                    spdlog::debug("LoadSequence: Sequence timing loaded from XML file. {}", seq_timing.ToStdString());
                 }
                 else if (element->GetName() == "sequenceType") {
                     seq_type = element->GetNodeContent();
                 }
                 else if (element->GetName() == "mediaFile") {
                     if (!ignore_audio) {
-                        LOG_DEBUG("LoadSequence: mediaFile %s", (const char*)element->GetNodeContent().c_str());
+                        spdlog::debug("LoadSequence: mediaFile {}", element->GetNodeContent().ToStdString());
                         media_file = FixFile(ShowDir, element->GetNodeContent());
                         if (media_file != element->GetNodeContent()) element->SetContent(media_file);
-                        LOG_DEBUG("LoadSequence: mediaFile after fix %s", (const char*)media_file.c_str());
+                        spdlog::debug("LoadSequence: mediaFile after fix {}", media_file.ToStdString());
                         wxFileName mf = media_file;
                         if (audio != nullptr) {
-                            LOG_DEBUG("LoadSequence: removing prior audio.");
+                            spdlog::debug("LoadSequence: removing prior audio.");
                             ValueCurve::SetAudio(nullptr);
                             delete audio;
                             audio = nullptr;
@@ -1144,10 +1142,10 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio, co
                         }
                         else {
                             if (!::FileExists(mf)) {
-                                LOG_ERROR("LoadSequence: audio file does not exist.");
+                                spdlog::error("LoadSequence: audio file does not exist.");
                             }
                             else if (!mf.IsFileReadable()) {
-                                LOG_ERROR("LoadSequence: audio file not readable.");
+                                spdlog::error("LoadSequence: audio file not readable.");
                             }
                         }
                     }
@@ -1219,17 +1217,17 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio, co
 
     if (mediaFileName != "") {
         ObtainAccessToURL(mediaFileName);
-        LOG_DEBUG("LoadSequence: Creating audio manager");
+        spdlog::debug("LoadSequence: Creating audio manager");
         audio = new AudioManager(mediaFileName, GetFrameMS());
         ValueCurve::SetAudio(audio);
-        LOG_DEBUG("LoadSequence: audio manager creation done");
+        spdlog::debug("LoadSequence: audio manager creation done");
     }
     else {
-        LOG_INFO("LoadSequence: No Audio loaded.");
+        spdlog::info("LoadSequence: No Audio loaded.");
     }
 
-    LOG_INFO("LoadSequence: Sequence timing interval %dms.", GetFrameMS());
-    LOG_INFO("LoadSequence: Sequence loaded.");
+    spdlog::info("LoadSequence: Sequence timing interval {}ms.", GetFrameMS());
+    spdlog::info("LoadSequence: Sequence loaded.");
 
     return is_open;
 }
@@ -1847,7 +1845,7 @@ void xLightsXmlFile::ProcessPapagayo( const wxArrayString& filenames, xLightsFra
     {
         int linenum = 1;
         wxFileName next_file(filenames[i]);
-        LOG_INFO("Loading papagayo file " + std::string(next_file.GetFullPath().c_str()));
+        spdlog::info("Loading papagayo file " + std::string(next_file.GetFullPath().c_str()));
 
         if (!f.Open(next_file.GetFullPath().c_str()))
         {
@@ -1894,13 +1892,13 @@ void xLightsXmlFile::ProcessPapagayo( const wxArrayString& filenames, xLightsFra
         {
             DisplayError(wxString::Format(_("Invalid file @line %d ('%s' voices)"), linenum, line.c_str()).ToStdString());
         }
-        LOG_INFO("    Voices %d", numvoices);
+        spdlog::info("    Voices {}", numvoices);
 
         for (int v = 1; v <= numvoices; ++v)
         {
             wxString name = wxString::Format("Voice %d", v);
             name = UniqueTimingName(xLightsParent, name);
-            LOG_INFO("    Loading voice %d into timing track %s.", v, (const char *)name.c_str());
+            spdlog::info("    Loading voice {} into timing track {}.", v, (const char *)name.c_str());
 
             wxString voicename = f.GetNextLine();
             linenum++;
@@ -2160,7 +2158,7 @@ void xLightsXmlFile::ProcessSRT( const wxArrayString& filenames, xLightsFrame* x
     for (size_t i = 0; i < filenames.Count(); ++i)
     {
         wxFileName next_file(filenames[i]);
-        LOG_INFO("Loading srt file " + std::string(next_file.GetFullPath().c_str()));
+        spdlog::info("Loading srt file " + std::string(next_file.GetFullPath().c_str()));
 
         if (!f.Open(next_file.GetFullPath().c_str()))
         {
@@ -2170,7 +2168,7 @@ void xLightsXmlFile::ProcessSRT( const wxArrayString& filenames, xLightsFrame* x
 
         wxString name = wxString::Format(next_file.GetName());
         name = UniqueTimingName(xLightsParent, name);
-        LOG_INFO("    Loading into timing track %s.", (const char*)name.c_str());
+        spdlog::info("    Loading into timing track {}.", (const char*)name.c_str());
 
         Element* element = nullptr;
         wxXmlNode* timing = nullptr;
@@ -2262,7 +2260,7 @@ void xLightsXmlFile::ProcessLSPTiming( const wxArrayString& filenames, xLightsFr
     for (size_t i = 0; i < filenames.Count(); ++i)
     {
         wxFileName next_file(filenames[i]);
-        LOG_INFO("Decompressing LSP file " + std::string(next_file.GetFullPath().c_str()));
+        spdlog::info("Decompressing LSP file " + std::string(next_file.GetFullPath().c_str()));
 
         wxFileInputStream fin(next_file.GetFullPath());
         wxZipInputStream zin(fin);
@@ -2274,7 +2272,7 @@ void xLightsXmlFile::ProcessLSPTiming( const wxArrayString& filenames, xLightsFr
         {
             if (ent->GetName() == "Sequence")
             {
-                LOG_INFO("Extracting timing tracks from " + std::string(next_file.GetFullPath().c_str()) + "/" + std::string(ent->GetName().c_str()));
+                spdlog::info("Extracting timing tracks from " + std::string(next_file.GetFullPath().c_str()) + "/" + std::string(ent->GetName().c_str()));
                 seq_xml.Load(zin);
 
                 wxXmlNode* e = seq_xml.GetRoot();
@@ -2289,7 +2287,7 @@ void xLightsXmlFile::ProcessLSPTiming( const wxArrayString& filenames, xLightsFr
                             {
                                 if (t->GetName() == "Track") {
                                     wxString name = UniqueTimingName(xLightsParent, next_file.GetName());
-                                    LOG_INFO("  Track: " + std::string(name.c_str()));
+                                    spdlog::info("  Track: " + std::string(name.c_str()));
                                     EffectLayer* effectLayer = nullptr;
                                     wxXmlNode* layer = nullptr;
                                     int present = 0;
@@ -2308,7 +2306,7 @@ void xLightsXmlFile::ProcessLSPTiming( const wxArrayString& filenames, xLightsFr
                                             for (size_t i1 = 0; i1 < 10; i1++) {
                                                 if (present & mask) {
                                                     wxString tname = UniqueTimingName(xLightsParent, DecodeLSPTTColour(mask) + "-" + name);
-                                                    LOG_INFO("  Adding timing track " + std::string(tname.c_str()) + "(" + std::string(wxString::Format("%d",mask).c_str()) + ")");
+                                                    spdlog::info("  Adding timing track " + tname.ToStdString() + "(" + std::to_string( mask) + ")");
                                                     if (sequence_loaded) {
                                                         Element* element = xLightsParent->AddTimingElement(std::string(tname.c_str()));
                                                         effectLayer = element->GetEffectLayer(0);
@@ -2389,7 +2387,7 @@ void xLightsXmlFile::ProcessXLightsTiming( const wxArrayString& filenames, xLigh
     {
         wxFileName next_file(filenames[i]);
 
-        LOG_INFO("Loading sequence file " + std::string(next_file.GetFullPath().c_str()));
+        spdlog::info("Loading sequence file " + std::string(next_file.GetFullPath().c_str()));
         xLightsXmlFile file(next_file);
         file.LoadSequence(next_file.GetPath(), true, next_file);
 
@@ -2476,7 +2474,7 @@ void xLightsXmlFile::ProcessVixen3Timing( const wxArrayString& filenames, xLight
     {
         wxFileName next_file(filenames[i]);
 
-        LOG_INFO("Loading Vixen 3 file " + std::string(next_file.GetFullPath().c_str()));
+        spdlog::info("Loading Vixen 3 file " + std::string(next_file.GetFullPath().c_str()));
 
         Vixen3 vixenFile(next_file.GetFullPath());
 

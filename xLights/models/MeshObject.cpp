@@ -22,7 +22,7 @@
 #include "../ExternalHooks.h"
 #include "xLightsMain.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 
 #include <glm/gtc/quaternion.hpp>
@@ -277,7 +277,7 @@ void MeshObject::loadObject(xlGraphicsContext *ctx)
     if (FileExists(_objFile)) {
         
 
-        LOG_DEBUG("Loading mesh model '%s' file '%s'.",
+        spdlog::debug("Loading mesh model '{}' file '{}'.",
             (const char*)GetName().c_str(),
             (const char*)_objFile.c_str());
 

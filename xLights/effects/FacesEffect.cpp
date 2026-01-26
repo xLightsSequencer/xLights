@@ -28,7 +28,7 @@
 
 #include "../../include/corofaces.xpm"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 class FacesRenderCache : public EffectRenderCache {
     std::map<std::string, RenderBuffer*> _imageCache;
@@ -510,7 +510,7 @@ void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
     }
 
     //if (sw.TimeInMicro() > 2000) {
-    //    LOG_DEBUG("Face effect frame render time: %lldus %s", sw.TimeInMicro(), (const char*)buffer.GetModel()->GetFullName().c_str());
+    //    spdlog::debug("Face effect frame render time: {}us {}", sw.TimeInMicro(), (const char*)buffer.GetModel()->GetFullName().c_str());
     //}
 }
 
@@ -1053,7 +1053,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
         if (modelType != "Matrix" && modelType != "Rendered" && modelType != "Default") {
             if (buffer.isTransformed) {
                 
-                LOG_WARN("Faces effect starting at %dms until %dms on model %s has a transformed buffer. This may not work as expected.", buffer.curEffStartPer * buffer.frameTimeInMs, buffer.curEffEndPer * buffer.frameTimeInMs, (const char*)buffer.cur_model.c_str());
+                spdlog::warn("Faces effect starting at {}ms until {}ms on model {} has a transformed buffer. This may not work as expected.", buffer.curEffStartPer * buffer.frameTimeInMs, buffer.curEffEndPer * buffer.frameTimeInMs, (const char*)buffer.cur_model.c_str());
             }
         }
     }

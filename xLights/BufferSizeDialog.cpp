@@ -26,7 +26,7 @@
 #include <wx/artprov.h>
 #include <wx/filename.h>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 //(*IdInit(BufferSizeDialog)
 const long BufferSizeDialog::ID_STATICTEXT1 = wxNewId();
@@ -408,14 +408,12 @@ void BufferSizeDialog::SaveBufferPreset(wxString const& name)
 
 void BufferSizeDialog::LoadBufferPreset(wxString const& name)
 {
-    
-
     if (name.IsEmpty())
         return;
 
     const wxString filename = FindBufferPreset(name);
 
-    LOG_DEBUG("Loading buffer file %s.", (const char*)filename.c_str());
+    spdlog::debug("Loading buffer file {}.", filename.ToStdString());
 
     wxXmlDocument doc;
     if (FileExists(filename) && doc.Load(filename) && doc.IsOk()) {
@@ -446,11 +444,11 @@ void BufferSizeDialog::LoadBufferPreset(wxString const& name)
             ValueCurve_XC->NotifyChange();
             ValueCurve_YC->NotifyChange();
             ValidateWindow();
-            LOG_DEBUG("buffer file loaded.");
+            spdlog::debug("buffer file loaded.");
             return;
         }
     }
-    LOG_WARN("buffer file load failed.");
+    spdlog::warn("buffer file load failed.");
     wxMessageBox("Unable to load buffer file.");
 }
 

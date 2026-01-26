@@ -60,7 +60,7 @@
 #include "../ExternalHooks.h"
 #include "../models/ModelGroup.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 void xLightsFrame::CreateSequencer()
 {
@@ -68,41 +68,41 @@ void xLightsFrame::CreateSequencer()
     EffectsPanel1 = nullptr;
     timingPanel = nullptr;
 
-    LOG_DEBUG("CreateSequencer: Creating Panels.");
+    spdlog::debug("CreateSequencer: Creating Panels.");
 
-    LOG_DEBUG("        Sequencer grid.");
+    spdlog::debug("        Sequencer grid.");
     mainSequencer = new MainSequencer(PanelSequencer, _smallWaveform);
 
-    LOG_DEBUG("                Set render data sources.");
+    spdlog::debug("                Set render data sources.");
     mainSequencer->PanelEffectGrid->SetRenderDataSources(this, &_seqData);
     mainSequencer->SetSequenceElements(&_sequenceElements);
 
-    LOG_DEBUG("                Set timeline.");
+    spdlog::debug("                Set timeline.");
     mainSequencer->PanelWaveForm->SetTimeline(mainSequencer->PanelTimeLine);
     _sequenceElements.SetTimeLine(mainSequencer->PanelTimeLine);
 
-    LOG_DEBUG("                Set sequence elements.");
+    spdlog::debug("                Set sequence elements.");
     mainSequencer->PanelRowHeadings->SetSequenceElements(&_sequenceElements);
     _sequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());
 
-    LOG_DEBUG("                Set dock size constraints.");
+    spdlog::debug("                Set dock size constraints.");
     m_mgr->SetDockSizeConstraint(0.25, 0.15);
 
-    LOG_DEBUG("        Model preview.");
+    spdlog::debug("        Model preview.");
     _modelPreviewPanel = new ModelPreview(PanelSequencer, this);
     m_mgr->AddPane(_modelPreviewPanel, wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
                    Left().Layer(1).PaneBorder(true).BestSize(250,250).MaximizeButton(true).Dockable(IsDockable("MP")));
 
-    LOG_DEBUG("        House preview.");
+    spdlog::debug("        House preview.");
     _housePreviewPanel = new HousePreviewPanel(PanelSequencer, this, _playControlsOnPreview, PreviewModels, LayoutGroups, false, 0, true);
     m_mgr->AddPane(_housePreviewPanel, wxAuiPaneInfo().Name(wxT("HousePreview")).Caption(wxT("House Preview")).
         Left().Layer(1).BestSize(250, 250).MaximizeButton(true).Dockable(IsDockable("HP")));
 
-    LOG_DEBUG("        Effects.");
+    spdlog::debug("        Effects.");
     effectsPnl = new TopEffectsPanel(PanelSequencer);
     effectsPnl->BitmapButtonSelectedEffect->SetEffect(effectManager[0], mIconSize);
 
-    LOG_DEBUG("        Effect settings.");
+    spdlog::debug("        Effect settings.");
     // This step takes about 5 seconds to create all the effects panels
     EffectsPanel1 = new EffectsPanel(effectsPnl, &effectManager, &EffectSettingsTimer);
     EffectsPanel1->SetSequenceElements(&_sequenceElements);
@@ -110,50 +110,50 @@ void xLightsFrame::CreateSequencer()
     effectsPnl->MainSizer->Fit(effectsPnl);
     effectsPnl->MainSizer->SetSizeHints(effectsPnl);
 
-    LOG_DEBUG("        Effect assist.");
+    spdlog::debug("        Effect assist.");
     sEffectAssist = new EffectAssist(PanelSequencer);
     m_mgr->AddPane(sEffectAssist,wxAuiPaneInfo().Name(wxT("EffectAssist")).Caption(wxT("Effect Assist")).
                    Left().Layer(1).BestSize(250,250));
     sEffectAssist->Layout();
     sEffectAssist->Hide();
 
-    LOG_DEBUG("        Color.");
+    spdlog::debug("        Color.");
     colorPanel = new ColorPanel(PanelSequencer);
     colorPanel->AddChangeListeners(&EffectSettingsTimer);
 
-    LOG_DEBUG("        Timing.");
+    spdlog::debug("        Timing.");
     timingPanel = new TimingPanel(PanelSequencer);
     timingPanel->AddChangeListeners(&EffectSettingsTimer);
 
-    LOG_DEBUG("        Buffer.");
+    spdlog::debug("        Buffer.");
     bufferPanel = new BufferPanel(PanelSequencer);
     bufferPanel->AddChangeListeners(&EffectSettingsTimer);
 
-    LOG_DEBUG("        Perspective.");
+    spdlog::debug("        Perspective.");
     perspectivePanel = new PerspectivesPanel(PanelSequencer);
 
-    LOG_DEBUG("        Effect Icons.");
+    spdlog::debug("        Effect Icons.");
     effectPalettePanel = new EffectIconPanel(effectManager, PanelSequencer);
 
-    LOG_DEBUG("        Value Curves.");
+    spdlog::debug("        Value Curves.");
     _valueCurvesPanel = new ValueCurvesPanel(PanelSequencer);
 
-    LOG_DEBUG("        Colours.");
+    spdlog::debug("        Colours.");
     _coloursPanel = new ColoursPanel(PanelSequencer);
 
-    LOG_DEBUG("        Jukebox.");
+    spdlog::debug("        Jukebox.");
     jukeboxPanel = new JukeboxPanel(PanelSequencer);
     
-    LOG_DEBUG("        Find Data.");
+    spdlog::debug("        Find Data.");
     _findDataPanel = new FindDataPanel(PanelSequencer);
 
     // DisplayElements Panel
-    LOG_DEBUG("        Display Elements.");
+    spdlog::debug("        Display Elements.");
     displayElementsPanel = new ViewsModelsPanel(this, PanelSequencer);
     displayElementsPanel->SetViewChoice(mainSequencer->ViewChoice);
     displayElementsPanel->Fit();
 
-    LOG_DEBUG("CreateSequencer: Hooking up the panes.");
+    spdlog::debug("CreateSequencer: Hooking up the panes.");
     m_mgr->AddPane(displayElementsPanel,wxAuiPaneInfo().Name(wxT("DisplayElements")).Caption(wxT("Display Elements"))
                    .Float().MaximizeButton(true));
     // Hide the panel on start.
@@ -168,12 +168,12 @@ void xLightsFrame::CreateSequencer()
     m_mgr->AddPane(effectsPnl,wxAuiPaneInfo().Name(wxT("Effect")).Caption(wxT("Effect Settings")).
                    Left().Layer(0).Row(1));
 
-    LOG_DEBUG("CreateSequencer: Adding Select Effects Panel.");
+    spdlog::debug("CreateSequencer: Adding Select Effects Panel.");
     _selectPanel = new SelectPanel(&_sequenceElements, mainSequencer, PanelSequencer);
     m_mgr->AddPane(_selectPanel, wxAuiPaneInfo().Name(wxT("SelectEffect")).Caption(wxT("Select Effects")).
         Left().Layer(1).Hide());
 
-    LOG_DEBUG("CreateSequencer: Adding Search Panel.");
+    spdlog::debug("CreateSequencer: Adding Search Panel.");
     _searchPanel = new SearchPanel(&_sequenceElements, mainSequencer, PanelSequencer);
     m_mgr->AddPane(_searchPanel, wxAuiPaneInfo().Name(wxT("SearchPanel")).Caption(wxT("Search Panel")).Left().Layer(1).Hide());
 
@@ -186,17 +186,17 @@ void xLightsFrame::CreateSequencer()
     m_mgr->AddPane(timingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer Blending")).Top().Layer(0));
     m_mgr->AddPane(bufferPanel,wxAuiPaneInfo().Name(wxT("LayerSettings")).Caption(wxT("Layer Settings")).Top().Layer(0));
 
-    LOG_DEBUG( "        Sequence Video." );
+    spdlog::debug( "        Sequence Video." );
     sequenceVideoPanel = new SequenceVideoPanel( this );
     m_mgr->AddPane(sequenceVideoPanel,wxAuiPaneInfo().Name(wxT("SequenceVideo")).Caption(wxT("Sequence Video")).Float().Hide() );
 
     m_mgr->AddPane(mainSequencer,wxAuiPaneInfo().Name(_T("Main Sequencer")).CenterPane().Caption(_("Main Sequencer")));
 
-    LOG_DEBUG("CreateSequencer: Updating the layout.");
+    spdlog::debug("CreateSequencer: Updating the layout.");
     m_mgr->Update();
-    LOG_DEBUG("CreateSequencer: Resizing everything.");
+    spdlog::debug("CreateSequencer: Resizing everything.");
     mainSequencer->Layout();
-    LOG_DEBUG("CreateSequencer: Done.");
+    spdlog::debug("CreateSequencer: Done.");
 
 #ifdef __XLIGHTS_HAS_TOUCHBARS__
     mainSequencer->SetupTouchBar(effectManager, colorPanel->SetupTouchBar(mainSequencer->touchBarSupport));
@@ -248,8 +248,8 @@ void xLightsFrame::InitSequencer()
     // check if sequence data is the right size
     if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->GetSequenceLoaded()) {
         if (_seqData.NumChannels() != roundTo4(GetMaxNumChannels())) {
-            LOG_INFO("Number of channels has changed ... reallocating sequence data memory.");
-            LOG_INFO("Channels prior %d and channels current %d", _seqData.NumChannels(), roundTo4(GetMaxNumChannels()));
+            spdlog::info("Number of channels has changed ... reallocating sequence data memory.");
+            spdlog::info("Channels prior {} and channels current {}", _seqData.NumChannels(), roundTo4(GetMaxNumChannels()));
 
             AbortRender();
 
@@ -277,10 +277,10 @@ void xLightsFrame::InitSequencer()
         wxString machinePerspective = config->Read("xLightsMachinePerspective", "");
         if (machinePerspective != "") {
             if (!m_mgr->LoadPerspective(machinePerspective, true)) {
-                LOG_DEBUG("Failed to load AutoSave perspective.");
+                spdlog::debug("Failed to load AutoSave perspective.");
             }
             else {
-                LOG_DEBUG("Loaded AutoSave perspective.");
+                spdlog::debug("Loaded AutoSave perspective.");
                 ShowHideAllSequencerWindows(true);
                 _modelPreviewPanel->Refresh(false);
                 _housePreviewPanel->Refresh(false);
@@ -337,7 +337,7 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         p->AddAttribute("name", "Default Perspective");
         wxString perspective = m_mgr->SavePerspective();
         p->AddAttribute("settings", perspective);
-        LOG_DEBUG("Saved perspective.");
+        spdlog::debug("Saved perspective.");
         LogPerspective(perspective);
 
         p->AddAttribute("version", "2.0");
@@ -404,7 +404,7 @@ static void HandleChoices(xLightsFrame *frame,
                     if (namedlg.ShowModal() == wxID_OK) {
                         std::string newName = namedlg.GetStringSelection().ToStdString();
 
-                        LOG_DEBUG("Sequence Element Mismatch 2: rename '%s' to '%s'", (const char*)element->GetFullName().c_str(), (const char*)newName.c_str());
+                        spdlog::debug("Sequence Element Mismatch 2: rename '{}' to '{}'", (const char*)element->GetFullName().c_str(), (const char*)newName.c_str());
 
                         // remove the existing element before we rename
                         if (dynamic_cast<SubModelElement*>(element) != nullptr) {
@@ -428,23 +428,23 @@ static void HandleChoices(xLightsFrame *frame,
                     // Delete the model
                     if (dynamic_cast<SubModelElement*>(element) != nullptr) {
                         SubModelElement* sme = dynamic_cast<SubModelElement*>(element);
-                        LOG_DEBUG("Sequence Element Mismatch 2: delete '%s'", (const char*)sme->GetFullName().c_str());
+                        spdlog::debug("Sequence Element Mismatch 2: delete '{}'", (const char*)sme->GetFullName().c_str());
                         sme->GetModelElement()->RemoveSubModel(sme->GetName());
                     }
                     else {
-                        LOG_DEBUG("Sequence Element Mismatch 2: delete '%s'", (const char*)element->GetFullName().c_str());
+                        spdlog::debug("Sequence Element Mismatch 2: delete '{}'", (const char*)element->GetFullName().c_str());
                         frame->GetSequenceElements().DeleteElement(element->GetName());
                     }
                     break;
                 case 2:
                     // Map effects
-                    LOG_DEBUG("Sequence Element Mismatch 2: map '%s'", (const char*)element->GetFullName().c_str());
+                    spdlog::debug("Sequence Element Mismatch 2: map '{}'", (const char*)element->GetFullName().c_str());
                     toMap.push_back(element);
                     //relo
                     break;
                 case 3:
                     // Handle later
-                    LOG_DEBUG("Sequence Element Mismatch 2: handle later '%s'", (const char*)element->GetFullName().c_str());
+                    spdlog::debug("Sequence Element Mismatch 2: handle later '{}'", (const char*)element->GetFullName().c_str());
                     ignore.push_back(element);
                     break;
                 default:
@@ -485,7 +485,7 @@ void xLightsFrame::CheckForValidModels()
     //bool cancelled = cancelled_in;
     bool cancelled = false;
 
-    LOG_DEBUG("CheckForValidModels: building model list.");
+    spdlog::debug("CheckForValidModels: building model list.");
 
     std::vector<std::string> AllNames;
     std::vector<std::string> ModelNames;
@@ -498,7 +498,7 @@ void xLightsFrame::CheckForValidModels()
         }
     }
 
-    LOG_DEBUG("CheckForValidModels: Remove models that already exist.");
+    spdlog::debug("CheckForValidModels: Remove models that already exist.");
 
     std::vector<std::string> missingModels;
 
@@ -549,7 +549,7 @@ void xLightsFrame::CheckForValidModels()
     std::vector<Element*> mapLater;
     SeqElementMismatchDialog dialog(this);
 
-    LOG_DEBUG("CheckForValidModels: Remmap missing models.");
+    spdlog::debug("CheckForValidModels: Remmap missing models.");
 
     // Check each model element in the sequence
     // We do this because we can just rename them so it is easy
@@ -566,7 +566,7 @@ void xLightsFrame::CheckForValidModels()
 
                 // If model is not found we need to remap
                 if (m == nullptr) {
-                    LOG_DEBUG("CheckForValidModels:    Missing model: %s.", (const char*)name.c_str());
+                    spdlog::debug("CheckForValidModels:    Missing model: {}.", (const char*)name.c_str());
                     if (!mapall) {
                         dialog.StaticTextMessage->SetLabel("Model '" + name + "'\ndoes not exist in your list of models");
                         dialog.ChoiceModels->Set(ToArrayString(AllNames));
@@ -609,31 +609,31 @@ void xLightsFrame::CheckForValidModels()
 
                     if (cancelled || (!_promptBatchRenderIssues && (_renderMode || _checkSequenceMode)) || !HasEffects(me) || (!mapall && dialog.RadioButtonDelete->GetValue())) {
                         // Just delete the element from the sequence we are opening
-                        LOG_DEBUG("Sequence Element Mismatch: deleting '%s'", (const char*)name.c_str());
+                        spdlog::debug("Sequence Element Mismatch: deleting '{}'", name);
                         _sequenceElements.DeleteElement(name);
                     }
                     else if (mapall || dialog.RadioButtonMap->GetValue()) {
                         // add it to the list of things we will map later
-                        LOG_DEBUG("Sequence Element Mismatch: map later '%s'", (const char*)name.c_str());
+                        spdlog::debug("Sequence Element Mismatch: map later '{}'", name);
                         mapLater.push_back(me);
                     }
                     else {
                         // change the name of the element to the new name
                         std::string newName = dialog.ChoiceModels->GetStringSelection().ToStdString();
                         if (newName != "") {
-                            LOG_DEBUG("Sequence Element Mismatch: rename '%s' to '%s'", (const char*)name.c_str(), (const char*)newName.c_str());
+                            spdlog::debug("Sequence Element Mismatch: rename '{}' to '{}'", name, newName);
                             // This does not seem to be necessary and it has some bad side effects such as removing the model from all views
                             //_sequenceElements.DeleteElement(newName);
                             _sequenceElements.GetElement(x)->SetName(newName);
                             if (AllModels[newName] == nullptr) {
-                                LOG_CRIT("Sequence Element Mismatch: rename '%s' to '%s' AllModels[newName] returned nullptr ... this is going to crash", (const char*)name.c_str(), (const char*)newName.c_str());
+                                spdlog::critical("Sequence Element Mismatch: rename '{}' to '{}' AllModels[newName] returned nullptr ... this is going to crash", name, newName);
                             }
                             ((ModelElement*)_sequenceElements.GetElement(x))->Init(*AllModels[newName]);
                             Remove(AllNames, newName);
                             Remove(ModelNames, newName);
                         }
                         else {
-                            LOG_ERROR("Sequence Element Mismatch: rename '%s' to '%s' tried to rename to blank.", (const char*)name.c_str(), (const char*)newName.c_str());
+                            spdlog::error("Sequence Element Mismatch: rename '{}' to '{}' tried to rename to blank.", name, newName);
                         }
                     }
                 }
@@ -641,7 +641,7 @@ void xLightsFrame::CheckForValidModels()
         }
     }
 
-    LOG_DEBUG("CheckForValidModels: Prepare for map later.");
+    spdlog::debug("CheckForValidModels: Prepare for map later.");
 
     std::vector<Element*> toMap;
     std::vector<Element*> ignore;
@@ -710,7 +710,7 @@ void xLightsFrame::CheckForValidModels()
                         }
                         else {
                             // no effects at any level so just remove it
-                            LOG_DEBUG("Sequence Element Mismatch 2: deleting '%s'", (const char*)name.c_str());
+                            spdlog::debug("Sequence Element Mismatch 2: deleting '{}'", (const char*)name.c_str());
                             _sequenceElements.DeleteElement(name);
                         }
                     }
@@ -848,7 +848,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 {
     
 
-    LOG_DEBUG("Load sequence %s", (const char*)xml_file.GetFullPath().c_str());
+    spdlog::debug("Load sequence {}", (const char*)xml_file.GetFullPath().c_str());
 
     PushTraceContext();
     SetFrequency(xml_file.GetFrequency());
@@ -859,7 +859,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     AddTraceMessage("loading");
     _sequenceElements.LoadSequencerFile(xml_file, GetShowDirectory());
 
-    LOG_DEBUG("Upgrading sequence");
+    spdlog::debug("Upgrading sequence");
     xml_file.AdjustEffectSettingsForVersion(_sequenceElements, this);
 
     Menu_Settings_Sequence->Enable(true);
@@ -867,25 +867,25 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     mSavedChangeCount = _sequenceElements.GetChangeCount();
     mLastAutosaveCount = mSavedChangeCount;
 
-    LOG_DEBUG("Checking for valid models");
+    spdlog::debug("Checking for valid models");
     CheckForValidModels();
 
-    LOG_DEBUG("Loading the audio data");
+    spdlog::debug("Loading the audio data");
     LoadAudioData(xml_file);
 
-    LOG_DEBUG("Preparing views");
+    spdlog::debug("Preparing views");
     _sequenceElements.PrepareViews(xml_file);
 
-    LOG_DEBUG("Populating row information");
+    spdlog::debug("Populating row information");
     _sequenceElements.PopulateRowInformation();
 
     mainSequencer->PanelEffectGrid->SetSequenceElements(&_sequenceElements);
     mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);
 
-    LOG_DEBUG("Updating the timeline");
+    spdlog::debug("Updating the timeline");
     mainSequencer->PanelTimeLine->SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
 
-    LOG_DEBUG("Updating the house preview");
+    spdlog::debug("Updating the house preview");
     _housePreviewPanel->SetDurationFrames(CurrentSeqXmlFile->GetSequenceDurationMS() / CurrentSeqXmlFile->GetFrameMS());
     _sequenceElements.SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
     ResizeAndMakeEffectsScroll();
@@ -897,7 +897,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 
     _coloursPanel->UpdateColourButtons(true, this);
 
-    LOG_DEBUG("Sequence all loaded.");
+    spdlog::debug("Sequence all loaded.");
 
     if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
         ValidateEffectAssets();
@@ -1167,7 +1167,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
                 }
                 else
                 {
-                    LOG_ERROR("SelectedEffectChanged ... node layer no longer exists %s %d", (const char *)event._elementName.c_str(), event._node);
+                    spdlog::error("SelectedEffectChanged ... node layer no longer exists {} {}", (const char *)event._elementName.c_str(), event._node);
                 }
             }
             else
@@ -1180,13 +1180,13 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
                 }
                 else
                 {
-                    LOG_ERROR("SelectedEffectChanged ... element layer no longer exists %s %d", (const char *)event._elementName.c_str(), event._layer);
+                    spdlog::error("SelectedEffectChanged ... element layer no longer exists {} {}", event._elementName, event._layer);
                 }
             }
         }
         else
         {
-            LOG_ERROR("SelectedEffectChanged ... element no longer exists %s", (const char *)event._elementName.c_str());
+            spdlog::error("SelectedEffectChanged ... element no longer exists {}", event._elementName);
         }
 
         //effect = event.effect;
@@ -1194,13 +1194,13 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
 
         if (effect == nullptr)
         {
-            LOG_ERROR("SelectedEffectChanged ... effect no longer exists %s %d %dms", (const char *)event._elementName.c_str(), event._layer, event._startTime);
+            spdlog::error("SelectedEffectChanged ... effect no longer exists {} {} {}ms", event._elementName, event._layer, event._startTime);
         }
         else
         {
             if (effect->GetParentEffectLayer()->GetParentElement()->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
                 if (event.effect != effect) {
-                    LOG_WARN("SelectedEffectChanged ... effect didnt match");
+                    spdlog::warn("SelectedEffectChanged ... effect didnt match");
                 }
 
                 // For canvas mode the timing panel needs to know how many layers are under this effect
@@ -2297,7 +2297,7 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             AddTraceMessage("Effect not null but when we checked validity it failed. THIS WOULD HAVE CRASHED.");
             wxASSERT(false);
             eff = nullptr;
-            LOG_ERROR("OnEffectSettingsTimerTrigger went to use the selectedEffect but the pointer did not point to a valid effect!!!");
+            spdlog::error("OnEffectSettingsTimerTrigger went to use the selectedEffect but the pointer did not point to a valid effect!!!");
         }
     }
 
@@ -2329,7 +2329,7 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             // TEMPORARY - THIS SHOULD BE REMOVED BUT I WANT TO SEE WHAT IS CAUSING SOME RANDOM CRASHES - KW - 2017.7
             if (el == nullptr)
             {
-                LOG_CRIT("OnEffectSettingsTimerTrigger el is nullptr ... this is going to crash.");
+                spdlog::critical("OnEffectSettingsTimerTrigger el is nullptr ... this is going to crash.");
                 wxASSERT(false);
             }
 
@@ -2338,7 +2338,7 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             // TEMPORARY - THIS SHOULD BE REMOVED BUT I WANT TO SEE WHAT IS CAUSING SOME RANDOM CRASHES - KW - 2017.7
             if (elem == nullptr)
             {
-                LOG_CRIT("OnEffectSettingsTimerTrigger elem is nullptr ... this is going to crash.");
+                spdlog::critical("OnEffectSettingsTimerTrigger elem is nullptr ... this is going to crash.");
                 wxASSERT(false);
             }
 
@@ -2540,7 +2540,7 @@ bool xLightsFrame::TimerRgbSeq(long msec)
                 playStartMS = -1;
                 wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
                 wxPostEvent(this, playEvent);
-                //LOG_DEBUG("Stopping play");
+                //spdlog::debug("Stopping play");
                 return true;
             }
         }
@@ -2558,7 +2558,7 @@ bool xLightsFrame::TimerRgbSeq(long msec)
     }
     std::vector<bool> didRender(8);
     if (frame < _seqData.NumFrames()) {
-        //LOG_DEBUG("Outputting Frame %d", frame);
+        //spdlog::debug("Outputting Frame {}", frame);
         // have the frame, copy from SeqData
         TimerOutput(frame);
         if (playModel != nullptr && NeedToRenderFrame(_modelPreviewPanel, OutputTimer, didRender)) {
@@ -2662,7 +2662,7 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
         colorPanel->SetSupports(ef->SupportsLinearColorCurves(settings), ef->SupportsRadialColorCurves(settings));
     } else {
         colorPanel->SetColorCount(8);
-        LOG_WARN("Setting effect controls for unknown effect type: %s", (const char *)effectName.c_str());
+        spdlog::warn("Setting effect controls for unknown effect type: {}", (const char *)effectName.c_str());
     }
     //p->Thaw();
     //timingPanel->Thaw();
@@ -2699,7 +2699,7 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
         // This is used for properties that are not displayed on a panel ... but are typically accessed via the right click menu on an effect
         return res;
     } else {
-        LOG_ERROR("ApplySetting: Unable to panel type for: %s", (const char*)name.c_str());
+        spdlog::error("ApplySetting: Unable to panel type for: {}", (const char*)name.c_str());
         return false;
 	}
 
@@ -2811,7 +2811,7 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
             wxToggleButton *vcb = dynamic_cast<wxToggleButton *>(CtrlWin);
             vcb->SetValue(wxAtoi(value) != 0);
         } else {
-			LOG_ERROR("ApplySetting: Unknown type: %s", (const char*)name.c_str());
+			spdlog::error("ApplySetting: Unknown type: {}", (const char*)name.c_str());
             res = false;
             wxASSERT(false);
         }
@@ -2822,7 +2822,7 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 			CtrlWin = wxWindow::FindWindowByName(nn, ContextWin);
 		}
 		if (CtrlWin == nullptr) {
-            LOG_ERROR("ApplySetting: Unable to find: %s", (const char*)name.c_str());
+            spdlog::error("ApplySetting: Unable to find: {}", (const char*)name.c_str());
             res = false;
             wxASSERT(false);
         }
@@ -2934,7 +2934,7 @@ std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette) const
     RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
     if (eff == nullptr) {
         
-        LOG_CRIT("xLightsFrame::GetEffectTextFromWindows eff returned nullptr for effect %d. This is going to crash.", EffectsPanel1->EffectChoicebook->GetSelection());
+        spdlog::critical("xLightsFrame::GetEffectTextFromWindows eff returned nullptr for effect {}. This is going to crash.", EffectsPanel1->EffectChoicebook->GetSelection());
     }
     wxString effectText = eff->GetEffectString();
     if (effectText.size() > 0 && effectText[effectText.size()-1] != ',') {
@@ -2960,11 +2960,11 @@ void xLightsFrame::DoForceSequencerRefresh()
 void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
 {
     if (perspective == nullptr) {
-        LOG_WARN("xLightsFrame::LoadPerspective Null perspective node.");
+        spdlog::warn("xLightsFrame::LoadPerspective Null perspective node.");
         return;
     }
     if (PerspectivesNode == nullptr) {
-        LOG_WARN("xLightsFrame::LoadPerspective Null PerspectivesNode.");
+        spdlog::warn("xLightsFrame::LoadPerspective Null PerspectivesNode.");
         return;
     }
 
@@ -2981,10 +2981,10 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
         mCurrentPerpective->DeleteAttribute("settings");
         mCurrentPerpective->AddAttribute("settings", settings);
         mCurrentPerpective->AddAttribute("version", "2.0");
-        LOG_DEBUG("Saved perspective.");
+        spdlog::debug("Saved perspective.");
         LogPerspective(settings);
     }
-    LOG_DEBUG("Loading perspective %s", (const char *)name.c_str());
+    spdlog::debug("Loading perspective {}", (const char *)name.c_str());
     PushTraceContext();
     AddTraceMessage(settings);
     LogPerspective(settings);
@@ -3015,7 +3015,7 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
         perspective->AddAttribute("version", "2.0");
         wxString p = m_mgr->SavePerspective();
         perspective->AddAttribute("settings", p);
-        LOG_DEBUG("Saved perspective.");
+        spdlog::debug("Saved perspective.");
         LogPerspective(p);
     } else {
         _modelPreviewPanel->Refresh(false);
@@ -3066,7 +3066,7 @@ void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
             mCurrentPerpective->AddAttribute("settings", p);
             mCurrentPerpective->DeleteAttribute("version");
             mCurrentPerpective->AddAttribute("version", "2.0");
-            LOG_DEBUG("Saved perspective.");
+            spdlog::debug("Saved perspective.");
             LogPerspective(p);
             SaveEffectsFile();
         }
@@ -3370,15 +3370,15 @@ std::map<int, std::vector<float>> xLightsFrame::LoadPolyphonicTranscription(Audi
         try {
             if (!audio->IsPolyphonicTranscriptionDone()) {
                 wxProgressDialog pd("Processing Audio", "");
-                LOG_INFO("Processing Polyphonic Transcription to produce notes");
+                spdlog::info("Processing Polyphonic Transcription to produce notes");
                 audio->DoPolyphonicTranscription(&pd, &PTProgress);
-                LOG_INFO("Processing Polyphonic Transcription - DONE");
+                spdlog::info("Processing Polyphonic Transcription - DONE");
             }
         } catch (...) {
-            LOG_WARN("Exception caught processing Polyphonic Transcription");
+            spdlog::warn("Exception caught processing Polyphonic Transcription");
         }
 
-        LOG_DEBUG("Interval %d.", intervalMS);
+        spdlog::debug("Interval {}.", intervalMS);
 
         int frames = audio->LengthMS() / intervalMS;
 
@@ -3390,8 +3390,8 @@ std::map<int, std::vector<float>> xLightsFrame::LoadPolyphonicTranscription(Audi
         }
 
         //if (logger_pianodata.isDebugEnabled()) {
-        //    LOG_DEBUG("Note data calculated:");
-        //    LOG_DEBUG("Time MS, Keys");
+        //    spdlog::debug("Note data calculated:");
+        //    spdlog::debug("Time MS, Keys");
         //    for (auto it = res.begin(); it != res.end(); ++it)
         //    {
         //        std::string keys = "";
@@ -3399,14 +3399,14 @@ std::map<int, std::vector<float>> xLightsFrame::LoadPolyphonicTranscription(Audi
         //        {
         //            keys += " " + std::string(wxString::Format("%f", *it2).c_str());
         //        }
-        //        LOG_DEBUG("%d,%s", it->first, (const char *)keys.c_str());
+        //        spdlog::debug("{},{}", it->first, (const char *)keys.c_str());
         //    }
         //}
 
     }
     else
     {
-        LOG_WARN("Polyphonic Transcription requires a media file to scan.");
+        spdlog::warn("Polyphonic Transcription requires a media file to scan.");
     }
 
     return res;
@@ -3416,9 +3416,9 @@ std::map<int, std::vector<float>> xLightsFrame::LoadAudacityFile(std::string fil
 {
     std::map<int, std::vector<float>> res;
 
-    LOG_DEBUG("Processing audacity file " + file);
-    LOG_DEBUG("Interval %d.", intervalMS);
-    LOG_DEBUG("Start,End,midinote");
+    spdlog::debug("Processing audacity file " + file);
+    spdlog::debug("Interval {}.", intervalMS);
+    spdlog::debug("Start,End,midinote");
 
     wxTextFile f(file);
 
@@ -3433,14 +3433,14 @@ std::map<int, std::vector<float>> xLightsFrame::LoadAudacityFile(std::string fil
                 if (components.size() != 3)
                 {
                     // this is a problem ... there should be 3 floating point numbers
-                    LOG_WARNWX("Invalid data in audacity file - 3 tab separated floating point values expected: '" + l + "'");
+                    spdlog::warn("Invalid data in audacity file - 3 tab separated floating point values expected: '" + l.ToStdString() + "'");
                     break;
                 }
                 else
                 {
                     int start = LowerTS(components[0], intervalMS);
                     int end = UpperTS(components[1], intervalMS);
-                    LOG_DEBUG("%f,%f,%f -> %d,%d", components[0], components[1], components[2], start, end);
+                    spdlog::debug("{},{},{} -> {},{}", components[0], components[1], components[2], start, end);
                     for (int i = start; i < end; i += intervalMS)
                     {
                         if (res.find(i) == res.end())
@@ -3473,8 +3473,8 @@ std::map<int, std::vector<float>> xLightsFrame::LoadAudacityFile(std::string fil
 
         //if (logger_pianodata.isDebugEnabled())
         //{
-        //    LOG_DEBUG("Note data calculated:");
-        //    LOG_DEBUG("Time MS, Keys");
+        //    spdlog::debug("Note data calculated:");
+        //    spdlog::debug("Time MS, Keys");
         //    for (auto it = res.begin(); it != res.end(); ++it)
         //    {
         //        std::string keys = "";
@@ -3482,7 +3482,7 @@ std::map<int, std::vector<float>> xLightsFrame::LoadAudacityFile(std::string fil
         //        {
         //            keys += " " + std::string(wxString::Format("%f", *it2).c_str());
         //        }
-        //        LOG_DEBUG("%d,%s", it->first, (const char *)keys.c_str());
+        //        spdlog::debug("{},{}", it->first, (const char *)keys.c_str());
         //    }
         //}
     }
@@ -3545,8 +3545,8 @@ std::map<int, std::vector<float>> xLightsFrame::LoadMusicXMLFile(std::string fil
 
         //if (logger_pianodata.isDebugEnabled())
         //{
-        //    LOG_DEBUG("Note data calculated:");
-        //    LOG_DEBUG("Time MS, Keys");
+        //    spdlog::debug("Note data calculated:");
+        //    spdlog::debug("Time MS, Keys");
         //    for (auto it = res.begin(); it != res.end(); ++it)
         //    {
         //        std::string keys = "";
@@ -3554,13 +3554,13 @@ std::map<int, std::vector<float>> xLightsFrame::LoadMusicXMLFile(std::string fil
         //        {
         //            keys += " " + std::string(wxString::Format("%f", *it2).c_str());
         //        }
-        //        LOG_DEBUG("%d,%s", it->first, (const char *)keys.c_str());
+        //        spdlog::debug("{},{}", it->first, (const char *)keys.c_str());
         //    }
         //}
     }
     else
     {
-        LOG_WARN("Invalid MusicXML file " + file);
+        spdlog::warn("Invalid MusicXML file " + file);
     }
 
     return res;
@@ -3577,10 +3577,10 @@ std::map<int, std::vector<float>> xLightsFrame::LoadMIDIFile(std::string file, i
 //        notestate[i] = 0;
 //    }
 
-    LOG_DEBUG("Processing midi file " + file);
-    LOG_DEBUG("Interval %d.", intervalMS);
-    LOG_DEBUG("SpeedAdjust %d.", speedAdjust);
-    LOG_DEBUG("StartAdjustMS %d.", startAdjustMS);
+    spdlog::debug("Processing midi file " + file);
+    spdlog::debug("Interval {}.", intervalMS);
+    spdlog::debug("SpeedAdjust {}.", speedAdjust);
+    spdlog::debug("StartAdjustMS {}.", startAdjustMS);
 
     MidiFile midifile;
     float lasttime = -1;
@@ -3596,8 +3596,8 @@ std::map<int, std::vector<float>> xLightsFrame::LoadMIDIFile(std::string file, i
         }
         midifile.doTimeAnalysis();
 
-        LOG_DEBUG("Processing midi track %d.", ntrack);
-        LOG_DEBUG("Event,time(s)->ms,adjustedtime(s)->ms,isnote,isnoteon,isnoteoff,midinote");
+        spdlog::debug("Processing midi track {}.", ntrack);
+        spdlog::debug("Event,time(s)->ms,adjustedtime(s)->ms,isnote,isnoteon,isnoteoff,midinote");
 
         // process each event
         for (int i = 0; i < midifile.getNumEvents(ntrack); ++i) {
@@ -3607,7 +3607,7 @@ std::map<int, std::vector<float>> xLightsFrame::LoadMIDIFile(std::string file, i
                 float time = (float)startAdjustMS / 100.0 + midifile.getTimeInSeconds(ntrack, i) * speedadjust;
 
                 //if (logger_pianodata.isDebugEnabled()) {
-               //     LOG_DEBUG("%d,%f->%d,%f->%d,%d,%d,%d,%d", i, midifile.getTimeInSeconds(ntrack, i), LowerTS(midifile.getTimeInSeconds(ntrack, i), intervalMS), time, LowerTS(time, intervalMS), e.isNote(), e.isNoteOn(), e.isNoteOff(), e.getKeyNumber());
+               //     spdlog::debug("{},{}->{},{}->{},{},{},{},{}", i, midifile.getTimeInSeconds(ntrack, i), LowerTS(midifile.getTimeInSeconds(ntrack, i), intervalMS), time, LowerTS(time, intervalMS), e.isNote(), e.isNoteOn(), e.isNoteOff(), e.getKeyNumber());
                // }
                 if (time != lasttime) {
                     if (lasttime >= 0) {
@@ -3641,18 +3641,18 @@ std::map<int, std::vector<float>> xLightsFrame::LoadMIDIFile(std::string file, i
         }
 
         //if (logger_pianodata.isDebugEnabled()) {
-        //    LOG_DEBUG("Note data calculated:");
-        //    LOG_DEBUG("Time MS, Keys");
+        //    spdlog::debug("Note data calculated:");
+        //    spdlog::debug("Time MS, Keys");
         //    for (auto it = res.begin(); it != res.end(); ++it) {
         //        std::string keys = "";
         //        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
         //            keys += " " + std::string(wxString::Format("%f", *it2).c_str());
         //        }
-        //        LOG_DEBUG("%d,%s", it->first, (const char*)keys.c_str());
+        //        spdlog::debug("{},{}", it->first, (const char*)keys.c_str());
         //    }
         //}
     } else {
-        LOG_WARN("Invalid MIDI file " + file);
+        spdlog::warn("Invalid MIDI file " + file);
     }
 
     return res;

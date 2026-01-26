@@ -15,7 +15,7 @@
 #include "WindowFrameModel.h"
 #include "ModelScreenLocation.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 WindowFrameModel::WindowFrameModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
@@ -370,7 +370,7 @@ void WindowFrameModel::InitFrame()
             chan += ChanIncr;
         }
 
-        //LOG_DEBUG("Node %d (%0.3f,%0.3f) -> %d, %d", n, x, y, Nodes[n]->Coords[c].bufX, Nodes[n]->Coords[c].bufY);
+        //spdlog::debug("Node {} ({:.3f},{:.3f}) -> {}, {}", n, x, y, Nodes[n]->Coords[c].bufX, Nodes[n]->Coords[c].bufY);
         Nodes[nd]->Coords[cd].screenX = screenx;
         Nodes[nd]->Coords[cd].screenY = screeny;
 

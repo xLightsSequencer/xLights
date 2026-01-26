@@ -23,7 +23,7 @@ END_EVENT_TABLE()
 #include <wx/log.h>
 #include <wx/config.h>
 #include <wx/msgdlg.h>
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include "../xlMesh.h"
 #include "DrawGLUtils.h"
 
@@ -93,13 +93,13 @@ static wxGLAttributes GetAttributes(int &zdepth, bool only2d) {
         }
         atts.EndList();
         if (wxGLCanvas::IsDisplaySupported(atts)) {
-            LOG_DEBUG("Depth of %d supported, using it", DEPTH_BUFFER_BITS[x]);
+            spdlog::debug("Depth of {} supported, using it", DEPTH_BUFFER_BITS[x]);
             zdepth = DEPTH_BUFFER_BITS[x];
             return atts;
         }
-        LOG_DEBUG("Depth of %d not supported", DEPTH_BUFFER_BITS[x]);
+        spdlog::debug("Depth of {} not supported", DEPTH_BUFFER_BITS[x]);
     }
-    LOG_DEBUG("Could not find an attribs thats working with MnRGBA\n");
+    spdlog::debug("Could not find an attribs thats working with MnRGBA\n");
     // didn't find a display, try without MinRGBA
     for (size_t x = only2d ? 5 : 0; x < 6; ++x) {
         atts.Reset();
@@ -111,13 +111,13 @@ static wxGLAttributes GetAttributes(int &zdepth, bool only2d) {
         }
         atts.EndList();
         if (wxGLCanvas::IsDisplaySupported(atts)) {
-            LOG_DEBUG("Depth of %d supported without MinRGBA, using it", DEPTH_BUFFER_BITS[x]);
+            spdlog::debug("Depth of {} supported without MinRGBA, using it", DEPTH_BUFFER_BITS[x]);
             zdepth = DEPTH_BUFFER_BITS[x];
             return atts;
         }
-        LOG_DEBUG("Depth of %d not supported without MinRGBA", DEPTH_BUFFER_BITS[x]);
+        spdlog::debug("Depth of {} not supported without MinRGBA", DEPTH_BUFFER_BITS[x]);
     }
-    LOG_DEBUG("Could not find an attribs thats working");
+    spdlog::debug("Could not find an attribs thats working");
     zdepth = 0;
     atts.Reset();
     atts.PlatformDefaults()
@@ -147,7 +147,7 @@ static wxGLAttributes GetAttributes(int &zdepth, bool only2d) {
         return atts;
     }
 
-    LOG_DEBUG("Could not find an attribs thats working, using platform defaults");
+    spdlog::debug("Could not find an attribs thats working, using platform defaults");
     atts.Reset();
     atts.PlatformDefaults()
         .Defaults()
@@ -172,7 +172,7 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint& pos,
     m_logger(spdlog::get("opengl"))
 {
     
-    LOG_DEBUG("                    Creating GL Canvas for %s", (const char*)name.c_str());
+    spdlog::debug("                    Creating GL Canvas for {}", (const char*)name.c_str());
 
     this->GetGLCTXAttrs().PlatformDefaults();
 
@@ -248,7 +248,7 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent,
     m_zDepth(0),
     m_logger(spdlog::get("opengl")) {
     
-    m_logger->debug("                    Creating GL Canvas for {}", name);
+    m_logger->debug("                    Creating GL Canvas for {}", name.ToStdString());
 
     this->GetGLCTXAttrs().PlatformDefaults();
 
@@ -574,7 +574,7 @@ void xlGLCanvas::CreateGLContext() {
             
             if (!xlOGL3GraphicsContext::InitializeSharedContext())
             {
-                LOG_ERROR("Failed to initialize shared OpenGL context.");
+                spdlog::error("Failed to initialize shared OpenGL context.");
             }
 
             m_context = nullptr;

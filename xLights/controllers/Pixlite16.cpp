@@ -1615,7 +1615,7 @@ void Pixlite16::DumpConfiguration(Pixlite16::Config& config)
     spdlog::debug("    Minimum Assistant Version : {}.{}.{}", config._minAssistantVer[0], config._minAssistantVer[1], config._minAssistantVer[2]);
     spdlog::debug("    Current IP : {}.{}.{}.{}", config._currentIP[0], config._currentIP[1], config._currentIP[2], config._currentIP[3]);
     spdlog::debug("    Subnet Mask : {}.{}.{}.{}", config._currentSubnetMask[0], config._currentSubnetMask[1], config._currentSubnetMask[2], config._currentSubnetMask[3]);
-    spdlog::debug("    DHCP : %d", config._dhcp);
+    spdlog::debug("    DHCP : {}", config._dhcp);
     spdlog::debug("    Static IP : {}.{}.{}.{}", config._staticIP[0], config._staticIP[1], config._staticIP[2], config._staticIP[3]);
     spdlog::debug("    Static Subnet Mask : {}.{}.{}.{}", config._staticSubnetMask[0], config._staticSubnetMask[1], config._staticSubnetMask[2], config._staticSubnetMask[3]);
     spdlog::debug("    Network Protocol : {}", config._protocol);

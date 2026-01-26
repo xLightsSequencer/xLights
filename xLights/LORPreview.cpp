@@ -17,7 +17,7 @@
 #include "models/ModelManager.h"
 #include "ExternalHooks.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
@@ -131,10 +131,10 @@ bool LORPreview::LoadPreviewFile() {
                 }
             }
         } else {
-            LOG_WARN( "LOR S5 Preview file could not be loaded." );
+            spdlog::warn( "LOR S5 Preview file could not be loaded." );
         }
     } else {
-        LOG_WARN( "LOR S5 Preview file not found." );
+        spdlog::warn( "LOR S5 Preview file not found." );
     }
 
     return false;
@@ -180,7 +180,7 @@ bool LORPreview::ReadPreview( wxXmlNode* preview ) {
 Model* LORPreview::LoadModelFile( wxString const& modelFile, wxString const& startChan, int previewW, int previewH, bool& error ) {
     
 
-    LOG_DEBUG( "Loading LOR S5 Model file %s.", (const char*)modelFile.c_str() );
+    spdlog::debug( "Loading LOR S5 Model file {}.", (const char*)modelFile.c_str() );
 
     S5Model model;
 
@@ -582,7 +582,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         m = xlights->AllModels.CreateDefaultModel( "Single Line" );
         ScaleToPreview( model, m, previewW, previewH );
         error = true;
-        LOG_DEBUG( "Unknown LOR S5 Model type %s.", (const char*)model.shapeName.c_str() );
+        spdlog::debug( "Unknown LOR S5 Model type {}.", (const char*)model.shapeName.c_str() );
     }
 
     //Decode Type, "Traditional" vs "RGB"

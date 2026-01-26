@@ -26,7 +26,7 @@
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #pragma region Private Functions
 void SerialOutput::Save(wxXmlNode* node) {
@@ -303,20 +303,20 @@ bool SerialOutput::Open() {
 
     if (_commPort == "NotConnected") {
 
-        LOG_WARN("Serial port %s for %s not opened as it is tagged as not connected.", (const char *)_commPort.c_str(), (const char *)GetType().c_str());
+        spdlog::warn("Serial port {} for {} not opened as it is tagged as not connected.", (const char *)_commPort.c_str(), (const char *)GetType().c_str());
         // dont set ok to false ... while this is not really open it is not an error as the user meant it to be not connected.
     }
     else {
         _serial = new SerialPort();
 
-        LOG_DEBUG("Opening serial port %s. Baud rate = %d. Config = %s.", (const char *)_commPort.c_str(), _baudRate, (const char *)_serialConfig);
+        spdlog::debug("Opening serial port {}. Baud rate = {}. Config = {}.", (const char *)_commPort.c_str(), _baudRate, (const char *)_serialConfig);
 
         int errcode = _serial->Open(_commPort, _baudRate, _serialConfig);
         if (errcode < 0) {
             delete _serial;
             _serial = nullptr;
 
-            LOG_WARN("Unable to open serial port %s. Error code = %d", (const char *)_commPort.c_str(), errcode);
+            spdlog::warn("Unable to open serial port {}. Error code = {}", (const char *)_commPort.c_str(), errcode);
             _ok = false;
 
             std::string p = "";
@@ -343,7 +343,7 @@ bool SerialOutput::Open() {
             }
         }
         else {
-            LOG_DEBUG("    Serial port %s open.", (const char *)_commPort.c_str());
+            spdlog::debug("    Serial port {} open.", (const char *)_commPort.c_str());
         }
     }
 
@@ -373,7 +373,7 @@ void SerialOutput::Close() {
         _serial->Close();
         delete _serial;
         _serial = nullptr;
-        LOG_DEBUG("    Serial port %s closed in %d milliseconds.", (const char *)_commPort.c_str(), i * 5);
+        spdlog::debug("    Serial port {} closed in {} milliseconds.", (const char *)_commPort.c_str(), i * 5);
     }
 }
 #pragma endregion
@@ -388,7 +388,7 @@ void SerialOutput::StartFrame(long msec) {
     if (!_ok && OutputManager::IsRetryOpen()) {
         _ok = SerialOutput::Open();
         if (_ok) {
-            LOG_DEBUG("SerialOutput: Open retry successful. %s.", (const char *)_commPort.c_str());
+            spdlog::debug("SerialOutput: Open retry successful. {}.", (const char *)_commPort.c_str());
         }
     }
 

@@ -19,7 +19,7 @@
 #include "UtilFunctions.h"
 #include "models/ViewObject.h"
 #include "xLightsMain.h"
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 //(*InternalHeaders(ViewObjectPanel)
 #include <wx/intl.h>
@@ -198,12 +198,12 @@ int ViewObjectPanel::AddObjectToTree(ViewObject *view_object, wxTreeListItem* pa
 
             if (m == nullptr)
             {
-                LOG_ERROR("Model group %s thought it contained model. '%s' but it didnt. This would have crashed.", (const char *)grp->GetName().c_str(), (const char *)it->c_str());
+                spdlog::error("Model group {} thought it contained model. '{}' but it didnt. This would have crashed.", (const char *)grp->GetName().c_str(), (const char *)it->c_str());
             }
             else if (m == grp)
             {
                 // This is bad ... a model group contains itself
-                LOG_ERROR("Model group contains itself. '%s'", (const char *)grp->GetName().c_str());
+                spdlog::error("Model group contains itself. '{}'", (const char *)grp->GetName().c_str());
             }
             else
             {
@@ -569,10 +569,10 @@ void ViewObjectPanel::OnObjectsPopup(wxCommandEvent& event)
     int id = event.GetId();
     if(id == ID_MNU_DELETE_OBJECT)
     {
-        LOG_DEBUG("ViewObjectPanel::OnObjectsPopup DELETE_OBJECT");
+        spdlog::debug("ViewObjectPanel::OnObjectsPopup DELETE_OBJECT");
         DeleteSelectedObject();
     } else if (id == ID_MNU_UNLINKFROMBASE) {
-        LOG_DEBUG("ViewObjectPanel::OnObjectsPopup UNLINKFROMBASE");
+        spdlog::debug("ViewObjectPanel::OnObjectsPopup UNLINKFROMBASE");
         UnlinkSelectedObject();
     }
 }

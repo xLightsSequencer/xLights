@@ -26,8 +26,7 @@
 #include "ExternalHooks.h"
 #include "sequencer/MainSequencer.h"
 #include "xlColourData.h"
-
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 wxDEFINE_EVENT(EVT_CCP_CHANGED, wxCommandEvent);
 
@@ -195,7 +194,7 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
 void ColorCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
 {
     
-    LOG_INFO("ColorCurveDialog Scanning directory for *.xcc files: %s.", (const char *)directory.GetNameWithSep().c_str());
+    spdlog::info("ColorCurveDialog Scanning directory for *.xcc files: {}.", (const char *)directory.GetNameWithSep().c_str());
 
     int count = 0;
 
@@ -229,7 +228,7 @@ void ColorCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
             }
         }
     }
-    LOG_INFO("    Found %d.", count);
+    spdlog::info("    Found {}.", count);
 
     if (subdirs) {
         wxString filename;
@@ -258,7 +257,7 @@ void ColorCurveDialog::PopulatePresets()
     }
     else
     {
-        LOG_INFO("Directory for *.xcc files not found: %s.", (const char *)d.c_str());
+        spdlog::info("Directory for *.xcc files not found: {}.", (const char *)d.c_str());
     }
 
     wxStandardPaths stdp = wxStandardPaths::Get();
@@ -275,7 +274,7 @@ void ColorCurveDialog::PopulatePresets()
     }
     else
     {
-        LOG_INFO("Directory for *.xcc files not found: %s.", (const char *)d.c_str());
+        spdlog::info("Directory for *.xcc files not found: {}.", (const char *)d.c_str());
     }
 
     PresetSizer->Layout();
@@ -824,7 +823,7 @@ void ColorCurveDialog::OnButtonExportClick(wxCommandEvent& event)
 
     wxFile f(filename);
     
-    LOG_INFO("Saving to xcc file %s.", (const char *)filename.c_str());
+    spdlog::info("Saving to xcc file {}.", (const char *)filename.c_str());
 
     if (!f.Create(filename, true) || !f.IsOpened())
     {

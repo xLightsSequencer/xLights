@@ -11,7 +11,7 @@
 #include <wx/wx.h>
 
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 
 #include "../common/xlBaseApp.h"
@@ -263,12 +263,12 @@ unsigned char *SequenceData::checkBlockPtr(unsigned char *block, size_t sizeRema
     
     wxASSERT(block != nullptr); // if this fails then we have a memory allocation error
     if (block == nullptr) {
-        LOG_CRIT("Error allocating memory for frame data. Frames=%d, Channels=%d, Memory=%zu.", _numFrames, _numChannels, sizeRemaining);
-        LOG_CRIT("***** THIS IS GOING TO CRASH *****");
+        spdlog::critical("Error allocating memory for frame data. Frames={}, Channels={}, Memory={}.", _numFrames, _numChannels, sizeRemaining);
+        spdlog::critical("***** THIS IS GOING TO CRASH *****");
         wxString settings = wxString::Format("Frames=%d, Channels=%d, Memory=%ld.", _numFrames, _numChannels, sizeRemaining);
         DisplayError("Bad news ... xLights is about to crash because it could not get memory it needed. If you are running 32 bit xLights then moving to 64 bit will probably fix this. Alternatively look to reduce memory usage by shortening sequences and/or reducing channels.\n" + settings);
     } else {
-        LOG_DEBUG("Memory allocated for frame data. Block=%d, Frames=%d, Channels=%d, Memory=%zu.", _dataBlocks.size(), _numFrames, _numChannels, sizeRemaining);
+        spdlog::debug("Memory allocated for frame data. Block={}, Frames={}, Channels={}, Memory={}.", _dataBlocks.size(), _numFrames, _numChannels, sizeRemaining);
     }
     return block;
 }
@@ -308,7 +308,7 @@ void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsign
         }
     }
     else {
-        LOG_DEBUG("Sequence memory released.");
+        spdlog::debug("Sequence memory released.");
     }
     _invalidFrame._data = (unsigned char*)calloc(1, _bytesPerFrame);
     _invalidFrame._numChannels = _numChannels;

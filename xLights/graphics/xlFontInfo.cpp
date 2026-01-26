@@ -1,7 +1,7 @@
 
 #include "xlFontInfo.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include <vector>
 #include <map>
 
@@ -187,8 +187,7 @@ const xlFontInfo &xlFontInfo::FindFont(int size) {
     }
 
     if (!FONTS[tsize].valid()) {
-        
-        LOG_WARN("xlFontTexture had trouble creating font size %d ... this could end badly.", size);
+        spdlog::warn("xlFontTexture had trouble creating font size {} ... this could end badly.", size);
     }
 
     return FONTS[tsize];

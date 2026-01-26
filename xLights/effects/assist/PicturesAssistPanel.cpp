@@ -29,7 +29,7 @@
 #include "ExternalHooks.h"
 #include "ColorPanel.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #define ZERO 0
 #define PALETTE_SIZE 8
@@ -625,7 +625,7 @@ void PicturesAssistPanel::OnBitmapButton_SavePaletteClick(wxCommandEvent& event)
         ValidateWindow();
         if (!BitmapButton_SavePalette->IsEnabled()) {
             
-            LOG_ERROR("Already saved xpalette ... skipped.");
+            spdlog::error("Already saved xpalette ... skipped.");
             return;
         }
     }
@@ -654,7 +654,7 @@ void PicturesAssistPanel::OnBitmapButton_SavePaletteClick(wxCommandEvent& event)
         _loadedPalettes.push_back(pal);
     } else {
         
-        LOG_ERROR("Unable to create file %s.", (const char*)fn.c_str());
+        spdlog::error("Unable to create file {}.", (const char*)fn.c_str());
     }
 
     LoadAllPalettes();

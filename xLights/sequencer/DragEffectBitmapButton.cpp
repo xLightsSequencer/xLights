@@ -16,7 +16,7 @@
 #include "../RenderCommandEvent.h"
 #include "../UtilFunctions.h"
 #include "MainSequencer.h"
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 class EffectButtonDropSource : public wxDropSource
 {

@@ -303,7 +303,7 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
 
     // get controller data from API
     if (!GetJSONData(GetConfigURL(), stringData)) {
-        spdlog::error("Error connecting to Genius controller on %s.", (const char*)_ip.c_str());
+        spdlog::error("Error connecting to Genius controller on {}.", _ip);
         return false;
     }
 

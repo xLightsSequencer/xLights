@@ -26,7 +26,7 @@
 #include "GPURenderUtils.h"
 #include "BufferPanel.h"
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 #include "Parallel.h"
 
 template <class CTX>
@@ -412,7 +412,7 @@ void PathDrawingContext::Clear() {
 
     if (gc == nullptr)
     {
-        LOG_ERROR("PathDrawingContext DC creation failed.");
+        spdlog::error("PathDrawingContext DC creation failed.");
         return;
     }
 
@@ -451,7 +451,7 @@ void TextDrawingContext::Clear()
 
     if (gc == nullptr) {
         
-        LOG_ERROR("TextDrawingContext DC creation failed.");
+        spdlog::error("TextDrawingContext DC creation failed.");
         return;
     }
 
@@ -605,7 +605,7 @@ const wxFontInfo& TextDrawingContext::GetTextFont(const std::string& FontString)
     if (FONT_MAP_TXT.find(FontString) == FONT_MAP_TXT.end()) {
         
         if (!FontString.empty()) {
-            LOG_DEBUG("Loading font %s.", (const char*)FontString.c_str());
+            spdlog::debug("Loading font {}.", (const char*)FontString.c_str());
             wxFont font(FontString);
             font.SetNativeFontInfoUserDesc(FontString);
 
@@ -631,7 +631,7 @@ const wxFontInfo& TextDrawingContext::GetTextFont(const std::string& FontString)
             info.AntiAliased(false);
             info.Encoding(font.GetEncoding());
             FONT_MAP_TXT[FontString] = info;
-            LOG_DEBUG("    Added to font map.");
+            spdlog::debug("    Added to font map.");
         } else {
             wxFontInfo info(wxSize(0, 12));
             info.AntiAliased(false);
