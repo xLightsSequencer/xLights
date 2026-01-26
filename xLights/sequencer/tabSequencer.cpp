@@ -892,8 +892,6 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     PushTraceContext();
     SetFrequency(xml_file.GetFrequency());
     _sequenceElements.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.
-    _sequenceElements.SetModelsNode(ModelsNode);
-    _sequenceElements.SetEffectsNode(EffectsNode);
 
     AddTraceMessage("loading");
     _sequenceElements.LoadSequencerFile(xml_file, GetShowDirectory());
@@ -4047,7 +4045,7 @@ std::vector<std::string> GetPresets(wxXmlNode* node, const std::string& path)
 
 std::vector<std::string> xLightsFrame::GetPresets() const
 {
-    return ::GetPresets(_sequenceElements.GetEffectsNode(), "");
+    return ::GetPresets(EffectsNode, "");
 }
 
 wxXmlNode* xLightsFrame::FindPreset(wxXmlNode* node, wxArrayString& path, int level) const
@@ -4061,8 +4059,6 @@ wxXmlNode* xLightsFrame::FindPreset(wxXmlNode* node, wxArrayString& path, int le
             if (UnXmlSafe(n->GetAttribute("name", "")) == path[level]) {
                 return FindPreset(n, path, level + 1);
             }
-        } else {
-            wxASSERT(false);
         }
     }
     return nullptr;
@@ -4075,7 +4071,7 @@ Effect* xLightsFrame::ApplyEffectsPreset(const std::string& presetName)
 
     auto path = wxSplit(presetName, '\\');
 
-    ele = FindPreset(_sequenceElements.GetEffectsNode(), path, 0);
+    ele = FindPreset(EffectsNode, path, 0);
 
     if (ele != nullptr) {
         res = mainSequencer->PanelEffectGrid->Paste(ele->GetAttribute("settings"), ele->GetAttribute("xLightsVersion", "4.0"));

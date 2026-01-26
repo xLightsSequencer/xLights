@@ -54,14 +54,13 @@ static const std::string STR_LABEL("label");
 static const std::string STR_ZERO("0");
 
 SequenceElements::SequenceElements(xLightsFrame *f)
-    : mEffectsNode(nullptr), undo_mgr(this), xframe(f), mFrequency(20), mSequenceEndMS(0)
+    : undo_mgr(this), xframe(f), mFrequency(20), mSequenceEndMS(0)
 {
     _viewsManager = nullptr;
     mSelectedTimingRow = -1;
     mTimingRowCount = 0;
     mMaxRowsDisplayed = 0;
     mFirstVisibleModelRow = 0;
-    mModelsNode = nullptr;
     mChangeCount = 0;
     mMasterViewChangeCount = 0;
     mCurrentView = 0;
@@ -320,15 +319,6 @@ void SequenceElements::SetViewsManager(SequenceViewManager* viewsManager)
     _viewsManager->SetSelectedView(mCurrentView);
 }
 
-void SequenceElements::SetModelsNode(wxXmlNode* node)
-{
-    mModelsNode = node;
-}
-
-void SequenceElements::SetEffectsNode(wxXmlNode* effectsNode)
-{
-    mEffectsNode = effectsNode;
-}
 
 std::string SequenceElements::GetViewModels(const std::string &viewName) const
 {
@@ -961,9 +951,7 @@ void SequenceElements::PrepareViews(xLightsXmlFile& xml_file)
         }
     }
 
-    if (mModelsNode != nullptr) {
-        PopulateRowInformation();
-    }
+    PopulateRowInformation();
     // Set to the first model/view
     mFirstVisibleModelRow = 0;
 }

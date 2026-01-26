@@ -162,10 +162,7 @@ public:
     std::string GetViewName(int view) const;
 
     void SetViewsManager(SequenceViewManager* viewsManager);
-    void SetModelsNode(wxXmlNode *modelsNode);
     std::string GetViewModels(const std::string &viewName) const;
-    void SetEffectsNode(wxXmlNode* effectsNode);
-    wxXmlNode* GetEffectsNode() const { return mEffectsNode; }
 
     void SortElements();
     void MoveElement(int index, int destinationIndex);
@@ -240,8 +237,6 @@ private:
     int mSelectedTimingRow;
     SequenceViewManager* _viewsManager = nullptr;
     TimeLine* _timeLine = nullptr;
-    wxXmlNode* mModelsNode = nullptr;
-    wxXmlNode* mEffectsNode = nullptr;
     xLightsFrame *xframe = nullptr;
     double mFrequency;
     int mTimingRowCount = 0;
