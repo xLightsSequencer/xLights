@@ -20,7 +20,7 @@
 
 #include <libloaderapi.h>
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 
 #define USE_MAP_TO_STACKWALK
@@ -37,26 +37,26 @@ class xlStackWalker : public wxStackWalker
         wxFileName name = wxStandardPaths::Get().GetExecutablePath();
         name.SetExt("map");
 
-        LOG_DEBUG("Loading map file " + name.GetFullPath().ToStdString());
+        spdlog::debug("Loading map file " + name.GetFullPath().ToStdString());
 
         HMODULE hModule = ::GetModuleHandle(nullptr);
-        LOG_DEBUG("Base module handle: 0x%016llx", (long long)hModule);
+        spdlog::debug("Base module handle: 0x{:016x}", (long long)hModule);
 
         std::ifstream infile;
         infile.open(name.GetFullPath().ToStdString());
         long long preferedLoadAddress = 0;
         if (infile.is_open()) {
-            LOG_DEBUG("    File open.");
+            spdlog::debug("    File open.");
 
             while (!infile.eof()) {
                 std::string inl;
                 std::getline(infile, inl);
                 _mapLines.push_back(inl);
             }
-            LOG_DEBUG("    Map file loaded.");
+            spdlog::debug("    Map file loaded.");
             return true;
         } else {
-            LOG_DEBUG("    File not found.");
+            spdlog::debug("    File not found.");
             return false;
         }
     }

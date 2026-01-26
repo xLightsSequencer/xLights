@@ -36,7 +36,7 @@
 #include "../../include/xLights-64.xpm"
 #include "../../include/xLights-128.xpm"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 #include <wx/filename.h>
 #include "SMSSettingsDialog.h"
 #include "SMSDaemonOptions.h"
@@ -103,8 +103,6 @@ bool xSMSDaemonFrame::IsOptionsValid() const
 
 xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showDir, const std::string& xScheduleURL, p_xSchedule_Action action, wxWindowID id)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     _showDir = showDir;
     //_xScheduleURL = xScheduleURL;
     _action = action;
@@ -223,9 +221,9 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showDir, c
     SetPosition(wxPoint(x, y));
     SetSize(w, h);
 
-    logger_base.debug("xSMSDaemon UI %d,%d %dx%d.", x, y, w, h);
+    spdlog::debug("xSMSDaemon UI {},{} {}x{}.", x, y, w, h);
 
-    logger_base.debug("Loading show folder.");
+    spdlog::debug("Loading show folder.");
     if (_showDir == "")
     {
         LoadShowDir();
@@ -244,8 +242,7 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showDir, c
 
 xSMSDaemonFrame::~xSMSDaemonFrame()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("xSMSDaemonFrame::~xSMSDaemonFrame");
+    spdlog::debug("xSMSDaemonFrame::~xSMSDaemonFrame");
 
     Stop();
 
@@ -268,7 +265,6 @@ xSMSDaemonFrame::~xSMSDaemonFrame()
 
 bool xSMSDaemonFrame::Action(const std::string& command, const std::wstring& parameters, const std::wstring& data, const std::wstring& reference, std::wstring& response)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     auto c = wxString(command).Lower();
     // http://127.0.0.1/xScheduleCommand?Command=getsmsqueue&Parameters=
     if (c == "getsmsqueue")
@@ -428,8 +424,7 @@ void xSMSDaemonFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
 
 void xSMSDaemonFrame::OnButton_CloseClick(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("xSMSDaemonFrame::OnButton_CloseClick");
+    spdlog::debug("xSMSDaemonFrame::OnButton_CloseClick");
     Stop();
     Close();
 }
@@ -450,13 +445,12 @@ void xSMSDaemonFrame::OnButton_PauseClick(wxCommandEvent& event)
 
 void xSMSDaemonFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     Stop();
     auto nd = wxDirSelector("Select show folder.", _showDir);
     if (nd != "")
     {
         _showDir = nd;
-        logger_base.debug("User selected show folder '%s'.", (const char *)_showDir.c_str());
+        spdlog::debug("User selected show folder '{}'.", (const char*)_showDir.c_str());
         SaveShowDir();
         LoadOptions();
     }
@@ -465,9 +459,8 @@ void xSMSDaemonFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
 
 void xSMSDaemonFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString dir;
-    wxString fileName = "xSMSDaemon_l4cpp.log";
+    wxString fileName = "xSMSDaemon_spdlog.log";
 #ifdef __WXMSW__
     wxGetEnv("APPDATA", &dir);
     wxString filename = dir + wxFileName::GetPathSeparator() + fileName;
@@ -495,14 +488,14 @@ void xSMSDaemonFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
         wxString command = ft->GetOpenCommand("foo.txt");
         command.Replace("foo.txt", fn);
 
-        logger_base.debug("Viewing log file %s.", (const char *)fn.c_str());
+        spdlog::debug("Viewing log file {}.", (const char*)fn.c_str());
 
         wxExecute(command);
         delete ft;
     }
     else
     {
-        logger_base.warn("Unable to view log file %s.", (const char *)fn.c_str());
+        spdlog::warn("Unable to view log file {}.", (const char*)fn.c_str());
         wxMessageBox(_("Unable to show log file."), _("Error"));
     }
 }
@@ -535,26 +528,24 @@ std::string xSMSDaemonFrame::xSMSDaemonShowDir()
 
 void xSMSDaemonFrame::LoadShowDir()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxConfigBase* config = wxConfigBase::Get();
-    logger_base.debug("Config: AppName '%s' Path '%s' Entries %d Groups %d Style %ld Vendor '%s'.", (const char *)config->GetAppName().c_str(), (const char *)config->GetPath().c_str(), (int)config->GetNumberOfEntries(), (int)config->GetNumberOfGroups(), config->GetStyle(), (const char*)config->GetVendorName().c_str());
+    spdlog::debug("Config: AppName '{}' Path '{}' Entries {} Groups {} Style {} Vendor '{}'.", (const char*)config->GetAppName().c_str(), (const char*)config->GetPath().c_str(), (int)config->GetNumberOfEntries(), (int)config->GetNumberOfGroups(), config->GetStyle(), (const char*)config->GetVendorName().c_str());
 
     // get the show directory
     wxString showDir = xSMSDaemonShowDir();
     if (showDir == "")
     {
-        logger_base.debug("Could not read show folder from 'SMSDaemonDir'.");
+        spdlog::debug("Could not read show folder from 'SMSDaemonDir'.");
         showDir = xScheduleShowDir();
         if (showDir == "")
         {
-            logger_base.debug("Could not read show folder from 'xSchedule::SchedulerLastDir'.");
+            spdlog::debug("Could not read show folder from 'xSchedule::SchedulerLastDir'.");
             auto nd = wxDirSelector("Select show folder.", _showDir);
 
             if (nd != "")
             {
                 _showDir = nd;
-                logger_base.debug("User selected show folder '%s'.", (const char *)_showDir.c_str());
+                spdlog::debug("User selected show folder '{}'.", (const char*)_showDir.c_str());
                 SaveShowDir();
             }
             else
@@ -564,14 +555,14 @@ void xSMSDaemonFrame::LoadShowDir()
         }
         else
         {
-            logger_base.debug("Read show folder from 'xSchedule::SchedulerLastDir' location %s.", (const char *)showDir.c_str());
+            spdlog::debug("Read show folder from 'xSchedule::SchedulerLastDir' location {}.", (const char*)showDir.c_str());
             _showDir = showDir.ToStdString();
             SaveShowDir();
         }
     }
     else
     {
-        logger_base.debug("Read show folder from 'SMSDaemonDir' location %s.", (const char *)showDir.c_str());
+        spdlog::debug("Read show folder from 'SMSDaemonDir' location {}.", (const char*)showDir.c_str());
         _showDir = showDir.ToStdString();
     }
 
@@ -582,13 +573,12 @@ void xSMSDaemonFrame::LoadShowDir()
 
 void xSMSDaemonFrame::SaveShowDir() const
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxConfigBase* config = wxConfigBase::Get();
     auto sd = wxString(_showDir);
-    logger_base.debug("Saving show folder location %s.", (const char *)sd.c_str());
+    spdlog::debug("Saving show folder location {}.", (const char*)sd.c_str());
     if (!config->Write(_("SMSDaemonDir"), sd))
     {
-        logger_base.error("Error saving 'SMSDaemonDir'.");
+        spdlog::error("Error saving 'SMSDaemonDir'.");
     }
     config->Flush();
 }
@@ -650,8 +640,7 @@ void xSMSDaemonFrame::Start()
 
 void xSMSDaemonFrame::Stop()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("xSMSDaemonFrame::Stop");
+    spdlog::debug("xSMSDaemonFrame::Stop");
 
     SendTimer.Stop();
     SetAllText("");
@@ -659,7 +648,6 @@ void xSMSDaemonFrame::Stop()
 
 bool xSMSDaemonFrame::SetText(const std::string& t, const std::string& text, const std::wstring& wtext)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool ok = false;
     if (_options.IsValid())
     {
@@ -689,13 +677,13 @@ bool xSMSDaemonFrame::SetText(const std::string& t, const std::string& text, con
         }
         else
         {
-            logger_base.debug("SetText failed:");
-            logger_base.debug("   res: %s", (const char *)res.c_str());
+            spdlog::debug("SetText failed:");
+            spdlog::debug("   res: {}", (const char*)res.c_str());
         }
     }
     else
     {
-        logger_base.warn("Cant set text as settings are not valid.");
+        spdlog::warn("Cant set text as settings are not valid.");
     }
     return ok;
 }
@@ -769,7 +757,6 @@ void xSMSDaemonFrame::OnSendTimerTrigger(wxTimerEvent& event)
 
 void xSMSDaemonFrame::OnMenuItem_InsertTestMessagesSelected(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_smsService != nullptr)
     {
         TestMessagesDialog dlg(this);
@@ -778,7 +765,7 @@ void xSMSDaemonFrame::OnMenuItem_InsertTestMessagesSelected(wxCommandEvent& even
         {
             auto msgs = dlg.TextCtrl_Messages->GetValue();
             auto ms = wxSplit(msgs, '\n');
-            logger_base.debug("Inserting %d test messages.", (int)ms.size());
+            spdlog::debug("Inserting {} test messages.", (int)ms.size());
             _smsService->AddTestMessages(ms, true);
             RefreshList();
         }
@@ -787,7 +774,6 @@ void xSMSDaemonFrame::OnMenuItem_InsertTestMessagesSelected(wxCommandEvent& even
 
 void xSMSDaemonFrame::RefreshList()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _rowIds.clear();
     if (_smsService != nullptr)
     {
@@ -797,10 +783,10 @@ void xSMSDaemonFrame::RefreshList()
             Grid1->Freeze();
             if (Grid1->GetNumberRows() > 0)
             {
-                logger_base.debug("Deleting %d rows", (int)Grid1->GetNumberRows());
+                spdlog::debug("Deleting {} rows", (int)Grid1->GetNumberRows());
                 Grid1->DeleteRows(0, Grid1->GetNumberRows());
             }
-            logger_base.debug("Adding %d rows", (int)msgs.size());
+            spdlog::debug("Adding {} rows", (int)msgs.size());
             for (auto it : msgs)
             {
                 _suppressGridUpdate = true;
@@ -851,7 +837,7 @@ void xSMSDaemonFrame::RefreshList()
         {
             if (Grid1->GetNumberRows() > 0)
             {
-                logger_base.debug("Deleting %d rows", (int)Grid1->GetNumberRows());
+                spdlog::debug("Deleting {} rows", (int)Grid1->GetNumberRows());
                 Grid1->DeleteRows(0, Grid1->GetNumberRows());
             }
         }
@@ -861,7 +847,7 @@ void xSMSDaemonFrame::RefreshList()
     {
         if (Grid1->GetNumberRows() > 0)
         {
-            logger_base.debug("Deleting %d rows", (int)Grid1->GetNumberRows());
+            spdlog::debug("Deleting {} rows", (int)Grid1->GetNumberRows());
             Grid1->DeleteRows(0, Grid1->GetNumberRows());
         }
     }
@@ -880,8 +866,7 @@ void xSMSDaemonFrame::OnTimer_SecondTrigger(wxTimerEvent& event)
 
 void xSMSDaemonFrame::OnClose(wxCloseEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("xSMSDaemonFrame::OnClose");
+    spdlog::debug("xSMSDaemonFrame::OnClose");
 
     if (event.CanVeto()) {
         event.Veto();

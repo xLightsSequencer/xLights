@@ -1,20 +1,26 @@
 set cwd=%CD%
 
+IF NOT EXIST "C:\Program Files\Microsoft Visual Studio\18\Insiders\MSBuild\Current\Bin\amd64" GOTO Professional
+set PATH=C:\Program Files\Microsoft Visual Studio\18\Insiders\MSBuild\Current\Bin\amd64;%PATH%
+Echo VS2026 Insiders Detected
+GOTO Start
+
+:Professional
 IF NOT EXIST "C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\amd64" GOTO Preview
 set PATH=C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\amd64;%PATH%
-Echo VS Professional Detected
+Echo VS2022 Professional Detected
 GOTO Start
 
 :Preview
 IF NOT EXIST "C:\Program Files\Microsoft Visual Studio\2022\Preview\MSBuild\Current\Bin\amd64" GOTO Community
 set PATH=C:\Program Files\Microsoft Visual Studio\2022\Preview\MSBuild\Current\Bin\amd64;%PATH%
-Echo VS Preview Detected
+Echo VS2022 Preview Detected
 GOTO Start
 
 :Community
 IF NOT EXIST "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\amd64" GOTO Start
 set PATH=C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\amd64;%PATH%
-Echo VS Community Detected
+Echo VS2022 Community Detected
 :Start
 
 cd ..

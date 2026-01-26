@@ -18,7 +18,7 @@ CHK_DIR_EXISTS  = test -d
 INSTALL_PROGRAM = install -m 755 -p
 DEL_FILE        = rm -f
 ICON_SIZES      = 16x16 32x32 64x64 128x128 256x256
-SHARE_FILES     = xlights.linux.properties phoneme_mapping extended_dictionary standard_dictionary user_dictionary xschedule.linux.properties xcapture.linux.properties  xfade.linux.properties xscanner.linux.properties xscanner.linux.properties xsmsdaemon.linux.properties remotefalcon.linux.properties
+SHARE_FILES     = xlights.linux.properties phoneme_mapping extended_dictionary standard_dictionary user_dictionary 
 QMVAMP_FILES	= INSTALL_linux.txt qm-vamp-plugins.n3 README.txt qm-vamp-plugins.cat
 # run with `SUDO= make` when installing to a location that doesn't require root
 SUDO		= `which sudo`
@@ -26,7 +26,7 @@ SUDO		= `which sudo`
 SUBDIRS         = xLights xSchedule xCapture xFade xScanner xSchedule/xSMSDaemon xSchedule/RemoteFalcon
 
 WXWIDGETS_TAG=xlights_2026.01
-ISPC_VERSION=1.28.1
+ISPC_VERSION=1.29.1
 ISPC_ARCH=$(shell uname -m)
 
 ifeq '$(ISPC_ARCH)' 'aarch64'
@@ -43,7 +43,7 @@ endif
 
 .NOTPARALLEL:
 
-all: wxwidgets33 log4cpp cbp2make linkliquid libxlsxwriter ispc makefile subdirs
+all: wxwidgets33 cbp2make linkliquid libxlsxwriter ispc makefile subdirs
 
 #############################################################################
 
@@ -73,21 +73,6 @@ libxlsxwriter: FORCE
 		${MAKE} -s; \
 	fi
 
-log4cpp: FORCE
-	@printf "Checking log4cpp\n"
-	@if test "`log4cpp-config --version`" != "1.1"; \
-		then if test ! -d log4cpp; \
-			then echo Downloading log4cpp; wget --no-verbose -c https://download.sourceforge.net/project/log4cpp/log4cpp-1.1.x%20%28new%29/log4cpp-1.1/log4cpp-1.1.4.tar.gz; \
-			tar xfz log4cpp-1.1.4.tar.gz ;\
-		fi; \
-		cd log4cpp; \
-		./configure --prefix=$(PREFIX); \
-		echo Building log4cpp; \
-		${MAKE} -s; \
-		echo Installing log4cpp; \
-		$(SUDO) ${MAKE} install DESTDIR=$(DESTDIR); \
-		echo Completed build/install of log4cpp; \
-		fi
 
 wxwidgets33: FORCE
 	@printf "Checking wxwidgets\n"

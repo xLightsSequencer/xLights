@@ -6,12 +6,15 @@
 
 #include "utils/Curl.h"
 
+#include "spdlog/spdlog.h"
+
 #include <wx/wx.h>
 #include <wx/uri.h>
 #include <wx/regex.h>
 #include <wx/tokenzr.h>
 #include <wx/filename.h>
-#include "../../xLights/UtilFunctions.h"
+#include <set>
+#include <string>
 
 class SMSMessage
 {
@@ -33,221 +36,87 @@ class SMSMessage
     bool _moderatedOk = false;
     int _moderatedOkCount = 0;
 
-    SMSMessage()
-    {
+    SMSMessage() {
         _id = __nextId++;
     }
 
-    bool Censored() const
-    {
+    bool Censored() const {
         return _filtered || _rawMessage == "" || _message != "";
     }
 
-    bool IsModeratedOk() const { return _moderatedOk; }
-    void SetModeratedOk(bool moderatedOk) 
-    { 
-        _moderatedOk = moderatedOk; 
-        if (_moderatedOk)
-        {
+    bool IsModeratedOk() const {
+        return _moderatedOk;
+    }
+
+    void SetModeratedOk(bool moderatedOk) {
+        _moderatedOk = moderatedOk;
+        if (_moderatedOk) {
             _moderatedOkCount++;
         }
     }
-    int IsFirstModeratedOk() const { return _moderatedOkCount == 1 && _moderatedOk; }
-    void Censor(bool reject)
-    {
-        if (reject)
-        {
-            wxURI url("https://www.purgomalum.com/service/containsprofanity?text=" + _rawMessage);
-            auto msg = Curl::HTTPSGet(url.BuildURI().ToStdString());
-            if (msg == "false")
-            {
-                _message = _rawMessage;
-            }
-            else
-            {
-                _filtered = true;
-            }
-        }
-        else
-        {
-            wxURI url("https://www.purgomalum.com/service/xml?text=" + _rawMessage);
-            auto msg = Curl::HTTPSGet(url.BuildURI().ToStdString());
 
-            wxRegEx regex("result>([^<]*)<\\/result");
-            regex.Matches(msg);
-            _message = regex.GetMatch(msg, 1);
-        }
+    int IsFirstModeratedOk() const {
+        return _moderatedOkCount == 1 && _moderatedOk;
     }
 
-    wxString GetLog() const
-    {
+    void Censor(bool reject);
+
+    wxString GetLog() const {
         return wxString::Format("%s: %s %s", _from, _timestamp.FromTimezone(wxDateTime::TZ::GMT0).FormatISOCombined(), _rawMessage);
     }
 
-    std::string GetStatus() const
-    {
+    std::string GetStatus() const {
         return wxString::Format("Age %d mins, Displayed %d", GetAgeMins(), _displayCount);
     }
 
-    void Display()
-    {
+    void Display() {
         _displayCount++;
         _displayed = true;
     }
 
-    wxString GetUIMessage() const
-    {
-        if (!_wmessage.empty())
-        {
+    wxString GetUIMessage() const {
+        if (!_wmessage.empty()) {
             return wxString(_from) + ": " + wxString(_wmessage);
-        }
-        else
-        {
+        } else {
             return _from + ": " + _message;
         }
     }
 
-    int GetId() const
-    {
+    int GetId() const const {
         return _id;
     }
 
-    int GetAgeMins() const
-    {
-        wxTimeSpan age = wxDateTime::Now().MakeGMT() - _timestamp;
-        return age.GetDays() * 24 * 60 + age.GetHours() * 60 + age.GetMinutes();
-    }
+    int GetAgeMins() const;
 
-    bool operator==(const int i) const
-    {
+    bool operator==(const int i) const {
         return _id == i;
     }
 
-	bool operator==(const SMSMessage& other) const
-	{
-		return _timestamp == other._timestamp && _rawMessage == other._rawMessage;
-	}
+    bool operator==(const SMSMessage& other) const {
+        return _timestamp == other._timestamp && _rawMessage == other._rawMessage;
+    }
 
-    bool operator<(const SMSMessage& other) const
-    {
-        if (_displayCount < other._displayCount)
-        {
+    bool operator<(const SMSMessage& other) const {
+        if (_displayCount < other._displayCount) {
             return true;
-        }
-        else if (_displayCount == other._displayCount)
-        {
+        } else if (_displayCount == other._displayCount) {
             return (_timestamp < other._timestamp);
         }
         return false;
     }
 
-    static void LoadList(std::set<std::string>& set, const wxFileName& file)
-    {
-        std::ifstream t;
-        t.open(file.GetFullPath().ToStdString());
-        std::string line;
-        while (t) {
-            std::getline(t, line);
-            set.insert(Lower(line));
-        }
-        t.close();
-    }
+    static void LoadList(std::set<std::string>& set, const wxFileName& file);
 
-    static void LoadBlackList()
-    {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        if (_blacklist.size() > 0) return;
+    static void LoadBlackList();
 
-        wxFileName fn("Blacklist.txt");
+    static void LoadPhoneBlackList();
 
-        if (!fn.Exists())
-        {
-            logger_base.error("Blacklist file not found %s.", (const char *)fn.GetFullPath().c_str());
-            return;
-        }
+    static void LoadWhiteList();
 
-        LoadList(_blacklist, fn);
-    }
+    bool PassesBlacklist() const;
 
-    static void LoadPhoneBlackList()
-    {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        if (_phoneBlacklist.size() > 0) return;
+    bool PassesPhoneBlacklist() const;
 
-        wxFileName fn("PhoneBlacklist.txt");
-
-        if (!fn.Exists())
-        {
-            logger_base.error("Phone Blacklist file not found %s.", (const char *)fn.GetFullPath().c_str());
-            return;
-        }
-
-        LoadList(_phoneBlacklist, fn);
-    }
-
-    static void LoadWhiteList()
-    {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        if (_whitelist.size() > 0) return;
-
-        wxFileName fn("Whitelist.txt");
-
-        if (!fn.Exists())
-        {
-            logger_base.error("Whitelist file not found %s.", (const char *)fn.GetFullPath().c_str());
-            return;
-        }
-
-        LoadList(_whitelist, fn);
-    }
-
-    bool PassesBlacklist() const
-    {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        LoadBlackList();
-
-        wxStringTokenizer tkz(_rawMessage, wxT(" ,;:.)([]\\/<>-_*&^%$#~`\"?"));
-        while (tkz.HasMoreTokens())
-        {
-            wxString token = tkz.GetNextToken().Lower();
-            if (_blacklist.find(token.ToStdString()) != _blacklist.end())
-            {
-                logger_base.debug("Blacklist failed on '%s'", (const char*)token.c_str());
-                return false;
-            }
-        }
-        return true;
-    }
-
-    bool PassesPhoneBlacklist() const
-    {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        LoadPhoneBlackList();
-
-        if (_phoneBlacklist.find(_from) == _phoneBlacklist.end())
-        {
-            return true;
-        }
-        logger_base.debug("Phone blacklist failed on '%s'", (const char*)_from.c_str());
-        return false;
-    }
-
-    bool PassesWhitelist() const
-    {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        LoadWhiteList();
-
-        wxStringTokenizer tkz(_rawMessage, wxT(" ,;:.!|)([]\\/<>-_*&^%$#@~`\"?"));
-        while (tkz.HasMoreTokens())
-        {
-            wxString token = tkz.GetNextToken().Lower();
-            if (_whitelist.find(token.ToStdString()) == _whitelist.end())
-            {
-                logger_base.debug("Whitelist failed on '%s'", (const char*)token.c_str());
-                return false;
-            }
-        }
-        return true;
-    }
+    bool PassesWhitelist() const;
 };
 #endif

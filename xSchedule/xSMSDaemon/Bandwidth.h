@@ -25,7 +25,6 @@ class Bandwidth : public SMSService
 		{
             if (number == "TEST") return false;
 
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             std::string url = BANDWIDTH_API_URL;
             auto sid = GetSID();
             auto token = GetToken();
@@ -39,22 +38,20 @@ class Bandwidth : public SMSService
             b.Replace("{tophone}", number);
             b.Replace("{message}", message);
 
-            logger_base.debug("Sending SMS tophone:'%s' phone:'%s' message:'%s'.",
+            spdlog::debug("Sending SMS tophone:'{}' phone:'{}' message:'{}'.",
                               (const char*)number.c_str(),
                               (const char*)GetPhone().c_str(),
                               (const char*)message.c_str());
             std::string res = Curl::HTTPSPost(url, b, sid, token, "JSON");
 
             //logger_base.debug("%s", (const char*)url.c_str());
-            logger_base.debug("%s", (const char*)res.c_str());
+            spdlog::debug((const char*)res.c_str());
             return true;
 		}
 
         virtual std::string GetServiceName() const override { return "Bandwidth"; }
         virtual bool RetrieveMessages() override
         {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
             bool added = false;
 
             std::string url = BANDWIDTH_API_URL;
@@ -64,10 +61,10 @@ class Bandwidth : public SMSService
             Replace(url, "{user}", GetUser());
             Replace(url, "{token}", token);
             url += "/messages?page=0&size=100";
-            logger_base.debug("Retrieving messages.");
+            spdlog::debug("Retrieving messages.");
             std::string res = Curl::HTTPSGet(url, sid, token);
             //logger_base.debug("%s", (const char*)url.c_str());
-            logger_base.debug("%s", (const char*)res.c_str());
+            spdlog::debug( (const char*)res.c_str());
 
             // construct the JSON root object
             wxJSONValue  root;
@@ -83,7 +80,7 @@ class Bandwidth : public SMSService
 
             int numErrors = reader.Parse(res, &root);
             if (numErrors > 0) {
-                logger_base.error("The JSON document is not well-formed: %s", (const char*)res.c_str());
+                spdlog::error("The JSON document is not well-formed: {}", (const char*)res.c_str());
             }
             else
             {

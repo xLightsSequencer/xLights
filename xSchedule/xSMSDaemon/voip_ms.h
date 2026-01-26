@@ -27,7 +27,6 @@ public:
         if (number == "TEST")
             return false;
 
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         std::string url = VOIP_MS_API_URL;
         Replace(url, "{sid}", GetSID());
         Replace(url, "{user}", GetUser());
@@ -39,14 +38,14 @@ public:
         vars.push_back({ "dst", number });
         vars.push_back({ "message", message });
 
-        logger_base.debug("HTTPS Get %s", (const char*)url.c_str());
+        spdlog::debug("HTTPS Get {}", (const char*)url.c_str());
         for (const auto& it : vars) {
-            logger_base.debug("    '%s' = '%s'", (const char*)it.first.c_str(), (const char*)it.second.c_str());
+            spdlog::debug("    '{}' = '{}'", (const char*)it.first.c_str(), (const char*)it.second.c_str());
         }
-        logger_base.debug("Sending SMS response did:'%s' dst:'%s' message:'%s'", (const char*)GetPhone().c_str(), (const char*)number.c_str(), (const char*)message.c_str());
+        spdlog::debug("Sending SMS response did:'{}' dst:'{}' message:'{}'", (const char*)GetPhone().c_str(), (const char*)number.c_str(), (const char*)message.c_str());
 
         std::string res = Curl::HTTPSGet(url, "", "", 10, vars);
-        logger_base.debug("'%s'", (const char*)res.c_str());
+        spdlog::debug((const char*)res.c_str());
         return Contains(res, "status\":\"success");
     }
 
@@ -56,8 +55,6 @@ public:
     }
     virtual bool RetrieveMessages() override
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
         bool added = false;
 
         std::string url = VOIP_MS_API_URL;
@@ -71,14 +68,14 @@ public:
         vars.push_back({ "limit", "100" });
         vars.push_back({ "timezone", "0" });
 
-        logger_base.debug("HTTPS Get %s", (const char*)url.c_str());
+        spdlog::debug("HTTPS Get {}", (const char*)url.c_str());
         for (const auto& it : vars) {
-            logger_base.debug("    '%s' = '%s'", (const char*)it.first.c_str(), (const char*)it.second.c_str());
+            spdlog::debug("    '{}' = '{}'", (const char*)it.first.c_str(), (const char*)it.second.c_str());
         }
-        logger_base.debug("Retrieving messages: %s", (const char*)url.c_str());
+        spdlog::debug("Retrieving messages: {}", (const char*)url.c_str());
 
         std::string res = Curl::HTTPSGet(url, "", "", 10, vars);
-        logger_base.debug("Result '%s'", (const char*)res.c_str());
+        spdlog::debug("Result '{}'", (const char*)res.c_str());
 
         // construct the JSON root object
         wxJSONValue root;
@@ -94,7 +91,7 @@ public:
 
         int numErrors = reader.Parse(res, &root);
         if (numErrors > 0) {
-            logger_base.error("The JSON document is not well-formed: %s", (const char*)res.c_str());
+            spdlog::error("The JSON document is not well-formed: {}", (const char*)res.c_str());
         } else {
             wxJSONValue defaultValue = wxString("");
             if (root.Get("status", defaultValue).AsString() == "success") {
@@ -123,10 +120,10 @@ public:
                         }
                     }
                 } else {
-                    logger_base.error("No SMS messages found: %s", (const char*)res.c_str());
+                    spdlog::error("No SMS messages found: {}", (const char*)res.c_str());
                 }
             } else {
-                logger_base.error("Get SMS call failed: %s", (const char*)res.c_str());
+                spdlog::error("Get SMS call failed: {}", (const char*)res.c_str());
             }
         }
         return added;

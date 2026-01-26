@@ -14,7 +14,9 @@
 
 #include <wx/wx.h>
 #include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
+
+#include "../../xLights/UtilFunctions.h"
 
 int MagicWord::__nextId = 0;
 
@@ -55,8 +57,6 @@ void MagicWord::Save(wxXmlNode* mws)
 
 void MagicWord::Fire()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     char result[4096];
 
     std::wstring s;
@@ -74,22 +74,20 @@ void MagicWord::Fire()
     std::string res(result);
 
     if (Contains(res, _("result\":\"ok"))) {
-        logger_base.debug("Command %s:%s,%s,%s fired", (const char*)_command.c_str(), (const char*)_parm1.c_str(), (const char*)_parm2.c_str(), (const char*)_parm3.c_str());
+        spdlog::debug("Command {}:{},{},{} fired", (const char*)_command.c_str(), (const char*)_parm1.c_str(), (const char*)_parm2.c_str(), (const char*)_parm3.c_str());
     }
     else {
-        logger_base.debug("Command %s:%s,%s,%s failed to fire", (const char*)_command.c_str(), (const char*)_parm1.c_str(), (const char*)_parm2.c_str(), (const char*)_parm3.c_str());
-        logger_base.debug("   res: %s", (const char*)res.c_str());
+        spdlog::debug("Command {}:{},{},{} failed to fire", (const char*)_command.c_str(), (const char*)_parm1.c_str(), (const char*)_parm2.c_str(), (const char*)_parm3.c_str());
+        spdlog::debug("   res: {}", (const char*)res.c_str());
     }
 
 }
 
 bool MagicWord::CheckMessage(const SMSMessage& msg)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     auto m = Lower(msg._message);
     if (m == _name) {
-        logger_base.debug("Magic word %s found.", (const char*)_name.c_str());
+        spdlog::debug("Magic word {} found.", (const char*)_name.c_str());
         Fire();
         return true;
     }

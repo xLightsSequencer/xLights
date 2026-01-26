@@ -29,10 +29,10 @@
 					<Add directory="../xFade" />
 					<Add directory="../include" />
 					<Add directory="../xLights" />
+					<Add directory="../dependencies/spdlog/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
-					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
@@ -62,10 +62,10 @@
 					<Add directory="../xFade" />
 					<Add directory="../include" />
 					<Add directory="../xLights" />
+					<Add directory="../dependencies/spdlog/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
-					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />

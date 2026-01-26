@@ -6,7 +6,7 @@
 #include "../../xLights/UtilFunctions.h"
 #include "MagicWord.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 #include <wx/wxcrt.h>
 
 SMSDaemonOptions::SMSDaemonOptions()
@@ -23,7 +23,6 @@ SMSDaemonOptions::~SMSDaemonOptions()
 
 void SMSDaemonOptions::Load(const std::string& showDir)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString options = showDir;
     if (options != "" && !options.EndsWith("/") && !options.EndsWith("\\"))
     {
@@ -37,7 +36,7 @@ void SMSDaemonOptions::Load(const std::string& showDir)
 
         if (doc.IsOk())
         {
-            logger_base.debug("Options loaded from %s.", (const char *)options.c_str());
+            spdlog::debug("Options loaded from {}.", (const char*)options.c_str());
             auto n = doc.GetRoot();
             _textItem = n->GetAttribute("TextItem", "");
             _user = n->GetAttribute("User", "");
@@ -83,18 +82,17 @@ void SMSDaemonOptions::Load(const std::string& showDir)
         }
         else
         {
-            logger_base.debug("Options xml file not valid XML %s.", (const char *)options.c_str());
+            spdlog::debug("Options xml file not valid XML {}.", (const char*)options.c_str());
         }
     }
     else
     {
-        logger_base.debug("Options did not exist %s.", (const char *)options.c_str());
+        spdlog::debug("Options did not exist {}.", (const char*)options.c_str());
     }
 }
 
 void SMSDaemonOptions::Save(const std::string& showDir)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString options = showDir;
     if (options != "" && !options.EndsWith("/") && !options.EndsWith("\\"))
     {
@@ -141,12 +139,12 @@ void SMSDaemonOptions::Save(const std::string& showDir)
 
     wxXmlNode* mws = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "MagicWords");
     node->AddChild(mws);
-    for (const auto& it : _magicWords)         {
+    for (const auto& it : _magicWords) {
         it->Save(mws);
     }
 
     doc.SetRoot(node);
-    logger_base.debug("Options saved to %s.", (const char *)options.c_str());
+    spdlog::debug("Options saved to {}.", (const char*)options.c_str());
     doc.Save(options);
     ClearDirty();
 }

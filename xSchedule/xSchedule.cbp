@@ -29,11 +29,11 @@
 					<Add directory="../xSchedule" />
 					<Add directory="../include" />
 					<Add directory="../xLights" />
+					<Add directory="../dependencies/spdlog/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
-					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="-lltc" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
@@ -66,11 +66,11 @@
 					<Add directory="../xSchedule" />
 					<Add directory="../include" />
 					<Add directory="../xLights" />
+					<Add directory="../dependencies/spdlog/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
-					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="-lltc" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />

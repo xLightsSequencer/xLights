@@ -24,7 +24,7 @@
 #include <execinfo.h>
 #endif
 
-#include "./utils/spdlog_macros.h"
+#include "spdlog/spdlog.h"
 
 #include "ExternalHooks.h"
 #include "xLightsVersion.h"
@@ -47,7 +47,7 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
     //
 
     if (!isFatalException) {
-        LOG_WARN("Non fatal exception: %s", (const char*)msg.c_str());
+        spdlog::warn("Non fatal exception: {}", msg);
     } else {
         try {
 #if defined(_DEBUG)
@@ -57,7 +57,7 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
             // Protect against simultaneous crashes from different threads.
             std::unique_lock<std::mutex> lock(m_crashMutex);
 
-            LOG_CRIT("Crashed: " + msg);
+            spdlog::critical("Crashed: " + msg);
 
             wxDebugReportCompress report;
             m_report = &report;
@@ -139,7 +139,7 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
 #endif
 
             report.AddText("backtrace.txt", backtrace_txt, "Backtrace");
-            LOG_CRIT("%s", (const char*)backtrace_txt.c_str());
+            spdlog::critical(backtrace_txt.ToStdString());
 
             std::string const logFileName = m_appName + "_l4cpp.log";
 #ifdef __WXMSW__
@@ -167,7 +167,7 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
             }
 
             if (topFrame == nullptr) {
-                LOG_CRIT("Unable to tell user about debug report. Crash report saved to %s.", (const char*)report.GetCompressedFileName().c_str());
+                spdlog::critical("Unable to tell user about debug report. Crash report saved to {}.", report.GetCompressedFileName().ToStdString());
             } else {
                 if (wxThread::IsMain()) {
                     topFrame->CreateDebugReport(this);
@@ -178,7 +178,7 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
             }
 #endif // (defined(_DEBUG))
         } catch (...) {
-            LOG_CRIT("We had an exception within the HandleCrash() function.");
+            spdlog::critical("We had an exception within the HandleCrash() function.");
         }
     }
 
@@ -241,7 +241,7 @@ void xlCrashHandler::ProcessCrashReport(SendReportOptions sendOption)
         m_report->Process();
     }
 
-    LOG_CRIT("Created debug report: %s", (const char*)m_report->GetCompressedFileName().c_str());
+    spdlog::critical("Created debug report: {}", m_report->GetCompressedFileName().ToStdString());
     m_crashDoneSignal.notify_all();
 }
 
@@ -298,8 +298,8 @@ void xlCrashHandler::SendReport(std::string const& appName, std::string const& l
     wxInputStream* is = http.GetInputStream("/" + loc + "/index.php");
     char buf[1024];
     is->Read(buf, 1024);
-    LOG_DEBUG("Sent debug log to server: %s", (const char*)fn.c_str()) ;
-    LOG_DEBUG("%s", (const char*)buf);
+    spdlog::debug("Sent debug log to server: {}", fn.ToStdString());
+    spdlog::debug(buf);
     delete is;
     http.Close();
 }
