@@ -185,7 +185,7 @@ DmxImage* DmxServo::CreateMotionImage(const std::string& name, int idx)
 
 Servo* DmxServo::CreateServo(const std::string& name, int idx)
 {
-    servos[idx] = std::make_unique<Servo>(name, false);
+    servos[idx] = std::make_unique<Servo>(name, true);
     return servos[idx].get();
 }
 
