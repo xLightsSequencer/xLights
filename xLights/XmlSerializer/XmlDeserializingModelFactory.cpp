@@ -41,8 +41,10 @@
 #include "../models/DMX/DmxFloodArea.h"
 #include "../models/DMX/DmxFloodlight.h"
 #include "../models/DMX/DmxGeneral.h"
+#include "../models/DMX/DmxImage.h"
 #include "../models/DMX/DmxMovingHeadAdv.h"
 #include "../models/DMX/DmxMovingHead.h"
+#include "../models/DMX/DmxServo.h"
 #include "../models/DMX/DmxServo3D.h"
 #include "../models/DMX/DmxSkull.h"
 #include "../models/DMX/Mesh.h"
@@ -80,6 +82,8 @@ Model* XmlDeserializingModelFactory::Deserialize(wxXmlNode* node, xLightsFrame* 
         return DeserializeDmxFloodlight(node, xlights, importing);
     } else if (type == XmlNodeKeys::DmxGeneralType) {
         return DeserializeDmxGeneral(node, xlights, importing);
+    } else if (type == XmlNodeKeys::DmxServoType) {
+        return DeserializeDmxServo(node, xlights, importing);
     } else if (type == XmlNodeKeys::DmxServo3dType) {
         return DeserializeDmxServo3d(node, xlights, importing);
     } else if (type == XmlNodeKeys::DmxSkullType) {
@@ -735,6 +739,19 @@ void XmlDeserializingModelFactory::DeserializeDimmerAbility(DmxModel* model, wxX
     dimmer_ability->SetDimmerChannel(std::stoi(node->GetAttribute("MHDimmerChannel", "0").ToStdString()));
 }
 
+void XmlDeserializingModelFactory::DeserializeDmxImage(DmxImage* img, wxXmlNode* node) {
+    img->SetImageFile(FixFile("", node->GetAttribute(XmlNodeKeys::ImageAttribute, "")));
+    img->SetScaleX(std::stof(node->GetAttribute(XmlNodeKeys::ScaleXAttribute, "1.0f").ToStdString()));
+    img->SetScaleY(std::stof(node->GetAttribute(XmlNodeKeys::ScaleYAttribute, "1.0f").ToStdString()));
+    img->SetScaleZ(std::stof(node->GetAttribute(XmlNodeKeys::ScaleZAttribute, "1.0f").ToStdString()));
+    img->SetRotateX(std::stof(node->GetAttribute(XmlNodeKeys::RotateXAttribute, "0.0f").ToStdString()));
+    img->SetRotateY(std::stof(node->GetAttribute(XmlNodeKeys::RotateYAttribute, "0.0f").ToStdString()));
+    img->SetRotateZ(std::stof(node->GetAttribute(XmlNodeKeys::RotateZAttribute, "0.0f").ToStdString()));
+    img->SetOffsetX(std::stof(node->GetAttribute(XmlNodeKeys::OffsetXAttribute, "0.0f").ToStdString()));
+    img->SetOffsetY(std::stof(node->GetAttribute(XmlNodeKeys::OffsetYAttribute, "0.0f").ToStdString()));
+    img->SetOffsetZ(std::stof(node->GetAttribute(XmlNodeKeys::OffsetZAttribute, "0.0f").ToStdString()));
+}
+
 void XmlDeserializingModelFactory::DeserializeDmxMotor(DmxMotor* motor, wxXmlNode* node) {
     motor->SetChannelCoarse(std::stoi(node->GetAttribute(XmlNodeKeys::ChannelCoarseAttribute, "0").ToStdString()));
     motor->SetChannelFine(std::stoi(node->GetAttribute(XmlNodeKeys::ChannelFineAttribute, "0").ToStdString()));
@@ -822,7 +839,6 @@ Model* XmlDeserializingModelFactory::DeserializeDmxServo3d(wxXmlNode* node, xLig
     model->SetIs16Bit(node->GetAttribute("Bits16", "0") == "1");
     model->SetBrightness(std::stoi(node->GetAttribute(XmlNodeKeys::BrightnessAttribute, "100").ToStdString()));
 
-
     wxXmlNode* n = node->GetChildren();
     while (n != nullptr) {
         std::string name = n->GetName();
@@ -897,6 +913,57 @@ Model* XmlDeserializingModelFactory::DeserializeDmxServo3d(wxXmlNode* node, xLig
         if (link_id != i + 1) {
             model->SetMeshLink(i, link_id - 1);
         }
+    }
+
+    model->Setup();
+    return model;
+}
+
+Model* XmlDeserializingModelFactory::DeserializeDmxServo(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
+    DmxServo* model = new DmxServo(xlights->AllModels);
+    CommonDeserializeSteps(model, node, xlights, importing);
+    DeserializeDmxModel(model, node);
+    model->SetNumServos(std::stoi(node->GetAttribute("NumServos", "1").ToStdString()));
+    model->SetIs16Bit(node->GetAttribute("Bits16", "0") == "1");
+    model->SetBrightness(std::stoi(node->GetAttribute(XmlNodeKeys::BrightnessAttribute, "100").ToStdString()));
+    model->SetTransparency(std::stoi(node->GetAttribute(XmlNodeKeys::TransparencyAttribute, "0").ToStdString()));
+
+    wxXmlNode* n = node->GetChildren();
+    while (n != nullptr) {
+        std::string name = n->GetName();
+        int servo_idx = name.find("Servo");
+        int static_idx = name.find("StaticImage");
+        int motion_idx = name.find("MotionImage");
+
+        if ("StaticImage" == name) { // convert original name that had no number
+            DmxImage* img = model->CreateStaticImage("StaticImage1", 0);
+            DeserializeDmxImage(img, n);
+        } else if ("MotionImage" == name) { // convert original name that had no number
+            DmxImage* img = model->CreateStaticImage("MotionImage1", 0);
+            DeserializeDmxImage(img, n);
+        } else if (static_idx != std::string::npos) {
+            std::string num = name.substr(11, name.length());
+            int id = atoi(num.c_str()) - 1;
+            if (id < model->GetNumServos()) {
+                DmxImage* img = model->CreateStaticImage(name, id);
+                DeserializeDmxImage(img, n);
+            }
+        } else if (motion_idx != std::string::npos) {
+            std::string num = name.substr(11, name.length());
+            int id = atoi(num.c_str()) - 1;
+            if (id < model->GetNumServos()) {
+                DmxImage* img = model->CreateMotionImage(name, id);
+                DeserializeDmxImage(img, n);
+            }
+        } else if (servo_idx != std::string::npos) {
+            std::string num = name.substr(5, name.length());
+            int id = atoi(num.c_str()) - 1;
+            if (id < model->GetNumServos()) {
+                Servo* sv = model->CreateServo(name, id);
+                DeserializeServo(sv, n);
+            }
+        }
+        n = n->GetNext();
     }
 
     model->Setup();

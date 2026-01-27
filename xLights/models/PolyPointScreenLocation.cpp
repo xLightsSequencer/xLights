@@ -1054,7 +1054,7 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
     return true;
 }
 
-int PolyPointScreenLocation::MslMoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
+int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
     if (_locked) return MODEL_UNCHANGED;
     std::unique_lock<std::mutex> locker(_mutex);
@@ -1320,7 +1320,7 @@ int PolyPointScreenLocation::MslMoveHandle3D(ModelPreview* preview, int handle, 
     }
     return MODEL_UNCHANGED;
 }
-int PolyPointScreenLocation::MslMoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
+int PolyPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
     if (handle == CENTER_HANDLE) {
         constexpr float rscale = 10; //10 degrees per full 1.0 aka: max speed
         Rotate(ModelScreenLocation::MSLAXIS::X_AXIS, rot.x * rscale);
@@ -1359,7 +1359,7 @@ int PolyPointScreenLocation::MslMoveHandle3D(float scale, int handle, glm::vec3 
     return 1;
 }
 
-int PolyPointScreenLocation::MslMoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
     if (_locked) return 0;
 

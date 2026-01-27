@@ -423,7 +423,7 @@ void ThreePointScreenLocation::DrawBoundingBox(xlVertexColorAccumulator *vac, bo
     DrawBoundingBoxLines(Box3dColor, aabb_min, aabb_max, draw_3d ? ModelMatrix : TranslateMatrix, *vac);
 }
 
-int ThreePointScreenLocation::MslMoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
     if (_locked) return MODEL_UNCHANGED;
 
@@ -496,10 +496,10 @@ int ThreePointScreenLocation::MslMoveHandle(ModelPreview* preview, int handle, b
         return MODEL_NEEDS_INIT;
     }
 
-    return TwoPointScreenLocation::MslMoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
+    return TwoPointScreenLocation::MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
 }
 
-int ThreePointScreenLocation::MslMoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
+int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
     if (_locked) return MODEL_UNCHANGED;
 
@@ -601,9 +601,9 @@ int ThreePointScreenLocation::MslMoveHandle3D(ModelPreview* preview, int handle,
             }
         }
     }
-    return TwoPointScreenLocation::MslMoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
+    return TwoPointScreenLocation::MoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
 }
-int ThreePointScreenLocation::MslMoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
+int ThreePointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
     if (handle == SHEAR_HANDLE) {
         //we'll handle move, ignore rotations
         if (supportsAngle) {
@@ -624,7 +624,7 @@ int ThreePointScreenLocation::MslMoveHandle3D(float scale, int handle, glm::vec3
         }
         return MODEL_NEEDS_INIT;
     }
-    return TwoPointScreenLocation::MslMoveHandle3D(scale, handle, rot, mov);
+    return TwoPointScreenLocation::MoveHandle3D(scale, handle, rot, mov);
 }
 float ThreePointScreenLocation::GetVScaleFactor() const {
     if (modelHandleHeight) {

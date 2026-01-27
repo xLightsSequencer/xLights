@@ -18,6 +18,7 @@ class DmxMovingHeadComm;;
 class DmxColorAbilityCMY;
 class DmxColorAbilityRGB;
 class DmxColorAbilityWheel;
+class DmxImage;
 class DmxMotor;
 class Mesh;
 class Model;
@@ -69,6 +70,7 @@ private:
     void DeserializeColorAbilityCMYAttributes(DmxColorAbilityCMY* ability, wxXmlNode* node);
     void DeserializeShutterAbility(DmxModel* model, wxXmlNode* node);
     void DeserializeDimmerAbility(DmxModel* model, wxXmlNode* node);
+    void DeserializeDmxImage(DmxImage* img, wxXmlNode* node);
     void DeserializeDmxMotor(DmxMotor* motor, wxXmlNode* node);
     void DeserializeMesh(Mesh* mesh, wxXmlNode* node);
     void DeserializeServo(Servo* servo, wxXmlNode* node);
@@ -80,5 +82,6 @@ private:
     Model* DeserializeDmxMovingHead(wxXmlNode* node, xLightsFrame* xlights, bool importing);
     Model* DeserializeDmxMovingHeadAdv(wxXmlNode *node, xLightsFrame* xlights, bool importing);
     Model* DeserializeDmxServo3d(wxXmlNode* node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeDmxServo(wxXmlNode* node, xLightsFrame* xlights, bool importing);
     Model* DeserializeDmxSkull(wxXmlNode* node, xLightsFrame* xlights, bool importing);
 };

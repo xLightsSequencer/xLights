@@ -249,7 +249,7 @@ wxCursor TerrainScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm:
     return return_value;
 }
 
-int TerrainScreenLocation::MslMoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
+int TerrainScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
     if (_locked) return MODEL_UNCHANGED;
 
@@ -292,11 +292,11 @@ int TerrainScreenLocation::MslMoveHandle3D(ModelPreview* preview, int handle, bo
             }
         }
     } else {
-        BoxedScreenLocation::MslMoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
+        BoxedScreenLocation::MoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
     }
     return MODEL_UPDATE_RGBEFFECTS;
 }
-int TerrainScreenLocation::MslMoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
+int TerrainScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
     if (_locked) return 0;
 
     if (handle != CENTER_HANDLE) {
@@ -327,7 +327,7 @@ int TerrainScreenLocation::MslMoveHandle3D(float scale, int handle, glm::vec3 &r
             }
         }
     } else {
-        BoxedScreenLocation::MslMoveHandle3D(scale, handle, rot, mov);
+        BoxedScreenLocation::MoveHandle3D(scale, handle, rot, mov);
     }
     return 1;
 }

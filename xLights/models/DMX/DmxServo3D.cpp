@@ -234,11 +234,7 @@ int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGr
     }
 
     if ("PivotAxes" == name) {
-        if (event.GetValue().GetBool()) {
-            show_pivot = true;
-        } else {
-            show_pivot = false;
-        }
+        show_pivot = event.GetValue().GetBool();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo3d::OnPropertyGridChange::PivotAxes");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo3d::OnPropertyGridChange::PivotAxes");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo3d::OnPropertyGridChange::PivotAxes");
@@ -309,7 +305,7 @@ int DmxServo3d::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGr
     return DmxModel::OnPropertyGridChange(grid, event);
 }
 
-void DmxServo3d::DmxServo3d::SetNumServos(int val)
+void DmxServo3d::SetNumServos(int val)
 {
     num_servos = val;
     if (servos.size() < num_servos) {

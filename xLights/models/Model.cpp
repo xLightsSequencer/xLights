@@ -5387,7 +5387,7 @@ glm::vec3 Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPres
     if (GetModelScreenLocation().IsLocked() || IsFromBase())
         return GetModelScreenLocation().GetHandlePosition(handle);
 
-    int i = GetModelScreenLocation().MslMoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
+    int i = GetModelScreenLocation().MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
     if (i == MODEL_NEEDS_INIT) {
         Setup();
     } else if (i == MODEL_UPDATE_RGBEFFECTS) {

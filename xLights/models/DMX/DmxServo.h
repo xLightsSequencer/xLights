@@ -31,8 +31,17 @@ public:
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
     virtual std::list<std::string> CheckModelSettings() override;
 
-    Servo* GetAxis(int num) { return num < num_servos ? servos[num] : servos[0]; }
+    Servo* GetAxis(int num) { return num < num_servos ? servos[num].get() : servos[0].get(); }
     int GetNumServos() { return num_servos; }
+
+    void SetNumServos(int val);
+    void SetIs16Bit(bool val) { _16bit = val; }
+    void SetBrightness(float val) {brightness = val; }
+    void SetTransparency(int val) {transparency = val; }
+
+    DmxImage* CreateStaticImage(const std::string& name, int idx);
+    DmxImage* CreateMotionImage(const std::string& name, int idx);
+    Servo* CreateServo(const std::string& name, int idx);
 
     void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const override;
 
@@ -42,14 +51,14 @@ protected:
 
     void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *program, const xlColor* c, bool active);
 
-    int transparency;
-    float brightness;
+    int transparency {0};
+    float brightness {100};
 
 private:
-    bool update_node_names;
-    int num_servos;
-    bool _16bit;
-    std::vector<DmxImage*> static_images;
-    std::vector<DmxImage*> motion_images;
-    std::vector<Servo*> servos;
+    bool update_node_names {false};
+    int num_servos {1};
+    bool _16bit {true};
+    std::vector<std::unique_ptr<DmxImage>> static_images;
+    std::vector<std::unique_ptr<DmxImage>> motion_images;
+    std::vector<std::unique_ptr<Servo>> servos;
 };

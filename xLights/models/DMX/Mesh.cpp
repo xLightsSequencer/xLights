@@ -46,7 +46,6 @@ void Mesh::SetRenderScaling(float s) {
 
 void Mesh::Init(BaseObject* base, bool set_size) {
 
-
     if (brightness > 100) {
         brightness = 100;
     } else if (brightness < 0) {
