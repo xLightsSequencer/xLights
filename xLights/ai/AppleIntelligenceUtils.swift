@@ -113,21 +113,22 @@ public func RunAppleIntelligenceGeneratePalette(_ prompt: String) -> String {
 }
 
 @objcMembers public class ImagesAsyncCaller: NSObject {
-    public func generateImages(prompt: String, fullInstructions: String, style: String) async -> (CGImage, String) {
+    public func generateImages(prompt: String, fullInstructions: String, style: String) async -> (CGImage?, String) {
         // Handle availability at runtime and catch thrown errors from ImageCreator()
-        let image : CGImage! = nil;
+        let image : CGImage! = nil
         if #available(macOS 26.0, *) {
             do {
                 let imageCreator = try await ImageCreator()
                 
-                guard let style = imageCreator.availableStyles.first(where: { $0.id == style }) else {
+                // Find the requested style by id
+                guard let selectedStyle = imageCreator.availableStyles.first(where: { $0.id == style }) else {
                     return (image, "Could not render image with style: \(style)")
                 }
                 
                 // Generate images by specifying prompts and style
                 let generatedImages = imageCreator.images(
-                    for: [.extracted(from:fullInstructions, title:prompt)],
-                    style: style,
+                    for: [.extracted(from: fullInstructions, title: prompt)],
+                    style: selectedStyle,
                     limit: 1
                 )
 
@@ -138,7 +139,7 @@ public func RunAppleIntelligenceGeneratePalette(_ prompt: String) -> String {
                 }
                 return (image, "No Image Created")
             } catch ImageCreator.Error.notSupported {
-                return (image, "Image creation is not supported on this device");
+                return (image, "Image creation is not supported on this device")
             } catch ImageCreator.Error.creationFailed {
                 return (image, "Image creation failed")
             } catch {

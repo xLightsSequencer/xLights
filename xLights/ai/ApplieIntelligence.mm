@@ -103,9 +103,11 @@ public:
         wxStaticText *StaticText2 = new wxStaticText(parent, wxNewId(), _T("Style"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
         sizer->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
         wxChoice *Choice1 = new wxChoice(parent, wxNewId(), wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
+
         Choice1->Append(_T("Animation"));
         Choice1->Append(_T("Illustration"));
         Choice1->Append(_T("Sketch"));
+        Choice1->Append(_T("Emoji"));
         sizer->Add(Choice1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
         
         Choice1->Bind(wxEVT_COMMAND_CHOICE_SELECTED, [this](wxCommandEvent& event) {

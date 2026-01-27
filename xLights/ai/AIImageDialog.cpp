@@ -45,9 +45,11 @@ AIImageDialog::AIImageDialog(wxWindow* parent, aiBase* service, wxWindowID id)
     Move(wxDefaultPosition);
     MainSizer = new wxFlexGridSizer(0, 1, 0, 0);
     MainSizer->AddGrowableCol(0);
+    MainSizer->AddGrowableRow(1);
     ParametersBox = new wxStaticBoxSizer(wxHORIZONTAL, this, _T("Parameters"));
     ParametersSizer = new wxFlexGridSizer(0, 2, 0, 0);
     ParametersSizer->AddGrowableCol(1);
+    ParametersSizer->AddGrowableRow(0);
     StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _T("Prompt"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     ParametersSizer->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     PromptBox = new wxTextCtrl(this, ID_PROMPT, wxEmptyString, wxDefaultPosition, wxSize(400,50), wxTE_MULTILINE|wxVSCROLL, wxDefaultValidator, _T("ID_PROMPT"));
@@ -58,12 +60,13 @@ AIImageDialog::AIImageDialog(wxWindow* parent, aiBase* service, wxWindowID id)
     MainSizer->Add(ParametersBox, 0, wxALL|wxEXPAND, 5);
     ResultsBox = new wxStaticBoxSizer(wxHORIZONTAL, this, _T("Results"));
     ResultBoxSizer = new wxFlexGridSizer(0, 3, 0, 0);
+    ResultBoxSizer->AddGrowableCol(1);
+    ResultBoxSizer->AddGrowableRow(0);
     ResultBitmap = new wxStaticBitmap(this, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxSize(400,400), 0, _T("ID_STATICBITMAP1"));
     ResultBitmap->SetMaxSize(wxSize(400,400));
     ResultBoxSizer->Add(ResultBitmap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ErrorText = new wxStaticText(this, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxSize(400,400), 0, _T("ID_STATICTEXT2"));
+    ErrorText = new wxTextCtrl(this, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxSize(400,400), wxTE_MULTILINE|wxTE_READONLY|wxTE_WORDWRAP|wxVSCROLL, wxDefaultValidator, _T("ID_STATICTEXT2"));
     ErrorText->SetMinSize(wxSize(400,400));
-    ErrorText->SetMaxSize(wxSize(400,400));
     ResultBoxSizer->Add(ErrorText, 1, wxALL|wxEXPAND, 5);
     ResultsBox->Add(ResultBoxSizer, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     MainSizer->Add(ResultsBox, 1, wxALL|wxEXPAND, 5);
@@ -112,7 +115,7 @@ void AIImageDialog::OnGenerateButtonClick(wxCommandEvent& event)
 {
     if (generator) {
         ResultBitmap->Hide();
-        ErrorText->SetLabel("Generating image....");
+        ErrorText->SetValue("Generating image....");
         ErrorText->Show();
         MainSizer->SetSizeHints(this);
         Center();
@@ -128,7 +131,7 @@ void AIImageDialog::OnGenerateButtonClick(wxCommandEvent& event)
                     SaveButton->Enable();
                 } else {
                     ResultBitmap->Hide();
-                    ErrorText->SetLabel(err);
+                    ErrorText->SetValue(err);
                     ErrorText->Show();
                     MainSizer->SetSizeHints(this);
                     Center();

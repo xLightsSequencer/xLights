@@ -504,6 +504,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="ai\chatGPT.cpp" />
     <ClCompile Include="ai\ollama.cpp" />
     <ClCompile Include="ai\ServiceManager.cpp" />
+    <ClCompile Include="ai\Gemini.cpp" />
     <ClCompile Include="AlignmentDialog.cpp" />
     <ClCompile Include="AutoLabelDialog.cpp" />
     <ClCompile Include="automation\automation.cpp" />
@@ -1032,6 +1033,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="ai\AIImageDialog.h" />
     <ClInclude Include="ai\aiType.h" />
     <ClInclude Include="ai\chatGPT.h" />
+    <ClInclude Include="ai\gemini.h" />
     <ClInclude Include="ai\ollama.h" />
     <ClInclude Include="ai\ServiceManager.h" />
     <ClInclude Include="AlignmentDialog.h" />

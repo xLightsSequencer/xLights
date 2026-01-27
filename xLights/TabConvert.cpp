@@ -1130,7 +1130,7 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
     auto filename = GetPresetIconFilename(preset);
 
     auto path = wxSplit(preset, '/');
-    wxXmlNode* presetNode = FindPreset(_sequenceElements.GetEffectsNode(), path);
+    wxXmlNode* presetNode = FindPreset(EffectsNode, path);
 
     if (presetNode != nullptr) {
         auto cp = presetNode->GetAttribute("settings");

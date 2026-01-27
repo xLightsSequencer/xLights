@@ -34,8 +34,8 @@ class AIImageDialog: public wxDialog
         wxStaticBitmap* ResultBitmap;
         wxStaticBoxSizer* ParametersBox;
         wxStaticBoxSizer* ResultsBox;
-        wxStaticText* ErrorText;
         wxStaticText* StaticText1;
+        wxTextCtrl* ErrorText;
         wxTextCtrl* PromptBox;
         //*)
 
