@@ -3246,7 +3246,21 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb)
     size_t NumberOfStrings = HasOneString(DisplayAs) ? 1 : parm1;
     int ChannelsPerString = CalcChannelsPerString();
 
-    SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
+    if (ModelNode->HasAttribute("CustomStrings") && ModelNode->HasAttribute("Strings1")) {
+        std::vector<int> customStartNodes{};
+        for (auto i = 1; i <= NumberOfStrings; i++) {
+            if (i == 1) {
+                customStartNodes.push_back(StartChannel - 1);
+            } else if (wxAtoi(ModelNode->GetAttribute(wxString::Format(wxT("Strings%i"), i).ToStdString(), "-1")) == -1 ) {
+                customStartNodes.push_back(wxAtoi(ModelNode->GetAttribute("parm2", "1")) * (i-1) * 3 + StartChannel - 1);
+            } else {
+                customStartNodes.push_back((wxAtoi(ModelNode->GetAttribute(wxString::Format(wxT("Strings%i"), i).ToStdString(), "1"))-1) * 3 + StartChannel-1);
+            }
+        }
+        SetStringStartChannels(zeroBased, customStartNodes);
+    } else {
+        SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
+    }
     GetModelScreenLocation().Read(ModelNode);
 
     InitModel();
@@ -3506,6 +3520,12 @@ void Model::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int Star
     }
 }
 
+void Model::SetStringStartChannels(int StartChannel, std::vector<int> customStartNodes) {
+    stringStartChan.clear();
+    stringStartChan.resize(customStartNodes.size());
+    stringStartChan = customStartNodes;
+}
+
 int Model::FindNodeAtXY(int bufx, int bufy)
 {
     for (int i = 0; i < Nodes.size(); ++i) {
@@ -3734,7 +3754,7 @@ std::string Model::GetFirstChannelInStartChannelFormat(OutputManager* outputMana
 }
 
 uint32_t Model::GetLastChannel() const
-{
+{    
     uint32_t LastChan = 0;
     size_t NodeCount = GetNodeCount();
     for (size_t idx = 0; idx < NodeCount; ++idx) {
@@ -4537,20 +4557,18 @@ void Model::AddLayerSizeProperty(wxPropertyGridInterface* grid)
     psn->SetAttribute("Max", 100);
     psn->SetEditor("SpinCtrl");
 
-    if (GetLayerSizeCount() > 1) {
-        for (int i = 0; i < GetLayerSizeCount(); ++i) {
-            wxString id = wxString::Format("Layer%d", i);
-            wxString nm = wxString::Format("Layer %d", i + 1);
-            if (i == 0)
-                nm = "Inside";
-            else if (i == GetLayerSizeCount() - 1)
-                nm = "Outside";
+    for (int i = 0; i < GetLayerSizeCount(); ++i) {         //Always show Layers since we're using this to get the node counts
+        wxString id = wxString::Format("Layer%d", i);
+        wxString nm = wxString::Format("Layer %d", i + 1);
+        if (i == 0)
+            nm = "Inside";
+        else if (i == GetLayerSizeCount() - 1)
+            nm = "Outside";
 
-            wxPGProperty* pls = grid->AppendIn(psn, new wxUIntProperty(nm, id, GetLayerSize(i)));
-            pls->SetAttribute("Min", 1);
-            pls->SetAttribute("Max", 1000);
-            pls->SetEditor("SpinCtrl");
-        }
+        wxPGProperty* pls = grid->AppendIn(psn, new wxUIntProperty(nm, id, GetLayerSize(i)));
+        pls->SetAttribute("Min", 1);
+        pls->SetAttribute("Max", 1000);
+        pls->SetEditor("SpinCtrl");
     }
 }
 
