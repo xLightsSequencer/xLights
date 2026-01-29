@@ -33,6 +33,7 @@ void IciclesModel::InitModel()
     int lightsPerString = parm2;
 
     SetNodeCount(numStrings, lightsPerString, rgbOrder);
+    ParseDropSizes();
 
     int width = -1;
     size_t curNode = 0;
@@ -189,6 +190,12 @@ int IciclesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
 void IciclesModel::SetDropPattern(const std::string & pattern)
 {
     _dropPatternString = pattern;
+    ParseDropSizes();
+}
+
+void IciclesModel::ParseDropSizes()
+{
+    _dropSizes.clear();
     wxArrayString pat = wxSplit(_dropPatternString, ',');
     _maxH = 0;
     for (int x = 0; x < pat.size(); x++) {

@@ -38,9 +38,9 @@ protected:
 
 private:
     void SetIciclesCoord();
+    void ParseDropSizes();
     bool _alternateNodes = false;
-    std::string _dropPattern = "";
-    std::string _dropPatternString = "";
+    std::string _dropPatternString = "3,4,5,4";
     std::vector<size_t> _dropSizes;
     size_t _maxH = 0;
 };
