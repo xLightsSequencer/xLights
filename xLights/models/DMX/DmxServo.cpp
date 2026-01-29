@@ -204,13 +204,13 @@ void DmxServo::InitModel()
     screenLocation.SetRenderSize(1, 1, 1);
 
     // resize vector arrays
-    if (static_images.size() < num_servos) {
+    if (static_images.size() != num_servos) {
         static_images.resize(num_servos);
     }
-    if (motion_images.size() < num_servos) {
+    if (motion_images.size() != num_servos) {
         motion_images.resize(num_servos);
     }
-    if (servos.size() < num_servos) {
+    if (servos.size() != num_servos) {
         servos.resize(num_servos);
     }
 

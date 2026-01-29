@@ -359,6 +359,17 @@ void DmxServo3d::InitModel()
 
     DmxModel::InitModel();
 
+    // resize vector arrays
+    if (servos.size() != num_servos) {
+        servos.resize(num_servos);
+    }
+    if (static_meshs.size() != num_static) {
+        static_meshs.resize(num_static);
+    }
+    if (motion_meshs.size() != num_motion) {
+        motion_meshs.resize(num_motion);
+    }
+
     // create any missing servos
     for (int i = 0; i < num_servos; ++i) {
         if (servos[i] == nullptr) {
