@@ -20,6 +20,9 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         void UpdateModel(int width, int height, int depth, const std::vector<std::vector<std::vector<int>>>& modelData);
 
+        [[nodiscard]] virtual bool SupportsVisitors() const override { return true; }
+        void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
+
         virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
@@ -52,7 +55,8 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] bool SupportsChangingStringCount() const override{ return true; };
         [[nodiscard]] bool ChangeStringCount(long count, std::string& message) override;
 
-        [[nodiscard]] std::string GetCustomData() const;
+        [[nodiscard]] const std::string GetCustomData() const;
+        [[nodiscard]] const std::string GetCompressedData() const;
         void SetCustomData(const std::vector<std::vector<std::vector<int>>>& data);
 
         [[nodiscard]] std::string GetCustomBackground() const {return _custom_background;}
@@ -74,7 +78,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] static std::string CompressedToCustomModel(const std::string& compressed);
         [[nodiscard]] static std::string ToCompressed(const std::vector<std::vector<std::vector<int>>>& model);
         [[nodiscard]] static std::string ToCustomModel(const std::vector<std::vector<std::vector<int>>>& model);
-        [[nodiscard]] std::vector<std::vector<std::vector<int>>> const& GetDataConst() const { return _locations; }
+        [[nodiscard]] std::vector<std::vector<std::vector<int>>> const& GetDataConst() const { return _locations; }  // TODO:  Not sure I needed to keep
         [[nodiscard]] std::vector<std::vector<std::vector<int>>> & GetData() { return _locations; }  // letting the XmlSerializer functions access this member data for speed
         [[nodiscard]] int GetCustomNodeStringNumber(int node) const;
 

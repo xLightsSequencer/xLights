@@ -281,10 +281,16 @@ void CustomModel::SetCustomDepth(long d)
     if (_depth < 1) _depth = 1;
 }
 
-std::string CustomModel::GetCustomData() const
+const std::string CustomModel::GetCustomData() const
 {
-    wxASSERT(false);  // Need to rewrite this function to archive the location data back to a string is this is needed
-    return ModelXml->GetAttribute("CustomModel").ToStdString();
+    // TODO:  Delete ToCustom  and move its contents here
+    return CustomModel::ToCustomModel(_locations);
+}
+
+const std::string CustomModel::GetCompressedData() const
+{
+    // TODO:  Delete ToCompressed and move its contents here
+    return CustomModel::ToCompressed(_locations);
 }
 
 void CustomModel::SetCustomData(const std::vector<std::vector<std::vector<int>>>& data)

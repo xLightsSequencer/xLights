@@ -67,7 +67,6 @@ namespace XmlNodeKeys {
     constexpr auto TagColourAttribute       = "TagColour";
     constexpr auto XLVersionAttribute       = "xLightsVersion";
     constexpr auto SettingsAttribute        = "settings";
-    constexpr auto SerializeAttribute       = "Serialize";
     constexpr auto CustomColorAttribute     = "CustomColor";
     constexpr auto ModelBrightnessAttribute = "ModelBrightness";
     constexpr auto LowDefinitionAttribute   = "LowDefinition";

@@ -125,6 +125,7 @@ protected:
 
     int ComputeStringStartNode(int x) const;
     int GetCustomNodeStringNumber(int node) const;
+    void ParseDropSizes();
 
     float _totalLength = 0.0f;
     int _numSegments = 0;

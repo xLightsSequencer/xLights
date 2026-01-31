@@ -1049,6 +1049,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
     }
     else if ("IciclesDrops" == event.GetPropertyName()) {
         _dropPatternString = event.GetPropertyValue().GetString();
+        ParseDropSizes();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
@@ -1248,6 +1249,13 @@ int PolyLineModel::GetNumPhysicalStrings() const
 void PolyLineModel::SetDropPattern(const std::string & pattern)
 {
     _dropPatternString = pattern;
+    ParseDropSizes();
+}
+
+
+void PolyLineModel::ParseDropSizes()
+{
+    _dropSizes.clear();
     wxArrayString pat = wxSplit(_dropPatternString, ',');
     // parse drop sizes
     _dropSizes.clear();
@@ -1264,4 +1272,3 @@ void PolyLineModel::SetDropPattern(const std::string & pattern)
         _dropSizes.push_back(5);
     }
 }
-

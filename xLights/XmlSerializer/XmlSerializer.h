@@ -20,16 +20,6 @@
 struct XmlSerializer {
     XmlSerializer() {}
 
-    static bool IsXmlSerializerFormat(const wxXmlNode* node) {
-        if (node->GetAttribute(XmlNodeKeys::TypeAttribute, "") == XmlNodeKeys::ExportedAttribute) {
-            return true;
-        }
-        if (node->GetAttribute(XmlNodeKeys::SerializeAttribute, "") == "1") {
-            return true;
-        }
-        return false;
-    }
-    
     // Serialize all model into an XML document
     void SerializeAllModels(const ModelManager & allModels, xLightsFrame* xlights, wxXmlNode* root) {
 

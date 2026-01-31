@@ -3763,8 +3763,7 @@ void LayoutPanel::FinalizeModel()
             selectedBaseObject = nullptr;
             selectedDmxModelType = "";
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "FinalizeModel", nullptr, nullptr, name);
-            //SelectBaseObject(name);
-            SelectBaseObject3D();
+            //SelectBaseObject(name);            SelectBaseObject3D();
         }
         else {
             xlights->AddTraceMessage("LayoutPanel::FinalizeModel Exiting but can draw another model.");

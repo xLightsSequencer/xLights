@@ -116,7 +116,7 @@ public:
     [[nodiscard]] int GetSmartRemoteCount() const;
 
 private:
-    std::string _name {""};
+    std::string _name {"No Controller"};
     std::string _protocol {""};
     int _protocolSpeed {CtrlDefs::DEFAULT_PROTOCOL_SPEED};
     int _port {CtrlDefs::DEFAULT_PORT};

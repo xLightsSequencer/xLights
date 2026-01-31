@@ -92,7 +92,6 @@ void XmlSerializingVisitor::AddCommonModelAttributes(const Model& model, wxXmlNo
     node->AddAttribute(XmlNodeKeys::ControllerAttribute, model.GetControllerName());
     node->AddAttribute(XmlNodeKeys::versionNumberAttribute, CUR_MODEL_POS_VER);
     node->AddAttribute(XmlNodeKeys::xlightsVersionAttr, xlights_version_string);
-    node->AddAttribute(XmlNodeKeys::SerializeAttribute, "1");
 }
 
 void XmlSerializingVisitor::AddModelScreenLocationAttributes(const BaseObject& base, wxXmlNode* node) {
@@ -292,7 +291,7 @@ void XmlSerializingVisitor::SortAttributes(wxXmlNode* input) {
         if (a.first == attributeToPrioritizeSecond ) return true;
         if (b.first == attributeToPrioritizeSecond) return false;
         if (a.first.Contains(attributeToDePrioritize)) return false;
-        if (b.first.Contains(attributeToDePrioritize)) return false;
+        if (b.first.Contains(attributeToDePrioritize)) return true;
         return Lower(a.first) < Lower(b.first);
     };
     std::sort(attributes.begin(), attributes.end(), custom_comparator);
@@ -538,51 +537,6 @@ void XmlSerializingVisitor::AddOtherElements(wxXmlNode* xmlNode, const Model* m)
     AddDimensions(xmlNode, m);
 }
 
-void XmlSerializingVisitor::AddCustomModel(wxXmlNode* xmlNode, const CustomModel& m) {
-    /*std::vector<std::vector<std::vector<int>>> locations = m.GetLocations();
-    std::vector<std::vector<int>> customModel;
-    std::string type1 = "";
-    std::string type2 = "";
-    bool hasInfo = false;
-    uint16_t maxNode = 0;
-    auto custom_comparator = [](const std::vector<int>& a, const std::vector<int>& b) { return a[2] < b[2]; };
-    for (auto l = 0; l < locations.size(); l++) {
-        type2 += (l > 0 ? "|" : "");
-        hasInfo = false;
-        bool newRow = true;
-        for (auto h = 0; h < locations[l].size(); h++) {
-            for (auto w = 0; w < locations[l][h].size(); w++) {
-                if (locations[l][h][w] != -1) {
-                    type2 +=  (hasInfo && !newRow ? "," : "") + std::to_string(h) + "," + std::to_string(w) + "," + std::to_string(locations[l][h][w]);
-                    if (locations[l][h][w] > maxNode) maxNode = locations[l][h][w];
-                    newRow = false;
-                    hasInfo = true;
-                    if (m.IsAllNodesUnique()) {
-                        std::vector<int> row;
-                        row.push_back(h);
-                        row.push_back(w);
-                        row.push_back(locations[l][h][w]);
-                        customModel.push_back(row);
-                    }
-                }
-            }
-        }
-    }
-    std::string stats = std::to_string(maxNode) + "," + std::to_string(m.GetCustomWidth()) + "," + std::to_string(m.GetCustomHeight()) + "," + std::to_string(m.GetCustomDepth());
-    if (m.IsAllNodesUnique() && locations.size() == 1) {
-        std::sort(customModel.begin(), customModel.end(), custom_comparator);
-        if (customModel.back()[2] == customModel.size()) {
-            for (auto r = 0; r < customModel.size(); r++)
-                type1 += (r > 0 ? "," : "") + std::to_string(customModel[r][0]) + "," + std::to_string(customModel[r][1]);
-            xmlNode->AddAttribute("CustomModel2.0", "1," + stats + ",0,0|" + type1);
-        } else {
-            xmlNode->AddAttribute("CustomModel2.0", "2," + stats + ",0,0|" + type2);
-        }
-    } else {
-        xmlNode->AddAttribute("CustomModel2.0", "2," + stats + ",0,0|" + type2);
-    }*/
-}
-
 void XmlSerializingVisitor::AddSuperStrings(Model const& model, wxXmlNode* node) {
     int num_colors = model.GetNumSuperStringColours();
     if (num_colors == 0) return;
@@ -658,7 +612,13 @@ void XmlSerializingVisitor::Visit(const CustomModel& model) {
     wxXmlNode* xmlNode = CommonVisitSteps(model);
     int depth = model.GetCustomDepth();
     xmlNode->AddAttribute(XmlNodeKeys::CMDepthAttribute, std::to_string(depth));
-    //xmlNode->AddAttribute(XmlNodeKeys::CustomModelAttribute, model.GetCustomData());
+    std::string custom_data = model.GetCompressedData();
+    if (custom_data == xlEMPTY_STRING) {
+        custom_data = model.GetCustomData();
+        xmlNode->AddAttribute(XmlNodeKeys::CustomModelAttribute, custom_data);
+    } else {
+        xmlNode->AddAttribute(XmlNodeKeys::CustomModelCmpAttribute, custom_data);
+    }
     xmlNode->AddAttribute(XmlNodeKeys::BkgImageAttribute, model.GetCustomBackground());
     xmlNode->AddAttribute(XmlNodeKeys::BkgLightnessAttribute, std::to_string(model.GetCustomLightness()));
 
@@ -674,7 +634,7 @@ void XmlSerializingVisitor::Visit(const CustomModel& model) {
     }
 
     const Model* m = dynamic_cast<const Model*>(&model);
-    AddCustomModel(xmlNode, model);
+    //AddCustomModel(xmlNode, model);
     AddOtherElements(xmlNode, m);
 }
 
