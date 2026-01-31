@@ -214,7 +214,7 @@ public:
 
 class RenderJob: public Job, public NextRenderer {
 public:
-    RenderJob(ModelElement *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false)
+    RenderJob(ModelElement *row, SequenceData &data, xLightsFrame *xframe)
         : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe),
             gauge(nullptr), currentFrame(0), renderLog(log4cpp::Category::getInstance(std::string("log_render"))),
             supportsModelBlending(false), abort(false), statusMap(nullptr)
@@ -225,7 +225,7 @@ public:
             mainBuffer = new PixelBufferClass(xframe);
             numLayers = rowToRender->GetEffectLayerCount();
 
-            if (xframe->InitPixelBuffer(name, *mainBuffer, numLayers, zeroBased)) {
+            if (xframe->InitPixelBuffer(name, *mainBuffer, numLayers)) {
                 const Model *model = mainBuffer->GetModel();
                 if ("ModelGroup" == model->GetDisplayAs()) {
                     //for (int l = 0; l < numLayers; ++l) {
@@ -276,7 +276,7 @@ public:
                                 subModelInfos.back()->element = se;
                                 subModelInfos.back()->submodel = subModelInfos.size() -1;
                                 subModelInfos.back()->buffer.reset(new PixelBufferClass(xframe));
-                                subModelInfos.back()->buffer->InitBuffer(*subModel, se->GetEffectLayerCount() + 1, data.FrameTime(), false);
+                                subModelInfos.back()->buffer->InitBuffer(*subModel, se->GetEffectLayerCount() + 1, data.FrameTime());
                             }
                         }
                     }
@@ -1514,7 +1514,7 @@ void xLightsFrame::Render(SequenceElements& seqElements,
                 bool hasEffects = HasEffects(me);
                 bool isRestricted = std::find(restrictToModels.begin(), restrictToModels.end(), *it) != restrictToModels.end();
                 if (hasEffects || (isRestricted && clear)) {
-                    RenderJob *job = new RenderJob(me, seqData, this, false);
+                    RenderJob *job = new RenderJob(me, seqData, this);
 
                     if (job == nullptr) {
                         logger_base.crit("xLightsFrame::Render job is nullptr ... this is going to crash.");
@@ -2009,7 +2009,8 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
     Element* el = _sequenceElements.GetElement(model);
     if (el == nullptr)
         return false;
-    RenderJob* job = new RenderJob(dynamic_cast<ModelElement*>(el), _seqData, this, true);
+    // TODO:  Zero-based was removed from the RenderJob call....do we need to do something to adjust for that
+    RenderJob* job = new RenderJob(dynamic_cast<ModelElement*>(el), _seqData, this);
     wxASSERT(job != nullptr);
     SequenceData* data = job->createExportBuffer();
     wxASSERT(data != nullptr);

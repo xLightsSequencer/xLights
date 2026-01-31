@@ -712,9 +712,6 @@ bool ModelGroup::Reset() {
             BufferHt = std::max(BufferHt, (int)coord.bufY);
             BufferWi = std::max(BufferWi, (int)coord.bufX);
         }
-        //if (zeroBased) {
-        //    it->ActChan = it->ActChan - minChan;
-        //}
     }
 
     BufferHt++;

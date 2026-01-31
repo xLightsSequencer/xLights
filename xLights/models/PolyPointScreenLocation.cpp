@@ -1327,6 +1327,7 @@ int PolyPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &ro
         Rotate(ModelScreenLocation::MSLAXIS::Y_AXIS, -rot.z * rscale);
         Rotate(ModelScreenLocation::MSLAXIS::Z_AXIS, rot.y * rscale);
         AddOffset(mov.x * scale, -mov.z * scale, mov.y * scale);
+        return MODEL_UPDATE_RGBEFFECTS;
     } else {
         if (handle & HANDLE_CP0) {
             int seg = handle & HANDLE_MASK;
@@ -1355,13 +1356,14 @@ int PolyPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &ro
                 FixCurveHandles();
             }
         }
+        return MODEL_NEEDS_INIT;
     }
-    return 1;
+    return MODEL_UNCHANGED;
 }
 
 int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
-    if (_locked) return 0;
+    if (_locked) return MODEL_UNCHANGED;
 
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
@@ -1467,7 +1469,7 @@ int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool 
         AdjustAllHandles(mat4);
     }
 
-    return 1;
+    return MODEL_NEEDS_INIT;
 }
 
 void PolyPointScreenLocation::SelectHandle(int handle) {

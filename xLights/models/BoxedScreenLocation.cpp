@@ -898,7 +898,7 @@ int BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool Sh
         angles = glm::vec3(0,0,0);
     }
 
-    if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
+    if (!DragHandle(preview, mouseX, mouseY, latch)) return MODEL_UNCHANGED;
 
     if (handle == CENTER_HANDLE) {
 
@@ -1026,8 +1026,9 @@ int BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool Sh
                 }
             }
         }
+        return MODEL_UPDATE_RGBEFFECTS;
     }
-    return 1;
+    return MODEL_UNCHANGED;
 }
 int BoxedScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
     if (handle == CENTER_HANDLE) {
@@ -1036,6 +1037,7 @@ int BoxedScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, g
         Rotate(ModelScreenLocation::MSLAXIS::Y_AXIS, -rot.z * rscale);
         Rotate(ModelScreenLocation::MSLAXIS::Z_AXIS, rot.y * rscale);
         AddOffset(mov.x * scale, -mov.z * scale, mov.y * scale);
+        return MODEL_UPDATE_RGBEFFECTS;
     } else {
         float change_x = mov.x * scale;
         float change_y = -mov.z * scale;
@@ -1043,14 +1045,15 @@ int BoxedScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, g
         scalex = saved_scale.x * change_x;
         scaley = saved_scale.y * change_y;
         scalez = saved_scale.z * change_z;
+        return MODEL_UPDATE_RGBEFFECTS;
     }
-    return 1;
+    return MODEL_UNCHANGED;
 }
         
 
 int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
-    if (_locked) return 0;
+    if (_locked) return MODEL_UNCHANGED;
 
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
@@ -1085,6 +1088,7 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
             rotatez = (int)(rotatez / 5) * 5;
         }
         rotate_quat = glm::angleAxis(glm::radians(rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
+        return MODEL_UPDATE_RGBEFFECTS;
     }
     else {
         if ((handle == L_TOP_HANDLE) || (handle == R_TOP_HANDLE)) {
@@ -1129,8 +1133,9 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
         if( supportsZScaling || createWithDepth ) {
             scalez = scalex;
         }
+        return MODEL_UPDATE_RGBEFFECTS;
     }
-    return 0;
+    return MODEL_UNCHANGED;
 }
 
 glm::vec2 BoxedScreenLocation::GetScreenOffset(ModelPreview* preview) const

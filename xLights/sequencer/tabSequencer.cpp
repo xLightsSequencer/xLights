@@ -308,17 +308,17 @@ Model *xLightsFrame::GetModel(const std::string& name) const
     return AllModels[name];
 }
 
-bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased) {
+bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount) {
 
     if (modelName == PRESET_MODEL_NAME && _presetModel != nullptr) {
-        buffer.InitBuffer(*_presetModel, layerCount, 50, zeroBased);
+        buffer.InitBuffer(*_presetModel, layerCount, 50);
     }
     else {
         Model* model = GetModel(modelName);
         if (model == nullptr) {
             return false;
         }
-        buffer.InitBuffer(*model, layerCount, _seqData.FrameTime(), zeroBased);
+        buffer.InitBuffer(*model, layerCount, _seqData.FrameTime());
     }
     return true;
 }

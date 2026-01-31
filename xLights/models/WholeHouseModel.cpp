@@ -117,9 +117,4 @@ void WholeHouseModel::InitWholeHouse(const std::string &WholeHouseData) {
             lastActChn = actChn;
         }
     }
-    /*if (zeroBased && minChan != 0) {
-        for (int x = 0; x < Nodes.size(); x++) {
-            Nodes[x]->ActChan -= minChan;
-        }
-    }*/
 }

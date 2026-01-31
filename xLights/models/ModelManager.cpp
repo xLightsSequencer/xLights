@@ -1542,24 +1542,18 @@ Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH) co
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "DmxGeneral") {
         model = serializer.DeserializeModel(node, xlights, false);
-        //model = new DmxGeneral(*this);// TODO:  Delete when this models file is dones
     } else if (type == "DmxMovingHeadAdv") {
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "DmxFloodlight") {
         model = serializer.DeserializeModel(node, xlights, false);
-        //model = new DmxFloodlight(node, *this, zeroBased);// TODO:  Delete when this models file is dones
     } else if (type == "DmxFloodArea") {
         model = serializer.DeserializeModel(node, xlights, false);
-        //model = new DmxFloodArea(node, *this, zeroBased);// TODO:  Delete when this models file is dones
     } else if (type == "DmxSkull") {
         model = serializer.DeserializeModel(node, xlights, false);
-        //model = new DmxSkull(node, *this, zeroBased);// TODO:  Delete when this models file is dones
     } else if (type == "DmxServo") {
         model = serializer.DeserializeModel(node, xlights, false);
-        //model = new DmxServo(node, *this, zeroBased);// TODO:  Delete when this models file is dones
     } else if (type == "DmxServo3d") {
         model = serializer.DeserializeModel(node, xlights, false);
-        //model = new DmxServo3d(node, *this, zeroBased);// TODO:  Delete when this models file is dones
     } else if (type == "Image") {
         model = serializer.DeserializeModel(node, xlights, false);
     } else if (type == "Window Frame") {
