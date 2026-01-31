@@ -750,7 +750,7 @@ public:
     void UpdateControllerProperty(enum ControllerConnection::CTRL_PROPS prop, bool value) { _controllerConnection.UpdateProperty(prop, value); }
     bool IsCtrlPropertySet(enum ControllerConnection::CTRL_PROPS prop) { return _controllerConnection.IsPropertySet(prop); }
 
-    void SetControllerName(const std::string& controllerName) { _controllerConnection.SetName(controllerName); }
+    void SetControllerName(const std::string& controllerName, bool skip_work = false) { _controllerConnection.SetName(controllerName, skip_work); }
     void SetControllerProtocol(const std::string& protocol) { _controllerConnection.SetProtocol(protocol); }
     void SetControllerSerialProtocolSpeed(int speed) { _controllerConnection.SetSerialProtocolSpeed(speed); }
     void SetControllerPort(int port) { _controllerConnection.SetCtrlPort(port); }

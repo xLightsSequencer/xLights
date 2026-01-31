@@ -127,7 +127,7 @@ void XmlDeserializingModelFactory::DeserializeControllerConnection(Model* model,
     for (wxXmlNode* p = node->GetChildren(); p != nullptr; p = p->GetNext()) {
         if (p->GetName() == "ControllerConnection") {
             auto& cc = model->GetCtrlConn();
-            cc.SetName(p->GetAttribute(XmlNodeKeys::ControllerAttribute, xlEMPTY_STRING).Trim(true).Trim(false).ToStdString());
+            cc.SetName(p->GetAttribute(XmlNodeKeys::ControllerAttribute, xlEMPTY_STRING).Trim(true).Trim(false).ToStdString(), true);
             cc.SetProtocol(p->GetAttribute(XmlNodeKeys::ProtocolAttribute, xlEMPTY_STRING).ToStdString());
             cc.SetSerialProtocolSpeed(std::stoi(p->GetAttribute(XmlNodeKeys::ProtocolSpeedAttribute, std::to_string(CtrlDefs::DEFAULT_PROTOCOL_SPEED)).ToStdString()));
             cc.SetCtrlPort(std::stoi(p->GetAttribute(XmlNodeKeys::PortAttribute, std::to_string(CtrlDefs::DEFAULT_PORT)).ToStdString()));
@@ -1084,7 +1084,7 @@ Model* XmlDeserializingModelFactory::DeserializeDmxMovingHeadAdv(wxXmlNode *node
             // process features
           /*  if( features_xml_node == nullptr ) {
                 features_xml_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Features");
-                ModelXml->AddChild(features_xml_node);
+                node->AddChild(features_xml_node);
             } else {
                 n = features_xml_node->GetChildren();
                 while (n != nullptr) {

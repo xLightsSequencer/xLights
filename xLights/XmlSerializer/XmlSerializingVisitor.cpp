@@ -386,7 +386,7 @@ void XmlSerializingVisitor::AddSubmodels(wxXmlNode* node, const Model* m) {
         AddAliases(submodels, s->GetAliases());
         node->AddChild(submodels);
     }
-    /*wxXmlNode * root = m->GetModelXml();
+    /*wxXmlNode * root = m->xxx();
      wxXmlNode * child = root->GetChildren();
      std::vector<std::pair<wxString, wxString>> submodelAliases;
      while (child != nullptr) {

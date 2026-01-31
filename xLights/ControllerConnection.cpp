@@ -25,7 +25,7 @@ ControllerConnection::~ControllerConnection()
 {
 }
 
-void ControllerConnection::SetName(const std::string& controller)
+void ControllerConnection::SetName(const std::string& controller, bool skip_work)
 {
     auto n = Trim(controller);
     if (n == _name) return;
@@ -41,12 +41,14 @@ void ControllerConnection::SetName(const std::string& controller)
         SetCtrlPort(0);
     }
 
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerConnection::SetName");
-    _model->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerConnection::SetName");
-    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetName");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetName");
-    _model->AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "ControllerConnection::SetName");
-    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetName");
+    if (!skip_work) {
+        _model->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerConnection::SetName");
+        _model->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerConnection::SetName");
+        _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetName");
+        _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetName");
+        _model->AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "ControllerConnection::SetName");
+        _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetName");
+    }
     _model->IncrementChangeCount();
 }
 
@@ -57,7 +59,7 @@ bool ControllerConnection::Rename(const std::string& oldName, const std::string&
     bool changed = false;
 
     if (_name == oldName) {
-        SetName(newName);
+        SetName(newName, false);
         changed = true;
     }
     if (StartsWith(_model->ModelStartChannel, "!" + oldName)) {

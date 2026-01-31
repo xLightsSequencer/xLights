@@ -79,7 +79,7 @@ public:
     void UpdateProperty(enum CTRL_PROPS prop, bool value) { value ? active_props[prop] = true : active_props[prop] = false; }
     [[nodiscard]] bool IsPropertySet(enum CTRL_PROPS prop) const { return active_props.at(prop); }
 
-    void SetName(std::string const& controller);
+    void SetName(std::string const& controller, bool skip_work);
     void SetProtocol(std::string const& protocol);
     void SetSerialProtocolSpeed(int speed);
     void SetCtrlPort(int port);

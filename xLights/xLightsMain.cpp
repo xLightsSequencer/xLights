@@ -4667,7 +4667,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
         Model* model = m.second;
         if (model->GetDisplayAs() != "ModelGroup") {
             modelCount++;
-            wxString const stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); // NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
+            wxString const stch = model->GetModelStartChannel();
             uint32_t ch = model->GetFirstChannel() + 1;
             std::string type, description, ip, universe, inactive, baud, protocol, controllername;
             int32_t channeloffset;

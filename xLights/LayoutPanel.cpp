@@ -1866,13 +1866,7 @@ void LayoutPanel::BulkEditControllerName()
         name = dlg.GetStringSelection();
 
         for (Model* model : modelsToEdit) {
-            // model->SetControllerName() adds WORK_RELOAD_MODELLIST as ASAP work which causes issues with Reselect on
-            // msw and linux when ASAP work needs to be Immediate work before reselect so just update model here and add
-            // the appropriate work here.
-            //model->SetControllerName(name);
-            wxXmlNode* modelXml = model->GetModelXml();
-            modelXml->DeleteAttribute("Controller");
-            modelXml->AddAttribute("Controller", name);
+            model->SetControllerName(name, true); // skip work since we will command it below
         }
 
         std::string sm = xlights->GetOutputModelManager()->GetSelectedModel();

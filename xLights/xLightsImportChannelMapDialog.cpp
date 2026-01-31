@@ -25,7 +25,10 @@
 #include "xLightsMain.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"
+#include "models/CandyCaneModel.h"
 #include "models/CustomModel.h"
+#include "models/PolyLineModel.h"
+#include "models/TreeModel.h"
 #include "XmlSerializer/XmlSerializer.h"
 #include "ColorManager.h"
 #include "UtilFunctions.h"
@@ -1201,10 +1204,22 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         }
     }
 
-    std::string modelClass = Model::DetermineClass(m->GetDisplayAs(), m->GetFaceInfo().size() != 0, 
-        m->GetModelXml()->GetAttribute("TreeSpiralRotations", "0") != "0", 
-        m->GetModelXml()->GetAttribute("CandyCaneSticks", "false") == "true", 
-        m->GetModelXml()->GetAttribute("DropPattern", ""));
+    TreeModel* tree = dynamic_cast<TreeModel*>(m);
+    bool isSpiralTree = false;
+    if (tree != nullptr) {
+        isSpiralTree = tree->GetSpiralRotations() > 0;
+    }
+    CandyCaneModel* cane = dynamic_cast<CandyCaneModel*>(m);
+    bool isSticks = false;
+    if (cane != nullptr) {
+        isSticks = cane->IsSticks();
+    }
+    PolyLineModel* poly = dynamic_cast<PolyLineModel*>(m);
+    std::string dropPattern {""};
+    if (poly != nullptr) {
+        dropPattern = poly->GetDropPattern();
+    }
+    std::string modelClass = Model::DetermineClass(m->GetDisplayAs(), m->GetFaceInfo().size() != 0, isSpiralTree, isSticks, dropPattern);
 
     int effectCount = 0;
     Element* em = xlights->GetSequenceElements().GetElement(m->GetName());
