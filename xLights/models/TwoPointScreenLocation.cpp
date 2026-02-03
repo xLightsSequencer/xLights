@@ -319,10 +319,10 @@ bool TwoPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom,
     int startVert = va->getCount();
 
     va->PreAlloc(16);
-    if (point2.y - origin.y == 0) {
+    if (std::abs(point2.y - origin.y) <= 0.1) {
         va->AddVertex(worldPos_x, worldPos_y, xlRED);
         va->AddVertex(point2.x, point2.y, xlRED);
-    } else if (point2.x - origin.x == 0) {
+    } else if (std::abs(point2.x - origin.x) <= 0.1) {
         va->AddVertex(worldPos_x, worldPos_y, handleColor);
         va->AddVertex(point2.x, point2.y, handleColor);
     }
