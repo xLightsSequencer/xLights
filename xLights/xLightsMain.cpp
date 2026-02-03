@@ -6375,20 +6375,14 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             if (nodeCount < 2)
                 continue; // Not a valid line
 
-            auto xmlNode = m->GetModelXml();
-
-            float startX = 0.0f, startY = 0.0f, startZ = 0.0f;
-            float endX = 0.0f, endY = 0.0f, endZ = 0.0f;
-
-            double temp;
-
-            if (xmlNode->GetAttribute("X1").ToDouble(&temp)) startX = static_cast<float>(temp);
-            if (xmlNode->GetAttribute("Y1").ToDouble(&temp)) startY = static_cast<float>(temp);
-            if (xmlNode->GetAttribute("Z1").ToDouble(&temp)) startZ = static_cast<float>(temp);
-
-            if (xmlNode->GetAttribute("X2").ToDouble(&temp)) endX = static_cast<float>(temp);
-            if (xmlNode->GetAttribute("Y2").ToDouble(&temp)) endY = static_cast<float>(temp);
-            if (xmlNode->GetAttribute("Z2").ToDouble(&temp)) endZ = static_cast<float>(temp);
+            TwoPointScreenLocation& screenLoc = dynamic_cast<TwoPointScreenLocation&>(m->GetBaseObjectScreenLocation());
+            glm::vec3 loc = screenLoc.GetWorldPosition();
+            float startX = loc.x;
+            float startY = loc.y;
+            float startZ = loc.z;
+            float endX = screenLoc.GetX2();
+            float endY = screenLoc.GetY2();
+            float endZ = screenLoc.GetZ2();
 
             float deltaX = fabs(startX - endX);
             float deltaY = fabs(startY - endY);
