@@ -190,3 +190,6 @@ bool IsFloat(const std::string& number);
 bool IsDarkMode();
 void SetSuppressDarkMode(bool suppress);
 bool IsSuppressDarkMode();
+int GetPaletteSizeIndex();
+void SetPaletteSizeIndex(int index);
+bool IsLargePalette();

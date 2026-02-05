@@ -13,8 +13,10 @@
 //(*Headers(ColorManagerSettingsPanel)
 #include <wx/button.h>
 #include <wx/checkbox.h>
+#include <wx/choice.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/stattext.h>
 //*)
 
 #include "Color.h"
@@ -33,9 +35,11 @@ class ColorManagerSettingsPanel: public wxPanel
 		wxButton* ButtonImport;
 		wxButton* Button_Reset;
 		wxCheckBox* CheckBox_SuppressDarkMode;
+		wxChoice* Choice_PaletteSize;
 		wxFlexGridSizer* Sizer_Effect_Grid;
 		wxFlexGridSizer* Sizer_Layout_Tab;
 		wxFlexGridSizer* Sizer_Timing_Tracks;
+		wxStaticText* StaticText_PaletteSize;
 		//*)
 
         virtual bool TransferDataFromWindow() override;
@@ -44,6 +48,8 @@ class ColorManagerSettingsPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(ColorManagerSettingsPanel)
+		static const wxWindowID ID_STATICTEXT_PALETTE_SIZE;
+		static const wxWindowID ID_CHOICE_PALETTE_SIZE;
 		static const wxWindowID ID_CHECKBOX1;
 		static const wxWindowID ID_BUTTON_IMPORT;
 		static const wxWindowID ID_BUTTON_EXPORT;

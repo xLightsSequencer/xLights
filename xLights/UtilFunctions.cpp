@@ -1657,6 +1657,23 @@ bool IsFloat(const std::string& number) {
     return true;
 }
 
+int GetPaletteSizeIndex() {
+    wxConfigBase* config = wxConfigBase::Get();
+    return config->ReadLong("PaletteSizeIndex", 0); // 0 = Standard (default)
+}
+
+void SetPaletteSizeIndex(int index) {
+    if (GetPaletteSizeIndex() != index) {
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write("PaletteSizeIndex", index);
+        wxMessageBox("Restart xLights for the palette size change to take effect.");
+    }
+}
+
+bool IsLargePalette() {
+    return GetPaletteSizeIndex() == 1;
+}
+
 #ifdef __WXMSW__
 bool IsSuppressDarkMode() {
     wxConfigBase* config = wxConfigBase::Get();
