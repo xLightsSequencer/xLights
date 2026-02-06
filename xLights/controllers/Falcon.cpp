@@ -394,6 +394,7 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
     // {"R":200,"T":"S","M":"SP","F":0,"B":0,"RB":0,"P":{},"W":" ","L":""}
 
     // strings must be in port order. Within port they must be in smart remote order. Within smart remote they must be in string order.
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     size_t batches = res.size() / FALCON_V4_SEND_STRING_BATCH_SIZE + 1;
     if (res.size() % FALCON_V4_SEND_STRING_BATCH_SIZE == 0 && res.size() != 0)
@@ -411,8 +412,20 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
         p["B"] = 255;
         p["ps"] = -10;
         for (size_t i = batch * FALCON_V4_SEND_STRING_BATCH_SIZE; i < (batch + 1) * FALCON_V4_SEND_STRING_BATCH_SIZE && i < res.size(); i++) {
-            p["A"].push_back(res[i].asJson());
-            --left;
+            try {
+                p["A"].push_back(res[i].asJson());
+                --left;
+            } catch (nlohmann::json::exception& e) {
+                logger_base.error("Falcon: Failed to serialize string config for port %d, string '%s': %s", 
+                    res[i].port, res[i].name.c_str(), e.what());
+
+                FALCON_V4_STRING sanitized = res[i];
+                sanitized.name.erase(std::remove_if(sanitized.name.begin(), sanitized.name.end(),
+                    [](unsigned char c) { return c > 127; }
+                ), sanitized.name.end());
+                p["A"].push_back(sanitized.asJson());
+                --left;
+            }
         }
 
         bool finalCall;

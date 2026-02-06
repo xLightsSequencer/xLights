@@ -700,7 +700,13 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
                 }
                 std::string pal = STR_EMPTY;
                 if (palette != -1) {
-                    pal = colorPalettes[palette];
+                    if (palette >= colorPalettes.size()) {
+                        logger_base.warn("Color palette not found for effect %s between %d and %d. Palette ignored.", 
+                            (const char*)effectName.c_str(), (int)startTime, (int)endTime);
+                        pal = "";
+                    } else {
+                        pal = colorPalettes[palette];
+                    }
                 }
                 if (effectName != "Random") { // we dont load random effects ... they should not be there
                     effectLayer->AddEffect(id, effectName, settings, pal,

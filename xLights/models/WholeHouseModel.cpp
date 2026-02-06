@@ -85,6 +85,9 @@ void WholeHouseModel::InitWholeHouse(const std::string &WholeHouseData) {
         
         // Load first coordinate
         data=wxSplit(wholeHouseDataArr[0],',');
+        if (data.size() < 3) {
+            return;
+        }
         data[0].ToLong(&actChn);
         if (actChn < minChan) {
             minChan = actChn;
@@ -97,6 +100,9 @@ void WholeHouseModel::InitWholeHouse(const std::string &WholeHouseData) {
             stringType = rgbOrder;
         }
         Nodes.push_back(NodeBaseClassPtr(createNode(1, stringType.ToStdString(), 1, stringType.ToStdString())));
+        if (!Nodes.back()) {
+            return;
+        }
         Nodes.back()->StringNum = 0;
         Nodes.back()->ActChan = actChn;
         Nodes.back()->Coords[0].bufX = xCoord;
@@ -104,6 +110,9 @@ void WholeHouseModel::InitWholeHouse(const std::string &WholeHouseData) {
         lastActChn = actChn;
         for(size_t i=1; i < coordinateCount; i++) {
             data=wxSplit(wholeHouseDataArr[i],',');
+            if (data.size() < 3) {
+                continue;
+            }
             data[0].ToLong(&actChn);
             data[1].ToLong(&xCoord);
             data[2].ToLong(&yCoord);
