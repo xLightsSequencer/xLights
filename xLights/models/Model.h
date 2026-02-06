@@ -304,6 +304,7 @@ protected:
     }
     virtual int CalcChannelsPerString();
     virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString);
+    virtual void SetStringStartChannels(int StartChannel, std::vector<int> customStartNodes);
     void RecalcStartChannels();
 
     void SetBufferSize(int NewHt, int NewWi);

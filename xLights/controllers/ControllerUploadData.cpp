@@ -69,16 +69,22 @@ UDControllerPortModel::UDControllerPortModel(Model* m, Controller* controller, O
     _protocol = _model->GetControllerProtocol();
     _smartRemote = _model->GetSmartRemoteForString(string+1);
     _smartRemoteType = _model->GetSmartRemoteType();
-
     if (string == -1) {
         _startChannel = _model->GetNumberFromChannelString(_model->ModelStartChannel);
         _endChannel = _startChannel + _model->GetChanCount() - 1;
     }
     else {
         _startChannel = _model->GetStringStartChan(string) + 1;
-        _endChannel = _startChannel + _model->NodesPerString(string) * _model->GetChanCountPerNode() - 1;
+        if (m->GetDisplayAs() == "Custom") {
+            _endChannel = _startChannel + _model->NodesPerString(string) * _model->GetChanCountPerNode() - 1;
+        } else {
+            if ((string + 1) == _model->GetParm1()) { // last custom string; zero indexed vs parm1
+                _endChannel = _model->GetLastChannel() + 1;
+            } else {
+                _endChannel = _model->GetStringStartChan(string + 1);
+            }
+        }
     }
-
     Output* o = nullptr;
     if (controller != nullptr) {
         o = controller->GetOutput(_startChannel, _universeStartChannel);
