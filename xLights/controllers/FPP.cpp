@@ -347,13 +347,26 @@ int FPP::TransferToURL(const std::string& url, const std::vector<uint8_t>& val, 
 
 bool FPP::GetURLAsJSON(const std::string& url, nlohmann::json& val, bool recordError) {
     std::string sval;
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (GetURLAsString(url, sval, recordError)) {
         try {
             val = nlohmann::json::parse(sval, nullptr, false);
             if (!val.is_discarded()) {
                 return true;
             }
-        } catch (...) {
+        } catch (nlohmann::json::parse_error& e) {
+            if (recordError) {
+                std::string preview = sval.length() > 500 ? sval.substr(0, 500) + "..." : sval;
+                logger_base.warn("FPP::GetURLAsJSON - JSON parse error for %s: %s, Response: %s", 
+                    url.c_str(), e.what(), preview.c_str());
+            }
+            return false;
+        } catch (std::exception& e) {
+            if (recordError) {
+                logger_base.error("FPP::GetURLAsJSON - Unexpected error for %s: %s", 
+                    url.c_str(), e.what());
+            }
+            return false;
         }
     }
     return false;
@@ -1442,6 +1455,7 @@ nlohmann::json FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startC
     nlohmann::json json;
     nlohmann::json models;
     std::vector<std::string> names;
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     for (const auto& m : *allmodels) {
         Model* model = m.second;
 
@@ -1506,39 +1520,56 @@ nlohmann::json FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startC
 
     nlohmann::json ogModelJSON;
     if (GetURLAsJSON("/api/models", ogModelJSON)) {
-        for (auto const& ogmodel : ogModelJSON) {
-            if (!ogmodel.contains("Name")) {
-                continue;
-            }
-            if (!ogmodel["Name"].is_string()) {
-                continue;
-            }
-            auto ogName = GetJSONStringValue(ogmodel, "Name");
-            if (GetJSONBoolValue(ogmodel, "autoCreated")) {
-                continue;
-            }
+        try {
+            if (!ogModelJSON.is_array()) {
+                logger_base.warn("GetURLAsJson /api/models returned non-array JSON");
+            } else {
+                for (auto const& ogmodel : ogModelJSON) {
+                    try {
+                        if (!ogmodel.contains("Name")) {
+                            continue;
+                        }
+                        if (!ogmodel["Name"].is_string()) {
+                            continue;
+                        }
+                        auto ogName = GetJSONStringValue(ogmodel, "Name");
+                        if (GetJSONBoolValue(ogmodel, "autoCreated")) {
+                            continue;
+                        }
 
-            if (!IsVersionAtLeast(8, 0)) {
-                //I don't think this works
-                if (ogmodel.contains("StartChannel") && ogmodel["StartChannel"].is_number_integer()) {
-                    auto ogStartChan = ogmodel["StartChannel"].get<int32_t>();
-                    if (ogStartChan < startChan || ogStartChan > endChannel ) {
+                        if (!IsVersionAtLeast(8, 0)) {
+                            //I don't think this works
+                            if (ogmodel.contains("StartChannel") && ogmodel["StartChannel"].is_number_integer()) {
+                                auto ogStartChan = ogmodel["StartChannel"].get<int32_t>();
+                                if (ogStartChan < startChan || ogStartChan > endChannel) {
+                                    continue;
+                                }
+                            }
+                        }
+
+                        if (ogmodel.contains("xLights") && ogmodel["xLights"].is_boolean()) {
+                            auto isfromXlights = ogmodel["xLights"].get<bool>();
+                            if (isfromXlights) {
+                                continue;
+                            }
+                        }
+
+                        if (std::find(names.cbegin(), names.cend(), ogName) != names.end()) { // only add if name doesn't exist
+                            continue;
+                        }
+                        models.push_back(ogmodel);
+                    } catch (nlohmann::json::exception& e) {
+                        logger_base.warn("Model JSON parsing error: %s, Model JSON: %s", 
+                            e.what(), ogmodel.dump().c_str());
                         continue;
                     }
                 }
             }
-
-            if (ogmodel.contains("xLights") && ogmodel["xLights"].is_boolean()) {
-                auto isfromXlights = ogmodel["xLights"].get<bool>();
-                if (isfromXlights) {
-                    continue;
-                }
-            }
-            
-            if (std::find(names.cbegin(), names.cend(), ogName) != names.end()) { // only add if name doesn't exist
-                continue;
-            }
-            models.push_back(ogmodel);
+        } catch (nlohmann::json::exception& e) {
+            logger_base.error("Model /api/models JSON parsing failed: %s, JSON: %s", 
+                e.what(), ogModelJSON.dump().c_str());
+        } catch (std::exception& e) {
+            logger_base.error("Model /api/models processing failed: %s", e.what());
         }
     }
 
