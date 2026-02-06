@@ -54,9 +54,16 @@
 #include "../models/DMX/DmxColorAbilityWheel.h"
 #include "../models/DMX/DmxPresetAbility.h"
 #include "../models/DMX/DmxDimmerAbility.h"
+#include "../models/DMX/DmxFloodArea.h"
+#include "../models/DMX/DmxFloodlight.h"
+#include "../models/DMX/DmxGeneral.h"
+#include "../models/DMX/DmxImage.h"
 #include "../models/DMX/DmxShutterAbility.h"
 #include "../models/DMX/DmxMovingHeadAdv.h"
 #include "../models/DMX/DmxMovingHead.h"
+#include "../models/DMX/DmxServo.h"
+#include "../models/DMX/DmxServo3D.h"
+#include "../models/DMX/DmxSkull.h"
 #include "../models/DMX/Mesh.h"
 #include "../models/DMX/Servo.h"
 
@@ -178,6 +185,39 @@ void XmlSerializingVisitor::AddMeshAttributes(const Mesh* mesh, wxXmlNode* node)
     mesh_node->AddAttribute(XmlNodeKeys::OffsetYAttribute, std::to_string(mesh->GetOffsetY()));
     mesh_node->AddAttribute(XmlNodeKeys::OffsetZAttribute, std::to_string(mesh->GetOffsetZ()));
     node->AddChild(mesh_node);
+}
+
+void XmlSerializingVisitor::AddServoAttributes(const Servo* servo, wxXmlNode* node) {
+    wxXmlNode* servo_node = new wxXmlNode(wxXML_ELEMENT_NODE, servo->GetName());
+    servo_node->AddAttribute("Channel", std::to_string(servo->GetChannel()));
+    servo_node->AddAttribute("MinLimit", std::to_string(servo->GetMinLimit()));
+    servo_node->AddAttribute("MaxLimit", std::to_string(servo->GetMaxLimit()));
+    servo_node->AddAttribute("RangeOfMotion", std::to_string(servo->GetRangeOfMotion()));
+    servo_node->AddAttribute("PivotOffsetX", std::to_string(servo->GetPivotOffsetX()));
+    servo_node->AddAttribute("PivotOffsetY", std::to_string(servo->GetPivotOffsetY()));
+    servo_node->AddAttribute("PivotOffsetZ", std::to_string(servo->GetPivotOffsetZ()));
+    servo_node->AddAttribute("ServoStyle", servo->GetStyle());
+    servo_node->AddAttribute("ControllerMin", std::to_string(servo->GetControllerMin()));
+    servo_node->AddAttribute("ControllerMax", std::to_string(servo->GetControllerMax()));
+    servo_node->AddAttribute("ControllerReverse", std::to_string(servo->GetControllerMax()));
+    servo_node->AddAttribute("ControllerReverse", servo->GetControllerReverse() ? "1" : "0");
+    servo_node->AddAttribute("ControllerZeroBehavior", servo->GetControllerZero());
+    servo_node->AddAttribute("ControllerDataType", servo->GetControllerDataType());
+    node->AddChild(servo_node);
+}
+
+void XmlSerializingVisitor::AddDmxImageAttributes(const DmxImage* img, wxXmlNode* node) {
+    wxXmlNode* img_node = new wxXmlNode(wxXML_ELEMENT_NODE, img->GetName());
+    img_node->AddAttribute(XmlNodeKeys::ImageAttribute, img->GetImageFile());
+    img_node->AddAttribute(XmlNodeKeys::ScaleXAttribute, std::to_string(img->GetScaleX()));
+    img_node->AddAttribute(XmlNodeKeys::ScaleYAttribute, std::to_string(img->GetScaleY()));
+    img_node->AddAttribute(XmlNodeKeys::ScaleZAttribute, std::to_string(img->GetScaleZ()));
+    img_node->AddAttribute(XmlNodeKeys::RotateXAttribute, std::to_string(img->GetRotateX()));
+    img_node->AddAttribute(XmlNodeKeys::RotateYAttribute, std::to_string(img->GetRotateY()));
+    img_node->AddAttribute(XmlNodeKeys::RotateZAttribute, std::to_string(img->GetRotateZ()));
+    img_node->AddAttribute(XmlNodeKeys::OffsetXAttribute, std::to_string(img->GetOffsetX()));
+    img_node->AddAttribute(XmlNodeKeys::OffsetYAttribute, std::to_string(img->GetOffsetY()));
+    img_node->AddAttribute(XmlNodeKeys::OffsetZAttribute, std::to_string(img->GetOffsetZ()));
 }
 
 void XmlSerializingVisitor::AddDmxMovingHeadCommAttributes(const DmxMovingHeadComm& model, wxXmlNode* node) {
@@ -738,8 +778,6 @@ void XmlSerializingVisitor::Visit(const StarModel& model) {
 
 void XmlSerializingVisitor::Visit(const TreeModel& model) {
     wxXmlNode* xmlNode = CommonVisitSteps(model);
-    xmlNode->DeleteAttribute(XmlNodeKeys::DisplayAsAttribute);
-    xmlNode->AddAttribute(XmlNodeKeys::DisplayAsAttribute, model.GetTreeDescription());
     xmlNode->AddAttribute(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");
     xmlNode->AddAttribute(XmlNodeKeys::NoZigZagAttribute, model.IsNoZigZag() ? "true" : "false");
     xmlNode->AddAttribute(XmlNodeKeys::TreeBottomTopRatioAttribute, std::to_string(model.GetBottomTopRatio()));
@@ -763,6 +801,27 @@ void XmlSerializingVisitor::Visit(const WreathModel& model) {
     AddOtherElements(xmlNode, m);
 }
 
+void XmlSerializingVisitor::Visit(const DmxFloodArea& model) {
+    wxXmlNode* xmlNode = CommonVisitSteps(model);
+    AddDmxModelAttributes(model, xmlNode);
+    const Model* m = dynamic_cast<const Model*>(&model);
+    AddOtherElements(xmlNode, m);
+}
+
+void XmlSerializingVisitor::Visit(const DmxFloodlight& model) {
+    wxXmlNode* xmlNode = CommonVisitSteps(model);
+    AddDmxModelAttributes(model, xmlNode);
+    const Model* m = dynamic_cast<const Model*>(&model);
+    AddOtherElements(xmlNode, m);
+}
+
+void XmlSerializingVisitor::Visit(const DmxGeneral& model) {
+    wxXmlNode* xmlNode = CommonVisitSteps(model);
+    AddDmxModelAttributes(model, xmlNode);
+    const Model* m = dynamic_cast<const Model*>(&model);
+    AddOtherElements(xmlNode, m);
+}
+
 void XmlSerializingVisitor::Visit(const DmxMovingHeadAdv& model) {
     wxXmlNode* xmlNode = CommonVisitSteps(model);
     AddDmxMovingHeadCommAttributes(model, xmlNode);
@@ -778,6 +837,84 @@ void XmlSerializingVisitor::Visit(const DmxMovingHead& model) {
     AddDmxMovingHeadCommAttributes(model, xmlNode);
     xmlNode->AddAttribute(XmlNodeKeys::DmxStyleAttribute, model.GetDMXStyle());
     xmlNode->AddAttribute(XmlNodeKeys::HideBodyAttribute, std::to_string(model.GetHideBody()));
+    const Model* m = dynamic_cast<const Model*>(&model);
+    AddOtherElements(xmlNode, m);
+}
+
+void XmlSerializingVisitor::Visit(const DmxServo& model) {
+    wxXmlNode* xmlNode = CommonVisitSteps(model);
+    AddDmxModelAttributes(model, xmlNode);
+    xmlNode->AddAttribute("NumServos", std::to_string(model.GetNumServos()));
+    xmlNode->AddAttribute("Bits16", model.Is16Bit() ? "1" : "0");
+    xmlNode->AddAttribute(XmlNodeKeys::BrightnessAttribute, std::to_string(model.GetBrightness()));
+    xmlNode->AddAttribute(XmlNodeKeys::TransparencyAttribute, std::to_string(model.GetTransparency()));
+    for (int i = 0; i < model.GetNumServos(); ++i) {
+        AddServoAttributes(model.GetServo(i), xmlNode);
+        AddDmxImageAttributes(model.GetStaticImage(i), xmlNode);
+        AddDmxImageAttributes(model.GetMotionImage(i), xmlNode);
+    }
+    const Model* m = dynamic_cast<const Model*>(&model);
+    AddOtherElements(xmlNode, m);
+}
+
+void XmlSerializingVisitor::Visit(const DmxServo3d& model) {
+    wxXmlNode* xmlNode = CommonVisitSteps(model);
+    AddDmxModelAttributes(model, xmlNode);
+    xmlNode->AddAttribute("NumServos", std::to_string(model.GetNumServos()));
+    xmlNode->AddAttribute("NumStatic", std::to_string(model.GetNumStatic()));
+    xmlNode->AddAttribute("NumMotion", std::to_string(model.GetNumMotion()));
+    xmlNode->AddAttribute("Bits16", model.Is16Bit() ? "1" : "0");
+    xmlNode->AddAttribute(XmlNodeKeys::BrightnessAttribute, std::to_string(model.GetBrightness()));
+    for (int i = 0; i < model.GetNumServos(); ++i) {
+        AddServoAttributes(model.GetServo(i), xmlNode);
+        std::string num = std::to_string(i + 1);
+        std::string servo_link = "Servo" + num + "Linkage";
+        std::string mesh_link = "Mesh" + num + "Linkage";
+        xmlNode->AddAttribute(servo_link, std::to_string(model.GetServoLink(i)));
+        xmlNode->AddAttribute(mesh_link, std::to_string(model.GetMeshLink(i)));
+    }
+    for (int i = 0; i < model.GetNumStatic(); ++i) {
+        AddMeshAttributes(model.GetStaticMesh(i), xmlNode);
+    }
+    for (int i = 0; i < model.GetNumMotion(); ++i) {
+        AddMeshAttributes(model.GetMotionMesh(i), xmlNode);
+    }
+    const Model* m = dynamic_cast<const Model*>(&model);
+    AddOtherElements(xmlNode, m);
+}
+
+void XmlSerializingVisitor::Visit(const DmxSkull& model) {
+    wxXmlNode* xmlNode = CommonVisitSteps(model);
+    AddDmxModelAttributes(model, xmlNode);
+    xmlNode->AddAttribute("DmxEyeBrtChannel", std::to_string(model.GetEyeBrightnessChannel()));
+    xmlNode->AddAttribute("HasJaw", model.HasJaw() ? "1" : "0");
+    xmlNode->AddAttribute("HasPan", model.HasPan() ? "1" : "0");
+    xmlNode->AddAttribute("HasTilt", model.HasTilt() ? "1" : "0");
+    xmlNode->AddAttribute("HasNod", model.HasNod() ? "1" : "0");
+    xmlNode->AddAttribute("HasEyeUD", model.HasEyeUD() ? "1" : "0");
+    xmlNode->AddAttribute("HasEyeLR", model.HasEyeLR() ? "1" : "0");
+    xmlNode->AddAttribute("HasColor", model.HasColor() ? "1" : "0");
+    xmlNode->AddAttribute("Bits16", model.Is16Bit() ? "1" : "0");
+    xmlNode->AddAttribute("MeshOnly", model.IsMeshOnly() ? "1" : "0");
+    xmlNode->AddAttribute("DmxJawOrient", std::to_string(model.GetJawOrient()));
+    xmlNode->AddAttribute("DmxPanOrient", std::to_string(model.GetPanOrient()));
+    xmlNode->AddAttribute("DmxTiltOrient", std::to_string(model.GetTiltOrient()));
+    xmlNode->AddAttribute("DmxNodOrient", std::to_string(model.GetNodOrient()));
+    xmlNode->AddAttribute("DmxEyeUDOrient", std::to_string(model.GetEyeUDOrient()));
+    xmlNode->AddAttribute("DmxEyeLROrient", std::to_string(model.GetEyeLROrient()));
+    
+    AddServoAttributes(model.GetJawServo(), xmlNode);
+    AddServoAttributes(model.GetPanServo(), xmlNode);
+    AddServoAttributes(model.GetTiltServo(), xmlNode);
+    AddServoAttributes(model.GetNodServo(), xmlNode);
+    AddServoAttributes(model.GetEyeUDServo(), xmlNode);
+    AddServoAttributes(model.GetEyeLRServo(), xmlNode);
+    
+    AddMeshAttributes(model.GetHeadMesh(), xmlNode);
+    AddMeshAttributes(model.GetJawMesh(), xmlNode);
+    AddMeshAttributes(model.GetEyeLMesh(), xmlNode);
+    AddMeshAttributes(model.GetEyeRMesh(), xmlNode);
+    
     const Model* m = dynamic_cast<const Model*>(&model);
     AddOtherElements(xmlNode, m);
 }

@@ -33,12 +33,18 @@ public:
     virtual std::list<std::string> CheckModelSettings() override;
 
     const Servo* GetAxis(int num) { return num < num_servos ? servos[num].get() : servos[0].get(); }
+    Servo* GetServo(int num) const { return num < num_servos ? servos[num].get() : servos[0].get(); }
+    Mesh* GetStaticMesh(int num) const { return num < num_static ? static_meshs[num].get() : static_meshs[0].get(); }
+    Mesh* GetMotionMesh(int num) const { return num < num_motion ? motion_meshs[num].get() : motion_meshs[0].get(); }
     int GetNumServos() const { return num_servos; }
     int GetNumStatic() const { return num_static; }
     int GetNumMotion() const { return num_motion; }
     void UpdateNodeNames() { update_node_names = true; }
     void UpdateBits() { update_bits = true; }
     bool Is16Bit() const { return _16bit; }
+    float GetBrightness() const { return brightness; }
+    int GetMeshLink(int idx) const { return mesh_links[idx]; }
+    int GetServoLink(int idx) const { return servo_links[idx]; }
 
     void SetNumServos(int val);
     void SetNumStatic(int val);
@@ -53,6 +59,8 @@ public:
     void SetServoLink(int idx, int val) { servo_links[idx] = val; }
 
     void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const override;
+
+    void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
 
 protected:
     virtual void InitModel() override;

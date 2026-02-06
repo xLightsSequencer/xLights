@@ -33,7 +33,6 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] virtual bool SupportsLowDefinitionRender() const override { return SingleNode != true; }
         [[nodiscard]] bool isVerticalMatrix() const { return _vMatrix; }
 
-        [[nodiscard]] virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
         [[nodiscard]] bool HasAlternateNodes() const { return _alternateNodes; }
         [[nodiscard]] bool IsNoZigZag() const { return _noZigZag; }

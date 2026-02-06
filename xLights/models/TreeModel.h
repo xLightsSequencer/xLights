@@ -33,7 +33,6 @@ class TreeModel : public MatrixModel
         float GetSpiralRotations() const { return _spiralRotations; }
         float GetBottomTopRatio() const { return _botTopRatio; }
         float GetTreePerspective() const { return _perspective; }
-        std::string GetTreeDescription() const { return _displayAs; }
         int GetFirstStrand() const { return _firstStrand; }
         void SetFirstStrand(int val) { _firstStrand = val; }
         void SetTreeDegrees(long deg) { _degrees = deg; }
@@ -43,7 +42,6 @@ class TreeModel : public MatrixModel
         void SetTreeBottomTopRatio(float ratio) { _botTopRatio = ratio; }
         void SetPerspective(float pers) { _perspective = pers; }
     
-        virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     protected:

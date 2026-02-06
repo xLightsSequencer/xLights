@@ -48,7 +48,6 @@ class DmxMovingHead : public DmxMovingHeadComm
 
         [[nodiscard]] std::string const& GetDMXStyle() const { return dmx_style; }
         [[nodiscard]] bool GetHideBody() const { return hide_body; }
-        [[nodiscard]] virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
 
     protected:

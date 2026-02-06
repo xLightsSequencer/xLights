@@ -40,6 +40,8 @@ public:
     float GetPivotOffsetX() const { return pivot_offset_x; }
     float GetPivotOffsetY() const { return pivot_offset_y; }
     float GetPivotOffsetZ() const { return pivot_offset_z; }
+    const std::string GetStyle() const { return servo_style; }
+
     bool IsTranslate() const;
     bool IsRotate() const;
     void FillMotionMatrix(float servo_pos, glm::mat4& motion_matrix);
@@ -59,11 +61,12 @@ public:
     void SetControllerZero(const std::string& val) { controller_zero = val; }
     void SetControllerDataType(const std::string& val) { controller_dataType = val; }
     
-    int GetControllerMin() { return controller_min; }
-    int GetControllerMax() { return controller_max; }
-    bool GetControllerReverse() { return controller_reverse; }
-    const std::string& GetControllerZero() { return controller_zero; }
-    const std::string& GetControllerDataType() { return controller_dataType; }
+    const std::string GetName() const { return base_name; }
+    int GetControllerMin() const { return controller_min; }
+    int GetControllerMax() const { return controller_max; }
+    bool GetControllerReverse() const { return controller_reverse; }
+    const std::string& GetControllerZero() const { return controller_zero; }
+    const std::string& GetControllerDataType() const { return controller_dataType; }
     
     void SetScaledPivotOffsetX(float val) { pivot_offset_x = val / offset_scale; }
     void SetScaledPivotOffsetY(float val) { pivot_offset_y = val / offset_scale; }

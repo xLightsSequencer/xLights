@@ -33,7 +33,6 @@ class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] virtual bool ModelSupportsLayerSizes() const override { return true; }
         virtual void OnLayerSizesChange(bool countChanged) override;
 
-        [[nodiscard]] virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
         [[nodiscard]] bool IsInsideOut() const { return _insideOut; }
         void SetInsideOut(bool val) { _insideOut = val; }

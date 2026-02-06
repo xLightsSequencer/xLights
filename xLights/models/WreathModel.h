@@ -24,7 +24,6 @@ class WreathModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool SupportsWiringView() const override { return true; }
         virtual bool SupportsXlightsModel() override { return true; }
 
-        virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     protected:

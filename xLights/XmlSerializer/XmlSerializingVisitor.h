@@ -19,10 +19,15 @@ class DmxColorAbilityCMY;
 class DmxColorAbilityRGB;
 class DmxColorAbilityWheel;
 class DmxDimmerAbility;
+class DmxImage;
+class DmxFloodArea;
+class DmxFloodlight;
+class DmxGeneral;
 class DmxMotor;
 class DmxPresetAbility;
 class DmxShutterAbility;
 class Mesh;
+class Servo;
 
 struct XmlSerializingVisitor : BaseObjectVisitor {
     XmlSerializingVisitor(wxXmlNode* parentNode) :
@@ -47,8 +52,14 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
     void Visit(const TreeModel& model) override;
     void Visit(const WindowFrameModel& model) override;
     void Visit(const WreathModel& model) override;
+    void Visit(const DmxFloodArea& model) override;
+    void Visit(const DmxFloodlight& model) override;
+    void Visit(const DmxGeneral& model) override;
     void Visit(const DmxMovingHeadAdv& model) override;
     void Visit(const DmxMovingHead& model) override;
+    void Visit(const DmxServo& model) override;
+    void Visit(const DmxServo3d& model) override;
+    void Visit(const DmxSkull& model) override;
 
 private:
     wxXmlNode* parentNode;
@@ -66,6 +77,8 @@ private:
 
     void AddDmxMotorAttributes(const DmxMotor* motor, wxXmlNode* node);
     void AddMeshAttributes(const Mesh* mesh, wxXmlNode* node);
+    void AddServoAttributes(const Servo* servo, wxXmlNode* node);
+    void AddDmxImageAttributes(const DmxImage* img, wxXmlNode* node);
     void AddDmxMovingHeadCommAttributes(const DmxMovingHeadComm& model, wxXmlNode* node);
     void AddDmxModelAttributes(const DmxModel& dmx_model, wxXmlNode* node);
     

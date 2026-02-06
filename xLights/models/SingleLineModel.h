@@ -31,7 +31,6 @@ class SingleLineModel : public ModelWithScreenLocation<TwoPointScreenLocation>
         virtual bool SupportsWiringView() const override { return false; }
         virtual bool SupportsXlightsModel() override { return true; }
 
-        virtual bool SupportsVisitors() const override { return true;}
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
         const Model *GetParent() { return parent; }

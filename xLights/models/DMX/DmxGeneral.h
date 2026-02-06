@@ -15,24 +15,24 @@
 
 class DmxGeneral : public DmxModel
 {
-    public:
-        DmxGeneral(const ModelManager &manager);
-        virtual ~DmxGeneral();
+public:
+    DmxGeneral(const ModelManager &manager);
+    virtual ~DmxGeneral();
 
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
+    virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
+    void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
 
-    protected:
-        virtual void InitModel() override;
+protected:
+    virtual void InitModel() override;
 
-        virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
-                                          xlGraphicsProgram* solidProgram, xlGraphicsProgram* transparentProgram, bool is_3d = false,
-                                          const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
-                                          bool highlightFirst = false, int highlightpixel = 0,
-                                          float* boundingBox = nullptr) override;
-        virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
-        virtual void DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c);
+    virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx,
+                                      xlGraphicsProgram* solidProgram, xlGraphicsProgram* transparentProgram, bool is_3d = false,
+                                      const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
+                                      bool highlightFirst = false, int highlightpixel = 0,
+                                      float* boundingBox = nullptr) override;
+    virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
+    virtual void DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c);
 
-    private:
 };

@@ -38,7 +38,6 @@ class ChannelBlockModel : public ModelWithScreenLocation<TwoPointScreenLocation>
 
         void SetChannelColor(int idx, const std::string & color) { _channelColors[idx] = color; }
 
-        virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     protected:

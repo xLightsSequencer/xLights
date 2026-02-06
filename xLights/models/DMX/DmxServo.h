@@ -32,7 +32,14 @@ public:
     virtual std::list<std::string> CheckModelSettings() override;
 
     Servo* GetAxis(int num) { return num < num_servos ? servos[num].get() : servos[0].get(); }
-    int GetNumServos() { return num_servos; }
+    Servo* GetServo(int num) const { return num < num_servos ? servos[num].get() : servos[0].get(); }
+    DmxImage* GetStaticImage(int num) const { return num < num_servos ? static_images[num].get() : static_images[0].get(); }
+    DmxImage* GetMotionImage(int num) const { return num < num_servos ? motion_images[num].get() : motion_images[0].get(); }
+
+    int GetNumServos() const { return num_servos; }
+    bool Is16Bit() const { return _16bit; }
+    float GetBrightness() const { return brightness; }
+    int GetTransparency() const { return transparency; }
 
     void SetNumServos(int val);
     void SetIs16Bit(bool val) { _16bit = val; }
@@ -44,6 +51,8 @@ public:
     Servo* CreateServo(const std::string& name, int idx);
 
     void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const override;
+
+    void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
 
 protected:
     virtual void InitModel() override;

@@ -33,7 +33,6 @@ public:
     void SetEndLatitude(int lat) { _endLatitude = lat; }
     void SetDegrees(int deg) { _sphereDegrees = deg; }
 
-    virtual bool SupportsVisitors() const override { return true; }
     void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
 protected:

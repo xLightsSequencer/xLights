@@ -25,7 +25,6 @@ class WindowFrameModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int GetRotation() const { return _rotation; }
         void SetRotation(int rot) { _rotation = rot; }
 
-        virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     protected:

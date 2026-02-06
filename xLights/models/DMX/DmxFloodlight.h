@@ -22,6 +22,8 @@ public:
 
     virtual void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const override;
 
+    void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
+
 protected:
     virtual void InitModel() override;
 

@@ -42,7 +42,6 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetZigZag(bool val) { _zigzag = val; }
         void SetAlternate(bool val) { _alternate = val; }
 
-        virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     protected:

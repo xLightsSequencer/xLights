@@ -14,15 +14,17 @@
 
 class DmxFloodArea : public DmxFloodlight
 {
-    public:
-        DmxFloodArea(const ModelManager &manager);
-        virtual ~DmxFloodArea();
+public:
+    DmxFloodArea(const ModelManager &manager);
+    virtual ~DmxFloodArea();
 
-    protected:
-        virtual void InitModel() override;
+    void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
 
-        virtual void DrawModel(xlVertexColorAccumulator *vac, xlColor &center, xlColor &edge, float beam_length) override;
+protected:
+    virtual void InitModel() override;
 
-    private:
+    virtual void DrawModel(xlVertexColorAccumulator *vac, xlColor &center, xlColor &edge, float beam_length) override;
+
+private:
 };
 

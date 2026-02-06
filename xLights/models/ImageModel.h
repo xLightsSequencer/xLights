@@ -51,7 +51,6 @@ class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetWhiteAsAlpha(bool alpha) { _whiteAsAlpha = alpha; }
         void SetOffBrightness(int brightness) { _offBrightness = brightness; }
 
-        [[nodiscard]] virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     protected:

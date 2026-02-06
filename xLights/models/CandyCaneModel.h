@@ -33,7 +33,6 @@ class CandyCaneModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         virtual std::string GetDimension() const override;
         virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override;
 
-        virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
         [[nodiscard]] bool IsReverse() const { return _reverse; }
         [[nodiscard]] bool IsSticks() const { return _sticks; }

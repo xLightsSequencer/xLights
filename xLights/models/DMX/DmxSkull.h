@@ -43,6 +43,7 @@ public:
     virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;
 
     bool Is16Bit() const { return _16bit; }
+    bool IsMeshOnly() const { return mesh_only; }
     bool HasJaw() const { return has_jaw; }
     bool HasPan() const { return has_pan; }
     bool HasTilt() const { return has_tilt; }
@@ -55,7 +56,14 @@ public:
     Servo* CreateServo(const std::string& name);
     Mesh* CreateMesh(const std::string& name, bool add_path = false);
 
-    int GetEyeBrightnessChannel() { return eye_brightness_channel; }
+    int GetJawOrient() const { return jaw_orient; }
+    int GetPanOrient() const { return pan_orient; }
+    int GetTiltOrient() const { return tilt_orient; }
+    int GetNodOrient() const { return nod_orient; }
+    int GetEyeUDOrient() const { return eye_ud_orient; }
+    int GetEyeLROrient() const { return eye_lr_orient; }
+
+    int GetEyeBrightnessChannel() const { return eye_brightness_channel; }
     int GetPanChannel() const
     {
         return pan_servo == nullptr ? 0 : pan_servo->GetChannel();
@@ -147,7 +155,21 @@ public:
     void SetIs16Bit(bool val) { _16bit = val; }
     void SetMeshOnly(bool val) { mesh_only = val; }
 
+    Servo* GetJawServo() const { return jaw_servo.get(); }
+    Servo* GetPanServo() const { return pan_servo.get(); }
+    Servo* GetTiltServo() const { return tilt_servo.get(); }
+    Servo* GetNodServo() const { return nod_servo.get(); }
+    Servo* GetEyeUDServo() const { return eye_ud_servo.get(); }
+    Servo* GetEyeLRServo() const { return eye_lr_servo.get(); }
+
+    Mesh* GetHeadMesh() const { return head_mesh.get(); }
+    Mesh* GetJawMesh() const { return jaw_mesh.get(); }
+    Mesh* GetEyeLMesh() const { return eye_l_mesh.get(); }
+    Mesh* GetEyeRMesh() const { return eye_r_mesh.get(); }
+
     virtual void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const override;
+
+    void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
 
     virtual std::vector<std::string> GenerateNodeNames() const override;
 protected:

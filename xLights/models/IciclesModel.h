@@ -30,7 +30,6 @@ public:
     void SetDropPattern(const std::string & pattern);
     void SetAlternateNodes(bool val) { _alternateNodes = val; }
 
-    [[nodiscard]] virtual bool SupportsVisitors() const override { return true; }
     void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
 protected:

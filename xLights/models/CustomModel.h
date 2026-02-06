@@ -20,7 +20,6 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         void UpdateModel(int width, int height, int depth, const std::vector<std::vector<std::vector<int>>>& modelData);
 
-        [[nodiscard]] virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
         virtual const std::vector<std::string> &GetBufferStyles() const override;

@@ -47,7 +47,6 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
         std::string GetStartLocation() const override { return _starStartLocation; }
         void SetStarStartLocation(const std::string & location) { _starStartLocation = location; }
         std::string ConvertFromDirStartSide();
-        virtual bool SupportsVisitors() const override { return true; }
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     protected:
