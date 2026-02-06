@@ -127,7 +127,6 @@ void XmlDeserializingModelFactory::DeserializeControllerConnection(Model* model,
     for (wxXmlNode* p = node->GetChildren(); p != nullptr; p = p->GetNext()) {
         if (p->GetName() == "ControllerConnection") {
             auto& cc = model->GetCtrlConn();
-            cc.SetName(p->GetAttribute(XmlNodeKeys::ControllerAttribute, xlEMPTY_STRING).Trim(true).Trim(false).ToStdString(), true);
             cc.SetProtocol(p->GetAttribute(XmlNodeKeys::ProtocolAttribute, xlEMPTY_STRING).ToStdString());
             cc.SetSerialProtocolSpeed(std::stoi(p->GetAttribute(XmlNodeKeys::ProtocolSpeedAttribute, std::to_string(CtrlDefs::DEFAULT_PROTOCOL_SPEED)).ToStdString()));
             cc.SetCtrlPort(std::stoi(p->GetAttribute(XmlNodeKeys::PortAttribute, std::to_string(CtrlDefs::DEFAULT_PORT)).ToStdString()));
@@ -205,6 +204,10 @@ void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model
     model->SetCustomColor(node->GetAttribute(XmlNodeKeys::CustomColorAttribute, "#000000").ToStdString());
     model->SetModelChain(node->GetAttribute(XmlNodeKeys::ModelChainAttribute,""));
 
+    if (!importing) {
+        model->SetControllerName(node->GetAttribute(XmlNodeKeys::ControllerAttribute, xlEMPTY_STRING).Trim(true).Trim(false).ToStdString(), true);
+    }
+    
     // Individual Start Channels
     bool hasIndivChan = std::stol(node->GetAttribute(XmlNodeKeys::AdvancedAttribute,"0").ToStdString());
     model->SetHasIndividualStartChannels(hasIndivChan);

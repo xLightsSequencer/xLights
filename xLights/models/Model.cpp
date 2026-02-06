@@ -476,6 +476,51 @@ wxArrayString Model::GetLayoutGroups(const ModelManager& mm)
     return lg;
 }
 
+void Model::SetControllerName(const std::string& controller, bool skip_work)
+{
+    auto n = Trim(controller);
+    if (n == _controllerName) return;
+    if (n == "xyzzy_kw") return;
+    if (!n.empty() && n != USE_START_CHANNEL) {
+        _controllerName = n;
+    }
+    
+    // if we are moving the model to no contoller then clear the start channel and model chain
+    if (_controllerName == NO_CONTROLLER) {
+        SetStartChannel("");
+        SetModelChain("");
+        _controllerConnection.SetCtrlPort(0);
+    }
+
+    if (!skip_work) {
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerConnection::SetName");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerConnection::SetName");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetName");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetName");
+        AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "ControllerConnection::SetName");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetName");
+    }
+    IncrementChangeCount();
+}
+
+bool Model::RenameController(const std::string& oldName, const std::string& newName)
+{
+    wxASSERT(newName != "");
+
+    bool changed = false;
+
+    if (_controllerName == oldName) {
+        SetControllerName(newName, false);
+        changed = true;
+    }
+    if (StartsWith(ModelStartChannel, "!" + oldName)) {
+        SetStartChannel("!" + newName + ModelStartChannel.substr(oldName.size() + 1));
+        changed = true;
+    }
+    return changed;
+}
+
+
 void Model::Rename(std::string const& newName)
 {
     auto oldname = GetName();

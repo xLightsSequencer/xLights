@@ -25,50 +25,6 @@ ControllerConnection::~ControllerConnection()
 {
 }
 
-void ControllerConnection::SetName(const std::string& controller, bool skip_work)
-{
-    auto n = Trim(controller);
-    if (n == _name) return;
-    if (n == "xyzzy_kw") return;
-    if (!n.empty() && n != USE_START_CHANNEL) {
-        _name = n;
-    }
-    
-    // if we are moving the model to no contoller then clear the start channel and model chain
-    if (_name == NO_CONTROLLER) {
-        _model->SetStartChannel("");
-        _model->SetModelChain("");
-        SetCtrlPort(0);
-    }
-
-    if (!skip_work) {
-        _model->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerConnection::SetName");
-        _model->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerConnection::SetName");
-        _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetName");
-        _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetName");
-        _model->AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "ControllerConnection::SetName");
-        _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetName");
-    }
-    _model->IncrementChangeCount();
-}
-
-bool ControllerConnection::Rename(const std::string& oldName, const std::string& newName)
-{
-    wxASSERT(newName != "");
-
-    bool changed = false;
-
-    if (_name == oldName) {
-        SetName(newName, false);
-        changed = true;
-    }
-    if (StartsWith(_model->ModelStartChannel, "!" + oldName)) {
-        _model->SetStartChannel("!" + newName + _model->ModelStartChannel.substr(oldName.size() + 1));
-        changed = true;
-    }
-    return changed;
-}
-
 int ControllerConnection::GetCtrlPort(int string) const
 {
     // TODO:  Delete?  This looks like legacy attributes

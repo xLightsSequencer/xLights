@@ -349,6 +349,7 @@ protected:
     uint8_t _lowDefFactor = 100;
     std::string _startSide = "B";
     std::string _dir = "L";
+    std::string _controllerName = "";
 
     int StrobeRate = 0; // 0 = no strobing
 
@@ -750,7 +751,7 @@ public:
     void UpdateControllerProperty(enum ControllerConnection::CTRL_PROPS prop, bool value) { _controllerConnection.UpdateProperty(prop, value); }
     bool IsCtrlPropertySet(enum ControllerConnection::CTRL_PROPS prop) { return _controllerConnection.IsPropertySet(prop); }
 
-    void SetControllerName(const std::string& controllerName, bool skip_work = false) { _controllerConnection.SetName(controllerName, skip_work); }
+    void SetControllerName(const std::string& controllerName, bool skip_work = false);
     void SetControllerProtocol(const std::string& protocol) { _controllerConnection.SetProtocol(protocol); }
     void SetControllerSerialProtocolSpeed(int speed) { _controllerConnection.SetSerialProtocolSpeed(speed); }
     void SetControllerPort(int port) { _controllerConnection.SetCtrlPort(port); }
@@ -763,9 +764,9 @@ public:
     void SetControllerGamma(float gamma) { _controllerConnection.SetGamma(gamma); }
     void SetControllerReverse(int reverse) { _controllerConnection.SetReverse(reverse); }
     void SetControllerZigZag(int zigzag)  { _controllerConnection.SetZigZag(zigzag); }
-    [[nodiscard]] bool RenameController(const std::string& oldName, const std::string& newName) { return _controllerConnection.Rename(oldName, newName); }
+    [[nodiscard]] bool RenameController(const std::string& oldName, const std::string& newName);
 
-    [[nodiscard]] std::string GetControllerName() const { return _controllerConnection.GetName(); }
+    [[nodiscard]] std::string GetControllerName() const { return _controllerName; }
     [[nodiscard]] std::string GetControllerProtocol() const { return _controllerConnection.GetProtocol(); }
     [[nodiscard]] int GetControllerProtocolSpeed() const { return _controllerConnection.GetProtocolSpeed(); }
     [[nodiscard]] int GetControllerPort(int string = 1) const { return _controllerConnection.GetCtrlPort(); }
