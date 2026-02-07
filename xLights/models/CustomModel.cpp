@@ -678,6 +678,13 @@ int CustomModel::GetCustomMaxChannel(const std::string& customModel) const
     std::string token;
 
     while (std::getline(ss, token, ',')) {
+        size_t start = token.find_first_not_of(" \t\n\r");
+        if (start == std::string::npos) {
+            continue;
+        }
+        size_t end = token.find_last_not_of(" \t\n\r");
+        token = token.substr(start, end - start + 1);
+
         if (!token.empty()) {
             try {
                 maxval = std::max(std::stoi(token), maxval);
