@@ -61,6 +61,17 @@ aiBase* ServiceManager::findService(aiType::TYPE serviceType) {
     }
     return nullptr;
 }
+std::vector<aiBase*> ServiceManager::findServices(aiType::TYPE serviceType) {
+    std::vector<aiBase*> ret;
+    for (auto& service : m_services) {
+        for (auto &t : service->GetTypes()) {
+            if (t == serviceType && service->IsEnabled()) {
+                ret.push_back(service.get());
+            }
+        }
+    }
+    return ret;
+}
 
 void ServiceManager::setServiceSetting(std::string const& key, int value) {
     wxConfigBase* config = wxConfigBase::Get();
