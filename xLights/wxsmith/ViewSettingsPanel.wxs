@@ -208,6 +208,30 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="wxID_ANY" variable="StaticText3" member="no">
+					<label>Color Palette Size</label>
+				</object>
+				<col>0</col>
+				<row>11</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE_PALETTE_SIZE" variable="Choice_PaletteSize" member="yes">
+					<content>
+						<item>Normal</item>
+						<item>Large</item>
+					</content>
+					<selection>0</selection>
+				</object>
+				<col>1</col>
+				<row>11</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 		</object>
 	</object>
 </wxsmith>

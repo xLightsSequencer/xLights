@@ -1659,7 +1659,7 @@ bool IsFloat(const std::string& number) {
 
 int GetPaletteSizeIndex() {
     wxConfigBase* config = wxConfigBase::Get();
-    return config->ReadLong("PaletteSizeIndex", 0); // 0 = Standard (default)
+    return config->ReadLong("PaletteSizeIndex", 0); // 0 = Normal (default)
 }
 
 void SetPaletteSizeIndex(int index) {

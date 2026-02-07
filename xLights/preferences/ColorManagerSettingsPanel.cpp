@@ -25,8 +25,6 @@
 #include "xlColourData.h"
 
 //(*IdInit(ColorManagerSettingsPanel)
-const wxWindowID ColorManagerSettingsPanel::ID_STATICTEXT_PALETTE_SIZE = wxNewId();
-const wxWindowID ColorManagerSettingsPanel::ID_CHOICE_PALETTE_SIZE = wxNewId();
 const wxWindowID ColorManagerSettingsPanel::ID_CHECKBOX1 = wxNewId();
 const wxWindowID ColorManagerSettingsPanel::ID_BUTTON_IMPORT = wxNewId();
 const wxWindowID ColorManagerSettingsPanel::ID_BUTTON_EXPORT = wxNewId();
@@ -44,12 +42,10 @@ ColorManagerSettingsPanel::ColorManagerSettingsPanel(wxWindow* parent, xLightsFr
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer7;
 	wxStaticBoxSizer* StaticBoxSizer1;
 	wxStaticBoxSizer* StaticBoxSizer2;
 	wxStaticBoxSizer* StaticBoxSizer3;
-	wxStaticBoxSizer* StaticBoxSizer4;
 
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -72,16 +68,6 @@ ColorManagerSettingsPanel::ColorManagerSettingsPanel(wxWindow* parent, xLightsFr
 	StaticBoxSizer3->Add(Sizer_Layout_Tab, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3->Add(StaticBoxSizer3, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
-	StaticBoxSizer4 = new wxStaticBoxSizer(wxVERTICAL, this, _("Color Panel"));
-	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
-	StaticText_PaletteSize = new wxStaticText(this, ID_STATICTEXT_PALETTE_SIZE, _("Palette Size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_PALETTE_SIZE"));
-	FlexGridSizer4->Add(StaticText_PaletteSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_PaletteSize = new wxChoice(this, ID_CHOICE_PALETTE_SIZE, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PALETTE_SIZE"));
-	Choice_PaletteSize->Append(_("Standard"));
-	Choice_PaletteSize->Append(_("Large"));
-	FlexGridSizer4->Add(Choice_PaletteSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticBoxSizer4->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(StaticBoxSizer4, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	CheckBox_SuppressDarkMode = new wxCheckBox(this, ID_CHECKBOX1, _("Suppress Dark Mode"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_SuppressDarkMode->SetValue(false);
@@ -127,7 +113,6 @@ bool ColorManagerSettingsPanel::TransferDataToWindow() {
 #ifdef __WXMSW__
     CheckBox_SuppressDarkMode->SetValue(IsSuppressDarkMode());
 #endif
-    Choice_PaletteSize->SetSelection(GetPaletteSizeIndex());
     return true;
 }
 
@@ -135,7 +120,6 @@ bool ColorManagerSettingsPanel::TransferDataFromWindow() {
 #ifdef __WXMSW__
     SetSuppressDarkMode(CheckBox_SuppressDarkMode->IsChecked());
 #endif
-    SetPaletteSizeIndex(Choice_PaletteSize->GetSelection());
     return true;
 }
 

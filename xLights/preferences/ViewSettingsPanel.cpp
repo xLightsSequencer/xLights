@@ -35,6 +35,7 @@ const wxWindowID ViewSettingsPanel::ID_CHOICE_TIMELINEZOOMING = wxNewId();
 const wxWindowID ViewSettingsPanel::ID_CHECKBOX4 = wxNewId();
 const wxWindowID ViewSettingsPanel::ID_CHECKBOX_ZoomMethod = wxNewId();
 const wxWindowID ViewSettingsPanel::ID_CHOICE_CROSSHAIRSIZE = wxNewId();
+const wxWindowID ViewSettingsPanel::ID_CHOICE_PALETTE_SIZE = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ViewSettingsPanel, wxPanel)
@@ -49,6 +50,7 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWindow
     wxGridBagSizer* GridBagSizer1;
     wxStaticText* StaticText1;
     wxStaticText* StaticText2;
+    wxStaticText* StaticText3;
     wxStaticText* StaticText4;
     wxStaticText* StaticText5;
     wxStaticText* StaticText6;
@@ -111,6 +113,12 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWindow
     CrosshairSizeChoice->Append(_("None"));
     CrosshairSizeChoice->SetToolTip(_("Control the size of the crosshair for group centering"));
     GridBagSizer1->Add(CrosshairSizeChoice, wxGBPosition(10, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText3 = new wxStaticText(this, wxID_ANY, _("Color Palette Size"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    GridBagSizer1->Add(StaticText3, wxGBPosition(11, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_PaletteSize = new wxChoice(this, ID_CHOICE_PALETTE_SIZE, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PALETTE_SIZE"));
+    Choice_PaletteSize->SetSelection( Choice_PaletteSize->Append(_("Normal")) );
+    Choice_PaletteSize->Append(_("Large"));
+    GridBagSizer1->Add(Choice_PaletteSize, wxGBPosition(11, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(GridBagSizer1);
 
     Connect(ID_CHOICE3, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnToolIconSizeChoiceSelect);
@@ -123,6 +131,7 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWindow
     Connect(ID_CHECKBOX4, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnPresetPreviewCheckBoxClick);
     Connect(ID_CHECKBOX_ZoomMethod, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnCheckBox_ZoomMethodClick);
     Connect(ID_CHOICE_CROSSHAIRSIZE, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnCrosshairSizeChoiceSelect);
+    Connect(ID_CHOICE_PALETTE_SIZE, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnChoice_PaletteSizeSelect);
     //*)
 
 #ifdef _MSC_VER
@@ -168,6 +177,7 @@ bool ViewSettingsPanel::TransferDataToWindow()
     Choice_TimelineZooming->SetSelection(frame->GetTimelineZooming() & 1);
     CheckBox_PresetPreview->SetValue(frame->HidePresetPreview());
     CheckBox_DisableKeyAcceleration->SetValue(frame->IsDisableKeyAcceleration());
+    Choice_PaletteSize->SetSelection(frame->GetPaletteSizeIndex());
     return true;
 }
 bool ViewSettingsPanel::TransferDataFromWindow()
@@ -198,7 +208,7 @@ bool ViewSettingsPanel::TransferDataFromWindow()
 
     frame->SetTimelineZooming(Choice_TimelineZooming->GetSelection());
     frame->SetHidePresetPreview(CheckBox_PresetPreview->IsChecked());
-
+    frame->SetPaletteSizeIndex(Choice_PaletteSize->GetSelection());
     return true;
 }
 
@@ -287,6 +297,13 @@ void ViewSettingsPanel::OnCheckBox_DisableKeyAccelerationClick(wxCommandEvent& e
 }
 
 void ViewSettingsPanel::OnCrosshairSizeChoiceSelect(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void ViewSettingsPanel::OnChoice_PaletteSizeSelect(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();

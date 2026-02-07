@@ -10796,3 +10796,11 @@ void xLightsFrame::OnMenuItem_GenerateAIImageSelected(wxCommandEvent& event) {
     dlg.ShowModal();
 }
 
+void xLightsFrame::SetPaletteSizeIndex(int index) {
+    if (GetPaletteSizeIndex() != index) {
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write("PaletteSizeIndex", index);
+        wxMessageBox("Restart xLights for the palette size change to take effect.");
+    }
+}
+
