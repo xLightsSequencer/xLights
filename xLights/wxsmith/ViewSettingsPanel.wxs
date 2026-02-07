@@ -225,6 +225,7 @@
 						<item>Large</item>
 					</content>
 					<selection>0</selection>
+					<handler function="OnChoice_PaletteSizeSelect" entry="EVT_CHOICE" />
 				</object>
 				<col>1</col>
 				<row>11</row>
