@@ -107,6 +107,11 @@ const wxWindowID ColorPanel::ID_MNU_GENERATE = wxNewId();
 #define SWATCH_HEIGHT_LARGE 36
 #define PALETTE_BUTTON_SIZE_LARGE 32
 #define PALETTE_CC_SIZE_LARGE 18
+
+static bool IsLargePalette() {
+    return wxConfigBase::Get()->ReadLong("PaletteSizeIndex", 0) == 1;
+}
+
 class ColourList : public wxOwnerDrawnComboBox
 {
 public:
@@ -1706,4 +1711,93 @@ void ColorPanel::OnListPopup(wxCommandEvent &event)
     } else if (event.GetId() == ID_MNU_UPDATE) {
         UpdateColor();
     }
+}
+
+void ColorPanel::RefreshPaletteSize() {
+    std::vector<std::string> currentColors;
+    std::vector<bool> checkboxStates;
+    for (int x = 0; x < PALETTE_SIZE; x++) {
+        if (x < buttons.size()) {
+            if (buttons[x]->GetValue()->IsActive()) {
+                currentColors.push_back(buttons[x]->GetValue()->Serialise());
+            } else {
+                wxColor color = buttons[x]->GetBackgroundColour();
+                currentColors.push_back(color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
+            }
+        }
+        if (x < checkBoxes.size()) {
+            checkboxStates.push_back(checkBoxes[x]->GetValue());
+        }
+    }
+
+    FlexGridSizer_Palette->Clear(true);
+    buttons.clear();
+    checkBoxes.clear();
+
+    for (int x = 0; x < PALETTE_SIZE; x++) {
+        wxString ids = wxString::Format("ID_CHECKBOX_Palette%d", (x + 1));
+        long id2 = wxNewId();
+        wxCheckBox* cb = new wxCheckBox(ColorScrollWindow, id2, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxDefaultValidator, ids);
+        cb->SetValue(x < checkboxStates.size() ? checkboxStates[x] : (x < 2));
+        FlexGridSizer_Palette->Add(cb, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
+        checkBoxes.push_back(cb);
+        Connect(id2, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ColorPanel::OnCheckBox_PaletteClick);
+    }
+
+    for (int x = 0; x < PALETTE_SIZE; x++) {
+        wxString ids = wxString::Format("ID_BUTTON_Palette%d", (x + 1));
+        long id2 = wxNewId();
+        int btnSize = IsLargePalette() ? PALETTE_BUTTON_SIZE_LARGE : PALETTE_BUTTON_SIZE_STANDARD;
+        ColorCurveButton* bb = new ColorCurveButton(ColorScrollWindow, id2, wxNullBitmap, wxDefaultPosition, FromDIP(wxSize(btnSize, btnSize)), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, ids);
+        bb->SetDropTarget(new ColourTextDropTarget(bb));
+        FlexGridSizer_Palette->Add(bb, 0, wxALIGN_LEFT | wxALIGN_TOP, 0);
+        buttons.push_back(bb);
+        Connect(wxID_ANY, EVT_CC_CHANGED, (wxObjectEventFunction)&ColorPanel::OnCCChanged, 0, this);
+    }
+
+    for (int x = 0; x < PALETTE_SIZE; x++) {
+        wxString ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_Palette%d", (x + 1));
+        long id2 = wxNewId();
+        wxBitmapButton* bb = new xlLockButton(ColorScrollWindow, id2, wxArtProvider::GetBitmapBundle("xlART_PADLOCK_OPEN", wxART_BUTTON),
+                                              wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, ids);
+        FlexGridSizer_Palette->Add(bb, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
+        Connect(id2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnLockButtonClick);
+    }
+
+    for (int x = 0; x < PALETTE_SIZE; x++) {
+        wxString ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_PaletteCC%d", (x + 1));
+        long id2 = wxNewId();
+        int ccSize = IsLargePalette() ? PALETTE_CC_SIZE_LARGE : PALETTE_CC_SIZE_STANDARD;
+        wxBitmapButton* bb = new xlSizedBitmapButton(ColorScrollWindow, id2, wxArtProvider::GetBitmapBundle("xlART_cc_na_xpm", wxART_BUTTON), wxDefaultPosition,
+                                                     wxSize(ccSize, ccSize), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, ids);
+        bb->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
+        FlexGridSizer_Palette->Add(bb, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
+        Connect(id2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnCCButtonClick);
+    }
+
+    for (int x = 0; x < PALETTE_SIZE && x < currentColors.size(); x++) {
+        SetButtonColor(buttons[x], currentColors[x], false);
+    }
+
+    int swatchWidth = IsLargePalette() ? SWATCH_WIDTH_LARGE : SWATCH_WIDTH_STANDARD;
+    int dropdownWidth = PALETTE_SIZE * swatchWidth + 20;
+
+    BitmapButton_ColourChoice->Dismiss();
+    BitmapButton_ColourChoice->Clear();
+    BitmapButton_ColourChoice->AppendString("");
+    for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it) {
+        BitmapButton_ColourChoice->AppendString(*it);
+    }
+
+    BitmapButton_ColourChoice->SetMinSize(wxSize(dropdownWidth, -1));
+    BitmapButton_ColourChoice->SetSize(wxSize(dropdownWidth, -1));
+    BitmapButton_ColourChoice->SetPopupMinWidth(dropdownWidth);
+    BitmapButton_ColourChoice->SetSelection(0);
+
+    FlexGridSizer_Palette->Layout();
+    if (BitmapButton_ColourChoice->GetContainingSizer()) {
+        BitmapButton_ColourChoice->GetContainingSizer()->Layout();
+    }
+    ColorScrollWindow->FitInside();
+    ColorScrollWindow->Layout();
 }
