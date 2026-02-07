@@ -6405,9 +6405,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             float deltaZ = fabs(startZ - endZ);
             if (deltaX > deltaY && deltaX > deltaZ) {
                 if (startX > endX) {
-                    CheckSequenceReport::ReportIssue::WARNING;
-                    wxString msg;
-                    msg = wxString::Format("    %s: Model '%s' should have the green square on the left of the blue square for best render results.",
+                    wxString msg = wxString::Format("    %s: Model '%s' should have the green square on the left of the blue square for best render results.",
                         "WARN", m->GetName());
                     LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "config", errcount, warncount);
                 }
@@ -10784,6 +10782,9 @@ void xLightsFrame::OnMenuItemFindShowFolderSelected(wxCommandEvent& event)
 
 aiBase* xLightsFrame::GetAIService(aiType::TYPE serviceType) {
     return _serviceManager->findService(serviceType);
+}
+std::vector<aiBase*> xLightsFrame::GetAIServices(aiType::TYPE serviceType) {
+    return _serviceManager->findServices(serviceType);
 }
 
 void xLightsFrame::OnMenuItem_GenerateAIImageSelected(wxCommandEvent& event) {

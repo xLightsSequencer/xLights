@@ -1340,6 +1340,7 @@ public:
     void SetHidePresetPreview(bool b);
 
     aiBase* GetAIService(aiType::TYPE serviceType = aiType::TYPE::PROMPT);
+    std::vector<aiBase*> GetAIServices(aiType::TYPE serviceType = aiType::TYPE::PROMPT);
 
     bool IsShowBaseShowFolder() const
     {

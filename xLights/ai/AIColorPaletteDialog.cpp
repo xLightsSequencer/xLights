@@ -5,6 +5,8 @@
 //*)
 
 //(*IdInit(AIColorPaletteDialog)
+const wxWindowID AIColorPaletteDialog::ID_STATICTEXT1 = wxNewId();
+const wxWindowID AIColorPaletteDialog::ID_CHOICE1 = wxNewId();
 const wxWindowID AIColorPaletteDialog::ID_RADIOBUTTON1 = wxNewId();
 const wxWindowID AIColorPaletteDialog::ID_TEXTCTRL1 = wxNewId();
 const wxWindowID AIColorPaletteDialog::ID_RADIOBUTTON2 = wxNewId();
@@ -38,6 +40,10 @@ AIColorPaletteDialog::AIColorPaletteDialog(wxWindow* parent,wxWindowID id)
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, this, _T("Parameters"));
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+    StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _T("AI Service"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+    FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    AIServiceChoice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
+    FlexGridSizer2->Add(AIServiceChoice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SongRadioButton = new wxRadioButton(this, ID_RADIOBUTTON1, _T("Song"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON1"));
     SongRadioButton->SetValue(true);
     FlexGridSizer2->Add(SongRadioButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -86,7 +92,11 @@ AIColorPaletteDialog::AIColorPaletteDialog(wxWindow* parent,wxWindowID id)
         SongTextCtrl->SetValue(title);
         createFreeFormFromSong();
     }
-
+    
+    for (auto s : xLightsApp::GetFrame()->GetAIServices(aiType::COLORPALETTES)) {
+        AIServiceChoice->Append(s->GetLLMName());
+    }
+    AIServiceChoice->SetSelection(0);
 }
 
 AIColorPaletteDialog::~AIColorPaletteDialog()
@@ -123,7 +133,7 @@ void AIColorPaletteDialog::OnFreeFormRadioButtonSelect(wxCommandEvent& event)
 void AIColorPaletteDialog::OnGenerateButtonClick(wxCommandEvent& event)
 {
     auto prompt = FreeFormText->GetValue();
-    aiBase::AIColorPalette cp = xLightsApp::GetFrame()->GetAIService(aiType::COLORPALETTES)->GenerateColorPalette(prompt);
+    aiBase::AIColorPalette cp = xLightsApp::GetFrame()->GetAIServices(aiType::COLORPALETTES)[AIServiceChoice->GetSelection()]->GenerateColorPalette(prompt);
     colors.clear();
     std::string html;
     html += "<html><body>\n";
