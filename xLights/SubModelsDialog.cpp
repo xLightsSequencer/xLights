@@ -3416,12 +3416,10 @@ void SubModelsDialog::RetrieveSubModelInfo(Model* model)
         sm->strands[0] = "";
         if (sm->isRanges) {
             sm->subBuffer = "";
-            wxArrayString lines = wxSplit(sub->GetSubModelLines(), ',');
-            sm->strands.resize(lines.size());
-            int x = 0;
-            for (const auto& line : lines) {
-                sm->strands[x] = line;
-                x++;
+            int num_ranges = sub->GetNumRanges();
+            sm->strands.resize(num_ranges);
+            for (int x = 0; x < num_ranges; ++x) {
+                sm->strands[x] = sub->GetRange(x);
             }
         } else {
             sm->subBuffer = sub->GetSubModelLines();

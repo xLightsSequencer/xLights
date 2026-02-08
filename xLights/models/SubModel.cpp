@@ -394,7 +394,8 @@ auto getRange = [](wxString const& a) {
 
 void SubModel::AddRangeXY( wxString const& nodes )
 {
-    if (_propertyGridDisplay == "") {
+   _ranges.push_back(nodes);
+   if (_propertyGridDisplay == "") {
         _propertyGridDisplay = nodes;
     } else {
         _propertyGridDisplay = _propertyGridDisplay + "," + nodes;
@@ -423,6 +424,7 @@ void SubModel::AddRangeXY( wxString const& nodes )
 
 void SubModel::AddDefaultBuffer( wxString const& nodes )
 {
+    _ranges.push_back(nodes);
     if (_propertyGridDisplay == "") {
         _propertyGridDisplay = nodes;
     } else {

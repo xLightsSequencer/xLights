@@ -5600,6 +5600,8 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
     XmlSerializer serializer;
 
     if (node->GetName() == "custommodel") {
+        if (model != nullptr) { delete model; }
+        model = serializer.DeserializeModel(n, xlights, true);
         return model;
     } else if (node->GetName() == "polylinemodel") {
         model = xlights->AllModels.CreateDefaultModel("Poly Line", startChannel);

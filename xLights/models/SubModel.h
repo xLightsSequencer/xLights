@@ -81,6 +81,9 @@ public:
     void AddRangeXY( wxString const& nodes );
     void AddSubbuffer(std::string const& range );
     
+    int GetNumRanges() const { return _ranges.size(); }
+    std::string GetRange(int idx) const { return _ranges[idx]; }
+    
     void CheckDuplicates();
     void CalcRangeXYBufferSize();
 
@@ -111,6 +114,6 @@ public:
     int _maxRow = 0;
     int _maxCol = 0;
     std::map<int, int> _nodeIndexMap;
-
+    std::vector<std::string> _ranges;
 };
 

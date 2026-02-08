@@ -1084,6 +1084,7 @@ Model* XmlDeserializingModelFactory::DeserializeDmxMovingHeadAdv(wxXmlNode *node
             Mesh* msh = model->CreateHeadMesh(name);
             DeserializeMesh(msh, n);
         } else if ("Features" == name) {
+            // NOT sure we are going to make features active.  Couldn't think of a good way to execute them and have sequences still be shareable.
             // process features
           /*  if( features_xml_node == nullptr ) {
                 features_xml_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Features");

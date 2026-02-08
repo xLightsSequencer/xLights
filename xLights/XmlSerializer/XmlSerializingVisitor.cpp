@@ -404,90 +404,24 @@ void XmlSerializingVisitor::AddSubmodels(wxXmlNode* node, const Model* m) {
     const std::vector<Model*>& submodelList = m->GetSubModels();
     
     for (Model* s : submodelList) {
-        wxXmlNode* submodels = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::SubModelNodeName);
+        wxXmlNode* sm_node = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::SubModelNodeName);
         const SubModel* submodel = dynamic_cast<const SubModel*>(s);
         if (submodel == nullptr) return;
-        submodels->AddAttribute(XmlNodeKeys::NameAttribute, s->GetName());
-        submodels->AddAttribute(XmlNodeKeys::LayoutAttribute, submodel->GetSubModelLayout());
-        submodels->AddAttribute(XmlNodeKeys::SMTypeAttribute, submodel->GetSubModelType());
-        submodels->AddAttribute(XmlNodeKeys::BufferStyleAttribute, submodel->GetSubModelBufferStyle());
-        const std::string submodelType = submodel->GetSubModelType();
-        
-        // FIXME: Just want to get it compiling
-        /*if (submodelType == "subbuffer") {
-         submodels->AddAttribute(XmlNodeKeys::SubBufferStyleAttribute, submodel->GetSubModelNodeRanges());
-         } else {
-         wxArrayString nodeInfo = wxSplit(submodel->GetSubModelNodeRanges(), ',');
-         for (auto i = 0; i < nodeInfo.size(); i++) {
-         submodels->AddAttribute("line" + std::to_string(i), nodeInfo[i]);
-         }
-         }*/
-        SortAttributes(submodels);
-        AddAliases(submodels, s->GetAliases());
-        node->AddChild(submodels);
+        sm_node->AddAttribute(XmlNodeKeys::NameAttribute, s->GetName());
+        sm_node->AddAttribute(XmlNodeKeys::LayoutAttribute, submodel->GetSubModelLayout());
+        sm_node->AddAttribute(XmlNodeKeys::SMTypeAttribute, submodel->GetSubModelType());
+        sm_node->AddAttribute(XmlNodeKeys::BufferStyleAttribute, submodel->GetSubModelBufferStyle());
+        if (submodel->IsRanges()) {
+            for (int x = 0; x < submodel->GetNumRanges(); ++x) {
+                sm_node->AddAttribute(wxString::Format("line%d", x), submodel->GetRange(x));
+            }
+        } else {
+            sm_node->AddAttribute("subBuffer", submodel->GetSubModelLines());
+        }
+        SortAttributes(sm_node);
+        AddAliases(sm_node, s->GetAliases());
+        node->AddChild(sm_node);
     }
-    /*wxXmlNode * root = m->xxx();
-     wxXmlNode * child = root->GetChildren();
-     std::vector<std::pair<wxString, wxString>> submodelAliases;
-     while (child != nullptr) {
-     if (child->GetName() == "subModel") {
-     for (auto node = child->GetChildren(); node != nullptr; node = node->GetNext()) {
-     if (node->GetName() == "Aliases") {
-     for (auto a = node->GetChildren(); a != nullptr; a = a->GetNext()) {
-     submodelAliases.push_back(std::make_pair(child->GetAttribute("name"), a->GetAttribute("name")));
-     }
-     }
-     }
-     wxXmlNode *n = child;
-     child = child->GetNext();
-     root->RemoveChild(n);
-     delete n;
-     } else {
-     child = child->GetNext();
-     }
-     }
-     
-     for (auto a = _subModels.begin(); a != _subModels.end(); ++a) {
-     child = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
-     child->AddAttribute("name", (*a)->name);
-     child->AddAttribute("layout", (*a)->vertical ? "vertical" : "horizontal");
-     child->AddAttribute("type", (*a)->isRanges ? "ranges" : "subbuffer");
-     child->AddAttribute("bufferstyle", (*a)->bufferStyle);
-     
-     auto aliases = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "Aliases");
-     for (const auto& entry : submodelAliases) {
-     if (entry.first == (*a)->name) {
-     auto n = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "alias");
-     n->AddAttribute("name", entry.second.Lower());
-     aliases->AddChild(n);
-     }
-     }
-     child->AddChild(aliases);
-     
-     // If the submodel name has changed ... we need to rename the model
-     if ((*a)->oldName != (*a)->name)
-     {
-     xlights->RenameModel(m->GetName() + std::string("/") + (*a)->oldName.ToStdString(), m->GetName() + std::string("/") + (*a)->name.ToStdString());
-     }
-     
-     if ((*a)->isRanges) {
-     for (int x = 0; x < (*a)->strands.size(); x++) {
-     child->AddAttribute(wxString::Format("line%d", x), (*a)->strands[x]);
-     }
-     } else {
-     child->AddAttribute("subBuffer", (*a)->subBuffer);
-     }
-     root->AddChild(child);
-     }
-     
-     std::vector<std::string> submodelOrder;
-     for (auto it = _subModels.begin(); it != _subModels.end(); ++it)
-     {
-     submodelOrder.push_back((*it)->name);
-     }
-     
-     xlights->EnsureSequenceElementsAreOrderedCorrectly(m->GetName(), submodelOrder);
-     }*/
 }
 
 void XmlSerializingVisitor::AddGroups(wxXmlNode* node, const Model* m) {
