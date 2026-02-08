@@ -1,4 +1,4 @@
-name: Linux Docker Manual
+epname: Linux Docker Manual
 on:
   workflow_dispatch:
 
