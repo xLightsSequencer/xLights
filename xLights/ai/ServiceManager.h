@@ -54,6 +54,7 @@ public:
 	[[nodiscard]] aiBase* getService(std::string const& serviceName);
     void addService(std::unique_ptr<aiBase> service);
     [[nodiscard]] aiBase* findService(aiType::TYPE serviceType);
+    [[nodiscard]] std::vector<aiBase*> findServices(aiType::TYPE serviceType);
 
 
     void setServiceSetting(std::string const& key, int value);

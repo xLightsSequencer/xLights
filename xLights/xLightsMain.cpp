@@ -6389,9 +6389,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             float deltaZ = fabs(startZ - endZ);
             if (deltaX > deltaY && deltaX > deltaZ) {
                 if (startX > endX) {
-                    CheckSequenceReport::ReportIssue::WARNING;
-                    wxString msg;
-                    msg = wxString::Format("    %s: Model '%s' should have the green square on the left of the blue square for best render results.",
+                    wxString msg = wxString::Format("    %s: Model '%s' should have the green square on the left of the blue square for best render results.",
                         "WARN", m->GetName());
                     LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "config", errcount, warncount);
                 }
@@ -10778,14 +10776,28 @@ std::list<std::string> xLightsFrame::GetPerspectives() {
 aiBase* xLightsFrame::GetAIService(aiType::TYPE serviceType) {
     return _serviceManager->findService(serviceType);
 }
+std::vector<aiBase*> xLightsFrame::GetAIServices(aiType::TYPE serviceType) {
+    return _serviceManager->findServices(serviceType);
+}
 
 void xLightsFrame::OnMenuItem_GenerateAIImageSelected(wxCommandEvent& event) {
-    if (GetAIService(aiType::TYPE::IMAGES) == nullptr) {
+    auto services = _serviceManager->findServices(aiType::TYPE::IMAGES);
+    if (services.empty()) {
         wxMessageBox("No AI Services Registered for creating images", "Error", wxICON_ERROR);
         return;
     }
-
-    AIImageDialog dlg(this, GetAIService(aiType::TYPE::IMAGES));
+    auto serv = services[0];
+    if (services.size() > 1) {
+        wxArrayString choices;
+        for (auto s : services) {
+            choices.push_back(s->GetLLMName());
+        }
+        wxSingleChoiceDialog dlg(this, "AI Image Generator", "Choose AI Image Generator", choices, nullptr);
+        if (dlg.ShowModal() != wxID_CANCEL) {
+            serv = services[dlg.GetSelection()];
+        }
+    }
+    AIImageDialog dlg(this, serv);
     dlg.ShowModal();
 }
 

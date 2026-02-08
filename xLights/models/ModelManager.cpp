@@ -1693,9 +1693,21 @@ std::string ModelManager::GetModelsOnChannels(uint32_t start, uint32_t end, int 
 std::vector<std::string> ModelManager::GetGroupsContainingModel(const Model* model) const
 {
     std::vector<std::string> res;
+    if (model == nullptr) {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.error("ModelManager::GetGroupsContainingModel called with nullptr");
+        return res;
+    }
+
     for (const auto& it : *this) {
         if (it.second->GetDisplayAs() == "ModelGroup") {
             auto mg = dynamic_cast<ModelGroup*>(it.second);
+            if (mg == nullptr) {
+                static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.error("ModelManager::GetGroupsContainingModel - Model '%s' claims to be ModelGroup but cast failed", 
+                    it.first.c_str());
+                continue;
+            }
             if (mg->ContainsModel(model)) {
                 res.push_back(it.first);
             } else {
