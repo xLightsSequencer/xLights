@@ -23,6 +23,7 @@
 #include "../models/GridlinesObject.h"
 #include "../models/IciclesModel.h"
 #include "../models/ImageModel.h"
+#include "../models/ImageObject.h"
 #include "../LayoutGroup.h"
 #include "../models/MatrixModel.h"
 #include "../models/MultiPointModel.h"
@@ -519,7 +520,8 @@ void XmlSerializingVisitor::AddSuperStrings(Model const& model, wxXmlNode* node)
         node->AddAttribute(key, model.GetSuperStringColour(i));
     }
 }
-[[nodiscard]] wxXmlNode* XmlSerializingVisitor::CommonVisitSteps(const Model& model) {
+
+wxXmlNode* XmlSerializingVisitor::CommonVisitSteps(const Model& model) {
     wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelNodeName);
     AddBaseObjectAttributes(model, xmlNode);
     AddCommonModelAttributes(model, xmlNode);
@@ -851,4 +853,64 @@ void XmlSerializingVisitor::Visit(const DmxSkull& model) {
     
     const Model* m = dynamic_cast<const Model*>(&model);
     AddOtherElements(xmlNode, m);
+}
+
+wxXmlNode* XmlSerializingVisitor::CommonObjectVisitSteps(const ViewObject& object) {
+    wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ViewObjectNodeName);
+    AddBaseObjectAttributes(object, xmlNode);
+    AddModelScreenLocationAttributes(object, xmlNode);
+    parentNode->AddChild(xmlNode);
+    return xmlNode;
+}
+
+void XmlSerializingVisitor::Visit(const GridlinesObject& object)
+{
+    wxXmlNode* xmlNode = CommonObjectVisitSteps(object);
+    xmlNode->AddAttribute("GridLineSpacing", std::to_string(object.GetGridLineSpacing()));
+    xmlNode->AddAttribute("GridWidth", std::to_string(object.GetGridWidth()));
+    xmlNode->AddAttribute("GridHeight", std::to_string(object.GetGridHeight()));
+    xmlNode->AddAttribute("GridColor", object.GetGridColor());
+    xmlNode->AddAttribute("GridAxis", object.GetHasAxis() ? "1" : "0");
+    xmlNode->AddAttribute("PointToFront", object.GetPointToFront() ? "1" : "0");
+}
+
+void XmlSerializingVisitor::Visit(const TerrainObject& object)
+{
+    wxXmlNode* xmlNode = CommonObjectVisitSteps(object);
+    xmlNode->AddAttribute(XmlNodeKeys::ImageAttribute, object.GetImageFile());
+    xmlNode->AddAttribute(XmlNodeKeys::TransparencyAttribute, std::to_string(object.GetTransparency()));
+    xmlNode->AddAttribute(XmlNodeKeys::BrightnessAttribute, std::to_string(object.GetBrightness()));
+    xmlNode->AddAttribute(XmlNodeKeys::TerrainLineAttribute, std::to_string(object.GetSpacing()));
+    xmlNode->AddAttribute(XmlNodeKeys::TerrainWidthAttribute, std::to_string(object.GetWidth()));
+    xmlNode->AddAttribute(XmlNodeKeys::TerrainDepthAttribute, std::to_string(object.GetDepth()));
+    xmlNode->AddAttribute(XmlNodeKeys::TerrainDepthAttribute, std::to_string(object.GetDepth()));
+    xmlNode->AddAttribute(XmlNodeKeys::HideGridAttribute, object.IsHideGrid() ? "1" : "0");
+    xmlNode->AddAttribute(XmlNodeKeys::HideImageAttribute, object.IsHideImage() ? "1" : "0");
+    xmlNode->AddAttribute(XmlNodeKeys::ImageAttribute, object.GetGridColor());
+    const TerrainScreenLocation& screenLoc = dynamic_cast<const TerrainScreenLocation&>(object.GetBaseObjectScreenLocation());
+    xmlNode->AddAttribute(XmlNodeKeys::PointDataAttribute, screenLoc.GetDataAsString());
+}
+
+void XmlSerializingVisitor::Visit(const ImageObject& object)
+{
+    wxXmlNode* xmlNode = CommonObjectVisitSteps(object);
+    xmlNode->AddAttribute(XmlNodeKeys::ImageAttribute, object.GetImageFile());
+    xmlNode->AddAttribute(XmlNodeKeys::TransparencyAttribute, std::to_string(object.GetTransparency()));
+    xmlNode->AddAttribute(XmlNodeKeys::BrightnessAttribute, std::to_string(object.GetBrightness()));
+}
+
+void XmlSerializingVisitor::Visit(const MeshObject& object)
+{
+    wxXmlNode* xmlNode = CommonObjectVisitSteps(object);
+    xmlNode->AddAttribute(XmlNodeKeys::ObjFileAttribute, object.GetObjFile());
+    xmlNode->AddAttribute(XmlNodeKeys::MeshOnlyAttribute, object.IsMeshOnly() ? "1" : "0");
+    xmlNode->AddAttribute(XmlNodeKeys::BrightnessAttribute, std::to_string(object.GetBrightness()));
+}
+
+void XmlSerializingVisitor::Visit(const RulerObject& object)
+{
+    wxXmlNode* xmlNode = CommonObjectVisitSteps(object);
+    AddTwoPointScreenLocationAttributes(object, xmlNode);
+    xmlNode->AddAttribute(XmlNodeKeys::UnitsAttribute, std::to_string(object.GetUnits()));
+    xmlNode->AddAttribute(XmlNodeKeys::LengthAttribute, std::to_string(object.GetLength()));
 }

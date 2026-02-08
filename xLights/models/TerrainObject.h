@@ -47,7 +47,7 @@ public:
 
     const std::string& GetImageFile() const { return _imageFile; }
     int GetSpacing() const { return spacing; }
-    const std::string GetGridColor() { return std::string(gridColor); }
+    const std::string GetGridColor() const { return std::string(gridColor); }
     int GetWidth() const { return width; }
     int GetDepth() const { return depth; }
     bool IsHideImage() const { return hide_image; }
@@ -56,6 +56,8 @@ public:
     int GetImgHeight() const { return img_height; }
     int GetTransparency() const { return transparency; }
     int GetBrightness() const { return brightness; }
+
+    void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
 protected:
     void UpdateSize();

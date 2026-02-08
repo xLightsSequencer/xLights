@@ -42,6 +42,12 @@ public:
     void SetMeshOnly(bool val) { mesh_only = val; }
     void SetBrightness(int val) {brightness = val; }
 
+    const std::string GetObjFile() const { return _objFile; }
+    bool IsMeshOnly() const { return mesh_only; }
+    int GetBrightness() const { return brightness; }
+    
+    void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
+
 protected:
     void checkAccessToFile(const std::string &url);
     void loadObject(xlGraphicsContext *ctx);

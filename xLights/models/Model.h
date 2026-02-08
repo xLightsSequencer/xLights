@@ -207,7 +207,7 @@ public:
     void AddSubmodel(wxXmlNode* n);
     void AddSubmodel(wxXmlNode* n, bool skipPrompt);
     void ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup);
-    [[nodiscard]] Model* CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, wxXmlNode* node, xLightsFrame* xlights, const std::string& startChannel, bool& cancelled) const;
+    [[nodiscard]] Model* CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, wxXmlNode* node, xLightsFrame* xlights, bool& cancelled) const;
 
     [[nodiscard]] wxString SerialiseSubmodel() const;
     [[nodiscard]] wxString SerialiseAliases() const;

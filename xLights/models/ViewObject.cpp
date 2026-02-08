@@ -16,7 +16,6 @@
 #include "Model.h"
 
 ViewObject::ViewObject(const ObjectManager &manager)
-: only_3d(true)
 {
 }
 

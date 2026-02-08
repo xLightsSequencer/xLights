@@ -43,6 +43,8 @@ public:
     int GetTransparency() const { return transparency; }
     int GetBrightness() const { return brightness; }
 
+    void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
+
 protected:
 
 private:

@@ -20,7 +20,7 @@
 struct XmlSerializer {
     XmlSerializer() {}
 
-    // Serialize all model into an XML document
+    // Serialize all models into an XML document
     void SerializeAllModels(const ModelManager & allModels, xLightsFrame* xlights, wxXmlNode* root) {
 
         wxXmlNode* modelsNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelsNodeName);
@@ -62,6 +62,22 @@ struct XmlSerializer {
 
         return doc;
     }
+
+    // Serialize all objects into an XML document
+    void SerializeAllObjects(const ViewObjectManager & allObjects, xLightsFrame* xlights, wxXmlNode* root) {
+
+        wxXmlNode* objectsNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ViewObjectsNodeName);
+
+        XmlSerializingVisitor visitor{ objectsNode };
+
+        for (auto v = allObjects.begin(); v != allObjects.end(); ++v) {
+            ViewObject* object = v->second;
+            object->Accept(visitor);
+        }
+        
+        root->AddChild(objectsNode);
+    }
+
 
     // Deserialize a single model from an XML document
     Model* DeserializeModel(const wxXmlDocument& doc, xLightsFrame* xlights, bool importing) {

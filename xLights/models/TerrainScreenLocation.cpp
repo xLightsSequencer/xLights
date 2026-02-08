@@ -416,3 +416,29 @@ void TerrainScreenLocation::Init() {
         mPos[i] = 0.0f;
     }
 }
+
+const std::string TerrainScreenLocation::GetDataAsString() const {
+    wxString point_data = "";
+    // store the number of points in each axis to allow for smart resizing
+    // when grid is altered after terrain points have already been established
+    point_data += wxString::Format("%f,%f,", (float)num_points_wide, (float)num_points_deep);
+    int num_zeroes = 0;
+    for (int i = 0; i < num_points; ++i) {
+        if (mPos[i] != 0) {
+            if (num_zeroes > 0) {
+                point_data += wxString::Format("%f,%f,", 0.0f, (float)num_zeroes);
+                num_zeroes = 0;
+            }
+            point_data += wxString::Format("%f", mPos[i]);
+            if (i != num_points - 1) {
+                point_data += ",";
+            }
+        } else {
+            num_zeroes++;
+            if (i == num_points - 1) {
+                point_data += wxString::Format("%f,%f", 0.0f, (float)num_zeroes);
+            }
+        }
+    }
+    return point_data;
+}

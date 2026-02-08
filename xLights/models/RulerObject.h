@@ -33,6 +33,8 @@ public:
     virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {}
 
+    void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
+
     [[nodiscard]] int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
 
     [[nodiscard]] virtual bool Draw(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* solid, xlGraphicsProgram* transparent, bool allowSelected = false) override;
@@ -66,6 +68,8 @@ public:
     void SetUnits(int val) { _units = val; }
     void SetLength(float val) { _realLength = val; }
 
+    float GetLength() const { return _realLength; }
+    
     protected:
 
     [[nodiscard]] float GetPerUnit() const;

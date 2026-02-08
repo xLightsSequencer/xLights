@@ -52,7 +52,7 @@ public:
 protected:
 
 private:
-    bool only_3d;
+    bool only_3d {true};
 };
 
 template <class ScreenLocation>

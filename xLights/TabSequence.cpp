@@ -722,6 +722,7 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
 
     XmlSerializer serializer;
     serializer.SerializeAllModels(AllModels, this, root);
+    serializer.SerializeAllObjects(AllObjects, this, root);
 
     // Make sure the views are up to date before we save it
     //_sequenceViewManager.Save(&EffectsXml);

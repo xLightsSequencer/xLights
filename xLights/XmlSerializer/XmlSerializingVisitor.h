@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include "../models/DMX/DmxMovingHeadComm.h"
+#include "ViewObject.h"
 #include <wx/xml/xml.h>
 
 class DmxBeamAbility;
@@ -61,6 +62,12 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
     void Visit(const DmxServo3d& model) override;
     void Visit(const DmxSkull& model) override;
 
+    void Visit(const GridlinesObject& object) override;
+    void Visit(const ImageObject& object) override;
+    void Visit(const MeshObject& object) override;
+    void Visit(const TerrainObject& object) override;
+    void Visit(const RulerObject& object) override;
+
 private:
     wxXmlNode* parentNode;
 
@@ -102,4 +109,5 @@ private:
     void AddOtherElements(wxXmlNode* xmlNode, const Model* m);
 
     [[nodiscard]] wxXmlNode* CommonVisitSteps(const Model& model);
+    [[nodiscard]] wxXmlNode* CommonObjectVisitSteps(const ViewObject& object);
 };

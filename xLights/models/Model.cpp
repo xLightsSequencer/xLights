@@ -2224,7 +2224,7 @@ void Model::ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview*
     for (auto m = n->GetChildren(); m != nullptr; m = m->GetNext()) {
         bool cancelled = false;
         Model* model = xlights->AllModels.CreateDefaultModel("Custom", "1"); // start with a custom model
-        model = model->CreateDefaultModelFromSavedModelNode(model, modelPreview, m, xlights, "1", cancelled);
+        model = model->CreateDefaultModelFromSavedModelNode(model, modelPreview, m, xlights, cancelled);
 
         if (!cancelled && model != nullptr) {
             x += 20;
@@ -5582,7 +5582,7 @@ void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString
     }*/
 }
 
-Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, wxXmlNode* node, xLightsFrame* xlights, const std::string& startChannel, bool& cancelled) const {
+Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, wxXmlNode* node, xLightsFrame* xlights, bool& cancelled) const {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -5604,14 +5604,19 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         model = serializer.DeserializeModel(n, xlights, true);
         return model;
     } else if (node->GetName() == "polylinemodel") {
-        model = xlights->AllModels.CreateDefaultModel("Poly Line", startChannel);
+        if (model != nullptr) { delete model; }
+        model = serializer.DeserializeModel(n, xlights, true);
         return model;
     } else if (node->GetName() == "multipointmodel") {
-        model = xlights->AllModels.CreateDefaultModel("MultiPoint", startChannel);
+        if (model != nullptr) { delete model; }
+        model = serializer.DeserializeModel(n, xlights, true);
         return model;
     } else if (node->GetName() == "matrixmodel") {
-        model = xlights->AllModels.CreateDefaultModel("Matrix", startChannel);
-        ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(1, 1);
+        if (model != nullptr) { delete model; }
+        model = serializer.DeserializeModel(n, xlights, true);
+        if (model != nullptr) {
+            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(1, 1);
+        }
         return model;
     } else if (node->GetName() == "archesmodel") {
         int l = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetLeft();
@@ -5620,49 +5625,29 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         int b = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetBottom();
         if (model != nullptr) { delete model; }
         model = serializer.DeserializeModel(n, xlights, true);
-        ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMWidth(std::abs(r - l));
-        ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetRight(r);
-        ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetLeft(l);
-        ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetBottom(b);
-        ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMHeight(2 * (float)std::abs(t - b) / (float)std::abs(r - l));
+        if (model != nullptr) {
+            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMWidth(std::abs(r - l));
+            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetRight(r);
+            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetLeft(l);
+            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetBottom(b);
+            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMHeight(2 * (float)std::abs(t - b) / (float)std::abs(r - l));
+        }
     } else if (node->GetName() == "starmodel") {
-        model = xlights->AllModels.CreateDefaultModel("Star", startChannel);
+        if (model != nullptr) { delete model; }
+        model = serializer.DeserializeModel(n, xlights, true);
         ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(1, 1);
         return model;
     } else if (node->GetName() == "treemodel") {
-        model = xlights->AllModels.CreateDefaultModel("Tree", startChannel);
+        if (model != nullptr) { delete model; }
+        model = serializer.DeserializeModel(n, xlights, true);
         ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(1, 1);
         return model;
     } else if (node->GetName() == "dmxmodel") {
         // grab the attributes I want to keep
-        std::string startChannel = model->GetModelStartChannel();
         auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
         auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
-
-        std::string dmx_type = node->GetAttribute("DisplayAs");
-        // not a custom model so delete the default model that was created
-        if (model != nullptr) {
-            xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
-            delete model;
-        }
-        // Upgrade older DMX models
-        if (dmx_type == "DMX") {
-            std::string style = node->GetAttribute("DmxStyle", "DMX");
-            if (style == "Moving Head Top" ||
-                style == "Moving Head Side" ||
-                style == "Moving Head Bars" ||
-                style == "Moving Head TopBars" ||
-                style == "Moving Head SideBars") {
-                dmx_type = "DmxMovingHead";
-            } else if (style == "Moving Head 3D") {
-                dmx_type = "DmxMovingHeadAdv";
-            } else if (style == "Flood Light") {
-                dmx_type = "DmxFloodlight";
-            } else if (style == "Skulltronix Skull") {
-                dmx_type = "DmxSkulltronix";
-            }
-        }
-        model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
+        if (model != nullptr) { delete model; }
+        model = serializer.DeserializeModel(n, xlights, true);
         if( model != nullptr ) {
             // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
@@ -5673,52 +5658,60 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
     } else if (node->GetName() == "dmxgeneral") {
         auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
         auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
-
-        std::string dmx_type = node->GetAttribute("DisplayAs");
-        model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
-        // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
-        ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
+        if (model != nullptr) { delete model; }
+        model = serializer.DeserializeModel(n, xlights, true);
+        if (model != nullptr) {
+            // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
+            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
+        }
         return model;
     } else if (node->GetName() == "dmxservo") {
         // grab the attributes I want to keep
         std::string startChannel = model->GetModelStartChannel();
         auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
         auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
-
-        std::string dmx_type = node->GetAttribute("DisplayAs");
-        model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
-        // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
-        ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
+        if (model != nullptr) { delete model; }
+        model = serializer.DeserializeModel(n, xlights, true);
+        if (model != nullptr) {
+            // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
+            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
+        }
         return model;
     } else if (node->GetName() == "dmxservo3axis" ||
                node->GetName() == "dmxservo3d") {
-        std::string dmx_type = node->GetAttribute("DisplayAs");
-
-        model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
-        model->GetModelScreenLocation().SetScaleMatrix(glm::vec3(1, 1, 1));
+        if (model != nullptr) { delete model; }
+        model = serializer.DeserializeModel(n, xlights, true);
+        if (model != nullptr) {
+            model->GetModelScreenLocation().SetScaleMatrix(glm::vec3(1, 1, 1));
+        }
         return model;
     } else if (node->GetName() == "circlemodel") {
-
-        model = xlights->AllModels.CreateDefaultModel("Circle", startChannel);
-        //((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
+        if (model != nullptr) { delete model; }
+        model = serializer.DeserializeModel(n, xlights, true);
         return model;
     } else if (node->GetName() == "spheremodel") {
         auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();
-
-        model = xlights->AllModels.CreateDefaultModel("Sphere", startChannel);
-        ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
+        if (model != nullptr) { delete model; }
+        model = serializer.DeserializeModel(n, xlights, true);
+        if (model != nullptr) {
+            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
+        }
         return model;
     } else if (node->GetName() == "iciclemodel") {
         auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();
-
-        model = xlights->AllModels.CreateDefaultModel("Icicles", startChannel);
-        ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
+        if (model != nullptr) { delete model; }
+        model = serializer.DeserializeModel(n, xlights, true);
+        if (model != nullptr) {
+            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
+        }
         return model;
     } else if (node->GetName() == "Cubemodel") {
         auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();
-
-        model = xlights->AllModels.CreateDefaultModel("Cube", startChannel);
-        ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
+        if (model != nullptr) { delete model; }
+        model = serializer.DeserializeModel(n, xlights, true);
+        if (model != nullptr) {
+            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
+        }
     } else {
         if (model != nullptr) { delete model; }
         model = serializer.DeserializeModel(n, xlights, true);
@@ -6184,8 +6177,9 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
     }
     if (doc.IsOk()) {
         wxXmlNode* root = doc.GetRoot();
-
-        model = model->CreateDefaultModelFromSavedModelNode(model, modelPreview, root, xlights, "1", cancelled);
+        
+        model->SetStartChannel("1");
+        model = model->CreateDefaultModelFromSavedModelNode(model, modelPreview, root, xlights, cancelled);
 
         if (!cancelled)
             return model;

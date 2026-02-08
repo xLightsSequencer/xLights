@@ -66,9 +66,9 @@ Model* XmlDeserializingModelFactory::Deserialize(wxXmlNode* node, xLightsFrame* 
         return DeserializeCandyCane(node, xlights, importing);
     } else if (type == XmlNodeKeys::ChannelBlockType) {
         return DeserializeChannelBlock(node, xlights, importing);
-    } else if (type == XmlNodeKeys::CircleType) {
+    } else if (type == XmlNodeKeys::CircleType || node_name == "circlemodel") {
         return DeserializeCircle(node, xlights, importing);
-    } else if (type == XmlNodeKeys::CubeType) {
+    } else if (type == XmlNodeKeys::CubeType || node_name == "Cubemodel") {
         return DeserializeCube(node, xlights, importing);
     } else if (type == XmlNodeKeys::CustomType || node_name == "custommodel") {
         return DeserializeCustom(node, xlights, importing);
@@ -80,33 +80,33 @@ Model* XmlDeserializingModelFactory::Deserialize(wxXmlNode* node, xLightsFrame* 
         return DeserializeDmxFloodArea(node, xlights, importing);
     } else if (type == XmlNodeKeys::DmxFloodlightType) {
         return DeserializeDmxFloodlight(node, xlights, importing);
-    } else if (type == XmlNodeKeys::DmxGeneralType) {
+    } else if (type == XmlNodeKeys::DmxGeneralType || node_name == "dmxgeneral") {
         return DeserializeDmxGeneral(node, xlights, importing);
-    } else if (type == XmlNodeKeys::DmxServoType) {
+    } else if (type == XmlNodeKeys::DmxServoType || node_name == "dmxservo") {
         return DeserializeDmxServo(node, xlights, importing);
-    } else if (type == XmlNodeKeys::DmxServo3dType) {
+    } else if (type == XmlNodeKeys::DmxServo3dType || node_name == "dmxservo3d") {
         return DeserializeDmxServo3d(node, xlights, importing);
     } else if (type == XmlNodeKeys::DmxSkullType) {
         return DeserializeDmxSkull(node, xlights, importing);
-    } else if (type == XmlNodeKeys::IciclesType) {
+    } else if (type == XmlNodeKeys::IciclesType || node_name == "iciclemodel") {
         return DeserializeIcicles(node, xlights, importing);
     } else if (type == XmlNodeKeys::ImageType) {
         return DeserializeImage(node, xlights, importing);
-    } else if (type.Contains(XmlNodeKeys::MatrixType)) {
+    } else if (type.Contains(XmlNodeKeys::MatrixType) || node_name == "matrixmodel") {
         return DeserializeMatrix(node, xlights, importing);
-    } else if (type.Contains(XmlNodeKeys::MultiPointType)) {
+    } else if (type.Contains(XmlNodeKeys::MultiPointType) || node_name == "multipointmodel") {
         return DeserializeMultiPoint(node, xlights, importing);
     } else if (type == XmlNodeKeys::SingleLineType) {
         return DeserializeSingleLine(node, xlights, importing);
-    } else if (type == XmlNodeKeys::PolyLineType) {
+    } else if (type == XmlNodeKeys::PolyLineType || node_name == "polylinemodel") {
         return DeserializePolyLine(node, xlights, importing);
-    } else if (type == XmlNodeKeys::SphereType) {
+    } else if (type == XmlNodeKeys::SphereType || node_name == "spheremodel") {
         return DeserializeSphere(node, xlights, importing);
     } else if (type == XmlNodeKeys::SpinnerType) {
         return DeserializeSpinner(node, xlights, importing);
-    } else if (type == XmlNodeKeys::StarType) {
+    } else if (type == XmlNodeKeys::StarType || node_name == "starmodel") {
         return DeserializeStar(node, xlights, importing);
-    } else if (type.Contains(XmlNodeKeys::TreeType)) {
+    } else if (type.Contains(XmlNodeKeys::TreeType) || node_name == "treemodel") {
         return DeserializeTree(node, xlights, importing);
     } else if (type == XmlNodeKeys::WindowType) {
         return DeserializeWindow(node, xlights, importing);

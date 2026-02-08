@@ -37,6 +37,12 @@ class TreeModel;
 class WindowFrameModel;
 class WreathModel;
 
+class GridlinesObject;
+class ImageObject;
+class MeshObject;
+class RulerObject;
+class TerrainObject;
+
 struct BaseObjectVisitor {
     virtual void Visit(const ArchesModel& model) = 0;
     virtual void Visit(const CandyCaneModel& model) = 0;
@@ -64,6 +70,12 @@ struct BaseObjectVisitor {
     virtual void Visit(const TreeModel& model) = 0;
     virtual void Visit(const WindowFrameModel& model) = 0;
     virtual void Visit(const WreathModel& model) = 0;
+
+    virtual void Visit(const GridlinesObject& object) = 0;
+    virtual void Visit(const TerrainObject& object) = 0;
+    virtual void Visit(const ImageObject& object) = 0;
+    virtual void Visit(const MeshObject& object) = 0;
+    virtual void Visit(const RulerObject& object) = 0;
 
     virtual ~BaseObjectVisitor() {
     }

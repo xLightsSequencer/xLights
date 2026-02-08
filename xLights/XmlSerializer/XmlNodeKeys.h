@@ -18,6 +18,11 @@ namespace XmlNodeKeys {
     constexpr auto RGBEffectsAttribute = "rgb_effects";
     constexpr auto DimmingCurveName    = "dimmingCurve";
 
+    // View Object Node Names
+    constexpr auto ViewObjectsNodeName = "view_objects";
+    constexpr auto ViewObjectNodeName  = "view_object";
+    
+
     // Common BaseObject Attributes
     constexpr auto NameAttribute        = "name";
     constexpr auto StateNameAttribute   = "Name";
@@ -408,7 +413,6 @@ namespace XmlNodeKeys {
     constexpr auto RulerType        = "Ruler";
 
     //Extra Types
-    constexpr auto ViewObjectsType  = "view_objects";
     constexpr auto EffectsType      = "effects";
     constexpr auto ViewsType        = "views";
     constexpr auto PalettesType     = "palettes";

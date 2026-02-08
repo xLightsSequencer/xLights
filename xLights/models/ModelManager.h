@@ -94,8 +94,6 @@ class ModelManager : public ObjectManager
 
     private:
 
-    void MigrateDmxMotors(wxXmlNode *node) const;
-
     wxXmlNode *layoutsNode = nullptr;
     OutputManager* _outputManager = nullptr;
     xLightsFrame* xlights = nullptr;

@@ -38,10 +38,14 @@ public:
     void SetHasAxis(bool val) { hasAxis = val; }
     void SetPointToFront(bool val) { pointToFront = val; }
 
-    int GetGridLineSpacing() { return line_spacing; }
-    int GetGridWidth() { return width; }
-    int GetGridHeight() { return height; }
-    const std::string GetGridColor() { return std::string(gridColor); }
+    int GetGridLineSpacing() const { return line_spacing; }
+    int GetGridWidth() const { return width; }
+    int GetGridHeight() const { return height; }
+    bool GetHasAxis() const { return hasAxis; }
+    bool GetPointToFront() const { return pointToFront; }
+    const std::string GetGridColor() const { return std::string(gridColor); }
+
+    void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
 protected:
 

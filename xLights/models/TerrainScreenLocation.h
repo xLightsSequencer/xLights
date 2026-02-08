@@ -43,6 +43,7 @@ public:
     void UpdateSize(int wide, int deep, int num_points);
 
     void SetDataFromString(const std::string& point_data);
+    const std::string GetDataAsString() const;
 
 protected:
     
