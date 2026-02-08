@@ -198,7 +198,6 @@ void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model
     model->SetBlackTransparency(std::stol(node->GetAttribute(XmlNodeKeys::BTransparencyAttribute,"0").ToStdString()));
     model->SetDescription(UnXmlSafe(node->GetAttribute(XmlNodeKeys::DescriptionAttribute)));
     model->SetTagColourAsString(node->GetAttribute(XmlNodeKeys::TagColourAttribute, "#000000"));
-    model->SetStartChannel(node->GetAttribute(XmlNodeKeys::StartChannelAttribute, "1").ToStdString());
     model->SetNodeNames(node->GetAttribute(XmlNodeKeys::NodeNamesAttribute).ToStdString());
     model->SetStrandNames(node->GetAttribute(XmlNodeKeys::StrandNamesAttribute).ToStdString());
     model->SetCustomColor(node->GetAttribute(XmlNodeKeys::CustomColorAttribute, "#000000").ToStdString());
@@ -207,7 +206,10 @@ void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model
     if (!importing) {
         model->SetControllerName(node->GetAttribute(XmlNodeKeys::ControllerAttribute, xlEMPTY_STRING).Trim(true).Trim(false).ToStdString(), true);
     }
-    
+
+    // Keep this after SetControllerName because it can clear out the start channel
+    model->SetStartChannel(node->GetAttribute(XmlNodeKeys::StartChannelAttribute, "1").ToStdString());
+
     // Individual Start Channels
     bool hasIndivChan = std::stol(node->GetAttribute(XmlNodeKeys::AdvancedAttribute,"0").ToStdString());
     model->SetHasIndividualStartChannels(hasIndivChan);
