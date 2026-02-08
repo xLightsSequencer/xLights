@@ -96,7 +96,22 @@ const wxWindowID ColorPanel::ID_MNU_DELETE = wxNewId();
 const wxWindowID ColorPanel::ID_MNU_IMPORT = wxNewId();
 const wxWindowID ColorPanel::ID_MNU_GENERATE = wxNewId();
 
-#define SWATCH_WIDTH 11
+// Standard sizes
+#define SWATCH_WIDTH_STANDARD 11
+#define SWATCH_HEIGHT_STANDARD 18
+#define PALETTE_BUTTON_SIZE_STANDARD 21
+#define PALETTE_CC_SIZE_STANDARD 13
+
+// Large sizes
+#define SWATCH_WIDTH_LARGE 28
+#define SWATCH_HEIGHT_LARGE 36
+#define PALETTE_BUTTON_SIZE_LARGE 32
+#define PALETTE_CC_SIZE_LARGE 18
+
+static bool IsLargePalette() {
+    return wxConfigBase::Get()->Read("PaletteSize", "Normal") == "Large";
+}
+
 class ColourList : public wxOwnerDrawnComboBox
 {
 public:
@@ -110,14 +125,19 @@ public:
 
     }
 
-    virtual wxCoord OnMeasureItem(size_t item) const
-    {
-        return 18;
+    int GetSwatchWidth() const {
+        return IsLargePalette() ? SWATCH_WIDTH_LARGE : SWATCH_WIDTH_STANDARD;
     }
 
-    virtual wxCoord OnMeasureItemWidth(size_t item) const
+    virtual wxCoord OnMeasureItem(size_t item) const override
     {
-        return PALETTE_SIZE * SWATCH_WIDTH - 1;
+        return IsLargePalette() ? SWATCH_HEIGHT_LARGE : SWATCH_HEIGHT_STANDARD;
+    }
+
+    virtual wxCoord OnMeasureItemWidth(size_t item) const override
+    {
+        int swatchWidth = IsLargePalette() ? SWATCH_WIDTH_LARGE : SWATCH_WIDTH_STANDARD;
+        return PALETTE_SIZE * swatchWidth - 1;
     }
 
     virtual void OnDrawItem(wxDC &dc, const wxRect &rect, int item, int flags) const
@@ -136,13 +156,14 @@ public:
             wxArrayString as = wxSplit(s, ',');
 
             int i = 0;
+            int swatchWidth = GetSwatchWidth();
 
             for (auto it = as.begin(); it != as.end() && i < PALETTE_SIZE; ++it)
             {
                 if (it->Contains("Active"))
                 {
                     ColorCurve cc(it->ToStdString());
-                    dc.DrawBitmap(cc.GetImage(SWATCH_WIDTH - 1, rect.GetHeight()-1, false), i * SWATCH_WIDTH, rect.GetTop());
+                    dc.DrawBitmap(cc.GetImage(swatchWidth - 1, rect.GetHeight() - 1, false), i * swatchWidth, rect.GetTop());
                 }
                 else
                 {
@@ -152,7 +173,7 @@ public:
                     wxBrush b(c.asWxColor());
                     dc.SetPen(p);
                     dc.SetBrush(b);
-                    dc.DrawRectangle(i * SWATCH_WIDTH, rect.GetTop(), SWATCH_WIDTH - 1, rect.GetHeight()-1);
+                    dc.DrawRectangle(i * swatchWidth, rect.GetTop(), swatchWidth - 1, rect.GetHeight() - 1);
                 }
                 i++;
             }
@@ -478,7 +499,8 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
     for (int x = 0; x < PALETTE_SIZE; x++) {
         wxString ids = wxString::Format("ID_BUTTON_Palette%d", (x + 1));
         long id2 = wxNewId();
-        ColorCurveButton *bb = new ColorCurveButton(ColorScrollWindow, id2, wxNullBitmap, wxDefaultPosition, FromDIP(wxSize(21, 21)), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, ids);
+        int btnSize = IsLargePalette() ? PALETTE_BUTTON_SIZE_LARGE : PALETTE_BUTTON_SIZE_STANDARD;
+        ColorCurveButton* bb = new ColorCurveButton(ColorScrollWindow, id2, wxNullBitmap, wxDefaultPosition, FromDIP(wxSize(btnSize, btnSize)), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, ids);
         bb->SetDropTarget(new ColourTextDropTarget(bb));
         FlexGridSizer_Palette->Add(bb, 0, wxALIGN_LEFT|wxALIGN_TOP, 0);
         buttons.push_back(bb);
@@ -495,8 +517,9 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
     for (int x = 0; x < PALETTE_SIZE; x++) {
         wxString ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_PaletteCC%d", (x + 1));
         long id2 = wxNewId();
-        wxBitmapButton *bb = new xlSizedBitmapButton(ColorScrollWindow, id2, wxArtProvider::GetBitmapBundle("xlART_cc_na_xpm", wxART_BUTTON), wxDefaultPosition,
-                                                wxSize(13, 13), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, ids);
+        int ccSize = IsLargePalette() ? PALETTE_CC_SIZE_LARGE : PALETTE_CC_SIZE_STANDARD;
+        wxBitmapButton* bb = new xlSizedBitmapButton(ColorScrollWindow, id2, wxArtProvider::GetBitmapBundle("xlART_cc_na_xpm", wxART_BUTTON), wxDefaultPosition,
+                                                     wxSize(ccSize, ccSize), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, ids);
         bb->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
         FlexGridSizer_Palette->Add(bb, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
         Connect(id2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorPanel::OnCCButtonClick);
@@ -1688,4 +1711,44 @@ void ColorPanel::OnListPopup(wxCommandEvent &event)
     } else if (event.GetId() == ID_MNU_UPDATE) {
         UpdateColor();
     }
+}
+
+void ColorPanel::RefreshPaletteSize() {
+    int btnSize = IsLargePalette() ? PALETTE_BUTTON_SIZE_LARGE : PALETTE_BUTTON_SIZE_STANDARD;
+    for (auto btn : buttons) {
+        btn->SetSize(FromDIP(wxSize(btnSize, btnSize)));
+        btn->SetMinSize(FromDIP(wxSize(btnSize, btnSize)));
+    }
+
+    int ccSize = IsLargePalette() ? PALETTE_CC_SIZE_LARGE : PALETTE_CC_SIZE_STANDARD;
+    for (int x = 0; x < PALETTE_SIZE; x++) {
+        wxString ids = wxString::Format("ID_BITMAPBUTTON_BUTTON_PaletteCC%d", (x + 1));
+        wxBitmapButton* ccBtn = (wxBitmapButton*)wxWindow::FindWindowByName(ids, this);
+        if (ccBtn) {
+            ccBtn->SetSize(wxSize(ccSize, ccSize));
+            ccBtn->SetMinSize(wxSize(ccSize, ccSize));
+        }
+    }
+
+    int swatchWidth = IsLargePalette() ? SWATCH_WIDTH_LARGE : SWATCH_WIDTH_STANDARD;
+    int dropdownWidth = PALETTE_SIZE * swatchWidth + 20;
+
+    BitmapButton_ColourChoice->Dismiss();
+    BitmapButton_ColourChoice->Clear();
+    BitmapButton_ColourChoice->AppendString("");
+    for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it) {
+        BitmapButton_ColourChoice->AppendString(*it);
+    }
+
+    BitmapButton_ColourChoice->SetMinSize(wxSize(dropdownWidth, -1));
+    BitmapButton_ColourChoice->SetSize(wxSize(dropdownWidth, -1));
+    BitmapButton_ColourChoice->SetPopupMinWidth(dropdownWidth);
+    BitmapButton_ColourChoice->SetSelection(0);
+
+    FlexGridSizer_Palette->Layout();
+    if (BitmapButton_ColourChoice->GetContainingSizer()) {
+        BitmapButton_ColourChoice->GetContainingSizer()->Layout();
+    }
+    ColorScrollWindow->FitInside();
+    ColorScrollWindow->Layout();
 }

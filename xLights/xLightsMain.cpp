@@ -121,6 +121,7 @@
 #include "ai/chatGPT.h"
 #include "ai/AIImageDialog.h"
 #include "models/DMX/DmxMovingHeadComm.h"
+#include "ColorPanel.h"
 
 #include "../xSchedule/wxHTTPServer/wxhttpserver.h"
 
@@ -10806,5 +10807,16 @@ void xLightsFrame::OnMenuItem_GenerateAIImageSelected(wxCommandEvent& event) {
     }
     AIImageDialog dlg(this, serv);
     dlg.ShowModal();
+}
+
+void xLightsFrame::SetPaletteSizeString(const wxString& size) {
+    if (GetPaletteSizeString() != size) {
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write("PaletteSize", size);
+
+        if (colorPanel) {
+            colorPanel->RefreshPaletteSize();
+        }
+    }
 }
 
