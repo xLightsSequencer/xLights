@@ -10797,10 +10797,10 @@ void xLightsFrame::OnMenuItem_GenerateAIImageSelected(wxCommandEvent& event) {
     dlg.ShowModal();
 }
 
-void xLightsFrame::SetPaletteSizeIndex(int index) {
-    if (GetPaletteSizeIndex() != index) {
+void xLightsFrame::SetPaletteSizeString(const wxString& size) {
+    if (GetPaletteSizeString() != size) {
         wxConfigBase* config = wxConfigBase::Get();
-        config->Write("PaletteSizeIndex", index);
+        config->Write("PaletteSize", size);
 
         if (colorPanel) {
             colorPanel->RefreshPaletteSize();

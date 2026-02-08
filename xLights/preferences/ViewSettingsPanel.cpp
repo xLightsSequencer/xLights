@@ -177,7 +177,8 @@ bool ViewSettingsPanel::TransferDataToWindow()
     Choice_TimelineZooming->SetSelection(frame->GetTimelineZooming() & 1);
     CheckBox_PresetPreview->SetValue(frame->HidePresetPreview());
     CheckBox_DisableKeyAcceleration->SetValue(frame->IsDisableKeyAcceleration());
-    Choice_PaletteSize->SetSelection(frame->GetPaletteSizeIndex());
+    Choice_PaletteSize->SetStringSelection(frame->GetPaletteSizeString());
+
     return true;
 }
 bool ViewSettingsPanel::TransferDataFromWindow()
@@ -208,7 +209,7 @@ bool ViewSettingsPanel::TransferDataFromWindow()
 
     frame->SetTimelineZooming(Choice_TimelineZooming->GetSelection());
     frame->SetHidePresetPreview(CheckBox_PresetPreview->IsChecked());
-    frame->SetPaletteSizeIndex(Choice_PaletteSize->GetSelection());
+    frame->SetPaletteSizeString(Choice_PaletteSize->GetStringSelection());
     return true;
 }
 

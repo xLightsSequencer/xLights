@@ -109,7 +109,7 @@ const wxWindowID ColorPanel::ID_MNU_GENERATE = wxNewId();
 #define PALETTE_CC_SIZE_LARGE 18
 
 static bool IsLargePalette() {
-    return wxConfigBase::Get()->ReadLong("PaletteSizeIndex", 0) == 1;
+    return wxConfigBase::Get()->Read("PaletteSize", "Normal") == "Large";
 }
 
 class ColourList : public wxOwnerDrawnComboBox
