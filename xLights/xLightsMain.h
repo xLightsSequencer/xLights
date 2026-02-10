@@ -1326,6 +1326,12 @@ public:
     bool IsDisableKeyAcceleration() const { return _disableKeyAcceleration; }
     void SetDisableKeyAcceleration(bool b);
 
+    wxString GetPaletteSizeString() const {
+        wxConfigBase* config = wxConfigBase::Get();
+        return config->Read("PaletteSize", "Normal");
+    }
+    void SetPaletteSizeString(const wxString& size);
+
     bool IsSuppressFadeHints() const { return mSuppressFadeHints; }
     void SetSuppressFadeHints(bool b);
 

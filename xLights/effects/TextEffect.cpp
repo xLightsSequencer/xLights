@@ -459,25 +459,29 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
 
     if (text.IsEmpty())
     {
-        if (FileExists(filename))
-        {
-            wxTextFile f(filename);
-            f.Open();
-            int i = 0;
-            text = f.GetFirstLine() + "\n";
-            while (!f.Eof() && i < MAXTEXTLINES)
-            {
-                text += f.GetNextLine() + "\n";
-                i++;
-            }
-            if (!text.IsEmpty())
-            {
-                while (!text.IsEmpty() && text.Last() == '\n' )
-                {
-                    text = text.BeforeLast('\n');
+        if (FileExists(filename)) {
+            wxFile file(filename);
+            if (file.IsOpened()) {
+                wxString fileContent;
+                if (file.ReadAll(&fileContent)) {
+                    wxArrayString lines = wxSplit(fileContent, '\n');
+
+                    text.Clear();
+                    int lineCount = std::min((int)lines.GetCount(), MAXTEXTLINES);
+
+                    for (int i = 0; i < lineCount; i++) {
+                        if (i > 0) {
+                            text += "\n";
+                        }
+                        text += lines[i];
+                    }
+
+                    while (!text.IsEmpty() && text.Last() == '\n') {
+                        text.RemoveLast();
+                    }
                 }
+                file.Close();
             }
-            f.Close();
         }
         else
         {
@@ -1537,20 +1541,28 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
 
     if (text == "") {
         if (FileExists(filename)) {
-            wxTextFile f(filename);
-            f.Open();
-            int i = 0;
-            text = f.GetFirstLine() + "\n";
-            while (!f.Eof() && i < MAXTEXTLINES) {
-                text += f.GetNextLine() + "\n";
-                i++;
-            }
-            if (text != "") {
-                while (text.Last() == '\n') {
-                    text = text.BeforeLast('\n');
+            wxFile file(filename);
+            if (file.IsOpened()) {
+                wxString fileContent;
+                if (file.ReadAll(&fileContent)) {
+                    wxArrayString lines = wxSplit(fileContent, '\n');
+
+                    text.Clear();
+                    int lineCount = std::min((int)lines.GetCount(), MAXTEXTLINES);
+
+                    for (int i = 0; i < lineCount; i++) {
+                        if (i > 0) {
+                            text += "\n";
+                        }
+                        text += lines[i];
+                    }
+
+                    while (!text.IsEmpty() && text.Last() == '\n') {
+                        text.RemoveLast();
+                    }
                 }
+                file.Close();
             }
-            f.Close();
         }
         else if (lyricTrack != "") {
             Element* t = nullptr;

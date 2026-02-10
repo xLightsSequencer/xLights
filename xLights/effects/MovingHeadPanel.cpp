@@ -1484,7 +1484,8 @@ void MovingHeadPanel::UpdateStatusPanel()
                             */
                             headselect_set = true;
                         }
-                        if (hasrealvalues) {
+                        // Gil - turning this off until we can find a way to prevent the button from staying permanently highlighted
+                        /*if (hasrealvalues) {
                             if (hascmd_heads == mh_evens) {
                                 Button_Evens->SetBackgroundColour(*wxBLUE);
                                 Button_Evens->SetForegroundColour(wxColour(255,255,255));
@@ -1495,7 +1496,7 @@ void MovingHeadPanel::UpdateStatusPanel()
                                 Button_All->SetBackgroundColour(*wxBLUE);
                                 Button_All->SetForegroundColour(wxColour(255,255,255));
                             }
-                        }
+                        }*/
                     }
                 }
                 if (pos_set) {
