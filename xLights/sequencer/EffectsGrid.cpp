@@ -6324,19 +6324,20 @@ void EffectsGrid::UpdateSelectionRectangle() {
 }
 
 void EffectsGrid::SetRCToolTip() {
-    if (mSequenceElements == nullptr) {
-        UnsetToolTip();
+    if (mSequenceElements == nullptr || !IsShownOnScreen()) {
         return;
     }
 
-    int x = std::abs(mRangeEndCol - mRangeStartCol) + 1;
-    int y = std::abs(mRangeEndRow - mRangeStartRow) + 1;
+    int selectedRow = mSequenceElements->GetSelectedTimingRow();
+
+    const int x = std::abs(mRangeEndCol - mRangeStartCol) + 1;
+    const int y = std::abs(mRangeEndRow - mRangeStartRow) + 1;
 
     if (!mCellRangeSelected ||
         mPartialCellSelected ||
         mRangeStartCol < 0 ||
         (x == 1 && y == 1) ||
-        mSequenceElements->GetSelectedTimingRow() < 0) {
+        selectedRow < 0) {
         UnsetToolTip();
     } else {
         SetToolTip(wxString::Format("%dC x %dR", x, y));

@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <map>
+#include <fstream>
 
 #include <wx/app.h>
 #include <wx/arrstr.h>
@@ -17,7 +18,16 @@
 #include <wx/filename.h>
 #include <wx/xml/xml.h>
 #include <wx/mstream.h>
+
+#ifndef LINUX
+//zstd on Debian 11 doesn't have the thread pool stuff
+#define ZSTD_STATIC_LINKING_ONLY
 #include <zstd.h>
+#undef ZSTD_STATIC_LINKING_ONLY
+#else
+#include <zstd.h>
+#endif
+
 
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
@@ -1626,10 +1636,12 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
     delete file;
 }
 
-static int compressMemoryBuffer(const wxMemoryOutputStream &out, uint8_t *outbuf, int max) {
+static int compressMemoryBuffer(const wxMemoryOutputStream &out, uint8_t *outbuf, int max, void *pool) {
     auto cctx = ZSTD_createCStream();
     ZSTD_initCStream(cctx, 3);
-    
+#ifndef LINUX
+    ZSTD_CCtx_refThreadPool(cctx, (POOL_ctx_s*)pool);
+#endif
     
     ZSTD_outBuffer output;
     output.size = max;
@@ -1646,9 +1658,51 @@ static int compressMemoryBuffer(const wxMemoryOutputStream &out, uint8_t *outbuf
 
     ZSTD_compressStream2(cctx, &output, &input, ZSTD_e_end);
     free(src);
+    ZSTD_freeCStream(cctx);
     return output.pos;
 }
+static int compressFile(std::vector<uint8_t> &data, const wxFileName &fn, void *pool) {
+    std::ifstream ifs(fn.GetFullPath().ToStdString(), std::ios::binary | std::ios::ate);
+    if (!ifs.is_open()) {
+        return 0;
+    }
+    
+    std::streampos fileSize = ifs.tellg();
+    ifs.seekg(0, std::ios::beg);
+    data.resize(fileSize);
 
+    auto cctx = ZSTD_createCStream();
+    ZSTD_initCStream(cctx, 3);
+#ifndef LINUX
+    ZSTD_CCtx_refThreadPool(cctx, (POOL_ctx_s*)pool);
+#endif
+    
+    ZSTD_outBuffer output;
+    output.size = fileSize;
+    output.dst = &data[0];
+    output.pos = 0;
+    
+    ZSTD_inBuffer input;
+    constexpr int BUFFER_SIZE = 128 * 1024;
+    std::vector<uint8_t> buffer(BUFFER_SIZE);
+    input.size = BUFFER_SIZE;
+    input.src = &buffer[0];
+    input.pos = 0;
+    
+    while (!ifs.eof()) {
+        ifs.read(reinterpret_cast<char*>(buffer.data()), BUFFER_SIZE);
+        input.size = ifs.gcount();
+        input.pos = 0;
+        while (input.pos < input.size) {
+            ZSTD_compressStream2(cctx, &output, &input, ZSTD_e_continue);
+        }
+    }
+    ZSTD_compressStream2(cctx, &output, &input, ZSTD_e_end);
+
+    ZSTD_freeCStream(cctx);
+    data.resize(output.pos);
+    return output.pos;
+}
 void FileConverter::WriteFalconPiFile(ConvertParameters& params)
 {
     static log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
@@ -1777,50 +1831,86 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
             }
         }
         if (params.xLightsFrm) {
+#ifndef LINUX
+            POOL_ctx_s* pool = ZSTD_createThreadPool(std::thread::hardware_concurrency());
+#else
+            void *pool = nullptr;
+#endif
             if (params.xLightsFrm) {
-                const auto &xml = params.xLightsFrm->GetEffectsXml();
-                wxMemoryOutputStream out;
-                xml.Save(out);
                 FSEQFile::VariableHeader header;
                 header.code[0] = 'X';
                 header.code[1] = 'R';
                 header.extendedData = true;
-                header.data.resize(out.GetLength());
-                int sz = compressMemoryBuffer(out, &header.data[0], out.GetLength());
-                header.data.resize(sz);
+                if (!params.xLightsFrm->UnsavedRgbEffectsChanges) {
+                    wxFileName effectsFile;
+                    effectsFile.AssignDir(params.xLightsFrm->CurrentDir);
+                    effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
+                    wxFileName fn(effectsFile.GetFullPath());
+                    if (FileExists(fn.GetFullPath())) {
+                        compressFile(header.data, fn, pool);
+                    }
+                }
+                if (header.data.size() == 0) {
+                    const auto &xml = params.xLightsFrm->GetEffectsXml();
+                    wxMemoryOutputStream out;
+                    xml.Save(out);
+                    header.data.resize(out.GetLength());
+                    int sz = compressMemoryBuffer(out, &header.data[0], out.GetLength(), pool);
+                    header.data.resize(sz);
+                }
                 file->addVariableHeader(header);
                 // printf("XR:   in: %d   out: %d\n", (int)out.GetLength(), sz);
             }
             if (params._outputManager) {
-                wxMemoryOutputStream out;
                 FSEQFile::VariableHeader header;
-                params._outputManager->SaveToXML().Save(out);
                 header.code[0] = 'X';
                 header.code[1] = 'N';
                 header.extendedData = true;
-                header.data.resize(out.GetLength());
-                int sz = compressMemoryBuffer(out, &header.data[0], out.GetLength());
-                header.data.resize(sz);
+                if (!params.xLightsFrm->UnsavedNetworkChanges) {
+                    wxFileName effectsFile;
+                    effectsFile.AssignDir(params.xLightsFrm->CurrentDir);
+                    effectsFile.SetFullName(_(XLIGHTS_NETWORK_FILE));
+                    wxFileName fn(effectsFile.GetFullPath());
+                    if (FileExists(fn.GetFullPath())) {
+                        compressFile(header.data, fn, pool);
+                    }
+                }
+                if (header.data.size() == 0) {
+                    wxMemoryOutputStream out;
+                    params._outputManager->SaveToXML().Save(out);
+                    header.data.resize(out.GetLength());
+                    int sz = compressMemoryBuffer(out, &header.data[0], out.GetLength(), pool);
+                    header.data.resize(sz);
+                }
                 file->addVariableHeader(header);
-                // printf("XN:   in: %d   out: %d\n", (int)out.GetLength(), sz);
             }
             if (params.xLightsFrm && params.xLightsFrm->CurrentSeqXmlFile) {
                 wxMemoryOutputStream out;
                 FSEQFile::VariableHeader header;
-                
-                if (params.xLightsFrm->mSavedChangeCount != params.elements->GetChangeCount()) {
-                    params.xLightsFrm->CurrentSeqXmlFile->SaveToDoc(*params.elements);
-                }
-                params.xLightsFrm->CurrentSeqXmlFile->GetXmlDocument().Save(out);
                 header.code[0] = 'X';
                 header.code[1] = 'S';
                 header.extendedData = true;
-                header.data.resize(out.GetLength());
-                int sz = compressMemoryBuffer(out, &header.data[0], out.GetLength());
-                header.data.resize(sz);
+
+                if (params.xLightsFrm->mSavedChangeCount == params.elements->GetChangeCount()) {
+                    if (FileExists(params.xLightsFrm->CurrentSeqXmlFile->GetFullPath())) {
+                        compressFile(header.data, *params.xLightsFrm->CurrentSeqXmlFile, pool);
+                    }
+                }
+                if (header.data.size() == 0) {
+                    if (params.xLightsFrm->mSavedChangeCount != params.elements->GetChangeCount()) {
+                        params.xLightsFrm->CurrentSeqXmlFile->SaveToDoc(*params.elements);
+                    }
+                    params.xLightsFrm->CurrentSeqXmlFile->GetXmlDocument().Save(out);
+                    header.data.resize(out.GetLength());
+                    int sz = compressMemoryBuffer(out, &header.data[0], out.GetLength(), pool);
+                    header.data.resize(sz);
+                }
                 file->addVariableHeader(header);
                 // printf("XS:   in: %d   out: %d\n", (int)out.GetLength(), sz);
             }
+#ifndef LINUX
+            ZSTD_freeThreadPool(pool);
+#endif
         }
     }
 
