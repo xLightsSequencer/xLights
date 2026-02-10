@@ -18,9 +18,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (derwin12)         Highlight perfectly vertical single lines similar to how horizontal is shown
     -enh (dkulp)            Allow using AppleIntelligence/ImagePlayground on M# Macs to generate images
     -enh (derwin12)         Allow using Gemini to generate images
-    -enh (dkulp)            If both ChatGBT and AppleIntelligence are enabled, allow selecting which one to use for Color Pallete generation
+    -enh (dkulp)            If both ChatGPT and AppleIntelligence are enabled, allow selecting which one to use for Color Pallete generation
     -enh (derwin12)         Add check sequence warning for reveresed single lines
-    -enh (derwin12)         Optionall ring bell if error during batch render
+    -enh (derwin12)         Optional ring bell if error during batch render
     -enh (derwin12)         Disable sequence duration change if media is selected
     -enh (keith)            Updates for new pixel protocols for Minleon controllers
     -enh (scott)            WLED Add Full xLights Control that uses xLights GPIO pins to allow Port Skipping and sets brightness factor from default brightness
@@ -29,7 +29,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)         Fix or workaround several potential crashes
     -bug (derwin12)         Fix potential crash in text effect if using external file for text
     -bug (derwin12)         Fix FSEQ info being dumped on slight channel mismatch
-    -bug (derwin12)         Add warning t clear render cache if FPS is modified
+    -bug (derwin12)         Add warning to clear render cache if FPS is modified
     -bug (gil)              MH Effect: If all commands have the same position reselect the fixtures from the commands
     -bug (gil)              Update so new MH head effects are always have no commands. New MH's select all fixtures. Reselecting existing MH effect unchecks fixtures    
 2026.01  January 7, 2026
