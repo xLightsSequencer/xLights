@@ -100,6 +100,7 @@ void SequenceElements::Clear() {
     mFirstVisibleModelRow = 0;
     mChangeCount = 0;
     mMasterViewChangeCount++;
+    mSequenceImages.Clear();
     mCurrentView = 0;
     supportsModelBlending = true;
     std::vector <Element*> master_view;
@@ -822,6 +823,8 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                     colorPalettes.push_back(ToStdString(elementNode->GetNodeContent()));
                 }
             }
+        } else if (e->GetName() == "SequenceImages") {
+            mSequenceImages.LoadFromXml(e);
         } else if (e->GetName() == "Jukebox") {
             xframe->LoadJukebox(e);
         } else if (e->GetName() == "ElementEffects") {

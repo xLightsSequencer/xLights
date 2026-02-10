@@ -12,6 +12,7 @@
 
 #include "EffectLayer.h"
 #include "Element.h"
+#include "SequenceImages.h"
 #include "wx/wx.h"
 #include <vector>
 #include <set>
@@ -206,6 +207,10 @@ public:
     wxFileName &GetFileName() { return mFilename; }
     EffectManager &GetEffectManager();
     xLightsFrame *GetXLightsFrame() const { return xframe; };
+    
+    // Image cache management
+    SequenceImages& GetSequenceImages() { return mSequenceImages; }
+    const SequenceImages& GetSequenceImages() const { return mSequenceImages; }
 protected:
 private:
     int LoadEffects(EffectLayer *layer,
@@ -257,5 +262,7 @@ private:
     std::map<std::string, std::set<std::string>> renderDependency;
     std::set<std::string> modelsToRender;
     std::mutex renderDepLock;
+    
+    SequenceImages mSequenceImages;
 };
 

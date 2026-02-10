@@ -22,6 +22,7 @@
 #include "PicturesEffect.h"
 #include "PicturesPanel.h"
 #include "../sequencer/Effect.h"
+#include "../sequencer/SequenceImages.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "assist/xlGridCanvasPictures.h"
@@ -30,7 +31,6 @@
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
-#include "GIFImage.h"
 #include "../xLightsMain.h" 
 
 #include <log4cpp/Category.hh>
@@ -240,23 +240,14 @@ typedef std::vector< std::pair<wxPoint, xlColor> > PixelVector;
 
 class PicturesRenderCache : public EffectRenderCache {
 public:
-    PicturesRenderCache() : imageCount(0), frame(0),  gifImage(nullptr), maxmovieframes(0), orientation(1) {};
-    virtual ~PicturesRenderCache()
-    {
-        if (gifImage != nullptr) {
-            delete gifImage;
-            gifImage = nullptr;
-        }
-    };
-
-    wxImage image;
-    wxImage rawimage;
-    int imageCount;
-    int frame;
-    int maxmovieframes;
-    wxString PictureName;
-    int orientation;
-    GIFImage* gifImage;
+    PicturesRenderCache() {}
+    virtual ~PicturesRenderCache() {}
+    
+    int imageCount = 0;
+    int frame = 0;
+    int maxmovieframes = 0;
+    std::string PictureName;
+    std::shared_ptr<ImageCacheEntry> imageCache;
     std::vector<PixelVector> PixelsByFrame;
 };
 
@@ -282,19 +273,14 @@ static PicturesRenderCache *GetCache(RenderBuffer &buf) {
 //NOTE: channels should be in same order between Vixen and xLights; use Vixen Reorder functions to accomplish that, since xLights only reorders within the model
 
 //this allows copy/paste from Vixen grid:
-void PicturesEffect::LoadPixelsFromTextFile(RenderBuffer &buffer, wxFile& debug, const wxString& filename)
+void PicturesEffect::LoadPixelsFromTextFile(RenderBuffer &buffer, const std::string& filename)
 {
     wxByte rgb[3] = { 0,0,0 };
     PicturesRenderCache *cache = GetCache(buffer);
     cache->imageCount = 0;
-    wxImage &image = cache->image;
-    wxImage &rawimage = cache->rawimage;
     std::vector<PixelVector> &PixelsByFrame = cache->PixelsByFrame;
 
-    if (image.GetWidth() && image.GetHeight()) image.Clear(); //CAUTION: image must be non-empty to clear it (memory error otherwise)
-    if (rawimage.GetWidth() && rawimage.GetHeight()) rawimage.Clear(); //CAUTION: image must be non-empty to clear it (memory error otherwise)
-
-    if (!cache->PictureName.CmpNoCase(filename)) { wrdebug("no change: " + filename); return; }
+    if (EqualsIgnoreCase(cache->PictureName, filename)) { wrdebug("no change: " + filename); return; }
     if (!FileExists(filename)) { wrdebug("not found: " + filename); return; }
     wxTextFile f;
     cache->PixelsByFrame.clear();
@@ -500,8 +486,6 @@ void PicturesEffect::Render(RenderBuffer& buffer,
     bool pixelOffsets, bool wrap_x, bool shimmer, bool loopGIF, bool suppressGIFBackground,
     bool transparentBlack, int transparentBlackLevel)
 {
-
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int dir = GetPicturesDirection(dirstr);
     double position = buffer.GetEffectTimeIntervalPosition(movementSpeed);
 
@@ -513,8 +497,6 @@ void PicturesEffect::Render(RenderBuffer& buffer,
     bool noImageFile = false;
 
     PicturesRenderCache* cache = GetCache(buffer);
-    wxImage& image = cache->image;
-    wxImage& rawimage = cache->rawimage;
 
     if (NewPictureName2.length() == 0) {
         noImageFile = true;
@@ -527,8 +509,6 @@ void PicturesEffect::Render(RenderBuffer& buffer,
         //      ffmpeg -i XXXX.mov -s 16x50 XXXX-%d.jpg
         //      ffmpeg -i XXXX.mts -s 16x50 XXXX-%d.jpg
 
-        wxFile f;
-        GIFImage*& gifImage = cache->gifImage;
         std::vector<PixelVector>& PixelsByFrame = cache->PixelsByFrame;
         int& frame = cache->frame;
 
@@ -547,8 +527,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
             wxString sTmpPicture = wxString::Format("%s-2.%s", BasePicture, extension);
             if (!FileExists(sTmpPicture)) {
                 // not a movie file as frame 2 does not exist
-            }
-            else {
+            } else {
 
                 //  build the next filename. the frame counter is incrementing through all frames
                 if (buffer.needToInit) { // only once, try 10000 files to find how high is frame count
@@ -565,8 +544,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
                         }
                     }
                     frame = 1;
-                }
-                else {
+                } else {
                     frame = floor((double(curPeriod - curEffStartPer)) * frameRateAdj) + 1;
                 }
                 if (frame > cache->maxmovieframes) {
@@ -578,14 +556,15 @@ void PicturesEffect::Render(RenderBuffer& buffer,
 
         wxString NewPictureName = sPicture;
 
-        if (dir == RENDER_PICTURE_VIXREMAP) //load pre-rendered pixels from file and apply to model -DJ
-        {
-            LoadPixelsFromTextFile(buffer, f, NewPictureName);
+        if (dir == RENDER_PICTURE_VIXREMAP) {
+            //load pre-rendered pixels from file and apply to model -DJ
+            LoadPixelsFromTextFile(buffer, NewPictureName);
             int idx = curPeriod - curEffStartPer;
-            if (idx < PixelsByFrame.size()) //TODO: wrap?
+            if (idx < PixelsByFrame.size()) {
                 for (auto /*std::vector<std::pair<wxPoint, xlColour>>::iterator*/ it = PixelsByFrame[idx].begin(); it != PixelsByFrame[idx].end(); ++it) {
                     SetTransparentBlackPixel(buffer, it->first.x, it->first.y, it->second, transparentBlack, transparentBlackLevel);
                 }
+            }
             return;
         }
 
@@ -598,81 +577,16 @@ void PicturesEffect::Render(RenderBuffer& buffer,
             } else {
                 wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
 
-                // There seems to be a bug on linux where this function crashes occasionally
-#ifdef LINUX
-                logger_base.debug("About to count images in bitmap %s.", (const char*)NewPictureName.c_str());
-#endif
-                cache->imageCount = wxImage::GetImageCount(NewPictureName);
-                if (cache->imageCount <= 0) {
-                    logger_base.error("Image %s reports %d frames which is invalid. Overriding it to be 1.", (const char*)NewPictureName.c_str(), cache->imageCount);
-
-                    // override it to 1
-                    cache->imageCount = 1;
-                }
-                
                 cache->PictureName = NewPictureName;
-                cache->orientation = GetExifOrientation(NewPictureName);
-
-                if (cache->imageCount > 1) {
-#ifdef DEBUG_GIF
-                    logger_base.debug("Preparing GIF file for reading: %s", (const char*)NewPictureName.c_str());
-#endif
-                    if (gifImage != nullptr && gifImage->GetFilename() != NewPictureName) {
-                        delete gifImage;
-                        gifImage = nullptr;
-                    }
-                    if (gifImage == nullptr) {
-                        gifImage = new GIFImage(NewPictureName.ToStdString(), suppressGIFBackground);
-                    }
-
-                    if (!gifImage->IsOk()) {
-                        delete gifImage;
-                        gifImage = nullptr;
-                        cache->imageCount = 1;
-                        if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0)) {
-                            logger_base.error("Error loading image file: %s.", (const char*)NewPictureName.c_str());
-                            image.Create(5, 5, true);
-                        }
-                        image = ApplyOrientation(image, cache->orientation);
-                        rawimage = image;
-                    } else {
-                        image = gifImage->GetFrame(0);
-                        rawimage = image;
-                    }
-                } else {
-                    if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0)) {
-                        logger_base.error("Error loading image file: %s.", (const char*)NewPictureName.c_str());
-                        image.Create(5, 5, true);
-                    }
-                    image = ApplyOrientation(image, cache->orientation);
-                    rawimage = image;
-                }
+                cache->imageCache = buffer.GetSequenceImages()->GetImage(NewPictureName.ToStdString());
+                cache->imageCache->MarkIsUsed();
+                cache->imageCount = cache->imageCache->GetImageCount();
             }
         }
-        if (!noImageFile && !image.IsOk()) {
+        if (!noImageFile && !cache->imageCache->IsOk()) {
             noImageFile = true;
         }
-        if (!noImageFile && cache->imageCount > 1) {
-
-            //animated Gif,
-            scale_image = true;
-
-            if (loopGIF) {
-                image = gifImage->GetFrameForTime((buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs * frameRateAdj, true);
-            }
-            else {
-                int ii = cache->imageCount * buffer.GetEffectTimeIntervalPosition(frameRateAdj) * 0.99;
-                image = gifImage->GetFrame(ii);
-            }
-
-            rawimage = image;
-
-            if (!rawimage.IsOk()) {
-                noImageFile = true;
-            }
-        }
     }
-
     if (noImageFile) {
         for (int x = 0; x < BufferWi; x++) {
             for (int y = 0; y < BufferHt; y++) {
@@ -681,61 +595,60 @@ void PicturesEffect::Render(RenderBuffer& buffer,
         }
         return;
     }
-
-    if (scale_to_fit == "No Scaling" && (start_scale != end_scale)) {
-        image = rawimage;
+    
+    cache->frame = cache->imageCache->GetFrameForTime((buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs * frameRateAdj, loopGIF);
+    if (cache->imageCount > 0) {
         scale_image = true;
     }
 
-    int imgwidth = image.GetWidth();
-    int imght = image.GetHeight();
+    if (scale_to_fit == "No Scaling" && (start_scale != end_scale)) {
+        scale_image = true;
+    }
+
+    wxSize imageSize = cache->imageCache->GetImageSize();
+    int imgwidth = imageSize.GetWidth();
+    int imght = imageSize.GetHeight();
     int yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
     int xoffset = (imgwidth - BufferWi) / 2; //centered if sizes don't match
 
+    std::shared_ptr<wxImage> image;
+
+
     if (scale_to_fit == "Scale To Fit" && (BufferWi != imgwidth || BufferHt != imght)) {
-        image = rawimage;
-        image.SetOption(wxIMAGE_OPTION_GIF_TRANSPARENCY, wxIMAGE_OPTION_GIF_TRANSPARENCY_UNCHANGED);
-        if (!image.HasAlpha()) {
-            image.InitAlpha();
-        }
-        image.Rescale(BufferWi, BufferHt);
-        imgwidth = image.GetWidth();
-        imght = image.GetHeight();
+        image = cache->imageCache->GetScaledImage(cache->frame, BufferWi, BufferHt, suppressGIFBackground);
+        imgwidth = image->GetWidth();
+        imght = image->GetHeight();
+
         yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
         xoffset = (imgwidth - BufferWi) / 2; //centered if sizes don't match
-    }
-    else if (scale_to_fit == "Scale Keep Aspect Ratio" || scale_to_fit == "Scale Keep Aspect Ratio Crop") {
-        image = rawimage;
-        float xr = (float)BufferWi / (float)image.GetWidth();
-        float yr = (float)BufferHt / (float)image.GetHeight();
+    } else if (scale_to_fit == "Scale Keep Aspect Ratio" || scale_to_fit == "Scale Keep Aspect Ratio Crop") {
+        float xr = (float)BufferWi / (float)imageSize.GetWidth();
+        float yr = (float)BufferHt / (float)imageSize.GetHeight();
         float sc = std::min(xr, yr);
-        if(scale_to_fit.find("Crop") != std::string::npos)
+        if (scale_to_fit.find("Crop") != std::string::npos) {
             sc = std::max(xr, yr);
-        image.SetOption(wxIMAGE_OPTION_GIF_TRANSPARENCY, wxIMAGE_OPTION_GIF_TRANSPARENCY_UNCHANGED);
-        if (!image.HasAlpha()) {
-            image.InitAlpha();
         }
-        image.Rescale(image.GetWidth() * sc, image.GetHeight() * sc);
-        imgwidth = image.GetWidth();
-        imght = image.GetHeight();
+        float newWid = sc * (float)imageSize.GetWidth();
+        float newHi = sc * (float)imageSize.GetHeight();
+        image = cache->imageCache->GetScaledImage(cache->frame, newWid, newHi, suppressGIFBackground);
+
+        imgwidth = image->GetWidth();
+        imght = image->GetHeight();
         yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
         xoffset = (imgwidth - BufferWi) / 2; //centered if sizes don't match
-    }
-    else {
+    } else {
         if ((start_scale != 100 || end_scale != 100) && scale_image) {
             int delta_scale = end_scale - start_scale;
             int current_scale = start_scale + delta_scale * position;
-            imgwidth = (image.GetWidth() * current_scale) / 100;
-            imght = (image.GetHeight() * current_scale) / 100;
+            imgwidth = (imageSize.GetWidth() * current_scale) / 100;
+            imght = (imageSize.GetHeight() * current_scale) / 100;
             imgwidth = std::max(imgwidth, 1);
             imght = std::max(imght, 1);
-            image.SetOption(wxIMAGE_OPTION_GIF_TRANSPARENCY, wxIMAGE_OPTION_GIF_TRANSPARENCY_UNCHANGED);
-            if (!image.HasAlpha()) {
-                image.InitAlpha();
-            }
-            image.Rescale(imgwidth, imght);
+            image = cache->imageCache->GetScaledImage(cache->frame, imgwidth, imght, suppressGIFBackground);
             yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
             xoffset = (imgwidth - BufferWi) / 2; //centered if sizes don't match
+        } else {
+            image = cache->imageCache->GetFrame(cache->frame, suppressGIFBackground);
         }
     }
 
@@ -804,16 +717,18 @@ void PicturesEffect::Render(RenderBuffer& buffer,
     }
     // copy image to buffer
     xlColor c;
-    bool hasAlpha = image.HasAlpha();
+    const wxImage &img = *image.get();
+    
+    bool hasAlpha = img.HasAlpha();
 
     int calc_position_wi = (imgwidth + BufferWi) * position;
     int calc_position_ht = (imght + BufferHt) * position;
 
     for (int x = 0; x < imgwidth; x++) {
         for (int y = 0; y < imght; y++) {
-            if (!image.IsTransparent(x, y)) {
-                unsigned char alpha = hasAlpha ? image.GetAlpha(x, y) : 255;
-                c.Set(image.GetRed(x, y), image.GetGreen(x, y), image.GetBlue(x, y), alpha);
+            if (!img.IsTransparent(x, y)) {
+                unsigned char alpha = hasAlpha ? img.GetAlpha(x, y) : 255;
+                c.Set(img.GetRed(x, y), img.GetGreen(x, y), img.GetBlue(x, y), alpha);
                 if (!buffer.allowAlpha && alpha < 64) {
                     //almost transparent, but this mix doesn't support transparent unless it's black;
                     c = xlBLACK;

@@ -292,9 +292,9 @@ wxImage ApplyOrientation(const wxImage& img, int orient) {
     }
 }
 
-int GetExifOrientation(const wxString& filename) {
+int GetExifOrientation(const std::string& filename) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    std::ifstream file(filename.ToStdString(), std::ios::binary);
+    std::ifstream file(filename, std::ios::binary);
     if (!file) {
         logger_base.debug("Failed to open file: %s", (const char*)filename.c_str());
         file.close();

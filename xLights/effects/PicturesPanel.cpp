@@ -29,7 +29,6 @@
 #include "PicturesPanel.h"
 #include "PicturesEffect.h"
 #include "EffectPanelUtils.h"
-#include "GIFImage.h"
 #include "../ExternalHooks.h"
 #include "UtilFunctions.h"
 
@@ -378,8 +377,8 @@ void PicturesPanel::ValidateWindow()
         BitmapButton_PicturesXC->UnsetToolTip();
         BitmapButton_PicturesYC->UnsetToolTip();
 	}
-
-    enable = GIFImage::IsGIF(FilePickerCtrl1->GetFileName().GetFullPath().ToStdString());
+    
+    enable = FilePickerCtrl1->GetFileName().GetExt().Lower() == "gif";
     CheckBox_LoopGIF->Enable(enable);
     CheckBox_SuppressGIFBackground->Enable(enable);
 
