@@ -60,7 +60,7 @@ jobs:
       run: ISCC.exe xLights_4_64bit_VS.iss
       
     - uses: ncipollo/release-action@v1
-      with:gr
+      with:
            allowUpdates: true
            artifacts: 'build_scripts\msw\output\*'
            token: ${{ secrets.GITHUB_TOKEN }}
