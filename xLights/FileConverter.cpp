@@ -1833,6 +1833,8 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
         if (params.xLightsFrm) {
 #ifndef LINUX
             POOL_ctx_s* pool = ZSTD_createThreadPool(std::thread::hardware_concurrency());
+#else
+            void *pool = nullptr;
 #endif
             if (params.xLightsFrm) {
                 FSEQFile::VariableHeader header;
