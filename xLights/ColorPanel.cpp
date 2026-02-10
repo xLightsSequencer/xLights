@@ -140,7 +140,7 @@ public:
         return PALETTE_SIZE * swatchWidth - 1;
     }
 
-    virtual void OnDrawItem(wxDC &dc, const wxRect &rect, int item, int flags) const
+    virtual void OnDrawItem(wxDC &dc, const wxRect &rect, int item, int flags) const override
     {
         if (item == wxNOT_FOUND)
             return;
