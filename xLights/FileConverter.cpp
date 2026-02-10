@@ -1662,7 +1662,7 @@ static int compressMemoryBuffer(const wxMemoryOutputStream &out, uint8_t *outbuf
     return output.pos;
 }
 static int compressFile(std::vector<uint8_t> &data, const wxFileName &fn, void *pool) {
-    std::ifstream ifs(fn.GetFullPath(), std::ios::binary | std::ios::ate);
+    std::ifstream ifs(fn.GetFullPath().ToStdString(), std::ios::binary | std::ios::ate);
     if (!ifs.is_open()) {
         return 0;
     }
