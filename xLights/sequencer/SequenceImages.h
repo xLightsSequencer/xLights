@@ -49,12 +49,14 @@ public:
     ImageCacheEntry();
     ImageCacheEntry(const std::string &filePath);
     ImageCacheEntry(const std::string &path, const std::string &base64Data);
+    ImageCacheEntry(const std::string &path, const std::vector<wxImage> &images, int ft, const std::string &base64Data = "");
     ~ImageCacheEntry();
 
     // Accessors
     std::string GetFilePath() const { return _filePath; }
     std::string GetEmbeddedData() const { return _embeddedData; }
     bool IsEmbedded() const { return _isEmbedded; }
+    bool IsEmbeddable() const { return !_embeddedData.empty(); }
     int GetImageCount() const { return _imageCount; }
 
     void MarkIsUsed(bool used = true) { _used = used; }
@@ -129,6 +131,7 @@ public:
     // Image retrieval and caching
     std::shared_ptr<ImageCacheEntry> GetImage(const std::string& filepath);
     bool HasImage(const std::string& filepath) const;
+    void AddAnimatedImage(const std::string& filepath, int msFrameTime);
         
     // Remove an image from the cache
     void RemoveImage(const std::string& filepath);

@@ -13,6 +13,10 @@
 #include <wx/base64.h>
 #include <wx/mstream.h>
 #include <wx/wfstream.h>
+#include <wx/imaggif.h>
+#include <wx/anidecod.h>
+#include <wx/quantize.h>
+
 #include <log4cpp/Category.hh>
 
 #include "../effects/GIFImage.h"
@@ -30,7 +34,23 @@ ImageCacheEntry::ImageCacheEntry(const std::string &path, const std::string &bas
     invalidImage = std::make_shared<wxImage>(wxImage());
     _isEmbedded = true;
 }
-
+ImageCacheEntry::ImageCacheEntry(const std::string &path, const std::vector<wxImage> &imgs, int ft, const std::string &base64Data): _used(false), _filePath(path), _embeddedData(base64Data) {
+    invalidImage = std::make_shared<wxImage>(wxImage());
+    _isEmbedded = false;
+    _frameImages.resize(imgs.size());
+    _frameImagesNoBG.resize(imgs.size());
+    _frameTimes.resize(imgs.size());
+    _totalTime = 0;
+    for (int x = 0; x < imgs.size(); x++) {
+        std::shared_ptr<wxImage> i = std::make_shared<wxImage>(imgs[x]);
+        _frameImages[x] = i;
+        _frameImagesNoBG[x] = i;
+        _frameTimes[x] = ft;
+        _totalTime += ft;
+    }
+    _imageSize = imgs[0].GetSize();
+    _loadingDone = true;
+}
 ImageCacheEntry::~ImageCacheEntry()
 {
 }
@@ -362,6 +382,42 @@ void SequenceImages::RemoveImage(const std::string& filepath)
     std::scoped_lock lock(_cacheMutex);
     _imageCache.erase(filepath);
 }
+
+void SequenceImages::AddAnimatedImage(const std::string& filepath, int msFrameTime) {
+    wxFileName fn(filepath);
+    std::string extension = "." + fn.GetExt().ToStdString();
+    std::string BasePicture = fn.GetPathWithSep().ToStdString() + fn.GetName().Left(fn.GetName().Length() - 2).ToStdString() + "-";
+    int cur = 1;
+    std::string fname = BasePicture + std::to_string(cur++) + extension;
+    std::vector<wxImage> images;
+    while (FileExists(fname)) {
+        wxImage i;
+        i.SetLoadFlags(0);
+        i.LoadFile(fname);
+        images.resize(images.size() + 1);
+        wxQuantize::Quantize(i, images.back());
+        fname = BasePicture + std::to_string(cur++) + extension;
+    }
+
+    wxGIFHandler handler;
+    wxMemoryOutputStream out;
+    if (handler.SaveAnimation(images, &out, true, msFrameTime)) {
+        wxStreamBuffer* buffer = out.GetOutputStreamBuffer();
+        std::string emb = wxBase64Encode(buffer->GetBufferStart(), buffer->GetBufferSize());
+        std::unique_lock lock(_cacheMutex);
+        if (_imageCache.find(filepath) == _imageCache.end()) {
+            std::shared_ptr<ImageCacheEntry> np = std::make_shared<ImageCacheEntry>(BasePicture + "1.gif", images, msFrameTime, emb);
+            _imageCache.emplace(filepath, np);
+        }
+    } else {
+        std::unique_lock lock(_cacheMutex);
+        if (_imageCache.find(filepath) == _imageCache.end()) {
+            std::shared_ptr<ImageCacheEntry> np = std::make_shared<ImageCacheEntry>(filepath, images, msFrameTime);
+            _imageCache.emplace(filepath, np);
+        }
+    }
+}
+
 
 void SequenceImages::Clear()
 {

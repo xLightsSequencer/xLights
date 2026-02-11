@@ -173,7 +173,7 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
 #define RENDER_PICTURE_PEEKABOO_90  12
 #define RENDER_PICTURE_PEEKABOO_180  13
 #define RENDER_PICTURE_PEEKABOO_270  14
-#define RENDER_PICTURE_VIXREMAP  15
+// #define RENDER_PICTURE_VIXREMAP  15     /// removed
 #define RENDER_PICTURE_FLAGWAVE  16
 #define RENDER_PICTURE_UPONCE  17
 #define RENDER_PICTURE_DOWNONCE  18
@@ -214,8 +214,6 @@ static inline int GetPicturesDirection(const std::string &dir) {
         return RENDER_PICTURE_PEEKABOO_180;
     } else if (dir == "peekaboo 270") {
         return RENDER_PICTURE_PEEKABOO_270;
-    } else if (dir == "vix 2 routine") {
-        return RENDER_PICTURE_VIXREMAP;
     } else if (dir == "flag wave") {
         return RENDER_PICTURE_FLAGWAVE;
     } else if (dir == "up once") {
@@ -248,7 +246,6 @@ public:
     int maxmovieframes = 0;
     std::string PictureName;
     std::shared_ptr<ImageCacheEntry> imageCache;
-    std::vector<PixelVector> PixelsByFrame;
 };
 
 static PicturesRenderCache *GetCache(RenderBuffer &buf) {
@@ -258,88 +255,6 @@ static PicturesRenderCache *GetCache(RenderBuffer &buf) {
         buf.infoCache[PicturesEffectId] = cache;
     }
     return cache;
-}
-
-//Vixen channel remap from Vixen 2.x back to xLights:
-//for use when you have cell-by-cell Vixen 2.x sequencing that you want to preserve in an xLights sequence
-//how it works:
-//1. look at which channels are on in Vixen during each frame (fixed time intervals)
-//2. using the current elapsed time from start of xLights effect to select a Vixen frame,
-//     reverse lookup thru the current xLights model to determine which screen pixels must be turned on to generate the same results
-//3. set those pixels as the effective output from the xLights effect
-//4. xLights will remap those pixels into target channels
-//net result is that the output of any effects from Vixen will be duplicated in the xLights sequence
-//however, using xLights they can be further manipulated or blended with addition effects to make variations of the original sequence patterns
-//NOTE: channels should be in same order between Vixen and xLights; use Vixen Reorder functions to accomplish that, since xLights only reorders within the model
-
-//this allows copy/paste from Vixen grid:
-void PicturesEffect::LoadPixelsFromTextFile(RenderBuffer &buffer, const std::string& filename)
-{
-    wxByte rgb[3] = { 0,0,0 };
-    PicturesRenderCache *cache = GetCache(buffer);
-    cache->imageCount = 0;
-    std::vector<PixelVector> &PixelsByFrame = cache->PixelsByFrame;
-
-    if (EqualsIgnoreCase(cache->PictureName, filename)) { wrdebug("no change: " + filename); return; }
-    if (!FileExists(filename)) { wrdebug("not found: " + filename); return; }
-    wxTextFile f;
-    cache->PixelsByFrame.clear();
-    if (!f.Open(filename.c_str())) { wrdebug("can't open: " + filename); return; }
-
-    int numch = 0;
-    //int chbase = 0; - doesnt seem to be used - KW
-    int nodesize = 1;
-    for (wxString linebuf = f.GetFirstLine(); !f.Eof(); linebuf = f.GetNextLine())
-    {
-        std::string::size_type ofs;
-        if ((ofs = linebuf.find("#")) != std::string::npos) linebuf.erase(ofs); //remove comments
-        while (!linebuf.empty() && isspace(linebuf.Last())) linebuf.RemoveLast(); //trim trailing spaces
-        if (linebuf.empty()) continue; //skip blank lines
-
-        static wxRegEx chbase_re("^\\s*ChannelBase\\s*=\\s*(-?[0-9]+)\\s*$", wxRE_ICASE);
-        if (!PixelsByFrame.size() && chbase_re.Matches(linebuf)) //allow channels to be shifted
-        {
-            //chbase = wxAtoi(chbase_re.GetMatch(linebuf, 1)); - doesnt seem to be used - KW
-            continue;
-        }
-        static wxRegEx nodesize_re("^\\s*ChannelsPerNode\\s*=\\s*([13])\\s*$", wxRE_ICASE);
-        if (!PixelsByFrame.size() && nodesize_re.Matches(linebuf)) //allow channels to be shifted
-        {
-            nodesize = wxAtoi(nodesize_re.GetMatch(linebuf, 1));
-            continue;
-        }
-
-        PixelVector frame;
-        wxStringTokenizer tkz(linebuf, " ");
-        for (int chnum = 0; tkz.HasMoreTokens(); ++chnum)
-        {
-            wxByte chval = wxAtoi(tkz.GetNextToken());
-            if (!chval) continue; //only need to remember channels that are on (assume most channels are off)
-            std::pair<wxPoint, xlColor> new_pixel;
-            switch (nodesize)
-            {
-            case 1: //map each Vixen channel to a monochrome pixel
-                new_pixel.second.Set(chval, chval, chval); //grayscale
-                break;
-            case 3: //map Vixen triplets to an RGB pixel
-                switch (chnum % 3)
-                {
-                case 0: rgb[0] = chval; continue;
-                case 1: rgb[1] = chval; continue;
-                case 2: rgb[2] = chval; break;
-                default: break;
-                }
-                break;
-            default: break;
-            }
-            new_pixel.second.Set(rgb[0], rgb[1], rgb[2]);
-            //            for (each wxPoint where chnum + chbase occurs in current model)
-            frame.push_back(new_pixel); //build list of pixels that must be set
-            if (chnum + 1 > numch) numch = chnum + 1; //vix grid or routine should be rectangular, but in case it isn't, pad out the shorter rows
-        }
-        PixelsByFrame.push_back(frame); //add new frame, MSVC 2010 doesn't support emplace_back
-    }
-    cache->PictureName = filename;
 }
 
 void PicturesEffect::SetTransparentBlackPixel(RenderBuffer& buffer, int x, int y, xlColor c, bool transparentBlack, int transparentBlackLevel)
@@ -478,7 +393,7 @@ void PicturesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
 }
 
 void PicturesEffect::Render(RenderBuffer& buffer,
-    const std::string& dirstr, const std::string& NewPictureName2,
+    const std::string& dirstr, const std::string& NewPictureName,
     float movementSpeed, float frameRateAdj,
     int xc_adj, int yc_adj,
     int xce_adj, int yce_adj,
@@ -498,87 +413,39 @@ void PicturesEffect::Render(RenderBuffer& buffer,
 
     PicturesRenderCache* cache = GetCache(buffer);
 
-    if (NewPictureName2.length() == 0) {
+    if (NewPictureName.length() == 0) {
         noImageFile = true;
     } else {
-        //  Look at ending of the filename passed in. If we have it ending as *-1.jpg or *-1.png then we will assume
-        //  we have a bunch of jpg files made by ffmpeg
-        //  movie files can be converted into jpg frames by this command
-        //      ffmpeg -i XXXX.mp4 -s 16x50 XXXX-%d.jpg
-        //      ffmpeg -i XXXX.avi -s 16x50 XXXX-%d.jpg
-        //      ffmpeg -i XXXX.mov -s 16x50 XXXX-%d.jpg
-        //      ffmpeg -i XXXX.mts -s 16x50 XXXX-%d.jpg
 
-        std::vector<PixelVector>& PixelsByFrame = cache->PixelsByFrame;
-        int& frame = cache->frame;
-
-        wxString sPicture = NewPictureName2;
-
-        wxFileName fn(NewPictureName2);
-        wxString extension = fn.GetExt();
+        wxFileName fn(NewPictureName);
         wxString suffix = "";
         if (fn.GetName().Length() >= 2) {
             suffix = fn.GetName().Right(2);
         }
 
         if (suffix == "-1") {// do we have a movie file?
-            //    yes
-            wxString BasePicture = fn.GetPathWithSep() + fn.GetName().Left(fn.GetName().Length() - 2);
-            wxString sTmpPicture = wxString::Format("%s-2.%s", BasePicture, extension);
-            if (!FileExists(sTmpPicture)) {
-                // not a movie file as frame 2 does not exist
-            } else {
+            //  Look at ending of the filename passed in. If we have it ending as *-1.jpg or *-1.png then we will assume
+            //  we have a bunch of jpg files made by ffmpeg
+            //  movie files can be converted into jpg frames by this command
+            //      ffmpeg -i XXXX.mp4 -s 16x50 XXXX-%d.jpg
+            //      ffmpeg -i XXXX.avi -s 16x50 XXXX-%d.jpg
+            //      ffmpeg -i XXXX.mov -s 16x50 XXXX-%d.jpg
+            //      ffmpeg -i XXXX.mts -s 16x50 XXXX-%d.jpg
 
-                //  build the next filename. the frame counter is incrementing through all frames
-                if (buffer.needToInit) { // only once, try 10000 files to find how high is frame count
-                    buffer.needToInit = false;
-                    cache->maxmovieframes = 1;
-                    sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
-                    for (frame = 1; frame <= 9999; frame++) {
-                        sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
-                        if (FileExists(sPicture)) {
-                            cache->maxmovieframes = frame;
-                        }
-                        else {
-                            break;
-                        }
-                    }
-                    frame = 1;
-                } else {
-                    frame = floor((double(curPeriod - curEffStartPer)) * frameRateAdj) + 1;
-                }
-                if (frame > cache->maxmovieframes) {
-                    return;
-                }
-                sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
+            if (!buffer.GetSequenceImages()->HasImage(NewPictureName)) {
+                buffer.GetSequenceImages()->AddAnimatedImage(NewPictureName, buffer.frameTimeInMs);
             }
-        }
-
-        wxString NewPictureName = sPicture;
-
-        if (dir == RENDER_PICTURE_VIXREMAP) {
-            //load pre-rendered pixels from file and apply to model -DJ
-            LoadPixelsFromTextFile(buffer, NewPictureName);
-            int idx = curPeriod - curEffStartPer;
-            if (idx < PixelsByFrame.size()) {
-                for (auto /*std::vector<std::pair<wxPoint, xlColour>>::iterator*/ it = PixelsByFrame[idx].begin(); it != PixelsByFrame[idx].end(); ++it) {
-                    SetTransparentBlackPixel(buffer, it->first.x, it->first.y, it->second, transparentBlack, transparentBlackLevel);
-                }
-            }
-            return;
         }
 
         if (NewPictureName != cache->PictureName || buffer.needToInit) {
             buffer.needToInit = false;
             scale_image = true;
 
-            if (!FileExists(NewPictureName)) {
+            if (!FileExists(NewPictureName) && !buffer.GetSequenceImages()->HasImage(NewPictureName)) {
                 noImageFile = true;
             } else {
-                wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
-
                 cache->PictureName = NewPictureName;
-                cache->imageCache = buffer.GetSequenceImages()->GetImage(NewPictureName.ToStdString());
+                cache->imageCache = buffer.GetSequenceImages()->GetImage(NewPictureName);
                 cache->imageCache->MarkIsUsed();
                 cache->imageCount = cache->imageCache->GetImageCount();
             }
@@ -718,6 +585,9 @@ void PicturesEffect::Render(RenderBuffer& buffer,
     // copy image to buffer
     xlColor c;
     const wxImage &img = *image.get();
+    if (!img.IsOk()) {
+        return;
+    }
     
     bool hasAlpha = img.HasAlpha();
 
@@ -726,7 +596,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
 
     for (int x = 0; x < imgwidth; x++) {
         for (int y = 0; y < imght; y++) {
-            if (!img.IsTransparent(x, y)) {
+            if (!hasAlpha || !img.IsTransparent(x, y)) {
                 unsigned char alpha = hasAlpha ? img.GetAlpha(x, y) : 255;
                 c.Set(img.GetRed(x, y), img.GetGreen(x, y), img.GetBlue(x, y), alpha);
                 if (!buffer.allowAlpha && alpha < 64) {

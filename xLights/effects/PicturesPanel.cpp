@@ -146,7 +146,6 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_Pictures_Direction->Append(_("peekaboo 90"));
 	Choice_Pictures_Direction->Append(_("peekaboo 180"));
 	Choice_Pictures_Direction->Append(_("peekaboo 270"));
-	Choice_Pictures_Direction->Append(_("vix 2 routine"));
 	Choice_Pictures_Direction->Append(_("flag wave"));
 	Choice_Pictures_Direction->Append(_("up once"));
 	Choice_Pictures_Direction->Append(_("down once"));
