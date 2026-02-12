@@ -376,7 +376,7 @@ void PicturesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
            SettingsMap.GetBool("CHECKBOX_LoopGIF", false),
            SettingsMap.GetBool("CHECKBOX_SuppressGIFBackground", true),
            SettingsMap.GetBool("CHECKBOX_Pictures_TransparentBlack", false),
-           SettingsMap.GetInt("TEXTCTRL_Pictures_TransparentBlackLevel", 0)
+           SettingsMap.GetInt("TEXTCTRL_Pictures_TransparentBlack", 0)
     );
 }
 
