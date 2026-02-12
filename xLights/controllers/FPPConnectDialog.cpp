@@ -1165,7 +1165,8 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
     int pw, ph;
     frame->GetLayoutPreview()->GetVirtualCanvasSize(pw, ph);
-    std::string displayMap = FPP::CreateVirtualDisplayMap(&frame->AllModels, pw, ph);
+    std::map<std::string, std::string> virtualDisplayData;
+    FPP::CreateVirtualDisplayMap(frame->AllModels, frame->AllObjects, pw, ph, virtualDisplayData);
     bool cancelled = false;
     int row = 0;
     for (const auto& inst : instances) {
@@ -1215,7 +1216,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 if (GetChoiceValueIndex(MODELS_COL + rowStr) == 1) {
                     auto const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, 0, std::numeric_limits<int32_t>::max());
                     cancelled |= inst->UploadModels(memoryMaps);
-                    cancelled |= inst->UploadDisplayMap(displayMap);
+                    cancelled |= inst->UploadDisplayMap(virtualDisplayData);
                     // model uploads currently still require a full restart
                     inst->SetRestartFlag(true);
                 } else if (GetChoiceValueIndex(MODELS_COL + rowStr) == 2) {
