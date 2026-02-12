@@ -214,15 +214,18 @@ void ImageCacheEntry::loadGIF(wxMemoryBuffer &ins) {
         _frameImagesNoBG.resize(_imageCount);
         _frameTimes.resize(_imageCount);
         _imageSize = gif.GetImageSize();
+        //printf("%s\n", _filePath.c_str());
         for (int x = 0; x < _imageCount; x++) {
             _frameImages[x] = std::make_shared<wxImage>(gif.GetFrame(x));
             _frameTimes[x] = gif.GetFrameTime(x);
+            //printf("    Frame %d:   %d\n", x, (int)_frameTimes[x]);
         }
         gif.ResetSuppressBackground(true);
         for (int x = 0; x < _imageCount; x++) {
             _frameImagesNoBG[x] = std::make_shared<wxImage>(gif.GetFrame(x));
         }
         _totalTime = gif.GetTotalTime();
+        //printf("  Total: %d\n", (int)_totalTime);
     }
 }
 void ImageCacheEntry::loadImage(wxMemoryBuffer &ins) {
@@ -279,7 +282,7 @@ std::shared_ptr<wxImage> ImageCacheEntry::GetFrame(int x, bool suppressGIFBackgr
         return invalidImage;
     }
     if (suppressGIFBackground && !_frameImagesNoBG.empty()) {
-        _frameImagesNoBG[x];
+        return _frameImagesNoBG[x];
     }
     return _frameImages[x];
 }
@@ -324,6 +327,9 @@ std::shared_ptr<wxImage> ImageCacheEntry::GetScaledImage(int frameNumber, int wi
     }
     
     std::shared_ptr<wxImage> img = GetFrame(frameNumber, suppressedBg);
+    if (!img->IsOk()) {
+        return img;
+    }
     wxImage *image = new wxImage(*img.get());
     image->SetOption(wxIMAGE_OPTION_GIF_TRANSPARENCY, wxIMAGE_OPTION_GIF_TRANSPARENCY_UNCHANGED);
     if (!image->HasAlpha()) {
