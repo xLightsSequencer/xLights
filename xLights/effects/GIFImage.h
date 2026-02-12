@@ -15,6 +15,7 @@
 #include <wx/gifdecod.h>
 #include <wx/wfstream.h>
 #include <wx/image.h>
+#include "../Color.h"
 
 class GIFImage
 {
