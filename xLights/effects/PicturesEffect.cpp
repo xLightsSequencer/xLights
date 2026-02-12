@@ -452,7 +452,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
         return;
     }
     
-    if (loopGIF || fitAnimation) {
+    if (loopGIF || !fitAnimation) {
         cache->frame = cache->imageCache->GetFrameForTime((buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs * frameRateAdj, loopGIF);
     } else {
         cache->frame = cache->imageCount * buffer.GetEffectTimeIntervalPosition(frameRateAdj) * 0.999;
