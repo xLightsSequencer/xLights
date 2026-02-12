@@ -16,9 +16,12 @@
 #include <wx/imaggif.h>
 #include <wx/anidecod.h>
 #include <wx/quantize.h>
+#include <wx/filename.h>
 
 #include <log4cpp/Category.hh>
 
+#include "../UtilFunctions.h"
+#include "../ExternalHooks.h"
 #include "../effects/GIFImage.h"
 
 // ImageCacheEntry Implementation
