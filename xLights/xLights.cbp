@@ -1108,6 +1108,8 @@
 		<Unit filename="sequencer/RowHeading.h" />
 		<Unit filename="sequencer/SequenceElements.cpp" />
 		<Unit filename="sequencer/SequenceElements.h" />
+        <Unit filename="sequencer/SequenceMedia.cpp" />
+        <Unit filename="sequencer/SequenceMedia.h" />
 		<Unit filename="sequencer/TimeLine.cpp" />
 		<Unit filename="sequencer/TimeLine.h" />
 		<Unit filename="sequencer/UndoManager.cpp" />
