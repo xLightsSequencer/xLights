@@ -225,7 +225,11 @@ void ImageCacheEntry::loadGIF(wxMemoryBuffer &ins) {
             _frameImagesNoBG[x] = std::make_shared<wxImage>(gif.GetFrame(x));
         }
         _totalTime = gif.GetTotalTime();
-        //printf("  Total: %d\n", (int)_totalTime);
+        if (_imageCount == 1) {
+            // if only a single image, we can optimize things a bit
+            _totalTime = 0;
+            _frameTimes[0] = 0;
+        }
     }
 }
 void ImageCacheEntry::loadImage(wxMemoryBuffer &ins) {

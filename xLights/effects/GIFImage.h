@@ -25,7 +25,7 @@ class GIFImage
     std::vector<wxPoint> _frameOffsets;
     std::vector<wxImage> _frameImages;
     std::vector<wxAnimationDisposal> _frameDispose;
-    wxColour _backgroundColour;
+    xlColor _backgroundColor;
     wxSize _gifSize;
 	long _totalTime = 0;
     int _lastFrame = 0;

@@ -33,14 +33,14 @@ GIFImage::GIFImage(const std::string& filename, bool suppressBackground)
     _ok = false;
     _totalTime = 0;
     _suppressBackground = suppressBackground;
-    _backgroundColour = *wxBLACK;
+    _backgroundColor = xlBLACK;
     DoCreate(filename);
 }
 GIFImage::GIFImage(const std::string& name, wxInputStream& ins, bool suppressBackground) {
     _ok = false;
     _totalTime = 0;
     _suppressBackground = suppressBackground;
-    _backgroundColour = *wxBLACK;
+    _backgroundColor = xlBLACK;
     DoCreate(ins, name);
 }
 
@@ -135,7 +135,10 @@ void GIFImage::DoCreate(wxInputStream &stream, const std::string &fname)
         _frameDispose.resize(_gifDecoder.GetFrameCount());
         _ok = true;
 
-        _backgroundColour = _gifDecoder.GetBackgroundColour();
+        auto color = _gifDecoder.GetBackgroundColour();
+        if (color.IsOk()) {
+            _backgroundColor =  color;
+        }
 
         ReadFrameProperties();
         auto its = _frameSizes.begin();
@@ -291,9 +294,9 @@ const wxImage& GIFImage::GetFrame(int frame)
 #ifdef DEBUG_GIF
                 logger_base.debug("    Replacing gif image this after drawing background colour");
 #endif
-                unsigned char red = _backgroundColour.Red();
-                unsigned char green = _backgroundColour.Green();
-                unsigned char blue = _backgroundColour.Blue();
+                unsigned char red = _backgroundColor.Red();
+                unsigned char green = _backgroundColor.Green();
+                unsigned char blue = _backgroundColor.Blue();
                 for (int y = 0; y < image.GetHeight(); y++) {
                     for (int x = 0; x < image.GetWidth(); x++) {
                         image.SetRGB(x, y, red, green, blue);

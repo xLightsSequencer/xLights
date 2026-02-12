@@ -400,7 +400,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
     bool noImageFile = false;
 
     PicturesRenderCache* cache = GetCache(buffer);
-
+    bool fitAnimation = true;
     if (NewPictureName.length() == 0) {
         noImageFile = true;
     } else {
@@ -423,6 +423,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
             if (!buffer.GetSequenceMedia()->HasImage(NewPictureName)) {
                 buffer.GetSequenceMedia()->AddAnimatedImage(NewPictureName, buffer.frameTimeInMs);
             }
+            fitAnimation = false;
         }
 
         if (NewPictureName != cache->PictureName || buffer.needToInit) {
@@ -451,7 +452,11 @@ void PicturesEffect::Render(RenderBuffer& buffer,
         return;
     }
     
-    cache->frame = cache->imageCache->GetFrameForTime((buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs * frameRateAdj, loopGIF);
+    if (loopGIF || fitAnimation) {
+        cache->frame = cache->imageCache->GetFrameForTime((buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs * frameRateAdj, loopGIF);
+    } else {
+        cache->frame = cache->imageCount * buffer.GetEffectTimeIntervalPosition(frameRateAdj) * 0.999;
+    }
     if (cache->imageCount > 0) {
         scale_image = true;
     }
