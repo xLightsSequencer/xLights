@@ -2653,7 +2653,7 @@ bool xLightsXmlFile::SaveToDoc(SequenceElements& seq_elements) {
             e->GetName() == "DataLayers" ||
             e->GetName() == "ColorPalettes" ||
             e->GetName() == "EffectDB" ||
-            e->GetName() == "SequenceImages" ||
+            e->GetName() == "SequenceMedia" ||
             e->GetName() == "TimingTags" ||
             e->GetName() == "lastView") {
             wxXmlNode* node_to_delete = e;
@@ -2670,8 +2670,8 @@ bool xLightsXmlFile::SaveToDoc(SequenceElements& seq_elements) {
     StringIntMap effectStrings;
     wxXmlNode* effectDB_Node = AddChildXmlNode(root, "EffectDB");
 
-    // Save sequence images
-    wxXmlNode* sequenceImages_node = seq_elements.GetSequenceImages().SaveToXml();
+    // Save sequence media
+    wxXmlNode* sequenceImages_node = seq_elements.GetSequenceMedia().SaveToXml();
     if (sequenceImages_node != nullptr) {
         root->AddChild(sequenceImages_node);
     }

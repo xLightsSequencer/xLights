@@ -180,12 +180,12 @@ const wxString &RenderBuffer::GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) cons
     return xLightsFrame::CurrentSeqXmlFile->GetHeaderInfo(node_type);
 }
 
-SequenceImages* RenderBuffer::GetSequenceImages() const
+SequenceMedia* RenderBuffer::GetSequenceMedia() const
 {
     if (frame == nullptr) {
         return nullptr;
     }
-    return &frame->GetSequenceElements().GetSequenceImages();
+    return &frame->GetSequenceElements().GetSequenceMedia();
 }
 
 void RenderBuffer::AlphaBlend(const RenderBuffer& src)

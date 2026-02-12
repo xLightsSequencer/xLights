@@ -116,17 +116,17 @@ private:
 };
 
 /**
- * SequenceImages - Manages image caching for a sequence
+ * SequenceMedia - Manages media caching for a sequence
  * 
- * This class caches images referenced by PicturesEffect to avoid
+ * This class currently caches images referenced by PicturesEffect to avoid
  * reloading them repeatedly. It also supports embedding images
  * directly in the xsq file for portability.
  */
-class SequenceImages
+class SequenceMedia
 {
 public:
-    SequenceImages();
-    ~SequenceImages();
+    SequenceMedia();
+    ~SequenceMedia();
 
     // Image retrieval and caching
     std::shared_ptr<ImageCacheEntry> GetImage(const std::string& filepath);

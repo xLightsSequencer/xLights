@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "SequenceImages.h"
+#include "SequenceMedia.h"
 #include <wx/xml/xml.h>
 #include <wx/base64.h>
 #include <wx/mstream.h>
@@ -68,8 +68,7 @@ void ImageCacheEntry::Load() {
 void ImageCacheEntry::LoadFromData(const std::string& data) {
     wxMemoryBuffer buffer = wxBase64Decode(data.c_str());
     wxFileName fn(_filePath);
-    bool isGif = (fn.GetExt().Lower() == "gif");
-    if (isGif) {
+    if (buffer[0] == 'G' && buffer[1] == 'I' && buffer[2] == 'F') {
         loadGIF(buffer);
     } else {
         loadImage(buffer);
@@ -338,18 +337,18 @@ void ImageCacheEntry::ClearScaledImageCache() {
 }
 
 
-// SequenceImages Implementation
+// SequenceMedia Implementation
 
-SequenceImages::SequenceImages()
+SequenceMedia::SequenceMedia()
 {
 }
 
-SequenceImages::~SequenceImages()
+SequenceMedia::~SequenceMedia()
 {
     Clear();
 }
 
-std::shared_ptr<ImageCacheEntry> SequenceImages::GetImage(const std::string& filepath)
+std::shared_ptr<ImageCacheEntry> SequenceMedia::GetImage(const std::string& filepath)
 {    
     std::unique_lock lock(_cacheMutex);
     // Check if image is already cached
@@ -371,19 +370,19 @@ std::shared_ptr<ImageCacheEntry> SequenceImages::GetImage(const std::string& fil
     return np;
 }
 
-bool SequenceImages::HasImage(const std::string& filepath) const
+bool SequenceMedia::HasImage(const std::string& filepath) const
 {
     std::scoped_lock lock(_cacheMutex);
     return _imageCache.find(filepath) != _imageCache.end();
 }
 
-void SequenceImages::RemoveImage(const std::string& filepath)
+void SequenceMedia::RemoveImage(const std::string& filepath)
 {
     std::scoped_lock lock(_cacheMutex);
     _imageCache.erase(filepath);
 }
 
-void SequenceImages::AddAnimatedImage(const std::string& filepath, int msFrameTime) {
+void SequenceMedia::AddAnimatedImage(const std::string& filepath, int msFrameTime) {
     wxFileName fn(filepath);
     std::string extension = "." + fn.GetExt().ToStdString();
     std::string BasePicture = fn.GetPathWithSep().ToStdString() + fn.GetName().Left(fn.GetName().Length() - 2).ToStdString() + "-";
@@ -406,7 +405,7 @@ void SequenceImages::AddAnimatedImage(const std::string& filepath, int msFrameTi
         std::string emb = wxBase64Encode(buffer->GetBufferStart(), buffer->GetBufferSize());
         std::unique_lock lock(_cacheMutex);
         if (_imageCache.find(filepath) == _imageCache.end()) {
-            std::shared_ptr<ImageCacheEntry> np = std::make_shared<ImageCacheEntry>(BasePicture + "1.gif", images, msFrameTime, emb);
+            std::shared_ptr<ImageCacheEntry> np = std::make_shared<ImageCacheEntry>(filepath, images, msFrameTime, emb);
             _imageCache.emplace(filepath, np);
         }
     } else {
@@ -419,13 +418,13 @@ void SequenceImages::AddAnimatedImage(const std::string& filepath, int msFrameTi
 }
 
 
-void SequenceImages::Clear()
+void SequenceMedia::Clear()
 {
     std::scoped_lock lock(_cacheMutex);
     _imageCache.clear();
 }
 
-void SequenceImages::EmbedImage(const std::string& filepath)
+void SequenceMedia::EmbedImage(const std::string& filepath)
 {
     std::scoped_lock lock(_cacheMutex);
     auto it = _imageCache.find(filepath);
@@ -434,7 +433,7 @@ void SequenceImages::EmbedImage(const std::string& filepath)
     }
 }
 
-void SequenceImages::EmbedAllImages()
+void SequenceMedia::EmbedAllImages()
 {
     std::scoped_lock lock(_cacheMutex);
     for (auto& pair : _imageCache) {
@@ -442,7 +441,7 @@ void SequenceImages::EmbedAllImages()
     }
 }
 
-void SequenceImages::ExtractImage(const std::string& filepath)
+void SequenceMedia::ExtractImage(const std::string& filepath)
 {
     std::scoped_lock lock(_cacheMutex);
     auto it = _imageCache.find(filepath);
@@ -451,7 +450,7 @@ void SequenceImages::ExtractImage(const std::string& filepath)
     }
 }
 
-void SequenceImages::ExtractAllImages()
+void SequenceMedia::ExtractAllImages()
 {
     std::scoped_lock lock(_cacheMutex);
     for (auto& pair : _imageCache) {
@@ -459,11 +458,11 @@ void SequenceImages::ExtractAllImages()
     }
 }
 
-bool SequenceImages::LoadFromXml(wxXmlNode* node)
+bool SequenceMedia::LoadFromXml(wxXmlNode* node)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    
-    if (node == nullptr || node->GetName() != "SequenceImages") {
+
+    if (node == nullptr || (node->GetName() != "SequenceMedia")) {
         return false;
     }
     
@@ -485,11 +484,11 @@ bool SequenceImages::LoadFromXml(wxXmlNode* node)
     return true;
 }
 
-wxXmlNode* SequenceImages::SaveToXml() const
+wxXmlNode* SequenceMedia::SaveToXml() const
 {
     std::scoped_lock lock(_cacheMutex);
-    
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "SequenceImages");
+
+    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "SequenceMedia");
     // Save each image entry
     for (const auto& pair : _imageCache) {
         if (pair.second->IsEmbedded()) {
@@ -501,7 +500,7 @@ wxXmlNode* SequenceImages::SaveToXml() const
     return node;
 }
 
-std::vector<std::string> SequenceImages::GetImagePaths() const
+std::vector<std::string> SequenceMedia::GetImagePaths() const
 {
     std::scoped_lock lock(_cacheMutex);
     std::vector<std::string> paths;
@@ -511,7 +510,7 @@ std::vector<std::string> SequenceImages::GetImagePaths() const
     return paths;
 }
 
-void SequenceImages::RemoveUnusedImages()
+void SequenceMedia::RemoveUnusedImages()
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     
@@ -532,7 +531,7 @@ void SequenceImages::RemoveUnusedImages()
     }
 }
 
-void SequenceImages::MarkAllUnused() {
+void SequenceMedia::MarkAllUnused() {
     std::scoped_lock lock(_cacheMutex);
     for (const auto& pair : _imageCache) {
         pair.second->MarkIsUsed(false);

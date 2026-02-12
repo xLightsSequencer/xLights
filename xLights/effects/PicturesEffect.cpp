@@ -22,7 +22,7 @@
 #include "PicturesEffect.h"
 #include "PicturesPanel.h"
 #include "../sequencer/Effect.h"
-#include "../sequencer/SequenceImages.h"
+#include "../sequencer/SequenceMedia.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "assist/xlGridCanvasPictures.h"
@@ -111,44 +111,34 @@ bool PicturesEffect::needToAdjustSettings(const std::string &version)
 void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
 {
     // give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version))
-    {
+    if (RenderableEffect::needToAdjustSettings(version)) {
         RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
 
     SettingsMap &settings = effect->GetSettings();
 
-    if (settings.Get("E_CHECKBOX_Pictures_ForceGIFOverlay", "xxx") != "xxx")
-    {
+    if (settings.Contains("E_CHECKBOX_Pictures_ForceGIFOverlay")) {
         settings.erase("E_CHECKBOX_Pictures_ForceGIFOverlay");
     }
 
-    if (settings.Contains("E_CHECKBOX_Pictures_ScaleToFit"))
-    {
-        if (settings.GetBool("E_CHECKBOX_Pictures_ScaleToFit", false))
-        {
+    if (settings.Contains("E_CHECKBOX_Pictures_ScaleToFit")) {
+        if (settings.GetBool("E_CHECKBOX_Pictures_ScaleToFit", false)) {
             settings["E_CHOICE_Scaling"] = "Scale To Fit";
-        }
-        else
-        {
+        } else {
             settings["E_CHOICE_Scaling"] = "No Scaling";
         }
         settings.erase("E_CHECKBOX_Pictures_ScaleToFit");
     }
 
     std::string file = settings["E_FILEPICKER_Pictures_Filename"];
-    if (file != "")
-    {
-        if (!FileExists(file, false))
-        {
+    if (!file.empty()) {
+        if (!FileExists(file, false)) {
             settings["E_FILEPICKER_Pictures_Filename"] = FixFile("", file);
         }
     }
 
-    if (IsVersionOlder("2016.9", version))
-    {
-        if (settings["E_CHOICE_Pictures_Direction"] == "scaled")
-        {
+    if (IsVersionOlder("2016.9", version)) {
+        if (settings["E_CHOICE_Pictures_Direction"] == "scaled") {
             settings["E_CHOICE_Pictures_Direction"] = "none";
             settings["E_CHOICE_Scaling"] = "Scale To Fit";
         }
@@ -336,10 +326,8 @@ bool PicturesEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &Sett
 {
     bool rc = false;
     wxString file = SettingsMap["E_FILEPICKER_Pictures_Filename"];
-    if (FileExists(file))
-    {
-        if (!frame->IsInShowFolder(file))
-        {
+    if (FileExists(file)) {
+        if (!frame->IsInShowFolder(file)) {
             SettingsMap["E_FILEPICKER_Pictures_Filename"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Images");
             rc = true;
         }
@@ -432,8 +420,8 @@ void PicturesEffect::Render(RenderBuffer& buffer,
             //      ffmpeg -i XXXX.mov -s 16x50 XXXX-%d.jpg
             //      ffmpeg -i XXXX.mts -s 16x50 XXXX-%d.jpg
 
-            if (!buffer.GetSequenceImages()->HasImage(NewPictureName)) {
-                buffer.GetSequenceImages()->AddAnimatedImage(NewPictureName, buffer.frameTimeInMs);
+            if (!buffer.GetSequenceMedia()->HasImage(NewPictureName)) {
+                buffer.GetSequenceMedia()->AddAnimatedImage(NewPictureName, buffer.frameTimeInMs);
             }
         }
 
@@ -441,11 +429,11 @@ void PicturesEffect::Render(RenderBuffer& buffer,
             buffer.needToInit = false;
             scale_image = true;
 
-            if (!FileExists(NewPictureName) && !buffer.GetSequenceImages()->HasImage(NewPictureName)) {
+            if (!buffer.GetSequenceMedia()->HasImage(NewPictureName) && !FileExists(NewPictureName)) {
                 noImageFile = true;
             } else {
                 cache->PictureName = NewPictureName;
-                cache->imageCache = buffer.GetSequenceImages()->GetImage(NewPictureName);
+                cache->imageCache = buffer.GetSequenceMedia()->GetImage(NewPictureName);
                 cache->imageCache->MarkIsUsed();
                 cache->imageCount = cache->imageCache->GetImageCount();
             }
