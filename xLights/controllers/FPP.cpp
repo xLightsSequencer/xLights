@@ -1713,6 +1713,13 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
                 obj[attr->GetName().ToStdString()] = attr->GetValue().ToStdString();
                 attr = attr->GetNext();
             }
+            
+            std::string wp = obj["WorldPosX"];
+            obj["WorldPosX"] = std::to_string(std::atof(wp.c_str()) - minX);
+            
+            wp = obj["WorldPosY"];
+            obj["WorldPosY"] = std::to_string(std::atof(wp.c_str()) - minY);
+            
             if (e.second->GetDisplayAs() == "Mesh") {
                 std::string fn = obj["ObjFile"];
                 wxFileName fileName(fn);
