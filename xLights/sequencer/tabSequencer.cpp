@@ -56,6 +56,7 @@
 #include "../LayoutPanel.h"
 #include "../TraceLog.h"
 #include "../effects/EffectPanelUtils.h"
+#include "../effects/StatePanel.h"
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
 #include "../models/ModelGroup.h"
@@ -2684,6 +2685,14 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
                                      int startTimeMs, int endTimeMs, bool setDefaults) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (CurrentSeqXmlFile == nullptr) return;
+
+    if (effectName == "State") {
+        StatePanel* fp = dynamic_cast<StatePanel*>(EffectsPanel1->GetSelectedPanel());
+        if (fp != nullptr) {
+            fp->_loadingSettings = true;
+        }
+    }
+
     //timingPanel->Freeze();
     //bufferPanel->Freeze();
     //colorPanel->Freeze();
@@ -2696,7 +2705,47 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
     }
 
     EffectsPanel1->SetEffectPanelStatus(model, effectName, startTimeMs, endTimeMs);
-    SetEffectControls(settings);
+
+    if (effectName == "State") {
+        std::vector<std::pair<std::string, std::string>> sortedSettings;
+        for (const auto& setting : settings) {
+            sortedSettings.push_back(setting);
+        }
+
+        // Sort with StateDefinition before State
+        std::stable_sort(sortedSettings.begin(), sortedSettings.end(),
+            [](const std::pair<std::string, std::string>& a,
+                const std::pair<std::string, std::string>& b) {
+                    bool a_is_def = (a.first == "E_CHOICE_State_StateDefinition");
+                    bool b_is_def = (b.first == "E_CHOICE_State_StateDefinition");
+                    bool a_is_state = (a.first == "E_CHOICE_State_State");
+                    bool b_is_state = (b.first == "E_CHOICE_State_State");
+
+                    if (a_is_def && b_is_state) {
+                        return true;
+                    }
+                    if (a_is_state && b_is_def) {
+                        return false;
+                    }
+
+                    return false;
+            });
+
+        SettingsMap orderedSettings;
+        for (const auto& setting : sortedSettings) {
+            orderedSettings[setting.first] = setting.second;
+        }
+
+        SetEffectControls(orderedSettings);
+
+        StatePanel* fp = dynamic_cast<StatePanel*>(EffectsPanel1->GetSelectedPanel());
+        if (fp != nullptr) {
+            fp->_loadingSettings = false;
+        }
+    } else {
+        SetEffectControls(settings);
+    }
+
     SetEffectControls(palette);
     RenderableEffect *ef = GetEffectManager().GetEffect(effectName);
     if (ef != nullptr) {

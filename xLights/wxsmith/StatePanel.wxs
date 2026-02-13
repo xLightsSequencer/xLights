@@ -151,6 +151,7 @@
 						<object class="wxSlider" name="ID_SLIDER_State_Fade_Time" subclass="BulkEditSlider" variable="SLIDER_State_Fade_Time" member="yes">
 							<max>1000</max>
 							<tickfreq>100</tickfreq>
+							<tick>1</tick>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
