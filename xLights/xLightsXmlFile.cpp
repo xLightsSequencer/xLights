@@ -1047,6 +1047,24 @@ void xLightsXmlFile::ConvertToFixedPointTiming()
     }
 }
 
+void xLightsXmlFile::UpdateMediaFileInXML(const wxString& filename)
+{
+    media_file = filename;
+
+    wxXmlNode* root = seqDocument.GetRoot();
+
+    for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext()) {
+        if (e->GetName() == "head") {
+            for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext()) {
+                if (element->GetName() == "mediaFile") {
+                    SetNodeContent(element, media_file);
+                    return;
+                }
+            }
+        }
+    }
+}
+
 bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio, const wxFileName &realFilename)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1130,8 +1148,10 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio, co
                     if (!ignore_audio) {
                         logger_base.debug("LoadSequence: mediaFile %s", (const char*)element->GetNodeContent().c_str());
                         media_file = FixFile(ShowDir, element->GetNodeContent());
-                        if (media_file != element->GetNodeContent()) element->SetContent(media_file);
-                        logger_base.debug("LoadSequence: mediaFile after fix %s", (const char*)media_file.c_str());
+                        if (media_file != element->GetNodeContent()) {
+                            UpdateMediaFileInXML(media_file);
+                            logger_base.debug("LoadSequence: mediaFile updated to %s", (const char*)media_file.c_str());
+                        }
                         wxFileName mf = media_file;
                         if (audio != nullptr) {
                             logger_base.debug("LoadSequence: removing prior audio.");
