@@ -2003,7 +2003,17 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
                                 m->AddAttribute("FromBase", "1");
                                 m->AddAttribute("BaseModels", models1); // keep a copy of the models from the base show folder as we may want to prevent these being removed
                                 changed = true;
+
+                                int currentOffsetX = mg->GetXCentreOffset();
+                                int currentOffsetY = mg->GetYCentreOffset();
                                 Model* newm = CreateModel(new wxXmlNode(*m));
+                                auto newmg = dynamic_cast<ModelGroup*>(newm);
+                                if (newmg != nullptr) {
+                                    newmg->SetXCentreOffset(currentOffsetX);
+                                    newmg->SetYCentreOffset(currentOffsetY);
+                                    logger_base.debug("Restored offsets after replace - X: %d, Y: %d", currentOffsetX, currentOffsetY);
+                                }
+
                                 ReplaceModel(name, newm);
                                 logger_base.debug("Updating model group from base show folder: '%s'.", (const char*)name.c_str());
                             }
