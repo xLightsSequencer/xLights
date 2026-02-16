@@ -254,7 +254,6 @@ public:
         }
 
         logger.debug("Generated image size: %dx%d", wxImg.GetWidth(), wxImg.GetHeight());
-        wxImg.Rescale(400, 400);
         wxBitmap bmp(wxImg);
         cb(bmp, "");
 #endif

@@ -12,17 +12,17 @@
 
 //(*InternalHeaders(ResizeImageDialog)
 #include <wx/button.h>
-#include <wx/string.h>
 #include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(ResizeImageDialog)
-const long ResizeImageDialog::ID_STATICTEXT1 = wxNewId();
-const long ResizeImageDialog::ID_SPINCTRL1 = wxNewId();
-const long ResizeImageDialog::ID_STATICTEXT2 = wxNewId();
-const long ResizeImageDialog::ID_SPINCTRL2 = wxNewId();
-const long ResizeImageDialog::ID_STATICTEXT3 = wxNewId();
-const long ResizeImageDialog::ID_CHOICE1 = wxNewId();
+const wxWindowID ResizeImageDialog::ID_STATICTEXT1 = wxNewId();
+const wxWindowID ResizeImageDialog::ID_SPINCTRL1 = wxNewId();
+const wxWindowID ResizeImageDialog::ID_STATICTEXT2 = wxNewId();
+const wxWindowID ResizeImageDialog::ID_SPINCTRL2 = wxNewId();
+const wxWindowID ResizeImageDialog::ID_STATICTEXT3 = wxNewId();
+const wxWindowID ResizeImageDialog::ID_CHOICE1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ResizeImageDialog,wxDialog)
@@ -68,7 +68,6 @@ ResizeImageDialog::ResizeImageDialog(wxWindow* parent,wxWindowID id,const wxPoin
 	StdDialogButtonSizer1->Realize();
 	FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 	//*)
     SetEscapeId(wxID_CANCEL);
