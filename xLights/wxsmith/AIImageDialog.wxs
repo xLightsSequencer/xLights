@@ -63,7 +63,7 @@
 										<growablecols>0</growablecols>
 										<growablerows>0</growablerows>
 										<object class="sizeritem">
-											<object class="wxPanel" name="ID_PANEL2" subclass="CropPanel" variable="CropPanel" member="yes">
+											<object class="wxPanel" name="ID_PANEL2" subclass="CropPanel" variable="cropPanel" member="yes">
 												<minsize>400,400</minsize>
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
