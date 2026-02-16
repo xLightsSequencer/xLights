@@ -1234,6 +1234,20 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
         float new_height = sy + (RenderHt / 2 * scaley);
         new_width -= BOUNDING_RECT_OFFSET;
         new_height -= BOUNDING_RECT_OFFSET;
+
+        if (ShiftKeyPressed) {
+            float original_aspect_ratio = current_width / current_height;
+
+            float width_change_ratio = new_width / current_width;
+            float height_change_ratio = new_height / current_height;
+
+            if (fabs(width_change_ratio - 1.0f) > fabs(height_change_ratio - 1.0f)) {
+                new_height = new_width / original_aspect_ratio;
+            } else {
+                new_width = new_height * original_aspect_ratio;
+            }
+        }
+
         if ((handle == L_TOP_HANDLE) || (handle == L_BOT_HANDLE)) {
             worldPos_x += (current_width - new_width) / 2;
         }
