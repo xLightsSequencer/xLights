@@ -299,6 +299,7 @@ bool WindowsHardwareVideoReader::CanSeek() const
                 logger_base.debug("WHVD: Able to seek.");
             }
         }
+        PropVariantClear(&var);
     }
     return res;
 }
@@ -439,6 +440,7 @@ bool WindowsHardwareVideoReader::Seek(uint32_t pos)
     SAFEEXEC(_reader->SetCurrentPosition(GUID_NULL, var), "WHVD: Failed to seek");
 
     if (FAILED(hr)) {
+        PropVariantClear(&var);
         return false;
     }
 
@@ -446,9 +448,15 @@ bool WindowsHardwareVideoReader::Seek(uint32_t pos)
         bool first = true;
         do {
             uint32_t lastPos = _curPos;
-            GetNextFrame(0xFFFFFFFF, 0xFFFFFFFF);
+            AVFrame* frame = GetNextFrame(0xFFFFFFFF, 0xFFFFFFFF);
+            if (frame == nullptr) {
+                logger_base.error("WHVD: GetNextFrame failed");
+                PropVariantClear(&var);
+                return false;
+            }
             if (!first && lastPos == _curPos) {
                 logger_base.error("WHVD: Seek failed.");
+                PropVariantClear(&var);
                 return false;
             }
             first = false;
@@ -456,6 +464,7 @@ bool WindowsHardwareVideoReader::Seek(uint32_t pos)
     } else {
         _curPos = 0;
     }
+    PropVariantClear(&var);
     return true;
 }
 
@@ -628,8 +637,8 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
         return _frame;
     }
 
-    // we only seek if the timestamp is valid and we are past the time or more than a second from it.
-    if (timestampMS != 0xFFFFFFFF && (_curPos > timestampMS || (LONGLONG)_curPos < (LONGLONG)timestampMS - 1000)) {
+    // we only seek if the timestamp is valid and we are past the time or more than 5 seconds from it.
+    if (timestampMS != 0xFFFFFFFF && (_curPos > timestampMS || (LONGLONG)_curPos < (LONGLONG)timestampMS - 5000)) {
         if (!Seek(timestampMS)) {
             return nullptr;
         }
