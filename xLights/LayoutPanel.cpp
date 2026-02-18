@@ -27,6 +27,7 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include <wx/tglbtn.h>
+#include <wx/srchctrl.h>
 #include <wx/sstream.h>
 #include <wx/artprov.h>
 #include <wx/dataview.h>
@@ -241,6 +242,7 @@ const long LayoutPanel::ID_PREVIEW_EXPORT_FACESSTATESSUBMODELS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_FLIP_HORIZONTAL = wxNewId();
 const long LayoutPanel::ID_PREVIEW_FLIP_VERTICAL = wxNewId();
 const long LayoutPanel::ID_SET_CENTER_OFFSET = wxNewId();
+const long LayoutPanel::ID_TEXTCTRL_MODEL_FILTER = wxNewId();
 
 #define CHNUMWIDTH "10000000000000"
 
@@ -463,6 +465,26 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	FlexGridSizerModels->Add(new_panel, 1, wxALL|wxEXPAND, 0);
     PanelModels->SetSizer(FlexGridSizerModels);
     wxSizer* sizer1 = new wxBoxSizer(wxVERTICAL);
+
+    wxBoxSizer* filterSizer = new wxBoxSizer(wxHORIZONTAL);
+    ModelFilterCtrl = new wxSearchCtrl(new_panel, ID_TEXTCTRL_MODEL_FILTER,
+        wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    ModelFilterCtrl->SetDescriptiveText("Filter items...");
+    ModelFilterCtrl->ShowCancelButton(true);
+    ModelFilterCtrl->Bind(wxEVT_TEXT_ENTER, &LayoutPanel::OnModelFilterTextChanged, this);
+    ModelFilterCtrl->Bind(wxEVT_SEARCHCTRL_SEARCH_BTN, &LayoutPanel::OnModelFilterTextChanged, this);
+    ModelFilterCtrl->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, &LayoutPanel::OnModelFilterCancelBtn, this);
+    ModelFilterCtrl->Bind(wxEVT_TEXT, [this](wxCommandEvent&) {
+        _filterString = ModelFilterCtrl->GetValue().Trim();
+        _filterRegex.Compile(_filterString, wxRE_ICASE);
+        _filterRegexValid = _filterRegex.IsValid();
+        if (_filterString.IsEmpty()) {
+            UpdateModelList(true);
+        }
+        });
+    filterSizer->Add(ModelFilterCtrl, 1, wxEXPAND | wxTOP, 2);
+    sizer1->Add(filterSizer, 0, wxEXPAND);
+
     TreeListViewModels = CreateTreeListCtrl(wxTL_MULTIPLE, new_panel);
     sizer1->Add(TreeListViewModels, wxSizerFlags(2).Expand());
     new_panel->SetSizer(sizer1);
@@ -1447,6 +1469,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             if (model->GetDisplayAs() == "ModelGroup") {
                 if (currentLayoutGroup == "All Models" || model->GetLayoutGroup() == currentLayoutGroup
                     || (model->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
+                    if (!ModelMatchesFilter(model)) continue;
                     bool expand = (std::find(expanded.begin(), expanded.end(), model->GetName()) != expanded.end());
                     AddModelToTree(model, &root, expand, toExpand, 0);
                 }
@@ -1457,6 +1480,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         for (const auto& it : models) {
             Model *model = it;
             if (model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
+                if (!ModelMatchesFilter(model)) continue;
                 bool expand = (std::find(expanded.begin(), expanded.end(), model->GetName()) != expanded.end());
                 AddModelToTree(model, &root, expand, toExpand, 0);
             }
@@ -9338,4 +9362,27 @@ int LayoutPanel::calculateNodeCountOfSelected()
     }
     
     return totalNodeCount;
+}
+
+void LayoutPanel::OnModelFilterCancelBtn(wxCommandEvent& event) {
+    ModelFilterCtrl->SetValue("");
+    _filterString = "";
+    _filterRegexValid = false;
+    UpdateModelList(true);
+}
+
+void LayoutPanel::OnModelFilterTextChanged(wxCommandEvent& event) {
+    _filterString = ModelFilterCtrl->GetValue().Trim();
+    _filterRegex.Compile(_filterString, wxRE_ICASE);
+    _filterRegexValid = _filterRegex.IsValid();
+    UpdateModelList(true);
+}
+
+bool LayoutPanel::ModelMatchesFilter(Model* model) const {
+    if (ModelFilterCtrl == nullptr || _filterString.IsEmpty()) return true;
+
+    if (_filterRegexValid)
+        return _filterRegex.Matches(model->GetName());
+
+    return wxString(model->GetName()).Lower().Contains(_filterString.Lower());
 }
