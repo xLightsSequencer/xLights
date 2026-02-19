@@ -1090,6 +1090,18 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src, std::vector<Effect
                     Replace(settings, ",E_CHOICE_Duplicate_Model=" + dupModel, ",E_CHOICE_Duplicate_Model=" + it->second);
                 }
             }
+            if (ef->GetEffectIndex() == EffectManager::eff_PICTURES) {
+                // if using embedded images, need to copy it over
+                std::string v = ef->GetSettings()["E_TEXTCTRL_Pictures_Filename"];
+                auto &sm = ef->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+                auto &tm = target->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+                if (sm.HasImage(v) && !tm.HasImage(v)) {
+                    auto img = sm.GetImage(v);
+                    if (img->IsEmbedded()) {
+                        tm.AddEmbeddedImage(v, img->GetEmbeddedData());
+                    }
+                }
+            }
 
             // if we are mapping the effect onto a group and it is a per preview render buffer then use the group's default camera
             //   unless there is a non-default 3D camera assigned to the effect, and it exists in the target layout
@@ -1251,6 +1263,7 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
     se.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.
     se.LoadSequencerFile(xlf, GetShowDirectory(), true);
     xlf.AdjustEffectSettingsForVersion(se, this);
+    xsqPkg.SetSequenceElements(&se);
 
     if (!IsVersionOlder(xlights_version_string, xlf.GetVersion())) {
         wxMessageBox(wxString::Format("The import sequence is using a newer version than you are currently using.  %s", xlf.GetVersion().ToStdString().c_str()));

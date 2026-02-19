@@ -355,8 +355,23 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
     wxString targetMediaFolder = wxEmptyString;
 
     if (effName == "Pictures") {
-        settingEffectFile = "E_FILEPICKER_Pictures_Filename";
         targetMediaFolder = _importOptions.GetDir(MediaTargetDir::IMAGES_DIR);
+        if (settings.Contains("E_FILEPICKER_Pictures_Filename")) {
+            // old Pictures key
+            settingEffectFile = "E_FILEPICKER_Pictures_Filename";
+        } else {
+            std::string v = settings["E_TEXTCTRL_Pictures_Filename"];
+            auto &sm = mappedEffect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+            auto &tm = target->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+            if (sm.HasImage(v)) {
+                auto img = sm.GetImage(v);
+                if (img->IsEmbedded() && !tm.HasImage(v)) {
+                    tm.AddEmbeddedImage(v, img->GetEmbeddedData());
+                }
+            } else {
+                settingEffectFile = "E_TEXTCTRL_Pictures_Filename";
+            }
+        }
     } else if (effName == "Video") {
         settingEffectFile = "E_FILEPICKERCTRL_Video_Filename";
         targetMediaFolder = _importOptions.GetDir(MediaTargetDir::VIDEOS_DIR);

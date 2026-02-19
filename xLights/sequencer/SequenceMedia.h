@@ -53,8 +53,8 @@ public:
     ~ImageCacheEntry();
 
     // Accessors
-    std::string GetFilePath() const { return _filePath; }
-    std::string GetEmbeddedData() const { return _embeddedData; }
+    const std::string &GetFilePath() const { return _filePath; }
+    const std::string &GetEmbeddedData() const { return _embeddedData; }
     bool IsEmbedded() const { return _isEmbedded; }
     bool IsEmbeddable() const { return !_embeddedData.empty(); }
     int GetImageCount() const { return _imageCount; }
@@ -148,6 +148,7 @@ public:
     void EmbedAllImages();
     // Add a wxImage directly as an embedded entry with the given name.
     void AddEmbeddedImage(const std::string& name, const wxImage& image);
+    void AddEmbeddedImage(const std::string& name, const std::string& imageData);
     void ExtractImage(const std::string& filepath);
     void ExtractAllImages();
     // Save embedded image data to newPath on disk, rename cache key, mark external.

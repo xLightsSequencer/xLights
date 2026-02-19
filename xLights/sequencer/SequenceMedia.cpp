@@ -454,6 +454,16 @@ void SequenceMedia::EmbedAllImages()
         pair.second->EmbedImage();
     }
 }
+void SequenceMedia::AddEmbeddedImage(const std::string& name, const std::string& imageData) {
+    std::shared_ptr<ImageCacheEntry> entry;
+    {
+        std::scoped_lock lock(_cacheMutex);
+        if (_imageCache.find(name) != _imageCache.end()) return; // already exists
+        entry = std::make_shared<ImageCacheEntry>(name, imageData);
+        _imageCache.emplace(name, entry);
+    }
+    entry->Load();
+}
 
 void SequenceMedia::AddEmbeddedImage(const std::string& name, const wxImage& image)
 {
