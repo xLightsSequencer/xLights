@@ -291,6 +291,13 @@ ManageMediaPanel::ManageMediaPanel(wxWindow* parent, SequenceMedia* sequenceMedi
     _extractAllButton->SetToolTip("Reference all images from external file paths");
     rightSizer->Add(_extractAllButton, 0, wxALL | wxEXPAND, 5);
 
+    rightSizer->Add(0, 10, 0);
+
+    _removeButton = new wxButton(this, wxID_ANY, "Remove");
+    _removeButton->SetToolTip("Remove the selected embedded image(s) from the sequence");
+    _removeButton->Disable();
+    rightSizer->Add(_removeButton, 0, wxALL | wxEXPAND, 5);
+
     mainSizer->Add(rightSizer, 0, wxALL | wxEXPAND, 0);
 
     SetSizer(mainSizer);
@@ -308,6 +315,7 @@ ManageMediaPanel::ManageMediaPanel(wxWindow* parent, SequenceMedia* sequenceMedi
     _extractButton->Bind(wxEVT_BUTTON, &ManageMediaPanel::OnExtractButtonClick, this);
     _embedAllButton->Bind(wxEVT_BUTTON, &ManageMediaPanel::OnEmbedAllButtonClick, this);
     _extractAllButton->Bind(wxEVT_BUTTON, &ManageMediaPanel::OnExtractAllButtonClick, this);
+    _removeButton->Bind(wxEVT_BUTTON, &ManageMediaPanel::OnRemoveButtonClick, this);
 
     Populate();
 }
@@ -323,6 +331,7 @@ void ManageMediaPanel::Populate(const std::string& selectPath)
     _infoLabel->SetLabel(wxEmptyString);
     _embedButton->Disable();
     _extractButton->Disable();
+    _removeButton->Disable();
 
     // Rebuild the model
     _model->Clear();
@@ -396,6 +405,7 @@ void ManageMediaPanel::OnTreeItemSelected(wxDataViewEvent& event)
         _infoLabel->SetLabel(wxEmptyString);
         _embedButton->Disable();
         _extractButton->Disable();
+        _removeButton->Disable();
         return;
     }
     UpdatePreview(paths[0]);
@@ -409,14 +419,15 @@ void ManageMediaPanel::UpdateButtons()
         _renameButton->Disable();
         _embedButton->Disable();
         _extractButton->Disable();
+        _removeButton->Disable();
         return;
     }
-    bool canEmbed = false, canExtract = false, canRename = false;
+    bool canEmbed = false, canExtract = false, canRename = false, canRemove = false;
     for (const auto& path : paths) {
         auto entry = _sequenceMedia->GetImage(path);
         if (!entry) continue;
         if (!entry->IsEmbedded() && entry->IsEmbeddable()) canEmbed = true;
-        if (entry->IsEmbedded()) canExtract = true;
+        if (entry->IsEmbedded()) { canExtract = true; canRemove = true; }
     }
     // Rename only for a single embedded selection
     if (paths.size() == 1) {
@@ -426,6 +437,7 @@ void ManageMediaPanel::UpdateButtons()
     _renameButton->Enable(canRename);
     _embedButton->Enable(canEmbed);
     _extractButton->Enable(canExtract);
+    _removeButton->Enable(canRemove);
 }
 
 void ManageMediaPanel::UpdatePreview(const std::string& filepath)
@@ -927,6 +939,86 @@ void ManageMediaPanel::OnExtractAllButtonClick(wxCommandEvent& event)
                      "Extract All", wxICON_WARNING | wxOK, this);
     Populate();
 }
+void ManageMediaPanel::OnRemoveButtonClick(wxCommandEvent& event)
+{
+    if (_sequenceMedia == nullptr) return;
+
+    // Collect selected paths that are embedded
+    std::vector<std::string> toRemove;
+    for (const auto& path : GetSelectedPaths()) {
+        auto entry = _sequenceMedia->GetImage(path);
+        if (entry && entry->IsEmbedded())
+            toRemove.push_back(path);
+    }
+    if (toRemove.empty()) return;
+
+    // Scan all effects to find references to any of the paths being removed
+    int usageCount = 0;
+    if (_sequenceElements != nullptr) {
+        auto scanLayer = [&](EffectLayer* layer) {
+            for (size_t k = 0; k < layer->GetEffectCount(); ++k) {
+                Effect* eff = layer->GetEffect(k);
+                const SettingsMap& settings = eff->GetSettings();
+                for (auto it = settings.begin(); it != settings.end(); ++it) {
+                    for (const auto& path : toRemove) {
+                        if (it->second == path) {
+                            ++usageCount;
+                            break;
+                        }
+                    }
+                }
+            }
+        };
+
+        for (size_t i = 0; i < _sequenceElements->GetElementCount(); ++i) {
+            Element* e = _sequenceElements->GetElement(i);
+            if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
+            ModelElement* model = dynamic_cast<ModelElement*>(e);
+            if (!model) continue;
+
+            for (size_t j = 0; j < model->GetEffectLayerCount(); ++j)
+                scanLayer(model->GetEffectLayer(j));
+
+            for (size_t j = 0; j < model->GetSubModelAndStrandCount(); ++j) {
+                SubModelElement* sub = model->GetSubModel(j);
+                for (size_t l = 0; l < sub->GetEffectLayerCount(); ++l)
+                    scanLayer(sub->GetEffectLayer(l));
+                if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                    StrandElement* strand = dynamic_cast<StrandElement*>(sub);
+                    if (strand) {
+                        for (int k = 0; k < strand->GetNodeLayerCount(); ++k)
+                            scanLayer(strand->GetNodeLayer(k));
+                    }
+                }
+            }
+        }
+    }
+
+    // Warn if any effects reference the images
+    if (usageCount > 0) {
+        wxString msg = wxString::Format(
+            "%d effect(s) reference the selected image(s).\n"
+            "Removing them will leave those effects with a missing image.\n\n"
+            "Remove anyway?",
+            usageCount);
+        if (wxMessageBox(msg, "Remove Embedded Image(s)",
+                         wxYES_NO | wxNO_DEFAULT | wxICON_WARNING, this) != wxYES)
+            return;
+    } else {
+        wxString msg = wxString::Format(
+            "Remove %d embedded image(s) from the sequence?",
+            (int)toRemove.size());
+        if (wxMessageBox(msg, "Remove Embedded Image(s)",
+                         wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION, this) != wxYES)
+            return;
+    }
+
+    for (const auto& path : toRemove)
+        _sequenceMedia->RemoveImage(path);
+
+    Populate();
+}
+
 // ---------------------------------------------------------------------------
 // SelectMediaDialog
 // ---------------------------------------------------------------------------

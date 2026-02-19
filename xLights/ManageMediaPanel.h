@@ -103,6 +103,7 @@ private:
     void OnExtractButtonClick(wxCommandEvent& event);
     void OnEmbedAllButtonClick(wxCommandEvent& event);
     void OnExtractAllButtonClick(wxCommandEvent& event);
+    void OnRemoveButtonClick(wxCommandEvent& event);
 
     void UpdateButtons();
     void UpdatePreview(const std::string& filepath);
@@ -137,6 +138,7 @@ private:
     wxButton* _extractButton = nullptr;
     wxButton* _embedAllButton = nullptr;
     wxButton* _extractAllButton = nullptr;
+    wxButton* _removeButton = nullptr;
 
     wxDECLARE_EVENT_TABLE();
 
