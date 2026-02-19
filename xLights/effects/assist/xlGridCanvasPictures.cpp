@@ -292,7 +292,7 @@ void xlGridCanvasPictures::UpdateRenderedImage()
     wxArrayString all_settings = wxSplit(settings, ',');
     for (int s = 0; s < all_settings.size(); s++) {
         wxArrayString parts = wxSplit(all_settings[s], '=');
-        if (parts[0] == "E_FILEPICKER_Pictures_Filename") {
+        if (parts[0] == "E_TEXTCTRL_Pictures_Filename") {
             parts[1] = PictureName;
         }
         all_settings[s] = wxJoin(parts, '=');
@@ -361,7 +361,7 @@ wxString xlGridCanvasPictures::GetImageFilename()
     wxArrayString all_settings = wxSplit(settings, ',');
     for (int s = 0; s < all_settings.size(); s++) {
         wxArrayString parts = wxSplit(all_settings[s], '=');
-        if (parts[0] == "E_FILEPICKER_Pictures_Filename") {
+        if (parts[0] == "E_TEXTCTRL_Pictures_Filename") {
             return parts[1];
         }
 

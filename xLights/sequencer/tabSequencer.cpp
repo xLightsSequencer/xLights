@@ -1512,7 +1512,7 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
         if (effectName == "Video") {
             effect->GetSettings()["E_FILEPICKERCTRL_Video_Filename"] = filename;
         } else if (effectName == "Pictures") {
-            effect->GetSettings()["E_FILEPICKER_Pictures_Filename"] = filename;
+            effect->GetSettings()["E_TEXTCTRL_Pictures_Filename"] = filename;
         } else if (effectName == "Glediator") {
             effect->GetSettings()["E_FILEPICKERCTRL_Glediator_Filename"] = filename;
         } else if (effectName == "Shader") {

@@ -3613,7 +3613,7 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             wxString speed = parms[6];
             speed = RescaleWithRangeF(speed, "IGNORE", 0, 50, 0, 20, vcCrap, -1, -1);
 
-            settings += ",E_FILEPICKER_Pictures_Filename=" + file;
+            settings += ",E_TEXTCTRL_Pictures_Filename=" + file;
             if (scale == "True") {
                 settings += ",E_CHOICE_Scaling=Scale To Fit";
             } else {
