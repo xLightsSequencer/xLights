@@ -91,6 +91,10 @@ public:
 
     void Load();
     bool isLoaded() const { return _loadingDone; }
+
+    // Pre-cache a base64 PNG string for frame i to avoid re-encoding on save.
+    void SetFrameData(std::vector<std::string> data) { _frameData = std::move(data); }
+
 private:
     void LoadFromFile(const std::string& filepath);
     void LoadFromData(const std::string& base64Data);
@@ -99,10 +103,11 @@ private:
     int GetExifOrientation(wxMemoryBuffer& buffer);
     
     std::string _filePath;          // Original file path
-    std::string _embeddedData;      // Base64 encoded image data (when embedded)
+    std::string _embeddedData;      // Base64 encoded image data (when embedded, single-frame)
+    mutable std::vector<std::string> _frameData; // Base64 encoded PNG per frame (multi-frame embedded, cached to avoid re-encode)
     int _imageCount = 0;                // Number of frames in image (1 for static, >1 for animated)
     std::atomic_bool _used;
-    
+
     std::vector<long> _frameTimes;
     std::vector<std::shared_ptr<wxImage>> _frameImages;
     std::vector<std::shared_ptr<wxImage>> _frameImagesNoBG;
@@ -149,6 +154,9 @@ public:
     // Add a wxImage directly as an embedded entry with the given name.
     void AddEmbeddedImage(const std::string& name, const wxImage& image);
     void AddEmbeddedImage(const std::string& name, const std::string& imageData);
+    // Add multiple frames as a single animated embedded entry. frameTimeMs is the
+    // duration of each frame in milliseconds.
+    void AddEmbeddedImage(const std::string& name, const std::vector<wxImage>& frames, int frameTimeMs);
     void ExtractImage(const std::string& filepath);
     void ExtractAllImages();
     // Save embedded image data to newPath on disk, rename cache key, mark external.

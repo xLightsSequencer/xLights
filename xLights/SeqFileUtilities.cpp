@@ -38,6 +38,8 @@
 #include "VsaImportDialog.h"
 #include "xLightsImportChannelMapDialog.h"
 #include "xLightsMain.h"
+#include "sequencer/SequenceMedia.h"
+#include <wx/textdlg.h>
 #include "xLightsVersion.h"
 #include "models/DMX/DmxModel.h"
 #include "models/ModelGroup.h"
@@ -2364,7 +2366,8 @@ void xLightsFrame::ImportSuperStar(const wxFileName& filename)
         int bw, bh;
         cls->GetBufferSize("Default", "2D", "None", bw, bh, 0);
         wxSize modelSize(bw, bh);
-        ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, dlg.ImageResizeChoice->GetSelection(), modelSize, blend);
+        ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, dlg.ImageResizeChoice->GetSelection(), modelSize, blend,
+                        filename.GetName());
     }
     float elapsedTime = sw.Time() / 1000.0; // msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
@@ -4791,7 +4794,8 @@ void ScaleImage(wxImage& img, int type,
 wxString CreateSceneImage(const std::string& imagePfx, const std::string& postFix,
                           wxXmlNode* element, int numCols,
                           int numRows, bool reverse, bool rotate, const xlColor& color, int y_offset,
-                          int resizeType, const wxSize& modelSize)
+                          int resizeType, const wxSize& modelSize,
+                          SequenceMedia* media)
 {
     wxImage i;
     i.Create(numCols, numRows);
@@ -4817,11 +4821,13 @@ wxString CreateSceneImage(const std::string& imagePfx, const std::string& postFi
             }
         }
     }
-    std::string name = imagePfx + "_s" + element->GetAttribute("savedIndex").ToStdString() + postFix + ".png";
+    std::string name = imagePfx + "/s" + element->GetAttribute("savedIndex").ToStdString() + postFix + ".png";
     ImageInfo im;
     im.Set(0, 0, numCols, numRows, name);
     ScaleImage(i, resizeType, modelSize, numCols, numRows, im, false);
-    i.SaveFile(name);
+    if (media) {
+        media->AddEmbeddedImage(name, i);
+    }
     return name;
 }
 
@@ -4882,7 +4888,8 @@ bool IsPartOfModel(wxXmlNode* element, int num_rows, int num_columns, bool& isFu
 
 bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int x_size, int y_size,
                                    int x_offset, int y_offset,
-                                   int imageResizeType, const wxSize& modelSize, const wxString& layerBlend)
+                                   int imageResizeType, const wxSize& modelSize, const wxString& layerBlend,
+                                   const wxString& defaultGroupName)
 {
     double num_rows = 1.0;
     double num_columns = 1.0;
@@ -4894,6 +4901,21 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
     std::map<int, ImageInfo> imageInfo;
     std::string imagePfx;
     std::vector<bool> reserved;
+    SequenceMedia& seqMedia = _sequenceElements.GetSequenceMedia();
+
+    // Helper: prompt once for the group/prefix name, return false to cancel
+    auto promptForPrefix = [&]() -> bool {
+        if (!imagePfx.empty()) return true;
+        wxString defGroup = defaultGroupName.empty() ? "SuperStar" : defaultGroupName;
+        wxTextEntryDialog dlg(this,
+            "Enter a group name / prefix for embedded images:",
+            "Embedded Image Group", defGroup);
+        if (dlg.ShowModal() == wxID_CANCEL) return false;
+        wxString val = dlg.GetValue().Trim().Trim(false);
+        if (val.empty()) val = defGroup;
+        imagePfx = val.ToStdString();
+        return true;
+    };
     std::string blend_string = "";
     if (layerBlend != "Normal") {
         blend_string = ",T_CHOICE_LayerMethod=" + layerBlend + ",";
@@ -4914,18 +4936,7 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
         } else if ("scenes" == e->GetName() || "images" == e->GetName()) {
             for (wxXmlNode* element = e->GetChildren(); (element != nullptr) && ("" == imagePfx); element = element->GetNext()) {
                 if ("image" == element->GetName() || "scene" == element->GetName()) {
-                    if ("" == imagePfx) {
-                        wxFileDialog fd(this,
-                                        "Choose location and base name for image files",
-                                        showDirectory,
-                                        wxEmptyString,
-                                        wxFileSelectorDefaultWildcardStr,
-                                        wxFD_SAVE);
-                        if (fd.ShowModal() == wxID_CANCEL) {
-                            return false;
-                        }
-                        imagePfx = fd.GetPath().ToStdString();
-                    }
+                    if (!promptForPrefix()) return false;
                 }
             }
         } else if (e->GetName() == "layouts") {
@@ -5115,18 +5126,8 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
                             }
 
                             wxImage image(w, h, bytes, alpha);
-                            if ("" == imagePfx) {
-                                wxFileDialog fd(this,
-                                                "Choose location and base name for image files",
-                                                showDirectory,
-                                                wxEmptyString,
-                                                wxFileSelectorDefaultWildcardStr,
-                                                wxFD_SAVE);
-                                while (fd.ShowModal() == wxID_CANCEL || fd.GetFilename() == "") {
-                                }
-                                imagePfx = fd.GetPath();
-                            }
-                            std::string fname = imagePfx + "_" + wxString::Format("%d.png", idx).ToStdString();
+                            if (!promptForPrefix()) return false;
+                            std::string fname = imagePfx + "/" + wxString::Format("%d.png", idx).ToStdString();
                             if (reverse_xy) {
                                 image = image.Rotate90(false);
                                 imageInfo[idx].Set(yOffset, xOffset, h, w, fname);
@@ -5134,7 +5135,7 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
                                 imageInfo[idx].Set(xOffset, yOffset, w, h, fname);
                             }
                             ScaleImage(image, imageResizeType, modelSize, num_columns, num_rows, imageInfo[idx], reverse_xy);
-                            image.SaveFile(fname);
+                            seqMedia.AddEmbeddedImage(fname, image);
                         }
                     }
                 }
@@ -5260,17 +5261,7 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
                     int start_time = wxAtoi(startms);
                     int end_time = wxAtoi(endms);
                     layer = FindOpenLayer(model, layer_index, start_time, end_time, reserved);
-                    if ("" == imagePfx) {
-                        wxFileDialog fd(this,
-                                        "Choose location and base name for image files",
-                                        showDirectory,
-                                        wxEmptyString,
-                                        wxFileSelectorDefaultWildcardStr,
-                                        wxFD_SAVE);
-                        while (fd.ShowModal() == wxID_CANCEL || fd.GetFilename() == "") {
-                        }
-                        imagePfx = fd.GetPath();
-                    }
+                    if (!promptForPrefix()) return false;
 
                     std::string ru = "0.0";
                     std::string rd = "0.0";
@@ -5329,7 +5320,7 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
                         if (startc == xlBLACK || endc == xlBLACK || endc == startc) {
                             imageName = CreateSceneImage(imagePfx, "", element, num_columns, num_rows, false, reverse_xy,
                                                          (startc == xlBLACK) ? endc : startc, y_offset,
-                                                         imageResizeType, modelSize);
+                                                         imageResizeType, modelSize, &seqMedia);
                             wxString ramp = wxString::Format("%lf", (double)(end_time - start_time) / 1000.0);
                             if (endc == xlBLACK) {
                                 rd = ramp;
@@ -5338,24 +5329,43 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
                                 ru = ramp;
                             }
                         } else {
+                            // Colour-changing scene: build one animated entry with one frame per sequence frame
                             int time = wxAtoi(endms) - wxAtoi(startms);
-                            int numFrames = time / _seqData.FrameTime();
-                            xlColor color;
+                            int ft = _seqData.FrameTime();
+                            int numFrames = time / ft;
+                            std::string animName = imagePfx + "/s" + element->GetAttribute("savedIndex").ToStdString() + ".png";
+                            std::vector<wxImage> animFrames;
+                            animFrames.reserve(numFrames);
                             for (int x = 0; x < numFrames; x++) {
-                                double ratio = x;
-                                ratio /= numFrames;
+                                double ratio = (double)x / numFrames;
+                                xlColor color;
                                 color.Set(ChannelBlend(startc.Red(), endc.Red(), ratio),
                                           ChannelBlend(startc.Green(), endc.Green(), ratio),
                                           ChannelBlend(startc.Blue(), endc.Blue(), ratio));
-                                wxString s = CreateSceneImage(imagePfx, wxString::Format("-%d", x + 1).ToStdString(),
-                                                              element,
-                                                              num_columns, num_rows, false, reverse_xy,
-                                                              color, y_offset,
-                                                              imageResizeType, modelSize);
-                                if (x == 0) {
-                                    imageName = s;
+                                // Build the frame image (reuse CreateSceneImage logic inline)
+                                wxImage img(num_columns, num_rows);
+                                img.InitAlpha();
+                                for (int cx = 0; cx < num_columns; cx++)
+                                    for (int cy = 0; cy < num_rows; cy++)
+                                        img.SetAlpha(cx, cy, wxALPHA_TRANSPARENT);
+                                for (wxXmlNode* e2 = element->GetChildren(); e2; e2 = e2->GetNext()) {
+                                    if (e2->GetName() == "element") {
+                                        int px = wxAtoi(e2->GetAttribute("ribbonIndex"));
+                                        int py = wxAtoi(e2->GetAttribute("pixelIndex")) - y_offset;
+                                        if (reverse_xy) std::swap(px, py);
+                                        if (px < num_columns && py >= 0 && py < num_rows) {
+                                            img.SetRGB(px, py, color.Red(), color.Green(), color.Blue());
+                                            img.SetAlpha(px, py, wxALPHA_OPAQUE);
+                                        }
+                                    }
                                 }
+                                ImageInfo im;
+                                im.Set(0, 0, num_columns, num_rows, animName);
+                                ScaleImage(img, imageResizeType, modelSize, num_columns, num_rows, im, reverse_xy);
+                                animFrames.push_back(std::move(img));
                             }
+                            seqMedia.AddEmbeddedImage(animName, animFrames, ft);
+                            imageName = animName;
                         }
 
                         std::string settings = "E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=none,"

@@ -463,7 +463,8 @@ public:
 
     bool ImportSuperStar(Element *el, wxXmlDocument &doc, int x_size, int y_size,
                          int x_offset, int y_offset,
-                         int imageResizeType, const wxSize &modelSize, const wxString& layerBlend);
+                         int imageResizeType, const wxSize &modelSize, const wxString& layerBlend,
+                         const wxString& defaultGroupName = {});
     bool ImportLMS(wxXmlDocument &doc, const wxFileName &filename);
     bool ImportLPE(wxXmlDocument &doc, const wxFileName &filename);
     bool ImportVixen3(const wxFileName &filename);

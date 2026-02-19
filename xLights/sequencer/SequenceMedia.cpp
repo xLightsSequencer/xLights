@@ -41,11 +41,12 @@ ImageCacheEntry::ImageCacheEntry(const std::string &path, const std::string &bas
 ImageCacheEntry::ImageCacheEntry(const std::string &path, const std::vector<wxImage> &imgs, int ft, const std::string &base64Data): _used(false), _filePath(path), _embeddedData(base64Data) {
     invalidImage = std::make_shared<wxImage>(wxImage());
     _isEmbedded = false;
-    _frameImages.resize(imgs.size());
-    _frameImagesNoBG.resize(imgs.size());
-    _frameTimes.resize(imgs.size());
+    _imageCount = (int)imgs.size();
+    _frameImages.resize(_imageCount);
+    _frameImagesNoBG.resize(_imageCount);
+    _frameTimes.resize(_imageCount);
     _totalTime = 0;
-    for (int x = 0; x < imgs.size(); x++) {
+    for (int x = 0; x < _imageCount; x++) {
         std::shared_ptr<wxImage> i = std::make_shared<wxImage>(imgs[x]);
         _frameImages[x] = i;
         _frameImagesNoBG[x] = i;
@@ -251,6 +252,14 @@ void ImageCacheEntry::loadImage(wxMemoryBuffer &ins) {
 }
 
 
+static std::string PngToBase64(const wxImage& img)
+{
+    wxMemoryOutputStream mos;
+    img.SaveFile(mos, wxBITMAP_TYPE_PNG);
+    wxStreamBuffer* buf = mos.GetOutputStreamBuffer();
+    return wxBase64Encode(buf->GetBufferStart(), buf->GetIntPosition()).ToStdString();
+}
+
 bool ImageCacheEntry::LoadFromXml(wxXmlNode* node)
 {
     if (node == nullptr || node->GetName() != "Image") {
@@ -258,11 +267,34 @@ bool ImageCacheEntry::LoadFromXml(wxXmlNode* node)
     }
     
     _filePath = node->GetAttribute("path", "").ToStdString();
-    // Check if this image has embedded data
-    wxXmlNode* dataNode = node->GetChildren();
-    if (dataNode != nullptr && dataNode->GetName() == "Data") {
-        _embeddedData = dataNode->GetNodeContent().ToStdString();
+    wxXmlNode* child = node->GetChildren();
+    if (child == nullptr) return true;
+
+    if (child->GetName() == "Data") {
+        // Single-frame embedded (PNG or GIF base64)
+        _embeddedData = child->GetNodeContent().ToStdString();
         _isEmbedded = true;
+    } else if (child->GetName() == "Frame") {
+        // Multi-frame: each <Frame time="ms">base64png</Frame>
+        _isEmbedded = true;
+        for (wxXmlNode* f = child; f != nullptr; f = f->GetNext()) {
+            if (f->GetName() != "Frame") continue;
+            long ft = 0;
+            f->GetAttribute("time", "0").ToLong(&ft);
+            std::string b64 = f->GetNodeContent().ToStdString();
+            _frameData.push_back(b64);  // cache for lossless re-save
+            wxMemoryBuffer buf = wxBase64Decode(b64);
+            wxMemoryInputStream mis(buf.GetData(), buf.GetDataLen());
+            auto sp = std::make_shared<wxImage>();
+            sp->LoadFile(mis, wxBITMAP_TYPE_PNG);
+            _frameImages.push_back(sp);
+            _frameImagesNoBG.push_back(sp);
+            _frameTimes.push_back(ft);
+            _totalTime += ft;
+        }
+        _imageCount = (int)_frameImages.size();
+        if (_imageCount > 0) _imageSize = _frameImages[0]->GetSize();
+        _loadingDone = true;
     }
     return true;
 }
@@ -272,12 +304,34 @@ wxXmlNode* ImageCacheEntry::SaveToXml() const
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "Image");
     node->AddAttribute("path", _filePath);
     
-    // If we have embedded data, save it
-    if (_isEmbedded) {
+    if (!_isEmbedded) return node;
+
+    if (!_embeddedData.empty()) {
+        // Single-frame (or GIF): save as <Data>
         wxXmlNode* dataNode = new wxXmlNode(wxXML_ELEMENT_NODE, "Data");
-        wxXmlNode* textNode = new wxXmlNode(wxXML_TEXT_NODE, "", _embeddedData);
-        dataNode->AddChild(textNode);
+        dataNode->AddChild(new wxXmlNode(wxXML_TEXT_NODE, "", _embeddedData));
         node->AddChild(dataNode);
+    } else if (_imageCount > 0 && !_frameImages.empty()) {
+        // Multi-frame: save each as <Frame time="ms">base64png</Frame>
+        // Use cached base64 if available to avoid lossy re-encode
+        for (int i = 0; i < _imageCount; i++) {
+            wxXmlNode* fNode = new wxXmlNode(wxXML_ELEMENT_NODE, "Frame");
+            fNode->AddAttribute("time", wxString::Format("%ld", _frameTimes[i]));
+            std::string b64;
+            if (i < (int)_frameData.size()) {
+                b64 = _frameData[i];  // use cached encoding
+            } else if (_frameImages[i] && _frameImages[i]->IsOk()) {
+                b64 = PngToBase64(*_frameImages[i]);
+                // cache for future saves
+                if ((int)_frameData.size() == i) _frameData.push_back(b64);
+            }
+            if (!b64.empty()) {
+                fNode->AddChild(new wxXmlNode(wxXML_TEXT_NODE, "", b64));
+                node->AddChild(fNode);
+            } else {
+                delete fNode;
+            }
+        }
     }
     
     return node;
@@ -407,25 +461,15 @@ void SequenceMedia::AddAnimatedImage(const std::string& filepath, int msFrameTim
         wxImage i;
         i.SetLoadFlags(0);
         i.LoadFile(fname);
-        images.resize(images.size() + 1);
-        wxQuantize::Quantize(i, images.back());
+        images.push_back(std::move(i));
         fname = BasePicture + std::to_string(cur++) + extension;
     }
 
-    wxGIFHandler handler;
-    wxMemoryOutputStream out;
-    if (handler.SaveAnimation(images, &out, true, msFrameTime)) {
-        wxStreamBuffer* buffer = out.GetOutputStreamBuffer();
-        std::string emb = wxBase64Encode(buffer->GetBufferStart(), buffer->GetBufferSize());
+    {
         std::unique_lock lock(_cacheMutex);
         if (_imageCache.find(filepath) == _imageCache.end()) {
-            std::shared_ptr<ImageCacheEntry> np = std::make_shared<ImageCacheEntry>(filepath, images, msFrameTime, emb);
-            _imageCache.emplace(filepath, np);
-        }
-    } else {
-        std::unique_lock lock(_cacheMutex);
-        if (_imageCache.find(filepath) == _imageCache.end()) {
-            std::shared_ptr<ImageCacheEntry> np = std::make_shared<ImageCacheEntry>(filepath, images, msFrameTime);
+            auto np = std::make_shared<ImageCacheEntry>(filepath, images, msFrameTime);
+            np->EmbedImage();
             _imageCache.emplace(filepath, np);
         }
     }
@@ -485,6 +529,23 @@ void SequenceMedia::AddEmbeddedImage(const std::string& name, const wxImage& ima
         _imageCache.emplace(name, entry);
     }
     entry->Load();
+}
+
+void SequenceMedia::AddEmbeddedImage(const std::string& name, const std::vector<wxImage>& frames, int frameTimeMs)
+{
+    if (frames.empty()) return;
+    std::scoped_lock lock(_cacheMutex);
+    if (_imageCache.find(name) != _imageCache.end()) return;
+    // Store frames directly as PNGs — no GIF quantization to preserve colour/transparency.
+    // Pre-encode base64 now so SaveToXml never re-encodes from pixels.
+    auto entry = std::make_shared<ImageCacheEntry>(name, frames, frameTimeMs);
+    entry->EmbedImage();
+    std::vector<std::string> frameData;
+    frameData.reserve(frames.size());
+    for (const auto& f : frames)
+        frameData.push_back(PngToBase64(f));
+    entry->SetFrameData(std::move(frameData));
+    _imageCache.emplace(name, entry);
 }
 
 void SequenceMedia::ExtractImage(const std::string& filepath)
