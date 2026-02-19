@@ -17,6 +17,7 @@
 #include <wx/anidecod.h>
 #include <wx/quantize.h>
 #include <wx/filename.h>
+#include <wx/file.h>
 
 #include <log4cpp/Category.hh>
 
@@ -454,6 +455,28 @@ void SequenceMedia::EmbedAllImages()
     }
 }
 
+void SequenceMedia::AddEmbeddedImage(const std::string& name, const wxImage& image)
+{
+    // Encode the wxImage as PNG into a memory stream, then base64-encode it
+    wxMemoryOutputStream mos;
+    if (!image.SaveFile(mos, wxBITMAP_TYPE_PNG)) {
+        return;
+    }
+    wxStreamBuffer* buf = mos.GetOutputStreamBuffer();
+    wxMemoryBuffer mb;
+    mb.AppendData(buf->GetBufferStart(), buf->GetIntPosition());
+    std::string b64 = wxBase64Encode(mb).ToStdString();
+
+    std::shared_ptr<ImageCacheEntry> entry;
+    {
+        std::scoped_lock lock(_cacheMutex);
+        if (_imageCache.find(name) != _imageCache.end()) return; // already exists
+        entry = std::make_shared<ImageCacheEntry>(name, b64);
+        _imageCache.emplace(name, entry);
+    }
+    entry->Load();
+}
+
 void SequenceMedia::ExtractImage(const std::string& filepath)
 {
     std::scoped_lock lock(_cacheMutex);
@@ -469,6 +492,45 @@ void SequenceMedia::ExtractAllImages()
     for (auto& pair : _imageCache) {
         pair.second->ExtractImage();
     }
+}
+
+bool ImageCacheEntry::SaveToFile(const std::string& path) const
+{
+    if (_embeddedData.empty()) return false;
+    wxMemoryBuffer buf = wxBase64Decode(_embeddedData);
+    if (buf.GetDataLen() == 0) return false;
+    wxFile f;
+    if (!f.Open(wxString(path), wxFile::write)) return false;
+    return f.Write(buf.GetData(), buf.GetDataLen()) == buf.GetDataLen();
+}
+
+bool SequenceMedia::ExtractImageToFile(const std::string& oldPath, const std::string& newPath)
+{
+    std::shared_ptr<ImageCacheEntry> entry;
+    {
+        std::scoped_lock lock(_cacheMutex);
+        auto it = _imageCache.find(oldPath);
+        if (it == _imageCache.end()) return false;
+        entry = it->second;
+    }
+    if (!entry->SaveToFile(newPath)) return false;
+    RenameImage(oldPath, newPath);
+    ExtractImage(newPath);
+    return true;
+}
+
+bool SequenceMedia::RenameImage(const std::string& oldPath, const std::string& newPath)
+{
+    if (oldPath == newPath) return true;
+    std::scoped_lock lock(_cacheMutex);
+    auto it = _imageCache.find(oldPath);
+    if (it == _imageCache.end()) return false;
+    if (_imageCache.find(newPath) != _imageCache.end()) return false;
+    auto entry = it->second;
+    entry->SetFilePath(newPath);
+    _imageCache.erase(it);
+    _imageCache.emplace(newPath, entry);
+    return true;
 }
 
 bool SequenceMedia::LoadFromXml(wxXmlNode* node)

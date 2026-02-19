@@ -58,7 +58,7 @@ public:
         data["E_SLIDER_Shimmer_Blinks_Per_Row"] = "";
 
         data["E_NOTEBOOK_Text1"] = "";
-        data["E_TEXTCTRL_Pictures_Filename"] = "E_FILEPICKER_Pictures_Filename";
+        data["E_FILEPICKER_Pictures_Filename"] = "E_TEXTCTRL_Pictures_Filename";
         data["E_TEXTCTRL_Text_Font1"] = "E_FONTPICKER_Text_Font1";
         data["E_TEXTCTRL_Text_Font2"] = "E_FONTPICKER_Text_Font2";
         data["E_TEXTCTRL_Text_Font3"] = "E_FONTPICKER_Text_Font3";

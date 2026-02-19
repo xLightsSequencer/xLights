@@ -55,27 +55,30 @@ std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& se
     wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    wxString pictureFilename = settings.Get("E_FILEPICKER_Pictures_Filename", "");
+    wxString pictureFilename = settings.Get("E_TEXTCTRL_Pictures_Filename", "");
+    auto &mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
 
-    if (pictureFilename == "" || !FileExists(pictureFilename)) {
+    if (pictureFilename == "" || !mm.HasImage(pictureFilename)) {
         res.push_back(wxString::Format("    ERR: Picture effect cant find image file '%s'. Model '%s', Start %s", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     } else {
-        if (!IsFileInShowDir(xLightsFrame::CurrentDir, pictureFilename.ToStdString())) {
-            res.push_back(wxString::Format("    WARN: Picture effect image file '%s' not under show directory. Model '%s', Start %s", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-        }
-
-        int imageCount = wxImage::GetImageCount(pictureFilename);
-        if (imageCount <= 0) {
-            res.push_back(wxString::Format("    ERR: Picture effect '%s' contains no images. Image invalid. Model '%s', Start %s", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-        }
-
-        if (!renderCache) {
-            wxImage i;
-            i.LoadFile(pictureFilename);
-            if (i.IsOk()) {
-                int ih = i.GetHeight();
-                int iw = i.GetWidth();
-
+        auto img = mm.GetImage(pictureFilename);
+        if (!img->IsOk()) {
+            res.push_back(wxString::Format("    ERR: Picture effect cant load image '%s'. Model '%s', Start %s", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        } else {
+            if (!img->IsEmbedded()) {
+                if (!IsFileInShowDir(xLightsFrame::CurrentDir, pictureFilename.ToStdString())) {
+                    res.push_back(wxString::Format("    WARN: Picture effect image file '%s' not under show directory. Model '%s', Start %s", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                }
+            }
+            int imageCount = img->GetImageCount();
+            if (imageCount <= 0) {
+                res.push_back(wxString::Format("    ERR: Picture effect '%s' contains no images. Image invalid. Model '%s', Start %s", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            }
+            
+            if (!renderCache) {
+                int ih = img->GetImageSize().GetHeight();
+                int iw = img->GetImageSize().GetWidth();
+                    
 #define IMAGESIZETHRESHOLD 10
                 if (ih > IMAGESIZETHRESHOLD * model->GetDefaultBufferHt() || iw > IMAGESIZETHRESHOLD * model->GetDefaultBufferWi()) {
                     float scale = std::max((float)ih / model->GetDefaultBufferHt(), (float)iw / model->GetDefaultBufferWi());
@@ -130,11 +133,32 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
         settings.erase("E_CHECKBOX_Pictures_ScaleToFit");
     }
 
-    std::string file = settings["E_FILEPICKER_Pictures_Filename"];
-    if (!file.empty()) {
+    std::string file = settings["E_TEXTCTRL_Pictures_Filename"];
+    auto &media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+    if (!file.empty() && !media.HasImage(file)) {
         if (!FileExists(file, false)) {
-            settings["E_FILEPICKER_Pictures_Filename"] = FixFile("", file);
+            settings["E_TEXTCTRL_Pictures_Filename"] = FixFile("", file);
         }
+        std::string NewPictureName = settings["E_TEXTCTRL_Pictures_Filename"];
+        wxFileName fn(NewPictureName);
+        wxString suffix = "";
+        if (fn.GetName().Length() >= 2) {
+            suffix = fn.GetName().Right(2);
+        }
+        if (suffix == "-1") {// do we have a movie file?
+            //  Look at ending of the filename passed in. If we have it ending as *-1.jpg or *-1.png then we will assume
+            //  we have a bunch of jpg files made by ffmpeg
+            //  movie files can be converted into jpg frames by this command
+            //      ffmpeg -i XXXX.mp4 -s 16x50 XXXX-%d.jpg
+            //      ffmpeg -i XXXX.avi -s 16x50 XXXX-%d.jpg
+            //      ffmpeg -i XXXX.mov -s 16x50 XXXX-%d.jpg
+            //      ffmpeg -i XXXX.mts -s 16x50 XXXX-%d.jpg
+
+            if (!media.HasImage(NewPictureName)) {
+                media.AddAnimatedImage(NewPictureName, effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetFrameMS());
+            }
+        }
+        effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia().GetImage(settings["E_TEXTCTRL_Pictures_Filename"]);
     }
 
     if (IsVersionOlder("2016.9", version)) {
@@ -265,16 +289,12 @@ void PicturesEffect::SetTransparentBlackPixel(RenderBuffer& buffer, int x, int y
 
 void PicturesEffect::SetTransparentBlackPixel(RenderBuffer& buffer, int x, int y, xlColor c, bool wrap, bool transparentBlack, int transparentBlackLevel)
 {
-    if (transparentBlack)
-    {
+    if (transparentBlack) {
         int level = c.Red() + c.Green() + c.Blue();
-        if (level > transparentBlackLevel)
-        {
+        if (level > transparentBlackLevel) {
             buffer.ProcessPixel(x, y, c, wrap);
         }
-    }
-    else
-    {
+    } else {
         buffer.ProcessPixel(x, y, c, wrap);
     }
 }
@@ -285,6 +305,7 @@ void PicturesEffect::SetDefaultParameters() {
         return;
     }
 
+    pp->FileNameCtrl->SetValue("");
     pp->BitmapButton_PicturesXC->SetActive(false);
     pp->BitmapButton_PicturesYC->SetActive(false);
 
@@ -308,7 +329,6 @@ void PicturesEffect::SetDefaultParameters() {
     SetCheckBoxValue(pp->CheckBox_SuppressGIFBackground, true);
     SetCheckBoxValue(pp->CheckBox_TransparentBlack, false);
 
-    pp->FilePickerCtrl1->SetFileName(wxFileName());
 
     pp->ValidateWindow();
 }
@@ -316,8 +336,8 @@ void PicturesEffect::SetDefaultParameters() {
 std::list<std::string> PicturesEffect::GetFileReferences(Model* model, const SettingsMap &SettingsMap) const
 {
     std::list<std::string> res;
-    if (SettingsMap["E_FILEPICKER_Pictures_Filename"] != "") {
-        res.push_back(SettingsMap["E_FILEPICKER_Pictures_Filename"]);
+    if (SettingsMap["E_TEXTCTRL_Pictures_Filename"] != "" && FileExists(SettingsMap["E_TEXTCTRL_Pictures_Filename"])) {
+        res.push_back(SettingsMap["E_TEXTCTRL_Pictures_Filename"]);
     }
     return res;
 }
@@ -325,10 +345,10 @@ std::list<std::string> PicturesEffect::GetFileReferences(Model* model, const Set
 bool PicturesEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap)
 {
     bool rc = false;
-    wxString file = SettingsMap["E_FILEPICKER_Pictures_Filename"];
+    wxString file = SettingsMap["E_TEXTCTRL_Pictures_Filename"];
     if (FileExists(file)) {
         if (!frame->IsInShowFolder(file)) {
-            SettingsMap["E_FILEPICKER_Pictures_Filename"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Images");
+            SettingsMap["E_TEXTCTRL_Pictures_Filename"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Images");
             rc = true;
         }
     }
@@ -360,7 +380,7 @@ void PicturesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
     auto dirstr = SettingsMap["CHOICE_Pictures_Direction"];
     Render(buffer,
            dirstr,
-           SettingsMap["FILEPICKER_Pictures_Filename"],
+           SettingsMap["TEXTCTRL_Pictures_Filename"],
            SettingsMap.GetFloat("TEXTCTRL_Pictures_Speed", 1.0),
            SettingsMap.GetFloat("TEXTCTRL_Pictures_FrameRateAdj", 1.0),
            dirstr != "vector" ? GetValueCurveInt("PicturesXC", 0, SettingsMap, oset, PICTURES_XC_MIN, PICTURES_XC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) : SettingsMap.GetInt("SLIDER_PicturesXC", 0),
@@ -412,17 +432,6 @@ void PicturesEffect::Render(RenderBuffer& buffer,
         }
 
         if (suffix == "-1") {// do we have a movie file?
-            //  Look at ending of the filename passed in. If we have it ending as *-1.jpg or *-1.png then we will assume
-            //  we have a bunch of jpg files made by ffmpeg
-            //  movie files can be converted into jpg frames by this command
-            //      ffmpeg -i XXXX.mp4 -s 16x50 XXXX-%d.jpg
-            //      ffmpeg -i XXXX.avi -s 16x50 XXXX-%d.jpg
-            //      ffmpeg -i XXXX.mov -s 16x50 XXXX-%d.jpg
-            //      ffmpeg -i XXXX.mts -s 16x50 XXXX-%d.jpg
-
-            if (!buffer.GetSequenceMedia()->HasImage(NewPictureName)) {
-                buffer.GetSequenceMedia()->AddAnimatedImage(NewPictureName, buffer.frameTimeInMs);
-            }
             fitAnimation = false;
         }
 

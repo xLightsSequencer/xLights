@@ -126,7 +126,7 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
         CurrentSeqXmlFile->setSupportsModelBlending(false);
     }
 
-    SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectories, wxT(""), _defaultSeqView, wizardactive, media, durationMS);
+    SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, &_sequenceElements, mediaDirectories, wxT(""), _defaultSeqView, wizardactive, media, durationMS);
     int ret_code = wxID_ANY;
     if(wizardactive) {
         setting_dlg.Fit();
@@ -501,7 +501,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                 aborted = AbortRender();
             }
 
-            SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectories, wxT("V3 file was converted. Please check settings!"), wxEmptyString);
+            SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, &_sequenceElements, mediaDirectories, wxT("V3 file was converted. Please check settings!"), wxEmptyString);
             setting_dlg.Fit();
             int ret_code = setting_dlg.ShowModal();
 
@@ -678,6 +678,7 @@ bool xLightsFrame::CloseSequence()
     }
 
     _sequenceElements.Clear();
+    ResetAllPanelDefaultSettings();
     mSavedChangeCount = _sequenceElements.GetChangeCount();
     mLastAutosaveCount = mSavedChangeCount;
 
@@ -705,7 +706,6 @@ bool xLightsFrame::CloseSequence()
         _housePreviewPanel->Refresh();
 
     SetTitle(xlights_base_name + xlights_qualifier + " (Ver " + GetDisplayVersionString() + ") " + xlights_build_date);
-
     return true;
 }
 

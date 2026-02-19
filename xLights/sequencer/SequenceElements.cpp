@@ -685,9 +685,7 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
                         settings = ToStdString(effect->GetNodeContent());
                     }
 
-                    if (settings.find("E_FILEPICKER_Pictures_Filename") != std::string::npos) {
-                        settings = FixEffectFileParameter("E_FILEPICKER_Pictures_Filename", settings, "");
-                    } else if (settings.find("E_FILEPICKER_Glediator_Filename") != std::string::npos) {
+                    if (settings.find("E_FILEPICKER_Glediator_Filename") != std::string::npos) {
                         settings = FixEffectFileParameter("E_FILEPICKER_Glediator_Filename", settings, "");
                     }
 
@@ -807,9 +805,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
             effectStrings.clear();
             for (wxXmlNode* elementNode = e->GetChildren(); elementNode != nullptr; elementNode = elementNode->GetNext()) {
                 if (elementNode->GetName() == STR_EFFECT) {
-                    if (elementNode->GetNodeContent().Find("E_FILEPICKER_Pictures_Filename") >= 0) {
-                        elementNode->SetContent(FixEffectFileParameter("E_FILEPICKER_Pictures_Filename", elementNode->GetNodeContent(), ShowDir));
-                    } else if (elementNode->GetNodeContent().Find("E_TEXTCTRL_Glediator_Filename") >= 0) {
+                    if (elementNode->GetNodeContent().Find("E_TEXTCTRL_Glediator_Filename") >= 0) {
                         elementNode->SetContent(FixEffectFileParameter("E_TEXTCTRL_Glediator_Filename", elementNode->GetNodeContent(), ShowDir));
                     }
 

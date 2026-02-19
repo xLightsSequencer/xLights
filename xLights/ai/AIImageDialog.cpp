@@ -573,8 +573,19 @@ void AIImageDialog::OnResetButtonClick(wxCommandEvent& event)
     }
 }
 
+void AIImageDialog::SetEmbeddedMode(bool embedded)
+{
+    _embeddedMode = embedded;
+    SaveButton->SetLabel(embedded ? "Use Image" : "Save");
+}
+
 void AIImageDialog::OnSaveButtonClicked(wxCommandEvent& event)
 {
+    if (_embeddedMode) {
+        // In embedded mode just close with OK; the caller retrieves GetCurrentImage()
+        EndModal(wxID_OK);
+        return;
+    }
     wxImage img = RemoveBlackBackground(_currentImage);
     if (img.IsOk()) {
         wxFileDialog dlg(this, "Save Image", wxEmptyString, "Image.png", "*.png", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);

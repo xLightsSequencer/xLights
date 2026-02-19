@@ -39,6 +39,8 @@
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 #include "ConvertDialog.h"
+#include "ManageMediaPanel.h"
+#include "sequencer/SequenceElements.h"
 
 
 //(*IdInit(SeqSettingsDialog)
@@ -153,10 +155,11 @@ private:
     DataLayer* layer;
 };
 
-SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, const std::list<std::string>& media_dirs, const wxString& warning, const wxString& defaultView, bool wizard_active_, const std::string& media, uint32_t durationMS) :
+SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, SequenceElements *se, const std::list<std::string>& media_dirs, const wxString& warning, const wxString& defaultView, bool wizard_active_, const std::string& media, uint32_t durationMS) :
     xml_file(file_to_handle_),
     media_directories(media_dirs),
     xLightsParent((xLightsFrame*)parent),
+    sequenceElements(se),
     selected_branch_index(-1),
     selected_view("All Models"),
     wizard_active(wizard_active_)
@@ -464,6 +467,16 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     Connect(ID_BUTTON_CANCEL, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_CancelClick);
     Connect(ID_BUTTON_Close, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_CloseClick);
     //*)
+    
+    if (!wizard_active) {
+        Panel_ManageMedia = new ManageMediaPanel(Notebook_Seq_Settings,
+                                             sequenceElements ? &sequenceElements->GetSequenceMedia() : nullptr,
+                                             sequenceElements,
+                                             xLightsParent ? xLightsParent->GetShowDirectory() : std::string{},
+                                             xLightsParent);
+        //Notebook_Seq_Settings->InsertPage(3, Panel_ManageMedia, _("Media"), false);
+        Notebook_Seq_Settings->InsertPage(3, Panel_ManageMedia, _("Images"), false);
+    }
 
     TextCtrl_Xml_Seq_Duration->Connect(wxEVT_KILL_FOCUS, (wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationLoseFocus, nullptr, this);
 

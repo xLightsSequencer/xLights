@@ -3259,7 +3259,7 @@ void xLightsFrame::ShowSequenceSettings()
     AbortRender(60000, &numThreadsAborted);
 
     // populate dialog
-    SeqSettingsDialog dialog(this, xLightsFrame::CurrentSeqXmlFile, mediaDirectories, wxEmptyString, wxEmptyString);
+    SeqSettingsDialog dialog(this, xLightsFrame::CurrentSeqXmlFile, &_sequenceElements, mediaDirectories, wxEmptyString, wxEmptyString);
     dialog.Fit();
     int ret_code = dialog.ShowModal();
 

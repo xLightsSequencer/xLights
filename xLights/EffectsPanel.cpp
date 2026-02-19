@@ -114,6 +114,15 @@ void EffectsPanel::OnRightDownChoice(wxMouseEvent& event)
 }
 
 void EffectsPanel::SetDefaultEffectValues(const wxString &name) {
+    if (name.empty()) {
+        for (int x = 0; x < effectManager->GetLastEffectId(); x++) {
+            RenderableEffect *eff = effectManager->GetEffect(x);
+            if (eff != nullptr) {
+                eff->SetDefaultParameters();
+            }
+        }
+        return;
+    }
     RenderableEffect *eff = effectManager->GetEffect(name.ToStdString());
     if (eff != nullptr) {
         eff->SetDefaultParameters();

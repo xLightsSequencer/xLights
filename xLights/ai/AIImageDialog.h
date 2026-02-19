@@ -24,6 +24,12 @@ class AIImageDialog: public wxDialog
         AIImageDialog(wxWindow* parent, aiBase* service, wxWindowID id = wxID_ANY);
         virtual ~AIImageDialog();
 
+        // Returns the current (possibly cropped/resized) image after the dialog closes.
+        const wxImage& GetCurrentImage() const { return _currentImage; }
+
+        // In embedded mode the Save button is relabelled "Use Image" and closes
+        // the dialog with wxID_OK instead of prompting for a file path.
+        void SetEmbeddedMode(bool embedded);
 
         //(*Declarations(AIImageDialog)
         CropPanel* cropPanel;
@@ -80,6 +86,7 @@ class AIImageDialog: public wxDialog
         aiBase::AIImageGenerator *generator = nullptr;
         wxImage _originalImage;
         wxImage _currentImage;
+        bool _embeddedMode = false;
         
         void UpdateSizeLabel();
         void ShowInteractiveCrop();

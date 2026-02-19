@@ -61,6 +61,7 @@ public:
 
     void MarkIsUsed(bool used = true) { _used = used; }
     bool IsUsed() const { return _used; }
+    void SetFilePath(const std::string& path) { _filePath = path; }
     
     wxSize GetImageSize() const { return _imageSize; }
 
@@ -75,6 +76,8 @@ public:
     void ExtractImage() {
         _isEmbedded = false;
     }
+    // Write the raw embedded bytes to disk. Returns true on success.
+    bool SaveToFile(const std::string& path) const;
     bool IsOk() {
         return !_frameImages.empty() && _frameImages[0]->IsOk();
     }
@@ -143,8 +146,17 @@ public:
     // Embed/extract operations
     void EmbedImage(const std::string& filepath);
     void EmbedAllImages();
+    // Add a wxImage directly as an embedded entry with the given name.
+    void AddEmbeddedImage(const std::string& name, const wxImage& image);
     void ExtractImage(const std::string& filepath);
     void ExtractAllImages();
+    // Save embedded image data to newPath on disk, rename cache key, mark external.
+    // Returns true on success.
+    bool ExtractImageToFile(const std::string& oldPath, const std::string& newPath);
+
+    // Rename the cache key (and internal path) for an image entry.
+    // Returns true if the rename succeeded (oldPath existed, newPath didn't conflict).
+    bool RenameImage(const std::string& oldPath, const std::string& newPath);
     
     // Serialization for xsq file format
     bool LoadFromXml(wxXmlNode* node);

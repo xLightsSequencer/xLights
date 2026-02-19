@@ -830,7 +830,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
             mediaFilename = xml_file.GetMediaFile();
             ObtainAccessToURL(mediaFilename);
             if (mediaFilename.empty() || !FileExists(mediaFilename) || !wxIsReadable(mediaFilename)) {
-                SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectories, wxT(""), wxEmptyString);
+                SeqSettingsDialog setting_dlg(this, &xml_file, &_sequenceElements, mediaDirectories, wxT(""), wxEmptyString);
                 setting_dlg.Fit();
                 int ret_val = setting_dlg.ShowModal();
 
@@ -2935,6 +2935,15 @@ void xLightsFrame::ResetPanelDefaultSettings(const std::string& effect, const Mo
     // this should be used sparingly ...
     EffectsPanel1->SetDefaultEffectValues(effect);
 }
+void xLightsFrame::ResetAllPanelDefaultSettings() {
+    SetChoicebook(EffectsPanel1->EffectChoicebook, "On");
+    timingPanel->SetDefaultControls(nullptr, false);
+    bufferPanel->SetDefaultControls(nullptr, false);
+    colorPanel->SetDefaultSettings(false);
+
+    EffectsPanel1->SetDefaultEffectValues();
+}
+
 
 void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
 
