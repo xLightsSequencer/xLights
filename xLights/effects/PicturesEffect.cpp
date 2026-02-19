@@ -103,6 +103,10 @@ AssistPanel *PicturesEffect::GetAssistPanel(wxWindow *parent, xLightsFrame* xl_f
     assist_panel->AddPanel(picture_panel);
     picture_panel->SetGridCanvas(grid);
     grid->SetMessageParent(picture_panel);
+    if (xl_frame != nullptr) {
+        grid->SetSequenceMedia(&xl_frame->GetSequenceElements().GetSequenceMedia());
+        grid->SetXLightsFrame(xl_frame, &xl_frame->GetSequenceElements());
+    }
     return assist_panel;
 }
 
