@@ -29,6 +29,7 @@
 											<growablerows>0</growablerows>
 											<object class="sizeritem">
 												<object class="wxNotebook" name="ID_NOTEBOOK_OBJECTS" variable="Notebook_Objects" member="yes">
+													<minsize>-1,100d</minsize>
 													<handler function="OnNotebook_ObjectsPageChanged" entry="EVT_NOTEBOOK_PAGE_CHANGED" />
 													<object class="notebookpage">
 														<object class="wxPanel" name="ID_PANEL4" variable="PanelModels" member="yes" />
@@ -47,7 +48,7 @@
 									</object>
 									<object class="wxPanel" name="ID_PANEL2" variable="SecondPanel" member="yes" />
 								</object>
-								<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
 								<option>1</option>
 							</object>
