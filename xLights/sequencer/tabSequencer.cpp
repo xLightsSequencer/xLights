@@ -20,6 +20,8 @@
 
 #include "../xLightsMain.h"
 #include "SequenceElements.h"
+#include "SequenceMedia.h"
+#include "../ManageMediaPanel.h"
 #include "../TopEffectsPanel.h"
 #include "../EffectIconPanel.h"
 #include "../ValueCurvesPanel.h"
@@ -1418,11 +1420,64 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
     std::string effectName = parms[0].ToStdString();
     std::string filename = parms[1].ToStdString();
 
+    // Check if the file is outside the show directory
+    wxFileName fn(filename);
+    wxString showDir = GetShowDirectory();
+    bool isPictures = (effectName == "Pictures");
+    bool isOutside = !fn.GetFullPath().StartsWith(showDir);
+
+    if (isOutside && fn.FileExists()) {
+        wxArrayString choices;
+        choices.Add("Copy to show directory");
+        if (isPictures) choices.Add("Embed in sequence");
+        choices.Add("Use original location");
+
+        wxSingleChoiceDialog dlg(this,
+            wxString::Format("'%s' is outside the show directory.\nHow would you like to use it?",
+                             fn.GetFullName()),
+            "File Outside Show Directory", choices);
+        if (dlg.ShowModal() == wxID_CANCEL) return;
+
+        int choice = dlg.GetSelection();
+        
+        if (choices[choice] == "Copy to show directory") {
+            wxString dest = showDir;
+            if (effectName == "Pictures") {
+                dest = showDir + wxFileName::GetPathSeparator() + "Images";
+            } else if (effectName == "Shader") {
+                dest = showDir + wxFileName::GetPathSeparator() + "Shaders";
+            } else if (effectName == "Video") {
+                dest = showDir + wxFileName::GetPathSeparator() + "Videos";
+            } else if (effectName == "Glediator") {
+                dest = showDir + wxFileName::GetPathSeparator() + "Glediator";
+            }
+            if (!wxDirExists(dest)) {
+                wxMkdir(dest);
+            }
+            dest += wxFileName::GetPathSeparator() + fn.GetFullName();
+            if (!wxCopyFile(fn.GetFullPath(), dest, false)) {
+                wxMessageBox("Failed to copy file to show directory.", "Error", wxICON_ERROR | wxOK, this);
+                return;
+            }
+            filename = dest.ToStdString();
+        } else if (choices[choice] == "Embed in sequence") {
+            // Load and embed as SequenceMedia entry
+            wxImage img(fn.GetFullPath());
+            if (!img.IsOk()) {
+                wxMessageBox("Failed to load image for embedding.", "Error", wxICON_ERROR | wxOK, this);
+                return;
+            }
+            SequenceMedia& media = _sequenceElements.GetSequenceMedia();
+            std::string embeddedName = "Images/" + fn.GetFullName().ToStdString();
+            media.AddEmbeddedImage(embeddedName, img);
+            filename = embeddedName;
+        }
+        // else: Use original location — filename unchanged
+    }
+
     int effectIndex = 0;
-    for (size_t i = 0; i < EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetCount(); i++)
-    {
-        if (EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetString(i) == effectName)
-        {
+    for (size_t i = 0; i < EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetCount(); i++) {
+        if (EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetString(i) == effectName) {
             EffectsPanel1->EffectChoicebook->SetSelection(i);
             effectIndex = i;
             break;
@@ -1438,8 +1493,7 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
     Effect* last_effect_created = nullptr;
 
     _sequenceElements.get_undo_mgr().CreateUndoStep();
-    for (size_t i = 0; i < _sequenceElements.GetSelectedRangeCount(); i++)
-    {
+    for (size_t i = 0; i < _sequenceElements.GetSelectedRangeCount(); i++) {
         EffectLayer* el = _sequenceElements.GetSelectedRange(i)->Layer;
         if (el->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             continue;
@@ -1455,19 +1509,13 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
             EFFECT_SELECTED, false);
 
         // Now set the filename
-        if (effectName == "Video")
-        {
+        if (effectName == "Video") {
             effect->GetSettings()["E_FILEPICKERCTRL_Video_Filename"] = filename;
-        }
-        else if (effectName == "Pictures")
-        {
+        } else if (effectName == "Pictures") {
             effect->GetSettings()["E_FILEPICKER_Pictures_Filename"] = filename;
-        }
-        else if (effectName == "Glediator")
-        {
+        } else if (effectName == "Glediator") {
             effect->GetSettings()["E_FILEPICKERCTRL_Glediator_Filename"] = filename;
-        }
-        else if (effectName == "Shader") {
+        } else if (effectName == "Shader") {
             effect->GetSettings()["E_0FILEPICKERCTRL_IFS"] = filename;
         }
 
