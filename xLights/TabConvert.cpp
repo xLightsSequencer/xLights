@@ -1143,33 +1143,37 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
 
             if (_presetModel == nullptr) {
                 // create a model to render with
-                wxXmlNode n;
-                n.SetName("model");
-                n.AddAttribute("StringType", "RGB Nodes");
-                n.AddAttribute("Antialias", "1");
-                n.AddAttribute("PixelSize", "2");
-                n.AddAttribute("Transparency", "0");
-                n.AddAttribute("parm3", "1");
-                n.AddAttribute("name", PRESET_MODEL_NAME);
-                n.AddAttribute("DisplayAs", "Horiz Matrix");
-                n.AddAttribute("LayoutGroup", "Unassigned");
-                n.AddAttribute("Dir", "L");
-                n.AddAttribute("StartSide", "T");
-                n.AddAttribute("parm1", wxString::Format("%d", PRESET_ICON_SIZE));
-                n.AddAttribute("parm2", wxString::Format("%d", PRESET_ICON_SIZE));
-                n.AddAttribute("WorldPosX", "0");
-                n.AddAttribute("WorldPosY", "0");
-                n.AddAttribute("WorldPosZ", "0");
-                n.AddAttribute("ScaleX", "1");
-                n.AddAttribute("ScaleY", "1");
-                n.AddAttribute("ScaleZ", "1");
-                n.AddAttribute("RotateX", "0");
-                n.AddAttribute("RotateY", "0");
-                n.AddAttribute("RotateZ", "0");
-                n.AddAttribute("versionNumber", "5");
-                n.AddAttribute("StartChannel", "1"); // this is going to be a problem
                 ModelManager mm(nullptr, this);
-                _presetModel = new MatrixModel(mm);
+                auto* matrixModel = new MatrixModel(mm);
+                _presetModel = matrixModel;
+                
+                // Set model properties using direct setters
+                matrixModel->SetStringType("RGB Nodes");
+                matrixModel->SetPixelStyle(Model::PIXEL_STYLE::PIXEL_STYLE_SMOOTH); // Antialias = 1
+                matrixModel->SetPixelSize(2);
+                matrixModel->SetTransparency(0);
+                matrixModel->SetParm1(PRESET_ICON_SIZE);
+                matrixModel->SetParm2(PRESET_ICON_SIZE);
+                matrixModel->SetParm3(1);
+                matrixModel->SetVertical(false); // Horiz Matrix
+                matrixModel->SetDirection("L");
+                matrixModel->SetStartSide("T");
+                
+                // Set screen location properties using direct setters
+                auto& screenLoc = matrixModel->GetModelScreenLocation();
+                screenLoc.SetWorldPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+                auto& boxedLoc = dynamic_cast<BoxedScreenLocation&>(screenLoc);
+                boxedLoc.SetScale(1.0f, 1.0f);
+                boxedLoc.SetScaleZ(1.0f);
+                screenLoc.SetRotation(glm::vec3(0.0f, 0.0f, 0.0f));
+                
+                matrixModel->SetLayoutGroup("Unassigned");
+                
+                // Properties that still need proper setters
+                // TODO: Need setter methods for these metadata properties
+                matrixModel->SetProperty("name", PRESET_MODEL_NAME);
+                matrixModel->SetProperty("versionNumber", "5");
+                matrixModel->SetProperty("StartChannel", "1"); // this is going to be a problem
 
                 _presetSequenceElements.AddElement(_presetModel->GetName(), "Model", true, false, false, false, false);
             }

@@ -25,6 +25,8 @@
 #include "models/SpinnerModel.h"
 #include "models/StarModel.h"
 #include "models/TreeModel.h"
+#include "models/BoxedScreenLocation.h"
+#include "models/TwoPointScreenLocation.h"
 #include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
@@ -628,8 +630,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
     //Decode Start Channel
     SetStartChannel( model, m, supportsMultiString );
 
-    // TODO: Need setter method for LayoutGroup property
-    m->SetProperty( "LayoutGroup", xLights_preview );
+    m->SetLayoutGroup( xLights_preview );
 
     //rename
     auto newName = xlights->AllModels.GenerateModelName( Model::SafeModelName(model.name ));
@@ -759,6 +760,7 @@ bool LORPreview::GetStartUniverseChan( wxString const& value, int& unv, int& cha
 }
 
 void LORPreview::ScaleToPreview( S5Model const& model, Model* m, int pvwW, int pvwH ) const {
+    // TODO: Need setter method for versionNumber property
     m->SetProperty( "versionNumber", CUR_MODEL_POS_VER, true );
     int const bwidth  = m->GetWidth();
     int const bheight = m->GetHeight();
@@ -779,43 +781,50 @@ void LORPreview::ScaleToPreview( S5Model const& model, Model* m, int pvwW, int p
         rotatez = ( model.radians ) * 180.0f / M_PI;
     }
 
-    m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", worldPos_x ) );
-    m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", worldPos_y ) );
-    m->SetProperty( "WorldPosZ", wxString::Format( "%6.4f", worldPos_z ) );
-    m->SetProperty( "ScaleX", wxString::Format( "%6.4f", scalex ) );
-    m->SetProperty( "ScaleY", wxString::Format( "%6.4f", scaley ) );
-    m->SetProperty( "ScaleZ", wxString::Format( "%6.4f", scalez ) );
-
-    m->SetProperty( "RotateX", wxString::Format( "%4.8f", rotatex ) );
-    m->SetProperty( "RotateY", wxString::Format( "%4.8f", rotatey ) );
-    m->SetProperty( "RotateZ", wxString::Format( "%4.8f", rotatez ) );
+    // Set screen location properties using direct setters
+    auto& screenLoc = m->GetModelScreenLocation();
+    screenLoc.SetWorldPosition(glm::vec3(worldPos_x, worldPos_y, worldPos_z));
+    
+    auto* boxedLoc = dynamic_cast<BoxedScreenLocation*>(&screenLoc);
+    if (boxedLoc != nullptr) {
+        boxedLoc->SetScale(scalex, scaley);
+        boxedLoc->SetScaleZ(scalez);
+    }
+    
+    screenLoc.SetRotation(glm::vec3(rotatex, rotatey, rotatez));
 }
 
 void LORPreview::ScalePointsToSingleLine( S5Model const& model, Model* m, int pvwW, int pvwH ) const {
     if( model.points.empty() ) {
         return;
     }
+    // TODO: Need setter method for versionNumber property
     m->SetProperty( "versionNumber", CUR_MODEL_POS_VER, true );
 
     auto xModelFirst = ScalePointToXLights( model.points.front(), pvwW, pvwH );
 
+    // Set screen location properties using direct setters
+    auto& screenLoc = m->GetModelScreenLocation();
+    
     if( model.points.size() > 1 ) {
         auto xModelLast = ScalePointToXLights( model.points.back(), pvwW, pvwH );
-        m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", xModelFirst.x ) );
-        m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", xModelFirst.y ) );
-        m->SetProperty( "WorldPosZ", "0.0000" );
-
-        m->SetProperty( "X2", wxString::Format( "%6.4f", xModelLast.x - xModelFirst.x ) );
-        m->SetProperty( "Y2", wxString::Format( "%6.4f", xModelLast.y - xModelFirst.y ) );
-        m->SetProperty( "Z2", "0.0000" );
+        screenLoc.SetWorldPosition(glm::vec3(xModelFirst.x, xModelFirst.y, 0.0f));
+        
+        auto* twoPointLoc = dynamic_cast<TwoPointScreenLocation*>(&screenLoc);
+        if (twoPointLoc != nullptr) {
+            twoPointLoc->SetX2(xModelLast.x - xModelFirst.x);
+            twoPointLoc->SetY2(xModelLast.y - xModelFirst.y);
+            twoPointLoc->SetZ2(0.0f);
+        }
     } else {
-        m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", xModelFirst.x - 5) );
-        m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", xModelFirst.y ) );
-        m->SetProperty( "WorldPosZ", "0.0000" );
-
-        m->SetProperty( "X2", "10.0000" );
-        m->SetProperty( "Y2", "0.0000" );
-        m->SetProperty( "Z2", "0.0000" );
+        screenLoc.SetWorldPosition(glm::vec3(xModelFirst.x - 5, xModelFirst.y, 0.0f));
+        
+        auto* twoPointLoc = dynamic_cast<TwoPointScreenLocation*>(&screenLoc);
+        if (twoPointLoc != nullptr) {
+            twoPointLoc->SetX2(10.0f);
+            twoPointLoc->SetY2(0.0f);
+            twoPointLoc->SetZ2(0.0f);
+        }
     }
 }
 
@@ -823,35 +832,47 @@ void LORPreview::ScaleModelToSingleLine( S5Model const& model, Model* m, int pvw
 
     auto xModelCenter = ScalePointToXLights( model.offset, pvwW, pvwH );
     auto xSize        = GetXLightsSizeFromScale( model.scale, pvwW, pvwH );
+    
+    // Set screen location properties using direct setters
+    auto& screenLoc = m->GetModelScreenLocation();
+    auto* twoPointLoc = dynamic_cast<TwoPointScreenLocation*>(&screenLoc);
+    
     if( model.startLocation == "Top" ) {
-        m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", xModelCenter.x ) );
-        m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", xModelCenter.y + ( xSize.y / 2.0F) ) );
-        m->SetProperty( "X2", "0.0000" );
-        m->SetProperty( "Y2", wxString::Format( "%6.4f", - ( xSize.y / 2.0F ) ) );
+        screenLoc.SetWorldPosition(glm::vec3(xModelCenter.x, xModelCenter.y + (xSize.y / 2.0F), 0.0f));
+        if (twoPointLoc != nullptr) {
+            twoPointLoc->SetX2(0.0f);
+            twoPointLoc->SetY2(-(xSize.y / 2.0F));
+            twoPointLoc->SetZ2(0.0f);
+        }
     } else if( model.startLocation == "Bottom" ) {
-        m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", xModelCenter.x ) );
-        m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", xModelCenter.y - ( xSize.y / 2.0F ) ) );
-        m->SetProperty( "X2", "0.0000" );
-        m->SetProperty( "Y2", wxString::Format( "%6.4f",  ( xSize.y / 2.0F ) ) );
+        screenLoc.SetWorldPosition(glm::vec3(xModelCenter.x, xModelCenter.y - (xSize.y / 2.0F), 0.0f));
+        if (twoPointLoc != nullptr) {
+            twoPointLoc->SetX2(0.0f);
+            twoPointLoc->SetY2(xSize.y / 2.0F);
+            twoPointLoc->SetZ2(0.0f);
+        }
     } else if( model.startLocation == "Left" ) {
-        m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", xModelCenter.x + ( xSize.x / 2.0F ) ) );
-        m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", xModelCenter.y ) );
-        m->SetProperty( "X2", wxString::Format( "%6.4f",  - ( xSize.x / 2.0F ) ) );
-        m->SetProperty( "Y2", "0.0000" );
+        screenLoc.SetWorldPosition(glm::vec3(xModelCenter.x + (xSize.x / 2.0F), xModelCenter.y, 0.0f));
+        if (twoPointLoc != nullptr) {
+            twoPointLoc->SetX2(-(xSize.x / 2.0F));
+            twoPointLoc->SetY2(0.0f);
+            twoPointLoc->SetZ2(0.0f);
+        }
     } else if( model.startLocation == "Right" ) {
-        m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", xModelCenter.x - ( xSize.x / 2.0F ) ) );
-        m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", xModelCenter.y ) );
-        m->SetProperty( "X2", wxString::Format( "%6.4f", ( xSize.x / 2.0F ) ) );
-        m->SetProperty( "Y2", "0.0000" );
+        screenLoc.SetWorldPosition(glm::vec3(xModelCenter.x - (xSize.x / 2.0F), xModelCenter.y, 0.0f));
+        if (twoPointLoc != nullptr) {
+            twoPointLoc->SetX2(xSize.x / 2.0F);
+            twoPointLoc->SetY2(0.0f);
+            twoPointLoc->SetZ2(0.0f);
+        }
     } else  {//should not happen.....
-        m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", xModelCenter.x ) );
-        m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", xModelCenter.y ) );
-        m->SetProperty( "X2", wxString::Format( "%6.4f", xSize.x ) );
-        m->SetProperty( "Y2", wxString::Format( "%6.4f", xSize.y ) );
+        screenLoc.SetWorldPosition(glm::vec3(xModelCenter.x, xModelCenter.y, 0.0f));
+        if (twoPointLoc != nullptr) {
+            twoPointLoc->SetX2(xSize.x);
+            twoPointLoc->SetY2(xSize.y);
+            twoPointLoc->SetZ2(0.0f);
+        }
     }
-
-    m->SetProperty( "WorldPosZ", "0.0000" );
-    m->SetProperty( "Z2", "0.0000" );
 
     m->SetProperty( "ScaleX", "1.0000" );
     m->SetProperty( "ScaleY", "1.0000" );
@@ -1051,6 +1072,7 @@ void LORPreview::BulbToCustomModel(S5Model const& model, Model* m, int pvwW, int
 
 void LORPreview::ScaleBulbToXLights(S5Point center, S5Point size, int scale, Model* m, int pvwW, int pvwH) const
 {
+    // TODO: Need setter method for versionNumber property
     m->SetProperty( "versionNumber", CUR_MODEL_POS_VER, true );
 
     auto xModelCenter = ScalePointToXLights(center, pvwW, pvwH);
@@ -1063,16 +1085,17 @@ void LORPreview::ScaleBulbToXLights(S5Point center, S5Point size, int scale, Mod
     float scaley = xSize.y * (1.0 / scale);
     float scalez = scalex;
 
-    m->SetProperty("WorldPosX", wxString::Format("%6.4f", worldPos_x));
-    m->SetProperty("WorldPosY", wxString::Format("%6.4f", worldPos_y));
-    m->SetProperty("WorldPosZ", wxString::Format("%6.4f", worldPos_z));
-    m->SetProperty("ScaleX", wxString::Format("%6.4f", scalex));
-    m->SetProperty("ScaleY", wxString::Format("%6.4f", scaley));
-    m->SetProperty("ScaleZ", wxString::Format("%6.4f", scalez));
-
-    m->SetProperty("RotateX", "0.0000");
-    m->SetProperty("RotateY", "0.0000");
-    m->SetProperty("RotateZ", "0.0000");
+    // Set screen location properties using direct setters
+    auto& screenLoc = m->GetModelScreenLocation();
+    screenLoc.SetWorldPosition(glm::vec3(worldPos_x, worldPos_y, worldPos_z));
+    
+    auto* boxedLoc = dynamic_cast<BoxedScreenLocation*>(&screenLoc);
+    if (boxedLoc != nullptr) {
+        boxedLoc->SetScale(scalex, scaley);
+        boxedLoc->SetScaleZ(scalez);
+    }
+    
+    screenLoc.SetRotation(glm::vec3(0.0f, 0.0f, 0.0f));
 }
 
 bool LORPreview::FindBulbModelScale(int scale, std::vector<S5Point> const& bulbs) const
