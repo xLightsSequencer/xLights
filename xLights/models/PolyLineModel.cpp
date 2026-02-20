@@ -209,9 +209,9 @@ void PolyLineModel::DeleteHandle(int handle_) {
             ModelXml->DeleteAttribute(SegAttrName(x+1));
         }
         polyLineSizes.erase(polyLineSizes.begin() + handle);
-    }
-    else {
+    } else {
         ModelXml->DeleteAttribute(SegAttrName(handle-1));
+        polyLineSizes.erase(polyLineSizes.begin() + handle - 1);
     }
     GetModelScreenLocation().DeleteHandle(handle);
 }
