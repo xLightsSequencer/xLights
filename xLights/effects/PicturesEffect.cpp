@@ -602,7 +602,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
 
     for (int x = 0; x < imgwidth; x++) {
         for (int y = 0; y < imght; y++) {
-            if (!hasAlpha || !img.IsTransparent(x, y)) {
+            if (!hasAlpha || !img.IsTransparent(x, y, 1)) {
                 unsigned char alpha = hasAlpha ? img.GetAlpha(x, y) : 255;
                 c.Set(img.GetRed(x, y), img.GetGreen(x, y), img.GetBlue(x, y), alpha);
                 if (!buffer.allowAlpha && alpha < 64) {
