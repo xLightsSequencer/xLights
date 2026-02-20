@@ -2267,51 +2267,6 @@ void Model::AddSubmodel(SubModel* sm)
     sortedSubModels[sm->GetName()] = sm;
 }
 
-void Model::AddSubmodel(wxXmlNode* n)
-{
-    ParseSubModel(n);
-
-    // this may break if the submodel format changes and the user loads an old format ... if that happens this needs to go through a upgrade routine
-    wxXmlNode* f = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
-    ModelXml->AddChild(f);
-    for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext()) {
-        f->AddAttribute(a->GetName(), a->GetValue());
-    }
-
-    // can't be sure of the order of tags in xml and we don't want to ask twice, so setup breadcrumbs to ensure a single prompt
-    if (importAliases == false) {
-        if (skipImportAliases != true) {
-            if (wxMessageBox("Should I import aliases from the base model?", "Import Aliases?", wxICON_QUESTION | wxYES_NO) == wxYES) {
-                importAliases = true;
-            } else {
-                skipImportAliases = true;
-            }
-        }
-    }
-    if (importAliases == true) {
-        std::list<std::string> smaliases;
-        for (auto a = n->GetChildren(); a != nullptr; a = a->GetNext()) {
-             if (a->GetName() == "Aliases") {
-                 for (auto sma = a->GetChildren(); sma != nullptr; sma = sma->GetNext()) {
-                     smaliases.push_back(sma->GetAttribute("name"));
-                 }
-                 wxXmlNode* smf = new wxXmlNode(wxXML_ELEMENT_NODE, "Aliases");
-                 for (const auto& it : smaliases) {
-                     auto smn = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "alias");
-                     smn->AddAttribute("name", Lower(it));
-                     smf->AddChild(smn);
-                 }
-                 f->AddChild(smf);
-             }
-         }
-     }
- }
-
-void Model::AddSubmodel(wxXmlNode* n, bool skipPrompt) {
-    importAliases = skipPrompt;
-    AddSubmodel(n);
- }
-
 wxString Model::SerialiseFace() const
 {
     wxString res = "";
@@ -3023,13 +2978,6 @@ std::string Model::GenerateUniqueSubmodelName(const std::string suggested) const
         if (GetSubModel(name) == nullptr)
             return name;
     }
-}
-
-void Model::ParseSubModel(wxXmlNode* node)
-{
-    SubModel *sm = new SubModel(this, node);
-    subModels.push_back(sm);
-    sortedSubModels[sm->GetName()] = sm;
 }
 
 int Model::CalcChannelsPerString()

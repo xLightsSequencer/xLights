@@ -5348,19 +5348,14 @@ void LayoutPanel::ExportFacesStatesSubModels() {
             Model* targetModel = xlights->GetModel(choices.at(idx));
             targetModel->SetFaceInfo(sourceFaces);
             targetModel->SetStateInfo(sourceStates);
-            wxXmlNode* targetXml = targetModel->GetModelXml();
-            wxXmlNode* node = targetXml->GetChildren();
-            while (node != nullptr) {
-                wxXmlNode* next = node->GetNext();      // Store the next node before removal
-                if (node->GetName() == "subModel") {
-                    targetXml->RemoveChild(node);
-                    delete node;                        // Free the memory
-                }
-                node = next;                            // Move to the next node
-            }
-            for (wxXmlNode* node = selectedModel->GetModelXml()->GetChildren(); node != nullptr; node = node->GetNext()) {
-                if (node->GetName() == "subModel") {
-                    targetModel->AddSubmodel(node, true);
+
+            // Copy submodels using copy constructor
+            for (int i = 0; i < selectedModel->GetNumSubModels(); ++i) {
+                const SubModel* sourceSubModel = dynamic_cast<const SubModel*>(selectedModel->GetSubModel(i));
+                if (sourceSubModel != nullptr) {
+                    // Create SubModel using copy constructor
+                    SubModel* sm = new SubModel(targetModel, sourceSubModel);
+                    targetModel->AddSubmodel(sm);                    
                 }
             }
             targetModel->IncrementChangeCount();
@@ -7032,7 +7027,11 @@ void LayoutPanel::ReplaceModel()
                     if (modelToReplaceItWith->GetSubModel(name) != nullptr) {
                         continue;
                     }
-                    modelToReplaceItWith->AddSubmodel(replaceModel->GetSubModel(i)->GetModelXml());
+                    
+                    // Create SubModel using copy constructor
+                    const SubModel* sourceSubModel = dynamic_cast<const SubModel*>(replaceModel->GetSubModel(i));
+                    SubModel* sm = new SubModel(modelToReplaceItWith, sourceSubModel);
+                    modelToReplaceItWith->AddSubmodel(sm);
                 }
             }
         }

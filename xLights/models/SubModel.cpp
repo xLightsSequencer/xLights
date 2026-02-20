@@ -23,12 +23,6 @@ static const std::string STACKED_STRANDS("Stacked Strands");
 
 const std::vector<std::string> SubModel::BUFFER_STYLES{ DEFAULT, KEEP_XY, STACKED_STRANDS };
 
-SubModel::SubModel(Model *p, wxXmlNode* node)  // TODO:  delete this
-: Model(p->GetModelManager())
-{
-    wxASSERT(false);
-}
-
 SubModel::SubModel(Model *p, const std::string _name, bool vertical, bool ranges, const std::string bufferStyle) :
     Model(p->GetModelManager()),
     parent(p),
@@ -58,6 +52,57 @@ SubModel::SubModel(Model *p, const std::string _name, bool vertical, bool ranges
      transparency = p->transparency;
      blackTransparency = p->blackTransparency;
      pixelSize = p->pixelSize;
+}
+
+SubModel::SubModel(Model *newParent, const SubModel* source) :
+    Model(newParent->GetModelManager()),
+    parent(newParent),
+    _vert(source->_vert),
+    _isRanges(source->_isRanges),
+    _layout(source->_layout),
+    _type(source->_type),
+    _bufferStyle(source->_bufferStyle)
+{
+    // Copy change count from owning model
+    changeCount = newParent->changeCount;
+
+    // Copy SubModel properties
+    _nodesAllValid = source->_nodesAllValid;
+    StrobeRate = source->StrobeRate;
+    Nodes.clear();
+    DisplayAs = "SubModel";
+
+    name = source->name;
+    parm1 = source->parm1;
+    parm2 = source->parm2;
+    parm3 = source->parm3;
+    
+    StringType = newParent->StringType;
+
+    // Inherit pixel properties from new parent model
+    _pixelStyle = newParent->_pixelStyle;
+    transparency = newParent->transparency;
+    blackTransparency = newParent->blackTransparency;
+    pixelSize = newParent->pixelSize;
+
+    // Copy SubModel-specific data
+    _propertyGridDisplay = source->_propertyGridDisplay;
+    _sameLineDuplicates = source->_sameLineDuplicates;
+    _crossLineDuplicates = source->_crossLineDuplicates;
+    _nodeIndexes = source->_nodeIndexes;
+    _nodeIdx = source->_nodeIdx;
+    _startChannel = source->_startChannel;
+    
+    // Copy buffer-specific data
+    _row = source->_row;
+    _col = source->_col;
+    _maxRow = source->_maxRow;
+    _maxCol = source->_maxCol;
+    _nodeIndexMap = source->_nodeIndexMap;
+    _ranges = source->_ranges;
+    
+    // Copy aliases from source SubModel
+    aliases = source->GetAliases();
 }
 
 bool SubModel::IsXYBufferStyle() { return _bufferStyle == KEEP_XY; }

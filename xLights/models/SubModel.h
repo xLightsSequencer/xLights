@@ -18,8 +18,8 @@ static const std::string KEEP_XY("Keep XY");
 
 class SubModel : public Model {
 public:
-    SubModel(Model *p, wxXmlNode* node);  // TODO:  delete this
     SubModel(Model *p, const std::string _name, bool vertical, bool ranges, const std::string bufferStyle);
+    SubModel(Model *newParent, const SubModel* source);  // Copy constructor with new parent
     virtual ~SubModel() {}
 
     static const std::vector<std::string> BUFFER_STYLES;
