@@ -2282,25 +2282,6 @@ void CustomModelDialog::CreateSubmodelFromLayer(int layer)
     sm->CheckDuplicates();
     
     _model->AddSubmodel(sm);
-    
-    // Create XML node for persistence
-    wxXmlNode* smNode = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
-    smNode->AddAttribute("name", name);
-    smNode->AddAttribute("layout", "horizontal");
-    smNode->AddAttribute("type", "ranges");
-    for (int y = startrow; y < endrow; y++) {
-        std::string row;
-        for (int x = startcol; x < endcol; x++)
-        {
-            if (x != startcol) row += ",";
-            if (!GetLayerGrid(layer - 1)->GetCellValue(y, x).IsEmpty())
-            {
-                row += GetLayerGrid(layer - 1)->GetCellValue(y, x);
-            }
-        }
-        smNode->AddAttribute(wxString::Format("line%d", endrow - y - 1), row);
-    }
-    _model->GetModelXml()->AddChild(smNode);
 }
 
 void CustomModelDialog::CreateMinimalSubmodelFromLayer(int layer)
@@ -2391,25 +2372,6 @@ void CustomModelDialog::CreateMinimalSubmodelFromLayer(int layer)
     sm->CheckDuplicates();
     
     _model->AddSubmodel(sm);
-    
-    // Create XML node for persistence
-    wxXmlNode* smNode = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
-    smNode->AddAttribute("name", name);
-    smNode->AddAttribute("layout", "horizontal");
-    smNode->AddAttribute("type", "ranges");
-    for (int y = startrow; y < endrow; y++) {
-        std::string row;
-        for (int x = startcol; x < endcol; x++)
-        {
-            if (x != startcol) row += ",";
-            if (!GetLayerGrid(layer - 1)->GetCellValue(y, x).IsEmpty())
-            {
-                row += GetLayerGrid(layer-1)->GetCellValue(y, x);
-            }
-        }
-        smNode->AddAttribute(wxString::Format("line%d", endrow - y - 1), row);
-    }
-    _model->GetModelXml()->AddChild(smNode);
 }
 
 void CustomModelDialog::CreateSubmodelFromRow(int row)
@@ -2439,25 +2401,6 @@ void CustomModelDialog::CreateSubmodelFromRow(int row)
     sm->CheckDuplicates();
     
     _model->AddSubmodel(sm);
-    
-    // Create XML node for persistence
-    wxXmlNode* smNode = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
-    smNode->AddAttribute("name", name);
-    smNode->AddAttribute("layout", "horizontal");
-    smNode->AddAttribute("type", "ranges");
-    for (int y = startrow; y < endrow; y++) {
-        std::string srow;
-        for (int x = startcol; x < endcol; x++)
-        {
-            if (x != startcol) srow += ",";
-            if (!GetLayerGrid(y)->GetCellValue(row - 1, x).IsEmpty())
-            {
-                srow += GetLayerGrid(y)->GetCellValue(row - 1, x);
-            }
-        }
-        smNode->AddAttribute(wxString::Format("line%d", y - startrow), srow);
-    }
-    _model->GetModelXml()->AddChild(smNode);
 }
 
 void CustomModelDialog::CreateMinimalSubmodelFromRow(int row)
@@ -2548,25 +2491,6 @@ void CustomModelDialog::CreateMinimalSubmodelFromRow(int row)
     sm->CheckDuplicates();
     
     _model->AddSubmodel(sm);
-    
-    // Create XML node for persistence
-    wxXmlNode* smNode = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
-    smNode->AddAttribute("name", name);
-    smNode->AddAttribute("layout", "horizontal");
-    smNode->AddAttribute("type", "ranges");
-    for (int y = startrow; y < endrow; y++) {
-        std::string srow;
-        for (int x = startcol; x < endcol; x++)
-        {
-            if (x != startcol) srow += ",";
-            if (!GetLayerGrid(y)->GetCellValue(row - 1, x).IsEmpty())
-            {
-                srow += GetLayerGrid(y)->GetCellValue(row - 1, x);
-            }
-        }
-        smNode->AddAttribute(wxString::Format("line%d", y - startrow), srow);
-    }
-    _model->GetModelXml()->AddChild(smNode);
 }
 
 void CustomModelDialog::CreateSubmodelFromColumn(int col)
@@ -2596,25 +2520,6 @@ void CustomModelDialog::CreateSubmodelFromColumn(int col)
     sm->CheckDuplicates();
     
     _model->AddSubmodel(sm);
-    
-    // Create XML node for persistence
-    wxXmlNode* smNode = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
-    smNode->AddAttribute("name", name);
-    smNode->AddAttribute("layout", "horizontal");
-    smNode->AddAttribute("type", "ranges");
-    for (int y = startrow; y < endrow; y++) {
-        std::string row;
-        for (int x = endcol - 1; x >= startcol; x--)
-        {
-            if (x != endcol - 1) row += ",";
-            if (!GetLayerGrid(x)->GetCellValue(y, col - 1).IsEmpty())
-            {
-                row += GetLayerGrid(x)->GetCellValue(y, col - 1);
-            }
-        }
-        smNode->AddAttribute(wxString::Format("line%d", endrow - y - 1), row);
-    }
-    _model->GetModelXml()->AddChild(smNode);
 }
 
 void CustomModelDialog::CreateMinimalSubmodelFromColumn(int col)
@@ -2705,25 +2610,6 @@ void CustomModelDialog::CreateMinimalSubmodelFromColumn(int col)
     sm->CheckDuplicates();
     
     _model->AddSubmodel(sm);
-    
-    // Create XML node for persistence
-    wxXmlNode* smNode = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
-    smNode->AddAttribute("name", name);
-    smNode->AddAttribute("layout", "horizontal");
-    smNode->AddAttribute("type", "ranges");
-    for (int y = startrow; y < endrow; y++) {
-        std::string row;
-        for (int x = endcol - 1; x >= startcol; x--)
-        {
-            if (x != endcol - 1) row += ",";
-            if (!GetLayerGrid(x)->GetCellValue(y, col - 1).IsEmpty())
-            {
-                row += GetLayerGrid(x)->GetCellValue(y, col - 1);
-            }
-        }
-        smNode->AddAttribute(wxString::Format("line%d", endrow - y - 1), row);
-    }
-    _model->GetModelXml()->AddChild(smNode);
 }
 
 void CustomModelDialog::OnGridPopupLabel(wxCommandEvent& event)

@@ -27,6 +27,7 @@
 #include "models/TreeModel.h"
 #include "models/BoxedScreenLocation.h"
 #include "models/TwoPointScreenLocation.h"
+#include "models/ThreePointScreenLocation.h"
 #include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
@@ -674,16 +675,16 @@ void LORPreview::SetStartChannel( S5Model const& model, Model* xModel, bool doMu
 
 void LORPreview::SetDirection( S5Model const& model, Model* xModel ) {
     if( model.startLocation.Contains( "Left" ) ) {
-        xModel->SetProperty( "Dir", "L" );
+        xModel->SetDirection( "L" );
     }
     if( model.startLocation.Contains( "Right" ) ) {
-        xModel->SetProperty( "Dir", "R" );
+        xModel->SetDirection( "R" );
     }
     if( model.startLocation.Contains( "Bottom" ) ) {
-        xModel->SetProperty( "StartSide", "B" );
+        xModel->SetStartSide( "B" );
     }
     if( model.startLocation.Contains( "Top" ) ) {
-        xModel->SetProperty( "StartSide", "T" );
+        xModel->SetStartSide( "T" );
     }
 }
 
@@ -691,25 +692,25 @@ void LORPreview::SetStringType( S5Model const& model, Model* xModel ) {
     if( model.stringType.IsSameAs( "Traditional" ) ) {
         if( model.traditionalType.IsSameAs( "Multicolor_string_1_ch" ) ) {
             if( model.traditionalColors.Contains( "," ) ) { //multicolor strings
-                xModel->SetProperty( "StringType", "Single Color Intensity" );
+                xModel->SetStringType( "Single Color Intensity" );
             } else {
                 //Single Color
                 if( model.traditionalColors == "Red" || model.traditionalColors == "Blue" ||
                     model.traditionalColors == "Green" ||model.traditionalColors == "White" ) {
                     wxString const color = wxString::Format( "Single Color %s", model.traditionalColors );
-                    xModel->SetProperty( "StringType", color );
+                    xModel->SetStringType( color.ToStdString() );
                 } else {
                     xlColor colors( model.traditionalColors );
-                    xModel->SetProperty( "StringType", "Single Color Custom" );
-                    xModel->SetProperty( "CustomColor", colors );
+                    xModel->SetStringType( "Single Color Custom" );
+                    xModel->SetCustomColor( colors );
                 }
             }
         } else if( model.traditionalType.IsSameAs( "Channel_per_color" ) ) {
             if( !model.traditionalColors.Contains( "," ) ) { //single color
                 wxString const color = wxString::Format( "Single Color %s", model.traditionalColors );
-                xModel->SetProperty( "StringType", color );
+                xModel->SetStringType( color.ToStdString() );
             } else { //multi color
-                xModel->SetProperty( "StringType", "Superstring" );
+                xModel->SetStringType( "Superstring" );
                 auto const colors = wxSplit( model.traditionalColors, ',' );
                 //superstrings
                 for( auto const& color : colors ) {
@@ -719,10 +720,10 @@ void LORPreview::SetStringType( S5Model const& model, Model* xModel ) {
         }
     } else if( model.stringType.IsSameAs( "DumbRGB" ) ) {
         if( model.rgbOrder.Contains( "RGB" ) ) {
-            xModel->SetProperty( "StringType", "3 Channel RGB" );
+            xModel->SetStringType( "3 Channel RGB" );
         } else {
             //superstrings
-            xModel->SetProperty( "StringType", "Superstring" );
+            xModel->SetStringType( "Superstring" );
             for( int i = 0; i < 3; i++ ) {
                 wxString color( model.rgbOrder[ i ] ); //take char
                 color.Replace( "R", "Red" );           //convert to full color
@@ -734,19 +735,19 @@ void LORPreview::SetStringType( S5Model const& model, Model* xModel ) {
     } else if( model.stringType.IsSameAs( "RGB" ) ) { //RGB nodes
         auto order = model.rgbOrder;
         order.Replace( "order", "Nodes" );
-        xModel->SetProperty( "StringType", order );
+        xModel->SetStringType( order.ToStdString() );
     }
 }
 
 void LORPreview::SetBulbTypeSize( S5Model const& model, Model* xModel ) {
     if( model.bulbShape == "Square" ) {
-        xModel->SetProperty( "Antialias", "0" );
+        xModel->SetPixelStyle( Model::PIXEL_STYLE::PIXEL_STYLE_SQUARE );
     }
-    xModel->SetProperty( "PixelSize", std::to_string( model.previewBulbSize ) );
+    xModel->SetPixelSize( model.previewBulbSize );
 
     // Opacity="255" //full dark 255-0
     //"Transparency" 0-100
-    xModel->SetProperty( "Transparency", std::to_string( int( ( 255.0 - model.opacity ) / 2.55 ) ) );
+    xModel->SetTransparency( int( ( 255.0 - model.opacity ) / 2.55 ) );
 }
 
 bool LORPreview::GetStartUniverseChan( wxString const& value, int& unv, int& chan ) const {
@@ -874,9 +875,11 @@ void LORPreview::ScaleModelToSingleLine( S5Model const& model, Model* m, int pvw
         }
     }
 
+    // TODO: Need setter methods for Scale properties on TwoPointScreenLocation
     m->SetProperty( "ScaleX", "1.0000" );
     m->SetProperty( "ScaleY", "1.0000" );
     m->SetProperty( "ScaleZ", "1.0000" );
+    // TODO: Need setter method for versionNumber property
     m->SetProperty( "versionNumber", CUR_MODEL_POS_VER, true );
 }
 
@@ -893,23 +896,29 @@ void LORPreview::ScaleIcicleToSingleLine( S5Model const& model, int maxdrop, Mod
      *    3              2
      */
 
+    // TODO: Need setter method for versionNumber property
     m->SetProperty( "versionNumber", CUR_MODEL_POS_VER, true );
 
     auto xModelFirst = ScalePointToXLights( model.points.at( 0 ), pvwW, pvwH );
     auto xModelSecond = ScalePointToXLights( model.points.at( 1 ), pvwW, pvwH );
     auto xModelFour = ScalePointToXLights( model.points.at( 3 ), pvwW, pvwH );
 
-    m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", xModelFirst.x ) );
-    m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", xModelFirst.y ) );
-    m->SetProperty( "WorldPosZ", "0.0000" );
-
-    m->SetProperty( "X2", wxString::Format( "%6.4f", xModelSecond.x - xModelFirst.x ) );
-    m->SetProperty( "Y2", wxString::Format( "%6.4f", xModelSecond.y - xModelFirst.y ) );
-    m->SetProperty( "Z2", "0.0000" );
-    //kinda a guess
-    float new_Height = (( xModelFirst.y - xModelFour.y ) / (float)maxdrop) / 50.0F;
-    m->SetProperty( "Height", wxString::Format( "%6.4f", new_Height * -1.0F ) );
-
+    // Set screen location properties using direct setters
+    auto& screenLoc = m->GetModelScreenLocation();
+    screenLoc.SetWorldPosition(glm::vec3(xModelFirst.x, xModelFirst.y, 0.0f));
+    
+    auto* threePointLoc = dynamic_cast<ThreePointScreenLocation*>(&screenLoc);
+    if (threePointLoc != nullptr) {
+        threePointLoc->SetX2(xModelSecond.x - xModelFirst.x);
+        threePointLoc->SetY2(xModelSecond.y - xModelFirst.y);
+        threePointLoc->SetZ2(0.0f);
+        
+        //kinda a guess
+        float new_Height = (( xModelFirst.y - xModelFour.y ) / (float)maxdrop) / 50.0F;
+        threePointLoc->SetMHeight(new_Height * -1.0F);
+    }
+    
+    // TODO: Need setter methods for Scale properties on ThreePointScreenLocation
     m->SetProperty( "ScaleX", "1.0000" );
     m->SetProperty( "ScaleY", "1.0000" );
     m->SetProperty( "ScaleZ", "1.0000" );
@@ -1063,8 +1072,9 @@ void LORPreview::BulbToCustomModel(S5Model const& model, Model* m, int pvwW, int
         cm.pop_back(); // remove last semicolen
     }
 
-    m->SetProperty("parm1", std::to_string(scalesize.x+1)); // width
-    m->SetProperty("parm2", std::to_string(scalesize.y+1)); // height
+    m->SetParm1(scalesize.x+1); // width
+    m->SetParm2(scalesize.y+1); // height
+    // TODO: Need setter method for CustomModel property
     m->SetProperty("CustomModel", cm);
 
     ScaleBulbToXLights(center, size, scale, m, pvwW, pvwH);
