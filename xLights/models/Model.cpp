@@ -1175,13 +1175,19 @@ void Model::GetControllerProtocols(wxArrayString& cp, int& idx)
     }
 }
 
-wxArrayString Model::GetSmartRemoteValues(int smartRemoteCount)
+wxArrayString Model::GetSmartRemoteValues(int smartRemoteCount) const
 {
     wxArrayString res;
-    // res.push_back("None");
+    auto caps = GetControllerCaps();
+    bool hinkspix = (caps && caps->GetVendor() == "HinksPix");
+
     for (int i = 0; i < smartRemoteCount; ++i) {
-        res.push_back(wxString((char)(65 + i)));
-    }
+        if (hinkspix) {
+            res.push_back(wxString::Format("%d", i));
+        } else { 
+            res.push_back(wxString(char(65 + i)));
+        } 
+    } 
     return res;
 }
 
@@ -3411,12 +3417,21 @@ void Model::ReplaceIPInStartChannels(const std::string& oldIP, const std::string
     }
 }
 
-std::string Model::DecodeSmartRemote(int sr)
+std::string Model::DecodeSmartRemote(int sr) const
 {
     if (sr == 0)
         return "None";
+
+    auto caps = GetControllerCaps();
+    bool hinkspix = (caps && caps->GetVendor() == "HinksPix");
+
+    if (hinkspix) {
+        return std::to_string(sr - 1);
+    }
+
     return std::string(1, ('A' + sr - 1));
 }
+
 
 wxXmlNode* Model::GetControllerConnection() const
 {
