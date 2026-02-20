@@ -4586,7 +4586,7 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
             }
             int sel_hdl = model->GetSelectedHandle();
             // Center handle is 0 and selected segments are greater than 0x4000
-            if( (sel_hdl > 0) && (sel_hdl < 0x4000) && (sel_hdl < model->GetNumHandles()) && (model->GetNumHandles() > 2) ) {
+            if( (sel_hdl > 0) && (sel_hdl < 0x4000) && (sel_hdl <= model->GetNumHandles()) && (model->GetNumHandles() > 2) ) {
                 menu.Append(ID_PREVIEW_MODEL_DELETEPOINT,"Delete Point");
                 need_sep = true;
             }
