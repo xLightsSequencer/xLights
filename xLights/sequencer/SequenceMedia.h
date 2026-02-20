@@ -84,6 +84,7 @@ public:
     
     std::shared_ptr<wxImage> GetFrame(int x, bool suppressGIFBackground);
     int GetFrameForTime(int ms, bool loop);
+    bool IsFrameBasedAnimation() const { return _frameBasedAnimation; }
     
     std::shared_ptr<wxImage> GetScaledImage(int frameNumber, int width, int height, bool bgSuppressed);
 
@@ -99,6 +100,7 @@ private:
     void LoadFromFile(const std::string& filepath);
     void LoadFromData(const std::string& base64Data);
     void loadGIF(wxMemoryBuffer &ins);
+    void loadWEBP(wxMemoryBuffer &ins);
     void loadImage(wxMemoryBuffer &ins);
     int GetExifOrientation(wxMemoryBuffer& buffer);
     
@@ -106,6 +108,7 @@ private:
     std::string _embeddedData;      // Base64 encoded image data (when embedded, single-frame)
     mutable std::vector<std::string> _frameData; // Base64 encoded PNG per frame (multi-frame embedded, cached to avoid re-encode)
     int _imageCount = 0;                // Number of frames in image (1 for static, >1 for animated)
+    bool _frameBasedAnimation = true;
     std::atomic_bool _used;
 
     std::vector<long> _frameTimes;

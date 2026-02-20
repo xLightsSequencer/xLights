@@ -385,23 +385,20 @@ void PicturesPanel::ValidateWindow()
 	}
 
     wxString name = FileNameCtrl->GetValue();
-    wxFileName fn(name);
-    enable = fn.GetExt().Lower() == "gif";
-    CheckBox_LoopGIF->Enable(enable);
-    CheckBox_SuppressGIFBackground->Enable(enable);
-
     UpdatePreviewBitmap(name);
 }
 
 void PicturesPanel::UpdatePreviewBitmap(const wxString& filename)
 {
-    auto refreshPreview = [this](const wxBitmap& bmp) {
+    auto refreshPreview = [this](const wxBitmap& bmp, bool enable) {
         BitmapPreview->SetBitmap(bmp);
         BitmapPreview->InvalidateBestSize();
         BitmapPreview->Refresh();
         BitmapPreview->Update();
         if (BitmapPreview->GetParent())
             BitmapPreview->GetParent()->Layout();
+        CheckBox_LoopGIF->Enable(enable);
+        CheckBox_SuppressGIFBackground->Enable(enable);
     };
 
     auto makeRedBitmap = []() {
@@ -411,7 +408,7 @@ void PicturesPanel::UpdatePreviewBitmap(const wxString& filename)
     };
 
     if (filename.IsEmpty()) {
-        refreshPreview(makeRedBitmap());
+        refreshPreview(makeRedBitmap(), false);
         return;
     }
 
@@ -428,22 +425,22 @@ void PicturesPanel::UpdatePreviewBitmap(const wxString& filename)
         }
     }
     if (media == nullptr || !media->HasImage(filename.ToStdString())) {
-        refreshPreview(makeRedBitmap());
+        refreshPreview(makeRedBitmap(), false);
         return;
     }
 
     auto entry = media->GetImage(filename.ToStdString());
     if (!entry || !entry->IsOk()) {
-        refreshPreview(makeRedBitmap());
+        refreshPreview(makeRedBitmap(), false);
         return;
     }
 
     auto img = entry->GetFrame(0, false);
     if (!img || !img->IsOk()) {
-        refreshPreview(makeRedBitmap());
+        refreshPreview(makeRedBitmap(), false);
         return;
     }
-    refreshPreview(wxBitmap(*img));
+    refreshPreview(wxBitmap(*img), !entry->IsFrameBasedAnimation());
 }
 
 void PicturesPanel::OnAIGenerateButtonClick(wxCommandEvent& event)

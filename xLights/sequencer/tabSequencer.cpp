@@ -1468,8 +1468,10 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
                 return;
             }
             SequenceMedia& media = _sequenceElements.GetSequenceMedia();
+            auto i = media.GetImage(fn.GetFullPath());
             std::string embeddedName = "Images/" + fn.GetFullName().ToStdString();
-            media.AddEmbeddedImage(embeddedName, img);
+            media.RenameImage(fn.GetFullPath(), embeddedName);
+            media.EmbedImage(embeddedName);
             filename = embeddedName;
         }
         // else: Use original location — filename unchanged

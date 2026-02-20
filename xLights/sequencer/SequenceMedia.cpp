@@ -41,6 +41,7 @@ ImageCacheEntry::ImageCacheEntry(const std::string &path, const std::string &bas
 ImageCacheEntry::ImageCacheEntry(const std::string &path, const std::vector<wxImage> &imgs, int ft, const std::string &base64Data): _used(false), _filePath(path), _embeddedData(base64Data) {
     invalidImage = std::make_shared<wxImage>(wxImage());
     _isEmbedded = false;
+    _frameBasedAnimation = true;
     _imageCount = (int)imgs.size();
     _frameImages.resize(_imageCount);
     _frameImagesNoBG.resize(_imageCount);
@@ -72,9 +73,11 @@ void ImageCacheEntry::Load() {
 }
 void ImageCacheEntry::LoadFromData(const std::string& data) {
     wxMemoryBuffer buffer = wxBase64Decode(data.c_str());
-    wxFileName fn(_filePath);
     if (buffer[0] == 'G' && buffer[1] == 'I' && buffer[2] == 'F') {
         loadGIF(buffer);
+    } else if (buffer[0] == 'R' && buffer[1] == 'I' && buffer[2] == 'F' && buffer[3] == 'F'
+               && buffer[8] == 'W' && buffer[9] == 'E' && buffer[10] == 'B' && buffer[11] == 'P') {
+        loadWEBP(buffer);
     } else {
         loadImage(buffer);
     }
@@ -82,7 +85,6 @@ void ImageCacheEntry::LoadFromData(const std::string& data) {
 void ImageCacheEntry::LoadFromFile(const std::string& filepath) {
     FileExists(filepath, true);
     wxFileName fn(filepath);
-    bool isGif = (fn.GetExt().Lower() == "gif");
     wxFileInputStream stream(filepath);
     if (stream.IsOk()) {
         wxMemoryBuffer buffer;
@@ -93,13 +95,9 @@ void ImageCacheEntry::LoadFromFile(const std::string& filepath) {
                 buffer.AppendData(tempBuf, stream.LastRead());
             }
         }
-        
-        if (isGif) {
-            loadGIF(buffer);
-        } else {
-            loadImage(buffer);
-        }
         _embeddedData = wxBase64Encode(buffer).ToStdString();
+        buffer.Clear();
+        LoadFromData(_embeddedData);
     }
 }
 
@@ -232,8 +230,46 @@ void ImageCacheEntry::loadGIF(wxMemoryBuffer &ins) {
             _totalTime = 0;
             _frameTimes[0] = 0;
         }
+        _frameBasedAnimation = false;
     }
 }
+
+void ImageCacheEntry::loadWEBP(wxMemoryBuffer &ins) {
+    wxMemoryInputStream stream(ins.GetData(), ins.GetDataLen());
+    std::vector<wxWebPAnimationFrame> frames;
+    wxWEBPHandler handler;
+    if (handler.LoadAnimation(frames, stream)) {
+        // 'frames' now contains all frames
+        _totalTime = 0;
+        for (const auto& frame : frames) {
+            _frameImages.push_back(std::make_shared<wxImage>(frame.image));
+            _frameTimes.push_back(frame.duration);
+            _totalTime += frame.duration;
+            
+            xlColor bg = frame.bgColour;
+            wxSize sz = frame.image.GetSize();
+            bool hasAlpha = frame.image.HasAlpha();
+            wxImage i(frame.image);
+            for (int x = 0; x < sz.GetWidth(); ++x) {
+                for (int y = 0; y < sz.GetHeight(); ++y) {
+                    xlColor c(i.GetRed(x, y), i.GetGreen(x, y), i.GetBlue(x, y),
+                              hasAlpha ? i.GetAlpha(x, y) : 255);
+                    if (c == bg) {
+                        i.SetRGB(x, y, 0, 0, 0);
+                        if (hasAlpha) {
+                            i.SetAlpha(x, y, 255);
+                        }
+                    }
+                }
+            }
+            _frameImagesNoBG.push_back(std::make_shared<wxImage>(i));
+        }
+        _imageCount = _frameTimes.size();
+        _imageSize = _frameImages.front().get()->GetSize();
+        _frameBasedAnimation = _imageCount <= 1;
+    }
+}
+
 void ImageCacheEntry::loadImage(wxMemoryBuffer &ins) {
     wxImage i;
     wxMemoryInputStream stream(ins.GetData(), ins.GetDataLen());
@@ -292,6 +328,7 @@ bool ImageCacheEntry::LoadFromXml(wxXmlNode* node)
             _frameTimes.push_back(ft);
             _totalTime += ft;
         }
+        _frameBasedAnimation = true;
         _imageCount = (int)_frameImages.size();
         if (_imageCount > 0) _imageSize = _frameImages[0]->GetSize();
         _loadingDone = true;
