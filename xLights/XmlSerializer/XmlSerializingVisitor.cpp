@@ -610,7 +610,6 @@ void XmlSerializingVisitor::Visit(const CustomModel& model) {
     }
 
     const Model* m = dynamic_cast<const Model*>(&model);
-    //AddCustomModel(xmlNode, model);
     AddOtherElements(xmlNode, m);
 }
 
