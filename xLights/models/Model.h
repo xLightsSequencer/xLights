@@ -364,7 +364,7 @@ public:
     [[nodiscard]] std::string GetControllerConnectionPortRangeString() const;
     [[nodiscard]] std::string GetControllerConnectionAttributeString() const;
     void ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP);
-    static std::string DecodeSmartRemote(int sr);
+    std::string DecodeSmartRemote(int sr) const;
 
     void SetTagColour(wxColour colour);
     [[nodiscard]] wxColour GetTagColour();
@@ -451,7 +451,7 @@ public:
     
     virtual std::vector<PWMOutput> GetPWMOutputs() const;
 
-    static wxArrayString GetSmartRemoteValues(int smartRemoteCount);
+    wxArrayString GetSmartRemoteValues(int smartRemoteCount) const;
 
     [[nodiscard]] unsigned long GetChangeCount() const {
         return changeCount;
