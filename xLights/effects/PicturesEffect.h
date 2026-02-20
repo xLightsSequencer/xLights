@@ -19,7 +19,6 @@
 #define PICTURES_YC_MAX 100
 
 #include <string>
-class wxString;
 class wxFile;
 
 class PicturesEffect : public RenderableEffect
@@ -68,7 +67,6 @@ class PicturesEffect : public RenderableEffect
     protected:
         virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
     private:
-        static void LoadPixelsFromTextFile(RenderBuffer &buffer, wxFile& debug, const wxString& filename);
         static void SetTransparentBlackPixel(RenderBuffer &buffer, int x, int y, xlColor c, bool transparentBlack, int transparentBlackLevel);
         static void SetTransparentBlackPixel(RenderBuffer &buffer, int x, int y, xlColor c, bool wrap, bool transparentBlack, int transparentBlackLevel);
 };

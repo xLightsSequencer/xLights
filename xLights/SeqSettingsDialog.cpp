@@ -39,6 +39,8 @@
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 #include "ConvertDialog.h"
+#include "ManageMediaPanel.h"
+#include "sequencer/SequenceElements.h"
 
 
 //(*IdInit(SeqSettingsDialog)
@@ -153,10 +155,11 @@ private:
     DataLayer* layer;
 };
 
-SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, const std::list<std::string>& media_dirs, const wxString& warning, const wxString& defaultView, bool wizard_active_, const std::string& media, uint32_t durationMS) :
+SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, SequenceElements *se, const std::list<std::string>& media_dirs, const wxString& warning, const wxString& defaultView, bool wizard_active_, const std::string& media, uint32_t durationMS) :
     xml_file(file_to_handle_),
     media_directories(media_dirs),
     xLightsParent((xLightsFrame*)parent),
+    sequenceElements(se),
     selected_branch_index(-1),
     selected_view("All Models"),
     wizard_active(wizard_active_)
@@ -464,6 +467,16 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     Connect(ID_BUTTON_CANCEL, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_CancelClick);
     Connect(ID_BUTTON_Close, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_CloseClick);
     //*)
+    
+    if (!wizard_active) {
+        Panel_ManageMedia = new ManageMediaPanel(Notebook_Seq_Settings,
+                                             sequenceElements ? &sequenceElements->GetSequenceMedia() : nullptr,
+                                             sequenceElements,
+                                             xLightsParent ? xLightsParent->GetShowDirectory() : std::string{},
+                                             xLightsParent);
+        //Notebook_Seq_Settings->InsertPage(3, Panel_ManageMedia, _("Media"), false);
+        Notebook_Seq_Settings->InsertPage(3, Panel_ManageMedia, _("Images"), false);
+    }
 
     TextCtrl_Xml_Seq_Duration->Connect(wxEVT_KILL_FOCUS, (wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationLoseFocus, nullptr, this);
 
@@ -623,7 +636,10 @@ void SeqSettingsDialog::WizardPage1()
     Panel_Wizard = new wxPanel(Notebook_Seq_Settings, ID_PANEL_Wizard, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Wizard"));
     Notebook_Seq_Settings->InsertPage(0, Panel_Wizard, _("Wizard"), true);
     GridBagSizerWizard = new wxGridBagSizer(0, 1);
-    GridBagSizerWizard->Add(493,16,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerWizard->AddGrowableCol(0);
+    GridBagSizerWizard->AddGrowableRow(0);
+    GridBagSizerWizard->AddGrowableRow(2);
+    GridBagSizerWizard->Add(0, 0, wxGBPosition(0, 0), wxDefaultSpan, wxEXPAND, 0);
     GridSizerWizButtons = new wxGridSizer(0, 1, 10, 0);
     BitmapButton_Wiz_Music = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_Wiz_Music, musical_seq, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Wiz_Music"));
     BitmapButton_Wiz_Music->SetBitmapPressed(musical_seq_pressed);
@@ -632,9 +648,9 @@ void SeqSettingsDialog::WizardPage1()
     BitmapButton_Wiz_Anim->SetBitmapPressed(animation_seq_pressed);
     GridSizerWizButtons->Add(BitmapButton_Wiz_Anim, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridBagSizerWizard->Add(GridSizerWizButtons, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerWizard->Add(0, 0, wxGBPosition(2, 0), wxDefaultSpan, wxEXPAND, 0);
     Panel_Wizard->SetSizer(GridBagSizerWizard);
-    GridBagSizerWizard->Fit(Panel_Wizard);
-    GridBagSizerWizard->SetSizeHints(Panel_Wizard);
+    Panel_Wizard->Layout();
     Connect(ID_BITMAPBUTTON_Wiz_Music,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_Wiz_MusicClick);
     Connect(ID_BITMAPBUTTON_Wiz_Anim,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick);
 }
@@ -643,7 +659,7 @@ void SeqSettingsDialog::WizardPage2()
 {
     BitmapButton_quick_start = nullptr;
     GridBagSizerWizard->Clear(true);
-    GridBagSizerWizard->Add(493,16,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerWizard->Add(0, 0, wxGBPosition(0, 0), wxDefaultSpan, wxEXPAND, 0);
     GridSizerWizButtons = new wxGridSizer(0, 1, 10, 0);
     BitmapButton_25ms = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_25ms, time_25ms, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_25ms"));
     BitmapButton_25ms->SetBitmapPressed(time_25ms_pressed);
@@ -655,9 +671,9 @@ void SeqSettingsDialog::WizardPage2()
     BitmapButton_Custom->SetBitmapPressed(time_custom_pressed);
     GridSizerWizButtons->Add(BitmapButton_Custom, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridBagSizerWizard->Add(GridSizerWizButtons, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerWizard->Add(0, 0, wxGBPosition(2, 0), wxDefaultSpan, wxEXPAND, 0);
     Panel_Wizard->SetSizer(GridBagSizerWizard);
-    GridBagSizerWizard->Fit(Panel_Wizard);
-    GridBagSizerWizard->SetSizeHints(Panel_Wizard);
+    Panel_Wizard->Layout();
 
     Connect(ID_BITMAPBUTTON_25ms,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_25msClick);
     Connect(ID_BITMAPBUTTON_50ms,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_50msClick);
@@ -673,7 +689,7 @@ void SeqSettingsDialog::WizardPage3()
 {
     BitmapButton_quick_start = nullptr;
     GridBagSizerWizard->Clear(true);
-    GridBagSizerWizard->Add(493,16,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerWizard->Add(0, 0, wxGBPosition(0, 0), wxDefaultSpan, wxEXPAND, 0);
     GridSizerWizButtons = new wxGridSizer(0, 1, 5, 10);
     wxStaticText* StaticText_Page3Optional = new wxStaticText(Panel_Wizard, wxID_ANY, _("Select a View:"), wxDefaultPosition, wxDefaultSize, 0, _T(""));
     wxFont Page3OptionalFont(14,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD);
@@ -704,9 +720,9 @@ void SeqSettingsDialog::WizardPage3()
     wxFont SkipImportFont(16,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD);
     ModelsChoiceNext->SetFont(SkipImportFont);
     GridBagSizerWizard->Add(GridSizerWizButtons, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerWizard->Add(0, 0, wxGBPosition(2, 0), wxDefaultSpan, wxEXPAND, 0);
     Panel_Wizard->SetSizer(GridBagSizerWizard);
-    GridBagSizerWizard->Fit(Panel_Wizard);
-    GridBagSizerWizard->SetSizeHints(Panel_Wizard);
+    Panel_Wizard->Layout();
 
     Connect(ID_BUTTON_models_next,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_ModelsChoiceNext);
     Connect(ID_BITMAPBUTTON_quick_start,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_quick_startClick);
@@ -714,15 +730,13 @@ void SeqSettingsDialog::WizardPage3()
 
     StaticText_Info->SetLabelText("This option is used to select which models will populate the master view. \nPress Quick Start to begin sequencing and skip option steps.");
     StaticText_Info->Show();
-    Fit();
-    Refresh();
 }
 
 void SeqSettingsDialog::WizardPage4()
 {
     BitmapButton_quick_start = nullptr;
     GridBagSizerWizard->Clear(true);
-    GridBagSizerWizard->Add(493,1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    GridBagSizerWizard->Add(0, 0, wxGBPosition(0, 0), wxDefaultSpan, wxEXPAND, 0);
     wxStaticText* StaticText_Page3Optional = new wxStaticText(Panel_Wizard, wxID_ANY, _("Import Data (Optional):"), wxDefaultPosition, wxDefaultSize, 0, _T(""));
     wxFont Page3OptionalFont(12,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD);
     StaticText_Page3Optional->SetFont(Page3OptionalFont);
@@ -747,9 +761,9 @@ void SeqSettingsDialog::WizardPage4()
     wxFont SkipImportFont(16,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD);
     Button_SkipImport->SetFont(SkipImportFont);
     GridBagSizerWizard->Add(GridSizerWizButtons, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerWizard->Add(0, 0, wxGBPosition(2, 0), wxDefaultSpan, wxEXPAND, 0);
     Panel_Wizard->SetSizer(GridBagSizerWizard);
-    GridBagSizerWizard->Fit(Panel_Wizard);
-    GridBagSizerWizard->SetSizeHints(Panel_Wizard);
+    Panel_Wizard->Layout();
     Connect(ID_BITMAPBUTTON_lor,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_lorClick);
     Connect(ID_BITMAPBUTTON_vixen,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_vixenClick);
     Connect(ID_BITMAPBUTTON_gled,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_gledClick);
@@ -758,15 +772,13 @@ void SeqSettingsDialog::WizardPage4()
     Connect(ID_BITMAPBUTTON_xlights,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_xlightsClick);
     Connect(ID_BUTTON_skip_import,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_skip_importClick);
     StaticText_Info->Hide();
-    Fit();
-    Refresh();
 }
 
 void SeqSettingsDialog::WizardPage5()
 {
     BitmapButton_quick_start = nullptr;
     GridBagSizerWizard->Clear(true);
-    GridBagSizerWizard->Add(493,1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    GridBagSizerWizard->Add(0, 0, wxGBPosition(0, 0), wxDefaultSpan, wxEXPAND, 0);
     wxStaticText* StaticText_Page3Optional = new wxStaticText(Panel_Wizard, wxID_ANY, _("Other Optional Tasks:"), wxDefaultPosition, wxDefaultSize, 0, _T(""));
     wxFont Page3OptionalFont(12,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD);
     StaticText_Page3Optional->SetFont(Page3OptionalFont);
@@ -789,14 +801,12 @@ void SeqSettingsDialog::WizardPage5()
     Button_ImportTimings->SetFont(LargerFont);
     Button_WizardDone->SetFont(LargerFont);
     GridBagSizerWizard->Add(GridSizerWizButtons, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerWizard->Add(0, 0, wxGBPosition(2, 0), wxDefaultSpan, wxEXPAND, 0);
     Panel_Wizard->SetSizer(GridBagSizerWizard);
-    GridBagSizerWizard->Fit(Panel_Wizard);
-    GridBagSizerWizard->SetSizeHints(Panel_Wizard);
+    Panel_Wizard->Layout();
     Connect(ID_BUTTON_edit_metadata,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_EditMetadataClick);
     Connect(ID_BUTTON_import_timings,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_ImportTimingsClick);
     Connect(ID_BUTTON_wizard_done,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Button_WizardDoneClick);
-    Fit();
-    Refresh();
 }
 
 void SeqSettingsDialog::AddTimingCell(const wxString& name)

@@ -32,6 +32,8 @@
 
 #include <log4cpp/Category.hh>
 #include <thread>
+#include <algorithm>
+#include <format>
 
 #pragma region V4
 
@@ -115,9 +117,8 @@ int Falcon::V4_GetConversionProgress() {
         }
 
         return mp3;
-    } else {
-        return 100;
-    }
+    } 
+    return 100;
 }
 
 int Falcon::CallFalconV4API(const std::string& type, const std::string& method, int inbatch, int expected, int index, const nlohmann::json& params, bool& finalCall, int& outbatch, bool& reboot, nlohmann::json& result) {
@@ -128,29 +129,50 @@ int Falcon::CallFalconV4API(const std::string& type, const std::string& method, 
 
     std::string p;
     if (!params.is_null()) {
-        p = params.dump();
+        try {
+            p = params.dump(-1, (char)32, false, nlohmann::json::error_handler_t::replace);
+        } catch (nlohmann::json::exception& e) {
+            logger_base.warn("Falcon::CallFalconV4API - JSON parse error %s",e.what());
+            p = "{}";
+            
+        } catch (std::exception& e) {
+            logger_base.warn("Falcon::CallFalconV4API - JSON parse error %s",e.what());
+            p = "{}";
+        }
     } else {
         p = "{}";
     }
 
-    std::string send = wxString::Format("{\"T\":\"%s\",\"M\":\"%s\",\"B\":%d,\"E\":%d,\"I\":%d,\"P\":%s}", type, method, inbatch, expected, index, p).ToStdString();
+    std::string const send = std::format("{{\"T\":\"{}\",\"M\":\"{}\",\"B\":{},\"E\":{},\"I\":{},\"P\":{}}}", type, method, inbatch, expected, index, p);
 
     std::string res = SendToFalconV4(send);
 
     logger_base.debug(res);
 
-    if (res == ""){
-        return 506;
+    if (res.empty()) {
+         return 506;
     }
-
-    nlohmann::json resJson = nlohmann::json::parse(res);
-    int const resInt = resJson["R"].get<int>();
-    finalCall = resJson["F"].get<int>() == 1;
-    outbatch = resJson["B"].get<int>();
-    reboot = resJson["RB"].get<int>() == 1;
-    result = resJson["P"];
-
-    return resInt;
+    try {
+        bool const validated = nlohmann::json::accept(res);
+        if (!validated) {
+            logger_base.warn("Falcon::CallFalconV4API - Invalid JSON response: %s", res.c_str());
+            res.erase(std::remove_if(res.begin(), res.end(), [](char c) { return static_cast<unsigned char>(c) > 127; }), res.end());
+        }
+        nlohmann::json resJson = nlohmann::json::parse(res);
+        int const resInt = resJson["R"].get<int>();
+        finalCall = resJson["F"].get<int>() == 1;
+        outbatch = resJson["B"].get<int>();
+        reboot = resJson["RB"].get<int>() == 1;
+        result = resJson["P"];
+        return resInt;
+    }
+    catch(nlohmann::json::parse_error & e) {
+        logger_base.warn("Falcon::CallFalconV4API - JSON parse error %s: %s", e.what() , res.c_str() );
+    }
+    catch (std::exception& e) {
+       logger_base.warn("Falcon::CallFalconV4API - JSON parse error %s: %s", e.what(), res.c_str());
+    }
+    return 506;
 }
 
 bool Falcon::V4_GetInputs(std::vector<FALCON_V4_INPUTS>& res) {
@@ -225,9 +247,9 @@ bool Falcon::V4_SendBoardMode(int boardMode, int controllerMode, unsigned long s
     // {"T":"S","M":"BM","B":0,"E":0,"I":0,"P":{"B":0,"O":2,"ps":0}}
     // {"R":200,"T":"S","M":"BM","F":1,"B":0,"RB":1,"P":{},"W":" ","L":""}
 
-    bool success = true;
+    bool success{ true };
 
-    std::string params = wxString::Format("{\"B\":%d,\"O\":%d,\"ps\":%lu}", boardMode, controllerMode, startChannel - 1).ToStdString();
+    std::string const params = std::format("{{\"B\":{},\"O\":{},\"ps\":{}}}", boardMode, controllerMode, startChannel - 1);
     nlohmann::json p = nlohmann::json::parse(params);
 
     bool finalCall;
@@ -247,7 +269,7 @@ bool Falcon::V4_GetStatus(nlohmann::json& res) {
     // {"T":"Q","M":"ST","B":1,"E":0,"I":0,"P":{}}
     // {"R":200,"T":"Q","RB":0,"F":1,"B":1,"M":"ST","P":{"sm":0,"su":0,"ssc":0,"sr":250000,"T1":341,"T2":327,"V1":115,"V2":111,"PT":380,"FN":2550,"UC":16,"C":"02-fe-00-18-00-3b","P":16,"S":0,"A":0,"B":0,"UG":{"s":"00000001","v":"1.1","d":"v11.zip"},"FW":2,"TG":"255.255.255.255","DP":10000,"DM":3,"DL":4,"SY":"N","PR":"N","Z":65535,"BT":6,"ps":0,"NT":"time.nist.gov","TZ":0,"DST":"N","IN":"Y","FS":32,"BS":50,"DT":"2021-04-17","TM":"04:12:48","CC":16777215},"W":" ","L":""}
 
-    bool success = true;
+    bool success{ true };
     //for (const auto& n : res.GetMemberNames()) {
     //    res.Remove(n);
     //}
@@ -289,7 +311,7 @@ bool Falcon::V4_SetSerialConfig(int protocol, int universe, int startChannel, in
 
     bool success = true;
 
-    std::string const params = wxString::Format("{\"sm\":%d,\"su\":%d,\"ssc\":%d,\"sr\":%d}", protocol, universe, startChannel, rate).ToStdString();
+    std::string const params = std::format("{{\"sm\":{},\"su\":{},\"ssc\":{},\"sr\":{}}}", protocol, universe, startChannel, rate);
     nlohmann::json p = nlohmann::json::parse(params);
 
     bool finalCall;
@@ -397,8 +419,9 @@ bool Falcon::V4_SendOutputs(std::vector<FALCON_V4_STRING>& res, int addressingMo
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     size_t batches = res.size() / FALCON_V4_SEND_STRING_BATCH_SIZE + 1;
-    if (res.size() % FALCON_V4_SEND_STRING_BATCH_SIZE == 0 && res.size() != 0)
+    if (res.size() % FALCON_V4_SEND_STRING_BATCH_SIZE == 0 && res.size() != 0) {
         --batches;
+    }
 
     size_t left = res.size();
 
@@ -1009,18 +1032,18 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
         if (it.port < caps->GetMaxPixelPort()) {
             if (it.smartRemote > smartRemotes[it.port]) {
                 if ((it.smartRemote > 0 && smartRemotes[it.port] <= 0) || (it.smartRemote == 0 && smartRemotes[it.port] > 0)) {
-                    error = wxString::Format("Port %d has an invalid smart remote configuration.", it.port + 1);
+                    error = std::format("Port {} has an invalid smart remote configuration.", it.port + 1);
                     return false;
                 } else {
                     smartRemotes[it.port] = it.smartRemote;
                 }
             }
 
-            int b = it.port / 16;
+            int const b = it.port / 16;
             if (protocols[b] == -1 || protocols[b] == it.protocol) {
                 protocols[b] = it.protocol;
             } else {
-                error = wxString::Format("Port %d has an invalid protocol configuration.", it.port + 1);
+                error = std::format("Port {} has an invalid protocol configuration.", it.port + 1);
                 return false;
             }
         }
@@ -1038,7 +1061,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                 for (const auto& it : pp->GetVirtualStrings()) {
                     if (it->_smartRemote > smartRemotes[p]) {
                         if ((it->_smartRemote > 0 && smartRemotes[p] == 0) || (it->_smartRemote == 0 && smartRemotes[p] > 0)) {
-                            error = wxString::Format("Port %d has an invalid smart remote configuration.", p + 1);
+                            error = std::format("Port {} has an invalid smart remote configuration.", p + 1);
                             return false;
                         } else {
                             smartRemotes[p] = it->_smartRemote;
@@ -1054,7 +1077,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                     if (protocols[b] == -1 || protocols[b] == protocol) {
                         protocols[b] = protocol;
                     } else {
-                        error = wxString::Format("Port %d has an invalid protocol configuration.", p + 1);
+                        error = std::format("Port {} has an invalid protocol configuration.", p + 1);
                         return false;
                     }
                 }
@@ -1093,7 +1116,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
             int const bank = p / 16;
             int maxPixels = V4_GetMaxPortPixels(_v4status["B"].get<int>(), protocols[bank]);
             if (pp->Pixels() > maxPixels) {
-                error = wxString::Format("Port %d has too many pixels on it for the nominated board configuration/pixel type.", p + 1);
+                error = std::format("Port {} has too many pixels on it for the nominated board configuration/pixel type.", p + 1);
                 return false;
             }
 
@@ -1116,7 +1139,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                         str.string = s++;
                         str.smartRemote = sr;
                         if (sr != 0 && !V4_IsPortSmartRemoteEnabled(_v4status["B"].get<int>(), p)) {
-                            error = wxString::Format("Port %d does not support smart remotes.", p + 1);
+                            error = std::format("Port {} does not support smart remotes.", p + 1);
                             return false;
                         }
                         str.name = SafeDescription(it->_description);
@@ -1151,7 +1174,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                     str.port = p;
                     str.string = 0;
                     str.smartRemote = sr;
-                    str.name = wxString::Format("Port %d", p + 1);
+                    str.name = std::format("Port {}", p + 1);
                     str.blank = false;
                     str.gamma = fullcontrol ? defaultGamma : V4_GetGamma(p, 0, defaultGamma, falconStrings);
                     str.brightness = fullcontrol ? defaultBrightness : V4_GetBrightness(p, 0, defaultBrightness, falconStrings);
@@ -1182,7 +1205,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                     str.port = p;
                     str.string = 0;
                     str.smartRemote = sr;
-                    str.name = wxString::Format("Port %d", p + 1);
+                    str.name = std::format("Port {}", p + 1);
                     str.blank = false;
                     str.gamma = fullcontrol ? defaultGamma : V4_GetGamma(p, sr, defaultGamma, falconStrings);
                     str.brightness = fullcontrol ? defaultBrightness : V4_GetBrightness(p, sr, defaultBrightness, falconStrings);
@@ -1205,7 +1228,7 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                 str.port = p;
                 str.string = 0;
                 str.smartRemote = sr;
-                str.name = wxString::Format("Port %d", p + 1);
+                str.name = std::format("Port {}", p + 1);
                 str.blank = false;
                 str.gamma = fullcontrol ? defaultGamma : V4_GetGamma(p, sr, defaultGamma, falconStrings);
                 str.brightness = fullcontrol ? defaultBrightness : V4_GetBrightness(p, sr, defaultBrightness, falconStrings);
@@ -2222,8 +2245,8 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) :
             } else if (node->GetName() == "p") {
                 p = wxAtoi(node->GetNodeContent());
                 DecodeModelVersion(p, _modelnum, _versionnum);
-                _model = wxString::Format("F%dv%d", _modelnum, _versionnum).ToStdString();
-                if (_model == "F48v3") _model = "F48";
+                _model = std::format("F{}v{}", _modelnum, _versionnum);
+                if (_model == "F48v3"){ _model = "F48";}
             }
             _status[node->GetName()] = node->GetNodeContent();
             node = node->GetNext();
@@ -2233,7 +2256,7 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) :
             // this is going to need special handling
             if (V4_GetStatus(_v4status)) {
                 _modelnum = _v4status["BR"].get<int>();
-                _model = wxString::Format("F%dv%d", _modelnum, _versionnum).ToStdString();
+                _model = std::format("F{}v{}", _modelnum, _versionnum);
             }
         } else {
             if (_versionnum == 0 || _modelnum == 0 || _firmwareVersion == "") {

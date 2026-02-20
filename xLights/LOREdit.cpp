@@ -671,7 +671,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
             }
         }
 
-        settings += ",E_FILEPICKER_Pictures_Filename=" + file;
+        settings += ",E_TEXTCTRL_Pictures_Filename=" + file;
         if (scale == "True") {
             settings += ",E_CHOICE_Scaling=Scale To Fit";
         }
@@ -713,8 +713,8 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
             }
         }
 
-        settings += ",E_FILEPICKER_Pictures_Filename=" + file;
-        settings += ",E_CHOICE_Scaling=No Scaling";       
+        settings += ",E_TEXTCTRL_Pictures_Filename=" + file;
+        settings += ",E_CHOICE_Scaling=No Scaling";
 
         settings += ",E_CHOICE_Pictures_Direction=vector";
         if (movementLeft.Contains("R")) 

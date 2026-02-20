@@ -38,7 +38,9 @@ void gemini::PopulateLLMSettings(wxPropertyGrid* page) {
     page->Append(new wxPropertyCategory("Gemini"));
     auto p = page->Append(new wxBoolProperty("Enabled", "Gemini.Enabled", _enabled));
     p->SetEditor("CheckBox");
-    page->Append(new wxStringProperty("API Key", "Gemini.Key", api_key));
+    auto* apiKeyProp = page->Append(new wxStringProperty("API Key", "Gemini.Key", api_key));
+    apiKeyProp->SetAttribute(wxPG_STRING_PASSWORD, true);
+    apiKeyProp->SetHelpString("Your Google Gemini API key (masked for security)");
     page->Append(new wxStringProperty("Model", "Gemini.Model", model));
 }
 
@@ -254,7 +256,6 @@ public:
         }
 
         logger.debug("Generated image size: %dx%d", wxImg.GetWidth(), wxImg.GetHeight());
-        wxImg.Rescale(400, 400);
         wxBitmap bmp(wxImg);
         cb(bmp, "");
 #endif

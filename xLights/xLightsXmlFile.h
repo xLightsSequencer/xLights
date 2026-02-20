@@ -245,6 +245,7 @@ private:
     void SetNodeContent(wxXmlNode* node, const wxString& content);
     void CleanUpEffects() const;
     void UpdateNextId(const wxString& value);
+    void UpdateMediaFileInXML(const wxString& filename);
 
     // void FixVersionDifferences();
 

@@ -369,8 +369,9 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         if (map == "true") {
             int pw, ph;
             GetLayoutPreview()->GetVirtualCanvasSize(pw, ph);
-            std::string displayMap = FPP::CreateVirtualDisplayMap(&AllModels, pw, ph);
-            fpp->UploadDisplayMap(displayMap);
+            std::map<std::string, std::string> virtualDisplayData;
+            FPP::CreateVirtualDisplayMap(AllModels, AllObjects, pw, ph, virtualDisplayData);
+            fpp->UploadDisplayMap(virtualDisplayData);
             // virtual display map  requires a restart
             fpp->SetRestartFlag(true);
         }

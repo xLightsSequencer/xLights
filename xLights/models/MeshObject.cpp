@@ -236,6 +236,16 @@ std::list<std::string> MeshObject::GetFileReferences()
             if (FileExists(mtl)) {
                 res.push_back(mtl.GetFullPath());
                 checkAccessToFile(mtl.GetFullPath());
+                
+                auto txts = xlMesh::GetTextureFilenamesFromMTL(mtl.GetFullPath());
+                for (auto t : txts) {
+                    t = path.GetPath() + wxFileName::GetPathSeparator() + t;
+                    wxFileName tfn = wxFileName(t);
+                    if (FileExists(tfn)) {
+                        res.push_back(tfn.GetFullPath());
+                        checkAccessToFile(tfn.GetFullPath());
+                    }
+                }
             }
         }
     }

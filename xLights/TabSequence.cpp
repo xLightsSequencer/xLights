@@ -1658,7 +1658,7 @@ void xLightsFrame::RenderAll()
     EnableSequenceControls(false);
     wxYield();      // ensure all controls are disabled.
     wxStopWatch sw; // start a stopwatch timer
-
+    _sequenceElements.GetSequenceMedia().MarkAllUnused();
     ProgressBar->Show();
     GaugeSizer->Layout();
     SetStatusText(_("Rendering all layers"));

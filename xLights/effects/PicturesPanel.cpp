@@ -11,9 +11,9 @@
 //(*InternalHeaders(PicturesPanel)
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
+#include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
-#include <wx/filepicker.h>
 #include <wx/gbsizer.h>
 #include <wx/image.h>
 #include <wx/intl.h>
@@ -21,6 +21,7 @@
 #include <wx/settings.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
+#include <wx/statbmp.h>
 #include <wx/stattext.h>
 #include <wx/string.h>
 #include <wx/textctrl.h>
@@ -29,57 +30,67 @@
 #include "PicturesPanel.h"
 #include "PicturesEffect.h"
 #include "EffectPanelUtils.h"
-#include "GIFImage.h"
 #include "../ExternalHooks.h"
 #include "UtilFunctions.h"
+#include "../sequencer/SequenceMedia.h"
+#include "../sequencer/SequenceElements.h"
+#include "../xLightsMain.h"
+#include "../ai/AIImageDialog.h"
+#include "../ai/aiType.h"
+#include "../ManageMediaPanel.h"
+#include <wx/datetime.h>
+#include <wx/msgdlg.h>
 
 //(*IdInit(PicturesPanel)
-const long PicturesPanel::ID_FILEPICKER_Pictures_Filename = wxNewId();
-const long PicturesPanel::ID_STATICTEXT_Pictures_Direction = wxNewId();
-const long PicturesPanel::ID_CHOICE_Pictures_Direction = wxNewId();
-const long PicturesPanel::ID_BITMAPBUTTON_CHOICE_Pictures_Direction = wxNewId();
-const long PicturesPanel::ID_STATICTEXT_Pictures_Speed = wxNewId();
-const long PicturesPanel::IDD_SLIDER_Pictures_Speed = wxNewId();
-const long PicturesPanel::ID_TEXTCTRL_Pictures_Speed = wxNewId();
-const long PicturesPanel::ID_BITMAPBUTTON_SLIDER_Pictures_Speed = wxNewId();
-const long PicturesPanel::ID_STATICTEXT_Pictures_FrameRateAdj = wxNewId();
-const long PicturesPanel::IDD_SLIDER_Pictures_FrameRateAdj = wxNewId();
-const long PicturesPanel::ID_TEXTCTRL_Pictures_FrameRateAdj = wxNewId();
-const long PicturesPanel::ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj = wxNewId();
-const long PicturesPanel::ID_CHECKBOX_Pictures_PixelOffsets = wxNewId();
-const long PicturesPanel::ID_CHOICE_Scaling = wxNewId();
-const long PicturesPanel::ID_CHECKBOX_Pictures_Shimmer = wxNewId();
-const long PicturesPanel::ID_CHECKBOX_LoopGIF = wxNewId();
-const long PicturesPanel::ID_CHECKBOX_SuppressGIFBackground = wxNewId();
-const long PicturesPanel::ID_CHECKBOX_Pictures_TransparentBlack = wxNewId();
-const long PicturesPanel::IDD_SLIDER_Pictures_TransparentBlack = wxNewId();
-const long PicturesPanel::ID_TEXTCTRL_Pictures_TransparentBlack = wxNewId();
-const long PicturesPanel::ID_STATICTEXT_PicturesXC = wxNewId();
-const long PicturesPanel::ID_SLIDER_PicturesXC = wxNewId();
-const long PicturesPanel::ID_CHECKBOX_Pictures_WrapX = wxNewId();
-const long PicturesPanel::IDD_TEXTCTRL_PicturesXC = wxNewId();
-const long PicturesPanel::ID_VALUECURVE_PicturesXC = wxNewId();
-const long PicturesPanel::ID_STATICTEXT_PicturesYC = wxNewId();
-const long PicturesPanel::IDD_TEXTCTRL_PicturesYC = wxNewId();
-const long PicturesPanel::ID_VALUECURVE_PicturesYC = wxNewId();
-const long PicturesPanel::ID_SLIDER_PicturesYC = wxNewId();
-const long PicturesPanel::ID_PANEL43 = wxNewId();
-const long PicturesPanel::ID_STATICTEXT_PicturesEndXC = wxNewId();
-const long PicturesPanel::ID_SLIDER_PicturesEndXC = wxNewId();
-const long PicturesPanel::IDD_TEXTCTRL_PicturesEndXC = wxNewId();
-const long PicturesPanel::ID_STATICTEXT_PicturesEndYC = wxNewId();
-const long PicturesPanel::IDD_TEXTCTRL_PicturesEndYC = wxNewId();
-const long PicturesPanel::ID_SLIDER_PicturesEndYC = wxNewId();
-const long PicturesPanel::ID_PANEL45 = wxNewId();
-const long PicturesPanel::ID_STATICTEXT_Pictures_StartScale = wxNewId();
-const long PicturesPanel::ID_SLIDER_Pictures_StartScale = wxNewId();
-const long PicturesPanel::IDD_TEXTCTRL_Pictures_StartScale = wxNewId();
-const long PicturesPanel::ID_PANEL1 = wxNewId();
-const long PicturesPanel::ID_STATICTEXT_Pictures_EndScale = wxNewId();
-const long PicturesPanel::ID_SLIDER_Pictures_EndScale = wxNewId();
-const long PicturesPanel::IDD_TEXTCTRL_Pictures_EndScale = wxNewId();
-const long PicturesPanel::ID_PANEL2 = wxNewId();
-const long PicturesPanel::IDD_NOTEBOOK_Pictures_Positions = wxNewId();
+const wxWindowID PicturesPanel::ID_STATICBITMAP1 = wxNewId();
+const wxWindowID PicturesPanel::ID_BUTTON1 = wxNewId();
+const wxWindowID PicturesPanel::ID_BUTTON2 = wxNewId();
+const wxWindowID PicturesPanel::ID_TEXTCTRL_Pictures_Filename = wxNewId();
+const wxWindowID PicturesPanel::ID_STATICTEXT_Pictures_Direction = wxNewId();
+const wxWindowID PicturesPanel::ID_CHOICE_Pictures_Direction = wxNewId();
+const wxWindowID PicturesPanel::ID_BITMAPBUTTON_CHOICE_Pictures_Direction = wxNewId();
+const wxWindowID PicturesPanel::ID_STATICTEXT_Pictures_Speed = wxNewId();
+const wxWindowID PicturesPanel::IDD_SLIDER_Pictures_Speed = wxNewId();
+const wxWindowID PicturesPanel::ID_TEXTCTRL_Pictures_Speed = wxNewId();
+const wxWindowID PicturesPanel::ID_BITMAPBUTTON_SLIDER_Pictures_Speed = wxNewId();
+const wxWindowID PicturesPanel::ID_STATICTEXT_Pictures_FrameRateAdj = wxNewId();
+const wxWindowID PicturesPanel::IDD_SLIDER_Pictures_FrameRateAdj = wxNewId();
+const wxWindowID PicturesPanel::ID_TEXTCTRL_Pictures_FrameRateAdj = wxNewId();
+const wxWindowID PicturesPanel::ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj = wxNewId();
+const wxWindowID PicturesPanel::ID_CHECKBOX_Pictures_PixelOffsets = wxNewId();
+const wxWindowID PicturesPanel::ID_CHOICE_Scaling = wxNewId();
+const wxWindowID PicturesPanel::ID_CHECKBOX_Pictures_Shimmer = wxNewId();
+const wxWindowID PicturesPanel::ID_CHECKBOX_LoopGIF = wxNewId();
+const wxWindowID PicturesPanel::ID_CHECKBOX_SuppressGIFBackground = wxNewId();
+const wxWindowID PicturesPanel::ID_CHECKBOX_Pictures_TransparentBlack = wxNewId();
+const wxWindowID PicturesPanel::IDD_SLIDER_Pictures_TransparentBlack = wxNewId();
+const wxWindowID PicturesPanel::ID_TEXTCTRL_Pictures_TransparentBlack = wxNewId();
+const wxWindowID PicturesPanel::ID_STATICTEXT_PicturesXC = wxNewId();
+const wxWindowID PicturesPanel::ID_SLIDER_PicturesXC = wxNewId();
+const wxWindowID PicturesPanel::ID_CHECKBOX_Pictures_WrapX = wxNewId();
+const wxWindowID PicturesPanel::IDD_TEXTCTRL_PicturesXC = wxNewId();
+const wxWindowID PicturesPanel::ID_VALUECURVE_PicturesXC = wxNewId();
+const wxWindowID PicturesPanel::ID_STATICTEXT_PicturesYC = wxNewId();
+const wxWindowID PicturesPanel::IDD_TEXTCTRL_PicturesYC = wxNewId();
+const wxWindowID PicturesPanel::ID_VALUECURVE_PicturesYC = wxNewId();
+const wxWindowID PicturesPanel::ID_SLIDER_PicturesYC = wxNewId();
+const wxWindowID PicturesPanel::ID_PANEL43 = wxNewId();
+const wxWindowID PicturesPanel::ID_STATICTEXT_PicturesEndXC = wxNewId();
+const wxWindowID PicturesPanel::ID_SLIDER_PicturesEndXC = wxNewId();
+const wxWindowID PicturesPanel::IDD_TEXTCTRL_PicturesEndXC = wxNewId();
+const wxWindowID PicturesPanel::ID_STATICTEXT_PicturesEndYC = wxNewId();
+const wxWindowID PicturesPanel::IDD_TEXTCTRL_PicturesEndYC = wxNewId();
+const wxWindowID PicturesPanel::ID_SLIDER_PicturesEndYC = wxNewId();
+const wxWindowID PicturesPanel::ID_PANEL45 = wxNewId();
+const wxWindowID PicturesPanel::ID_STATICTEXT_Pictures_StartScale = wxNewId();
+const wxWindowID PicturesPanel::ID_SLIDER_Pictures_StartScale = wxNewId();
+const wxWindowID PicturesPanel::IDD_TEXTCTRL_Pictures_StartScale = wxNewId();
+const wxWindowID PicturesPanel::ID_PANEL1 = wxNewId();
+const wxWindowID PicturesPanel::ID_STATICTEXT_Pictures_EndScale = wxNewId();
+const wxWindowID PicturesPanel::ID_SLIDER_Pictures_EndScale = wxNewId();
+const wxWindowID PicturesPanel::IDD_TEXTCTRL_Pictures_EndScale = wxNewId();
+const wxWindowID PicturesPanel::ID_PANEL2 = wxNewId();
+const wxWindowID PicturesPanel::IDD_NOTEBOOK_Pictures_Positions = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(PicturesPanel,wxPanel)
@@ -111,6 +122,7 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	wxFlexGridSizer* FlexGridSizer42;
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer7;
 	wxGridBagSizer* GridBagSizer2;
 	wxGridBagSizer* GridBagSizer3;
@@ -124,8 +136,18 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer42->AddGrowableCol(0);
 	FlexGridSizer19 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer19->AddGrowableCol(0);
-	FilePickerCtrl1 = new xlPictureFilePickerCtrl(this, ID_FILEPICKER_Pictures_Filename, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKER_Pictures_Filename"));
-	FlexGridSizer19->Add(FilePickerCtrl1, 1, wxALL|wxEXPAND, 0);
+	BitmapPreview = new wxStaticBitmap(this, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICBITMAP1"));
+	BitmapPreview->SetMinSize(wxDLG_UNIT(this,wxSize(0,50)));
+	FlexGridSizer19->Add(BitmapPreview, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer6 = new wxFlexGridSizer(0, 1, 0, 0);
+	SelectButton = new wxButton(this, ID_BUTTON1, _("Select..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer6->Add(SelectButton, 1, wxALL|wxEXPAND, 5);
+	AIGenerateButton = new wxButton(this, ID_BUTTON2, _("AI Generate..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+	FlexGridSizer6->Add(AIGenerateButton, 1, wxALL|wxEXPAND, 5);
+	FileNameCtrl = new wxTextCtrl(this, ID_TEXTCTRL_Pictures_Filename, _(""), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Pictures_Filename"));
+	FileNameCtrl->Hide();
+	FlexGridSizer6->Add(FileNameCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer19->Add(FlexGridSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer42->Add(FlexGridSizer19, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer31 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer31->AddGrowableCol(1);
@@ -147,7 +169,6 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Choice_Pictures_Direction->Append(_("peekaboo 90"));
 	Choice_Pictures_Direction->Append(_("peekaboo 180"));
 	Choice_Pictures_Direction->Append(_("peekaboo 270"));
-	Choice_Pictures_Direction->Append(_("vix 2 routine"));
 	Choice_Pictures_Direction->Append(_("flag wave"));
 	Choice_Pictures_Direction->Append(_("up once"));
 	Choice_Pictures_Direction->Append(_("down once"));
@@ -165,7 +186,7 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer31->Add(StaticText68, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Pictures_Speed = new BulkEditSliderF1(this, IDD_SLIDER_Pictures_Speed, 10, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Pictures_Speed"));
 	FlexGridSizer31->Add(Slider_Pictures_Speed, 1, wxALL|wxEXPAND, 2);
-	TextCtrl48 = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Pictures_Speed, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Pictures_Speed"));
+	TextCtrl48 = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Pictures_Speed, _T("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Pictures_Speed"));
 	TextCtrl48->SetMaxLength(4);
 	FlexGridSizer31->Add(TextCtrl48, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_PicturesSpeed = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Pictures_Speed, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Pictures_Speed"));
@@ -175,7 +196,7 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer31->Add(StaticText96, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Pictures_FR = new BulkEditSliderF1(this, IDD_SLIDER_Pictures_FrameRateAdj, 10, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Pictures_FrameRateAdj"));
 	FlexGridSizer31->Add(Slider_Pictures_FR, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Pictures_FR = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Pictures_FrameRateAdj, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Pictures_FrameRateAdj"));
+	TextCtrl_Pictures_FR = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Pictures_FrameRateAdj, _T("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Pictures_FrameRateAdj"));
 	TextCtrl_Pictures_FR->SetMaxLength(4);
 	FlexGridSizer31->Add(TextCtrl_Pictures_FR, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_PicturesFrameRateAdj = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj, wxNullBitmap, wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj"));
@@ -211,7 +232,7 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer7->Add(CheckBox_TransparentBlack, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider1 = new BulkEditSlider(this, IDD_SLIDER_Pictures_TransparentBlack, 0, 0, 300, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Pictures_TransparentBlack"));
 	FlexGridSizer7->Add(Slider1, 1, wxALL|wxEXPAND, 5);
-	TextCtrl3 = new BulkEditTextCtrl(this, ID_TEXTCTRL_Pictures_TransparentBlack, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Pictures_TransparentBlack"));
+	TextCtrl3 = new BulkEditTextCtrl(this, ID_TEXTCTRL_Pictures_TransparentBlack, _T("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Pictures_TransparentBlack"));
 	FlexGridSizer7->Add(TextCtrl3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer102->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	Notebook4 = new wxNotebook(this, IDD_NOTEBOOK_Pictures_Positions, wxDefaultPosition, wxDefaultSize, 0, _T("IDD_NOTEBOOK_Pictures_Positions"));
@@ -228,7 +249,7 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	CheckBox_Pictures_WrapX->SetValue(false);
 	FlexGridSizer106->Add(CheckBox_Pictures_WrapX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
-	TextCtrl_PicturesXC = new BulkEditTextCtrl(PictureStartPositionPanel, IDD_TEXTCTRL_PicturesXC, _("0"), wxDefaultPosition, wxDLG_UNIT(PictureStartPositionPanel,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_PicturesXC"));
+	TextCtrl_PicturesXC = new BulkEditTextCtrl(PictureStartPositionPanel, IDD_TEXTCTRL_PicturesXC, _T("0"), wxDefaultPosition, wxDLG_UNIT(PictureStartPositionPanel,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_PicturesXC"));
 	TextCtrl_PicturesXC->SetMaxLength(4);
 	FlexGridSizer4->Add(TextCtrl_PicturesXC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_PicturesXC = new BulkEditValueCurveButton(PictureStartPositionPanel, ID_VALUECURVE_PicturesXC, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_PicturesXC"));
@@ -239,7 +260,7 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	StaticText_Pictures_YC = new wxStaticText(PictureStartPositionPanel, ID_STATICTEXT_PicturesYC, _("Y-axis Center"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_PicturesYC"));
 	GridBagSizer2->Add(StaticText_Pictures_YC, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
-	TextCtrl_PicturesYC = new BulkEditTextCtrl(PictureStartPositionPanel, IDD_TEXTCTRL_PicturesYC, _("0"), wxDefaultPosition, wxDLG_UNIT(PictureStartPositionPanel,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_PicturesYC"));
+	TextCtrl_PicturesYC = new BulkEditTextCtrl(PictureStartPositionPanel, IDD_TEXTCTRL_PicturesYC, _T("0"), wxDefaultPosition, wxDLG_UNIT(PictureStartPositionPanel,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_PicturesYC"));
 	TextCtrl_PicturesYC->SetMaxLength(4);
 	FlexGridSizer5->Add(TextCtrl_PicturesYC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_PicturesYC = new BulkEditValueCurveButton(PictureStartPositionPanel, ID_VALUECURVE_PicturesYC, GetValueCurveNotSelectedBitmap(), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_VALUECURVE_PicturesYC"));
@@ -249,8 +270,6 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	GridBagSizer2->Add(Slider_PicturesYC, wxGBPosition(0, 1), wxGBSpan(4, 1), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer112->Add(GridBagSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	PictureStartPositionPanel->SetSizer(FlexGridSizer112);
-	FlexGridSizer112->Fit(PictureStartPositionPanel);
-	FlexGridSizer112->SetSizeHints(PictureStartPositionPanel);
 	PictureEndPositionPanel = new wxPanel(Notebook4, ID_PANEL45, wxPoint(104,13), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL45"));
 	FlexGridSizer111 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer111->AddGrowableCol(0);
@@ -261,22 +280,20 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	Slider_PicturesEndXC = new BulkEditSlider(PictureEndPositionPanel, ID_SLIDER_PicturesEndXC, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_PicturesEndXC"));
 	FlexGridSizer113->Add(Slider_PicturesEndXC, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer113->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl1 = new BulkEditTextCtrl(PictureEndPositionPanel, IDD_TEXTCTRL_PicturesEndXC, _("0"), wxDefaultPosition, wxDLG_UNIT(PictureEndPositionPanel,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_PicturesEndXC"));
+	TextCtrl1 = new BulkEditTextCtrl(PictureEndPositionPanel, IDD_TEXTCTRL_PicturesEndXC, _T("0"), wxDefaultPosition, wxDLG_UNIT(PictureEndPositionPanel,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_PicturesEndXC"));
 	TextCtrl1->SetMaxLength(4);
 	FlexGridSizer113->Add(TextCtrl1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer111->Add(FlexGridSizer113, 1, wxALL|wxEXPAND, 5);
 	GridBagSizer3 = new wxGridBagSizer(0, 0);
 	StaticText161 = new wxStaticText(PictureEndPositionPanel, ID_STATICTEXT_PicturesEndYC, _("Y-axis Center"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_PicturesEndYC"));
 	GridBagSizer3->Add(StaticText161, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl2 = new BulkEditTextCtrl(PictureEndPositionPanel, IDD_TEXTCTRL_PicturesEndYC, _("0"), wxDefaultPosition, wxDLG_UNIT(PictureEndPositionPanel,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_PicturesEndYC"));
+	TextCtrl2 = new BulkEditTextCtrl(PictureEndPositionPanel, IDD_TEXTCTRL_PicturesEndYC, _T("0"), wxDefaultPosition, wxDLG_UNIT(PictureEndPositionPanel,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_PicturesEndYC"));
 	TextCtrl2->SetMaxLength(4);
 	GridBagSizer3->Add(TextCtrl2, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_PicturesEndYC = new BulkEditSlider(PictureEndPositionPanel, ID_SLIDER_PicturesEndYC, 0, -100, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_PicturesEndYC"));
 	GridBagSizer3->Add(Slider_PicturesEndYC, wxGBPosition(0, 1), wxGBSpan(4, 1), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer111->Add(GridBagSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	PictureEndPositionPanel->SetSizer(FlexGridSizer111);
-	FlexGridSizer111->Fit(PictureEndPositionPanel);
-	FlexGridSizer111->SetSizeHints(PictureEndPositionPanel);
 	Panel1 = new wxPanel(Notebook4, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
@@ -284,12 +301,10 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Pictures_StartScale = new BulkEditSlider(Panel1, ID_SLIDER_Pictures_StartScale, 100, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Pictures_StartScale"));
 	FlexGridSizer2->Add(Slider_Pictures_StartScale, 1, wxALL|wxEXPAND, 5);
-	TextCtrl_Pictures_StartScale = new BulkEditTextCtrl(Panel1, IDD_TEXTCTRL_Pictures_StartScale, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Pictures_StartScale"));
+	TextCtrl_Pictures_StartScale = new BulkEditTextCtrl(Panel1, IDD_TEXTCTRL_Pictures_StartScale, _T("100"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(25,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Pictures_StartScale"));
 	TextCtrl_Pictures_StartScale->SetMaxLength(4);
 	FlexGridSizer2->Add(TextCtrl_Pictures_StartScale, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel1->SetSizer(FlexGridSizer2);
-	FlexGridSizer2->Fit(Panel1);
-	FlexGridSizer2->SetSizeHints(Panel1);
 	Panel2 = new wxPanel(Notebook4, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer3->AddGrowableCol(1);
@@ -297,12 +312,10 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer3->Add(StaticText2, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Pictures_EndScale = new BulkEditSlider(Panel2, ID_SLIDER_Pictures_EndScale, 100, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Pictures_EndScale"));
 	FlexGridSizer3->Add(Slider_Pictures_EndScale, 1, wxALL|wxEXPAND, 5);
-	TextCtrl_Pictures_EndScale = new BulkEditTextCtrl(Panel2, IDD_TEXTCTRL_Pictures_EndScale, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(25,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Pictures_EndScale"));
+	TextCtrl_Pictures_EndScale = new BulkEditTextCtrl(Panel2, IDD_TEXTCTRL_Pictures_EndScale, _T("100"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(25,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Pictures_EndScale"));
 	TextCtrl_Pictures_EndScale->SetMaxLength(4);
 	FlexGridSizer3->Add(TextCtrl_Pictures_EndScale, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel2->SetSizer(FlexGridSizer3);
-	FlexGridSizer3->Fit(Panel2);
-	FlexGridSizer3->SetSizeHints(Panel2);
 	Notebook4->AddPage(PictureStartPositionPanel, _("Start Position"), false);
 	Notebook4->AddPage(PictureEndPositionPanel, _("End Position"), false);
 	Notebook4->AddPage(Panel1, _("Start Scale"), false);
@@ -310,14 +323,13 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer102->Add(Notebook4, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer42->Add(FlexGridSizer102, 1, wxALL|wxEXPAND, 0);
 	SetSizer(FlexGridSizer42);
-	FlexGridSizer42->Fit(this);
-	FlexGridSizer42->SetSizeHints(this);
 
-	Connect(ID_FILEPICKER_Pictures_Filename,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&PicturesPanel::OnFilePickerCtrl1FileChanged);
-	Connect(ID_CHOICE_Pictures_Direction,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&PicturesPanel::OnChoicePicturesDirectionSelect);
-	Connect(ID_BITMAPBUTTON_CHOICE_Pictures_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PicturesPanel::OnLockButtonClick);
-	Connect(ID_BITMAPBUTTON_SLIDER_Pictures_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PicturesPanel::OnLockButtonClick);
-	Connect(ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PicturesPanel::OnLockButtonClick);
+	Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PicturesPanel::OnSelectButtonClick);
+	Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PicturesPanel::OnAIGenerateButtonClick);
+	Connect(ID_CHOICE_Pictures_Direction, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&PicturesPanel::OnChoicePicturesDirectionSelect);
+	Connect(ID_BITMAPBUTTON_CHOICE_Pictures_Direction, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PicturesPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Pictures_Speed, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PicturesPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PicturesPanel::OnLockButtonClick);
 	//*)
 
 	Connect(ID_VALUECURVE_PicturesXC, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PicturesPanel::OnVCButtonClick);
@@ -330,7 +342,9 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
     BitmapButton_PicturesYC->GetValue()->SetLimits(PICTURES_YC_MIN, PICTURES_YC_MAX);
 
     SetName("ID_PANEL_PICTURES");
-	
+    BitmapPreview->SetScaleMode(wxStaticBitmap::Scale_AspectFill);
+    BitmapPreview->SetMaxSize(wxDLG_UNIT(this,wxSize(0,50)));
+    
 	ValidateWindow();
 }
 
@@ -350,12 +364,6 @@ void PicturesPanel::OnChoicePicturesDirectionSelect(wxCommandEvent& event)
     ValidateWindow();
 }
 
-void PicturesPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
-{
-    ObtainAccessToURL(FilePickerCtrl1->GetFileName().GetFullPath().ToStdString());
-    ValidateWindow();
-}
-
 void PicturesPanel::ValidateWindow()
 {
     bool enable = "vector" == Choice_Pictures_Direction->GetStringSelection();
@@ -366,32 +374,149 @@ void PicturesPanel::ValidateWindow()
     PictureEndPositionPanel->Enable(enable);
 
 	// I cant disable the value curve because it disables the slider but i dont want it active
-	if ("vector" == Choice_Pictures_Direction->GetStringSelection())
-	{
+	if ("vector" == Choice_Pictures_Direction->GetStringSelection()) {
         BitmapButton_PicturesXC->SetActive(false);
         BitmapButton_PicturesYC->SetActive(false);
         BitmapButton_PicturesXC->SetToolTip("Value curve cannot be used on vector movement.");
         BitmapButton_PicturesYC->SetToolTip("Value curve cannot be used on vector movement.");
-	}
-	else
-	{
+    } else {
         BitmapButton_PicturesXC->UnsetToolTip();
         BitmapButton_PicturesYC->UnsetToolTip();
 	}
 
-    enable = GIFImage::IsGIF(FilePickerCtrl1->GetFileName().GetFullPath().ToStdString());
-    CheckBox_LoopGIF->Enable(enable);
-    CheckBox_SuppressGIFBackground->Enable(enable);
+    wxString name = FileNameCtrl->GetValue();
+    UpdatePreviewBitmap(name);
+}
 
-	auto file = FilePickerCtrl1->GetFileName().GetFullPath();
-	if (!file.empty() && !FileExists(file)) {
-		FilePickerCtrl1->SetBackgroundColour(*wxRED);
-		SetToolTip("File " + file + " does not exist.");
-	} else if (!file.empty() && !IsXmlSafe(file)) {
-		FilePickerCtrl1->SetBackgroundColour(*wxYELLOW);
-		SetToolTip("File " + file + " contains characters in the path or filename that will cause issues in xLights. Please rename it.");
-	} else {
-		FilePickerCtrl1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-		SetToolTip(file);
-	}
+void PicturesPanel::UpdatePreviewBitmap(const wxString& filename)
+{
+    auto refreshPreview = [this](const wxBitmap& bmp, bool enable) {
+        BitmapPreview->SetBitmap(bmp);
+        BitmapPreview->InvalidateBestSize();
+        BitmapPreview->Refresh();
+        BitmapPreview->Update();
+        if (BitmapPreview->GetParent())
+            BitmapPreview->GetParent()->Layout();
+        CheckBox_LoopGIF->Enable(enable);
+        CheckBox_SuppressGIFBackground->Enable(enable);
+    };
+
+    auto makeRedBitmap = []() {
+        wxImage img(64, 64);
+        img.SetRGB(wxRect(0, 0, 64, 64), 255, 0, 0);
+        return wxBitmap(img);
+    };
+
+    if (filename.IsEmpty()) {
+        refreshPreview(makeRedBitmap(), false);
+        return;
+    }
+
+    // Use explicitly provided media, or find xLightsFrame via parent chain
+    SequenceMedia* media = _sequenceMedia;
+    if (media == nullptr) {
+        wxWindow* w = GetParent();
+        while (w) {
+            if (auto* xl = dynamic_cast<xLightsFrame*>(w)) {
+                media = &xl->GetSequenceElements().GetSequenceMedia();
+                break;
+            }
+            w = w->GetParent();
+        }
+    }
+    if (media == nullptr || !media->HasImage(filename.ToStdString())) {
+        refreshPreview(makeRedBitmap(), false);
+        return;
+    }
+
+    auto entry = media->GetImage(filename.ToStdString());
+    if (!entry || !entry->IsOk()) {
+        refreshPreview(makeRedBitmap(), false);
+        return;
+    }
+
+    auto img = entry->GetFrame(0, false);
+    if (!img || !img->IsOk()) {
+        refreshPreview(makeRedBitmap(), false);
+        return;
+    }
+    refreshPreview(wxBitmap(*img), !entry->IsFrameBasedAnimation());
+}
+
+void PicturesPanel::OnAIGenerateButtonClick(wxCommandEvent& event)
+{
+    // Find xLightsFrame via parent chain
+    xLightsFrame* xl = nullptr;
+    wxWindow* w = GetParent();
+    while (w) {
+        xl = dynamic_cast<xLightsFrame*>(w);
+        if (xl) break;
+        w = w->GetParent();
+    }
+    if (!xl) return;
+
+    auto services = xl->GetAIServices(aiType::TYPE::IMAGES);
+    if (services.empty()) {
+        wxMessageBox("No AI image generation services are registered.\n"
+                     "Configure an AI service in the Settings menu.",
+                     "AI Generate", wxICON_INFORMATION | wxOK, this);
+        return;
+    }
+
+    // Let user choose a service if there are multiple
+    aiBase* serv = services[0];
+    if (services.size() > 1) {
+        wxArrayString choices;
+        for (auto s : services)
+            choices.push_back(s->GetLLMName());
+        wxSingleChoiceDialog pick(this, "Choose AI Image Generator",
+                                  "AI Image Generator", choices);
+        if (pick.ShowModal() == wxID_CANCEL) return;
+        serv = services[pick.GetSelection()];
+    }
+
+    AIImageDialog dlg(this, serv);
+    dlg.SetEmbeddedMode(true);
+    if (dlg.ShowModal() != wxID_OK) return;
+
+    const wxImage& img = dlg.GetCurrentImage();
+    if (!img.IsOk()) return;
+
+    // Store as an embedded image in SequenceMedia with a unique name
+    SequenceMedia& media = xl->GetSequenceElements().GetSequenceMedia();
+    wxString name = wxString::Format("AIImages/ai_generated_%lld.png",
+                                     (long long)wxDateTime::Now().GetTicks());
+    media.AddEmbeddedImage(name.ToStdString(), img);
+
+    // Update the filename control and notify the effect
+    FileNameCtrl->SetValue(name);
+    UpdatePreviewBitmap(name);
+    FireChangeEvent();
+}
+
+void PicturesPanel::OnSelectButtonClick(wxCommandEvent& event)
+{
+    // Walk up the parent chain to find xLightsFrame
+    xLightsFrame* xl = nullptr;
+    wxWindow* w = this;
+    while (w) {
+        xl = dynamic_cast<xLightsFrame*>(w);
+        if (xl) break;
+        w = w->GetParent();
+    }
+    if (!xl) return;
+
+    SequenceMedia& media = xl->GetSequenceElements().GetSequenceMedia();
+    SequenceElements& elements = xl->GetSequenceElements();
+
+    SelectMediaDialog dlg(this, &media, &elements,
+                          xl->GetShowDirectory(), xl);
+    if (dlg.ShowModal() != wxID_OK) return;
+
+    std::string selected = dlg.GetSelectedPath();
+    if (selected.empty()) return;
+
+    FileNameCtrl->SetValue(selected);
+    UpdatePreviewBitmap(selected);
+    FireChangeEvent();
 }

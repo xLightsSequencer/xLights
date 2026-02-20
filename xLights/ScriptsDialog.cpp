@@ -16,6 +16,7 @@
 //*)
 
 #include <wx/listbase.h>
+#include <wx/wfstream.h>
 
 #include "xLightsMain.h"
 

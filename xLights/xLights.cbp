@@ -307,6 +307,8 @@
 		<Unit filename="MIDI/MidiEventList.cpp" />
 		<Unit filename="MIDI/MidiFile.cpp" />
 		<Unit filename="MIDI/MidiMessage.cpp" />
+        <Unit filename="ManageMediaPanel.cpp" />
+        <Unit filename="ManageMediaPanel.h" />
 		<Unit filename="MatrixFaceDownloadDialog.cpp" />
 		<Unit filename="MatrixFaceDownloadDialog.h" />
 		<Unit filename="MediaImportOptionsDialog.cpp" />
@@ -501,8 +503,8 @@
 		<Unit filename="ai/aiType.h" />
 		<Unit filename="ai/chatGPT.cpp" />
 		<Unit filename="ai/chatGPT.h" />
-        <Unit filename="ai/gemini.cpp" />
-        <Unit filename="ai/gemini.h" />
+		<Unit filename="ai/gemini.cpp" />
+		<Unit filename="ai/gemini.h" />
 		<Unit filename="ai/ollama.cpp" />
 		<Unit filename="ai/ollama.h" />
 		<Unit filename="automation/LuaRunner.cpp" />
@@ -1108,6 +1110,8 @@
 		<Unit filename="sequencer/RowHeading.h" />
 		<Unit filename="sequencer/SequenceElements.cpp" />
 		<Unit filename="sequencer/SequenceElements.h" />
+		<Unit filename="sequencer/SequenceMedia.cpp" />
+		<Unit filename="sequencer/SequenceMedia.h" />
 		<Unit filename="sequencer/TimeLine.cpp" />
 		<Unit filename="sequencer/TimeLine.h" />
 		<Unit filename="sequencer/UndoManager.cpp" />
@@ -1254,6 +1258,7 @@
 		<Unit filename="wxsmith/LyricUserDictDialog.wxs" />
 		<Unit filename="wxsmith/LyricsDialog.wxs" />
 		<Unit filename="wxsmith/MainSequencer.wxs" />
+		<Unit filename="wxsmith/ManageMediaPanel.wxs" />
 		<Unit filename="wxsmith/MarqueePanel.wxs" />
 		<Unit filename="wxsmith/MatrixFaceDownloadDialog.wxs" />
 		<Unit filename="wxsmith/MediaImportOptionsDialog.wxs" />
@@ -1583,7 +1588,7 @@
 					<wxDialog wxs="wxsmith/ShowFolderSearchDialog.wxs" src="ShowFolderSearchDialog.cpp" hdr="ShowFolderSearchDialog.h" fwddecl="0" i18n="1" name="ShowFolderSearchDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/ServicesPanel.wxs" src="preferences/ServicesPanel.cpp" hdr="preferences/ServicesPanel.h" fwddecl="0" i18n="1" name="ServicesPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/AIColorPaletteDialog.wxs" src="ai/AIColorPaletteDialog.cpp" hdr="ai/AIColorPaletteDialog.h" fwddecl="0" i18n="0" name="AIColorPaletteDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/AIImageDialog.wxs" src="ai/AIImageDialog.cpp" hdr="ai/AIImageDialog.h" fwddecl="0" i18n="0" name="AIImageDialog" language="CPP" />					
+					<wxDialog wxs="wxsmith/AIImageDialog.wxs" src="ai/AIImageDialog.cpp" hdr="ai/AIImageDialog.h" fwddecl="0" i18n="0" name="AIImageDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

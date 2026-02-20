@@ -837,6 +837,9 @@
     <ClCompile Include="sequencer\SequenceElements.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
+    <ClCompile Include="sequencer\SequenceMedia.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
     <ClCompile Include="sequencer\tabSequencer.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
@@ -1976,6 +1979,9 @@
       <Filter>sequencer</Filter>
     </ClInclude>
     <ClInclude Include="sequencer\SequenceElements.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
+    <ClInclude Include="sequencer\SequenceMedia.h">
       <Filter>sequencer</Filter>
     </ClInclude>
     <ClInclude Include="sequencer\TimeLine.h">

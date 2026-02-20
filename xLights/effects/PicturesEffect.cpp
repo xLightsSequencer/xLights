@@ -22,6 +22,7 @@
 #include "PicturesEffect.h"
 #include "PicturesPanel.h"
 #include "../sequencer/Effect.h"
+#include "../sequencer/SequenceMedia.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "assist/xlGridCanvasPictures.h"
@@ -30,7 +31,6 @@
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
-#include "GIFImage.h"
 #include "../xLightsMain.h" 
 
 #include <log4cpp/Category.hh>
@@ -55,27 +55,30 @@ std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& se
     wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    wxString pictureFilename = settings.Get("E_FILEPICKER_Pictures_Filename", "");
+    wxString pictureFilename = settings.Get("E_TEXTCTRL_Pictures_Filename", "");
+    auto &mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
 
-    if (pictureFilename == "" || !FileExists(pictureFilename)) {
+    if (pictureFilename == "" || !mm.HasImage(pictureFilename)) {
         res.push_back(wxString::Format("    ERR: Picture effect cant find image file '%s'. Model '%s', Start %s", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     } else {
-        if (!IsFileInShowDir(xLightsFrame::CurrentDir, pictureFilename.ToStdString())) {
-            res.push_back(wxString::Format("    WARN: Picture effect image file '%s' not under show directory. Model '%s', Start %s", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-        }
-
-        int imageCount = wxImage::GetImageCount(pictureFilename);
-        if (imageCount <= 0) {
-            res.push_back(wxString::Format("    ERR: Picture effect '%s' contains no images. Image invalid. Model '%s', Start %s", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-        }
-
-        if (!renderCache) {
-            wxImage i;
-            i.LoadFile(pictureFilename);
-            if (i.IsOk()) {
-                int ih = i.GetHeight();
-                int iw = i.GetWidth();
-
+        auto img = mm.GetImage(pictureFilename);
+        if (!img->IsOk()) {
+            res.push_back(wxString::Format("    ERR: Picture effect cant load image '%s'. Model '%s', Start %s", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        } else {
+            if (!img->IsEmbedded()) {
+                if (!IsFileInShowDir(xLightsFrame::CurrentDir, pictureFilename.ToStdString())) {
+                    res.push_back(wxString::Format("    WARN: Picture effect image file '%s' not under show directory. Model '%s', Start %s", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                }
+            }
+            int imageCount = img->GetImageCount();
+            if (imageCount <= 0) {
+                res.push_back(wxString::Format("    ERR: Picture effect '%s' contains no images. Image invalid. Model '%s', Start %s", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            }
+            
+            if (!renderCache) {
+                int ih = img->GetImageSize().GetHeight();
+                int iw = img->GetImageSize().GetWidth();
+                    
 #define IMAGESIZETHRESHOLD 10
                 if (ih > IMAGESIZETHRESHOLD * model->GetDefaultBufferHt() || iw > IMAGESIZETHRESHOLD * model->GetDefaultBufferWi()) {
                     float scale = std::max((float)ih / model->GetDefaultBufferHt(), (float)iw / model->GetDefaultBufferWi());
@@ -100,6 +103,10 @@ AssistPanel *PicturesEffect::GetAssistPanel(wxWindow *parent, xLightsFrame* xl_f
     assist_panel->AddPanel(picture_panel);
     picture_panel->SetGridCanvas(grid);
     grid->SetMessageParent(picture_panel);
+    if (xl_frame != nullptr) {
+        grid->SetSequenceMedia(&xl_frame->GetSequenceElements().GetSequenceMedia());
+        grid->SetXLightsFrame(xl_frame, &xl_frame->GetSequenceElements());
+    }
     return assist_panel;
 }
 
@@ -111,44 +118,55 @@ bool PicturesEffect::needToAdjustSettings(const std::string &version)
 void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
 {
     // give the base class a chance to adjust any settings
-    if (RenderableEffect::needToAdjustSettings(version))
-    {
+    if (RenderableEffect::needToAdjustSettings(version)) {
         RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
 
     SettingsMap &settings = effect->GetSettings();
 
-    if (settings.Get("E_CHECKBOX_Pictures_ForceGIFOverlay", "xxx") != "xxx")
-    {
+    if (settings.Contains("E_CHECKBOX_Pictures_ForceGIFOverlay")) {
         settings.erase("E_CHECKBOX_Pictures_ForceGIFOverlay");
     }
 
-    if (settings.Contains("E_CHECKBOX_Pictures_ScaleToFit"))
-    {
-        if (settings.GetBool("E_CHECKBOX_Pictures_ScaleToFit", false))
-        {
+    if (settings.Contains("E_CHECKBOX_Pictures_ScaleToFit")) {
+        if (settings.GetBool("E_CHECKBOX_Pictures_ScaleToFit", false)) {
             settings["E_CHOICE_Scaling"] = "Scale To Fit";
-        }
-        else
-        {
+        } else {
             settings["E_CHOICE_Scaling"] = "No Scaling";
         }
         settings.erase("E_CHECKBOX_Pictures_ScaleToFit");
     }
 
-    std::string file = settings["E_FILEPICKER_Pictures_Filename"];
-    if (file != "")
-    {
-        if (!FileExists(file, false))
-        {
-            settings["E_FILEPICKER_Pictures_Filename"] = FixFile("", file);
+    std::string file = settings["E_TEXTCTRL_Pictures_Filename"];
+    auto &media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+    if (!file.empty() && !media.HasImage(file)) {
+        if (!FileExists(file, false)) {
+            settings["E_TEXTCTRL_Pictures_Filename"] = FixFile("", file);
         }
+        std::string NewPictureName = settings["E_TEXTCTRL_Pictures_Filename"];
+        wxFileName fn(NewPictureName);
+        wxString suffix = "";
+        if (fn.GetName().Length() >= 2) {
+            suffix = fn.GetName().Right(2);
+        }
+        if (suffix == "-1") {// do we have a movie file?
+            //  Look at ending of the filename passed in. If we have it ending as *-1.jpg or *-1.png then we will assume
+            //  we have a bunch of jpg files made by ffmpeg
+            //  movie files can be converted into jpg frames by this command
+            //      ffmpeg -i XXXX.mp4 -s 16x50 XXXX-%d.jpg
+            //      ffmpeg -i XXXX.avi -s 16x50 XXXX-%d.jpg
+            //      ffmpeg -i XXXX.mov -s 16x50 XXXX-%d.jpg
+            //      ffmpeg -i XXXX.mts -s 16x50 XXXX-%d.jpg
+
+            if (!media.HasImage(NewPictureName)) {
+                media.AddAnimatedImage(NewPictureName, effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetFrameMS());
+            }
+        }
+        effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia().GetImage(settings["E_TEXTCTRL_Pictures_Filename"]);
     }
 
-    if (IsVersionOlder("2016.9", version))
-    {
-        if (settings["E_CHOICE_Pictures_Direction"] == "scaled")
-        {
+    if (IsVersionOlder("2016.9", version)) {
+        if (settings["E_CHOICE_Pictures_Direction"] == "scaled") {
             settings["E_CHOICE_Pictures_Direction"] = "none";
             settings["E_CHOICE_Scaling"] = "Scale To Fit";
         }
@@ -173,7 +191,7 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
 #define RENDER_PICTURE_PEEKABOO_90  12
 #define RENDER_PICTURE_PEEKABOO_180  13
 #define RENDER_PICTURE_PEEKABOO_270  14
-#define RENDER_PICTURE_VIXREMAP  15
+// #define RENDER_PICTURE_VIXREMAP  15     /// removed
 #define RENDER_PICTURE_FLAGWAVE  16
 #define RENDER_PICTURE_UPONCE  17
 #define RENDER_PICTURE_DOWNONCE  18
@@ -214,8 +232,6 @@ static inline int GetPicturesDirection(const std::string &dir) {
         return RENDER_PICTURE_PEEKABOO_180;
     } else if (dir == "peekaboo 270") {
         return RENDER_PICTURE_PEEKABOO_270;
-    } else if (dir == "vix 2 routine") {
-        return RENDER_PICTURE_VIXREMAP;
     } else if (dir == "flag wave") {
         return RENDER_PICTURE_FLAGWAVE;
     } else if (dir == "up once") {
@@ -240,24 +256,14 @@ typedef std::vector< std::pair<wxPoint, xlColor> > PixelVector;
 
 class PicturesRenderCache : public EffectRenderCache {
 public:
-    PicturesRenderCache() : imageCount(0), frame(0),  gifImage(nullptr), maxmovieframes(0), orientation(1) {};
-    virtual ~PicturesRenderCache()
-    {
-        if (gifImage != nullptr) {
-            delete gifImage;
-            gifImage = nullptr;
-        }
-    };
-
-    wxImage image;
-    wxImage rawimage;
-    int imageCount;
-    int frame;
-    int maxmovieframes;
-    wxString PictureName;
-    int orientation;
-    GIFImage* gifImage;
-    std::vector<PixelVector> PixelsByFrame;
+    PicturesRenderCache() {}
+    virtual ~PicturesRenderCache() {}
+    
+    int imageCount = 0;
+    int frame = 0;
+    int maxmovieframes = 0;
+    std::string PictureName;
+    std::shared_ptr<ImageCacheEntry> imageCache;
 };
 
 static PicturesRenderCache *GetCache(RenderBuffer &buf) {
@@ -267,93 +273,6 @@ static PicturesRenderCache *GetCache(RenderBuffer &buf) {
         buf.infoCache[PicturesEffectId] = cache;
     }
     return cache;
-}
-
-//Vixen channel remap from Vixen 2.x back to xLights:
-//for use when you have cell-by-cell Vixen 2.x sequencing that you want to preserve in an xLights sequence
-//how it works:
-//1. look at which channels are on in Vixen during each frame (fixed time intervals)
-//2. using the current elapsed time from start of xLights effect to select a Vixen frame,
-//     reverse lookup thru the current xLights model to determine which screen pixels must be turned on to generate the same results
-//3. set those pixels as the effective output from the xLights effect
-//4. xLights will remap those pixels into target channels
-//net result is that the output of any effects from Vixen will be duplicated in the xLights sequence
-//however, using xLights they can be further manipulated or blended with addition effects to make variations of the original sequence patterns
-//NOTE: channels should be in same order between Vixen and xLights; use Vixen Reorder functions to accomplish that, since xLights only reorders within the model
-
-//this allows copy/paste from Vixen grid:
-void PicturesEffect::LoadPixelsFromTextFile(RenderBuffer &buffer, wxFile& debug, const wxString& filename)
-{
-    wxByte rgb[3] = { 0,0,0 };
-    PicturesRenderCache *cache = GetCache(buffer);
-    cache->imageCount = 0;
-    wxImage &image = cache->image;
-    wxImage &rawimage = cache->rawimage;
-    std::vector<PixelVector> &PixelsByFrame = cache->PixelsByFrame;
-
-    if (image.GetWidth() && image.GetHeight()) image.Clear(); //CAUTION: image must be non-empty to clear it (memory error otherwise)
-    if (rawimage.GetWidth() && rawimage.GetHeight()) rawimage.Clear(); //CAUTION: image must be non-empty to clear it (memory error otherwise)
-
-    if (!cache->PictureName.CmpNoCase(filename)) { wrdebug("no change: " + filename); return; }
-    if (!FileExists(filename)) { wrdebug("not found: " + filename); return; }
-    wxTextFile f;
-    cache->PixelsByFrame.clear();
-    if (!f.Open(filename.c_str())) { wrdebug("can't open: " + filename); return; }
-
-    int numch = 0;
-    //int chbase = 0; - doesnt seem to be used - KW
-    int nodesize = 1;
-    for (wxString linebuf = f.GetFirstLine(); !f.Eof(); linebuf = f.GetNextLine())
-    {
-        std::string::size_type ofs;
-        if ((ofs = linebuf.find("#")) != std::string::npos) linebuf.erase(ofs); //remove comments
-        while (!linebuf.empty() && isspace(linebuf.Last())) linebuf.RemoveLast(); //trim trailing spaces
-        if (linebuf.empty()) continue; //skip blank lines
-
-        static wxRegEx chbase_re("^\\s*ChannelBase\\s*=\\s*(-?[0-9]+)\\s*$", wxRE_ICASE);
-        if (!PixelsByFrame.size() && chbase_re.Matches(linebuf)) //allow channels to be shifted
-        {
-            //chbase = wxAtoi(chbase_re.GetMatch(linebuf, 1)); - doesnt seem to be used - KW
-            continue;
-        }
-        static wxRegEx nodesize_re("^\\s*ChannelsPerNode\\s*=\\s*([13])\\s*$", wxRE_ICASE);
-        if (!PixelsByFrame.size() && nodesize_re.Matches(linebuf)) //allow channels to be shifted
-        {
-            nodesize = wxAtoi(nodesize_re.GetMatch(linebuf, 1));
-            continue;
-        }
-
-        PixelVector frame;
-        wxStringTokenizer tkz(linebuf, " ");
-        for (int chnum = 0; tkz.HasMoreTokens(); ++chnum)
-        {
-            wxByte chval = wxAtoi(tkz.GetNextToken());
-            if (!chval) continue; //only need to remember channels that are on (assume most channels are off)
-            std::pair<wxPoint, xlColor> new_pixel;
-            switch (nodesize)
-            {
-            case 1: //map each Vixen channel to a monochrome pixel
-                new_pixel.second.Set(chval, chval, chval); //grayscale
-                break;
-            case 3: //map Vixen triplets to an RGB pixel
-                switch (chnum % 3)
-                {
-                case 0: rgb[0] = chval; continue;
-                case 1: rgb[1] = chval; continue;
-                case 2: rgb[2] = chval; break;
-                default: break;
-                }
-                break;
-            default: break;
-            }
-            new_pixel.second.Set(rgb[0], rgb[1], rgb[2]);
-            //            for (each wxPoint where chnum + chbase occurs in current model)
-            frame.push_back(new_pixel); //build list of pixels that must be set
-            if (chnum + 1 > numch) numch = chnum + 1; //vix grid or routine should be rectangular, but in case it isn't, pad out the shorter rows
-        }
-        PixelsByFrame.push_back(frame); //add new frame, MSVC 2010 doesn't support emplace_back
-    }
-    cache->PictureName = filename;
 }
 
 void PicturesEffect::SetTransparentBlackPixel(RenderBuffer& buffer, int x, int y, xlColor c, bool transparentBlack, int transparentBlackLevel)
@@ -374,16 +293,12 @@ void PicturesEffect::SetTransparentBlackPixel(RenderBuffer& buffer, int x, int y
 
 void PicturesEffect::SetTransparentBlackPixel(RenderBuffer& buffer, int x, int y, xlColor c, bool wrap, bool transparentBlack, int transparentBlackLevel)
 {
-    if (transparentBlack)
-    {
+    if (transparentBlack) {
         int level = c.Red() + c.Green() + c.Blue();
-        if (level > transparentBlackLevel)
-        {
+        if (level > transparentBlackLevel) {
             buffer.ProcessPixel(x, y, c, wrap);
         }
-    }
-    else
-    {
+    } else {
         buffer.ProcessPixel(x, y, c, wrap);
     }
 }
@@ -394,6 +309,7 @@ void PicturesEffect::SetDefaultParameters() {
         return;
     }
 
+    pp->FileNameCtrl->SetValue("");
     pp->BitmapButton_PicturesXC->SetActive(false);
     pp->BitmapButton_PicturesYC->SetActive(false);
 
@@ -417,7 +333,6 @@ void PicturesEffect::SetDefaultParameters() {
     SetCheckBoxValue(pp->CheckBox_SuppressGIFBackground, true);
     SetCheckBoxValue(pp->CheckBox_TransparentBlack, false);
 
-    pp->FilePickerCtrl1->SetFileName(wxFileName());
 
     pp->ValidateWindow();
 }
@@ -425,8 +340,8 @@ void PicturesEffect::SetDefaultParameters() {
 std::list<std::string> PicturesEffect::GetFileReferences(Model* model, const SettingsMap &SettingsMap) const
 {
     std::list<std::string> res;
-    if (SettingsMap["E_FILEPICKER_Pictures_Filename"] != "") {
-        res.push_back(SettingsMap["E_FILEPICKER_Pictures_Filename"]);
+    if (SettingsMap["E_TEXTCTRL_Pictures_Filename"] != "" && FileExists(SettingsMap["E_TEXTCTRL_Pictures_Filename"])) {
+        res.push_back(SettingsMap["E_TEXTCTRL_Pictures_Filename"]);
     }
     return res;
 }
@@ -434,12 +349,10 @@ std::list<std::string> PicturesEffect::GetFileReferences(Model* model, const Set
 bool PicturesEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap)
 {
     bool rc = false;
-    wxString file = SettingsMap["E_FILEPICKER_Pictures_Filename"];
-    if (FileExists(file))
-    {
-        if (!frame->IsInShowFolder(file))
-        {
-            SettingsMap["E_FILEPICKER_Pictures_Filename"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Images");
+    wxString file = SettingsMap["E_TEXTCTRL_Pictures_Filename"];
+    if (FileExists(file)) {
+        if (!frame->IsInShowFolder(file)) {
+            SettingsMap["E_TEXTCTRL_Pictures_Filename"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Images");
             rc = true;
         }
     }
@@ -471,7 +384,7 @@ void PicturesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
     auto dirstr = SettingsMap["CHOICE_Pictures_Direction"];
     Render(buffer,
            dirstr,
-           SettingsMap["FILEPICKER_Pictures_Filename"],
+           SettingsMap["TEXTCTRL_Pictures_Filename"],
            SettingsMap.GetFloat("TEXTCTRL_Pictures_Speed", 1.0),
            SettingsMap.GetFloat("TEXTCTRL_Pictures_FrameRateAdj", 1.0),
            dirstr != "vector" ? GetValueCurveInt("PicturesXC", 0, SettingsMap, oset, PICTURES_XC_MIN, PICTURES_XC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) : SettingsMap.GetInt("SLIDER_PicturesXC", 0),
@@ -487,12 +400,12 @@ void PicturesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
            SettingsMap.GetBool("CHECKBOX_LoopGIF", false),
            SettingsMap.GetBool("CHECKBOX_SuppressGIFBackground", true),
            SettingsMap.GetBool("CHECKBOX_Pictures_TransparentBlack", false),
-           SettingsMap.GetInt("TEXTCTRL_Pictures_TransparentBlackLevel", 0)
+           SettingsMap.GetInt("TEXTCTRL_Pictures_TransparentBlack", 0)
     );
 }
 
 void PicturesEffect::Render(RenderBuffer& buffer,
-    const std::string& dirstr, const std::string& NewPictureName2,
+    const std::string& dirstr, const std::string& NewPictureName,
     float movementSpeed, float frameRateAdj,
     int xc_adj, int yc_adj,
     int xce_adj, int yce_adj,
@@ -500,8 +413,6 @@ void PicturesEffect::Render(RenderBuffer& buffer,
     bool pixelOffsets, bool wrap_x, bool shimmer, bool loopGIF, bool suppressGIFBackground,
     bool transparentBlack, int transparentBlackLevel)
 {
-
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int dir = GetPicturesDirection(dirstr);
     double position = buffer.GetEffectTimeIntervalPosition(movementSpeed);
 
@@ -513,166 +424,38 @@ void PicturesEffect::Render(RenderBuffer& buffer,
     bool noImageFile = false;
 
     PicturesRenderCache* cache = GetCache(buffer);
-    wxImage& image = cache->image;
-    wxImage& rawimage = cache->rawimage;
-
-    if (NewPictureName2.length() == 0) {
+    bool fitAnimation = true;
+    if (NewPictureName.length() == 0) {
         noImageFile = true;
     } else {
-        //  Look at ending of the filename passed in. If we have it ending as *-1.jpg or *-1.png then we will assume
-        //  we have a bunch of jpg files made by ffmpeg
-        //  movie files can be converted into jpg frames by this command
-        //      ffmpeg -i XXXX.mp4 -s 16x50 XXXX-%d.jpg
-        //      ffmpeg -i XXXX.avi -s 16x50 XXXX-%d.jpg
-        //      ffmpeg -i XXXX.mov -s 16x50 XXXX-%d.jpg
-        //      ffmpeg -i XXXX.mts -s 16x50 XXXX-%d.jpg
 
-        wxFile f;
-        GIFImage*& gifImage = cache->gifImage;
-        std::vector<PixelVector>& PixelsByFrame = cache->PixelsByFrame;
-        int& frame = cache->frame;
-
-        wxString sPicture = NewPictureName2;
-
-        wxFileName fn(NewPictureName2);
-        wxString extension = fn.GetExt();
+        wxFileName fn(NewPictureName);
         wxString suffix = "";
         if (fn.GetName().Length() >= 2) {
             suffix = fn.GetName().Right(2);
         }
 
         if (suffix == "-1") {// do we have a movie file?
-            //    yes
-            wxString BasePicture = fn.GetPathWithSep() + fn.GetName().Left(fn.GetName().Length() - 2);
-            wxString sTmpPicture = wxString::Format("%s-2.%s", BasePicture, extension);
-            if (!FileExists(sTmpPicture)) {
-                // not a movie file as frame 2 does not exist
-            }
-            else {
-
-                //  build the next filename. the frame counter is incrementing through all frames
-                if (buffer.needToInit) { // only once, try 10000 files to find how high is frame count
-                    buffer.needToInit = false;
-                    cache->maxmovieframes = 1;
-                    sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
-                    for (frame = 1; frame <= 9999; frame++) {
-                        sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
-                        if (FileExists(sPicture)) {
-                            cache->maxmovieframes = frame;
-                        }
-                        else {
-                            break;
-                        }
-                    }
-                    frame = 1;
-                }
-                else {
-                    frame = floor((double(curPeriod - curEffStartPer)) * frameRateAdj) + 1;
-                }
-                if (frame > cache->maxmovieframes) {
-                    return;
-                }
-                sPicture = wxString::Format("%s-%d.%s", BasePicture, frame, extension);
-            }
-        }
-
-        wxString NewPictureName = sPicture;
-
-        if (dir == RENDER_PICTURE_VIXREMAP) //load pre-rendered pixels from file and apply to model -DJ
-        {
-            LoadPixelsFromTextFile(buffer, f, NewPictureName);
-            int idx = curPeriod - curEffStartPer;
-            if (idx < PixelsByFrame.size()) //TODO: wrap?
-                for (auto /*std::vector<std::pair<wxPoint, xlColour>>::iterator*/ it = PixelsByFrame[idx].begin(); it != PixelsByFrame[idx].end(); ++it) {
-                    SetTransparentBlackPixel(buffer, it->first.x, it->first.y, it->second, transparentBlack, transparentBlackLevel);
-                }
-            return;
+            fitAnimation = false;
         }
 
         if (NewPictureName != cache->PictureName || buffer.needToInit) {
             buffer.needToInit = false;
             scale_image = true;
 
-            if (!FileExists(NewPictureName)) {
+            if (!buffer.GetSequenceMedia()->HasImage(NewPictureName) && !FileExists(NewPictureName)) {
                 noImageFile = true;
             } else {
-                wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
-
-                // There seems to be a bug on linux where this function crashes occasionally
-#ifdef LINUX
-                logger_base.debug("About to count images in bitmap %s.", (const char*)NewPictureName.c_str());
-#endif
-                cache->imageCount = wxImage::GetImageCount(NewPictureName);
-                if (cache->imageCount <= 0) {
-                    logger_base.error("Image %s reports %d frames which is invalid. Overriding it to be 1.", (const char*)NewPictureName.c_str(), cache->imageCount);
-
-                    // override it to 1
-                    cache->imageCount = 1;
-                }
-                
                 cache->PictureName = NewPictureName;
-                cache->orientation = GetExifOrientation(NewPictureName);
-
-                if (cache->imageCount > 1) {
-#ifdef DEBUG_GIF
-                    logger_base.debug("Preparing GIF file for reading: %s", (const char*)NewPictureName.c_str());
-#endif
-                    if (gifImage != nullptr && gifImage->GetFilename() != NewPictureName) {
-                        delete gifImage;
-                        gifImage = nullptr;
-                    }
-                    if (gifImage == nullptr) {
-                        gifImage = new GIFImage(NewPictureName.ToStdString(), suppressGIFBackground);
-                    }
-
-                    if (!gifImage->IsOk()) {
-                        delete gifImage;
-                        gifImage = nullptr;
-                        cache->imageCount = 1;
-                        if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0)) {
-                            logger_base.error("Error loading image file: %s.", (const char*)NewPictureName.c_str());
-                            image.Create(5, 5, true);
-                        }
-                        image = ApplyOrientation(image, cache->orientation);
-                        rawimage = image;
-                    } else {
-                        image = gifImage->GetFrame(0);
-                        rawimage = image;
-                    }
-                } else {
-                    if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0)) {
-                        logger_base.error("Error loading image file: %s.", (const char*)NewPictureName.c_str());
-                        image.Create(5, 5, true);
-                    }
-                    image = ApplyOrientation(image, cache->orientation);
-                    rawimage = image;
-                }
+                cache->imageCache = buffer.GetSequenceMedia()->GetImage(NewPictureName);
+                cache->imageCache->MarkIsUsed();
+                cache->imageCount = cache->imageCache->GetImageCount();
             }
         }
-        if (!noImageFile && !image.IsOk()) {
+        if (!noImageFile && !cache->imageCache->IsOk()) {
             noImageFile = true;
         }
-        if (!noImageFile && cache->imageCount > 1) {
-
-            //animated Gif,
-            scale_image = true;
-
-            if (loopGIF) {
-                image = gifImage->GetFrameForTime((buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs * frameRateAdj, true);
-            }
-            else {
-                int ii = cache->imageCount * buffer.GetEffectTimeIntervalPosition(frameRateAdj) * 0.99;
-                image = gifImage->GetFrame(ii);
-            }
-
-            rawimage = image;
-
-            if (!rawimage.IsOk()) {
-                noImageFile = true;
-            }
-        }
     }
-
     if (noImageFile) {
         for (int x = 0; x < BufferWi; x++) {
             for (int y = 0; y < BufferHt; y++) {
@@ -681,61 +464,64 @@ void PicturesEffect::Render(RenderBuffer& buffer,
         }
         return;
     }
-
-    if (scale_to_fit == "No Scaling" && (start_scale != end_scale)) {
-        image = rawimage;
+    
+    if (loopGIF || !fitAnimation) {
+        cache->frame = cache->imageCache->GetFrameForTime((buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs * frameRateAdj, loopGIF);
+    } else {
+        cache->frame = cache->imageCount * buffer.GetEffectTimeIntervalPosition(frameRateAdj) * 0.999;
+    }
+    if (cache->imageCount > 0) {
         scale_image = true;
     }
 
-    int imgwidth = image.GetWidth();
-    int imght = image.GetHeight();
+    if (scale_to_fit == "No Scaling" && (start_scale != end_scale)) {
+        scale_image = true;
+    }
+
+    wxSize imageSize = cache->imageCache->GetImageSize();
+    int imgwidth = imageSize.GetWidth();
+    int imght = imageSize.GetHeight();
     int yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
     int xoffset = (imgwidth - BufferWi) / 2; //centered if sizes don't match
 
+    std::shared_ptr<wxImage> image;
+
+
     if (scale_to_fit == "Scale To Fit" && (BufferWi != imgwidth || BufferHt != imght)) {
-        image = rawimage;
-        image.SetOption(wxIMAGE_OPTION_GIF_TRANSPARENCY, wxIMAGE_OPTION_GIF_TRANSPARENCY_UNCHANGED);
-        if (!image.HasAlpha()) {
-            image.InitAlpha();
-        }
-        image.Rescale(BufferWi, BufferHt);
-        imgwidth = image.GetWidth();
-        imght = image.GetHeight();
+        image = cache->imageCache->GetScaledImage(cache->frame, BufferWi, BufferHt, suppressGIFBackground);
+        imgwidth = image->GetWidth();
+        imght = image->GetHeight();
+
         yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
         xoffset = (imgwidth - BufferWi) / 2; //centered if sizes don't match
-    }
-    else if (scale_to_fit == "Scale Keep Aspect Ratio" || scale_to_fit == "Scale Keep Aspect Ratio Crop") {
-        image = rawimage;
-        float xr = (float)BufferWi / (float)image.GetWidth();
-        float yr = (float)BufferHt / (float)image.GetHeight();
+    } else if (scale_to_fit == "Scale Keep Aspect Ratio" || scale_to_fit == "Scale Keep Aspect Ratio Crop") {
+        float xr = (float)BufferWi / (float)imageSize.GetWidth();
+        float yr = (float)BufferHt / (float)imageSize.GetHeight();
         float sc = std::min(xr, yr);
-        if(scale_to_fit.find("Crop") != std::string::npos)
+        if (scale_to_fit.find("Crop") != std::string::npos) {
             sc = std::max(xr, yr);
-        image.SetOption(wxIMAGE_OPTION_GIF_TRANSPARENCY, wxIMAGE_OPTION_GIF_TRANSPARENCY_UNCHANGED);
-        if (!image.HasAlpha()) {
-            image.InitAlpha();
         }
-        image.Rescale(image.GetWidth() * sc, image.GetHeight() * sc);
-        imgwidth = image.GetWidth();
-        imght = image.GetHeight();
+        float newWid = sc * (float)imageSize.GetWidth();
+        float newHi = sc * (float)imageSize.GetHeight();
+        image = cache->imageCache->GetScaledImage(cache->frame, newWid, newHi, suppressGIFBackground);
+
+        imgwidth = image->GetWidth();
+        imght = image->GetHeight();
         yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
         xoffset = (imgwidth - BufferWi) / 2; //centered if sizes don't match
-    }
-    else {
+    } else {
         if ((start_scale != 100 || end_scale != 100) && scale_image) {
             int delta_scale = end_scale - start_scale;
             int current_scale = start_scale + delta_scale * position;
-            imgwidth = (image.GetWidth() * current_scale) / 100;
-            imght = (image.GetHeight() * current_scale) / 100;
+            imgwidth = (imageSize.GetWidth() * current_scale) / 100;
+            imght = (imageSize.GetHeight() * current_scale) / 100;
             imgwidth = std::max(imgwidth, 1);
             imght = std::max(imght, 1);
-            image.SetOption(wxIMAGE_OPTION_GIF_TRANSPARENCY, wxIMAGE_OPTION_GIF_TRANSPARENCY_UNCHANGED);
-            if (!image.HasAlpha()) {
-                image.InitAlpha();
-            }
-            image.Rescale(imgwidth, imght);
+            image = cache->imageCache->GetScaledImage(cache->frame, imgwidth, imght, suppressGIFBackground);
             yoffset = (BufferHt + imght) / 2; //centered if sizes don't match
             xoffset = (imgwidth - BufferWi) / 2; //centered if sizes don't match
+        } else {
+            image = cache->imageCache->GetFrame(cache->frame, suppressGIFBackground);
         }
     }
 
@@ -804,16 +590,21 @@ void PicturesEffect::Render(RenderBuffer& buffer,
     }
     // copy image to buffer
     xlColor c;
-    bool hasAlpha = image.HasAlpha();
+    const wxImage &img = *image.get();
+    if (!img.IsOk()) {
+        return;
+    }
+    
+    bool hasAlpha = img.HasAlpha();
 
     int calc_position_wi = (imgwidth + BufferWi) * position;
     int calc_position_ht = (imght + BufferHt) * position;
 
     for (int x = 0; x < imgwidth; x++) {
         for (int y = 0; y < imght; y++) {
-            if (!image.IsTransparent(x, y)) {
-                unsigned char alpha = hasAlpha ? image.GetAlpha(x, y) : 255;
-                c.Set(image.GetRed(x, y), image.GetGreen(x, y), image.GetBlue(x, y), alpha);
+            if (!hasAlpha || !img.IsTransparent(x, y, 1)) {
+                unsigned char alpha = hasAlpha ? img.GetAlpha(x, y) : 255;
+                c.Set(img.GetRed(x, y), img.GetGreen(x, y), img.GetBlue(x, y), alpha);
                 if (!buffer.allowAlpha && alpha < 64) {
                     //almost transparent, but this mix doesn't support transparent unless it's black;
                     c = xlBLACK;

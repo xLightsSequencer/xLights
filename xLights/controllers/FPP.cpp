@@ -65,6 +65,12 @@
 #include "../utils/CurlManager.h"
 #include "../utils/ip_utils.h"
 
+#include "../models/GridlinesObject.h"
+#include "../models/RulerObject.h"
+#include "../models/ImageObject.h"
+#include "../models/MeshObject.h"
+#include "../models/TerrainObject.h"
+
 #include "Falcon.h"
 #include "Minleon.h"
 #include "SanDevices.h"
@@ -1429,8 +1435,22 @@ bool FPP::UploadModels(const nlohmann::json &models) {
     return false;
 }
 
-bool FPP::UploadDisplayMap(const std::string &displayMap) {
-    PostToURL("/api/configfile/virtualdisplaymap", displayMap);
+bool FPP::UploadDisplayMap(std::map<std::string, std::string> &virtualDisplayData) {
+    if (!IsVersionAtLeast(10, 0)) {
+        PostToURL("/api/configfile/virtualdisplaymap", virtualDisplayData["/api/configfile/virtualdisplaymap"]);
+    } else {
+        for (auto &ent : virtualDisplayData) {
+            if (ent.first == "/api/configfile/virtualdisplaymap"
+                || ent.first == "/api/configfile/virtdisplay.json") {
+                PostToURL(ent.first, ent.second);
+            } else {
+                // file asset that needs uploading
+                std::string fn = ent.second;
+                std::string target = ent.first;
+                uploadFileV7(target, fn, "virtualdisplay_assets");
+            }
+        }
+    }
     return false;
 }
 
@@ -1582,7 +1602,9 @@ static bool Compare3dPointTuple(const std::tuple<float, float, float, int> &l,
     return std::get<2>(l) < std::get<2>(r);
 }
 
-std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, int previewWi, int previewHi) {
+void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &objects,
+                                  int previewWi, int previewHi,
+                                  std::map<std::string, std::string> &virtualDisplayData) {
     std::string ret;
 
     constexpr float PADDING{ 10.0F };
@@ -1591,11 +1613,11 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, int previewWi,
     float minY{ 0.0F };
     float maxY{ 0.0F };
 
-    if (allmodels->size() == 0) {
-        return ret;
+    if (allmodels.size() == 0 && objects.size() == 0) {
+        return;
     }
 
-    for (auto m = allmodels->begin(); m != allmodels->end(); ++m) {
+    for (auto m = allmodels.begin(); m != allmodels.end(); ++m) {
         Model* model = m->second;
 
         if (model->GetLayoutGroup() != "Default") {
@@ -1618,7 +1640,7 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, int previewWi,
     ret += "# Preview Size\n";
     ret += ToUTF8(wxString::Format("%d,%d\n", totW, totH));
 
-    for (auto m = allmodels->begin(); m != allmodels->end(); ++m) {
+    for (auto m = allmodels.begin(); m != allmodels.end(); ++m) {
         Model* model = m->second;
 
         if (model->GetLayoutGroup() != "Default") {
@@ -1679,7 +1701,48 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, int previewWi,
         }
 
     }
-    return ret;
+    virtualDisplayData.emplace("/api/configfile/virtualdisplaymap", ret);
+    if (objects.size() > 0) {
+        nlohmann::json virtualDisplay;
+        virtualDisplay["view_objects"] = nlohmann::json::array();
+        for (auto &e : objects) {
+            nlohmann::json obj;
+            auto *xml = e.second->GetModelXml();
+            auto *attr = xml->GetAttributes();
+            while (attr != nullptr) {
+                obj[attr->GetName().ToStdString()] = attr->GetValue().ToStdString();
+                attr = attr->GetNext();
+            }
+            
+            std::string wp = obj["WorldPosX"];
+            obj["WorldPosX"] = std::to_string(std::atof(wp.c_str()) - minX);
+            
+            wp = obj["WorldPosY"];
+            obj["WorldPosY"] = std::to_string(std::atof(wp.c_str()) - minY);
+            
+            if (e.second->GetDisplayAs() == "Mesh") {
+                std::string fn = obj["ObjFile"];
+                wxFileName fileName(fn);
+                std::string bn = fileName.GetFullName().ToStdString();
+                obj["ObjFile"] = bn;
+                virtualDisplayData[bn] = fn;
+                MeshObject *mesh = dynamic_cast<MeshObject*>(e.second);
+                for (auto &fr : mesh->GetFileReferences()) {
+                    wxFileName fileName(fr);
+                    bn = fileName.GetFullName().ToStdString();
+                    virtualDisplayData[bn] = fr;
+                }
+            } else if (e.second->GetDisplayAs() == "Image") {
+                std::string fn = obj["Image"];
+                wxFileName fileName(fn);
+                std::string bn = fileName.GetFullName().ToStdString();
+                obj["Image"] = bn;
+                virtualDisplayData[bn] = fn;
+            }
+            virtualDisplay["view_objects"].push_back(obj);
+        }
+        virtualDisplayData.emplace("/api/configfile/virtdisplay.json", virtualDisplay.dump(3, ' ', false, nlohmann::json::error_handler_t::replace));
+    }
 }
 #endif
 

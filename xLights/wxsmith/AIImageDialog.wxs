@@ -55,18 +55,80 @@
 							<growablecols>1</growablecols>
 							<growablerows>0</growablerows>
 							<object class="sizeritem">
-								<object class="wxStaticBitmap" name="ID_STATICBITMAP1" variable="ResultBitmap" member="yes">
-									<size>400,400</size>
-									<maxsize>400,400</maxsize>
+								<object class="wxPanel" name="ID_PANEL1" variable="ImagePanel" member="yes">
+									<minsize>500,420</minsize>
+									<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+										<cols>2</cols>
+										<rows>1</rows>
+										<growablecols>0</growablecols>
+										<growablerows>0</growablerows>
+										<object class="sizeritem">
+											<object class="wxPanel" name="ID_PANEL2" subclass="CropPanel" variable="cropPanel" member="yes">
+												<minsize>400,400</minsize>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+												<cols>1</cols>
+												<object class="sizeritem">
+													<object class="wxStaticText" name="wxID_ANY" variable="SizeLabel1" member="no">
+														<label>Size:</label>
+													</object>
+													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxStaticText" name="ID_STATICTEXT4" variable="SizeLabel" member="yes">
+														<label>0x0</label>
+													</object>
+													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxButton" name="ID_RESIZE" variable="ResizeButton" member="yes">
+														<label>Resize</label>
+														<handler function="OnResizeButtonClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxButton" name="ID_CROP" variable="CropButton" member="yes">
+														<label>Crop</label>
+														<handler function="OnCropButtonClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxButton" name="ID_RESET" variable="ResetButton" member="yes">
+														<label>Reset</label>
+														<handler function="OnResetButtonClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
 								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
 								<object class="wxTextCtrl" name="ID_STATICTEXT2" variable="ErrorText" member="yes">
-									<size>400,400</size>
-									<minsize>400,400</minsize>
+									<minsize>500,400</minsize>
 									<style>wxTE_MULTILINE|wxTE_READONLY|wxTE_WORDWRAP|wxVSCROLL</style>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
@@ -84,7 +146,9 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-					<cols>5</cols>
+					<cols>4</cols>
+					<rows>1</rows>
+					<growablecols>1</growablecols>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_GENERATE" variable="GenerateButton" member="yes">
 							<label>Generate</label>
@@ -95,6 +159,11 @@
 						<border>5</border>
 						<option>1</option>
 					</object>
+					<object class="spacer">
+						<flag>wxALL|wxEXPAND</flag>
+						<border>10</border>
+						<option>1</option>
+					</object>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON1" variable="SaveButton" member="yes">
 							<label>Save</label>
@@ -102,11 +171,6 @@
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="spacer">
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>10</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -119,7 +183,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>

@@ -81,7 +81,7 @@ void ShiftNodes(std::map<std::string, std::string> & nodes, int shift, int min, 
 void ReverseNodes(std::map<std::string, std::string> & nodes, int max);
 
 wxImage ApplyOrientation(const wxImage& img, int orient);
-int GetExifOrientation(const wxString& filename);
+int GetExifOrientation(const std::string& filename);
 
 std::string GetResourcesDirectory();
 

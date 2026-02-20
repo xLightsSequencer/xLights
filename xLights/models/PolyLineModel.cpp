@@ -203,8 +203,7 @@ void PolyLineModel::DeleteHandle(int handle_) {
         _polyCorner.erase(_polyCorner.begin() + handle);
         _polyLineSegDropSizes.erase(_polyLineSegDropSizes.begin() + handle);
     } else {
-        // TODO do we need to do anything here
-        //node->DeleteAttribute(SegAttrName(handle-1));
+        _polyLineSizes.erase(_polyLineSizes.begin() + handle - 1);
     }
     GetModelScreenLocation().DeleteHandle(handle);
 }

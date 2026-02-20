@@ -33,8 +33,15 @@ GIFImage::GIFImage(const std::string& filename, bool suppressBackground)
     _ok = false;
     _totalTime = 0;
     _suppressBackground = suppressBackground;
-    _backgroundColour = *wxBLACK;
+    _backgroundColor = xlBLACK;
     DoCreate(filename);
+}
+GIFImage::GIFImage(const std::string& name, wxInputStream& ins, bool suppressBackground) {
+    _ok = false;
+    _totalTime = 0;
+    _suppressBackground = suppressBackground;
+    _backgroundColor = xlBLACK;
+    DoCreate(ins, name);
 }
 
 int GIFImage::GetMSUntilNextFrame(int msec, bool loop)
@@ -104,51 +111,59 @@ void GIFImage::ReadFrameProperties()
 void GIFImage::DoCreate(const std::string& filename)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
+    
     wxLogNull logNo;  // suppress popups from gif images.
-
+    
 #ifdef DEBUG_GIF
     logger_base.debug("Loading gif %s.", (const char*)filename.c_str());
 #endif
     _filename = filename;
     _ok = false;
-
-	wxFileInputStream stream(filename);
-	if (stream.IsOk()) {
-		if (_gifDecoder.LoadGIF(stream) == wxGIF_OK) {
-            _frameImages.resize(_gifDecoder.GetFrameCount());
-            _frameDispose.resize(_gifDecoder.GetFrameCount());
-            _ok = true;
-
-            _backgroundColour = _gifDecoder.GetBackgroundColour();
-
-            ReadFrameProperties();
-            auto its = _frameSizes.begin();
-            auto ito = _frameOffsets.begin();
-            _gifSize = wxSize(0, 0);
-
-            while (its != _frameSizes.end()) {
-                if (its->GetWidth() + ito->x > _gifSize.GetWidth() ||
-                    its->GetHeight() + ito->y > _gifSize.GetHeight()) {
-                    _gifSize = wxSize((std::max)((int)_gifSize.GetWidth(), (int)(its->GetWidth() + ito->x)),
-                                      (std::max)((int)_gifSize.GetHeight(), (int)(its->GetHeight() + ito->y)));
-                }
-                ++its;
-                ++ito;
-            }
-#ifdef DEBUG_GIF
-            logger_base.debug("    GIF size (%d,%d)", _gifSize.GetWidth(), _gifSize.GetHeight());
-            logger_base.debug("    Frames %d", _gifDecoder.GetFrameCount());
-            logger_base.debug("    Background colour %s", (const char*)_backgroundColour.GetAsString().c_str());
-#endif
-        } else {
-			logger_base.warn("Error interpreting GIF file %s.", (const char *)filename.c_str());
-			_gifDecoder.Destroy();
-            _ok = false;
-		}
+    
+    wxFileInputStream stream(filename);
+    if (stream.IsOk()) {
+        DoCreate(stream, filename);
     } else {
-		logger_base.warn("Error opening GIF file %s.", (const char *)filename.c_str());
-	}
+        logger_base.warn("Error opening GIF file %s.", (const char *)filename.c_str());
+    }
+}
+void GIFImage::DoCreate(wxInputStream &stream, const std::string &fname)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (_gifDecoder.LoadGIF(stream) == wxGIF_OK) {        
+        _frameImages.resize(_gifDecoder.GetFrameCount());
+        _frameDispose.resize(_gifDecoder.GetFrameCount());
+        _ok = true;
+
+        auto color = _gifDecoder.GetBackgroundColour();
+        if (color.IsOk()) {
+            _backgroundColor =  color;
+        }
+
+        ReadFrameProperties();
+        auto its = _frameSizes.begin();
+        auto ito = _frameOffsets.begin();
+        _gifSize = wxSize(0, 0);
+
+        while (its != _frameSizes.end()) {
+            if (its->GetWidth() + ito->x > _gifSize.GetWidth() ||
+                its->GetHeight() + ito->y > _gifSize.GetHeight()) {
+                _gifSize = wxSize((std::max)((int)_gifSize.GetWidth(), (int)(its->GetWidth() + ito->x)),
+                                  (std::max)((int)_gifSize.GetHeight(), (int)(its->GetHeight() + ito->y)));
+            }
+            ++its;
+            ++ito;
+        }
+#ifdef DEBUG_GIF
+        logger_base.debug("    GIF size (%d,%d)", _gifSize.GetWidth(), _gifSize.GetHeight());
+        logger_base.debug("    Frames %d", _gifDecoder.GetFrameCount());
+        logger_base.debug("    Background colour %s", (const char*)_backgroundColour.GetAsString().c_str());
+#endif
+    } else {
+        logger_base.warn("Error interpreting GIF file %s.", (const char *)fname.c_str());
+        _gifDecoder.Destroy();
+        _ok = false;
+    }
 }
 
 const wxImage& GIFImage::GetFrameForTime(int msec, bool loop)
@@ -229,6 +244,13 @@ wxPoint GIFImage::LoadRawImageFrame(wxImage& image, int frame, wxAnimationDispos
     return offset;
 }
 
+void GIFImage::ResetSuppressBackground(bool suppressBackground) {
+    _suppressBackground = suppressBackground;
+    int sz = _frameImages.size();
+    _frameImages.clear();
+    _frameImages.resize(sz);
+}
+
 const wxImage& GIFImage::GetFrame(int frame)
 {
 #ifdef DEBUG_GIF
@@ -272,9 +294,9 @@ const wxImage& GIFImage::GetFrame(int frame)
 #ifdef DEBUG_GIF
                 logger_base.debug("    Replacing gif image this after drawing background colour");
 #endif
-                unsigned char red = _backgroundColour.Red();
-                unsigned char green = _backgroundColour.Green();
-                unsigned char blue = _backgroundColour.Blue();
+                unsigned char red = _backgroundColor.Red();
+                unsigned char green = _backgroundColor.Green();
+                unsigned char blue = _backgroundColor.Blue();
                 for (int y = 0; y < image.GetHeight(); y++) {
                     for (int x = 0; x < image.GetWidth(); x++) {
                         image.SetRGB(x, y, red, green, blue);
