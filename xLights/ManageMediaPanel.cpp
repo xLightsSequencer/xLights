@@ -379,6 +379,8 @@ void ManageMediaPanel::Populate(const std::string& selectPath)
             _mediaTree->EnsureVisible(item);
             UpdatePreview(selectPath);
             UpdateButtons();
+            wxDataViewEvent evt(wxEVT_DATAVIEW_SELECTION_CHANGED, _mediaTree, item);
+            wxPostEvent(_mediaTree, evt);
         }
     }
 }
