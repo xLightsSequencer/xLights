@@ -52,7 +52,6 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void InitColorAbility(int type);
 
         virtual void EnableFixedChannels(xlColorVector& pixelVector) const;
-        virtual bool SupportsXlightsModel() override { return true; }
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual bool SupportsWiringView() const override { return false; }
         virtual int GetNumPhysicalStrings() const override { return 1; }

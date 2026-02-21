@@ -63,7 +63,6 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] long GetCustomLightness() const { return _lightness; }
         void SetCustomLightness(long lightness) { _lightness = lightness; }
 
-        [[nodiscard]] virtual bool SupportsXlightsModel() override {return true;}
         [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return false; }
         [[nodiscard]] virtual bool SupportsWiringView() const override { return true; }
         [[nodiscard]] bool ImportLORModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);

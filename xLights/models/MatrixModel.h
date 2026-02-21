@@ -21,7 +21,6 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         [[nodiscard]] bool SupportsChangingStringCount() const override{ return true; };
         [[nodiscard]] bool ChangeStringCount(long count, std::string& message) override;
-        [[nodiscard]] virtual bool SupportsXlightsModel() override { return true; }
         [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return true; }
         [[nodiscard]] virtual bool SupportsWiringView() const override { return true; }
 

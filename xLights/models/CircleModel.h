@@ -28,8 +28,6 @@ class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return true; }
         [[nodiscard]] virtual bool SupportsWiringView() const override { return true; }
 
-        [[nodiscard]] virtual bool SupportsXlightsModel() override { return true; }
-
         [[nodiscard]] virtual bool ModelSupportsLayerSizes() const override { return true; }
         virtual void OnLayerSizesChange(bool countChanged) override;
 

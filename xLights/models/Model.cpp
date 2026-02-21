@@ -2185,53 +2185,6 @@ void Model::WriteFaceInfo(wxXmlNode* rootXml, const FaceStateData& faceInfo) {
     }
 }
 
-void Model::ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    int x = GetHcenterPos();
-    int y = GetVcenterPos();
-
-    // import the shadow models as well
-    for (auto m = n->GetChildren(); m != nullptr; m = m->GetNext()) {
-        bool cancelled = false;
-        Model* model = xlights->AllModels.CreateDefaultModel("Custom", "1"); // start with a custom model
-        model = model->CreateDefaultModelFromSavedModelNode(model, modelPreview, m, xlights, cancelled);
-
-        if (!cancelled && model != nullptr) {
-            x += 20;
-            y += 20;
-            model->SetLayoutGroup(layoutGroup);
-            model->Selected = false;
-            bool success = true; // = model->ImportXligh tsModel(m, xlights, min_x, max_x, min_y, max_y, min_z, max_z);
-            if (success) {
-                model->SetHcenterPos(x);
-                model->SetVcenterPos(y);
-                model->SetWidth(GetWidth(), true);
-                model->SetHeight(GetHeight(), true);
-                if (dynamic_cast<BoxedScreenLocation*>(&model->GetModelScreenLocation()) != nullptr) {
-                    BoxedScreenLocation* sl = dynamic_cast<BoxedScreenLocation*>(&model->GetModelScreenLocation());
-                    sl->SetScale(1, 1);
-                }
-                model->SetControllerName(NO_CONTROLLER); // this will force the start channel to a non controller start channel ... then the user can associate them using visualiser
-                xlights->AllModels.AddModel(model);
-                AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::ImportExtraModels");
-                AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::ImportExtraModels");
-                AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::ImportExtraModels");
-                AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::ImportExtraModels");
-                AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "Model::ImportExtraModels");
-                AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::ImportExtraModels");
-                IncrementChangeCount();
-            } else {
-                // remove model that failed to import
-                logger_base.error("Unable to import %s.", (const char*)m->GetName().c_str());
-                delete model;
-            }
-        } else {
-            logger_base.error("Unable to import %s. Create failed.", (const char*)m->GetName().c_str());
-        }
-    }
-}
-
 void Model::AddSubmodel(SubModel* sm)
 {
     subModels.push_back(sm);
@@ -5458,49 +5411,6 @@ std::string Model::GetDimension() const
     return GetModelScreenLocation().GetDimension();
 }
 
-void Model::ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) {
-    // TODO:  This function should be removed from all models once XmlSerializer is completed
-    wxASSERT(false);
-/*    bool merge = false;
-    bool showPopup = true;
-    importAliases = 0;
-    for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext()) {
-        if (n->GetName() == "stateInfo") {
-            stateInfo.clear();
-            AddState(n);
-        } else if (n->GetName() == "subModel") {
-            AddSubmodel(n);
-        } else if (n->GetName() == "Aliases") {
-            AddModelAliases(n);
-        } else if (n->GetName() == "faceInfo") {
-            AddFace(n);
-        } else if (n->GetName() == "ControllerConnection") {
-            if (n->HasAttribute("zigZag")) {
-                wxXmlNode* nn = GetControllerConnection();
-                if (nn->HasAttribute("zigZag")) {
-                    nn->Delete Attribute("zigZag");
-                }
-                nn->AddAttribute("zigZag", n->GetAttribute("zigZag"));
-            }
-        } else if (n->GetName() == "modelGroup") {
-            AddModelGroups(n, xlights->GetLayoutPreview()->GetVirtualCanvasWidth(),
-                           xlights->GetLayoutPreview()->GetVirtualCanvasHeight(), newname, merge, showPopup);
-        } else if (n->GetName().Lower() == "shadowmodels") {
-            ImportExtraModels(n, xlights, xlights->GetLayoutPreview(), "Unassigned");
-        } else if (n->GetName() == "dimensions") {
-            if (RulerObject::GetRuler() != nullptr) {
-                std::string units = n->GetAttribute("units", "mm");
-                float width = wxAtof(n->GetAttribute("width", "1000"));
-                float height = wxAtof(n->GetAttribute("height", "1000"));
-                float depth = wxAtof(n->GetAttribute("depth", "0"));
-                ApplyDimensions(units, width, height, depth, min_x, max_x, min_y, max_y, min_z, max_z);
-            }
-        } else if (n->GetName().Lower() == "associatedmodels") {
-            ImportExtraModels(n, xlights, xlights->GetLayoutPreview(), GetLayoutGroup());
-        }
-    }*/
-}
-
 Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, wxXmlNode* node, xLightsFrame* xlights, bool& cancelled) const {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -6461,31 +6371,6 @@ bool wxDropPatternProperty::ValidateValue(wxVariant& value, wxPGValidationInfo& 
             return false;
     }
     return true;
-}
-
-bool Model::ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) {
-    // these have already been dealt with
-    if (EndsWith(filename, "gdtf"))
-        return false;
-
-    std::string lower = Lower(filename);
-    if (!EndsWith(lower, "xmodel")) {
-        CustomModel* cm = dynamic_cast<CustomModel*>(this);
-        if (cm != nullptr) {
-            return cm->ImportLORModel(filename, xlights, min_x, max_x, min_y, max_y);
-        }
-        DisplayError("Attempt to import non-xmodel onto a non custom model.");
-        return false;
-    }
-
-    wxXmlDocument doc(filename);
-    if (doc.IsOk()) {
-        wxXmlNode* root = doc.GetRoot();
-        return ImportXlightsModel(root, xlights, min_x, max_x, min_y, max_y, min_z, max_z);
-    }
-
-    DisplayError("Failure loading model file: " + filename);
-    return false;
 }
 
 std::string Model::GetAttributesAsJSON() const

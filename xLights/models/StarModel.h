@@ -19,7 +19,6 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
         StarModel(const ModelManager &manager);
         virtual ~StarModel();
     
-        virtual bool SupportsXlightsModel() override { return true; }
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
 

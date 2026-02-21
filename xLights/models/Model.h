@@ -236,7 +236,6 @@ public:
     }
     
     void AddSubmodel(SubModel* sm);
-    void ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup);
     [[nodiscard]] Model* CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, wxXmlNode* node, xLightsFrame* xlights, bool& cancelled) const;
 
     [[nodiscard]] wxString SerialiseSubmodel() const;
@@ -257,15 +256,7 @@ public:
     [[nodiscard]] const ModelManager& GetModelManager() const {
         return modelManager;
     }
-    [[nodiscard]] virtual bool SupportsXlightsModel() {
-        return false;
-    }
     static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int& depthmm);
-    [[nodiscard]] bool ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z);
-    [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) {
-        return true;
-    }
-    virtual void ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z);
     bool FourChannelNodes() const;
     bool FiveChannelNodes() const;
     std::list<std::string> GetShadowedBy() const;

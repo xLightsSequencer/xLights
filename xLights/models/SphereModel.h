@@ -19,7 +19,6 @@ public:
     virtual ~SphereModel();
 
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
-    virtual bool SupportsXlightsModel() override { return true; }
     virtual bool SupportsWiringView() const override { return false; }
     virtual int NodeRenderOrder() override { return 1; }
     virtual void ExportAsCustomXModel3D() const override;

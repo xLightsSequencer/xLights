@@ -36,7 +36,6 @@ class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) override;
         [[nodiscard]] virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
-        [[nodiscard]] virtual bool SupportsXlightsModel() override { return true; }
         [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return false; }
         [[nodiscard]] virtual bool SupportsWiringView() const override { return false; }
         [[nodiscard]] virtual int GetNumPhysicalStrings() const override { return 1; }

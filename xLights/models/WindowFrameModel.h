@@ -21,7 +21,6 @@ class WindowFrameModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
         virtual int NodesPerString() const override;
-        virtual bool SupportsXlightsModel() override { return true; }
         int GetRotation() const { return _rotation; }
         void SetRotation(int rot) { _rotation = rot; }
 

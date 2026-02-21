@@ -30,7 +30,6 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
             int &BufferWi, int &BufferHi, int stagger) const override;
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
-        virtual bool SupportsXlightsModel() override { return true; }
         int GetHollowPercent() const { return _hollow; }
         int GetArcAngle () const { return _arc; }
         bool HasZigZag() const { return _zigzag; }

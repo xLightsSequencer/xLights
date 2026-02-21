@@ -19,7 +19,6 @@ class TreeModel : public MatrixModel
         virtual ~TreeModel();
     
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
-        virtual bool SupportsXlightsModel() override { return true; }
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual void ExportAsCustomXModel3D() const override;
         virtual bool SupportsExportAsCustom3D() const override { return true; }

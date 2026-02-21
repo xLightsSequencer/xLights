@@ -38,8 +38,6 @@ public:
 
     virtual void SetStringStartChannels(int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
 
-    virtual bool SupportsXlightsModel() override { return true; }
-
     virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual int OnPropertyGridSelection(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
