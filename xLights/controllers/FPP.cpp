@@ -70,6 +70,7 @@
 #include "../models/ImageObject.h"
 #include "../models/MeshObject.h"
 #include "../models/TerrainObject.h"
+#include "../XmlSerializer/XmlSerializer.h"
 
 #include "Falcon.h"
 #include "Minleon.h"
@@ -1705,13 +1706,24 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
     if (objects.size() > 0) {
         nlohmann::json virtualDisplay;
         virtualDisplay["view_objects"] = nlohmann::json::array();
+        
+        XmlSerializer serializer;
+        
         for (auto &e : objects) {
             nlohmann::json obj;
-            auto *xml = e.second->GetModelXml();
-            auto *attr = xml->GetAttributes();
-            while (attr != nullptr) {
-                obj[attr->GetName().ToStdString()] = attr->GetValue().ToStdString();
-                attr = attr->GetNext();
+            
+            // Use XmlSerializer to get the object's XML
+            wxXmlDocument doc = serializer.SerializeObject(*e.second, nullptr);
+            wxXmlNode* root = doc.GetRoot();
+            
+            // Get the first child node (the view_object node)
+            wxXmlNode* viewObjectNode = root->GetChildren();
+            if (viewObjectNode) {
+                auto *attr = viewObjectNode->GetAttributes();
+                while (attr != nullptr) {
+                    obj[attr->GetName().ToStdString()] = attr->GetValue().ToStdString();
+                    attr = attr->GetNext();
+                }
             }
             
             std::string wp = obj["WorldPosX"];

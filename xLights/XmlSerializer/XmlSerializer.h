@@ -78,6 +78,21 @@ struct XmlSerializer {
         root->AddChild(objectsNode);
     }
 
+    // Serialize a single object into an XML document
+    wxXmlDocument SerializeObject(const BaseObject& object, xLightsFrame* xlights) {
+        wxXmlDocument doc;
+
+        wxXmlNode* docNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ViewObjectsNodeName);
+        docNode->AddAttribute(XmlNodeKeys::TypeAttribute, XmlNodeKeys::ExportedAttribute);
+
+        XmlSerializingVisitor visitor{ docNode };
+
+        object.Accept(visitor);
+
+        doc.SetRoot(docNode);
+
+        return doc;
+    }
 
     // Deserialize a single model from an XML document
     Model* DeserializeModel(const wxXmlDocument& doc, xLightsFrame* xlights, bool importing) {
