@@ -177,7 +177,7 @@ namespace XmlSerialize {
         }
         // Setup node names and state info
         std::vector<std::string> nodeNames(gdtfData.totalChannels);
-        std::map<std::string, std::map<std::string, std::string>> stateInfo;
+        FaceStateData stateInfo;
         // Process each channel
         for (const auto& channel : gdtfData.channels) {
             // Map standard DMX attributes to model attributes
@@ -248,9 +248,9 @@ namespace XmlSerialize {
                 std::map<std::string, std::string> states;
                 int stateNum = 1;
                 for (const auto& value : channel.values) {
-                    states[wxString::Format("s%d-Name", stateNum)] = value.description;
-                    states[wxString::Format("s%d", stateNum)] = wxString::Format("%d", channel.channelStart);
-                    states[wxString::Format("s%d-Color", stateNum)] = wxString::Format("#%02x%02x%02x", value.low, value.low, value.low);
+                    states[wxString::Format("s%d-Name", stateNum).ToStdString()] = value.description;
+                    states[wxString::Format("s%d", stateNum).ToStdString()] = wxString::Format("%d", channel.channelStart).ToStdString();
+                    states[wxString::Format("s%d-Color", stateNum).ToStdString()] = wxString::Format("#%02x%02x%02x", value.low, value.low, value.low).ToStdString();
                     stateNum++;
                 }
                 stateInfo[channel.attribute] = states;
@@ -265,9 +265,10 @@ namespace XmlSerialize {
             nodeNamesStr += name;
         }
         model->SetNodeNames(nodeNamesStr);
-        // Write state information
+        // Set state information using the FaceStateData object
         if (!stateInfo.empty()) {
-            Model::WriteStateInfo(model->GetModelXml(), stateInfo, true);
+            model->SetStateInfo(stateInfo);
+            model->UpdateStateInfoNodes();
         }
         model->Selected = true;
         return model;
