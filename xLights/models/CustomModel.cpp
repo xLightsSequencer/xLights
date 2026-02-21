@@ -1323,31 +1323,6 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
     }
 }
 
-// This is required because users dont need to have their start nodes for each string in ascending
-// order ... this helps us name the strings correctly
-int CustomModel::MapPhysicalStringToLogicalString(int string) const
-{
-    if (_strings == 1)
-        return string;
-
-    // FIXME
-    // This is not very efficient ... n^2 algorithm ... but given most people will have a small
-    // number of strings and it is super simple and only used on controller upload i am hoping
-    // to get away with it
-
-    std::vector<int> stringOrder;
-    for (int curr = 0; curr < _strings; curr++) {
-        int count = 0;
-        for (int s = 0; s < _strings; s++) {
-            if (stringStartChan[s] < stringStartChan[curr] && s != curr) {
-                count++;
-            }
-        }
-        stringOrder.push_back(count);
-    }
-    return stringOrder[string];
-}
-
 int CustomModel::GetNumPhysicalStrings() const
 {
     int ts = GetSmartTs();

@@ -541,7 +541,7 @@ public:
 
     virtual int NodesPerString() const;
     virtual int NodesPerString(int string) const { return NodesPerString(); }
-    virtual int MapPhysicalStringToLogicalString(int string) const { return string; }
+    virtual int MapPhysicalStringToLogicalString(int string) const;
     virtual int GetLightsPerNode() const { return 1; } // default to one unless a model supports this
     wxCursor InitializeLocation(int& handle, wxCoord x, wxCoord y, ModelPreview* preview);
 
@@ -860,6 +860,33 @@ protected:
     virtual void deleteUIObjects();
 
 };
+
+// Inline implementation of MapPhysicalStringToLogicalString
+// This is required because users dont need to have their start nodes for each string in ascending
+// order ... this helps us name the strings correctly
+inline int Model::MapPhysicalStringToLogicalString(int string) const
+{
+    int numStrings = GetNumStrings();
+    if (numStrings == 1)
+        return string;
+
+    // FIXME
+    // This is not very efficient ... n^2 algorithm ... but given most people will have a small
+    // number of strings and it is super simple and only used on controller upload i am hoping
+    // to get away with it
+
+    std::vector<int> stringOrder;
+    for (int curr = 0; curr < numStrings; curr++) {
+        int count = 0;
+        for (int s = 0; s < numStrings; s++) {
+            if (stringStartChan[s] < stringStartChan[curr] && s != curr) {
+                count++;
+            }
+        }
+        stringOrder.push_back(count);
+    }
+    return stringOrder[string];
+}
 
 template <class ScreenLocation>
 class ModelWithScreenLocation : public Model {

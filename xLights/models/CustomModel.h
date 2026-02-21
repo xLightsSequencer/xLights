@@ -47,7 +47,6 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetCustomDepth(long d);
         void SetNumStrings(int strings);
         [[nodiscard]] virtual int NodesPerString() const override;
-        [[nodiscard]] virtual int MapPhysicalStringToLogicalString(int string) const override;
         virtual int GetNumStrings() const override{ return _strings; }
 
         [[nodiscard]] virtual int GetNumPhysicalStrings() const override;

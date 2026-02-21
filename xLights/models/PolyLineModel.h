@@ -45,7 +45,6 @@ public:
     virtual void OnPropertyGridItemExpanded(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual bool IsNodeFirst(int node) const override;
     virtual int NodesPerString(int string) const override;
-    virtual int MapPhysicalStringToLogicalString(int string) const override;
     bool HasAlternateNodes() const { return _alternateNodes; }
     int GetDropPoints() const { return _numDropPoints; }
     int GetNumSegments() const { return _numSegments; }
