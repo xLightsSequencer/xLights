@@ -101,10 +101,10 @@ class PicturesPanel: public xlEffectPanel
 	protected:
 
 		//(*Identifiers(PicturesPanel)
-		static const wxWindowID ID_STATICBITMAP1;
 		static const wxWindowID ID_BUTTON1;
 		static const wxWindowID ID_BUTTON2;
 		static const wxWindowID ID_TEXTCTRL_Pictures_Filename;
+		static const wxWindowID ID_STATICBITMAP1;
 		static const wxWindowID ID_STATICTEXT_Pictures_Direction;
 		static const wxWindowID ID_CHOICE_Pictures_Direction;
 		static const wxWindowID ID_BITMAPBUTTON_CHOICE_Pictures_Direction;

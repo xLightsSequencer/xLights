@@ -8,15 +8,7 @@
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer19" member="no">
 					<cols>2</cols>
-					<growablecols>0</growablecols>
-					<object class="sizeritem">
-						<object class="wxStaticBitmap" name="ID_STATICBITMAP1" variable="BitmapPreview" member="yes">
-							<minsize>0,50d</minsize>
-						</object>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
+					<growablecols>1</growablecols>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
 							<cols>1</cols>
@@ -40,7 +32,6 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxTextCtrl" name="ID_TEXTCTRL_Pictures_Filename" variable="FileNameCtrl" member="yes">
-									<value></value>
 									<hidden>1</hidden>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -49,6 +40,14 @@
 							</object>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticBitmap" name="ID_STATICBITMAP1" variable="BitmapPreview" member="yes">
+							<minsize>0,50d</minsize>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

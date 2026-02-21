@@ -42,10 +42,10 @@
 #include <wx/msgdlg.h>
 
 //(*IdInit(PicturesPanel)
-const wxWindowID PicturesPanel::ID_STATICBITMAP1 = wxNewId();
 const wxWindowID PicturesPanel::ID_BUTTON1 = wxNewId();
 const wxWindowID PicturesPanel::ID_BUTTON2 = wxNewId();
 const wxWindowID PicturesPanel::ID_TEXTCTRL_Pictures_Filename = wxNewId();
+const wxWindowID PicturesPanel::ID_STATICBITMAP1 = wxNewId();
 const wxWindowID PicturesPanel::ID_STATICTEXT_Pictures_Direction = wxNewId();
 const wxWindowID PicturesPanel::ID_CHOICE_Pictures_Direction = wxNewId();
 const wxWindowID PicturesPanel::ID_BITMAPBUTTON_CHOICE_Pictures_Direction = wxNewId();
@@ -135,19 +135,19 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
 	FlexGridSizer42 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer42->AddGrowableCol(0);
 	FlexGridSizer19 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer19->AddGrowableCol(0);
-	BitmapPreview = new wxStaticBitmap(this, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICBITMAP1"));
-	BitmapPreview->SetMinSize(wxDLG_UNIT(this,wxSize(0,50)));
-	FlexGridSizer19->Add(BitmapPreview, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer19->AddGrowableCol(1);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 1, 0, 0);
 	SelectButton = new wxButton(this, ID_BUTTON1, _("Select..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer6->Add(SelectButton, 1, wxALL|wxEXPAND, 5);
 	AIGenerateButton = new wxButton(this, ID_BUTTON2, _("AI Generate..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer6->Add(AIGenerateButton, 1, wxALL|wxEXPAND, 5);
-	FileNameCtrl = new wxTextCtrl(this, ID_TEXTCTRL_Pictures_Filename, _(""), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Pictures_Filename"));
+	FileNameCtrl = new wxTextCtrl(this, ID_TEXTCTRL_Pictures_Filename, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Pictures_Filename"));
 	FileNameCtrl->Hide();
 	FlexGridSizer6->Add(FileNameCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer19->Add(FlexGridSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapPreview = new wxStaticBitmap(this, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICBITMAP1"));
+	BitmapPreview->SetMinSize(wxDLG_UNIT(this,wxSize(0,50)));
+	FlexGridSizer19->Add(BitmapPreview, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer42->Add(FlexGridSizer19, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer31 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer31->AddGrowableCol(1);
@@ -439,13 +439,17 @@ void PicturesPanel::UpdatePreviewBitmap(const wxString& filename)
         refreshPreview(makeRedBitmap(), false);
         return;
     }
+        
     wxSize previewSz = BitmapPreview->GetSize();
-    int pw = std::max(1, previewSz.x);
-    int ph = std::max(1, previewSz.y);
-    double scale = std::min((double)pw / img->GetWidth(), (double)ph / img->GetHeight());
+    double scaleFactor = GetContentScaleFactor();
+    double pw = std::max(1.0, (double)previewSz.x * scaleFactor);
+    double ph = std::max(1.0, (double)previewSz.y * scaleFactor);
+    double scale = std::min((double)pw / (double)img->GetWidth(), (double)ph / (double)img->GetHeight());
     int sw = std::max(1, (int)(img->GetWidth() * scale));
     int sh = std::max(1, (int)(img->GetHeight() * scale));
-    refreshPreview(wxBitmap(img->Scale(sw, sh)), !entry->IsFrameBasedAnimation());
+    wxBitmap bmp(*entry->GetScaledImage(0, sw, sh, false));
+    bmp.SetScaleFactor(scaleFactor);
+    refreshPreview(bmp, !entry->IsFrameBasedAnimation());
 }
 
 void PicturesPanel::OnAIGenerateButtonClick(wxCommandEvent& event)
