@@ -1573,44 +1573,44 @@ void ModelFaceDialog::ImportFaces(const wxString& filename)
 {
     wxXmlDocument doc(filename);
 
-    if (doc.IsOk())
-    {
-        wxXmlNode* root = doc.GetRoot();
-        bool facesFound = false;
-
-        for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
-        {
-            if (n->GetName() == "faceInfo")
-            {
-                std::map<std::string, std::map<std::string, std::string> > faceInfo;
-                XmlSerialize::DeserializeFaceInfo(n, faceInfo);
-                if (faceInfo.size() == 0)
-                {
-                    continue;
-                }
-                facesFound = true;
-                AddFaces(faceInfo);
-            }
-        }
-
-        if (facesFound)
-        {
-            NameChoice->Enable();
-            FaceTypeChoice->Enable();
-
-            NameChoice->SetSelection(NameChoice->GetCount()-1);
-            NameChoice->SetStringSelection(NameChoice->GetString(NameChoice->GetCount() - 1));
-            SelectFaceModel(NameChoice->GetString(NameChoice->GetCount() - 1).ToStdString());
-        }
-        else
-        {
-            DisplayError(filename + " contains no faces.");
-        }
-    }
-    else
+    if (!doc.IsOk())
     {
         DisplayError(filename + " Failure loading xModel file.");
+        return;
     }
+
+    wxXmlNode* root = doc.GetRoot();
+    if (root == nullptr)
+    {
+        DisplayError(filename + " contains invalid XML structure.");
+        return;
+    }
+
+    // Collect all face definitions from the model file
+    FaceStateData allFaces;
+    for (wxXmlNode* node = root->GetChildren(); node != nullptr; node = node->GetNext())
+    {
+        if (node->GetName() == "faceInfo")
+        {
+            XmlSerialize::DeserializeFaceInfo(node, allFaces);
+        }
+    }
+
+    if (allFaces.empty())
+    {
+        DisplayError(filename + " contains no faces.");
+        return;
+    }
+
+    // Add all imported faces
+    AddFaces(allFaces);
+
+    // Update UI to show the last imported face
+    NameChoice->Enable();
+    FaceTypeChoice->Enable();
+    NameChoice->SetSelection(NameChoice->GetCount() - 1);
+    NameChoice->SetStringSelection(NameChoice->GetString(NameChoice->GetCount() - 1));
+    SelectFaceModel(NameChoice->GetString(NameChoice->GetCount() - 1).ToStdString());
 }
 
 void ModelFaceDialog::AddFaces(std::map<std::string, std::map<std::string, std::string>> const& faces) {
