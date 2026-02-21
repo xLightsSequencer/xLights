@@ -28,7 +28,9 @@
 #include "models/BoxedScreenLocation.h"
 #include "models/TwoPointScreenLocation.h"
 #include "models/ThreePointScreenLocation.h"
+#include "models/PolyPointScreenLocation.h"
 #include "ExternalHooks.h"
+#include "XmlSerializeFunctions.h"
 
 #include <log4cpp/Category.hh>
 
@@ -280,8 +282,8 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         if( customModel != nullptr ) {
             customModel->SetCustomWidth( wxAtoi( model.customWidth ) );   //width
             customModel->SetCustomHeight( wxAtoi( model.customHeight ) );  //height
-            // TODO: Need setter method for CustomModel data - SetCustomData expects a 3D vector, not string
-            customModel->SetProperty( "CustomModel", model.customGrid );
+            std::vector<std::vector<std::vector<int>>>& locations = customModel->GetData();
+            locations = XmlSerialize::ParseCustomModel(model.customGrid);
         }
 
         ScaleToPreview( model, m, previewW, previewH );
@@ -397,13 +399,14 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
             }
             point_data.RemoveLast();
 
-            // TODO: Need setter methods for PolyLine screen location properties
-            m->SetProperty( "NumPoints", wxString::Format( "%d", (int)model.points.size() ) );
-            m->SetProperty( "PointData", point_data );
-            m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", world_pt.x ) );
-            m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", world_pt.y ) );
-            m->SetProperty( "WorldPosZ", "0.0" );
-            m->SetProperty( "versionNumber", CUR_MODEL_POS_VER );
+            // Set PolyLine screen location properties using direct setters
+            auto& screenLoc = m->GetModelScreenLocation();
+            auto* polyPointLoc = dynamic_cast<PolyPointScreenLocation*>(&screenLoc);
+            if (polyPointLoc != nullptr) {
+                polyPointLoc->SetNumPoints((int)model.points.size());
+                polyPointLoc->SetDataFromString(point_data.ToStdString());
+            }
+            screenLoc.SetWorldPosition(glm::vec3(world_pt.x, world_pt.y, 0.0f));
         } else if( model.shapeName.Contains( "-Unconnected" ) ) {
             //TODO skip middle sections
             wxString point_data;
@@ -422,13 +425,15 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
             auto const& lastpt = ScalePointToXLights( model.points.back(), previewW, previewH );
             point_data += wxString::Format( "%f,%f,0.0", lastpt.x - world_pt.x, lastpt.y - world_pt.y );
             points++;
-            // TODO: Need setter methods for PolyLine screen location properties
-            m->SetProperty( "NumPoints", wxString::Format( "%d", points ) );
-            m->SetProperty( "PointData", point_data );
-            m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", world_pt.x ) );
-            m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", world_pt.y ) );
-            m->SetProperty( "WorldPosZ", "0.0" );
-            m->SetProperty( "versionNumber", CUR_MODEL_POS_VER );
+            
+            // Set PolyLine screen location properties using direct setters
+            auto& screenLoc = m->GetModelScreenLocation();
+            auto* polyPointLoc = dynamic_cast<PolyPointScreenLocation*>(&screenLoc);
+            if (polyPointLoc != nullptr) {
+                polyPointLoc->SetNumPoints(points);
+                polyPointLoc->SetDataFromString(point_data.ToStdString());
+            }
+            screenLoc.SetWorldPosition(glm::vec3(world_pt.x, world_pt.y, 0.0f));
         } else if( model.shapeName.Contains( "-Closed Shape" ) ) {
             wxString point_data;
 
@@ -446,19 +451,19 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
             //loop back to the first point AKA world point
             point_data += "0.0,0.0,0.0";
 
-            // TODO: Need setter methods for PolyLine screen location properties
-            m->SetProperty( "NumPoints", wxString::Format( "%d", (int)model.points.size() + 1 ) );
-            m->SetProperty( "PointData", point_data );
-            m->SetProperty( "WorldPosX", wxString::Format( "%6.4f", world_pt.x ) );
-            m->SetProperty( "WorldPosY", wxString::Format( "%6.4f", world_pt.y ) );
-            m->SetProperty( "WorldPosZ", "0.0" );
-            m->SetProperty( "versionNumber", CUR_MODEL_POS_VER );
+            // Set PolyLine screen location properties using direct setters
+            auto& screenLoc = m->GetModelScreenLocation();
+            auto* polyPointLoc = dynamic_cast<PolyPointScreenLocation*>(&screenLoc);
+            if (polyPointLoc != nullptr) {
+                polyPointLoc->SetNumPoints((int)model.points.size() + 1);
+                polyPointLoc->SetDataFromString(point_data.ToStdString());
+            }
+            screenLoc.SetWorldPosition(glm::vec3(world_pt.x, world_pt.y, 0.0f));
         }
 
-        // TODO: Need setter methods for Scale properties (part of screen location)
-        m->SetProperty( "ScaleX", "1.0000" );
-        m->SetProperty( "ScaleY", "1.0000" );
-        m->SetProperty( "ScaleZ", "1.0000" );
+        // Set scale properties using direct setter
+        auto& screenLoc = m->GetModelScreenLocation();
+        screenLoc.SetScaleMatrix(glm::vec3(1.0f, 1.0f, 1.0f));
 
     } else if( model.shapeName.StartsWith( "Matrix" ) ) {
         m = xlights->AllModels.CreateDefaultModel( "Matrix", startChan );
@@ -635,8 +640,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
 
     //rename
     auto newName = xlights->AllModels.GenerateModelName( Model::SafeModelName(model.name ));
-    // TODO: Need to use Model::SetName() or similar instead of SetProperty
-    m->SetProperty( "name", newName, true );
+    m->SetName(newName);
 
     return m;
 }
@@ -653,13 +657,14 @@ void LORPreview::SetStartChannel( S5Model const& model, Model* xModel, bool doMu
     if( model.deviceType.IsSameAs( "DMX" ) ) {                     //only set start channel if type is DMX(E131), LOR type is on their own
         if( model.channelGrid.Contains( ";" ) && doMultiString ) { //multistring start channel
             auto const multaddress = wxSplit( model.channelGrid, ';' );
-            xModel->SetProperty( "Advanced", "1" );
+            xModel->SetHasIndividualStartChannels(true);
+            xModel->SetIndivStartChannelCount(multaddress.GetCount());
             int i = 0;
             for( auto const& address : multaddress ) {
                 int universe;
                 int chan;
                 if( GetStartUniverseChan( address, universe, chan ) ) {
-                    xModel->SetProperty( Model::StartChanAttrName( i ), "#" + std::to_string( universe ) + ":" + std::to_string( chan ) );
+                    xModel->SetIndividualStartChannel(i, "#" + std::to_string( universe ) + ":" + std::to_string( chan ));
                 }
                 i++;
             }
@@ -667,7 +672,7 @@ void LORPreview::SetStartChannel( S5Model const& model, Model* xModel, bool doMu
             int universe;
             int chan;
             if( GetStartUniverseChan( model.channelGrid, universe, chan ) ) {
-                xModel->SetProperty( "StartChannel", "#" + std::to_string( universe ) + ":" + std::to_string( chan ) );
+                xModel->SetStartChannel("#" + std::to_string( universe ) + ":" + std::to_string( chan ));
             }
         }
     }
@@ -761,8 +766,6 @@ bool LORPreview::GetStartUniverseChan( wxString const& value, int& unv, int& cha
 }
 
 void LORPreview::ScaleToPreview( S5Model const& model, Model* m, int pvwW, int pvwH ) const {
-    // TODO: Need setter method for versionNumber property
-    m->SetProperty( "versionNumber", CUR_MODEL_POS_VER, true );
     int const bwidth  = m->GetWidth();
     int const bheight = m->GetHeight();
 
@@ -799,8 +802,6 @@ void LORPreview::ScalePointsToSingleLine( S5Model const& model, Model* m, int pv
     if( model.points.empty() ) {
         return;
     }
-    // TODO: Need setter method for versionNumber property
-    m->SetProperty( "versionNumber", CUR_MODEL_POS_VER, true );
 
     auto xModelFirst = ScalePointToXLights( model.points.front(), pvwW, pvwH );
 
@@ -875,12 +876,8 @@ void LORPreview::ScaleModelToSingleLine( S5Model const& model, Model* m, int pvw
         }
     }
 
-    // TODO: Need setter methods for Scale properties on TwoPointScreenLocation
-    m->SetProperty( "ScaleX", "1.0000" );
-    m->SetProperty( "ScaleY", "1.0000" );
-    m->SetProperty( "ScaleZ", "1.0000" );
-    // TODO: Need setter method for versionNumber property
-    m->SetProperty( "versionNumber", CUR_MODEL_POS_VER, true );
+    // Set scale properties using direct setter
+    m->GetModelScreenLocation().SetScaleMatrix(glm::vec3(1.0f, 1.0f, 1.0f));
 }
 
 void LORPreview::ScaleIcicleToSingleLine( S5Model const& model, int maxdrop, Model* m, int pvwW, int pvwH ) const {
@@ -895,9 +892,6 @@ void LORPreview::ScaleIcicleToSingleLine( S5Model const& model, int maxdrop, Mod
      *
      *    3              2
      */
-
-    // TODO: Need setter method for versionNumber property
-    m->SetProperty( "versionNumber", CUR_MODEL_POS_VER, true );
 
     auto xModelFirst = ScalePointToXLights( model.points.at( 0 ), pvwW, pvwH );
     auto xModelSecond = ScalePointToXLights( model.points.at( 1 ), pvwW, pvwH );
@@ -918,10 +912,8 @@ void LORPreview::ScaleIcicleToSingleLine( S5Model const& model, int maxdrop, Mod
         threePointLoc->SetMHeight(new_Height * -1.0F);
     }
     
-    // TODO: Need setter methods for Scale properties on ThreePointScreenLocation
-    m->SetProperty( "ScaleX", "1.0000" );
-    m->SetProperty( "ScaleY", "1.0000" );
-    m->SetProperty( "ScaleZ", "1.0000" );
+    // Set scale properties using direct setter
+    screenLoc.SetScaleMatrix(glm::vec3(1.0f, 1.0f, 1.0f));
 }
 
 S5Point LORPreview::ScalePointToXLights( S5Point const& pt, int pvwW, int pvwH ) const
@@ -1055,7 +1047,7 @@ void LORPreview::BulbToCustomModel(S5Model const& model, Model* m, int pvwW, int
     wxPoint scalesize{ (int)(size.x * scale), (int)(size.y * scale) };
     auto scaleBulbs = ScaleBulbs(model.points, scale, scalemin);
 
-    std::string cm;
+    std::string cm_data;
     for (int y = 0; y < scalesize.y + 1; y++) {
         for (int x = 0; x < scalesize.x + 1; x++) {
             std::string cell;
@@ -1064,27 +1056,28 @@ void LORPreview::BulbToCustomModel(S5Model const& model, Model* m, int pvwW, int
                 }) != scaleBulbs.cend()) {
                 cell = "1" ;
             }
-            cm += cell + ",";
+            cm_data += cell + ",";
         }
-        cm += ";";
+        cm_data += ";";
     }
-    if (!cm.empty()) {
-        cm.pop_back(); // remove last semicolen
+    if (!cm_data.empty()) {
+        cm_data.pop_back(); // remove last semicolen
     }
 
     m->SetParm1(scalesize.x+1); // width
     m->SetParm2(scalesize.y+1); // height
-    // TODO: Need setter method for CustomModel property
-    m->SetProperty("CustomModel", cm);
+
+    auto cm = dynamic_cast<CustomModel*>(m);
+    if( cm != nullptr) {
+        std::vector<std::vector<std::vector<int>>>& locations = cm->GetData();
+        locations = XmlSerialize::ParseCustomModel(cm_data);
+    }
 
     ScaleBulbToXLights(center, size, scale, m, pvwW, pvwH);
 }
 
 void LORPreview::ScaleBulbToXLights(S5Point center, S5Point size, int scale, Model* m, int pvwW, int pvwH) const
 {
-    // TODO: Need setter method for versionNumber property
-    m->SetProperty( "versionNumber", CUR_MODEL_POS_VER, true );
-
     auto xModelCenter = ScalePointToXLights(center, pvwW, pvwH);
     auto xSize = GetXLightsSizeFromScale(size, pvwW, pvwH);
 

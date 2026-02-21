@@ -470,9 +470,7 @@ bool OutputManager::ConvertModelStartChannels(wxXmlNode* modelsNode) const {
                 changed = true;
             }
 
-            // gjones - This was PolyLine specific and we are dropping Indiv Start Channel support
-            // Do any string start channels
-            /*if (model->GetAttribute("Advanced", "0") == "1") {
+            if (model->GetAttribute("Advanced", "0") == "1") {
                 int strings = wxAtoi(model->GetAttribute("parm1", "0"));
                 for (int i = 1; i <= strings; i++) {
                     auto s = wxString::Format("String%d", i);
@@ -483,7 +481,7 @@ bool OutputManager::ConvertModelStartChannels(wxXmlNode* modelsNode) const {
                         changed = true;
                     }
                 }
-            }*/
+            }
         }
     }
     return changed;
