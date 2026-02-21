@@ -1693,34 +1693,43 @@ void CustomModelDialog::Reverse()
 void CustomModelDialog::ReverseSubmodels() {
     long max = _model->GetNodeCount() + 1;
 
-    for (auto sm : _model->GetSubModels()) {
-        wxXmlNode* root = sm->GetModelXml();
-
-        if (root->GetName() == "subModel") {
-            const bool isRanges = root->GetAttribute("type", "") == "ranges";
-            if (isRanges) {
-                int line = 0;
-                while (root->HasAttribute(wxString::Format("line%d", line))) {
-                    auto l = root->GetAttribute(wxString::Format("line%d", line), "");
-                    wxString oldnodes = l;
-                    auto oldNodeArray = wxSplit(ExpandNodes(oldnodes), ',');
-                    wxArrayString newNodeArray;
-                    for (auto const& node : oldNodeArray) {
-                        long val;
-                        if (node.ToCLong(&val) == true) {
-                            long newVal = max - val;
-                            if (val == 0) {
-                                newVal = 0;
-                            }
-                            newNodeArray.Add( wxString::Format("%ld", newVal) );
+    for (auto m : _model->GetSubModels()) {
+        // Cast to SubModel pointer
+        SubModel* sm = dynamic_cast<SubModel*>(m);
+        if (sm == nullptr) continue;
+        
+        // Only process ranges-type submodels
+        if (sm->IsRanges()) {
+            // Create a new SubModel with reversed ranges
+            std::string newName = sm->GetName();
+            SubModel* newSm = new SubModel(_model, newName, sm->IsVertical(), true, sm->GetSubModelBufferStyle());
+            
+            // Process each range line
+            for (int line = 0; line < sm->GetNumRanges(); line++) {
+                wxString oldnodes = sm->GetRange(line);
+                auto oldNodeArray = wxSplit(ExpandNodes(oldnodes), ',');
+                wxArrayString newNodeArray;
+                
+                for (auto const& node : oldNodeArray) {
+                    long val;
+                    if (node.ToCLong(&val) == true) {
+                        long newVal = max - val;
+                        if (val == 0) {
+                            newVal = 0;
                         }
+                        newNodeArray.Add(wxString::Format("%ld", newVal));
                     }
-                    l = CompressNodes(wxJoin(newNodeArray, ','));
-                    root->DeleteAttribute(wxString::Format("line%d", line));
-                    root->AddAttribute(wxString::Format("line%d", line), l);
-                    line++;
                 }
+                
+                wxString reversedNodes = CompressNodes(wxJoin(newNodeArray, ','));
+                newSm->AddDefaultBuffer(reversedNodes);
             }
+            
+            newSm->CheckDuplicates();
+            
+            // Replace the old submodel with the new one
+            _model->RemoveSubModel(sm->GetName());
+            _model->AddSubmodel(newSm);
         }
     }
 }
