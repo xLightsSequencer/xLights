@@ -342,7 +342,6 @@ PicturesPanel::PicturesPanel(wxWindow* parent) : xlEffectPanel(parent)
     BitmapButton_PicturesYC->GetValue()->SetLimits(PICTURES_YC_MIN, PICTURES_YC_MAX);
 
     SetName("ID_PANEL_PICTURES");
-    BitmapPreview->SetScaleMode(wxStaticBitmap::Scale_AspectFill);
     BitmapPreview->SetMaxSize(wxDLG_UNIT(this,wxSize(0,50)));
     
 	ValidateWindow();
@@ -440,7 +439,13 @@ void PicturesPanel::UpdatePreviewBitmap(const wxString& filename)
         refreshPreview(makeRedBitmap(), false);
         return;
     }
-    refreshPreview(wxBitmap(*img), !entry->IsFrameBasedAnimation());
+	wxSize previewSz = BitmapPreview->GetSize();
+	int pw = std::max(1, previewSz.x);
+	int ph = std::max(1, previewSz.y);
+	double scale = std::min((double)pw / img->GetWidth(), (double)ph / img->GetHeight());
+	int sw = std::max(1, (int)(img->GetWidth() * scale));
+	int sh = std::max(1, (int)(img->GetHeight() * scale));
+	refreshPreview(wxBitmap(img->Scale(sw, sh)), !entry->IsFrameBasedAnimation());
 }
 
 void PicturesPanel::OnAIGenerateButtonClick(wxCommandEvent& event)

@@ -379,6 +379,8 @@ void ManageMediaPanel::Populate(const std::string& selectPath)
             _mediaTree->EnsureVisible(item);
             UpdatePreview(selectPath);
             UpdateButtons();
+            wxDataViewEvent evt(wxEVT_DATAVIEW_SELECTION_CHANGED, _mediaTree, item);
+            wxPostEvent(_mediaTree, evt);
         }
     }
 }
@@ -1053,7 +1055,7 @@ SelectMediaDialog::SelectMediaDialog(wxWindow* parent, SequenceMedia* sequenceMe
 
     // Enable OK when a single leaf item is selected in the panel's tree
     _panel->_mediaTree->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED,
-                             &SelectMediaDialog::OnSelectionChanged, this);
+        &SelectMediaDialog::OnSelectionChanged, this);
 
     _okButton->Bind(wxEVT_BUTTON, &SelectMediaDialog::OnOK, this);
 }
