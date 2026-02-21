@@ -53,6 +53,7 @@
 #include "../xLightsVersion.h"
 #include "../xLightsXmlFile.h"
 #include "../XmlSerializer/XmlSerializer.h"
+#include "../XmlSerializer/GdtfParser.h"
 
 #include <log4cpp/Category.hh>
 
