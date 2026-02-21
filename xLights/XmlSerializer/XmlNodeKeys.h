@@ -144,7 +144,7 @@ namespace XmlNodeKeys {
     constexpr auto DmxColorTypeAttribute   = "DmxColorType";
     constexpr auto DmxBeamYOffsetAttribute = "DmxBeamYOffset";
     constexpr auto DmxBeamLengthAttribute  = "DmxBeamLength";
-    constexpr auto DmxBeamWidthAttribute   = "DmxBeamWidth";    //old MH model
+    constexpr auto DmxBeamWidthAttribute   = "DmxBeamWidth";    // old MH model
     constexpr auto DmxStyleAttribute       = "DmxStyle";        // old MH model
     constexpr auto HideBodyAttribute       = "HideBody";        // old MH model
 

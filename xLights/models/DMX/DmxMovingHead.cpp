@@ -36,6 +36,19 @@
 DmxMovingHead::DmxMovingHead(const ModelManager &manager) :
     DmxMovingHeadComm(manager)
 {
+    // create pan motor
+    pan_motor = std::make_unique<DmxMotor>("PanMotor");
+    pan_motor->SetChannelCoarse(1);
+    pan_motor->SetRangeOfMOtion(540.0);
+    pan_motor->SetOrientHome(90);
+    pan_motor->SetSlewLimit(180);
+
+    // create tilt motor
+    tilt_motor = std::make_unique<DmxMotor>("TiltMotor");
+    tilt_motor->SetChannelCoarse(3);
+    tilt_motor->SetOrientHome(90);
+    tilt_motor->SetSlewLimit(180);
+
     color_ability = std::make_unique<DmxColorAbilityRGB>();
     dimmer_ability = std::make_unique<DmxDimmerAbility>();
     shutter_ability = std::make_unique<DmxShutterAbility>();
@@ -51,18 +64,6 @@ DmxMovingHead::DmxMovingHead(const ModelManager &manager) :
 
 DmxMovingHead::~DmxMovingHead()
 {
-}
-
-DmxMotor* DmxMovingHead::CreatePanMotor(const std::string& name)
-{
-    pan_motor = std::make_unique<DmxMotor>(name);
-    return pan_motor.get();
-}
-
-DmxMotor* DmxMovingHead::CreateTiltMotor(const std::string& name)
-{
-    tilt_motor = std::make_unique<DmxMotor>(name);
-    return tilt_motor.get();
 }
 
 #define ToRadians(x) ((double)x * PI / (double)180.0)
@@ -272,25 +273,6 @@ void DmxMovingHead::InitModel() {
     StringType = "Single Color White";
     parm2 = 1;
     parm3 = 1;
-
-    // create pan motor
-    if (pan_motor == nullptr) {
-        std::string new_name = "PanMotor";
-        pan_motor = std::make_unique<DmxMotor>(new_name);
-        pan_motor->SetChannelCoarse(1);
-        pan_motor->SetRangeOfMOtion(540.0);
-        pan_motor->SetOrientHome(90);
-        pan_motor->SetSlewLimit(180);
-    }
-
-    // create tilt motor
-    if (tilt_motor == nullptr) {
-        std::string new_name = "TiltMotor";
-        tilt_motor = std::make_unique<DmxMotor>(new_name);
-        tilt_motor->SetChannelCoarse(3);
-        tilt_motor->SetOrientHome(90);
-        tilt_motor->SetSlewLimit(180);
-    }
 
     pan_motor->Init();
     tilt_motor->Init();

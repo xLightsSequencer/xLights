@@ -35,9 +35,6 @@ class DmxMovingHead : public DmxMovingHeadComm
         void EnableFixedChannels(xlColorVector& pixelVector) const override;
         [[nodiscard]] std::vector<std::string> GenerateNodeNames() const override;
 
-        DmxMotor* CreatePanMotor(const std::string& name);
-        DmxMotor* CreateTiltMotor(const std::string& name);
-
         [[nodiscard]] DmxMotor* GetPanMotor() const override { return pan_motor.get(); }
         [[nodiscard]] DmxMotor* GetTiltMotor() const override { return tilt_motor.get(); }
 

@@ -98,22 +98,23 @@ DmxMovingHeadAdv::DmxMovingHeadAdv(const ModelManager &manager) :
     dynamic_cast<DmxColorAbilityRGB*>(color_ability.get())->SetRedChannel(5);
     dynamic_cast<DmxColorAbilityRGB*>(color_ability.get())->SetGreenChannel(6);
     dynamic_cast<DmxColorAbilityRGB*>(color_ability.get())->SetBlueChannel(7);
+    
+    // create pan motor
+    pan_motor = std::make_unique<DmxMotor>("PanMotor");
+    pan_motor->SetChannelCoarse(1);
+    pan_motor->SetRangeOfMOtion(540.0);
+    pan_motor->SetOrientHome(90);
+    pan_motor->SetSlewLimit(180);
+    
+    // create tilt motor
+    tilt_motor = std::make_unique<DmxMotor>("TiltMotor");
+    tilt_motor->SetChannelCoarse(3);
+    tilt_motor->SetOrientHome(90);
+    tilt_motor->SetSlewLimit(180);
 }
 
 DmxMovingHeadAdv::~DmxMovingHeadAdv()
 {
-}
-
-DmxMotor* DmxMovingHeadAdv::CreatePanMotor(const std::string& name)
-{
-    pan_motor = std::make_unique<DmxMotor>(name);
-    return pan_motor.get();
-}
-
-DmxMotor* DmxMovingHeadAdv::CreateTiltMotor(const std::string& name)
-{
-    tilt_motor = std::make_unique<DmxMotor>(name);
-    return tilt_motor.get();
 }
 
 Mesh* DmxMovingHeadAdv::CreateBaseMesh(const std::string& name)
@@ -350,25 +351,6 @@ void DmxMovingHeadAdv::MapChannelName(wxArrayString& array, int chan, std::strin
 void DmxMovingHeadAdv::InitModel()
 {
     DmxModel::InitModel();
-
-    // create pan motor
-    if (pan_motor == nullptr) {
-        std::string new_name = "PanMotor";
-        pan_motor = std::make_unique<DmxMotor>(new_name);
-        pan_motor->SetChannelCoarse(1);
-        pan_motor->SetRangeOfMOtion(540.0);
-        pan_motor->SetOrientHome(90);
-        pan_motor->SetSlewLimit(180);
-    }
-
-    // create tilt motor
-    if (tilt_motor == nullptr) {
-        std::string new_name = "TiltMotor";
-        tilt_motor = std::make_unique<DmxMotor>(new_name);
-        tilt_motor->SetChannelCoarse(3);
-        tilt_motor->SetOrientHome(90);
-        tilt_motor->SetSlewLimit(180);
-    }
 
     // create base mesh
     if (base_mesh == nullptr) {

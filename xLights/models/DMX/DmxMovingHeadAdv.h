@@ -41,9 +41,6 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm
         void UpdateNodeNames() { update_node_names = true; }
         void UpdateBits() { update_bits = true; }
     
-        DmxMotor* CreatePanMotor(const std::string& name);
-        DmxMotor* CreateTiltMotor(const std::string& name);
-
         Mesh* CreateBaseMesh(const std::string& name);
         Mesh* CreateYokeMesh(const std::string& name);
         Mesh* CreateHeadMesh(const std::string& name);

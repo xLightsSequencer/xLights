@@ -11,20 +11,24 @@
 #include "GdtfParser.h"
 #include "../models/Model.h"
 #include "../models/BoxedScreenLocation.h"
+#include "../models/DMX/DmxMovingHead.h"
+#include "../models/DMX/DmxColorAbility.h"
+#include "../models/DMX/DmxColorAbilityCMY.h"
+#include "../models/DMX/DmxColorAbilityRGB.h"
+#include "../models/DMX/DmxColorAbilityWheel.h"
+#include "../models/DMX/DmxShutterAbility.h"
 #include "../xLightsMain.h"
 #include "../UtilFunctions.h"
 #include <wx/choicdlg.h>
 #include <algorithm>
 
 namespace XmlSerialize {
-
     // Helper function to parse value from GDTF format
     static int ParseDmxValue(const wxString& s, int channels) {
         wxArrayString ss = wxSplit(s, '/');
         if (ss.size() != 2) {
             return 0;
         }
-        
         if (ss[1] == "1") {
             if (channels == 2) {
                 return wxAtoi(ss[0]) << 8;
@@ -33,25 +37,20 @@ namespace XmlSerialize {
         } else if (ss[1] == "2") {
             return wxAtoi(ss[0]);
         }
-        
         return 0;
     }
-
     // Helper function to parse a DMX channel from XML
     static DMXChannelInfo ParseDmxChannel(wxXmlNode* channelNode) {
         DMXChannelInfo info;
-        
         wxString offset = channelNode->GetAttribute("Offset");
         wxArrayString os = wxSplit(offset, ',');
         if (os.size() > 0) {
             info.channelStart = wxAtoi(os[0]);
             info.channels = os.size();
         }
-        
         for (wxXmlNode* nn = channelNode->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
             if (nn->GetName() == "LogicalChannel") {
                 info.attribute = nn->GetAttribute("Attribute").ToStdString();
-                
                 for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
                     if (nnn->GetName() == "ChannelFunction") {
                         for (wxXmlNode* nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
@@ -59,14 +58,12 @@ namespace XmlSerialize {
                                 DMXChannelValue value;
                                 value.description = nnnn->GetAttribute("Name").ToStdString();
                                 value.low = ParseDmxValue(nnnn->GetAttribute("DMXFrom"), info.channels);
-                                
                                 wxXmlNode* nextNode = nnnn->GetNext();
                                 if (nextNode == nullptr) {
                                     value.high = value.low;
                                 } else {
                                     value.high = ParseDmxValue(nextNode->GetAttribute("DMXFrom"), info.channels) - 1;
                                 }
-                                
                                 info.values.push_back(value);
                             }
                         }
@@ -74,10 +71,8 @@ namespace XmlSerialize {
                 }
             }
         }
-        
         return info;
     }
-
     bool ParseGdtfDescriptionXml(
         wxXmlDocument& gdtf_doc,
         xLightsFrame* xlights,
@@ -87,7 +82,6 @@ namespace XmlSerialize {
         if (!gdtf_doc.IsOk()) {
             return false;
         }
-
         // Parse all available DMX modes
         std::map<std::string, wxXmlNode*> modes;
         for (wxXmlNode* n = gdtf_doc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
@@ -103,11 +97,9 @@ namespace XmlSerialize {
                 }
             }
         }
-
         if (modes.empty()) {
             return false;
         }
-
         // Select mode (user choice if multiple modes)
         std::string selectedMode = modes.begin()->first;
         if (modes.size() > 1) {
@@ -122,13 +114,10 @@ namespace XmlSerialize {
             }
             selectedMode = choices[dlg.GetSelection()].ToStdString();
         }
-        
         outData.selectedMode = selectedMode;
-
         // Parse channels for the selected mode
         outData.totalChannels = 0;
         outData.isMovingHead = false;
-        
         for (wxXmlNode* n = modes[selectedMode]->GetChildren(); n != nullptr; n = n->GetNext()) {
             if (n->GetName() == "DMXChannels") {
                 for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
@@ -144,84 +133,105 @@ namespace XmlSerialize {
                 }
             }
         }
-
         return true;
     }
-
     Model* CreateDmxModelFromGdtfData(
         Model* existingModel,
         const GdtfModelData& gdtfData,
         xLightsFrame* xlights
     ) {
         // Preserve existing model properties
-        std::string startChannel = existingModel->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+        std::string startChannel = existingModel->GetModelStartChannel();
         auto x = existingModel->GetHcenterPos();
         auto y = existingModel->GetVcenterPos();
         auto w = ((BoxedScreenLocation&)existingModel->GetModelScreenLocation()).GetScaleX();
         auto h = ((BoxedScreenLocation&)existingModel->GetModelScreenLocation()).GetScaleY();
         auto lg = existingModel->GetLayoutGroup();
-        
         xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
         delete existingModel;
         existingModel = nullptr;
-        
         // Create appropriate DMX model type
         Model* model = nullptr;
+        DmxMovingHead* mh = nullptr;
         if (gdtfData.isMovingHead) {
             model = xlights->AllModels.CreateDefaultModel("DmxMovingHeadAdv", startChannel);
+            mh = dynamic_cast<DmxMovingHead*>(model);
         } else {
             model = xlights->AllModels.CreateDefaultModel("DmxMovingHead", startChannel);
-            model->GetModelXml()->DeleteAttribute("DmxStyle");
-            model->GetModelXml()->AddAttribute("DmxStyle", "Moving Head Bars");
+            mh = dynamic_cast<DmxMovingHead*>(model);
+            if (mh != nullptr) {
+                mh->SetDmxStyle("Moving Head Bars");
+            }
         }
-
         // Restore position and scale
         model->SetHcenterPos(x);
         model->SetVcenterPos(y);
         // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
         ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
         model->SetLayoutGroup(lg);
-
         // Set number of channels
-        model->GetModelXml()->DeleteAttribute("parm1");
-        model->GetModelXml()->AddAttribute("parm1", wxString::Format("%d", gdtfData.totalChannels));
-
+        model->SetParm1(gdtfData.totalChannels);
         // Add mode description
         if (!gdtfData.selectedMode.empty()) {
-            model->GetModelXml()->DeleteAttribute("Description");
-            model->GetModelXml()->AddAttribute("Description", XmlSafe("Mode: " + gdtfData.selectedMode));
+            model->SetDescription("Mode: " + gdtfData.selectedMode);
         }
-
         // Setup node names and state info
         std::vector<std::string> nodeNames(gdtfData.totalChannels);
         std::map<std::string, std::map<std::string, std::string>> stateInfo;
-
         // Process each channel
         for (const auto& channel : gdtfData.channels) {
             // Map standard DMX attributes to model attributes
             if (channel.attribute == "Pan") {
-                model->GetModelXml()->DeleteAttribute("DmxPanChannel");
-                model->GetModelXml()->AddAttribute("DmxPanChannel", wxString::Format("%d", channel.channelStart));
+                DmxMotor* motor = mh->GetPanMotor();
+                motor->SetChannelCoarse(channel.channelStart);
             } else if (channel.attribute == "Tilt") {
-                model->GetModelXml()->DeleteAttribute("DmxTiltChannel");
-                model->GetModelXml()->AddAttribute("DmxTiltChannel", wxString::Format("%d", channel.channelStart));
+                DmxMotor* motor = mh->GetTiltMotor();
+                motor->SetChannelCoarse(channel.channelStart);
             } else if (channel.attribute == "ColorAdd_W") {
-                model->GetModelXml()->DeleteAttribute("DmxWhiteChannel");
-                model->GetModelXml()->AddAttribute("DmxWhiteChannel", wxString::Format("%d", channel.channelStart));
+                if (mh->HasColorAbility()) {
+                    DmxColorAbility* color_ability = mh->GetColorAbility();
+                    DmxColorAbility::DMX_COLOR_TYPE color_type = color_ability->GetColorType();
+                    if (color_type == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_RGBW) {
+                        auto ability = dynamic_cast<DmxColorAbilityRGB*>(color_ability);
+                        ability->SetWhiteChannel(channel.channelStart);
+                    } else if (color_type == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_CMYW) {
+                        auto ability = dynamic_cast<DmxColorAbilityCMY*>(color_ability);
+                        ability->SetWhiteChannel(channel.channelStart);
+                    }
+                }
             } else if (channel.attribute == "ColorRGB_Red" || channel.attribute == "ColorAdd_R") {
-                model->GetModelXml()->DeleteAttribute("DmxRedChannel");
-                model->GetModelXml()->AddAttribute("DmxRedChannel", wxString::Format("%d", channel.channelStart));
+                if (mh->HasColorAbility()) {
+                    DmxColorAbility* color_ability = mh->GetColorAbility();
+                    DmxColorAbility::DMX_COLOR_TYPE color_type = color_ability->GetColorType();
+                    if (color_type == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_RGBW) {
+                        auto ability = dynamic_cast<DmxColorAbilityRGB*>(color_ability);
+                        ability->SetRedChannel(channel.channelStart);
+                    }
+                }
             } else if (channel.attribute == "ColorRGB_Green" || channel.attribute == "ColorAdd_G") {
-                model->GetModelXml()->DeleteAttribute("DmxGreenChannel");
-                model->GetModelXml()->AddAttribute("DmxGreenChannel", wxString::Format("%d", channel.channelStart));
+                if (mh->HasColorAbility()) {
+                    DmxColorAbility* color_ability = mh->GetColorAbility();
+                    DmxColorAbility::DMX_COLOR_TYPE color_type = color_ability->GetColorType();
+                    if (color_type == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_RGBW) {
+                        auto ability = dynamic_cast<DmxColorAbilityRGB*>(color_ability);
+                        ability->SetGreenChannel(channel.channelStart);
+                    }
+                }
             } else if (channel.attribute == "ColorRGB_Blue" || channel.attribute == "ColorAdd_B") {
-                model->GetModelXml()->DeleteAttribute("DmxBlueChannel");
-                model->GetModelXml()->AddAttribute("DmxBlueChannel", wxString::Format("%d", channel.channelStart));
+                if (mh->HasColorAbility()) {
+                    DmxColorAbility* color_ability = mh->GetColorAbility();
+                    DmxColorAbility::DMX_COLOR_TYPE color_type = color_ability->GetColorType();
+                    if (color_type == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_RGBW) {
+                        auto ability = dynamic_cast<DmxColorAbilityRGB*>(color_ability);
+                        ability->SetBlueChannel(channel.channelStart);
+                    }
+                }
             } else if (channel.attribute == "Shutter" || channel.attribute == "Shutter1") {
-                model->GetModelXml()->DeleteAttribute("DmxShutterChannel");
-                model->GetModelXml()->AddAttribute("DmxShutterChannel", wxString::Format("%d", channel.channelStart));
+                if (mh->HasShutterAbility()) {
+                    auto shutter_ability = mh->GetShutterAbility();
+                    shutter_ability->SetShutterChannel(channel.channelStart);
+                }
             }
-
             // Setup node names for this channel
             for (int i = 0; i < channel.channels; ++i) {
                 int nodeIndex = channel.channelStart + i - 1;
@@ -233,11 +243,9 @@ namespace XmlSerialize {
                     }
                 }
             }
-
             // Add state information for channels with values
             if (!channel.values.empty()) {
                 std::map<std::string, std::string> states;
-                
                 int stateNum = 1;
                 for (const auto& value : channel.values) {
                     states[wxString::Format("s%d-Name", stateNum)] = value.description;
@@ -245,11 +253,9 @@ namespace XmlSerialize {
                     states[wxString::Format("s%d-Color", stateNum)] = wxString::Format("#%02x%02x%02x", value.low, value.low, value.low);
                     stateNum++;
                 }
-                
                 stateInfo[channel.attribute] = states;
             }
         }
-
         // Set node names
         std::string nodeNamesStr;
         for (const auto& name : nodeNames) {
@@ -258,16 +264,12 @@ namespace XmlSerialize {
             }
             nodeNamesStr += name;
         }
-        model->GetModelXml()->DeleteAttribute("NodeNames");
-        model->GetModelXml()->AddAttribute("NodeNames", nodeNamesStr);
-
+        model->SetNodeNames(nodeNamesStr);
         // Write state information
         if (!stateInfo.empty()) {
             Model::WriteStateInfo(model->GetModelXml(), stateInfo, true);
         }
-
         model->Selected = true;
         return model;
     }
-
 } // namespace XmlSerialize

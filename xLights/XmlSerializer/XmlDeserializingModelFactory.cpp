@@ -1058,10 +1058,10 @@ Model* XmlDeserializingModelFactory::DeserializeDmxMovingHead(wxXmlNode* node, x
     while (n != nullptr) {
         std::string name = n->GetName();
         if ("PanMotor" == name) {
-            DmxMotor* motor = model->CreatePanMotor(name);
+            DmxMotor* motor = model->GetPanMotor();
             DeserializeDmxMotor(motor, n);
         } else if ("TiltMotor" == name) {
-            DmxMotor* motor = model->CreateTiltMotor(name);
+            DmxMotor* motor = model->GetTiltMotor();
             DeserializeDmxMotor(motor, n);
         }
         n = n->GetNext();
@@ -1080,10 +1080,10 @@ Model* XmlDeserializingModelFactory::DeserializeDmxMovingHeadAdv(wxXmlNode *node
     while (n != nullptr) {
         std::string name = n->GetName();
         if ("PanMotor" == name) {
-            DmxMotor* motor = model->CreatePanMotor(name);
+            DmxMotor* motor = model->GetPanMotor();
             DeserializeDmxMotor(motor, n);
         } else if ("TiltMotor" == name) {
-            DmxMotor* motor = model->CreateTiltMotor(name);
+            DmxMotor* motor = model->GetTiltMotor();
             DeserializeDmxMotor(motor, n);
         } else if ("BaseMesh" == name) {
             Mesh* msh = model->CreateBaseMesh(name);
