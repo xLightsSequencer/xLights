@@ -283,7 +283,6 @@ public:
     int GetDefaultBufferHt() const { return BufferHt; }
     virtual bool IsDMXModel() const { return false; }
 
-    void SetProperty(wxString const& property, wxString const& value, bool apply = false);
     virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     void GetSerialProtocolSpeeds(const std::string& protocol, wxArrayString& cp, int& idx) const;

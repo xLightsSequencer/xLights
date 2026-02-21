@@ -1170,10 +1170,8 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
                 matrixModel->SetLayoutGroup("Unassigned");
                 
                 // Properties that still need proper setters
-                // TODO: Need setter methods for these metadata properties
-                matrixModel->SetProperty("name", PRESET_MODEL_NAME);
-                matrixModel->SetProperty("versionNumber", "5");
-                matrixModel->SetProperty("StartChannel", "1"); // this is going to be a problem
+                matrixModel->SetName(PRESET_MODEL_NAME);
+                matrixModel->SetStartChannel("1");  // this is going to be a problem  (gjones: Note: didn't research this comment but kept it)
 
                 _presetSequenceElements.AddElement(_presetModel->GetName(), "Model", true, false, false, false, false);
             }

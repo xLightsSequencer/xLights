@@ -548,22 +548,6 @@ void Model::SetStartChannel(std::string const& startChannel)
     IncrementChangeCount();
 }
 
-void Model::SetProperty(wxString const& property, wxString const& value, bool apply)
-{
-    // TODO:  Need to get rid of all these calls
-    wxASSERT(false);
-    if (ModelXml->HasAttribute(property)) {
-        ModelXml->DeleteAttribute(property);
-        ModelXml->AddAttribute(property, value);
-    } else {
-        ModelXml->AddAttribute(property, value);
-    }
-    if (apply) {
-        modelManager.GetXLightsFrame()->AbortRender();
-        Setup();
-    }
-}
-
 void Model::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
     UpdateTypeProperties(grid);

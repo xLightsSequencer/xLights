@@ -77,7 +77,6 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] static std::string CompressedToCustomModel(const std::string& compressed);
         [[nodiscard]] static std::string ToCompressed(const std::vector<std::vector<std::vector<int>>>& model);
         [[nodiscard]] static std::string ToCustomModel(const std::vector<std::vector<std::vector<int>>>& model);
-        [[nodiscard]] std::vector<std::vector<std::vector<int>>> const& GetDataConst() const { return _locations; }  // TODO:  Not sure I needed to keep
         [[nodiscard]] std::vector<std::vector<std::vector<int>>> & GetData() { return _locations; }  // letting the XmlSerializer functions access this member data for speed
         [[nodiscard]] int GetCustomNodeStringNumber(int node) const;
 

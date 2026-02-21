@@ -1206,7 +1206,7 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
 
         wxFileName fn(filename);
         wxString newname = xlights->AllModels.GenerateModelName(fn.GetName().ToStdString());
-        SetProperty("name", newname, true);
+        SetName(newname);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::ImportLORModel");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::ImportLORModel");
@@ -1277,8 +1277,8 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
 
         logger_base.debug("Divisor chosen %f. Model dimensions %d,%d", divisor, maxx + 1, maxy + 1);
 
-        SetProperty("parm1", wxString::Format("%i", maxx));
-        SetProperty("parm2", wxString::Format("%i", maxy));
+        SetParm1(maxx);
+        SetParm2(maxy);
 
         int* data = (int*)malloc(maxx * maxy * sizeof(int));
         memset(data, 0x00, maxx * maxy * sizeof(int));
@@ -1313,7 +1313,8 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
         }
         free(data);
 
-        SetProperty("CustomModel", cm);
+        _locations = XmlSerialize::ParseCustomModel(cm);
+
         logger_base.debug("Model import done.");
         return true;
     } else {
