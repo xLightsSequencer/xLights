@@ -1095,10 +1095,23 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
                             wxMessageBox(msg);
                         }
                         wxString ttn = wxString::Format("%dms Metronome", ms);
-                        if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent))
+                        // Ensure suggested name is unique
+                        if (xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent)) {
+                            int suffix = 2;
+                            wxString base_ttn = ttn;
+                            do {
+                                ttn = wxString::Format("%s_%d", base_ttn, suffix++);
+                            } while (xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent));
+                        }
+                        wxTextEntryDialog te(this, "Enter a name for the timing track", wxGetTextFromUserPromptStr, ttn);
+                        if (te.ShowModal() == wxID_OK)
                         {
-                            xml_file->AddFixedTimingSection(ttn.ToStdString(), xLightsParent);
-                            AddTimingCell(ttn);
+                            ttn = RemoveUnsafeXmlChars(te.GetValue().ToStdString());
+                            if (!ttn.empty() && !xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent))
+                            {
+                                xml_file->AddFixedTimingSection(ttn.ToStdString(), ms, xLightsParent);
+                                AddTimingCell(ttn);
+                            }
                         }
                     }
                 } else if (selected_timing == "Metronome w/ Tags") {
@@ -1112,29 +1125,31 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
                         }
                         wxString ttn = wxString::Format("%s%dms Metronome %d Tag", dlg.IsRandomTiming() || dlg.IsRandomTags() ? "Random " : "", ms, dlg.GetTagCount());
 
-                        // Handle new random tag names
-                        if ((dlg.IsRandomTiming() || dlg.IsRandomTags()) && xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent)) {
+                        // Ensure suggested name is unique
+                        if (xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent)) {
                             int copyNum = 1;
                             wxString new_ttn = ttn;
                             do {
-                                wxString copyString = wxString::Format("_%d", copyNum);
-                                new_ttn = ttn + copyString;
-                                copyNum++;
+                                new_ttn = ttn + wxString::Format("_%d", copyNum++);
                             } while (xml_file->TimingAlreadyExists(new_ttn.ToStdString(), xLightsParent));
                             ttn = new_ttn;
                         }
 
-                        if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent)) {
-                            std::vector<std::string> customTags = ParseTags(dlg.GetTextLabels());
+                        wxTextEntryDialog te(this, "Enter a name for the timing track", wxGetTextFromUserPromptStr, ttn);
+                        if (te.ShowModal() == wxID_OK) {
+                            ttn = RemoveUnsafeXmlChars(te.GetValue().ToStdString());
+                            if (!ttn.empty() && !xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent)) {
+                                std::vector<std::string> customTags = ParseTags(dlg.GetTextLabels());
 
-                            if (customTags.empty()) {
-                                for (int i = 1; i <= dlg.GetTagCount(); ++i) {
-                                    customTags.push_back(std::to_string(i));
+                                if (customTags.empty()) {
+                                    for (int i = 1; i <= dlg.GetTagCount(); ++i) {
+                                        customTags.push_back(std::to_string(i));
+                                    }
                                 }
-                            }
 
-                            xml_file->AddMetronomeLabelTimingSection(ttn.ToStdString(), ms, customTags, xLightsParent, dlg.GetMinRandomTiming(), dlg.IsRandomTags());
-                            AddTimingCell(ttn);
+                                xml_file->AddMetronomeLabelTimingSection(ttn.ToStdString(), ms, customTags, xLightsParent, dlg.GetMinRandomTiming(), dlg.IsRandomTags());
+                                AddTimingCell(ttn);
+                            }
                         }
                     }
                 } else
