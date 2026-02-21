@@ -53,7 +53,8 @@
 #include "models/SubModel.h"
 #include "CheckboxSelectDialog.h"
 #include "VendorModelDialog.h"
-#include "XmlSerializer//XmlSerializer.h"
+#include "XmlSerializer/XmlSerializer.h"
+#include "XmlSerializer/XmlSerializeFunctions.h"
 
 #include <log4cpp/Category.hh>
 
@@ -3432,90 +3433,91 @@ void SubModelsDialog::RetrieveSubModelInfo(Model* model)
 
 void SubModelsDialog::ImportSubModelXML(wxXmlNode* xmlData)
 {
-    bool overRide = false;
-    bool showDialog = true;
-    wxXmlNode * child = xmlData->GetChildren();
+    // Load submodels using XmlSerializer
+    auto subModels = XmlSerialize::LoadSubModelsFromXml(xmlData);
+    
+    // Use the new data structure based method
+    ImportSubModels(subModels);
+}
 
-    wxArrayString choices;
-
-    while (child != nullptr) {
-        if (child->GetName() == "subModel") {
-           choices.push_back(child->GetAttribute("name"));
-        }
-        child = child->GetNext();
+void SubModelsDialog::ImportSubModels(const std::vector<XmlSerialize::SubModelImportData>& subModels)
+{
+    if (subModels.empty()) {
+        return;
     }
-
+    
+    // Build list of submodel names for selection dialog
+    wxArrayString choices;
+    for (const auto& sm : subModels) {
+        choices.push_back(sm.name);
+    }
+    
     CheckboxSelectDialog dlg(this, "Select SubModels to Import", choices, choices);
     OptimiseDialogPosition(&dlg);
-
-    if (dlg.ShowModal() == wxID_OK) {
-        auto const selection = dlg.GetSelectedItems();
-
-        child = xmlData->GetChildren();
-
-        while (child != nullptr) {
-            if (child->GetName() == "subModel") {
-                wxString name = child->GetAttribute("name");
-
-                if (-1 == selection.Index(name)) {
-                    child = child->GetNext();
-                    continue;
-                }
-
-                SubModelInfo *sm = new SubModelInfo(name);
-                sm->name = name;
-                sm->oldName = name;
-                sm->isRanges = child->GetAttribute("type", "ranges") == "ranges";
-                sm->vertical = child->GetAttribute("layout") == "vertical";
-                sm->subBuffer = child->GetAttribute("subBuffer");
-                sm->bufferStyle = child->GetAttribute("bufferstyle", "Default");
-                sm->strands.resize(1);
-                sm->strands[0] = "";
-                int x = 0;
-                while (child->HasAttribute(wxString::Format("line%d", x))) {
-                    if (x >= sm->strands.size()) {
-                        sm->strands.resize(x + 1);
-                    }
-                    sm->strands[x] = child->GetAttribute(wxString::Format("line%d", x));
-                    x++;
-                }
-
-                //cannot have duplicate submodels names, what to do?
-                if (GetSubModelInfoIndex(name) != -1)
-                {
-                    //Are the submodels The Same?
-                    SubModelInfo *prevSm = GetSubModelInfo(name);
-                    if (*sm == *prevSm) //skip if exactly the same
-                    {
-                        child = child->GetNext();
-                        continue;
-                    }
-                    //Ask User what to do if different
-                    if(showDialog)
-                    {
-                        wxMessageDialog confirm(this, _("SubModel(s) with the Same Name Already Exist.\n Would you Like to Override Them ALL?"), _("Override SubModels"), wxYES_NO);
-                        int returnCode = confirm.ShowModal();
-                        if(returnCode == wxID_YES)
-                            overRide = true;
-                         showDialog = false;
-                    }
-                    if (overRide)
-                    {
-                        RemoveSubModelFromList(name);
-                    }
-                    else
-                    {
-                        //rename and add if not override
-                        sm->oldName = sm->name = GenerateSubModelName(name);
-                    }
-                }
-                _subModels.push_back(sm);
-            }
-            child = child->GetNext();
-        }
-        PopulateList();
-        ValidateWindow();
+    
+    if (dlg.ShowModal() != wxID_OK) {
+        return;
     }
+    
+    auto const selection = dlg.GetSelectedItems();
+    bool overRide = false;
+    bool showDialog = true;
+    
+    // Import selected submodels
+    for (const auto& smData : subModels) {
+        wxString name = smData.name;
+        
+        // Skip if not selected
+        if (selection.Index(name) == wxNOT_FOUND) {
+            continue;
+        }
+        
+        SubModelInfo* sm = new SubModelInfo(name);
+        sm->name = name;
+        sm->oldName = name;
+        sm->isRanges = smData.isRanges;
+        sm->vertical = smData.vertical;
+        sm->subBuffer = wxString(smData.subBuffer);
+        sm->bufferStyle = wxString(smData.bufferStyle);
+        // Convert std::vector<std::string> to std::vector<wxString>
+        sm->strands.clear();
+        for (const auto& strand : smData.strands) {
+            sm->strands.push_back(wxString(strand));
+        }
+        
+        // Cannot have duplicate submodel names, what to do?
+        if (GetSubModelInfoIndex(name) != -1) {
+            // Are the submodels the same?
+            SubModelInfo* prevSm = GetSubModelInfo(name);
+            if (*sm == *prevSm) {
+                // Skip if exactly the same
+                delete sm;
+                continue;
+            }
+            
+            // Ask user what to do if different
+            if (showDialog) {
+                wxMessageDialog confirm(this, _("SubModel(s) with the Same Name Already Exist.\n Would you Like to Override Them ALL?"), _("Override SubModels"), wxYES_NO);
+                int returnCode = confirm.ShowModal();
+                if (returnCode == wxID_YES) {
+                    overRide = true;
+                }
+                showDialog = false;
+            }
+            
+            if (overRide) {
+                RemoveSubModelFromList(name);
+            } else {
+                // Rename and add if not override
+                sm->oldName = sm->name = GenerateSubModelName(name);
+            }
+        }
+        
+        _subModels.push_back(sm);
+    }
+    
+    PopulateList();
+    ValidateWindow();
 }
 
 void SubModelsDialog::ImportCSVSubModel(wxString const& filename)
@@ -3641,237 +3643,257 @@ void SubModelsDialog::CreateSubmodel(const std::string& name, const std::list<st
 
 void SubModelsDialog::ImportCustomModel(std::string filename)
 {
-    wxXmlDocument doc(filename);
+    // Load custom model data using XmlSerializer
+    auto customModelOpt = XmlSerialize::LoadCustomModelFromFile(filename);
+    
+    if (!customModelOpt.has_value()) {
+        DisplayError("Failure loading xModel file or model is not a 2D custom model.");
+        return;
+    }
+    
+    const auto& customModel = customModelOpt.value();
+    
+    // Check size compatibility
+    int modelw = model->GetDefaultBufferWi();
+    int modelh = model->GetDefaultBufferHt();
+    
+    if (modelw < customModel.width || modelh < customModel.height) {
+        wxMessageBox("Model is too small for the custom model.");
+        return;
+    }
+    
+    // Get alignment from user
+    AlignmentDialog dlg(this);
+    if (modelw != customModel.width || modelh != customModel.height) {
+        if (dlg.ShowModal() != wxID_OK) {
+            return;
+        }
+    }
+    
+    // Calculate alignment offsets
+    int xStart = CalculateAlignmentOffset((int)dlg.GetX(), modelw, customModel.width);
+    int yStart = CalculateAlignmentOffset((int)dlg.GetY(), modelh, customModel.height);
+    
+    // Create node mapping and main submodel
+    std::map<int, int> nodeMap;
+    wxString name = GenerateSubModelName(customModel.name);
+    SubModelInfo* sm = CreateSubModelFromCustomModelData(customModel, name, xStart, yStart, nodeMap);
+    
+    // Add the main submodel
+    _subModels.push_back(sm);
+    long index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm->name);
+    ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)sm);
+    
+    // Import nested submodels
+    ImportCustomModelSubModels(customModel, name, nodeMap);
+    
+    // Import faces
+    ImportCustomModelFaces(customModel, nodeMap);
+    
+    // Import states
+    ImportCustomModelStates(customModel, nodeMap);
+    
+    // Finalize
+    ValidateWindow();
+    Select(name);
+    Panel3->SetFocus();
+    TextCtrl_Name->SetFocus();
+    TextCtrl_Name->SelectAll();
+}
 
-    if (doc.IsOk())
-    {
-        wxXmlNode* root = doc.GetRoot();
+// Helper: Calculate alignment offset
+int SubModelsDialog::CalculateAlignmentOffset(int alignment, int targetSize, int sourceSize)
+{
+    // AlignmentDialog::Alignment enum values: LEFT=0, CENTRE=1, RIGHT=2, BOTTOM=0, MIDDLE=1, TOP=2
+    if (alignment == 1) { // CENTRE or MIDDLE
+        return (float)targetSize / 2.0 - (float)sourceSize / 2.0;
+    } else if (alignment == 2) { // RIGHT or TOP
+        return targetSize - sourceSize;
+    }
+    return 0; // LEFT or BOTTOM
+}
 
-        // it must be a 1 depth custom model or empty from pre 3D models
-        if (root->GetName() == "custommodel" && (root->GetAttribute("Depth", "1") == "1" || root->GetAttribute("Depth", "").IsEmpty()))
-        {
-            int width = wxAtoi(root->GetAttribute("parm1", "1"));
-            int height = wxAtoi(root->GetAttribute("parm2", "1"));
-            int modelw = model->GetDefaultBufferWi();
-            int modelh = model->GetDefaultBufferHt();
-
-            if (modelw < width || modelh < height)
-            {
-                wxMessageBox("Model is too small for the custom model.");
-            }
-            else
-            {
-                AlignmentDialog dlg(this);
-
-                if ((modelw == width && modelh == height) || dlg.ShowModal() == wxID_OK) {
-                    int xStart = 0;
-                    if (dlg.GetX() == AlignmentDialog::Alignment::CENTRE) {
-                        xStart = (float)modelw / 2.0 - (float)width / 2.0;
-                    } else if (dlg.GetX() == AlignmentDialog::Alignment::RIGHT) {
-                        xStart = modelw - width;
-                    }
-
-                    int yStart = 0;
-                    if (dlg.GetY() == AlignmentDialog::Alignment::TOP) {
-                        yStart = modelh - height;
-                    } else if (dlg.GetY() == AlignmentDialog::Alignment::MIDDLE) {
-                        yStart = (float)modelh / 2.0 - (float)height / 2.0;
-                    }
-
-                    std::map<int, int> nodeMap;
-                    wxString name = GenerateSubModelName(root->GetAttribute("name"));
-                    SubModelInfo* sm = new SubModelInfo(name);
-                    sm->vertical = false;
-                    sm->strands.clear();
-                    sm->isRanges = true;
-
-                    auto data = XmlSerialize::ParseCustomModelDataFromXml(root);
-
-                    int rnum = yStart;
-                    for (size_t row = 0; row < data[0].size(); ++row) {
-                        int cnum = xStart;
-                        wxString outRow = "";
-                        for (size_t col = 0; col < data[0][0].size(); ++col) {
-                            if (data[0][row][col] == 0) {
-                                outRow += ",";
-                            } else {
-                                long nn = model->GetNodeNumber(rnum, cnum);
-                                if (nn >= 0) {
-                                    outRow += wxString::Format("%d,", nn + 1);
-                                    nodeMap[data[0][row][col]] = nn + 1;
-                                } else {
-                                    outRow += ",";
-                                }
-                            }
-                            cnum++;
-                        }
-                        // chop off one comma
-                        if (outRow.size() > 0)
-                            outRow = outRow.Left(outRow.size() - 1);
-                        sm->strands.push_back(outRow);
-                        rnum++;
-                    }
-
-                    _subModels.push_back(sm);
-                    long index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm->name);
-                    ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)sm);
-
-                    Panel3->SetFocus();
-                    TextCtrl_Name->SetFocus();
-                    TextCtrl_Name->SelectAll();
-
-                    for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
-                    {
-                        if (n->GetName() == "subModel")
-                        {
-                            auto smname = n->GetAttribute("name");
-                            SubModelInfo* sm2 = new SubModelInfo(name + "-" + smname);
-                            sm2->vertical = n->GetAttribute("layout", "horizontal") == "vertical";
-                            sm2->strands.clear();
-                            sm2->isRanges = n->GetAttribute("type", "") == "ranges";
-                            if (sm2->isRanges)
-                            {
-                                wxString row = "";
-                                int line = 0;
-                                while (n->HasAttribute(wxString::Format("line%d", line)))
-                                {
-                                    auto l = n->GetAttribute(wxString::Format("line%d", line), "");
-                                    auto ranges = wxSplit(l, ',');
-
-                                    for (auto r : ranges)
-                                    {
-                                        if (r == "")
-                                        {
-                                            row += ",";
-                                        }
-                                        else if (r.Contains("-"))
-                                        {
-                                            auto rg = wxSplit(r, '-');
-                                            if (rg.size() == 2)
-                                            {
-                                                int first = wxAtoi(rg[0]);
-                                                int last = wxAtoi(rg[1]);
-                                                if (first <= last)
-                                                {
-                                                    for (int i = first; i <= last; i++)
-                                                    {
-                                                        row += wxString::Format("%d,", nodeMap[i]);
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    for (int i = first; i >= last; i--)
-                                                    {
-                                                        row += wxString::Format("%d,", nodeMap[i]);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        else
-                                        {
-                                            int rr = wxAtoi(r);
-                                            row += wxString::Format("%d,", nodeMap[rr]);
-                                        }
-                                    }
-                                    sm2->strands.push_back(row);
-                                    line++;
-                                }
-
-                                _subModels.push_back(sm2);
-                                index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm2->name);
-                                ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)sm2);
-                            }
-                            else
-                            {
-                                // we only bring in ranges
-                                delete sm2;
-                            }
-                        }
-                        else if (n->GetName() == "faceInfo")
-                        {
-                            // Fix Me
-                            if (n->GetAttribute("Type") == "NodeRange")
-                            {
-                                FixNodes(n, "Eyes-Closed", nodeMap);
-                                FixNodes(n, "Eyes-Open", nodeMap);
-                                FixNodes(n, "Eyes2-Closed", nodeMap);
-                                FixNodes(n, "Eyes2-Open", nodeMap);
-                                FixNodes(n, "Eyes3-Closed", nodeMap);
-                                FixNodes(n, "Eyes3-Open", nodeMap);
-                                FixNodes(n, "FaceOutline", nodeMap);
-                                FixNodes(n, "FaceOutline2", nodeMap);
-                                FixNodes(n, "Mouth-AI", nodeMap);
-                                FixNodes(n, "Mouth-E", nodeMap);
-                                FixNodes(n, "Mouth-FV", nodeMap);
-                                FixNodes(n, "Mouth-O", nodeMap);
-                                FixNodes(n, "Mouth-U", nodeMap);
-                                FixNodes(n, "Mouth-L", nodeMap);
-                                FixNodes(n, "Mouth-MBP", nodeMap);
-                                FixNodes(n, "Mouth-WQ", nodeMap);
-                                FixNodes(n, "Mouth-etc", nodeMap);
-                                FixNodes(n, "Mouth-rest", nodeMap);
-
-                                auto fname = n->GetAttribute("Name");
-                                auto basefname = fname;
-
-                                int suffix = 1;
-                                while (model->GetFaceInfo().find(fname) != model->GetFaceInfo().end())
-                                {
-                                    fname = wxString::Format("%s-%d", basefname, suffix);
-                                    suffix++;
-                                }
-
-                                model->AddFace(n);
-                            }
-                            else
-                            {
-                                // We dont handle non node range faces
-                            }
-                        }
-                        else if (n->GetName() == "stateInfo")
-                        {
-                            if (n->GetAttribute("Type") == "NodeRange")
-                            {
-                                int i = 1;
-                                while (n->HasAttribute(wxString::Format("s%d", i)))
-                                {
-                                    FixNodes(n, wxString::Format("s%d", i), nodeMap);
-                                    i++;
-                                }
-
-                                auto sname = n->GetAttribute("Name");
-                                auto basesname = sname;
-
-                                int suffix = 1;
-                                while (model->GetStateInfo().find(sname) != model->GetStateInfo().end())
-                                {
-                                    sname = wxString::Format("%s-%d", basesname, suffix);
-                                    suffix++;
-                                }
-
-                                model->AddState(n);
-                            }
-                            else
-                            {
-                                // We dont handle non node range states
-                            }
-                        }
-                    }
-                    ValidateWindow();
-                    Select(name);
+// Helper: Create submodel from custom model data
+SubModelsDialog::SubModelInfo* SubModelsDialog::CreateSubModelFromCustomModelData(
+    const XmlSerialize::CustomModelImportData& customModel,
+    const wxString& name,
+    int xStart,
+    int yStart,
+    std::map<int, int>& nodeMap)
+{
+    SubModelInfo* sm = new SubModelInfo(name);
+    sm->vertical = false;
+    sm->strands.clear();
+    sm->isRanges = true;
+    
+    const auto& data = customModel.modelData;
+    
+    int rnum = yStart;
+    for (size_t row = 0; row < data[0].size(); ++row) {
+        int cnum = xStart;
+        wxString outRow = "";
+        
+        for (size_t col = 0; col < data[0][0].size(); ++col) {
+            if (data[0][row][col] == 0) {
+                outRow += ",";
+            } else {
+                long nn = model->GetNodeNumber(rnum, cnum);
+                if (nn >= 0) {
+                    outRow += wxString::Format("%d,", nn + 1);
+                    nodeMap[data[0][row][col]] = nn + 1;
+                } else {
+                    outRow += ",";
                 }
             }
+            cnum++;
         }
-        else
-        {
-            wxMessageBox("Model is either not custom or has a depth that is not 1.");
+        
+        // Remove trailing comma
+        if (outRow.size() > 0) {
+            outRow = outRow.Left(outRow.size() - 1);
+        }
+        sm->strands.push_back(outRow);
+        rnum++;
+    }
+    
+    return sm;
+}
+
+// Helper: Import submodels from custom model
+void SubModelsDialog::ImportCustomModelSubModels(
+    const XmlSerialize::CustomModelImportData& customModel,
+    const wxString& baseName,
+    const std::map<int, int>& nodeMap)
+{
+    for (const auto& smData : customModel.subModels) {
+        SubModelInfo* sm2 = new SubModelInfo(baseName + "-" + smData.name);
+        sm2->vertical = smData.vertical;
+        sm2->strands.clear();
+        sm2->isRanges = smData.isRanges;
+        
+        if (sm2->isRanges) {
+            // Remap nodes from custom model numbering to target model numbering
+            for (const auto& strand : smData.strands) {
+                wxString remappedStrand = RemapNodesInStrand(strand, nodeMap);
+                sm2->strands.push_back(remappedStrand);
+            }
+            
+            _subModels.push_back(sm2);
+            long index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm2->name);
+            ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)sm2);
+        } else {
+            delete sm2;
         }
     }
-    else
-    {
-        DisplayError("Failure loading xModel file.");
+}
+
+// Helper: Remap nodes in a strand definition
+wxString SubModelsDialog::RemapNodesInStrand(const wxString& strand, const std::map<int, int>& nodeMap)
+{
+    wxString row = "";
+    auto ranges = wxSplit(strand, ',');
+    
+    for (const auto& r : ranges) {
+        if (r.IsEmpty()) {
+            row += ",";
+        } else if (r.Contains("-")) {
+            auto rg = wxSplit(r, '-');
+            if (rg.size() == 2) {
+                int first = wxAtoi(rg[0]);
+                int last = wxAtoi(rg[1]);
+                
+                if (first <= last) {
+                    for (int i = first; i <= last; i++) {
+                        auto it = nodeMap.find(i);
+                        if (it != nodeMap.end()) {
+                            row += wxString::Format("%d,", it->second);
+                        }
+                    }
+                } else {
+                    for (int i = first; i >= last; i--) {
+                        auto it = nodeMap.find(i);
+                        if (it != nodeMap.end()) {
+                            row += wxString::Format("%d,", it->second);
+                        }
+                    }
+                }
+            }
+        } else {
+            int nodeNum = wxAtoi(r);
+            auto it = nodeMap.find(nodeNum);
+            if (it != nodeMap.end()) {
+                row += wxString::Format("%d,", it->second);
+            }
+        }
     }
-    ValidateWindow();
+    
+    return row;
+}
+
+// Helper: Import faces from custom model
+void SubModelsDialog::ImportCustomModelFaces(
+    const XmlSerialize::CustomModelImportData& customModel,
+    const std::map<int, int>& nodeMap)
+{
+    for (const auto& faceData : customModel.faces) {
+        // Create a new face with remapped nodes
+        std::map<std::string, std::string> remappedAttributes;
+        
+        for (const auto& [key, value] : faceData.attributes) {
+            if (key == "Name" || key == "Type") {
+                remappedAttributes[key] = value;
+            } else {
+                // Remap node values
+                remappedAttributes[key] = RemapNodesInStrand(value, nodeMap).ToStdString();
+            }
+        }
+        
+        // Generate unique name if needed
+        wxString fname = faceData.name;
+        wxString basefname = fname;
+        int suffix = 1;
+        while (model->GetFaceInfo().find(fname.ToStdString()) != model->GetFaceInfo().end()) {
+            fname = wxString::Format("%s-%d", basefname, suffix);
+            suffix++;
+        }
+        remappedAttributes["Name"] = fname.ToStdString();
+        
+        // Use the new data structure based method
+        model->AddFace(remappedAttributes);
+    }
+}
+
+// Helper: Import states from custom model
+void SubModelsDialog::ImportCustomModelStates(
+    const XmlSerialize::CustomModelImportData& customModel,
+    const std::map<int, int>& nodeMap)
+{
+    for (const auto& stateData : customModel.states) {
+        // Create a new state with remapped nodes
+        std::map<std::string, std::string> remappedAttributes;
+        
+        for (const auto& [key, value] : stateData.attributes) {
+            if (key == "Name" || key == "Type") {
+                remappedAttributes[key] = value;
+            } else {
+                // Remap node values
+                remappedAttributes[key] = RemapNodesInStrand(value, nodeMap).ToStdString();
+            }
+        }
+        
+        // Generate unique name if needed
+        wxString sname = stateData.name;
+        wxString basesname = sname;
+        int suffix = 1;
+        while (model->GetStateInfo().find(sname.ToStdString()) != model->GetStateInfo().end()) {
+            sname = wxString::Format("%s-%d", basesname, suffix);
+            suffix++;
+        }
+        remappedAttributes["Name"] = sname.ToStdString();
+        
+        // Use the new data structure based method
+        model->AddState(remappedAttributes);
+    }
 }
 
 void SubModelsDialog::ExportSubModels(wxString const& filename)

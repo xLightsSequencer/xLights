@@ -2200,20 +2200,6 @@ void Model::WriteFaceInfo(wxXmlNode* rootXml, const FaceStateData& faceInfo) {
     }
 }
 
-void Model::AddFace(wxXmlNode* n)
-{
-    XmlSerialize::DeserializeFaceInfo(n, faceInfo);
-    Model::WriteFaceInfo(ModelXml, faceInfo);
-    UpdateFaceInfoNodes();
-}
-
-void Model::AddState(wxXmlNode* n)
-{
-    XmlSerialize::DeserializeStateInfo(n, stateInfo);
-    Model::WriteStateInfo(ModelXml, stateInfo);
-    UpdateStateInfoNodes();
-}
-
 void Model::ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 

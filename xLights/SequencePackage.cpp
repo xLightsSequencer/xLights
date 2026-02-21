@@ -472,7 +472,7 @@ void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer* target, 
 
                         // only import if type is matrix
                         if ((name == faceName || faceName == "Default") && type == "Matrix") {
-                            wxXmlNode* newFaceInfo = new wxXmlNode(wxXML_ELEMENT_NODE, "faceInfo");
+                            std::map<std::string, std::string> faceAttributes;
 
                             for (wxXmlAttribute* attr = modelChild->GetAttributes(); attr != nullptr; attr = attr->GetNext()) {
                                 wxString attrName = attr->GetName();
@@ -495,17 +495,17 @@ void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer* target, 
 
                                         if (fileToCopy.IsOk() && FileExists(fileToCopy)) {
                                             wxFileName copiedAsset = CopyMediaToTarget(_importOptions.GetDir(MediaTargetDir::FACES_DIR), fileToCopy);
-                                            newFaceInfo->AddAttribute(attrName, copiedAsset.GetFullPath());
+                                            faceAttributes[attrName.ToStdString()] = copiedAsset.GetFullPath().ToStdString();
                                         } else {
                                             _missingMedia.push_back(fileToCopy.GetFullName().ToStdString());
                                         }
                                     }
                                 } else {
-                                    newFaceInfo->AddAttribute(attrName, attrValue);
+                                    faceAttributes[attrName.ToStdString()] = attrValue.ToStdString();
                                 }
                             }
 
-                            targetModel->AddFace(newFaceInfo);
+                            targetModel->AddFace(faceAttributes);
                             targetModel->IncrementChangeCount();
                             _modelsChanged = true;
 

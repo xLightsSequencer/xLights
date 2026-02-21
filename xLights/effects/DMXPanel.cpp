@@ -1233,17 +1233,20 @@ void DMXPanel::OnButton_SaveAsStateClick(wxCommandEvent& event)
 		}
 	}
 
-	// <stateInfo Name="ST" CustomColors="1" Type="SingleNode" s1="Node 2" s1-Color="#979797" s1-Name="st1" s10="" s10-Color="" s10-Name="" s11="" s11-Color="" s11-Name="" s12="" s12-Color="" s12-Name="" s13="" s13-Color="" s13-Name="" s14="" s14-Color="" s14-Name="" s15="" s15-Color="" s15-Name="" s16="" s16-Color="" s16-Name="" s17="" s17-Color="" s17-Name="" s18="" s18-Color="" s18-Name="" s19="" s19-Color="" s19-Name="" s2="Node 4" s2-Color="#c0c0c0" s2-Name="st1" s20="" s20-Color="" s20-Name="" s21="" s21-Color="" s21-Name="" s22="" s22-Color="" s22-Name="" s23="" s23-Color="" s23-Name="" s24="" s24-Color="" s24-Name="" s25="" s25-Color="" s25-Name="" s26="" s26-Color="" s26-Name="" s27="" s27-Color="" s27-Name="" s28="" s28-Color="" s28-Name="" s29="" s29-Color="" s29-Name="" s3="Node 5" s3-Color="" s3-Name="st2" s30="" s30-Color="" s30-Name="" s31="" s31-Color="" s31-Name="" s32="" s32-Color="" s32-Name="" s33="" s33-Color="" s33-Name="" s34="" s34-Color="" s34-Name="" s35="" s35-Color="" s35-Name="" s36="" s36-Color="" s36-Name="" s37="" s37-Color="" s37-Name="" s38="" s38-Color="" s38-Name="" s39="" s39-Color="" s39-Name="" s4="" s4-Color="" s4-Name="" s40="" s40-Color="" s40-Name="" s5="" s5-Color="" s5-Name="" s6="" s6-Color="" s6-Name="" s7="" s7-Color="" s7-Name="" s8="" s8-Color="" s8-Name="" s9="" s9-Color="" s9-Name=""/>
-	wxXmlNode* n = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "stateInfo");
-	n->AddAttribute("CustomColors", "1");
-	n->AddAttribute("Name", stateName);
-	n->AddAttribute("Type", "SingleNode");
+	// Build attributes map for the new state
+	std::map<std::string, std::string> attributes;
+	attributes["CustomColors"] = "1";
+	attributes["Name"] = stateName;
+	attributes["Type"] = "SingleNode";
+	
 	for (uint32_t i = 0; i < DMX_CHANNELS; i++) {
 		if (i < maxChannels) {
-			auto attr = wxString::Format("s%d-Name", i + 1);
-			n->AddAttribute(attr, stateName);
-			attr = wxString::Format("s%d", i + 1);
-
+			// Set s#-Name attribute
+			auto attrName = wxString::Format("s%d-Name", i + 1);
+			attributes[attrName.ToStdString()] = stateName;
+			
+			// Set s# attribute (node label)
+			auto attrNode = wxString::Format("s%d", i + 1);
 			wxString label_ctrl = wxString::Format("ID_STATICTEXT_DMX%d", i + 1);
 			wxStaticText* label = (wxStaticText*)(this->FindWindowByName(label_ctrl));
 			wxASSERT(label != nullptr);
@@ -1254,29 +1257,31 @@ void DMXPanel::OnButton_SaveAsStateClick(wxCommandEvent& event)
 			if (StartsWith(l, "Channel")) {
 				l = wxString::Format("Node %d", i + 1);
 			}
-			n->AddAttribute(attr, l);
+			attributes[attrNode.ToStdString()] = l.ToStdString();
 
-			attr = wxString::Format("s%d-Color", i + 1);
-
+			// Set s#-Color attribute
+			auto attrColor = wxString::Format("s%d-Color", i + 1);
 			wxString slider_ctrl = wxString::Format("ID_SLIDER_DMX%d", i+1);
 			wxSlider* slider = (wxSlider*)(this->FindWindowByName(slider_ctrl));
 			wxASSERT(slider != nullptr);
 
 			auto val = wxString::Format("#%02x%02x%02x", slider->GetValue(), slider->GetValue(), slider->GetValue());
-			n->AddAttribute(attr, val);
+			attributes[attrColor.ToStdString()] = val.ToStdString();
 		}
 		else {
-			auto attr = wxString::Format("s%d-Name", i + 1);
-			n->AddAttribute(attr, "");
-			attr = wxString::Format("s%d", i + 1);
-			n->AddAttribute(attr, "");
-			attr = wxString::Format("s%d-Color", i + 1);
-			n->AddAttribute(attr, "");
+			// Set empty attributes for unused channels
+			auto attrName = wxString::Format("s%d-Name", i + 1);
+			attributes[attrName.ToStdString()] = "";
+			auto attrNode = wxString::Format("s%d", i + 1);
+			attributes[attrNode.ToStdString()] = "";
+			auto attrColor = wxString::Format("s%d-Color", i + 1);
+			attributes[attrColor.ToStdString()] = "";
 		}
 	}
 
+	// Add state to all models using the new map-based method
 	for (auto& it : models) {
-		it->AddState(n);
+		it->AddState(attributes);
 		// rgb effects is changed so we need to save
 	}
 	wxPostEvent(xLightsApp::GetFrame(), wxCommandEvent(EVT_RGBEFFECTS_CHANGED));

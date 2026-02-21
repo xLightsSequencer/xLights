@@ -260,4 +260,128 @@ void DeserializeStateInfo(wxXmlNode* f, FaceStateData & stateInfo) {
         att = att->GetNext();
     }
 }
+
+std::optional<CustomModelImportData> LoadCustomModelFromFile(const std::string& filename) {
+    wxXmlDocument doc(filename);
+    if (!doc.IsOk()) {
+        return std::nullopt;
+    }
+    
+    wxXmlNode* root = doc.GetRoot();
+    if (!root || root->GetName() != "custommodel") {
+        return std::nullopt;
+    }
+    
+    return LoadCustomModelFromXml(root);
+}
+
+std::optional<CustomModelImportData> LoadCustomModelFromXml(const wxXmlNode* node) {
+    if (!node || node->GetName() != "custommodel") {
+        return std::nullopt;
+    }
+    
+    CustomModelImportData data;
+    
+    // Load basic attributes
+    data.name = node->GetAttribute("name", "").ToStdString();
+    data.width = wxAtoi(node->GetAttribute("parm1", "1"));
+    data.height = wxAtoi(node->GetAttribute("parm2", "1"));
+    data.depth = wxAtoi(node->GetAttribute("Depth", "1"));
+    
+    // Check if it's a 1-depth model (or empty for pre-3D models)
+    wxString depthAttr = node->GetAttribute("Depth", "");
+    if (!depthAttr.IsEmpty() && data.depth != 1) {
+        return std::nullopt; // Not a 2D model
+    }
+    
+    // Load model data
+    data.modelData = ParseCustomModelDataFromXml(node);
+    
+    // Load submodels
+    for (wxXmlNode* child = node->GetChildren(); child != nullptr; child = child->GetNext()) {
+        if (child->GetName() == "subModel") {
+            if (auto smData = ParseSubModelNode(child)) {
+                // Only import range-based submodels
+                if (smData->isRanges) {
+                    CustomModelImportData::SubModelData sm;
+                    sm.name = smData->name;
+                    sm.vertical = smData->vertical;
+                    sm.isRanges = smData->isRanges;
+                    sm.subBuffer = smData->subBuffer;
+                    sm.bufferStyle = smData->bufferStyle;
+                    sm.strands = smData->strands;
+                    data.subModels.push_back(std::move(sm));
+                }
+            }
+        }
+        else if (child->GetName() == "faceInfo") {
+            CustomModelImportData::FaceData face;
+            face.name = child->GetAttribute("Name", "").ToStdString();
+            face.type = child->GetAttribute("Type", "").ToStdString();
+            
+            if (face.type == "NodeRange") {
+                // Store all attributes
+                for (wxXmlAttribute* attr = child->GetAttributes(); attr != nullptr; attr = attr->GetNext()) {
+                    face.attributes[attr->GetName().ToStdString()] = attr->GetValue().ToStdString();
+                }
+                data.faces.push_back(std::move(face));
+            }
+        }
+        else if (child->GetName() == "stateInfo") {
+            CustomModelImportData::StateData state;
+            state.name = child->GetAttribute("Name", "").ToStdString();
+            state.type = child->GetAttribute("Type", "").ToStdString();
+            
+            if (state.type == "NodeRange") {
+                // Store all attributes
+                for (wxXmlAttribute* attr = child->GetAttributes(); attr != nullptr; attr = attr->GetNext()) {
+                    state.attributes[attr->GetName().ToStdString()] = attr->GetValue().ToStdString();
+                }
+                data.states.push_back(std::move(state));
+            }
+        }
+    }
+    
+    return data;
+}
+
+std::optional<SubModelImportData> ParseSubModelNode(const wxXmlNode* node) {
+    if (!node || node->GetName() != "subModel") {
+        return std::nullopt;
+    }
+    
+    SubModelImportData sm;
+    sm.name = node->GetAttribute(XmlNodeKeys::NameAttribute, "").ToStdString();
+    sm.isRanges = node->GetAttribute(XmlNodeKeys::SMTypeAttribute, "ranges") == "ranges";
+    sm.vertical = node->GetAttribute(XmlNodeKeys::LayoutAttribute, "vertical") == "vertical";
+    sm.subBuffer = node->GetAttribute(XmlNodeKeys::SubBufferAttribute, "").ToStdString();
+    sm.bufferStyle = node->GetAttribute(XmlNodeKeys::BufferStyleAttribute, "Default").ToStdString();
+    
+    // Load strands/lines
+    int lineNum = 0;
+    while (node->HasAttribute(wxString::Format("line%d", lineNum))) {
+        sm.strands.push_back(node->GetAttribute(wxString::Format("line%d", lineNum), "").ToStdString());
+        lineNum++;
+    }
+    
+    return sm;
+}
+
+std::vector<SubModelImportData> LoadSubModelsFromXml(const wxXmlNode* modelNode) {
+    std::vector<SubModelImportData> subModels;
+    
+    if (!modelNode) {
+        return subModels;
+    }
+    
+    // Iterate through child nodes looking for subModel elements
+    for (wxXmlNode* child = modelNode->GetChildren(); child != nullptr; child = child->GetNext()) {
+        if (auto sm = ParseSubModelNode(child)) {
+            subModels.push_back(std::move(*sm));
+        }
+    }
+    
+    return subModels;
+}
+
 } // end namespace XmlSerialize

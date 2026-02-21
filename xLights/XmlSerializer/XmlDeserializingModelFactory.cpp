@@ -261,33 +261,42 @@ void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model
 
 void XmlDeserializingModelFactory::DeserializeSubModel(Model* model, wxXmlNode* node)
 {
-    const std::string name = node->GetAttribute(XmlNodeKeys::NameAttribute).Trim(true).Trim(false).ToStdString();
-    const std::string layout = node->GetAttribute(XmlNodeKeys::LayoutAttribute, "vertical").ToStdString();
-    const std::string type = node->GetAttribute(XmlNodeKeys::TypeAttribute, "ranges").ToStdString();
-    const std::string bufferStyle = node->GetAttribute(XmlNodeKeys::BufferStyleAttribute, "Default").ToStdString();
-    SubModel *sm = new SubModel(model, name, layout == "vertical", type == "ranges", bufferStyle);
+    // Use the shared parsing function from XmlSerializeFunctions
+    auto smData = XmlSerialize::ParseSubModelNode(node);
+    if (!smData) {
+        return; // Invalid submodel node
+    }
+    
+    // Create the SubModel object
+    SubModel* sm = new SubModel(
+        model, 
+        smData->name, 
+        smData->vertical, 
+        smData->isRanges, 
+        smData->bufferStyle
+    );
+    
     model->AddSubmodel(sm);
-
+    
+    // Populate the submodel based on type
     if (sm->IsRanges()) {
         if (sm->IsXYBufferStyle()) {
-            int line = 0;
-            while (node->HasAttribute(wxString::Format("line%d", line))) {
-                sm->AddRangeXY( node->GetAttribute(wxString::Format("line%d", line)) );
-                line++;
+            // XY buffer style (Keep XY)
+            for (const auto& line : smData->strands) {
+                sm->AddRangeXY(line);
             }
             sm->CheckDuplicates();
             sm->CalcRangeXYBufferSize();
-        } else { //default and stacked buffer styles
-            int line = 0;
-            while (node->HasAttribute(wxString::Format("line%d", line))) {
-                wxString nodes = node->GetAttribute(wxString::Format("line%d", line));
-                sm->AddDefaultBuffer(nodes);
-                line++;
+        } else {
+            // Default and stacked buffer styles
+            for (const auto& line : smData->strands) {
+                sm->AddDefaultBuffer(line);
             }
             sm->CheckDuplicates();
         }
     } else {
-        sm->AddSubbuffer(node->GetAttribute(XmlNodeKeys::SubBufferAttribute) );
+        // Subbuffer type
+        sm->AddSubbuffer(smData->subBuffer);
     }
 }
 

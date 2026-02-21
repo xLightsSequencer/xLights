@@ -201,8 +201,40 @@ public:
     virtual void SetStateInfo(FaceStateData const& info) { stateInfo = info; };
     virtual void SetStateInfoNodes(FaceStateNodes const& nodes) { stateInfoNodes = nodes; };
 
-    void AddFace(wxXmlNode* n);
-    void AddState(wxXmlNode* n);
+    // Add face with data structure-based method
+    inline void AddFace(const std::map<std::string, std::string>& attributes) {
+        // Extract the face name from attributes
+        auto nameIt = attributes.find("Name");
+        if (nameIt == attributes.end()) {
+            return; // Invalid face data, must have a name
+        }
+        
+        std::string faceName = nameIt->second;
+        
+        // Create a new face entry in faceInfo
+        faceInfo[faceName] = attributes;
+        
+        // Update face info nodes
+        UpdateFaceInfoNodes();
+    }
+    
+    // Add state with data structure-based method
+    inline void AddState(const std::map<std::string, std::string>& attributes) {
+        // Extract the state name from attributes
+        auto nameIt = attributes.find("Name");
+        if (nameIt == attributes.end()) {
+            return; // Invalid state data, must have a name
+        }
+        
+        std::string stateName = nameIt->second;
+        
+        // Create a new state entry in stateInfo
+        stateInfo[stateName] = attributes;
+        
+        // Update state info nodes
+        UpdateStateInfoNodes();
+    }
+    
     void AddSubmodel(SubModel* sm);
     void ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup);
     [[nodiscard]] Model* CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, wxXmlNode* node, xLightsFrame* xlights, bool& cancelled) const;
