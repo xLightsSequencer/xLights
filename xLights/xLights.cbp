@@ -1258,7 +1258,6 @@
 		<Unit filename="wxsmith/LyricUserDictDialog.wxs" />
 		<Unit filename="wxsmith/LyricsDialog.wxs" />
 		<Unit filename="wxsmith/MainSequencer.wxs" />
-		<Unit filename="wxsmith/ManageMediaPanel.wxs" />
 		<Unit filename="wxsmith/MarqueePanel.wxs" />
 		<Unit filename="wxsmith/MatrixFaceDownloadDialog.wxs" />
 		<Unit filename="wxsmith/MediaImportOptionsDialog.wxs" />
