@@ -10,6 +10,7 @@
 
 #include "XmlSerializeFunctions.h"
 #include "XmlNodeKeys.h"
+#include "../UtilFunctions.h"
 
 #include <wx/xml/xml.h>
 
@@ -382,6 +383,54 @@ std::vector<SubModelImportData> LoadSubModelsFromXml(const wxXmlNode* modelNode)
     }
     
     return subModels;
+}
+
+std::string GetModelAttributesAsJSON(const wxXmlNode* modelNode) {
+    if (!modelNode) {
+        return "{}";
+    }
+    
+    std::string json = "{";
+    bool first = true;
+    
+    // Process model attributes
+    for (wxXmlAttribute* attrp = modelNode->GetAttributes(); attrp; attrp = attrp->GetNext()) {
+        wxString value = attrp->GetValue();
+        if (!value.empty()) {
+            if (!first) {
+                json += ",";
+            }
+            json += "\"" + attrp->GetName().ToStdString() + "\":\"" + JSONSafe(value.ToStdString()) + "\"";
+            first = false;
+        }
+    }
+    
+    // Process ControllerConnection child node
+    wxXmlNode* cc = nullptr;
+    for (wxXmlNode* child = modelNode->GetChildren(); child != nullptr; child = child->GetNext()) {
+        if (child->GetName() == "ControllerConnection") {
+            cc = child;
+            break;
+        }
+    }
+    
+    json += ",\"ControllerConnection\":{";
+    if (cc) {
+        bool first2 = true;
+        for (wxXmlAttribute* attrp = cc->GetAttributes(); attrp; attrp = attrp->GetNext()) {
+            wxString value = attrp->GetValue();
+            if (!value.empty()) {
+                if (!first2) {
+                    json += ",";
+                }
+                json += "\"" + attrp->GetName().ToStdString() + "\":\"" + JSONSafe(value.ToStdString()) + "\"";
+                first2 = false;
+            }
+        }
+    }
+    json += "}}";
+    
+    return json;
 }
 
 } // end namespace XmlSerialize

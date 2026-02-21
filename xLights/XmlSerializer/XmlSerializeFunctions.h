@@ -86,4 +86,7 @@ struct SubModelImportData {
 // Load submodels from a model's XML node
 [[nodiscard]] std::vector<SubModelImportData> LoadSubModelsFromXml(const wxXmlNode* modelNode);
 
+// Convert model XML attributes to JSON string
+std::string GetModelAttributesAsJSON(const wxXmlNode* modelNode);
+
 }

@@ -6375,33 +6375,23 @@ bool wxDropPatternProperty::ValidateValue(wxVariant& value, wxPGValidationInfo& 
 
 std::string Model::GetAttributesAsJSON() const
 {
-    std::string json = "{";
-    bool first{ true };
-    for (wxXmlAttribute* attrp = ModelXml->GetAttributes(); attrp; attrp = attrp->GetNext()) {
-        wxString value = attrp->GetValue();
-        if (!value.empty()) {
-            if (!first) {
-                json += ",";
-            }
-            json += "\"" + attrp->GetName().ToStdString() + "\":\"" + JSONSafe(value.ToStdString()) + "\"";
-            first = false;
-        }
+    // Serialize the model to XML using XmlSerializer
+    XmlSerializer serializer;
+    wxXmlDocument doc = serializer.SerializeModel(*this, const_cast<xLightsFrame*>(modelManager.GetXLightsFrame()));
+    
+    // Get the root node - the model node should be the first child
+    wxXmlNode* root = doc.GetRoot();
+    if (!root) {
+        return "{}";
     }
-    json += ",\"ControllerConnection\":{";
-    wxXmlNode* cc = GetControllerConnection();
-    bool first2{ true };
-    for (wxXmlAttribute* attrp = cc->GetAttributes(); attrp; attrp = attrp->GetNext()) {
-        wxString value = attrp->GetValue();
-        if (!value.empty()) {
-            if (!first2) {
-                json += ",";
-            }
-            json += "\"" + attrp->GetName().ToStdString() + "\":\"" + JSONSafe(value.ToStdString()) + "\"";
-            first2 = false;
-        }
+    
+    wxXmlNode* modelNode = root->GetChildren();
+    if (!modelNode) {
+        return "{}";
     }
-    json += "}}";
-    return json;
+    
+    // Use the helper function from XmlSerialize namespace
+    return XmlSerialize::GetModelAttributesAsJSON(modelNode);
 }
 
 // Determines a simplified class for a model to be used by LLMs for better model understanding
