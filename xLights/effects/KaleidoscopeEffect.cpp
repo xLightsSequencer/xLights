@@ -263,7 +263,7 @@ public:
         }
         else
         {
-            radius -= -.1;
+            radius -= 0.1;
         }
 
         double s = size;
@@ -351,6 +351,257 @@ void DumpUsed(const std::vector<std::vector<bool>>& current, int width, int heig
     }
 }
 
+
+double KaleidoscopeEffect::SignedDist(double px, double py, double lx1, double ly1, double lx2, double ly2) {
+    return (lx2 - lx1) * (py - ly1) - (ly2 - ly1) * (px - lx1);
+}
+
+void KaleidoscopeEffect::ReflectPointAcrossLine(double& px, double& py, double lx1, double ly1, double lx2, double ly2) {
+    double dx = lx2 - lx1;
+    double dy = ly2 - ly1;
+    double denom = dx * dx + dy * dy;
+    double a = (dx * dx - dy * dy) / denom;
+    double b = 2.0 * dx * dy / denom;
+    double rx = px - lx1;
+    double ry = py - ly1;
+    px = a * rx + b * ry + lx1;
+    py = b * rx - a * ry + ly1;
+}
+
+double KaleidoscopeEffect::ReflectCoord(double v, double halfSize) {
+    double period = 4.0 * halfSize;
+    v = std::fmod(v + halfSize, period);
+    if (v < 0.0)
+        v += period;
+    if (v <= 2.0 * halfSize) {
+        return v - halfSize;
+    } else {
+        return 3.0 * halfSize - v;
+    }
+}
+
+// Compute triangle vertices for a given type, centered at (cx,cy) with given
+// size and rotation. Vertices are ensured to be in counter-clockwise order.
+KaleidoscopeTriangle KaleidoscopeEffect::ComputeTriangle(const std::string& type, double cx, double cy, double size, double rotRad) {
+    KaleidoscopeTriangle tri;
+
+    if (type == "6-Fold") {
+        // Equilateral triangle (60-60-60) - classic 6-fold kaleidoscope
+        // Circumradius = size / sqrt(3), using size as side length
+        double R = size / std::sqrt(3.0);
+
+        // Three vertices at 120 degree intervals
+        for (int i = 0; i < 3; i++) {
+            double angle = rotRad + toRadians(90.0 + 120.0 * i);
+            tri.v[i].x = cx + R * std::cos(angle);
+            tri.v[i].y = cy + R * std::sin(angle);
+        }
+    } else if (type == "8-Fold") {
+        // Right isosceles triangle (45-45-90) - 8-fold kaleidoscope
+        // Legs of length = size, centroid at center
+        double leg = size;
+
+        // Unrotated vertices relative to centroid:
+        // Right angle at (-leg/3, -leg/3)
+        // Other two at (2*leg/3, -leg/3) and (-leg/3, 2*leg/3)
+        double v0x = -leg / 3.0, v0y = -leg / 3.0;
+        double v1x = 2.0 * leg / 3.0, v1y = -leg / 3.0;
+        double v2x = -leg / 3.0, v2y = 2.0 * leg / 3.0;
+
+        double cosR = std::cos(rotRad);
+        double sinR = std::sin(rotRad);
+
+        tri.v[0].x = cx + v0x * cosR - v0y * sinR;
+        tri.v[0].y = cy + v0x * sinR + v0y * cosR;
+        tri.v[1].x = cx + v1x * cosR - v1y * sinR;
+        tri.v[1].y = cy + v1x * sinR + v1y * cosR;
+        tri.v[2].x = cx + v2x * cosR - v2y * sinR;
+        tri.v[2].y = cy + v2x * sinR + v2y * cosR;
+    } else if (type == "12-Fold") {
+        // 30-60-90 triangle - 12-fold kaleidoscope
+        // Hypotenuse = size, short leg = size/2, long leg = size * sqrt(3)/2
+        double hyp = size;
+        double shortLeg = hyp / 2.0;
+        double longLeg = hyp * std::sqrt(3.0) / 2.0;
+
+        // Unrotated vertices relative to centroid:
+        // Right angle at origin, short leg along x, long leg along y
+        // Centroid of right triangle = (shortLeg/3, longLeg/3)
+        double centX = shortLeg / 3.0;
+        double centY = longLeg / 3.0;
+
+        double v0x = -centX;
+        double v0y = -centY; // right angle
+        double v1x = shortLeg - centX;
+        double v1y = -centY; // end of short leg
+        double v2x = -centX;
+        double v2y = longLeg - centY; // end of long leg
+
+        double cosR = std::cos(rotRad);
+        double sinR = std::sin(rotRad);
+
+        tri.v[0].x = cx + v0x * cosR - v0y * sinR;
+        tri.v[0].y = cy + v0x * sinR + v0y * cosR;
+        tri.v[1].x = cx + v1x * cosR - v1y * sinR;
+        tri.v[1].y = cy + v1x * sinR + v1y * cosR;
+        tri.v[2].x = cx + v2x * cosR - v2y * sinR;
+        tri.v[2].y = cy + v2x * sinR + v2y * cosR;
+    }
+
+    // Ensure counter-clockwise vertex order (required for SignedDist to work)
+    double signedArea = (tri.v[1].x - tri.v[0].x) * (tri.v[2].y - tri.v[0].y) -
+                        (tri.v[2].x - tri.v[0].x) * (tri.v[1].y - tri.v[0].y);
+    if (signedArea < 0.0) {
+        std::swap(tri.v[1], tri.v[2]);
+    }
+
+    return tri;
+}
+
+// Map a pixel back to the source triangle by iterative reflection.
+// Each reflection mirrors the point across the triangle edge it is outside of.
+
+std::pair<int, int> KaleidoscopeEffect::MapToSourceTriangle(double px, double py, const KaleidoscopeTriangle& tri, int maxIter) {
+    double x = px;
+    double y = py;
+
+    for (int i = 0; i < maxIter; i++) {
+        double d0 = SignedDist(x, y, tri.v[0].x, tri.v[0].y, tri.v[1].x, tri.v[1].y);
+        double d1 = SignedDist(x, y, tri.v[1].x, tri.v[1].y, tri.v[2].x, tri.v[2].y);
+        double d2 = SignedDist(x, y, tri.v[2].x, tri.v[2].y, tri.v[0].x, tri.v[0].y);
+
+        // Inside the triangle (small tolerance for rounding)
+        if (d0 >= -0.5 && d1 >= -0.5 && d2 >= -0.5) {
+            return { (int)std::round(x), (int)std::round(y) };
+        }
+
+        // Reflect across the edge we are most outside of
+        if (d0 < d1 && d0 < d2) {
+            ReflectPointAcrossLine(x, y, tri.v[0].x, tri.v[0].y, tri.v[1].x, tri.v[1].y);
+        } else if (d1 < d2) {
+            ReflectPointAcrossLine(x, y, tri.v[1].x, tri.v[1].y, tri.v[2].x, tri.v[2].y);
+        } else {
+            ReflectPointAcrossLine(x, y, tri.v[2].x, tri.v[2].y, tri.v[0].x, tri.v[0].y);
+        }
+    }
+
+    // Didn't converge - return invalid
+    return { -1, -1 };
+}
+
+// Map a pixel back to the source square using coordinate folding.
+// Works by rotating into the square's local frame, folding both axes
+// via triangle-wave reflection, then rotating back to world space.
+// This is mathematically exact - no iteration needed.
+std::pair<int, int> KaleidoscopeEffect::MapToSourceNewSquare(double px, double py, double cx, double cy, double halfSize, double rotRad) {
+    // Transform to local coordinate frame (centered, unrotated)
+    double dx = px - cx;
+    double dy = py - cy;
+    double cosR = std::cos(-rotRad);
+    double sinR = std::sin(-rotRad);
+    double lx = dx * cosR - dy * sinR;
+    double ly = dx * sinR + dy * cosR;
+
+    // Fold both coordinates into [-halfSize, +halfSize]
+    lx = ReflectCoord(lx, halfSize);
+    ly = ReflectCoord(ly, halfSize);
+
+    // Transform back to world coordinates
+    cosR = std::cos(rotRad);
+    sinR = std::sin(rotRad);
+    double wx = lx * cosR - ly * sinR + cx;
+    double wy = lx * sinR + ly * cosR + cy;
+
+    return { (int)std::round(wx), (int)std::round(wy) };
+}
+
+// ============================================================================
+// For Square 2, 6-Fold, 8-Fold, 12-Fold, Radial
+// ============================================================================
+
+void KaleidoscopeEffect::RenderNew(const std::string& type, int xCentre, int yCentre, int size, int rotation, RenderBuffer& buffer) {
+    int width = buffer.BufferWi;
+    int height = buffer.BufferHt;
+    double cx = (double)xCentre;
+    double cy = (double)yCentre;
+    double rotRad = toRadians((double)rotation);
+
+    if (type == "Radial") {
+        int segments = std::max(2, size);
+        double wedgeAngle = 2.0 * M_PI / (double)segments;
+
+        parallel_for(0, height, [&](int y) {
+            for (int x = 0; x < width; x++) {
+                double dx = (double)x - cx;
+                double dy = (double)y - cy;
+                double radius = std::sqrt(dx * dx + dy * dy);
+
+                if (radius < 0.5)
+                    continue;
+
+                double angle = std::atan2(dy, dx);
+
+                angle -= rotRad;
+
+                angle = std::fmod(angle, 2.0 * M_PI);
+                if (angle < 0.0)
+                    angle += 2.0 * M_PI;
+
+                double folded = std::fmod(angle, 2.0 * wedgeAngle);
+                if (folded > wedgeAngle)
+                    folded = 2.0 * wedgeAngle - folded;
+
+                folded += rotRad;
+
+                int sx = (int)std::round(cx + radius * std::cos(folded));
+                int sy = (int)std::round(cy + radius * std::sin(folded));
+
+                if (sx >= 0 && sx < width && sy >= 0 && sy < height) {
+                    if (sx != x || sy != y) {
+                        buffer.SetPixel(x, y, buffer.GetPixel(sx, sy));
+                    }
+                }
+            }
+        });
+        return;
+    }
+
+    if (type == "Square 2") {
+        double halfSize = size / 2.0;
+
+        parallel_for(0, height, [&](int y) {
+            for (int x = 0; x < width; x++) {
+                auto src = MapToSourceNewSquare((double)x, (double)y, cx, cy, halfSize, rotRad);
+                if (src.first >= 0 && src.first < width && src.second >= 0 && src.second < height) {
+                    if (src.first != x || src.second != y) {
+                        buffer.SetPixel(x, y, buffer.GetPixel(src.first, src.second));
+                    }
+                }
+            }
+        });
+    } else {
+        KaleidoscopeTriangle tri = ComputeTriangle(type, cx, cy, (double)size, rotRad);
+
+        // Scale max iterations to buffer/size ratio with a reasonable cap
+        int maxDim = std::max(width, height);
+        int maxIter = std::max(50, (maxDim * 3) / std::max(size, 1));
+        if (maxIter > 500)
+            maxIter = 500;
+
+        parallel_for(0, height, [&](int y) {
+            for (int x = 0; x < width; x++) {
+                auto src = MapToSourceTriangle((double)x, (double)y, tri, maxIter);
+                if (src.first >= 0 && src.first < width && src.second >= 0 && src.second < height) {
+                    if (src.first != x || src.second != y) {
+                        buffer.SetPixel(x, y, buffer.GetPixel(src.first, src.second));
+                    }
+                }
+            }
+        });
+    }
+}
+
+
 void KaleidoscopeEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -361,6 +612,13 @@ void KaleidoscopeEffect::Render(Effect *eff, const SettingsMap &SettingsMap, Ren
     int yCentre = GetValueCurveInt("Kaleidoscope_Y", 50, SettingsMap, progress, KALEIDOSCOPE_Y_MIN, KALEIDOSCOPE_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) * buffer.BufferHt / 100;
     int size = GetValueCurveInt("Kaleidoscope_Size", 5, SettingsMap, progress, KALEIDOSCOPE_SIZE_MIN, KALEIDOSCOPE_SIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int rotation = GetValueCurveInt("Kaleidoscope_Rotation", 0, SettingsMap, progress, KALEIDOSCOPE_ROTATION_MIN, KALEIDOSCOPE_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+
+
+    if (type == "Square 2" || type == "6-Fold" || type == "8-Fold" || type == "12-Fold" || type == "Radial") {
+        RenderNew(type, xCentre, yCentre, size, rotation, buffer);
+        return;
+    }
+
 
     KaleidoscopeRenderCache *cache = static_cast<KaleidoscopeRenderCache*>(buffer.infoCache[id]);
     if (cache == nullptr) {

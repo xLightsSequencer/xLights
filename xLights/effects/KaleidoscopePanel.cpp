@@ -140,7 +140,11 @@ KaleidoscopePanel::KaleidoscopePanel(wxWindow* parent,wxWindowID id,const wxPoin
 
     Choice_Kaleidoscope_Type->Append(_("Triangle"));
     Choice_Kaleidoscope_Type->Append(_("Square"));
-    //Choice_Kaleidoscope_Type->Append(_("Hexagon"));
+    Choice_Kaleidoscope_Type->Append(_("Square 2"));
+    Choice_Kaleidoscope_Type->Append(_("6-Fold"));
+    Choice_Kaleidoscope_Type->Append(_("8-Fold"));
+    Choice_Kaleidoscope_Type->Append(_("12-Fold"));
+    Choice_Kaleidoscope_Type->Append(_("Radial"));
     Choice_Kaleidoscope_Type->SetSelection(0);
 
 	Connect( wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&KaleidoscopePanel::OnVCChanged, 0, this );

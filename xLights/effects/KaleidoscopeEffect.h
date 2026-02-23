@@ -33,6 +33,21 @@ struct KaleidoscopeEdge
     KaleidoscopeEdge(const wxPoint &p1, const wxPoint& p2) { _p1 = p1; _p2 = p2; }
 };
 
+struct KaleidoscopeVertex {
+    double x;
+    double y;
+    KaleidoscopeVertex() :
+        x(0), y(0) {
+    }
+    KaleidoscopeVertex(double x_, double y_) :
+        x(x_), y(y_) {
+    }
+};
+
+struct KaleidoscopeTriangle {
+    KaleidoscopeVertex v[3];
+};
+
 class KaleidoscopeEffect : public RenderableEffect
 {
     public:
@@ -74,4 +89,11 @@ class KaleidoscopeEffect : public RenderableEffect
         virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
         bool KaleidoscopeDone(const std::vector<std::vector<bool>>& current);
         std::pair<int, int> GetSourceLocation(int x, int y, const KaleidoscopeEdge& edge, int width, int height);
+        void RenderNew(const std::string& type, int xCentre, int yCentre, int size, int rotation, RenderBuffer& buffer);
+        static KaleidoscopeTriangle ComputeTriangle(const std::string& type, double cx, double cy, double size, double rotRad);
+        static std::pair<int, int> MapToSourceTriangle(double px, double py, const KaleidoscopeTriangle& tri, int maxIter);
+        static std::pair<int, int> MapToSourceNewSquare(double px, double py, double cx, double cy, double halfSize, double rotRad);
+        static void ReflectPointAcrossLine(double& px, double& py, double lx1, double ly1, double lx2, double ly2);
+        static double SignedDist(double px, double py, double lx1, double ly1, double lx2, double ly2);
+        static double ReflectCoord(double v, double halfSize);
 };
