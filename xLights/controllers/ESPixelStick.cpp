@@ -203,6 +203,7 @@ bool ESPixelStick::SetWsConfig(std::string const& SectionName, std::string const
     _wsClient.Send(newJson.dump());
 
     std::string const RawData = GetWSResponse();
+    nlohmann::json Response;
     // LOG_DEBUG(std::string("SetWsConfig: RawData: ") + RawData);    nlohmann::json Response;
     try {
         nlohmann::json ParsedData = nlohmann::json::parse(RawData);

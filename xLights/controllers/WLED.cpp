@@ -458,10 +458,10 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
         progress.Update(100, "Aborting.");
         return false;
     }
+    int const maxPort = caps->GetMaxPixelPort();
 
     bool const fullControl = caps->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
     int const defaultBrightness = controller->GetDefaultBrightnessUnderFullControl();
-
 
     //get current config JSON
     const std::string page = GetURL(GetCfgURL());
