@@ -1415,6 +1415,15 @@ Model* XmlDeserializingModelFactory::DeserializeDmxMovingHeadAdv(pugi::xml_node 
         } else if ("HeadMesh" == name) {
             Mesh* msh = model->CreateHeadMesh(name);
             DeserializeMesh(msh, n);
+        } else if ("PositionZone" == name) {
+            PositionZone zone;
+            zone.pan_min = n.attribute("PanMin").as_int(0);
+            zone.pan_max = n.attribute("PanMax").as_int(255);
+            zone.tilt_min = n.attribute("TiltMin").as_int(0);
+            zone.tilt_max = n.attribute("TiltMax").as_int(255);
+            zone.channel = n.attribute("Channel").as_int(0);
+            zone.value = (uint8_t)n.attribute("Value").as_int(0);
+            model->AddPositionZone(zone);
         }
         n = n.next_sibling();
     }

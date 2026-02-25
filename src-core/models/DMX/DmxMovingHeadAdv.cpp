@@ -233,6 +233,38 @@ void DmxMovingHeadAdv::InitModel()
     }
 }
 
+void DmxMovingHeadAdv::ApplyPositionZones(uint8_t* frameData, uint32_t startChannel) const {
+    if (position_zones.empty())
+        return;
+
+    int panCoarse = pan_motor->GetChannelCoarse();
+    int panFine = pan_motor->GetChannelFine();
+    int tiltCoarse = tilt_motor->GetChannelCoarse();
+    int tiltFine = tilt_motor->GetChannelFine();
+
+    if (panCoarse == 0 || tiltCoarse == 0)
+        return;
+
+    int panVal = frameData[startChannel + panCoarse - 1];
+    if (panFine > 0) {
+        panVal = (panVal << 8) | frameData[startChannel + panFine - 1];
+    }
+
+    int tiltVal = frameData[startChannel + tiltCoarse - 1];
+    if (tiltFine > 0) {
+        tiltVal = (tiltVal << 8) | frameData[startChannel + tiltFine - 1];
+    }
+
+    for (const auto& zone : position_zones) {
+        if (panVal >= zone.pan_min && panVal <= zone.pan_max &&
+            tiltVal >= zone.tilt_min && tiltVal <= zone.tilt_max) {
+            if (zone.channel > 0) {
+                frameData[startChannel + zone.channel - 1] = zone.value;
+            }
+        }
+    }
+}
+
 void DmxMovingHeadAdv::CorrectDefaultColorChannels()
 {
     if (nullptr != color_ability) {
