@@ -350,8 +350,6 @@
 		<Unit filename="OptionChooser.h" />
 		<Unit filename="OutputModelManager.cpp" />
 		<Unit filename="OutputModelManager.h" />
-		<Unit filename="PaletteMgmtDialog.cpp" />
-		<Unit filename="PaletteMgmtDialog.h" />
 		<Unit filename="Parallel.cpp" />
 		<Unit filename="Parallel.h" />
 		<Unit filename="PathGenerationDialog.cpp" />
@@ -1285,7 +1283,6 @@
 		<Unit filename="wxsmith/OptionChooser.wxs" />
 		<Unit filename="wxsmith/OtherSettingsPanel.wxs" />
 		<Unit filename="wxsmith/OutputSettingsPanel.wxs" />
-		<Unit filename="wxsmith/PaletteMgmtDialog.wxs" />
 		<Unit filename="wxsmith/PathGenerationDialog.wxs" />
 		<Unit filename="wxsmith/PerspectivesPanel.wxs" />
 		<Unit filename="wxsmith/PianoPanel.wxs" />
@@ -1446,7 +1443,6 @@
 					<wxDialog wxs="wxsmith/NoteImportDialog.wxs" src="NoteImportDialog.cpp" hdr="NoteImportDialog.h" fwddecl="0" i18n="1" name="NoteImportDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/NoteRangeDialog.wxs" src="NoteRangeDialog.cpp" hdr="NoteRangeDialog.h" fwddecl="0" i18n="1" name="NoteRangeDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/OptionChooser.wxs" src="OptionChooser.cpp" hdr="OptionChooser.h" fwddecl="0" i18n="1" name="OptionChooser" language="CPP" />
-					<wxDialog wxs="wxsmith/PaletteMgmtDialog.wxs" src="PaletteMgmtDialog.cpp" hdr="PaletteMgmtDialog.h" fwddecl="0" i18n="1" name="PaletteMgmtDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PathGenerationDialog.wxs" src="PathGenerationDialog.cpp" hdr="PathGenerationDialog.h" fwddecl="0" i18n="1" name="PathGenerationDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PixelTestDialog.wxs" src="PixelTestDialog.cpp" hdr="PixelTestDialog.h" fwddecl="0" i18n="1" name="PixelTestDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PreviewModels.wxs" src="PreviewModels.cpp" hdr="PreviewModels.h" fwddecl="0" i18n="1" name="PreviewModels" language="CPP" />

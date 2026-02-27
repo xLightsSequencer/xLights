@@ -883,7 +883,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="outputs\xxxEthernetOutput.cpp" />
     <ClCompile Include="outputs\xxxSerialOutput.cpp" />
     <ClCompile Include="outputs\ZCPPOutput.cpp" />
-    <ClCompile Include="PaletteMgmtDialog.cpp" />
     <ClCompile Include="Parallel.cpp" />
     <ClCompile Include="PathGenerationDialog.cpp" />
     <ClCompile Include="PerspectivesPanel.cpp" />
@@ -1431,7 +1430,6 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="outputs\xxxSerialOutput.h" />
     <ClInclude Include="outputs\ZCPP.h" />
     <ClInclude Include="outputs\ZCPPOutput.h" />
-    <ClInclude Include="PaletteMgmtDialog.h" />
     <ClInclude Include="Parallel.h" />
     <ClInclude Include="PathGenerationDialog.h" />
     <ClInclude Include="PerspectivesPanel.h" />

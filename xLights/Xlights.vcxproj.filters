@@ -68,7 +68,6 @@
     <ClCompile Include="NoteImportDialog.cpp" />
     <ClCompile Include="OptionChooser.cpp" />
     <ClCompile Include="outputs\TestPreset.cpp" />
-    <ClCompile Include="PaletteMgmtDialog.cpp" />
     <ClCompile Include="PerspectivesPanel.cpp" />
     <ClCompile Include="PhonemeDictionary.cpp" />
     <ClCompile Include="PixelBuffer.cpp" />
@@ -1191,7 +1190,6 @@
     <ClInclude Include="OptionChooser.h" />
     <ClInclude Include="ExternalHooks.h" />
     <ClInclude Include="outputs\TestPreset.h" />
-    <ClInclude Include="PaletteMgmtDialog.h" />
     <ClInclude Include="PerspectivesPanel.h" />
     <ClInclude Include="PhonemeDictionary.h" />
     <ClInclude Include="PixelBuffer.h" />
