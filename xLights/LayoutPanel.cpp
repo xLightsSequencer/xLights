@@ -2767,26 +2767,13 @@ void LayoutPanel::SelectModelGroupModels(ModelGroup* m, std::list<ModelGroup*>& 
 }
 
 void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
-
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    // TODO need to strip out extra logging once I know for sure what is going on
-    if (modelPreview == nullptr) logger_base.crit("LayoutPanel::SelectModel modelPreview is nullptr ... this is going to crash.");
-
     SelectModelInTree(m);
     //SelectBaseObject3D();
 }
 
 void LayoutPanel::SelectViewObject(ViewObject *v, bool highlight_tree) {
-
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    // TODO need to strip out extra logging once I know for sure what is going on
-    if (modelPreview == nullptr) logger_base.crit("LayoutPanel::SelectViewObject modelPreview is nullptr ... this is going to crash.");
-
     bool changed = false;
-    if (v != selectedBaseObject)
-    {
+    if (v != selectedBaseObject) {
         changed = true;
     }
 
@@ -5735,8 +5722,8 @@ void LayoutPanel::PreviewModelVDistribute()
 void LayoutPanel::PreviewModelDDistribute()
 {
     int count = 0;
-    float minz = 999999; // TODO: use max/min float here
-    float maxz = -999999;
+    float minz = std::numeric_limits<float>::max();
+    float maxz = std::numeric_limits<float>::lowest();
 
     std::list<Model*> models;
 
@@ -7206,16 +7193,12 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 }
 
 void LayoutPanel::DoUndo(wxCommandEvent& event) {
-
-    return;  // TODO:  Undo needs to be reworked for XML removal
-
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("LayoutPanel::DoUndo");
     int sz = undoBuffer.size() - 1;
     if (sz >= 0) {
         UnSelectAllModels();
         xlights->AbortRender();
-
 
         if (undoBuffer[sz].type == "Background") {
             logger_base.debug("LayoutPanel::DoUndo Background");
@@ -7260,15 +7243,15 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             if (m != nullptr) {
                 wxStringInputStream min(undoBuffer[sz].data);
                 wxXmlDocument mdoc(min);
-
-                wxXmlNode *parent = m->GetModelXml()->GetParent();
-                wxXmlNode *next = m->GetModelXml()->GetNext();
-                parent->RemoveChild(m->GetModelXml());
-
-                delete m->GetModelXml();
-                m->Setup();
-                mdoc.DetachRoot();
-                parent->InsertChild(m->GetModelXml(), next);
+                wxXmlNode* modelNode = mdoc.GetRoot() ? mdoc.GetRoot()->GetChildren() : nullptr;
+                if (modelNode != nullptr) {
+                    Model* newModel = xlights->AllModels.CreateModel(modelNode,
+                        modelPreview->GetVirtualCanvasWidth(),
+                        modelPreview->GetVirtualCanvasHeight());
+                    if (newModel != nullptr) {
+                        xlights->AllModels.ReplaceModel(undoBuffer[sz].model, newModel);
+                    }
+                }
                 SelectModel(undoBuffer[sz].model);
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoUndo");
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
@@ -7279,15 +7262,14 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             if (m != nullptr) {
                 wxStringInputStream min(undoBuffer[sz].data);
                 wxXmlDocument mdoc(min);
-
-                wxXmlNode *parent = m->GetModelXml()->GetParent();
-                wxXmlNode *next = m->GetModelXml()->GetNext();
-                parent->RemoveChild(m->GetModelXml());
-
-                delete m->GetModelXml();
-                m->Setup();
-                mdoc.DetachRoot();
-                parent->InsertChild(m->GetModelXml(), next);
+                wxXmlNode* objectNode = mdoc.GetRoot() ? mdoc.GetRoot()->GetChildren() : nullptr;
+                if (objectNode != nullptr) {
+                    xlights->AllObjects.Delete(undoBuffer[sz].model);
+                    ViewObject* newObj = xlights->AllObjects.CreateObject(objectNode);
+                    if (newObj != nullptr) {
+                        xlights->AllObjects.AddViewObject(newObj);
+                    }
+                }
                 SelectModel(undoBuffer[sz].model);
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoUndo");
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
