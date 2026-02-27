@@ -63,12 +63,12 @@ wxXmlDocument xLightsFrame::GetEffectsXml()
         return result;
     }
 
-    // Remove stale models/groups/objects/layoutGroups/perspectives nodes
+    // Remove stale models/groups/objects/layoutGroups/perspectives/settings nodes
     wxXmlNode* child = result.GetRoot()->GetChildren();
     while (child) {
         if (child->GetName() == "models" || child->GetName() == "modelGroups" ||
             child->GetName() == "view_objects" || child->GetName() == "layoutGroups" ||
-            child->GetName() == "perspectives") {
+            child->GetName() == "perspectives" || child->GetName() == "settings") {
             auto* a = child;
             child = child->GetNext();
             result.GetRoot()->RemoveChild(a);
@@ -78,14 +78,26 @@ wxXmlDocument xLightsFrame::GetEffectsXml()
         }
     }
 
-    // Re-serialize current state from AllModels/AllObjects/LayoutGroups/_perspectives
+    // Re-serialize current state from AllModels/AllObjects/LayoutGroups/_perspectives/_xmlSettings
     XmlSerializer serializer;
     serializer.SerializeAllModels(AllModels, this, result.GetRoot());
     serializer.SerializeAllObjects(AllObjects, this, result.GetRoot());
     serializer.SerializeAllLayoutGroups(LayoutGroups, result.GetRoot());
     SerializePerspectives(result.GetRoot());
+    SerializeSettings(result.GetRoot());
 
     return result;
+}
+
+void xLightsFrame::SerializeSettings(wxXmlNode* root)
+{
+    wxXmlNode* settingsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "settings");
+    for (const auto& kv : _xmlSettings) {
+        wxXmlNode* s = new wxXmlNode(wxXML_ELEMENT_NODE, kv.first);
+        s->AddAttribute("value", kv.second);
+        settingsNode->AddChild(s);
+    }
+    root->AddChild(settingsNode);
 }
 
 void xLightsFrame::SerializePerspectives(wxXmlNode* root)
@@ -121,7 +133,7 @@ void xLightsFrame::ResetEffectsXml()
 {
     _sequenceViewManager.Reset();
     EffectsNode = nullptr;
-    SettingsNode = nullptr;
+    _xmlSettings.clear();
 }
 
 wxString xLightsFrame::LoadEffectsFileNoCheck()
@@ -204,7 +216,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     wxXmlNode* modelsNode = nullptr;
     wxXmlNode* viewObjectsNode = nullptr;
     wxXmlNode* modelGroupsNode = nullptr;
-    EffectsNode = SettingsNode = nullptr;
+    EffectsNode = nullptr;
     wxXmlNode* palettesNode = nullptr;
     wxXmlNode* viewsNode = nullptr;
     wxXmlNode* colorsNode = nullptr;
@@ -221,7 +233,11 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         if (e->GetName() == "Viewpoints") viewpointsNode = e;
         if (e->GetName() == "modelGroups") modelGroupsNode = e;
         if (e->GetName() == "layoutGroups") layoutGroupsNode = e;
-        if (e->GetName() == "settings") SettingsNode = e;
+        if (e->GetName() == "settings") {
+            for (wxXmlNode* s = e->GetChildren(); s != nullptr; s = s->GetNext()) {
+                _xmlSettings[s->GetName().ToStdString()] = s->GetAttribute("value").ToStdString();
+            }
+        }
         if (e->GetName() == "perspectives") perspectivesNode = e;
     }
 
@@ -325,9 +341,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         }
     }
 
-    if (SettingsNode == nullptr) {
-        SettingsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "settings");
-        root->AddChild(SettingsNode);
+    if (_xmlSettings.empty()) {
         SetXmlSetting("previewWidth", "1280");
         SetXmlSetting("previewHeight", "720");
         SetXmlSetting("LayoutMode3D", "0");
@@ -786,7 +800,7 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     while (child) {
         if (child->GetName() == "models" || child->GetName() == "modelGroups" ||
             child->GetName() == "view_objects" || child->GetName() == "layoutGroups" ||
-            child->GetName() == "perspectives") {
+            child->GetName() == "perspectives" || child->GetName() == "settings") {
             auto *a = child;
             child = child->GetNext();
             EffectsXml.GetRoot()->RemoveChild(a);
@@ -801,6 +815,7 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     serializer.SerializeAllObjects(AllObjects, this, EffectsXml.GetRoot());
     serializer.SerializeAllLayoutGroups(LayoutGroups, EffectsXml.GetRoot());
     SerializePerspectives(EffectsXml.GetRoot());
+    SerializeSettings(EffectsXml.GetRoot());
 
     // Make sure the views are up to date before we save it
     _sequenceViewManager.Save(&EffectsXml);

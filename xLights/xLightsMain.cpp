@@ -3202,39 +3202,19 @@ void xLightsFrame::SetPreviewSize(int width, int height)
 
 void xLightsFrame::SetXmlSetting(const wxString& settingName, const wxString& value)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // Delete existing setting node
-    if (SettingsNode != nullptr) {
-        for (wxXmlNode* e = SettingsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
-            if (e->GetName() == settingName) {
-                SettingsNode->RemoveChild(e);
-                delete e;
-                break;
-            }
-        }
-
-        // Add new one
-        wxXmlNode* setting = new wxXmlNode(wxXML_ELEMENT_NODE, settingName);
-        setting->AddAttribute("value", value);
-        SettingsNode->AddChild(setting);
-    } else {
-        logger_base.warn("xLightsFrame::SetXmlSetting SettingsNode unexpectantly null.");
+    auto& entry = _xmlSettings[settingName.ToStdString()];
+    if (entry != value.ToStdString()) {
+        entry = value.ToStdString();
+        UnsavedRgbEffectsChanges = true;
     }
 }
 
 wxString xLightsFrame::GetXmlSetting(const wxString& settingName, const wxString& defaultValue) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (SettingsNode != nullptr) {
-        for (wxXmlNode* e = SettingsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
-            if (e->GetName() == settingName) {
-                return e->GetAttribute("value", defaultValue);
-            }
-        }
-    } else {
-        logger_base.warn("xLightsFrame::GetXmlSetting SettingsNode unexpectantly null.");
+    auto it = _xmlSettings.find(settingName.ToStdString());
+    if (it != _xmlSettings.end()) {
+        return it->second;
     }
-
     return defaultValue;
 }
 

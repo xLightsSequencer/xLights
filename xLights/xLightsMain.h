@@ -352,6 +352,7 @@ public:
     bool ApplySetting(wxString name, const wxString &value, int count = 0);
     void LoadPerspectivesMenu();
     void SerializePerspectives(wxXmlNode* root);
+    void SerializeSettings(wxXmlNode* root);
     struct Perspective {
         std::string name;
         std::string settings;
@@ -1657,7 +1658,7 @@ public:
     bool HandleAllKeyBinding(wxKeyEvent& event);
 
 private:
-    wxXmlNode* SettingsNode = nullptr;
+    std::map<std::string, std::string> _xmlSettings;
 
     bool MixTypeChanged = false;
     bool FadesChanged = false;
