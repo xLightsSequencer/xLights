@@ -41,6 +41,7 @@ public:
     std::map<std::string, ViewObject*>::const_iterator end() const;
     unsigned int size() const;
 
+    void clear();
 protected:
     ViewObject *createAndAddObject(wxXmlNode *node);
 
@@ -48,6 +49,5 @@ private:
     std::map<std::string, ViewObject *> view_objects;
     xLightsFrame* xlights;
 
-    void clear();
 };
 

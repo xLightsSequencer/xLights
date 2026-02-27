@@ -1532,7 +1532,6 @@ private:
 
     // sequence
     void LoadEffectsFile();
-    wxString LoadEffectsFileNoCheck();
     void CreateDefaultEffectsXml();
     bool TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, const wxString& PageName);
@@ -1753,7 +1752,9 @@ public:
     int GetDefaultPreviewBackgroundBrightness();
     int GetDefaultPreviewBackgroundAlpha();
     void SetPreviewBackgroundBrightness(int brightness, int alpha);
-    void LoadModels(bool doUpdate);
+    void LoadModels(wxXmlNode* modelsNode,
+                    wxXmlNode* modelGroupsNode,
+                    wxXmlNode* viewObjectsNode);
     void UpdateModelsList();
     void RowHeadingsChanged( wxCommandEvent& event);
     void DoForceSequencerRefresh();
