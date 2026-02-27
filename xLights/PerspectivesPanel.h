@@ -16,21 +16,23 @@
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-//*)
+//)
 
-#include <wx/xml/xml.h>
+#include <vector>
 
 wxDECLARE_EVENT(EVT_FORCE_SEQUENCER_REFRESH, wxCommandEvent);
 wxDECLARE_EVENT(EVT_LOAD_PERSPECTIVE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SAVE_PERSPECTIVES, wxCommandEvent);
 
+class xLightsFrame;
+
 class PerspectivesPanel: public wxPanel
 {
 	public:
 
 		PerspectivesPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
-		void SetPerspectives(wxXmlNode* perspectivesNode);
+		void SetPerspectives(xLightsFrame* frame);
 		virtual ~PerspectivesPanel();
 
 		//(*Declarations(PerspectivesPanel)
@@ -40,7 +42,7 @@ class PerspectivesPanel: public wxPanel
 		wxButton* ButtonSavePerspective;
 		wxListBox* ListBoxPerspectives;
 		wxStaticText* StaticText1;
-		//*)
+		//)
 
 	protected:
 
@@ -51,7 +53,7 @@ class PerspectivesPanel: public wxPanel
 		static const long ID_BUTTON_SAVE_PERSPECTIVE;
 		static const long ID_LISTBOX_PERSPECTIVES;
 		static const long ID_STATICTEXT1;
-		//*)
+		//)
 
 	private:
 
@@ -62,12 +64,11 @@ class PerspectivesPanel: public wxPanel
 		void OnButtonRenamePerspectiveClick(wxCommandEvent& event);
 		void OnButtonDeletePerspectiveClick(wxCommandEvent& event);
 		void OnButtonSavePerspectiveClick(wxCommandEvent& event);
-		//*)
+		//)
 
 		bool CheckForDuplicates(const wxString& perspective_name);
 
 		DECLARE_EVENT_TABLE()
 
-		wxXmlNode* mPerspectivesNode;
+		xLightsFrame* _frame = nullptr;
 };
-

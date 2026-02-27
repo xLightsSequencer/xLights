@@ -63,11 +63,12 @@ wxXmlDocument xLightsFrame::GetEffectsXml()
         return result;
     }
 
-    // Remove stale models/groups/objects/layoutGroups nodes
+    // Remove stale models/groups/objects/layoutGroups/perspectives nodes
     wxXmlNode* child = result.GetRoot()->GetChildren();
     while (child) {
         if (child->GetName() == "models" || child->GetName() == "modelGroups" ||
-            child->GetName() == "view_objects" || child->GetName() == "layoutGroups") {
+            child->GetName() == "view_objects" || child->GetName() == "layoutGroups" ||
+            child->GetName() == "perspectives") {
             auto* a = child;
             child = child->GetNext();
             result.GetRoot()->RemoveChild(a);
@@ -77,13 +78,28 @@ wxXmlDocument xLightsFrame::GetEffectsXml()
         }
     }
 
-    // Re-serialize current state from AllModels/AllObjects/LayoutGroups
+    // Re-serialize current state from AllModels/AllObjects/LayoutGroups/_perspectives
     XmlSerializer serializer;
     serializer.SerializeAllModels(AllModels, this, result.GetRoot());
     serializer.SerializeAllObjects(AllObjects, this, result.GetRoot());
     serializer.SerializeAllLayoutGroups(LayoutGroups, result.GetRoot());
+    SerializePerspectives(result.GetRoot());
 
     return result;
+}
+
+void xLightsFrame::SerializePerspectives(wxXmlNode* root)
+{
+    wxXmlNode* perspNode = new wxXmlNode(wxXML_ELEMENT_NODE, "perspectives");
+    perspNode->AddAttribute("current", _currentPerspectiveName);
+    for (const auto& p : _perspectives) {
+        wxXmlNode* pNode = new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
+        pNode->AddAttribute("name", p.name);
+        pNode->AddAttribute("settings", p.settings);
+        pNode->AddAttribute("version", p.version.empty() ? "2.0" : p.version);
+        perspNode->AddChild(pNode);
+    }
+    root->AddChild(perspNode);
 }
 
 void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
@@ -106,7 +122,6 @@ void xLightsFrame::ResetEffectsXml()
     _sequenceViewManager.Reset();
     EffectsNode = nullptr;
     SettingsNode = nullptr;
-    PerspectivesNode = nullptr;
 }
 
 wxString xLightsFrame::LoadEffectsFileNoCheck()
@@ -189,12 +204,13 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     wxXmlNode* modelsNode = nullptr;
     wxXmlNode* viewObjectsNode = nullptr;
     wxXmlNode* modelGroupsNode = nullptr;
-    EffectsNode = SettingsNode = PerspectivesNode = nullptr;
+    EffectsNode = SettingsNode = nullptr;
     wxXmlNode* palettesNode = nullptr;
     wxXmlNode* viewsNode = nullptr;
     wxXmlNode* colorsNode = nullptr;
     wxXmlNode* viewpointsNode = nullptr;
     wxXmlNode* layoutGroupsNode = nullptr;
+    wxXmlNode* perspectivesNode = nullptr;
     for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "models") modelsNode = e;
         if (e->GetName() == "view_objects") viewObjectsNode = e;
@@ -206,7 +222,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         if (e->GetName() == "modelGroups") modelGroupsNode = e;
         if (e->GetName() == "layoutGroups") layoutGroupsNode = e;
         if (e->GetName() == "settings") SettingsNode = e;
-        if (e->GetName() == "perspectives") PerspectivesNode = e;
+        if (e->GetName() == "perspectives") perspectivesNode = e;
     }
 
     // This is the earliest we can do the backup as now the settings node will be populated
@@ -293,10 +309,20 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 
     // layoutGroupsNode is used locally to load LayoutGroups objects, then discarded
 
-    if (PerspectivesNode == nullptr) {
-        PerspectivesNode = new wxXmlNode(wxXML_ELEMENT_NODE, "perspectives");
-        root->AddChild(PerspectivesNode);
-        UnsavedRgbEffectsChanges = true;
+    // perspectivesNode is used locally to load _perspectives, then discarded
+    _perspectives.clear();
+    _currentPerspectiveName = "";
+    if (perspectivesNode != nullptr) {
+        _currentPerspectiveName = perspectivesNode->GetAttribute("current").ToStdString();
+        for (wxXmlNode* p = perspectivesNode->GetChildren(); p != nullptr; p = p->GetNext()) {
+            if (p->GetName() == "perspective") {
+                Perspective pv;
+                pv.name = p->GetAttribute("name").ToStdString();
+                pv.settings = p->GetAttribute("settings").ToStdString();
+                pv.version = p->GetAttribute("version", "2.0").ToStdString();
+                _perspectives.push_back(pv);
+            }
+        }
     }
 
     if (SettingsNode == nullptr) {
@@ -605,8 +631,8 @@ void xLightsFrame::LoadEffectsFile()
 
     // load the perspectives
     CheckForAndCreateDefaultPerpective();
-    perspectivePanel->SetPerspectives(PerspectivesNode);
-    LoadPerspectivesMenu(PerspectivesNode);
+    perspectivePanel->SetPerspectives(this);
+    LoadPerspectivesMenu();
 
     float elapsedTime = sw.Time() / 1000.0; //msec => sec
     SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), filename, elapsedTime));
@@ -620,10 +646,9 @@ void xLightsFrame::LoadEffectsFile()
     }
 }
 
-void xLightsFrame::LoadPerspectivesMenu(wxXmlNode* perspectivesNode)
+void xLightsFrame::LoadPerspectivesMenu()
 {
     // Clear old menu items
-
     int menuCount = MenuItemPerspectives->GetMenuItemCount();
     int first = menuCount - 1;
     wxMenuItem* current_menuitem = MenuItemPerspectives->FindItemByPosition(first);
@@ -640,24 +665,20 @@ void xLightsFrame::LoadPerspectivesMenu(wxXmlNode* perspectivesNode)
     }
 
     int pCount = 0;
-
-    for (wxXmlNode* p = perspectivesNode->GetChildren(); p != nullptr; p = p->GetNext()) {
-        if (p->GetName() == "perspective") {
-            wxString name = p->GetAttribute("name");
-            if (!name.IsEmpty()) {
-                int id = wxNewId();
-                MenuItemPerspectives->AppendRadioItem(id, name);
-                if (mCurrentPerpective != nullptr && (name == mCurrentPerpective->GetAttribute("name")))
-                    MenuItemPerspectives->Check(id, true);
-                PerspectiveId pmenu;
-                pmenu.id = id;
-                pmenu.p = p;
-                perspectives[pCount] = pmenu;
-                Connect(id, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadPerspectiveSelected);
-                pCount++;
-                if (pCount >= 10) {
-                    return;
-                }
+    for (auto& p : _perspectives) {
+        if (!p.name.empty()) {
+            int id = wxNewId();
+            MenuItemPerspectives->AppendRadioItem(id, p.name);
+            if (mCurrentPerpective != nullptr && p.name == mCurrentPerpective->name)
+                MenuItemPerspectives->Check(id, true);
+            PerspectiveId pmenu;
+            pmenu.id = id;
+            pmenu.p = &p;
+            perspectives[pCount] = pmenu;
+            Connect(id, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadPerspectiveSelected);
+            pCount++;
+            if (pCount >= 10) {
+                return;
             }
         }
     }
@@ -764,7 +785,8 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     wxXmlNode *child = EffectsXml.GetRoot()->GetChildren();
     while (child) {
         if (child->GetName() == "models" || child->GetName() == "modelGroups" ||
-            child->GetName() == "view_objects" || child->GetName() == "layoutGroups") {
+            child->GetName() == "view_objects" || child->GetName() == "layoutGroups" ||
+            child->GetName() == "perspectives") {
             auto *a = child;
             child = child->GetNext();
             EffectsXml.GetRoot()->RemoveChild(a);
@@ -778,6 +800,7 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     serializer.SerializeAllModels(AllModels, this, EffectsXml.GetRoot());
     serializer.SerializeAllObjects(AllObjects, this, EffectsXml.GetRoot());
     serializer.SerializeAllLayoutGroups(LayoutGroups, EffectsXml.GetRoot());
+    SerializePerspectives(EffectsXml.GetRoot());
 
     // Make sure the views are up to date before we save it
     _sequenceViewManager.Save(&EffectsXml);

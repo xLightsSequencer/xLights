@@ -10775,9 +10775,9 @@ void xLightsFrame::OnMenuItemFindShowFolderSelected(wxCommandEvent& event)
 
 std::list<std::string> xLightsFrame::GetPerspectives() {
     std::list<std::string> perspectives;
-    for (wxXmlNode* e = PerspectivesNode->GetChildren(); e != NULL; e = e->GetNext()) {
-        if (e->GetName() == "perspective")
-            perspectives.push_back(e->GetAttribute("name"));
+    for (const auto& p : _perspectives) {
+        if (!p.name.empty())
+            perspectives.push_back(p.name);
     }
     return perspectives;
 }

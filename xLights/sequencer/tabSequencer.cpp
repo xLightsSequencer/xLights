@@ -329,34 +329,25 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    wxXmlNode* prospectives = PerspectivesNode->GetChildren();
     mCurrentPerpective = nullptr;
-    if (prospectives == nullptr) {
-        if (PerspectivesNode->HasAttribute("current")) {
-            PerspectivesNode->DeleteAttribute("current");
-        }
-        PerspectivesNode->AddAttribute("current", "Default Perspective");
-        wxXmlNode* p = new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
-        p->AddAttribute("name", "Default Perspective");
+    if (_perspectives.empty()) {
+        _currentPerspectiveName = "Default Perspective";
+        Perspective pv;
+        pv.name = "Default Perspective";
         wxString perspective = m_mgr->SavePerspective();
-        p->AddAttribute("settings", perspective);
+        pv.settings = perspective.ToStdString();
+        pv.version = "2.0";
         logger_base.debug("Saved perspective.");
         LogPerspective(perspective);
-
-        p->AddAttribute("version", "2.0");
-        PerspectivesNode->AddChild(p);
-        mCurrentPerpective = p;
+        _perspectives.push_back(pv);
+        mCurrentPerpective = &_perspectives.back();
         UnsavedRgbEffectsChanges = true;
         UpdateLayoutSave();
         UpdateControllerSave();
     } else {
-        wxString currentName = PerspectivesNode->GetAttribute("current");
-        for (wxXmlNode* p = PerspectivesNode->GetChildren(); p != nullptr; p = p->GetNext()) {
-            if (p->GetName() == "perspective") {
-                wxString name = p->GetAttribute("name");
-                if (!name.IsEmpty() && currentName == name) {
-                    mCurrentPerpective = p;
-                }
+        for (auto& p : _perspectives) {
+            if (!p.name.empty() && p.name == _currentPerspectiveName) {
+                mCurrentPerpective = &p;
             }
         }
     }
@@ -3064,31 +3055,25 @@ void xLightsFrame::DoForceSequencerRefresh()
     ResizeMainSequencer();
 }
 
-void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
+void xLightsFrame::DoLoadPerspective(Perspective* perspective)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (perspective == nullptr) {
-        logger_base.warn("xLightsFrame::LoadPerspective Null perspective node.");
-        return;
-    }
-    if (PerspectivesNode == nullptr) {
-        logger_base.warn("xLightsFrame::LoadPerspective Null PerspectivesNode.");
+        logger_base.warn("xLightsFrame::LoadPerspective Null perspective.");
         return;
     }
 
-    wxString name = perspective->GetAttribute("name");
-    wxString settings = perspective->GetAttribute("settings");
-    if (name != PerspectivesNode->GetAttribute("current")) {
-        PerspectivesNode->DeleteAttribute("current");
-        PerspectivesNode->AddAttribute("current", name);
+    wxString name = perspective->name;
+    wxString settings = perspective->settings;
+    if (name.ToStdString() != _currentPerspectiveName) {
+        _currentPerspectiveName = name.ToStdString();
         UnsavedRgbEffectsChanges = true;
         mCurrentPerpective = perspective;
     }
     if (settings.size() == 0) {
         settings = m_mgr->SavePerspective();
-        mCurrentPerpective->DeleteAttribute("settings");
-        mCurrentPerpective->AddAttribute("settings", settings);
-        mCurrentPerpective->AddAttribute("version", "2.0");
+        perspective->settings = settings.ToStdString();
+        perspective->version = "2.0";
         logger_base.debug("Saved perspective.");
         LogPerspective(settings);
     }
@@ -3107,7 +3092,7 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
 
     ShowHideAllSequencerWindows(true);
 
-    if (perspective->GetAttribute("version", "1.0") == "1.0") {
+    if (perspective->version == "1.0" || perspective->version.empty()) {
         //title on Layer Timing panel changed
         m_mgr->GetPane("LayerTiming").Caption("Layer Blending");
 
@@ -3118,11 +3103,9 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
         _housePreviewPanel->Refresh(false);
         m_mgr->Update();
 
-        perspective->DeleteAttribute("settings");
-        perspective->DeleteAttribute("version");
-        perspective->AddAttribute("version", "2.0");
+        perspective->version = "2.0";
         wxString p = m_mgr->SavePerspective();
-        perspective->AddAttribute("settings", p);
+        perspective->settings = p.ToStdString();
         logger_base.debug("Saved perspective.");
         LogPerspective(p);
     } else {
@@ -3152,7 +3135,7 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
 
 void xLightsFrame::LoadPerspective(wxCommandEvent& event)
 {
-    wxXmlNode* perspective = (wxXmlNode*)(event.GetClientData());
+    Perspective* perspective = (Perspective*)(event.GetClientData());
     mCurrentPerpective = perspective;
     DoLoadPerspective(mCurrentPerpective);
 }
@@ -3163,17 +3146,12 @@ void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
 
     if (mCurrentPerpective != nullptr)
     {
-        wxMessageDialog confirm(this, _("Are you sure you want to save the current view as perpective \"") + mCurrentPerpective->GetAttribute("name") + "\"?", _("Confirm"), wxYES | wxNO);
+        wxMessageDialog confirm(this, _("Are you sure you want to save the current view as perpective \"") + mCurrentPerpective->name + "\"?", _("Confirm"), wxYES | wxNO);
         if (confirm.ShowModal() == wxID_YES)
         {
-            if (mCurrentPerpective->HasAttribute("settings"))
-            {
-                mCurrentPerpective->DeleteAttribute("settings");
-            }
             wxString p = m_mgr->SavePerspective();
-            mCurrentPerpective->AddAttribute("settings", p);
-            mCurrentPerpective->DeleteAttribute("version");
-            mCurrentPerpective->AddAttribute("version", "2.0");
+            mCurrentPerpective->settings = p.ToStdString();
+            mCurrentPerpective->version = "2.0";
             logger_base.debug("Saved perspective.");
             LogPerspective(p);
             SaveEffectsFile();
@@ -3185,27 +3163,24 @@ void xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event
 {
     wxString name = wxGetTextFromUser("Enter name of perspective", "Perspective Name");
     if (name.size() > 0) {
-        for (wxXmlNode* p = PerspectivesNode->GetChildren(); p != nullptr; p = p->GetNext())
+        for (const auto& p : _perspectives)
         {
-            if (p->GetName() == "perspective")
+            if (p.name == name.ToStdString())
             {
-                wxString check_name = p->GetAttribute("name");
-                if (check_name == name)
-                {
-                    int answer = wxMessageBox("Enter new name?", "Duplicate Name", wxYES_NO);
-                    if (answer == wxYES) {
-                        OnMenuItemViewSaveAsPerspectiveSelected(event);
-                    }
-                    return;
+                int answer = wxMessageBox("Enter new name?", "Duplicate Name", wxYES_NO);
+                if (answer == wxYES) {
+                    OnMenuItemViewSaveAsPerspectiveSelected(event);
                 }
+                return;
             }
         }
 
-        wxXmlNode* p = new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
-        p->AddAttribute("name", name);
-        p->AddAttribute("settings", "");
-        PerspectivesNode->AddChild(p);
-        mCurrentPerpective = p;
+        Perspective pv;
+        pv.name = name.ToStdString();
+        pv.settings = "";
+        pv.version = "2.0";
+        _perspectives.push_back(pv);
+        mCurrentPerpective = &_perspectives.back();
         OnMenuItemViewSavePerspectiveSelected(event);
         PerspectivesChanged(event);
         DoLoadPerspective(mCurrentPerpective);
@@ -3226,7 +3201,7 @@ void xLightsFrame::PlayJukeboxItem(wxCommandEvent& event)
 
 void xLightsFrame::PerspectivesChanged(wxCommandEvent& event)
 {
-    LoadPerspectivesMenu(PerspectivesNode);
+    LoadPerspectivesMenu();
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
     UpdateControllerSave();

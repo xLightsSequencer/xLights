@@ -350,10 +350,17 @@ public:
     void ApplyLast(wxCommandEvent& event);
     void SetEffectControlsApplyLast(const SettingsMap &settings);
     bool ApplySetting(wxString name, const wxString &value, int count = 0);
-    void LoadPerspectivesMenu(wxXmlNode* perspectivesNode);
+    void LoadPerspectivesMenu();
+    void SerializePerspectives(wxXmlNode* root);
+    struct Perspective {
+        std::string name;
+        std::string settings;
+        std::string version;
+    };
+
     struct PerspectiveId {
         int id = 0;
-        wxXmlNode* p = nullptr;
+        Perspective* p = nullptr;
     };
 
     PerspectiveId perspectives[10];
@@ -1628,8 +1635,9 @@ protected:
     wxXmlDocument EffectsXml;
 	SequenceViewManager _sequenceViewManager;
     wxXmlNode* EffectsNode = nullptr;
-    wxXmlNode* PerspectivesNode = nullptr;
 public:
+    std::vector<Perspective> _perspectives;
+    std::string _currentPerspectiveName;
     bool RebuildControllerConfig(OutputManager* outputManager, ModelManager* modelManager);
 
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
@@ -1795,7 +1803,7 @@ private:
     int _acParm2RampDown;
     int _acParm1RampUpDown;
     int _acParm2RampUpDown;
-    wxXmlNode* mCurrentPerpective = nullptr;
+    Perspective* mCurrentPerpective = nullptr;
     std::map<wxString, bool> savedPaneShown;
     SequenceElements _sequenceElements;
     MainSequencer* mainSequencer = nullptr;
@@ -1896,7 +1904,7 @@ private:
     void ResizeAndMakeEffectsScroll();
     void ResizeMainSequencer();
     void LoadSequencer(xLightsXmlFile& xml_file);
-    void DoLoadPerspective(wxXmlNode *p);
+    void DoLoadPerspective(Perspective* p);
     void CheckForValidModels();
     void ExportModels(wxString const& filename);
     void ExportEffects(wxString const& filename);
