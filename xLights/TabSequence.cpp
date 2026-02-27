@@ -497,26 +497,7 @@ void xLightsFrame::LoadEffectsFile()
     }
 
     if (version < "0004") {
-        // fix tags
-        xLightsXmlFile::FixVersionDifferences(filename);
-
-        // load converted file
-        LoadEffectsFileNoCheck();
-
-        // fix effect presets
-        xLightsXmlFile::FixEffectPresets(EffectsNode);
-
-        UnsavedRgbEffectsChanges = true;
-
-        // Re-find the XML nodes since EffectsXml was re-parsed
-        modelsNode = nullptr;
-        modelGroupsNode = nullptr;
-        if (EffectsXml.GetRoot() != nullptr) {
-            for (wxXmlNode* e = EffectsXml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-                if (e->GetName() == "models") modelsNode = e;
-                else if (e->GetName() == "modelGroups") modelGroupsNode = e;
-            }
-        }
+        wxMessageBox("Loading of xLights v3 rgbeffects is no longer supported.", "Error", wxOK | wxCENTRE |wxICON_ERROR, xLightsFrame::GetFrame());        
     }
     if (version < "0005") {
         //flip to AntiAlias=1 by default

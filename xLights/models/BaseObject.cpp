@@ -220,15 +220,6 @@ void BaseObject::FlipVertical(bool ignoreLock) {
     IncrementChangeCount();
 }
 
-static inline bool checkNameAttributes(wxXmlNode* nn, wxXmlNode* cc) {
-    if (nn->HasAttribute("name")) {
-        return (cc->GetAttribute("name") == nn->GetAttribute("name"));
-    } else if (nn->HasAttribute("Name")) {
-        return (cc->GetAttribute("Name") == nn->GetAttribute("Name"));
-    }
-    return true;
-}
-
 float BaseObject::GetTop() {
     return GetBaseObjectScreenLocation().GetTop();
 }
