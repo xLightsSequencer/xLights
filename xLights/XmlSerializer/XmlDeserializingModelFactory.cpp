@@ -614,10 +614,10 @@ Model* XmlDeserializingModelFactory::DeserializeSphere(wxXmlNode* node, xLightsF
         // sphere scale was adjusted to be "round". Previously, on half the size was considered for X and Z, but
         // full size for Y.
         auto mtrx = model->GetModelScreenLocation().GetScaleMatrix();
-        mtrx.x *= 1.1; // to account for the 90% space or 1.8 in the code
-        mtrx.z *= 1.1;
-        mtrx.x /= 2.0; // x and z scale now need to be half
-        mtrx.z /= 2.0;
+        mtrx.x *= 1.1f; // to account for the 90% space or 1.8 in the code
+        mtrx.z *= 1.1f;
+        mtrx.x /= 2.0f; // x and z scale now need to be half
+        mtrx.z /= 2.0f;
         model->GetModelScreenLocation().SetScaleMatrix(mtrx);
     }
 

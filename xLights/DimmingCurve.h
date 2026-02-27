@@ -11,6 +11,8 @@
  **************************************************************/
 
 #include "Color.h"
+#include <map>
+#include <string>
 
 class wxXmlNode;
 
