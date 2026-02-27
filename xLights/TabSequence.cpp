@@ -54,6 +54,36 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename) const
     FileNameText->SetLabel(filename);
 }
 
+wxXmlDocument xLightsFrame::GetEffectsXml()
+{
+    // Start with a copy of EffectsXml (preserves views, palettes, settings, etc.)
+    wxXmlDocument result = EffectsXml;
+
+    if (result.GetRoot() == nullptr) {
+        return result;
+    }
+
+    // Remove stale models/groups/objects nodes
+    wxXmlNode* child = result.GetRoot()->GetChildren();
+    while (child) {
+        if (child->GetName() == "models" || child->GetName() == "modelGroups" || child->GetName() == "view_objects") {
+            auto* a = child;
+            child = child->GetNext();
+            result.GetRoot()->RemoveChild(a);
+            delete a;
+        } else {
+            child = child->GetNext();
+        }
+    }
+
+    // Re-serialize current state from AllModels/AllObjects
+    XmlSerializer serializer;
+    serializer.SerializeAllModels(AllModels, this, result.GetRoot());
+    serializer.SerializeAllObjects(AllObjects, this, result.GetRoot());
+
+    return result;
+}
+
 void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
 {
     if (readOnlyMode) {

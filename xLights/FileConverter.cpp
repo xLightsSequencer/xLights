@@ -1851,7 +1851,7 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
                     }
                 }
                 if (header.data.size() == 0) {
-                    const auto &xml = params.xLightsFrm->GetEffectsXml();
+                    auto xml = params.xLightsFrm->GetEffectsXml();
                     wxMemoryOutputStream out;
                     xml.Save(out);
                     header.data.resize(out.GetLength());

@@ -1599,7 +1599,7 @@ public:
 
     void UpdateSequenceVideoPanel( const wxString& path );
 
-    const wxXmlDocument& GetEffectsXml() const { return EffectsXml; };
+    wxXmlDocument GetEffectsXml();
 protected:
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
     bool SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels);
