@@ -375,7 +375,7 @@ bool TerrainObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
     }
     screenLocation.UpdateBoundingBox(width, height, depth);
 
-    if ((Selected || Highlighted) && allowSelected) {
+    if ((Selected() || Highlighted()) && allowSelected) {
         screenLocation.DrawHandles(solid, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true, IsFromBase());
     }
 

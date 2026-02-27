@@ -95,7 +95,7 @@ bool RulerObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphics
     GetObjectScreenLocation().SetScaleMatrix(glm::vec3(1.0, 1.0, 1.0));
     static_cast<TwoPointScreenLocation&>(screenLocation).UpdateBoundingBox();
 
-    if ((Selected || Highlighted) && allowSelected) {
+    if ((Selected() || Highlighted()) && allowSelected) {
         GetObjectScreenLocation().DrawHandles(solid, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true, IsFromBase());
     }
     return true;

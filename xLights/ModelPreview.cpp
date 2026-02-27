@@ -557,7 +557,7 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
             }
 
             const xlColor* color = defColor;
-            if (m->Selected || m->GroupSelected) {
+            if (m->Selected() || m->GroupSelected()) {
                 color = selColor;
             }
             else if (m->Overlapping && isModelSelected) {
@@ -567,7 +567,7 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                 color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
             }
 
-            if (m->GetDisplayAs() == "SubModel" && !m->GroupSelected && !m->Selected) {
+            if (m->GetDisplayAs() == "SubModel" && !m->GroupSelected() && !m->Selected()) {
                 // we dont display submodels if they are not selected
             } else {
                 float bounds[6];
@@ -594,7 +594,7 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                 if (allowSelected) {
                     color = selColor;
                     for (auto& sm : m->GetSubModels()) {
-                        if (sm->GroupSelected || sm->Selected) {
+                        if (sm->GroupSelected() || sm->Selected()) {
                             float bounds[6];
                             bounds[0] = bounds[1] = bounds[2] = 999999;
                             bounds[3] = bounds[4] = bounds[5] = -999999;
@@ -748,7 +748,7 @@ void ModelPreview::Render()
         std::map<int32_t, std::list<Model*>> sortedModels;
         for (auto& m : models) {
             if (xlights->AllModels.IsModelValid(m) || xlights->IsNewModel(m)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
-                if (m->Selected || m->GroupSelected) {
+                if (m->Selected() || m->GroupSelected()) {
                     isModelSelected = true;
                 }
                 auto p = ProjViewMatrix * glm::vec4(m->GetHcenterPos(), m->GetVcenterPos(), m->GetDcenterPos(), 1);

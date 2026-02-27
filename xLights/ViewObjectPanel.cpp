@@ -678,8 +678,7 @@ void ViewObjectPanel::PreviewObjectAlignWithGround()
     layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if (view_object->GroupSelected || view_object->Selected)
-        {
+        if (view_object->GroupSelected() || view_object->Selected()) {
             view_object->SetBottom(0.0f);
         }
     }
@@ -696,8 +695,7 @@ void ViewObjectPanel::PreviewObjectAlignTops()
     float top = mSelectedObject->GetTop();
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if(view_object->GroupSelected)
-        {
+        if(view_object->GroupSelected()) {
             view_object->SetTop(top);
         }
     }
@@ -714,8 +712,7 @@ void ViewObjectPanel::PreviewObjectAlignBottoms()
     float bottom = mSelectedObject->GetBottom();
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if(view_object->GroupSelected)
-        {
+        if(view_object->GroupSelected()) {
             view_object->SetBottom(bottom);
         }
     }
@@ -732,8 +729,7 @@ void ViewObjectPanel::PreviewObjectAlignLeft()
     float left = mSelectedObject->GetLeft();
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if(view_object->GroupSelected)
-        {
+        if(view_object->GroupSelected()) {
             view_object->SetLeft(left);
         }
     }
@@ -750,8 +746,7 @@ void ViewObjectPanel::PreviewObjectAlignFronts()
     float front = mSelectedObject->GetFront();
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if (view_object->GroupSelected)
-        {
+        if (view_object->GroupSelected()) {
             view_object->SetFront(front);
         }
     }
@@ -768,8 +763,7 @@ void ViewObjectPanel::PreviewObjectAlignBacks()
     float back = mSelectedObject->GetBack();
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if (view_object->GroupSelected)
-        {
+        if (view_object->GroupSelected()) {
             view_object->SetBack(back);
         }
     }
@@ -784,13 +778,11 @@ void ViewObjectPanel::PreviewObjectResize(bool sameWidth, bool sameHeight)
 
     layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
 
-    if (sameWidth)
-    {
+    if (sameWidth) {
         int width = mSelectedObject->GetWidth();
         for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
             ViewObject *view_object = it->second;
-            if (view_object->GroupSelected)
-            {
+            if (view_object->GroupSelected()) {
                 view_object->SetWidth(width);
                 bool z_scale = view_object->GetBaseObjectScreenLocation().GetSupportsZScaling();
                 if (z_scale) {
@@ -800,13 +792,11 @@ void ViewObjectPanel::PreviewObjectResize(bool sameWidth, bool sameHeight)
         }
     }
 
-    if (sameHeight)
-    {
+    if (sameHeight) {
         int height = mSelectedObject->GetHeight();
         for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
             ViewObject *view_object = it->second;
-            if (view_object->GroupSelected)
-            {
+            if (view_object->GroupSelected()) {
                 view_object->SetHeight(height);
             }
         }
@@ -824,8 +814,7 @@ void ViewObjectPanel::PreviewObjectAlignRight()
     float right = mSelectedObject->GetRight();
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if(view_object->GroupSelected)
-        {
+        if(view_object->GroupSelected()) {
             view_object->SetRight(right);
         }
     }
@@ -842,8 +831,7 @@ void ViewObjectPanel::PreviewObjectAlignHCenter()
     float center = mSelectedObject->GetHcenterPos();
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if(view_object->GroupSelected)
-        {
+        if(view_object->GroupSelected()) {
             view_object->SetHcenterPos(center);
         }
     }
@@ -860,8 +848,7 @@ void ViewObjectPanel::PreviewObjectAlignVCenter()
     float center = mSelectedObject->GetVcenterPos();
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if(view_object->GroupSelected)
-        {
+        if(view_object->GroupSelected()) {
             view_object->SetVcenterPos(center);
         }
     }
@@ -879,7 +866,7 @@ void ViewObjectPanel::PreviewObjectAlignDCenter()
     float center = mSelectedObject->GetDcenterPos();
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject* view_object = it->second;
-        if (view_object->GroupSelected) {
+        if (view_object->GroupSelected()) {
             view_object->SetDcenterPos(center);
         }
     }
@@ -922,8 +909,7 @@ void ViewObjectPanel::PreviewObjectHDistribute()
 
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if (view_object->GroupSelected || view_object->Selected)
-        {
+        if (view_object->GroupSelected() || view_object->Selected()) {
             count++;
             float x = view_object->GetHcenterPos();
 
@@ -973,8 +959,7 @@ void ViewObjectPanel::PreviewObjectVDistribute()
 
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if (view_object->GroupSelected || view_object->Selected)
-        {
+        if (view_object->GroupSelected() || view_object->Selected()) {
             count++;
             float y = view_object->GetVcenterPos();
 
@@ -1023,7 +1008,7 @@ void ViewObjectPanel::PreviewObjectDDistribute()
 
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject* view_object = it->second;
-        if (view_object->GroupSelected || view_object->Selected) {
+        if (view_object->GroupSelected() || view_object->Selected()) {
             count++;
             float z = view_object->GetDcenterPos();
 
@@ -1069,7 +1054,7 @@ void ViewObjectPanel::PreviewObjectFlipV() {
 
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject* view_object = it->second;
-        if (view_object->Selected) {
+        if (view_object->Selected()) {
             view_object->FlipVertical();
         }
     }
@@ -1087,7 +1072,7 @@ void ViewObjectPanel::PreviewObjectFlipH() {
 
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject* view_object = it->second;
-        if (view_object->Selected) {
+        if (view_object->Selected()) {
             view_object->FlipHorizontal();
         }
     }

@@ -491,7 +491,6 @@ void Model::SetControllerName(const std::string& controller, bool skip_work)
 {
     auto n = Trim(controller);
     if (n == _controllerName) return;
-    if (n == "xyzzy_kw") return;
     if (!n.empty() && n != USE_START_CHANNEL) {
         _controllerName = n;
     }
@@ -552,7 +551,7 @@ void Model::Rename(std::string const& newName)
 
 void Model::SetStartChannel(std::string const& startChannel)
 {
-    if (startChannel == "xyzzy_kw") return;
+    if (startChannel == ModelStartChannel) return;
 
     ModelStartChannel = startChannel;
     AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetStartChannel");
@@ -2346,7 +2345,7 @@ void Model::ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview*
         if (!cancelled && model != nullptr) {
             x += 20;
             model->SetLayoutGroup(layoutGroup);
-            model->Selected = false;
+            model->Selected(false);
             model->SetHcenterPos(x);
             model->SetVcenterPos(y);
             model->SetWidth(GetWidth(), true);
@@ -4906,9 +4905,9 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* ctx, 
         ctx->PopMatrix();
     });
 
-    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
+    if ((Selected() || (Highlighted() && is_3d)) && c != nullptr && allowSelected) {
         if (is_3d) {
-            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted, IsFromBase());
+            GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted(), IsFromBase());
         } else {
             GetModelScreenLocation().DrawHandles(transparentProgram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), IsFromBase());
         }
@@ -5529,7 +5528,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         model->SetHcenterPos(x);
         model->SetVcenterPos(y);
         model->SetLayoutGroup(lg);
-        model->Selected = true;
+        model->Selected(true);
     }
     return model;
 }

@@ -67,7 +67,6 @@ bool ControllerConnection::IsValid() const
 void ControllerConnection::SetProtocol(const std::string& protocol)
 {
     if (protocol == _protocol) return;
-    if (protocol == "xyzzy_kw") return;
     _protocol = protocol;
     _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetProtocol");
     _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetProtocol");

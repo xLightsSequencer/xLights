@@ -245,7 +245,7 @@ bool GridlinesObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGrap
         ctx->drawLines(grid);
     });
     
-    if ((Selected || Highlighted) && allowSelected) {
+    if ((Selected() || Highlighted()) && allowSelected) {
         GetObjectScreenLocation().DrawHandles(solid, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true, IsFromBase());
     }
     return true;

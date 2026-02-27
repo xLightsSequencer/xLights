@@ -270,7 +270,7 @@ namespace XmlSerialize {
             model->SetStateInfo(stateInfo);
             model->UpdateStateInfoNodes();
         }
-        model->Selected = true;
+        model->Selected(true);
         return model;
     }
 } // namespace XmlSerialize

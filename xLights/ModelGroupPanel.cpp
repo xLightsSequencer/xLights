@@ -1153,7 +1153,7 @@ void ModelGroupPanel::AddSelectedModels(int index)
             ListBoxAddToModelGroup->DeleteItem(i);
             Model* model = mModels[modelName];
             if (model != nullptr) {
-                model->GroupSelected = true;
+                model->GroupSelected(true);
                 model->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ModelGroupPanel::AddSelectedModels");
                 model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ModelGroupPanel::AddSelectedModels");
             }
@@ -1200,7 +1200,7 @@ void ModelGroupPanel::RemoveSelectedModels()
                     }
                     model->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ModelGroupPanel::RemoveSelectedModels");
                     model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ModelGroupPanel::RemoveSelectedModels");
-                    model->GroupSelected = false;
+                    model->GroupSelected(false);
                 }
                 ListBoxModelsInGroup->DeleteItem(i);
                 i--;

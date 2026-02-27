@@ -119,11 +119,21 @@ public:
     void SetFromBase(bool fromBase) { _fromBase = fromBase; }
 
     std::string name;
-    bool Selected = false;
-    bool Highlighted = false;
-    bool GroupSelected=false;
+    
+    bool Selected() const { return _selected; }
+    bool Highlighted() const { return _highlighted; }
+    bool GroupSelected() const { return _groupSelected; }
+    
+    void Selected(bool b) { _selected = b; }
+    void Highlighted(bool b) { _highlighted = b; }
+    void GroupSelected(bool b) { _groupSelected = b; }
 
 protected:
+    bool _selected = false;
+    bool _highlighted = false;
+    bool _groupSelected = false;
+
+    
     std::string DisplayAs;
     std::string layout_group;
     unsigned long changeCount = 0;

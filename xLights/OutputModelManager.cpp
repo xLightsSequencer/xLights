@@ -58,17 +58,19 @@ std::string OutputModelManager::DecodeWork(uint32_t work)
 
 void OutputModelManager::SetSelectedModelIfASAPWorkExists(const std::string& selectedModel)
 {
-    if (_workASAP != 0)
-    {
-        if (selectedModel != "") _selectedModel = selectedModel;
+    if (_workASAP != 0) {
+        if (selectedModel != "") {
+            _selectedModel = selectedModel;
+        }
     }
 }
 
 void OutputModelManager::SetSelectedControllerIfASAPWorkExists(const std::string& selectedController)
 {
-    if (_workASAP != 0)
-    {
-        if (selectedController != "") _selectedController = selectedController;
+    if (_workASAP != 0) {
+        if (selectedController != "") {
+            _selectedController = selectedController;
+        }
     }
 }
 
@@ -78,7 +80,9 @@ void OutputModelManager::AddASAPWork(uint32_t work, const std::string& from, Bas
 #ifdef _DEBUG
     _sourceASAP.push_back({ work, from });
 #endif
-    if (selectedModel != "") _selectedModel = selectedModel;
+    if (selectedModel != "") {
+        _selectedModel = selectedModel;
+    }
     if (o != nullptr) _selectedController = o->GetName();
 
     if (work & WORK_RELOAD_MODEL_FROM_XML)
@@ -109,8 +113,12 @@ void OutputModelManager::AddSetupTabWork(uint32_t work, const std::string& from,
 #ifdef _DEBUG
     _sourceSetup.push_back({ work, from });
 #endif
-    if (selectedModel != "") _selectedModel = selectedModel;
-    if (o != nullptr) _selectedController = o->GetName();
+    if (selectedModel != "") {
+        _selectedModel = selectedModel;
+    }
+    if (o != nullptr) {
+        _selectedController = o->GetName();
+    }
 
     if (work & WORK_RELOAD_MODEL_FROM_XML)
     {
@@ -127,8 +135,12 @@ void OutputModelManager::AddLayoutTabWork(uint32_t work, const std::string& from
 #ifdef _DEBUG
     _sourceLayout.push_back({ work, from });
 #endif
-    if (selectedModel != "") _selectedModel = selectedModel;
-    if (o != nullptr) _selectedController = o->GetName();
+    if (selectedModel != "") {
+        _selectedModel = selectedModel;
+    }
+    if (o != nullptr) {
+        _selectedController = o->GetName();
+    }
 
     if (work & WORK_RELOAD_MODEL_FROM_XML)
     {
