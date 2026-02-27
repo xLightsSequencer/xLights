@@ -64,9 +64,9 @@ wxDECLARE_EVENT(EVT_LISTITEM_CHECKED, wxCommandEvent);
 
 class CopyPasteBaseObject
 {
-    bool _ok;
-	bool _viewObject;
-    wxXmlNode* _xmlNode;
+    bool _ok = false;
+	bool _viewObject = false;
+    wxXmlNode* _xmlNode = nullptr;
 
 public:
     CopyPasteBaseObject(const std::string& in);
@@ -74,8 +74,7 @@ public:
     virtual ~CopyPasteBaseObject();
     bool IsOk() const { return _ok; }
 	bool IsViewObject() const { return _viewObject; }
-    wxXmlNode* GetBaseObjectXml() const
-    {
+    wxXmlNode* GetBaseObjectXml() const {
         if (_xmlNode == nullptr)
             return _xmlNode;
         else

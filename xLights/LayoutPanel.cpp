@@ -5449,28 +5449,28 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
     }
 
     bool isCustom3d = false;
-    wxString customFingerprint = "";
+    std::string customFingerprint = "";
 
     // check if custom 3d and set model fingerprint
     if (selectedType == "Custom") {
-        customFingerprint = selectedModel->GetModelXml()->GetAttribute("CustomModel", "");
-        if (wxSplit(customFingerprint, '|').size() > 1) {
-            isCustom3d = true;
+        CustomModel *cm = dynamic_cast<CustomModel*>(selectedModel);
+        isCustom3d = cm && cm->GetCustomDepth() > 1;
+        if (isCustom3d) {
+            customFingerprint = cm->GetCustomData();
         }
     }
 
-    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-    {
-        if (modelPreview->GetModels()[i]->GroupSelected())
-        {
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+        if (modelPreview->GetModels()[i]->GroupSelected()) {
             Model* modelToResize = modelPreview->GetModels()[i];
             std::string modelType = modelToResize->GetDisplayAs();
             bool custom3dPrintsMatch = false;
 
             // if selected is Custom3d check if model fingerprints match
-            if (isCustom3d && customFingerprint != "") {
-                wxString mToResizeFingerprint = modelToResize->GetModelXml()->GetAttribute("CustomModel", "");
+            if (isCustom3d && !customFingerprint.empty()) {
+                CustomModel *cm = dynamic_cast<CustomModel*>(modelToResize);
 
+                std::string mToResizeFingerprint = cm == nullptr ? "" : cm->GetCustomData();
                 if (customFingerprint == mToResizeFingerprint) {
                     custom3dPrintsMatch = true;
                 }
@@ -7173,20 +7173,17 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                             if (wxMessageBox("Should I add model to the same group(s) as the original?", "Add to groups?", wxICON_QUESTION | wxYES_NO) == wxYES) {
                                 for (const auto& grp : inModelGroups) {
                                     Model* addToGroup = xlights->GetModel(grp);
-                                    if (!addToGroup->IsFromBase()) {
-                                        wxXmlNode* node = addToGroup->GetModelXml();
-                                        wxArrayString groupModels = wxSplit(node->GetAttribute("models", ""), ',');
-                                        int groupItems = groupModels.GetCount(); // we'll keep adding items, keep inital count
+                                    ModelGroup *g = dynamic_cast<ModelGroup *>(addToGroup);
+                                    if (g && !g->IsFromBase()) {
+                                        auto groupModels = g->ModelNames();
+                                        int groupItems = groupModels.size(); // we'll keep adding items, keep inital count
                                         for (int i = 0; i < groupItems; i++) {
-                                            if (groupModels[i].StartsWith(source_model_name)) {
-                                                wxString addnew = groupModels[i];
-                                                addnew.Replace(source_model_name, name);
-                                                groupModels.Add(addnew);
+                                            if (StartsWith(groupModels[i], source_model_name)) {
+                                                auto addnew = groupModels[i];
+                                                Replace(addnew, source_model_name, name);
+                                                g->AddModel(addnew);
                                             }
                                         }
-                                        wxString xmlModels = wxJoin(groupModels, ',');
-                                        node->DeleteAttribute("models");
-                                        node->AddAttribute("models", xmlModels);
                                     }
                                 }
                             }
@@ -7200,9 +7197,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "LayoutPanel::DoPaste", nullptr, nullptr, name);
                     modelPreview->SetCursor(wxCURSOR_DEFAULT);
                 }
-            }
-            else
-            {
+            } else {
                 static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 logger_base.warn("LayoutPanel: Error trying to parse XML for paste. Paste request ignored. %s.", (const char *)data.GetText().c_str());
             }
@@ -8912,19 +8907,13 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp) {
     UpdateModelList(true, models);
 }
 
-CopyPasteBaseObject::~CopyPasteBaseObject()
-{
-    if (_xmlNode != nullptr)
-    {
+CopyPasteBaseObject::~CopyPasteBaseObject() {
+    if (_xmlNode != nullptr) {
         delete _xmlNode;
     }
 }
 
-CopyPasteBaseObject::CopyPasteBaseObject()
-{
-    _ok = false;
-    _xmlNode = nullptr;
-	_viewObject = false;
+CopyPasteBaseObject::CopyPasteBaseObject() {
 }
 
 CopyPasteBaseObject::CopyPasteBaseObject(const std::string& in)
@@ -8935,14 +8924,12 @@ CopyPasteBaseObject::CopyPasteBaseObject(const std::string& in)
 
     // check it looks like xml ... to stop parser errors
     wxString xml = in;
-    if (!xml.StartsWith("<?xml") || (!xml.Contains("<model ") && !xml.Contains("<view_object ")))
-    {
+    if (!xml.StartsWith("<?xml") || (!xml.Contains("<model ") && !xml.Contains("<view_object "))) {
         // not valid
         return;
     }
 
-	if (xml.Contains("<view_object "))
-	{
+	if (xml.Contains("<view_object ")) {
 		// not valid
 		_viewObject = true;
 	}
@@ -8952,44 +8939,41 @@ CopyPasteBaseObject::CopyPasteBaseObject(const std::string& in)
 
     wxXmlNode* xmlNode = doc.GetRoot();
 
-    if (xmlNode == nullptr)
-    {
+    if (xmlNode == nullptr) {
         // not valid
         return;
     }
 
     _xmlNode = new wxXmlNode(*xmlNode);
-
     _ok = true;
 }
 
 void CopyPasteBaseObject::SetBaseObject(BaseObject* model)
 {
-    if (_xmlNode != nullptr)
-    {
+    if (_xmlNode != nullptr) {
         delete _xmlNode;
         _xmlNode = nullptr;
     }
 
-    if (model == nullptr)
-    {
-        _ok = false;
-    }
-    else
-    {
-        _xmlNode = new wxXmlNode(*model->GetModelXml());
-        _ok = true;
+    _ok = false;
+    if (model != nullptr) {
+        wxXmlNode nd;
+        XmlSerializingVisitor visitor{ &nd };
+        model->Accept(visitor);
+        
+        _xmlNode = nd.GetChildren();
+        if (_xmlNode != nullptr) {
+            nd.RemoveChild(_xmlNode);
+            _ok = true;
+        }
     }
 }
 
 std::string CopyPasteBaseObject::Serialise() const
 {
-    if (_xmlNode == nullptr)
-    {
+    if (_xmlNode == nullptr) {
         return "";
-    }
-    else
-    {
+    } else {
         wxXmlDocument doc;
         doc.SetRoot(_xmlNode);
         wxStringOutputStream stream;
