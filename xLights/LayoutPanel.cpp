@@ -2155,24 +2155,26 @@ void LayoutPanel::CreateModelGroupFromSelected()
             }
         }
 
-        wxXmlNode *node = new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroup");
-        xlights->ModelGroupsNode->AddChild(node);
-        node->AddAttribute("selected", "0");
-        node->AddAttribute("name", name);
-        node->AddAttribute("layout", "minimalGrid");
-        node->AddAttribute("GridSize", "400");
         wxString grp = currentLayoutGroup == "All Models" ? "Unassigned" : currentLayoutGroup;
-        node->AddAttribute("LayoutGroup", grp);
+
+        // Create the model group directly using setters
+        ModelGroup* newGroup = new ModelGroup(xlights->AllModels);
+        newGroup->SetName(name.ToStdString());
+        newGroup->SetLayout("minimalGrid");
+        newGroup->SetGridSize(400);
+        newGroup->SetLayoutGroup(grp.ToStdString());
 
         // create group and reload before adding selected models. prior models were added before create and I was seeing frequent
         // crashes in Render() with invalid model pointers especially with mixed selections (groups, submodels & models)
-        xlights->AllModels.AddModel(xlights->AllModels.CreateModel(node));
+        xlights->AllModels.AddModel(newGroup);
         xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "CreateModelGroupFromSelected");
 
-        // now add the group models to already created group
-        node->DeleteAttribute("models");
-        wxString groups = wxJoin(newGroupModels, ',');
-        node->AddAttribute("models", groups);
+        // now add the group models to the already created group
+        std::vector<std::string> modelsList;
+        for (const auto& m : newGroupModels) {
+            modelsList.push_back(m.ToStdString());
+        }
+        newGroup->SetModels(modelsList);
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CreateModelGroupFromSelected");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "CreateModelGroupFromSelected", nullptr, nullptr, name.ToStdString());
@@ -7873,15 +7875,15 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
                     return;
                 }
             }
-            wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroup");
-            xlights->ModelGroupsNode->AddChild(node);
-            node->AddAttribute("selected", "0");
-            node->AddAttribute("name", name);
-            node->AddAttribute("models", "");
-            node->AddAttribute("layout", "minimalGrid");
-            node->AddAttribute("GridSize", "400");
             wxString grp = currentLayoutGroup == "All Models" ? "Unassigned" : currentLayoutGroup;
-            node->AddAttribute("LayoutGroup", grp);
+
+            // Create the model group directly using setters
+            ModelGroup* newModelGroup = new ModelGroup(xlights->AllModels);
+            newModelGroup->SetName(name.ToStdString());
+            newModelGroup->SetLayout("minimalGrid");
+            newModelGroup->SetGridSize(400);
+            newModelGroup->SetLayoutGroup(grp.ToStdString());
+            xlights->AllModels.AddModel(newModelGroup);
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP");
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, name.ToStdString());
