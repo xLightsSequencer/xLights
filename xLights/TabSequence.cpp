@@ -547,7 +547,7 @@ void xLightsFrame::LoadEffectsFile()
     // Handle upgrade of networks file to the controller/output structure
     bool converted = _outputManager.ConvertModelStartChannels(ModelsNode);
 
-    displayElementsPanel->SetSequenceElementsModelsViews(&_seqData, &_sequenceElements, ModelsNode, ModelGroupsNode, &_sequenceViewManager);
+    displayElementsPanel->SetSequenceElementsModelsViews(&_seqData, &_sequenceElements, &_sequenceViewManager);
     layoutPanel->ClearUndo();
 
     // Merge base show folder XML into local XML tree before creating models

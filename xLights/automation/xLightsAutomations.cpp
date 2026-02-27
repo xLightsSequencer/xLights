@@ -531,7 +531,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             }
         }
 
-        displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
+        displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr);
         layoutPanel->ClearUndo();
         SetDir(shw, true);
 

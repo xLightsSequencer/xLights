@@ -489,7 +489,7 @@ void xLightsFrame::OnButton_ChangeTemporarilyAgainClick(wxCommandEvent& event)
 }
 
 void xLightsFrame::OnButton_OpenBaseShowDirClick(wxCommandEvent& event) {
-    displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
+    displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr);
     layoutPanel->ClearUndo();
     SetDir(_outputManager.GetBaseShowDir(), false);
 }
@@ -500,7 +500,7 @@ void xLightsFrame::OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event)
         PromptForShowDirectory(false);
     }
     else {
-        displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
+        displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr);
         layoutPanel->ClearUndo();
         wxASSERT(_permanentShowFolder != "");
         SetDir(_permanentShowFolder, true);
@@ -557,7 +557,7 @@ bool xLightsFrame::PromptForShowDirectory(bool permanent, const std::string &def
         }
 
         if (dirOK) {
-            displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
+            displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr);
             layoutPanel->ClearUndo();
             return SetDir(newdir, permanent);
         }

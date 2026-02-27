@@ -28,6 +28,7 @@
 #include "xLightsMain.h"
 #include "SequenceViewManager.h"
 #include "UtilFunctions.h"
+#include "models/ModelGroup.h"
 
 #include <log4cpp/Category.hh>
 
@@ -413,26 +414,22 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
             }
         }
 
-        if (_modelGroups != nullptr) {
-            for (wxXmlNode* e = _modelGroups->GetChildren(); e != nullptr; e = e->GetNext()) {
-                if (e->GetName() == "modelGroup") {
-                    wxString name = e->GetAttribute("name");
-                    if (!_sequenceElements->ElementExists(name.ToStdString(), 0)) {
-                        ModelElement* me = new ModelElement(name.ToStdString());
-                        if (me != nullptr) AddModelToNotList(me);
-                    }
+        // Add model groups not already in the sequence elements list
+        for (const auto& it : _xlFrame->AllModels) {
+            if (it.second->GetDisplayAs() == "ModelGroup") {
+                if (!_sequenceElements->ElementExists(it.first, 0)) {
+                    ModelElement* me = new ModelElement(it.first);
+                    if (me != nullptr) AddModelToNotList(me);
                 }
             }
         }
 
-        if (_models != nullptr) {
-            for (wxXmlNode* e = _models->GetChildren(); e != nullptr; e = e->GetNext()) {
-                if (e->GetName() == "model") {
-                    wxString name = e->GetAttribute("name");
-                    if (!_sequenceElements->ElementExists(name.ToStdString(), 0)) {
-                        ModelElement* me = new ModelElement(name.ToStdString());
-                        if (me != nullptr) AddModelToNotList(me);
-                    }
+        // Add regular models not already in the sequence elements list
+        for (const auto& it : _xlFrame->AllModels) {
+            if (it.second->GetDisplayAs() != "ModelGroup") {
+                if (!_sequenceElements->ElementExists(it.first, 0)) {
+                    ModelElement* me = new ModelElement(it.first);
+                    if (me != nullptr) AddModelToNotList(me);
                 }
             }
         }
@@ -487,12 +484,8 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
 
 bool ViewsModelsPanel::IsModelAGroup(const std::string& modelname) const
 {
-    for (auto it = _modelGroups->GetChildren(); it != nullptr; it = it->GetNext()) {
-        if (it->GetName() == "modelGroup" && it->GetAttribute("name") == modelname) {
-            return true;
-        }
-    }
-    return false;
+    Model* m = _xlFrame->AllModels.GetModel(modelname);
+    return m != nullptr && m->GetDisplayAs() == "ModelGroup";
 }
 
 int ViewsModelsPanel::GetPixelCount(const std::string& modelname) {
@@ -518,23 +511,20 @@ int ViewsModelsPanel::GetPixelCount(const std::string& modelname) {
 wxArrayString ViewsModelsPanel::GetGroupModels(const std::string& group) const
 {
     wxArrayString res;
-
-    for (auto it = _modelGroups->GetChildren(); it != nullptr; it = it->GetNext()) {
-        if (it->GetName() == "modelGroup" && it->GetAttribute("name") == group) {
-            res = wxSplit(it->GetAttribute("models"), ',');
-            break;
+    ModelGroup* mg = dynamic_cast<ModelGroup*>(_xlFrame->AllModels.GetModel(group));
+    if (mg != nullptr) {
+        for (const auto& name : mg->ModelNames()) {
+            res.push_back(wxString(name));
         }
     }
-
     return res;
 }
 
 std::string ViewsModelsPanel::GetModelType(const std::string& modelname) const
 {
-    for (auto it = _models->GetChildren(); it != nullptr; it = it->GetNext()) {
-        if (it->GetAttribute("name") == modelname) {
-            return it->GetAttribute("DisplayAs").ToStdString();
-        }
+    Model* m = _xlFrame->AllModels.GetModel(modelname);
+    if (m != nullptr) {
+        return m->GetDisplayAs();
     }
     return "";
 }
@@ -867,13 +857,11 @@ void ViewsModelsPanel::Initialize()
     ValidateWindow();
 }
 
-void ViewsModelsPanel::SetSequenceElementsModelsViews(SequenceData* seqData, SequenceElements* sequenceElements, wxXmlNode* modelsNode, wxXmlNode* modelGroupsNode, SequenceViewManager* sequenceViewManager)
+void ViewsModelsPanel::SetSequenceElementsModelsViews(SequenceData* seqData, SequenceElements* sequenceElements, SequenceViewManager* sequenceViewManager)
 {
     _sequenceElements = sequenceElements;
     _seqData = seqData;
-    _models = modelsNode;
     _sequenceViewManager = sequenceViewManager;
-    _modelGroups = modelGroupsNode;
     ValidateWindow();
 }
 
