@@ -15,6 +15,7 @@
 #include "xLightsMain.h"
 #include "models/Model.h"
 #include "models/ModelManager.h"
+#include "models/ModelGroup.h"
 #include "models/ArchesModel.h"
 #include "models/CandyCaneModel.h"
 #include "models/CircleModel.h"
@@ -968,17 +969,16 @@ S5Point LORPreview::GetXLightsSizeFromScale( S5Point const& scale, int pvwW, int
 void LORPreview::CreateGroup( S5Group const& grp, std::vector< S5Model > const& models )
 {
     auto newName    = xlights->AllModels.GenerateModelName( Model::SafeModelName(grp.name ));
-    wxXmlNode* node = new wxXmlNode( wxXML_ELEMENT_NODE, "modelGroup" );
-    xlights->ModelGroupsNode->AddChild( node );
-    node->AddAttribute( "selected", "0" );
-    node->AddAttribute( "name", newName );
-    node->AddAttribute( "layout", "minimalGrid" );
-    node->AddAttribute( "GridSize", "400" );
-    node->AddAttribute( "LayoutGroup", xLights_preview );
 
-    // create group and reload before adding selected models. prior models were added before create and I was seeing frequent
-    // crashes in Render() with invalid model pointers especially with mixed selections (groups, submodels & models)
-    xlights->AllModels.AddModel( xlights->AllModels.CreateModel( node ) );
+    // Create the model group directly using setters
+    ModelGroup* newGroup = new ModelGroup(xlights->AllModels);
+    newGroup->SetName(newName);
+    newGroup->SetLayout("minimalGrid");
+    newGroup->SetGridSize(400);
+    newGroup->SetLayoutGroup(xLights_preview);
+
+    // create group before adding selected models to avoid crashes with invalid model pointers
+    xlights->AllModels.AddModel( newGroup );
 
     wxArrayString newGroupModels;
     for( auto const& id : grp.modelIds ) {
@@ -989,10 +989,12 @@ void LORPreview::CreateGroup( S5Group const& grp, std::vector< S5Model > const& 
             newGroupModels.push_back( Model::SafeModelName(( *index ).name) );
         }
     }
-    // now add the group models to already created group
-    node->DeleteAttribute( "models" );
-    wxString groups = wxJoin( newGroupModels, ',' );
-    node->AddAttribute( "models", groups );
+    // now add the group models to the already created group
+    std::vector<std::string> modelsList;
+    for (const auto& m : newGroupModels) {
+        modelsList.push_back(m.ToStdString());
+    }
+    newGroup->SetModels(modelsList);
 }
 
 wxString LORPreview::FindLORPreviewFile()
