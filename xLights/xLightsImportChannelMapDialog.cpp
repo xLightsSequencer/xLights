@@ -780,14 +780,13 @@ void xLightsImportChannelMapDialog::AddEmptyGroup()
         }
     }
 
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroup");
-    xlights->ModelGroupsNode->AddChild(node);
-    node->AddAttribute("selected", "0");
-    node->AddAttribute("name", groupName);
-    node->AddAttribute("models", "");
-    node->AddAttribute("layout", "minimalGrid");
-    node->AddAttribute("GridSize", "400");
-    node->AddAttribute("LayoutGroup", "Default");
+    // Create the model group directly using setters
+    ModelGroup* newModelGroup = new ModelGroup(xlights->AllModels);
+    newModelGroup->SetName(groupName.ToStdString());
+    newModelGroup->SetLayout("minimalGrid");
+    newModelGroup->SetGridSize(400);
+    newModelGroup->SetLayoutGroup("Default");
+    xlights->AllModels.AddModel(newModelGroup);
 
     xLightsImportModelNode* newGroup = new xLightsImportModelNode(
         nullptr, groupName, "", true, std::list<std::string>{}, "ModelGroup", "", false, "ModelGroup", 1000,

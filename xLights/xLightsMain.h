@@ -1632,10 +1632,7 @@ protected:
 public:
     bool RebuildControllerConfig(OutputManager* outputManager, ModelManager* modelManager);
     wxXmlNode* PalettesNode = nullptr;
-    wxXmlNode* ModelsNode = nullptr;
-    wxXmlNode* ModelGroupsNode = nullptr;
     wxXmlNode* LayoutGroupsNode = nullptr;
-    wxXmlNode* ViewObjectsNode = nullptr;
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
     void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog, const wxString &realPath = "");
     void OpenSequence(const wxString& passed_filename) {
@@ -1748,7 +1745,7 @@ public:
     int GetDefaultPreviewBackgroundBrightness();
     int GetDefaultPreviewBackgroundAlpha();
     void SetPreviewBackgroundBrightness(int brightness, int alpha);
-    void LoadModels();
+    void LoadModels(bool doUpdate);
     void UpdateModelsList();
     void RowHeadingsChanged( wxCommandEvent& event);
     void DoForceSequencerRefresh();
