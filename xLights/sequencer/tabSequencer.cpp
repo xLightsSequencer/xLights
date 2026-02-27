@@ -1042,10 +1042,16 @@ void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
 {
     wxString s = event.GetString();
     if ("" != s) {
-        for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=nullptr; e=e->GetNext() ) {
-            if (e->GetName() == "modelGroup") {
-                if (s == e->GetAttribute("name")) {
-                    std::string modelString = e->GetAttribute("models").ToStdString();
+        for (const auto& it : AllModels) {
+            if (it.second->GetDisplayAs() == "ModelGroup" && s == it.first) {
+                ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
+                if (mg != nullptr) {
+                    const auto& names = mg->ModelNames();
+                    std::string modelString;
+                    for (size_t i = 0; i < names.size(); i++) {
+                        if (i > 0) modelString += ',';
+                        modelString += names[i];
+                    }
                     _sequenceElements.AddMissingModelsToSequence(modelString, false);
                 }
             }
