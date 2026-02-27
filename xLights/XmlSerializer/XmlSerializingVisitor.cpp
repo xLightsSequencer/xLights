@@ -164,6 +164,8 @@ void XmlSerializingVisitor::AddTwoPointScreenLocationAttributes(const BaseObject
 
 void XmlSerializingVisitor::AddThreePointScreenLocationAttributes(const BaseObject& base, wxXmlNode* node) {
     AddTwoPointScreenLocationAttributes( base, node );
+    glm::vec3 rotate = base.GetBaseObjectScreenLocation().GetRotation();
+    node->AddAttribute(XmlNodeKeys::RotateXAttribute, std::to_string(rotate.x));
     const ThreePointScreenLocation& screenLoc = dynamic_cast<const ThreePointScreenLocation&>(base.GetBaseObjectScreenLocation());
     int angle = screenLoc.GetAngle();
     node->AddAttribute(XmlNodeKeys::AngleAttribute, std::to_string(angle));
