@@ -22,6 +22,7 @@ class Model;
 class wxXmlNode;
 class OutputManager;
 class xLightsFrame;
+class LayoutGroup;
 
 class ModelManager : public ObjectManager
 {
@@ -65,8 +66,8 @@ class ModelManager : public ObjectManager
 
         bool RenameController(const std::string& oldName, const std::string& newName);
 
-        void SetLayoutsNode(wxXmlNode* layouts) {layoutsNode = layouts;}
-        wxXmlNode* GetLayoutsNode() const {return layoutsNode;}
+        void SetLayoutGroups(std::vector<LayoutGroup*>* groups) { layoutGroups = groups; }
+        const std::vector<LayoutGroup*>* GetLayoutGroups() const { return layoutGroups; }
 
         void clear();
 
@@ -96,7 +97,7 @@ class ModelManager : public ObjectManager
 
     private:
 
-    wxXmlNode *layoutsNode = nullptr;
+    std::vector<LayoutGroup*>* layoutGroups = nullptr;
     OutputManager* _outputManager = nullptr;
     xLightsFrame* xlights = nullptr;
     int previewWidth = 0;

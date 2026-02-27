@@ -23,6 +23,7 @@
 #include "Model.h"
 #include "ModelGroup.h"
 #include "ModelManager.h"
+#include "../LayoutGroup.h"
 #include "ModelScreenLocation.h"
 #include "RulerObject.h"
 #include "SubModel.h"
@@ -474,12 +475,11 @@ wxArrayString Model::GetLayoutGroups(const ModelManager& mm)
     lg.push_back("All Previews");
     lg.push_back("Unassigned");
 
-    wxXmlNode* layouts_node = mm.GetLayoutsNode();
-    for (wxXmlNode* e = layouts_node->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "layoutGroup") {
-            wxString grp_name = e->GetAttribute("name");
-            if (!grp_name.IsEmpty()) {
-                lg.push_back(grp_name.ToStdString());
+    const std::vector<LayoutGroup*>* groups = mm.GetLayoutGroups();
+    if (groups != nullptr) {
+        for (const LayoutGroup* grp : *groups) {
+            if (!grp->GetName().empty()) {
+                lg.push_back(grp->GetName());
             }
         }
     }

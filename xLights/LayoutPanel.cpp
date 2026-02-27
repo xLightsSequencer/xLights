@@ -7980,12 +7980,8 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
                     return;
                 }
             }
-            wxXmlNode *node = new wxXmlNode(wxXML_ELEMENT_NODE, "layoutGroup");
-            xlights->LayoutGroupsNode->AddChild(node);
-            node->AddAttribute("name", name);
-
             //mSelectedGroup = nullptr;
-            LayoutGroup* grp = new LayoutGroup(name.ToStdString(), xlights, node);
+            LayoutGroup* grp = new LayoutGroup(name.ToStdString(), xlights);
             grp->SetBackgroundImage(xlights->GetDefaultPreviewBackgroundImage());
             xlights->LayoutGroups.push_back(grp);
             xlights->AddPreviewOption(grp);
@@ -8141,11 +8137,7 @@ void LayoutPanel::ImportModelsFromRGBEffects()
             }
             if (!found)
             {
-                wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "layoutGroup");
-                xlights->LayoutGroupsNode->AddChild(node);
-                node->AddAttribute("name", it);
-
-                LayoutGroup* grp = new LayoutGroup(it.ToStdString(), xlights, node);
+                LayoutGroup* grp = new LayoutGroup(it.ToStdString(), xlights);
                 grp->SetBackgroundImage(xlights->GetDefaultPreviewBackgroundImage());
                 xlights->LayoutGroups.push_back(grp);
                 xlights->AddPreviewOption(grp);
@@ -8334,9 +8326,7 @@ void LayoutPanel::DeleteCurrentPreview() {
             if (grp != nullptr) {
                 if (currentLayoutGroup == grp->GetName()) {
                     xlights->RemovePreviewOption(grp);
-                    grp->GetLayoutGroupXml()->GetParent()->RemoveChild(grp->GetLayoutGroupXml());
                     xlights->LayoutGroups.erase(it);
-                    delete grp->GetLayoutGroupXml();
                     delete grp;
                     break;
                 }
@@ -8385,16 +8375,6 @@ void LayoutPanel::RenameCurrentPreview()
         Model* model = it.second;
         if (model->GetLayoutGroup() == currentLayoutGroup) {
             model->SetLayoutGroup(dlg.GetValue());
-        }
-    }
-
-    wxXmlNode* node = nullptr;
-    for (wxXmlNode* n = xlights->LayoutGroupsNode->GetChildren(); n != nullptr; n = n->GetNext()) {
-        if (n->GetAttribute("name") == currentLayoutGroup) {
-            n->DeleteAttribute("name");
-            n->AddAttribute("name", dlg.GetValue());
-            node = n;
-            break;
         }
     }
 

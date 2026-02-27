@@ -63,10 +63,11 @@ wxXmlDocument xLightsFrame::GetEffectsXml()
         return result;
     }
 
-    // Remove stale models/groups/objects nodes
+    // Remove stale models/groups/objects/layoutGroups nodes
     wxXmlNode* child = result.GetRoot()->GetChildren();
     while (child) {
-        if (child->GetName() == "models" || child->GetName() == "modelGroups" || child->GetName() == "view_objects") {
+        if (child->GetName() == "models" || child->GetName() == "modelGroups" ||
+            child->GetName() == "view_objects" || child->GetName() == "layoutGroups") {
             auto* a = child;
             child = child->GetNext();
             result.GetRoot()->RemoveChild(a);
@@ -76,10 +77,11 @@ wxXmlDocument xLightsFrame::GetEffectsXml()
         }
     }
 
-    // Re-serialize current state from AllModels/AllObjects
+    // Re-serialize current state from AllModels/AllObjects/LayoutGroups
     XmlSerializer serializer;
     serializer.SerializeAllModels(AllModels, this, result.GetRoot());
     serializer.SerializeAllObjects(AllObjects, this, result.GetRoot());
+    serializer.SerializeAllLayoutGroups(LayoutGroups, result.GetRoot());
 
     return result;
 }
@@ -104,7 +106,6 @@ void xLightsFrame::ResetEffectsXml()
     _sequenceViewManager.Reset();
     EffectsNode = nullptr;
     PalettesNode = nullptr;
-    LayoutGroupsNode = nullptr;
     SettingsNode = nullptr;
     PerspectivesNode = nullptr;
 }
@@ -189,10 +190,11 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     wxXmlNode* modelsNode = nullptr;
     wxXmlNode* viewObjectsNode = nullptr;
     wxXmlNode* modelGroupsNode = nullptr;
-    EffectsNode = PalettesNode = LayoutGroupsNode = SettingsNode = PerspectivesNode = nullptr;
+    EffectsNode = PalettesNode = SettingsNode = PerspectivesNode = nullptr;
     wxXmlNode* viewsNode = nullptr;
     wxXmlNode* colorsNode = nullptr;
     wxXmlNode* viewpointsNode = nullptr;
+    wxXmlNode* layoutGroupsNode = nullptr;
     for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "models") modelsNode = e;
         if (e->GetName() == "view_objects") viewObjectsNode = e;
@@ -202,7 +204,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         if (e->GetName() == "colors") colorsNode = e;
         if (e->GetName() == "Viewpoints") viewpointsNode = e;
         if (e->GetName() == "modelGroups") modelGroupsNode = e;
-        if (e->GetName() == "layoutGroups") LayoutGroupsNode = e;
+        if (e->GetName() == "layoutGroups") layoutGroupsNode = e;
         if (e->GetName() == "settings") SettingsNode = e;
         if (e->GetName() == "perspectives") PerspectivesNode = e;
     }
@@ -289,11 +291,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         UnsavedRgbEffectsChanges = true;
     }
 
-    if (LayoutGroupsNode == nullptr) {
-        LayoutGroupsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "layoutGroups");
-        root->AddChild(LayoutGroupsNode);
-        UnsavedRgbEffectsChanges = true;
-    }
+    // layoutGroupsNode is used locally to load LayoutGroups objects, then discarded
 
     if (PerspectivesNode == nullptr) {
         PerspectivesNode = new wxXmlNode(wxXML_ELEMENT_NODE, "perspectives");
@@ -388,14 +386,23 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 
     mStoredLayoutGroup = GetXmlSetting("storedLayoutGroup", "Default");
 
-    // validate stored preview exists
+    // validate stored preview exists and load LayoutGroups from XML
     bool found_saved_preview = false;
-    for (wxXmlNode* e = LayoutGroupsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "layoutGroup") {
-            wxString grp_name = e->GetAttribute("name");
-            if (!grp_name.IsEmpty()) {
-                if (grp_name.ToStdString() == mStoredLayoutGroup) {
-                    found_saved_preview = true;
+    LayoutGroups.clear();
+    layoutPanel->Reset();
+    if (layoutGroupsNode != nullptr) {
+        for (wxXmlNode* e = layoutGroupsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
+            if (e->GetName() == "layoutGroup") {
+                wxString grp_name = e->GetAttribute("name");
+                if (!grp_name.IsEmpty()) {
+                    if (grp_name.ToStdString() == mStoredLayoutGroup) {
+                        found_saved_preview = true;
+                    }
+                    LayoutGroup* grp = new LayoutGroup(grp_name.ToStdString(), this);
+                    grp->SetFromXml(e);
+                    LayoutGroups.push_back(grp);
+                    AddPreviewOption(grp);
+                    layoutPanel->AddPreviewChoice(grp_name.ToStdString());
                 }
             }
         }
@@ -403,26 +410,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     if (!found_saved_preview) {
         mStoredLayoutGroup = "Default";
     }
-
-    // Do this here as it may switch the background image
-    LayoutGroups.clear();
-    layoutPanel->Reset();
-    AllModels.SetLayoutsNode(LayoutGroupsNode);  // provides easy access to layout names for the model class
-    for (wxXmlNode* e = LayoutGroupsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "layoutGroup") {
-            wxString grp_name = e->GetAttribute("name");
-            if (!grp_name.IsEmpty()) {
-                LayoutGroup* grp = new LayoutGroup(grp_name.ToStdString(), this, e);
-                LayoutGroups.push_back(grp);
-                AddPreviewOption(grp);
-                layoutPanel->AddPreviewChoice(grp_name.ToStdString());
-                //if( grp_name.ToStdString() == mStoredLayoutGroup )
-                //{
-                //    found_saved_preview = true;
-                //}
-            }
-        }
-    }
+    AllModels.SetLayoutGroups(&LayoutGroups);  // provides easy access to layout names for the model class
 
     mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness", "100"));
     mBackgroundAlpha = wxAtoi(GetXmlSetting("backgroundAlpha", "100"));
@@ -775,7 +763,8 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
 
     wxXmlNode *child = EffectsXml.GetRoot()->GetChildren();
     while (child) {
-        if (child->GetName() == "models" || child->GetName() == "modelGroups" || child->GetName() == "view_objects") {
+        if (child->GetName() == "models" || child->GetName() == "modelGroups" ||
+            child->GetName() == "view_objects" || child->GetName() == "layoutGroups") {
             auto *a = child;
             child = child->GetNext();
             EffectsXml.GetRoot()->RemoveChild(a);
@@ -788,6 +777,7 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     XmlSerializer serializer;
     serializer.SerializeAllModels(AllModels, this, EffectsXml.GetRoot());
     serializer.SerializeAllObjects(AllObjects, this, EffectsXml.GetRoot());
+    serializer.SerializeAllLayoutGroups(LayoutGroups, EffectsXml.GetRoot());
 
     // Make sure the views are up to date before we save it
     _sequenceViewManager.Save(&EffectsXml);

@@ -15,7 +15,9 @@
 #include "XmlDeserializingObjectFactory.h"
 #include "XmlSerializeFunctions.h"
 #include "XmlSerializingVisitor.h"
+#include <vector>
 #include <wx/xml/xml.h>
+#include "../LayoutGroup.h"
 
 struct XmlSerializer {
     XmlSerializer() {}
@@ -74,6 +76,25 @@ struct XmlSerializer {
         doc.SetRoot(docNode);
 
         return doc;
+    }
+
+    // Serialize all layout groups into an XML document
+    void SerializeAllLayoutGroups(const std::vector<LayoutGroup*>& layoutGroups, wxXmlNode* root) {
+        wxXmlNode* lgNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::LayoutGroupsType);
+        for (const LayoutGroup* lg : layoutGroups) {
+            wxXmlNode* lgChild = new wxXmlNode(wxXML_ELEMENT_NODE, "layoutGroup");
+            lgChild->AddAttribute("name", lg->GetName());
+            lgChild->AddAttribute(XmlNodeKeys::BackgroundImageAttribute, lg->GetBackgroundImage());
+            lgChild->AddAttribute(XmlNodeKeys::BackgroundBrightnessAttribute, std::to_string(lg->GetBackgroundBrightness()));
+            lgChild->AddAttribute(XmlNodeKeys::BackgroundAlphaAttribute, std::to_string(lg->GetBackgroundAlpha()));
+            lgChild->AddAttribute(XmlNodeKeys::ScaleImageAttribute, std::to_string(lg->GetBackgroundScaled()));
+            lgChild->AddAttribute("PosX", std::to_string(lg->GetPosX()));
+            lgChild->AddAttribute("PosY", std::to_string(lg->GetPosY()));
+            lgChild->AddAttribute("PaneWidth", std::to_string(lg->GetPaneWidth()));
+            lgChild->AddAttribute("PaneHeight", std::to_string(lg->GetPaneHeight()));
+            lgNode->AddChild(lgChild);
+        }
+        root->AddChild(lgNode);
     }
 
     // Serialize all objects into an XML document

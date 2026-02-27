@@ -64,7 +64,7 @@
 ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
     _outputManager(outputManager),
     xlights(xl),
-    layoutsNode(nullptr),
+    layoutGroups(nullptr),
     previewWidth(0),
     previewHeight(0),
     _modelsLoading(false)

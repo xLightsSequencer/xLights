@@ -43,15 +43,18 @@ void SerializeColorsObject(wxXmlNode* node, xLightsFrame* xlights) {
 }
 
 void SerializeLayoutGroupsObject(wxXmlNode* node, xLightsFrame* xlights) {
-    std::vector<LayoutGroup*> layoutGroups = xlights->LayoutGroups;
     wxXmlNode* lgNode = new wxXmlNode(wxXML_ELEMENT_NODE, "layoutGroups");
-    for (LayoutGroup* lg : layoutGroups) {
+    for (LayoutGroup* lg : xlights->LayoutGroups) {
         wxXmlNode* lgChild = new wxXmlNode(wxXML_ELEMENT_NODE, "layoutGroup");
         lgChild->AddAttribute("name", lg->GetName());
         lgChild->AddAttribute(XmlNodeKeys::BackgroundImageAttribute, lg->GetBackgroundImage());
         lgChild->AddAttribute(XmlNodeKeys::BackgroundBrightnessAttribute, std::to_string(lg->GetBackgroundBrightness()));
         lgChild->AddAttribute(XmlNodeKeys::BackgroundAlphaAttribute, std::to_string(lg->GetBackgroundAlpha()));
         lgChild->AddAttribute(XmlNodeKeys::ScaleImageAttribute, std::to_string(lg->GetBackgroundScaled()));
+        lgChild->AddAttribute("PosX", std::to_string(lg->GetPosX()));
+        lgChild->AddAttribute("PosY", std::to_string(lg->GetPosY()));
+        lgChild->AddAttribute("PaneWidth", std::to_string(lg->GetPaneWidth()));
+        lgChild->AddAttribute("PaneHeight", std::to_string(lg->GetPaneHeight()));
         lgNode->AddChild(lgChild);
     }
     node->AddChild(lgNode);
