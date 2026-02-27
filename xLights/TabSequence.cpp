@@ -105,7 +105,6 @@ void xLightsFrame::ResetEffectsXml()
 {
     _sequenceViewManager.Reset();
     EffectsNode = nullptr;
-    PalettesNode = nullptr;
     SettingsNode = nullptr;
     PerspectivesNode = nullptr;
 }
@@ -190,7 +189,8 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     wxXmlNode* modelsNode = nullptr;
     wxXmlNode* viewObjectsNode = nullptr;
     wxXmlNode* modelGroupsNode = nullptr;
-    EffectsNode = PalettesNode = SettingsNode = PerspectivesNode = nullptr;
+    EffectsNode = SettingsNode = PerspectivesNode = nullptr;
+    wxXmlNode* palettesNode = nullptr;
     wxXmlNode* viewsNode = nullptr;
     wxXmlNode* colorsNode = nullptr;
     wxXmlNode* viewpointsNode = nullptr;
@@ -199,7 +199,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         if (e->GetName() == "models") modelsNode = e;
         if (e->GetName() == "view_objects") viewObjectsNode = e;
         if (e->GetName() == "effects") EffectsNode = e;
-        if (e->GetName() == "palettes") PalettesNode = e;
+        if (e->GetName() == "palettes") palettesNode = e;
         if (e->GetName() == "views") viewsNode = e;
         if (e->GetName() == "colors") colorsNode = e;
         if (e->GetName() == "Viewpoints") viewpointsNode = e;
@@ -254,9 +254,9 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         root->AddChild(EffectsNode);
         UnsavedRgbEffectsChanges = true;
     }
-    if (PalettesNode == nullptr) {
-        PalettesNode = new wxXmlNode(wxXML_ELEMENT_NODE, "palettes");
-        root->AddChild(PalettesNode);
+    if (palettesNode == nullptr) {
+        palettesNode = new wxXmlNode(wxXML_ELEMENT_NODE, "palettes");
+        root->AddChild(palettesNode);
         UnsavedRgbEffectsChanges = true;
     }
 

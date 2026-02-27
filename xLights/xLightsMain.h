@@ -1631,7 +1631,7 @@ protected:
     wxXmlNode* PerspectivesNode = nullptr;
 public:
     bool RebuildControllerConfig(OutputManager* outputManager, ModelManager* modelManager);
-    wxXmlNode* PalettesNode = nullptr;
+
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
     void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog, const wxString &realPath = "");
     void OpenSequence(const wxString& passed_filename) {
