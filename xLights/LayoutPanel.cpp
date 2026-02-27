@@ -7278,51 +7278,42 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             logger_base.debug("LayoutPanel::DoUndo All");
             UnSelectAllModels();
 
-            wxStringInputStream gin(undoBuffer[sz].groups);
-            wxXmlDocument gdoc;
-            gdoc.Load(gin);
+            // Restore models and groups from serialized XML
             wxStringInputStream min(undoBuffer[sz].models);
             wxXmlDocument mdoc(min);
+            if (mdoc.IsOk() && mdoc.GetRoot() != nullptr) {
+                wxXmlNode* modelsNode = nullptr;
+                wxXmlNode* groupsNode = nullptr;
+                for (wxXmlNode* n = mdoc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
+                    if (n->GetName() == "models") modelsNode = n;
+                    else if (n->GetName() == "modelGroups") groupsNode = n;
+                }
+                if (modelsNode != nullptr) {
+                    xlights->AllModels.LoadModels(modelsNode,
+                        modelPreview->GetVirtualCanvasWidth(),
+                        modelPreview->GetVirtualCanvasHeight());
+                }
+                if (groupsNode != nullptr) {
+                    xlights->AllModels.LoadGroups(groupsNode,
+                        modelPreview->GetVirtualCanvasWidth(),
+                        modelPreview->GetVirtualCanvasHeight());
+                }
+            }
+
+            // Restore view objects from serialized XML
             wxStringInputStream oin(undoBuffer[sz].objects);
             wxXmlDocument odoc(oin);
-
-            wxXmlNode *m = xlights->ModelsNode->GetChildren();
-            while (m != nullptr) {
-                xlights->ModelsNode->RemoveChild(m);
-                delete m;
-                m = xlights->ModelsNode->GetChildren();
-            }
-            m = mdoc.GetRoot()->GetChildren();
-            while (m != nullptr) {
-                mdoc.GetRoot()->RemoveChild(m);
-                xlights->ModelsNode->AddChild(m);
-                m = mdoc.GetRoot()->GetChildren();
-            }
-
-            wxXmlNode *o = xlights->ViewObjectsNode->GetChildren();
-            while (o != nullptr) {
-                xlights->ViewObjectsNode->RemoveChild(o);
-                delete o;
-                o = xlights->ViewObjectsNode->GetChildren();
-            }
-            o = odoc.GetRoot()->GetChildren();
-            while (o != nullptr) {
-                odoc.GetRoot()->RemoveChild(o);
-                xlights->ViewObjectsNode->AddChild(o);
-                o = odoc.GetRoot()->GetChildren();
-            }
-
-            m = xlights->ModelGroupsNode->GetChildren();
-            while (m != nullptr) {
-                xlights->ModelGroupsNode->RemoveChild(m);
-                delete m;
-                m = xlights->ModelGroupsNode->GetChildren();
-            }
-            m = gdoc.GetRoot()->GetChildren();
-            while (m != nullptr) {
-                gdoc.GetRoot()->RemoveChild(m);
-                xlights->ModelGroupsNode->AddChild(m);
-                m = gdoc.GetRoot()->GetChildren();
+            if (odoc.IsOk() && odoc.GetRoot() != nullptr) {
+                wxXmlNode* objectsNode = nullptr;
+                for (wxXmlNode* n = odoc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
+                    if (n->GetName() == "view_objects") {
+                        objectsNode = n;
+                        break;
+                    }
+                }
+                if (objectsNode != nullptr) {
+                    xlights->AllObjects.LoadViewObjects(objectsNode);
+                }
             }
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoUndo");
