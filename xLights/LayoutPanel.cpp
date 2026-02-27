@@ -7898,15 +7898,22 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             return;
         std::string name = xlights->AllModels.GenerateModelName(sel);
 
-        wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroup");
-        for (auto it = mg->GetModelXml()->GetAttributes(); it != nullptr; it = it->GetNext()) {
-            if (it->GetName() == "name") {
-                node->AddAttribute("name", name);
-            } else {
-                node->AddAttribute(it->GetName(), it->GetValue());
-            }
+        // Serialize the existing group to a temporary XML node, then rename it
+        wxXmlNode* groupsRoot = new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroups");
+        XmlSerializingVisitor visitor{ groupsRoot };
+        mg->Accept(visitor);
+        wxXmlNode* node = groupsRoot->GetChildren();
+        if (node != nullptr) {
+            groupsRoot->RemoveChild(node);
+            node->DeleteAttribute("name");
+            node->AddAttribute("name", name);
         }
-        xlights->AllModels.AddModel(xlights->AllModels.CreateModel(node));
+        delete groupsRoot;
+
+        if (node != nullptr) {
+            xlights->AllModels.AddModel(xlights->AllModels.CreateModel(node));
+            delete node;
+        }
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_CLONE_MODEL_GROUP", nullptr, nullptr, name);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_CLONE_MODEL_GROUP");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnModelsPopup::ID_MNU_CLONE_MODEL_GROUP");

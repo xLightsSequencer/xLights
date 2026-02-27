@@ -96,7 +96,6 @@ public:
 
     void SetDisplayAs(const std::string& type) { DisplayAs = type; }
 
-    wxXmlNode* GetModelXml() const { return nullptr; } //TODO - remove
     virtual void Setup() = 0;
     
     virtual const std::string &GetLayoutGroup() const {return layout_group;}
