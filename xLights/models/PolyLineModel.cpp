@@ -28,10 +28,12 @@
 #include "../xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 #include <log4cpp/Category.hh>
 
 PolyLineModel::PolyLineModel(const ModelManager &manager) : ModelWithScreenLocation(manager) {
+    DisplayAs = XmlNodeKeys::PolyLineType;
     parm1 = parm2 = parm3 = 0;
     stringStartChan.resize(_strings);
     _polyCorner.resize(2);

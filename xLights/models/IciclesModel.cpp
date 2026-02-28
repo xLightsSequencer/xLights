@@ -16,9 +16,11 @@
 #include "../OutputModelManager.h"
 #include "../xLightsVersion.h"
 #include "../xLightsMain.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 IciclesModel::IciclesModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
+    DisplayAs = XmlNodeKeys::IciclesType;
     screenLocation.SetMHeight(-0.5);
     screenLocation.SetSupportsShear(true);
 }

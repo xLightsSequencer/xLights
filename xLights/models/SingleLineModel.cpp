@@ -14,11 +14,13 @@
 #include <wx/xml/xml.h>
 
 #include "ModelScreenLocation.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 std::vector<std::string> SingleLineModel::LINE_BUFFER_STYLES;
 
 SingleLineModel::SingleLineModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
+    DisplayAs = XmlNodeKeys::SingleLineType;
     parm1 = 0;
     parm2 = 0;
     parm3 = 0;

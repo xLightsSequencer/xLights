@@ -15,11 +15,13 @@
 #include "../OutputModelManager.h"
 #include "CandyCaneModel.h"
 #include "ModelScreenLocation.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 #include <log4cpp/Category.hh>
 
 CandyCaneModel::CandyCaneModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
+    DisplayAs = XmlNodeKeys::CandyCaneType;
     screenLocation.SetModelHandleHeight(true);
     screenLocation.SetSupportsAngle(true);
     screenLocation.SetPreferredSelectionPlane(ModelScreenLocation::MSLPLANE::GROUND);

@@ -21,9 +21,11 @@
 #include "../xLightsMain.h"
 #include "../UtilFunctions.h"
 #include "../ModelPreview.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 CircleModel::CircleModel(const ModelManager& manager) : ModelWithScreenLocation(manager)
 {
+    DisplayAs = XmlNodeKeys::CircleType;
 }
 
 CircleModel::~CircleModel()

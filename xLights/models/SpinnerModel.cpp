@@ -19,9 +19,11 @@
 #include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
 #include "ModelScreenLocation.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 SpinnerModel::SpinnerModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
+    DisplayAs = XmlNodeKeys::SpinnerType;
 }
 
 SpinnerModel::~SpinnerModel()

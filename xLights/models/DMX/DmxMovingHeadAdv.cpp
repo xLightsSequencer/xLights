@@ -36,6 +36,7 @@
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
+#include "../../XmlSerializer/XmlNodeKeys.h"
 
 enum MOTION_LINK {
     MOTION_LINK_MESH1,
@@ -73,6 +74,7 @@ static wxPGChoices DMX_COLOR_TYPES(wxArrayString(4, DMX_COLOR_TYPES_VALUES));
 DmxMovingHeadAdv::DmxMovingHeadAdv(const ModelManager &manager) :
     DmxMovingHeadComm(manager)
 {
+    DisplayAs = XmlNodeKeys::DmxMovingHeadAdvType;
     wxStandardPaths stdp = wxStandardPaths::Get();
 #ifndef __WXMSW__
     obj_path = wxStandardPaths::Get().GetResourcesDir() + "/meshobjects/SimpleMovingHead/";

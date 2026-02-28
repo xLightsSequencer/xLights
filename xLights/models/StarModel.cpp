@@ -21,6 +21,7 @@
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 #include <math.h>
 
@@ -28,6 +29,7 @@ std::vector<std::string> StarModel::STAR_BUFFER_STYLES;
 
 StarModel::StarModel(const ModelManager& manager) : ModelWithScreenLocation(manager)
 {
+    DisplayAs = XmlNodeKeys::StarType;
 }
 
 StarModel::~StarModel()

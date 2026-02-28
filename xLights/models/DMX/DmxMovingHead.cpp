@@ -32,10 +32,12 @@
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
+#include "../../XmlSerializer/XmlNodeKeys.h"
 
 DmxMovingHead::DmxMovingHead(const ModelManager &manager) :
     DmxMovingHeadComm(manager)
 {
+    DisplayAs = XmlNodeKeys::DmxMovingHeadType;
     // create pan motor
     pan_motor = std::make_unique<DmxMotor>("PanMotor");
     pan_motor->SetChannelCoarse(1);

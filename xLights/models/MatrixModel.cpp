@@ -21,11 +21,13 @@
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 #include <log4cpp/Category.hh>
 
 MatrixModel::MatrixModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
+    DisplayAs = XmlNodeKeys::MatrixType;
 }
 
 MatrixModel::~MatrixModel()

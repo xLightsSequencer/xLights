@@ -19,6 +19,7 @@
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
 #include "../ExternalHooks.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 #include <log4cpp/Category.hh>
 
@@ -28,6 +29,7 @@
 
 ImageModel::ImageModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
+    DisplayAs = XmlNodeKeys::ImageType;
     _whiteAsAlpha = false;
     _offBrightness = 80;
     _imageFile = "";

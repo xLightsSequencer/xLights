@@ -916,7 +916,6 @@ void XmlDeserializingModelFactory::DeserializeDmxMotor(DmxMotor* motor, wxXmlNod
     motor->SetOrientZero(std::stoi(node->GetAttribute(XmlNodeKeys::OrientZeroAttribute, "0").ToStdString()));
     motor->SetOrientHome(std::stoi(node->GetAttribute(XmlNodeKeys::OrientHomeAttribute, "0").ToStdString()));
     motor->SetSlewLimit(std::stof(node->GetAttribute(XmlNodeKeys::SlewLimitAttribute, "0.0").ToStdString()));
-    motor->SetReverse(std::stoi(node->GetAttribute(XmlNodeKeys::OrientHomeAttribute, "0").ToStdString()));
     motor->SetReverse(node->GetAttribute(XmlNodeKeys::ReverseAttribute, "0") == "1");
     motor->SetUpsideDown(node->GetAttribute(XmlNodeKeys::UpsideDownAttribute, "0") == "1");
 }

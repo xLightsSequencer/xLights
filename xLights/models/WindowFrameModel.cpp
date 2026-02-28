@@ -14,11 +14,13 @@
 
 #include "WindowFrameModel.h"
 #include "ModelScreenLocation.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 #include <log4cpp/Category.hh>
 
 WindowFrameModel::WindowFrameModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
+    DisplayAs = XmlNodeKeys::WindowType;
 }
 
 WindowFrameModel::~WindowFrameModel()

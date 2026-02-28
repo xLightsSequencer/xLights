@@ -22,10 +22,12 @@
 #include "../../UtilFunctions.h"
 #include "DmxColorAbilityRGB.h"
 #include "DmxPresetAbility.h"
+#include "../../XmlSerializer/XmlNodeKeys.h"
 
 DmxGeneral::DmxGeneral(const ModelManager &manager)
   : DmxModel(manager)
 {
+    DisplayAs = XmlNodeKeys::DmxGeneralType;
     color_ability = std::make_unique<DmxColorAbilityRGB>();
 }
 

@@ -24,6 +24,7 @@
 #include "../outputs/Controller.h"
 #include "../ModelPreview.h"
 #include "CustomModel.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 #include <log4cpp/Category.hh>
 
@@ -111,6 +112,7 @@ static wxPGChoices STRAND_STYLES(wxArrayString(3, STRAND_STYLES_VALUES));
 
 CubeModel::CubeModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
+    DisplayAs = XmlNodeKeys::CubeType;
     screenLocation.SetSupportsZScaling(true);
 }
 

@@ -23,9 +23,11 @@
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"
 #include "CustomModel.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 TreeModel::TreeModel(const ModelManager &manager) : MatrixModel(manager)
 {
+    DisplayAs = XmlNodeKeys::TreeType;
     screenLocation.SetSupportsZScaling(true);
     screenLocation.SetPreferredSelectionPlane(ModelScreenLocation::MSLPLANE::GROUND);
 }

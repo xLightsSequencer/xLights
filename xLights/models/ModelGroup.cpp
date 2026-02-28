@@ -17,6 +17,7 @@
 #include "SingleLineModel.h"
 #include "ModelScreenLocation.h"
 #include "../UtilFunctions.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 #include <log4cpp/Category.hh>
 
@@ -380,7 +381,7 @@ bool ModelGroup::RemoveNonExistentModels(wxXmlNode* node, const std::set<std::st
 ModelGroup::ModelGroup(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
     // Initialize basic state
-    DisplayAs = "ModelGroup";
+    DisplayAs = XmlNodeKeys::ModelGroupType;
     StringType = "RGB Nodes";
     selected = false;
     

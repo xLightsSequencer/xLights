@@ -26,6 +26,7 @@
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
+#include "../../XmlSerializer/XmlNodeKeys.h"
 #include <log4cpp/Category.hh>
 #include "../../ModelPreview.h"
 
@@ -34,6 +35,7 @@ static const int SUPPORTED_SERVOS = 24;
 DmxServo::DmxServo(const ModelManager &manager)
     : DmxModel(manager)
 {
+    DisplayAs = XmlNodeKeys::DmxServoType;
 }
 
 DmxServo::~DmxServo()

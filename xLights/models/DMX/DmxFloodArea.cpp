@@ -17,10 +17,12 @@
 #include "../../UtilFunctions.h"
 #include "../../xLightsMain.h"
 #include "../../xLightsVersion.h"
+#include "../../XmlSerializer/XmlNodeKeys.h"
 
 DmxFloodArea::DmxFloodArea(const ModelManager &manager)
     : DmxFloodlight(manager)
 {
+    DisplayAs = XmlNodeKeys::DmxFloodAreaType;
 }
 
 DmxFloodArea::~DmxFloodArea()

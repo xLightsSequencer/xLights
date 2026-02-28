@@ -26,11 +26,13 @@
 #include "../ModelPreview.h"
 #include "RulerObject.h"
 #include "../XmlSerializer/XmlSerializer.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 #include <log4cpp/Category.hh>
 
 CustomModel::CustomModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
+    DisplayAs = XmlNodeKeys::CustomType;
     _depth = 1;
     _strings = 1;
     screenLocation.SetSupportsZScaling(true);

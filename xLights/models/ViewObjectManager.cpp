@@ -67,6 +67,7 @@ ViewObject* ViewObjectManager::CreateAndAddObject(const std::string &type) {
         return nullptr;
     }
     view_object->SetName(GenerateObjectName(type));
+    view_object->SetDisplayAs(type);
     AddViewObject(view_object);
 
     return view_object;

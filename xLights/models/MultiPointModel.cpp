@@ -14,9 +14,11 @@
 #include "MultiPointModel.h"
 #include "../xLightsMain.h"
 #include "../xLightsVersion.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 MultiPointModel::MultiPointModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
+    DisplayAs = XmlNodeKeys::MultiPointType;
     parm1 = parm2 = parm3 = 0;
 }
 

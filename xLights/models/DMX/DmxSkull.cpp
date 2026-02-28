@@ -27,10 +27,12 @@
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
+#include "../../XmlSerializer/XmlNodeKeys.h"
 
 DmxSkull::DmxSkull(const ModelManager& manager) :
     DmxModel(manager)
 {
+    DisplayAs = XmlNodeKeys::DmxSkullType;
     color_ability = std::make_unique<DmxColorAbilityRGB>();
 
     wxStandardPaths stdp = wxStandardPaths::Get();

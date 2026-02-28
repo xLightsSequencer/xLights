@@ -23,11 +23,13 @@
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"
 #include "CustomModel.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 #include <log4cpp/Category.hh>
 
 SphereModel::SphereModel(const ModelManager &manager) : MatrixModel(manager)
 {
+    DisplayAs = XmlNodeKeys::SphereType;
     screenLocation.SetSupportsZScaling(true);
     screenLocation.SetStartOnXAxis(true);
 }

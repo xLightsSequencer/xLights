@@ -12,9 +12,11 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include "WreathModel.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 WreathModel::WreathModel(const ModelManager &manager): ModelWithScreenLocation(manager)
 {
+    DisplayAs = XmlNodeKeys::WreathType;
 }
 
 WreathModel::~WreathModel()

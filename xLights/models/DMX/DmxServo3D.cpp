@@ -26,6 +26,7 @@
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
+#include "../../XmlSerializer/XmlNodeKeys.h"
 
 enum MOTION_LINK {
     MOTION_LINK_MESH1,
@@ -57,6 +58,7 @@ enum MOTION_LINK {
 DmxServo3d::DmxServo3d(const ModelManager &manager)
     : DmxModel(manager)
 {
+    DisplayAs = XmlNodeKeys::DmxServo3dType;
     for (int i = 0; i < SUPPORTED_SERVOS; ++i) {
         servo_links[i] = -1;
         mesh_links[i] = -1;
