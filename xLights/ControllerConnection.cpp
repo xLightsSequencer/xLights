@@ -190,7 +190,7 @@ void ControllerConnection::SetZigZag(int zigzag)
 
 void ControllerConnection::SetDMXChannel(int ch)
 {
-    if (_dmxChannel != ch) return;
+    if (_dmxChannel == ch) return;
     if (ch > 0) {
         _dmxChannel = ch;
     }

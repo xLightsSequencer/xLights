@@ -93,7 +93,9 @@ void XmlSerializingVisitor::AddCommonModelAttributes(const Model& model, wxXmlNo
     node->AddAttribute(XmlNodeKeys::Parm3Attribute, std::to_string(model.GetParm3()));
     node->AddAttribute(XmlNodeKeys::AntialiasAttribute, std::to_string((long)model.GetPixelStyle()));
     node->AddAttribute(XmlNodeKeys::PixelSizeAttribute, std::to_string(model.GetPixelSize()));
-    node->AddAttribute(XmlNodeKeys::RGBWHandleAttribute, model.GetRGBWHandling());
+    if (model.GetChanCountPerNode() > 3) {
+        node->AddAttribute(XmlNodeKeys::RGBWHandleAttribute, model.GetRGBWHandling());
+    }
     node->AddAttribute(XmlNodeKeys::StringTypeAttribute, model.GetStringType());
     node->AddAttribute(XmlNodeKeys::TransparencyAttribute, std::to_string(model.GetTransparency()));
     if (model.GetBlackTransparency() != 0) {
@@ -474,6 +476,7 @@ void XmlSerializingVisitor::AddControllerConnection(wxXmlNode* node, const Model
         xmlNode->AddAttribute(XmlNodeKeys::ProtocolAttribute, m->GetControllerProtocol());
         if (m->IsSerialProtocol()) {
             xmlNode->AddAttribute(XmlNodeKeys::ProtocolSpeedAttribute, std::to_string(m->GetControllerProtocolSpeed()));
+            xmlNode->AddAttribute(XmlNodeKeys::ChannelAttribute, std::to_string(cc.GetDMXChannel()));
         }
 
         // Save all the property checkbox active states
@@ -598,8 +601,10 @@ void XmlSerializingVisitor::Visit(const CustomModel& model) {
     } else {
         xmlNode->AddAttribute(XmlNodeKeys::CustomModelCmpAttribute, custom_data);
     }
-    xmlNode->AddAttribute(XmlNodeKeys::BkgImageAttribute, model.GetCustomBackground());
-    xmlNode->AddAttribute(XmlNodeKeys::BkgLightnessAttribute, std::to_string(model.GetCustomLightness()));
+    if (!model.GetCustomBackground().empty()) {
+        xmlNode->AddAttribute(XmlNodeKeys::BkgImageAttribute, model.GetCustomBackground());
+        xmlNode->AddAttribute(XmlNodeKeys::BkgLightnessAttribute, std::to_string(model.GetCustomLightness()));
+    }
     
     if (model.HasIndivStartNodes()) {
         int cnt = model.GetIndivStartNodesCount();
