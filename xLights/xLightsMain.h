@@ -1532,7 +1532,8 @@ private:
 
     // sequence
     void LoadEffectsFile();
-    void CreateDefaultEffectsXml();
+    void CreateDefaultEffectsXml(wxXmlDocument& doc);
+    wxXmlDocument BuildEffectsXml();
     bool TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, const wxString& PageName);
     void SetPanelSequencerLabel(const std::string& sequence);
@@ -1632,7 +1633,6 @@ protected:
     std::string PackageDebugFiles(bool showDialogs = true);
 
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
-    wxXmlDocument EffectsXml;
 	SequenceViewManager _sequenceViewManager;
     wxXmlNode* EffectsNode = nullptr;
 public:

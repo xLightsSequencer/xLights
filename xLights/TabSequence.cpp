@@ -54,39 +54,42 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename) const
     FileNameText->SetLabel(filename);
 }
 
-wxXmlDocument xLightsFrame::GetEffectsXml()
+wxXmlDocument xLightsFrame::BuildEffectsXml()
 {
-    // Start with a copy of EffectsXml (preserves views, palettes, settings, etc.)
-    wxXmlDocument result = EffectsXml;
+    wxXmlDocument result;
+    wxXmlNode* root = new wxXmlNode(wxXML_ELEMENT_NODE, "xrgb");
+    result.SetRoot(root);
+    wxXmlDoctype dt("");
+    result.SetDoctype(dt);
 
-    if (result.GetRoot() == nullptr) {
-        return result;
+    // Update version and temporarily attach EffectsNode
+    if (EffectsNode != nullptr) {
+        EffectsNode->DeleteAttribute("version");
+        EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
+        root->AddChild(EffectsNode);
     }
 
-    // Remove stale models/groups/objects/layoutGroups/perspectives/settings nodes
-    wxXmlNode* child = result.GetRoot()->GetChildren();
-    while (child) {
-        if (child->GetName() == "models" || child->GetName() == "modelGroups" ||
-            child->GetName() == "view_objects" || child->GetName() == "layoutGroups" ||
-            child->GetName() == "perspectives" || child->GetName() == "settings") {
-            auto* a = child;
-            child = child->GetNext();
-            result.GetRoot()->RemoveChild(a);
-            delete a;
-        } else {
-            child = child->GetNext();
-        }
-    }
-
-    // Re-serialize current state from AllModels/AllObjects/LayoutGroups/_perspectives/_xmlSettings
     XmlSerializer serializer;
-    serializer.SerializeAllModels(AllModels, this, result.GetRoot());
-    serializer.SerializeAllObjects(AllObjects, this, result.GetRoot());
-    serializer.SerializeAllLayoutGroups(LayoutGroups, result.GetRoot());
-    SerializePerspectives(result.GetRoot());
-    SerializeSettings(result.GetRoot());
+    serializer.SerializeAllModels(AllModels, this, root);
+    serializer.SerializeAllObjects(AllObjects, this, root);
+    serializer.SerializeAllLayoutGroups(LayoutGroups, root);
+    SerializePerspectives(root);
+    SerializeSettings(root);
+    _sequenceViewManager.Save(&result);
+    color_mgr.Save(&result);
+    viewpoint_mgr.Save(&result);
+
+    // Detach EffectsNode so it isn't destroyed when result goes out of scope
+    if (EffectsNode != nullptr) {
+        root->RemoveChild(EffectsNode);
+    }
 
     return result;
+}
+
+wxXmlDocument xLightsFrame::GetEffectsXml()
+{
+    return BuildEffectsXml();
 }
 
 void xLightsFrame::SerializeSettings(wxXmlNode* root)
@@ -134,6 +137,7 @@ void xLightsFrame::ResetEffectsXml()
     AllModels.clear();
     AllObjects.clear();
     _sequenceViewManager.Reset();
+    delete EffectsNode;
     EffectsNode = nullptr;
     _xmlSettings.clear();
 }
@@ -149,9 +153,11 @@ void xLightsFrame::LoadEffectsFile()
     effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
     UnsavedRgbEffectsChanges = false;
 
+    wxXmlDocument effectsXml;
+
     if (!FileExists(effectsFile)) {
         // file does not exist, so create an empty xml doc
-        CreateDefaultEffectsXml();
+        CreateDefaultEffectsXml(effectsXml);
     }
     else {
         // check if there is a autosave backup file which is newer than the file we have been asked to open
@@ -203,18 +209,18 @@ void xLightsFrame::LoadEffectsFile()
             }
         }
         wxXmlParseError error;
-        if (!EffectsXml.Load(effectsFile.GetFullPath(), wxXMLDOC_NONE, &error)) {
+        if (!effectsXml.Load(effectsFile.GetFullPath(), wxXMLDOC_NONE, &error)) {
             DisplayError(wxString::Format("Unable to load RGB effects File ... Creating a Default One.\nError at Line: %d Column: %d Error '%s'", error.line, error.column, error.message), this);
-            CreateDefaultEffectsXml();
+            CreateDefaultEffectsXml(effectsXml);
         }
         wxXmlDoctype dt("");
-        EffectsXml.SetDoctype(dt);
+        effectsXml.SetDoctype(dt);
     }
 
-    wxXmlNode* root = EffectsXml.GetRoot();
+    wxXmlNode* root = effectsXml.GetRoot();
     if (root->GetName() != "xrgb") {
         DisplayError("Invalid RGB effects file ... creating a default one.", this);
-        CreateDefaultEffectsXml();
+        CreateDefaultEffectsXml(effectsXml);
     }
     
     
@@ -242,6 +248,11 @@ void xLightsFrame::LoadEffectsFile()
             }
         }
         if (e->GetName() == "perspectives") perspectivesNode = e;
+    }
+
+    // Detach EffectsNode from the document so it can be held independently
+    if (EffectsNode != nullptr) {
+        root->RemoveChild(EffectsNode);
     }
     // This is the earliest we can do the backup as now the settings node will be populated
     _backupDirectory = GetXmlSetting("backupDir", showDirectory);
@@ -398,7 +409,6 @@ void xLightsFrame::LoadEffectsFile()
     if (EffectsNode == nullptr) {
         EffectsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "effects");
         EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
-        root->AddChild(EffectsNode);
         UnsavedRgbEffectsChanges = true;
     }
 
@@ -751,33 +761,7 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     if (!lock.owns_lock())
         return false;
 
-    wxXmlNode *child = EffectsXml.GetRoot()->GetChildren();
-    while (child) {
-        if (child->GetName() == "models" || child->GetName() == "modelGroups" ||
-            child->GetName() == "view_objects" || child->GetName() == "layoutGroups" ||
-            child->GetName() == "perspectives" || child->GetName() == "settings") {
-            auto *a = child;
-            child = child->GetNext();
-            EffectsXml.GetRoot()->RemoveChild(a);
-            delete a;
-        } else {
-            child = child->GetNext();
-        }
-    }
-
-    XmlSerializer serializer;
-    serializer.SerializeAllModels(AllModels, this, EffectsXml.GetRoot());
-    serializer.SerializeAllObjects(AllObjects, this, EffectsXml.GetRoot());
-    serializer.SerializeAllLayoutGroups(LayoutGroups, EffectsXml.GetRoot());
-    SerializePerspectives(EffectsXml.GetRoot());
-    SerializeSettings(EffectsXml.GetRoot());
-
-    // Make sure the views are up to date before we save it
-    _sequenceViewManager.Save(&EffectsXml);
-
-    color_mgr.Save(&EffectsXml);
-
-    viewpoint_mgr.Save(&EffectsXml);
+    wxXmlDocument saveXml = BuildEffectsXml();
 
     wxFileName effectsFile;
     effectsFile.AssignDir(CurrentDir);
@@ -790,7 +774,7 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     wxFileOutputStream fout(effectsFile.GetFullPath());
     wxBufferedOutputStream *bout = new wxBufferedOutputStream(fout, 2 * 1024 * 1024);
 
-    if (!EffectsXml.Save(*bout)) {
+    if (!saveXml.Save(*bout)) {
         if (backup) {
             logger_base.warn("Unable to save backup of RGB effects file");
         } else {
@@ -800,6 +784,7 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
         return false;
     }
     delete bout;
+
     if (!fout.Close()) {
         if (backup) {
             logger_base.warn("Unable to save backup of RGB effects file");
@@ -822,12 +807,12 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     return true;
 }
 
-void xLightsFrame::CreateDefaultEffectsXml()
+void xLightsFrame::CreateDefaultEffectsXml(wxXmlDocument& doc)
 {
     wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, "xrgb" );
-    EffectsXml.SetRoot( root );
+    doc.SetRoot( root );
     wxXmlDoctype dt("");
-    EffectsXml.SetDoctype(dt);
+    doc.SetDoctype(dt);
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
     UpdateControllerSave();
