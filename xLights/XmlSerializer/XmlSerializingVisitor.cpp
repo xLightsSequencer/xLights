@@ -499,18 +499,6 @@ void XmlSerializingVisitor::AddControllerConnection(wxXmlNode* node, const Model
     }
 }
 
-void XmlSerializingVisitor::AddDimensions(wxXmlNode* node, const Model* m) {
-    std::string rdu = m->GetRulerDim();
-    if (rdu != "") {
-        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::DimNodeName);
-        xmlNode->AddAttribute(XmlNodeKeys::DimDepthAttribute, std::to_string(m->GetModelScreenLocation().GetRealDepth()));
-        xmlNode->AddAttribute(XmlNodeKeys::DimHeightAttribute, std::to_string(m->GetModelScreenLocation().GetRealHeight()));
-        xmlNode->AddAttribute(XmlNodeKeys::DimUnitsAttribute, rdu);
-        xmlNode->AddAttribute(XmlNodeKeys::DimWidthAttribute, std::to_string(m->GetModelScreenLocation().GetRealWidth()));
-        node->AddChild(xmlNode);
-    }
-}
-
 void XmlSerializingVisitor::AddOtherElements(wxXmlNode* xmlNode, const Model* m)
 {
     SortAttributes(xmlNode);

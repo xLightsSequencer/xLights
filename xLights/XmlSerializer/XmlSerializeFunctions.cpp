@@ -440,6 +440,18 @@ std::string GetModelAttributesAsJSON(const wxXmlNode* modelNode) {
 void SerializeModelGroupsForModel(const Model* model, wxXmlNode* docNode) {
     if (model == nullptr) return;
     
+    // Find the "model" node within docNode
+    wxXmlNode* modelNode = nullptr;
+    for (wxXmlNode* child = docNode->GetChildren(); child != nullptr; child = child->GetNext()) {
+        if (child->GetName() == "model") {
+            modelNode = child;
+            break;
+        }
+    }
+    
+    // If no model node found, return early
+    if (modelNode == nullptr) return;
+    
     const ModelManager& mgr = model->GetModelManager();
 
     wxArrayString allGroups;
@@ -470,7 +482,7 @@ void SerializeModelGroupsForModel(const Model* model, wxXmlNode* docNode) {
         return;
     }
 
-    // Serialize selected model groups to the docNode
+    // Serialize selected model groups to the modelNode (not docNode)
     for (const auto& it : mgr.GetModels()) {
         if (onlyGroups.Index(it.first) != wxNOT_FOUND) {
             ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
@@ -498,9 +510,33 @@ void SerializeModelGroupsForModel(const Model* model, wxXmlNode* docNode) {
                 groupNode->AddAttribute(XmlNodeKeys::mgCentreyAttribute, std::to_string(mg->GetCentreY()));
                 groupNode->AddAttribute(XmlNodeKeys::mgCentreDefinedAttribute, std::to_string(mg->GetCentreDefined()));
 
-                docNode->AddChild(groupNode);
+                modelNode->AddChild(groupNode);
             }
         }
+    }
+}
+
+void AddDimensions(wxXmlNode* node, const Model* m) {
+    std::string rdu = m->GetRulerDim();
+    if (rdu != "") {
+        // Find the "model" node within the document
+        wxXmlNode* modelNode = nullptr;
+        for (wxXmlNode* child = node->GetChildren(); child != nullptr; child = child->GetNext()) {
+            if (child->GetName() == "model") {
+                modelNode = child;
+                break;
+            }
+        }
+        
+        // If no model node found, return early
+        if (modelNode == nullptr) return;
+        
+        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::DimNodeName);
+        xmlNode->AddAttribute(XmlNodeKeys::DimDepthAttribute, std::to_string(m->GetModelScreenLocation().GetRealDepth()));
+        xmlNode->AddAttribute(XmlNodeKeys::DimHeightAttribute, std::to_string(m->GetModelScreenLocation().GetRealHeight()));
+        xmlNode->AddAttribute(XmlNodeKeys::DimUnitsAttribute, rdu);
+        xmlNode->AddAttribute(XmlNodeKeys::DimWidthAttribute, std::to_string(m->GetModelScreenLocation().GetRealWidth()));
+        modelNode->AddChild(xmlNode);
     }
 }
 

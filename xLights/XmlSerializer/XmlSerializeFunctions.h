@@ -29,6 +29,7 @@ void DeserializeThreePointScreenLocationAttributes(BaseObject* object, wxXmlNode
 void DeserializePolyPointScreenLocationAttributes(BaseObject* object, wxXmlNode* node);
 
 void SerializeModelGroupsForModel(const Model* object, wxXmlNode* docNode);
+void AddDimensions(wxXmlNode* node, const Model* m);
 
 // Data structure for importing custom models
 struct CustomModelImportData {

@@ -106,7 +106,6 @@ private:
     void AddDimmingCurve(wxXmlNode* node, const Model* m);
     void AddSubmodels(wxXmlNode* node, const Model* m);
     void AddControllerConnection(wxXmlNode* node, const Model* m);
-    void AddDimensions(wxXmlNode* node, const Model* m);
     void AddSuperStrings(Model const& model, wxXmlNode* node);
     void AddOtherElements(wxXmlNode* xmlNode, const Model* m);
 
