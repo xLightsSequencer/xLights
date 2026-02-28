@@ -91,7 +91,14 @@ public:
     [[nodiscard]] bool IsVertical() const { return _vert; }
     [[nodiscard]] bool IsXYBufferStyle();
 
-    private:
+    
+    virtual void Setup() override;
+
+private:
+    void initSubbufferRange(std::string const& range);
+    void initDefaultBuffer(std::string const& nodes);
+    void initRangeXY(std::string const& nodes);
+
     Model *parent = nullptr;
     bool _nodesAllValid = false;
     bool _vert;

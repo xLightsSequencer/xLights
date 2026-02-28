@@ -437,14 +437,16 @@ auto getRange = [](wxString const& a) {
     return std::make_pair(i, i);
 };
 
-void SubModel::AddRangeXY( wxString const& nodes )
-{
-   _ranges.push_back(nodes);
-   if (_propertyGridDisplay == "") {
+void SubModel::AddRangeXY( wxString const& nodes ) {
+    _ranges.push_back(nodes);
+    if (_propertyGridDisplay == "") {
         _propertyGridDisplay = nodes;
     } else {
         _propertyGridDisplay = _propertyGridDisplay + "," + nodes;
     }
+    initRangeXY(nodes);
+}
+void SubModel::initRangeXY(std::string const& nodes) {
     wxStringTokenizer wtkz(nodes, ",");
     while (wtkz.HasMoreTokens()) {
         wxString valstr = wtkz.GetNextToken();
@@ -475,6 +477,9 @@ void SubModel::AddDefaultBuffer( wxString const& nodes )
     } else {
         _propertyGridDisplay = _propertyGridDisplay + "," + nodes;
     }
+    initDefaultBuffer(nodes);
+}
+void SubModel::initDefaultBuffer(const std::string &nodes) {
     wxStringTokenizer wtkz(nodes, ",");
     while (wtkz.HasMoreTokens()) {
         wxString valstr = wtkz.GetNextToken();
@@ -564,6 +569,9 @@ void SubModel::AddSubbuffer(std::string const& range )
 {
     // subbuffers cant generate duplicate nodes
     _propertyGridDisplay = range;
+    initSubbufferRange(range);
+}
+void SubModel::initSubbufferRange(std::string const& range) {
     float x1 = 0;
     float x2 = 100;
     float y1 = 0;
@@ -594,13 +602,12 @@ void SubModel::AddSubbuffer(std::string const& range )
     float maxx = -1;
     float miny = 10000;
     float maxy = -1;
-    
+        
     int nn = parent->GetNodeCount();
     for (int m = 0; m < nn; m++) {
         if (parent->IsNodeInBufferRange(m, x1, y1, x2, y2)) {
             NodeBaseClass* node = parent->Nodes[m]->clone();
             for (const auto& c : node->Coords) {
-                
                 if (c.bufX < minx) minx = c.bufX;
                 if (c.bufY < miny) miny = c.bufY;
                 if (c.bufX > maxx) maxx = c.bufX;
@@ -633,4 +640,31 @@ void SubModel::AddSubbuffer(std::string const& range )
     
     //ModelStartChannel is 1 based
     this->ModelStartChannel = wxString::Format("%u", (_startChannel + 1));
+}
+
+
+void SubModel::Setup() {
+    Model::Setup();
+    // Populate the submodel based on type
+    
+    Nodes.clear();
+    _nodeIndexes.clear();
+    _nodeIndexMap.clear();
+    _nodeIdx.clear();
+    
+    if (IsRanges()) {
+        if (IsXYBufferStyle()) {
+            // XY buffer style (Keep XY)
+            initRangeXY(_propertyGridDisplay);
+            CheckDuplicates();
+            CalcRangeXYBufferSize();
+        } else {
+            // Default and stacked buffer styles
+            initDefaultBuffer(_propertyGridDisplay);
+            CheckDuplicates();
+        }
+    } else {
+        // Subbuffer type
+        initSubbufferRange(_propertyGridDisplay);
+    }
 }

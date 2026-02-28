@@ -127,6 +127,7 @@ void XmlDeserializingModelFactory::CommonDeserializeSteps(Model* model, wxXmlNod
     DeserializeCommonModelAttributes(model, node, xlights, importing);
     DeserializeModelScreenLocationAttributes(model, node, importing);
     DeserializeSuperStrings(model, node);
+    DeserializeCommonModelChildElements(model, node, xlights, importing);
 }
 
 void XmlDeserializingModelFactory::DeserializeControllerConnection(Model* model, wxXmlNode* node) {
@@ -215,14 +216,14 @@ void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model
     model->SetPixelSpacing(node->GetAttribute(XmlNodeKeys::PixelSpacingAttribute, ""));
     model->SetPixelCount(node->GetAttribute(XmlNodeKeys::PixelCountAttribute, ""));
     model->SetPixelType(node->GetAttribute(XmlNodeKeys::PixelTypeAttribute, ""));
-
+    
     if (!importing) {
         model->SetControllerName(node->GetAttribute(XmlNodeKeys::ControllerAttribute, xlEMPTY_STRING).Trim(true).Trim(false).ToStdString(), true);
     }
-
+    
     // Keep this after SetControllerName because it can clear out the start channel
     model->SetStartChannel(node->GetAttribute(XmlNodeKeys::StartChannelAttribute, "1").ToStdString());
-
+    
     // Individual Start Channels
     bool hasIndivChan = std::stol(node->GetAttribute(XmlNodeKeys::AdvancedAttribute,"0").ToStdString());
     model->SetHasIndividualStartChannels(hasIndivChan);
@@ -233,7 +234,23 @@ void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model
             model->SetIndividualStartChannel(i, node->GetAttribute(model->StartChanAttrName(i), "").ToStdString());
         }
     }
+    
+    if (node->HasAttribute(XmlNodeKeys::ModelBrightnessAttribute) && model->GetDimmingCurve() == nullptr) {
+        std::string mb = node->GetAttribute(XmlNodeKeys::ModelBrightnessAttribute, "0").ToStdString();
+        if (mb.empty()) {
+            mb = "0";
+        }
+        int b = std::stoi(mb);
+        if (b != 0) {
+            std::map<std::string, std::map<std::string, std::string>> dimmingInfo;
+            dimmingInfo["all"]["gamma"] = "1.0";
+            dimmingInfo["all"]["brightness"] = mb;
+            model->SetDimmingInfo(dimmingInfo);
+        }
+    }
+}
 
+void XmlDeserializingModelFactory::DeserializeCommonModelChildElements(Model* model, wxXmlNode* node, xLightsFrame* xlights,bool importing) {
     bool importAliases = !importing;
     bool skipImportAliases = false;
     bool merge = false;
@@ -292,20 +309,6 @@ void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model
             }
         }
         f = f->GetNext();
-    }
-    
-    if (node->HasAttribute(XmlNodeKeys::ModelBrightnessAttribute) && model->GetDimmingCurve() == nullptr) {
-        std::string mb = node->GetAttribute(XmlNodeKeys::ModelBrightnessAttribute, "0").ToStdString();
-        if (mb.empty()) {
-            mb = "0";
-        }
-        int b = std::stoi(mb);
-        if (b != 0) {
-            std::map<std::string, std::map<std::string, std::string>> dimmingInfo;
-            dimmingInfo["all"]["gamma"] = "1.0";
-            dimmingInfo["all"]["brightness"] = mb;
-            model->SetDimmingInfo(dimmingInfo);
-        }
     }
 }
 void XmlDeserializingModelFactory::DeserializeDimmingCurve(Model* model, wxXmlNode* node) {

@@ -2734,6 +2734,9 @@ void Model::Setup()
     if (sw.Time() > 10) {
         logger_base.debug("%s model %s took %lums to initialise.", GetDisplayAs().c_str(), (const char*)name.c_str(), sw.Time());
     }
+    for (auto &sm : subModels) {
+        sm->Setup();
+    }
 }
 
 std::string Model::GetControllerConnectionString() const
