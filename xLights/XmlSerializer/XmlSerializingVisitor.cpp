@@ -610,8 +610,7 @@ void XmlSerializingVisitor::Visit(const CustomModel& model) {
     }
 
     // If we have a ruler then also include the model dimensions so if imported we can bring them in as the right size
-    if (RulerObject::GetRuler() != nullptr)
-    {
+    if (forExport && RulerObject::GetRuler() != nullptr) {
         float widthmm = RulerObject::GetRuler()->Convert(RulerObject::GetRuler()->GetUnits(), "mm", RulerObject::GetRuler()->Measure(model.GetModelScreenLocation().GetMWidth()));
         float heightmm = RulerObject::GetRuler()->Convert(RulerObject::GetRuler()->GetUnits(), "mm", RulerObject::GetRuler()->Measure(model.GetModelScreenLocation().GetMHeight()));
         float depthmm = RulerObject::GetRuler()->Convert(RulerObject::GetRuler()->GetUnits(), "mm", RulerObject::GetRuler()->Measure(model.GetModelScreenLocation().GetMDepth()));

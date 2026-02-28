@@ -32,8 +32,8 @@ class ModelGroup;
 class Servo;
 
 struct XmlSerializingVisitor : BaseObjectVisitor {
-    XmlSerializingVisitor(wxXmlNode* parentNode) :
-        parentNode(parentNode) {
+    XmlSerializingVisitor(wxXmlNode* parentNode, bool exporting = false) :
+        parentNode(parentNode), forExport(exporting) {
     }
 
     void Visit(const ArchesModel& model) override;
@@ -72,6 +72,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
 
 private:
     wxXmlNode* parentNode;
+    bool forExport;
 
     void SortAttributes(wxXmlNode* input);
 

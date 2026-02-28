@@ -271,6 +271,10 @@ void xLightsFrame::LoadEffectsFile()
         UnsavedRgbEffectsChanges = true;
     }
     
+    if (EffectsNode == nullptr) {
+        EffectsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "effects");
+        EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
+    }
     // check version, do we need to convert?
     wxString effectsVersion = EffectsNode->GetAttribute("version", "0000");
     if (effectsVersion < "0004") {
@@ -380,7 +384,6 @@ void xLightsFrame::LoadEffectsFile()
     if (modelsNode == nullptr) {
         modelsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "models");
         root->AddChild(modelsNode);
-        UnsavedRgbEffectsChanges = true;
     }
     if (viewObjectsNode == nullptr) {
         viewObjectsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "view_objects");
@@ -406,11 +409,7 @@ void xLightsFrame::LoadEffectsFile()
         node->AddAttribute("Active", "1");
         UnsavedRgbEffectsChanges = true;
     }
-    if (EffectsNode == nullptr) {
-        EffectsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "effects");
-        EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
-        UnsavedRgbEffectsChanges = true;
-    }
+
 
     if (viewsNode == nullptr) {
         UnsavedRgbEffectsChanges = true;
@@ -440,7 +439,6 @@ void xLightsFrame::LoadEffectsFile()
     if (modelGroupsNode == nullptr) {
         modelGroupsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroups");
         root->AddChild(modelGroupsNode);
-        UnsavedRgbEffectsChanges = true;
     }
 
     // perspectivesNode is used locally to load _perspectives, then discarded

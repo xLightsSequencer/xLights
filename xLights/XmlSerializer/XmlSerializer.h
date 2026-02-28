@@ -65,7 +65,7 @@ struct XmlSerializer {
         wxXmlNode* docNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelsNodeName);
         docNode->AddAttribute(XmlNodeKeys::TypeAttribute, XmlNodeKeys::ExportedAttribute);
 
-        XmlSerializingVisitor visitor{ docNode };
+        XmlSerializingVisitor visitor{ docNode , includeGroups};
 
         model->Accept(visitor);
         if (includeGroups) {
