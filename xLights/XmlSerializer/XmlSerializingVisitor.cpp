@@ -239,7 +239,6 @@ void XmlSerializingVisitor::AddServoAttributes(const Servo* servo, wxXmlNode* no
     servo_node->AddAttribute("ServoStyle", servo->GetStyle());
     servo_node->AddAttribute("ControllerMin", std::to_string(servo->GetControllerMin()));
     servo_node->AddAttribute("ControllerMax", std::to_string(servo->GetControllerMax()));
-    servo_node->AddAttribute("ControllerReverse", std::to_string(servo->GetControllerMax()));
     servo_node->AddAttribute("ControllerReverse", servo->GetControllerReverse() ? "1" : "0");
     servo_node->AddAttribute("ControllerZeroBehavior", servo->GetControllerZero());
     servo_node->AddAttribute("ControllerDataType", servo->GetControllerDataType());
@@ -258,6 +257,7 @@ void XmlSerializingVisitor::AddDmxImageAttributes(const DmxImage* img, wxXmlNode
     img_node->AddAttribute(XmlNodeKeys::OffsetXAttribute, std::to_string(img->GetOffsetX()));
     img_node->AddAttribute(XmlNodeKeys::OffsetYAttribute, std::to_string(img->GetOffsetY()));
     img_node->AddAttribute(XmlNodeKeys::OffsetZAttribute, std::to_string(img->GetOffsetZ()));
+    node->AddChild(img_node);
 }
 
 void XmlSerializingVisitor::AddDmxMovingHeadCommAttributes(const DmxMovingHeadComm& model, wxXmlNode* node) {
@@ -413,9 +413,8 @@ void XmlSerializingVisitor::AddFacesandStates(wxXmlNode* node, const Model* m) {
 }
 
 void XmlSerializingVisitor::AddAliases(wxXmlNode* node, const std::list<std::string>& aliases) {
-    wxXmlNode* aliashdr = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::AliasesAttribute);
-
     if (aliases.size() > 0) {
+        wxXmlNode* aliashdr = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::AliasesAttribute);
         for (const auto& a : aliases) {
             wxXmlNode* alias = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::AliasNodeName);
             alias->AddAttribute(XmlNodeKeys::NameAttribute, a);
@@ -434,8 +433,8 @@ void XmlSerializingVisitor::AddDimmingCurve(wxXmlNode* node, const Model* m) {
             wxXmlNode* dc = new wxXmlNode(wxXML_ELEMENT_NODE, d1.first);
             for (const auto& d2 : d1.second) {
                 dc->AddAttribute(d2.first, d2.second);
-                xmlNode->AddChild(dc);
             }
+            xmlNode->AddChild(dc);
         }
         node->AddChild(xmlNode);
     }
@@ -447,7 +446,7 @@ void XmlSerializingVisitor::AddSubmodels(wxXmlNode* node, const Model* m) {
     for (Model* s : submodelList) {
         wxXmlNode* sm_node = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::SubModelNodeName);
         const SubModel* submodel = dynamic_cast<const SubModel*>(s);
-        if (submodel == nullptr) return;
+        if (submodel == nullptr) continue;
         sm_node->AddAttribute(XmlNodeKeys::NameAttribute, s->GetName());
         sm_node->AddAttribute(XmlNodeKeys::LayoutAttribute, submodel->GetSubModelLayout());
         sm_node->AddAttribute(XmlNodeKeys::SMTypeAttribute, submodel->GetSubModelType());
@@ -482,7 +481,7 @@ void XmlSerializingVisitor::AddControllerConnection(wxXmlNode* node, const Model
             xmlNode->AddAttribute(XmlNodeKeys::SmartRemoteAttribute, std::to_string(cc.GetSmartRemote()));
             // Set all the Smart Remote values
             xmlNode->AddAttribute(XmlNodeKeys::SRMaxCascadeAttribute, std::to_string(m->GetSRMaxCascade()));
-            xmlNode->AddAttribute(XmlNodeKeys::SRCascadeOnPortAttribute, std::to_string(m->GetSRMaxCascade()));
+            xmlNode->AddAttribute(XmlNodeKeys::SRCascadeOnPortAttribute, std::to_string(m->GetSRCascadeOnPort()));
             xmlNode->AddAttribute(XmlNodeKeys::SmartRemoteTypeAttribute, m->GetSmartRemoteType());
             if (cc.IsPropertySet(CtrlProps::TS_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::SmartRemoteTsAttribute, std::to_string(cc.GetSmartTs()));
         }
@@ -964,7 +963,7 @@ void XmlSerializingVisitor::Visit(const TerrainObject& object)
     xmlNode->AddAttribute(XmlNodeKeys::TerrainDepthAttribute, std::to_string(object.GetDepth()));
     xmlNode->AddAttribute(XmlNodeKeys::HideGridAttribute, object.IsHideGrid() ? "1" : "0");
     xmlNode->AddAttribute(XmlNodeKeys::HideImageAttribute, object.IsHideImage() ? "1" : "0");
-    xmlNode->AddAttribute(XmlNodeKeys::ImageAttribute, object.GetGridColor());
+    xmlNode->AddAttribute(XmlNodeKeys::GridColorAttribute, object.GetGridColor());
     const TerrainScreenLocation& screenLoc = dynamic_cast<const TerrainScreenLocation&>(object.GetBaseObjectScreenLocation());
     xmlNode->AddAttribute(XmlNodeKeys::PointDataAttribute, screenLoc.GetDataAsString());
 }
