@@ -14,6 +14,7 @@
 #include "../models/ViewObject.h"
 #include <wx/xml/xml.h>
 
+class ControllerConnection;
 class DmxBeamAbility;
 class DmxColorAbility;
 class DmxColorAbilityCMY;
@@ -69,7 +70,7 @@ struct XmlSerializingVisitor : BaseObjectVisitor {
     void Visit(const MeshObject& object) override;
     void Visit(const TerrainObject& object) override;
     void Visit(const RulerObject& object) override;
-
+    void Visit(const ControllerConnection &cc) override;
 private:
     wxXmlNode* parentNode;
     bool forExport;

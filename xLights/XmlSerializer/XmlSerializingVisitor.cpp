@@ -73,6 +73,18 @@
 #include "XmlNodeKeys.h"
 #include "XmlSerializeFunctions.h"
 
+static std::string FloatToString(float f) {
+    std::string ret = std::to_string(f);
+    int len = ret.length();
+    while (len && ret[len - 1] == '0') {
+        --len;
+    }
+    if (ret[len] == '.') {
+        ++len;
+    }
+    return ret.substr(0, len);
+}
+
 void XmlSerializingVisitor::AddBaseObjectAttributes(const BaseObject& base, wxXmlNode* node) {
     node->AddAttribute(XmlNodeKeys::NameAttribute, base.GetName());
     node->AddAttribute(XmlNodeKeys::DisplayAsAttribute, base.GetDisplayAs());
@@ -465,39 +477,45 @@ void XmlSerializingVisitor::AddSubmodels(wxXmlNode* node, const Model* m) {
         node->AddChild(sm_node);
     }
 }
+void XmlSerializingVisitor::Visit(const ControllerConnection &cc) {
+    wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::CtrlConnectionName);
+
+    xmlNode->AddAttribute(XmlNodeKeys::PortAttribute, std::to_string(cc.GetCtrlPort()));
+    xmlNode->AddAttribute(XmlNodeKeys::ProtocolAttribute, cc.GetProtocol());
+    if (cc.IsSerialProtocol()) {
+        xmlNode->AddAttribute(XmlNodeKeys::ChannelAttribute, std::to_string(cc.GetDMXChannel()));
+        xmlNode->AddAttribute(XmlNodeKeys::ProtocolSpeedAttribute, std::to_string(cc.GetProtocolSpeed()));
+    }
+
+    // Save all the property checkbox active states
+    if (cc.GetSmartRemote() && cc.IsPropertySet(CtrlProps::USE_SMART_REMOTE)) {
+        xmlNode->AddAttribute(XmlNodeKeys::SmartRemoteAttribute, std::to_string(cc.GetSmartRemote()));
+        // Set all the Smart Remote values
+        xmlNode->AddAttribute(XmlNodeKeys::SRMaxCascadeAttribute, std::to_string(cc.GetSRMaxCascade()));
+        xmlNode->AddAttribute(XmlNodeKeys::SRCascadeOnPortAttribute, std::to_string(cc.GetSRCascadeOnPort()));
+        xmlNode->AddAttribute(XmlNodeKeys::SmartRemoteTypeAttribute, cc.GetSmartRemoteType());
+        if (cc.IsPropertySet(CtrlProps::TS_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::SmartRemoteTsAttribute, std::to_string(cc.GetSmartTs()));
+    }
+    if (cc.IsPropertySet(CtrlProps::START_NULLS_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::StartNullAttribute, std::to_string(cc.GetStartNulls()));
+    if (cc.IsPropertySet(CtrlProps::END_NULLS_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::EndNullAttribute, std::to_string(cc.GetEndNulls()));
+    if (cc.IsPropertySet(CtrlProps::BRIGHTNESS_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::DCBrightnessAttribute, std::to_string(cc.GetBrightness()));
+    if (cc.IsPropertySet(CtrlProps::GAMMA_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::GammaAttribute, FloatToString(cc.GetGamma()));
+    if (cc.IsPropertySet(CtrlProps::COLOR_ORDER_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::ColorOrderAttribute, cc.GetColorOrder());
+    if (cc.IsPropertySet(CtrlProps::REVERSE_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::CReverseAttribute, std::to_string(cc.GetReverse()));
+    if (cc.IsPropertySet(CtrlProps::GROUP_COUNT_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::GroupCountAttribute, std::to_string(cc.GetGroupCount()));
+    if (cc.IsPropertySet(CtrlProps::ZIG_ZAG_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::CZigZagAttribute, std::to_string(cc.GetZigZag()));
+
+    parentNode->AddChild(xmlNode);
+}
 
 void XmlSerializingVisitor::AddControllerConnection(wxXmlNode* node, const Model* m) {
     auto const& cc = m->GetConstCtrlConn();
     int p = cc.GetCtrlPort();
     if (p != 0) {
-        wxXmlNode* xmlNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::CtrlConnectionName);
-        xmlNode->AddAttribute(XmlNodeKeys::ControllerAttribute, m->GetControllerName());
-        xmlNode->AddAttribute(XmlNodeKeys::PortAttribute, std::to_string(m->GetControllerPort()));
-        xmlNode->AddAttribute(XmlNodeKeys::ProtocolAttribute, m->GetControllerProtocol());
-        if (m->IsSerialProtocol()) {
-            xmlNode->AddAttribute(XmlNodeKeys::ProtocolSpeedAttribute, std::to_string(m->GetControllerProtocolSpeed()));
-            xmlNode->AddAttribute(XmlNodeKeys::ChannelAttribute, std::to_string(cc.GetDMXChannel()));
-        }
-
-        // Save all the property checkbox active states
-        if (m->GetSmartRemote() && cc.IsPropertySet(CtrlProps::USE_SMART_REMOTE)) {
-            xmlNode->AddAttribute(XmlNodeKeys::SmartRemoteAttribute, std::to_string(cc.GetSmartRemote()));
-            // Set all the Smart Remote values
-            xmlNode->AddAttribute(XmlNodeKeys::SRMaxCascadeAttribute, std::to_string(m->GetSRMaxCascade()));
-            xmlNode->AddAttribute(XmlNodeKeys::SRCascadeOnPortAttribute, std::to_string(m->GetSRCascadeOnPort()));
-            xmlNode->AddAttribute(XmlNodeKeys::SmartRemoteTypeAttribute, m->GetSmartRemoteType());
-            if (cc.IsPropertySet(CtrlProps::TS_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::SmartRemoteTsAttribute, std::to_string(cc.GetSmartTs()));
-        }
-        if (cc.IsPropertySet(CtrlProps::START_NULLS_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::StartNullAttribute, std::to_string(cc.GetStartNulls()));
-        if (cc.IsPropertySet(CtrlProps::END_NULLS_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::EndNullAttribute, std::to_string(cc.GetEndNulls()));
-        if (cc.IsPropertySet(CtrlProps::BRIGHTNESS_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::DCBrightnessAttribute, std::to_string(cc.GetBrightness()));
-        if (cc.IsPropertySet(CtrlProps::GAMMA_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::GammaAttribute, std::to_string(cc.GetGamma()));
-        if (cc.IsPropertySet(CtrlProps::COLOR_ORDER_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::ColorOrderAttribute, cc.GetColorOrder());
-        if (cc.IsPropertySet(CtrlProps::REVERSE_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::CReverseAttribute, std::to_string(cc.GetReverse()));
-        if (cc.IsPropertySet(CtrlProps::GROUP_COUNT_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::GroupCountAttribute, std::to_string(cc.GetGroupCount()));
-        if (cc.IsPropertySet(CtrlProps::ZIG_ZAG_ACTIVE)) xmlNode->AddAttribute(XmlNodeKeys::CZigZagAttribute, std::to_string(cc.GetZigZag()));
-
-        node->AddChild(xmlNode);
+        auto oldParent = parentNode;
+        parentNode = node;
+        Visit(cc);
+        parentNode = oldParent;
     }
 }
 

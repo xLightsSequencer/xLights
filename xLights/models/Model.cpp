@@ -2782,16 +2782,21 @@ bool compare_pairstring(const std::pair<std::string, std::string>& a, const std:
 
 std::string Model::GetControllerConnectionAttributeString() const
 {
+    wxXmlDocument doc;
+    wxXmlNode *root = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "cc");
+    doc.SetRoot(root);
+    XmlSerializingVisitor v(root);
+    v.Visit(_controllerConnection);
+    wxXmlNode *n = root->GetChildren();
+    
     std::string ret;
-    std::list<std::pair<std::string, std::string>> props;
-    props.push_back({ "Port", std::to_string(GetControllerPort())});
-    props.push_back({ "Protocol", GetControllerProtocol()});
-    props.push_back({ "SmartRemote", DecodeSmartRemote(GetSmartRemote()) });
-    props.push_back({ "SmartRemoteType", GetSmartRemoteType()});
-    props.push_back({ "SRCascadeOnPort", std::to_string(GetSRCascadeOnPort())});
-    props.push_back({ "SRMaxCascade", std::to_string(GetSRMaxCascade())});
-    for (const auto& it : props) {
-        ret += ":" + it.first + "=" + it.second;
+    auto attr = n->GetAttributes();
+    while (attr != nullptr) {
+        if (attr->GetName() != "Protocol" && attr->GetName() != "Port") {
+            ret += ":";
+            ret += attr->GetName().ToStdString() + "=" + attr->GetValue();
+        }
+        attr = attr->GetNext();
     }
     return ret;
 }

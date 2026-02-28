@@ -14,6 +14,7 @@ class ArchesModel;
 class CandyCaneModel;
 class ChannelBlockModel;
 class CircleModel;
+class ControllerConnection;
 class CubeModel;
 class CustomModel;
 class DmxFloodArea;
@@ -78,6 +79,8 @@ struct BaseObjectVisitor {
     virtual void Visit(const ImageObject& object) = 0;
     virtual void Visit(const MeshObject& object) = 0;
     virtual void Visit(const RulerObject& object) = 0;
+
+    virtual void Visit(const ControllerConnection& object) = 0;
 
     virtual ~BaseObjectVisitor() {
     }
