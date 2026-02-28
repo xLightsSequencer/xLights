@@ -955,6 +955,9 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                                 }
                             }
                         }
+                    } else {
+                        xml_file->AddFixedTimingSection(selected_timing, mSequenceElements->GetXLightsFrame());
+                        timing_added = true;
                     }
                 } else {
                     DisplayError(wxString::Format("Fixed Timing section %s already exists!", selected_timing).ToStdString());

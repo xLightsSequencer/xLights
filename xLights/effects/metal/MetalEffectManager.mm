@@ -116,6 +116,18 @@ RenderableEffect* CreateMetalEffect(EffectManager::RGB_EFFECTS_e eff) {
             return new MetalPinwheelEffect(eff);
         case EffectManager::eff_SHOCKWAVE:
             return new MetalShockwaveEffect(eff);
+        case EffectManager::eff_KALEIDOSCOPE:
+            return new MetalKaleidoscopeEffect(eff);
+        case EffectManager::eff_FAN:
+            return new MetalFanEffect(eff);
+        case EffectManager::eff_SPIRALS:
+            return new MetalSpiralsEffect(eff);
+        case EffectManager::eff_COLORWASH:
+            return new MetalColorWashEffect(eff);
+        case EffectManager::eff_BARS:
+            return new MetalBarsEffect(eff);
+        case EffectManager::eff_CIRCLES:
+            return new MetalCirclesEffect(eff);
         default:
             return nullptr;
         }
