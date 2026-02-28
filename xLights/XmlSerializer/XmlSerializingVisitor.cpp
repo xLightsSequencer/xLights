@@ -328,13 +328,13 @@ void XmlSerializingVisitor::AddColorAbilityCMYAttributes(const DmxColorAbilityCM
 }
 
 void XmlSerializingVisitor::AddColorAbilityAttributes(const DmxColorAbility* color_ability, wxXmlNode* node) {
-    std::string color_type = color_ability->GetTypeName();
-    node->AddAttribute(XmlNodeKeys::DmxColorTypeAttribute, color_type);
-    if (color_type == "RGBW") {
+    auto color_type = color_ability->GetColorType();
+    node->AddAttribute(XmlNodeKeys::DmxColorTypeAttribute, std::to_string((int)color_type));
+    if (color_type == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_RGBW) {
         AddColorAbilityRGBAttributes(dynamic_cast<const DmxColorAbilityRGB*>(color_ability), node);
-    } else if (color_type == "ColorWheel") {
+    } else if (color_type == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_WHEEL) {
         AddColorWheelAttributes(dynamic_cast<const DmxColorAbilityWheel*>(color_ability), node);
-    } else if (color_type == "CMYW") {
+    } else if (color_type == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_CMYW) {
         AddColorAbilityCMYAttributes(dynamic_cast<const DmxColorAbilityCMY*>(color_ability), node);
     }
 }
