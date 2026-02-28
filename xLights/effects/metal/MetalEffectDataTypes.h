@@ -262,6 +262,7 @@ struct MetalCirclesData {
     int32_t  numBalls;
     int32_t  colorCount;
     int32_t  allowAlpha;
+    int32_t  wrap;         // 1 = wrap at buffer edges (= !bounce && !collide)
 
     // Radial / Radial3D params
     int32_t  cx, cy;       // center pixel

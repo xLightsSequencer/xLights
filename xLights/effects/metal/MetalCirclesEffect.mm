@@ -85,6 +85,7 @@ void MetalCirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, 
     bool fade     = SettingsMap.GetBool("CHECKBOX_Circles_Linear_Fade", false);
     bool bubbles  = SettingsMap.GetBool("CHECKBOX_Circles_Bubbles",   false);
     bool bounce   = SettingsMap.GetBool("CHECKBOX_Circles_Bounce",    false);
+    bool collide  = SettingsMap.GetBool("CHECKBOX_Circles_Collide",   false);
 
     // Bubbles uses DrawCircle(filled=false) — outline only, not easily GPU-invertible
     if (bubbles) {
@@ -112,6 +113,7 @@ void MetalCirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, 
     cdata.colorCount = (int)colorCnt;
     cdata.allowAlpha = buffer.allowAlpha ? 1 : 0;
     cdata.numBalls   = number;
+    cdata.wrap       = (!bounce && !collide) ? 1 : 0;
 
     // Populate palette colors
     for (int i = 0; i < (int)colorCnt; i++) {

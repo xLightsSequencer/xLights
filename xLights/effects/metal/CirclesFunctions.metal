@@ -153,14 +153,31 @@ kernel void CirclesEffect(constant MetalCirclesData &data [[buffer(0)]],
     // ── REGULAR / FADING FILLED CIRCLES ─────────────────────────────────────
     // Multiple balls: last one (highest index) that covers this pixel wins.
     // Matches CPU DrawCircle/DrawFadingCircle loop order (ii=0..numBalls-1, later overwrites earlier).
+    // When wrap=true, pixels outside the buffer wrap around — so a ball near an edge
+    // can appear on both sides. We check the pixel against both the direct position
+    // and the wrapped offsets.
     uchar4 outColor = uchar4(0, 0, 0, 0);
     bool   hit      = false;
 
+    int w = (int)data.width;
+    int h = (int)data.height;
+
     for (int ii = 0; ii < data.numBalls; ii++) {
+        float r = data.balls[ii].radius;
+
+        // Check direct distance and, if wrap enabled, also the wrapped distances
         float dx = (float)px - data.balls[ii].x;
         float dy = (float)py - data.balls[ii].y;
-        float d  = sqrt(dx * dx + dy * dy);
-        float r  = data.balls[ii].radius;
+
+        if (data.wrap) {
+            // Find shortest wrapped distance on each axis
+            if (dx >  (float)w / 2.0f) dx -= (float)w;
+            if (dx < -(float)w / 2.0f) dx += (float)w;
+            if (dy >  (float)h / 2.0f) dy -= (float)h;
+            if (dy < -(float)h / 2.0f) dy += (float)h;
+        }
+
+        float d = sqrt(dx * dx + dy * dy);
         if (d > r) continue;
 
         int cidx = clamp(data.balls[ii].colorIdx, 0, data.colorCount - 1);
