@@ -655,12 +655,16 @@ void SubModel::Setup() {
     if (IsRanges()) {
         if (IsXYBufferStyle()) {
             // XY buffer style (Keep XY)
-            initRangeXY(_propertyGridDisplay);
+            for (auto &r : _ranges) {
+                initRangeXY(r);
+            }
             CheckDuplicates();
             CalcRangeXYBufferSize();
         } else {
             // Default and stacked buffer styles
-            initDefaultBuffer(_propertyGridDisplay);
+            for (auto &r : _ranges) {
+                initDefaultBuffer(r);
+            }
             CheckDuplicates();
         }
     } else {
