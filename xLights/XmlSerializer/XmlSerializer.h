@@ -17,7 +17,9 @@
 #include "XmlSerializingVisitor.h"
 #include <vector>
 #include <wx/xml/xml.h>
+
 #include "../LayoutGroup.h"
+#include "../ExternalHooks.h"
 
 struct XmlSerializer {
     XmlSerializer() {}
