@@ -2272,6 +2272,7 @@ xLightsFrame::~xLightsFrame()
 
     waitForPingsToComplete();
     _outputManager.DeleteAllControllers();
+    ip_utils::shutdownResolvePool();
 
     if (CurrentSeqXmlFile) {
         delete CurrentSeqXmlFile;
@@ -2296,7 +2297,7 @@ xLightsFrame::~xLightsFrame()
     delete Button_ACCascade;
     delete Button_ACForeground;
     delete Button_ACBackground;
-
+    
 #ifndef __WXMSW__
     if (_tod != nullptr)
         delete _tod;
