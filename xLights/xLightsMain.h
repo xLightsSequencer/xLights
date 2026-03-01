@@ -94,6 +94,7 @@
 class wxDebugReport;
 
 class aiBase;
+class BaseSerializingVisitor;
 class ControllerCaps;
 class EffectTreeDialog;
 class ConvertDialog;
@@ -351,8 +352,8 @@ public:
     void SetEffectControlsApplyLast(const SettingsMap &settings);
     bool ApplySetting(wxString name, const wxString &value, int count = 0);
     void LoadPerspectivesMenu();
-    void SerializePerspectives(wxXmlNode* root);
-    void SerializeSettings(wxXmlNode* root);
+    void SerializePerspectives(BaseSerializingVisitor &visitor);
+    void SerializeSettings(BaseSerializingVisitor &visitor);
     struct Perspective {
         std::string name;
         std::string settings;
@@ -1533,7 +1534,6 @@ private:
     // sequence
     void LoadEffectsFile();
     void CreateDefaultEffectsXml(wxXmlDocument& doc);
-    wxXmlDocument BuildEffectsXml();
     bool TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, const wxString& PageName);
     void SetPanelSequencerLabel(const std::string& sequence);
@@ -1542,6 +1542,7 @@ private:
     int ChooseRandomEffect();
 
 public:
+    std::string BuildEffectsXml();
     bool IsNewModel(Model* m) const;
     int GetCurrentPlayTime();
     bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount);
@@ -1607,7 +1608,6 @@ public:
 
     void UpdateSequenceVideoPanel( const wxString& path );
 
-    wxXmlDocument GetEffectsXml();
 protected:
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
     bool SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels);

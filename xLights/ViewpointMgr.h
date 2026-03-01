@@ -14,6 +14,8 @@
 #include <vector>
 #include <glm/glm.hpp>
 
+#include "XmlSerializer/BaseSerializingVisitor.h"
+
 class wxXmlDocument;
 class wxXmlNode;
 
@@ -91,7 +93,7 @@ public:
     ViewpointMgr();
     virtual ~ViewpointMgr();
 
-    void Save(wxXmlDocument* doc);
+    void Save(BaseSerializingVisitor& visitor) const;
     void Load(wxXmlNode* vp_node);
 
     void SetDefaultCamera2D(PreviewCamera* current_camera) { 
@@ -116,9 +118,9 @@ public:
     bool IsNameUnique(const std::string& name, bool is_3d);
 
 private:
-    wxXmlNode* Save() const;
     PreviewCamera* CreateCameraFromNode(wxXmlNode* node);
-    wxXmlNode* SaveCameraToXml(PreviewCamera* camera, const std::string& nodename, const std::string& nameOverride) const;
+    void SaveCameraToVisitor(BaseSerializingVisitor& visitor, PreviewCamera* camera,
+                             const std::string& nodename, const std::string& nameOverride = "") const;
 
     std::vector<PreviewCamera*> previewCameras3d;
     std::vector<PreviewCamera*> previewCameras2d;

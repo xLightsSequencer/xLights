@@ -494,7 +494,6 @@ class LayoutPanel: public wxPanel
             std::string data;
             std::string models;
             std::string objects;
-            std::string groups;
         };
         std::vector<UndoStep> undoBuffer;
         void CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key = "", const std::string &data = "");

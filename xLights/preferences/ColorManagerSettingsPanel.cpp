@@ -23,6 +23,7 @@
 #include "../sequencer/MainSequencer.h"
 #include "../UtilFunctions.h"
 #include "xlColourData.h"
+#include "../XmlSerializer/XmlSerializingVisitor.h"
 
 //(*IdInit(ColorManagerSettingsPanel)
 const wxWindowID ColorManagerSettingsPanel::ID_CHECKBOX1 = wxNewId();
@@ -220,7 +221,8 @@ void ColorManagerSettingsPanel::OnButtonExportClick(wxCommandEvent& event) {
         wxXmlDocument themeXml;
         wxXmlNode *root = new wxXmlNode(wxXML_ELEMENT_NODE, "theme");
         themeXml.SetRoot(root);
-        frame->color_mgr.Save(&themeXml);
+        XmlSerializingVisitor v{root};
+        frame->color_mgr.Save(v);
         themeXml.Save(dlg.GetPath());
     }
 }

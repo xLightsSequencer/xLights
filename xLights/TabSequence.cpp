@@ -14,6 +14,7 @@
 #include <wx/xml/xml.h>
 #include <wx/config.h>
 #include <wx/wfstream.h>
+#include <wx/sstream.h>
 
 #include "xLightsMain.h"
 #include "SeqSettingsDialog.h"
@@ -42,6 +43,7 @@
 #include "HousePreviewPanel.h"
 #include "ExternalHooks.h"
 #include "XmlSerializer/XmlSerializer.h"
+#include "XmlSerializer/StringSerializingVisitor.h"
 
 #include "xLightsVersion.h"
 #include "TopEffectsPanel.h"
@@ -54,67 +56,51 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename) const
     FileNameText->SetLabel(filename);
 }
 
-wxXmlDocument xLightsFrame::BuildEffectsXml()
+std::string xLightsFrame::BuildEffectsXml()
 {
-    wxXmlDocument result;
-    wxXmlNode* root = new wxXmlNode(wxXML_ELEMENT_NODE, "xrgb");
-    result.SetRoot(root);
-    wxXmlDoctype dt("");
-    result.SetDoctype(dt);
-
-    // Update version and temporarily attach EffectsNode
-    if (EffectsNode != nullptr) {
-        EffectsNode->DeleteAttribute("version");
-        EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
-        root->AddChild(EffectsNode);
-    }
-
     XmlSerializer serializer;
-    serializer.SerializeAllModels(AllModels, this, root);
-    serializer.SerializeAllObjects(AllObjects, this, root);
-    serializer.SerializeAllLayoutGroups(LayoutGroups, root);
-    SerializePerspectives(root);
-    SerializeSettings(root);
-    _sequenceViewManager.Save(&result);
-    color_mgr.Save(&result);
-    viewpoint_mgr.Save(&result);
-
-    // Detach EffectsNode so it isn't destroyed when result goes out of scope
+    StringSerializingVisitor visitor;
+    visitor.WriteOpenTag("xrgb");
+    serializer.SerializeAllModels(AllModels, visitor);
+    serializer.SerializeAllObjects(AllObjects, visitor);
+    serializer.SerializeAllLayoutGroups(LayoutGroups, visitor);
     if (EffectsNode != nullptr) {
-        root->RemoveChild(EffectsNode);
+        serializer.WriteXmlNode(EffectsNode, visitor);
     }
-
-    return result;
+    SerializePerspectives(visitor);
+    SerializeSettings(visitor);
+    _sequenceViewManager.Save(visitor);
+    color_mgr.Save(visitor);
+    viewpoint_mgr.Save(visitor);
+    visitor.WriteCloseTag("xrgb");
+    
+    return visitor.GetResult();
 }
 
-wxXmlDocument xLightsFrame::GetEffectsXml()
+void xLightsFrame::SerializeSettings(BaseSerializingVisitor &visitor)
 {
-    return BuildEffectsXml();
-}
-
-void xLightsFrame::SerializeSettings(wxXmlNode* root)
-{
-    wxXmlNode* settingsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "settings");
+    visitor.WriteOpenTag("settings");
     for (const auto& kv : _xmlSettings) {
-        wxXmlNode* s = new wxXmlNode(wxXML_ELEMENT_NODE, kv.first);
-        s->AddAttribute("value", kv.second);
-        settingsNode->AddChild(s);
+        BaseSerializingVisitor::AttrCollector attr;
+        attr.Add("value", kv.second);
+        visitor.WriteOpenTag(kv.first, attr, true);
     }
-    root->AddChild(settingsNode);
+    visitor.WriteCloseTag("settings");
 }
 
-void xLightsFrame::SerializePerspectives(wxXmlNode* root)
+void xLightsFrame::SerializePerspectives(BaseSerializingVisitor &visitor)
 {
-    wxXmlNode* perspNode = new wxXmlNode(wxXML_ELEMENT_NODE, "perspectives");
-    perspNode->AddAttribute("current", _currentPerspectiveName);
+    BaseSerializingVisitor::AttrCollector attr;
+    attr.Add("current", _currentPerspectiveName);
+    visitor.WriteOpenTag("perspectives", attr);
     for (const auto& p : _perspectives) {
-        wxXmlNode* pNode = new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
-        pNode->AddAttribute("name", p.name);
-        pNode->AddAttribute("settings", p.settings);
-        pNode->AddAttribute("version", p.version.empty() ? "2.0" : p.version);
-        perspNode->AddChild(pNode);
+        BaseSerializingVisitor::AttrCollector attr;
+        attr.Add("name", p.name);
+        attr.Add("settings", p.settings);
+        attr.Add("version", p.version.empty() ? "2.0" : p.version);
+        visitor.WriteOpenTag("perspective", attr, true);
     }
-    root->AddChild(perspNode);
+    visitor.WriteCloseTag("perspectives");
 }
 
 void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
@@ -759,7 +745,7 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     if (!lock.owns_lock())
         return false;
 
-    wxXmlDocument saveXml = BuildEffectsXml();
+    auto saveXml = BuildEffectsXml();
 
     wxFileName effectsFile;
     effectsFile.AssignDir(CurrentDir);
@@ -769,10 +755,12 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
         effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
     }
 
+    ObtainAccessToURL(effectsFile.GetFullPath());
     wxFileOutputStream fout(effectsFile.GetFullPath());
     wxBufferedOutputStream *bout = new wxBufferedOutputStream(fout, 2 * 1024 * 1024);
-
-    if (!saveXml.Save(*bout)) {
+    size_t len = saveXml.length();
+    bout->Write(saveXml.c_str(), len);
+    if (bout->LastWrite() != len) {
         if (backup) {
             logger_base.warn("Unable to save backup of RGB effects file");
         } else {
@@ -793,9 +781,6 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     }
     
     if (!backup) {
-#ifndef __WXOSX__
-        SaveModelsFile();
-#endif
         UnsavedRgbEffectsChanges = false;
     }
 

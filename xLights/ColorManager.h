@@ -13,6 +13,7 @@
 #include <map>
 #include <wx/settings.h>
 #include "Color.h"
+#include "XmlSerializer/BaseSerializingVisitor.h"
 
 class xLightsFrame;
 class wxXmlDocument;
@@ -108,7 +109,7 @@ class ColorManager
         void Snapshot();
         void RestoreSnapshot();
 
-        void Save(wxXmlDocument* doc);
+        void Save(BaseSerializingVisitor& visitor) const;
         void Load(wxXmlNode* colors_node);
         wxColor CyanOrBlueOverride();
         wxColor LightOrMediumGreyOverride();

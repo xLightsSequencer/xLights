@@ -1851,9 +1851,10 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
                     }
                 }
                 if (header.data.size() == 0) {
-                    auto xml = params.xLightsFrm->GetEffectsXml();
+                    auto xml = params.xLightsFrm->BuildEffectsXml();
                     wxMemoryOutputStream out;
-                    xml.Save(out);
+                    size_t len = xml.length();
+                    out.Write(xml.c_str(), len);
                     header.data.resize(out.GetLength());
                     int sz = compressMemoryBuffer(out, &header.data[0], out.GetLength(), pool);
                     header.data.resize(sz);

@@ -1125,6 +1125,12 @@
     <ClCompile Include="XmlSerializer\XmlSerializingVisitor.cpp">
       <Filter>XmlSerializer</Filter>
     </ClCompile>
+    <ClCompile Include="XmlSerializer\BaseSerializingVisitor.cpp">
+      <Filter>XmlSerializer</Filter>
+    </ClCompile>
+    <ClCompile Include="XmlSerializer\StringSerializingVisitor.cpp">
+      <Filter>XmlSerializer</Filter>
+    </ClCompile>
     <ClCompile Include="ControllerConnection.cpp" />
     <ClCompile Include="models\DMX\DmxBeamAbility.cpp">
       <Filter>Models\DMX</Filter>
@@ -2274,6 +2280,12 @@
       <Filter>XmlSerializer</Filter>
     </ClInclude>
     <ClInclude Include="XmlSerializer\XmlSerializingVisitor.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlSerializer\StringSerializingVisitor.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlSerializer\BaseSerializingVisitor.h">
       <Filter>XmlSerializer</Filter>
     </ClInclude>
     <ClInclude Include="ControllerConnection.h" />

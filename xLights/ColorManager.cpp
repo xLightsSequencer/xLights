@@ -12,6 +12,7 @@
 
 #include "ColorManager.h"
 #include "xLightsMain.h"
+#include "XmlSerializer/XmlSerializingVisitor.h"
 
 #include <log4cpp/Category.hh>
 
@@ -188,37 +189,18 @@ const xlColor ColorManager::GetTimingColor(int colorIndex)
     return value;
 }
 
-void ColorManager::Save(wxXmlDocument* doc)
+void ColorManager::Save(BaseSerializingVisitor& visitor) const
 {
-	wxXmlNode* colors_node = nullptr;
-
-	// find an existing view node in the document and delete it
-	for (wxXmlNode* e = doc->GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-		if (e->GetName() == "colors") colors_node = e;
-	}
-	if (colors_node != nullptr) {
-		doc->GetRoot()->RemoveChild(colors_node);
-        delete colors_node;
-	}
-
-	wxXmlNode* newnode = Save();
-    doc->GetRoot()->AddChild(newnode);
-}
-
-wxXmlNode* ColorManager::Save() const
-{
-	wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "colors");
-
-	for (const auto& it : colors)
-	{
-	    wxXmlNode* cnode = new wxXmlNode(wxXML_ELEMENT_NODE, it.first);
-	    cnode->AddAttribute("Red", wxString::Format("%d", it.second.red));
-	    cnode->AddAttribute("Green", wxString::Format("%d", it.second.green));
-	    cnode->AddAttribute("Blue", wxString::Format("%d", it.second.blue));
-        node->AddChild(cnode);
-	}
-
-	return node;
+    BaseSerializingVisitor::AttrCollector emptyAttrs;
+    visitor.WriteOpenTag("colors", emptyAttrs);
+    for (const auto& it : colors) {
+        BaseSerializingVisitor::AttrCollector attrs;
+        attrs.Add("Red", std::to_string(it.second.red));
+        attrs.Add("Green", std::to_string(it.second.green));
+        attrs.Add("Blue", std::to_string(it.second.blue));
+        visitor.WriteOpenTag(it.first, attrs, /*selfClose=*/true);
+    }
+    visitor.WriteCloseTag("colors");
 }
 
 void ColorManager::Load(wxXmlNode* colors_node)

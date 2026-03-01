@@ -22,51 +22,160 @@
 struct XmlSerializer {
     XmlSerializer() {}
 
-    // Serialize all models into an XML document
-    void SerializeAllModels(const ModelManager & allModels, xLightsFrame* xlights, wxXmlNode* root) {
-
-        wxXmlNode* modelsNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelsNodeName);
-        modelsNode->AddAttribute(XmlNodeKeys::TypeAttribute, XmlNodeKeys::RGBEffectsAttribute);
-
-        wxXmlNode* modelGroupNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::GroupsNodeName);
-        modelGroupNode->AddAttribute(XmlNodeKeys::TypeAttribute, XmlNodeKeys::RGBEffectsAttribute);
-
-        XmlSerializingVisitor visitor{ modelsNode };
-        XmlSerializingVisitor groupVisitor{ modelGroupNode };
-
+    // Serialize all models into a SerializingVisitor
+    static void SerializeAllModels(const ModelManager& allModels, BaseSerializingVisitor &visitor) {
+        BaseSerializingVisitor::AttrCollector attr;
+        attr.Add(XmlNodeKeys::TypeAttribute, XmlNodeKeys::RGBEffectsAttribute);
+        visitor.WriteOpenTag(XmlNodeKeys::ModelsNodeName, attr);
+        
         for (auto m = allModels.begin(); m != allModels.end(); ++m) {
             Model* model = m->second;
-            if (model->GetDisplayAs() == "ModelGroup") {
-                model->Accept(groupVisitor);
-            } else {
+            if (model->GetDisplayAs() != "ModelGroup") {
                 model->Accept(visitor);
             }
         }
-        
-        root->AddChild(modelsNode);
-        root->AddChild(modelGroupNode);
+        visitor.WriteCloseTag(XmlNodeKeys::ModelsNodeName);
+        visitor.WriteOpenTag(XmlNodeKeys::GroupsNodeName, attr);
+        for (auto m = allModels.begin(); m != allModels.end(); ++m) {
+            Model* model = m->second;
+            if (model->GetDisplayAs() == "ModelGroup") {
+                model->Accept(visitor);
+            }
+        }
+        visitor.WriteCloseTag(XmlNodeKeys::GroupsNodeName);
     }
 
+    // Serialize all layout groups into an XML string fragment.
+    static void SerializeAllLayoutGroups(const std::vector<LayoutGroup*>& layoutGroups, BaseSerializingVisitor &visitor) {
+        BaseSerializingVisitor::AttrCollector emptyAttrs;
+        visitor.WriteOpenTag(XmlNodeKeys::LayoutGroupsType, emptyAttrs);
+        for (const LayoutGroup* lg : layoutGroups) {
+            BaseSerializingVisitor::AttrCollector attr;
+            attr.Add("name", lg->GetName());
+            attr.Add(XmlNodeKeys::BackgroundImageAttribute,lg->GetBackgroundImage());
+            attr.Add(XmlNodeKeys::BackgroundBrightnessAttribute, std::to_string(lg->GetBackgroundBrightness()));
+            attr.Add(XmlNodeKeys::BackgroundAlphaAttribute, std::to_string(lg->GetBackgroundAlpha()));
+            attr.Add(XmlNodeKeys::ScaleImageAttribute, std::to_string(lg->GetBackgroundScaled()));
+            attr.Add("PosX", std::to_string(lg->GetPosX()));
+            attr.Add("PosY", std::to_string(lg->GetPosY()));
+            attr.Add("PaneWidth", std::to_string(lg->GetPaneWidth()));
+            attr.Add("PaneHeight", std::to_string(lg->GetPaneHeight()));
+            visitor.WriteOpenTag("layoutGroup", attr, true);
+        }
+        visitor.WriteCloseTag(XmlNodeKeys::LayoutGroupsType);
+    }
+
+    // Serialize all view objects into an XML string fragment.
+    static void SerializeAllObjects(const ViewObjectManager& allObjects, BaseSerializingVisitor &visitor) {
+        BaseSerializingVisitor::AttrCollector attr;
+        visitor.WriteOpenTag(XmlNodeKeys::ViewObjectsNodeName, attr);
+        for (auto v = allObjects.begin(); v != allObjects.end(); ++v) {
+            ViewObject* object = v->second;
+            object->Accept(visitor);
+        }
+        visitor.WriteCloseTag(XmlNodeKeys::ViewObjectsNodeName);
+    }
+    
+    // Walk a wxXmlNode DOM element tree and write it directly into a visitor using
+    // WriteOpenTag/WriteCloseTag. The node must be an element (wxXML_ELEMENT_NODE).
+    // Child element nodes are recursed; text content inside elements is written via
+    // AppendRaw so whitespace-only text nodes are skipped cleanly.
+    static void WriteXmlNode(const wxXmlNode* node, BaseSerializingVisitor& visitor) {
+        if (node == nullptr || node->GetType() != wxXML_ELEMENT_NODE) return;
+
+        // Collect attributes from the wxXmlNode
+        BaseSerializingVisitor::AttrCollector attrs;
+        const wxXmlAttribute* attr = node->GetAttributes();
+        while (attr != nullptr) {
+            attrs.Add(attr->GetName().ToStdString(), attr->GetValue().ToStdString());
+            attr = attr->GetNext();
+        }
+
+        // Determine whether this element has child element or text children
+        const wxXmlNode* child = node->GetChildren();
+        bool hasChildren = false;
+        while (child != nullptr) {
+            if (child->GetType() == wxXML_ELEMENT_NODE) {
+                hasChildren = true;
+                break;
+            }
+            if (child->GetType() == wxXML_TEXT_NODE) {
+                const std::string text = child->GetContent().ToStdString();
+                // Only count non-whitespace text as real content
+                for (char c : text) {
+                    if (c != ' ' && c != '\t' && c != '\n' && c != '\r') {
+                        hasChildren = true;
+                        break;
+                    }
+                }
+            }
+            if (hasChildren) break;
+            child = child->GetNext();
+        }
+
+        const std::string name = node->GetName().ToStdString();
+
+        if (!hasChildren) {
+            // No meaningful children — self-closing tag
+            visitor.WriteOpenTag(name, attrs, /*selfClose=*/true);
+            return;
+        }
+
+        visitor.WriteOpenTag(name, attrs, /*selfClose=*/false);
+
+        // Recurse over children
+        child = node->GetChildren();
+        while (child != nullptr) {
+            if (child->GetType() == wxXML_ELEMENT_NODE) {
+                WriteXmlNode(child, visitor);
+            } else if (child->GetType() == wxXML_TEXT_NODE) {
+                const std::string text = child->GetContent().ToStdString();
+                // Skip whitespace-only text nodes
+                bool allWhitespace = true;
+                for (char c : text) {
+                    if (c != ' ' && c != '\t' && c != '\n' && c != '\r') {
+                        allWhitespace = false;
+                        break;
+                    }
+                }
+                if (!allWhitespace) {
+                    visitor.WriteBodyText(text);
+                }
+            }
+            child = child->GetNext();
+        }
+
+        visitor.WriteCloseTag(name);
+    }
+
+    // Serialize a single object into an XML document
+    static void SerializeObject(const BaseObject& object, BaseSerializingVisitor &visitor) {
+        visitor.WriteOpenTag(XmlNodeKeys::ViewObjectsNodeName, {{XmlNodeKeys::TypeAttribute, XmlNodeKeys::ExportedAttribute}});
+        object.Accept(visitor);
+        visitor.WriteCloseTag(XmlNodeKeys::ViewObjectsNodeName);
+    }
+
+    
     // Serializes and Saves a single model into an XML document (only used for Export)
-    void SerializeAndSaveModel(const Model* model, xLightsFrame* xlights) {
+    void SerializeAndSaveModel(const Model* model) {
         wxString name = model->GetName();
 
         wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (filename.IsEmpty())
             return;
-        wxXmlDocument doc = SerializeModel(model, xlights, true);
+        ObtainAccessToURL(filename);
+        wxXmlDocument doc = SerializeModel(model, true);
         doc.Save(filename);
     }
 
     // Serialize a single model into an XML document
-    wxXmlDocument SerializeModel(const Model* model, xLightsFrame* xlights, bool includeGroups = false) {
+    wxXmlDocument SerializeModel(const Model* model, bool includeGroups = false) {
         wxXmlDocument doc;
 
         wxXmlNode* docNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ModelsNodeName);
         docNode->AddAttribute(XmlNodeKeys::TypeAttribute, XmlNodeKeys::ExportedAttribute);
 
         XmlSerializingVisitor visitor{ docNode , includeGroups};
-
         model->Accept(visitor);
         if (includeGroups) {
             XmlSerialize::SerializeModelGroupsForModel(model, docNode);
@@ -74,57 +183,6 @@ struct XmlSerializer {
         }
 
         doc.SetRoot(docNode);
-
-        return doc;
-    }
-
-    // Serialize all layout groups into an XML document
-    void SerializeAllLayoutGroups(const std::vector<LayoutGroup*>& layoutGroups, wxXmlNode* root) {
-        wxXmlNode* lgNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::LayoutGroupsType);
-        for (const LayoutGroup* lg : layoutGroups) {
-            wxXmlNode* lgChild = new wxXmlNode(wxXML_ELEMENT_NODE, "layoutGroup");
-            lgChild->AddAttribute("name", lg->GetName());
-            lgChild->AddAttribute(XmlNodeKeys::BackgroundImageAttribute, lg->GetBackgroundImage());
-            lgChild->AddAttribute(XmlNodeKeys::BackgroundBrightnessAttribute, std::to_string(lg->GetBackgroundBrightness()));
-            lgChild->AddAttribute(XmlNodeKeys::BackgroundAlphaAttribute, std::to_string(lg->GetBackgroundAlpha()));
-            lgChild->AddAttribute(XmlNodeKeys::ScaleImageAttribute, std::to_string(lg->GetBackgroundScaled()));
-            lgChild->AddAttribute("PosX", std::to_string(lg->GetPosX()));
-            lgChild->AddAttribute("PosY", std::to_string(lg->GetPosY()));
-            lgChild->AddAttribute("PaneWidth", std::to_string(lg->GetPaneWidth()));
-            lgChild->AddAttribute("PaneHeight", std::to_string(lg->GetPaneHeight()));
-            lgNode->AddChild(lgChild);
-        }
-        root->AddChild(lgNode);
-    }
-
-    // Serialize all objects into an XML document
-    void SerializeAllObjects(const ViewObjectManager & allObjects, xLightsFrame* xlights, wxXmlNode* root) {
-
-        wxXmlNode* objectsNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ViewObjectsNodeName);
-
-        XmlSerializingVisitor visitor{ objectsNode };
-
-        for (auto v = allObjects.begin(); v != allObjects.end(); ++v) {
-            ViewObject* object = v->second;
-            object->Accept(visitor);
-        }
-        
-        root->AddChild(objectsNode);
-    }
-
-    // Serialize a single object into an XML document
-    wxXmlDocument SerializeObject(const BaseObject& object, xLightsFrame* xlights) {
-        wxXmlDocument doc;
-
-        wxXmlNode* docNode = new wxXmlNode(wxXML_ELEMENT_NODE, XmlNodeKeys::ViewObjectsNodeName);
-        docNode->AddAttribute(XmlNodeKeys::TypeAttribute, XmlNodeKeys::ExportedAttribute);
-
-        XmlSerializingVisitor visitor{ docNode };
-
-        object.Accept(visitor);
-
-        doc.SetRoot(docNode);
-
         return doc;
     }
 

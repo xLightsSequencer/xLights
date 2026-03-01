@@ -1014,6 +1014,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="XmlSerializer\XmlDeserializingObjectFactory.cpp" />
     <ClCompile Include="XmlSerializer\XmlSerializeFunctions.cpp" />
     <ClCompile Include="XmlSerializer\XmlSerializingVisitor.cpp" />
+    <ClCompile Include="XmlSerializer\BaseSerializingVisitor.cpp" />
+    <ClCompile Include="XmlSerializer\StringSerializingVisitor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\xlBaseApp.h" />
@@ -1568,6 +1570,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="XmlSerializer\XmlSerializeFunctions.h" />
     <ClInclude Include="XmlSerializer\XmlSerializer.h" />
     <ClInclude Include="XmlSerializer\XmlSerializingVisitor.h" />
+    <ClInclude Include="XmlSerializer\BaseSerializingVisitor.h" />
+    <ClInclude Include="XmlSerializer\StringSerializingVisitor.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

@@ -1713,7 +1713,9 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
             nlohmann::json obj;
             
             // Use XmlSerializer to get the object's XML
-            wxXmlDocument doc = serializer.SerializeObject(*e.second, nullptr);
+            wxXmlDocument doc;
+            XmlSerializingVisitor visitor(&doc);
+            serializer.SerializeObject(*e.second, visitor);
             wxXmlNode* root = doc.GetRoot();
             
             // Get the first child node (the view_object node)

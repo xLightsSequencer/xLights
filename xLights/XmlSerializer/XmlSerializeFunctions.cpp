@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include "StringSerializingVisitor.h"
 #include "XmlSerializeFunctions.h"
 #include "XmlNodeKeys.h"
 #include "CheckboxSelectDialog.h"
@@ -17,6 +18,7 @@
 #include "../xLightsMain.h"
 
 #include <wx/xml/xml.h>
+#include <sstream>
 
 namespace XmlSerialize {
 
@@ -538,6 +540,97 @@ void AddDimensions(wxXmlNode* node, const Model* m) {
         xmlNode->AddAttribute(XmlNodeKeys::DimWidthAttribute, std::to_string(m->GetModelScreenLocation().GetRealWidth()));
         modelNode->AddChild(xmlNode);
     }
+}
+
+void SerializeModelGroupsForModelToString(const Model* model, StringSerializingVisitor& visitor) {
+    if (model == nullptr) return;
+
+    const ModelManager& mgr = model->GetModelManager();
+
+    wxArrayString allGroups;
+    wxArrayString onlyGroups;
+    for (const auto& it : mgr.GetModels()) {
+        if (it.second->GetDisplayAs() == "ModelGroup") {
+            if (dynamic_cast<ModelGroup*>(it.second)->OnlyContainsModel(model->Name())) {
+                onlyGroups.Add(it.first);
+                allGroups.Add(it.first);
+            } else if (dynamic_cast<ModelGroup*>(it.second)->ContainsModelOrSubmodel(model)) {
+                allGroups.Add(it.first);
+            }
+        }
+    }
+
+    if (allGroups.size() == 0) return;
+
+    CheckboxSelectDialog dlg(dynamic_cast<wxWindow*>(mgr.GetXLightsFrame()),
+                              "Select Groups to Export - cancel to include no groups",
+                              allGroups, onlyGroups);
+    if (dlg.ShowModal() == wxID_OK) {
+        onlyGroups = dlg.GetSelectedItems();
+    } else {
+        return;
+    }
+
+    if (onlyGroups.size() == 0) return;
+
+    // Build the group XML snippets and append via visitor
+    bool pretty = visitor.IsPrettyPrint();
+    int indent = visitor.GetIndentLevel();
+    std::string indentStr;
+    if (pretty) {
+        for (int i = 0; i < indent; ++i) indentStr += "  ";
+    }
+
+    for (const auto& it : mgr.GetModels()) {
+        if (onlyGroups.Index(it.first) != wxNOT_FOUND) {
+            ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
+            if (mg == nullptr) continue;
+
+            const std::vector<std::string>& model_names = mg->ModelNames();
+            std::string modelsStr;
+            for (size_t i = 0; i < model_names.size(); ++i) {
+                if (i > 0) modelsStr += ",";
+                modelsStr += model_names[i];
+            }
+
+            std::ostringstream ss;
+            ss << indentStr << "<modelGroup"
+               << " " << XmlNodeKeys::NameAttribute      << "=\"" << it.first << "\""
+               << " " << XmlNodeKeys::mgSelectedAttribute << "=\"" << std::to_string(mg->IsSelected()) << "\""
+               << " " << XmlNodeKeys::mgModelsAttribute   << "=\"" << modelsStr << "\""
+               << " " << XmlNodeKeys::LayoutGroupAttribute<< "=\"" << mg->GetLayoutGroup() << "\""
+               << " " << XmlNodeKeys::LayoutAttribute     << "=\"" << mg->GetLayout() << "\""
+               << " " << XmlNodeKeys::mgGridSizeAttribute << "=\"" << std::to_string(mg->GetGridSize()) << "\""
+               << " " << XmlNodeKeys::mgCentrexAttribute  << "=\"" << std::to_string(mg->GetCentreX()) << "\""
+               << " " << XmlNodeKeys::mgCentreyAttribute  << "=\"" << std::to_string(mg->GetCentreY()) << "\""
+               << " " << XmlNodeKeys::mgCentreDefinedAttribute << "=\"" << std::to_string(mg->GetCentreDefined()) << "\""
+               << "/>";
+            if (pretty) ss << "\n";
+            visitor.AppendRaw(ss.str());
+        }
+    }
+}
+
+void AddDimensionsToString(const Model* m, StringSerializingVisitor& visitor) {
+    std::string rdu = m->GetRulerDim();
+    if (rdu.empty()) return;
+
+    bool pretty = visitor.IsPrettyPrint();
+    int indent = visitor.GetIndentLevel();
+    std::string indentStr;
+    if (pretty) {
+        for (int i = 0; i < indent; ++i) indentStr += "  ";
+    }
+
+    std::ostringstream ss;
+    ss << indentStr << "<" << XmlNodeKeys::DimNodeName
+       << " " << XmlNodeKeys::DimDepthAttribute  << "=\"" << std::to_string(m->GetModelScreenLocation().GetRealDepth())  << "\""
+       << " " << XmlNodeKeys::DimHeightAttribute << "=\"" << std::to_string(m->GetModelScreenLocation().GetRealHeight()) << "\""
+       << " " << XmlNodeKeys::DimUnitsAttribute  << "=\"" << rdu << "\""
+       << " " << XmlNodeKeys::DimWidthAttribute  << "=\"" << std::to_string(m->GetModelScreenLocation().GetRealWidth())  << "\""
+       << "/>";
+    if (pretty) ss << "\n";
+    visitor.AppendRaw(ss.str());
 }
 
 } // end namespace XmlSerialize

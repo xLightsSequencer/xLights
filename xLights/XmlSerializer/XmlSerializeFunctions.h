@@ -31,6 +31,11 @@ void DeserializePolyPointScreenLocationAttributes(BaseObject* object, wxXmlNode*
 void SerializeModelGroupsForModel(const Model* object, wxXmlNode* docNode);
 void AddDimensions(wxXmlNode* node, const Model* m);
 
+// String-based variants (no DOM; write directly into a StringSerializingVisitor)
+// Declared here for convenience; StringSerializingVisitor is defined globally (not in this namespace).
+void SerializeModelGroupsForModelToString(const Model* model, class StringSerializingVisitor& visitor);
+void AddDimensionsToString(const Model* m, class StringSerializingVisitor& visitor);
+
 // Data structure for importing custom models
 struct CustomModelImportData {
     std::string name;

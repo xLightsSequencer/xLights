@@ -52,6 +52,7 @@
 #include "models/ViewObject.h"
 #include "models/RulerObject.h"
 #include "models/CustomModel.h"
+#include "XmlSerializer/StringSerializingVisitor.h"
 #include "XmlSerializer/XmlSerializer.h"
 #include "WiringDialog.h"
 #include "ModelDimmingCurveDialog.h"
@@ -4996,7 +4997,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         if (md == nullptr)
             return;
         XmlSerializer serializer;
-        serializer.SerializeAndSaveModel(md, xlights);
+        serializer.SerializeAndSaveModel(md);
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
         DeleteCurrentPreview();
     } else if (event.GetId() == ID_PREVIEW_RENAME_ACTIVE) {
@@ -7425,54 +7426,28 @@ void LayoutPanel::CreateUndoPoint(const std::string &tp, const std::string &mode
         obj=dynamic_cast<ViewObject*>(selectedBaseObject);
         wxASSERT(obj != nullptr);
         
-        // Use XmlSerializer to create the XML document
-        wxXmlDocument doc = serializer.SerializeObject(*obj, xlights);
-        
-        wxStringOutputStream stream;
-        doc.Save(stream);
-        undoBuffer[idx].data = stream.GetString();
+        StringSerializingVisitor visitor;
+        serializer.SerializeObject(*obj, visitor);
+        undoBuffer[idx].data = visitor.GetResult();
     } else if (type == "All") {
         // Serialize all models
         {
-            wxXmlDocument doc;
-            wxXmlNode* root = new wxXmlNode(wxXML_ELEMENT_NODE, "root");
-            serializer.SerializeAllModels(xlights->AllModels, xlights, root);
-            doc.SetRoot(root);
-            
-            wxStringOutputStream stream;
-            doc.Save(stream);
-            undoBuffer[idx].models = stream.GetString();
+            StringSerializingVisitor visitor;
+            visitor.WriteOpenTag("root");
+            XmlSerializer::SerializeAllModels(xlights->AllModels, visitor);
+            visitor.WriteCloseTag("root");
+
+            undoBuffer[idx].models = visitor.GetResult();
         }
         
         // Serialize all view objects
         {
-            wxXmlDocument doc;
-            wxXmlNode* root = new wxXmlNode(wxXML_ELEMENT_NODE, "root");
-            serializer.SerializeAllObjects(xlights->AllObjects, xlights, root);
-            doc.SetRoot(root);
-            
-            wxStringOutputStream stream;
-            doc.Save(stream);
-            undoBuffer[idx].objects = stream.GetString();
-        }
-        
-        // Serialize all model groups
-        {
-            wxXmlDocument doc;
-            wxXmlNode* root = new wxXmlNode(wxXML_ELEMENT_NODE, "root");
-            
-            // Serialize model groups by iterating and serializing each group model
-            for (auto& m : xlights->AllModels) {
-                if (m.second->GetDisplayAs() == "ModelGroup") {
-                    XmlSerializingVisitor visitor{ root };
-                    m.second->Accept(visitor);
-                }
-            }
-            
-            doc.SetRoot(root);
-            wxStringOutputStream stream;
-            doc.Save(stream);
-            undoBuffer[idx].groups = stream.GetString();
+            StringSerializingVisitor visitor;
+            visitor.WriteOpenTag("root");
+            XmlSerializer::SerializeAllObjects(xlights->AllObjects, visitor);
+            visitor.WriteCloseTag("root");
+
+            undoBuffer[idx].objects = visitor.GetResult();
         }
     }
 }
@@ -7551,7 +7526,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         if (md == nullptr)
             return;
         XmlSerializer serializer;
-        serializer.SerializeAndSaveModel(md, xlights);
+        serializer.SerializeAndSaveModel(md);
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
         DeleteCurrentPreview();
     } else if (event.GetId() == ID_PREVIEW_RENAME_ACTIVE) {
