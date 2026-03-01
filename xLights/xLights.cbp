@@ -198,6 +198,8 @@
 		<Unit filename="ColourReplaceDialog.h" />
 		<Unit filename="ColoursPanel.cpp" />
 		<Unit filename="ColoursPanel.h" />
+		<Unit filename="ControllerConnection.cpp" />
+		<Unit filename="ControllerConnection.h" />
 		<Unit filename="ControllerConnectionDialog.cpp" />
 		<Unit filename="ControllerConnectionDialog.h" />
 		<Unit filename="ControllerModelDialog.cpp" />
@@ -307,8 +309,8 @@
 		<Unit filename="MIDI/MidiEventList.cpp" />
 		<Unit filename="MIDI/MidiFile.cpp" />
 		<Unit filename="MIDI/MidiMessage.cpp" />
-        <Unit filename="ManageMediaPanel.cpp" />
-        <Unit filename="ManageMediaPanel.h" />
+		<Unit filename="ManageMediaPanel.cpp" />
+		<Unit filename="ManageMediaPanel.h" />
 		<Unit filename="MatrixFaceDownloadDialog.cpp" />
 		<Unit filename="MatrixFaceDownloadDialog.h" />
 		<Unit filename="MediaImportOptionsDialog.cpp" />
@@ -490,6 +492,23 @@
 		<Unit filename="WiringDialog.cpp" />
 		<Unit filename="WiringDialog.h" />
 		<Unit filename="XlightsDrawable.h" />
+		<Unit filename="XmlSerializer/BaseSerializingVisitor.cpp" />
+		<Unit filename="XmlSerializer/BaseSerializingVisitor.h" />
+		<Unit filename="XmlSerializer/GdtfParser.cpp" />
+		<Unit filename="XmlSerializer/GdtfParser.h" />
+		<Unit filename="XmlSerializer/StringSerializingVisitor.cpp" />
+		<Unit filename="XmlSerializer/StringSerializingVisitor.h" />
+		<Unit filename="XmlSerializer/XmlDeserializingModelFactory.cpp" />
+		<Unit filename="XmlSerializer/XmlDeserializingModelFactory.h" />
+		<Unit filename="XmlSerializer/XmlDeserializingObjectFactory.cpp" />
+		<Unit filename="XmlSerializer/XmlDeserializingObjectFactory.h" />
+		<Unit filename="XmlSerializer/XmlNodeKeys.h" />
+		<Unit filename="XmlSerializer/XmlSerializeFunctions.cpp" />
+		<Unit filename="XmlSerializer/XmlSerializeFunctions.h" />
+		<Unit filename="XmlSerializer/XmlSerializeRgbEffects.h" />
+		<Unit filename="XmlSerializer/XmlSerializer.h" />
+		<Unit filename="XmlSerializer/XmlSerializingVisitor.cpp" />
+		<Unit filename="XmlSerializer/XmlSerializingVisitor.h" />
 		<Unit filename="ai/AIColorPaletteDialog.cpp" />
 		<Unit filename="ai/AIColorPaletteDialog.h" />
 		<Unit filename="ai/AIImageDialog.cpp" />
@@ -873,6 +892,8 @@
 		<Unit filename="models/CubeModel.cpp" />
 		<Unit filename="models/CustomModel.cpp" />
 		<Unit filename="models/CustomModel.h" />
+		<Unit filename="models/DMX/DmxBeamAbility.cpp" />
+		<Unit filename="models/DMX/DmxBeamAbility.h" />
 		<Unit filename="models/DMX/DmxColorAbility.cpp" />
 		<Unit filename="models/DMX/DmxColorAbility.h" />
 		<Unit filename="models/DMX/DmxColorAbilityCMY.cpp" />
@@ -902,7 +923,6 @@
 		<Unit filename="models/DMX/DmxMovingHeadAdv.cpp" />
 		<Unit filename="models/DMX/DmxMovingHeadAdv.h" />
 		<Unit filename="models/DMX/DmxMovingHeadComm.h" />
-		<Unit filename="models/DMX/DmxPanTiltAbility.cpp" />
 		<Unit filename="models/DMX/DmxPanTiltAbility.h" />
 		<Unit filename="models/DMX/DmxPresetAbility.cpp" />
 		<Unit filename="models/DMX/DmxPresetAbility.h" />
@@ -914,7 +934,6 @@
 		<Unit filename="models/DMX/DmxShutterAbility.h" />
 		<Unit filename="models/DMX/DmxSkull.cpp" />
 		<Unit filename="models/DMX/DmxSkull.h" />
-		<Unit filename="models/DMX/DmxSkulltronix.cpp" />
 		<Unit filename="models/DMX/DmxSkulltronix.h" />
 		<Unit filename="models/DMX/Mesh.cpp" />
 		<Unit filename="models/DMX/Mesh.h" />
@@ -979,8 +998,9 @@
 		<Unit filename="models/StarModel.h" />
 		<Unit filename="models/SubModel.cpp" />
 		<Unit filename="models/SubModel.h" />
+		<Unit filename="models/TerrainObject.cpp" />
+		<Unit filename="models/TerrainObject.h" />
 		<Unit filename="models/TerrainScreenLocation.cpp" />
-		<Unit filename="models/TerrianObject.cpp" />
 		<Unit filename="models/TerrianObject.h" />
 		<Unit filename="models/TerrianScreenLocation.h" />
 		<Unit filename="models/ThreePointScreenLocation.cpp" />
@@ -993,7 +1013,6 @@
 		<Unit filename="models/ViewObject.h" />
 		<Unit filename="models/ViewObjectManager.cpp" />
 		<Unit filename="models/ViewObjectManager.h" />
-		<Unit filename="models/WholeHouseModel.cpp" />
 		<Unit filename="models/WholeHouseModel.h" />
 		<Unit filename="models/WindowFrameModel.cpp" />
 		<Unit filename="models/WindowFrameModel.h" />
