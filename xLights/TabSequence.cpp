@@ -1573,7 +1573,7 @@ void xLightsFrame::SaveAsSequence()
             wxFileName fnFile(newFilename);
             fnFile.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
             wxFileName fnDir(CurrentDir, "");
-            fnFile.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
+            fnDir.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
             wxString filePath = fnFile.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR);
             wxString showPath = fnDir.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR);
             if (!filePath.StartsWith(showPath)) {
