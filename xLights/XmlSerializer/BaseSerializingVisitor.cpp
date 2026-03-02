@@ -92,7 +92,7 @@ std::string BaseSerializingVisitor::FloatToString(float f) {
     while (len && ret[len - 1] == '0') {
         --len;
     }
-    if (ret[len] == '.') {
+    if (ret[len - 1] == '.') {
         len += 2;
     }
     return ret.substr(0, len);
@@ -527,7 +527,7 @@ void BaseSerializingVisitor::Visit(const ControllerConnection& cc) {
     if (cc.GetSmartRemote() && cc.IsPropertySet(CtrlProps::USE_SMART_REMOTE)) {
         attrs.Add(XmlNodeKeys::SmartRemoteAttribute,     std::to_string(cc.GetSmartRemote()));
         attrs.Add(XmlNodeKeys::SRMaxCascadeAttribute,    std::to_string(cc.GetSRMaxCascade()));
-        attrs.Add(XmlNodeKeys::SRCascadeOnPortAttribute, std::to_string(cc.GetSRCascadeOnPort()));
+        attrs.Add(XmlNodeKeys::SRCascadeOnPortAttribute, cc.GetSRCascadeOnPort() ? "TRUE" : "FALSE");
         attrs.Add(XmlNodeKeys::SmartRemoteTypeAttribute, cc.GetSmartRemoteType());
         if (cc.IsPropertySet(CtrlProps::TS_ACTIVE))
             attrs.Add(XmlNodeKeys::SmartRemoteTsAttribute, std::to_string(cc.GetSmartTs()));

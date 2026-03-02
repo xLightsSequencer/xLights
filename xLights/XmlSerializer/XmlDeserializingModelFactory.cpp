@@ -464,7 +464,7 @@ Model* XmlDeserializingModelFactory::DeserializeCircle(wxXmlNode* node, xLightsF
     if (!node->HasAttribute("StartSide")) {
         model->SetIsBtoT(false);
     }
-    model->SetInsideOut(node->GetAttribute(XmlNodeKeys::InsideOutAttribute, "false") == "true");
+    model->SetInsideOut(node->GetAttribute(XmlNodeKeys::InsideOutAttribute, "0") == "1");
     model->Setup();
     return model;
 }
@@ -609,6 +609,7 @@ Model* XmlDeserializingModelFactory::DeserializeSphere(wxXmlNode* node, xLightsF
     SphereModel* model = new SphereModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
     model->SetStartLatitude(std::stoi(node->GetAttribute(XmlNodeKeys::StartLatAttribute, "-86").ToStdString()));
+    model->SetEndLatitude(std::stoi(node->GetAttribute(XmlNodeKeys::EndLatAttribute, "86").ToStdString()));
     model->SetDegrees(std::stoi(node->GetAttribute(XmlNodeKeys::DegreesAttribute, "360").ToStdString()));
     model->SetAlternateNodes(node->GetAttribute(XmlNodeKeys::AlternateNodesAttribute, "false") == "true");
     model->SetNoZigZag(node->GetAttribute(XmlNodeKeys::NoZigZagAttribute, "false") == "true");
@@ -634,7 +635,7 @@ Model* XmlDeserializingModelFactory::DeserializeSpinner(wxXmlNode* node, xLights
     model->SetHollow(std::stoi(node->GetAttribute(XmlNodeKeys::HollowAttribute, "20").ToStdString()));
     model->SetStartAngle(std::stoi(node->GetAttribute(XmlNodeKeys::StartAngleAttribute, "0").ToStdString()));
     model->SetArc(std::stoi(node->GetAttribute(XmlNodeKeys::ArcAttribute, "360").ToStdString()));
-    model->SetZigZag(node->GetAttribute(XmlNodeKeys::NoZigZagAttribute, "false") == "true");
+    model->SetZigZag(node->GetAttribute(XmlNodeKeys::ZigZagAttribute, "false") == "true");
     model->SetAlternate(node->GetAttribute(XmlNodeKeys::AlternateAttribute, "false") == "true");
     model->Setup();
     return model;

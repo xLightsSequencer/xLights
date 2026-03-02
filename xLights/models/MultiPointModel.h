@@ -22,6 +22,8 @@ public:
     virtual int GetLightsPerNode() const override { return 1; } // default to one unless a model supports this
     virtual int MapToNodeIndex(int strand, int node) const override;
 
+    void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
+
     virtual bool SupportsExportAsCustom() const override { return false; }
     virtual bool SupportsWiringView() const override { return false; }
     virtual int GetNumPhysicalStrings() const override;
