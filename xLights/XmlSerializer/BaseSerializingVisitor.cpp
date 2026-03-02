@@ -815,10 +815,12 @@ void BaseSerializingVisitor::Visit(const SphereModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
     AddBoxedScreenLocationAttributes(model, attrs);
-    attrs.Add(XmlNodeKeys::DegreesAttribute,       std::to_string(model.GetSphereDegrees()));
-    attrs.Add(XmlNodeKeys::StartLatAttribute,      std::to_string(model.GetStartLatitude()));
-    attrs.Add(XmlNodeKeys::EndLatAttribute,        std::to_string(model.GetEndLatitude()));
-    attrs.Add(XmlNodeKeys::LowDefinitionAttribute, std::to_string(model.GetLowDefFactor()));
+    attrs.Add(XmlNodeKeys::DegreesAttribute,        std::to_string(model.GetSphereDegrees()));
+    attrs.Add(XmlNodeKeys::StartLatAttribute,       std::to_string(model.GetStartLatitude()));
+    attrs.Add(XmlNodeKeys::EndLatAttribute,         std::to_string(model.GetEndLatitude()));
+    attrs.Add(XmlNodeKeys::LowDefinitionAttribute,  std::to_string(model.GetLowDefFactor()));
+    attrs.Add(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");
+    attrs.Add(XmlNodeKeys::NoZigZagAttribute,       model.IsNoZigZag() ? "true" : "false");
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
@@ -860,6 +862,8 @@ void BaseSerializingVisitor::Visit(const TreeModel& model) {
     AddBoxedScreenLocationAttributes(model, attrs);
     attrs.Add(XmlNodeKeys::AlternateNodesAttribute,      model.HasAlternateNodes() ? "true" : "false");
     attrs.Add(XmlNodeKeys::NoZigZagAttribute,            model.IsNoZigZag() ? "true" : "false");
+    attrs.Add(XmlNodeKeys::StrandDirAttribute,           model.isVerticalMatrix() ? "Vertical" : "Horizontal");
+    attrs.Add(XmlNodeKeys::exportFirstStrandAttribute,   std::to_string(model.GetFirstStrand() + 1));
     attrs.Add(XmlNodeKeys::TreeBottomTopRatioAttribute,  std::to_string(model.GetBottomTopRatio()));
     attrs.Add(XmlNodeKeys::TreePerspectiveAttribute,     std::to_string(model.GetTreePerspective()));
     attrs.Add(XmlNodeKeys::TreeSpiralRotationsAttribute, std::to_string(model.GetSpiralRotations()));
