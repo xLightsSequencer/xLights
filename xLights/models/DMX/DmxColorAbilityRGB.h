@@ -51,10 +51,20 @@ class DmxColorAbilityRGB : public DmxColorAbility
     void SetBlueChannel(uint32_t chan) { blue_channel = chan; }
     void SetWhiteChannel(uint32_t chan) { white_channel = chan; }
 
+    [[nodiscard]] int GetRedBrightness() const { return red_brightness; }
+    [[nodiscard]] int GetGreenBrightness() const { return green_brightness; }
+    [[nodiscard]] int GetBlueBrightness() const { return blue_brightness; }
+    [[nodiscard]] int GetWhiteBrightness() const { return white_brightness; }
+
     void SetRedBrightness(int brightness) { red_brightness = brightness; }
     void SetGreenBrightness(int brightness) { green_brightness = brightness; }
     void SetBlueBrightness(int brightness) { blue_brightness = brightness; }
     void SetWhiteBrightness(int brightness) { white_brightness = brightness; }
+
+    [[nodiscard]] float GetRedGamma() const { return red_gamma; }
+    [[nodiscard]] float GetGreenGamma() const { return green_gamma; }
+    [[nodiscard]] float GetBlueGamma() const { return blue_gamma; }
+    [[nodiscard]] float GetWhiteGamma() const { return white_gamma; }
 
     void SetRedGamma(float gamma) { red_gamma = gamma; }
     void SetGreenGamma(float gamma) { green_gamma = gamma; }

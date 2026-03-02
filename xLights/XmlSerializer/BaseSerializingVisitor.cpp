@@ -255,6 +255,14 @@ void BaseSerializingVisitor::AddColorAbilityRGBAttributes(const DmxColorAbilityR
     attrs.Add(XmlNodeKeys::DmxGreenChannelAttribute, std::to_string(colors->GetGreenChannel()));
     attrs.Add(XmlNodeKeys::DmxBlueChannelAttribute,  std::to_string(colors->GetBlueChannel()));
     attrs.Add(XmlNodeKeys::DmxWhiteChannelAttribute, std::to_string(colors->GetWhiteChannel()));
+    if (colors->GetRedBrightness()   != 100) attrs.Add("DmxRedBrightness",   std::to_string(colors->GetRedBrightness()));
+    if (colors->GetGreenBrightness() != 100) attrs.Add("DmxGreenBrightness", std::to_string(colors->GetGreenBrightness()));
+    if (colors->GetBlueBrightness()  != 100) attrs.Add("DmxBlueBrightness",  std::to_string(colors->GetBlueBrightness()));
+    if (colors->GetWhiteBrightness() != 100) attrs.Add("DmxWhiteBrightness", std::to_string(colors->GetWhiteBrightness()));
+    if (colors->GetRedGamma()   != 1.0f) attrs.Add("DmxRedGamma",   FloatToString(colors->GetRedGamma()));
+    if (colors->GetGreenGamma() != 1.0f) attrs.Add("DmxGreenGamma", FloatToString(colors->GetGreenGamma()));
+    if (colors->GetBlueGamma()  != 1.0f) attrs.Add("DmxBlueGamma",  FloatToString(colors->GetBlueGamma()));
+    if (colors->GetWhiteGamma() != 1.0f) attrs.Add("DmxWhiteGamma", FloatToString(colors->GetWhiteGamma()));
 }
 
 void BaseSerializingVisitor::AddColorWheelAttributes(const DmxColorAbilityWheel* colors, AttrCollector& attrs) {
