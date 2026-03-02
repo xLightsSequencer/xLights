@@ -44,14 +44,16 @@ class Mesh;
 class ModelGroup;
 class Servo;
 
-struct BaseSerializingVisitor : BaseObjectVisitor {
+class BaseSerializingVisitor : public BaseObjectVisitor {
+public:
 
     // ---------------------------------------------------------------------------
     // Collected attributes for a pending element.
     // Public so that external helpers (StringSerializer, TabSequence, etc.) can
     // construct instances.
     // ---------------------------------------------------------------------------
-    struct AttrCollector {
+    class AttrCollector {
+    public:
         std::vector<std::pair<std::string, std::string>> attrs;
 
         AttrCollector() = default;

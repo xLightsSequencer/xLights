@@ -20,7 +20,8 @@
 #include <sstream>
 #include <string>
 
-struct StringSerializingVisitor : BaseSerializingVisitor {
+class StringSerializingVisitor : public BaseSerializingVisitor {
+public:
     explicit StringSerializingVisitor(bool exporting = false, bool prettyPrint = true);
 
     // Output primitives (write to ostringstream)

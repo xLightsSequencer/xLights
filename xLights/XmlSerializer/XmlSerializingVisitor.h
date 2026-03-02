@@ -14,7 +14,8 @@
 #include <wx/xml/xml.h>
 #include <vector>
 
-struct XmlSerializingVisitor : BaseSerializingVisitor {
+class XmlSerializingVisitor : public BaseSerializingVisitor {
+public:
     XmlSerializingVisitor(wxXmlDocument* doc, bool exporting = false);
     XmlSerializingVisitor(wxXmlNode* parentNode, bool exporting = false);
 

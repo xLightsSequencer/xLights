@@ -45,7 +45,8 @@ class MeshObject;
 class RulerObject;
 class TerrainObject;
 
-struct BaseObjectVisitor {
+class BaseObjectVisitor {
+public:
     virtual void Visit(const ArchesModel& model) = 0;
     virtual void Visit(const CandyCaneModel& model) = 0;
     virtual void Visit(const ChannelBlockModel& model) = 0;
