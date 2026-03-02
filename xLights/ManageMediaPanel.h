@@ -43,6 +43,7 @@ struct MediaNode {
     wxString sizeStr;
     wxString framesStr;
     wxString statusStr;
+    bool canLoad = true;    // false when entry->IsOk() returns false
 
     // children (only valid for group nodes)
     std::vector<std::shared_ptr<MediaNode>> children;
@@ -70,6 +71,7 @@ public:
 
     void GetValue(wxVariant& variant, const wxDataViewItem& item, unsigned int col) const override;
     bool SetValue(const wxVariant& variant, const wxDataViewItem& item, unsigned int col) override { return false; }
+    bool GetAttr(const wxDataViewItem& item, unsigned int col, wxDataViewItemAttr& attr) const override;
 
     wxDataViewItem GetParent(const wxDataViewItem& item) const override;
     bool IsContainer(const wxDataViewItem& item) const override;
@@ -96,6 +98,8 @@ public:
 private:
     void OnTreeItemSelected(wxDataViewEvent& event);
     void OnTreeMouseMotion(wxMouseEvent& event);
+    void OnTreeContextMenu(wxDataViewEvent& event);
+    void OnReSelectImage(const std::string& oldPath);
     void OnAddButtonClick(wxCommandEvent& event);
     void OnAIGenerateButtonClick(wxCommandEvent& event);
     void OnRenameButtonClick(wxCommandEvent& event);

@@ -1975,6 +1975,8 @@ public:
 
     std::string MoveToShowFolder(const std::string& file, const std::string& subdirectory, const bool reuse = false);
     bool IsInShowFolder(const std::string & file) const;
+    // Returns true if file is inside the show folder or any configured media folder
+    bool IsInShowOrMediaFolder(const std::string& file) const;
     bool FilesMatch(const std::string & file1, const std::string & file2) const;
     ColorPanel* GetColorPanel() const { return colorPanel; }
     JukeboxPanel* GetJukeboxPanel() const { return jukeboxPanel; }
