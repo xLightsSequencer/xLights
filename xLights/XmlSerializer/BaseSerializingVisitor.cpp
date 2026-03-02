@@ -181,7 +181,7 @@ void BaseSerializingVisitor::AddCommonModelAttributes(const Model& model, AttrCo
         attrs.Add(XmlNodeKeys::ModelChainAttribute, model.GetModelChain());
     }
     if (model.GetCustomColor() != xlBLACK) {
-        attrs.Add(XmlNodeKeys::CustomColorAttribute, model.GetCustomColor().asString());
+        attrs.Add(XmlNodeKeys::CustomColorAttribute, model.GetCustomColor());
     }
     if (!model.GetShadowModelFor().empty()) {
         attrs.Add(XmlNodeKeys::ShadowModelAttribute, model.GetShadowModelFor());
@@ -803,6 +803,7 @@ void BaseSerializingVisitor::Visit(const PolyLineModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
     AddPolyPointScreenLocationAttributes(model, attrs);
+    attrs.Add(XmlNodeKeys::PolyStringsAttribute,    std::to_string(model.GetNumStrings()));
     attrs.Add(XmlNodeKeys::AlternateNodesAttribute, model.HasAlternateNodes() ? "true" : "false");
     attrs.Add(XmlNodeKeys::DropPatternAttribute,    model.GetDropPattern());
     std::vector<int> nodeSize = model.GetNodeSizes();
