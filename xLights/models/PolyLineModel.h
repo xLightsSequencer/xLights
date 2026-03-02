@@ -66,6 +66,7 @@ public:
     void SetLeadOffset(int idx, float val) { _polyLeadOffset[idx] = val; }
     void SetTrailOffset(int idx, float val) { _polyTrailOffset[idx] = val; }
     void SetCornerString( int idx, const std::string & corner) { _polyCorner[idx] = corner; }
+    [[nodiscard]] bool GetAutoDistribute() const { return _autoDistributeLights; }
     void SetAutoDistribute(bool val) { _autoDistributeLights = val; }
     void ClearPolyLineCreate() { _creatingNewPolyLine = false; }
 

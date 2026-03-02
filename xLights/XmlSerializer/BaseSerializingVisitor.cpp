@@ -809,9 +809,11 @@ void BaseSerializingVisitor::Visit(const PolyLineModel& model) {
     for (auto i = 0; i < (int)nodeSize.size(); i++) {
         attrs.Add(std::string(model.StartNodeAttrName(i)), std::to_string(nodeSize[i]));
     }
-    std::vector<int> segSize = model.GetSegmentsSizes();
-    for (auto i = 0; i < (int)segSize.size(); i++) {
-        attrs.Add(std::string(model.SegAttrName(i)), std::to_string(segSize[i]));
+    if (!model.GetAutoDistribute()) {
+        std::vector<int> segSize = model.GetSegmentsSizes();
+        for (auto i = 0; i < (int)segSize.size(); i++) {
+            attrs.Add(std::string(model.SegAttrName(i)), std::to_string(segSize[i]));
+        }
     }
     std::vector<std::string> cSize = model.GetCorners();
     for (auto i = 0; i < (int)cSize.size(); i++) {
