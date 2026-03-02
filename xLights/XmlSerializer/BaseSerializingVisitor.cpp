@@ -180,6 +180,12 @@ void BaseSerializingVisitor::AddCommonModelAttributes(const Model& model, AttrCo
     if (!model.GetModelChain().empty()) {
         attrs.Add(XmlNodeKeys::ModelChainAttribute, model.GetModelChain());
     }
+    if (model.GetCustomColor() != xlBLACK) {
+        attrs.Add(XmlNodeKeys::CustomColorAttribute, model.GetCustomColor().asString());
+    }
+    if (!model.GetShadowModelFor().empty()) {
+        attrs.Add(XmlNodeKeys::ShadowModelAttribute, model.GetShadowModelFor());
+    }
 }
 
 void BaseSerializingVisitor::AddSuperStrings(const Model& model, AttrCollector& attrs) {
