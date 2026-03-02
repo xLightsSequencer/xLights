@@ -140,8 +140,21 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
     std::string file = settings["E_TEXTCTRL_Pictures_Filename"];
     auto &media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
     if (!file.empty() && !media.HasImage(file)) {
-        if (!FileExists(file, false)) {
-            settings["E_TEXTCTRL_Pictures_Filename"] = FixFile("", file);
+        // Only run FixFile for absolute paths — relative paths are intentionally
+        // stored as-is and will be resolved by SequenceMedia::GetImage() via FixFile.
+        if (!wxFileName(file).IsAbsolute()) {
+            // relative path: just let GetImage() resolve it below
+        } else if (!FileExists(file, false)) {
+            wxString fixed = FixFile("", file);
+            // If the resolved path is inside a show/media directory, store as
+            // relative so the sequence is portable across machines.
+            wxString rel = MakeRelativeFile(fixed);
+            settings["E_TEXTCTRL_Pictures_Filename"] = rel.IsEmpty() ? fixed : rel;
+        } else {
+            // File exists at its absolute path — still prefer relative storage
+            wxString rel = MakeRelativeFile(file);
+            if (!rel.IsEmpty())
+                settings["E_TEXTCTRL_Pictures_Filename"] = rel;
         }
         std::string NewPictureName = settings["E_TEXTCTRL_Pictures_Filename"];
         wxFileName fn(NewPictureName);
@@ -340,8 +353,16 @@ void PicturesEffect::SetDefaultParameters() {
 std::list<std::string> PicturesEffect::GetFileReferences(Model* model, const SettingsMap &SettingsMap) const
 {
     std::list<std::string> res;
-    if (SettingsMap["E_TEXTCTRL_Pictures_Filename"] != "" && FileExists(SettingsMap["E_TEXTCTRL_Pictures_Filename"])) {
-        res.push_back(SettingsMap["E_TEXTCTRL_Pictures_Filename"]);
+    std::string file = SettingsMap["E_TEXTCTRL_Pictures_Filename"];
+    if (!file.empty()) {
+        // Relative paths must be resolved to absolute so callers can locate the file.
+        if (!wxFileName(file).IsAbsolute()) {
+            wxString resolved = FixFile("", file);
+            if (!resolved.IsEmpty() && FileExists(resolved))
+                res.push_back(resolved.ToStdString());
+        } else if (FileExists(file)) {
+            res.push_back(file);
+        }
     }
     return res;
 }

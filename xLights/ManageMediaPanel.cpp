@@ -677,8 +677,19 @@ std::string ManageMediaPanel::ExtractWithRename(const std::string& fullPath)
         return {};
     }
 
-    // Update every effect in the sequence that referenced oldPath -> newPath
-    if (_sequenceElements != nullptr && newPath != fullPath) {
+    // Convert absolute path to relative (relative to show/media folder)
+    std::string finalPath = newPath;
+    if (_xlFrame) {
+        std::string rel = _xlFrame->MakeRelativePath(newPath);
+        if (!rel.empty()) {
+            // Rename the cache key from absolute to relative
+            _sequenceMedia->RenameImage(newPath, rel);
+            finalPath = rel;
+        }
+    }
+
+    // Update every effect in the sequence that referenced fullPath -> finalPath
+    if (_sequenceElements != nullptr && finalPath != fullPath) {
         auto scanLayer = [&](EffectLayer* layer) {
             for (size_t k = 0; k < layer->GetEffectCount(); ++k) {
                 Effect* eff = layer->GetEffect(k);
@@ -689,7 +700,7 @@ std::string ManageMediaPanel::ExtractWithRename(const std::string& fullPath)
                         keysToUpdate.push_back(it->first);
                 }
                 for (const auto& key : keysToUpdate)
-                    eff->SetSetting(key, newPath);
+                    eff->SetSetting(key, finalPath);
             }
         };
 
@@ -717,7 +728,7 @@ std::string ManageMediaPanel::ExtractWithRename(const std::string& fullPath)
         }
     }
 
-    return newPath;
+    return finalPath;
 }
 
 void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
@@ -843,6 +854,12 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
                 return;
             }
             finalPath = newPath;
+        }
+
+        // Convert to relative path if inside a show/media folder
+        if (_xlFrame) {
+            std::string rel = _xlFrame->MakeRelativePath(finalPath);
+            if (!rel.empty()) finalPath = rel;
         }
     }
 
@@ -989,6 +1006,12 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
                 }
                 path = newPath;
             }
+        }
+
+        // For external images now inside a show/media folder, store the relative path
+        if (_xlFrame) {
+            std::string rel = _xlFrame->MakeRelativePath(path);
+            if (!rel.empty()) path = rel;
         }
 
         _sequenceMedia->GetImage(path);
@@ -1209,8 +1232,18 @@ void ManageMediaPanel::OnExtractAllButtonClick(wxCommandEvent& event)
             continue;
         }
 
-        // Update effect references oldPath -> newPath
-        if (_sequenceElements != nullptr && newPath != oldPath) {
+        // Convert absolute path to relative (relative to show/media folder)
+        std::string finalPath = newPath;
+        if (_xlFrame) {
+            std::string rel = _xlFrame->MakeRelativePath(newPath);
+            if (!rel.empty()) {
+                _sequenceMedia->RenameImage(newPath, rel);
+                finalPath = rel;
+            }
+        }
+
+        // Update effect references oldPath -> finalPath
+        if (_sequenceElements != nullptr && finalPath != oldPath) {
             auto scanLayer = [&](EffectLayer* layer) {
                 for (size_t k = 0; k < layer->GetEffectCount(); ++k) {
                     Effect* eff = layer->GetEffect(k);
@@ -1221,7 +1254,7 @@ void ManageMediaPanel::OnExtractAllButtonClick(wxCommandEvent& event)
                             keysToUpdate.push_back(it->first);
                     }
                     for (const auto& key : keysToUpdate)
-                        eff->SetSetting(key, newPath);
+                        eff->SetSetting(key, finalPath);
                 }
             };
 

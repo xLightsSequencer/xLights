@@ -270,6 +270,41 @@ void SetFixFileShowDir(const wxString& ShowDir) {
     RememberShowDir = ShowDir;
 }
 
+wxString MakeRelativeFile(const wxString& file)
+{
+    if (file.IsEmpty()) return {};
+    wxFileName fn(file);
+    if (!fn.IsAbsolute()) return {};  // already relative
+
+    wxString f(file);
+    f.Replace("\\", "/");
+
+    // Helper: strip base prefix from f and return the relative portion, or ""
+    auto stripPrefix = [&](wxString base) -> wxString {
+        base.Replace("\\", "/");
+#ifdef __WXMSW__
+        base.MakeLower();
+        wxString fl = f.Lower();
+#else
+        const wxString& fl = f;
+#endif
+        if (!base.EndsWith("/")) base += "/";
+        if (fl.StartsWith(base))
+            return f.Mid(base.Length());
+        return {};
+    };
+
+    wxString rel = stripPrefix(RememberShowDir);
+    if (!rel.IsEmpty()) return rel;
+
+    for (const auto& dir : SearchDirectories) {
+        rel = stripPrefix(wxString(dir));
+        if (!rel.IsEmpty()) return rel;
+    }
+
+    return {};
+}
+
 static std::recursive_mutex __fixFilesMutex;
 static std::vector<std::string> __nonExistentFiles;
 

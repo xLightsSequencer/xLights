@@ -1977,6 +1977,9 @@ public:
     bool IsInShowFolder(const std::string & file) const;
     // Returns true if file is inside the show folder or any configured media folder
     bool IsInShowOrMediaFolder(const std::string& file) const;
+    // Returns the path of file relative to the show folder or media folder it lives in.
+    // Returns empty string if file is not inside any show/media folder.
+    std::string MakeRelativePath(const std::string& file) const;
     bool FilesMatch(const std::string & file1, const std::string & file2) const;
     ColorPanel* GetColorPanel() const { return colorPanel; }
     JukeboxPanel* GetJukeboxPanel() const { return jukeboxPanel; }

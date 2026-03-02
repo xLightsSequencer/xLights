@@ -467,9 +467,20 @@ std::shared_ptr<ImageCacheEntry> SequenceMedia::GetImage(const std::string& file
         }
         return ret;
     }
+
+    // For relative paths, resolve to an absolute path using FixFile so the
+    // entry can be loaded from disk.  The cache key stays as the relative path.
+    wxFileName fn(filepath);
+    std::string loadPath = filepath;
+    if (!fn.IsAbsolute()) {
+        wxString resolved = FixFile("", filepath);
+        if (!resolved.IsEmpty())
+            loadPath = resolved.ToStdString();
+    }
+
     //wasn't found, we'll create it and add to the cache
-    std::shared_ptr<ImageCacheEntry> np = std::make_shared<ImageCacheEntry>(filepath);
-    _imageCache.emplace(filepath, np);    
+    std::shared_ptr<ImageCacheEntry> np = std::make_shared<ImageCacheEntry>(loadPath);
+    _imageCache.emplace(filepath, np);
     lock.unlock();
     
     np->Load();

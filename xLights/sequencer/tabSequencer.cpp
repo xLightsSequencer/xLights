@@ -1504,6 +1504,12 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
         }
     }
 
+    // For external images inside a show/media folder, store the relative path
+    {
+        std::string rel = MakeRelativePath(filename);
+        if (!rel.empty()) filename = rel;
+    }
+
     int effectIndex = 0;
     for (size_t i = 0; i < EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetCount(); i++) {
         if (EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetString(i) == effectName) {
