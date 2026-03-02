@@ -987,7 +987,7 @@ Model* XmlDeserializingModelFactory::DeserializeDmxServo3d(wxXmlNode* node, xLig
     model->SetNumServos(std::stoi(node->GetAttribute("NumServos", "1").ToStdString()));
     model->SetNumStatic(std::stoi(node->GetAttribute("NumStatic", "1").ToStdString()));
     model->SetNumMotion(std::stoi(node->GetAttribute("NumMotion", "1").ToStdString()));
-    model->SetIs16Bit(node->GetAttribute("Bits16", "0") == "1");
+    model->SetIs16Bit(node->GetAttribute("Bits16", "1") == "1");
     model->SetBrightness(std::stoi(node->GetAttribute(XmlNodeKeys::BrightnessAttribute, "100").ToStdString()));
 
     wxXmlNode* n = node->GetChildren();
@@ -1075,7 +1075,7 @@ Model* XmlDeserializingModelFactory::DeserializeDmxServo(wxXmlNode* node, xLight
     CommonDeserializeSteps(model, node, xlights, importing);
     DeserializeDmxModel(model, node);
     model->SetNumServos(std::stoi(node->GetAttribute("NumServos", "1").ToStdString()));
-    model->SetIs16Bit(node->GetAttribute("Bits16", "0") == "1");
+    model->SetIs16Bit(node->GetAttribute("Bits16", "1") == "1");
     model->SetBrightness(std::stoi(node->GetAttribute(XmlNodeKeys::BrightnessAttribute, "100").ToStdString()));
     model->SetTransparency(std::stoi(node->GetAttribute(XmlNodeKeys::TransparencyAttribute, "0").ToStdString()));
 

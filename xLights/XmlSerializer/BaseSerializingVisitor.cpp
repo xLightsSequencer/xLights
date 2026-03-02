@@ -821,7 +821,7 @@ void BaseSerializingVisitor::Visit(const PolyLineModel& model) {
         attrs.Add(std::string(model.CornerAttrName(i)), cSize[i]);
     }
     attrs.Add(XmlNodeKeys::SegsExpandedAttribute, model.AreSegsExpanded() ? "TRUE" : "FALSE");
-    attrs.Add(XmlNodeKeys::ModelHeightAttribute,  std::to_string(model.GetHeight()));
+    attrs.Add(XmlNodeKeys::ModelHeightAttribute,  std::to_string(model.GetModelHeight()));
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));

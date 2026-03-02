@@ -116,7 +116,7 @@ ViewObject* XmlDeserializingObjectFactory::DeserializeTerrain(wxXmlNode* node, x
     object->SetDepth(std::stoi(node->GetAttribute(XmlNodeKeys::TerrainDepthAttribute,"1000").ToStdString()));
     object->SetHideGrid(node->GetAttribute(XmlNodeKeys::HideGridAttribute,"0") == "1");
     object->SetHideImage(node->GetAttribute(XmlNodeKeys::HideImageAttribute,"0") == "1");
-    object->SetGridColor(node->GetAttribute("GridColor","#008000"));
+    object->SetGridColor(node->GetAttribute(XmlNodeKeys::GridColorAttribute,"#008000"));
     object->Setup();
     return object;
 }
