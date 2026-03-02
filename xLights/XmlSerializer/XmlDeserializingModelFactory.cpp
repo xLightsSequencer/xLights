@@ -888,7 +888,7 @@ void XmlDeserializingModelFactory::DeserializeShutterAbility(DmxModel* model, wx
 
 void XmlDeserializingModelFactory::DeserializeDimmerAbility(DmxModel* model, wxXmlNode* node) {
     DmxDimmerAbility* dimmer_ability = model->GetDimmerAbility();
-    dimmer_ability->SetDimmerChannel(std::stoi(node->GetAttribute("MHDimmerChannel", "0").ToStdString()));
+    dimmer_ability->SetDimmerChannel(std::stoi(node->GetAttribute(XmlNodeKeys::MhDimmerChannelAttribute, "0").ToStdString()));
 }
 
 void XmlDeserializingModelFactory::DeserializeDmxImage(DmxImage* img, wxXmlNode* node) {
