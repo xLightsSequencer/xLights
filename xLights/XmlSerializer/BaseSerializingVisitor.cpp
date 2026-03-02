@@ -945,7 +945,7 @@ void BaseSerializingVisitor::Visit(const DmxMovingHead& model) {
     CommonVisitSteps(model, attrs);
     AddDmxMovingHeadCommAttributes(model, attrs);
     attrs.Add(XmlNodeKeys::DmxStyleAttribute, model.GetDMXStyle());
-    attrs.Add(XmlNodeKeys::HideBodyAttribute, std::to_string(model.GetHideBody()));
+    attrs.Add(XmlNodeKeys::HideBodyAttribute, model.GetHideBody() ? "True" : "False");
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteDmxMotorElement(model.GetPanMotor());
@@ -985,8 +985,8 @@ void BaseSerializingVisitor::Visit(const DmxServo3d& model) {
     // before WriteOpenTag because the element cannot be re-opened after writing.
     for (int i = 0; i < model.GetNumServos(); ++i) {
         std::string num = std::to_string(i + 1);
-        attrs.Add("Servo" + num + "Linkage", std::to_string(model.GetServoLink(i)));
-        attrs.Add("Mesh"  + num + "Linkage", std::to_string(model.GetMeshLink(i)));
+        attrs.Add("Servo" + num + "Linkage", "Mesh " + std::to_string(model.GetServoLink(i) + 1));
+        attrs.Add("Mesh"  + num + "Linkage", "Mesh " + std::to_string(model.GetMeshLink(i) + 1));
     }
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
