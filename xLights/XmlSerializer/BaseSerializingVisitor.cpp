@@ -832,7 +832,7 @@ void BaseSerializingVisitor::Visit(const SpinnerModel& model) {
     attrs.Add(XmlNodeKeys::AlternateAttribute,  model.HasAlternateNodes() ? "true" : "false");
     attrs.Add(XmlNodeKeys::ZigZagAttribute,     model.HasZigZag() ? "true" : "false");
     attrs.Add(XmlNodeKeys::HollowAttribute,     std::to_string(model.GetHollowPercent()));
-    attrs.Add(XmlNodeKeys::ArcAngleAttribute,   std::to_string(model.GetArcAngle()));
+    attrs.Add(XmlNodeKeys::ArcAttribute,        std::to_string(model.GetArcAngle()));
     attrs.Add(XmlNodeKeys::StartAngleAttribute, std::to_string(model.GetStartAngle()));
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);

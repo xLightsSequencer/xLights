@@ -57,8 +57,8 @@ void DeserializeTwoPointScreenLocationAttributes(BaseObject* object, wxXmlNode* 
 void DeserializeThreePointScreenLocationAttributes(BaseObject* object, wxXmlNode* node) {
     DeserializeTwoPointScreenLocationAttributes(object, node);
     int angle = std::stoi(node->GetAttribute(XmlNodeKeys::AngleAttribute, "0").ToStdString());
-    float height = std::stof(node->GetAttribute("Height", "1.0").ToStdString());
-    float shear = std::stof(node->GetAttribute("Shear", "0.0").ToStdString());
+    float height = std::stof(node->GetAttribute(XmlNodeKeys::HeightAttribute, "1.0").ToStdString());
+    float shear = std::stof(node->GetAttribute(XmlNodeKeys::ShearAttribute, "0.0").ToStdString());
     ThreePointScreenLocation& screenLoc = dynamic_cast<ThreePointScreenLocation&>(object->GetBaseObjectScreenLocation());
     screenLoc.SetAngle(angle);
     screenLoc.SetMHeight(height);

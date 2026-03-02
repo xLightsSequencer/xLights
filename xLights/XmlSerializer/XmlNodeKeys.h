@@ -68,7 +68,6 @@ namespace XmlNodeKeys {
     constexpr auto xlightsVersionAttr       = "SourceVersion";
     constexpr auto versionNumberAttribute   = "versionNumber";
     constexpr auto ActiveAttribute          = "Active";
-    constexpr auto FromBaaseAttribute       = "FromBase";
     constexpr auto DescriptionAttribute     = "Description";
     constexpr auto TagColourAttribute       = "TagColour";
     constexpr auto XLVersionAttribute       = "xLightsVersion";
@@ -294,7 +293,6 @@ namespace XmlNodeKeys {
 
     // Spinner Model
     constexpr auto StartAngleAttribute = "StartAngle";
-    constexpr auto ArcAngleAttribute   = "Arc";
     constexpr auto AlternateAttribute  = "Alternate";
 
     // Star Model

@@ -130,44 +130,40 @@ void XmlDeserializingModelFactory::CommonDeserializeSteps(Model* model, wxXmlNod
     DeserializeCommonModelChildElements(model, node, xlights, importing);
 }
 
-void XmlDeserializingModelFactory::DeserializeControllerConnection(Model* model, wxXmlNode* node) {
-    for (wxXmlNode* p = node->GetChildren(); p != nullptr; p = p->GetNext()) {
-        if (p->GetName() == "ControllerConnection") {
-            auto& cc = model->GetCtrlConn();
-            cc.SetDMXChannel(std::stoi(p->GetAttribute(XmlNodeKeys::ChannelAttribute, "-1").ToStdString()));
-            cc.SetProtocol(p->GetAttribute(XmlNodeKeys::ProtocolAttribute, xlEMPTY_STRING).ToStdString());
-            cc.SetSerialProtocolSpeed(std::stoi(p->GetAttribute(XmlNodeKeys::ProtocolSpeedAttribute, std::to_string(CtrlDefs::DEFAULT_PROTOCOL_SPEED)).ToStdString()));
-            cc.SetCtrlPort(std::stoi(p->GetAttribute(XmlNodeKeys::PortAttribute, std::to_string(CtrlDefs::DEFAULT_PORT)).ToStdString()));
-            cc.SetBrightness(std::stoi(p->GetAttribute(XmlNodeKeys::DCBrightnessAttribute, std::to_string(CtrlDefs::DEFAULT_BRIGHTNESS)).ToStdString()));
-            cc.SetStartNulls(std::stoi(p->GetAttribute(XmlNodeKeys::StartNullAttribute, std::to_string(CtrlDefs::DEFAULT_NULLS)).ToStdString()));
-            cc.SetEndNulls(std::stoi(p->GetAttribute(XmlNodeKeys::EndNullAttribute, std::to_string(CtrlDefs::DEFAULT_NULLS)).ToStdString()));
-            cc.SetColorOrder(p->GetAttribute(XmlNodeKeys::ColorOrderAttribute, CtrlDefs::DEFAULT_COLOR_ORDER).ToStdString());
-            cc.SetGroupCount(std::stoi(p->GetAttribute(XmlNodeKeys::GroupCountAttribute, std::to_string(CtrlDefs::DEFAULT_GROUP_COUNT)).ToStdString()));
-            cc.SetGamma(std::stof(p->GetAttribute(XmlNodeKeys::GammaAttribute, std::to_string(CtrlDefs::DEFAULT_GAMMA)).ToStdString()));
-            cc.SetReverse(std::stoi(p->GetAttribute(XmlNodeKeys::CReverseAttribute, std::to_string(CtrlDefs::DEFAULT_REVERSE)).ToStdString()));
-            cc.SetZigZag(std::stoi(p->GetAttribute(XmlNodeKeys::CZigZagAttribute, std::to_string(CtrlDefs::DEFAULT_ZIGZAG)).ToStdString()));
-            
-            // Set all the property checkbox active states
-            cc.UpdateProperty(CtrlProps::START_NULLS_ACTIVE, p->HasAttribute(XmlNodeKeys::StartNullAttribute));
-            cc.UpdateProperty(CtrlProps::END_NULLS_ACTIVE,   p->HasAttribute(XmlNodeKeys::EndNullAttribute));
-            cc.UpdateProperty(CtrlProps::BRIGHTNESS_ACTIVE,  p->HasAttribute(XmlNodeKeys::DCBrightnessAttribute));
-            cc.UpdateProperty(CtrlProps::GAMMA_ACTIVE,       p->HasAttribute(XmlNodeKeys::GammaAttribute));
-            cc.UpdateProperty(CtrlProps::COLOR_ORDER_ACTIVE, p->HasAttribute(XmlNodeKeys::ColorOrderAttribute));
-            cc.UpdateProperty(CtrlProps::REVERSE_ACTIVE,     p->HasAttribute(XmlNodeKeys::CReverseAttribute));
-            cc.UpdateProperty(CtrlProps::GROUP_COUNT_ACTIVE, p->HasAttribute(XmlNodeKeys::GroupCountAttribute));
-            cc.UpdateProperty(CtrlProps::ZIG_ZAG_ACTIVE,     p->HasAttribute(XmlNodeKeys::CZigZagAttribute));
-            cc.UpdateProperty(CtrlProps::TS_ACTIVE,          p->HasAttribute(XmlNodeKeys::SmartRemoteTsAttribute));
+void XmlDeserializingModelFactory::DeserializeControllerConnection(Model* model, wxXmlNode* ccNode) {
+    auto& cc = model->GetCtrlConn();
+    cc.SetDMXChannel(std::stoi(ccNode->GetAttribute(XmlNodeKeys::ChannelAttribute, "-1").ToStdString()));
+    cc.SetProtocol(ccNode->GetAttribute(XmlNodeKeys::ProtocolAttribute, xlEMPTY_STRING).ToStdString());
+    cc.SetSerialProtocolSpeed(std::stoi(ccNode->GetAttribute(XmlNodeKeys::ProtocolSpeedAttribute, std::to_string(CtrlDefs::DEFAULT_PROTOCOL_SPEED)).ToStdString()));
+    cc.SetCtrlPort(std::stoi(ccNode->GetAttribute(XmlNodeKeys::PortAttribute, std::to_string(CtrlDefs::DEFAULT_PORT)).ToStdString()));
+    cc.SetBrightness(std::stoi(ccNode->GetAttribute(XmlNodeKeys::DCBrightnessAttribute, std::to_string(CtrlDefs::DEFAULT_BRIGHTNESS)).ToStdString()));
+    cc.SetStartNulls(std::stoi(ccNode->GetAttribute(XmlNodeKeys::StartNullAttribute, std::to_string(CtrlDefs::DEFAULT_NULLS)).ToStdString()));
+    cc.SetEndNulls(std::stoi(ccNode->GetAttribute(XmlNodeKeys::EndNullAttribute, std::to_string(CtrlDefs::DEFAULT_NULLS)).ToStdString()));
+    cc.SetColorOrder(ccNode->GetAttribute(XmlNodeKeys::ColorOrderAttribute, CtrlDefs::DEFAULT_COLOR_ORDER).ToStdString());
+    cc.SetGroupCount(std::stoi(ccNode->GetAttribute(XmlNodeKeys::GroupCountAttribute, std::to_string(CtrlDefs::DEFAULT_GROUP_COUNT)).ToStdString()));
+    cc.SetGamma(std::stof(ccNode->GetAttribute(XmlNodeKeys::GammaAttribute, std::to_string(CtrlDefs::DEFAULT_GAMMA)).ToStdString()));
+    cc.SetReverse(std::stoi(ccNode->GetAttribute(XmlNodeKeys::CReverseAttribute, std::to_string(CtrlDefs::DEFAULT_REVERSE)).ToStdString()));
+    cc.SetZigZag(std::stoi(ccNode->GetAttribute(XmlNodeKeys::CZigZagAttribute, std::to_string(CtrlDefs::DEFAULT_ZIGZAG)).ToStdString()));
 
-            // Set all the Smart Remote values
-            cc.SetSmartRemote(std::stoi(p->GetAttribute(XmlNodeKeys::SmartRemoteAttribute, "0").ToStdString()));
-            cc.SetSRMaxCascade(std::stoi(p->GetAttribute(XmlNodeKeys::SRMaxCascadeAttribute, "1").ToStdString()));
-            cc.SetSRCascadeOnPort(p->GetAttribute(XmlNodeKeys::SRCascadeOnPortAttribute, "FALSE").ToStdString() == "TRUE");
-            cc.SetSmartRemoteTs(std::stoi(p->GetAttribute(XmlNodeKeys::SmartRemoteTsAttribute, "0").ToStdString()));
-            cc.SetSmartRemoteType(p->GetAttribute(XmlNodeKeys::SmartRemoteTypeAttribute, ""));
-            
-            cc.UpdateProperty(CtrlProps::USE_SMART_REMOTE,  cc.GetSmartRemote());
-        }
-    }
+    // Set all the property checkbox active states
+    cc.UpdateProperty(CtrlProps::START_NULLS_ACTIVE, ccNode->HasAttribute(XmlNodeKeys::StartNullAttribute));
+    cc.UpdateProperty(CtrlProps::END_NULLS_ACTIVE,   ccNode->HasAttribute(XmlNodeKeys::EndNullAttribute));
+    cc.UpdateProperty(CtrlProps::BRIGHTNESS_ACTIVE,  ccNode->HasAttribute(XmlNodeKeys::DCBrightnessAttribute));
+    cc.UpdateProperty(CtrlProps::GAMMA_ACTIVE,       ccNode->HasAttribute(XmlNodeKeys::GammaAttribute));
+    cc.UpdateProperty(CtrlProps::COLOR_ORDER_ACTIVE, ccNode->HasAttribute(XmlNodeKeys::ColorOrderAttribute));
+    cc.UpdateProperty(CtrlProps::REVERSE_ACTIVE,     ccNode->HasAttribute(XmlNodeKeys::CReverseAttribute));
+    cc.UpdateProperty(CtrlProps::GROUP_COUNT_ACTIVE, ccNode->HasAttribute(XmlNodeKeys::GroupCountAttribute));
+    cc.UpdateProperty(CtrlProps::ZIG_ZAG_ACTIVE,     ccNode->HasAttribute(XmlNodeKeys::CZigZagAttribute));
+    cc.UpdateProperty(CtrlProps::TS_ACTIVE,          ccNode->HasAttribute(XmlNodeKeys::SmartRemoteTsAttribute));
+
+    // Set all the Smart Remote values
+    cc.SetSmartRemote(std::stoi(ccNode->GetAttribute(XmlNodeKeys::SmartRemoteAttribute, "0").ToStdString()));
+    cc.SetSRMaxCascade(std::stoi(ccNode->GetAttribute(XmlNodeKeys::SRMaxCascadeAttribute, "1").ToStdString()));
+    cc.SetSRCascadeOnPort(ccNode->GetAttribute(XmlNodeKeys::SRCascadeOnPortAttribute, "FALSE").ToStdString() == "TRUE");
+    cc.SetSmartRemoteTs(std::stoi(ccNode->GetAttribute(XmlNodeKeys::SmartRemoteTsAttribute, "0").ToStdString()));
+    cc.SetSmartRemoteType(ccNode->GetAttribute(XmlNodeKeys::SmartRemoteTypeAttribute, ""));
+
+    cc.UpdateProperty(CtrlProps::USE_SMART_REMOTE, cc.GetSmartRemote());
 }
 
 void XmlDeserializingModelFactory::DeserializeBaseObjectAttributes(Model* model, wxXmlNode* node, xLightsFrame* xlights, bool importing) {
@@ -291,7 +287,7 @@ void XmlDeserializingModelFactory::DeserializeCommonModelChildElements(Model* mo
             model->ImportExtraModels(f, xlights, xlights->GetLayoutPreview(), model->GetLayoutGroup());
         } else if ("ControllerConnection" == f->GetName()) {
             if (!importing) {
-                DeserializeControllerConnection(model, node);
+                DeserializeControllerConnection(model, f);
             }
         } else if (f->GetName() == XmlNodeKeys::AliasesAttribute) {
             // can't be sure of the order of tags in xml and we don't want to ask twice, so setup breadcrumbs to ensure a single prompt
@@ -726,9 +722,6 @@ Model* XmlDeserializingModelFactory::DeserializeModelGroup(wxXmlNode* node, xLig
     
     // Deserialize base object attributes (name, layout group, active state)
     DeserializeBaseObjectAttributes(model, node, xlights, importing);
-    
-    // Deserialize screen location (position, rotation, scale)
-    //DeserializeModelScreenLocationAttributes(model, node, importing);
     
     // Deserialize ModelGroup-specific properties using Phase 1 setters
     model->SetGridSize(std::stoi(node->GetAttribute("GridSize", "400").ToStdString()));
