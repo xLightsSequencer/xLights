@@ -294,7 +294,6 @@ namespace XmlNodeKeys {
 
     // Spinner Model
     constexpr auto StartAngleAttribute = "StartAngle";
-    constexpr auto HallowAttribute     = "Hollow";
     constexpr auto ArcAngleAttribute   = "Arc";
     constexpr auto AlternateAttribute  = "Alternate";
 

@@ -900,15 +900,15 @@ void XmlDeserializingModelFactory::DeserializeDimmerAbility(DmxModel* model, wxX
 
 void XmlDeserializingModelFactory::DeserializeDmxImage(DmxImage* img, wxXmlNode* node) {
     img->SetImageFile(FixFile("", node->GetAttribute(XmlNodeKeys::ImageAttribute, "")));
-    img->SetScaleX(std::stof(node->GetAttribute(XmlNodeKeys::ScaleXAttribute, "1.0f").ToStdString()));
-    img->SetScaleY(std::stof(node->GetAttribute(XmlNodeKeys::ScaleYAttribute, "1.0f").ToStdString()));
-    img->SetScaleZ(std::stof(node->GetAttribute(XmlNodeKeys::ScaleZAttribute, "1.0f").ToStdString()));
-    img->SetRotateX(std::stof(node->GetAttribute(XmlNodeKeys::RotateXAttribute, "0.0f").ToStdString()));
-    img->SetRotateY(std::stof(node->GetAttribute(XmlNodeKeys::RotateYAttribute, "0.0f").ToStdString()));
-    img->SetRotateZ(std::stof(node->GetAttribute(XmlNodeKeys::RotateZAttribute, "0.0f").ToStdString()));
-    img->SetOffsetX(std::stof(node->GetAttribute(XmlNodeKeys::OffsetXAttribute, "0.0f").ToStdString()));
-    img->SetOffsetY(std::stof(node->GetAttribute(XmlNodeKeys::OffsetYAttribute, "0.0f").ToStdString()));
-    img->SetOffsetZ(std::stof(node->GetAttribute(XmlNodeKeys::OffsetZAttribute, "0.0f").ToStdString()));
+    img->SetScaleX(std::stof(node->GetAttribute(XmlNodeKeys::ScaleXAttribute, "1.0").ToStdString()));
+    img->SetScaleY(std::stof(node->GetAttribute(XmlNodeKeys::ScaleYAttribute, "1.0").ToStdString()));
+    img->SetScaleZ(std::stof(node->GetAttribute(XmlNodeKeys::ScaleZAttribute, "1.0").ToStdString()));
+    img->SetRotateX(std::stof(node->GetAttribute(XmlNodeKeys::RotateXAttribute, "0.0").ToStdString()));
+    img->SetRotateY(std::stof(node->GetAttribute(XmlNodeKeys::RotateYAttribute, "0.0").ToStdString()));
+    img->SetRotateZ(std::stof(node->GetAttribute(XmlNodeKeys::RotateZAttribute, "0.0").ToStdString()));
+    img->SetOffsetX(std::stof(node->GetAttribute(XmlNodeKeys::OffsetXAttribute, "0.0").ToStdString()));
+    img->SetOffsetY(std::stof(node->GetAttribute(XmlNodeKeys::OffsetYAttribute, "0.0").ToStdString()));
+    img->SetOffsetZ(std::stof(node->GetAttribute(XmlNodeKeys::OffsetZAttribute, "0.0").ToStdString()));
 }
 
 void XmlDeserializingModelFactory::DeserializeDmxMotor(DmxMotor* motor, wxXmlNode* node) {
@@ -926,27 +926,27 @@ void XmlDeserializingModelFactory::DeserializeDmxMotor(DmxMotor* motor, wxXmlNod
 
 void XmlDeserializingModelFactory::DeserializeMesh(Mesh* mesh, wxXmlNode* node) {
     mesh->SetObjFile(FixFile("", node->GetAttribute(XmlNodeKeys::ObjFileAttribute, "")));
-    mesh->SetRenderWidth(std::stof(node->GetAttribute(XmlNodeKeys::WidthAttribute, "1.0f").ToStdString()));
-    mesh->SetRenderHeight(std::stof(node->GetAttribute(XmlNodeKeys::HeightAttribute, "1.0f").ToStdString()));
-    mesh->SetRenderDepth(std::stof(node->GetAttribute(XmlNodeKeys::DepthAttribute, "1.0f").ToStdString()));
+    mesh->SetRenderWidth(std::stof(node->GetAttribute(XmlNodeKeys::WidthAttribute, "1.0").ToStdString()));
+    mesh->SetRenderHeight(std::stof(node->GetAttribute(XmlNodeKeys::HeightAttribute, "1.0").ToStdString()));
+    mesh->SetRenderDepth(std::stof(node->GetAttribute(XmlNodeKeys::DepthAttribute, "1.0").ToStdString()));
     mesh->SetMeshOnly(node->GetAttribute(XmlNodeKeys::MeshOnlyAttribute, "0") == "1");
-    mesh->SetBrightness(std::stof(node->GetAttribute(XmlNodeKeys::BrightnessAttribute, "100.0f").ToStdString()));
-    mesh->SetScaleX(std::stof(node->GetAttribute(XmlNodeKeys::ScaleXAttribute, "1.0f").ToStdString()));
-    mesh->SetScaleY(std::stof(node->GetAttribute(XmlNodeKeys::ScaleYAttribute, "1.0f").ToStdString()));
-    mesh->SetScaleZ(std::stof(node->GetAttribute(XmlNodeKeys::ScaleZAttribute, "1.0f").ToStdString()));
-    mesh->SetRotateX(std::stof(node->GetAttribute(XmlNodeKeys::RotateXAttribute, "0.0f").ToStdString()));
-    mesh->SetRotateY(std::stof(node->GetAttribute(XmlNodeKeys::RotateYAttribute, "0.0f").ToStdString()));
-    mesh->SetRotateZ(std::stof(node->GetAttribute(XmlNodeKeys::RotateZAttribute, "0.0f").ToStdString()));
-    mesh->SetOffsetX(std::stof(node->GetAttribute(XmlNodeKeys::OffsetXAttribute, "0.0f").ToStdString()));
-    mesh->SetOffsetY(std::stof(node->GetAttribute(XmlNodeKeys::OffsetYAttribute, "0.0f").ToStdString()));
-    mesh->SetOffsetZ(std::stof(node->GetAttribute(XmlNodeKeys::OffsetZAttribute, "0.0f").ToStdString()));
+    mesh->SetBrightness(std::stof(node->GetAttribute(XmlNodeKeys::BrightnessAttribute, "100.0").ToStdString()));
+    mesh->SetScaleX(std::stof(node->GetAttribute(XmlNodeKeys::ScaleXAttribute, "1.0").ToStdString()));
+    mesh->SetScaleY(std::stof(node->GetAttribute(XmlNodeKeys::ScaleYAttribute, "1.0").ToStdString()));
+    mesh->SetScaleZ(std::stof(node->GetAttribute(XmlNodeKeys::ScaleZAttribute, "1.0").ToStdString()));
+    mesh->SetRotateX(std::stof(node->GetAttribute(XmlNodeKeys::RotateXAttribute, "0.0").ToStdString()));
+    mesh->SetRotateY(std::stof(node->GetAttribute(XmlNodeKeys::RotateYAttribute, "0.0").ToStdString()));
+    mesh->SetRotateZ(std::stof(node->GetAttribute(XmlNodeKeys::RotateZAttribute, "0.0").ToStdString()));
+    mesh->SetOffsetX(std::stof(node->GetAttribute(XmlNodeKeys::OffsetXAttribute, "0.0").ToStdString()));
+    mesh->SetOffsetY(std::stof(node->GetAttribute(XmlNodeKeys::OffsetYAttribute, "0.0").ToStdString()));
+    mesh->SetOffsetZ(std::stof(node->GetAttribute(XmlNodeKeys::OffsetZAttribute, "0.0").ToStdString()));
 }
 
 void XmlDeserializingModelFactory::DeserializeServo(Servo* servo, wxXmlNode* node) {
     servo->SetChannel(std::stoi(node->GetAttribute("Channel", "0").ToStdString()));
     servo->SetMinLimit(std::stoi(node->GetAttribute("MinLimit", "1").ToStdString()));
     servo->SetMaxLimit(std::stoi(node->GetAttribute("MaxLimit", "65535").ToStdString()));
-    servo->SetRangeOfMotion(std::stof(node->GetAttribute("RangeOfMotion", "180.0f").ToStdString()));
+    servo->SetRangeOfMotion(std::stof(node->GetAttribute("RangeOfMotion", "180.0").ToStdString()));
     servo->SetScaledPivotOffsetX(std::stof(node->GetAttribute("PivotOffsetX", "0").ToStdString()));
     servo->SetScaledPivotOffsetY(std::stof(node->GetAttribute("PivotOffsetY", "0").ToStdString()));
     servo->SetScaledPivotOffsetZ(std::stof(node->GetAttribute("PivotOffsetZ", "0").ToStdString()));

@@ -93,7 +93,7 @@ void StringSerializingVisitor::WriteOpenTag(const std::string& name,
 }
 
 void StringSerializingVisitor::WriteCloseTag(const std::string& name) {
-    --indentLevel;
+    if (indentLevel > 0) --indentLevel;
     WriteIndent();
     out << "</" << name << '>';
     WriteNewline();

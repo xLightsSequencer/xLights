@@ -281,11 +281,14 @@ void BaseSerializingVisitor::AddColorAbilityAttributes(const DmxColorAbility* co
     auto color_type = color_ability->GetColorType();
     attrs.Add(XmlNodeKeys::DmxColorTypeAttribute, std::to_string((int)color_type));
     if (color_type == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_RGBW) {
-        AddColorAbilityRGBAttributes(dynamic_cast<const DmxColorAbilityRGB*>(color_ability), attrs);
+        const auto* rgb = dynamic_cast<const DmxColorAbilityRGB*>(color_ability);
+        if (rgb != nullptr) AddColorAbilityRGBAttributes(rgb, attrs);
     } else if (color_type == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_WHEEL) {
-        AddColorWheelAttributes(dynamic_cast<const DmxColorAbilityWheel*>(color_ability), attrs);
+        const auto* wheel = dynamic_cast<const DmxColorAbilityWheel*>(color_ability);
+        if (wheel != nullptr) AddColorWheelAttributes(wheel, attrs);
     } else if (color_type == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_CMYW) {
-        AddColorAbilityCMYAttributes(dynamic_cast<const DmxColorAbilityCMY*>(color_ability), attrs);
+        const auto* cmy = dynamic_cast<const DmxColorAbilityCMY*>(color_ability);
+        if (cmy != nullptr) AddColorAbilityCMYAttributes(cmy, attrs);
     }
 }
 
@@ -828,7 +831,7 @@ void BaseSerializingVisitor::Visit(const SpinnerModel& model) {
     AddBoxedScreenLocationAttributes(model, attrs);
     attrs.Add(XmlNodeKeys::AlternateAttribute,  model.HasAlternateNodes() ? "true" : "false");
     attrs.Add(XmlNodeKeys::ZigZagAttribute,     model.HasZigZag() ? "true" : "false");
-    attrs.Add(XmlNodeKeys::HallowAttribute,     std::to_string(model.GetHollowPercent()));
+    attrs.Add(XmlNodeKeys::HollowAttribute,     std::to_string(model.GetHollowPercent()));
     attrs.Add(XmlNodeKeys::ArcAngleAttribute,   std::to_string(model.GetArcAngle()));
     attrs.Add(XmlNodeKeys::StartAngleAttribute, std::to_string(model.GetStartAngle()));
     SortAttributes(attrs);
@@ -924,11 +927,11 @@ void BaseSerializingVisitor::Visit(const DmxMovingHeadAdv& model) {
     AddDmxMovingHeadCommAttributes(model, attrs);
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
-    WriteDmxMotorElement(reinterpret_cast<DmxMotor*>(model.GetPanMotor()));
-    WriteDmxMotorElement(reinterpret_cast<DmxMotor*>(model.GetTiltMotor()));
-    WriteMeshElement(reinterpret_cast<Mesh*>(model.GetBaseMesh()));
-    WriteMeshElement(reinterpret_cast<Mesh*>(model.GetYokeMesh()));
-    WriteMeshElement(reinterpret_cast<Mesh*>(model.GetHeadMesh()));
+    WriteDmxMotorElement(model.GetPanMotor());
+    WriteDmxMotorElement(model.GetTiltMotor());
+    WriteMeshElement(model.GetBaseMesh());
+    WriteMeshElement(model.GetYokeMesh());
+    WriteMeshElement(model.GetHeadMesh());
     WriteOtherElements(dynamic_cast<const Model*>(&model));
     WriteCloseTag(XmlNodeKeys::ModelNodeName);
 }
@@ -941,8 +944,8 @@ void BaseSerializingVisitor::Visit(const DmxMovingHead& model) {
     attrs.Add(XmlNodeKeys::HideBodyAttribute, std::to_string(model.GetHideBody()));
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
-    WriteDmxMotorElement(reinterpret_cast<DmxMotor*>(model.GetPanMotor()));
-    WriteDmxMotorElement(reinterpret_cast<DmxMotor*>(model.GetTiltMotor()));
+    WriteDmxMotorElement(model.GetPanMotor());
+    WriteDmxMotorElement(model.GetTiltMotor());
     WriteOtherElements(dynamic_cast<const Model*>(&model));
     WriteCloseTag(XmlNodeKeys::ModelNodeName);
 }
@@ -954,7 +957,6 @@ void BaseSerializingVisitor::Visit(const DmxServo& model) {
     attrs.Add("NumServos",                        std::to_string(model.GetNumServos()));
     attrs.Add("Bits16",                           model.Is16Bit() ? "1" : "0");
     attrs.Add(XmlNodeKeys::BrightnessAttribute,   std::to_string(model.GetBrightness()));
-    attrs.Add(XmlNodeKeys::TransparencyAttribute, std::to_string(model.GetTransparency()));
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     for (int i = 0; i < model.GetNumServos(); ++i) {

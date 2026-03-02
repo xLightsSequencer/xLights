@@ -35,6 +35,7 @@ void XmlSerializingVisitor::WriteOpenTag(const std::string& name,
 }
 
 void XmlSerializingVisitor::WriteCloseTag(const std::string& /*name*/) {
+    wxASSERT(!nodeStack.empty());
     nodeStack.pop_back();
 }
 

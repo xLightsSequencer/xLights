@@ -97,7 +97,7 @@ void SerializeSettingsObject(wxXmlNode* node, xLightsFrame* xlights) {
     wxXmlNode* center0 = new wxXmlNode(wxXML_ELEMENT_NODE, "Display2DCenter0");
     center0->AddAttribute("value", std::to_string(xlights->GetDisplay2DCenter0()));
     settings->AddChild(center0);
-    wxXmlNode* laygrp = new wxXmlNode(wxXML_ELEMENT_NODE, "storedLayourGroup");
+    wxXmlNode* laygrp = new wxXmlNode(wxXML_ELEMENT_NODE, "storedLayoutGroup");
     laygrp->AddAttribute("value", xlights->GetStoredLayoutGroup());
     settings->AddChild(laygrp);
     wxXmlNode* layout3d = new wxXmlNode(wxXML_ELEMENT_NODE, "LayoutMode3D");
