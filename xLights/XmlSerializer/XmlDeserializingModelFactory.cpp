@@ -539,7 +539,8 @@ Model* XmlDeserializingModelFactory::DeserializeMultiPoint(wxXmlNode* node, xLig
     MultiPointModel* model = new MultiPointModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
     DeserializePolyPointScreenLocationAttributes(model, node);
-    model->SetNumStrings(std::stoi(node->GetAttribute(XmlNodeKeys::MultiStringsAttribute, "1").ToStdString()));
+    int num_strings = std::stoi(node->GetAttribute(XmlNodeKeys::MultiStringsAttribute, "1").ToStdString());
+    model->SetNumStrings(num_strings);
     model->SetModelHeight(std::stof(node->GetAttribute(XmlNodeKeys::ModelHeightAttribute, "1.0").ToStdString()));
 
     // Individual Start Channels
