@@ -142,25 +142,24 @@ int PolyLineModel::GetNumStrands() const {
 }
 
 void PolyLineModel::SetStringStartChannels(int NumberOfStrings, int StartChannel, int ChannelsPerString) {
-    if( _hasIndivChans && !SingleNode ) {
-        // if individual start channels defer to InitModel where we know all the segment length data
+    if (_hasIndivChans && !SingleNode) {
+        // let base class handle individual start channels using _strings count
+        Model::SetStringStartChannels(_strings, StartChannel, ChannelsPerString);
+    } else if (_strings == 1) {
+        Model::SetStringStartChannels(NumberOfStrings, StartChannel, ChannelsPerString);
     } else {
-        if (_strings == 1) {
-            Model::SetStringStartChannels(NumberOfStrings, StartChannel, ChannelsPerString);
-        } else {
-            ChannelsPerString /= _strings;
-            stringStartChan.clear();
-            stringStartChan.resize(_strings);
+        ChannelsPerString /= _strings;
+        stringStartChan.clear();
+        stringStartChan.resize(_strings);
 
-            for (int i = 0; i < _strings; i++) {
-                int node = 1;
-                if (_hasIndivNodes) {
-                    node = _indivStartNodes[i];
-                } else {
-                    node = ((ChannelsPerString * i) / GetNodeChannelCount(StringType)) + 1;
-                }
-                stringStartChan[i] = (StartChannel - 1) + (node - 1) * GetNodeChannelCount(StringType);
+        for (int i = 0; i < _strings; i++) {
+            int node = 1;
+            if (_hasIndivNodes) {
+                node = _indivStartNodes[i];
+            } else {
+                node = ((ChannelsPerString * i) / GetNodeChannelCount(StringType)) + 1;
             }
+            stringStartChan[i] = (StartChannel - 1) + (node - 1) * GetNodeChannelCount(StringType);
         }
     }
 }
@@ -262,61 +261,6 @@ void PolyLineModel::InitModel()
         if (parm3 > 1) {
             for (size_t x = 0; x < Nodes.size(); x++) {
                 Nodes[x]->Coords.resize(parm3);
-            }
-        }
-    }
-
-    // process our own start channels
-    drop_index = 0;
-    if (_hasIndivChans && !SingleNode) {
-        std::string dependsonmodel;
-        int StartChannel = GetNumberFromChannelString(ModelStartChannel, CouldComputeStartChannel, dependsonmodel);
-        stringStartChan.clear();
-        stringStartChan.resize(_numSegments);
-        for (int i = 0; i < _numSegments; i++) {
-            if (_hasIndivChans) {
-                bool b = false;
-                stringStartChan[i] = GetNumberFromChannelString(_indivStartChannels[i], b, dependsonmodel) - 1;
-                CouldComputeStartChannel &= b;
-            }
-            else {
-                stringStartChan[i] = (StartChannel - 1) + _polyLineSegDropSizes[i] * GetNodeChannelCount(StringType);
-            }
-        }
-    }
-
-    // fix the string numbers for each node since model is non-standard
-    size_t idx = 0;
-    if (_hasIndivChans && !SingleNode) {
-        for (int x = 0; x < _numSegments; x++) {
-            for (int n = 0; n < _polyLineSegDropSizes[x]; ++n) {
-                Nodes[idx++]->StringNum = x;
-            }
-        }
-    } else if ( _strings > 1 ) {
-        int node_count = GetNodeCount();
-        for (int s = 0; s < _strings; ++s) {
-            int v1 = 0;
-            int v2 = node_count;
-            if (_hasIndivNodes) {
-                v1 = _indivStartNodes[s];
-                if (s < _strings - 1) { // not last string
-                    v2 = _indivStartNodes[s+1] - 1;
-                }
-            } else {
-                v1 = ComputeStringStartNode(s) - 1;
-                if (s < _strings - 1) { // not last string
-                    v2 = ComputeStringStartNode(s + 1) - 1;
-                }
-            }
-            if (!IsLtoR) {
-                for (int n = v1; n < v2; ++n) {
-                    Nodes[node_count-n-1]->StringNum = s;
-                }
-            } else {
-                for (int n = v1; n < v2; ++n) {
-                    Nodes[n]->StringNum = s;
-                }
             }
         }
     }
@@ -1026,26 +970,6 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartNodes2");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartNodes2");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartNodes2");
-        return 0;
-    }
-    else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
-        _hasIndivChans = event.GetValue().GetBool();
-        if (_hasIndivChans) {
-            int start_channel = 1;
-            for (int x = 0; x < _numSegments; x++) {
-                if (_indivStartChannels[x] == "") {
-                    _indivStartChannels[x] = wxString::Format("%d", start_channel);
-                }
-                start_channel += _polyLineSizes[x] * GetNodeChannelCount(StringType);
-            }
-        }
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartChannels");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartChannels");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartChannels");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartChannels");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartChannels");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "PolyLineModel::OnPropertyGridChange::ModelIndividualStartChannels");
         return 0;
     }
     else if ("IciclesDrops" == event.GetPropertyName()) {

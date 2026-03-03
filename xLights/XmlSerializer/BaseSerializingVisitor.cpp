@@ -186,6 +186,15 @@ void BaseSerializingVisitor::AddCommonModelAttributes(const Model& model, AttrCo
     if (!model.GetShadowModelFor().empty()) {
         attrs.Add(XmlNodeKeys::ShadowModelAttribute, model.GetShadowModelFor());
     }
+
+    // Individual Start Channels
+    if (model.HasIndividualStartChannels()) {
+        attrs.Add(XmlNodeKeys::AdvancedAttribute, "1");
+        int numStrings = model.GetNumStrings();
+        for (int i = 0; i < numStrings; i++) {
+            attrs.Add(Model::StartChanAttrName(i), model.GetIndividualStartChannel(i));
+        }
+    }
 }
 
 void BaseSerializingVisitor::AddSuperStrings(const Model& model, AttrCollector& attrs) {

@@ -541,6 +541,24 @@ Model* XmlDeserializingModelFactory::DeserializeMultiPoint(wxXmlNode* node, xLig
     DeserializePolyPointScreenLocationAttributes(model, node);
     model->SetNumStrings(std::stoi(node->GetAttribute(XmlNodeKeys::MultiStringsAttribute, "1").ToStdString()));
     model->SetModelHeight(std::stof(node->GetAttribute(XmlNodeKeys::ModelHeightAttribute, "1.0").ToStdString()));
+
+    // Individual Start Channels
+    if (model->HasIndividualStartChannels()) {
+        model->SetIndivStartChannelCount(num_strings);
+        for (int i = 0; i < num_strings; i++) {
+            model->SetIndividualStartChannel(i, node->GetAttribute(model->StartChanAttrName(i), "").ToStdString());
+        }
+    }
+
+    // Individual Start Nodes
+    if (num_strings > 1) {
+        model->SetHasIndivStartNodes(true);
+        model->SetIndivStartNodesCount(num_strings);
+        for (auto i = 0; i < num_strings;  i++) {
+            model->SetNodeSize(i, std::stoi(node->GetAttribute(model->StartNodeAttrName(i), "0").ToStdString()));
+        }
+    }
+
     model->Setup();
     return model;
 }
@@ -563,6 +581,16 @@ Model* XmlDeserializingModelFactory::DeserializePolyLine(wxXmlNode* node, xLight
     model->SetAlternateNodes(node->GetAttribute(XmlNodeKeys::AlternateNodesAttribute, "false") == "true");
     model->SetModelHeight(std::stof(node->GetAttribute(XmlNodeKeys::ModelHeightAttribute, "1.0").ToStdString()));
     PolyPointScreenLocation& screenLoc = dynamic_cast<PolyPointScreenLocation&>(model->GetBaseObjectScreenLocation());
+
+    // The common deserializer reads parm1-count individual start channels, but for PolyLine
+    // parm1 is _numSegments. PolyLine should use string count like all other models.
+    // Re-read the individual start channels using num_strings count.
+    if (model->HasIndividualStartChannels()) {
+        model->SetIndivStartChannelCount(num_strings);
+        for (int i = 0; i < num_strings; i++) {
+            model->SetIndividualStartChannel(i, node->GetAttribute(model->StartChanAttrName(i), "").ToStdString());
+        }
+    }
 
     // Individual Start Nodes
     if (num_strings > 1) {
