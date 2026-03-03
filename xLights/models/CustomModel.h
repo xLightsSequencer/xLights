@@ -80,7 +80,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         [[nodiscard]] const std::string StartNodeAttrName(int idx) const
         {
-            return wxString::Format(wxT("String%i"), idx + 1).ToStdString();  // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
+            return std::string("NodeStart") + std::to_string(idx + 1);
         }
 
     protected:

@@ -199,6 +199,12 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
                 _indivStartNodes[x] = ComputeStringStartNode(x);
             }
         }
+        if (_strings != old_string_count && _hasIndivChans) {
+            _indivStartChannels.resize(_strings);
+            for (int x = 0; x < _strings; x++) {
+                _indivStartChannels[x] = ComputeStringStartChannel(x);
+            }
+        }
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::CustomModelStrings");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::OnPropertyGridChange::CustomModelStrings");
@@ -206,8 +212,8 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CustomModel::OnPropertyGridChange::CustomModelStrings");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CustomModel::OnPropertyGridChange::CustomModelStrings");
         return 0;
-    } else if (event.GetPropertyName().StartsWith("ModelIndividualStartNodes.String")) {
-        wxString s = event.GetPropertyName().substr(strlen("ModelIndividualStartNodes.String"));
+    } else if (event.GetPropertyName().StartsWith("ModelIndividualStartNodes.NodeStart")) {
+        wxString s = event.GetPropertyName().substr(strlen("ModelIndividualStartNodes.NodeStart"));
         int string = wxAtoi(s) - 1;
         int value = event.GetValue().GetInteger();
         if (value < 1) value = 1;
@@ -358,6 +364,10 @@ void CustomModel::SetStringStartChannels(int NumberOfStrings, int StartChannel, 
 
     if (_strings == 1) {
         Model::SetStringStartChannels(NumberOfStrings, StartChannel, ChannelsPerString);
+    }
+    else if (_hasIndivChans) {
+        // Use individual start channels from the base class mechanism
+        Model::SetStringStartChannels(_strings, StartChannel, ChannelsPerString);
     }
     else {
         stringStartChan.clear();

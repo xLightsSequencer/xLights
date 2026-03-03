@@ -493,9 +493,29 @@ Model* XmlDeserializingModelFactory::DeserializeCustom(wxXmlNode* node, xLightsF
         model->SetHasIndivStartNodes(true);
         model->SetIndivStartNodesCount(num_strings);
         for (auto i = 0; i < num_strings;  i++) {
-            model->SetNodeSize(i, std::stoi(node->GetAttribute(model->StartNodeAttrName(i), "0").ToStdString()));
+            // Try new attribute name first, fall back to old "String" format for backward compatibility
+            wxString nodeVal = node->GetAttribute(model->StartNodeAttrName(i), "");
+            if (nodeVal.empty()) {
+                // Old format used "String1", "String2", etc. for start nodes (only if not using indiv channels)
+                if (!model->HasIndividualStartChannels()) {
+                    nodeVal = node->GetAttribute(Model::StartChanAttrName(i), "0");
+                } else {
+                    nodeVal = "0";
+                }
+            }
+            model->SetNodeSize(i, std::stoi(nodeVal.ToStdString()));
         }
     }
+
+    // Individual Start Channels - re-read with correct string count
+    // (CommonDeserializeSteps used parm1 which is the grid width for CustomModel)
+    if (model->HasIndividualStartChannels()) {
+        model->SetIndivStartChannelCount(num_strings);
+        for (auto i = 0; i < num_strings; i++) {
+            model->SetIndividualStartChannel(i, node->GetAttribute(Model::StartChanAttrName(i), "").ToStdString());
+        }
+    }
+
     model->Setup();
     return model;
 }

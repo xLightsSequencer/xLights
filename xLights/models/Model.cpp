@@ -971,10 +971,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
 
 void Model::ClearIndividualStartChannels()
 {
-    // dont clear custom models
-    if (IsCustom())
-        return;
-
+    _hasIndivChans = false;
     _indivStartChannels.clear();
 }
 
