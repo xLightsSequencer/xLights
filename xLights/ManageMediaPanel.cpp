@@ -43,7 +43,8 @@ void MediaViewModel::Clear()
     _groups.clear();
 }
 
-void MediaViewModel::Rebuild(SequenceMedia* media, const std::string& showDirectory)
+void MediaViewModel::Rebuild(SequenceMedia* media, const std::string& showDirectory,
+                             const std::list<std::string>& mediaDirs)
 {
     _groups.clear();
 
@@ -56,31 +57,60 @@ void MediaViewModel::Rebuild(SequenceMedia* media, const std::string& showDirect
         showDir += wxFileName::GetPathSeparator();
     }
 
-    // Returns the display path for a file: strips show dir prefix when present.
-    auto displayPath = [&](const std::string& fullPath) -> wxString {
-        if (!showDir.IsEmpty()) {
-            wxString wx = fullPath;
-            if (wx.StartsWith(showDir)) {
-                return wx.Mid(showDir.Length());
+    // Build normalised media directory list (with trailing separators)
+    std::vector<wxString> normMediaDirs;
+    for (const auto& md : mediaDirs) {
+        if (md == showDirectory) continue;
+        wxString d(md);
+        if (!d.IsEmpty() && d.Last() != wxFileName::GetPathSeparator())
+            d += wxFileName::GetPathSeparator();
+        normMediaDirs.push_back(d);
+    }
+
+    // Returns the display path for a file: strips show/media dir prefix when present.
+    // For relative cache keys, uses the resolved absolute path from the entry to
+    // determine which directory the file belongs to.
+    auto displayPath = [&](const std::string& cachePath, const std::shared_ptr<ImageCacheEntry>& entry) -> wxString {
+        wxString wx(cachePath);
+        // Try stripping show dir prefix from the cache key
+        if (!showDir.IsEmpty() && wx.StartsWith(showDir)) {
+            return wx.Mid(showDir.Length());
+        }
+        // Try stripping media dir prefixes from the cache key
+        for (const auto& md : normMediaDirs) {
+            if (wx.StartsWith(md))
+                return wx.Mid(md.Length());
+        }
+        // For relative paths, check the resolved absolute path to determine
+        // which directory the file actually lives in.
+        if (entry) {
+            wxString resolved(entry->GetFilePath());
+            if (!showDir.IsEmpty() && resolved.StartsWith(showDir)) {
+                return wx;  // relative to show dir — return as-is
+            }
+            for (const auto& md : normMediaDirs) {
+                if (resolved.StartsWith(md)) {
+                    // Prefix with the media dir so it groups separately
+                    return wxString(md) + wx;
+                }
             }
         }
-        return wxString(fullPath);
+        return wx;
     };
 
     std::vector<std::string> paths = media->GetImagePaths();
 
     // Helper to build a leaf node
-    auto makeLeaf = [&](const std::string& path, MediaNode* parent) -> std::shared_ptr<MediaNode> {
+    auto makeLeaf = [&](const std::string& path, const std::shared_ptr<ImageCacheEntry>& entry, MediaNode* parent) -> std::shared_ptr<MediaNode> {
         auto node = std::make_shared<MediaNode>();
         node->isGroup = false;
-        node->filePath = path;   // always the full path for lookups
+        node->filePath = path;   // always the cache key for lookups
         node->parent = parent;
 
-        // Display label: just the filename portion of the display path
-        wxFileName fn(displayPath(path));
+        // Display label: just the filename portion
+        wxFileName fn(path);
         node->label = fn.GetFullName().ToStdString();
 
-        auto entry = media->GetImage(path);
         if (entry) {
             node->canLoad = entry->IsOk();
             wxSize sz = entry->GetImageSize();
@@ -100,7 +130,7 @@ void MediaViewModel::Rebuild(SequenceMedia* media, const std::string& showDirect
         auto entry = media->GetImage(path);
         if (!entry) continue;
 
-        wxFileName fn(displayPath(path));
+        wxFileName fn(displayPath(path, entry));
         wxString dir = fn.GetPath();
         if (dir.IsEmpty()) dir = "(show directory)";
 
@@ -114,7 +144,7 @@ void MediaViewModel::Rebuild(SequenceMedia* media, const std::string& showDirect
             _groups.push_back(grp);
         }
 
-        dirGroups[dir]->children.push_back(makeLeaf(path, dirGroups[dir].get()));
+        dirGroups[dir]->children.push_back(makeLeaf(path, entry, dirGroups[dir].get()));
     }
 }
 
@@ -368,7 +398,9 @@ void ManageMediaPanel::Populate(const std::string& selectPath)
     }
     _addButton->Enable();
 
-    _model->Rebuild(_sequenceMedia, _showDirectory);
+    std::list<std::string> mediaDirs;
+    if (_xlFrame) mediaDirs = _xlFrame->GetMediaFolders();
+    _model->Rebuild(_sequenceMedia, _showDirectory, mediaDirs);
     _model->Cleared();
 
     // Expand all top-level groups

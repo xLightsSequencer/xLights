@@ -1479,8 +1479,10 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
             media.EmbedImage(embeddedName);
             filename = embeddedName;
         } else {
-            // One of the "Copy to: <dir>" choices
-            std::string targetDir = copyTargets[choice];
+            // One of the "Copy to: <dir>" choices — adjust index for the
+            // "Embed in sequence" entry that precedes the copy targets.
+            int copyIdx = isPictures ? choice - 1 : choice;
+            std::string targetDir = copyTargets[copyIdx];
             // Use MoveToShowFolder only when the target is the show directory;
             // for extra media folders, copy directly into the folder (+ subdir).
             std::string newPath;
@@ -1548,6 +1550,9 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
             effect->GetSettings()["E_FILEPICKERCTRL_Video_Filename"] = filename;
         } else if (effectName == "Pictures") {
             effect->GetSettings()["E_TEXTCTRL_Pictures_Filename"] = filename;
+            // Register the image with SequenceMedia so the renderer can find it
+            // (adjustSettings is not called for drag-and-drop created effects)
+            _sequenceElements.GetSequenceMedia().GetImage(filename);
         } else if (effectName == "Glediator") {
             effect->GetSettings()["E_FILEPICKERCTRL_Glediator_Filename"] = filename;
         } else if (effectName == "Shader") {

@@ -17,6 +17,7 @@
 #include <wx/button.h>
 #include <wx/statbmp.h>
 #include <wx/stattext.h>
+#include <list>
 #include <string>
 #include <vector>
 #include <memory>
@@ -56,7 +57,8 @@ class MediaViewModel : public wxDataViewModel
 public:
     MediaViewModel();
 
-    void Rebuild(SequenceMedia* media, const std::string& showDirectory);
+    void Rebuild(SequenceMedia* media, const std::string& showDirectory,
+                 const std::list<std::string>& mediaDirs = {});
     void Clear();
 
     // Returns the file path for an item, or empty if it's a group node
