@@ -801,7 +801,7 @@ public:
     [[nodiscard]] std::string GetControllerName() const { return _controllerName; }
     [[nodiscard]] std::string GetControllerProtocol() const { return _controllerConnection.GetProtocol(); }
     [[nodiscard]] int GetControllerProtocolSpeed() const { return _controllerConnection.GetProtocolSpeed(); }
-    [[nodiscard]] int GetControllerPort(int string = 1) const { return _controllerConnection.GetCtrlPort(); }
+    [[nodiscard]] int GetControllerPort(int string = 1) const { return _controllerConnection.GetCtrlPort(string); }
     [[nodiscard]] int GetControllerStartNulls() const { return _controllerConnection.GetStartNulls(); }
     [[nodiscard]] int GetControllerEndNulls() const { return _controllerConnection.GetEndNulls(); }
     [[nodiscard]] int GetControllerBrightness() const { return _controllerConnection.GetBrightness(); }

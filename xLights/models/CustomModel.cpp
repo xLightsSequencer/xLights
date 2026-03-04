@@ -226,6 +226,40 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes2");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes2");
         return 0;
+    } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
+        // When first switching to individual start channels, use _indivStartNodes
+        // to compute initial start channel defaults based on node positions
+        _hasIndivChans = event.GetValue().GetBool();
+        if (_hasIndivChans && _hasIndivNodes && !_indivStartNodes.empty()) {
+            int c = GetNumStrings();
+            _indivStartChannels.resize(c);
+            int32_t modelStartChannel = GetNumberFromChannelString(ModelStartChannel);
+            int chanPerNode = GetNodeChannelCount(StringType);
+            for (int x = 0; x < c; ++x) {
+                if (x == 0) {
+                    _indivStartChannels[x] = ModelStartChannel;
+                } else {
+                    int node = _indivStartNodes[x];
+                    int32_t startChannel = modelStartChannel + (node - 1) * chanPerNode;
+                    _indivStartChannels[x] = wxString::Format("%d", startChannel).ToStdString();
+                }
+            }
+        } else if (_hasIndivChans) {
+            int c = GetNumStrings();
+            _indivStartChannels.resize(c);
+            for (int x = 0; x < c; ++x) {
+                SetIndividualStartChannel(x, ComputeStringStartChannel(x));
+            }
+        } else {
+            _indivStartChannels.clear();
+        }
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::ModelIndividualStartChannels");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CustomModel::OnPropertyGridChange::ModelIndividualStartChannels");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CustomModel::OnPropertyGridChange::ModelIndividualStartChannels");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CustomModel::OnPropertyGridChange::ModelIndividualStartChannels");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::OnPropertyGridChange::ModelIndividualStartChannels");
+        return 0;
     }
     return Model::OnPropertyGridChange(grid, event);
 }
