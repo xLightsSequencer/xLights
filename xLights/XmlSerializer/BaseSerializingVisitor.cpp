@@ -896,6 +896,7 @@ void BaseSerializingVisitor::Visit(const TreeModel& model) {
     attrs.Add(XmlNodeKeys::TreeRotationAttribute,        std::to_string(model.GetTreeRotation()));
     attrs.Add(XmlNodeKeys::TreeTypeAttribute,            std::to_string(model.GetTreeType()));
     attrs.Add(XmlNodeKeys::TreeDegreesAttribute,         std::to_string(model.GetTreeDegrees()));
+    SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
     WriteCloseTag(XmlNodeKeys::ModelNodeName);
