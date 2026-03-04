@@ -1417,47 +1417,45 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
     std::string effectName = parms[0].ToStdString();
     std::string filename = parms[1].ToStdString();
 
-    // Check if the file is outside the show directory
+    // Check if the file is outside the show/media directories
     wxFileName fn(filename);
-    wxString showDir = GetShowDirectory();
     bool isPictures = (effectName == "Pictures");
-    bool isOutside = !fn.GetFullPath().StartsWith(showDir);
+    bool isOutside = !IsInShowOrMediaFolder(filename);
 
     if (isOutside && fn.FileExists()) {
+        // Build the list of copy-target directories: show directory first,
+        // then any additional user-configured media folders.
+        const std::string sep(1, wxFileName::GetPathSeparator());
+        std::string subdir;
+        if (effectName == "Pictures")       subdir = sep + "Images";
+        else if (effectName == "Shader")    subdir = sep + "Shaders";
+        else if (effectName == "Video")     subdir = sep + "Videos";
+        else if (effectName == "Glediator") subdir = sep + "Glediator";
+
+        // Collect copy-target directories (show dir + extra media dirs, deduped)
+        std::vector<std::string> copyTargets;
+        copyTargets.push_back(showDirectory);
+        for (const auto& md : GetMediaFolders()) {
+            if (md != showDirectory)
+                copyTargets.push_back(md);
+        }
+
         wxArrayString choices;
-        choices.Add("Copy to show directory");
-        if (isPictures) choices.Add("Embed in sequence");
-        choices.Add("Use original location");
+        if (isPictures)
+            choices.Add("Embed in sequence");
+        for (const auto& dir : copyTargets)
+            choices.Add("Copy to: " + wxString(dir));
 
         wxSingleChoiceDialog dlg(this,
-            wxString::Format("'%s' is outside the show directory.\nHow would you like to use it?",
+            wxString::Format("'%s' is outside the show/media folder(s).\nChoose where to place it:",
                              fn.GetFullName()),
-            "File Outside Show Directory", choices);
+            "File Outside Show/Media Folder", choices);
         if (dlg.ShowModal() == wxID_CANCEL) return;
 
         int choice = dlg.GetSelection();
-        
-        if (choices[choice] == "Copy to show directory") {
-            wxString dest = showDir;
-            if (effectName == "Pictures") {
-                dest = showDir + wxFileName::GetPathSeparator() + "Images";
-            } else if (effectName == "Shader") {
-                dest = showDir + wxFileName::GetPathSeparator() + "Shaders";
-            } else if (effectName == "Video") {
-                dest = showDir + wxFileName::GetPathSeparator() + "Videos";
-            } else if (effectName == "Glediator") {
-                dest = showDir + wxFileName::GetPathSeparator() + "Glediator";
-            }
-            if (!wxDirExists(dest)) {
-                wxMkdir(dest);
-            }
-            dest += wxFileName::GetPathSeparator() + fn.GetFullName();
-            if (!wxCopyFile(fn.GetFullPath(), dest, false)) {
-                wxMessageBox("Failed to copy file to show directory.", "Error", wxICON_ERROR | wxOK, this);
-                return;
-            }
-            filename = dest.ToStdString();
-        } else if (choices[choice] == "Embed in sequence") {
+        const wxString& chosen = choices[choice];
+
+        if (chosen == "Embed in sequence") {
             // Load and embed as SequenceMedia entry
             wxImage img(fn.GetFullPath());
             if (!img.IsOk()) {
@@ -1465,13 +1463,48 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
                 return;
             }
             SequenceMedia& media = _sequenceElements.GetSequenceMedia();
-            auto i = media.GetImage(fn.GetFullPath());
+            media.GetImage(fn.GetFullPath());
             std::string embeddedName = "Images/" + fn.GetFullName().ToStdString();
+            int suffix = 1;
+            std::string candidate = embeddedName;
+            while (media.HasImage(candidate)) {
+                candidate = "Images/" + fn.GetName().ToStdString() +
+                            "_" + std::to_string(suffix++) + "." + fn.GetExt().ToStdString();
+            }
+            embeddedName = candidate;
             media.RenameImage(fn.GetFullPath(), embeddedName);
             media.EmbedImage(embeddedName);
             filename = embeddedName;
+        } else {
+            // One of the "Copy to: <dir>" choices
+            std::string targetDir = copyTargets[choice];
+            // Use MoveToShowFolder only when the target is the show directory;
+            // for extra media folders, copy directly into the folder (+ subdir).
+            std::string newPath;
+            if (targetDir == showDirectory) {
+                newPath = MoveToShowFolder(filename, subdir);
+            } else {
+                wxString dest = wxString(targetDir);
+                if (!subdir.empty()) {
+                    dest += wxString(subdir);
+                    if (!wxDirExists(dest)) wxMkdir(dest);
+                }
+                dest += wxString(sep) + fn.GetFullName();
+                if (wxCopyFile(fn.GetFullPath(), dest, false))
+                    newPath = dest.ToStdString();
+            }
+            if (newPath.empty()) {
+                wxMessageBox("Failed to copy file to the selected folder.", "Error", wxICON_ERROR | wxOK, this);
+                return;
+            }
+            filename = newPath;
         }
-        // else: Use original location — filename unchanged
+    }
+
+    // For external images inside a show/media folder, store the relative path
+    {
+        std::string rel = MakeRelativePath(filename);
+        if (!rel.empty()) filename = rel;
     }
 
     int effectIndex = 0;

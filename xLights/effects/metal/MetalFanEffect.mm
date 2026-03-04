@@ -143,7 +143,6 @@ void MetalFanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
     double blade_div_angle  = 360.0 / (double)num_blades;
     double blade_width_angle= blade_div_angle * (double)blade_width / 100.0;
     double color_angle      = blade_width_angle / (double)num_colors;
-    double angle_offset     = eff_pos_adj * revs + (double)start_angle;
     double element_angle    = color_angle / (double)num_elements;
     double element_size     = element_angle * (double)element_width / 100.0;
 

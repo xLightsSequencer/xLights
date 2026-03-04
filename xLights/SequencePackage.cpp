@@ -367,6 +367,8 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
                 auto img = sm.GetImage(v);
                 if (img->IsEmbedded() && !tm.HasImage(v)) {
                     tm.AddEmbeddedImage(v, img->GetEmbeddedData());
+                } else if (!img->IsEmbedded()) {
+                    settingEffectFile = "E_TEXTCTRL_Pictures_Filename";
                 }
             } else {
                 settingEffectFile = "E_TEXTCTRL_Pictures_Filename";
@@ -414,12 +416,18 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
 
         // import the asset if we have it, otherwise track it as missing
         wxFileName fileToCopy = _media[picFilePath.GetFullName()];
-
+        
         if (fileToCopy.IsOk() && FileExists(fileToCopy)) {
             wxFileName copiedAsset = CopyMediaToTarget(targetMediaFolder, fileToCopy);
             settings.erase(settingEffectFile);
             wxString newSetting = copiedAsset.GetFullPath().ToStdString();
             settings[settingEffectFile] = newSetting;
+            if (effName == "Pictures") {
+                auto &tm = target->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+                if (!tm.HasImage(newSetting.ToStdString())) {
+                    tm.GetImage(newSetting.ToStdString());
+                }
+            }
         } else {
             if (picFilePath != "")
                 _missingMedia.push_back(picFilePath.GetFullName().ToStdString());

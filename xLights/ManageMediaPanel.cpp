@@ -82,11 +82,14 @@ void MediaViewModel::Rebuild(SequenceMedia* media, const std::string& showDirect
 
         auto entry = media->GetImage(path);
         if (entry) {
+            node->canLoad = entry->IsOk();
             wxSize sz = entry->GetImageSize();
             node->sizeStr = (sz.x > 0) ? wxString::Format("%dx%d", sz.x, sz.y) : "?";
             node->framesStr = (entry->GetImageCount() > 1)
                 ? wxString::Format("%d", entry->GetImageCount()) : "-";
             node->statusStr = entry->IsEmbedded() ? "Embedded" : "External";
+            if (!node->canLoad)
+                node->statusStr += " (broken)";
         }
         return node;
     };
@@ -159,6 +162,19 @@ void MediaViewModel::GetValue(wxVariant& variant, const wxDataViewItem& item, un
         case COL_STATUS: variant = node->statusStr;           break;
         default:         variant = wxString();                break;
     }
+}
+
+bool MediaViewModel::GetAttr(const wxDataViewItem& item, unsigned int col, wxDataViewItemAttr& attr) const
+{
+    if (!item.IsOk()) return false;
+    MediaNode* node = static_cast<MediaNode*>(item.GetID());
+    if (!node || node->isGroup) return false;
+    if (!node->canLoad) {
+        attr.SetColour(*wxRED);
+        attr.SetBold(true);
+        return true;
+    }
+    return false;
 }
 
 wxDataViewItem MediaViewModel::GetParent(const wxDataViewItem& item) const
@@ -305,6 +321,7 @@ ManageMediaPanel::ManageMediaPanel(wxWindow* parent, SequenceMedia* sequenceMedi
     SetSizer(mainSizer);
 
     _mediaTree->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, &ManageMediaPanel::OnTreeItemSelected, this);
+    _mediaTree->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, &ManageMediaPanel::OnTreeContextMenu, this);
     _addButton->Bind(wxEVT_BUTTON, &ManageMediaPanel::OnAddButtonClick, this);
     _aiGenerateButton->Bind(wxEVT_BUTTON, &ManageMediaPanel::OnAIGenerateButtonClick, this);
     _renameButton->Bind(wxEVT_BUTTON, &ManageMediaPanel::OnRenameButtonClick, this);
@@ -629,11 +646,28 @@ std::string ManageMediaPanel::ExtractWithRename(const std::string& fullPath)
     else
         wildcard = "PNG files (*.png)|*.png|All files (*.*)|*.*";
 
-    wxFileDialog dlg(this, "Save Image As", fn.GetPath(), fn.GetFullName(),
-                     wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (dlg.ShowModal() != wxID_OK) return {};
+    // Loop until the user picks a path inside the show/media folders or cancels.
+    std::string newPath;
+    for (;;) {
+        wxFileDialog dlg(this, "Save Image As", fn.GetPath(), fn.GetFullName(),
+                         wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        if (dlg.ShowModal() != wxID_OK) return {};
 
-    std::string newPath = dlg.GetPath().ToStdString();
+        newPath = dlg.GetPath().ToStdString();
+        bool outside = _xlFrame ? !_xlFrame->IsInShowOrMediaFolder(newPath)
+                                : (!_showDirectory.empty() &&
+                                   !wxString(newPath).StartsWith(wxString(_showDirectory)));
+        if (!outside) break;
+
+        int resp = wxMessageBox(
+            "The selected location is outside the show/media folder(s).\n"
+            "Please choose a location inside the show or a media folder.",
+            "Invalid Location", wxOK | wxICON_WARNING, this);
+        (void)resp;
+        // Reset the dialog's default directory to the show directory for the retry
+        fn = wxFileName(wxString(!_showDirectory.empty() ? _showDirectory : newPath),
+                        fn.GetFullName());
+    }
     ObtainAccessToURL(newPath);
 
     // Write data to disk and rename cache key
@@ -643,8 +677,19 @@ std::string ManageMediaPanel::ExtractWithRename(const std::string& fullPath)
         return {};
     }
 
-    // Update every effect in the sequence that referenced oldPath -> newPath
-    if (_sequenceElements != nullptr && newPath != fullPath) {
+    // Convert absolute path to relative (relative to show/media folder)
+    std::string finalPath = newPath;
+    if (_xlFrame) {
+        std::string rel = _xlFrame->MakeRelativePath(newPath);
+        if (!rel.empty()) {
+            // Rename the cache key from absolute to relative
+            _sequenceMedia->RenameImage(newPath, rel);
+            finalPath = rel;
+        }
+    }
+
+    // Update every effect in the sequence that referenced fullPath -> finalPath
+    if (_sequenceElements != nullptr && finalPath != fullPath) {
         auto scanLayer = [&](EffectLayer* layer) {
             for (size_t k = 0; k < layer->GetEffectCount(); ++k) {
                 Effect* eff = layer->GetEffect(k);
@@ -655,7 +700,7 @@ std::string ManageMediaPanel::ExtractWithRename(const std::string& fullPath)
                         keysToUpdate.push_back(it->first);
                 }
                 for (const auto& key : keysToUpdate)
-                    eff->SetSetting(key, newPath);
+                    eff->SetSetting(key, finalPath);
             }
         };
 
@@ -683,7 +728,199 @@ std::string ManageMediaPanel::ExtractWithRename(const std::string& fullPath)
         }
     }
 
-    return newPath;
+    return finalPath;
+}
+
+void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
+{
+    wxDataViewItem item = event.GetItem();
+    if (!item.IsOk() || _model->IsGroup(item)) return;
+
+    std::string path = _model->GetFilePath(item);
+    if (path.empty() || _sequenceMedia == nullptr) return;
+
+    auto entry = _sequenceMedia->GetImage(path);
+    if (!entry || entry->IsOk()) return;  // only show menu for broken images
+
+    wxMenu menu;
+    menu.Append(wxID_ANY, "Re-select Image...");
+    menu.Bind(wxEVT_MENU, [this, path](wxCommandEvent&) {
+        OnReSelectImage(path);
+    });
+    PopupMenu(&menu);
+}
+
+void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
+{
+    if (_sequenceMedia == nullptr) return;
+
+    // Default the file picker to the show directory (or the old path's dir if absolute)
+    wxString defaultDir;
+    {
+        wxFileName fn(oldPath);
+        if (fn.IsAbsolute() && fn.DirExists())
+            defaultDir = fn.GetPath();
+        else if (!_showDirectory.empty())
+            defaultDir = _showDirectory;
+    }
+    wxFileName fnOld(oldPath);
+
+    // --- Step 1: let the user pick a replacement file ---
+    std::string pickedPath;
+    {
+        wxFileDialog dlg(this, "Re-select Image: " + wxString(oldPath),
+                         defaultDir, fnOld.GetFullName(),
+                         "Image files (*.png;*.jpg;*.jpeg;*.gif;*.bmp)|*.png;*.jpg;*.jpeg;*.gif;*.bmp|All files (*.*)|*.*",
+                         wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        if (dlg.ShowModal() != wxID_OK) return;
+        pickedPath = dlg.GetPath().ToStdString();
+    }
+
+    // --- Step 2: if same path, just reload and done ---
+    if (pickedPath == oldPath) {
+        _sequenceMedia->RemoveImage(oldPath);
+        _sequenceMedia->GetImage(oldPath);
+        Populate(oldPath);
+        return;
+    }
+
+    // --- Step 3: if the picked file is outside show/media folders, offer
+    //             the same embed/copy choices as OnAddButtonClick ---
+    bool outsideFolders = _xlFrame ? !_xlFrame->IsInShowOrMediaFolder(pickedPath)
+                                   : (!_showDirectory.empty() &&
+                                      !wxString(pickedPath).StartsWith(wxString(_showDirectory)));
+
+    std::string finalPath = pickedPath;   // path we will ultimately use in cache/effects
+
+    if (outsideFolders) {
+        wxFileName fn(pickedPath);
+        const std::string sep(1, wxFileName::GetPathSeparator());
+
+        // Build copy-target list: show directory first, then extra media folders
+        std::vector<std::string> copyTargets;
+        if (!_showDirectory.empty())
+            copyTargets.push_back(_showDirectory);
+        if (_xlFrame) {
+            for (const auto& md : _xlFrame->GetMediaFolders()) {
+                if (md != _showDirectory)
+                    copyTargets.push_back(md);
+            }
+        }
+
+        wxArrayString choices;
+        choices.Add("Embed in sequence");
+        for (const auto& dir : copyTargets)
+            choices.Add("Copy to: " + wxString(dir));
+
+        wxSingleChoiceDialog choiceDlg(this,
+            wxString::Format("'%s' is outside the show/media folder(s).\nChoose where to place it:",
+                             fn.GetFullName()),
+            "File Outside Show/Media Folder", choices);
+        if (choiceDlg.ShowModal() == wxID_CANCEL) return;
+
+        int sel = choiceDlg.GetSelection();
+        if (sel == 0) {
+            // Embed: load from disk, rename cache key to Images/<name>, mark embedded
+            _sequenceMedia->GetImage(pickedPath);
+            std::string embeddedName = "Images/" + fn.GetFullName().ToStdString();
+            int suffix = 1;
+            std::string candidate = embeddedName;
+            // Avoid colliding with anything other than the old broken entry
+            while (_sequenceMedia->HasImage(candidate) && candidate != oldPath) {
+                candidate = "Images/" + fn.GetName().ToStdString() +
+                            "_" + std::to_string(suffix++) + "." +
+                            fn.GetExt().ToStdString();
+            }
+            embeddedName = candidate;
+            _sequenceMedia->RenameImage(pickedPath, embeddedName);
+            _sequenceMedia->EmbedImage(embeddedName);
+            finalPath = embeddedName;
+        } else {
+            // Copy to one of the folders
+            std::string targetDir = copyTargets[sel - 1];
+            std::string newPath;
+            if (_xlFrame && targetDir == _showDirectory) {
+                newPath = _xlFrame->MoveToShowFolder(pickedPath, sep + "Images");
+            } else {
+                wxString dest = wxString(targetDir) + wxString(sep) + "Images";
+                if (!wxDirExists(dest)) wxMkdir(dest);
+                dest += wxString(sep) + fn.GetFullName();
+                if (wxCopyFile(wxString(pickedPath), dest, false))
+                    newPath = dest.ToStdString();
+            }
+            if (newPath.empty()) {
+                wxMessageBox("Failed to copy file to the selected folder.", "Error",
+                             wxICON_ERROR | wxOK, this);
+                return;
+            }
+            finalPath = newPath;
+        }
+
+        // Convert to relative path if inside a show/media folder
+        if (_xlFrame) {
+            std::string rel = _xlFrame->MakeRelativePath(finalPath);
+            if (!rel.empty()) finalPath = rel;
+        }
+    }
+
+    // --- Step 4: rename the broken cache entry to finalPath and update effects ---
+    // If finalPath is already in the cache (e.g. we embedded under a new key),
+    // just drop the old broken entry; otherwise rename it.
+    if (finalPath != oldPath) {
+        if (!_sequenceMedia->RenameImage(oldPath, finalPath)) {
+            // finalPath is already a valid cache entry — just remove the broken one
+            _sequenceMedia->RemoveImage(oldPath);
+        }
+    }
+
+    // Update every effect that referenced oldPath to point to finalPath
+    if (_sequenceElements != nullptr && finalPath != oldPath) {
+        auto scanLayer = [&](EffectLayer* layer) {
+            for (size_t k = 0; k < layer->GetEffectCount(); ++k) {
+                Effect* eff = layer->GetEffect(k);
+                const SettingsMap& settings = eff->GetSettings();
+                std::vector<std::string> keysToUpdate;
+                for (auto it = settings.begin(); it != settings.end(); ++it) {
+                    if (it->second == oldPath)
+                        keysToUpdate.push_back(it->first);
+                }
+                for (const auto& key : keysToUpdate)
+                    eff->SetSetting(key, finalPath);
+            }
+        };
+
+        for (size_t i = 0; i < _sequenceElements->GetElementCount(); ++i) {
+            Element* e = _sequenceElements->GetElement(i);
+            if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
+            ModelElement* model = dynamic_cast<ModelElement*>(e);
+            if (!model) continue;
+
+            for (size_t j = 0; j < model->GetEffectLayerCount(); ++j)
+                scanLayer(model->GetEffectLayer(j));
+
+            for (size_t j = 0; j < model->GetSubModelAndStrandCount(); ++j) {
+                SubModelElement* sub = model->GetSubModel(j);
+                for (size_t l = 0; l < sub->GetEffectLayerCount(); ++l)
+                    scanLayer(sub->GetEffectLayer(l));
+                if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                    StrandElement* strand = dynamic_cast<StrandElement*>(sub);
+                    if (strand) {
+                        for (int k = 0; k < strand->GetNodeLayerCount(); ++k)
+                            scanLayer(strand->GetNodeLayer(k));
+                    }
+                }
+            }
+        }
+    }
+
+    // For external paths, force a reload from disk (removes stale cached data)
+    auto entry = _sequenceMedia->GetImage(finalPath);
+    if (entry && !entry->IsEmbedded()) {
+        _sequenceMedia->RemoveImage(finalPath);
+        _sequenceMedia->GetImage(finalPath);
+    }
+
+    Populate(finalPath);
 }
 
 void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
@@ -699,8 +936,84 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
     wxArrayString paths;
     dlg.GetPaths(paths);
     std::string lastPath;
+    const std::string sep(1, wxFileName::GetPathSeparator());
     for (const auto& p : paths) {
         std::string path = p.ToStdString();
+
+        // If the file is outside the show/media folders, require the user to
+        // choose where to place it — no "use original location" option.
+        bool outsideFolders = _xlFrame ? !_xlFrame->IsInShowOrMediaFolder(path)
+                                       : (!_showDirectory.empty() && !wxString(path).StartsWith(wxString(_showDirectory)));
+        if (outsideFolders) {
+            wxFileName fn(path);
+
+            // Build copy-target list: show directory first, then extra media folders
+            std::vector<std::string> copyTargets;
+            if (!_showDirectory.empty())
+                copyTargets.push_back(_showDirectory);
+            if (_xlFrame) {
+                for (const auto& md : _xlFrame->GetMediaFolders()) {
+                    if (md != _showDirectory)
+                        copyTargets.push_back(md);
+                }
+            }
+
+            wxArrayString choices;
+            choices.Add("Embed in sequence");
+            for (const auto& dir : copyTargets)
+                choices.Add("Copy to: " + wxString(dir));
+
+            wxSingleChoiceDialog choiceDlg(this,
+                wxString::Format("'%s' is outside the show/media folder(s).\nChoose where to place it:",
+                                 fn.GetFullName()),
+                "File Outside Show/Media Folder", choices);
+            if (choiceDlg.ShowModal() == wxID_CANCEL) continue;
+
+            int sel = choiceDlg.GetSelection();
+            if (sel == 0) {
+                // Embed in sequence
+                _sequenceMedia->GetImage(path);
+                std::string embeddedName = "Images/" + fn.GetFullName().ToStdString();
+                int suffix = 1;
+                std::string candidate = embeddedName;
+                while (_sequenceMedia->HasImage(candidate)) {
+                    candidate = "Images/" + fn.GetName().ToStdString() +
+                                "_" + std::to_string(suffix++) + "." +
+                                fn.GetExt().ToStdString();
+                }
+                embeddedName = candidate;
+                _sequenceMedia->RenameImage(path, embeddedName);
+                _sequenceMedia->EmbedImage(embeddedName);
+                lastPath = embeddedName;
+                continue;
+            } else {
+                // One of the copy-to-folder choices
+                std::string targetDir = copyTargets[sel - 1];
+                std::string newPath;
+                if (_xlFrame && targetDir == _showDirectory) {
+                    newPath = _xlFrame->MoveToShowFolder(path, sep + "Images");
+                } else {
+                    wxString dest = wxString(targetDir) + wxString(sep) + "Images";
+                    if (!wxDirExists(dest)) wxMkdir(dest);
+                    dest += wxString(sep) + fn.GetFullName();
+                    if (wxCopyFile(wxString(path), dest, false))
+                        newPath = dest.ToStdString();
+                }
+                if (newPath.empty()) {
+                    wxMessageBox("Failed to copy file to the selected folder.", "Error",
+                                 wxICON_ERROR | wxOK, this);
+                    continue;
+                }
+                path = newPath;
+            }
+        }
+
+        // For external images now inside a show/media folder, store the relative path
+        if (_xlFrame) {
+            std::string rel = _xlFrame->MakeRelativePath(path);
+            if (!rel.empty()) path = rel;
+        }
+
         _sequenceMedia->GetImage(path);
         lastPath = path;
     }
@@ -874,12 +1187,26 @@ void ManageMediaPanel::OnExtractAllButtonClick(wxCommandEvent& event)
 {
     if (_sequenceMedia == nullptr) return;
 
-    // Ask the user for a target directory to save all embedded images
+    // Ask the user for a target directory — must be inside show/media folders.
     wxString defaultDir = _showDirectory.empty() ? wxString() : wxString(_showDirectory);
-    wxDirDialog dlg(this, "Choose directory to extract images into", defaultDir,
-                    wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
-    if (dlg.ShowModal() != wxID_OK) return;
-    wxString destDir = dlg.GetPath();
+    wxString destDir;
+    for (;;) {
+        wxDirDialog dlg(this, "Choose directory to extract images into", defaultDir,
+                        wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+        if (dlg.ShowModal() != wxID_OK) return;
+        destDir = dlg.GetPath();
+
+        bool outside = _xlFrame ? !_xlFrame->IsInShowOrMediaFolder(destDir.ToStdString())
+                                : (!_showDirectory.empty() &&
+                                   !destDir.StartsWith(wxString(_showDirectory)));
+        if (!outside) break;
+
+        wxMessageBox(
+            "The selected directory is outside the show/media folder(s).\n"
+            "Please choose a directory inside the show or a media folder.",
+            "Invalid Location", wxOK | wxICON_WARNING, this);
+        defaultDir = destDir;  // keep the user's last choice as starting point
+    }
     ObtainAccessToURL(destDir.ToStdString());
     if (destDir.Last() != wxFileName::GetPathSeparator()) {
         destDir += wxFileName::GetPathSeparator();
@@ -905,8 +1232,18 @@ void ManageMediaPanel::OnExtractAllButtonClick(wxCommandEvent& event)
             continue;
         }
 
-        // Update effect references oldPath -> newPath
-        if (_sequenceElements != nullptr && newPath != oldPath) {
+        // Convert absolute path to relative (relative to show/media folder)
+        std::string finalPath = newPath;
+        if (_xlFrame) {
+            std::string rel = _xlFrame->MakeRelativePath(newPath);
+            if (!rel.empty()) {
+                _sequenceMedia->RenameImage(newPath, rel);
+                finalPath = rel;
+            }
+        }
+
+        // Update effect references oldPath -> finalPath
+        if (_sequenceElements != nullptr && finalPath != oldPath) {
             auto scanLayer = [&](EffectLayer* layer) {
                 for (size_t k = 0; k < layer->GetEffectCount(); ++k) {
                     Effect* eff = layer->GetEffect(k);
@@ -917,7 +1254,7 @@ void ManageMediaPanel::OnExtractAllButtonClick(wxCommandEvent& event)
                             keysToUpdate.push_back(it->first);
                     }
                     for (const auto& key : keysToUpdate)
-                        eff->SetSetting(key, newPath);
+                        eff->SetSetting(key, finalPath);
                 }
             };
 

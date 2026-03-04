@@ -967,6 +967,7 @@ xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
 bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     if (_xsqPkg != nullptr && _xsqPkg->IsPkg()) {
         SetImportMediaTooltip();
+        _xsqPkg->GetImportOptions()->SetImportActive(CheckBoxImportMedia->IsChecked());
     } else {
         Sizer1->Hide(FlexGridSizerImportMedia, true);
     }
@@ -1572,6 +1573,7 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
         }
         if (data.contains("importmedia")) {
             CheckBoxImportMedia->SetValue(data.at("importmedia").get<bool>());
+            _xsqPkg->GetImportOptions()->SetImportActive(CheckBoxImportMedia->IsChecked());
         }
     }
 

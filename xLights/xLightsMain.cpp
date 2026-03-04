@@ -7937,6 +7937,77 @@ bool xLightsFrame::IsInShowFolder(const std::string& file) const
     return f.StartsWith(sf);
 }
 
+bool xLightsFrame::IsInShowOrMediaFolder(const std::string& file) const
+{
+    if (IsInShowFolder(file)) return true;
+
+    wxString f(file);
+#ifdef __WXMSW__
+    f.LowerCase();
+    f.Replace("\\", "/");
+#else
+    f.Replace("\\", "/");
+#endif
+
+    for (const auto& dir : mediaDirectories) {
+        wxString md(dir);
+#ifdef __WXMSW__
+        md.LowerCase();
+#endif
+        md.Replace("\\", "/");
+        if (!md.EndsWith("/")) md += "/";
+        if (f.StartsWith(md)) return true;
+    }
+    return false;
+}
+
+std::string xLightsFrame::MakeRelativePath(const std::string& file) const
+{
+    if (file.empty()) return {};
+    wxFileName fn(file);
+    if (!fn.IsAbsolute()) return {};   // already relative
+
+    wxString f(file);
+    f.Replace("\\", "/");
+
+    // Try show directory first
+    {
+        wxString sd(GetShowDirectory());
+        sd.Replace("\\", "/");
+#ifdef __WXMSW__
+        sd.MakeLower();
+        wxString fl = f.Lower();
+#else
+        const wxString& fl = f;
+#endif
+        if (!sd.EndsWith("/")) sd += "/";
+#ifdef __WXMSW__
+        if (fl.StartsWith(sd))
+            return f.Mid(sd.Length()).ToStdString();
+#else
+        if (fl.StartsWith(sd))
+            return f.Mid(sd.Length()).ToStdString();
+#endif
+    }
+
+    // Try each media directory
+    for (const auto& dir : mediaDirectories) {
+        wxString md(dir);
+        md.Replace("\\", "/");
+#ifdef __WXMSW__
+        md.MakeLower();
+        wxString fl = f.Lower();
+#else
+        const wxString& fl = f;
+#endif
+        if (!md.EndsWith("/")) md += "/";
+        if (fl.StartsWith(md))
+            return f.Mid(md.Length()).ToStdString();
+    }
+
+    return {};
+}
+
 #define FILES_MATCH_COMPARE 8192
 bool xLightsFrame::FilesMatch(const std::string& file1, const std::string& file2) const
 {
