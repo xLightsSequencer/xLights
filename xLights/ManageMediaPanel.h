@@ -100,6 +100,7 @@ private:
     void OnTreeMouseMotion(wxMouseEvent& event);
     void OnTreeContextMenu(wxDataViewEvent& event);
     void OnReSelectImage(const std::string& oldPath);
+    void OnBulkFindImages();
     void OnAddButtonClick(wxCommandEvent& event);
     void OnAIGenerateButtonClick(wxCommandEvent& event);
     void OnRenameButtonClick(wxCommandEvent& event);

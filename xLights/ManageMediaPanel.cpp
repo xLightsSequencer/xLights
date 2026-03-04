@@ -742,11 +742,26 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
     auto entry = _sequenceMedia->GetImage(path);
     if (!entry || entry->IsOk()) return;  // only show menu for broken images
 
+    // Count total broken images to decide whether to offer bulk find
+    int brokenCount = 0;
+    for (const auto& p : _sequenceMedia->GetImagePaths()) {
+        auto e = _sequenceMedia->GetImage(p);
+        if (e && !e->IsOk()) ++brokenCount;
+    }
+
     wxMenu menu;
     menu.Append(wxID_ANY, "Re-select Image...");
     menu.Bind(wxEVT_MENU, [this, path](wxCommandEvent&) {
         OnReSelectImage(path);
-    });
+    }, menu.FindItemByPosition(0)->GetId());
+
+    if (brokenCount > 1) {
+        wxMenuItem* bulkItem = menu.Append(wxID_ANY, "Bulk Find Images...");
+        menu.Bind(wxEVT_MENU, [this](wxCommandEvent&) {
+            OnBulkFindImages();
+        }, bulkItem->GetId());
+    }
+
     PopupMenu(&menu);
 }
 
@@ -921,6 +936,200 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
     }
 
     Populate(finalPath);
+}
+
+void ManageMediaPanel::OnBulkFindImages()
+{
+    if (_sequenceMedia == nullptr) return;
+
+    // Collect all broken image paths
+    std::vector<std::string> brokenPaths;
+    for (const auto& p : _sequenceMedia->GetImagePaths()) {
+        auto e = _sequenceMedia->GetImage(p);
+        if (e && !e->IsOk()) brokenPaths.push_back(p);
+    }
+    if (brokenPaths.empty()) return;
+
+    // Ask user to pick a directory to search in
+    wxString defaultDir = _showDirectory.empty() ? wxString() : wxString(_showDirectory);
+    wxDirDialog dlg(this, "Select folder containing missing images", defaultDir,
+                    wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+    if (dlg.ShowModal() != wxID_OK) return;
+
+    std::string searchDir = dlg.GetPath().ToStdString();
+    ObtainAccessToURL(searchDir);
+    const std::string sep(1, wxFileName::GetPathSeparator());
+
+    // Check if the chosen directory is outside the show/media folders
+    bool outsideFolders = _xlFrame ? !_xlFrame->IsInShowOrMediaFolder(searchDir + sep)
+                                   : false;
+
+    // If outside, ask how to handle the files once
+    int outsideAction = -1;   // 0 = embed, 1+ = copy to target[outsideAction-1]
+    std::vector<std::string> copyTargets;
+    if (outsideFolders) {
+        if (!_showDirectory.empty())
+            copyTargets.push_back(_showDirectory);
+        if (_xlFrame) {
+            for (const auto& md : _xlFrame->GetMediaFolders()) {
+                if (md != _showDirectory)
+                    copyTargets.push_back(md);
+            }
+        }
+
+        wxArrayString choices;
+        choices.Add("Embed in sequence");
+        for (const auto& dir : copyTargets)
+            choices.Add("Copy to: " + wxString(dir));
+
+        wxSingleChoiceDialog choiceDlg(this,
+            "The selected folder is outside the show/media folder(s).\n"
+            "How should found images be handled?",
+            "Files Outside Show/Media Folder", choices);
+        if (choiceDlg.ShowModal() == wxID_CANCEL) return;
+        outsideAction = choiceDlg.GetSelection();
+    }
+
+    // Scan broken images and try to find matches in the selected directory
+    int found = 0;
+    int notFound = 0;
+    for (const auto& oldPath : brokenPaths) {
+        // Extract just the filename from the broken path
+        wxFileName fnOld(oldPath);
+        wxString nameToFind = fnOld.GetFullName();
+        if (nameToFind.IsEmpty()) { ++notFound; continue; }
+
+        // Look for the file in the search directory (and subdirectories)
+        wxString foundFile;
+        wxDir dir(searchDir);
+        if (dir.IsOpened()) {
+            // Try exact name in the top directory first
+            wxString candidate = searchDir + sep + nameToFind.ToStdString();
+            if (wxFileExists(candidate)) {
+                foundFile = candidate;
+            } else {
+                // Recurse into subdirectories
+                wxString f;
+                if (dir.GetFirst(&f, nameToFind, wxDIR_FILES | wxDIR_DIRS)) {
+                    foundFile = searchDir + sep + f.ToStdString();
+                } else {
+                    // Try a recursive traversal
+                    wxArrayString results;
+                    wxDir::GetAllFiles(searchDir, &results, nameToFind, wxDIR_FILES | wxDIR_DIRS);
+                    if (!results.IsEmpty())
+                        foundFile = results[0];
+                }
+            }
+        }
+
+        if (foundFile.IsEmpty()) { ++notFound; continue; }
+
+        std::string pickedPath = foundFile.ToStdString();
+        std::string finalPath = pickedPath;
+
+        if (outsideFolders) {
+            wxFileName fn(pickedPath);
+            if (outsideAction == 0) {
+                // Embed
+                _sequenceMedia->GetImage(pickedPath);
+                std::string embeddedName = "Images/" + fn.GetFullName().ToStdString();
+                int suffix = 1;
+                std::string candidate = embeddedName;
+                while (_sequenceMedia->HasImage(candidate) && candidate != oldPath) {
+                    candidate = "Images/" + fn.GetName().ToStdString() +
+                                "_" + std::to_string(suffix++) + "." +
+                                fn.GetExt().ToStdString();
+                }
+                embeddedName = candidate;
+                _sequenceMedia->RenameImage(pickedPath, embeddedName);
+                _sequenceMedia->EmbedImage(embeddedName);
+                finalPath = embeddedName;
+            } else {
+                // Copy to one of the target directories
+                std::string targetDir = copyTargets[outsideAction - 1];
+                std::string newPath;
+                if (_xlFrame && targetDir == _showDirectory) {
+                    newPath = _xlFrame->MoveToShowFolder(pickedPath, sep + "Images");
+                } else {
+                    wxString dest = wxString(targetDir) + wxString(sep) + "Images";
+                    if (!wxDirExists(dest)) wxMkdir(dest);
+                    dest += wxString(sep) + fn.GetFullName();
+                    if (wxCopyFile(wxString(pickedPath), dest, false))
+                        newPath = dest.ToStdString();
+                }
+                if (newPath.empty()) continue;  // skip this file on failure
+                finalPath = newPath;
+            }
+        }
+
+        // Convert to relative path if inside a show/media folder
+        if (_xlFrame) {
+            std::string rel = _xlFrame->MakeRelativePath(finalPath);
+            if (!rel.empty()) finalPath = rel;
+        }
+
+        // Rename the broken cache entry and update effects
+        if (finalPath != oldPath) {
+            if (!_sequenceMedia->RenameImage(oldPath, finalPath)) {
+                _sequenceMedia->RemoveImage(oldPath);
+            }
+        }
+
+        if (_sequenceElements != nullptr && finalPath != oldPath) {
+            auto scanLayer = [&](EffectLayer* layer) {
+                for (size_t k = 0; k < layer->GetEffectCount(); ++k) {
+                    Effect* eff = layer->GetEffect(k);
+                    const SettingsMap& settings = eff->GetSettings();
+                    std::vector<std::string> keysToUpdate;
+                    for (auto it = settings.begin(); it != settings.end(); ++it) {
+                        if (it->second == oldPath)
+                            keysToUpdate.push_back(it->first);
+                    }
+                    for (const auto& key : keysToUpdate)
+                        eff->SetSetting(key, finalPath);
+                }
+            };
+
+            for (size_t i = 0; i < _sequenceElements->GetElementCount(); ++i) {
+                Element* e = _sequenceElements->GetElement(i);
+                if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
+                ModelElement* model = dynamic_cast<ModelElement*>(e);
+                if (!model) continue;
+
+                for (size_t j = 0; j < model->GetEffectLayerCount(); ++j)
+                    scanLayer(model->GetEffectLayer(j));
+
+                for (size_t j = 0; j < model->GetSubModelAndStrandCount(); ++j) {
+                    SubModelElement* sub = model->GetSubModel(j);
+                    for (size_t l = 0; l < sub->GetEffectLayerCount(); ++l)
+                        scanLayer(sub->GetEffectLayer(l));
+                    if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                        StrandElement* strand = dynamic_cast<StrandElement*>(sub);
+                        if (strand) {
+                            for (int k = 0; k < strand->GetNodeLayerCount(); ++k)
+                                scanLayer(strand->GetNodeLayer(k));
+                        }
+                    }
+                }
+            }
+        }
+
+        // Force reload for external paths
+        auto entry = _sequenceMedia->GetImage(finalPath);
+        if (entry && !entry->IsEmbedded()) {
+            _sequenceMedia->RemoveImage(finalPath);
+            _sequenceMedia->GetImage(finalPath);
+        }
+
+        ++found;
+    }
+
+    wxMessageBox(wxString::Format("Bulk find complete.\n\n"
+                                  "Found and updated: %d image(s)\n"
+                                  "Not found: %d image(s)", found, notFound),
+                 "Bulk Find Images", wxICON_INFORMATION | wxOK, this);
+
+    Populate();
 }
 
 void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
