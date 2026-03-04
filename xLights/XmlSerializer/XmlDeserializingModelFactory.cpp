@@ -176,9 +176,6 @@ void XmlDeserializingModelFactory::DeserializeBaseObjectAttributes(Model* model,
         model->SetLayoutGroup(node->GetAttribute(XmlNodeKeys::LayoutGroupAttribute, "Unassigned").ToStdString(), true);
     }
     model->SetName(name);
-    if (node->HasAttribute(XmlNodeKeys::DisplayAsAttribute)) {
-        model->SetDisplayAs(node->GetAttribute(XmlNodeKeys::DisplayAsAttribute).ToStdString());
-    }
     model->SetActive(std::stoi(node->GetAttribute(XmlNodeKeys::ActiveAttribute, "1").ToStdString()));
     model->SetFromBase(std::stoi(node->GetAttribute(XmlNodeKeys::FromBaseAttribute, "0").ToStdString()));
 }
