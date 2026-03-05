@@ -131,7 +131,7 @@ public:
 
     virtual std::string GetFullName() const { return name; }
     void Rename(std::string const& newName);
-    virtual int GetNumStrings() const { return parm1; }
+    virtual int GetNumStrings() const { return HasOneString(DisplayAs) ? 1 : parm1; }
     PIXEL_STYLE GetPixelStyle() const { return _pixelStyle; }
     void SetPixelStyle(PIXEL_STYLE style);
     static std::string GetPixelStyleDescription(PIXEL_STYLE pixelStyle);
