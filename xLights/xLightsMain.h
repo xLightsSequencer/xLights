@@ -75,6 +75,7 @@
 #include "JobPool.h"
 #include "SequenceViewManager.h"
 #include "ColorManager.h"
+#include "EffectPresetManager.h"
 #include "ViewpointMgr.h"
 #include "PhonemeDictionary.h"
 #include "xLightsXmlFile.h"
@@ -1585,9 +1586,8 @@ public:
     void DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime, bool eraseExisting);
     void PromoteEffects(wxCommandEvent &command);
     void DoPromoteEffects(ModelElement *element);
-    wxXmlNode* CreateEffectNode(wxString& name);
-    void UpdateEffectNode(wxXmlNode* node);
-    wxXmlNode* FindPreset(wxXmlNode* node, wxArrayString& path, int level = 0) const;
+    EffectPreset* CreateEffectPreset(EffectPresetGroup* parent, const std::string& name);
+    void UpdateEffectPreset(EffectPreset* preset);
     void ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion);
     Effect* ApplyEffectsPreset(const std::string& presetName);
     std::vector<std::string> GetPresets() const;
@@ -1634,13 +1634,14 @@ protected:
 
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
 	SequenceViewManager _sequenceViewManager;
-    wxXmlNode* EffectsNode = nullptr;
+    EffectPresetManager _effectPresetManager;
 public:
     std::vector<Perspective> _perspectives;
     std::string _currentPerspectiveName;
     bool RebuildControllerConfig(OutputManager* outputManager, ModelManager* modelManager);
 
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
+    EffectPresetManager& GetEffectPresetManager() { return _effectPresetManager; }
     void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog, const wxString &realPath = "");
     void OpenSequence(const wxString& passed_filename) {
      OpenSequence(passed_filename, nullptr); 

@@ -1,0 +1,409 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/xLightsSequencer/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
+ **************************************************************/
+
+#include "EffectPresetManager.h"
+#include "UtilFunctions.h"
+#include "XmlSerializer/BaseSerializingVisitor.h"
+
+#include <wx/xml/xml.h>
+#include <wx/tokenzr.h>
+
+#include <wx/filename.h>
+
+#include <algorithm>
+#include <list>
+
+// Local helper — strips forbidden filename characters from a name.
+// Mirrors EffectTreeDialog::FixName; will be unified in a later step.
+static bool FixPresetName(std::string& name)
+{
+    std::string forbiddenChars = wxFileName::GetForbiddenChars(wxPATH_WIN).ToStdString();
+    wxString wxName(name);
+    for (const auto& ch : forbiddenChars) {
+        wxName.Replace(wxString(ch), wxEmptyString);
+    }
+    bool changed = (wxName != name);
+    name = wxName.ToStdString();
+    return changed;
+}
+
+// ===========================================================================
+// EffectPreset
+// ===========================================================================
+
+EffectPreset::EffectPreset(const std::string& name, const std::string& settings,
+                           const std::string& version, const std::string& xLightsVersion,
+                           EffectPresetGroup* parent)
+    : EffectPresetItem(name, parent)
+    , _settings(settings)
+    , _version(version)
+    , _xLightsVersion(xLightsVersion)
+{
+}
+
+EffectPreset::EffectPreset(wxXmlNode* node, EffectPresetGroup* parent)
+    : EffectPresetItem(node->GetAttribute("name", "").ToStdString(), parent)
+    , _settings(node->GetAttribute("settings", "").ToStdString())
+    , _version(node->GetAttribute("version", "").ToStdString())
+    , _xLightsVersion(node->GetAttribute("xLightsVersion", "4.0").ToStdString())
+{
+}
+
+void EffectPreset::Save(BaseSerializingVisitor& visitor) const
+{
+    BaseSerializingVisitor::AttrCollector attrs;
+    attrs.Add("name", _name);
+    attrs.Add("settings", _settings);
+    attrs.Add("version", _version);
+    attrs.Add("xLightsVersion", _xLightsVersion);
+    visitor.WriteOpenTag("effect", attrs, /*selfClose=*/true);
+}
+
+// ===========================================================================
+// EffectPresetGroup
+// ===========================================================================
+
+EffectPresetGroup::EffectPresetGroup(const std::string& name, EffectPresetGroup* parent)
+    : EffectPresetItem(name, parent)
+{
+}
+
+EffectPresetGroup::EffectPresetGroup(wxXmlNode* node, EffectPresetGroup* parent)
+    : EffectPresetItem(node->GetAttribute("name", "").ToStdString(), parent)
+{
+    LoadChildren(node);
+}
+
+void EffectPresetGroup::LoadChildren(wxXmlNode* node)
+{
+    for (wxXmlNode* child = node->GetChildren(); child != nullptr; child = child->GetNext()) {
+        if (child->GetName() == "effectGroup") {
+            _children.push_back(std::make_unique<EffectPresetGroup>(child, this));
+        } else if (child->GetName() == "effect") {
+            // Only load presets that have tab-separated settings (valid format)
+            if (child->GetAttribute("settings").Contains("\t")) {
+                _children.push_back(std::make_unique<EffectPreset>(child, this));
+            }
+        }
+    }
+}
+
+void EffectPresetGroup::Save(BaseSerializingVisitor& visitor) const
+{
+    BaseSerializingVisitor::AttrCollector attrs;
+    attrs.Add("name", _name);
+    visitor.WriteOpenTag("effectGroup", attrs);
+    for (const auto& child : _children) {
+        child->Save(visitor);
+    }
+    visitor.WriteCloseTag("effectGroup");
+}
+
+EffectPresetItem* EffectPresetGroup::AddChild(std::unique_ptr<EffectPresetItem> child)
+{
+    child->SetParent(this);
+    _children.push_back(std::move(child));
+    return _children.back().get();
+}
+
+EffectPresetItem* EffectPresetGroup::InsertChildAfter(std::unique_ptr<EffectPresetItem> child,
+                                                       EffectPresetItem* after)
+{
+    child->SetParent(this);
+    if (after == nullptr) {
+        // Prepend
+        auto* ptr = child.get();
+        _children.insert(_children.begin(), std::move(child));
+        return ptr;
+    }
+    for (auto it = _children.begin(); it != _children.end(); ++it) {
+        if (it->get() == after) {
+            ++it;
+            auto* ptr = child.get();
+            _children.insert(it, std::move(child));
+            return ptr;
+        }
+    }
+    // after not found — append
+    return AddChild(std::move(child));
+}
+
+std::unique_ptr<EffectPresetItem> EffectPresetGroup::RemoveChild(EffectPresetItem* child)
+{
+    for (auto it = _children.begin(); it != _children.end(); ++it) {
+        if (it->get() == child) {
+            std::unique_ptr<EffectPresetItem> removed = std::move(*it);
+            _children.erase(it);
+            removed->SetParent(nullptr);
+            return removed;
+        }
+    }
+    return nullptr;
+}
+
+EffectPresetItem* EffectPresetGroup::FindChildByName(const std::string& name) const
+{
+    for (const auto& child : _children) {
+        if (child->GetName() == name) {
+            return child.get();
+        }
+    }
+    return nullptr;
+}
+
+bool EffectPresetGroup::HasChildNamed(const std::string& name) const
+{
+    return FindChildByName(name) != nullptr;
+}
+
+// ===========================================================================
+// EffectPresetManager
+// ===========================================================================
+
+EffectPresetManager::EffectPresetManager()
+    : _root("", nullptr)
+{
+}
+
+
+void EffectPresetManager::Load(wxXmlNode* effectsNode)
+{
+    Reset();
+    if (effectsNode == nullptr)
+        return;
+
+    _version = effectsNode->GetAttribute("version", "0000").ToStdString();
+
+    for (wxXmlNode* child = effectsNode->GetChildren(); child != nullptr; child = child->GetNext()) {
+        if (child->GetName() == "effectGroup") {
+            _root.AddChild(std::make_unique<EffectPresetGroup>(child, &_root));
+        } else if (child->GetName() == "effect") {
+            if (child->GetAttribute("settings").Contains("\t")) {
+                _root.AddChild(std::make_unique<EffectPreset>(child, &_root));
+            }
+        }
+    }
+}
+
+void EffectPresetManager::Save(BaseSerializingVisitor& visitor) const
+{
+    BaseSerializingVisitor::AttrCollector attrs;
+    attrs.Add("version", _version);
+    visitor.WriteOpenTag("effects", attrs);
+    for (const auto& child : _root.GetChildren()) {
+        child->Save(visitor);
+    }
+    visitor.WriteCloseTag("effects");
+}
+
+void EffectPresetManager::Reset()
+{
+    _root = EffectPresetGroup("", nullptr);
+    _version.clear();
+}
+
+// ---------------------------------------------------------------------------
+// Queries
+// ---------------------------------------------------------------------------
+
+std::vector<std::string> EffectPresetManager::GetAllPresetPaths(const std::string& separator) const
+{
+    std::vector<std::string> result;
+    CollectPresetPaths(_root, "", separator, result);
+    return result;
+}
+
+void EffectPresetManager::CollectPresetPaths(const EffectPresetGroup& group,
+                                              const std::string& prefix,
+                                              const std::string& separator,
+                                              std::vector<std::string>& result) const
+{
+    for (const auto& child : group.GetChildren()) {
+        if (child->IsGroup()) {
+            auto newPrefix = prefix.empty() ? child->GetName()
+                                            : prefix + separator + child->GetName();
+            CollectPresetPaths(static_cast<const EffectPresetGroup&>(*child),
+                               newPrefix, separator, result);
+        } else {
+            auto path = prefix.empty() ? child->GetName()
+                                       : prefix + separator + child->GetName();
+            result.push_back(path);
+        }
+    }
+}
+
+EffectPresetItem* EffectPresetManager::FindItemByPath(const std::string& path,
+                                                       char separator) const
+{
+    wxArrayString parts = wxSplit(path, separator);
+    if (parts.empty())
+        return nullptr;
+
+    const EffectPresetGroup* current = &_root;
+    for (size_t i = 0; i < parts.size(); ++i) {
+        std::string partName = parts[i].ToStdString();
+        EffectPresetItem* found = current->FindChildByName(partName);
+        if (found == nullptr)
+            return nullptr;
+        if (i == parts.size() - 1)
+            return found;
+        if (!found->IsGroup())
+            return nullptr;
+        current = static_cast<const EffectPresetGroup*>(found);
+    }
+    return nullptr;
+}
+
+EffectPreset* EffectPresetManager::FindPresetByPath(const std::string& path,
+                                                     char separator) const
+{
+    EffectPresetItem* item = FindItemByPath(path, separator);
+    if (item != nullptr && !item->IsGroup())
+        return static_cast<EffectPreset*>(item);
+    return nullptr;
+}
+
+// ---------------------------------------------------------------------------
+// Mutations
+// ---------------------------------------------------------------------------
+
+EffectPreset* EffectPresetManager::AddPreset(EffectPresetGroup* parent,
+                                              const std::string& name,
+                                              const std::string& settings,
+                                              const std::string& version,
+                                              const std::string& xLightsVersion)
+{
+    if (parent == nullptr)
+        parent = &_root;
+    auto preset = std::make_unique<EffectPreset>(name, settings, version, xLightsVersion, parent);
+    return static_cast<EffectPreset*>(parent->AddChild(std::move(preset)));
+}
+
+EffectPresetGroup* EffectPresetManager::AddGroup(EffectPresetGroup* parent,
+                                                  const std::string& name)
+{
+    if (parent == nullptr)
+        parent = &_root;
+    auto group = std::make_unique<EffectPresetGroup>(name, parent);
+    return static_cast<EffectPresetGroup*>(parent->AddChild(std::move(group)));
+}
+
+void EffectPresetManager::Remove(EffectPresetItem* item)
+{
+    if (item == nullptr || item->GetParent() == nullptr)
+        return;
+    item->GetParent()->RemoveChild(item);
+    // unique_ptr destruction handles cleanup
+}
+
+void EffectPresetManager::MoveItem(EffectPresetItem* item, EffectPresetGroup* newParent,
+                                    EffectPresetItem* insertAfter)
+{
+    if (item == nullptr || newParent == nullptr)
+        return;
+    EffectPresetGroup* oldParent = item->GetParent();
+    if (oldParent == nullptr)
+        return;
+
+    auto owned = oldParent->RemoveChild(item);
+    if (owned) {
+        if (insertAfter != nullptr) {
+            newParent->InsertChildAfter(std::move(owned), insertAfter);
+        } else {
+            newParent->AddChild(std::move(owned));
+        }
+    }
+}
+
+void EffectPresetManager::RenameItem(EffectPresetItem* item, const std::string& newName)
+{
+    if (item != nullptr)
+        item->SetName(newName);
+}
+
+void EffectPresetManager::UpdatePresetSettings(EffectPreset* preset,
+                                                const std::string& settings,
+                                                const std::string& xLightsVersion)
+{
+    if (preset == nullptr)
+        return;
+    preset->SetSettings(settings);
+    preset->SetXLightsVersion(xLightsVersion);
+}
+
+// ---------------------------------------------------------------------------
+// Import
+// ---------------------------------------------------------------------------
+
+void EffectPresetManager::ImportFromXml(wxXmlNode* node, EffectPresetGroup* parent)
+{
+    if (node == nullptr)
+        return;
+    if (parent == nullptr)
+        parent = &_root;
+
+    for (wxXmlNode* child = node->GetChildren(); child != nullptr; child = child->GetNext()) {
+        if (child->GetName() == "effectGroup") {
+            parent->AddChild(std::make_unique<EffectPresetGroup>(child, parent));
+        } else if (child->GetName() == "effect") {
+            parent->AddChild(std::make_unique<EffectPreset>(child, parent));
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// FixRgbEffects — migrated from EffectTreeDialog
+// ---------------------------------------------------------------------------
+
+bool EffectPresetManager::FixRgbEffects()
+{
+    return FixGroupNames(_root);
+}
+
+bool EffectPresetManager::FixGroupNames(EffectPresetGroup& group)
+{
+    bool anyFixed = false;
+    std::list<std::pair<std::string, int>> children;
+
+    for (const auto& child : group.GetChildren()) {
+        std::string name = child->GetName();
+
+        // Fix illegal characters in name
+        if (FixPresetName(name)) {
+            child->SetName(name);
+            anyFixed = true;
+        }
+
+        // Fix duplicate names at this level
+        auto existingItem = std::find_if(children.begin(), children.end(),
+            [&name](const std::pair<std::string, int>& b) {
+                return b.first == name;
+            });
+
+        if (existingItem == children.end()) {
+            children.push_back(std::make_pair(name, 0));
+        } else {
+            int childUniqueIdx = existingItem->second + 1;
+            std::string newName = wxString::Format("%s %d", name, childUniqueIdx).ToStdString();
+            child->SetName(newName);
+            existingItem->second = childUniqueIdx;
+            anyFixed = true;
+        }
+
+        // Recurse into subgroups
+        if (child->IsGroup()) {
+            if (FixGroupNames(static_cast<EffectPresetGroup&>(*child))) {
+                anyFixed = true;
+            }
+        }
+    }
+
+    return anyFixed;
+}

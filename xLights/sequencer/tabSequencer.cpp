@@ -4066,88 +4066,38 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent& event)
     }
 }
 
-wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)
+EffectPreset* xLightsFrame::CreateEffectPreset(EffectPresetGroup* parent, const std::string& name)
 {
-    wxXmlNode* NewXml = new wxXmlNode(wxXML_ELEMENT_NODE, "effect");
-    NewXml->AddAttribute("name", name);
     wxString copy_data;
     mainSequencer->GetPresetData(copy_data);
-    NewXml->AddAttribute("settings", copy_data);
-    NewXml->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
-    NewXml->AddAttribute("xLightsVersion", xlights_version_string);
-    return NewXml;
+    return _effectPresetManager.AddPreset(parent, name,
+                                          copy_data.ToStdString(),
+                                          XLIGHTS_RGBEFFECTS_VERSION,
+                                          xlights_version_string.ToStdString());
 }
 
-void xLightsFrame::UpdateEffectNode(wxXmlNode* node)
+void xLightsFrame::UpdateEffectPreset(EffectPreset* preset)
 {
     wxString copy_data;
     mainSequencer->GetSelectedEffectsData(copy_data);
-    node->AddAttribute("settings", copy_data);
-    node->DeleteAttribute("xLightsVersion");
-    node->AddAttribute("xLightsVersion", xlights_version_string);
-}
-
-std::vector<std::string> GetPresets(wxXmlNode* node, const std::string& path)
-{
-    std::vector<std::string> res;
-
-    if (node == nullptr)
-        return res;
-
-    for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext()) {
-        if (n->GetName() == "effect") {
-            auto name = UnXmlSafe(n->GetAttribute("name", ""));
-            if (path != "")
-                name = path + "\\" + name;
-            if (name != "")
-                res.push_back(name);
-        } else if (n->GetName() == "effectGroup") {
-            auto name = UnXmlSafe(n->GetAttribute("name", ""));
-            auto p = path;
-            if (p != "")
-                p = p + "\\";
-            p = p + name;
-            auto toadd = GetPresets(n, p);
-            res.reserve(res.size() + toadd.size()); // preallocate memory
-            res.insert(res.end(), toadd.begin(), toadd.end());
-        }
-    }
-
-    return res;
+    _effectPresetManager.UpdatePresetSettings(preset,
+                                              copy_data.ToStdString(),
+                                              xlights_version_string.ToStdString());
 }
 
 std::vector<std::string> xLightsFrame::GetPresets() const
 {
-    return ::GetPresets(EffectsNode, "");
-}
-
-wxXmlNode* xLightsFrame::FindPreset(wxXmlNode* node, wxArrayString& path, int level) const
-{
-    for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext()) {
-        if (n->GetName() == "effect") {
-            if (UnXmlSafe(n->GetAttribute("name", "")) == path[level]) {
-                return n;
-            }
-        } else if (n->GetName() == "effectGroup" && level < path.size() - 1) {
-            if (UnXmlSafe(n->GetAttribute("name", "")) == path[level]) {
-                return FindPreset(n, path, level + 1);
-            }
-        }
-    }
-    return nullptr;
+    return _effectPresetManager.GetAllPresetPaths("\\");
 }
 
 Effect* xLightsFrame::ApplyEffectsPreset(const std::string& presetName)
 {
     Effect* res = nullptr;
-    wxXmlNode* ele = nullptr;
 
-    auto path = wxSplit(presetName, '\\');
+    EffectPreset* preset = _effectPresetManager.FindPresetByPath(presetName, '\\');
 
-    ele = FindPreset(EffectsNode, path, 0);
-
-    if (ele != nullptr) {
-        res = mainSequencer->PanelEffectGrid->Paste(ele->GetAttribute("settings"), ele->GetAttribute("xLightsVersion", "4.0"));
+    if (preset != nullptr) {
+        res = mainSequencer->PanelEffectGrid->Paste(preset->GetSettings(), preset->GetXLightsVersion());
     }
 
     return res;

@@ -27,14 +27,15 @@
 #include <memory>
 
 #include "effects/GIFImage.h"
+#include "EffectPresetManager.h"
 
 class xLightsFrame;
 
 class EffectTreeDialog : public wxDialog
 {
     void ValidateWindow();
-    void WriteEffect(wxFile& f, wxXmlNode* n);
-    void WriteGroup(wxFile& f, wxXmlNode* n);
+    void WriteEffect(wxFile& f, EffectPreset* preset);
+    void WriteGroup(wxFile& f, EffectPresetGroup* group);
 
 	public:
 
@@ -61,7 +62,7 @@ class EffectTreeDialog : public wxDialog
 		wxTreeCtrl* TreeCtrl1;
 		//*)
         wxTreeItemId treeRootID;
-        void InitItems(wxXmlNode *e);
+        void InitItems(EffectPresetManager& manager);
         bool NameCollissionInGroup(wxTreeItemId groupId, std::string name);
         static const long ID_GRID_MNU_SORT_ASC;
         static const long ID_GRID_MNU_SORT_ALL_ASC;
@@ -122,13 +123,12 @@ class EffectTreeDialog : public wxDialog
         std::unique_ptr<GIFImage> gifImage;
         int frameCount = 0;
         xLightsFrame* xLightParent = nullptr;
-		wxXmlNode *XrgbEffectsNode = nullptr;
+		EffectPresetManager* _presetManager = nullptr;
         wxTreeItemId m_draggedItem;
         std::mutex preset_mutex;
         bool _effectsFixed = false;
         void OnGridPopup(wxCommandEvent& event);
-        void AddTreeElementsRecursive(wxXmlNode *EffectsNode, wxTreeItemId curGroupID);
-        wxXmlNode* CreateEffectGroupNode(wxString& name);
+        void AddTreeElementsRecursive(EffectPresetGroup& group, wxTreeItemId curGroupID);
         void ApplyEffect(bool dblClick=false);
         void AddEffect(wxXmlNode* ele, wxTreeItemId curGroupID);
         void AddGroup(wxXmlNode* ele, wxTreeItemId curGroupID);
@@ -154,7 +154,6 @@ class EffectTreeDialog : public wxDialog
         void FixDuplicatesInGroup(wxTreeItemId parent);
         wxTreeItemId FindGroupItem(wxTreeItemId parent, std::string name);
         std::string GetFullPathOfGroup(wxTreeItemId itemId);
-        void FixRgbEffects(wxXmlNode* parent);
         std::vector<std::string> GetGifFileNamesRecursive(wxTreeItemId itemId);
         void DeleteGifsRecursive(wxTreeItemId parentId);
         void PurgeDanglingGifs();
@@ -166,13 +165,14 @@ class EffectTreeDialog : public wxDialog
 class MyTreeItemData : public wxTreeItemData
 {
 public:
-    MyTreeItemData(wxXmlNode* desc, bool isGroup=false) {element=desc; _isGroup=isGroup; }
+    MyTreeItemData(EffectPresetItem* item) : _item(item) {}
 
-    wxXmlNode *GetElement() { return element; }
-    bool IsGroup() { return _isGroup; }
+    EffectPresetItem* GetItem() { return _item; }
+    bool IsGroup() { return _item != nullptr && _item->IsGroup(); }
+    EffectPreset* AsPreset() { return (!_item || _item->IsGroup()) ? nullptr : static_cast<EffectPreset*>(_item); }
+    EffectPresetGroup* AsGroup() { return (!_item || !_item->IsGroup()) ? nullptr : static_cast<EffectPresetGroup*>(_item); }
 private:
-    wxXmlNode *element;
-    bool _isGroup;
+    EffectPresetItem* _item = nullptr;
 };
 
 class EffectTreeDialogTextDropTarget : public wxTextDropTarget

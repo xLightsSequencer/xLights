@@ -64,6 +64,9 @@ std::string StringSerializingVisitor::EscapeXml(const std::string& input) {
         case '>':  result += "&gt;";   break;
         case '"':  result += "&quot;"; break;
         case '\'': result += "&apos;"; break;
+        case '\t': result += "&#x9;";   break;
+        case '\n': result += "&#xA;";  break;
+        case '\r': result += "&#xD;";  break;
         default:   result += c;        break;
         }
     }

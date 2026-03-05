@@ -9300,7 +9300,7 @@ void xLightsFrame::ShowPresetsPanel()
 
     if (EffectTreeDlg == nullptr) {
         EffectTreeDlg = new EffectTreeDialog(this);
-        EffectTreeDlg->InitItems(EffectsNode);
+        EffectTreeDlg->InitItems(_effectPresetManager);
     }
     EffectTreeDlg->Show();
 }

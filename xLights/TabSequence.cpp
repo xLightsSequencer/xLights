@@ -64,9 +64,7 @@ std::string xLightsFrame::BuildEffectsXml()
     serializer.SerializeAllModels(AllModels, visitor);
     serializer.SerializeAllObjects(AllObjects, visitor);
     serializer.SerializeAllLayoutGroups(LayoutGroups, visitor);
-    if (EffectsNode != nullptr) {
-        serializer.WriteXmlNode(EffectsNode, visitor);
-    }
+    _effectPresetManager.Save(visitor);
     SerializePerspectives(visitor);
     SerializeSettings(visitor);
     _sequenceViewManager.Save(visitor);
@@ -123,8 +121,7 @@ void xLightsFrame::ResetEffectsXml()
     AllModels.clear();
     AllObjects.clear();
     _sequenceViewManager.Reset();
-    delete EffectsNode;
-    EffectsNode = nullptr;
+    _effectPresetManager.Reset();
     _xmlSettings.clear();
 }
 
@@ -213,7 +210,7 @@ void xLightsFrame::LoadEffectsFile()
     wxXmlNode* modelsNode = nullptr;
     wxXmlNode* viewObjectsNode = nullptr;
     wxXmlNode* modelGroupsNode = nullptr;
-    EffectsNode = nullptr;
+    wxXmlNode* effectsNode = nullptr;
     wxXmlNode* viewsNode = nullptr;
     wxXmlNode* colorsNode = nullptr;
     wxXmlNode* viewpointsNode = nullptr;
@@ -222,7 +219,7 @@ void xLightsFrame::LoadEffectsFile()
     for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "models") modelsNode = e;
         if (e->GetName() == "view_objects") viewObjectsNode = e;
-        if (e->GetName() == "effects") EffectsNode = e;
+        if (e->GetName() == "effects") effectsNode = e;
         if (e->GetName() == "views") viewsNode = e;
         if (e->GetName() == "colors") colorsNode = e;
         if (e->GetName() == "Viewpoints") viewpointsNode = e;
@@ -236,10 +233,6 @@ void xLightsFrame::LoadEffectsFile()
         if (e->GetName() == "perspectives") perspectivesNode = e;
     }
 
-    // Detach EffectsNode from the document so it can be held independently
-    if (EffectsNode != nullptr) {
-        root->RemoveChild(EffectsNode);
-    }
     // This is the earliest we can do the backup as now the settings node will be populated
     _backupDirectory = GetXmlSetting("backupDir", showDirectory);
     ObtainAccessToURL(_backupDirectory);
@@ -257,12 +250,13 @@ void xLightsFrame::LoadEffectsFile()
         UnsavedRgbEffectsChanges = true;
     }
     
-    if (EffectsNode == nullptr) {
-        EffectsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "effects");
-        EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
+    // Populate the EffectPresetManager from the effects XML node
+    _effectPresetManager.Load(effectsNode);
+    if (_effectPresetManager.GetVersion().empty()) {
+        _effectPresetManager.SetVersion(XLIGHTS_RGBEFFECTS_VERSION);
     }
     // check version, do we need to convert?
-    wxString effectsVersion = EffectsNode->GetAttribute("version", "0000");
+    wxString effectsVersion = _effectPresetManager.GetVersion();
     if (effectsVersion < "0004") {
         wxMessageBox("Loading of xLights v3 rgbeffects is no longer supported.", "Error", wxOK | wxCENTRE |wxICON_ERROR, xLightsFrame::GetFrame());
     }
@@ -570,8 +564,7 @@ void xLightsFrame::LoadEffectsFile()
     UpdateControllerSave();
 
     // update version
-    EffectsNode->DeleteAttribute("version");
-    EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
+    _effectPresetManager.SetVersion(XLIGHTS_RGBEFFECTS_VERSION);
 
     // Handle upgrade of networks file to the controller/output structure
     bool converted = _outputManager.ConvertModelStartChannels(modelsNode);

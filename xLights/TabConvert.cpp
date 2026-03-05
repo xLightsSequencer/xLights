@@ -1129,11 +1129,10 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
 
     auto filename = GetPresetIconFilename(preset);
 
-    auto path = wxSplit(preset, '/');
-    wxXmlNode* presetNode = FindPreset(EffectsNode, path);
+    EffectPreset* presetObj = _effectPresetManager.FindPresetByPath(preset, '/');
 
-    if (presetNode != nullptr) {
-        auto cp = presetNode->GetAttribute("settings");
+    if (presetObj != nullptr) {
+        wxString cp = presetObj->GetSettings();
 
         CopyFormat1 pd(cp);
         if (pd.IsOk()) {
@@ -1171,8 +1170,10 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
                 
                 // Properties that still need proper setters
                 matrixModel->SetName(PRESET_MODEL_NAME);
-                matrixModel->SetStartChannel("1");  // this is going to be a problem  (gjones: Note: didn't research this comment but kept it)
-
+                matrixModel->SetStartChannel("1");
+                
+                
+                matrixModel->Setup();
                 _presetSequenceElements.AddElement(_presetModel->GetName(), "Model", true, false, false, false, false);
             }
 
