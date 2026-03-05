@@ -7430,7 +7430,7 @@ void LayoutPanel::CreateUndoPoint(const std::string &tp, const std::string &mode
             StringSerializingVisitor visitor;
             visitor.WriteOpenTag("root");
             XmlSerializer::SerializeAllModels(xlights->AllModels, visitor);
-            visitor.WriteCloseTag("root");
+            visitor.WriteCloseTag();
 
             undoBuffer[idx].models = visitor.GetResult();
         }
@@ -7440,7 +7440,7 @@ void LayoutPanel::CreateUndoPoint(const std::string &tp, const std::string &mode
             StringSerializingVisitor visitor;
             visitor.WriteOpenTag("root");
             XmlSerializer::SerializeAllObjects(xlights->AllObjects, visitor);
-            visitor.WriteCloseTag("root");
+            visitor.WriteCloseTag();
 
             undoBuffer[idx].objects = visitor.GetResult();
         }

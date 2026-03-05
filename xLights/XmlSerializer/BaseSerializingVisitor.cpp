@@ -478,7 +478,7 @@ void BaseSerializingVisitor::WriteAliases(const std::list<std::string>& aliases)
         attrs.Add(XmlNodeKeys::NameAttribute, a);
         WriteOpenTag(XmlNodeKeys::AliasNodeName, attrs, true);
     }
-    WriteCloseTag(XmlNodeKeys::AliasesAttribute);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::WriteDimmingCurve(const Model* m) {
@@ -494,7 +494,7 @@ void BaseSerializingVisitor::WriteDimmingCurve(const Model* m) {
         }
         WriteOpenTag(d1.first, attrs, true);
     }
-    WriteCloseTag(XmlNodeKeys::DimmingNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::WriteSubmodels(const Model* m) {
@@ -522,7 +522,7 @@ void BaseSerializingVisitor::WriteSubmodels(const Model* m) {
         } else {
             WriteOpenTag(XmlNodeKeys::SubModelNodeName, attrs, false);
             WriteAliases(subAliases);
-            WriteCloseTag(XmlNodeKeys::SubModelNodeName);
+            WriteCloseTag();
         }
     }
 }
@@ -614,7 +614,7 @@ void BaseSerializingVisitor::Visit(const ArchesModel& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const CandyCaneModel& model) {
@@ -628,7 +628,7 @@ void BaseSerializingVisitor::Visit(const CandyCaneModel& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const CircleModel& model) {
@@ -640,7 +640,7 @@ void BaseSerializingVisitor::Visit(const CircleModel& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const ChannelBlockModel& model) {
@@ -654,7 +654,7 @@ void BaseSerializingVisitor::Visit(const ChannelBlockModel& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const CubeModel& model) {
@@ -669,7 +669,7 @@ void BaseSerializingVisitor::Visit(const CubeModel& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const CustomModel& model) {
@@ -707,7 +707,7 @@ void BaseSerializingVisitor::Visit(const CustomModel& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const IciclesModel& model) {
@@ -719,7 +719,7 @@ void BaseSerializingVisitor::Visit(const IciclesModel& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const ImageModel& model) {
@@ -732,7 +732,7 @@ void BaseSerializingVisitor::Visit(const ImageModel& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const MatrixModel& model) {
@@ -746,7 +746,7 @@ void BaseSerializingVisitor::Visit(const MatrixModel& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const ModelGroup& model) {
@@ -795,7 +795,7 @@ void BaseSerializingVisitor::Visit(const MultiPointModel& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const SingleLineModel& model) {
@@ -805,7 +805,7 @@ void BaseSerializingVisitor::Visit(const SingleLineModel& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const PolyLineModel& model) {
@@ -834,7 +834,7 @@ void BaseSerializingVisitor::Visit(const PolyLineModel& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const SphereModel& model) {
@@ -850,7 +850,7 @@ void BaseSerializingVisitor::Visit(const SphereModel& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const SpinnerModel& model) {
@@ -865,7 +865,7 @@ void BaseSerializingVisitor::Visit(const SpinnerModel& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const StarModel& model) {
@@ -879,7 +879,7 @@ void BaseSerializingVisitor::Visit(const StarModel& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const TreeModel& model) {
@@ -899,7 +899,7 @@ void BaseSerializingVisitor::Visit(const TreeModel& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const WindowFrameModel& model) {
@@ -910,7 +910,7 @@ void BaseSerializingVisitor::Visit(const WindowFrameModel& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const WreathModel& model) {
@@ -920,7 +920,7 @@ void BaseSerializingVisitor::Visit(const WreathModel& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const DmxFloodArea& model) {
@@ -930,7 +930,7 @@ void BaseSerializingVisitor::Visit(const DmxFloodArea& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const DmxFloodlight& model) {
@@ -940,7 +940,7 @@ void BaseSerializingVisitor::Visit(const DmxFloodlight& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const DmxGeneral& model) {
@@ -950,7 +950,7 @@ void BaseSerializingVisitor::Visit(const DmxGeneral& model) {
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const DmxMovingHeadAdv& model) {
@@ -965,7 +965,7 @@ void BaseSerializingVisitor::Visit(const DmxMovingHeadAdv& model) {
     WriteMeshElement(model.GetYokeMesh());
     WriteMeshElement(model.GetHeadMesh());
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const DmxMovingHead& model) {
@@ -979,7 +979,7 @@ void BaseSerializingVisitor::Visit(const DmxMovingHead& model) {
     WriteDmxMotorElement(model.GetPanMotor());
     WriteDmxMotorElement(model.GetTiltMotor());
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const DmxServo& model) {
@@ -997,7 +997,7 @@ void BaseSerializingVisitor::Visit(const DmxServo& model) {
         WriteDmxImageElement(model.GetMotionImage(i));
     }
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const DmxServo3d& model) {
@@ -1028,7 +1028,7 @@ void BaseSerializingVisitor::Visit(const DmxServo3d& model) {
         WriteMeshElement(model.GetMotionMesh(i));
     }
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const DmxSkull& model) {
@@ -1064,7 +1064,7 @@ void BaseSerializingVisitor::Visit(const DmxSkull& model) {
     WriteMeshElement(model.GetEyeLMesh());
     WriteMeshElement(model.GetEyeRMesh());
     WriteOtherElements(dynamic_cast<const Model*>(&model));
-    WriteCloseTag(XmlNodeKeys::ModelNodeName);
+    WriteCloseTag();
 }
 
 // ---------------------------------------------------------------------------

@@ -26,7 +26,7 @@ public:
         WriteOpenTag(name, attr);
     }
 
-    void WriteCloseTag(const std::string& name) override;
+    void WriteCloseTag() override;
     void WriteBodyText(const std::string& txt) override;
 
 private:

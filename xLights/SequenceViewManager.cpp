@@ -237,7 +237,7 @@ void SequenceViewManager::Save(BaseSerializingVisitor& visitor) const
             v->Save(visitor);
         }
     }
-    visitor.WriteCloseTag("views");
+    visitor.WriteCloseTag();
 }
 
 SequenceView* SequenceViewManager::AddView(const std::string& name)

@@ -72,12 +72,12 @@ public:
     // Output primitives — must be overridden by concrete subclasses.
     // WriteOpenTag with selfClose=true writes a self-closing element (<foo/>).
     // WriteOpenTag with selfClose=false opens an element; a matching
-    // WriteCloseTag must follow.
+    // WriteCloseTag() must follow.
     // ---------------------------------------------------------------------------
     virtual void WriteOpenTag(const std::string& name, const AttrCollector& attrs,
                               bool selfClose = false) = 0;
     virtual void WriteOpenTag(const std::string& name) = 0;
-    virtual void WriteCloseTag(const std::string& name) = 0;
+    virtual void WriteCloseTag() = 0;
     virtual void WriteBodyText(const std::string& txt) = 0;
 
     // ---------------------------------------------------------------------------

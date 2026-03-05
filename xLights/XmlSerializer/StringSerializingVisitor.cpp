@@ -92,12 +92,15 @@ void StringSerializingVisitor::WriteOpenTag(const std::string& name,
         out << '>';
         WriteNewline();
         ++indentLevel;
+        _tagStack.push_back(name);
     }
 }
 
-void StringSerializingVisitor::WriteCloseTag(const std::string& name) {
+void StringSerializingVisitor::WriteCloseTag() {
     if (indentLevel > 0) --indentLevel;
     WriteIndent();
+    std::string name = _tagStack.back();
+    _tagStack.pop_back();
     out << "</" << name << '>';
     WriteNewline();
 }

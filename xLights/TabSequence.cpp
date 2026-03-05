@@ -70,7 +70,7 @@ std::string xLightsFrame::BuildEffectsXml()
     _sequenceViewManager.Save(visitor);
     color_mgr.Save(visitor);
     viewpoint_mgr.Save(visitor);
-    visitor.WriteCloseTag("xrgb");
+    visitor.WriteCloseTag();
     
     return visitor.GetResult();
 }
@@ -83,7 +83,7 @@ void xLightsFrame::SerializeSettings(BaseSerializingVisitor &visitor)
         attr.Add("value", kv.second);
         visitor.WriteOpenTag(kv.first, attr, true);
     }
-    visitor.WriteCloseTag("settings");
+    visitor.WriteCloseTag();
 }
 
 void xLightsFrame::SerializePerspectives(BaseSerializingVisitor &visitor)
@@ -98,7 +98,7 @@ void xLightsFrame::SerializePerspectives(BaseSerializingVisitor &visitor)
         attr.Add("version", p.version.empty() ? "2.0" : p.version);
         visitor.WriteOpenTag("perspective", attr, true);
     }
-    visitor.WriteCloseTag("perspectives");
+    visitor.WriteCloseTag();
 }
 
 void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)

@@ -266,7 +266,7 @@ void ViewpointMgr::Save(BaseSerializingVisitor& visitor) const
         SaveCameraToVisitor(visitor, _defaultCamera3D, "DefaultCamera3D", "DEFAULT3D");
     }
 
-    visitor.WriteCloseTag("Viewpoints");
+    visitor.WriteCloseTag();
 }
 
 PreviewCamera* ViewpointMgr::CreateCameraFromNode(wxXmlNode* c)

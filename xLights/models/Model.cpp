@@ -1977,7 +1977,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         return 0;
     } else if (event.GetPropertyName() == "Description") {
         description = event.GetValue().GetString();
-        SetDescription(XmlSafe(description));
+        SetDescription(description);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::Description");
         return 0;

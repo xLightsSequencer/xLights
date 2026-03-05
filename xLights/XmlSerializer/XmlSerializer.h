@@ -36,7 +36,7 @@ struct XmlSerializer {
                 model->Accept(visitor);
             }
         }
-        visitor.WriteCloseTag(XmlNodeKeys::ModelsNodeName);
+        visitor.WriteCloseTag();
         visitor.WriteOpenTag(XmlNodeKeys::GroupsNodeName, attr);
         for (auto m = allModels.begin(); m != allModels.end(); ++m) {
             Model* model = m->second;
@@ -44,7 +44,7 @@ struct XmlSerializer {
                 model->Accept(visitor);
             }
         }
-        visitor.WriteCloseTag(XmlNodeKeys::GroupsNodeName);
+        visitor.WriteCloseTag();
     }
 
     // Serialize all layout groups into an XML string fragment.
@@ -64,7 +64,7 @@ struct XmlSerializer {
             attr.Add("PaneHeight", std::to_string(lg->GetPaneHeight()));
             visitor.WriteOpenTag("layoutGroup", attr, true);
         }
-        visitor.WriteCloseTag(XmlNodeKeys::LayoutGroupsType);
+        visitor.WriteCloseTag();
     }
 
     // Serialize all view objects into an XML string fragment.
@@ -75,7 +75,7 @@ struct XmlSerializer {
             ViewObject* object = v->second;
             object->Accept(visitor);
         }
-        visitor.WriteCloseTag(XmlNodeKeys::ViewObjectsNodeName);
+        visitor.WriteCloseTag();
     }
     
     // Walk a wxXmlNode DOM element tree and write it directly into a visitor using
@@ -147,14 +147,14 @@ struct XmlSerializer {
             child = child->GetNext();
         }
 
-        visitor.WriteCloseTag(name);
+        visitor.WriteCloseTag();
     }
 
     // Serialize a single object into an XML document
     static void SerializeObject(const BaseObject& object, BaseSerializingVisitor &visitor) {
         visitor.WriteOpenTag(XmlNodeKeys::ViewObjectsNodeName, {{XmlNodeKeys::TypeAttribute, XmlNodeKeys::ExportedAttribute}});
         object.Accept(visitor);
-        visitor.WriteCloseTag(XmlNodeKeys::ViewObjectsNodeName);
+        visitor.WriteCloseTag();
     }
 
     

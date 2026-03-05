@@ -696,7 +696,7 @@ void EffectTreeDialog::OnTreeCtrl1BeginDrag(wxTreeEvent& event)
 
 void EffectTreeDialog::AddEffect(wxXmlNode* ele, wxTreeItemId curGroupID)
 {
-    wxString name = UnXmlSafe(ele->GetAttribute("name"));
+    wxString name = ele->GetAttribute("name");
     wxString settings = ele->GetAttribute("settings");
     wxString version = ele->GetAttribute("version", "0000");
     wxString xlVer = ele->GetAttribute("xLightsVersion", "4.0");
@@ -722,7 +722,7 @@ void EffectTreeDialog::AddEffect(wxXmlNode* ele, wxTreeItemId curGroupID)
 
 void EffectTreeDialog::AddGroup(wxXmlNode* ele, wxTreeItemId curGroupID)
 {
-    wxString name = UnXmlSafe(ele->GetAttribute("name"));
+    wxString name = ele->GetAttribute("name");
 
     if (NameCollissionInGroup(curGroupID, name)) {
         DisplayError(wxString::Format("Group '%s' already exists at '%s'", name, GetFullPathOfGroup(curGroupID)), this);

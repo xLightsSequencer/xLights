@@ -200,7 +200,7 @@ void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model
     model->SetShadowModelFor(node->GetAttribute(XmlNodeKeys::ShadowModelAttribute, "").ToStdString());
     model->SetTransparency(std::stol(node->GetAttribute(XmlNodeKeys::TransparencyAttribute,"0").ToStdString()));
     model->SetBlackTransparency(std::stol(node->GetAttribute(XmlNodeKeys::BTransparencyAttribute,"0").ToStdString()));
-    model->SetDescription(UnXmlSafe(node->GetAttribute(XmlNodeKeys::DescriptionAttribute)));
+    model->SetDescription(node->GetAttribute(XmlNodeKeys::DescriptionAttribute));
     model->SetTagColourAsString(node->GetAttribute(XmlNodeKeys::TagColourAttribute, "#000000"));
     model->SetNodeNames(node->GetAttribute(XmlNodeKeys::NodeNamesAttribute).ToStdString());
     model->SetStrandNames(node->GetAttribute(XmlNodeKeys::StrandNamesAttribute).ToStdString());

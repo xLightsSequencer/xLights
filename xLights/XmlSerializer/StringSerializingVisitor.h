@@ -27,7 +27,7 @@ public:
     // Output primitives (write to ostringstream)
     void WriteOpenTag(const std::string& name, const AttrCollector& attrs,
                       bool selfClose = false) override;
-    void WriteCloseTag(const std::string& name) override;
+    void WriteCloseTag() override;
     void WriteBodyText(const std::string& txt) override;
     void WriteOpenTag(const std::string& name) override {
         AttrCollector attr;
@@ -54,6 +54,7 @@ private:
     std::ostringstream out;
     bool prettyPrint;
     int  indentLevel = 0;
+    std::vector<std::string> _tagStack;
 
     void WriteIndent();
     void WriteNewline();

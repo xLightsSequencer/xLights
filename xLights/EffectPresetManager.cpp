@@ -103,7 +103,7 @@ void EffectPresetGroup::Save(BaseSerializingVisitor& visitor) const
     for (const auto& child : _children) {
         child->Save(visitor);
     }
-    visitor.WriteCloseTag("effectGroup");
+    visitor.WriteCloseTag();
 }
 
 EffectPresetItem* EffectPresetGroup::AddChild(std::unique_ptr<EffectPresetItem> child)
@@ -200,7 +200,7 @@ void EffectPresetManager::Save(BaseSerializingVisitor& visitor) const
     for (const auto& child : _root.GetChildren()) {
         child->Save(visitor);
     }
-    visitor.WriteCloseTag("effects");
+    visitor.WriteCloseTag();
 }
 
 void EffectPresetManager::Reset()

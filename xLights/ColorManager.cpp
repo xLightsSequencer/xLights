@@ -200,7 +200,7 @@ void ColorManager::Save(BaseSerializingVisitor& visitor) const
         attrs.Add("Blue", std::to_string(it.second.blue));
         visitor.WriteOpenTag(it.first, attrs, /*selfClose=*/true);
     }
-    visitor.WriteCloseTag("colors");
+    visitor.WriteCloseTag();
 }
 
 void ColorManager::Load(wxXmlNode* colors_node)
