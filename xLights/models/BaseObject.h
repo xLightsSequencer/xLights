@@ -13,6 +13,7 @@
 #include <string>
 #include "../OutputModelManager.h"
 #include "BaseObjectVisitor.h"
+#include "DisplayAsType.h"
 #include "ModelScreenLocation.h"
 #include <glm/mat3x3.hpp>
 
@@ -91,10 +92,12 @@ public:
 
     [[nodiscard]] const std::string &Name() const { return name;}
     [[nodiscard]] const std::string &GetName() const { return name;}
-    [[nodiscard]] const std::string& GetDisplayAs() const { return DisplayAs; }
+    [[nodiscard]] DisplayAsType GetDisplayAs() const { return DisplayAs; }
+    [[nodiscard]] std::string GetDisplayAsString() const { return DisplayAsTypeToString(DisplayAs); }
     void SetName(std::string const& newname);
 
-    void SetDisplayAs(const std::string& type) { DisplayAs = type; }
+    void SetDisplayAs(DisplayAsType type) { DisplayAs = type; }
+    void SetDisplayAs(const std::string& type) { DisplayAs = DisplayAsTypeFromString(type); }
 
     virtual void Setup() = 0;
     
@@ -133,7 +136,7 @@ protected:
     bool _groupSelected = false;
 
     
-    std::string DisplayAs;
+    DisplayAsType DisplayAs = DisplayAsType::Unknown;
     std::string layout_group;
     unsigned long changeCount = 0;
     bool _active = true;

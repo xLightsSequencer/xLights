@@ -74,7 +74,7 @@ static wxPGChoices DMX_COLOR_TYPES(wxArrayString(4, DMX_COLOR_TYPES_VALUES));
 DmxMovingHeadAdv::DmxMovingHeadAdv(const ModelManager &manager) :
     DmxMovingHeadComm(manager)
 {
-    DisplayAs = XmlNodeKeys::DmxMovingHeadAdvType;
+    DisplayAs = DisplayAsType::DmxMovingHeadAdv;
     wxStandardPaths stdp = wxStandardPaths::Get();
 #ifndef __WXMSW__
     obj_path = wxStandardPaths::Get().GetResourcesDir() + "/meshobjects/SimpleMovingHead/";

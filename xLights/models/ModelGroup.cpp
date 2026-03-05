@@ -57,7 +57,7 @@ Model* ModelGroup::GetModel(std::string modelName) const
 Model* ModelGroup::GetFirstModel() const
 {
     for (const auto& it : models) {
-        if (it->GetDisplayAs() != "ModelGroup" && it->GetDisplayAs() != "SubModel") {
+        if (it->GetDisplayAs() != DisplayAsType::ModelGroup && it->GetDisplayAs() != DisplayAsType::SubModel) {
             return it;
         }
     }
@@ -72,7 +72,7 @@ std::list<Model*> ModelGroup::GetFlatModels(bool removeDuplicates, bool activeOn
     for (const auto& it : modelNames) {
         Model* m = modelManager[it];
         if (m != nullptr) {
-            if (m->GetDisplayAs() == "ModelGroup") {
+            if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 auto mg = dynamic_cast<ModelGroup*>(m);
                 if (mg != nullptr) {
                     for (const auto& it : mg->GetFlatModels(removeDuplicates, activeOnly)) {
@@ -101,7 +101,7 @@ bool ModelGroup::ContainsModelGroup(ModelGroup* mg)
     bool found = false;
     for (auto it = models.begin(); !found && it != models.end(); ++it)
     {
-        if ((*it) != nullptr && (*it)->GetDisplayAs() == "ModelGroup")
+        if ((*it) != nullptr && (*it)->GetDisplayAs() == DisplayAsType::ModelGroup)
         {
             if (*it == mg)
             {
@@ -131,7 +131,7 @@ bool ModelGroup::ContainsModelGroup(ModelGroup* mg, std::set<Model*>& visited)
     bool found = false;
     for (auto it = models.begin(); !found && it != models.end(); ++it)
     {
-        if ((*it) != nullptr && (*it)->GetDisplayAs() == "ModelGroup")
+        if ((*it) != nullptr && (*it)->GetDisplayAs() == DisplayAsType::ModelGroup)
         {
             if (*it == mg)
             {
@@ -172,14 +172,14 @@ bool ModelGroup::DirectlyContainsModel(std::string const& m) const
 
 bool ModelGroup::ContainsModelOrSubmodel(const Model* m) const
 {
-    wxASSERT(m->GetDisplayAs() != "ModelGroup");
+    wxASSERT(m->GetDisplayAs() != DisplayAsType::ModelGroup);
 
     std::list<const Model*> visited;
     visited.push_back(this);
 
     bool found = false;
     for (auto it = models.begin(); !found && it != models.end(); ++it) {
-        if ((*it)->GetDisplayAs() == "ModelGroup") {
+        if ((*it)->GetDisplayAs() == DisplayAsType::ModelGroup) {
             if (std::find(visited.begin(), visited.end(), *it) == visited.end()) {
                 found |= dynamic_cast<ModelGroup*>(*it)->ContainsModelOrSubmodel(m, visited);
             } else {
@@ -197,7 +197,7 @@ bool ModelGroup::ContainsModelOrSubmodel(const Model* m) const
 
 bool ModelGroup::ContainsModel(const Model* m) const
 {
-    wxASSERT(m->GetDisplayAs() != "ModelGroup");
+    wxASSERT(m->GetDisplayAs() != DisplayAsType::ModelGroup);
 
     std::list<const Model*> visited;
     visited.push_back(this);
@@ -205,7 +205,7 @@ bool ModelGroup::ContainsModel(const Model* m) const
     bool found = false;
     for (auto it = models.begin(); !found && it != models.end(); ++it)
     {
-        if ((*it)->GetDisplayAs() == "ModelGroup")
+        if ((*it)->GetDisplayAs() == DisplayAsType::ModelGroup)
         {
             if (std::find(visited.begin(), visited.end(), *it) == visited.end())
             {
@@ -235,7 +235,7 @@ bool ModelGroup::ContainsModel(const Model* m, std::list<const Model*>& visited)
     bool found = false;
     for (const auto& it : models)
     {
-        if (it->GetDisplayAs() == "ModelGroup")
+        if (it->GetDisplayAs() == DisplayAsType::ModelGroup)
         {
             if (std::find(visited.begin(), visited.end(), it) == visited.end())
             {
@@ -266,7 +266,7 @@ bool ModelGroup::ContainsModelOrSubmodel(const Model* m, std::list<const Model*>
 
     bool found = false;
     for (const auto& it : models) {
-        if (it->GetDisplayAs() == "ModelGroup") {
+        if (it->GetDisplayAs() == DisplayAsType::ModelGroup) {
             if (std::find(visited.begin(), visited.end(), it) == visited.end()) {
                 found |= dynamic_cast<ModelGroup*>(it)->ContainsModelOrSubmodel(m, visited);
                 if (found)
@@ -381,7 +381,7 @@ bool ModelGroup::RemoveNonExistentModels(wxXmlNode* node, const std::set<std::st
 ModelGroup::ModelGroup(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
     // Initialize basic state
-    DisplayAs = XmlNodeKeys::ModelGroupType;
+    DisplayAs = DisplayAsType::ModelGroup;
     StringType = "RGB Nodes";
     selected = false;
     
@@ -411,7 +411,7 @@ void LoadRenderBufferNodes(Model *m, const std::string &type, const std::string 
     if (!m->IsActive())
         return; 
 
-    if (m->GetDisplayAs() == "ModelGroup")
+    if (m->GetDisplayAs() == DisplayAsType::ModelGroup)
     {
         ModelGroup *g = dynamic_cast<ModelGroup*>(m);
         if (g != nullptr) {
@@ -766,7 +766,7 @@ void ModelGroup::ResetModels()
     for (const auto& modelName : modelNames) {
         Model* c = modelManager.GetModel(modelName);
         if (c != nullptr && c != this) {
-            if (c->GetDisplayAs() == "ModelGroup") {
+            if (c->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 static_cast<ModelGroup*>(c)->ResetModels();
             }
             models.push_back(c);

@@ -29,7 +29,7 @@
 
 ImageModel::ImageModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
-    DisplayAs = XmlNodeKeys::ImageType;
+    DisplayAs = DisplayAsType::Image;
     _whiteAsAlpha = false;
     _offBrightness = 80;
     _imageFile = "";

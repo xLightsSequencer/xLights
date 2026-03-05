@@ -38,7 +38,7 @@ SubModel::SubModel(Model *p, const std::string _name, bool vertical, bool ranges
     _nodesAllValid = true;
     StrobeRate = 0;
     Nodes.clear();
-    DisplayAs = "SubModel";
+    DisplayAs = DisplayAsType::SubModel;
 
     name = _name;
     parm1 = 1;
@@ -70,7 +70,7 @@ SubModel::SubModel(Model *newParent, const SubModel* source) :
     _nodesAllValid = source->_nodesAllValid;
     StrobeRate = source->StrobeRate;
     Nodes.clear();
-    DisplayAs = "SubModel";
+    DisplayAs = DisplayAsType::SubModel;
 
     name = source->name;
     parm1 = source->parm1;

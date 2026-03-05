@@ -64,7 +64,7 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
         res.push_back(wxString::Format("    WARN: Text effect file '%s' not under show directory. Model '%s', Start %s", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
-    if (model->GetDisplayAs() == "ModelGroup") {
+    if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
         res.push_back(wxString::Format("    WARN: Text effect generally does not work well on a model group. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
     return res;

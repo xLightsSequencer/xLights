@@ -23,6 +23,7 @@
 #include "../include/eye-16.xpm"
 #include "../include/eye-16_gray.xpm"
 
+#include "models/DisplayAsType.h"
 #include "ViewsModelsPanel.h"
 #include "sequencer/SequenceElements.h"
 #include "xLightsMain.h"
@@ -416,7 +417,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
 
         // Add model groups not already in the sequence elements list
         for (const auto& it : _xlFrame->AllModels) {
-            if (it.second->GetDisplayAs() == "ModelGroup") {
+            if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 if (!_sequenceElements->ElementExists(it.first, 0)) {
                     ModelElement* me = new ModelElement(it.first);
                     if (me != nullptr) AddModelToNotList(me);
@@ -426,7 +427,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
 
         // Add regular models not already in the sequence elements list
         for (const auto& it : _xlFrame->AllModels) {
-            if (it.second->GetDisplayAs() != "ModelGroup") {
+            if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
                 if (!_sequenceElements->ElementExists(it.first, 0)) {
                     ModelElement* me = new ModelElement(it.first);
                     if (me != nullptr) AddModelToNotList(me);
@@ -485,7 +486,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
 bool ViewsModelsPanel::IsModelAGroup(const std::string& modelname) const
 {
     Model* m = _xlFrame->AllModels.GetModel(modelname);
-    return m != nullptr && m->GetDisplayAs() == "ModelGroup";
+    return m != nullptr && m->GetDisplayAs() == DisplayAsType::ModelGroup;
 }
 
 int ViewsModelsPanel::GetPixelCount(const std::string& modelname) {
@@ -524,7 +525,7 @@ std::string ViewsModelsPanel::GetModelType(const std::string& modelname) const
 {
     Model* m = _xlFrame->AllModels.GetModel(modelname);
     if (m != nullptr) {
-        return m->GetDisplayAs();
+        return DisplayAsTypeToString(m->GetDisplayAs());
     }
     return "";
 }

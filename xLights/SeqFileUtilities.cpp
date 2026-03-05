@@ -2771,7 +2771,7 @@ void MapCCRStrand(const std::vector<std::string>& channelNames, StrandElement* s
 
 void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, wxXmlDocument& input_xml, EffectManager& effectManager, bool eraseExisting)
 {
-    if (mc->GetDisplayAs() == "ModelGroup") {
+    if (mc->GetDisplayAs() == DisplayAsType::ModelGroup) {
         ModelGroup* mg = (ModelGroup*)mc;
         int node = 0;
         for (auto it = mg->Models().begin(); it != mg->Models().end(); ++it) {
@@ -3937,7 +3937,7 @@ void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, cons
     if (eraseExisting)
         el->DeleteAllEffects();
 
-    bool channelBlock = (m != nullptr && m->GetDisplayAs() == "Channel Block");
+    bool channelBlock = (m != nullptr && m->GetDisplayAs() == DisplayAsType::ChannelBlock);
 
     auto st = lorEdit.GetSequencingType(model);
 
@@ -3982,7 +3982,7 @@ void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLay
     if (eraseExisting)
         nl->DeleteAllEffects();
 
-    bool channelBlock = (m != nullptr && m->GetDisplayAs() == "Channel Block");
+    bool channelBlock = (m != nullptr && m->GetDisplayAs() == DisplayAsType::ChannelBlock);
 
     auto st = lorEdit.GetSequencingType(mapping);
 
@@ -4025,7 +4025,7 @@ void MapS5ChannelEffects(const EffectManager& effectManager, EffectLayer* layer,
         layer->DeleteAllEffects();
 
     Model* m = layer->GetParentElement()->GetSequenceElements()->GetXLightsFrame()->AllModels[layer->GetParentElement()->GetModelName()];
-    bool channelBlock = (m != nullptr && m->GetDisplayAs() == "Channel Block");
+    bool channelBlock = (m != nullptr && m->GetDisplayAs() == DisplayAsType::ChannelBlock);
 
     static wxRegEx regex("\\[(\\d+),(\\d+),(\\d+)\\]\\[(.*)\\]", wxRE_ADVANCED | wxRE_NEWLINE);
     if (regex.Matches(mapping)) {
@@ -4065,7 +4065,7 @@ void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLay
         nl->DeleteAllEffects();
 
     Model* m = nl->GetParentElement()->GetSequenceElements()->GetXLightsFrame()->AllModels[nl->GetParentElement()->GetModelName()];
-    bool channelBlock = (m != nullptr && m->GetDisplayAs() == "Channel Block");
+    bool channelBlock = (m != nullptr && m->GetDisplayAs() == DisplayAsType::ChannelBlock);
 
     auto st = lorEdit.GetSequencingType(mapping);
 

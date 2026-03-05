@@ -755,7 +755,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
     wxPGProperty* sp;
 
     wxPGProperty* p;
-    grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
+    grid->Append(new wxPropertyCategory(DisplayAsTypeToString(DisplayAs), "ModelType"));
 
     AddTypeProperties(grid, outputManager);
 
@@ -837,7 +837,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
 
     for (const auto& it : modelManager) {
         auto da = it.second->GetDisplayAs();
-        if (da != "ModelGroup" && it.first != GetName()) {
+        if (da != DisplayAsType::ModelGroup && it.first != GetName()) {
             if (GetShadowModelFor() == it.first) {
                 shadowModelFor = OTHERMODELLIST.size();
             }
@@ -1193,7 +1193,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
         }
 
     } else if (IsPWMProtocol()) {
-        if (DisplayAs.rfind("Dmx", 0) != 0) { //DMX models handle this themselves
+        if (!IsDmxDisplayType(DisplayAs)) { //DMX models handle this themselves
             auto sp2 = grid->AppendIn(sp, new wxFloatProperty("Gamma", "ModelControllerConnectionPixelGamma", GetControllerGamma()));
             sp2->SetAttribute("Min", 0.1);
             sp2->SetAttribute("Max", 5.0);
@@ -2470,7 +2470,7 @@ bool Model::IsValidStartChannelString() const
 {
     wxString sc;
 
-    if (GetDisplayAs() == "SubModel") {
+    if (GetDisplayAs() == DisplayAsType::SubModel) {
         sc = this->ModelStartChannel;
     } else {
         sc = this->ModelStartChannel;
@@ -2741,7 +2741,7 @@ void Model::Setup()
     UpdateChannels();
     
     if (sw.Time() > 10) {
-        logger_base.debug("%s model %s took %lums to initialise.", GetDisplayAs().c_str(), (const char*)name.c_str(), sw.Time());
+        logger_base.debug("%s model %s took %lums to initialise.", DisplayAsTypeToString(DisplayAs).c_str(), (const char*)name.c_str(), sw.Time());
     }
     for (auto &sm : subModels) {
         sm->Setup();
@@ -3445,11 +3445,11 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
     if (firstNode + Nodes.size() <= 0) {
         // This seems to happen when an effect is dropped on a strand with zero pixels
         // Like a polyline segment with no nodes
-        logger_base.warn("Model::InitRenderBufferNodes firstNode + Nodes.size() = %d. %s::'%s'. This commonly happens on a polyline segment with zero pixels or a custom model with no nodes but with effects dropped on it.", (int32_t)firstNode + Nodes.size(), (const char*)GetDisplayAs().c_str(), (const char*)GetFullName().c_str());
+        logger_base.warn("Model::InitRenderBufferNodes firstNode + Nodes.size() = %d. %s::'%s'. This commonly happens on a polyline segment with zero pixels or a custom model with no nodes but with effects dropped on it.", (int32_t)firstNode + Nodes.size(), DisplayAsTypeToString(DisplayAs).c_str(), (const char*)GetFullName().c_str());
     }
 
     // Don't add model group nodes if its a 3D preview render buffer
-    if (!((camera != "2D") && GetDisplayAs() == "ModelGroup" && (type == PER_PREVIEW || type == PER_PREVIEW_NO_OFFSET))) {
+    if (!((camera != "2D") && GetDisplayAs() == DisplayAsType::ModelGroup && (type == PER_PREVIEW || type == PER_PREVIEW_NO_OFFSET))) {
         newNodes.reserve(firstNode + Nodes.size());
         for (auto& it : Nodes) {
             newNodes.push_back(NodeBaseClassPtr(it.get()->clone()));
@@ -3569,7 +3569,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         }
 
         // For 3D render view buffers recursively process each individual model...should be able to handle nested model groups
-        if (GetDisplayAs() == "ModelGroup" && camera != "2D") {
+        if (GetDisplayAs() == DisplayAsType::ModelGroup && camera != "2D") {
             const ModelGroup *mg = dynamic_cast<const ModelGroup*>(this);
             int nc = 0;
             for (auto &c : mg->ActiveModels()) {
@@ -3605,7 +3605,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
                         // reintroducing the z coordinate as otherwise with some rotations we end up with a zero width buffer
                         float sz = it2.screenZ;
                         GetModelScreenLocation().TranslatePoint(sx, sy, sz);
-                    } else if (GetDisplayAs() != "ModelGroup") { // ignore for groups since they will have already calculated their node positions from recursion call above
+                    } else if (GetDisplayAs() != DisplayAsType::ModelGroup) { // ignore for groups since they will have already calculated their node positions from recursion call above
                         // Handle 3D from an arbitrary camera position
                         float sz = it2.screenZ;
                         GetModelScreenLocation().TranslatePoint(sx, sy, sz);
@@ -3643,7 +3643,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         // exteme locations which translate into crazy sized render buffers
         // this allows us to scale it back to the desired grid size
         float factor = 1.0;
-        if (GetDisplayAs() == "ModelGroup" && type == PER_PREVIEW) {
+        if (GetDisplayAs() == DisplayAsType::ModelGroup && type == PER_PREVIEW) {
             int maxDimension = ((ModelGroup*)this)->GetGridSize();
             if (maxDimension != 0 && (maxX - minX > maxDimension || maxY - minY > maxDimension)) {
                 // we need to resize all the points by this amount
@@ -3669,7 +3669,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
 // We need a factor that scales up the screen locations to separate the pixels
 // The empty space factor is the number of empty cells expected per filled cell in the average model ... of course in models where there are dense and sparse areas this wont necessarily be true
 #define MODEL_EMPTY_SPACE_FACTOR 4.0f
-        if (type == PER_PREVIEW && GetDisplayAs() != "ModelGroup" && factor == 1.0 && (newNodes.size() * (MODEL_EMPTY_SPACE_FACTOR + 1.0) > (maxX - minX) * (maxY - minY))) {
+        if (type == PER_PREVIEW && GetDisplayAs() != DisplayAsType::ModelGroup && factor == 1.0 && (newNodes.size() * (MODEL_EMPTY_SPACE_FACTOR + 1.0) > (maxX - minX) * (maxY - minY))) {
             float deltaX = maxX - minX;
             float deltaY = maxY - minY;
 
@@ -3709,7 +3709,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         bufferHt = bufferWi = -1;
 
         // we can skip all the scaling for individual models that are being recursively handled from a ModelGroup
-        if (!(pcamera != nullptr && camera != "2D" && GetDisplayAs() != "ModelGroup" && noOff)) {
+        if (!(pcamera != nullptr && camera != "2D" && GetDisplayAs() != DisplayAsType::ModelGroup && noOff)) {
             auto itx = outx.begin();
             auto ity = outy.begin();
             for (int x = firstNode; x < newNodes.size(); ++x) {
@@ -4185,7 +4185,7 @@ void Model::GetNodeCoords(int nodeidx, std::vector<wxPoint>& pts)
 
 bool Model::IsCustom()
 {
-    return (DisplayAs == "Custom");
+    return (DisplayAs == DisplayAsType::Custom);
 }
 
 // convert # to AA format so it matches Custom Model grid display:
@@ -4591,7 +4591,7 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
 
     std::string html = "<html><body><table border=0>";
     html += "<tr><td>Name:</td><td>" + name + "</td></tr>";
-    html += "<tr><td>Display As:</td><td>" + DisplayAs + "</td></tr>";
+    html += "<tr><td>Display As:</td><td>" + DisplayAsTypeToString(DisplayAs) + "</td></tr>";
     html += "<tr><td>String Type:</td><td>" + StringType + "</td></tr>";
     html += "<tr><td>Start Corner:</td><td>" + direction + "</td></tr>";
     html += wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>", (int)NodeCount);
@@ -6255,7 +6255,7 @@ void Model::ExportDimensions(wxFile& f) const
         f.Write(wxString::Format("<dimensions units=\"%s\" width=\"%f\" height=\"%f\" depth=\"%f\"/>",
                                  u,
                                  GetModelScreenLocation().GetRealWidth(),
-                                 (DisplayAs == "Icicles") ? GetModelScreenLocation().GetRestorableMHeight() : GetModelScreenLocation().GetRealHeight(), GetModelScreenLocation().GetRealDepth()));
+                                 (DisplayAs == DisplayAsType::Icicles) ? GetModelScreenLocation().GetRestorableMHeight() : GetModelScreenLocation().GetRealHeight(), GetModelScreenLocation().GetRealDepth()));
     }
 }
 
@@ -6302,7 +6302,7 @@ void Model::SaveDisplayDimensions()
 
 void Model::RestoreDisplayDimensions()
 {
-    if ((DisplayAs.rfind("Dmx", 0) != 0) && DisplayAs != "Image") {
+    if (!IsDmxDisplayType(DisplayAs) && DisplayAs != DisplayAsType::Image) {
         SetWidth(_savedWidth, true);
         // We dont want to set the height of three point models
         if (dynamic_cast<const ThreePointScreenLocation*>(&(GetModelScreenLocation())) == nullptr) {

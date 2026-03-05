@@ -35,7 +35,7 @@ static const int SUPPORTED_SERVOS = 24;
 DmxServo::DmxServo(const ModelManager &manager)
     : DmxModel(manager)
 {
-    DisplayAs = XmlNodeKeys::DmxServoType;
+    DisplayAs = DisplayAsType::DmxServo;
 }
 
 DmxServo::~DmxServo()

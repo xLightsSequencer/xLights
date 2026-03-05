@@ -463,7 +463,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
         for (const auto& it : g->ModelNames()) {
             long item = ListBoxModelsInGroup->InsertItem(ListBoxModelsInGroup->GetItemCount(), it);
             if (mModels[it] != nullptr) {
-                if (mModels[it]->GetDisplayAs() == "ModelGroup") {
+                if (mModels[it]->GetDisplayAs() == DisplayAsType::ModelGroup) {
                     ListBoxModelsInGroup->SetItemTextColour(item,
                                                             IsDarkMode()
                                                                 ? BLUE_ON_DARK : *wxBLUE);
@@ -483,7 +483,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
             if (CheckBox_ShowInactiveModels->GetValue() || it.second->IsActive()) {
                 if (!CheckBox_ShowOnlyModelsInCurrentView->GetValue() || layoutGroup == "All Models" || it.second->GetLayoutGroup() == layoutGroup) {
                     if (std::find(modelsInGroup.begin(), modelsInGroup.end(), it.first) != modelsInGroup.end() ||
-                        (it.second->GetDisplayAs() == "ModelGroup" && (!CheckBox_ShowModelGroups->GetValue() || it.first == group || dynamic_cast<ModelGroup*>(it.second)->ContainsModelGroup(g)))) {
+                        (it.second->GetDisplayAs() == DisplayAsType::ModelGroup && (!CheckBox_ShowModelGroups->GetValue() || it.first == group || dynamic_cast<ModelGroup*>(it.second)->ContainsModelGroup(g)))) {
                         // dont add this group
                         // logger_base.debug("Model not eligible to be added to group or already in group " + group + " : " + it.first);
                     }
@@ -501,7 +501,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
                         }
                         if (matches) {
                             long item = ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it.first);
-                            if (it.second->GetDisplayAs() == "ModelGroup") {
+                            if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
                                 ListBoxAddToModelGroup->SetItemTextColour(item,
                                     IsDarkMode()
                                     ? BLUE_ON_DARK
@@ -1191,8 +1191,8 @@ void ModelGroupPanel::RemoveSelectedModels()
                 // we wont remove these models as they came from the base show folder
             } else {
                 if (model != nullptr) {
-                    if ((model->GetDisplayAs() == "ModelGroup" && !CheckBox_ShowModelGroups->GetValue()) ||
-                        (model->GetDisplayAs() == "SubModel" && !CheckBox_ShowSubmodels->GetValue())) {
+                    if ((model->GetDisplayAs() == DisplayAsType::ModelGroup && !CheckBox_ShowModelGroups->GetValue()) ||
+                        (model->GetDisplayAs() == DisplayAsType::SubModel && !CheckBox_ShowSubmodels->GetValue())) {
                         // these should not be moved
                     } else {
                         int idx = ListBoxAddToModelGroup->InsertItem(0, modelName);
@@ -1414,7 +1414,7 @@ void ModelGroupPanel::SortModelsByLocation()
         Model* model = mModels[modelName];
         float pos;
         if (model != nullptr) {
-            if (model->GetDisplayAs() == "ModelGroup") {
+            if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 Model* m = dynamic_cast<ModelGroup*>(model)->GetFirstModel();
                 if (m == nullptr)
                     m = model;
@@ -1446,7 +1446,7 @@ wxArrayString ModelGroupPanel::getGroupList()
     for (auto it = mModels.begin(); it != mModels.end(); ++it) {
         ModelGroup* g = (ModelGroup*)it->second;
         if (g == nullptr) continue;
-        if (g->GetDisplayAs() != "ModelGroup") continue;
+        if (g->GetDisplayAs() != DisplayAsType::ModelGroup) continue;
         if (g->Name() == mGroup)//Skip Current Group
             continue;
         choices.Add(g->Name());

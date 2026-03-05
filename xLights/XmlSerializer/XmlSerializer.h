@@ -32,7 +32,7 @@ struct XmlSerializer {
         
         for (auto m = allModels.begin(); m != allModels.end(); ++m) {
             Model* model = m->second;
-            if (model->GetDisplayAs() != "ModelGroup") {
+            if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
                 model->Accept(visitor);
             }
         }
@@ -40,7 +40,7 @@ struct XmlSerializer {
         visitor.WriteOpenTag(XmlNodeKeys::GroupsNodeName, attr);
         for (auto m = allModels.begin(); m != allModels.end(); ++m) {
             Model* model = m->second;
-            if (model->GetDisplayAs() == "ModelGroup") {
+            if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 model->Accept(visitor);
             }
         }

@@ -148,7 +148,7 @@ bool ModelManager::Rename(const std::string& oldName, const std::string& newName
     auto on = Trim(oldName);
     auto nn = Trim(newName);
     Model* model = GetModel(on);
-    if (model == nullptr || model->GetDisplayAs() == "SubModel") {
+    if (model == nullptr || model->GetDisplayAs() == DisplayAsType::SubModel) {
         return false;
     }
     model->Rename(nn);
@@ -184,7 +184,7 @@ bool ModelManager::RenameSubModel(const std::string& oldName, const std::string&
     auto nn = Trim(newName);
 
     for (auto& m : *this) {
-        if (m.second->GetDisplayAs() == "ModelGroup") {
+        if (m.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
             ModelGroup* mg = dynamic_cast<ModelGroup*>(m.second);
             changed |= mg->SubModelRenamed(on, nn);
         }
@@ -217,7 +217,7 @@ bool ModelManager::IsModelOverlapping(const Model* model) const
     // int32_t send = model->GetLastChannel() + 1;
     // wxASSERT(send == end);
     for (const auto& it : *this) {
-        if (it.second->GetDisplayAs() != "ModelGroup" && it.second->GetName() != model->GetName()) {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && it.second->GetName() != model->GetName()) {
             int32_t s = it.second->GetFirstChannel(); // GetNumberFromChannelString(it->second->ModelStartChannel);
             int32_t e = s + it.second->GetChanCount() - 1;
             // int32_t ss = it->second->GetFirstChannel() + 1;
@@ -292,12 +292,12 @@ void ModelManager::ResetModelGroups() const
     // This goes through all the model groups which hold model pointers and ensure their model pointers are correct
     std::lock_guard<std::recursive_mutex> lock(_modelMutex);
     for (const auto& it : models) {
-        if (it.second != nullptr && it.second->GetDisplayAs() == "ModelGroup") {
+        if (it.second != nullptr && it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
             ((ModelGroup*)(it.second))->ResetModels();
         }
     }
     for (const auto& it : models) {
-        if (it.second != nullptr && it.second->GetDisplayAs() == "ModelGroup") {
+        if (it.second != nullptr && it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
             ((ModelGroup*)(it.second))->CheckForChanges();
         }
     }
@@ -310,7 +310,7 @@ std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, 
     std::lock_guard<std::recursive_mutex> lock(_modelMutex);
 
     for (const auto& it : models) {
-        if (it.second->GetDisplayAs() != "ModelGroup" &&
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup &&
             it.second->GetControllerName() == controllerName &&
             it.second->GetControllerPort() == port &&
             it.second->GetControllerProtocol() == protocol &&
@@ -329,7 +329,7 @@ std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, 
     std::lock_guard<std::recursive_mutex> lock(_modelMutex);
 
     for (const auto& it : models) {
-        if (it.second->GetDisplayAs() != "ModelGroup" &&
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup &&
             it.second->GetControllerName() == controllerName &&
             it.second->GetControllerPort() == port &&
             it.second->GetControllerProtocol() == protocol &&
@@ -346,7 +346,7 @@ void ModelManager::ReplaceIPInStartChannels(const std::string& oldIP, const std:
 {
     std::lock_guard<std::recursive_mutex> lock(_modelMutex);
     for (const auto& it : models) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             if (Contains(it.second->ModelStartChannel, oldIP)) {
                 it.second->ReplaceIPInStartChannels(oldIP, newIP);
             }
@@ -368,7 +368,7 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
     bool alias { false };
     if (models.find(mgname) != models.end()) {
         for (const auto& [name, mm] : models) {
-            if (mm->GetDisplayAs() == "ModelGroup") {
+            if (mm->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 if (mm->IsAlias(mgname, false)) {
                     mgname = name;
                     alias = true;
@@ -388,7 +388,7 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
         }
         if (merge || alias) { // merge
             Model* mg = GetModel(mgname);
-            if (mg->GetDisplayAs() == "ModelGroup") {
+            if (mg->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 ModelGroup* mmg = dynamic_cast<ModelGroup*>(mg);
                 bool found = false;
                 std::vector<wxString> prevousNames;
@@ -547,7 +547,7 @@ bool ModelManager::RecalcStartChannels() const
 
     // first go through all models whose start channels are not dependent on other models
     for (const auto& it : models) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             char first = '0';
             if (!Trim(it.second->ModelStartChannel).empty())
                 first = Trim(it.second->ModelStartChannel)[0];
@@ -571,7 +571,7 @@ bool ModelManager::RecalcStartChannels() const
         workDone = false;
 
         for (const auto& it : models) {
-            if (it.second->GetDisplayAs() != "ModelGroup") {
+            if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
                 char first = '0';
                 if (!Trim(it.second->ModelStartChannel).empty())
                     first = Trim(it.second->ModelStartChannel)[0];
@@ -603,7 +603,7 @@ bool ModelManager::RecalcStartChannels() const
     // now process anything unprocessed
     int countInvalid = 0;
     for (const auto& it : models) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             char first = '0';
             if (!Trim(it.second->ModelStartChannel).empty())
                 first = Trim(it.second->ModelStartChannel)[0];
@@ -642,7 +642,7 @@ void ModelManager::DisplayStartChannelCalcWarning() const
     std::string msg = "Could not calculate start channels for models:\n";
     std::lock_guard<std::recursive_mutex> lock(_modelMutex);
     for (const auto& it : models) {
-        if (it.second->GetDisplayAs() != "ModelGroup" && !it.second->CouldComputeStartChannel) {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && !it.second->CouldComputeStartChannel) {
             msg += it.second->name + " : " + it.second->ModelStartChannel + "\n";
         }
     }
@@ -1407,7 +1407,7 @@ std::string ModelManager::GetModelsOnChannels(uint32_t start, uint32_t end, int 
     std::string line;
 
     for (const auto& it : *this) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             if (perLine > 0 && CountChar(line, ',') >= perLine - 1) {
                 if (res != "")
                     res += "\n";
@@ -1441,7 +1441,7 @@ std::vector<std::string> ModelManager::GetGroupsContainingModel(const Model* mod
     }
 
     for (const auto& it : *this) {
-        if (it.second->GetDisplayAs() == "ModelGroup") {
+        if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
             auto mg = dynamic_cast<ModelGroup*>(it.second);
             if (mg == nullptr) {
                 static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1468,7 +1468,7 @@ std::vector<std::string> ModelManager::GetGroupsContainingModelOrSubmodel(const 
 {
     std::vector<std::string> res;
     for (const auto& it : *this) {
-        if (it.second->GetDisplayAs() == "ModelGroup") {
+        if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
             auto mg = dynamic_cast<ModelGroup*>(it.second);
             if (mg->ContainsModelOrSubmodel(model)) {
                 res.push_back(it.first);
@@ -1488,7 +1488,7 @@ std::vector<std::string> ModelManager::GetGroupsContainingModelOrSubmodel(const 
 std::vector<Model*> ModelManager::GetModelGroups(const Model* model) const {
     std::vector<Model*> res;
     for (const auto& it : *this) {
-        if (it.second->GetDisplayAs() == "ModelGroup") {
+        if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
             auto mg = dynamic_cast<ModelGroup*>(it.second);
             if (mg->ContainsModel(model)) {
                 res.push_back(mg);
@@ -1508,7 +1508,7 @@ std::string ModelManager::GenerateNewStartChannel(const std::string& lastModel) 
         unsigned int highestch = 0;
         Model* highest = nullptr;
         for (const auto& it : models) {
-            if (it.second->GetDisplayAs() != "ModelGroup") {
+            if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
                 if (it.second->GetLastChannel() > highestch) {
                     highestch = it.second->GetLastChannel();
                     highest = it.second;
@@ -1906,7 +1906,7 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
         XmlSerializingVisitor visitor{currentModelsNode};
         for (auto m = begin(); m != end(); ++m) {
             Model* model = m->second;
-            if (model->GetDisplayAs() != "ModelGroup") {
+            if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
                 model->Accept(visitor);
             }
         }
@@ -1915,7 +1915,7 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
         XmlSerializingVisitor visitor{currentGroupsNode};
         for (auto m = begin(); m != end(); ++m) {
             Model* model = m->second;
-            if (model->GetDisplayAs() == "ModelGroup") {
+            if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 model->Accept(visitor);
             }
         }
@@ -2001,7 +2001,7 @@ bool ModelManager::Delete(const std::string& name)
 
             if (model != nullptr) {
                 for (auto& it2 : models) {
-                    if (it2.second->GetDisplayAs() == "ModelGroup") {
+                    if (it2.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
                         ModelGroup* group = (ModelGroup*)it2.second;
                         group->ModelRemoved(mn);
                     }

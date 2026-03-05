@@ -37,7 +37,7 @@
 DmxMovingHead::DmxMovingHead(const ModelManager &manager) :
     DmxMovingHeadComm(manager)
 {
-    DisplayAs = XmlNodeKeys::DmxMovingHeadType;
+    DisplayAs = DisplayAsType::DmxMovingHead;
     // create pan motor
     pan_motor = std::make_unique<DmxMotor>("PanMotor");
     pan_motor->SetChannelCoarse(1);

@@ -27,7 +27,7 @@
 
 TreeModel::TreeModel(const ModelManager &manager) : MatrixModel(manager)
 {
-    DisplayAs = XmlNodeKeys::TreeType;
+    DisplayAs = DisplayAsType::Tree;
     screenLocation.SetSupportsZScaling(true);
     screenLocation.SetPreferredSelectionPlane(ModelScreenLocation::MSLPLANE::GROUND);
 }

@@ -227,7 +227,7 @@ public:
 
             if (xframe->InitPixelBuffer(name, *mainBuffer, numLayers)) {
                 const Model *model = mainBuffer->GetModel();
-                if ("ModelGroup" == model->GetDisplayAs()) {
+                if (DisplayAsType::ModelGroup == model->GetDisplayAs()) {
                     //for (int l = 0; l < numLayers; ++l) {
                     for (int l = numLayers - 1; l >= 0; --l) {
                         EffectLayer *layer = row->GetEffectLayer(l);
@@ -1983,7 +1983,7 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
     if (m == nullptr)
         return false;
 
-    if (m->GetDisplayAs() == "ModelGroup")
+    if (m->GetDisplayAs() == DisplayAsType::ModelGroup)
         return false;
 
     wxString filename(fn);
@@ -2110,7 +2110,7 @@ void xLightsFrame::ExportModel(wxCommandEvent& command)
     if (m == nullptr)
         return;
 
-    bool isgroup = (m->GetDisplayAs() == "ModelGroup");
+    bool isgroup = (m->GetDisplayAs() == DisplayAsType::ModelGroup);
 
     bool isboxed = false;
     if (dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(m) != nullptr) {

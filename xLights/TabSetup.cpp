@@ -637,7 +637,7 @@ void xLightsFrame::UpdateChannelNames() {
     // KW left as some of the conversions seem to use this
     for (const auto& it : AllModels) {
         Model *model = it.second;
-        if (model->GetDisplayAs() != "ModelGroup") {
+        if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
             auto NodeCount = model->GetNodeCount();
             auto ChanPerNode = model->GetChanCountPerNode();
             wxString FormatSpec = "Ch %d: " + model->name + " #%d";

@@ -865,10 +865,10 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         includeModels = sModels != "false";
         includeGroups = sGroups != "false";
         for (auto m = (&AllModels)->begin(); m != (&AllModels)->end(); ++m) {
-            if (m->second->GetDisplayAs() == "ModelGroup" && !includeGroups) {
+            if (m->second->GetDisplayAs() == DisplayAsType::ModelGroup && !includeGroups) {
                 continue;
             }
-            if (m->second->GetDisplayAs() != "ModelGroup" && !includeModels) {
+            if (m->second->GetDisplayAs() != DisplayAsType::ModelGroup && !includeModels) {
                 continue;
             }
             models += "\"" + JSONSafe(m->first) + "\",";

@@ -459,7 +459,7 @@ void SerializeModelGroupsForModel(const Model* model, wxXmlNode* docNode) {
     wxArrayString allGroups;
     wxArrayString onlyGroups;
     for (const auto& it : mgr.GetModels()) {
-        if (it.second->GetDisplayAs() == "ModelGroup") {
+        if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
             if (dynamic_cast<ModelGroup*>(it.second)->OnlyContainsModel(model->Name())) {
                 onlyGroups.Add(it.first);
                 allGroups.Add(it.first);
@@ -550,7 +550,7 @@ void SerializeModelGroupsForModelToString(const Model* model, StringSerializingV
     wxArrayString allGroups;
     wxArrayString onlyGroups;
     for (const auto& it : mgr.GetModels()) {
-        if (it.second->GetDisplayAs() == "ModelGroup") {
+        if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
             if (dynamic_cast<ModelGroup*>(it.second)->OnlyContainsModel(model->Name())) {
                 onlyGroups.Add(it.first);
                 allGroups.Add(it.first);

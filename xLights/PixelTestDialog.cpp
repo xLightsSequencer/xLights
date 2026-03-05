@@ -840,7 +840,7 @@ public:
         if (modelGroup != nullptr) {
             // channels are not likely contiguous
             for (const auto& it : modelGroup->Models()) {
-                if (it->GetDisplayAs() != "ModelGroup" && it->GetDisplayAs() != "SubModel") {
+                if (it->GetDisplayAs() != DisplayAsType::ModelGroup && it->GetDisplayAs() != DisplayAsType::SubModel) {
                     _models.push_back(new ModelTestItem(it->GetName(), "", modelManager, channelsAvailable));
 
                     long nodes = it->GetNodeCount();
@@ -851,7 +851,7 @@ public:
                             _nonContiguousChannels.push_back(sc + 1 + j);
                         }
                     }
-                } else if (it->GetDisplayAs() == "ModelGroup") {
+                } else if (it->GetDisplayAs() == DisplayAsType::ModelGroup) {
                     _modelGroups.push_back(new ModelGroupTestItem(it->GetName(), modelManager, channelsAvailable));
                     long ch = _modelGroups.back()->GetFirstChannel();
                     while (ch > 0) {
@@ -1692,7 +1692,7 @@ std::list<std::string> PixelTestDialog::GetModelsOnChannels(int start, int end)
 
     for (const auto& it : *_modelManager) {
         Model* m = it.second;
-        if (m->GetDisplayAs() != "ModelGroup") {
+        if (m->GetDisplayAs() != DisplayAsType::ModelGroup) {
             int st = m->GetFirstChannel() + 1;
             int en = m->GetLastChannel() + 1;
             if (start <= en && end >= st) {
@@ -1806,7 +1806,7 @@ void PixelTestDialog::PopulateModelGroupTree(ModelManager* modelManager)
     for (const auto& it : *_modelManager) {
         Model* m = it.second;
 
-        if (m->GetDisplayAs() == "ModelGroup") {
+        if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
             // we found a model group
             AddModelGroup(TreeListCtrl_ModelGroups->GetRootItem(), m);
         }
@@ -1888,7 +1888,7 @@ void PixelTestDialog::PopulateVisualModelTree(ModelManager* modelManager)
     for (const auto& it : *_modelManager) {
         Model* m = it.second;
 
-        if (m->GetDisplayAs() != "ModelGroup") {
+        if (m->GetDisplayAs() != DisplayAsType::ModelGroup) {
             modelNames.push_back(m->GetName());
         }
     }
@@ -2092,7 +2092,7 @@ void PixelTestDialog::PopulateModelTree(ModelManager* modelManager)
     for (const auto& it : *_modelManager) {
         Model* m = it.second;
 
-        if (m->GetDisplayAs() != "ModelGroup") {
+        if (m->GetDisplayAs() != DisplayAsType::ModelGroup) {
             modelNames.push_back(m->GetName());
         }
     }
@@ -2101,7 +2101,7 @@ void PixelTestDialog::PopulateModelTree(ModelManager* modelManager)
     for (const auto& it : modelNames) {
         Model* m = modelManager->GetModel(it);
 
-        if (m != nullptr && m->GetDisplayAs() != "ModelGroup") {
+        if (m != nullptr && m->GetDisplayAs() != DisplayAsType::ModelGroup) {
             // we found a model
             ModelTestItem* modelcontroller = new ModelTestItem(m->GetName(), "", *modelManager, AreChannelsAvailable(m));
             _models.push_back(modelcontroller);

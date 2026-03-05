@@ -29,7 +29,7 @@
 
 SphereModel::SphereModel(const ModelManager &manager) : MatrixModel(manager)
 {
-    DisplayAs = XmlNodeKeys::SphereType;
+    DisplayAs = DisplayAsType::Sphere;
     screenLocation.SetSupportsZScaling(true);
     screenLocation.SetStartOnXAxis(true);
 }

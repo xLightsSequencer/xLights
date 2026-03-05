@@ -27,7 +27,7 @@
 DmxGeneral::DmxGeneral(const ModelManager &manager)
   : DmxModel(manager)
 {
-    DisplayAs = XmlNodeKeys::DmxGeneralType;
+    DisplayAs = DisplayAsType::DmxGeneral;
     color_ability = std::make_unique<DmxColorAbilityRGB>();
 }
 

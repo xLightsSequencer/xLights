@@ -369,14 +369,14 @@ const std::vector<Model*> &ModelPreview::GetModels() {
             }
         } else if (currentLayoutGroup == "All Models") {
             for (auto a : xlights->AllModels) {
-                if (a.second->GetDisplayAs() != "ModelGroup") {
+                if (a.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
                     tmpModelList.push_back(a.second);
                 }
             }
         } else if (currentLayoutGroup == "Unassigned") {
             for (auto a : xlights->AllModels) {
                 if (a.second->GetLayoutGroup() == "Unassigned") {
-                    if (a.second->GetDisplayAs() != "ModelGroup") {
+                    if (a.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
                         tmpModelList.push_back(a.second);
                     }
                 }
@@ -414,7 +414,7 @@ bool ModelPreview::ValidateModels(const std::vector<Model*>models, const ModelMa
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     for (const auto& it : models) {
-        if (it->GetDisplayAs() != "SubModel") {
+        if (it->GetDisplayAs() != DisplayAsType::SubModel) {
             bool found = false;
             for (auto it2 : mm) {
                 if (it2.second == it) {
@@ -567,7 +567,7 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                 color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
             }
 
-            if (m->GetDisplayAs() == "SubModel" && !m->GroupSelected() && !m->Selected()) {
+            if (m->GetDisplayAs() == DisplayAsType::SubModel && !m->GroupSelected() && !m->Selected()) {
                 // we dont display submodels if they are not selected
             } else {
                 float bounds[6];

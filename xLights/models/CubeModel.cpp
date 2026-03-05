@@ -112,7 +112,7 @@ static wxPGChoices STRAND_STYLES(wxArrayString(3, STRAND_STYLES_VALUES));
 
 CubeModel::CubeModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
-    DisplayAs = XmlNodeKeys::CubeType;
+    DisplayAs = DisplayAsType::Cube;
     screenLocation.SetSupportsZScaling(true);
 }
 
@@ -958,7 +958,6 @@ void CubeModel::InitModel()
     BufferWi = width * depth;
     BufferHt = height;
 
-    DisplayAs = "Cube";
     screenLocation.SetPerspective2D(0.1f); // if i dont do this you cant see the back nodes in 2D
 }
 
@@ -989,7 +988,7 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
 
     std::string html = "<html><body><table border=0>";
     html += "<tr><td>Name:</td><td>" + name + "</td></tr>";
-    html += "<tr><td>Display As:</td><td>" + DisplayAs + "</td></tr>";
+    html += "<tr><td>Display As:</td><td>" + DisplayAsTypeToString(DisplayAs) + "</td></tr>";
     html += "<tr><td>String Type:</td><td>" + StringType + "</td></tr>";
     html += "<tr><td>Start Corner:</td><td>" + direction + "</td></tr>";
     html += wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>", static_cast<int>(NodeCount));

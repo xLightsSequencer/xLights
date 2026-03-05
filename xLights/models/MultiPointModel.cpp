@@ -18,7 +18,7 @@
 
 MultiPointModel::MultiPointModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
-    DisplayAs = XmlNodeKeys::MultiPointType;
+    DisplayAs = DisplayAsType::MultiPoint;
     parm1 = parm2 = parm3 = 0;
 }
 

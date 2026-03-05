@@ -27,7 +27,7 @@
 
 MatrixModel::MatrixModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
-    DisplayAs = XmlNodeKeys::MatrixType;
+    DisplayAs = DisplayAsType::Matrix;
 }
 
 MatrixModel::~MatrixModel()

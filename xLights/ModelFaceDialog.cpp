@@ -588,11 +588,11 @@ void ModelFaceDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
             FaceTypeChoice->Enable();
 
             // set the default type of face based on the model type
-            if (model->GetDisplayAs() == "Matrix" || StartsWith(model->GetDisplayAs(), "Tree")) {
+            if (model->GetDisplayAs() == DisplayAsType::Matrix || model->GetDisplayAs() == DisplayAsType::Tree) {
                 FaceTypeChoice->ChangeSelection(MATRIX_FACE);
                 wxChoicebookEvent event;
                 OnFaceTypeChoicePageChanged(event);
-            } else if (model->GetDisplayAs() == "Custom") {
+            } else if (model->GetDisplayAs() == DisplayAsType::Custom) {
                 CustomModel* cm = dynamic_cast<CustomModel*>(model);
                 if (cm != nullptr) {
                     if (cm->IsAllNodesUnique()) {
@@ -605,7 +605,7 @@ void ModelFaceDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
                         OnFaceTypeChoicePageChanged(event);
                     }
                 }
-            } else if (model->GetDisplayAs() == "Channel Block") {
+            } else if (model->GetDisplayAs() == DisplayAsType::ChannelBlock) {
                 FaceTypeChoice->ChangeSelection(SINGLE_NODE_FACE);
                 wxChoicebookEvent event;
                 OnFaceTypeChoicePageChanged(event);

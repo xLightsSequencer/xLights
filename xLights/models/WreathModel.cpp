@@ -16,7 +16,7 @@
 
 WreathModel::WreathModel(const ModelManager &manager): ModelWithScreenLocation(manager)
 {
-    DisplayAs = XmlNodeKeys::WreathType;
+    DisplayAs = DisplayAsType::Wreath;
 }
 
 WreathModel::~WreathModel()

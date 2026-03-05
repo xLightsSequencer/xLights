@@ -908,8 +908,8 @@ void MovingHeadPanel::ValidateWindow()
     // if single model make sure the effect setting is on correct head...if not move it
     auto model = models.front();
     if (single_model) {
-        if( model->GetDisplayAs() == "DmxMovingHeadAdv" ||
-            model->GetDisplayAs() == "DmxMovingHead") {
+        if( model->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv ||
+            model->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
             auto mh = dynamic_cast<const DmxMovingHeadComm*>(model);
             int fixture = mh->GetFixtureVal();
             wxString fixture_textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", fixture);
@@ -1137,7 +1137,7 @@ void MovingHeadPanel::UpdateColorPanel()
     bool wheel_active = false;
     unsigned int num_colors = 0;
     for (const auto& it : models) {
-        if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
             DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
             bool active = IsHeadActive(mhead->GetFixtureVal()) || (models.size() == 1);
             if( active ) {
@@ -1238,7 +1238,7 @@ void MovingHeadPanel::UpdateMHSettings()
                 int fixture_num = 1;
                 auto models = GetActiveModels();
                 for (const auto& it : models) {
-                    if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+                    if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
                         DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
                         if( mhead->GetFixtureVal() == i ) {
                             fixture_num = mhead->GetFixtureVal();
@@ -1636,7 +1636,7 @@ void MovingHeadPanel::CheckAllFixtures() {
     auto models = GetActiveModels();
 
     for (const auto& it : models) {
-        if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
             DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
             int num = mhead->GetFixtureVal();
             wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);
@@ -1668,7 +1668,7 @@ void MovingHeadPanel::OnButton_EvensClick(wxCommandEvent& event)
     auto models = GetActiveModels();
 
     for (const auto& it : models) {
-        if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
             DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
             int num = mhead->GetFixtureVal();
             if( num % 2 == 0 ) {
@@ -1691,7 +1691,7 @@ void MovingHeadPanel::OnButton_OddsClick(wxCommandEvent& event)
     auto models = GetActiveModels();
 
     for (const auto& it : models) {
-        if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
             DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
             int num = mhead->GetFixtureVal();
             if( num % 2 > 0 ) {
@@ -1722,17 +1722,17 @@ std::list<Model*> MovingHeadPanel::GetActiveModels()
                 if (me != nullptr) {
                     auto model = xLightsApp::GetFrame()->AllModels[me->GetModelName()];
                     if (model != nullptr) {
-                        if (model->GetDisplayAs() == "ModelGroup") {
+                        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
                             auto mg = dynamic_cast<ModelGroup*>(model);
                             if (mg != nullptr) {
                                 for (const auto& it : mg->GetFlatModels(true, false)) {
-                                    if (it->GetDisplayAs() != "ModelGroup" && it->GetDisplayAs() != "SubModel") {
+                                    if (it->GetDisplayAs() != DisplayAsType::ModelGroup && it->GetDisplayAs() != DisplayAsType::SubModel) {
                                         res.push_back(it);
                                     }
                                 }
                             }
                         }
-                        else if (model->GetDisplayAs() == "SubModel") {
+                        else if (model->GetDisplayAs() == DisplayAsType::SubModel) {
                             // don't add SubModels
                         }
                         else {
@@ -2166,7 +2166,7 @@ void MovingHeadPanel::GetFixturesGroups() {
     if (mh_evens == "" && mh_odds == "") {
         auto models = GetActiveModels();
         for (const auto& it : models) {
-            if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+            if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
                 DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
                 int num = mhead->GetFixtureVal();
                 if (!mh_all.empty()) {

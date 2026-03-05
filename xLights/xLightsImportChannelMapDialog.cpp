@@ -1219,7 +1219,7 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
     if (poly != nullptr) {
         dropPattern = poly->GetDropPattern();
     }
-    std::string modelClass = Model::DetermineClass(m->GetDisplayAs(), m->GetFaceInfo().size() != 0, isSpiralTree, isSticks, dropPattern);
+    std::string modelClass = Model::DetermineClass(DisplayAsTypeToString(m->GetDisplayAs()), m->GetFaceInfo().size() != 0, isSpiralTree, isSticks, dropPattern);
 
     int effectCount = 0;
     Element* em = xlights->GetSequenceElements().GetElement(m->GetName());
@@ -1231,7 +1231,7 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         }
     }
 
-    xLightsImportModelNode* lastmodel = new xLightsImportModelNode(nullptr, m->GetName(), std::string(""), true, m->GetAliases(), m->GetDisplayAs(), groupModels, false, modelClass, m->GetNodeCount(), *wxWHITE, (m->GetDisplayAs() == "ModelGroup"), wxString(""), effectCount);
+    xLightsImportModelNode* lastmodel = new xLightsImportModelNode(nullptr, m->GetName(), std::string(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), groupModels, false, modelClass, m->GetNodeCount(), *wxWHITE, (m->GetDisplayAs() == DisplayAsType::ModelGroup), wxString(""), effectCount);
     _dataModel->BulkInsert(lastmodel, ms++);
 
      for (int s = 0; s < m->GetNumSubModels(); ++s) {
@@ -1253,9 +1253,9 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         xLightsImportModelNode* laststrand;
         // note we deliberately passing in the models node count ... as this is most relevant
         if (channelColors.find(subModel->GetName()) != channelColors.end()) {
-            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), wxString(subModel->GetName()), std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", true, "", m->GetNodeCount(), channelColors.find(subModel->GetName())->second.asWxColor(), wxString(""), effectCount);
+            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), wxString(subModel->GetName()), std::string(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", true, "", m->GetNodeCount(), channelColors.find(subModel->GetName())->second.asWxColor(), wxString(""), effectCount);
         } else {
-            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), wxString(subModel->GetName()), std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", true, "", m->GetNodeCount(), *wxWHITE, wxString(""), effectCount);
+            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), wxString(subModel->GetName()), std::string(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", true, "", m->GetNodeCount(), *wxWHITE, wxString(""), effectCount);
         }
         lastmodel->Append(laststrand);
     }
@@ -1269,9 +1269,9 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         xLightsImportModelNode* laststrand;
         // note we deliberately passing in the models node count ... as this is most relevant
         if (channelColors.find(sn.ToStdString()) != channelColors.end()) {
-            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), sn, wxString(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, "", m->GetNodeCount(), channelColors.find(sn.ToStdString())->second.asWxColor(), wxString(""), effectCount);
+            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), sn, wxString(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", false, "", m->GetNodeCount(), channelColors.find(sn.ToStdString())->second.asWxColor(), wxString(""), effectCount);
         } else {
-            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), sn, wxString(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, "", m->GetNodeCount(), *wxWHITE, wxString(""), effectCount);
+            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), sn, wxString(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", false, "", m->GetNodeCount(), *wxWHITE, wxString(""), effectCount);
         }
         lastmodel->Append(laststrand);
         for (int n = 0; n < m->GetStrandLength(s); ++n) {
@@ -1282,9 +1282,9 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
             effectCount = 0;
             xLightsImportModelNode* lastnode;
             if (channelColors.find(nn.ToStdString()) != channelColors.end()) {
-                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, "", m->GetNodeCount(), channelColors.find(nn.ToStdString())->second.asWxColor(), wxString(""), effectCount);
+                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, std::string(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", false, "", m->GetNodeCount(), channelColors.find(nn.ToStdString())->second.asWxColor(), wxString(""), effectCount);
             } else {
-                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, std::string(""), true, m->GetAliases(), m->GetDisplayAs(), "", false, "", m->GetNodeCount(), *wxWHITE, wxString(""), effectCount);
+                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, std::string(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", false, "", m->GetNodeCount(), *wxWHITE, wxString(""), effectCount);
             }
             laststrand->Insert(lastnode, n);
         }

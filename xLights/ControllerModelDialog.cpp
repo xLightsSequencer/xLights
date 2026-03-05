@@ -1431,7 +1431,7 @@ public:
         DrawTextLimited(dc, _displayName, pt, sz - wxSize(4, 4));
         pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
         if (m != nullptr) {
-            auto iconType = "xlART_" + m->GetDisplayAs() + "_ICON";
+            auto iconType = "xlART_" + DisplayAsTypeToString(m->GetDisplayAs()) + "_ICON";
             int iconSize = MODEL_ICON_SIZE;
             if (iconSize > 24) {
                 iconSize = 32;
@@ -1453,7 +1453,7 @@ public:
             if (udcpm != nullptr) {
                 uint32_t chs = udcpm->Channels();
                 if (_style & STYLE_PIXELS) {
-                    if (udcpm->GetModel()->GetDisplayAs() == "Channel Block" || udcpm->GetModel()->SingleChannel || udcpm->GetModel()->SingleNode) {
+                    if (udcpm->GetModel()->GetDisplayAs() == DisplayAsType::ChannelBlock || udcpm->GetModel()->SingleChannel || udcpm->GetModel()->SingleNode) {
                         DrawTextLimited(dc, wxString::Format("Channels: %ld", (long)chs), pt, sz - wxSize(4, 4));
                     } else {
                         DrawTextLimited(dc, wxString::Format("Pixels: %ld", (long)chs / udcpm->GetChannelsPerPixel()), pt, sz - wxSize(4, 4));
@@ -2182,7 +2182,7 @@ void ControllerModelDialog::ReloadModels()
     FixDMXChannels();
 
     for (const auto& it : *_mm) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             if (_controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())) {
                 auto shadows = it.second->GetShadowedBy();
                 if (shadows.size() > 0) {
@@ -2207,7 +2207,7 @@ void ControllerModelDialog::ReloadModels()
     TextCtrl_Check->SetValue(check);
 
     for (const auto& it : *_mm) {
-        if (it.second->GetDisplayAs() != "ModelGroup" && it.second->IsActive() && it.second->GetLayoutGroup() != "Unassigned") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && it.second->IsActive() && it.second->GetLayoutGroup() != "Unassigned") {
             if (_cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr &&
                 ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) || // hide models on other controllers not set
                  ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->GetName() == it.second->GetControllerName() || it.second->GetControllerName() == "" || it.second->GetControllerName() == NO_CONTROLLER || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||

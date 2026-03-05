@@ -191,7 +191,7 @@ void StartChannelDialog::Set(const wxString &s, const ModelManager &models, cons
 
     for (auto it = models.begin(); it != models.end(); ++it)
     {
-        if (it->second->GetDisplayAs() != "ModelGroup")
+        if (it->second->GetDisplayAs() != DisplayAsType::ModelGroup)
         {
             _modelsPreview[it->first] = it->second->GetLayoutGroup();
         }

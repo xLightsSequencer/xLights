@@ -1181,17 +1181,17 @@ std::list<Model*> DMXPanel::GetActiveModels()
 				if (me != nullptr) {
 					auto model = xLightsApp::GetFrame()->AllModels[me->GetModelName()];
 					if (model != nullptr) {
-						if (model->GetDisplayAs() == "ModelGroup") {
+						if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
 							auto mg = dynamic_cast<ModelGroup*>(model);
 							if (mg != nullptr) {
 								for (const auto& it : mg->GetFlatModels(true, false)) {
-									if (it->GetDisplayAs() != "ModelGroup" && it->GetDisplayAs() != "SubModel") {
+									if (it->GetDisplayAs() != DisplayAsType::ModelGroup && it->GetDisplayAs() != DisplayAsType::SubModel) {
 										res.push_back(it);
 									}
 								}
 							}
 						}
-						else if (model->GetDisplayAs() == "SubModel") {
+						else if (model->GetDisplayAs() == DisplayAsType::SubModel) {
 							// don't add SubModels
 						}
 						else {

@@ -62,7 +62,7 @@ namespace ModelToCAD
 				continue;
 			}
 
-			if (mm->GetDisplayAs() == "ModelGroup") {
+			if (mm->GetDisplayAs() == DisplayAsType::ModelGroup) {
 				continue;
 			}
 

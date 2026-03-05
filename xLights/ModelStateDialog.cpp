@@ -512,7 +512,7 @@ void ModelStateDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
             DeleteButton->Enable();
 
             // set the default type of state based on model type
-            if (model->GetDisplayAs() == "Custom") {
+            if (model->GetDisplayAs() == DisplayAsType::Custom) {
                 CustomModel* cm = dynamic_cast<CustomModel*>(model);
                 if (cm != nullptr) {
                     if (cm->IsAllNodesUnique()) {
@@ -521,7 +521,7 @@ void ModelStateDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
                         StateTypeChoice->ChangeSelection(SINGLE_NODE_STATE);
                     }
                 }
-            } else if (model->GetDisplayAs() == "Channel Block") {
+            } else if (model->GetDisplayAs() == DisplayAsType::ChannelBlock) {
                 StateTypeChoice->ChangeSelection(SINGLE_NODE_STATE);
             } else {
                 StateTypeChoice->ChangeSelection(NODE_RANGE_STATE);

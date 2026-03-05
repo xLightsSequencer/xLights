@@ -675,7 +675,7 @@ void BufferPanel::UpdateCamera(const Model* model)
             Choice_PerPreviewCamera->SetStringSelection(mg->GetDefaultCamera());
             _defaultCamera = mg->GetDefaultCamera();
         }
-        _mg = (model->GetDisplayAs() == "ModelGroup");
+        _mg = (model->GetDisplayAs() == DisplayAsType::ModelGroup);
     } else {
         _mg = false;
     }
@@ -690,7 +690,7 @@ void BufferPanel::UpdateBufferStyles(const Model* model)
         for (const auto& it : types) {
             BufferStyleChoice->Append(it);
         }
-        _mg = (model->GetDisplayAs() == "ModelGroup");
+        _mg = (model->GetDisplayAs() == DisplayAsType::ModelGroup);
         sel = model->AdjustBufferStyle(sel);
     } else {
         _mg = false;
@@ -723,7 +723,7 @@ void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
 
         Choice_PerPreviewCamera->SetStringSelection("2D");
         if (model != nullptr) {
-            _mg = (model->GetDisplayAs() == "ModelGroup");
+            _mg = (model->GetDisplayAs() == DisplayAsType::ModelGroup);
             auto mg = dynamic_cast<const ModelGroup*>(model);
             if (mg != nullptr) {
                 Choice_PerPreviewCamera->SetStringSelection(mg->GetDefaultCamera());

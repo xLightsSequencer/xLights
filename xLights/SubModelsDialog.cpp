@@ -3590,7 +3590,7 @@ wxArrayString SubModelsDialog::getModelList(ModelManager* modelManager)
         Model* m = it->second;
         if (m->Name() == model->Name()) //Skip Current Model
             continue;
-        if (m->GetDisplayAs() == "ModelGroup") // skip groups as they dont have submodels
+        if (m->GetDisplayAs() == DisplayAsType::ModelGroup) // skip groups as they dont have submodels
             continue;
         choices.Add(m->Name());
     }

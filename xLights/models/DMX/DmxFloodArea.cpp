@@ -22,7 +22,7 @@
 DmxFloodArea::DmxFloodArea(const ModelManager &manager)
     : DmxFloodlight(manager)
 {
-    DisplayAs = XmlNodeKeys::DmxFloodAreaType;
+    DisplayAs = DisplayAsType::DmxFloodArea;
 }
 
 DmxFloodArea::~DmxFloodArea()

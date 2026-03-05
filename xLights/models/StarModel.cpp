@@ -29,7 +29,7 @@ std::vector<std::string> StarModel::STAR_BUFFER_STYLES;
 
 StarModel::StarModel(const ModelManager& manager) : ModelWithScreenLocation(manager)
 {
-    DisplayAs = XmlNodeKeys::StarType;
+    DisplayAs = DisplayAsType::Star;
 }
 
 StarModel::~StarModel()

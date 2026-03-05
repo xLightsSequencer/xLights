@@ -23,7 +23,7 @@
 
 SpinnerModel::SpinnerModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
-    DisplayAs = XmlNodeKeys::SpinnerType;
+    DisplayAs = DisplayAsType::Spinner;
 }
 
 SpinnerModel::~SpinnerModel()
@@ -360,7 +360,6 @@ void SpinnerModel::InitModel() {
 
     SetSpinnerCoord();
     screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
-    DisplayAs = "Spinner";
 }
 
 void SpinnerModel::InitRenderBufferNodes(const std::string &tp, const std::string &camera, const std::string &transform,

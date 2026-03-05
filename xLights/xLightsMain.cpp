@@ -4648,7 +4648,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
     // models
     for (auto const& m : AllModels) {
         Model* model = m.second;
-        if (model->GetDisplayAs() != "ModelGroup") {
+        if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
             modelCount++;
             wxString const stch = model->GetModelStartChannel();
             uint32_t ch = model->GetFirstChannel() + 1;
@@ -4680,7 +4680,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
             write_worksheet_string(modelsheet, row, 0, model->name, format, _model_col_widths);
             write_worksheet_string(modelsheet, row, 1, model->GetShadowModelFor(), format, _model_col_widths);
             write_worksheet_string(modelsheet, row, 2, model->description, format, _model_col_widths);
-            write_worksheet_string(modelsheet, row, 3, model->GetDisplayAs(), format, _model_col_widths);
+            write_worksheet_string(modelsheet, row, 3, DisplayAsTypeToString(model->GetDisplayAs()), format, _model_col_widths);
             write_worksheet_string(modelsheet, row, 4, model->GetDimension(), format, _model_col_widths);
             write_worksheet_string(modelsheet, row, 5, model->GetStringType(), format, _model_col_widths);
             worksheet_write_number(modelsheet, row, 6, model->GetNumPhysicalStrings(), format);
@@ -4758,7 +4758,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
     row = 1;
     for (auto const& m : AllModels) {
         Model* model = m.second;
-        if (model->GetDisplayAs() == "ModelGroup") {
+        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             groupCount++;
             ModelGroup* mg = static_cast<ModelGroup*>(model);
             std::string models;
@@ -4839,7 +4839,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
 
         for (auto const& m : AllModels) {
             Model* model = m.second;
-            if (model->GetDisplayAs() != "ModelGroup") {
+            if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
                 int ch = model->GetFirstChannel() + 1;
                 int endch = model->GetLastChannel() + 1;
 
@@ -5589,7 +5589,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("");
     LogCheckSequenceMsg("Models spanning controllers");
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             int32_t start = it.second->GetFirstChannel() + 1;
             int32_t end = it.second->GetLastChannel() + 1;
 
@@ -5663,7 +5663,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     wxYield();
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             std::string start = it.second->ModelStartChannel;
 
             if (start[0] == '>' || start[0] == '@') {
@@ -5695,7 +5695,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     }
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             std::string start = it.second->ModelStartChannel;
 
             if (start[0] == '>' || start[0] == '@') {
@@ -5760,8 +5760,8 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     // Check for overlapping channels in models
     for (auto it = std::begin(AllModels); it != std::end(AllModels); ++it) {
-        if (it->second->GetDisplayAs() != "ModelGroup") {
-            if(it->second->GetModelStartChannel().starts_with("@") && it->second->GetDisplayAs() == "Single Line" && it->second->GetNumStrings() > 1) {
+        if (it->second->GetDisplayAs() != DisplayAsType::ModelGroup) {
+            if(it->second->GetModelStartChannel().starts_with("@") && it->second->GetDisplayAs() == DisplayAsType::SingleLine && it->second->GetNumStrings() > 1) {
                 logger_base.debug("Skipping Overlap Checking for %s [%s]", it->second->GetFullName().c_str(), it->second->GetModelStartChannel().c_str());
                 continue;
             }
@@ -5770,7 +5770,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             auto m1end = it->second->GetLastChannel() + 1;
 
             for (auto it2 = std::next(it); it2 != std::end(AllModels); ++it2) {
-                if (it2->second->GetDisplayAs() != "ModelGroup" && it2->second->GetShadowModelFor() != it->first && it->second->GetShadowModelFor() != it2->first) {
+                if (it2->second->GetDisplayAs() != DisplayAsType::ModelGroup && it2->second->GetShadowModelFor() != it->first && it->second->GetShadowModelFor() != it2->first) {
                     auto m2start = it2->second->GetFirstChannel() + 1;
                     auto m2end = it2->second->GetLastChannel() + 1;
 
@@ -5797,7 +5797,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
         std::map<std::string, std::list<Model*>*> modelsByPort;
         for (const auto& it : AllModels) {
-            if (it.second->GetDisplayAs() != "ModelGroup") {
+            if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
                 std::string cc = "";
                 if (it.second->IsControllerConnectionValid()) {
                     cc = wxString::Format("%s:%s:%d:%d", it.second->IsPixelProtocol() ? _("pixel") : _("serial"), it.second->GetControllerProtocol(), it.second->GetControllerPort(), it.second->GetSmartRemote()).ToStdString();
@@ -5877,9 +5877,9 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("Model nodes not allocated to layers correctly");
 
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
-        if (it->second->GetDisplayAs() != "ModelGroup") {
+        if (it->second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             if (wxString(it->second->GetStringType()).EndsWith("Nodes") && !it->second->AllNodesAllocated()) {
-                wxString msg = wxString::Format("    WARN: %s model '%s' Node Count and Layer Size allocations dont match.", it->second->GetDisplayAs().c_str(), it->first);
+                wxString msg = wxString::Format("    WARN: %s model '%s' Node Count and Layer Size allocations dont match.", DisplayAsTypeToString(it->second->GetDisplayAs()).c_str(), it->first);
                 LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "overlapnodes", errcount, warncount);
             }
         }
@@ -5930,7 +5930,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         LogCheckSequenceMsg("Model Groups containing models from different previews");
 
         for (const auto& it : AllModels) {
-            if (it.second->GetDisplayAs() == "ModelGroup") {
+            if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 std::string mgp = it.second->GetLayoutGroup();
 
                 ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
@@ -5947,7 +5947,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                             // this should never happen
                             wxString msg = wxString::Format("Model Group %s contains non existent model %s.", (const char*)mg->GetName().c_str(), (const char*)it2.c_str());
                             LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::CRITICAL, msg.ToStdString(), "grouperrors", errcount, warncount);
-                        } else if (m->GetDisplayAs() != "ModelGroup") {
+                        } else if (m->GetDisplayAs() != DisplayAsType::ModelGroup) {
                             // If model is in all previews dont report it as a problem
                             if (m->GetLayoutGroup() != "All Previews" && mg->GetLayoutGroup() != "All Previews" && mgp != m->GetLayoutGroup()) {
                                 wxString msg = wxString::Format("    WARN: Model Group '%s' in preview '%s' contains model '%s' which is in preview '%s'. This will cause the '%s' model to also appear in the '%s' preview.", mg->GetName(), mg->GetLayoutGroup(), m->GetName(), m->GetLayoutGroup(), m->GetName(), mg->GetLayoutGroup());
@@ -5995,7 +5995,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     std::list<std::string> emptyModelGroups;
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() == "ModelGroup") {
+        if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
             ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
             if (mg != nullptr) { // this should never fail
                 auto models = mg->ModelNames();
@@ -6154,7 +6154,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("Model Groups containing moving heads which have not been numbered");
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() == "ModelGroup") {
+        if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
             ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
             if (mg != nullptr) { // this should never fail
                 auto models = mg->ModelNames();
@@ -6165,7 +6165,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                     Model* model = AllModels.GetModel(m);
 
                     if (model != nullptr) {
-                        if (model->GetDisplayAs() != "DmxMovingHeadAdv" && model->GetDisplayAs() != "DmxMovingHead") {
+                        if (model->GetDisplayAs() != DisplayAsType::DmxMovingHeadAdv && model->GetDisplayAs() != DisplayAsType::DmxMovingHead) {
 							allMovingHeads = false;
 							break;
 						}
@@ -6207,7 +6207,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("SubModels with no nodes");
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             for (int i = 0; i < it.second->GetNumSubModels(); ++i) {
                 Model* sm = it.second->GetSubModel(i);
                 if (sm->GetNodeCount() == 0) {
@@ -6229,7 +6229,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("SubModels with duplicate nodes");
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             for (int i = 0; i < it.second->GetNumSubModels(); ++i) {
                 SubModel* sm = dynamic_cast<SubModel*>(it.second->GetSubModel(i));
                 if (sm != nullptr) {
@@ -6265,7 +6265,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("SubModels with nodes not in parent model");
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             for (int i = 0; i < it.second->GetNumSubModels(); ++i) {
                 SubModel* sm = (SubModel*)it.second->GetSubModel(i);
                 if (!sm->IsNodesAllValid()) {
@@ -6318,7 +6318,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     std::list<Model*> modelssorted;
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             modelssorted.push_back(it.second);
         }
     }
@@ -6352,7 +6352,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             lastm = m;
         }
         // Check for single line models with left-to-right physical orientation
-        if (m->GetDisplayAs() == "Single Line") {
+        if (m->GetDisplayAs() == DisplayAsType::SingleLine) {
             size_t nodeCount = m->GetNodeCount();
             if (nodeCount < 2)
                 continue; // Not a valid line
@@ -6489,7 +6489,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                     wxString msg = wxString::Format("    ERR: Model %s in your sequence does not seem to exist in the layout. This will need to be deleted or remapped to another model next time you load this sequence.", it);
                     LogAndTrack(report, "sequence", CheckSequenceReport::ReportIssue::CRITICAL, msg.ToStdString(), "modelnotinlayout", errcount, warncount);
                 } else {
-                    if (m->GetDisplayAs() == "ModelGroup") {
+                    if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                         ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
                         if (mg == nullptr)
                             logger_base.crit("CheckSequence ModelGroup cast was null. We are about to crash.");
@@ -7154,7 +7154,7 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
         wxString type = "Unknown";
         switch (e->GetType()) {
         case ElementType::ELEMENT_TYPE_MODEL:
-            if (m->GetDisplayAs() == "ModelGroup") {
+            if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 type = "Model Group";
             } else {
                 type = "Model";
@@ -10501,7 +10501,7 @@ std::string xLightsFrame::GetUniqueTimingName(const std::string& baseName)
 void xLightsFrame::ReplaceModelWithModelFixGroups(const std::string& oldModel, const std::string& newModel)
 {
     for (auto& it : AllModels) {
-        if (it.second->GetDisplayAs() == "ModelGroup") {
+        if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
             auto mg = dynamic_cast<ModelGroup*>(it.second);
             mg->ModelRenamed(newModel, oldModel);
         }

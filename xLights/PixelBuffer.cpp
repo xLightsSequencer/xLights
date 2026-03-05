@@ -2163,7 +2163,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
         inf->saturationAdjustValueCurve != saturationAdjustValueCurve ||
         inf->valueAdjustValueCurve != valueAdjustValueCurve) {
         // This function is useful for testing issues where PixelBufferClass::MergeBuffersForLayer asserts
-        // if (model->GetDisplayAs() == "ModelGroup")
+        // if (model->GetDisplayAs() == DisplayAsType::ModelGroup)
         //{
         //    dynamic_cast<const ModelGroup*>(model)->TestNodeInit();
         //}
@@ -2247,7 +2247,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
         inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->bufferTransform);
         GPURenderUtils::setupRenderBuffer(this, &inf->buffer, layer);
 
-        if (type.compare(0, 9, "Per Model") == 0 && model->GetDisplayAs() == "ModelGroup") {
+        if (type.compare(0, 9, "Per Model") == 0 && model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             if (type.compare(type.length() - 4, 4, "Deep") == 0) {
                 inf->modelBuffers = &inf->deepModelBuffers;
                 const ModelGroup* gp = dynamic_cast<const ModelGroup*>(model);

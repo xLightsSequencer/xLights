@@ -92,7 +92,7 @@ void StateEffect::SetPanelStatus(Model* cls) {
 
     if (cls != nullptr) {
         Model* m = cls;
-        if (cls->GetDisplayAs() == "ModelGroup") {
+        if (cls->GetDisplayAs() == DisplayAsType::ModelGroup) {
             m = ((ModelGroup*)cls)->GetFirstModel();
         }
 
@@ -125,7 +125,7 @@ std::list<std::string> StateEffect::GetStates(Model* cls, std::string model) {
 
     if (cls != nullptr) {
         Model* m = cls;
-        if (cls->GetDisplayAs() == "ModelGroup") {
+        if (cls->GetDisplayAs() == DisplayAsType::ModelGroup) {
             m = ((ModelGroup*)cls)->GetFirstModel();
         }
 

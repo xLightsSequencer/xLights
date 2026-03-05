@@ -769,7 +769,7 @@ void RenderModelOnImage(wxImage& image, Model* model, uint8_t* framedata, int st
 
 void FillImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr, bool invert)
 {
-    if (model->GetDisplayAs() == "ModelGroup") {
+    if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
         ModelGroup* mg = static_cast<ModelGroup*>(model);
 
         // Render each model

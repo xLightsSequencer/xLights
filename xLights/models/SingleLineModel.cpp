@@ -20,7 +20,7 @@ std::vector<std::string> SingleLineModel::LINE_BUFFER_STYLES;
 
 SingleLineModel::SingleLineModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
-    DisplayAs = XmlNodeKeys::SingleLineType;
+    DisplayAs = DisplayAsType::SingleLine;
     parm1 = 0;
     parm2 = 0;
     parm3 = 0;

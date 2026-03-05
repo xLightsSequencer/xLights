@@ -24,7 +24,7 @@ std::vector<std::string> ChannelBlockModel::LINE_BUFFER_STYLES;
 
 ChannelBlockModel::ChannelBlockModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
-    DisplayAs = XmlNodeKeys::ChannelBlockType;
+    DisplayAs = DisplayAsType::ChannelBlock;
 }
 
 ChannelBlockModel::~ChannelBlockModel()

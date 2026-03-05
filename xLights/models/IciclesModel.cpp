@@ -20,7 +20,7 @@
 
 IciclesModel::IciclesModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
-    DisplayAs = XmlNodeKeys::IciclesType;
+    DisplayAs = DisplayAsType::Icicles;
     screenLocation.SetMHeight(-0.5);
     screenLocation.SetSupportsShear(true);
 }

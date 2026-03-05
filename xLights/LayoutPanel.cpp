@@ -1014,7 +1014,7 @@ void LayoutPanel::OnPropertyGridSelection(wxPropertyGridEvent& event) {
     if (selectedBaseObject != nullptr) {
         if( editing_models ) {
             Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
-            if( selectedModel->GetDisplayAs() == "Poly Line" ) {
+            if( selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
                 int segment = selectedModel->OnPropertyGridSelection(propertyEditor, event);
                 selectedModel->GetBaseObjectScreenLocation().SelectSegment(segment);
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPropertyGridSelection");
@@ -1027,7 +1027,7 @@ void LayoutPanel::OnPropertyGridItemCollapsed(wxPropertyGridEvent& event) {
     if (selectedBaseObject != nullptr) {
         if( editing_models ) {
             Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
-            if( selectedModel->GetDisplayAs() == "Poly Line" ) {
+            if( selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
                 selectedModel->OnPropertyGridItemCollapsed(propertyEditor, event);
             }
         }
@@ -1038,7 +1038,7 @@ void LayoutPanel::OnPropertyGridItemExpanded(wxPropertyGridEvent& event) {
     if (selectedBaseObject != nullptr) {
         if( editing_models ) {
             Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
-            if( selectedModel->GetDisplayAs() == "Poly Line" ) {
+            if( selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
                 selectedModel->OnPropertyGridItemExpanded(propertyEditor, event);
             }
         }
@@ -1110,7 +1110,7 @@ void LayoutPanel::resetPropertyGrid() {
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
     logger_work.debug("        resetPropertyGrid.");
 
-    if (selectedBaseObject != nullptr && selectedBaseObject->GetDisplayAs() == "ModelGroup")
+    if (selectedBaseObject != nullptr && selectedBaseObject->GetDisplayAs() == DisplayAsType::ModelGroup)
     {
         ShowPropGrid(false);
     }
@@ -1306,12 +1306,12 @@ void LayoutPanel::refreshModelList() {
 
         if (model != nullptr ) {
 
-            if( model->GetDisplayAs() != "ModelGroup" ) {
+            if( model->GetDisplayAs() != DisplayAsType::ModelGroup ) {
                 wxString cv = TreeListViewModels->GetItemText(item, Col_StartChan);
                 wxString startStr = model->GetStartChannelInDisplayFormat(xlights->GetOutputManager());
                 if (cv != startStr) {
                     data->startingChannel = model->GetNumberFromChannelString(model->ModelStartChannel);
-                    if (model->GetDisplayAs() == "SubModel" || (model->CouldComputeStartChannel && model->IsValidStartChannelString())) {
+                    if (model->GetDisplayAs() == DisplayAsType::SubModel || (model->CouldComputeStartChannel && model->IsValidStartChannelString())) {
                         SetTreeListViewItemText(item, Col_StartChan, startStr);
                     } else {
                         SetTreeListViewItemText(item, Col_StartChan, "*** " + model->ModelStartChannel);
@@ -1366,14 +1366,14 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
     }
 
     wxTreeListItem item = TreeListViewModels->AppendItem(*parent, TreeModelName(model, fullName),
-                                                         LayoutUtils::GetModelTreeIcon(model->DisplayAs, LayoutUtils::GroupMode::Closed),
-                                                         LayoutUtils::GetModelTreeIcon(model->DisplayAs, LayoutUtils::GroupMode::Opened),
+                                                         LayoutUtils::GetModelTreeIcon(DisplayAsTypeToString(model->DisplayAs), LayoutUtils::GroupMode::Closed),
+                                                         LayoutUtils::GetModelTreeIcon(DisplayAsTypeToString(model->DisplayAs), LayoutUtils::GroupMode::Opened),
                                                          new ModelTreeData(model, nativeOrder, fullName));
 
-    if (model->GetDisplayAs() != "ModelGroup") {
+    if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
         wxString startStr = model->GetStartChannelInDisplayFormat(xlights->GetOutputManager());
         wxString endStr = ((startStr[0] == '@' && model->HasIndividualStartChannels()) ? "" : model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager()));
-        if (model->GetDisplayAs() != "SubModel") {
+        if (model->GetDisplayAs() != DisplayAsType::SubModel) {
             if ((model->CouldComputeStartChannel || startStr[0] == '@') && model->IsValidStartChannelString()) {
                 SetTreeListViewItemText(item, Col_StartChan, startStr);
             } else {
@@ -1389,7 +1389,7 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
         AddModelToTree(model->GetSubModel(x), &item, false, toExpand, x);
     }
 
-    if( model->GetDisplayAs() == "ModelGroup" ) {
+    if( model->GetDisplayAs() == DisplayAsType::ModelGroup ) {
         ModelGroup *grp = (ModelGroup*)model;
         int i = 0;
         for (const auto& it : grp->ModelNames()) {
@@ -1470,7 +1470,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         // add all the model groups
         for (const auto& it : xlights->AllModels) {
             Model *model = it.second;
-            if (model->GetDisplayAs() == "ModelGroup") {
+            if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 if (currentLayoutGroup == "All Models" || model->GetLayoutGroup() == currentLayoutGroup
                     || (model->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
                     if (!ModelMatchesFilter(model)) continue;
@@ -1483,7 +1483,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         // add all the models
         for (const auto& it : models) {
             Model *model = it;
-            if (model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
+            if (model->GetDisplayAs() != DisplayAsType::ModelGroup && model->GetDisplayAs() != DisplayAsType::SubModel) {
                 if (!ModelMatchesFilter(model)) continue;
                 bool expand = (std::find(expanded.begin(), expanded.end(), model->GetName()) != expanded.end());
                 AddModelToTree(model, &root, expand, toExpand, 0);
@@ -1509,7 +1509,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
 
     for (const auto& it : xlights->AllModels) {
         Model *model = it.second;
-        if (model->GetDisplayAs() != "ModelGroup") {
+        if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
             if (group == "All Models" ||
                 model->GetLayoutGroup() == group ||
                 (model->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
@@ -1535,7 +1535,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
         if (selectedGroupNames.size() > 0 && filtering && (selectedGroupNames.Index(model->name) != -1)) {
             mark_selected = true;
         }
-        if (model->GetDisplayAs() == "ModelGroup") {
+        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             ModelGroup *grp = (ModelGroup*)(model);
             if (group == "All Models" ||
                 model->GetLayoutGroup() == group ||
@@ -1559,16 +1559,16 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                             // m->GroupSelected = true;
                             // m->Highlighted = true;
                         }
-                        if (m->DisplayAs == "SubModel") {
+                        if (m->DisplayAs == DisplayAsType::SubModel) {
                             if (mark_selected) {
                               //  prev_models.push_back(m);  // setting this causes exception when prev_models render finds a submodel
                             }
                         }
-                        else if (m->DisplayAs == "ModelGroup") {
+                        else if (m->DisplayAs == DisplayAsType::ModelGroup) {
                             ModelGroup *mg = (ModelGroup*)m;
                             if (mark_selected) {
                                 for (const auto& it3 : mg->Models()) {
-                                    if (it3->DisplayAs != "ModelGroup") {
+                                    if (it3->DisplayAs != DisplayAsType::ModelGroup) {
                                         if (selectedBaseObject == nullptr)
                                         {
                                             SelectModel(it3, false);
@@ -1583,7 +1583,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                                         // need to process groups within groups ... safely
                                         for (const auto& itm : xlights->AllModels)
                                         {
-                                            if (itm.second->GetDisplayAs() == "ModelGroup")
+                                            if (itm.second->GetDisplayAs() == DisplayAsType::ModelGroup)
                                             {
                                                 // ignore these
                                             }
@@ -2214,7 +2214,7 @@ void LayoutPanel::AddSelectedToExistingGroups() {
 
     for (const auto& it : xlights->AllModels) {
         // Don't add selected groups to choices
-        if (it.second->GetDisplayAs() == "ModelGroup" && selectedModels.Index(it.second->GetName()) == -1) {
+        if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup && selectedModels.Index(it.second->GetName()) == -1) {
             choices.Add(it.second->GetName());
         }
     }
@@ -2240,7 +2240,7 @@ void LayoutPanel::AddSelectedToExistingGroups() {
 
             Model* addToGroupModel = xlights->GetModel(groupName);
 
-            if (addToGroupModel != nullptr && addToGroupModel->GetDisplayAs() == "ModelGroup") {
+            if (addToGroupModel != nullptr && addToGroupModel->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 ModelGroup* addToGroup = dynamic_cast<ModelGroup*>(addToGroupModel);
                 
                 if (addToGroup != nullptr) {
@@ -2300,7 +2300,7 @@ void LayoutPanel::RemoveSelectedFromExistingGroups() {
                 for (auto const& idx : dlg.GetSelections()) {
                     std::string groupName = choices.at(idx).ToStdString();
                     Model* grp = xlights->GetModel(groupName);
-                    if (grp != nullptr && grp->GetDisplayAs() == "ModelGroup") {
+                    if (grp != nullptr && grp->GetDisplayAs() == DisplayAsType::ModelGroup) {
                         ModelGroup* modelGroup = dynamic_cast<ModelGroup*>(grp);
 
                         if (modelGroup != nullptr) {
@@ -2755,7 +2755,7 @@ void LayoutPanel::SelectModelGroupModels(ModelGroup* m, std::list<ModelGroup*>& 
     processed.push_back(m);
     for (const auto& it : m->Models())
     {
-        if (it->GetDisplayAs() == "ModelGroup")
+        if (it->GetDisplayAs() == DisplayAsType::ModelGroup)
         {
             if (std::find(processed.begin(), processed.end(), it) == processed.end())
             {
@@ -2838,7 +2838,7 @@ void LayoutPanel::OnCheckBoxOverlapClick(wxCommandEvent& event)
             Model* model = data != nullptr ? data->GetModel() : nullptr;
 
             if (model != nullptr) {
-                if (model->GetDisplayAs() != "ModelGroup") {
+                if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
                     model->Overlapping = false;
                 }
             }
@@ -2885,8 +2885,8 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl* treel
         return 0;
     }
 
-    if (a->GetDisplayAs() == "ModelGroup") {
-        if (b->GetDisplayAs() == "ModelGroup") {
+    if (a->GetDisplayAs() == DisplayAsType::ModelGroup) {
+        if (b->GetDisplayAs() == DisplayAsType::ModelGroup) {
             return NumberAwareStringCompare(a->name, b->name);
         }
         else {
@@ -2896,7 +2896,7 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl* treel
                 return 1;
         }
     }
-    else if (b->GetDisplayAs() == "ModelGroup") {
+    else if (b->GetDisplayAs() == DisplayAsType::ModelGroup) {
         if (ascending)
             return 1;
         else
@@ -3702,7 +3702,7 @@ void LayoutPanel::FinalizeModel()
                 return;
             }
 
-            if (_newModel->GetDisplayAs() == "Poly Line")
+            if (_newModel->GetDisplayAs() == DisplayAsType::PolyLine)
             {
                 _newModel->SetPosition(pos.x, pos.y);
             }
@@ -4523,7 +4523,7 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
         if( need_sep ) {
             menu.AppendSeparator();
         }
-        if( editing_models && (selectedBaseObject->GetDisplayAs() == "Matrix" ))
+        if( editing_models && (selectedBaseObject->GetDisplayAs() == DisplayAsType::Matrix ))
         {
             menu.Append(ID_PREVIEW_MODEL_ASPECTRATIO,"Correct Aspect Ratio");
         }
@@ -4559,7 +4559,7 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
         ul->Enable(anySelectedModelFromBase);
         
         Model* model = dynamic_cast<Model*>(selectedBaseObject);
-        if (model != nullptr && model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
+        if (model != nullptr && model->GetDisplayAs() != DisplayAsType::ModelGroup && model->GetDisplayAs() != DisplayAsType::SubModel) {
             menu.Append(ID_PREVIEW_MODEL_NODELAYOUT, "Node Layout");
         }
         if (model->SupportsWiringView()) {
@@ -4580,7 +4580,7 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
         menu.Append(ID_PREVIEW_EXPORT_FACESSTATESSUBMODELS, "Export Faces/States/SubModels");
         menu.AppendSeparator();
         for (const auto& it : xlights->AllModels) {
-            if (it.second->GetDisplayAs() == "ModelGroup") {
+            if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 menu.Append(ID_MNU_ADD_TO_EXISTING_GROUPS, "Add to Existing Groups");
                 break;
             }
@@ -5141,7 +5141,7 @@ void LayoutPanel::PreviewModelAlignWithGround()
 void LayoutPanel::EditSubmodels()
 {
     Model* md = dynamic_cast<Model*>(selectedBaseObject);
-    if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel")
+    if (md == nullptr || md->GetDisplayAs() == DisplayAsType::ModelGroup || md->GetDisplayAs() == DisplayAsType::SubModel)
         return;
 
     SubModelsDialog dlg(this, &xlights->_outputManager);
@@ -5162,7 +5162,7 @@ void LayoutPanel::EditSubmodels()
 void LayoutPanel::EditFaces()
 {
     Model* md = dynamic_cast<Model*>(selectedBaseObject);
-    if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel")
+    if (md == nullptr || md->GetDisplayAs() == DisplayAsType::ModelGroup || md->GetDisplayAs() == DisplayAsType::SubModel)
         return;
 
     ModelFaceDialog dlg(this, &xlights->_outputManager);
@@ -5177,7 +5177,7 @@ void LayoutPanel::EditFaces()
 void LayoutPanel::EditStates()
 {
     Model* md = dynamic_cast<Model*>(selectedBaseObject);
-    if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel")
+    if (md == nullptr || md->GetDisplayAs() == DisplayAsType::ModelGroup || md->GetDisplayAs() == DisplayAsType::SubModel)
         return;
 
     ModelStateDialog dlg(this, &xlights->_outputManager);
@@ -5192,7 +5192,7 @@ void LayoutPanel::EditStates()
 void LayoutPanel::EditModelData()
 {
     CustomModel* md = dynamic_cast<CustomModel*>(selectedBaseObject);
-    if (md == nullptr || md->GetDisplayAs() != "Custom")
+    if (md == nullptr || md->GetDisplayAs() != DisplayAsType::Custom)
         return;
 
     md->SaveDisplayDimensions();
@@ -5215,7 +5215,7 @@ void LayoutPanel::EditModelData()
 void LayoutPanel::ShowNodeLayout()
 {
     Model* md = dynamic_cast<Model*>(selectedBaseObject);
-    if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel") return;
+    if (md == nullptr || md->GetDisplayAs() == DisplayAsType::ModelGroup || md->GetDisplayAs() == DisplayAsType::SubModel) return;
     wxString html = md->ChannelLayoutHtml(xlights->GetOutputManager());
     ChannelLayoutDialog dialog(this);
     dialog.SetHtmlSource(html);
@@ -5225,7 +5225,7 @@ void LayoutPanel::ShowNodeLayout()
 void LayoutPanel::ShowWiring()
 {
     Model* md = dynamic_cast<Model*>(selectedBaseObject);
-    if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel") return;
+    if (md == nullptr || md->GetDisplayAs() == DisplayAsType::ModelGroup || md->GetDisplayAs() == DisplayAsType::SubModel) return;
     WiringDialog dlg(this, md->GetName());
     dlg.SetData(md);
     dlg.ShowModal();
@@ -5234,7 +5234,7 @@ void LayoutPanel::ShowWiring()
 void LayoutPanel::ExportModelAsCAD()
 {
     Model* md = dynamic_cast<Model*>(selectedBaseObject);
-    if (md == nullptr || md->GetDisplayAs() == "ModelGoup" || md->GetDisplayAs() == "SubModel") return;
+    if (md == nullptr || md->GetDisplayAs() == DisplayAsType::ModelGroup || md->GetDisplayAs() == DisplayAsType::SubModel) return;
 
 #ifdef __WXOSX__
     static std::string const filter = "DXF STL VRML File (*.dxf;*.stl;*.wrl)|*.dxf;*.stl;*.wrl";
@@ -5274,7 +5274,7 @@ void LayoutPanel::ExportFacesStatesSubModels() {
     wxArrayString choices;
     
     for (const auto& model : modelPreview->GetModels()) {
-        if (model->Name() == selectedBaseObject->Name() || model->GetDisplayAs() == "Image")
+        if (model->Name() == selectedBaseObject->Name() || model->GetDisplayAs() == DisplayAsType::Image)
             continue;
         choices.Add(model->Name());
     }
@@ -5428,7 +5428,7 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
 
     Model* selectedModel = modelPreview->GetModels()[selectedindex];
-    std::string selectedType = selectedModel->GetDisplayAs();
+    DisplayAsType selectedType = selectedModel->GetDisplayAs();
     float width = selectedModel->GetRestorableMWidth();
     float height = selectedModel->GetRestorableMHeight();
     float depth = selectedModel->GetRestorableMDepth();
@@ -5442,7 +5442,7 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
     std::string customFingerprint = "";
 
     // check if custom 3d and set model fingerprint
-    if (selectedType == "Custom") {
+    if (selectedType == DisplayAsType::Custom) {
         CustomModel *cm = dynamic_cast<CustomModel*>(selectedModel);
         isCustom3d = cm && cm->GetCustomDepth() > 1;
         if (isCustom3d) {
@@ -5453,7 +5453,7 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
         if (modelPreview->GetModels()[i]->GroupSelected()) {
             Model* modelToResize = modelPreview->GetModels()[i];
-            std::string modelType = modelToResize->GetDisplayAs();
+            DisplayAsType modelType = modelToResize->GetDisplayAs();
             bool custom3dPrintsMatch = false;
 
             // if selected is Custom3d check if model fingerprints match
@@ -5466,7 +5466,7 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
                 }
             }
 
-            if ((isBoxed && selectedType == modelType && selectedType != "Custom") || custom3dPrintsMatch) {
+            if ((isBoxed && selectedType == modelType && selectedType != DisplayAsType::Custom) || custom3dPrintsMatch) {
                 // boxed model, types match and not a custom model OR custom 3d model and fingerprints matched so use scale matrix
                 glm::vec3 matrixScale = selectedModel->GetModelScreenLocation().GetScaleMatrix();
                 if (sameWidth && sameHeight) {
@@ -5928,7 +5928,7 @@ std::vector<Model *> LayoutPanel::GetSelectedModelsFromGroup(wxTreeListItem grou
             ModelTreeData *data = (ModelTreeData*)TreeListViewModels->GetItemData(item);
             Model* model = ((data != nullptr) ? data->GetModel() : nullptr);
 
-            if (model->GetDisplayAs() == "ModelGroup" && nested == true) {
+            if (model->GetDisplayAs() == DisplayAsType::ModelGroup && nested == true) {
                 std::vector<Model *> nestedModels = GetSelectedModelsFromGroup(item, true);
                 for (Model* nestedModel: nestedModels) {
                     if (std::find(groupModels.begin(), groupModels.end(), nestedModel) == groupModels.end()) {
@@ -5955,7 +5955,7 @@ std::vector<Model*> LayoutPanel::GetSelectedModelsForEdit(bool incSubModels) {
         std::vector<Model*> groupModels = GetSelectedModelsFromGroup(groupItem);
         for (Model* model: groupModels) {
             if (std::find(modelsForEdit.begin(), modelsForEdit.end(), model) == modelsForEdit.end()) {
-                if (model->GetDisplayAs() != "SubModel" || incSubModels) {
+                if (model->GetDisplayAs() != DisplayAsType::SubModel || incSubModels) {
                     modelsForEdit.push_back(model);
                 }
             }
@@ -6733,7 +6733,7 @@ ModelGroup* LayoutPanel::GetSelectedModelGroup() const
     //    ModelTreeData* data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(mSelectedGroup));
     //    Model* model = data != nullptr ? data->GetModel() : nullptr;
     //    if (model != nullptr) {
-    //        if (model->GetDisplayAs() == "ModelGroup") {
+    //        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
     //            res = dynamic_cast<ModelGroup*>(model);
     //        }
     //    }
@@ -7076,7 +7076,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 
                 if (nd != nullptr)
                 {
-                    auto nda = nd->GetAttribute("DisplayAs");
+                    auto nda = DisplayAsTypeFromString(nd->GetAttribute("DisplayAs"));
                     auto nx = (int)wxAtof(nd->GetAttribute("WorldPosX"));
                     auto ny = (int)wxAtof(nd->GetAttribute("WorldPosY"));
                     auto nz = (int)wxAtof(nd->GetAttribute("WorldPosZ"));
@@ -7100,12 +7100,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                                     nz == z)
                                 {
                                     nx += 40;
-                                    // gjones: removed Y offset...almost always want same height when pasting
-                                    //ny -= 40;
-                                    nd->DeleteAttribute("WorldPosX");
-                                    //nd->DeleteAttribute("WorldPosY");
                                     nd->AddAttribute("WorldPosX", wxString::Format("%6.4f", (float)nx));
-                                    //nd->AddAttribute("WorldPosY", wxString::Format("%6.4f", (float)ny));
                                     moved = true;
                                     break;
                                 }
@@ -7715,7 +7710,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             bool deleted = false;
             bool rc = false;
             for (const auto& m : xlights->AllModels) {
-                if (m.second->GetDisplayAs() == "ModelGroup") {
+                if (m.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
                     ModelGroup* mg = dynamic_cast<ModelGroup*>(m.second);
                     rc = mg->DeleteAllAliases();
                     deleted = deleted || rc;
@@ -7745,7 +7740,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             deleted = false;
             auto it = xlights->AllModels.begin();
             while (it != xlights->AllModels.end()) {
-                if (it->second->GetDisplayAs() == "ModelGroup") {
+                if (it->second->GetDisplayAs() == DisplayAsType::ModelGroup) {
                     ModelGroup* mg = dynamic_cast<ModelGroup*>(it->second);
                     ++it;
                     if (mg->GetModelCount() == 0) {
@@ -7771,7 +7766,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
     } else if (id == ID_MNU_MAKEALLSCVALID) {
         if (wxMessageBox("While this will make all your start channels valid it will not magically make your start channel right for your show. It will however solve strange nodes lighting up in the sequencer.\nAre you ok with this?", "WARNING", wxYES_NO | wxCENTRE) == wxYES) {
             for (const auto& it : xlights->AllModels) {
-                if (it.second->GetDisplayAs() != "ModelGroup" && (!it.second->CouldComputeStartChannel || !it.second->IsValidStartChannelString())) {
+                if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && (!it.second->CouldComputeStartChannel || !it.second->IsValidStartChannelString())) {
                     it.second->SetControllerName(NO_CONTROLLER);
                 }
             }
@@ -7784,7 +7779,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
     } else if (id == ID_MNU_MAKEALLSCNOTOVERLAPPING) {
         if (wxMessageBox("While this will make all your start channels not overlapping it will not magically make your start channel right for your show. It will however solve strange nodes lighting up in the sequencer.\nAre you ok with this?", "WARNING", wxYES_NO | wxCENTRE) == wxYES) {
             for (const auto& it : xlights->AllModels) {
-                if (it.second->GetDisplayAs() != "ModelGroup" && xlights->AllModels.IsModelOverlapping(it.second)) {
+                if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && xlights->AllModels.IsModelOverlapping(it.second)) {
                     it.second->SetControllerName(NO_CONTROLLER);
                 }
             }
@@ -8062,7 +8057,7 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
                 logger_base.debug("Imported model group '%s'.", (const char*)name.c_str());
             }
 
-            if (model->GetDisplayAs() == "ModelGroup") {
+            if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 ModelGroup *group = (ModelGroup*)model;
                 for (const auto& m : models) {
                     // only add model to group if it doesn't already exist
@@ -8536,7 +8531,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     mnuContext.Append(ID_MNU_ADD_MODEL_GROUP, "Add Empty Group");
     if ((selectedTreeModels.size() + selectedTreeSubModels.size() + selectedTreeGroups.size()) > 0) {
         for (const auto& m : xlights->AllModels) {
-            if (m.second->GetDisplayAs() == "ModelGroup") {
+            if (m.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 // adjust label for tree
                 mnuContext.Append(ID_MNU_ADD_TO_EXISTING_GROUPS, "Add Selections to Existing Groups");
                 break;
@@ -8594,7 +8589,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
 
     if (!foundOverlapping && !foundInvalid) { // no point looking again if we already know we have an issue
         for (const auto& it : xlights->AllModels) {
-            if (it.second->GetDisplayAs() != "ModelGroup") {
+            if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
                 if (!foundInvalid && (!it.second->CouldComputeStartChannel || !it.second->IsValidStartChannelString())) {
                     foundInvalid = true;
                     if (foundOverlapping) break;
@@ -8700,10 +8695,10 @@ void LayoutPanel::HandleSelectionChanged() {
                 #else
                                 wxASSERT(xlights->AllModels.IsModelValid(model));
                 #endif
-                if (model->GetDisplayAs() == "ModelGroup") {
+                if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
                     selectedTreeGroups.push_back(item);
                     SetTreeGroupModelsSelected(model, isPrimary);
-                } else if (model->GetDisplayAs() == "SubModel") {
+                } else if (model->GetDisplayAs() == DisplayAsType::SubModel) {
                     selectedTreeSubModels.push_back(item);
                     SetTreeSubModelSelected(model, isPrimary);
                 } else {
@@ -9144,7 +9139,7 @@ int LayoutPanel::calculateNodeCountOfSelected()
     //Now parse the group elements into their perspective groups for processing
     std::vector<Model*> sgModels = GetSelectedModelsForEdit(true);
     for (const auto& item : sgModels){
-        if (item->GetDisplayAs() == "SubModel") {
+        if (item->GetDisplayAs() == DisplayAsType::SubModel) {
             selectedSubModels.push_back(item);
         } else {
             selectedModels.push_back(item);

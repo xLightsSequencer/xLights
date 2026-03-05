@@ -183,10 +183,10 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
             if (name == sel_chan) {
                 int min_limit = 0;
                 int max_limit = 100;
-                if (model_info->GetDisplayAs().rfind("Dmx", 0) == 0) {
+                if (IsDmxDisplayType(model_info->GetDisplayAs())) {
                     DmxModel* dmx = (DmxModel*)model_info;
                     int brt_channel = -1;
-                    if (model_info->GetDisplayAs() == "DmxServo") {
+                    if (model_info->GetDisplayAs() == DisplayAsType::DmxServo) {
                         DmxServo* servo = (DmxServo*)model_info;
                         for (int k = 0; k < servo->GetNumServos(); ++k) {
                             int axis_channel = servo->GetAxis(k)->GetChannel();
@@ -196,7 +196,7 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                                 break;
                             }
                         }
-                    } else if (model_info->GetDisplayAs() == "DmxServo3d") {
+                    } else if (model_info->GetDisplayAs() == DisplayAsType::DmxServo3d) {
                         DmxServo3d* servo = (DmxServo3d*)model_info;
                         for (int k = 0; k < servo->GetNumServos(); ++k) {
                             int axis_channel = servo->GetAxis(k)->GetChannel();
@@ -206,7 +206,7 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                                 break;
                             }
                         }
-                    } else if (model_info->GetDisplayAs() == "DmxMovingHeadAdv") {
+                    } else if (model_info->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv) {
                         DmxMovingHeadAdv* mhead = (DmxMovingHeadAdv*)model_info;
                         for (int k = 0; k < mhead->GetNumMotors(); ++k) {
                             int axis_channel = mhead->GetAxis(k)->GetChannelCoarse();
@@ -219,7 +219,7 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                                 break;
                             }
                         }
-                    } else if (model_info->GetDisplayAs() == "DmxSkull") {
+                    } else if (model_info->GetDisplayAs() == DisplayAsType::DmxSkull) {
                         DmxSkull* skull = (DmxSkull*)model_info;
                         if (skull->HasPan()) {
                             int pan_channel = skull->GetPanChannel();
@@ -325,7 +325,7 @@ void ServoEffect::SetPanelStatus(Model* cls) {
     }
 
     Model* m = cls;
-    if (cls->GetDisplayAs() == "ModelGroup") {
+    if (cls->GetDisplayAs() == DisplayAsType::ModelGroup) {
         m = dynamic_cast<ModelGroup*>(cls)->GetFirstModel();
         if (m == nullptr)
             m = cls;

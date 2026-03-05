@@ -27,7 +27,7 @@
 DmxFloodlight::DmxFloodlight(const ModelManager &manager)
     : DmxModel(manager)
 {
-    DisplayAs = XmlNodeKeys::DmxFloodlightType;
+    DisplayAs = DisplayAsType::DmxFloodlight;
     color_ability = std::make_unique<DmxColorAbilityRGB>();
     shutter_ability = std::make_unique<DmxShutterAbility>();
     beam_ability = std::make_unique<DmxBeamAbility>();

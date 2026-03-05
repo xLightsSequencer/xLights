@@ -990,7 +990,7 @@ void SequenceElements::AddMissingModelsToSequence(const std::string &models, boo
             std::string modelName = model[m].Trim(true).Trim(false).ToStdString();
             Model *model1 = xframe->AllModels[modelName];
             if (model1 != nullptr) {
-                if (model1->GetDisplayAs() == "SubModel") {
+                if (model1->GetDisplayAs() == DisplayAsType::SubModel) {
                     model1 = (dynamic_cast<SubModel*>(model1))->GetParent();
                 }
                 if (model1 != nullptr)
@@ -1234,7 +1234,7 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
         return;
     }
     elem->Init(*cls);
-    if (cls->GetDisplayAs() == "ModelGroup" && elem->ShowStrands()) {
+    if (cls->GetDisplayAs() == DisplayAsType::ModelGroup && elem->ShowStrands()) {
         ModelGroup* grp = dynamic_cast<ModelGroup*>(cls);
         for (const auto& it : grp->ModelNames()) {
             std::string modelName = it;

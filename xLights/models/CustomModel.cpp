@@ -32,7 +32,7 @@
 
 CustomModel::CustomModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
-    DisplayAs = XmlNodeKeys::CustomType;
+    DisplayAs = DisplayAsType::Custom;
     _depth = 1;
     _strings = 1;
     screenLocation.SetSupportsZScaling(true);
@@ -1037,7 +1037,7 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
 
     std::string html = "<html><body><table border=0>";
     html += "<tr><td>Name:</td><td>" + name + "</td></tr>";
-    html += "<tr><td>Display As:</td><td>" + DisplayAs + "</td></tr>";
+    html += "<tr><td>Display As:</td><td>" + DisplayAsTypeToString(DisplayAs) + "</td></tr>";
     html += "<tr><td>String Type:</td><td>" + StringType + "</td></tr>";
     html += "<tr><td>Start Corner:</td><td>" + direction + "</td></tr>";
     html += wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>", (int)NodeCount);

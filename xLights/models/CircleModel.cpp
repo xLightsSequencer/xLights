@@ -25,7 +25,7 @@
 
 CircleModel::CircleModel(const ModelManager& manager) : ModelWithScreenLocation(manager)
 {
-    DisplayAs = XmlNodeKeys::CircleType;
+    DisplayAs = DisplayAsType::Circle;
 }
 
 CircleModel::~CircleModel()

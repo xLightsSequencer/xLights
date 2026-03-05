@@ -20,7 +20,7 @@
 
 WindowFrameModel::WindowFrameModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
-    DisplayAs = XmlNodeKeys::WindowType;
+    DisplayAs = DisplayAsType::WindowFrame;
 }
 
 WindowFrameModel::~WindowFrameModel()

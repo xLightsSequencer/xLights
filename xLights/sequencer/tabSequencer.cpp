@@ -487,7 +487,7 @@ void xLightsFrame::CheckForValidModels()
     for (const auto& it : AllModels) {
         if (it.second != nullptr) {
             AllNames.push_back(it.first);
-            if (it.second->GetDisplayAs() != "ModelGroup") {
+            if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
                 ModelNames.push_back(it.first);
             }
         }
@@ -734,7 +734,7 @@ void xLightsFrame::CheckForValidModels()
                             _sequenceElements.DeleteElement(name);
                         }
                     }
-                    else if (m->GetDisplayAs() == "ModelGroup") {
+                    else if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                         bool hasStrandEffects = false;
                         bool hasNodeEffects = false;
                         for (int l = 0; l < el->GetStrandCount(); l++) {
@@ -1034,7 +1034,7 @@ void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
     wxString s = event.GetString();
     if ("" != s) {
         for (const auto& it : AllModels) {
-            if (it.second->GetDisplayAs() == "ModelGroup" && s == it.first) {
+            if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup && s == it.first) {
                 ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
                 if (mg != nullptr) {
                     const auto& names = mg->ModelNames();
@@ -1340,13 +1340,13 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
         // Change render buffer to Per Model for models that need it
         Model* m = AllModels[el->GetParentElement()->GetModelName()];
-        if( m->GetDisplayAs() == "ModelGroup" ) {
+        if( m->GetDisplayAs() == DisplayAsType::ModelGroup ) {
             auto mg = dynamic_cast<ModelGroup*>(m);
             if (mg != nullptr) {
                 // see if all models in the group match the desired model types
                 bool all_good = true;
                 for (const auto& it : mg->GetFlatModels(true, false)) {
-                    if (it->GetDisplayAs() != "DmxMovingHeadAdv" && it->GetDisplayAs() != "DmxMovingHead") {
+                    if (it->GetDisplayAs() != DisplayAsType::DmxMovingHeadAdv && it->GetDisplayAs() != DisplayAsType::DmxMovingHead) {
                         all_good = false;
                         break;
                     }
@@ -3996,7 +3996,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent& event)
         Model* model = GetModel(el->GetModelName());
 
         // we cant do this on model groups & submodels
-        if (model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
+        if (model->GetDisplayAs() != DisplayAsType::ModelGroup && model->GetDisplayAs() != DisplayAsType::SubModel) {
             for (int i = 0; i < el->GetStrandCount(); ++i) {
                 StrandElement* se = el->GetStrand(i);
                 for (int j = 0; j < se->GetNodeLayerCount(); ++j) {

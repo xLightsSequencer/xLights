@@ -113,8 +113,8 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     const std::string& string_type = model_info->GetStringType();
 
     if (StartsWith(string_type, "Single Color")) {
-        if( model_info->GetDisplayAs() == "DmxMovingHeadAdv" ||
-            model_info->GetDisplayAs() == "DmxMovingHead") {
+        if( model_info->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv ||
+            model_info->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
             MovingHeadPanel *p = (MovingHeadPanel*)panel;
             if (p == nullptr) {
                 return;
@@ -580,17 +580,17 @@ std::list<const Model*> MovingHeadEffect::GetModels(const Model* model)
 {
     std::list<const Model*> model_list;
     if (model != nullptr) {
-        if (model->GetDisplayAs() == "ModelGroup") {
+        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             auto mg = dynamic_cast<const ModelGroup*>(model);
             if (mg != nullptr) {
                 for (const auto& it : mg->GetFlatModels(true, false)) {
-                    if (it->GetDisplayAs() != "ModelGroup" && it->GetDisplayAs() != "SubModel") {
+                    if (it->GetDisplayAs() != DisplayAsType::ModelGroup && it->GetDisplayAs() != DisplayAsType::SubModel) {
                         model_list.push_back(it);
                     }
                 }
             }
         }
-        else if (model->GetDisplayAs() == "SubModel") {
+        else if (model->GetDisplayAs() == DisplayAsType::SubModel) {
             // don't add SubModels
         }
         else {
@@ -625,7 +625,7 @@ void MovingHeadEffect::SetPanelStatus(Model *cls) {
     auto models = GetModels(cls);
     bool single_model = models.size() == 1;
     for (const auto& it : models) {
-        if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
             DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
             wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", mhead->GetFixtureVal());
             wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));

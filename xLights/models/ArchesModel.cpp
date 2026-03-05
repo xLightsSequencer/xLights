@@ -26,7 +26,7 @@
 
 ArchesModel::ArchesModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
-    DisplayAs = XmlNodeKeys::ArchesType;
+    DisplayAs = DisplayAsType::Arches;
     screenLocation.SetModelHandleHeight(true);
     screenLocation.SetSupportsAngle(true);
     screenLocation.SetPreferredSelectionPlane(ModelScreenLocation::MSLPLANE::GROUND);

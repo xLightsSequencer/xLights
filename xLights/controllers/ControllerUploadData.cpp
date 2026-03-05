@@ -1321,7 +1321,7 @@ void UDController::Rescan(bool eliminateOverlaps) {
     ClearPorts();
 
     for (const auto& it : *_modelManager) {
-        if (!ModelProcessed(it.second, 1) && it.second->GetDisplayAs() != "ModelGroup") {
+        if (!ModelProcessed(it.second, 1) && it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             int32_t modelstart = it.second->GetNumberFromChannelString(it.second->ModelStartChannel);
             int32_t modelend = modelstart + it.second->GetChanCount() - 1;
             if ((modelstart >= _controller->GetStartChannel() && modelstart <= _controller->GetEndChannel()) ||

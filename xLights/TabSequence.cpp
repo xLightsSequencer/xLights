@@ -684,7 +684,7 @@ void xLightsFrame::SaveModelsFile()
     bool first = true;
     for (auto m = AllModels.begin(); m != AllModels.end(); ++m) {
         Model* model = m->second;
-        if (model->GetDisplayAs() == "ModelGroup") {
+        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             // Dont export model groups ... they arent useful
 
             // if (!first)
@@ -699,7 +699,7 @@ void xLightsFrame::SaveModelsFile()
             //     "\",\"startchannel\":\"" + wxString::Format("%i", mg->NodeStartChannel(0) + 1) +
             //     "\",\"channels\":\"" + wxString::Format("%i", mg->GetChanCount()) +
             //     "\",\"stringtype\":\"\"}");
-        } else if (model->GetDisplayAs() == "SubModel") {
+        } else if (model->GetDisplayAs() == DisplayAsType::SubModel) {
             // Dont export SubModels ... they arent useful
 
             // if (!first)
@@ -723,7 +723,7 @@ void xLightsFrame::SaveModelsFile()
 
             long ch = model->GetNumberFromChannelString(model->ModelStartChannel);
             modelsJSON.Write("{\"name\":\"" + model->name +
-                             "\",\"type\":\"" + model->GetDisplayAs() +
+                             "\",\"type\":\"" + DisplayAsTypeToString(model->GetDisplayAs()) +
                              "\",\"startchannel\":\"" + wxString::Format("%ld", (long)ch) +
                              "\",\"channels\":\"" + wxString::Format("%ld", (long)model->GetChanCount()) +
                              "\",\"stringtype\":\"" + model->GetStringType() + "\"}");
@@ -1089,7 +1089,7 @@ void xLightsFrame::LoadModels(wxXmlNode* modelsNode,
     // Add all models to default House Preview that are set to Default or All Previews
     for (const auto& it : AllModels) {
         Model* model = it.second;
-        if (model->GetDisplayAs() != "ModelGroup") {
+        if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
             if (model->GetLayoutGroup() == "Default" || model->GetLayoutGroup() == "All Previews") {
                 PreviewModels.push_back(model);
             }
@@ -1099,7 +1099,7 @@ void xLightsFrame::LoadModels(wxXmlNode* modelsNode,
     // Now add all models to default House Preview that are in groups set to Default or All Previews
     for (const auto& it : AllModels) {
         Model* model = it.second;
-        if (model->GetDisplayAs() == "ModelGroup") {
+        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             ModelGroup* grp = (ModelGroup*)model;
             if (model->GetLayoutGroup() == "All Previews" || model->GetLayoutGroup() == "Default") {
                 AddModelsToPreview(grp, PreviewModels);
@@ -1134,7 +1134,7 @@ void xLightsFrame::UpdateModelsList()
     // Add all models to default House Preview that are set to Default or All Previews
     for (const auto& it : AllModels) {
         Model* model = it.second;
-        if (model->GetDisplayAs() != "ModelGroup") {
+        if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
             if (model->GetLayoutGroup() == "Default" || model->GetLayoutGroup() == "All Previews") {
                 PreviewModels.push_back(model);
             }
@@ -1144,7 +1144,7 @@ void xLightsFrame::UpdateModelsList()
     // Now add all models to default House Preview that are in groups set to Default or All Previews
     for (const auto& it : AllModels) {
         Model* model = it.second;
-        if (model->GetDisplayAs() == "ModelGroup") {
+        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             ModelGroup* grp = (ModelGroup*)model;
             if (model->GetLayoutGroup() == "All Previews" || model->GetLayoutGroup() == "Default") {
                 AddModelsToPreview(grp, PreviewModels);

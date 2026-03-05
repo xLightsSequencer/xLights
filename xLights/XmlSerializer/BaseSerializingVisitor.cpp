@@ -125,7 +125,7 @@ void BaseSerializingVisitor::SortAttributes(AttrCollector& collector) {
 
 void BaseSerializingVisitor::AddBaseObjectAttributes(const BaseObject& base, AttrCollector& attrs) {
     attrs.Add(XmlNodeKeys::NameAttribute, base.GetName());
-    attrs.Add(XmlNodeKeys::DisplayAsAttribute, base.GetDisplayAs());
+    attrs.Add(XmlNodeKeys::DisplayAsAttribute, DisplayAsTypeToString(base.GetDisplayAs()));
     attrs.Add(XmlNodeKeys::LayoutGroupAttribute, base.GetLayoutGroup());
     if (!base.IsActive()) {
         attrs.Add(XmlNodeKeys::ActiveAttribute, "0");

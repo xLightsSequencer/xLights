@@ -32,7 +32,7 @@
 DmxSkull::DmxSkull(const ModelManager& manager) :
     DmxModel(manager)
 {
-    DisplayAs = XmlNodeKeys::DmxSkullType;
+    DisplayAs = DisplayAsType::DmxSkull;
     color_ability = std::make_unique<DmxColorAbilityRGB>();
 
     wxStandardPaths stdp = wxStandardPaths::Get();

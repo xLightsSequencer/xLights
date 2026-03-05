@@ -21,7 +21,7 @@
 
 CandyCaneModel::CandyCaneModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
-    DisplayAs = XmlNodeKeys::CandyCaneType;
+    DisplayAs = DisplayAsType::CandyCanes;
     screenLocation.SetModelHandleHeight(true);
     screenLocation.SetSupportsAngle(true);
     screenLocation.SetPreferredSelectionPlane(ModelScreenLocation::MSLPLANE::GROUND);

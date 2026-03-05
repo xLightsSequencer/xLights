@@ -139,12 +139,12 @@ void ViewObjectPanel::refreshObjectList() {
         if (model != nullptr ) {
             int end_channel = model->GetLastChannel()+1;
             wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager(), nullptr);
-            if( model->GetDisplayAs() != "ModelGroup" ) {
+            if( model->GetDisplayAs() != DisplayAsType::ModelGroup ) {
                 wxString cv = TreeListViewObjects->GetItemText(item, Col_StartChan);
                 wxString startStr = model->GetStartChannelInDisplayFormat();
                 if (cv != startStr) {
                     data->startingChannel = model->GetNumberFromChannelString(model->ModelStartChannel);
-                    if ((model->CouldComputeStartChannel || model->GetDisplayAs() == "SubModel") && model->IsValidStartChannelString())
+                    if ((model->CouldComputeStartChannel || model->GetDisplayAs() == DisplayAsType::SubModel) && model->IsValidStartChannelString())
                     {
                         TreeListViewObjects->SetItemText(item, Col_StartChan, startStr);
                     }
@@ -166,13 +166,13 @@ void ViewObjectPanel::refreshObjectList() {
 }
 
 int ViewObjectPanel::GetObjectTreeIcon(ViewObject* view_object, bool open) {
-    if( view_object->GetDisplayAs() == "ModelGroup" ) {
+    if( view_object->GetDisplayAs() == DisplayAsType::ModelGroup ) {
         return open ? Icon_FolderOpened : Icon_FolderClosed;
     } else {
-        const std::string type = view_object->GetDisplayAs();
-        if (type == "Image") {
+        const DisplayAsType type = view_object->GetDisplayAs();
+        if (type == DisplayAsType::Image) {
             return Icon_Image;
-        } else if( type == "Poly Line" ) {
+        } else if (type == DisplayAsType::PolyLine) {
             return Icon_Poly;
         }
     }
@@ -189,7 +189,7 @@ int ViewObjectPanel::AddObjectToTree(ViewObject *view_object, wxTreeListItem* pa
                                                          GetObjectTreeIcon(view_object, true),
                                                          new ObjectTreeData(view_object, nativeOrder));
 
-    /*if( model->GetDisplayAs() == "ModelGroup" ) {
+    /*if( model->GetDisplayAs() == DisplayAsType::ModelGroup ) {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         ModelGroup *grp = (ModelGroup*)model;
         int i = 0;
@@ -287,7 +287,7 @@ void ViewObjectPanel::UpdateObjectList(bool full_refresh, std::vector<ViewObject
         // add all the object groups
         /*for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
             Model *model = it->second;
-            if (model->GetDisplayAs() == "ModelGroup") {
+            if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 if (currentLayoutGroup == "All Models" || model->GetLayoutGroup() == currentLayoutGroup
                     || (model->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
                     bool expand = (std::find(expanded.begin(), expanded.end(), model->GetName()) != expanded.end());
@@ -299,7 +299,7 @@ void ViewObjectPanel::UpdateObjectList(bool full_refresh, std::vector<ViewObject
         // add all the objects
         for (auto it = objects.begin(); it != objects.end(); ++it) {
             ViewObject *view_object = *it;
-            if (view_object->GetDisplayAs() != "ModelGroup") {
+            if (view_object->GetDisplayAs() != DisplayAsType::ModelGroup) {
                 bool expand = (std::find(expanded.begin(), expanded.end(), view_object->GetName()) != expanded.end());
                 width = std::max(width, AddObjectToTree(view_object, &root, expand, 0));
             }
@@ -336,7 +336,7 @@ void ViewObjectPanel::UpdateObjectsForPreview(const std::string &group, LayoutGr
 
     for (const auto& it : layoutPanel->xlights->AllObjects) {
         ViewObject *view_object = it.second;
-        if (view_object->GetDisplayAs() != "ObjectGroup") {
+        if (view_object->GetDisplayAs() != DisplayAsType::ObjectGroup) {
             if (group == "All Models" ||
                 view_object->GetLayoutGroup() == group ||
                 (view_object->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
@@ -460,7 +460,7 @@ bool ViewObjectPanel::OnSelectionChanged(wxTreeListEvent& event, ViewObject** vi
         ObjectTreeData* data = (ObjectTreeData*)TreeListViewObjects->GetItemData(item);
         *view_object = ((data != nullptr) ? data->GetViewObject() : nullptr);
         if (*view_object != nullptr) {
-            if ((*view_object)->GetDisplayAs() == "ObjectGroup") {
+            if ((*view_object)->GetDisplayAs() == DisplayAsType::ObjectGroup) {
                 mSelectedGroup = item;
                 UpdateObjectList(false, currentLayoutGroup);
                 // model_grp_panel->UpdatePanel(view_object->name);
@@ -541,7 +541,7 @@ void ViewObjectPanel::OnItemContextMenu(wxTreeListEvent& event)
         ObjectTreeData *data = dynamic_cast<ObjectTreeData*>(TreeListViewObjects->GetItemData(item));
         ViewObject* view_object = data != nullptr ? data->GetViewObject() : nullptr;
         if( view_object != nullptr ) {
-            if( view_object->GetDisplayAs() == "ObjectGroup" ) {
+            if( view_object->GetDisplayAs() == DisplayAsType::ObjectGroup ) {
                 mSelectedGroup = item;
             } else {
                 mSelectedGroup = nullptr;
@@ -619,8 +619,8 @@ int ViewObjectPanel::ObjectListComparator::SortElementsFunction(wxTreeListCtrl *
         return 0;
     }
 
-    if (a->GetDisplayAs() == "ObjectGroup") {
-        if (b->GetDisplayAs() == "ObjectGroup") {
+    if (a->GetDisplayAs() == DisplayAsType::ObjectGroup) {
+        if (b->GetDisplayAs() == DisplayAsType::ObjectGroup) {
             return NumberAwareStringCompare(a->name, b->name);
         }
         else {
@@ -630,7 +630,7 @@ int ViewObjectPanel::ObjectListComparator::SortElementsFunction(wxTreeListCtrl *
                 return 1;
         }
     }
-    else if (b->GetDisplayAs() == "ObjectGroup") {
+    else if (b->GetDisplayAs() == DisplayAsType::ObjectGroup) {
         if (ascending)
             return 1;
         else

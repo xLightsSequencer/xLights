@@ -650,9 +650,9 @@ public:
     }
 
     // returns true for models that only have 1 string and where parm1 does NOT represent the # of strings
-    static bool HasOneString(const std::string& DispAs)
+    static bool HasOneString(const DisplayAsType DispAs)
     {
-        return (DispAs == "Window Frame" || DispAs == "Cube");
+        return (DispAs == DisplayAsType::WindowFrame || DispAs == DisplayAsType::Cube);
     }
     // true for dumb strings and traditional strings
     bool HasSingleNode(const std::string& StrType) const

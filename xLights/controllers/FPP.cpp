@@ -1480,7 +1480,7 @@ nlohmann::json FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startC
     for (const auto& m : *allmodels) {
         Model* model = m.second;
 
-        if (model->GetDisplayAs() == "ModelGroup") {
+        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             continue;
         }
         if (!model->IsActive()) {
@@ -1516,7 +1516,7 @@ nlohmann::json FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startC
             } else {
                 jm["Orientation"] = std::string("horizontal");
             }
-        } else if (model->GetDisplayAs() == "Custom") {
+        } else if (model->GetDisplayAs() == DisplayAsType::Custom) {
             CustomModel *cm = dynamic_cast<CustomModel *>(model);
             straPerStr = 1;
             numStr = 1;
@@ -1625,7 +1625,7 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
             continue;
         }
 
-        if (model->GetDisplayAs() == "ModelGroup") {
+        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             continue;
         }
         
@@ -1648,7 +1648,7 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
             continue;
         }
 
-        if (model->GetDisplayAs() == "ModelGroup") {
+        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             continue;
         }
 
@@ -1734,7 +1734,7 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
             wp = obj["WorldPosY"];
             obj["WorldPosY"] = std::to_string(std::atof(wp.c_str()) - minY);
             
-            if (e.second->GetDisplayAs() == "Mesh") {
+            if (e.second->GetDisplayAs() == DisplayAsType::Mesh) {
                 std::string fn = obj["ObjFile"];
                 wxFileName fileName(fn);
                 std::string bn = fileName.GetFullName().ToStdString();
@@ -1746,7 +1746,7 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
                     bn = fileName.GetFullName().ToStdString();
                     virtualDisplayData[bn] = fr;
                 }
-            } else if (e.second->GetDisplayAs() == "Image") {
+            } else if (e.second->GetDisplayAs() == DisplayAsType::Image) {
                 std::string fn = obj["Image"];
                 wxFileName fileName(fn);
                 std::string bn = fileName.GetFullName().ToStdString();
