@@ -24,6 +24,7 @@
 #include "UtilFunctions.h"
 #include "xLightsVersion.h"
 #include "ExternalHooks.h"
+#include "XmlSerializer/FileSerializingVisitor.h"
 
 #include <log4cpp/Category.hh>
 
@@ -852,31 +853,6 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
     ValidateWindow();
 }
 
-void EffectTreeDialog::WriteEffect(wxFile& f, EffectPreset* preset)
-{
-    f.Write("<effect name=\"" + XmlSafe(preset->GetName()) + "\" settings=\"" + XmlSafe(preset->GetSettings())
-            + "\" version=\"" + preset->GetVersion()
-            + "\" xLightsVersion=\"" + preset->GetXLightsVersion()
-            + "\" />\n");
-}
-
-void EffectTreeDialog::WriteGroup(wxFile& f, EffectPresetGroup* group)
-{
-    f.Write("<effectGroup name=\"" + XmlSafe(group->GetName()) + "\" >\n");
-    for (const auto& child : group->GetChildren())
-    {
-        if (child->IsGroup())
-        {
-            WriteGroup(f, static_cast<EffectPresetGroup*>(child.get()));
-        }
-        else
-        {
-            WriteEffect(f, static_cast<EffectPreset*>(child.get()));
-        }
-    }
-    f.Write("</effectGroup>\n");
-}
-
 void EffectTreeDialog::OnbtExportClick(wxCommandEvent& event)
 {
     wxTreeItemId id = TreeCtrl1->GetSelection();
@@ -888,60 +864,36 @@ void EffectTreeDialog::OnbtExportClick(wxCommandEvent& event)
 
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, StripLayers(name), wxEmptyString, "Preset files (*.xpreset)|*.xpreset", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty()) return;
-    wxFile f(filename);
 
-    if (!f.Create(filename, true) || !f.IsOpened())
-    {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString(), this);
+    FileSerializingVisitor visitor(filename.ToStdString());
+    if (!visitor.IsOpen()) {
+        DisplayError(wxString::Format("Unable to create file %s.\n", filename).ToStdString(), this);
         ValidateWindow();
         return;
     }
 
+    BaseSerializingVisitor::AttrCollector attr;
+    attr.Add("SourceVersion", xlights_version_string.ToStdString());
+    visitor.WriteOpenTag("preset", attr);
+
     bool presetFound = false;
 
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-    wxString v = xlights_version_string;
-    f.Write(wxString::Format("<preset SourceVersion=\"%s\" >\n", v));
-
-    if (id == treeRootID)
-    {
+    if (id == treeRootID) {
         wxTreeItemIdValue cookie;
-        for (wxTreeItemId i = TreeCtrl1->GetFirstChild(id, cookie); i.IsOk(); i = TreeCtrl1->GetNextChild(id, cookie))
-        {
-            MyTreeItemData *itemData = (MyTreeItemData *)TreeCtrl1->GetItemData(i);
-
-            if (itemData->IsGroup())
-            {
-                WriteGroup(f, itemData->AsGroup());
-                presetFound = true;
-            }
-            else
-            {
-                WriteEffect(f, itemData->AsPreset());
-                presetFound = true;
-            }
-        }
-    }
-    else
-    {
-        MyTreeItemData *itemData = (MyTreeItemData *)TreeCtrl1->GetItemData(id);
-
-        if (itemData->IsGroup())
-        {
-            WriteGroup(f, itemData->AsGroup());
+        for (wxTreeItemId i = TreeCtrl1->GetFirstChild(id, cookie); i.IsOk(); i = TreeCtrl1->GetNextChild(id, cookie)) {
+            MyTreeItemData* itemData = (MyTreeItemData*)TreeCtrl1->GetItemData(i);
+            itemData->GetItem()->Save(visitor);
             presetFound = true;
         }
-        else
-        {
-            WriteEffect(f, itemData->AsPreset());
-            presetFound = true;
-        }
+    } else {
+        MyTreeItemData* itemData = (MyTreeItemData*)TreeCtrl1->GetItemData(id);
+        itemData->GetItem()->Save(visitor);
+        presetFound = true;
     }
-    f.Write("</preset>\n");
-    f.Close();
 
-    if (!presetFound)
-    {
+    visitor.WriteCloseTag();
+
+    if (!presetFound) {
         DisplayError(wxString::Format("No presets found, Created presets file %s is empty.\n", filename).ToStdString(), this);
         ValidateWindow();
         return;

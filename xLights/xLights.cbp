@@ -241,6 +241,8 @@
 		<Unit filename="EffectListDialog.h" />
 		<Unit filename="EffectTimingDialog.cpp" />
 		<Unit filename="EffectTimingDialog.h" />
+		<Unit filename="EffectPresetManager.cpp" />
+		<Unit filename="EffectPresetManager.h" />
 		<Unit filename="EffectTreeDialog.cpp" />
 		<Unit filename="EffectTreeDialog.h" />
 		<Unit filename="EffectsPanel.cpp" />
@@ -496,6 +498,10 @@
 		<Unit filename="XmlSerializer/BaseSerializingVisitor.h" />
 		<Unit filename="XmlSerializer/GdtfParser.cpp" />
 		<Unit filename="XmlSerializer/GdtfParser.h" />
+		<Unit filename="XmlSerializer/FileSerializingVisitor.cpp" />
+		<Unit filename="XmlSerializer/FileSerializingVisitor.h" />
+		<Unit filename="XmlSerializer/StreamSerializingVisitor.cpp" />
+		<Unit filename="XmlSerializer/StreamSerializingVisitor.h" />
 		<Unit filename="XmlSerializer/StringSerializingVisitor.cpp" />
 		<Unit filename="XmlSerializer/StringSerializingVisitor.h" />
 		<Unit filename="XmlSerializer/XmlDeserializingModelFactory.cpp" />

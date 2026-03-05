@@ -40,6 +40,7 @@
     <ClCompile Include="effects\assist\xlGridCanvasPictures.cpp" />
     <ClCompile Include="effects\EffectManager.cpp" />
     <ClCompile Include="effects\EffectPanelUtils.cpp" />
+    <ClCompile Include="EffectPresetManager.cpp" />
     <ClCompile Include="EffectTreeDialog.cpp" />
     <ClCompile Include="ExportModelSelect.cpp" />
     <ClCompile Include="FileConverter.cpp" />
@@ -1131,6 +1132,12 @@
     <ClCompile Include="XmlSerializer\StringSerializingVisitor.cpp">
       <Filter>XmlSerializer</Filter>
     </ClCompile>
+    <ClCompile Include="XmlSerializer\StreamSerializingVisitor.cpp">
+      <Filter>XmlSerializer</Filter>
+    </ClCompile>
+    <ClCompile Include="XmlSerializer\FileSerializingVisitor.cpp">
+      <Filter>XmlSerializer</Filter>
+    </ClCompile>
     <ClCompile Include="ControllerConnection.cpp" />
     <ClCompile Include="models\DMX\DmxBeamAbility.cpp">
       <Filter>Models\DMX</Filter>
@@ -1173,6 +1180,7 @@
     <ClInclude Include="EffectsPanel.h" />
     <ClInclude Include="effects\EffectManager.h" />
     <ClInclude Include="effects\EffectPanelUtils.h" />
+    <ClInclude Include="EffectPresetManager.h" />
     <ClInclude Include="EffectTreeDialog.h" />
     <ClInclude Include="ExportModelSelect.h" />
     <ClInclude Include="FileConverter.h" />
@@ -2283,6 +2291,12 @@
       <Filter>XmlSerializer</Filter>
     </ClInclude>
     <ClInclude Include="XmlSerializer\StringSerializingVisitor.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlSerializer\StreamSerializingVisitor.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlSerializer\FileSerializingVisitor.h">
       <Filter>XmlSerializer</Filter>
     </ClInclude>
     <ClInclude Include="XmlSerializer\BaseSerializingVisitor.h">

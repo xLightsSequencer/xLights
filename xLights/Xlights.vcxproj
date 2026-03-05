@@ -806,6 +806,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="effects\VUMeterPanel.cpp" />
     <ClCompile Include="effects\WaveEffect.cpp" />
     <ClCompile Include="effects\WavePanel.cpp" />
+    <ClCompile Include="EffectPresetManager.cpp" />
     <ClCompile Include="EffectTreeDialog.cpp" />
     <ClCompile Include="ExportModelSelect.cpp" />
     <ClCompile Include="FileConverter.cpp" />
@@ -1016,6 +1017,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="XmlSerializer\XmlSerializingVisitor.cpp" />
     <ClCompile Include="XmlSerializer\BaseSerializingVisitor.cpp" />
     <ClCompile Include="XmlSerializer\StringSerializingVisitor.cpp" />
+    <ClCompile Include="XmlSerializer\StreamSerializingVisitor.cpp" />
+    <ClCompile Include="XmlSerializer\FileSerializingVisitor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\xlBaseApp.h" />
@@ -1357,6 +1360,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="effects\VUMeterPanel.h" />
     <ClInclude Include="effects\WaveEffect.h" />
     <ClInclude Include="effects\WavePanel.h" />
+    <ClInclude Include="EffectPresetManager.h" />
     <ClInclude Include="EffectTreeDialog.h" />
     <ClInclude Include="ExportModelSelect.h" />
     <ClInclude Include="FileConverter.h" />
@@ -1572,6 +1576,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="XmlSerializer\XmlSerializingVisitor.h" />
     <ClInclude Include="XmlSerializer\BaseSerializingVisitor.h" />
     <ClInclude Include="XmlSerializer\StringSerializingVisitor.h" />
+    <ClInclude Include="XmlSerializer\StreamSerializingVisitor.h" />
+    <ClInclude Include="XmlSerializer\FileSerializingVisitor.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

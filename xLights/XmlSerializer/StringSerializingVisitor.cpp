@@ -8,103 +8,15 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-// StringSerializingVisitor — stream-based output overrides only.
-// All Visit() and attribute/child-element logic lives in BaseSerializingVisitor.
+// StringSerializingVisitor — owns an ostringstream, delegates to
+// StreamSerializingVisitor for all XML writing.
 
 #include "StringSerializingVisitor.h"
 
-// ---------------------------------------------------------------------------
-// Constructor — writes the XML declaration.
-// ---------------------------------------------------------------------------
-
 StringSerializingVisitor::StringSerializingVisitor(bool exporting, bool prettyPrint)
-    : BaseSerializingVisitor(exporting), prettyPrint(prettyPrint) {
-    out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-    WriteNewline();
+    : StreamSerializingVisitor(_oss, exporting, prettyPrint) {
 }
-
-// ---------------------------------------------------------------------------
-// Result access
-// ---------------------------------------------------------------------------
 
 std::string StringSerializingVisitor::GetResult() const {
-    return out.str();
-}
-
-void StringSerializingVisitor::AppendRaw(const std::string& xml) {
-    out << xml;
-}
-
-// ---------------------------------------------------------------------------
-// Internal stream primitives
-// ---------------------------------------------------------------------------
-
-void StringSerializingVisitor::WriteIndent() {
-    if (prettyPrint) {
-        for (int i = 0; i < indentLevel; ++i) {
-            out << "  ";
-        }
-    }
-}
-
-void StringSerializingVisitor::WriteNewline() {
-    if (prettyPrint) {
-        out << '\n';
-    }
-}
-
-// static
-std::string StringSerializingVisitor::EscapeXml(const std::string& input) {
-    std::string result;
-    result.reserve(input.size());
-    for (char c : input) {
-        switch (c) {
-        case '&':  result += "&amp;";  break;
-        case '<':  result += "&lt;";   break;
-        case '>':  result += "&gt;";   break;
-        case '"':  result += "&quot;"; break;
-        case '\'': result += "&apos;"; break;
-        case '\t': result += "&#x9;";   break;
-        case '\n': result += "&#xA;";  break;
-        case '\r': result += "&#xD;";  break;
-        default:   result += c;        break;
-        }
-    }
-    return result;
-}
-
-// ---------------------------------------------------------------------------
-// WriteOpenTag / WriteCloseTag — the core output primitives
-// ---------------------------------------------------------------------------
-
-void StringSerializingVisitor::WriteOpenTag(const std::string& name,
-                                             const AttrCollector& attrs,
-                                             bool selfClose) {
-    WriteIndent();
-    out << '<' << name;
-    for (const auto& [key, val] : attrs.attrs) {
-        out << ' ' << key << "=\"" << EscapeXml(val) << '"';
-    }
-    if (selfClose) {
-        out << "/>";
-        WriteNewline();
-    } else {
-        out << '>';
-        WriteNewline();
-        ++indentLevel;
-        _tagStack.push_back(name);
-    }
-}
-
-void StringSerializingVisitor::WriteCloseTag() {
-    if (indentLevel > 0) --indentLevel;
-    WriteIndent();
-    std::string name = _tagStack.back();
-    _tagStack.pop_back();
-    out << "</" << name << '>';
-    WriteNewline();
-}
-
-void StringSerializingVisitor::WriteBodyText(const std::string& txt) {
-    AppendRaw(EscapeXml(txt));
+    return _oss.str();
 }

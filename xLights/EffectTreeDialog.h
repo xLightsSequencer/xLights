@@ -34,8 +34,6 @@ class xLightsFrame;
 class EffectTreeDialog : public wxDialog
 {
     void ValidateWindow();
-    void WriteEffect(wxFile& f, EffectPreset* preset);
-    void WriteGroup(wxFile& f, EffectPresetGroup* group);
 
 	public:
 
