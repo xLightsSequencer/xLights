@@ -39,6 +39,7 @@
 //*)
 
 #include "models/CustomModel.h"
+#include "models/SubModel.h"
 #include "WiringDialog.h"
 #include "wxModelGridCellRenderer.h"
 #include "UtilClasses.h"
@@ -48,6 +49,7 @@
 #include "outputs/TwinklyOutput.h"
 #include "Discovery.h"
 #include "outputs/OutputManager.h"
+#include "XmlSerializer/XmlDeserializingModelFactory.h"
 
 //(*IdInit(CustomModelDialog)
 const long CustomModelDialog::ID_SPINCTRL1 = wxNewId();
@@ -769,9 +771,9 @@ void CustomModelDialog::Save(CustomModel *m) {
     m->SetCustomHeight(HeightSpin->GetValue());
     m->SetCustomWidth(WidthSpin->GetValue());
     m->SetCustomDepth(SpinCtrl_Depth->GetValue());
-    m->SetCustomData(GetModelData());
     m->SetCustomLightness(lightness);
     m->SetCustomBackground(FilePickerCtrl1->GetFileName().GetFullPath());
+    m->SetCustomData(GetModelData());  // Do this last so it calls model setup
 }
 
 void CustomModelDialog::OnWidthSpinChange(wxSpinEvent& event)
@@ -1691,34 +1693,43 @@ void CustomModelDialog::Reverse()
 void CustomModelDialog::ReverseSubmodels() {
     long max = _model->GetNodeCount() + 1;
 
-    for (auto sm : _model->GetSubModels()) {
-        wxXmlNode* root = sm->GetModelXml();
-
-        if (root->GetName() == "subModel") {
-            const bool isRanges = root->GetAttribute("type", "") == "ranges";
-            if (isRanges) {
-                int line = 0;
-                while (root->HasAttribute(wxString::Format("line%d", line))) {
-                    auto l = root->GetAttribute(wxString::Format("line%d", line), "");
-                    wxString oldnodes = l;
-                    auto oldNodeArray = wxSplit(ExpandNodes(oldnodes), ',');
-                    wxArrayString newNodeArray;
-                    for (auto const& node : oldNodeArray) {
-                        long val;
-                        if (node.ToCLong(&val) == true) {
-                            long newVal = max - val;
-                            if (val == 0) {
-                                newVal = 0;
-                            }
-                            newNodeArray.Add( wxString::Format("%ld", newVal) );
+    for (auto m : _model->GetSubModels()) {
+        // Cast to SubModel pointer
+        SubModel* sm = dynamic_cast<SubModel*>(m);
+        if (sm == nullptr) continue;
+        
+        // Only process ranges-type submodels
+        if (sm->IsRanges()) {
+            // Create a new SubModel with reversed ranges
+            std::string newName = sm->GetName();
+            SubModel* newSm = new SubModel(_model, newName, sm->IsVertical(), true, sm->GetSubModelBufferStyle());
+            
+            // Process each range line
+            for (int line = 0; line < sm->GetNumRanges(); line++) {
+                wxString oldnodes = sm->GetRange(line);
+                auto oldNodeArray = wxSplit(ExpandNodes(oldnodes), ',');
+                wxArrayString newNodeArray;
+                
+                for (auto const& node : oldNodeArray) {
+                    long val;
+                    if (node.ToCLong(&val) == true) {
+                        long newVal = max - val;
+                        if (val == 0) {
+                            newVal = 0;
                         }
+                        newNodeArray.Add(wxString::Format("%ld", newVal));
                     }
-                    l = CompressNodes(wxJoin(newNodeArray, ','));
-                    root->DeleteAttribute(wxString::Format("line%d", line));
-                    root->AddAttribute(wxString::Format("line%d", line), l);
-                    line++;
                 }
+                
+                wxString reversedNodes = CompressNodes(wxJoin(newNodeArray, ','));
+                newSm->AddDefaultBuffer(reversedNodes);
             }
+            
+            newSm->CheckDuplicates();
+            
+            // Replace the old submodel with the new one
+            _model->RemoveSubModel(sm->GetName());
+            _model->AddSubmodel(newSm);
         }
     }
 }
@@ -2260,11 +2271,11 @@ void CustomModelDialog::CreateSubmodelFromLayer(int layer)
     int startrow = 0;
     int endrow = GetLayerGrid(layer - 1)->GetNumberRows();
 
-    wxXmlNode* sm = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
-    sm->AddAttribute("name", _model->GenerateUniqueSubmodelName(wxString::Format("Layer%d", layer)));
-    sm->AddAttribute("layout", "horizontal");
-    sm->AddAttribute("type", "ranges");
-
+    // Create SubModel directly
+    std::string name = _model->GenerateUniqueSubmodelName(wxString::Format("Layer%d", layer));
+    SubModel* sm = new SubModel(_model, name, false, true, "Default");  // horizontal, ranges, Default buffer
+    
+    // Add ranges
     for (int y = startrow; y < endrow; y++) {
         std::string row;
         for (int x = startcol; x < endcol; x++)
@@ -2275,10 +2286,10 @@ void CustomModelDialog::CreateSubmodelFromLayer(int layer)
                 row += GetLayerGrid(layer - 1)->GetCellValue(y, x);
             }
         }
-
-        sm->AddAttribute(wxString::Format("line%d", endrow - y - 1), row);
+        sm->AddDefaultBuffer(row);
     }
-
+    sm->CheckDuplicates();
+    
     _model->AddSubmodel(sm);
 }
 
@@ -2350,13 +2361,12 @@ void CustomModelDialog::CreateMinimalSubmodelFromLayer(int layer)
         }
     }
 
-    wxXmlNode* sm = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
-    sm->AddAttribute("name", _model->GenerateUniqueSubmodelName(wxString::Format("MinimalLayer%d", layer)));
-    sm->AddAttribute("layout", "horizontal");
-    sm->AddAttribute("type", "ranges");
-
+    // Create SubModel directly
+    std::string name = _model->GenerateUniqueSubmodelName(wxString::Format("MinimalLayer%d", layer));
+    SubModel* sm = new SubModel(_model, name, false, true, "Default");
+    
+    // Add ranges
     for (int y = startrow; y < endrow; y++) {
-
         std::string row;
         for (int x = startcol; x < endcol; x++)
         {
@@ -2366,10 +2376,10 @@ void CustomModelDialog::CreateMinimalSubmodelFromLayer(int layer)
                 row += GetLayerGrid(layer-1)->GetCellValue(y, x);
             }
         }
-
-        sm->AddAttribute(wxString::Format("line%d", endrow - y - 1), row);
+        sm->AddDefaultBuffer(row);
     }
-
+    sm->CheckDuplicates();
+    
     _model->AddSubmodel(sm);
 }
 
@@ -2380,11 +2390,11 @@ void CustomModelDialog::CreateSubmodelFromRow(int row)
     int startrow = 0;
     int endrow = SpinCtrl_Depth->GetValue();
 
-    wxXmlNode* sm = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
-    sm->AddAttribute("name", _model->GenerateUniqueSubmodelName(wxString::Format("Row%d", row)));
-    sm->AddAttribute("layout", "horizontal");
-    sm->AddAttribute("type", "ranges");
-
+    // Create SubModel directly
+    std::string name = _model->GenerateUniqueSubmodelName(wxString::Format("Row%d", row));
+    SubModel* sm = new SubModel(_model, name, false, true, "Default");
+    
+    // Add ranges
     for (int y = startrow; y < endrow; y++) {
         std::string srow;
         for (int x = startcol; x < endcol; x++)
@@ -2395,10 +2405,10 @@ void CustomModelDialog::CreateSubmodelFromRow(int row)
                 srow += GetLayerGrid(y)->GetCellValue(row - 1, x);
             }
         }
-
-        sm->AddAttribute(wxString::Format("line%d", y - startrow), srow);
+        sm->AddDefaultBuffer(srow);
     }
-
+    sm->CheckDuplicates();
+    
     _model->AddSubmodel(sm);
 }
 
@@ -2470,11 +2480,11 @@ void CustomModelDialog::CreateMinimalSubmodelFromRow(int row)
         }
     }
 
-    wxXmlNode* sm = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
-    sm->AddAttribute("name", _model->GenerateUniqueSubmodelName(wxString::Format("MinimalRow%d", row)));
-    sm->AddAttribute("layout", "horizontal");
-    sm->AddAttribute("type", "ranges");
-
+    // Create SubModel directly
+    std::string name = _model->GenerateUniqueSubmodelName(wxString::Format("MinimalRow%d", row));
+    SubModel* sm = new SubModel(_model, name, false, true, "Default");
+    
+    // Add ranges
     for (int y = startrow; y < endrow; y++) {
         std::string srow;
         for (int x = startcol; x < endcol; x++)
@@ -2485,10 +2495,10 @@ void CustomModelDialog::CreateMinimalSubmodelFromRow(int row)
                 srow += GetLayerGrid(y)->GetCellValue(row - 1, x);
             }
         }
-
-        sm->AddAttribute(wxString::Format("line%d", y - startrow), srow);
+        sm->AddDefaultBuffer(srow);
     }
-
+    sm->CheckDuplicates();
+    
     _model->AddSubmodel(sm);
 }
 
@@ -2499,11 +2509,11 @@ void CustomModelDialog::CreateSubmodelFromColumn(int col)
     int startrow = 0;
     int endrow = GetActiveGrid()->GetNumberRows();
 
-    wxXmlNode* sm = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
-    sm->AddAttribute("name", _model->GenerateUniqueSubmodelName(wxString::Format("Column%d", col)));
-    sm->AddAttribute("layout", "horizontal");
-    sm->AddAttribute("type", "ranges");
-
+    // Create SubModel directly
+    std::string name = _model->GenerateUniqueSubmodelName(wxString::Format("Column%d", col));
+    SubModel* sm = new SubModel(_model, name, false, true, "Default");
+    
+    // Add ranges
     for (int y = startrow; y < endrow; y++) {
         std::string row;
         for (int x = endcol - 1; x >= startcol; x--)
@@ -2514,10 +2524,10 @@ void CustomModelDialog::CreateSubmodelFromColumn(int col)
                 row += GetLayerGrid(x)->GetCellValue(y, col - 1);
             }
         }
-
-        sm->AddAttribute(wxString::Format("line%d", endrow - y - 1), row);
+        sm->AddDefaultBuffer(row);
     }
-
+    sm->CheckDuplicates();
+    
     _model->AddSubmodel(sm);
 }
 
@@ -2589,11 +2599,11 @@ void CustomModelDialog::CreateMinimalSubmodelFromColumn(int col)
         }
     }
 
-    wxXmlNode* sm = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
-    sm->AddAttribute("name", _model->GenerateUniqueSubmodelName(wxString::Format("MinimalColumn%d", col)));
-    sm->AddAttribute("layout", "horizontal");
-    sm->AddAttribute("type", "ranges");
-
+    // Create SubModel directly
+    std::string name = _model->GenerateUniqueSubmodelName(wxString::Format("MinimalColumn%d", col));
+    SubModel* sm = new SubModel(_model, name, false, true, "Default");
+    
+    // Add ranges
     for (int y = startrow; y < endrow; y++) {
         std::string row;
         for (int x = endcol - 1; x >= startcol; x--)
@@ -2604,10 +2614,10 @@ void CustomModelDialog::CreateMinimalSubmodelFromColumn(int col)
                 row += GetLayerGrid(x)->GetCellValue(y, col - 1);
             }
         }
-
-        sm->AddAttribute(wxString::Format("line%d", endrow - y - 1), row);
+        sm->AddDefaultBuffer(row);
     }
-
+    sm->CheckDuplicates();
+    
     _model->AddSubmodel(sm);
 }
 

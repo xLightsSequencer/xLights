@@ -21,35 +21,46 @@ class MeshObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 {
     std::vector<std::string> _warnedTextures;
 
-    public:
-        MeshObject(wxXmlNode *node, const ViewObjectManager &manager);
-        virtual ~MeshObject();
+public:
+    MeshObject(const ViewObjectManager &manager);
+    virtual ~MeshObject();
 
-        virtual void InitModel() override;
+    virtual void InitModel() override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {}
+    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
+    virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {}
 
-        int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+    int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
-        virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
+    virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
+
+    virtual std::list<std::string> GetFileReferences() override;
+    virtual bool CleanupFileLocations(xLightsFrame* frame) override;
+    virtual std::list<std::string> CheckModelSettings() override;
+
+    void SetObjectFile(const std::string & objFile);
+    void SetMeshOnly(bool val) { mesh_only = val; }
+    void SetBrightness(int val) {brightness = val; }
+
+    const std::string GetObjFile() const { return _objFile; }
+    bool IsMeshOnly() const { return mesh_only; }
+    int GetBrightness() const { return brightness; }
     
-        virtual std::list<std::string> GetFileReferences() override;
-        virtual bool CleanupFileLocations(xLightsFrame* frame) override;
-        virtual std::list<std::string> CheckModelSettings() override;
+    void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
-    protected:
-        void checkAccessToFile(const std::string &url);
-        void loadObject(xlGraphicsContext *ctx);
-    private:
-        std::string _objFile;
-        float width;
-        float height;
-        float depth;
-        float brightness;
-        bool obj_loaded;
-        bool mesh_only;
+protected:
+    void checkAccessToFile(const std::string &url);
+    void loadObject(xlGraphicsContext *ctx);
 
-        xlMesh *mesh;
+private:
+    std::string _objFile {""};
+    float width {100};
+    float height {100};
+    float depth {100};
+    int brightness {100};
+    bool obj_loaded {false};
+    bool mesh_only {false};
+
+    std::unique_ptr<xlMesh> mesh {nullptr};
 };
 

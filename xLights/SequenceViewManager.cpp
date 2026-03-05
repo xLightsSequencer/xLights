@@ -13,6 +13,7 @@
 #include "models/ModelManager.h"
 #include "models/Model.h"
 #include "UtilFunctions.h"
+#include "XmlSerializer/XmlSerializingVisitor.h"
 
 #include <log4cpp/Category.hh>
 
@@ -153,10 +154,12 @@ void SequenceView::RemoveModel(const Model* model)
 	RemoveModel(model->GetName());
 }
 
-void SequenceView::Save(wxXmlNode* node) const
+void SequenceView::Save(BaseSerializingVisitor& visitor) const
 {
-	wxXmlNode* newnode = Save();
-	node->AddChild(newnode);
+    BaseSerializingVisitor::AttrCollector attrs;
+    attrs.Add("name", _name);
+    attrs.Add("models", GetModelsString());
+    visitor.WriteOpenTag("view", attrs, /*selfClose=*/true);
 }
 
 void SequenceView::RenameModel(const std::string& oldname, const std::string& newname)
@@ -183,16 +186,6 @@ std::string SequenceView::GetModelsString() const
 	}
 
 	return models;
-}
-
-wxXmlNode* SequenceView::Save() const
-{
-	wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "view");
-	node->AddAttribute("name", _name);
-
-	node->AddAttribute("models", GetModelsString());
-
-	return node;
 }
 
 #pragma  endregion 
@@ -235,48 +228,16 @@ void SequenceViewManager::AddMasterView()
 	}
 }
 
-void SequenceViewManager::Save(wxXmlDocument* doc)
+void SequenceViewManager::Save(BaseSerializingVisitor& visitor) const
 {
-	wxXmlNode* palette = nullptr;
-	wxXmlNode* view = nullptr;
-
-	// find an existing view node in the document and delete it
-	for (wxXmlNode* e = doc->GetRoot()->GetChildren(); e != nullptr; e = e->GetNext())
-	{
-		if (e->GetName() == "palettes") palette = e;
-		if (e->GetName() == "views") view = e;
-	}
-	if (view != nullptr)
-	{
-		doc->GetRoot()->RemoveChild(view);
-	}
-
-	wxXmlNode* newnode = Save();
-
-	// add it after the palette if one is there. If not at the end.
-	if (palette != nullptr)
-	{
-		doc->GetRoot()->InsertChild(newnode, palette);
-	}
-	else
-	{
-		doc->GetRoot()->AddChild(newnode);
-	}
-}
-
-wxXmlNode* SequenceViewManager::Save() const
-{
-	wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "views");
-
-	for (auto it = _views.begin(); it != _views.end(); ++it)
-	{
-		if ((*it)->GetName() != MASTER_VIEW_NAME)
-		{
-			node->AddChild((*it)->Save());
-		}
-	}
-
-	return node;
+    BaseSerializingVisitor::AttrCollector emptyAttrs;
+    visitor.WriteOpenTag("views", emptyAttrs);
+    for (auto* v : _views) {
+        if (v->GetName() != MASTER_VIEW_NAME) {
+            v->Save(visitor);
+        }
+    }
+    visitor.WriteCloseTag();
 }
 
 SequenceView* SequenceViewManager::AddView(const std::string& name)

@@ -16,14 +16,12 @@
 #include "../BaseObject.h"
 #include "../../Color.h"
 
-DmxShutterAbility::DmxShutterAbility() :
-    shutter_channel(0), shutter_threshold(1), shutter_on_value(0)
+DmxShutterAbility::DmxShutterAbility()
 {
 }
 
 DmxShutterAbility::~DmxShutterAbility()
 {
-    //dtor
 }
 
 void DmxShutterAbility::AddShutterTypeProperties(wxPropertyGridInterface *grid) {
@@ -46,27 +44,24 @@ void DmxShutterAbility::AddShutterTypeProperties(wxPropertyGridInterface *grid) 
     p->SetEditor("SpinCtrl");
 }
 
-int DmxShutterAbility::OnShutterPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, wxXmlNode* ModelXml, BaseObject* base) {
+int DmxShutterAbility::OnShutterPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base) {
 
      if ("DmxShutterChannel" == event.GetPropertyName()) {
-         ModelXml->DeleteAttribute("DmxShutterChannel");
-         ModelXml->AddAttribute("DmxShutterChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+         shutter_channel = (int)event.GetPropertyValue().GetLong();
          base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxShutterAbility::OnPropertyGridChange::DMXShutterChannel");
          base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxShutterAbility::OnPropertyGridChange::DMXShutterChannel");
          base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxShutterAbility::OnPropertyGridChange::DMXShutterChannel");
          return 0;
      }
      else if ("DmxShutterOpen" == event.GetPropertyName()) {
-         ModelXml->DeleteAttribute("DmxShutterOpen");
-         ModelXml->AddAttribute("DmxShutterOpen", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+         shutter_threshold = (int)event.GetPropertyValue().GetLong();
          base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxShutterAbility::OnPropertyGridChange::DMXShutterOpen");
          base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxShutterAbility::OnPropertyGridChange::DMXShutterOpen");
          base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxShutterAbility::OnPropertyGridChange::DMXShutterOpen");
          return 0;
      } 
      else if ("DmxShutterOnValue" == event.GetPropertyName()) {
-         ModelXml->DeleteAttribute("DmxShutterOnValue");
-         ModelXml->AddAttribute("DmxShutterOnValue", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+         shutter_on_value = (int)event.GetPropertyValue().GetLong();
          base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxShutterAbility::OnPropertyGridChange::DmxShutterOnValue");
          base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxShutterAbility::OnPropertyGridChange::DmxShutterOnValue");
          base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxShutterAbility::OnPropertyGridChange::DmxShutterOnValue");

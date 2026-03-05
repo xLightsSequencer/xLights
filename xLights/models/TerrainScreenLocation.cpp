@@ -12,7 +12,7 @@
 
 #include "../support/VectorMath.h"
 
-#include "TerrianScreenLocation.h"
+#include "TerrainScreenLocation.h"
 #include "../support/VectorMath.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 #include "../graphics/xlGraphicsContext.h"
@@ -22,7 +22,7 @@
 #define BOUNDING_RECT_OFFSET        8
 #define NUM_TERRAIN_HANDLES   861   // default number of points for a 40x20 grid
 
-TerrianScreenLocation::TerrianScreenLocation()
+TerrainScreenLocation::TerrainScreenLocation()
     : BoxedScreenLocation(NUM_TERRAIN_HANDLES+ 9)
 {
     mSelectableHandles = NUM_TERRAIN_HANDLES;
@@ -31,7 +31,7 @@ TerrianScreenLocation::TerrianScreenLocation()
     num_points = num_points_wide * num_points_deep;
 }
 
-bool TerrianScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const {
+bool TerrainScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const {
 
     auto va = program->getAccumulator();
     va->PreAlloc((mSelectableHandles + 5) * 5);
@@ -129,13 +129,6 @@ bool TerrianScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, 
     else if (_locked)
         Box3dColor = LOCKED_HANDLES_COLOUR;
 
-    float minX = -x_offset * scalex - BOUNDING_RECT_OFFSET;
-    float maxX = x_offset * scalex + BOUNDING_RECT_OFFSET;
-    float minY = y_min * scaley - BOUNDING_RECT_OFFSET;
-    float maxY = y_max * scaley + BOUNDING_RECT_OFFSET;
-    float minZ = -z_offset * scalez - BOUNDING_RECT_OFFSET;
-    float maxZ = z_offset * scalez + BOUNDING_RECT_OFFSET;
-
     startVert = va->getCount();
     if (active_handle != -1) {
         active_handle_pos = glm::vec3(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z);
@@ -161,19 +154,16 @@ bool TerrianScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, 
             }
         }
     }
-    
-    
+
     //draw the new bounding box
-    glm::vec3 min_pt(minX, minY, minZ);
-    glm::vec3 max_pt(maxX, maxY, maxZ);
-    glm::vec4 c1(min_pt.x, max_pt.y, min_pt.z, 1.0f);
-    glm::vec4 c2(max_pt.x, max_pt.y, min_pt.z, 1.0f);
-    glm::vec4 c3(max_pt.x, min_pt.y, min_pt.z, 1.0f);
-    glm::vec4 c4(min_pt.x, min_pt.y, min_pt.z, 1.0f);
-    glm::vec4 c5(min_pt.x, max_pt.y, max_pt.z, 1.0f);
-    glm::vec4 c6(max_pt.x, max_pt.y, max_pt.z, 1.0f);
-    glm::vec4 c7(max_pt.x, min_pt.y, max_pt.z, 1.0f);
-    glm::vec4 c8(min_pt.x, min_pt.y, max_pt.z, 1.0f);
+    glm::vec4 c1(aabb_min.x, aabb_max.y, aabb_min.z, 1.0f);
+    glm::vec4 c2(aabb_max.x, aabb_max.y, aabb_min.z, 1.0f);
+    glm::vec4 c3(aabb_max.x, aabb_min.y, aabb_min.z, 1.0f);
+    glm::vec4 c4(aabb_min.x, aabb_min.y, aabb_min.z, 1.0f);
+    glm::vec4 c5(aabb_min.x, aabb_max.y, aabb_max.z, 1.0f);
+    glm::vec4 c6(aabb_max.x, aabb_max.y, aabb_max.z, 1.0f);
+    glm::vec4 c7(aabb_max.x, aabb_min.y, aabb_max.z, 1.0f);
+    glm::vec4 c8(aabb_min.x, aabb_min.y, aabb_max.z, 1.0f);
 
     c1 = ModelMatrix * c1;
     c2 = ModelMatrix * c2;
@@ -220,7 +210,7 @@ bool TerrianScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, 
     return true;
 }
 
-wxCursor TerrianScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const
+wxCursor TerrainScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const
 {
     wxCursor return_value = wxCURSOR_DEFAULT;
     handle = NO_HANDLE;
@@ -259,9 +249,9 @@ wxCursor TerrianScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm:
     return return_value;
 }
 
-int TerrianScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
+int TerrainScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
-    if (_locked) return 0;
+    if (_locked) return MODEL_UNCHANGED;
 
     if (handle != CENTER_HANDLE) {
         if (axis_tool == MSLTOOL::TOOL_ELEVATE) {
@@ -304,9 +294,9 @@ int TerrianScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool 
     } else {
         BoxedScreenLocation::MoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
     }
-    return 1;
+    return MODEL_UPDATE_RGBEFFECTS;
 }
-int TerrianScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
+int TerrainScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
     if (_locked) return 0;
 
     if (handle != CENTER_HANDLE) {
@@ -344,14 +334,14 @@ int TerrianScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot,
 
 
 
-void TerrianScreenLocation::SetActiveHandle(int handle)
+void TerrainScreenLocation::SetActiveHandle(int handle)
 {
     active_handle = handle;
     highlighted_handle = -1;
     SetAxisTool(axis_tool);  // run logic to disallow certain tools
 }
 
-void TerrianScreenLocation::SetAxisTool(MSLTOOL mode)
+void TerrainScreenLocation::SetAxisTool(MSLTOOL mode)
 {
     if (active_handle > 0) {
         axis_tool = MSLTOOL::TOOL_ELEVATE;
@@ -363,7 +353,7 @@ void TerrianScreenLocation::SetAxisTool(MSLTOOL mode)
     }
 }
 
-void TerrianScreenLocation::AdvanceAxisTool()
+void TerrainScreenLocation::AdvanceAxisTool()
 {
     if (active_handle > 0) {
         axis_tool = MSLTOOL::TOOL_ELEVATE;
@@ -372,7 +362,7 @@ void TerrianScreenLocation::AdvanceAxisTool()
     }
 }
 
-void TerrianScreenLocation::SetActiveAxis(MSLAXIS axis)
+void TerrainScreenLocation::SetActiveAxis(MSLAXIS axis)
 {
     if (active_handle > 0) {
         if (axis != MSLAXIS::NO_AXIS) {
@@ -385,14 +375,8 @@ void TerrianScreenLocation::SetActiveAxis(MSLAXIS axis)
     }
 }
 
-void TerrianScreenLocation::Read(wxXmlNode* node) {
-    BoxedScreenLocation::Read(node);
-    spacing = wxAtoi(node->GetAttribute("TerrianLineSpacing", "50"));
-    num_points_wide = wxAtoi(node->GetAttribute("TerrianWidth", "1000")) / spacing + 1;
-    num_points_deep = wxAtoi(node->GetAttribute("TerrianDepth", "1000")) / spacing + 1;
-    num_points = num_points_wide * num_points_deep;
-    mPos.resize(num_points);
-    wxString point_data = node->GetAttribute("PointData");
+void TerrainScreenLocation::SetDataFromString(const std::string& point_data)
+{
     wxArrayString point_array = wxSplit(point_data, ',');
     int i = 0;
     for (int p = 2; p < point_array.size() && i < num_points; ) {
@@ -412,18 +396,30 @@ void TerrianScreenLocation::Read(wxXmlNode* node) {
         p++;
     }
     while (i < num_points) mPos[i++] = 0.0f;
+}
+
+void TerrainScreenLocation::UpdateSize(int wide, int deep, int points)
+{
+    num_points_wide = wide;
+    num_points_deep = deep;
+    num_points = points;
+    Init();
+}
+
+void TerrainScreenLocation::Init() {
+    mPos.resize(num_points);
     mHandlePosition.resize(num_points + 1);
     mSelectableHandles = num_points + 1;
     handle_aabb_min.resize(num_points + 1);
     handle_aabb_max.resize(num_points + 1);
+    for( int i : mPos ) {
+        mPos[i] = 0.0f;
+    }
 }
 
-void TerrianScreenLocation::Write(wxXmlNode* node) {
-    BoxedScreenLocation::Write(node);
-
-    node->DeleteAttribute("PointData");
+const std::string TerrainScreenLocation::GetDataAsString() const {
     wxString point_data = "";
-    // store the number of points in each axis to allow for smart resizing  
+    // store the number of points in each axis to allow for smart resizing
     // when grid is altered after terrain points have already been established
     point_data += wxString::Format("%f,%f,", (float)num_points_wide, (float)num_points_deep);
     int num_zeroes = 0;
@@ -444,5 +440,5 @@ void TerrianScreenLocation::Write(wxXmlNode* node) {
             }
         }
     }
-    node->AddAttribute("PointData", point_data);
+    return point_data;
 }

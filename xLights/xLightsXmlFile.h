@@ -193,8 +193,6 @@ public:
     wxXmlNode* GetPalettesNode() const;
 
     // static methods
-    static void FixVersionDifferences(const wxString& filename);
-    static void FixEffectPresets(wxXmlNode* effects_node);
     static bool IsXmlSequence(wxFileName& fname);
 
 private:
@@ -217,7 +215,6 @@ private:
 
     void CreateNew();
     bool LoadSequence(const wxString& ShowDir, bool ignore_audio, const wxFileName &realFilename);
-    bool LoadV3Sequence();
     bool Save();
     bool SaveCopy() const;
     void AddTimingDisplayElement(const wxString& name, const wxString& visible, const wxString& active, const wxString &subType = "");

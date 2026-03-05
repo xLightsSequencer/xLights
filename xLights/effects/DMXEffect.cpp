@@ -429,7 +429,7 @@ void DMXEffect::SetPanelStatus(Model *cls) {
     }
 
     Model* m = cls;
-    if (cls->GetDisplayAs() == "ModelGroup") {
+    if (cls->GetDisplayAs() == DisplayAsType::ModelGroup) {
         m = dynamic_cast<ModelGroup*>(cls)->GetFirstModel();
         if (m == nullptr) m = cls;
     }

@@ -65,7 +65,7 @@ public:
         }
     }
     
-    virtual void apply(xlColor &c) {
+    virtual void apply(xlColor &c) const {
         switch (channel) {
             case -1:
                 c.green = data[c.green];
@@ -88,7 +88,7 @@ public:
                 break;
         }
     }
-    virtual void reverse(xlColor &c) {
+    virtual void reverse(xlColor &c) const {
         switch (channel) {
             case -1:
                 c.green = reverseData[c.green];
@@ -217,7 +217,7 @@ public:
             delete blue;
         }
     }
-    virtual void apply(xlColor &c) {
+    virtual void apply(xlColor &c) const {
         if (red != nullptr) {
             red->apply(c);
         }
@@ -228,7 +228,7 @@ public:
             blue->apply(c);
         }
     }
-    virtual void reverse(xlColor &c) {
+    virtual void reverse(xlColor &c) const {
         if (red != nullptr) {
             red->reverse(c);
         }
@@ -258,10 +258,11 @@ static const std::string &validate(const std::string &in, const std::string &def
     }
     return in;
 }
-DimmingCurve *createCurve(wxXmlNode *dcn, int channel = -1) {
+
+DimmingCurve *createCurve(const std::map<std::string, std::string> &dcn, int channel = -1) {
     DimmingCurve *dc = nullptr;
-    if (dcn->HasAttribute("filename")) {
-        wxString fn = dcn->GetAttribute("filename");
+    if (dcn.contains("filename")) {
+        std::string fn = dcn.find("filename")->second;
         if (FileExists(fn)) {
             FileDimmingCurve *fdc = new FileDimmingCurve(fn, channel);
             if (fdc->isIdentity()) {
@@ -271,8 +272,11 @@ DimmingCurve *createCurve(wxXmlNode *dcn, int channel = -1) {
             }
         }
     } else {
-        BasicDimmingCurve *bdc = new BasicDimmingCurve(stoi(validate(dcn->GetAttribute("brightness", "0").ToStdString(), "0")),
-                                                       stod(validate(dcn->GetAttribute("gamma", "1.0").ToStdString(), "1.0")),
+        std::string gamma = dcn.contains("gamma") ? dcn.find("gamma")->second : "1.0";
+        std::string brightness = dcn.contains("brightness") ? dcn.find("brightness")->second : "0";
+
+        BasicDimmingCurve *bdc = new BasicDimmingCurve(stoi(validate(brightness, "0")),
+                                                       stod(validate(gamma, "1.0")),
                                                        channel);
         if (bdc->isIdentity()) {
             delete bdc;
@@ -282,15 +286,13 @@ DimmingCurve *createCurve(wxXmlNode *dcn, int channel = -1) {
     }
     return dc;
 }
-
-DimmingCurve *DimmingCurve::createFromXML(wxXmlNode *node) {
+DimmingCurve *DimmingCurve::createFromInfo(const std::map<std::string, std::map<std::string, std::string>> &info) {
     DimmingCurve *red = nullptr;
     DimmingCurve *green = nullptr;
     DimmingCurve *blue = nullptr;
-    
-    wxXmlNode *dc = node->GetChildren();
-    while (dc != nullptr) {
-        wxString name = dc->GetName();
+    for (auto &v : info) {
+        std::string name =  v.first;
+        
         if ("all" == name) {
             if (red != nullptr) {
                 delete red;
@@ -301,24 +303,23 @@ DimmingCurve *DimmingCurve::createFromXML(wxXmlNode *node) {
             if (blue) {
                 delete blue;
             }
-            return createCurve(dc);
-        } else if ("red" == dc->GetName()) {
+            return createCurve(v.second);
+        } else if ("red" == name) {
             if (red != nullptr) {
                 delete red;
             }
-            red = createCurve(dc, 0);
-        } else if ("green" == dc->GetName()) {
+            red = createCurve(v.second, 0);
+        } else if ("green" == name) {
             if (green) {
                 delete green;
             }
-            green = createCurve(dc, 1);
-        } else if ("blue" == dc->GetName()) {
+            green = createCurve(v.second, 1);
+        } else if ("blue" == name) {
             if (blue) {
                 delete blue;
             }
-            blue = createCurve(dc, 2);
+            blue = createCurve(v.second, 2);
         }
-        dc = dc->GetNext();
     }
     if (red != nullptr || blue != nullptr || green != nullptr) {
         return new CompositeDimmingCurve(red, green, blue);

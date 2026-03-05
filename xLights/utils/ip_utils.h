@@ -25,5 +25,5 @@ namespace ip_utils
 
     void ResolveIP(const std::string& ip, std::function<void(const std::string &)> &&func);
     void waitForAllToResolve();
-
+    void shutdownResolvePool();
 };

@@ -14,6 +14,8 @@
 #include <list>
 #include <string>
 
+#include "XmlSerializer/BaseSerializingVisitor.h"
+
 class ModelManager;
 class Model;
 
@@ -28,8 +30,7 @@ public:
 	SequenceView(wxXmlNode* node, ModelManager* modelManager);
 	virtual ~SequenceView() {};
 	void Load(wxXmlNode* node);
-	void Save(wxXmlNode* node) const;
-	wxXmlNode* Save() const;
+	void Save(BaseSerializingVisitor& visitor) const;
 	std::list<std::string> GetModels() const { return _modelNames; }
 	std::string GetName() const { return _name; }
 	void SetName(const std::string& name) { _name = name; }
@@ -62,8 +63,7 @@ public:
 	std::list<SequenceView*> GetViews() { AddMasterView(); return _views; }
 	void SetModelManager(ModelManager* modelManager) { _modelManager = modelManager; }
 	void Load(wxXmlNode* node, int selectedView);
-	void Save(wxXmlDocument* doc);
-	wxXmlNode* Save() const;
+	void Save(BaseSerializingVisitor& visitor) const;
 	int GetSelectedViewIndex() const { return _selectedView; }
 	SequenceView* GetSelectedView() const { return GetView(_selectedView); }
 	SequenceView* AddView(const std::string& name);

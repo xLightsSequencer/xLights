@@ -56,33 +56,12 @@ wxCursor ThreePointScreenLocation::InitializeLocation(int &handle, int x, int y,
     return wxCURSOR_SIZING;
 }
 
-void ThreePointScreenLocation::Read(wxXmlNode *node) {
-    TwoPointScreenLocation::Read(node);
-    height = wxAtof(node->GetAttribute("Height", std::to_string(height)));
+void ThreePointScreenLocation::Init() {
+    TwoPointScreenLocation::Init();
+    /*height = wxAtof(node->GetAttribute("Height", std::to_string(height)));
     angle = wxAtoi(node->GetAttribute("Angle", "0"));
     shear = wxAtof(node->GetAttribute("Shear", "0.0"));
-    rotatex = wxAtof(node->GetAttribute("RotateX", "0"));
-}
-
-void ThreePointScreenLocation::Write(wxXmlNode *node) {
-    TwoPointScreenLocation::Write(node);
-    node->DeleteAttribute("Height");
-    node->DeleteAttribute("Locked");
-    node->DeleteAttribute("RotateX");
-    node->AddAttribute("RotateX", wxString::Format("%4.8f", rotatex));
-    node->AddAttribute("Height", std::to_string(height));
-    if (supportsAngle) {
-        node->DeleteAttribute("Angle");
-        node->AddAttribute("Angle", std::to_string(angle));
-    }
-    if (supportsShear) {
-        node->DeleteAttribute("Shear");
-        node->AddAttribute("Shear", std::to_string(shear));
-    }
-    if (_locked)
-    {
-        node->AddAttribute("Locked", "1");
-    }
+    rotatex = wxAtof(node->GetAttribute("RotateX", "0"));*/
 }
 
 void ThreePointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const
@@ -446,7 +425,7 @@ void ThreePointScreenLocation::DrawBoundingBox(xlVertexColorAccumulator *vac, bo
 
 int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
-    if (_locked) return 0;
+    if (_locked) return MODEL_UNCHANGED;
 
     if (handle == SHEAR_HANDLE) {
         glm::vec3 ray_origin;
@@ -472,7 +451,7 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
         }
         //Calculate angle of mouse from center.
         if (supportsAngle) {
-            if (posy == 0.0f) return 0;
+            if (posy == 0.0f) return MODEL_UNCHANGED;
             float tan = (float)posx / (float)posy;
             int angle1 = -toDegrees((float)atan(tan));
             if (x2 < 0.0f) {
@@ -514,7 +493,7 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
                 height = 0.01f;
             }
         }
-        return 1;
+        return MODEL_NEEDS_INIT;
     }
 
     return TwoPointScreenLocation::MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
@@ -522,7 +501,7 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
 
 int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
-    if (_locked) return 0;
+    if (_locked) return MODEL_UNCHANGED;
 
     if (handle == SHEAR_HANDLE) {
         if (latch) {
@@ -531,7 +510,7 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
             saved_position.z = mHandlePosition[SHEAR_HANDLE].z;
         }
 
-        if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
+        if (!DragHandle(preview, mouseX, mouseY, latch)) return MODEL_UNCHANGED;
 
         if (axis_tool == MSLTOOL::TOOL_XY_TRANS) {
             glm::vec3 a = point2 - origin;
@@ -556,7 +535,7 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
 
             //Calculate angle of mouse from center.
             if (supportsAngle) {
-                if (posy == 0.0f) return 0;
+                if (posy == 0.0f) return MODEL_UNCHANGED;
                 float tan = (float)posx / (float)posy;
                 int angle1 = -toDegrees((float)atan(tan));
                 if (posy >= 0) {
@@ -602,7 +581,7 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
                     height = 0.01f;
                 }
             }
-            return 1;
+            return MODEL_NEEDS_INIT;
         }
     }
     else if (handle == CENTER_HANDLE ) {
@@ -643,7 +622,7 @@ int ThreePointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &r
                 height = 0.01f;
             }
         }
-        return 1;
+        return MODEL_NEEDS_INIT;
     }
     return TwoPointScreenLocation::MoveHandle3D(scale, handle, rot, mov);
 }

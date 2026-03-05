@@ -86,7 +86,7 @@ void ModelChainDialog::Set(Model* m, const ModelManager &models) {
     wxArrayString  list;
     list.push_back("Beginning");
     for (const auto& it : models) {
-        if (it.second->GetDisplayAs() != "ModelGroup" && 
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && 
             m != it.second && 
             controller == it.second->GetControllerName() &&
             port >= it.second->GetControllerPort() &&

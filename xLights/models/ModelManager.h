@@ -22,6 +22,7 @@ class Model;
 class wxXmlNode;
 class OutputManager;
 class xLightsFrame;
+class LayoutGroup;
 
 class ModelManager : public ObjectManager
 {
@@ -58,7 +59,6 @@ class ModelManager : public ObjectManager
         std::string GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel, const std::string& protocol) const;
         std::string GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel, const std::string& protocol, int smartReceiver) const;
         void ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP);
-        std::string SerialiseModelGroupsForModel(Model* m) const;
         void AddModelGroups(wxXmlNode* n, int w, int h, const std::string& name, bool& merge, bool& ask);
         void LoadModels(wxXmlNode *modelNode, int previewW, int previewH);
         bool LoadGroups(wxXmlNode *groupNode, int previewW, int previewH);
@@ -66,8 +66,8 @@ class ModelManager : public ObjectManager
 
         bool RenameController(const std::string& oldName, const std::string& newName);
 
-        void SetLayoutsNode(wxXmlNode* layouts) {layoutsNode = layouts;}
-        wxXmlNode* GetLayoutsNode() const {return layoutsNode;}
+        void SetLayoutGroups(std::vector<LayoutGroup*>* groups) { layoutGroups = groups; }
+        const std::vector<LayoutGroup*>* GetLayoutGroups() const { return layoutGroups; }
 
         void clear();
 
@@ -76,26 +76,28 @@ class ModelManager : public ObjectManager
         unsigned int size() const;
 
         //Make sure the Model is deleted when done with
-        Model *CreateModel(wxXmlNode *node, int previewW = 0, int previewH = 0, bool zeroBased = false) const;
+        Model *CreateModel(wxXmlNode *node, int previewW = 0, int previewH = 0) const;
         Model *CreateDefaultModel(const std::string &type, const std::string &startChannel = "1") const;
         xLightsFrame* GetXLightsFrame() const { return xlights; }
         bool IsValidControllerModelChain(Model* m, std::string& tip) const;
         Model *createAndAddModel(wxXmlNode *node, int previewW, int previewH);
         std::string GetModelsOnChannels(uint32_t start, uint32_t end, int perLine) const;
-        std::vector<std::string> GetGroupsContainingModel(Model* model) const;
-        std::vector<std::string> GetGroupsContainingModelOrSubmodel(Model* model) const;
+        std::vector<std::string> GetGroupsContainingModel(const Model* model) const;
+        std::vector<std::string> GetGroupsContainingModelOrSubmodel(const Model* model) const;
+        std::vector<Model*> GetModelGroups(const Model* model) const;
         std::string GenerateNewStartChannel(const std::string& lastModel = "") const;
 
         int GetPreviewWidth() const { return previewWidth; }
         int GetPreviewHeight() const { return previewHeight; }
         bool MergeFromBase(const std::string& baseShowDir, bool prompt);
+        static bool MergeBaseXml(const std::string& baseShowDir, wxXmlNode* localModelsNode, wxXmlNode* localGroupsNode);
         std::string GetLastGeneratedModelName() const { return lastGeneratedModelName; }
+
+        std::map<std::string, Model *> GetModels() const { return models; }
 
     private:
 
-    void MigrateDmxMotors(wxXmlNode *node) const;
-
-    wxXmlNode *layoutsNode = nullptr;
+    std::vector<LayoutGroup*>* layoutGroups = nullptr;
     OutputManager* _outputManager = nullptr;
     xLightsFrame* xlights = nullptr;
     int previewWidth = 0;

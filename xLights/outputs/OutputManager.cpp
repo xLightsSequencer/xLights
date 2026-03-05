@@ -470,7 +470,6 @@ bool OutputManager::ConvertModelStartChannels(wxXmlNode* modelsNode) const {
                 changed = true;
             }
 
-            // Do any string start channels
             if (model->GetAttribute("Advanced", "0") == "1") {
                 int strings = wxAtoi(model->GetAttribute("parm1", "0"));
                 for (int i = 1; i <= strings; i++) {

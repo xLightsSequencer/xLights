@@ -15,7 +15,7 @@
 class CandyCaneModel : public ModelWithScreenLocation<ThreePointScreenLocation>
 {
     public:
-        CandyCaneModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
+        CandyCaneModel(const ModelManager &manager);
         virtual ~CandyCaneModel();
     
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
@@ -31,6 +31,16 @@ class CandyCaneModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         virtual bool SupportsWiringView() const override { return true; }
         virtual std::string GetDimension() const override;
         virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override;
+
+        void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
+        [[nodiscard]] bool IsReverse() const { return _reverse; }
+        [[nodiscard]] bool IsSticks() const { return _sticks; }
+        [[nodiscard]] bool HasAlternateNodes() const { return _alternateNodes; }
+        [[nodiscard]] float GetCandyCaneHeight() const { return _caneheight; }
+        void SetReverse(bool reverse) { _reverse = reverse; }
+        void SetSticks(bool sticks) { _sticks = sticks; }
+        void SetAlternateNodes(bool alternateNodes) { _alternateNodes = alternateNodes; }
+        void SetCaneHeight(float caneheight) { _caneheight = caneheight; }
 
     protected:
         virtual void InitModel() override;

@@ -15,13 +15,15 @@
 class WreathModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
-        WreathModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
+        WreathModel(const ModelManager &manager);
         virtual ~WreathModel();
 
         virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual bool SupportsExportAsCustom() const override { return true; } 
         virtual bool SupportsWiringView() const override { return true; }
+
+        void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     protected:
         virtual void InitModel() override;

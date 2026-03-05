@@ -458,13 +458,12 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
     if (group != "")
     {
         ModelGroup* g = (ModelGroup*)mModels[group];
-        wxXmlNode* e = g->GetModelXml();
         std::list<std::string> modelsInGroup;
         modelsInGroup.push_back(g->GetName());
         for (const auto& it : g->ModelNames()) {
             long item = ListBoxModelsInGroup->InsertItem(ListBoxModelsInGroup->GetItemCount(), it);
             if (mModels[it] != nullptr) {
-                if (mModels[it]->GetDisplayAs() == "ModelGroup") {
+                if (mModels[it]->GetDisplayAs() == DisplayAsType::ModelGroup) {
                     ListBoxModelsInGroup->SetItemTextColour(item,
                                                             IsDarkMode()
                                                                 ? BLUE_ON_DARK : *wxBLUE);
@@ -484,7 +483,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
             if (CheckBox_ShowInactiveModels->GetValue() || it.second->IsActive()) {
                 if (!CheckBox_ShowOnlyModelsInCurrentView->GetValue() || layoutGroup == "All Models" || it.second->GetLayoutGroup() == layoutGroup) {
                     if (std::find(modelsInGroup.begin(), modelsInGroup.end(), it.first) != modelsInGroup.end() ||
-                        (it.second->GetDisplayAs() == "ModelGroup" && (!CheckBox_ShowModelGroups->GetValue() || it.first == group || dynamic_cast<ModelGroup*>(it.second)->ContainsModelGroup(g)))) {
+                        (it.second->GetDisplayAs() == DisplayAsType::ModelGroup && (!CheckBox_ShowModelGroups->GetValue() || it.first == group || dynamic_cast<ModelGroup*>(it.second)->ContainsModelGroup(g)))) {
                         // dont add this group
                         // logger_base.debug("Model not eligible to be added to group or already in group " + group + " : " + it.first);
                     }
@@ -502,7 +501,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
                         }
                         if (matches) {
                             long item = ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it.first);
-                            if (it.second->GetDisplayAs() == "ModelGroup") {
+                            if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
                                 ListBoxAddToModelGroup->SetItemTextColour(item,
                                     IsDarkMode()
                                     ? BLUE_ON_DARK
@@ -536,13 +535,14 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
             }
         }
 
-        auto dc = e->GetAttribute("DefaultCamera", "2D");
+        // Use getter methods instead of XML attributes
+        std::string dc = g->GetDefaultCamera();
         Choice_DefaultCamera->SetStringSelection(dc);
         if (Choice_DefaultCamera->GetStringSelection() != dc) {
             Choice_DefaultCamera->SetStringSelection("2D");
         }
 
-        wxString v = e->GetAttribute("layout", "minimalGrid");
+        wxString v = g->GetLayout();
         if (v == "grid") {
             ChoiceModelLayoutType->SetSelection(0);
         }
@@ -566,7 +566,8 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
             }
         }
 
-        wxString preview = e->GetAttribute("LayoutGroup", "Default");
+        wxString preview = g->GetLayoutGroup();
+        if (preview.empty()) preview = "Default";
         ChoicePreviews->SetSelection(0);
         for (size_t i = 0; i < ChoicePreviews->GetCount(); i++) {
             if (ChoicePreviews->GetString(i) == preview)
@@ -574,10 +575,10 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
                 ChoicePreviews->SetSelection(i);
             }
         }
-        SizeSpinCtrl->SetValue(wxAtoi(e->GetAttribute("GridSize", "400")));
-        SpinCtrl_XCentreOffset->SetValue(wxAtoi(e->GetAttribute("XCentreOffset", "0")));
-        SpinCtrl_YCentreOffset->SetValue(wxAtoi(e->GetAttribute("YCentreOffset", "0")));
-        ColourPickerCtrl_ModelGroupTagColour->SetColour(e->GetAttribute("TagColour", "Black"));
+        SizeSpinCtrl->SetValue(g->GetGridSize());
+        SpinCtrl_XCentreOffset->SetValue(g->GetXCentreOffset());
+        SpinCtrl_YCentreOffset->SetValue(g->GetYCentreOffset());
+        ColourPickerCtrl_ModelGroupTagColour->SetColour(g->GetTagColour());
     }
 
     ResizeColumns();
@@ -770,55 +771,55 @@ void ModelGroupPanel::SaveGroupChanges(bool centreUpdate)
 
     mModels.GetXLightsFrame()->AbortRender();
 
-    wxXmlNode *e = g->GetModelXml();
-
     if (centreUpdate) {
-        e->DeleteAttribute("centreDefined");
+        g->SetCentreDefined(false);
     }
 
-    wxString ModelsInGroup = "";
+    // Build model list from UI and update via setter method
+    std::vector<std::string> modelsInGroup;
     for (int i = 0; i < ListBoxModelsInGroup->GetItemCount(); i++) {
-        if (i < ListBoxModelsInGroup->GetItemCount() - 1) {
-            ModelsInGroup += ListBoxModelsInGroup->GetItemText(i, 0) + ",";
-        } else {
-            ModelsInGroup += ListBoxModelsInGroup->GetItemText(i, 0);
-        }
+        modelsInGroup.push_back(ListBoxModelsInGroup->GetItemText(i, 0).ToStdString());
     }
+    
+    // Use setter method instead of XML manipulation
+    g->SetModels(modelsInGroup);
 
-    e->DeleteAttribute("models");
-    e->AddAttribute("models", ModelsInGroup);
-
-    e->DeleteAttribute("GridSize");
-    e->DeleteAttribute("layout");
-    e->AddAttribute("GridSize", wxString::Format("%d", SizeSpinCtrl->GetValue()));
-    e->DeleteAttribute("XCentreOffset");
-    e->DeleteAttribute("YCentreOffset");
-    e->DeleteAttribute("TagColour");
+    // Use setter methods instead of direct XML manipulation
+    g->SetGridSize(SizeSpinCtrl->GetValue());
+    
     if (ChoiceModelLayoutType->GetSelection() == 1) {
-        e->AddAttribute("XCentreOffset", wxString::Format("%d", SpinCtrl_XCentreOffset->GetValue()));
-        e->AddAttribute("YCentreOffset", wxString::Format("%d", SpinCtrl_YCentreOffset->GetValue()));
+        g->SetXCentreOffset(SpinCtrl_XCentreOffset->GetValue());
+        g->SetYCentreOffset(SpinCtrl_YCentreOffset->GetValue());
+    } else {
+        g->SetXCentreOffset(0);
+        g->SetYCentreOffset(0);
     }
-    e->DeleteAttribute("DefaultCamera");
-    e->AddAttribute("DefaultCamera", Choice_DefaultCamera->GetStringSelection());
+    
+    g->SetDefaultCamera(Choice_DefaultCamera->GetStringSelection().ToStdString());
+    
+    std::string layoutStr;
     switch (ChoiceModelLayoutType->GetSelection()) {
     case 0:
-        e->AddAttribute("layout", "grid");
+        layoutStr = "grid";
         break;
     case 1:
-        e->AddAttribute("layout", "minimalGrid");
+        layoutStr = "minimalGrid";
         break;
     case 6:
-        e->AddAttribute("layout", "horizontal");
+        layoutStr = "horizontal";
         break;
     case 7:
-        e->AddAttribute("layout", "vertical");
+        layoutStr = "vertical";
         break;
     default:
-        e->AddAttribute("layout", ChoiceModelLayoutType->GetStringSelection());
+        layoutStr = ChoiceModelLayoutType->GetStringSelection().ToStdString();
         break;
     }
-    e->AddAttribute("TagColour", ColourPickerCtrl_ModelGroupTagColour->GetColour().GetAsString());
-    g->Reset();
+    g->SetLayout(layoutStr);
+    
+    g->SetTagColour(ColourPickerCtrl_ModelGroupTagColour->GetColour());
+    
+    g->RebuildBuffers();
     layoutPanel->ModelGroupUpdated(g);
 }
 
@@ -1152,7 +1153,7 @@ void ModelGroupPanel::AddSelectedModels(int index)
             ListBoxAddToModelGroup->DeleteItem(i);
             Model* model = mModels[modelName];
             if (model != nullptr) {
-                model->GroupSelected = true;
+                model->GroupSelected(true);
                 model->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ModelGroupPanel::AddSelectedModels");
                 model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ModelGroupPanel::AddSelectedModels");
             }
@@ -1190,8 +1191,8 @@ void ModelGroupPanel::RemoveSelectedModels()
                 // we wont remove these models as they came from the base show folder
             } else {
                 if (model != nullptr) {
-                    if ((model->GetDisplayAs() == "ModelGroup" && !CheckBox_ShowModelGroups->GetValue()) ||
-                        (model->GetDisplayAs() == "SubModel" && !CheckBox_ShowSubmodels->GetValue())) {
+                    if ((model->GetDisplayAs() == DisplayAsType::ModelGroup && !CheckBox_ShowModelGroups->GetValue()) ||
+                        (model->GetDisplayAs() == DisplayAsType::SubModel && !CheckBox_ShowSubmodels->GetValue())) {
                         // these should not be moved
                     } else {
                         int idx = ListBoxAddToModelGroup->InsertItem(0, modelName);
@@ -1199,7 +1200,7 @@ void ModelGroupPanel::RemoveSelectedModels()
                     }
                     model->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ModelGroupPanel::RemoveSelectedModels");
                     model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ModelGroupPanel::RemoveSelectedModels");
-                    model->GroupSelected = false;
+                    model->GroupSelected(false);
                 }
                 ListBoxModelsInGroup->DeleteItem(i);
                 i--;
@@ -1363,13 +1364,15 @@ void ModelGroupPanel::CopyModelList()
     {
         ModelGroup* cg = (ModelGroup*)mModels[dlg.GetStringSelection()];
         if (cg == nullptr) return;
-        wxString const models = cg->GetModelXml()->GetAttribute("models");
+        
+        // Use ModelNames() getter instead of XML attribute
+        const std::vector<std::string>& sourceModels = cg->ModelNames();
+        
         ClearSelections(ListBoxModelsInGroup, wxLIST_STATE_SELECTED | wxLIST_STATE_DROPHILITED);
         int index = ListBoxModelsInGroup->GetItemCount();
         ModelGroup* g = (ModelGroup*)mModels[mGroup];
-        wxArrayString const modelArray = wxSplit(models, ',');
-        for (size_t i = 0; i < modelArray.size(); ++i) {
-            wxString const modelName = modelArray[i];
+        
+        for (const auto& modelName : sourceModels) {
             if (std::find(g->ModelNames().begin(), g->ModelNames().end(), modelName) != g->ModelNames().end())
                 continue;
             ListBoxModelsInGroup->InsertItem(index, modelName);
@@ -1411,7 +1414,7 @@ void ModelGroupPanel::SortModelsByLocation()
         Model* model = mModels[modelName];
         float pos;
         if (model != nullptr) {
-            if (model->GetDisplayAs() == "ModelGroup") {
+            if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 Model* m = dynamic_cast<ModelGroup*>(model)->GetFirstModel();
                 if (m == nullptr)
                     m = model;
@@ -1443,7 +1446,7 @@ wxArrayString ModelGroupPanel::getGroupList()
     for (auto it = mModels.begin(); it != mModels.end(); ++it) {
         ModelGroup* g = (ModelGroup*)it->second;
         if (g == nullptr) continue;
-        if (g->GetDisplayAs() != "ModelGroup") continue;
+        if (g->GetDisplayAs() != DisplayAsType::ModelGroup) continue;
         if (g->Name() == mGroup)//Skip Current Group
             continue;
         choices.Add(g->Name());

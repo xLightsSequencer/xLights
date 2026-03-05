@@ -11,12 +11,10 @@
  **************************************************************/
 
 #include "DmxModel.h"
-#include "DmxColorAbility.h"
-#include "DmxShutterAbility.h"
 
-class DmxFloodlight : public DmxModel, public DmxShutterAbility {
+class DmxFloodlight : public DmxModel {
 public:
-    DmxFloodlight(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
+    DmxFloodlight(const ModelManager &manager);
     virtual ~DmxFloodlight();
 
     void EnableFixedChannels(xlColorVector& pixelVector) const override;
@@ -24,11 +22,10 @@ public:
 
     virtual void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const override;
 
+    void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
+
 protected:
     virtual void InitModel() override;
-
-    virtual void ExportXlightsModel() override;
-    [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
 
     virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;
@@ -44,6 +41,4 @@ protected:
 
     void GetColors(xlColor &center, xlColor &edge, bool allowSelected, const xlColor *c);
     virtual void DrawModel(xlVertexColorAccumulator *vac, xlColor &center, xlColor &edge, float beam_length);
-
-    float beam_length;
 };

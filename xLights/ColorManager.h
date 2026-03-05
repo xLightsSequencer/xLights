@@ -13,6 +13,7 @@
 #include <map>
 #include <wx/settings.h>
 #include "Color.h"
+#include "XmlSerializer/BaseSerializingVisitor.h"
 
 class xLightsFrame;
 class wxXmlDocument;
@@ -108,7 +109,7 @@ class ColorManager
         void Snapshot();
         void RestoreSnapshot();
 
-        void Save(wxXmlDocument* doc);
+        void Save(BaseSerializingVisitor& visitor) const;
         void Load(wxXmlNode* colors_node);
         wxColor CyanOrBlueOverride();
         wxColor LightOrMediumGreyOverride();
@@ -158,6 +159,8 @@ class ColorManager
             { ColorManager::ColorNames::COLOR_TEXT_UNSELECTED, "TextUnselected", "Unselected Text", xlBLACK, ColorManager::ColorCategory::COLOR_CAT_LAYOUT_TAB },
             { ColorManager::ColorNames::COLOR_TEXT_HIGHLIGHTED, "TextHighlighted", "Highlighted Text", xlBLACK, ColorManager::ColorCategory::COLOR_CAT_LAYOUT_TAB }
         };
+        std::map<std::string, xlColor> GetColors() { return colors; }
+        std::map<std::string, xlColor> GetDefaultColors() { return colors_default; }
 
     protected:
 

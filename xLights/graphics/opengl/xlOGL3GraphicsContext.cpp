@@ -1856,8 +1856,8 @@ public:
 };
 
 
-xlMesh *xlOGL3GraphicsContext::loadMeshFromObjFile(const std::string &file) {
-    return new xlGLMesh(file, this);
+std::unique_ptr<xlMesh> xlOGL3GraphicsContext::loadMeshFromObjFile(const std::string &file) {
+    return std::make_unique<xlGLMesh>(file, this);
 }
 xlGraphicsContext* xlOGL3GraphicsContext::drawMeshSolids(xlMesh *mesh, int brightness, bool useViewMatrix) {
     drawMesh(mesh, brightness, useViewMatrix, false);

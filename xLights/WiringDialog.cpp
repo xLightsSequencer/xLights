@@ -193,13 +193,13 @@ void WiringDialog::SetData(Model* model)
     std::map<int, std::list<wxRealPoint>> data;
     for (int i = 0; i < nodes; ++i)
     {
-        if (model->GetNodeStringNumber(i) != string && model->GetDisplayAs() != "Custom")
+        if (model->GetNodeStringNumber(i) != string && model->GetDisplayAs() != DisplayAsType::Custom)
         {
             _points[string] = data;
             data.clear();
             stringnode = 1;
             string = model->GetNodeStringNumber(i);
-        } else if (model->GetDisplayAs() == "Custom") {
+        } else if (model->GetDisplayAs() == DisplayAsType::Custom) {
             // because a custom mdoel can skip nodes we need to reverse engineer the node number
             stringnode = 1 + (nodeList[i]->ActChan - nodeList[0]->ActChan) / nodeList[0]->GetChanCount();
             CustomModel* cm = dynamic_cast<CustomModel*>(model);
@@ -219,7 +219,7 @@ void WiringDialog::SetData(Model* model)
             float y = it.screenY;
             x = x - minx;
             y = y - miny + 2;
-            if (model->GetDisplayAs() != "Icicles")
+            if (model->GetDisplayAs() != DisplayAsType::Icicles)
             {
                 y = _rows - y;
             }

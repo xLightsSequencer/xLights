@@ -15,6 +15,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "UtilFunctions.h"
+#include "XmlSerializer/XmlSerializingVisitor.h"
 
 void PreviewCamera::Reset()
 {
@@ -224,79 +225,48 @@ void ViewpointMgr::AddCamera( std::string name, PreviewCamera* current_camera, b
     }
 }
 
-void ViewpointMgr::Save(wxXmlDocument* doc)
+void ViewpointMgr::SaveCameraToVisitor(BaseSerializingVisitor& visitor, PreviewCamera* camera,
+                                        const std::string& nodename, const std::string& nameOverride) const
 {
-	wxXmlNode* vp_node = nullptr;
-
-	// find an existing view node in the document and delete it
-	for (wxXmlNode* e = doc->GetRoot()->GetChildren(); e != nullptr; e = e->GetNext())
-	{
-		if (e->GetName() == "Viewpoints") vp_node = e;
-	}
-	if (vp_node != nullptr)
-	{
-		doc->GetRoot()->RemoveChild(vp_node);
-	}
-
-	wxXmlNode* newnode = Save();
-    doc->GetRoot()->AddChild(newnode);
+    using F = BaseSerializingVisitor;
+    BaseSerializingVisitor::AttrCollector attrs;
+    attrs.Add("name", XmlSafe(nameOverride.empty() ? camera->name : nameOverride));
+    attrs.Add("posX", F::FloatToString(camera->posX));
+    attrs.Add("posY", F::FloatToString(camera->posY));
+    attrs.Add("posZ", F::FloatToString(camera->posZ));
+    attrs.Add("angleX", F::FloatToString(camera->angleX));
+    attrs.Add("angleY", F::FloatToString(camera->angleY));
+    attrs.Add("angleZ", F::FloatToString(camera->angleZ));
+    attrs.Add("distance", F::FloatToString(camera->distance));
+    attrs.Add("zoom", F::FloatToString(camera->zoom));
+    attrs.Add("panx", F::FloatToString(camera->panx));
+    attrs.Add("pany", F::FloatToString(camera->pany));
+    attrs.Add("panz", F::FloatToString(camera->panz));
+    attrs.Add("zoom_corrx", F::FloatToString(camera->zoom_corrx));
+    attrs.Add("zoom_corry", F::FloatToString(camera->zoom_corry));
+    attrs.Add("is_3d", std::to_string(static_cast<int>(camera->is_3d)));
+    visitor.WriteOpenTag(nodename, attrs, /*selfClose=*/true);
 }
 
-wxXmlNode* ViewpointMgr::SaveCameraToXml(PreviewCamera* camera, const std::string& nodename, const std::string& nameOverride = "") const
+void ViewpointMgr::Save(BaseSerializingVisitor& visitor) const
 {
-    wxXmlNode* cnode = new wxXmlNode(wxXML_ELEMENT_NODE, nodename);
-    if (nameOverride != "")
-    {
-        cnode->AddAttribute("name", XmlSafe(nameOverride));
+    BaseSerializingVisitor::AttrCollector emptyAttrs;
+    visitor.WriteOpenTag("Viewpoints", emptyAttrs);
+
+    for (auto* cam : previewCameras2d) {
+        SaveCameraToVisitor(visitor, cam, "Camera");
     }
-    else {
-        cnode->AddAttribute("name", XmlSafe(camera->name));
+    for (auto* cam : previewCameras3d) {
+        SaveCameraToVisitor(visitor, cam, "Camera");
     }
-    cnode->AddAttribute("posX", wxString::Format("%f", camera->posX));
-    cnode->AddAttribute("posY", wxString::Format("%f", camera->posY));
-    cnode->AddAttribute("posZ", wxString::Format("%f", camera->posZ));
-    cnode->AddAttribute("angleX", wxString::Format("%f", camera->angleX));
-    cnode->AddAttribute("angleY", wxString::Format("%f", camera->angleY));
-    cnode->AddAttribute("angleZ", wxString::Format("%f", camera->angleZ));
-    cnode->AddAttribute("distance", wxString::Format("%f", camera->distance));
-    cnode->AddAttribute("zoom", wxString::Format("%f", camera->zoom));
-    cnode->AddAttribute("panx", wxString::Format("%f", camera->panx));
-    cnode->AddAttribute("pany", wxString::Format("%f", camera->pany));
-    cnode->AddAttribute("panz", wxString::Format("%f", camera->panz));
-    cnode->AddAttribute("zoom_corrx", wxString::Format("%f", camera->zoom_corrx));
-    cnode->AddAttribute("zoom_corry", wxString::Format("%f", camera->zoom_corry));
-    cnode->AddAttribute("is_3d", wxString::Format("%d", camera->is_3d));
-
-    return cnode;
-}
-
-wxXmlNode* ViewpointMgr::Save() const
-{
-	wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "Viewpoints");
-
-	for( size_t i = 0; i < previewCameras2d.size(); ++i )
-	{
-        wxXmlNode* cnode = SaveCameraToXml(previewCameras2d[i], "Camera");
-        node->AddChild(cnode);
-	}
-
-	for( size_t i = 0; i < previewCameras3d.size(); ++i )
-	{
-        wxXmlNode* cnode = SaveCameraToXml(previewCameras3d[i], "Camera");
-        node->AddChild(cnode);
-	}
-
     if (_defaultCamera2D != nullptr) {
-        wxXmlNode* cnode = SaveCameraToXml(_defaultCamera2D, "DefaultCamera2D", "DEFAULT2D");
-        node->AddChild(cnode);
+        SaveCameraToVisitor(visitor, _defaultCamera2D, "DefaultCamera2D", "DEFAULT2D");
     }
-
     if (_defaultCamera3D != nullptr) {
-        wxXmlNode* cnode = SaveCameraToXml(_defaultCamera3D, "DefaultCamera3D", "DEFAULT3D");
-        node->AddChild(cnode);
+        SaveCameraToVisitor(visitor, _defaultCamera3D, "DefaultCamera3D", "DEFAULT3D");
     }
 
-	return node;
+    visitor.WriteCloseTag();
 }
 
 PreviewCamera* ViewpointMgr::CreateCameraFromNode(wxXmlNode* c)

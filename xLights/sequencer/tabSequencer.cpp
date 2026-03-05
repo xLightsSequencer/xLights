@@ -310,17 +310,17 @@ Model *xLightsFrame::GetModel(const std::string& name) const
     return AllModels[name];
 }
 
-bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased) {
+bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount) {
 
     if (modelName == PRESET_MODEL_NAME && _presetModel != nullptr) {
-        buffer.InitBuffer(*_presetModel, layerCount, 50, zeroBased);
+        buffer.InitBuffer(*_presetModel, layerCount, 50);
     }
     else {
         Model* model = GetModel(modelName);
-        if (model == nullptr || model->GetModelXml() == nullptr) {
+        if (model == nullptr) {
             return false;
         }
-        buffer.InitBuffer(*model, layerCount, _seqData.FrameTime(), zeroBased);
+        buffer.InitBuffer(*model, layerCount, _seqData.FrameTime());
     }
     return true;
 }
@@ -329,34 +329,25 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    wxXmlNode* prospectives = PerspectivesNode->GetChildren();
     mCurrentPerpective = nullptr;
-    if (prospectives == nullptr) {
-        if (PerspectivesNode->HasAttribute("current")) {
-            PerspectivesNode->DeleteAttribute("current");
-        }
-        PerspectivesNode->AddAttribute("current", "Default Perspective");
-        wxXmlNode* p = new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
-        p->AddAttribute("name", "Default Perspective");
+    if (_perspectives.empty()) {
+        _currentPerspectiveName = "Default Perspective";
+        Perspective pv;
+        pv.name = "Default Perspective";
         wxString perspective = m_mgr->SavePerspective();
-        p->AddAttribute("settings", perspective);
+        pv.settings = perspective.ToStdString();
+        pv.version = "2.0";
         logger_base.debug("Saved perspective.");
         LogPerspective(perspective);
-
-        p->AddAttribute("version", "2.0");
-        PerspectivesNode->AddChild(p);
-        mCurrentPerpective = p;
+        _perspectives.push_back(pv);
+        mCurrentPerpective = &_perspectives.back();
         UnsavedRgbEffectsChanges = true;
         UpdateLayoutSave();
         UpdateControllerSave();
     } else {
-        wxString currentName = PerspectivesNode->GetAttribute("current");
-        for (wxXmlNode* p = PerspectivesNode->GetChildren(); p != nullptr; p = p->GetNext()) {
-            if (p->GetName() == "perspective") {
-                wxString name = p->GetAttribute("name");
-                if (!name.IsEmpty() && currentName == name) {
-                    mCurrentPerpective = p;
-                }
+        for (auto& p : _perspectives) {
+            if (!p.name.empty() && p.name == _currentPerspectiveName) {
+                mCurrentPerpective = &p;
             }
         }
     }
@@ -496,7 +487,7 @@ void xLightsFrame::CheckForValidModels()
     for (const auto& it : AllModels) {
         if (it.second != nullptr) {
             AllNames.push_back(it.first);
-            if (it.second->GetDisplayAs() != "ModelGroup") {
+            if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
                 ModelNames.push_back(it.first);
             }
         }
@@ -743,7 +734,7 @@ void xLightsFrame::CheckForValidModels()
                             _sequenceElements.DeleteElement(name);
                         }
                     }
-                    else if (m->GetDisplayAs() == "ModelGroup") {
+                    else if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                         bool hasStrandEffects = false;
                         bool hasNodeEffects = false;
                         for (int l = 0; l < el->GetStrandCount(); l++) {
@@ -1042,10 +1033,16 @@ void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
 {
     wxString s = event.GetString();
     if ("" != s) {
-        for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=nullptr; e=e->GetNext() ) {
-            if (e->GetName() == "modelGroup") {
-                if (s == e->GetAttribute("name")) {
-                    std::string modelString = e->GetAttribute("models").ToStdString();
+        for (const auto& it : AllModels) {
+            if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup && s == it.first) {
+                ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
+                if (mg != nullptr) {
+                    const auto& names = mg->ModelNames();
+                    std::string modelString;
+                    for (size_t i = 0; i < names.size(); i++) {
+                        if (i > 0) modelString += ',';
+                        modelString += names[i];
+                    }
                     _sequenceElements.AddMissingModelsToSequence(modelString, false);
                 }
             }
@@ -1343,13 +1340,13 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
         // Change render buffer to Per Model for models that need it
         Model* m = AllModels[el->GetParentElement()->GetModelName()];
-        if( m->GetDisplayAs() == "ModelGroup" ) {
+        if( m->GetDisplayAs() == DisplayAsType::ModelGroup ) {
             auto mg = dynamic_cast<ModelGroup*>(m);
             if (mg != nullptr) {
                 // see if all models in the group match the desired model types
                 bool all_good = true;
                 for (const auto& it : mg->GetFlatModels(true, false)) {
-                    if (it->GetDisplayAs() != "DmxMovingHeadAdv" && it->GetDisplayAs() != "DmxMovingHead") {
+                    if (it->GetDisplayAs() != DisplayAsType::DmxMovingHeadAdv && it->GetDisplayAs() != DisplayAsType::DmxMovingHead) {
                         all_good = false;
                         break;
                     }
@@ -3096,31 +3093,25 @@ void xLightsFrame::DoForceSequencerRefresh()
     ResizeMainSequencer();
 }
 
-void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
+void xLightsFrame::DoLoadPerspective(Perspective* perspective)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (perspective == nullptr) {
-        logger_base.warn("xLightsFrame::LoadPerspective Null perspective node.");
-        return;
-    }
-    if (PerspectivesNode == nullptr) {
-        logger_base.warn("xLightsFrame::LoadPerspective Null PerspectivesNode.");
+        logger_base.warn("xLightsFrame::LoadPerspective Null perspective.");
         return;
     }
 
-    wxString name = perspective->GetAttribute("name");
-    wxString settings = perspective->GetAttribute("settings");
-    if (name != PerspectivesNode->GetAttribute("current")) {
-        PerspectivesNode->DeleteAttribute("current");
-        PerspectivesNode->AddAttribute("current", name);
+    wxString name = perspective->name;
+    wxString settings = perspective->settings;
+    if (name.ToStdString() != _currentPerspectiveName) {
+        _currentPerspectiveName = name.ToStdString();
         UnsavedRgbEffectsChanges = true;
         mCurrentPerpective = perspective;
     }
     if (settings.size() == 0) {
         settings = m_mgr->SavePerspective();
-        mCurrentPerpective->DeleteAttribute("settings");
-        mCurrentPerpective->AddAttribute("settings", settings);
-        mCurrentPerpective->AddAttribute("version", "2.0");
+        perspective->settings = settings.ToStdString();
+        perspective->version = "2.0";
         logger_base.debug("Saved perspective.");
         LogPerspective(settings);
     }
@@ -3139,7 +3130,7 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
 
     ShowHideAllSequencerWindows(true);
 
-    if (perspective->GetAttribute("version", "1.0") == "1.0") {
+    if (perspective->version == "1.0" || perspective->version.empty()) {
         //title on Layer Timing panel changed
         m_mgr->GetPane("LayerTiming").Caption("Layer Blending");
 
@@ -3150,11 +3141,9 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
         _housePreviewPanel->Refresh(false);
         m_mgr->Update();
 
-        perspective->DeleteAttribute("settings");
-        perspective->DeleteAttribute("version");
-        perspective->AddAttribute("version", "2.0");
+        perspective->version = "2.0";
         wxString p = m_mgr->SavePerspective();
-        perspective->AddAttribute("settings", p);
+        perspective->settings = p.ToStdString();
         logger_base.debug("Saved perspective.");
         LogPerspective(p);
     } else {
@@ -3184,7 +3173,7 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
 
 void xLightsFrame::LoadPerspective(wxCommandEvent& event)
 {
-    wxXmlNode* perspective = (wxXmlNode*)(event.GetClientData());
+    Perspective* perspective = (Perspective*)(event.GetClientData());
     mCurrentPerpective = perspective;
     DoLoadPerspective(mCurrentPerpective);
 }
@@ -3195,17 +3184,12 @@ void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
 
     if (mCurrentPerpective != nullptr)
     {
-        wxMessageDialog confirm(this, _("Are you sure you want to save the current view as perpective \"") + mCurrentPerpective->GetAttribute("name") + "\"?", _("Confirm"), wxYES | wxNO);
+        wxMessageDialog confirm(this, _("Are you sure you want to save the current view as perpective \"") + mCurrentPerpective->name + "\"?", _("Confirm"), wxYES | wxNO);
         if (confirm.ShowModal() == wxID_YES)
         {
-            if (mCurrentPerpective->HasAttribute("settings"))
-            {
-                mCurrentPerpective->DeleteAttribute("settings");
-            }
             wxString p = m_mgr->SavePerspective();
-            mCurrentPerpective->AddAttribute("settings", p);
-            mCurrentPerpective->DeleteAttribute("version");
-            mCurrentPerpective->AddAttribute("version", "2.0");
+            mCurrentPerpective->settings = p.ToStdString();
+            mCurrentPerpective->version = "2.0";
             logger_base.debug("Saved perspective.");
             LogPerspective(p);
             SaveEffectsFile();
@@ -3217,27 +3201,24 @@ void xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event
 {
     wxString name = wxGetTextFromUser("Enter name of perspective", "Perspective Name");
     if (name.size() > 0) {
-        for (wxXmlNode* p = PerspectivesNode->GetChildren(); p != nullptr; p = p->GetNext())
+        for (const auto& p : _perspectives)
         {
-            if (p->GetName() == "perspective")
+            if (p.name == name.ToStdString())
             {
-                wxString check_name = p->GetAttribute("name");
-                if (check_name == name)
-                {
-                    int answer = wxMessageBox("Enter new name?", "Duplicate Name", wxYES_NO);
-                    if (answer == wxYES) {
-                        OnMenuItemViewSaveAsPerspectiveSelected(event);
-                    }
-                    return;
+                int answer = wxMessageBox("Enter new name?", "Duplicate Name", wxYES_NO);
+                if (answer == wxYES) {
+                    OnMenuItemViewSaveAsPerspectiveSelected(event);
                 }
+                return;
             }
         }
 
-        wxXmlNode* p = new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
-        p->AddAttribute("name", name);
-        p->AddAttribute("settings", "");
-        PerspectivesNode->AddChild(p);
-        mCurrentPerpective = p;
+        Perspective pv;
+        pv.name = name.ToStdString();
+        pv.settings = "";
+        pv.version = "2.0";
+        _perspectives.push_back(pv);
+        mCurrentPerpective = &_perspectives.back();
         OnMenuItemViewSavePerspectiveSelected(event);
         PerspectivesChanged(event);
         DoLoadPerspective(mCurrentPerpective);
@@ -3258,7 +3239,7 @@ void xLightsFrame::PlayJukeboxItem(wxCommandEvent& event)
 
 void xLightsFrame::PerspectivesChanged(wxCommandEvent& event)
 {
-    LoadPerspectivesMenu(PerspectivesNode);
+    LoadPerspectivesMenu();
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
     UpdateControllerSave();
@@ -4020,7 +4001,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent& event)
         Model* model = GetModel(el->GetModelName());
 
         // we cant do this on model groups & submodels
-        if (model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
+        if (model->GetDisplayAs() != DisplayAsType::ModelGroup && model->GetDisplayAs() != DisplayAsType::SubModel) {
             for (int i = 0; i < el->GetStrandCount(); ++i) {
                 StrandElement* se = el->GetStrand(i);
                 for (int j = 0; j < se->GetNodeLayerCount(); ++j) {
@@ -4090,88 +4071,38 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent& event)
     }
 }
 
-wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)
+EffectPreset* xLightsFrame::CreateEffectPreset(EffectPresetGroup* parent, const std::string& name)
 {
-    wxXmlNode* NewXml = new wxXmlNode(wxXML_ELEMENT_NODE, "effect");
-    NewXml->AddAttribute("name", name);
     wxString copy_data;
     mainSequencer->GetPresetData(copy_data);
-    NewXml->AddAttribute("settings", copy_data);
-    NewXml->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
-    NewXml->AddAttribute("xLightsVersion", xlights_version_string);
-    return NewXml;
+    return _effectPresetManager.AddPreset(parent, name,
+                                          copy_data.ToStdString(),
+                                          XLIGHTS_RGBEFFECTS_VERSION,
+                                          xlights_version_string.ToStdString());
 }
 
-void xLightsFrame::UpdateEffectNode(wxXmlNode* node)
+void xLightsFrame::UpdateEffectPreset(EffectPreset* preset)
 {
     wxString copy_data;
     mainSequencer->GetSelectedEffectsData(copy_data);
-    node->AddAttribute("settings", copy_data);
-    node->DeleteAttribute("xLightsVersion");
-    node->AddAttribute("xLightsVersion", xlights_version_string);
-}
-
-std::vector<std::string> GetPresets(wxXmlNode* node, const std::string& path)
-{
-    std::vector<std::string> res;
-
-    if (node == nullptr)
-        return res;
-
-    for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext()) {
-        if (n->GetName() == "effect") {
-            auto name = UnXmlSafe(n->GetAttribute("name", ""));
-            if (path != "")
-                name = path + "\\" + name;
-            if (name != "")
-                res.push_back(name);
-        } else if (n->GetName() == "effectGroup") {
-            auto name = UnXmlSafe(n->GetAttribute("name", ""));
-            auto p = path;
-            if (p != "")
-                p = p + "\\";
-            p = p + name;
-            auto toadd = GetPresets(n, p);
-            res.reserve(res.size() + toadd.size()); // preallocate memory
-            res.insert(res.end(), toadd.begin(), toadd.end());
-        }
-    }
-
-    return res;
+    _effectPresetManager.UpdatePresetSettings(preset,
+                                              copy_data.ToStdString(),
+                                              xlights_version_string.ToStdString());
 }
 
 std::vector<std::string> xLightsFrame::GetPresets() const
 {
-    return ::GetPresets(EffectsNode, "");
-}
-
-wxXmlNode* xLightsFrame::FindPreset(wxXmlNode* node, wxArrayString& path, int level) const
-{
-    for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext()) {
-        if (n->GetName() == "effect") {
-            if (UnXmlSafe(n->GetAttribute("name", "")) == path[level]) {
-                return n;
-            }
-        } else if (n->GetName() == "effectGroup" && level < path.size() - 1) {
-            if (UnXmlSafe(n->GetAttribute("name", "")) == path[level]) {
-                return FindPreset(n, path, level + 1);
-            }
-        }
-    }
-    return nullptr;
+    return _effectPresetManager.GetAllPresetPaths("\\");
 }
 
 Effect* xLightsFrame::ApplyEffectsPreset(const std::string& presetName)
 {
     Effect* res = nullptr;
-    wxXmlNode* ele = nullptr;
 
-    auto path = wxSplit(presetName, '\\');
+    EffectPreset* preset = _effectPresetManager.FindPresetByPath(presetName, '\\');
 
-    ele = FindPreset(EffectsNode, path, 0);
-
-    if (ele != nullptr) {
-        res = mainSequencer->PanelEffectGrid->Paste(ele->GetAttribute("settings"), ele->GetAttribute("xLightsVersion", "4.0"));
+    if (preset != nullptr) {
+        res = mainSequencer->PanelEffectGrid->Paste(preset->GetSettings(), preset->GetXLightsVersion());
     }
 
     return res;

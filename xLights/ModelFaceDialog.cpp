@@ -48,11 +48,13 @@
 #include "xLightsMain.h"
 #include "NodeSelectGrid.h"
 #include "models/Model.h"
+#include "models/SubModel.h"
 #include "xLightsApp.h"
 #include "support/VectorMath.h"
 #include "models/CustomModel.h"
 #include "outputs/OutputManager.h"
 #include "xlColourData.h"
+#include "XmlSerializer/XmlSerializer.h"
 
 #include <log4cpp/Category.hh>
 
@@ -586,11 +588,11 @@ void ModelFaceDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
             FaceTypeChoice->Enable();
 
             // set the default type of face based on the model type
-            if (model->GetDisplayAs() == "Matrix" || StartsWith(model->GetDisplayAs(), "Tree")) {
+            if (model->GetDisplayAs() == DisplayAsType::Matrix || model->GetDisplayAs() == DisplayAsType::Tree) {
                 FaceTypeChoice->ChangeSelection(MATRIX_FACE);
                 wxChoicebookEvent event;
                 OnFaceTypeChoicePageChanged(event);
-            } else if (model->GetDisplayAs() == "Custom") {
+            } else if (model->GetDisplayAs() == DisplayAsType::Custom) {
                 CustomModel* cm = dynamic_cast<CustomModel*>(model);
                 if (cm != nullptr) {
                     if (cm->IsAllNodesUnique()) {
@@ -603,7 +605,7 @@ void ModelFaceDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
                         OnFaceTypeChoicePageChanged(event);
                     }
                 }
-            } else if (model->GetDisplayAs() == "Channel Block") {
+            } else if (model->GetDisplayAs() == DisplayAsType::ChannelBlock) {
                 FaceTypeChoice->ChangeSelection(SINGLE_NODE_FACE);
                 wxChoicebookEvent event;
                 OnFaceTypeChoicePageChanged(event);
@@ -1010,9 +1012,9 @@ void ModelFaceDialog::UpdatePreview(const std::string& channels, wxColor c)
     int nn = model->GetNodeCount();
     xlColor cb(xlDARK_GREY);
     xlColor cc(c);
-    if (model->modelDimmingCurve) {
-        model->modelDimmingCurve->apply(cb);
-        model->modelDimmingCurve->apply(cc);
+    if (model->GetDimmingCurve()) {
+        model->GetDimmingCurve()->apply(cb);
+        model->GetDimmingCurve()->apply(cc);
     }
     for (int node = 0; node < nn; ++node) {
         model->SetNodeColor(node, cb);
@@ -1483,24 +1485,26 @@ void ModelFaceDialog::ImportSubmodel(wxGridEvent& event)
 
 wxString ModelFaceDialog::getSubmodelNodes(Model* sm)
 {
-    if (sm == nullptr) return "";
-
-    wxXmlNode* root = sm->GetModelXml();
-    wxString row = "";
-
-    if (root->GetName() == "subModel") {
-        if (root->GetAttribute("type", "") == "ranges") {
-            wxArrayString rows;
-            int line = 0;
-            while (root->HasAttribute(wxString::Format("line%d", line))) {
-                auto l = root->GetAttribute(wxString::Format("line%d", line), "");
-                rows.Add(l);
-                line++;
-            }
-            row = wxJoin(rows, ',', '\0');
+    SubModel* subModel = dynamic_cast<SubModel*>(sm);
+    if (subModel == nullptr) {
+        return "";
+    }
+    
+    // Only process if it's a ranges-type submodel
+    if (!subModel->IsRanges()) {
+        return "";
+    }
+    
+    wxArrayString rows;
+    int numRanges = subModel->GetNumRanges();
+    for (int i = 0; i < numRanges; i++) {
+        std::string range = subModel->GetRange(i);
+        if (!range.empty()) {
+            rows.Add(range);
         }
     }
-    return row;
+    
+    return wxJoin(rows, ',', '\0');
 }
 
 void ModelFaceDialog::OnAddBtnPopup(wxCommandEvent& event)
@@ -1565,7 +1569,6 @@ void ModelFaceDialog::ImportFacesFromModel()
         NameChoice->SetSelection(NameChoice->GetCount() - 1);
         NameChoice->SetStringSelection(NameChoice->GetString(NameChoice->GetCount() - 1));
         SelectFaceModel(NameChoice->GetString(NameChoice->GetCount() - 1).ToStdString());
-
     }
 }
 
@@ -1573,44 +1576,44 @@ void ModelFaceDialog::ImportFaces(const wxString& filename)
 {
     wxXmlDocument doc(filename);
 
-    if (doc.IsOk())
-    {
-        wxXmlNode* root = doc.GetRoot();
-        bool facesFound = false;
-
-        for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
-        {
-            if (n->GetName() == "faceInfo")
-            {
-                std::map<std::string, std::map<std::string, std::string> > faceInfo;
-                Model::ParseFaceInfo(n, faceInfo);
-                if (faceInfo.size() == 0)
-                {
-                    continue;
-                }
-                facesFound = true;
-                AddFaces(faceInfo);
-            }
-        }
-
-        if (facesFound)
-        {
-            NameChoice->Enable();
-            FaceTypeChoice->Enable();
-
-            NameChoice->SetSelection(NameChoice->GetCount()-1);
-            NameChoice->SetStringSelection(NameChoice->GetString(NameChoice->GetCount() - 1));
-            SelectFaceModel(NameChoice->GetString(NameChoice->GetCount() - 1).ToStdString());
-        }
-        else
-        {
-            DisplayError(filename + " contains no faces.");
-        }
-    }
-    else
+    if (!doc.IsOk())
     {
         DisplayError(filename + " Failure loading xModel file.");
+        return;
     }
+
+    wxXmlNode* root = doc.GetRoot();
+    if (root == nullptr)
+    {
+        DisplayError(filename + " contains invalid XML structure.");
+        return;
+    }
+
+    // Collect all face definitions from the model file
+    FaceStateData allFaces;
+    for (wxXmlNode* node = root->GetChildren(); node != nullptr; node = node->GetNext())
+    {
+        if (node->GetName() == "faceInfo")
+        {
+            XmlSerialize::DeserializeFaceInfo(node, allFaces);
+        }
+    }
+
+    if (allFaces.empty())
+    {
+        DisplayError(filename + " contains no faces.");
+        return;
+    }
+
+    // Add all imported faces
+    AddFaces(allFaces);
+
+    // Update UI to show the last imported face
+    NameChoice->Enable();
+    FaceTypeChoice->Enable();
+    NameChoice->SetSelection(NameChoice->GetCount() - 1);
+    NameChoice->SetStringSelection(NameChoice->GetString(NameChoice->GetCount() - 1));
+    SelectFaceModel(NameChoice->GetString(NameChoice->GetCount() - 1).ToStdString());
 }
 
 void ModelFaceDialog::AddFaces(std::map<std::string, std::map<std::string, std::string>> const& faces) {

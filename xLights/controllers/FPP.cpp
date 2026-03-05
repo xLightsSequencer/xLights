@@ -69,7 +69,8 @@
 #include "../models/RulerObject.h"
 #include "../models/ImageObject.h"
 #include "../models/MeshObject.h"
-#include "../models/TerrianObject.h"
+#include "../models/TerrainObject.h"
+#include "../XmlSerializer/XmlSerializer.h"
 
 #include "Falcon.h"
 #include "Minleon.h"
@@ -1479,7 +1480,7 @@ nlohmann::json FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startC
     for (const auto& m : *allmodels) {
         Model* model = m.second;
 
-        if (model->GetDisplayAs() == "ModelGroup") {
+        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             continue;
         }
         if (!model->IsActive()) {
@@ -1515,7 +1516,7 @@ nlohmann::json FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startC
             } else {
                 jm["Orientation"] = std::string("horizontal");
             }
-        } else if (model->GetDisplayAs() == "Custom") {
+        } else if (model->GetDisplayAs() == DisplayAsType::Custom) {
             CustomModel *cm = dynamic_cast<CustomModel *>(model);
             straPerStr = 1;
             numStr = 1;
@@ -1624,7 +1625,7 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
             continue;
         }
 
-        if (model->GetDisplayAs() == "ModelGroup") {
+        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             continue;
         }
         
@@ -1647,7 +1648,7 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
             continue;
         }
 
-        if (model->GetDisplayAs() == "ModelGroup") {
+        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             continue;
         }
 
@@ -1705,13 +1706,26 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
     if (objects.size() > 0) {
         nlohmann::json virtualDisplay;
         virtualDisplay["view_objects"] = nlohmann::json::array();
+        
+        XmlSerializer serializer;
+        
         for (auto &e : objects) {
             nlohmann::json obj;
-            auto *xml = e.second->GetModelXml();
-            auto *attr = xml->GetAttributes();
-            while (attr != nullptr) {
-                obj[attr->GetName().ToStdString()] = attr->GetValue().ToStdString();
-                attr = attr->GetNext();
+            
+            // Use XmlSerializer to get the object's XML
+            wxXmlDocument doc;
+            XmlSerializingVisitor visitor(&doc);
+            serializer.SerializeObject(*e.second, visitor);
+            wxXmlNode* root = doc.GetRoot();
+            
+            // Get the first child node (the view_object node)
+            wxXmlNode* viewObjectNode = root->GetChildren();
+            if (viewObjectNode) {
+                auto *attr = viewObjectNode->GetAttributes();
+                while (attr != nullptr) {
+                    obj[attr->GetName().ToStdString()] = attr->GetValue().ToStdString();
+                    attr = attr->GetNext();
+                }
             }
             
             std::string wp = obj["WorldPosX"];
@@ -1720,7 +1734,7 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
             wp = obj["WorldPosY"];
             obj["WorldPosY"] = std::to_string(std::atof(wp.c_str()) - minY);
             
-            if (e.second->GetDisplayAs() == "Mesh") {
+            if (e.second->GetDisplayAs() == DisplayAsType::Mesh) {
                 std::string fn = obj["ObjFile"];
                 wxFileName fileName(fn);
                 std::string bn = fileName.GetFullName().ToStdString();
@@ -1732,7 +1746,7 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
                     bn = fileName.GetFullName().ToStdString();
                     virtualDisplayData[bn] = fr;
                 }
-            } else if (e.second->GetDisplayAs() == "Image") {
+            } else if (e.second->GetDisplayAs() == DisplayAsType::Image) {
                 std::string fn = obj["Image"];
                 wxFileName fileName(fn);
                 std::string bn = fileName.GetFullName().ToStdString();

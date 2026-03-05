@@ -11,10 +11,9 @@
  **************************************************************/
 
 #include "DmxModel.h"
-#include "DmxShutterAbility.h"
 #include "../ModelManager.h"
 
-class DmxMotorBase;
+class DmxMotor;
 
 enum DMX_FIXTURE {
     DMX_MOVING_HEAD_1,
@@ -27,24 +26,32 @@ enum DMX_FIXTURE {
     DMX_MOVING_HEAD_8
 };
 
-class DmxMovingHeadComm : public DmxModel, public DmxShutterAbility {
+class PanTiltState
+{
+public:
+    uint32_t ms = 0;
+    float pan_angle = 0.0f;
+    float tilt_angle = 0.0f;
+};
+
+class DmxMovingHeadComm : public DmxModel {
     public:
-        DmxMovingHeadComm(wxXmlNode* node, const ModelManager& manager, bool zeroBased = false) :
-            DmxModel(node,manager,zeroBased)
+        DmxMovingHeadComm(const ModelManager& manager) :
+            DmxModel(manager)
         {
         }
         virtual ~DmxMovingHeadComm(){};
 
-        virtual DmxMotorBase* GetPanMotor() const = 0;
-        virtual uint32_t GetMHDimmerChannel() const = 0;
-        bool HasDimmerChannel() const { return GetMHDimmerChannel() > 0;}
-        virtual DmxMotorBase* GetTiltMotor() const = 0;
+        virtual DmxMotor* GetPanMotor() const = 0;
+        virtual DmxMotor* GetTiltMotor() const = 0;
         virtual int GetFixtureVal() const {
             return fixture_val + 1;
         };
         std::string GetFixture() const {
             return FixtureIDtoString(fixture_val);
         }
+    
+        void SetDmxFixture(const std::string val) { dmx_fixture = val; }
 
         static std::string FixtureIDtoString(int fixture_val) {
             if (fixture_val == DMX_MOVING_HEAD_1) {

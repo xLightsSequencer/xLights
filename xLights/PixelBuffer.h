@@ -295,7 +295,7 @@ public:
     void MergeBuffersForLayer(int i);
 
     int GetLayerCount() const;
-    void InitBuffer(const Model& pbc, int layers, int timing, bool zeroBased = false);
+    void InitBuffer(const Model& pbc, int layers, int timing);
     void InitStrandBuffer(const Model& pbc, int strand, int timing, int layers);
     void InitNodeBuffer(const Model& pbc, int strand, int node, int timing);
     void InitPerModelBuffers(const ModelGroup& model, int layer, int timing);

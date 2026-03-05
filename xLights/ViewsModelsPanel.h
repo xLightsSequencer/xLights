@@ -55,9 +55,7 @@ class ViewsModelsPanel : public wxPanel
     xLightsFrame* _xlFrame = nullptr;
     SequenceData* _seqData = nullptr;
     SequenceElements* _sequenceElements = nullptr;
-    wxXmlNode* _models = nullptr;
     wxXmlNode* _views = nullptr;
-    wxXmlNode* _modelGroups = nullptr;
     SequenceViewManager* _sequenceViewManager = nullptr;
     wxImageList* _imageList = nullptr;
     int _numViews = 0;
@@ -134,7 +132,7 @@ public:
     void SetViewChoice(wxChoice* choice);
     void SelectView(const std::string& view);
     bool HasView(const std::string& view);
-    void SetSequenceElementsModelsViews(SequenceData* seqData, SequenceElements* sequenceElements, wxXmlNode* modelsNode, wxXmlNode* modelGroupsNode, SequenceViewManager* sequenceViewManager);
+    void SetSequenceElementsModelsViews(SequenceData* seqData, SequenceElements* sequenceElements, SequenceViewManager* sequenceViewManager);
     void OnViewSelect(wxCommandEvent& event);
     void OnListCtrlItemCheck(wxCommandEvent& event);
     void UpdateModelsForSelectedView();

@@ -27,14 +27,8 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-static const float OFFSET_SCALE = 100.0f;
-
-DmxImage::DmxImage(wxXmlNode* node, wxString _name)
- : node_xml(node), _imageFile(""), width(1), height(1),
-    obj_exists(false), image_selected(false),
-    offset_x(0.0f), offset_y(0.0f), offset_z(0.0f),
-    scalex(1.0f), scaley(1.0f), scalez(1.0f),
-    rotatex(0.0f), rotatey(0.0f), rotatez(0.0f), base_name(_name)
+DmxImage::DmxImage(std::string _name)
+ : base_name(_name)
 {
 }
 
@@ -45,55 +39,8 @@ DmxImage::~DmxImage()
     }
 }
 
-void DmxImage::SetOffsetZ(float value, BaseObject* base)
+void DmxImage::Init(BaseObject* base)
 {
-    offset_z = value;
-    node_xml->DeleteAttribute("OffsetZ");
-    node_xml->AddAttribute("OffsetZ", wxString::Format("%6.4f", offset_z));
-    base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxImage::SetOffsetZ");
-    base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::SetOffsetZ");
-    base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::SetOffsetZ");
-    base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxImage::SetOffsetZ");
-}
-
-void DmxImage::SetScaleX(float value, BaseObject* base)
-{
-    scalex = value;
-    node_xml->DeleteAttribute("ScaleX");
-    node_xml->AddAttribute("ScaleX", wxString::Format("%6.4f", scalex));
-    base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxImage::SetScaleX");
-    base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::SetScaleX");
-    base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::SetScaleX");
-    base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxImage::SetScaleX");
-}
-
-void DmxImage::SetScaleY(float value, BaseObject* base)
-{
-    scaley = value;
-    node_xml->DeleteAttribute("ScaleY");
-    node_xml->AddAttribute("ScaleY", wxString::Format("%6.4f", scaley));
-    base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxImage::SetScaleY");
-    base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::SetScaleY");
-    base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::SetScaleY");
-    base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxImage::SetScaleY");
-}
-
-void DmxImage::Init(BaseObject* base) {
-
-    _imageFile = FixFile("", node_xml->GetAttribute("Image", ""));
-    if (_imageFile != node_xml->GetAttribute("Image", "")) {
-        node_xml->DeleteAttribute("Image");
-        node_xml->AddAttribute("Image", _imageFile);
-    }
-
-    offset_x = wxAtof(node_xml->GetAttribute("OffsetX", "0.0")) / OFFSET_SCALE;
-    offset_y = wxAtof(node_xml->GetAttribute("OffsetY", "0.0")) / OFFSET_SCALE;
-    offset_z = wxAtof(node_xml->GetAttribute("OffsetZ", "0.0")) / OFFSET_SCALE;
-
-    scalex = wxAtof(node_xml->GetAttribute("ScaleX", "1.0"));
-    scaley = wxAtof(node_xml->GetAttribute("ScaleY", "1.0"));
-    scalez = wxAtof(node_xml->GetAttribute("ScaleZ", "1.0"));
-
     if (scalex < 0) {
         scalex = 1.0f;
     }
@@ -103,10 +50,6 @@ void DmxImage::Init(BaseObject* base) {
     if (scalez < 0) {
         scalez = 1.0f;
     }
-
-    rotatex = wxAtof(node_xml->GetAttribute("RotateX", "0.0f"));
-    rotatey = wxAtof(node_xml->GetAttribute("RotateY", "0.0f"));
-    rotatez = wxAtof(node_xml->GetAttribute("RotateZ", "0.0f"));
 
     if (rotatex < -180.0f || rotatex > 180.0f) {
         rotatex = 0.0f;
@@ -184,8 +127,6 @@ int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         ObtainAccessToURL(_imageFile);
         obj_exists = false;
         image_selected = true;
-        node_xml->DeleteAttribute("Image");
-        node_xml->AddAttribute("Image", _imageFile);
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::Image");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::Image");
         base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxImage::OnPropertyGridChange::Image");
@@ -193,8 +134,6 @@ int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
     }
     else if (!locked && base_name + "ScaleX" == name) {
         scalex = event.GetValue().GetDouble();
-        node_xml->DeleteAttribute("ScaleX");
-        node_xml->AddAttribute("ScaleX", wxString::Format("%6.4f", scalex));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxImage::OnPropertyGridChange::ScaleX");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::OnPropertyGridChange::ScaleX");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::OnPropertyGridChange::ScaleX");
@@ -207,8 +146,6 @@ int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
     }
     else if (!locked && base_name + "ScaleY" == name) {
         scaley = event.GetValue().GetDouble();
-        node_xml->DeleteAttribute("ScaleY");
-        node_xml->AddAttribute("ScaleY", wxString::Format("%6.4f", scaley));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxImage::OnPropertyGridChange::ScaleY");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::OnPropertyGridChange::ScaleY");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::OnPropertyGridChange::ScaleY");
@@ -221,8 +158,6 @@ int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
     }
     else if (!locked && base_name + "ScaleZ" == name) {
         scalez = event.GetValue().GetDouble();
-        node_xml->DeleteAttribute("ScaleZ");
-        node_xml->AddAttribute("ScaleZ", wxString::Format("%6.4f", scalez));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxImage::OnPropertyGridChange::ScaleZ");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::OnPropertyGridChange::ScaleZ");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::OnPropertyGridChange::ScaleZ");
@@ -235,8 +170,6 @@ int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
     }
     else if (!locked && base_name + "OffsetX" == name) {
         offset_x = event.GetValue().GetDouble() / OFFSET_SCALE;
-        node_xml->DeleteAttribute("OffsetX");
-        node_xml->AddAttribute("OffsetX", wxString::Format("%6.4f", offset_x * OFFSET_SCALE));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxImage::OnPropertyGridChange::ModelX");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::OnPropertyGridChange::ModelX");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::OnPropertyGridChange::ModelX");
@@ -249,8 +182,6 @@ int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
     }
     else if (!locked && base_name + "OffsetY" == name) {
         offset_y = event.GetValue().GetDouble() / OFFSET_SCALE;
-        node_xml->DeleteAttribute("OffsetY");
-        node_xml->AddAttribute("OffsetY", wxString::Format("%6.4f", offset_y * OFFSET_SCALE));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxImage::OnPropertyGridChange::ModelY");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::OnPropertyGridChange::ModelY");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::OnPropertyGridChange::ModelY");
@@ -263,8 +194,6 @@ int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
     }
     else if (!locked && base_name + "OffsetZ" == name) {
         offset_z = event.GetValue().GetDouble() / OFFSET_SCALE;
-        node_xml->DeleteAttribute("OffsetZ");
-        node_xml->AddAttribute("OffsetZ", wxString::Format("%6.4f", offset_z * OFFSET_SCALE));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxImage::OnPropertyGridChange::ModelZ");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::OnPropertyGridChange::ModelZ");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::OnPropertyGridChange::ModelZ");
@@ -277,8 +206,6 @@ int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
     }
     else if (!locked && base_name + "RotateX" == name) {
         rotatex = event.GetValue().GetDouble();
-        node_xml->DeleteAttribute("RotateX");
-        node_xml->AddAttribute("RotateX", wxString::Format("%4.8f", rotatex));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxImage::OnPropertyGridChange::RotateX");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::OnPropertyGridChange::RotateX");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::OnPropertyGridChange::RotateX");
@@ -291,8 +218,6 @@ int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
     }
     else if (!locked && base_name + "RotateY" == name) {
         rotatey = event.GetValue().GetDouble();
-        node_xml->DeleteAttribute("RotateY");
-        node_xml->AddAttribute("RotateY", wxString::Format("%4.8f", rotatey));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxImage::OnPropertyGridChange::RotateY");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::OnPropertyGridChange::RotateY");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::OnPropertyGridChange::RotateY");
@@ -305,8 +230,6 @@ int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
     }
     else if (!locked && base_name + "RotateZ" == name) {
         rotatez = event.GetValue().GetDouble();
-        node_xml->DeleteAttribute("RotateZ");
-        node_xml->AddAttribute("RotateZ", wxString::Format("%4.8f", rotatez));
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxImage::OnPropertyGridChange::RotateZ");
         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxImage::OnPropertyGridChange::RotateZ");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxImage::OnPropertyGridChange::RotateZ");
@@ -408,70 +331,5 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *
 
     } else if (only_image) {
         DmxModel::DrawInvalid(pg, nullptr, false, false);
-    }
-}
-
-void DmxImage::Serialise(wxXmlNode* root, wxFile& f, const wxString& show_dir) const
-{
-    wxString res = "";
-
-    wxXmlNode* child = root->GetChildren();
-    while (child != nullptr) {
-        if (child->GetName() == base_name) {
-            wxXmlDocument new_doc;
-            new_doc.SetRoot(new wxXmlNode(*child));
-            wxStringOutputStream stream;
-            new_doc.Save(stream);
-            wxString s = stream.GetString();
-            s = s.SubString(s.Find("\n") + 1, s.Length()); // skip over xml format header
-            int index = s.Find(show_dir);
-            while (index != wxNOT_FOUND) {
-                s = s.SubString(0, index - 1) + s.SubString(index + show_dir.Length() + 1, s.Length());
-                index = s.Find(show_dir);
-            }
-            res += s;
-        }
-        child = child->GetNext();
-    }
-
-    if (res != "")
-    {
-        f.Write(res);
-    }
-}
-
-// Serialise for input
-void DmxImage::Serialise(wxXmlNode* root, wxXmlNode* model_xml, const wxString& show_dir) const
-{
-    wxXmlNode* node = nullptr;
-    for (wxXmlNode* n = model_xml->GetChildren(); n != nullptr; n = n->GetNext())
-    {
-        if (n->GetName() == base_name)
-        {
-            node = n;
-            break;
-        }
-    }
-
-    if (node != nullptr) {
-        // add new attributes from import
-        for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
-        {
-            if (n->GetName() == base_name)
-            {
-                for (auto a = n->GetAttributes(); a != nullptr; a = a->GetNext())
-                {
-                    wxString s = a->GetValue();
-                    if (a->GetName() == "Image") {
-                        s = show_dir + wxFileName::GetPathSeparator() + s;
-                    }
-                    if (node->HasAttribute(a->GetName())) {
-                        node->DeleteAttribute(a->GetName());
-                    }
-                    node->AddAttribute(a->GetName(), s);
-                }
-                return;
-            }
-        }
     }
 }

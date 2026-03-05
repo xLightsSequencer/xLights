@@ -15,7 +15,6 @@
 class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
 {
 public:
-    PolyLineModel(wxXmlNode* node, const ModelManager& manager, bool zeroBased = false);
     PolyLineModel(const ModelManager& manager);
     virtual ~PolyLineModel();
 
@@ -31,15 +30,13 @@ public:
     virtual void InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int stagger, bool deep = false) const override;
     virtual int NodesPerString() const override;
     virtual int GetNumPhysicalStrings() const override;
+    virtual int GetNumStrings() const override{ return _strings; }
 
     virtual void InsertHandle(int after_handle, float zoom, int scale) override;
     virtual void DeleteHandle(int handle) override;
+    void AddHandle();
 
-    virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
-
-    virtual bool SupportsXlightsModel() override { return true; }
-    [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) override;
-    virtual void ExportXlightsModel() override;
+    virtual void SetStringStartChannels(int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
 
     virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
@@ -48,11 +45,50 @@ public:
     virtual void OnPropertyGridItemExpanded(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual bool IsNodeFirst(int node) const override;
     virtual int NodesPerString(int string) const override;
-    virtual int MapPhysicalStringToLogicalString(int string) const override;
+    bool HasAlternateNodes() const { return _alternateNodes; }
+    int GetDropPoints() const { return _numDropPoints; }
+    int GetNumSegments() const { return _numSegments; }
+    std::vector<int> GetSegmentsSizes() const { return _polyLineSizes;}
+    std::vector<std::string> GetCorners() const { return _polyCorner; }
+    [[nodiscard]] std::string GetDropPattern() const { return _dropPatternString; }
+    void SetDropPattern(const std::string & pattern);
+
+    bool AreSegsExpanded() const { return _segsCollapsed; }
+
+    void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
+
+    float GetModelHeight() const { return _height; }
+    void SetNumStrings(int strings) { _strings = strings; }
+    void SetModelHeight(float height) { _height = height; }
+    void SetAlternateNodes(bool val) { _alternateNodes = val; }
+    void SetNumSegments(int val) { _polyLineSizes.resize(val); _polyLeadOffset.resize(val); _polyTrailOffset.resize(val); _polyLineSegDropSizes.resize(val); _polyCorner.resize(val+1); }
+    void SetSegmentSize(int idx, int val);
+    void SetLeadOffset(int idx, float val) { _polyLeadOffset[idx] = val; }
+    void SetTrailOffset(int idx, float val) { _polyTrailOffset[idx] = val; }
+    void SetCornerString( int idx, const std::string & corner) { _polyCorner[idx] = corner; }
+    [[nodiscard]] bool GetAutoDistribute() const { return _autoDistributeLights; }
+    void SetAutoDistribute(bool val) { _autoDistributeLights = val; }
+    void ClearPolyLineCreate() { _creatingNewPolyLine = false; }
+
+    const std::string StartNodeAttrName(int idx) const
+    {
+        return wxString::Format(wxT("PolyNode%i"), idx + 1).ToStdString(); // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
+    }
+
+    const std::string SegAttrName(int idx) const
+    {
+        return wxString::Format(wxT("Seg%d"), idx + 1).ToStdString();
+    }
+    
+    const std::string CornerAttrName(int idx) const
+    {
+        return wxString::Format(wxT("Corner%d"), idx + 1).ToStdString();
+    }
 
 protected:
     static std::vector<std::string> POLYLINE_BUFFER_STYLES;
     virtual void InitModel() override;
+
     struct xlPolyPoint {
         float x;
         float y;
@@ -63,26 +99,20 @@ protected:
         mutable glm::mat4* matrix;
     };
 
-    static std::string SegAttrName(int idx)
-    {
-        return wxString::Format(wxT("Seg%d"), idx + 1).ToStdString();
-    }
-    void SetSegsCollapsed(bool collapsed);
-    
-    void DistributeLightsEvenly( const std::vector<xlPolyPoint>& pPos,
+    void DistributeLightsEvenly(       std::vector<xlPolyPoint>& pPos,
                                  const std::vector<int>&         dropSizes,
                                  const float&                    mheight,
                                  const int                       maxH,
                                  const int                       numLights );
 
-    void DistributeLightsAcrossIndivSegments( const std::vector<xlPolyPoint>& pPos,
+    void DistributeLightsAcrossIndivSegments(       std::vector<xlPolyPoint>& pPos,
                                               const std::vector<int>&         dropSizes,
                                               const float&                    mheight,
                                               const int                       maxH );
 
     void DistributeLightsAcrossSegment( const int                       segment,
                                               size_t&                   idx,
-                                        const std::vector<xlPolyPoint>& pPos,
+                                              std::vector<xlPolyPoint>& pPos,
                                         const std::vector<int>&         dropSizes,
                                               unsigned int&             drop_index,
                                         const float&                    mheight,
@@ -90,31 +120,25 @@ protected:
                                         const int                       maxH,
                                         const bool                      isCurve );
 
-    static std::string StartNodeAttrName(int idx)
-    {
-        return wxString::Format(wxT("PolyNode%i"), idx + 1).ToStdString(); // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
-    }
-    std::string ComputeStringStartNode(int x) const;
+    int ComputeStringStartNode(int x) const;
     int GetCustomNodeStringNumber(int node) const;
+    void ParseDropSizes();
 
-    static std::string CornerAttrName(int idx)
-    {
-        return wxString::Format(wxT("Corner%d"), idx + 1).ToStdString();
-    }
-
-    float total_length = 0.0f;
-    int num_segments = 0;
-    std::vector<int> polyLineSizes;
-    std::vector<float> polyLeadOffset;
-    std::vector<float> polyTrailOffset;
-    std::vector<float> polyGapSize;
-    bool hasIndivSeg = false;
-    bool segs_collapsed = true;
-    void NormalizePointData();
-    std::vector<int> polyLineSegDropSizes;
-    unsigned int numDropPoints = 0;
-    float height = 1.0f;
+    float _totalLength = 0.0f;
+    int _numSegments = 0;
+    std::vector<int> _polyLineSizes;
+    std::vector<float> _polyLeadOffset;
+    std::vector<float> _polyTrailOffset;
+    bool _segsCollapsed = true;
+    bool _autoDistributeLights = true;
+    bool _creatingNewPolyLine = true;
+    std::vector<int> _polyLineSegDropSizes;
+    std::vector<int> _dropSizes;
+    std::string _dropPatternString = "1";
+    unsigned int _numDropPoints = 0;
+    float _height = 1.0f;
     bool _alternateNodes = false;
-    int _strings;
-    std::vector<int> stringStartNodes;
+    int _strings = 1;
+    unsigned int _maxH = 0;
+    std::vector<std::string> _polyCorner;
 };

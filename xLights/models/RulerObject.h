@@ -25,13 +25,15 @@ class ModelPreview;
 class RulerObject : public ObjectWithScreenLocation<TwoPointScreenLocation>
 {
 public:
-    RulerObject(wxXmlNode *node, const ViewObjectManager &manager);
+    RulerObject(const ViewObjectManager &manager);
     virtual ~RulerObject();
 
     virtual void InitModel() override;
 
     virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {}
+
+    void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     [[nodiscard]] int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
 
@@ -63,6 +65,11 @@ public:
     [[nodiscard]] static float Convert(int fromUnits, const std::string& toUnits, float measure);
     [[nodiscard]] static float Convert(const std::string& fromUnits, const std::string& toUnits, float measure);
 
+    void SetUnits(int val) { _units = val; }
+    void SetLength(float val) { _realLength = val; }
+
+    float GetLength() const { return _realLength; }
+    
     protected:
 
     [[nodiscard]] float GetPerUnit() const;

@@ -23,13 +23,15 @@
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"
 #include "CustomModel.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 #include <log4cpp/Category.hh>
 
-SphereModel::SphereModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : MatrixModel(manager)
+SphereModel::SphereModel(const ModelManager &manager) : MatrixModel(manager)
 {
+    DisplayAs = DisplayAsType::Sphere;
     screenLocation.SetSupportsZScaling(true);
-    SetFromXml(node, zeroBased);
+    screenLocation.SetStartOnXAxis(true);
 }
 
 SphereModel::~SphereModel()
@@ -37,17 +39,10 @@ SphereModel::~SphereModel()
 }
 
 void SphereModel::InitModel() {
-    _startLatitude = wxAtof(ModelXml->GetAttribute("StartLatitude", "-86"));
-    _endLatitude = wxAtof(ModelXml->GetAttribute("EndLatitude", "86"));
-    _sphereDegrees = wxAtoi(ModelXml->GetAttribute("Degrees", "360"));
-    _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
-    _noZig = (ModelXml->GetAttribute("NoZig", "false") == "true");
-
     InitVMatrix(0);
     screenLocation.SetPerspective2D(0.1f);
     SetSphereCoord();
     InitSingleChannelModel();
-    DisplayAs = "Sphere";
 }
 
 void SphereModel::SetSphereCoord() {
@@ -57,12 +52,13 @@ void SphereModel::SetSphereCoord() {
     if (BufferWi < 1) return;
     if (BufferHt < 1) return; // June 27,2013. added check to not divide by zero
 
-    double RenderHt = (double)BufferHt / 1.8;
-    double RenderWi = (double)RenderHt / 1.8;
+    // BufferWi is the number of "spokes" and thus should not have any impact on the
+    // shape of the sphere.   We'll use the "max" of the two so we have
+    // the highest number of pixels to work  with
+    double RenderMx = ((double)std::max(BufferHt, BufferWi)) / 1.8;
 
-    double Hradians = toRadians(360);
-    double Hradius = RenderWi / 2.0;
-    double Vradius = RenderHt / 2.0;
+    double radians = toRadians(360);
+    double radius = RenderMx / 2.0;
 
     //logger_base.debug("Buffer %d,%d Render %f,%f Radius %f,%f",
     //    BufferWi, BufferHt,
@@ -71,8 +67,8 @@ void SphereModel::SetSphereCoord() {
 
     double remove = toRadians((360.0 - _sphereDegrees));
     double fudge = toRadians((360.0 - _sphereDegrees) / (double)BufferWi);
-    double HStartAngle = Hradians / 4.0 + 0.003 - remove / 2.0;
-    double HAngleIncr = (-Hradians + remove - fudge) / (double)BufferWi;
+    double HStartAngle = radians / 4.0 + 0.003 - remove / 2.0;
+    double HAngleIncr = (-radians + remove - fudge) / (double)BufferWi;
 
     //logger_base.debug("Horizontal Start %d: +%f x %d",
     //    (int)toDegrees(HStartAngle), (float)toDegrees(HAngleIncr), BufferWi);
@@ -93,9 +89,9 @@ void SphereModel::SetSphereCoord() {
             double vangle = VStartAngle + bufferY * VAngleIncr;
 
             double sv = sin(vangle);
-            Nodes[n]->Coords[c].screenX = Hradius * cos(hangle) * sv;
-            Nodes[n]->Coords[c].screenZ = Hradius * sin(hangle) * sv;
-            Nodes[n]->Coords[c].screenY = Vradius * cos(vangle);
+            Nodes[n]->Coords[c].screenX = radius * cos(hangle) * sv;
+            Nodes[n]->Coords[c].screenZ = radius * sin(hangle) * sv;
+            Nodes[n]->Coords[c].screenY = radius * cos(vangle);
 
             //logger_base.debug("%d: %d,%d -> hangle %d vangle %d -> %f,%f,%f",
             //    n,
@@ -104,13 +100,12 @@ void SphereModel::SetSphereCoord() {
             //    Nodes[n]->Coords[c].screenX, Nodes[n]->Coords[c].screenY, Nodes[n]->Coords[c].screenZ);
         }
     }
-    screenLocation.SetRenderSize(RenderWi, RenderHt, RenderWi);
+    screenLocation.SetRenderSize(RenderMx, RenderMx, RenderMx);
 }
 
 int SphereModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if (event.GetPropertyName() == "StartLatitude") {
-        ModelXml->DeleteAttribute("StartLatitude");
-        ModelXml->AddAttribute("StartLatitude", wxString::Format("%i", (int)event.GetPropertyValue().GetLong()));
+        _startLatitude = (int)event.GetPropertyValue().GetLong();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::OnPropertyGridChange::StartLatitude");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::OnPropertyGridChange::StartLatitude");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SphereModel::OnPropertyGridChange::StartLatitude");
@@ -118,8 +113,7 @@ int SphereModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         return 0;
     }
     else if (event.GetPropertyName() == "EndLatitude") {
-        ModelXml->DeleteAttribute("EndLatitude");
-        ModelXml->AddAttribute("EndLatitude", wxString::Format("%i", (int)event.GetPropertyValue().GetLong()));
+        _endLatitude = (int)event.GetPropertyValue().GetLong();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::OnPropertyGridChange::EndLatitude");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::OnPropertyGridChange::EndLatitude");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SphereModel::OnPropertyGridChange::EndLatitude");
@@ -127,16 +121,14 @@ int SphereModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         return 0;
     }
     else if (event.GetPropertyName() == "Degrees") {
-        ModelXml->DeleteAttribute("Degrees");
-        ModelXml->AddAttribute("Degrees", wxString::Format("%i", (int)event.GetPropertyValue().GetLong()));
+        _sphereDegrees = (int)event.GetPropertyValue().GetLong();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::OnPropertyGridChange::Degrees");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::OnPropertyGridChange::Degrees");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SphereModel::OnPropertyGridChange::Degrees");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SphereModel::OnPropertyGridChange::Degrees");
         return 0;
     } else if (event.GetPropertyName() == "AlternateNodes") {
-        ModelXml->DeleteAttribute("AlternateNodes");
-        ModelXml->AddAttribute("AlternateNodes", event.GetPropertyValue().GetBool() ? "true" : "false");
+        _alternateNodes = event.GetPropertyValue().GetBool();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::OnPropertyGridChange::AlternateNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::OnPropertyGridChange::AlternateNodes");
@@ -145,8 +137,7 @@ int SphereModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         grid->GetPropertyByName("NoZig")->Enable(event.GetPropertyValue().GetBool() == false);
         return 0;
     } else if (event.GetPropertyName() == "NoZig") {
-        ModelXml->DeleteAttribute("NoZig");
-        ModelXml->AddAttribute("NoZig", event.GetPropertyValue().GetBool() ? "true" : "false");
+        _noZigZag = event.GetPropertyValue().GetBool();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::OnPropertyGridChange::NoZig");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::OnPropertyGridChange::NoZig");
@@ -179,172 +170,20 @@ void SphereModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
     p->SetEditor("CheckBox");
     if (SingleNode) {
-        p->Enable(_noZig == false);
+        p->Enable(_noZigZag == false);
     }
 
-    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", _noZig));
+    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", _noZigZag));
     p->SetEditor("CheckBox");
     if (SingleNode) {
         p->Enable(_alternateNodes == false);
     }
 }
 
-void SphereModel::ExportXlightsModel()
-{
-    wxString name = ModelXml->GetAttribute("name");
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty()) return;
-    wxFile f(filename);
-    
-    if (!f.Create(filename, true) || !f.IsOpened()) {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-        return;
-    }
-    
-    wxString p1 = ModelXml->GetAttribute("parm1");
-    wxString p2 = ModelXml->GetAttribute("parm2");
-    wxString p3 = ModelXml->GetAttribute("parm3");
-    wxString st = ModelXml->GetAttribute("StringType");
-    wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency", "0");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
-    wxString a = ModelXml->GetAttribute("Antialias");
-    wxString ss = ModelXml->GetAttribute("StartSide");
-    wxString dir = ModelXml->GetAttribute("Dir");
-    wxString sn = ModelXml->GetAttribute("StrandNames");
-    wxString nn = ModelXml->GetAttribute("NodeNames");
-    wxString da = ModelXml->GetAttribute("DisplayAs");
-    wxString sl = ModelXml->GetAttribute("StartLatitude", "-86");
-    wxString el = ModelXml->GetAttribute("EndLatitude", "86");
-    wxString d = ModelXml->GetAttribute("Degrees", "360");
-    wxString an = ModelXml->GetAttribute("AlternateNodes", "false");
-    wxString nz = ModelXml->GetAttribute("NoZig", "false");
-
-    wxString v = xlights_version_string;
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<spheremodel \n");
-    f.Write(wxString::Format("name=\"%s\" ", name));
-    f.Write(wxString::Format("parm1=\"%s\" ", p1));
-    f.Write(wxString::Format("parm2=\"%s\" ", p2));
-    f.Write(wxString::Format("parm3=\"%s\" ", p3));
-    f.Write(wxString::Format("DisplayAs=\"%s\" ", da));
-    f.Write(wxString::Format("StringType=\"%s\" ", st));
-    f.Write(wxString::Format("Transparency=\"%s\" ", t));
-    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
-    f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
-    f.Write(wxString::Format("Antialias=\"%s\" ", a));
-    f.Write(wxString::Format("StartSide=\"%s\" ", ss));
-    f.Write(wxString::Format("Dir=\"%s\" ", dir));
-    f.Write(wxString::Format("Degrees=\"%s\" ", d));
-    f.Write(wxString::Format("AlternateNodes=\"%s\" ", an));
-    f.Write(wxString::Format("NoZig=\"%s\" ", nz));
-    f.Write(wxString::Format("StartLatitude=\"%s\" ", sl));
-    f.Write(wxString::Format("EndLatitude=\"%s\" ", el));
-    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
-    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
-    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
-    f.Write(ExportSuperStringColors());
-    f.Write(" >\n");
-    wxString aliases = SerialiseAliases();
-    if (aliases != "") {
-        f.Write(aliases);
-    }
-    wxString state = SerialiseState();
-    if (state != "")
-    {
-        f.Write(state);
-    }
-    wxString face = SerialiseFace();
-    if (face != "")
-    {
-        f.Write(face);
-    }
-    wxString submodel = SerialiseSubmodel();
-    if (submodel != "")
-    {
-        f.Write(submodel);
-    }
-    wxString groups = SerialiseGroups();
-    if (groups != "") {
-        f.Write(groups);
-    }
-    ExportDimensions(f);
-    f.Write("</spheremodel>");
-    f.Close();
-}
-
-bool SphereModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z)
-{
-    if (root->GetName() == "spheremodel") {
-        wxString name = root->GetAttribute("name");
-        wxString p1 = root->GetAttribute("parm1");
-        wxString p2 = root->GetAttribute("parm2");
-        wxString p3 = root->GetAttribute("parm3");
-        wxString st = root->GetAttribute("StringType");
-        wxString ps = root->GetAttribute("PixelSize");
-        wxString t = root->GetAttribute("Transparency", "0");
-        wxString mb = root->GetAttribute("ModelBrightness", "0");
-        wxString a = root->GetAttribute("Antialias");
-        wxString ss = root->GetAttribute("StartSide");
-        wxString dir = root->GetAttribute("Dir");
-        wxString sl = root->GetAttribute("StartLatitude", "-86");
-        wxString el = root->GetAttribute("EndLatitude", "86");
-        wxString d = root->GetAttribute("Degrees", "360");
-        wxString sn = root->GetAttribute("StrandNames");
-        wxString nn = root->GetAttribute("NodeNames");
-        //wxString v = root->GetAttribute("SourceVersion");
-        wxString da = root->GetAttribute("DisplayAs");
-        wxString pc = root->GetAttribute("PixelCount");
-        wxString pt = root->GetAttribute("PixelType");
-        wxString psp = root->GetAttribute("PixelSpacing");
-        wxString an = root->GetAttribute("AlternateNodes");
-        wxString nz = root->GetAttribute("NoZig");
-
-        // Add any model version conversion logic here
-        // Source version will be the program version that created the custom model
-
-        SetProperty("parm1", p1);
-        SetProperty("parm2", p2);
-        SetProperty("parm3", p3);
-        SetProperty("StringType", st);
-        SetProperty("PixelSize", ps);
-        SetProperty("Transparency", t);
-        SetProperty("ModelBrightness", mb);
-        SetProperty("Antialias", a);
-        SetProperty("StartSide", ss);
-        SetProperty("Dir", dir);
-        SetProperty("StrandNames", sn);
-        SetProperty("NodeNames", nn);
-        SetProperty("DisplayAs", da);
-        SetProperty("PixelCount", pc);
-        SetProperty("PixelType", pt);
-        SetProperty("PixelSpacing", psp);
-        SetProperty("StartLatitude", sl);
-        SetProperty("EndLatitude", el);
-        SetProperty("Degrees", d);
-        SetProperty("AlternateNodes", an);
-        SetProperty("NoZig", nz);
-
-        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-        GetModelScreenLocation().Write(ModelXml);
-        SetProperty("name", newname, true);
-
-        ImportSuperStringColours(root);
-        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y, min_z, max_z);
-
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::ImportXlightsModel");
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::ImportXlightsModel");
-        return true;
-    } else {
-        DisplayError("Failure loading Sphere model file.");
-        return false;
-    }
-}
-
 void SphereModel::ExportAsCustomXModel3D() const
 {
 
-    wxString name = ModelXml->GetAttribute("name");
+    wxString name = GetName();
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
@@ -419,21 +258,20 @@ void SphereModel::ExportAsCustomXModel3D() const
     wxString p2 = wxString::Format("%i", (int)(scaleFactor3D * BufferHt + 1));
     wxString dd = wxString::Format("%i", (int)(scaleFactor3D * BufferWi + 1));
     wxString p3 = wxString::Format("%i", parm3);
-    wxString st = ModelXml->GetAttribute("StringType");
-    wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency", "0");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
-    wxString a = ModelXml->GetAttribute("Antialias");
-    wxString sn = ModelXml->GetAttribute("StrandNames");
-    wxString nn = ModelXml->GetAttribute("NodeNames");
-    wxString pc = ModelXml->GetAttribute("PixelCount");
-    wxString pt = ModelXml->GetAttribute("PixelType");
-    wxString psp = ModelXml->GetAttribute("PixelSpacing");
-    wxString sl = ModelXml->GetAttribute("StartLatitude");
-    wxString el = ModelXml->GetAttribute("EndLatitude");
-    wxString dg = ModelXml->GetAttribute("Degrees");
-    wxString an = ModelXml->GetAttribute("AlternateNodes", "false");
-    wxString nz = ModelXml->GetAttribute("NoZig", "false");
+    wxString st = GetStringType();
+    wxString ps = std::to_string(GetPixelSize());
+    wxString t = GetTransparency() ? "1" : "0";
+    int a = (int)GetPixelStyle();
+    wxString sn = GetStrandNames();
+    wxString nn = GetNodeNames();
+    wxString pc = GetPixelCount();
+    wxString pt = GetPixelType();
+    wxString psp = GetPixelSpacing();
+    wxString sl = wxString::Format("%d", GetStartLatitude());
+    wxString el = wxString::Format("%d", GetEndLatitude());
+    wxString dg = wxString::Format("%d", GetSphereDegrees());
+    wxString an = wxString::Format("%d", HasAlternateNodes());
+    wxString nz = wxString::Format("%d", IsNoZigZag());
 
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
@@ -445,8 +283,7 @@ void SphereModel::ExportAsCustomXModel3D() const
     f.Write(wxString::Format("StringType=\"%s\" ", st));
     f.Write(wxString::Format("Transparency=\"%s\" ", t));
     f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
-    f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
-    f.Write(wxString::Format("Antialias=\"%s\" ", a));
+    f.Write(wxString::Format("Antialias=\"%d\" ", a));
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
     f.Write(wxString::Format("StartLatitude=\"%s\" ", sl));
@@ -454,11 +291,11 @@ void SphereModel::ExportAsCustomXModel3D() const
     f.Write(wxString::Format("Degrees=\"%s\" ", dg));
     f.Write(wxString::Format("AlternateNodes=\"%s\" ", an));
     f.Write(wxString::Format("NoZig=\"%s\" ", nz));
-    if (pc != "")
+    if (!pc.empty())
         f.Write(wxString::Format("PixelCount=\"%s\" ", pc));
-    if (pt != "")
+    if (!pt.empty())
         f.Write(wxString::Format("PixelType=\"%s\" ", pt));
-    if (psp != "")
+    if (!psp.empty())
         f.Write(wxString::Format("PixelSpacing=\"%s\" ", psp));
     f.Write("CustomModel=\"");
     f.Write(CustomModel::ToCustomModel(data));
@@ -470,17 +307,17 @@ void SphereModel::ExportAsCustomXModel3D() const
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
     wxString face = SerialiseFace();
-    if (face != "")
+    if (!face.empty())
     {
         f.Write(face);
     }
     wxString state = SerialiseState();
-    if (state != "")
+    if (!state.empty())
     {
         f.Write(state);
     }
     wxString submodel = SerialiseSubmodel();
-    if (submodel != "")
+    if (!submodel.empty())
     {
         f.Write(submodel);
     }

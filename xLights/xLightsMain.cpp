@@ -2134,6 +2134,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     }
 
     ValidateWindow();
+    
+    GetOutputModelManager()->DisableASAPWork(false);
 
     logger_base.debug("xLightsFrame construction complete.");
 }
@@ -2270,6 +2272,7 @@ xLightsFrame::~xLightsFrame()
 
     waitForPingsToComplete();
     _outputManager.DeleteAllControllers();
+    ip_utils::shutdownResolvePool();
 
     if (CurrentSeqXmlFile) {
         delete CurrentSeqXmlFile;
@@ -2294,7 +2297,7 @@ xLightsFrame::~xLightsFrame()
     delete Button_ACCascade;
     delete Button_ACForeground;
     delete Button_ACBackground;
-
+    
 #ifndef __WXMSW__
     if (_tod != nullptr)
         delete _tod;
@@ -3200,39 +3203,19 @@ void xLightsFrame::SetPreviewSize(int width, int height)
 
 void xLightsFrame::SetXmlSetting(const wxString& settingName, const wxString& value)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // Delete existing setting node
-    if (SettingsNode != nullptr) {
-        for (wxXmlNode* e = SettingsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
-            if (e->GetName() == settingName) {
-                SettingsNode->RemoveChild(e);
-                delete e;
-                break;
-            }
-        }
-
-        // Add new one
-        wxXmlNode* setting = new wxXmlNode(wxXML_ELEMENT_NODE, settingName);
-        setting->AddAttribute("value", value);
-        SettingsNode->AddChild(setting);
-    } else {
-        logger_base.warn("xLightsFrame::SetXmlSetting SettingsNode unexpectantly null.");
+    auto& entry = _xmlSettings[settingName.ToStdString()];
+    if (entry != value.ToStdString()) {
+        entry = value.ToStdString();
+        UnsavedRgbEffectsChanges = true;
     }
 }
 
 wxString xLightsFrame::GetXmlSetting(const wxString& settingName, const wxString& defaultValue) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (SettingsNode != nullptr) {
-        for (wxXmlNode* e = SettingsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
-            if (e->GetName() == settingName) {
-                return e->GetAttribute("value", defaultValue);
-            }
-        }
-    } else {
-        logger_base.warn("xLightsFrame::GetXmlSetting SettingsNode unexpectantly null.");
+    auto it = _xmlSettings.find(settingName.ToStdString());
+    if (it != _xmlSettings.end()) {
+        return it->second;
     }
-
     return defaultValue;
 }
 
@@ -4227,18 +4210,6 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
 
 void xLightsFrame::SaveWorkingLayout()
 {
-    // update xml with offsets and scale
-    for (const auto& it : modelPreview->GetModels()) {
-        if (AllModels.IsModelValid(it) || IsNewModel(it)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models - looks like we are missing a LayoutPanel::UpdateModelList call in some situation
-            it->UpdateXmlWithScale();
-        } else {
-            wxASSERT(false); // why did we get here
-        }
-    }
-    for (const auto& it : AllObjects) {
-        ViewObject* view_object = it.second;
-        view_object->UpdateXmlWithScale();
-    }
     SaveEffectsFile(true);
 }
 
@@ -4677,9 +4648,9 @@ void xLightsFrame::ExportModels(wxString const& filename)
     // models
     for (auto const& m : AllModels) {
         Model* model = m.second;
-        if (model->GetDisplayAs() != "ModelGroup") {
+        if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
             modelCount++;
-            wxString const stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); // NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
+            wxString const stch = model->GetModelStartChannel();
             uint32_t ch = model->GetFirstChannel() + 1;
             std::string type, description, ip, universe, inactive, baud, protocol, controllername;
             int32_t channeloffset;
@@ -4709,7 +4680,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
             write_worksheet_string(modelsheet, row, 0, model->name, format, _model_col_widths);
             write_worksheet_string(modelsheet, row, 1, model->GetShadowModelFor(), format, _model_col_widths);
             write_worksheet_string(modelsheet, row, 2, model->description, format, _model_col_widths);
-            write_worksheet_string(modelsheet, row, 3, model->GetDisplayAs(), format, _model_col_widths);
+            write_worksheet_string(modelsheet, row, 3, DisplayAsTypeToString(model->GetDisplayAs()), format, _model_col_widths);
             write_worksheet_string(modelsheet, row, 4, model->GetDimension(), format, _model_col_widths);
             write_worksheet_string(modelsheet, row, 5, model->GetStringType(), format, _model_col_widths);
             worksheet_write_number(modelsheet, row, 6, model->GetNumPhysicalStrings(), format);
@@ -4787,7 +4758,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
     row = 1;
     for (auto const& m : AllModels) {
         Model* model = m.second;
-        if (model->GetDisplayAs() == "ModelGroup") {
+        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             groupCount++;
             ModelGroup* mg = static_cast<ModelGroup*>(model);
             std::string models;
@@ -4868,7 +4839,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
 
         for (auto const& m : AllModels) {
             Model* model = m.second;
-            if (model->GetDisplayAs() != "ModelGroup") {
+            if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
                 int ch = model->GetFirstChannel() + 1;
                 int endch = model->GetLastChannel() + 1;
 
@@ -5618,7 +5589,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("");
     LogCheckSequenceMsg("Models spanning controllers");
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             int32_t start = it.second->GetFirstChannel() + 1;
             int32_t end = it.second->GetLastChannel() + 1;
 
@@ -5692,7 +5663,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     wxYield();
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             std::string start = it.second->ModelStartChannel;
 
             if (start[0] == '>' || start[0] == '@') {
@@ -5724,7 +5695,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     }
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             std::string start = it.second->ModelStartChannel;
 
             if (start[0] == '>' || start[0] == '@') {
@@ -5789,8 +5760,8 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     // Check for overlapping channels in models
     for (auto it = std::begin(AllModels); it != std::end(AllModels); ++it) {
-        if (it->second->GetDisplayAs() != "ModelGroup") {
-            if(it->second->GetModelStartChannel().starts_with("@") && it->second->GetDisplayAs() == "Single Line" && it->second->GetNumStrings() > 1) {
+        if (it->second->GetDisplayAs() != DisplayAsType::ModelGroup) {
+            if(it->second->GetModelStartChannel().starts_with("@") && it->second->GetDisplayAs() == DisplayAsType::SingleLine && it->second->GetNumStrings() > 1) {
                 logger_base.debug("Skipping Overlap Checking for %s [%s]", it->second->GetFullName().c_str(), it->second->GetModelStartChannel().c_str());
                 continue;
             }
@@ -5799,7 +5770,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             auto m1end = it->second->GetLastChannel() + 1;
 
             for (auto it2 = std::next(it); it2 != std::end(AllModels); ++it2) {
-                if (it2->second->GetDisplayAs() != "ModelGroup" && it2->second->GetShadowModelFor() != it->first && it->second->GetShadowModelFor() != it2->first) {
+                if (it2->second->GetDisplayAs() != DisplayAsType::ModelGroup && it2->second->GetShadowModelFor() != it->first && it->second->GetShadowModelFor() != it2->first) {
                     auto m2start = it2->second->GetFirstChannel() + 1;
                     auto m2end = it2->second->GetLastChannel() + 1;
 
@@ -5826,7 +5797,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
         std::map<std::string, std::list<Model*>*> modelsByPort;
         for (const auto& it : AllModels) {
-            if (it.second->GetDisplayAs() != "ModelGroup") {
+            if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
                 std::string cc = "";
                 if (it.second->IsControllerConnectionValid()) {
                     cc = wxString::Format("%s:%s:%d:%d", it.second->IsPixelProtocol() ? _("pixel") : _("serial"), it.second->GetControllerProtocol(), it.second->GetControllerPort(), it.second->GetSmartRemote()).ToStdString();
@@ -5906,9 +5877,9 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("Model nodes not allocated to layers correctly");
 
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
-        if (it->second->GetDisplayAs() != "ModelGroup") {
+        if (it->second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             if (wxString(it->second->GetStringType()).EndsWith("Nodes") && !it->second->AllNodesAllocated()) {
-                wxString msg = wxString::Format("    WARN: %s model '%s' Node Count and Layer Size allocations dont match.", it->second->GetDisplayAs().c_str(), it->first);
+                wxString msg = wxString::Format("    WARN: %s model '%s' Node Count and Layer Size allocations dont match.", DisplayAsTypeToString(it->second->GetDisplayAs()).c_str(), it->first);
                 LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "overlapnodes", errcount, warncount);
             }
         }
@@ -5959,7 +5930,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         LogCheckSequenceMsg("Model Groups containing models from different previews");
 
         for (const auto& it : AllModels) {
-            if (it.second->GetDisplayAs() == "ModelGroup") {
+            if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 std::string mgp = it.second->GetLayoutGroup();
 
                 ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
@@ -5976,7 +5947,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                             // this should never happen
                             wxString msg = wxString::Format("Model Group %s contains non existent model %s.", (const char*)mg->GetName().c_str(), (const char*)it2.c_str());
                             LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::CRITICAL, msg.ToStdString(), "grouperrors", errcount, warncount);
-                        } else if (m->GetDisplayAs() != "ModelGroup") {
+                        } else if (m->GetDisplayAs() != DisplayAsType::ModelGroup) {
                             // If model is in all previews dont report it as a problem
                             if (m->GetLayoutGroup() != "All Previews" && mg->GetLayoutGroup() != "All Previews" && mgp != m->GetLayoutGroup()) {
                                 wxString msg = wxString::Format("    WARN: Model Group '%s' in preview '%s' contains model '%s' which is in preview '%s'. This will cause the '%s' model to also appear in the '%s' preview.", mg->GetName(), mg->GetLayoutGroup(), m->GetName(), m->GetLayoutGroup(), m->GetName(), mg->GetLayoutGroup());
@@ -6024,7 +5995,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     std::list<std::string> emptyModelGroups;
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() == "ModelGroup") {
+        if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
             ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
             if (mg != nullptr) { // this should never fail
                 auto models = mg->ModelNames();
@@ -6183,7 +6154,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("Model Groups containing moving heads which have not been numbered");
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() == "ModelGroup") {
+        if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
             ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
             if (mg != nullptr) { // this should never fail
                 auto models = mg->ModelNames();
@@ -6194,7 +6165,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                     Model* model = AllModels.GetModel(m);
 
                     if (model != nullptr) {
-                        if (model->GetDisplayAs() != "DmxMovingHeadAdv" && model->GetDisplayAs() != "DmxMovingHead") {
+                        if (model->GetDisplayAs() != DisplayAsType::DmxMovingHeadAdv && model->GetDisplayAs() != DisplayAsType::DmxMovingHead) {
 							allMovingHeads = false;
 							break;
 						}
@@ -6236,7 +6207,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("SubModels with no nodes");
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             for (int i = 0; i < it.second->GetNumSubModels(); ++i) {
                 Model* sm = it.second->GetSubModel(i);
                 if (sm->GetNodeCount() == 0) {
@@ -6258,7 +6229,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("SubModels with duplicate nodes");
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             for (int i = 0; i < it.second->GetNumSubModels(); ++i) {
                 SubModel* sm = dynamic_cast<SubModel*>(it.second->GetSubModel(i));
                 if (sm != nullptr) {
@@ -6294,7 +6265,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("SubModels with nodes not in parent model");
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             for (int i = 0; i < it.second->GetNumSubModels(); ++i) {
                 SubModel* sm = (SubModel*)it.second->GetSubModel(i);
                 if (!sm->IsNodesAllValid()) {
@@ -6347,7 +6318,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     std::list<Model*> modelssorted;
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             modelssorted.push_back(it.second);
         }
     }
@@ -6381,25 +6352,19 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             lastm = m;
         }
         // Check for single line models with left-to-right physical orientation
-        if (m->GetDisplayAs() == "Single Line") {
+        if (m->GetDisplayAs() == DisplayAsType::SingleLine) {
             size_t nodeCount = m->GetNodeCount();
             if (nodeCount < 2)
                 continue; // Not a valid line
 
-            auto xmlNode = m->GetModelXml();
-
-            float startX = 0.0f, startY = 0.0f, startZ = 0.0f;
-            float endX = 0.0f, endY = 0.0f, endZ = 0.0f;
-
-            double temp;
-
-            if (xmlNode->GetAttribute("X1").ToDouble(&temp)) startX = static_cast<float>(temp);
-            if (xmlNode->GetAttribute("Y1").ToDouble(&temp)) startY = static_cast<float>(temp);
-            if (xmlNode->GetAttribute("Z1").ToDouble(&temp)) startZ = static_cast<float>(temp);
-
-            if (xmlNode->GetAttribute("X2").ToDouble(&temp)) endX = static_cast<float>(temp);
-            if (xmlNode->GetAttribute("Y2").ToDouble(&temp)) endY = static_cast<float>(temp);
-            if (xmlNode->GetAttribute("Z2").ToDouble(&temp)) endZ = static_cast<float>(temp);
+            TwoPointScreenLocation& screenLoc = dynamic_cast<TwoPointScreenLocation&>(m->GetBaseObjectScreenLocation());
+            glm::vec3 loc = screenLoc.GetWorldPosition();
+            float startX = loc.x;
+            float startY = loc.y;
+            float startZ = loc.z;
+            float endX = screenLoc.GetX2();
+            float endY = screenLoc.GetY2();
+            float endZ = screenLoc.GetZ2();
 
             float deltaX = fabs(startX - endX);
             float deltaY = fabs(startY - endY);
@@ -6524,7 +6489,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                     wxString msg = wxString::Format("    ERR: Model %s in your sequence does not seem to exist in the layout. This will need to be deleted or remapped to another model next time you load this sequence.", it);
                     LogAndTrack(report, "sequence", CheckSequenceReport::ReportIssue::CRITICAL, msg.ToStdString(), "modelnotinlayout", errcount, warncount);
                 } else {
-                    if (m->GetDisplayAs() == "ModelGroup") {
+                    if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                         ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
                         if (mg == nullptr)
                             logger_base.crit("CheckSequence ModelGroup cast was null. We are about to crash.");
@@ -7189,7 +7154,7 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
         wxString type = "Unknown";
         switch (e->GetType()) {
         case ElementType::ELEMENT_TYPE_MODEL:
-            if (m->GetDisplayAs() == "ModelGroup") {
+            if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 type = "Model Group";
             } else {
                 type = "Model";
@@ -9335,7 +9300,7 @@ void xLightsFrame::ShowPresetsPanel()
 
     if (EffectTreeDlg == nullptr) {
         EffectTreeDlg = new EffectTreeDialog(this);
-        EffectTreeDlg->InitItems(EffectsNode);
+        EffectTreeDlg->InitItems(_effectPresetManager);
     }
     EffectTreeDlg->Show();
 }
@@ -10536,7 +10501,7 @@ std::string xLightsFrame::GetUniqueTimingName(const std::string& baseName)
 void xLightsFrame::ReplaceModelWithModelFixGroups(const std::string& oldModel, const std::string& newModel)
 {
     for (auto& it : AllModels) {
-        if (it.second->GetDisplayAs() == "ModelGroup") {
+        if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
             auto mg = dynamic_cast<ModelGroup*>(it.second);
             mg->ModelRenamed(newModel, oldModel);
         }
@@ -10791,6 +10756,14 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Updating from base show folder.");
+    
+    ObtainAccessToURL(_outputManager.GetBaseShowDir());
+    if (!ObtainAccessToURL(_outputManager.GetBaseShowDir() + GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE)) {
+        std::string dstr = _outputManager.GetBaseShowDir() ;
+        PromptForDirectorySelection("Reselect Base Show Directory", dstr);
+        ObtainAccessToURL(_outputManager.GetBaseShowDir());
+    }
+    
 
     // bring in any controllers overwriting some of their properties ... but not all of them
     if (_outputManager.MergeFromBase(prompt)) {
@@ -10852,6 +10825,15 @@ void xLightsFrame::OnMenuItemFindShowFolderSelected(wxCommandEvent& event)
     dlg.ShowModal();
 }
 
+std::list<std::string> xLightsFrame::GetPerspectives() {
+    std::list<std::string> perspectives;
+    for (const auto& p : _perspectives) {
+        if (!p.name.empty())
+            perspectives.push_back(p.name);
+    }
+    return perspectives;
+}
+
 aiBase* xLightsFrame::GetAIService(aiType::TYPE serviceType) {
     return _serviceManager->findService(serviceType);
 }
@@ -10890,4 +10872,3 @@ void xLightsFrame::SetPaletteSizeString(const wxString& size) {
         }
     }
 }
-

@@ -714,7 +714,7 @@ RenderBuffer::RenderBuffer(xLightsFrame *f, PixelBufferClass *p, const Model *m)
 {
     model = m == nullptr ? p->GetModel() : m;
     cur_model = model->GetFullName();
-    dmx_buffer = model->GetDisplayAs().rfind("Dmx", 0) == 0;
+    dmx_buffer = IsDmxDisplayType(model->GetDisplayAs());
     BufferHt = 0;
     BufferWi = 0;
     curPeriod = 0;

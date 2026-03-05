@@ -496,7 +496,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 else {
                     if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                         Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
-                        if (m != nullptr && m->GetDisplayAs() != "ModelGroup") {
+                        if (m != nullptr && m->GetDisplayAs() != DisplayAsType::ModelGroup) {
                             mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
                         }
                     }
@@ -532,10 +532,10 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 } 
 
                 modelMenu->Append(ID_ROW_MNU_PLAY_MODEL, "Play");
-                modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL, "Export")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup");
-                modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup");
-                modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL_SELECTED_EFFECTS, "Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup" && element->GetSelectedEffectCount() > 0);
-                modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL_SELECTED_EFFECTS, "Render and Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup" && element->GetSelectedEffectCount() > 0);
+                modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL, "Export")->Enable(m != nullptr && m->GetDisplayAs() != DisplayAsType::ModelGroup);
+                modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export")->Enable(m != nullptr && m->GetDisplayAs() != DisplayAsType::ModelGroup);
+                modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL_SELECTED_EFFECTS, "Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != DisplayAsType::ModelGroup && element->GetSelectedEffectCount() > 0);
+                modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL_SELECTED_EFFECTS, "Render and Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != DisplayAsType::ModelGroup && element->GetSelectedEffectCount() > 0);
                 rowMenu->Append(ID_ROW_MNU_SELECT_ROW_EFFECTS, "Select Effects");
                 modelMenu->Append(ID_ROW_MNU_SELECT_MODEL_EFFECTS, "Select Effects");
                 rowMenu->Append(ID_ROW_MNU_CUT_ROW, "Cut Effects");
@@ -556,7 +556,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 modelMenu->Append(ID_ROW_MNU_DELETE_MODEL_STRAND_EFFECTS, "Delete Strand Effects");
                 modelMenu->Append(ID_ROW_MNU_DELETE_MODEL_NODE_EFFECTS, "Delete Node Effects");
 
-                if (m != nullptr && m->GetDisplayAs() == "ModelGroup") {
+                if (m != nullptr && m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                     modelMenu->Append(ID_ROW_MNU_MODEL_CONVERTTOPERMODEL, "Convert Effects to 'Per Model'");
                     rowMenu->Append(ID_ROW_MNU_ROW_CONVERTTOPERMODEL, "Convert Effects to 'Per Model'");
                 }
@@ -1618,7 +1618,7 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
         ModelElement* me = dynamic_cast<ModelElement*>(e);
         Model* m = mSequenceElements->GetXLightsFrame()->AllModels[me->GetModelName()];
 
-        if (m->GetDisplayAs() == "ModelGroup") {
+        if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
             int view = mSequenceElements->GetCurrentView();
             ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
             auto models = mg->ModelNames();
@@ -1967,7 +1967,7 @@ void RowHeading::render( wxPaintEvent& event )
 
                 if (done) {
                     Model* pm = mSequenceElements->GetXLightsFrame()->AllModels[mSequenceElements->GetRowInformationFromRow(parent)->element->GetModelName()];
-                    if (pm != nullptr && pm->GetDisplayAs() == "ModelGroup") {
+                    if (pm != nullptr && pm->GetDisplayAs() == DisplayAsType::ModelGroup) {
                         name = rowInfo->element->GetFullName();
                         if (prefix.size() >= 3) {
                             prefix = prefix.substr(3);
@@ -2001,12 +2001,12 @@ void RowHeading::render( wxPaintEvent& event )
             // draw Model Group icon if necessary
             Model* m = mSequenceElements->GetXLightsFrame()->AllModels[rowInfo->element->GetModelName()];
             if (m != nullptr) {
-                if (m->GetDisplayAs() == "ModelGroup") {
+                if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                     dc.DrawBitmap(model_group_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);
                 } else if (StartsWith(m->GetStringType(), "Single Color") || m->GetStringType() == "Node Single Color") {
                     if (m->GetNodeCount() > 0) {
                         xlColor color;
-                        if (m->GetDisplayAs() == "Channel Block") {
+                        if (m->GetDisplayAs() == DisplayAsType::ChannelBlock) {
                             StrandElement* se = dynamic_cast<StrandElement*>(rowInfo->element);
                             if (se != nullptr) {
                                 color = m->GetNodeMaskColor(se->GetStrand());
@@ -2025,7 +2025,7 @@ void RowHeading::render( wxPaintEvent& event )
                 }
 
                 bool hasEffects = rowInfo->element->HasEffects();
-                if (!hasEffects && groupEffectIndicator && m->GetDisplayAs() == "ModelGroup") {
+                if (!hasEffects && groupEffectIndicator && m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                     // model groups are only marked if model group has direct effects or the model with effects is otherwise hidden in the view
                     int view = mSequenceElements->GetCurrentView();
                     ModelGroup* mg = dynamic_cast<ModelGroup*>(m);

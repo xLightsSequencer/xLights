@@ -6504,7 +6504,7 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
     xlColor colorMask = xlColor::NilColor();
     Model* m = xlights->GetModel(ri->element->GetModelName());
     if (m != nullptr) {
-        if (m->GetDisplayAs() == "Channel Block") {
+        if (m->GetDisplayAs() == DisplayAsType::ChannelBlock) {
             StrandElement* se = dynamic_cast<StrandElement*>(ri->element);
             if (se != nullptr) {
                 colorMask = m->GetNodeMaskColor(se->GetStrand());

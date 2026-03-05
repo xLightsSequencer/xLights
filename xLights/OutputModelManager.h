@@ -28,6 +28,7 @@ class OutputModelManager {
     std::string _selectedModel = "";
     std::string _selectedController = "";
     bool _suspendedDeferredWork = false;
+    bool _disableASAPWork = true;
 #ifdef _DEBUG
     std::list<std::pair<uint32_t, std::string>> _sourceASAP;
     std::list < std::pair<uint32_t, std::string>> _sourceLayout;
@@ -130,6 +131,7 @@ public:
     void ForceSelectedController(const std::string& name) { _selectedController = name; }
     void ClearModelToReload() { _modelToModelFromXml = nullptr; _workASAP &= ~WORK_RELOAD_MODEL_FROM_XML; }
     void ClearWorkRequested() { _workRequested = false; }
+    void DisableASAPWork( bool disable ) { _disableASAPWork = disable; }
     void SuspendDeferredWork(bool suspend) {
         _suspendedDeferredWork = suspend; 
         if (!suspend) {

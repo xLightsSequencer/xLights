@@ -18,9 +18,7 @@ public:
     TwoPointScreenLocation();
     virtual ~TwoPointScreenLocation();
 
-    virtual void Read(wxXmlNode *node) override;
-    virtual void Write(wxXmlNode *node) override;
-    virtual MSLUPGRADE CheckUpgrade(wxXmlNode *node) override;
+    virtual void Init() override;
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
@@ -85,6 +83,9 @@ public:
     float GetX2() const {return x2;}
     float GetY2() const {return y2;}
     float GetZ2() const {return z2;}
+    void SetX2(float val) {x2 = val;}
+    void SetY2(float val) {y2 = val;}
+    void SetZ2(float val) {z2 = val;}
 
     virtual int GetDefaultHandle() const override { return END_HANDLE; }
     virtual MSLTOOL GetDefaultTool() const override { return MSLTOOL::TOOL_TRANSLATE; }

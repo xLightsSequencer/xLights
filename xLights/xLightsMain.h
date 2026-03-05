@@ -75,6 +75,7 @@
 #include "JobPool.h"
 #include "SequenceViewManager.h"
 #include "ColorManager.h"
+#include "EffectPresetManager.h"
 #include "ViewpointMgr.h"
 #include "PhonemeDictionary.h"
 #include "xLightsXmlFile.h"
@@ -94,6 +95,7 @@
 class wxDebugReport;
 
 class aiBase;
+class BaseSerializingVisitor;
 class ControllerCaps;
 class EffectTreeDialog;
 class ConvertDialog;
@@ -350,10 +352,18 @@ public:
     void ApplyLast(wxCommandEvent& event);
     void SetEffectControlsApplyLast(const SettingsMap &settings);
     bool ApplySetting(wxString name, const wxString &value, int count = 0);
-    void LoadPerspectivesMenu(wxXmlNode* perspectivesNode);
+    void LoadPerspectivesMenu();
+    void SerializePerspectives(BaseSerializingVisitor &visitor);
+    void SerializeSettings(BaseSerializingVisitor &visitor);
+    struct Perspective {
+        std::string name;
+        std::string settings;
+        std::string version;
+    };
+
     struct PerspectiveId {
         int id = 0;
-        wxXmlNode* p = nullptr;
+        Perspective* p = nullptr;
     };
 
     PerspectiveId perspectives[10];
@@ -1524,8 +1534,7 @@ private:
 
     // sequence
     void LoadEffectsFile();
-    wxString LoadEffectsFileNoCheck();
-    void CreateDefaultEffectsXml();
+    void CreateDefaultEffectsXml(wxXmlDocument& doc);
     bool TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, const wxString& PageName);
     void SetPanelSequencerLabel(const std::string& sequence);
@@ -1534,9 +1543,10 @@ private:
     int ChooseRandomEffect();
 
 public:
+    std::string BuildEffectsXml();
     bool IsNewModel(Model* m) const;
     int GetCurrentPlayTime();
-    bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
+    bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount);
     Model *GetModel(const std::string& name) const;
     void RenderGridToSeqData(std::function<void(bool)>&& callback);
     bool AbortRender(int maxTimeMs = 60000, int* numThreadsAborted = nullptr);
@@ -1576,9 +1586,8 @@ public:
     void DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime, bool eraseExisting);
     void PromoteEffects(wxCommandEvent &command);
     void DoPromoteEffects(ModelElement *element);
-    wxXmlNode* CreateEffectNode(wxString& name);
-    void UpdateEffectNode(wxXmlNode* node);
-    wxXmlNode* FindPreset(wxXmlNode* node, wxArrayString& path, int level = 0) const;
+    EffectPreset* CreateEffectPreset(EffectPresetGroup* parent, const std::string& name);
+    void UpdateEffectPreset(EffectPreset* preset);
     void ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion);
     Effect* ApplyEffectsPreset(const std::string& presetName);
     std::vector<std::string> GetPresets() const;
@@ -1599,7 +1608,6 @@ public:
 
     void UpdateSequenceVideoPanel( const wxString& path );
 
-    const wxXmlDocument& GetEffectsXml() const { return EffectsXml; };
 protected:
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
     bool SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels);
@@ -1625,18 +1633,15 @@ protected:
     std::string PackageDebugFiles(bool showDialogs = true);
 
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
-    wxXmlDocument EffectsXml;
 	SequenceViewManager _sequenceViewManager;
-    wxXmlNode* EffectsNode = nullptr;
-    wxXmlNode* PerspectivesNode = nullptr;
+    EffectPresetManager _effectPresetManager;
 public:
+    std::vector<Perspective> _perspectives;
+    std::string _currentPerspectiveName;
     bool RebuildControllerConfig(OutputManager* outputManager, ModelManager* modelManager);
-    wxXmlNode* PalettesNode = nullptr;
-    wxXmlNode* ModelsNode = nullptr;
-    wxXmlNode* ModelGroupsNode = nullptr;
-    wxXmlNode* LayoutGroupsNode = nullptr;
-    wxXmlNode* ViewObjectsNode = nullptr;
+
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
+    EffectPresetManager& GetEffectPresetManager() { return _effectPresetManager; }
     void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog, const wxString &realPath = "");
     void OpenSequence(const wxString& passed_filename) {
      OpenSequence(passed_filename, nullptr); 
@@ -1653,7 +1658,7 @@ public:
     bool HandleAllKeyBinding(wxKeyEvent& event);
 
 private:
-    wxXmlNode* SettingsNode = nullptr;
+    std::map<std::string, std::string> _xmlSettings;
 
     bool MixTypeChanged = false;
     bool FadesChanged = false;
@@ -1748,6 +1753,9 @@ public:
     int GetDefaultPreviewBackgroundBrightness();
     int GetDefaultPreviewBackgroundAlpha();
     void SetPreviewBackgroundBrightness(int brightness, int alpha);
+    void LoadModels(wxXmlNode* modelsNode,
+                    wxXmlNode* modelGroupsNode,
+                    wxXmlNode* viewObjectsNode);
     void UpdateModelsList();
     void RowHeadingsChanged( wxCommandEvent& event);
     void DoForceSequencerRefresh();
@@ -1784,6 +1792,11 @@ public:
     static xLightsFrame *GetFrame();
     void CallOnEffectBeforeSelected(std::function<bool(Effect *)> &&cb);
     void CallOnEffectAfterSelected(std::function<bool(Effect *)> &&cb);
+    
+    void ClearUsedRuler() { _usedRuler = false; }
+    void SetUsedRuler() { _usedRuler = true; }
+    bool UsedRuler() { return _usedRuler; }
+
 private:
 
     int _acParm1Intensity;
@@ -1793,7 +1806,7 @@ private:
     int _acParm2RampDown;
     int _acParm1RampUpDown;
     int _acParm2RampUpDown;
-    wxXmlNode* mCurrentPerpective = nullptr;
+    Perspective* mCurrentPerpective = nullptr;
     std::map<wxString, bool> savedPaneShown;
     SequenceElements _sequenceElements;
     MainSequencer* mainSequencer = nullptr;
@@ -1819,6 +1832,7 @@ private:
     std::unique_ptr<ScriptsDialog> _scriptsDialog{ nullptr };
     std::unique_ptr<ServiceManager> _serviceManager{ nullptr };
     int mMediaLengthMS;
+    bool _usedRuler = false;
 
     bool mSequencerInitialize = false;
     wxFlexGridSizer* FlexGridEffects = nullptr;
@@ -1893,7 +1907,7 @@ private:
     void ResizeAndMakeEffectsScroll();
     void ResizeMainSequencer();
     void LoadSequencer(xLightsXmlFile& xml_file);
-    void DoLoadPerspective(wxXmlNode *p);
+    void DoLoadPerspective(Perspective* p);
     void CheckForValidModels();
     void ExportModels(wxString const& filename);
     void ExportEffects(wxString const& filename);
@@ -1990,5 +2004,5 @@ public:
 	void DoPlaySequence();
     void RecalcModels();
     std::string GetUniqueTimingName(const std::string& baseName);
+    std::list<std::string> GetPerspectives();
 };
-

@@ -17,20 +17,20 @@
 #include "../../UtilFunctions.h"
 #include "../../xLightsMain.h"
 #include "../../xLightsVersion.h"
+#include "../../XmlSerializer/XmlNodeKeys.h"
 
-DmxFloodArea::DmxFloodArea(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
-    : DmxFloodlight(node, manager, zeroBased)
+DmxFloodArea::DmxFloodArea(const ModelManager &manager)
+    : DmxFloodlight(manager)
 {
+    DisplayAs = DisplayAsType::DmxFloodArea;
 }
 
 DmxFloodArea::~DmxFloodArea()
 {
-    //dtor
 }
 
 void DmxFloodArea::InitModel() {
     DmxFloodlight::InitModel();
-    DisplayAs = "DmxFloodArea";
 }
 void DmxFloodArea::DrawModel(xlVertexColorAccumulator *vac, xlColor &center, xlColor &edge, float beamratio) {
     float beam_length = beamratio/2.0f;

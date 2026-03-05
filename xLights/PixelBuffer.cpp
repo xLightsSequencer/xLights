@@ -983,14 +983,9 @@ void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int laye
     }
 }
 
-void PixelBufferClass::InitBuffer(const Model& pbc, int layers, int timing, bool zeroBased) {
+void PixelBufferClass::InitBuffer(const Model& pbc, int layers, int timing) {
     modelName = pbc.GetFullName();
-    if (zeroBased) {
-        zbModel = pbc.GetModelManager().CreateModel(pbc.GetModelXml(), 0, 0, zeroBased);
-        model = zbModel;
-    } else {
-        model = &pbc;
-    }
+    model = &pbc;
     reset(layers + 1, timing);
 }
 
@@ -2168,7 +2163,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
         inf->saturationAdjustValueCurve != saturationAdjustValueCurve ||
         inf->valueAdjustValueCurve != valueAdjustValueCurve) {
         // This function is useful for testing issues where PixelBufferClass::MergeBuffersForLayer asserts
-        // if (model->GetDisplayAs() == "ModelGroup")
+        // if (model->GetDisplayAs() == DisplayAsType::ModelGroup)
         //{
         //    dynamic_cast<const ModelGroup*>(model)->TestNodeInit();
         //}
@@ -2252,7 +2247,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
         inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->bufferTransform);
         GPURenderUtils::setupRenderBuffer(this, &inf->buffer, layer);
 
-        if (type.compare(0, 9, "Per Model") == 0 && model->GetDisplayAs() == "ModelGroup") {
+        if (type.compare(0, 9, "Per Model") == 0 && model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             if (type.compare(type.length() - 4, 4, "Deep") == 0) {
                 inf->modelBuffers = &inf->deepModelBuffers;
                 const ModelGroup* gp = dynamic_cast<const ModelGroup*>(model);
@@ -2450,7 +2445,7 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
                 size_t start = n->ActChan;
                 if (IsInRange(restrictRange, start)) {
                     if (n->model != nullptr) { // nor this
-                        DimmingCurve* curve = n->model->modelDimmingCurve;
+                        DimmingCurve* curve = n->model->GetDimmingCurve();
                         if (curve != nullptr) {
                             if (n->GetChanCount() == 1) {
                                 uint8_t buf[3] = { 0, 0, 0 };
@@ -2477,7 +2472,7 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
                     size_t start = n->ActChan;
                     if (IsInRange(restrictRange, start)) {
                         if (n->model != nullptr) { // nor this
-                            DimmingCurve* curve = n->model->modelDimmingCurve;
+                            DimmingCurve* curve = n->model->GetDimmingCurve();
                             if (curve != nullptr) {
                                 if (n->GetChanCount() == 1) {
                                     uint8_t buf[3] = { 0, 0, 0 };
@@ -2514,7 +2509,7 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata) {
             n->SetFromChannels(&fdata[start]);
             n->GetColor(color);
 
-            DimmingCurve* curve = n->model->modelDimmingCurve;
+            DimmingCurve* curve = n->model->GetDimmingCurve();
             if (curve != nullptr) {
                 curve->reverse(color);
             }
@@ -2531,7 +2526,7 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata) {
                 n->SetFromChannels(&fdata[start]);
                 n->GetColor(color);
 
-                DimmingCurve* curve = n->model->modelDimmingCurve;
+                DimmingCurve* curve = n->model->GetDimmingCurve();
                 if (curve != nullptr) {
                     curve->reverse(color);
                 }
