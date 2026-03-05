@@ -209,6 +209,9 @@
     <ClCompile Include="models\CustomModel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
+    <ClCompile Include="models\DisplayAsType.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
     <ClCompile Include="models\IciclesModel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
@@ -1356,6 +1359,9 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="models\CustomModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DisplayAsType.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="models\IciclesModel.h">

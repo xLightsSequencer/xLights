@@ -898,6 +898,8 @@
 		<Unit filename="models/CubeModel.cpp" />
 		<Unit filename="models/CustomModel.cpp" />
 		<Unit filename="models/CustomModel.h" />
+		<Unit filename="models/DisplayAsType.cpp" />
+		<Unit filename="models/DisplayAsType.h" />
 		<Unit filename="models/DMX/DmxBeamAbility.cpp" />
 		<Unit filename="models/DMX/DmxBeamAbility.h" />
 		<Unit filename="models/DMX/DmxColorAbility.cpp" />

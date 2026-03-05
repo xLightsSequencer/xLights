@@ -836,6 +836,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="models\CandyCaneModel.cpp" />
     <ClCompile Include="models\CircleModel.cpp" />
     <ClCompile Include="models\CustomModel.cpp" />
+    <ClCompile Include="models\DisplayAsType.cpp" />
     <ClCompile Include="models\IciclesModel.cpp" />
     <ClCompile Include="models\MatrixModel.cpp" />
     <ClCompile Include="models\Model.cpp" />
@@ -1384,6 +1385,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="models\CandyCaneModel.h" />
     <ClInclude Include="models\CircleModel.h" />
     <ClInclude Include="models\CustomModel.h" />
+    <ClInclude Include="models\DisplayAsType.h" />
     <ClInclude Include="models\IciclesModel.h" />
     <ClInclude Include="models\MatrixModel.h" />
     <ClInclude Include="models\Model.h" />
