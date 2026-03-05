@@ -802,7 +802,7 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
 
             wxXmlNode* input_root = input_xml.GetRoot();
 
-            if (name_and_path.GetExt().Lower() == "xpreset")
+            if (name_and_path.GetExt().Lower() == "xpreset" || input_root->GetName() == "preset")
             {
                 for (wxXmlNode *ele = input_root->GetChildren(); ele != nullptr; ele = ele->GetNext())
                 {
