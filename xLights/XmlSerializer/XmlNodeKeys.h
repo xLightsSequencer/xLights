@@ -410,7 +410,8 @@ namespace XmlNodeKeys {
 
     // ViewObject Types
     constexpr auto GridlinesType    = "Gridlines";
-    constexpr auto TerrainType      = "Terrian";
+    constexpr auto TerrainType      = "Terrain";
+    constexpr auto TerrianType      = "Terrian"; // Wrong spelling from old xLights, readable for compatibility
     constexpr auto MeshType         = "Mesh";
     constexpr auto RulerType        = "Ruler";
 

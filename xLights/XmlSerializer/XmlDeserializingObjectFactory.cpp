@@ -33,7 +33,7 @@ ViewObject* XmlDeserializingObjectFactory::Deserialize(wxXmlNode* node, xLightsF
         return DeserializeImage(node, xlights, importing);
     } else if (type == XmlNodeKeys::MeshType) {
         return DeserializeMesh(node, xlights, importing);
-    } else if (type == XmlNodeKeys::TerrainType) {
+    } else if (type == XmlNodeKeys::TerrainType || type == XmlNodeKeys::TerrianType) {
         return DeserializeTerrain(node, xlights, importing);
     } else if (type == XmlNodeKeys::RulerType) {
         return DeserializeRuler(node, xlights, importing);
