@@ -14,12 +14,14 @@
 #include "FileSerializingVisitor.h"
 
 FileSerializingVisitor::FileSerializingVisitor(const std::string& path, bool exporting, bool prettyPrint)
-    : FileStreamHolder{std::ofstream(path, std::ios::out | std::ios::trunc)},
+    : _ofs(path, std::ios::out | std::ios::trunc),
       StreamSerializingVisitor(_ofs, exporting, prettyPrint) {
+    WriteXmlDeclaration();
 }
 
 FileSerializingVisitor::FileSerializingVisitor(std::ostream& os, bool exporting, bool prettyPrint)
     : StreamSerializingVisitor(os, exporting, prettyPrint) {
+    WriteXmlDeclaration();
 }
 
 bool FileSerializingVisitor::IsOpen() const {

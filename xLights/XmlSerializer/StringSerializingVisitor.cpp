@@ -15,6 +15,7 @@
 
 StringSerializingVisitor::StringSerializingVisitor(bool exporting, bool prettyPrint)
     : StreamSerializingVisitor(_oss, exporting, prettyPrint) {
+    WriteXmlDeclaration();
 }
 
 std::string StringSerializingVisitor::GetResult() const {

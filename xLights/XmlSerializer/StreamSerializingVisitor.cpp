@@ -19,16 +19,11 @@
 
 StreamSerializingVisitor::StreamSerializingVisitor(std::ostream& os, bool exporting, bool prettyPrint)
     : BaseSerializingVisitor(exporting), out(os), prettyPrint(prettyPrint) {
-    out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-    WriteNewline();
 }
 
-// ---------------------------------------------------------------------------
-// AppendRaw
-// ---------------------------------------------------------------------------
-
-void StreamSerializingVisitor::AppendRaw(const std::string& xml) {
-    out << xml;
+void StreamSerializingVisitor::WriteXmlDeclaration() {
+    out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+    WriteNewline();
 }
 
 // ---------------------------------------------------------------------------
@@ -102,5 +97,5 @@ void StreamSerializingVisitor::WriteCloseTag() {
 }
 
 void StreamSerializingVisitor::WriteBodyText(const std::string& txt) {
-    AppendRaw(EscapeXml(txt));
+    out << EscapeXml(txt);
 }

@@ -19,13 +19,7 @@
 #include <fstream>
 #include <string>
 
-// Private base ensures _ofs is constructed before StreamSerializingVisitor
-// (base classes initialize left-to-right before members).
-struct FileStreamHolder {
-    std::ofstream _ofs;
-};
-
-class FileSerializingVisitor : private FileStreamHolder, public StreamSerializingVisitor {
+class FileSerializingVisitor : public StreamSerializingVisitor {
 public:
     // Opens an internal ofstream to the given path.
     explicit FileSerializingVisitor(const std::string& path, bool exporting = false, bool prettyPrint = true);
@@ -35,4 +29,7 @@ public:
 
     // For the file-path constructor: check whether the file was opened successfully.
     [[nodiscard]] bool IsOpen() const;
+
+private:
+    std::ofstream _ofs;
 };

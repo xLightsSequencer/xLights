@@ -34,10 +34,6 @@ public:
         WriteOpenTag(name, attr);
     }
 
-    // Append pre-formed XML text directly into the output stream.
-    // The caller is responsible for correct indentation and newlines.
-    void AppendRaw(const std::string& xml);
-
     int  GetIndentLevel() const { return indentLevel; }
     bool IsPrettyPrint()  const { return prettyPrint; }
 
@@ -46,6 +42,10 @@ public:
 protected:
     StreamSerializingVisitor(std::ostream& os, bool exporting = false, bool prettyPrint = true);
     ~StreamSerializingVisitor() override = default;
+
+    // Write the XML declaration. Subclasses must call this in their constructor
+    // body (not the initializer list) so the stream is fully constructed first.
+    void WriteXmlDeclaration();
 
     std::ostream& out;
 
