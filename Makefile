@@ -197,6 +197,7 @@ xLights/xLights.cbp.mak: xLights/xLights.cbp
 		| sed \
 			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
 			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
+			-e "s/^INC_LINUX_\(.*\)/INC_LINUX_\1 -I ..\/wxWidgets-$(WXWIDGETS_TAG)\/3rdparty/" \
 			-e "s#all: linux_debug linux_release#include ../build_scripts/linux/*.mak\n\nall: linux_debug linux_release#" \
 		> xLights/xLights.cbp.mak
 
