@@ -69,7 +69,7 @@ private:
     int width {1000};
     int height {10};
     int depth {1000};
-    bool editTerrian {false};
+    bool editTerrain {false};
     bool hide_image {false};
     bool hide_grid {false};
     int brush_size {1};

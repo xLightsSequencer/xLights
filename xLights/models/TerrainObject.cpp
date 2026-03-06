@@ -83,17 +83,17 @@ void TerrainObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Line Spacing", "TerrianLineSpacing", spacing));
+    p = grid->Append(new wxUIntProperty("Line Spacing", "TerrainLineSpacing", spacing));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 1024);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Terrian Width", "TerrianWidth", width));
+    p = grid->Append(new wxUIntProperty("Terrain Width", "TerrainWidth", width));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100000);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Terrian depth", "TerrianDepth", depth));
+    p = grid->Append(new wxUIntProperty("Terrain depth", "TerrainDepth", depth));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100000);
     p->SetEditor("SpinCtrl");
@@ -106,17 +106,17 @@ void TerrainObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
     p = grid->Append(new wxBoolProperty("Hide Image", "HideImage", hide_image));
     p->SetAttribute("UseCheckbox", true);
 
-    p = grid->Append(new wxUIntProperty("Brush Size", "TerrianBrushSize", brush_size));
+    p = grid->Append(new wxUIntProperty("Brush Size", "TerrainBrushSize", brush_size));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxBoolProperty("Edit Terrian", "TerrianEdit", editTerrian));
+    p = grid->Append(new wxBoolProperty("Edit Terrain", "TerrainEdit", editTerrain));
 
     p->SetAttribute("UseCheckbox", true);
 
     if (RulerObject::GetRuler() != nullptr) {
-        p = grid->Append(new wxStringProperty("Terrian Spacing", "RealSpacing",
+        p = grid->Append(new wxStringProperty("Terrain Spacing", "RealSpacing",
             RulerObject::PrescaledMeasureDescription(RulerObject::Measure(spacing))
         ));
         p->ChangeFlag(wxPGFlags::ReadOnly, true);
@@ -148,32 +148,32 @@ int TerrainObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrainObject::OnPropertyGridChange::Brightness");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TerrainObject::OnPropertyGridChange::Transparency");
         return 0;
-    } else if ("TerrianLineSpacing" == event.GetPropertyName()) {
+    } else if ("TerrainLineSpacing" == event.GetPropertyName()) {
         spacing = (int)event.GetPropertyValue().GetLong();
         UpdateSize();
         if (grid->GetPropertyByName("RealSpacing") != nullptr && RulerObject::GetRuler() != nullptr) {
             grid->GetPropertyByName("RealSpacing")->SetValueFromString(RulerObject::PrescaledMeasureDescription(RulerObject::Measure(spacing)));
         }
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrainObject::OnPropertyGridChange::TerrianLineSpacing");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TerrainObject::OnPropertyGridChange::TerrianLineSpacing");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TerrainObject::OnPropertyGridChange::TerrianLineSpacing");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrainObject::OnPropertyGridChange::TerrainLineSpacing");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TerrainObject::OnPropertyGridChange::TerrainLineSpacing");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TerrainObject::OnPropertyGridChange::TerrainLineSpacing");
         return 0;
-    } else if ("TerrianWidth" == event.GetPropertyName()) {
+    } else if ("TerrainWidth" == event.GetPropertyName()) {
         width = (int)event.GetPropertyValue().GetLong();
         UpdateSize();
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrainObject::OnPropertyGridChange::TerrianWidth");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TerrainObject::OnPropertyGridChange::TerrianWidth");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TerrainObject::OnPropertyGridChange::TerrianWidth");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrainObject::OnPropertyGridChange::TerrainWidth");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TerrainObject::OnPropertyGridChange::TerrainWidth");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TerrainObject::OnPropertyGridChange::TerrainWidth");
         return 0;
-    } else if ("TerrianDepth" == event.GetPropertyName()) {
+    } else if ("TerrainDepth" == event.GetPropertyName()) {
         depth = (int)event.GetPropertyValue().GetLong();
         UpdateSize();
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrainObject::OnPropertyGridChange::TerrianDepth");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TerrainObject::OnPropertyGridChange::TerrianDepth");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TerrainObject::OnPropertyGridChange::TerrianDepth");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrainObject::OnPropertyGridChange::TerrainDepth");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TerrainObject::OnPropertyGridChange::TerrainDepth");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TerrainObject::OnPropertyGridChange::TerrainDepth");
         return 0;
     } else if ("gridColor" == event.GetPropertyName()) {
         wxPGProperty *p = grid->GetPropertyByName("gridColor");
@@ -196,15 +196,15 @@ int TerrainObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrainObject::OnPropertyGridChange::HideImage");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TerrainObject::OnPropertyGridChange::HideImage");
         return 0;
-    } else if ("TerrianBrushSize" == event.GetPropertyName()) {
+    } else if ("TerrainBrushSize" == event.GetPropertyName()) {
         brush_size = (int)event.GetPropertyValue().GetLong();
         screenLocation.SetToolSize(brush_size);
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrainObject::OnPropertyGridChange::TerrianBrushSize");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrainObject::OnPropertyGridChange::TerrainBrushSize");
         return 0;
-    } else if (event.GetPropertyName() == "TerrianEdit") {
-        editTerrian = event.GetValue().GetBool();
-        if (editTerrian) {
+    } else if (event.GetPropertyName() == "TerrainEdit") {
+        editTerrain = event.GetValue().GetBool();
+        if (editTerrain) {
             screenLocation.SetActiveHandle(NO_HANDLE);
             screenLocation.SetEdit(true);
         } else {
@@ -213,9 +213,9 @@ int TerrainObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
             screenLocation.SetEdit(false);
         }
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::TerrianEdit");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "GridlinesObject::OnPropertyGridChange::TerrianEdit");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::TerrianEdit");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::TerrainEdit");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "GridlinesObject::OnPropertyGridChange::TerrainEdit");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::TerrainEdit");
         return 0;
     }
 

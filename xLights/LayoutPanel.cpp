@@ -6249,7 +6249,7 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
     {
         logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_TERRIAN");
         CreateUndoPoint("All", "", "");
-        vobj = xlights->AllObjects.CreateAndAddObject("Terrian");
+        vobj = xlights->AllObjects.CreateAndAddObject("Terrain");
         vobj->SetLayoutGroup("Default"); // only Default supports 3D and hence objects
         objects_panel->UpdateObjectList(true, currentLayoutGroup);
         object_created = true;
