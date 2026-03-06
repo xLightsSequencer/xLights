@@ -55,7 +55,7 @@ std::string DisplayAsTypeToString(DisplayAsType type) {
 
 DisplayAsType DisplayAsTypeFromString(const std::string& str) {
     // Use a static map for O(1) lookups of known strings
-    static const std::unordered_map<std::string, DisplayAsType> lookup = {
+    static const std::map<std::string, DisplayAsType> lookup = {
         // Current model types
         {XmlNodeKeys::ArchesType,           DisplayAsType::Arches},
         {XmlNodeKeys::CandyCaneType,        DisplayAsType::CandyCanes},

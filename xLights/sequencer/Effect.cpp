@@ -86,10 +86,11 @@ public:
     }
 private:
     std::unordered_map<std::string, std::string> data;
-} Remaps;
+};
 
 void SettingsMap::RemapChangedSettingKey(std::string &n,  std::string &value)
 {
+    static const ControlRenameMap Remaps;
     Remaps.map(n);
 }
 
