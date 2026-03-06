@@ -11,7 +11,7 @@
 #include "DisplayAsType.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
-#include <unordered_map>
+#include <map>
 
 std::string DisplayAsTypeToString(DisplayAsType type) {
     switch (type) {
