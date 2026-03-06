@@ -48,7 +48,7 @@ enum class DisplayAsType {
 
     // View object types
     Gridlines,
-    Terrain,     // XML value is "Terrian" (known legacy misspelling, preserved for compat)
+    Terrain,
     Mesh,
     Ruler,
 

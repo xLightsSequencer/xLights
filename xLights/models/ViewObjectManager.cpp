@@ -60,14 +60,13 @@ ViewObject* ViewObjectManager::CreateAndAddObject(const std::string &type) {
         view_object = new ImageObject(*this);
     } else if (type == "Mesh") {
         view_object = new MeshObject(*this);
-    } else if (type == "Terrian") {
+    } else if (type == "Terrain") {
         view_object = new TerrainObject(*this);
     } else {
         wxMessageBox(type + " is not a valid type for View Object ");
         return nullptr;
     }
     view_object->SetName(GenerateObjectName(type));
-    view_object->SetDisplayAs(type);
     AddViewObject(view_object);
 
     return view_object;

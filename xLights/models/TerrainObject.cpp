@@ -22,6 +22,7 @@
 TerrainObject::TerrainObject(const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager)
 {
+    DisplayAs = DisplayAsType::Terrain;
     screenLocation.SetSupportsZScaling(true);
     UpdateSize();
 }

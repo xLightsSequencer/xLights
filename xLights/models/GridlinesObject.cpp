@@ -20,6 +20,7 @@
 GridlinesObject::GridlinesObject(const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), gridColor(xlColor(0,128, 0))
 {
+    DisplayAs = DisplayAsType::Gridlines;
 }
 
 GridlinesObject::~GridlinesObject()

@@ -22,6 +22,7 @@ RulerObject* RulerObject::__rulerObject = nullptr;
 RulerObject::RulerObject(const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager)
 {
+    DisplayAs = DisplayAsType::Ruler;
 	__rulerObject = this;
 
     // we need to call this so we can use it to measure in 2D

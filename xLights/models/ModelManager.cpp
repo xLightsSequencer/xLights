@@ -1279,7 +1279,6 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
             dynamic_cast<DmxServo3d*>(model)->SetNumStatic(1);
             dynamic_cast<DmxServo3d*>(model)->SetNumMotion(3);
             model->SetParm1(6);
-            model->SetDisplayAs("DmxServo3d");
         }
     } else if (type == "Image") {
         model = new ImageModel(*this);
@@ -1338,7 +1337,6 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
     model->SetControllerName(NO_CONTROLLER);
 
     model->SetName(GenerateModelName(type));
-    model->SetDisplayAs(type);
     model->SetStartChannel(startChannel);
     model->SetParm1(parm1);
     model->SetParm2(parm2);

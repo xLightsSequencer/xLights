@@ -60,7 +60,11 @@
 using namespace XmlSerialize;
 
 Model* XmlDeserializingModelFactory::Deserialize(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-    auto type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute);
+    wxString type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute, "DisplayAs Missing");
+
+    if (type.empty()) {
+        throw std::runtime_error("Model has an empty DisplayAs attribute");
+    }
 
     std::string node_name = node->GetName();  // need this to support importing old models that did not have the DisplayAs attribute
 
@@ -119,7 +123,7 @@ Model* XmlDeserializingModelFactory::Deserialize(wxXmlNode* node, xLightsFrame* 
     } else if (type == XmlNodeKeys::WreathType) {
         return DeserializeWreath(node, xlights, importing);
     }
-    return nullptr;
+    throw std::runtime_error("Unknown model type: " + type);
 }
 
 void XmlDeserializingModelFactory::CommonDeserializeSteps(Model* model, wxXmlNode* node, xLightsFrame* xlights, bool importing) {

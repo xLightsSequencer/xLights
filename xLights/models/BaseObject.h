@@ -97,7 +97,7 @@ public:
     void SetName(std::string const& newname);
 
     void SetDisplayAs(DisplayAsType type) { DisplayAs = type; }
-    void SetDisplayAs(const std::string& type) { DisplayAs = DisplayAsTypeFromString(type); }
+    //void SetDisplayAs(const std::string& type) { DisplayAs = DisplayAsTypeFromString(type); }
 
     virtual void Setup() = 0;
     

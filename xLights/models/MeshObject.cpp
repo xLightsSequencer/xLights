@@ -32,6 +32,7 @@
 MeshObject::MeshObject(const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager)
 {
+    DisplayAs = DisplayAsType::Mesh;
     screenLocation.SetSupportsZScaling(true);
 }
 

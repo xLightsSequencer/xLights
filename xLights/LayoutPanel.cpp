@@ -6212,7 +6212,7 @@ void LayoutPanel::DisplayAddObjectPopup() {
     wxMenu mnuObjects;
     AddObjectButton(mnuObjects, ID_ADD_OBJECT_IMAGE, "Image", add_object_image_xpm);
     AddObjectButton(mnuObjects, ID_ADD_OBJECT_GRIDLINES, "Gridlines", add_object_gridlines_xpm);
-    AddObjectButton(mnuObjects, ID_ADD_OBJECT_TERRIAN, "Terrian", add_object_terrian_xpm);
+    AddObjectButton(mnuObjects, ID_ADD_OBJECT_TERRIAN, "Terrain", add_object_terrian_xpm);
     AddObjectButton(mnuObjects, ID_ADD_OBJECT_MESH, "Mesh", add_object_mesh_xpm);
     if (RulerObject::GetRuler() == nullptr) {
         AddObjectButton(mnuObjects, ID_ADD_OBJECT_RULER, "Ruler", add_object_ruler_xpm);

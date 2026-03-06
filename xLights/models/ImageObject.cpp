@@ -23,6 +23,7 @@
 ImageObject::ImageObject(const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager)
 {
+    DisplayAs = DisplayAsType::Image;
 }
 
 ImageObject::~ImageObject()

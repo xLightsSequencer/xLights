@@ -25,7 +25,11 @@
 using namespace XmlSerialize;
 
 ViewObject* XmlDeserializingObjectFactory::Deserialize(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
-    auto type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute);
+    std::string type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute, "DisplayAs Missing").ToStdString();
+    
+    if (type.empty()) {
+        throw std::runtime_error("Object has an empty DisplayAs attribute");
+    }
     
     if (type == XmlNodeKeys::GridlinesType) {
         return DeserializeGridlines(node, xlights, importing);
@@ -54,7 +58,6 @@ void XmlDeserializingObjectFactory::DeserializeBaseObjectAttributes(ViewObject* 
     }
     object->SetLayoutGroup("Default", true);
     object->SetName(name);
-    object->SetDisplayAs(node->GetAttribute(XmlNodeKeys::DisplayAsAttribute).ToStdString());
     object->SetActive(std::stoi(node->GetAttribute(XmlNodeKeys::ActiveAttribute, "1").ToStdString()));
     object->SetFromBase(std::stoi(node->GetAttribute(XmlNodeKeys::FromBaseAttribute, "0").ToStdString()));
 }
