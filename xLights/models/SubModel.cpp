@@ -437,6 +437,26 @@ auto getRange = [](wxString const& a) {
     return std::make_pair(i, i);
 };
 
+static int ResolveParentNodeIndex(const Model* parent, int nodeNumber)
+{
+    if (nodeNumber <= 0) {
+        return -1;
+    }
+
+    int index = nodeNumber - 1;
+    if (index >= 0 && static_cast<uint32_t>(index) < parent->GetNodeCount()) {
+        return index;
+    }
+
+    for (size_t n = 0; n < parent->GetNodeCount(); ++n) {
+        if (static_cast<int>(parent->GetNodeNumber(n)) == nodeNumber) {
+            return static_cast<int>(n);
+        }
+    }
+
+    return -1;
+}
+
 void SubModel::AddRangeXY( wxString const& nodes ) {
     _ranges.push_back(nodes);
     if (_propertyGridDisplay == "") {
@@ -455,11 +475,14 @@ void SubModel::initRangeXY(std::string const& nodes) {
             if (start > end) {//order is always lowest to highest for grid
                 std::swap(start, end);
             }
-            start--;
-            end--;
-            for (int i = start; i <= end; i++) {
-                _nodeIdx.insert(i);
-                _nodeIndexes.push_back(i);
+            for (int nodeNumber = start; nodeNumber <= end; ++nodeNumber) {
+                int parentIndex = ResolveParentNodeIndex(parent, nodeNumber);
+                if (parentIndex >= 0) {
+                    _nodeIdx.insert(parentIndex);
+                    _nodeIndexes.push_back(parentIndex);
+                } else {
+                    _nodesAllValid = false;
+                }
             }
         }
     }
@@ -491,18 +514,17 @@ void SubModel::initDefaultBuffer(const std::string &nodes) {
                 _col++;
             }
         } else {
-            start--;
-            end--;
             bool done = false;
-            wxInt32 nn = start;
+            wxInt32 nodeNumber = start;
             while (!done) {
-                if ((uint32_t)nn < parent->GetNodeCount()) {
-                    _nodeIndexes.push_back(nn);
+                int parentIndex = ResolveParentNodeIndex(parent, nodeNumber);
+                if (parentIndex >= 0) {
+                    _nodeIndexes.push_back(parentIndex);
                     NodeBaseClass* node;
-                    if (_nodeIndexMap.find(nn) == _nodeIndexMap.end()) {
-                        node = parent->Nodes[nn]->clone();
+                    if (_nodeIndexMap.find(parentIndex) == _nodeIndexMap.end()) {
+                        node = parent->Nodes[parentIndex]->clone();
                         _startChannel = (std::min)(_startChannel, node->ActChan);
-                        _nodeIndexMap[nn] = Nodes.size();
+                        _nodeIndexMap[parentIndex] = Nodes.size();
                         Nodes.push_back(NodeBaseClassPtr(node));
                         if (node->Coords.size() > 1) {
                             node->Coords.resize(1);
@@ -512,7 +534,7 @@ void SubModel::initDefaultBuffer(const std::string &nodes) {
                             c.bufY = _row;
                         }
                     } else {
-                        node = Nodes[_nodeIndexMap[nn]].get();
+                        node = Nodes[_nodeIndexMap[parentIndex]].get();
                         node->Coords.push_front(node->Coords[0]);
                         node->Coords[0].bufX = _col;
                         node->Coords[0].bufY = _row;
@@ -526,11 +548,11 @@ void SubModel::initDefaultBuffer(const std::string &nodes) {
                     _nodesAllValid = false;
                 }
                 if (start > end) {
-                    nn--;
-                    done = nn < end;
+                    nodeNumber--;
+                    done = nodeNumber < end;
                 } else {
-                    nn++;
-                    done = nn > end;
+                    nodeNumber++;
+                    done = nodeNumber > end;
                 }
             }
         }
@@ -651,6 +673,8 @@ void SubModel::Setup() {
     _nodeIndexes.clear();
     _nodeIndexMap.clear();
     _nodeIdx.clear();
+    _nodesAllValid = true;
+    _startChannel = UINT32_MAX;
     
     if (IsRanges()) {
         if (IsXYBufferStyle()) {

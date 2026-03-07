@@ -911,8 +911,15 @@ std::list<std::string> CustomModel::CheckModelSettings()
     auto nm = StartNodeAttrName(0);
     if (_strings > 1 && _hasIndivNodes) {
         bool oneFound = false;
+        bool nodeOneExists = false;
         std::vector<int> prevStart;
         int nodes = GetChanCount() / GetChanCountPerNode();
+        for (const auto& n : Nodes) {
+            if (n->StringNum == 0) {
+                nodeOneExists = true;
+                break;
+            }
+        }
         for (int i = 0; i < _strings; i++) {
             nm = StartNodeAttrName(i);
             auto val = _indivStartNodes[i];
@@ -927,7 +934,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
             }
             prevStart.push_back(val);
         }
-        if (!oneFound)             {
+        if (nodeOneExists && !oneFound) {
             res.push_back(wxString::Format("    ERR: Custom model '%s' Multiple strings but none starting at node 1.", GetName()).ToStdString());
         }
     }

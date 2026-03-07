@@ -40,6 +40,7 @@
 
 #include <cctype>
 #include <cstring>
+#include <unordered_set>
 #include <thread>
 #include <string>
 
@@ -6264,11 +6265,56 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("");
     LogCheckSequenceMsg("SubModels with nodes not in parent model");
 
+    auto hasOnlyValidParentNodeNumbers = [](const SubModel* sm, const Model* parentModel) -> bool {
+        std::unordered_set<int> validNodeNumbers;
+        validNodeNumbers.reserve(parentModel->GetNodeCount());
+        for (size_t n = 0; n < parentModel->GetNodeCount(); ++n) {
+            int nodeNumber = parentModel->GetNodeNumber(n);
+            if (nodeNumber > 0) {
+                validNodeNumbers.insert(nodeNumber);
+            }
+        }
+
+        auto parseRange = [](const wxString& token) -> std::pair<int, int> {
+            if (token.Contains("-")) {
+                int idx = token.Index('-');
+                return std::make_pair(wxAtoi(token.Left(idx)), wxAtoi(token.Right(token.size() - idx - 1)));
+            }
+            int i = wxAtoi(token);
+            return std::make_pair(i, i);
+        };
+
+        for (int r = 0; r < sm->GetNumRanges(); ++r) {
+            wxStringTokenizer wtkz(sm->GetRange(r), ",");
+            while (wtkz.HasMoreTokens()) {
+                wxString valstr = wtkz.GetNextToken();
+                auto [start, end] = parseRange(valstr);
+                if (start == 0) {
+                    continue;
+                }
+
+                int step = (start <= end) ? 1 : -1;
+                int nn = start;
+                while (true) {
+                    if (validNodeNumbers.find(nn) == validNodeNumbers.end()) {
+                        return false;
+                    }
+                    if (nn == end) {
+                        break;
+                    }
+                    nn += step;
+                }
+            }
+        }
+
+        return true;
+    };
+
     for (const auto& it : AllModels) {
         if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             for (int i = 0; i < it.second->GetNumSubModels(); ++i) {
                 SubModel* sm = (SubModel*)it.second->GetSubModel(i);
-                if (!sm->IsNodesAllValid()) {
+                if (!sm->IsNodesAllValid() && !hasOnlyValidParentNodeNumbers(sm, it.second)) {
                     wxString msg = wxString::Format("    ERR: SubModel '%s' has invalid nodes outside the range of the parent model.", sm->GetFullName());
                     LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::CRITICAL, msg.ToStdString(), "submodelsrange", errcount, warncount);
                 }
@@ -6362,9 +6408,9 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             float startX = loc.x;
             float startY = loc.y;
             float startZ = loc.z;
-            float endX = screenLoc.GetX2();
-            float endY = screenLoc.GetY2();
-            float endZ = screenLoc.GetZ2();
+            float endX = startX + screenLoc.GetX2();
+            float endY = startY + screenLoc.GetY2();
+            float endZ = startZ + screenLoc.GetZ2();
 
             float deltaX = fabs(startX - endX);
             float deltaY = fabs(startY - endY);

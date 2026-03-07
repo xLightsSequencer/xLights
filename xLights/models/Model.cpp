@@ -4081,6 +4081,9 @@ uint32_t Model::GetNodeNumber(size_t nodenum) const
     if (nodenum >= Nodes.size())
         return 0;
     int sn = Nodes[nodenum]->StringNum;
+    if (sn < 0 || sn >= static_cast<int>(stringStartChan.size())) {
+        return nodenum + 1;
+    }
     return (Nodes[nodenum]->ActChan - stringStartChan[sn]) / 3 + sn * NodesPerString() + 1;
 }
 
