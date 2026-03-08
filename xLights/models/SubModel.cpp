@@ -477,8 +477,8 @@ void SubModel::AddDefaultBuffer( wxString const& nodes )
     } else {
         _propertyGridDisplay = _propertyGridDisplay + "," + nodes;
     }
-    initDefaultBuffer(nodes);
 }
+
 void SubModel::initDefaultBuffer(const std::string &nodes) {
     wxStringTokenizer wtkz(nodes, ",");
     while (wtkz.HasMoreTokens()) {
