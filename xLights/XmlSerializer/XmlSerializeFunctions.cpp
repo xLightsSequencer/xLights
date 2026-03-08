@@ -135,7 +135,7 @@ std::vector<std::vector<std::vector<int>>> ParseCustomModel(const std::string& c
                     }
                     catch (...)
                     {
-                        // not a number, treat as 0
+                        // not a number, leave as default (-1 / empty cell)
                     }
                 }
                 ++col;
