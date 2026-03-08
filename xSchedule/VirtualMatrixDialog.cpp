@@ -213,6 +213,14 @@ void VirtualMatrixDialog::PopulateModels() {
         Choice_FromModel->Append(it);
     }
 
+    for (const auto& it : effects.GetModels("Matrix")) {
+        Choice_FromModel->Append(it);
+    }
+
+    for (const auto& it : effects.GetModels("Tree")) {
+        Choice_FromModel->Append(it);
+    }
+
     for (const auto& it : effects.GetModels("Tree 360")) {
         Choice_FromModel->Append(it);
     }
