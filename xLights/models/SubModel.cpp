@@ -477,6 +477,7 @@ void SubModel::AddDefaultBuffer( wxString const& nodes )
     } else {
         _propertyGridDisplay = _propertyGridDisplay + "," + nodes;
     }
+    initDefaultBuffer(nodes);
 }
 
 void SubModel::initDefaultBuffer(const std::string &nodes) {
@@ -651,7 +652,9 @@ void SubModel::Setup() {
     _nodeIndexes.clear();
     _nodeIndexMap.clear();
     _nodeIdx.clear();
-    
+    _startChannel = UINT32_MAX;
+    _nodesAllValid = true;
+
     if (IsRanges()) {
         if (IsXYBufferStyle()) {
             // XY buffer style (Keep XY)
@@ -661,6 +664,10 @@ void SubModel::Setup() {
             CheckDuplicates();
             CalcRangeXYBufferSize();
         } else {
+            _row = 0;
+            _col = 0;
+            _maxRow = 0;
+            _maxCol = 0;
             // Default and stacked buffer styles
             for (auto &r : _ranges) {
                 initDefaultBuffer(r);
