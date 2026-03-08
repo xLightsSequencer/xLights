@@ -58,15 +58,17 @@ std::string StreamSerializingVisitor::EscapeXml(const std::string& input) {
         case '\t': result += "&#x9;";   break;
         case '\n': result += "&#xA;";  break;
         case '\r': result += "&#xD;";  break;
-        default:
-            if (c < 0x20 && c != '\t' && c != '\n' && c != '\r') {
+        default: {
+            unsigned char uc = static_cast<unsigned char>(c);
+            if (uc < 0x20 && uc != '\t' && uc != '\n' && uc != '\r') {
                 char buf[8];
-                snprintf(buf, sizeof(buf), "&#x%02X;", (unsigned char)c);
+                snprintf(buf, sizeof(buf), "&#x%02X;", uc);
                 result += buf;
             } else {
                 result += c;
             }
             break;
+        }
         }
     }
     return result;
