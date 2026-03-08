@@ -15,7 +15,7 @@
 #include "../UtilFunctions.h"
 #include "../models/ModelGroup.h"
 #include "../models/ModelManager.h"
-#include "../xLightsMain.h"7
+#include "../xLightsMain.h"
 
 #include <wx/xml/xml.h>
 #include <sstream>
