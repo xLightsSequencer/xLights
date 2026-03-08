@@ -125,8 +125,10 @@ std::vector<std::vector<std::vector<int>>> ParseCustomModel(const std::string& c
                 if (!value.empty()) {
                     try {
                         locations.back()[current_row][col] = std::stoi(value);
-                    } catch (...) {
-                        // not a number, treat as 0
+                    }
+                    catch (...)
+                    {
+                        // not a number, leave as default (-1 / empty cell)
                     }
                 }
                 ++col;
