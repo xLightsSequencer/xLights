@@ -15,7 +15,7 @@
 #include "../UtilFunctions.h"
 #include "../models/ModelGroup.h"
 #include "../models/ModelManager.h"
-#include "../xLightsMain.h"
+#include "../xLightsMain.h"7
 
 #include <wx/xml/xml.h>
 #include <sstream>
@@ -74,8 +74,7 @@ void DeserializePolyPointScreenLocationAttributes(BaseObject* object, wxXmlNode*
 }
 
 
-std::vector<std::vector<std::vector<int>>> ParseCustomModel(const std::string& customModel)
-{
+std::vector<std::vector<std::vector<int>>> ParseCustomModel(const std::string& customModel) {
     // layers - rows - cols
     std::vector<std::vector<std::vector<int>>> locations;
     std::vector<std::string> layers;
@@ -90,14 +89,14 @@ std::vector<std::vector<std::vector<int>>> ParseCustomModel(const std::string& c
 
     int max_height_across_all_layers = 0;
 
-    for (const auto& layer_str : layers)
-    {
+    for (const auto& layer_str : layers) {
         locations.emplace_back();
 
         rows.clear();
         Split(layer_str, ';', rows);
 
-        if (rows.empty()) continue;
+        if (rows.empty())
+            continue;
 
         max_height_across_all_layers = std::max(max_height_across_all_layers, (int)rows.size());
 
@@ -105,36 +104,28 @@ std::vector<std::vector<std::vector<int>>> ParseCustomModel(const std::string& c
 
         int current_row = 0;
 
-        for (const auto& row_str : rows)
-        {
+        for (const auto& row_str : rows) {
             cols.clear();
             Split(row_str, ',', cols);
 
             layer_max_cols = std::max(layer_max_cols, cols.size());
 
-            if (locations.back().size() <= static_cast<size_t>(current_row))
-            {
+            if (locations.back().size() <= static_cast<size_t>(current_row)) {
                 locations.back().resize(current_row + 1);
             }
 
             locations.back()[current_row].assign(layer_max_cols, -1);
 
             int col = 0;
-            for (auto value : cols)
-            {
-                while (!value.empty() && value[0] == ' ')
-                {
+            for (auto value : cols) {
+                while (!value.empty() && value[0] == ' ') {
                     value = value.substr(1);
                 }
 
-                if (!value.empty())
-                {
-                    try
-                    {
+                if (!value.empty()) {
+                    try {
                         locations.back()[current_row][col] = std::stoi(value);
-                    }
-                    catch (...)
-                    {
+                    } catch (...) {
                         // not a number, treat as 0
                     }
                 }
@@ -144,27 +135,22 @@ std::vector<std::vector<std::vector<int>>> ParseCustomModel(const std::string& c
             ++current_row;
         }
 
-        for (auto& row_vec : locations.back())
-        {
+        for (auto& row_vec : locations.back()) {
             row_vec.resize(layer_max_cols, -1);
         }
     }
 
     size_t global_max_width = 1;
-    for (const auto& layer : locations)
-    {
-        if (!layer.empty() && !layer[0].empty())
-        {
+    for (const auto& layer : locations) {
+        if (!layer.empty() && !layer[0].empty()) {
             global_max_width = std::max(global_max_width, layer[0].size());
         }
     }
 
-    for (auto& layer : locations)
-    {
+    for (auto& layer : locations) {
         layer.resize(max_height_across_all_layers);
 
-        for (auto& row_vec : layer)
-        {
+        for (auto& row_vec : layer) {
             row_vec.resize(global_max_width, -1);
         }
     }

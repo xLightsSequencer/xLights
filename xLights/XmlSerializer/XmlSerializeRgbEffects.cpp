@@ -77,7 +77,7 @@ void SerializeSettingsObject(wxXmlNode* node, xLightsFrame* xlights) {
     scaleimage->AddAttribute("value", std::to_string(xlights->GetDefaultPreviewBackgroundScaled()));
     settings->AddChild(scaleimage);
     wxXmlNode* bkgimage = new wxXmlNode(wxXML_ELEMENT_NODE, "backgroundImage");
-    bkgimage->AddAttribute("value", xlights->GetDefaultPreviewBackgroundImage()));
+    bkgimage->AddAttribute("value", xlights->GetDefaultPreviewBackgroundImage());
     settings->AddChild(bkgimage);
     wxXmlNode* bkgbright = new wxXmlNode(wxXML_ELEMENT_NODE, "backgroundBrightness");
     bkgbright->AddAttribute("value", std::to_string(xlights->GetDefaultPreviewBackgroundBrightness()));
