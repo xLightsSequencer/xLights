@@ -58,7 +58,15 @@ std::string StreamSerializingVisitor::EscapeXml(const std::string& input) {
         case '\t': result += "&#x9;";   break;
         case '\n': result += "&#xA;";  break;
         case '\r': result += "&#xD;";  break;
-        default:   result += c;        break;
+        default:
+            if (c < 0x20 && c != '\t' && c != '\n' && c != '\r') {
+                char buf[8];
+                snprintf(buf, sizeof(buf), "&#x%02X;", (unsigned char)c);
+                result += buf;
+            } else {
+                result += c;
+            }
+            break;
         }
     }
     return result;
@@ -88,10 +96,13 @@ void StreamSerializingVisitor::WriteOpenTag(const std::string& name,
 }
 
 void StreamSerializingVisitor::WriteCloseTag() {
-    if (indentLevel > 0) --indentLevel;
-    WriteIndent();
+    if (_tagStack.empty()) {
+        return;
+    }
     std::string name = _tagStack.back();
     _tagStack.pop_back();
+    if (indentLevel > 0) --indentLevel;
+    WriteIndent();
     out << "</" << name << '>';
     WriteNewline();
 }

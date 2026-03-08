@@ -78,61 +78,97 @@ std::vector<std::vector<std::vector<int>>> ParseCustomModel(const std::string& c
 {
     // layers - rows - cols
     std::vector<std::vector<std::vector<int>>> locations;
-
-    uint32_t width = 1;
-    uint32_t height = 1;
-
     std::vector<std::string> layers;
     std::vector<std::string> rows;
     std::vector<std::string> cols;
+
     layers.reserve(20);
     rows.reserve(100);
     cols.reserve(100);
 
     Split(customModel, '|', layers);
-    int layer = 0;
 
-    for (auto lv : layers) {
-        locations.emplace_back(std::vector<std::vector<int>>());
+    int max_height_across_all_layers = 0;
+
+    for (const auto& layer_str : layers)
+    {
+        locations.emplace_back();
 
         rows.clear();
-        Split(lv, ';', rows);
-        height = rows.size();
-        locations.back().resize(height);
+        Split(layer_str, ';', rows);
 
-        int row = 0;
-        for (auto rv : rows) {
+        if (rows.empty()) continue;
+
+        max_height_across_all_layers = std::max(max_height_across_all_layers, (int)rows.size());
+
+        size_t layer_max_cols = 1;
+
+        int current_row = 0;
+
+        for (const auto& row_str : rows)
+        {
             cols.clear();
-            Split(rv, ',', cols);
-            if (cols.size() > width)
-                width = cols.size();
+            Split(row_str, ',', cols);
+
+            layer_max_cols = std::max(layer_max_cols, cols.size());
+
+            if (locations.back().size() <= static_cast<size_t>(current_row))
+            {
+                locations.back().resize(current_row + 1);
+            }
+
+            locations.back()[current_row].assign(layer_max_cols, -1);
+
             int col = 0;
-            locations.back()[row].resize(width, -1);
-            for (auto value : cols) {
-                while (value.length() > 0 && value[0] == ' ') {
+            for (auto value : cols)
+            {
+                while (!value.empty() && value[0] == ' ')
+                {
                     value = value.substr(1);
                 }
-                if (!value.empty()) {
-                    try {
-                        locations[layer][row][col] = std::stoi(value);
-                    } catch (...) {
+
+                if (!value.empty())
+                {
+                    try
+                    {
+                        locations.back()[current_row][col] = std::stoi(value);
+                    }
+                    catch (...)
+                    {
                         // not a number, treat as 0
                     }
                 }
-                col++;
+                ++col;
             }
-            row++;
+
+            ++current_row;
         }
-        layer++;
+
+        for (auto& row_vec : locations.back())
+        {
+            row_vec.resize(layer_max_cols, -1);
+        }
     }
 
-    for (auto& lyr : locations) {
-        lyr.resize(height);
-        for (auto& rw : lyr) {
-            rw.resize(width, -1);
+    size_t global_max_width = 1;
+    for (const auto& layer : locations)
+    {
+        if (!layer.empty() && !layer[0].empty())
+        {
+            global_max_width = std::max(global_max_width, layer[0].size());
         }
     }
-    
+
+    for (auto& layer : locations)
+    {
+        layer.resize(max_height_across_all_layers);
+
+        for (auto& row_vec : layer)
+        {
+            row_vec.resize(global_max_width, -1);
+        }
+    }
+
     return locations;
 }
 

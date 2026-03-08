@@ -30,7 +30,7 @@ void SerializeViewsObject(wxXmlNode* node, xLightsFrame* xlights) {
 
 void SerializeColorsObject(wxXmlNode* node, xLightsFrame* xlights) {
     wxXmlNode* colorsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "colors");
-    ColorManager* colorMgr = new ColorManager(xlights);
+    auto colorMgr = std::make_unique<ColorManager>(xlights);
     std::map<std::string, xlColor> colors = colorMgr->GetColors();
     for (const auto& c : colors) {
         wxXmlNode* colorChild = new wxXmlNode(wxXML_ELEMENT_NODE, c.first);
@@ -77,7 +77,7 @@ void SerializeSettingsObject(wxXmlNode* node, xLightsFrame* xlights) {
     scaleimage->AddAttribute("value", std::to_string(xlights->GetDefaultPreviewBackgroundScaled()));
     settings->AddChild(scaleimage);
     wxXmlNode* bkgimage = new wxXmlNode(wxXML_ELEMENT_NODE, "backgroundImage");
-    bkgimage->AddAttribute("value", "tbd");
+    bkgimage->AddAttribute("value", xlights->GetDefaultPreviewBackgroundImage()));
     settings->AddChild(bkgimage);
     wxXmlNode* bkgbright = new wxXmlNode(wxXML_ELEMENT_NODE, "backgroundBrightness");
     bkgbright->AddAttribute("value", std::to_string(xlights->GetDefaultPreviewBackgroundBrightness()));
@@ -101,7 +101,7 @@ void SerializeSettingsObject(wxXmlNode* node, xLightsFrame* xlights) {
     laygrp->AddAttribute("value", xlights->GetStoredLayoutGroup());
     settings->AddChild(laygrp);
     wxXmlNode* layout3d = new wxXmlNode(wxXML_ELEMENT_NODE, "LayoutMode3D");
-    layout3d->AddAttribute("value", "tbd");
+    layout3d->AddAttribute("value", std::to_string(xlights->GetDefaultLayout3D()));
     settings->AddChild(layout3d);
     wxXmlNode* previewW = new wxXmlNode(wxXML_ELEMENT_NODE, "previewWidth");
     previewW->AddAttribute("value", std::to_string(0));

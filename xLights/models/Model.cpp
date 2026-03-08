@@ -125,13 +125,10 @@ Model::Model(const ModelManager& manager)
 
 Model::~Model()
 {
+    RemoveAllSubModels();
     deleteUIObjects();
     if (modelDimmingCurve != nullptr) {
         delete modelDimmingCurve;
-    }
-    for (const auto& it : subModels) {
-        Model* m = it;
-        delete m;
     }
 }
 
