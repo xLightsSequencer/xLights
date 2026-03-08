@@ -2857,23 +2857,29 @@ std::string Model::DecodeSmartRemote(int sr) const
 
 void Model::RemoveSubModel(const std::string& name)
 {
-    for (auto a = subModels.begin(); a != subModels.end(); ++a) {
-        Model* m = *a;
+    for (auto it = subModels.begin(); it != subModels.end(); ) {
+        Model* m = *it;
         if (m->GetName() == name) {
-            delete m;
-            subModels.erase(a);
             sortedSubModels.erase(name);
+            delete m;
+            it = subModels.erase(it);
+            return;
+        } else {
+            ++it;
         }
     }
 }
 
 void Model::RemoveAllSubModels()
 {
-    for (auto a = subModels.begin(); a != subModels.end(); ++a) {
-        Model* m = *a;
+    for (auto it = subModels.begin(); it != subModels.end(); ) {
+        Model* m = *it;
+
+        sortedSubModels.erase(m->GetName());
+
         delete m;
-        subModels.erase(a);
-        sortedSubModels.erase(name);
+
+        it = subModels.erase(it);
     }
 }
 
