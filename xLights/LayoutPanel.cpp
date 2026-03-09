@@ -7407,7 +7407,7 @@ void LayoutPanel::CreateUndoPoint(const std::string &tp, const std::string &mode
         }
         
         // Use XmlSerializer to create the XML document
-        wxXmlDocument doc = serializer.SerializeModel(m, xlights);
+        wxXmlDocument doc = serializer.SerializeModel(m);
        
         wxStringOutputStream stream;
         doc.Save(stream);
