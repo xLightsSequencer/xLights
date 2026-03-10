@@ -154,10 +154,11 @@ void PolyLineModel::SetStringStartChannels(int NumberOfStrings, int StartChannel
 
         for (int i = 0; i < _strings; i++) {
             int node = 1;
-            if (_hasIndivNodes) {
+            if (_hasIndivNodes && i < (int)_indivStartNodes.size()) {
                 node = _indivStartNodes[i];
-            } else {
-                node = ((ChannelsPerString * i) / GetNodeChannelCount(StringType)) + 1;
+            }
+            if (node < 1) {
+                node = ComputeStringStartNode(i);
             }
             stringStartChan[i] = (StartChannel - 1) + (node - 1) * GetNodeChannelCount(StringType);
         }
@@ -261,6 +262,37 @@ void PolyLineModel::InitModel()
         if (parm3 > 1) {
             for (size_t x = 0; x < Nodes.size(); x++) {
                 Nodes[x]->Coords.resize(parm3);
+            }
+        }
+    }
+
+    // assign StringNum for each node in multi-string polylines
+    if (_strings > 1) {
+        int node_count = GetNodeCount();
+        for (int s = 0; s < _strings; ++s) {
+            int v1 = 0;
+            int v2 = node_count;
+            if (_hasIndivNodes) {
+                int raw1 = (s < (int)_indivStartNodes.size()) ? _indivStartNodes[s] : 0;
+                v1 = (raw1 >= 1) ? raw1 - 1 : ComputeStringStartNode(s) - 1;
+                if (s < _strings - 1) {
+                    int raw2 = (s + 1 < (int)_indivStartNodes.size()) ? _indivStartNodes[s + 1] : 0;
+                    v2 = (raw2 >= 1) ? raw2 - 1 : ComputeStringStartNode(s + 1) - 1;
+                }
+            } else {
+                v1 = ComputeStringStartNode(s) - 1;
+                if (s < _strings - 1) {
+                    v2 = ComputeStringStartNode(s + 1) - 1;
+                }
+            }
+            if (IsLtoR) {
+                for (int n = v1; n < v2 && n < node_count; ++n) {
+                    Nodes[n]->StringNum = s;
+                }
+            } else {
+                for (int n = v1; n < v2 && n < node_count; ++n) {
+                    Nodes[node_count - n - 1]->StringNum = s;
+                }
             }
         }
     }
@@ -1082,8 +1114,10 @@ int PolyLineModel::NodesPerString() const
             int v2 = 0;
             if (hasIndivNodes) {
                 v1 = GetIndivStartNode(string);
+                if (v1 < 1) v1 = ComputeStringStartNode(string);
                 if (string < _strings - 1) { // not last string
                     v2 = GetIndivStartNode(string + 1);
+                    if (v2 < 1) v2 = ComputeStringStartNode(string + 1);
                 }
             } else {
                 v1 = ComputeStringStartNode(string);
