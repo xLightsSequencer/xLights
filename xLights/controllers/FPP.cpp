@@ -865,7 +865,7 @@ int progress_callback(void *clientp,
                       curl_off_t ultotal,
                       curl_off_t ulnow) {
     V7ProgressStruct *p = (V7ProgressStruct*)clientp;
-    if (p->instance) {
+    if (p->instance && p->length > 0) {
         size_t start = p->offset;
         start += ulnow;
         start *= 1000;
@@ -946,7 +946,7 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
         } else {
             ps->offset += remaining;
         }
-        uint64_t pct = (ps->offset * 1000) / ps->length;
+        uint64_t pct = ps->length > 0 ? (ps->offset * 1000) / ps->length : 1000;
         cancelled |= ps->instance->updateProgress(pct, false);
         if (cancelled || ps->offset >= ps->length) {
             logger_base.debug(ps->filename + " upload complete to " + ps->instance->hostName + " (" + ps->instance->ipAddress + "). Bytes sent:" + std::to_string(ps->length) + ".");
@@ -1717,7 +1717,11 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
             XmlSerializingVisitor visitor(&doc);
             serializer.SerializeObject(*e.second, visitor);
             wxXmlNode* root = doc.GetRoot();
-            
+            if (root == nullptr) {
+                virtualDisplay["view_objects"].push_back(obj);
+                continue;
+            }
+
             // Get the first child node (the view_object node)
             wxXmlNode* viewObjectNode = root->GetChildren();
             if (viewObjectNode) {
@@ -1727,31 +1731,35 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
                     attr = attr->GetNext();
                 }
             }
-            
-            std::string wp = obj["WorldPosX"];
+
+            std::string wp = obj.value("WorldPosX", "0");
             obj["WorldPosX"] = std::to_string(std::atof(wp.c_str()) - minX);
-            
-            wp = obj["WorldPosY"];
+
+            wp = obj.value("WorldPosY", "0");
             obj["WorldPosY"] = std::to_string(std::atof(wp.c_str()) - minY);
-            
+
             if (e.second->GetDisplayAs() == DisplayAsType::Mesh) {
-                std::string fn = obj["ObjFile"];
-                wxFileName fileName(fn);
-                std::string bn = fileName.GetFullName().ToStdString();
-                obj["ObjFile"] = bn;
-                virtualDisplayData[bn] = fn;
+                std::string fn = obj.value("ObjFile", "");
+                if (!fn.empty()) {
+                    wxFileName fileName(fn);
+                    std::string bn = fileName.GetFullName().ToStdString();
+                    obj["ObjFile"] = bn;
+                    virtualDisplayData[bn] = fn;
+                }
                 MeshObject *mesh = dynamic_cast<MeshObject*>(e.second);
                 for (auto &fr : mesh->GetFileReferences()) {
                     wxFileName fileName(fr);
-                    bn = fileName.GetFullName().ToStdString();
+                    std::string bn = fileName.GetFullName().ToStdString();
                     virtualDisplayData[bn] = fr;
                 }
             } else if (e.second->GetDisplayAs() == DisplayAsType::Image) {
-                std::string fn = obj["Image"];
-                wxFileName fileName(fn);
-                std::string bn = fileName.GetFullName().ToStdString();
-                obj["Image"] = bn;
-                virtualDisplayData[bn] = fn;
+                std::string fn = obj.value("Image", "");
+                if (!fn.empty()) {
+                    wxFileName fileName(fn);
+                    std::string bn = fileName.GetFullName().ToStdString();
+                    obj["Image"] = bn;
+                    virtualDisplayData[bn] = fn;
+                }
             }
             virtualDisplay["view_objects"].push_back(obj);
         }
