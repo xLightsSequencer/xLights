@@ -820,10 +820,12 @@ Model* XmlDeserializingModelFactory::DeserializeModelGroup(wxXmlNode* node, xLig
         }
     }
     
+    DeserializeCommonModelChildElements(model, node, xlights, importing);
+
     // Note: We call RebuildBuffers() to finalize the model group
     // This handles node initialization and buffer setup
     model->RebuildBuffers();
-    
+
     return model;
 }
 
