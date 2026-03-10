@@ -186,23 +186,11 @@ void MatrixDialog::PopulateModels() {
     // Load models from RGBEffects file ... adding all matrices, trees and custom models
     RGBEffects effects;
 
-    for (const auto& it : effects.GetModels("Horiz Matrix")) {
+    for (const auto& it : effects.GetModels("Matrix")) {
         Choice_FromModel->Append(it);
     }
 
-    for (const auto& it : effects.GetModels("Vert Matrix")) {
-        Choice_FromModel->Append(it);
-    }
-
-    for (const auto& it : effects.GetModels("Tree 360")) {
-        Choice_FromModel->Append(it);
-    }
-
-    for (const auto& it : effects.GetModels("Tree Flat")) {
-        Choice_FromModel->Append(it);
-    }
-
-    for (const auto& it : effects.GetModels("Tree Ribbon")) {
+    for (const auto& it : effects.GetModels("Tree")) {
         Choice_FromModel->Append(it);
     }
 
@@ -287,7 +275,9 @@ void MatrixDialog::OnChoice_FromModelSelect(wxCommandEvent& event) {
             SpinCtrl_Strings->SetValue(wxAtoi(node->GetAttribute("parm1", "0")));
             SpinCtrl_StringLength->SetValue(wxAtoi(node->GetAttribute("parm2", "0")));
             SpinCtrl_StrandsPerString->SetValue(wxAtoi(node->GetAttribute("parm3", "1")));
-            if (node->GetAttribute("DisplayAs") == "Horix Matrix") {
+            // Legacy: "Horiz Matrix". New format: DisplayAs="Matrix" with Vertical="false".
+            if (node->GetAttribute("DisplayAs") == "Horiz Matrix" ||
+                (node->GetAttribute("DisplayAs") == "Matrix" && node->GetAttribute("Vertical", "false") != "true")) {
                 Choice_Orientation->SetStringSelection("Horizontal");
             } else {
                 Choice_Orientation->SetStringSelection("Vertical");

@@ -220,8 +220,10 @@ std::vector<std::vector<std::vector<int>>> MatrixMapper::ParseCompressed(const s
 }
 
 bool MatrixMapper::IsSupportedDisplayAs(const std::string& displayAs) {
-    return (displayAs == "Custom" || displayAs == "Horiz Matrix" || displayAs == "Vert Matrix" ||
-            displayAs == "Tree 360" || displayAs == "Tree Flat" || displayAs == "Tree Ribbon" ||
+    return (displayAs == "Custom" || displayAs == "Matrix" ||
+            displayAs == "Horiz Matrix" || displayAs == "Vert Matrix" ||
+            displayAs == "Tree" || displayAs == "Tree 360" ||
+            displayAs == "Tree Flat" || displayAs == "Tree Ribbon" ||
             displayAs == "Sphere");
 }
 
@@ -234,7 +236,7 @@ bool MatrixMapper::LoadModel() {
         return false;
     }
 
-    _displayAs = node->GetAttribute("DisplayAs", "");
+    _displayAs = node->GetAttribute("DisplayAs", "").ToStdString();
 
     if (!IsSupportedDisplayAs(_displayAs)) {
         return false;
@@ -253,7 +255,9 @@ bool MatrixMapper::LoadModel() {
         _strings = wxAtoi(node->GetAttribute("parm1", "0"));
         _strandsPerString = wxAtoi(node->GetAttribute("parm3", "1"));
         _stringLength = wxAtoi(node->GetAttribute("parm2", "0"));
-        if (_displayAs == "Horiz Matrix") {
+        // Legacy: orientation encoded in DisplayAs. New format: Vertical="true/false" attribute.
+        if (_displayAs == "Horiz Matrix" ||
+            (_displayAs == "Matrix" && node->GetAttribute("Vertical", "false") != "true")) {
             _orientation = MMORIENTATION::HORIZONTAL;
         } else {
             _orientation = MMORIENTATION::VERTICAL;
