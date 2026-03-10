@@ -205,23 +205,11 @@ void VirtualMatrixDialog::PopulateModels() {
     // Load models from RGBEffects file ... adding all matrices, trees and custom models
     RGBEffects effects;
 
-    for (const auto& it : effects.GetModels("Horiz Matrix")) {
+    for (const auto& it : effects.GetModels("Matrix")) {
         Choice_FromModel->Append(it);
     }
 
-    for (const auto& it : effects.GetModels("Vert Matrix")) {
-        Choice_FromModel->Append(it);
-    }
-
-    for (const auto& it : effects.GetModels("Tree 360")) {
-        Choice_FromModel->Append(it);
-    }
-
-    for (const auto& it : effects.GetModels("Tree Flat")) {
-        Choice_FromModel->Append(it);
-    }
-
-    for (const auto& it : effects.GetModels("Tree Ribbon")) {
+    for (const auto& it : effects.GetModels("Tree")) {
         Choice_FromModel->Append(it);
     }
 
@@ -337,7 +325,9 @@ void VirtualMatrixDialog::OnChoice_FromModelSelect(wxCommandEvent& event) {
             long strings = wxAtol(node->GetAttribute("parm1", "0"));
             long nodesPerString = wxAtol(node->GetAttribute("parm2", "0"));
             long strandsPerString = wxAtol(node->GetAttribute("parm3", "1"));
-            if (node->GetAttribute("DisplayAs") == "Horix Matrix") {
+            // Legacy: "Horiz Matrix". New format: DisplayAs="Matrix" with Vertical="false".
+            if (node->GetAttribute("DisplayAs") == "Horiz Matrix" ||
+                (node->GetAttribute("DisplayAs") == "Matrix" && node->GetAttribute("Vertical", "false") != "true")) {
                 SpinCtrl_Width->SetValue(strings / strandsPerString);
                 SpinCtrl_Height->SetValue(strings * strandsPerString);
             } else {
