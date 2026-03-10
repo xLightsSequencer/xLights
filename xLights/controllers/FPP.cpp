@@ -1732,14 +1732,14 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
                 }
             }
 
-            std::string wp = obj.value("WorldPosX", "0");
+            std::string wp = obj["WorldPosX"];
             obj["WorldPosX"] = std::to_string(std::atof(wp.c_str()) - minX);
 
-            wp = obj.value("WorldPosY", "0");
+            wp = obj["WorldPosY"];
             obj["WorldPosY"] = std::to_string(std::atof(wp.c_str()) - minY);
 
             if (e.second->GetDisplayAs() == DisplayAsType::Mesh) {
-                std::string fn = obj.value("ObjFile", "");
+                std::string fn = obj["ObjFile"];
                 if (!fn.empty()) {
                     wxFileName fileName(fn);
                     std::string bn = fileName.GetFullName().ToStdString();
@@ -1753,7 +1753,7 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
                     virtualDisplayData[bn] = fr;
                 }
             } else if (e.second->GetDisplayAs() == DisplayAsType::Image) {
-                std::string fn = obj.value("Image", "");
+                std::string fn = obj["Image"];
                 if (!fn.empty()) {
                     wxFileName fileName(fn);
                     std::string bn = fileName.GetFullName().ToStdString();
