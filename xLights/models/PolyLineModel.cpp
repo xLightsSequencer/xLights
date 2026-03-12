@@ -262,7 +262,7 @@ void PolyLineModel::InitModel()
             }
         }
     }
-    
+
     // Copy point data from screenLocation....maybe this can be cleaned up later but I was having trouble since we delete the curves and matrix inside here
     std::vector<xlPolyPoint> pPos(screenLocation.num_points);
     for (int i = 0; i < screenLocation.num_points; ++i) {
@@ -700,7 +700,7 @@ void PolyLineModel::DistributeLightsAcrossSegment( const int                    
     int coords_per_node = Nodes[0].get()->Coords.size();
     float coord_offset = using_icicles ? 1.0f / (float)coords_per_node : 0.0f;
     int lights = 0;
-    
+
     // get the total number of nodes including icicle drops for this segment
     unsigned int idrop = drop_index;
     for (size_t i = 0; i < _polyLineSizes[segment]; ++i) {
@@ -709,10 +709,10 @@ void PolyLineModel::DistributeLightsAcrossSegment( const int                    
         idrop++;
         idrop %= dropSizes.size();
     }
-    
+
     int lights_to_distribute = SingleNode ? lights : lights * coords_per_node;
     float total_length = isCurve ? pPos[segment].curve->GetLength() : _polyLineSizes[segment];
-    
+
     float num_gaps;
     if (using_icicles) {
         num_gaps = _polyLeadOffset[segment] + _polyTrailOffset[segment] + _polyLineSizes[segment] - 1.0f;
@@ -792,7 +792,7 @@ void PolyLineModel::DistributeLightsAcrossSegment( const int                    
 }
 
 static const char* LEFT_RIGHT_VALUES[] = { "Green Square", "Blue Square" };
-static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES)); 
+static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES));
 
 void PolyLineModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
 {
@@ -1053,6 +1053,8 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
         return 0;
     }
@@ -1133,6 +1135,68 @@ int PolyLineModel::GetNumPhysicalStrings() const
             strings = 1;
         return strings;
     }
+}
+
+int PolyLineModel::NodesPerString() const
+{
+    if (_strings <= 1) {
+        return Model::NodesPerString();
+    }
+
+    // For multi-string PolyLine, we need to account for drop pattern
+    // which can increase the actual node count beyond parm2
+    int totalNodes = 0;
+    if (_autoDistributeLights || _dropSizes.empty()) {
+        // If auto-distributing or no drop pattern set yet, use simple division
+        return parm2 / _strings;
+    }
+
+    // Calculate total nodes including drops
+    unsigned int drop_index = 0;
+    for (size_t i = 0; i < _numDropPoints; ++i) {
+        totalNodes += std::abs(_dropSizes[drop_index++]);
+        drop_index %= _dropSizes.size();
+    }
+
+    // Divide by number of strings
+    return totalNodes / _strings;
+}
+
+int PolyLineModel::NodesPerString(int string) const
+{
+    if (_strings <= 1) {
+        return NodesPerString();
+    }
+
+    if (_hasIndivNodes && string < _indivStartNodes.size()) {
+        // Calculate nodes for this specific string based on start nodes
+        int startNode = _indivStartNodes[string];
+        int endNode;
+
+        if (string == _strings - 1) {
+            // Last string - goes to end of model
+            // Calculate total nodes including drops
+            int totalNodes = 0;
+            if (_dropSizes.empty()) {
+                totalNodes = parm2;
+            } else {
+                unsigned int drop_index = 0;
+                for (size_t i = 0; i < _numDropPoints; ++i) {
+                    totalNodes += std::abs(_dropSizes[drop_index++]);
+                    drop_index %= _dropSizes.size();
+                }
+            }
+            endNode = totalNodes + 1;
+        } else {
+            // Get start of next string
+            endNode = _indivStartNodes[string + 1];
+        }
+
+        return endNode - startNode;
+    }
+
+    // Default to even distribution
+    return NodesPerString();
 }
 
 void PolyLineModel::SetDropPattern(const std::string & pattern)

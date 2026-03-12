@@ -30,6 +30,8 @@ public:
     virtual void InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int stagger, bool deep = false) const override;
     virtual int GetNumPhysicalStrings() const override;
     virtual int GetNumStrings() const override{ return _strings; }
+    virtual int NodesPerString() const override;
+    virtual int NodesPerString(int string) const override;
 
     virtual void InsertHandle(int after_handle, float zoom, int scale) override;
     virtual void DeleteHandle(int handle) override;
