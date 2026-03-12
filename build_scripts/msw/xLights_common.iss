@@ -2,6 +2,6 @@
 ; #include file for common entries for xLights setup build
 
 #define MyTitleName "xLights" 
-#define Year 2025
-#define Version 13
-#define Other "_1"
+#define Year 2026
+#define Version 03
+#define Other "_2"

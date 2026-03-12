@@ -17,6 +17,13 @@
 
 #include "../../ExternalHooks.h"
 #include "UtilFunctions.h"
+#include "../../sequencer/SequenceMedia.h"
+#include "../../ManageMediaPanel.h"
+#include "../../xLightsMain.h"
+#include <wx/textdlg.h>
+#include "../../sequencer/EffectLayer.h"
+#include "../../sequencer/Element.h"
+#include "../../sequencer/SequenceElements.h"
 
 static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
                                                ";*.webp"
@@ -90,11 +97,30 @@ void xlGridCanvasPictures::LoadAndProcessImage()
 
     if (NewPictureName != PictureName) {
         wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
-        imageCount = wxImage::GetImageCount(NewPictureName);
-        imageIndex = 0;
-        if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0)) {
-            image.Create(mColumns, mRows, true);
+
+        // Try to load from SequenceMedia first (handles embedded images)
+        bool loadedFromMedia = false;
+        if (mSequenceMedia != nullptr && mSequenceMedia->HasImage(NewPictureName.ToStdString())) {
+            auto entry = mSequenceMedia->GetImage(NewPictureName.ToStdString());
+            if (entry && entry->IsOk()) {
+                auto frame = entry->GetFrame(0, false);
+                if (frame && frame->IsOk()) {
+                    image = *frame;
+                    imageCount = entry->GetImageCount();
+                    imageIndex = 0;
+                    loadedFromMedia = true;
+                }
+            }
         }
+
+        if (!loadedFromMedia) {
+            imageCount = wxImage::GetImageCount(NewPictureName);
+            imageIndex = 0;
+            if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0)) {
+                image.Create(mColumns, mRows, true);
+            }
+        }
+
         if (!image.IsOk()) {
             return;
         }
@@ -139,8 +165,23 @@ void xlGridCanvasPictures::ProcessNewImage()
 
 void xlGridCanvasPictures::LoadImage()
 {
+    // If SequenceMedia is available, show the SelectMediaDialog to pick an embedded image
+    if (mSequenceMedia != nullptr && mXLFrame != nullptr) {
+        SelectMediaDialog dlg(this, mSequenceMedia, mSequenceElements,
+                              mXLFrame->GetShowDirectory(), mXLFrame);
+        if (dlg.ShowModal() != wxID_OK) return;
+        std::string selected = dlg.GetSelectedPath();
+        if (selected.empty()) return;
+        PictureName = wxString(selected);
+        UpdateRenderedImage();
+        mModified = true;
+        NewPictureName = PictureName;
+        LoadAndProcessImage();
+        return;
+    }
+
+    // Fallback: no media available, use file dialog
     wxFileName dummy_file(PictureName);
-    // prompt for new filename
     wxFileDialog fd(this,
                     "Choose Image File to Load:",
                     dummy_file.GetPath(),
@@ -155,7 +196,6 @@ void xlGridCanvasPictures::LoadImage()
     ObtainAccessToURL(new_filename.ToStdString());
     PictureName = new_filename;
     UpdateRenderedImage();
-
     mModified = true;
     NewPictureName = PictureName;
     LoadAndProcessImage();
@@ -163,9 +203,43 @@ void xlGridCanvasPictures::LoadImage()
 
 void xlGridCanvasPictures::SaveAsImage()
 {
+    // If SequenceMedia is available, save as a new embedded image with a user-chosen name
+    if (mSequenceMedia != nullptr) {
+        // Build a default name suggestion from the current path
+        wxString defaultName = PictureName;
+        // Strip any path separators to suggest just group/name
+        defaultName.Replace("\\", "/");
+        // If it looks like a filesystem path, use just the base filename without extension
+        if (defaultName.Contains("/") && !mSequenceMedia->HasImage(PictureName.ToStdString())) {
+            wxFileName fn(PictureName);
+            defaultName = fn.GetName();
+        }
+
+        wxTextEntryDialog dlg(this,
+                              "Enter a name for the embedded image\n(use 'group/name' to organise into a group):",
+                              "Save As Embedded Image",
+                              defaultName);
+        if (dlg.ShowModal() != wxID_OK) return;
+        wxString newName = dlg.GetValue().Trim(true).Trim(false);
+        if (newName.IsEmpty()) return;
+
+        // Ensure it ends with .png
+        if (!newName.Lower().EndsWith(".png"))
+            newName += ".png";
+
+        std::string nameStr = newName.ToStdString();
+        mSequenceMedia->AddEmbeddedImage(nameStr, image);
+        PictureName = newName;
+        UpdateRenderedImage();
+        mModified = true;
+        NewPictureName = PictureName;
+        LoadAndProcessImage();
+        return;
+    }
+
+    // Fallback: save to disk
     wxFileName save_file(PictureName);
     wxString save_name = PictureName;
-    // prompt for new filename
     wxFileDialog fd(this,
                     "Choose filename to Save Image:",
                     save_file.GetPath(),
@@ -240,6 +314,24 @@ void xlGridCanvasPictures::ResizeImage()
 
 void xlGridCanvasPictures::SaveImage()
 {
+    // Unsaved new image in memory — ask for a name then embed
+    if (mSequenceMedia != nullptr && PictureName.IsEmpty()) {
+        SaveAsImage();
+        return;
+    }
+
+    // If the current image is embedded in SequenceMedia, save back there directly
+    if (mSequenceMedia != nullptr && mSequenceMedia->HasImage(PictureName.ToStdString())) {
+        auto entry = mSequenceMedia->GetImage(PictureName.ToStdString());
+        if (entry && entry->IsEmbedded()) {
+            SaveImageToMedia();
+            mModified = true;
+            NewPictureName = PictureName;
+            LoadAndProcessImage();
+            return;
+        }
+    }
+
     wxFileName save_file(PictureName);
     wxString save_name = PictureName;
     if (save_file.GetFullName() == "NewImage.png") {
@@ -286,13 +378,21 @@ void xlGridCanvasPictures::SaveImageToFile()
     UpdateRenderedImage();
 }
 
+void xlGridCanvasPictures::SaveImageToMedia()
+{
+    // Overwrite the existing embedded entry with the current image data
+    if (mSequenceMedia == nullptr) return;
+    mSequenceMedia->AddEmbeddedImage(PictureName.ToStdString(), image);
+    UpdateRenderedImage();
+}
+
 void xlGridCanvasPictures::UpdateRenderedImage()
 {
     wxString settings = mEffect->GetSettingsAsString();
     wxArrayString all_settings = wxSplit(settings, ',');
     for (int s = 0; s < all_settings.size(); s++) {
         wxArrayString parts = wxSplit(all_settings[s], '=');
-        if (parts[0] == "E_FILEPICKER_Pictures_Filename") {
+        if (parts[0] == "E_TEXTCTRL_Pictures_Filename") {
             parts[1] = PictureName;
         }
         all_settings[s] = wxJoin(parts, '=');
@@ -307,6 +407,24 @@ void xlGridCanvasPictures::UpdateRenderedImage()
 
 void xlGridCanvasPictures::CreateNewImage(wxString& image_dir)
 {
+    // When SequenceMedia is available, keep the blank image in memory only.
+    // It won't be embedded until the user explicitly saves it.
+    if (mSequenceMedia != nullptr) {
+        image.Create(mColumns, mRows, true);
+        if (!image.IsOk()) {
+            imagesValid = false;
+            DisplayError("Error creating image!");
+            return;
+        }
+        // Mark as an unsaved new image — PictureName stays empty
+        PictureName = wxEmptyString;
+        NewPictureName = wxEmptyString;
+        mModified = true;
+        ProcessNewImage();
+        return;
+    }
+
+    // Fallback: save to disk in the image directory
     if (image_dir == wxEmptyString) {
         DisplayError("Error creating new image file.  Image Directory is not defined.");
         return;
@@ -339,12 +457,24 @@ void xlGridCanvasPictures::SetEffect(Effect* effect_)
     if (mEffect == nullptr) {
         return;
     }
+    
+    mSequenceMedia = &mEffect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+    
     imagesValid = false;
     NewPictureName = GetImageFilename();
     if (NewPictureName == "") {
         return;
     }
-    if (FileExists(NewPictureName)) {
+
+    // Check SequenceMedia first (embedded images), then fall back to disk
+    bool available = false;
+    if (mSequenceMedia != nullptr && mSequenceMedia->HasImage(NewPictureName.ToStdString())) {
+        available = true;
+    } else if (FileExists(NewPictureName)) {
+        available = true;
+    }
+
+    if (available) {
         LoadAndProcessImage();
     } else {
         missing_file = "File Not Found: " + NewPictureName;
@@ -361,7 +491,7 @@ wxString xlGridCanvasPictures::GetImageFilename()
     wxArrayString all_settings = wxSplit(settings, ',');
     for (int s = 0; s < all_settings.size(); s++) {
         wxArrayString parts = wxSplit(all_settings[s], '=');
-        if (parts[0] == "E_FILEPICKER_Pictures_Filename") {
+        if (parts[0] == "E_TEXTCTRL_Pictures_Filename") {
             return parts[1];
         }
 

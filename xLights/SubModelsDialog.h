@@ -19,6 +19,12 @@
 #include <wx/timer.h>
 #include <glm/glm.hpp>
 
+// Forward declaration for XmlSerialize namespace
+namespace XmlSerialize {
+    struct CustomModelImportData;
+    struct SubModelImportData;
+}
+
 //(*Headers(SubModelsDialog)
 #include <wx/dialog.h>
 class wxBoxSizer;
@@ -217,6 +223,7 @@ protected:
     static const long SUBMODEL_DIALOG_GENERATE;
     static const long SUBMODEL_DIALOG_ALIASES;
     static const long SUBMODEL_DIALOG_SHIFT;
+    static const long SUBMODEL_DIALOG_SHIFT_SINGLE;
     static const long SUBMODEL_DIALOG_FLIP_HOR;
     static const long SUBMODEL_DIALOG_FLIP_VER;
     static const long SUBMODEL_DIALOG_REVERSE;
@@ -244,7 +251,7 @@ protected:
     static const long SUBMODEL_DIALOG_BLANKS_AS_EMPTY;
     static const long SUBMODEL_DIALOG_REMOVE_BLANKS_ZEROS;
 
-    void SaveXML(Model* m);
+    void SaveSubModelInfoIntoThisModel(Model* m);
     wxString GetSelectedName() const;
     int GetSelectedIndex() const;
     wxString GetSelectedNames();
@@ -260,6 +267,26 @@ protected:
     void ImportCustomModel(std::string filename);
     void CreateSubmodel(const std::string& name, const std::list<std::string>& nodes);
     void FixNodes(wxXmlNode* n, const std::string& attribute, std::map<int, int>& nodeMap);
+    
+    // Helper methods for ImportCustomModel refactoring
+    int CalculateAlignmentOffset(int alignment, int targetSize, int sourceSize);
+    SubModelInfo* CreateSubModelFromCustomModelData(
+        const struct XmlSerialize::CustomModelImportData& customModel,
+        const wxString& name,
+        int xStart,
+        int yStart,
+        std::map<int, int>& nodeMap);
+    void ImportCustomModelSubModels(
+        const struct XmlSerialize::CustomModelImportData& customModel,
+        const wxString& baseName,
+        const std::map<int, int>& nodeMap);
+    wxString RemapNodesInStrand(const wxString& strand, const std::map<int, int>& nodeMap);
+    void ImportCustomModelFaces(
+        const struct XmlSerialize::CustomModelImportData& customModel,
+        const std::map<int, int>& nodeMap);
+    void ImportCustomModelStates(
+        const struct XmlSerialize::CustomModelImportData& customModel,
+        const std::map<int, int>& nodeMap);
 
     void ApplySubmodelName();
     void PopulateList();
@@ -272,6 +299,7 @@ protected:
     void Generate();
     void Aliases();
     void Shift();
+    void ShiftSingleSubmodel();
     void FlipHorizontal();
     void FlipVertical();
     void Reverse();
@@ -292,8 +320,9 @@ protected:
     wxString ReverseRow(wxString row);
 
     void ImportSubModel(std::string filename);
-    void ReadSubModelXML(wxXmlNode* xmlData);
-    void ImportSubModelXML(wxXmlNode* xmlData);
+    void RetrieveSubModelInfo(Model* model);
+    void ImportSubModelXML(wxXmlNode* xmlData);  // Legacy - will be deprecated
+    void ImportSubModels(const std::vector<XmlSerialize::SubModelImportData>& subModels);
     void ImportCSVSubModel(wxString const& filename);
     wxArrayString getModelList(ModelManager* modelManager);
     void ExportSubModels(wxString const& filename);

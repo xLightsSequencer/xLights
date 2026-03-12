@@ -131,8 +131,12 @@ std::string BaseController::PutURL(const std::string& url, const std::string& re
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
-    logger_base.debug("Making request to Controller '%s'.", (const char*)url.c_str());
-    logger_base.debug("    With data '%s'.", (const char*)request.c_str());
+    try {
+        logger_base.debug("Making request to Controller '%s'.", (const char*)url.c_str());
+        logger_base.debug("    With data '%s'.", (const char*)request.c_str());
+    } catch (...) {
+        logger_base.debug("Making request to Controller (logging failed - invalid encoding)");
+    }
     
     auto furl = std::string("http://" + baseIP + _baseUrl + url);
     if (!username.empty()) {

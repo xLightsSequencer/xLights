@@ -263,4 +263,15 @@ extern const wxString xlEMPTY_WXSTRING;
             }
         );
     }
+
+    inline bool char_equals_ignore_case(char a, char b)
+    {
+        return std::tolower(static_cast<unsigned char>(a)) ==
+               std::tolower(static_cast<unsigned char>(b));
+    }
+
+    inline bool EqualsIgnoreCase(std::string_view lhs, std::string_view rhs)
+    {
+        return std::ranges::equal(lhs, rhs, char_equals_ignore_case);
+    }
 //};

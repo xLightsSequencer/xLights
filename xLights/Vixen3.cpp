@@ -297,10 +297,10 @@ std::string VixenEffect::GetSettings() const
             else if (i == 12) dir = "peekaboo 270";
             else if (i == 13) dir = "wiggle";
             res += ",E_CHOICE_Pictures_Direction=" + dir + 
-                   ",E_FILEPICKER_Pictures_Filename=" + settings.at("Picture_FileName") +
+                   ",E_TEXTCTRL_Pictures_Filename=" + settings.at("Picture_FileName") +
                    ",E_TEXTCTRL_Pictures_Speed=" + settings.at("Picture_GifSpeed");
         } else if (nc == "PictureTile") {
-            res += ",E_FILEPICKER_Pictures_Filename=" + settings.at("PictureTile_FileName");
+            res += ",E_TEXTCTRL_Pictures_Filename=" + settings.at("PictureTile_FileName");
         } else if (nc == "Snowflakes") {
             res += ",E_SLIDER_Snowflakes_Count=" + wxString::Format("%d", wxAtoi(settings.at("Snowflakes_Max")) * 5) + // max 20 in V3 / 100 in xLights
                    ",E_SLIDER_Snowflakes_Speed=" + wxString::Format("%d", wxRound(speed * 2.5)) + // max 50

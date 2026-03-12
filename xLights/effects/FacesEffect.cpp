@@ -286,9 +286,9 @@ void FacesEffect::SetPanelStatus(Model* cls) {
     if (cls != nullptr) {
         Model* m = cls;
 
-        if (cls->GetDisplayAs() == "ModelGroup") {
+        if (cls->GetDisplayAs() == DisplayAsType::ModelGroup) {
             m = ((ModelGroup*)cls)->GetFirstModel();
-        } else if (cls->GetDisplayAs() == "SubModel") {
+        } else if (cls->GetDisplayAs() == DisplayAsType::SubModel) {
             m = ((SubModel*)cls)->GetParent();
         }
 
@@ -976,9 +976,9 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
 
     bool group = false;
     // if this is a submodel find the parent so we can find the face definition there
-    if (model_info->GetDisplayAs() == "SubModel") {
+    if (model_info->GetDisplayAs() == DisplayAsType::SubModel) {
         model_info = dynamic_cast<const SubModel*>(model_info)->GetParent();
-    } else if (model_info->GetDisplayAs() == "ModelGroup") {
+    } else if (model_info->GetDisplayAs() == DisplayAsType::ModelGroup) {
         model_info = dynamic_cast<const ModelGroup*>(model_info)->GetFirstModel();
         group = true;
         if (model_info == nullptr) {

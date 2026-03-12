@@ -34,9 +34,9 @@ class WLED : public BaseController
 
     WLEDOutput* FindPortData(int port);
 
-    bool ParseOutputJSON(nlohmann::json const& jsonVal, int maxPort, ControllerCaps* caps);
+    bool ParseOutputJSON(nlohmann::json const& jsonVal, int maxPort, ControllerCaps* caps, bool fullControl);
 
-    WLEDOutput* ExtractOutputJSON(nlohmann::json const& jsonVal, int port, ControllerCaps* caps);
+    WLEDOutput* ExtractOutputJSON(nlohmann::json const& jsonVal, int port, ControllerCaps* caps, bool fullControl);
 
     int EncodeColorOrder(const std::string& colorOrder) const;
     bool EncodeDirection(const std::string& direction) const;

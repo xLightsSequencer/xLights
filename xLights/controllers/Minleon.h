@@ -57,6 +57,7 @@ class Minleon : public BaseController
     int GetMax16PortPixels(const std::string& chip) const;
     int GetMax8PortPixels(const std::string& chip) const;
     std::string ParseNDBHTML(const std::string& html, uint8_t index);
+    std::string ConvForProtocol(const std::string& chip, const std::string& oldConv) const;
     #pragma endregion
 
     #pragma region Port Handling

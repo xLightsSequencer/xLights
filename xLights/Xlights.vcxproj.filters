@@ -40,6 +40,7 @@
     <ClCompile Include="effects\assist\xlGridCanvasPictures.cpp" />
     <ClCompile Include="effects\EffectManager.cpp" />
     <ClCompile Include="effects\EffectPanelUtils.cpp" />
+    <ClCompile Include="EffectPresetManager.cpp" />
     <ClCompile Include="EffectTreeDialog.cpp" />
     <ClCompile Include="ExportModelSelect.cpp" />
     <ClCompile Include="FileConverter.cpp" />
@@ -68,7 +69,6 @@
     <ClCompile Include="NoteImportDialog.cpp" />
     <ClCompile Include="OptionChooser.cpp" />
     <ClCompile Include="outputs\TestPreset.cpp" />
-    <ClCompile Include="PaletteMgmtDialog.cpp" />
     <ClCompile Include="PerspectivesPanel.cpp" />
     <ClCompile Include="PhonemeDictionary.cpp" />
     <ClCompile Include="PixelBuffer.cpp" />
@@ -207,6 +207,9 @@
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="models\CustomModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="models\DisplayAsType.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="models\IciclesModel.cpp">
@@ -555,9 +558,6 @@
     <ClCompile Include="models\WindowFrameModel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="models\WholeHouseModel.cpp">
-      <Filter>Models</Filter>
-    </ClCompile>
     <ClCompile Include="ModelChainDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
@@ -693,9 +693,6 @@
     <ClCompile Include="models\DMX\DmxModel.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
-    <ClCompile Include="models\DMX\DmxSkulltronix.cpp">
-      <Filter>Models\DMX</Filter>
-    </ClCompile>
     <ClCompile Include="models\DMX\DmxFloodlight.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
@@ -703,9 +700,6 @@
       <Filter>Models\DMX</Filter>
     </ClCompile>
     <ClCompile Include="models\DMX\DmxColorAbility.cpp">
-      <Filter>Models\DMX</Filter>
-    </ClCompile>
-    <ClCompile Include="models\DMX\DmxPanTiltAbility.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
     <ClCompile Include="models\DMX\DmxShutterAbility.cpp">
@@ -843,6 +837,9 @@
     <ClCompile Include="sequencer\SequenceElements.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
+    <ClCompile Include="sequencer\SequenceMedia.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
     <ClCompile Include="sequencer\tabSequencer.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
@@ -858,7 +855,7 @@
     <ClCompile Include="models\TerrainScreenLocation.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="models\TerrianObject.cpp">
+    <ClCompile Include="models\TerrainObject.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="CopyFormat1.cpp" />
@@ -1118,6 +1115,38 @@
     <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
+    <ClCompile Include="ai\AIImageDialog.cpp" />
+    <ClCompile Include="ai\Gemini.cpp" />
+    <ClCompile Include="XmlSerializer\XmlDeserializingModelFactory.cpp">
+      <Filter>XmlSerializer</Filter>
+    </ClCompile>
+    <ClCompile Include="XmlSerializer\XmlDeserializingObjectFactory.cpp">
+      <Filter>XmlSerializer</Filter>
+    </ClCompile>
+    <ClCompile Include="XmlSerializer\XmlSerializeFunctions.cpp">
+      <Filter>XmlSerializer</Filter>
+    </ClCompile>
+    <ClCompile Include="XmlSerializer\XmlSerializingVisitor.cpp">
+      <Filter>XmlSerializer</Filter>
+    </ClCompile>
+    <ClCompile Include="XmlSerializer\BaseSerializingVisitor.cpp">
+      <Filter>XmlSerializer</Filter>
+    </ClCompile>
+    <ClCompile Include="XmlSerializer\StringSerializingVisitor.cpp">
+      <Filter>XmlSerializer</Filter>
+    </ClCompile>
+    <ClCompile Include="XmlSerializer\StreamSerializingVisitor.cpp">
+      <Filter>XmlSerializer</Filter>
+    </ClCompile>
+    <ClCompile Include="XmlSerializer\FileSerializingVisitor.cpp">
+      <Filter>XmlSerializer</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerConnection.cpp" />
+    <ClCompile Include="models\DMX\DmxBeamAbility.cpp">
+      <Filter>Models\DMX</Filter>
+    </ClCompile>
+    <ClCompile Include="ManageMediaPanel.cpp" />
+    <ClCompile Include="XmlSerializer\GdtfParser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -1154,6 +1183,7 @@
     <ClInclude Include="EffectsPanel.h" />
     <ClInclude Include="effects\EffectManager.h" />
     <ClInclude Include="effects\EffectPanelUtils.h" />
+    <ClInclude Include="EffectPresetManager.h" />
     <ClInclude Include="EffectTreeDialog.h" />
     <ClInclude Include="ExportModelSelect.h" />
     <ClInclude Include="FileConverter.h" />
@@ -1177,7 +1207,6 @@
     <ClInclude Include="OptionChooser.h" />
     <ClInclude Include="ExternalHooks.h" />
     <ClInclude Include="outputs\TestPreset.h" />
-    <ClInclude Include="PaletteMgmtDialog.h" />
     <ClInclude Include="PerspectivesPanel.h" />
     <ClInclude Include="PhonemeDictionary.h" />
     <ClInclude Include="PixelBuffer.h" />
@@ -1330,6 +1359,9 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="models\CustomModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="models\DisplayAsType.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="models\IciclesModel.h">
@@ -1687,9 +1719,6 @@
     <ClInclude Include="models\WindowFrameModel.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="models\WholeHouseModel.h">
-      <Filter>Models</Filter>
-    </ClInclude>
     <ClInclude Include="ModelChainDialog.h">
       <Filter>Models</Filter>
     </ClInclude>
@@ -1824,9 +1853,6 @@
     <ClInclude Include="models\DMX\DmxModel.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
-    <ClInclude Include="models\DMX\DmxSkulltronix.h">
-      <Filter>Models\DMX</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\models\modelimages.h" />
     <ClInclude Include="models\DMX\DmxFloodlight.h">
       <Filter>Models\DMX</Filter>
@@ -1835,9 +1861,6 @@
       <Filter>Models\DMX</Filter>
     </ClInclude>
     <ClInclude Include="models\DMX\DmxColorAbility.h">
-      <Filter>Models\DMX</Filter>
-    </ClInclude>
-    <ClInclude Include="models\DMX\DmxPanTiltAbility.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
     <ClInclude Include="models\DMX\DmxShutterAbility.h">
@@ -1972,6 +1995,9 @@
     <ClInclude Include="sequencer\SequenceElements.h">
       <Filter>sequencer</Filter>
     </ClInclude>
+    <ClInclude Include="sequencer\SequenceMedia.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
     <ClInclude Include="sequencer\TimeLine.h">
       <Filter>sequencer</Filter>
     </ClInclude>
@@ -1981,10 +2007,10 @@
     <ClInclude Include="sequencer\Waveform.h">
       <Filter>sequencer</Filter>
     </ClInclude>
-    <ClInclude Include="models\TerrianObject.h">
+    <ClInclude Include="models\TerrainObject.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="models\TerrianScreenLocation.h">
+    <ClInclude Include="models\TerrainScreenLocation.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="CopyFormat1.h" />
@@ -2185,7 +2211,6 @@
     <ClInclude Include="models\DMX\MovingHeads\MhChannelDialog.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhFeature.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhFeatureDialog.h" />
-    <ClInclude Include="models\XmlSerializer.h" />
     <ClInclude Include="models\DMX\DmxDimmerAbility.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
@@ -2248,6 +2273,47 @@
     <ClInclude Include="..\xSchedule\wxJSON\jsonreader.h" />
     <ClInclude Include="..\xSchedule\wxJSON\jsonval.h" />
     <ClInclude Include="..\xSchedule\wxJSON\jsonwriter.h" />
+    <ClInclude Include="ai\AIImageDialog.h" />
+    <ClInclude Include="ai\gemini.h" />
+    <ClInclude Include="XmlSerializer\XmlSerializer.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlSerializer\XmlDeserializingModelFactory.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlSerializer\XmlDeserializingObjectFactory.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlSerializer\XmlNodeKeys.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlSerializer\XmlSerializeFunctions.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="models\XmlSerializer.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlSerializer\XmlSerializingVisitor.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlSerializer\StringSerializingVisitor.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlSerializer\StreamSerializingVisitor.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlSerializer\FileSerializingVisitor.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlSerializer\BaseSerializingVisitor.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerConnection.h" />
+    <ClInclude Include="models\DMX\DmxBeamAbility.h">
+      <Filter>Models\DMX</Filter>
+    </ClInclude>
+    <ClInclude Include="ManageMediaPanel.h" />
+    <ClInclude Include="XmlSerializer\GdtfParser.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -2303,6 +2369,9 @@
     </Filter>
     <Filter Include="ai">
       <UniqueIdentifier>{b7af1744-89fc-4b00-b7a5-fac169948940}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XmlSerializer">
+      <UniqueIdentifier>{a607134a-9f54-4e95-bde9-6ce848d33a6d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -65,6 +65,13 @@
 #include "../utils/CurlManager.h"
 #include "../utils/ip_utils.h"
 
+#include "../models/GridlinesObject.h"
+#include "../models/RulerObject.h"
+#include "../models/ImageObject.h"
+#include "../models/MeshObject.h"
+#include "../models/TerrainObject.h"
+#include "../XmlSerializer/XmlSerializer.h"
+
 #include "Falcon.h"
 #include "Minleon.h"
 #include "SanDevices.h"
@@ -347,13 +354,26 @@ int FPP::TransferToURL(const std::string& url, const std::vector<uint8_t>& val, 
 
 bool FPP::GetURLAsJSON(const std::string& url, nlohmann::json& val, bool recordError) {
     std::string sval;
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (GetURLAsString(url, sval, recordError)) {
         try {
             val = nlohmann::json::parse(sval, nullptr, false);
             if (!val.is_discarded()) {
                 return true;
             }
-        } catch (...) {
+        } catch (nlohmann::json::parse_error& e) {
+            if (recordError) {
+                std::string preview = sval.length() > 500 ? sval.substr(0, 500) + "..." : sval;
+                logger_base.warn("FPP::GetURLAsJSON - JSON parse error for %s: %s, Response: %s", 
+                    url.c_str(), e.what(), preview.c_str());
+            }
+            return false;
+        } catch (std::exception& e) {
+            if (recordError) {
+                logger_base.error("FPP::GetURLAsJSON - Unexpected error for %s: %s", 
+                    url.c_str(), e.what());
+            }
+            return false;
         }
     }
     return false;
@@ -1416,8 +1436,22 @@ bool FPP::UploadModels(const nlohmann::json &models) {
     return false;
 }
 
-bool FPP::UploadDisplayMap(const std::string &displayMap) {
-    PostToURL("/api/configfile/virtualdisplaymap", displayMap);
+bool FPP::UploadDisplayMap(std::map<std::string, std::string> &virtualDisplayData) {
+    if (!IsVersionAtLeast(10, 0)) {
+        PostToURL("/api/configfile/virtualdisplaymap", virtualDisplayData["/api/configfile/virtualdisplaymap"]);
+    } else {
+        for (auto &ent : virtualDisplayData) {
+            if (ent.first == "/api/configfile/virtualdisplaymap"
+                || ent.first == "/api/configfile/virtdisplay.json") {
+                PostToURL(ent.first, ent.second);
+            } else {
+                // file asset that needs uploading
+                std::string fn = ent.second;
+                std::string target = ent.first;
+                uploadFileV7(target, fn, "virtualdisplay_assets");
+            }
+        }
+    }
     return false;
 }
 
@@ -1442,10 +1476,11 @@ nlohmann::json FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startC
     nlohmann::json json;
     nlohmann::json models;
     std::vector<std::string> names;
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     for (const auto& m : *allmodels) {
         Model* model = m.second;
 
-        if (model->GetDisplayAs() == "ModelGroup") {
+        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             continue;
         }
         if (!model->IsActive()) {
@@ -1481,7 +1516,7 @@ nlohmann::json FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startC
             } else {
                 jm["Orientation"] = std::string("horizontal");
             }
-        } else if (model->GetDisplayAs() == "Custom") {
+        } else if (model->GetDisplayAs() == DisplayAsType::Custom) {
             CustomModel *cm = dynamic_cast<CustomModel *>(model);
             straPerStr = 1;
             numStr = 1;
@@ -1506,39 +1541,56 @@ nlohmann::json FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startC
 
     nlohmann::json ogModelJSON;
     if (GetURLAsJSON("/api/models", ogModelJSON)) {
-        for (auto const& ogmodel : ogModelJSON) {
-            if (!ogmodel.contains("Name")) {
-                continue;
-            }
-            if (!ogmodel["Name"].is_string()) {
-                continue;
-            }
-            auto ogName = GetJSONStringValue(ogmodel, "Name");
-            if (GetJSONBoolValue(ogmodel, "autoCreated")) {
-                continue;
-            }
+        try {
+            if (!ogModelJSON.is_array()) {
+                logger_base.warn("GetURLAsJson /api/models returned non-array JSON");
+            } else {
+                for (auto const& ogmodel : ogModelJSON) {
+                    try {
+                        if (!ogmodel.contains("Name")) {
+                            continue;
+                        }
+                        if (!ogmodel["Name"].is_string()) {
+                            continue;
+                        }
+                        auto ogName = GetJSONStringValue(ogmodel, "Name");
+                        if (GetJSONBoolValue(ogmodel, "autoCreated")) {
+                            continue;
+                        }
 
-            if (!IsVersionAtLeast(8, 0)) {
-                //I don't think this works
-                if (ogmodel.contains("StartChannel") && ogmodel["StartChannel"].is_number_integer()) {
-                    auto ogStartChan = ogmodel["StartChannel"].get<int32_t>();
-                    if (ogStartChan < startChan || ogStartChan > endChannel ) {
+                        if (!IsVersionAtLeast(8, 0)) {
+                            //I don't think this works
+                            if (ogmodel.contains("StartChannel") && ogmodel["StartChannel"].is_number_integer()) {
+                                auto ogStartChan = ogmodel["StartChannel"].get<int32_t>();
+                                if (ogStartChan < startChan || ogStartChan > endChannel) {
+                                    continue;
+                                }
+                            }
+                        }
+
+                        if (ogmodel.contains("xLights") && ogmodel["xLights"].is_boolean()) {
+                            auto isfromXlights = ogmodel["xLights"].get<bool>();
+                            if (isfromXlights) {
+                                continue;
+                            }
+                        }
+
+                        if (std::find(names.cbegin(), names.cend(), ogName) != names.end()) { // only add if name doesn't exist
+                            continue;
+                        }
+                        models.push_back(ogmodel);
+                    } catch (nlohmann::json::exception& e) {
+                        logger_base.warn("Model JSON parsing error: %s, Model JSON: %s", 
+                            e.what(), ogmodel.dump().c_str());
                         continue;
                     }
                 }
             }
-
-            if (ogmodel.contains("xLights") && ogmodel["xLights"].is_boolean()) {
-                auto isfromXlights = ogmodel["xLights"].get<bool>();
-                if (isfromXlights) {
-                    continue;
-                }
-            }
-            
-            if (std::find(names.cbegin(), names.cend(), ogName) != names.end()) { // only add if name doesn't exist
-                continue;
-            }
-            models.push_back(ogmodel);
+        } catch (nlohmann::json::exception& e) {
+            logger_base.error("Model /api/models JSON parsing failed: %s, JSON: %s", 
+                e.what(), ogModelJSON.dump().c_str());
+        } catch (std::exception& e) {
+            logger_base.error("Model /api/models processing failed: %s", e.what());
         }
     }
 
@@ -1551,7 +1603,9 @@ static bool Compare3dPointTuple(const std::tuple<float, float, float, int> &l,
     return std::get<2>(l) < std::get<2>(r);
 }
 
-std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, int previewWi, int previewHi) {
+void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &objects,
+                                  int previewWi, int previewHi,
+                                  std::map<std::string, std::string> &virtualDisplayData) {
     std::string ret;
 
     constexpr float PADDING{ 10.0F };
@@ -1560,18 +1614,18 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, int previewWi,
     float minY{ 0.0F };
     float maxY{ 0.0F };
 
-    if (allmodels->size() == 0) {
-        return ret;
+    if (allmodels.size() == 0 && objects.size() == 0) {
+        return;
     }
 
-    for (auto m = allmodels->begin(); m != allmodels->end(); ++m) {
+    for (auto m = allmodels.begin(); m != allmodels.end(); ++m) {
         Model* model = m->second;
 
         if (model->GetLayoutGroup() != "Default") {
             continue;
         }
 
-        if (model->GetDisplayAs() == "ModelGroup") {
+        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             continue;
         }
         
@@ -1587,14 +1641,14 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, int previewWi,
     ret += "# Preview Size\n";
     ret += ToUTF8(wxString::Format("%d,%d\n", totW, totH));
 
-    for (auto m = allmodels->begin(); m != allmodels->end(); ++m) {
+    for (auto m = allmodels.begin(); m != allmodels.end(); ++m) {
         Model* model = m->second;
 
         if (model->GetLayoutGroup() != "Default") {
             continue;
         }
 
-        if (model->GetDisplayAs() == "ModelGroup") {
+        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             continue;
         }
 
@@ -1648,7 +1702,61 @@ std::string FPP::CreateVirtualDisplayMap(ModelManager* allmodels, int previewWi,
         }
 
     }
-    return ret;
+    virtualDisplayData.emplace("/api/configfile/virtualdisplaymap", ret);
+    if (objects.size() > 0) {
+        nlohmann::json virtualDisplay;
+        virtualDisplay["view_objects"] = nlohmann::json::array();
+        
+        XmlSerializer serializer;
+        
+        for (auto &e : objects) {
+            nlohmann::json obj;
+            
+            // Use XmlSerializer to get the object's XML
+            wxXmlDocument doc;
+            XmlSerializingVisitor visitor(&doc);
+            serializer.SerializeObject(*e.second, visitor);
+            wxXmlNode* root = doc.GetRoot();
+            
+            // Get the first child node (the view_object node)
+            wxXmlNode* viewObjectNode = root->GetChildren();
+            if (viewObjectNode) {
+                auto *attr = viewObjectNode->GetAttributes();
+                while (attr != nullptr) {
+                    obj[attr->GetName().ToStdString()] = attr->GetValue().ToStdString();
+                    attr = attr->GetNext();
+                }
+            }
+            
+            std::string wp = obj["WorldPosX"];
+            obj["WorldPosX"] = std::to_string(std::atof(wp.c_str()) - minX);
+            
+            wp = obj["WorldPosY"];
+            obj["WorldPosY"] = std::to_string(std::atof(wp.c_str()) - minY);
+            
+            if (e.second->GetDisplayAs() == DisplayAsType::Mesh) {
+                std::string fn = obj["ObjFile"];
+                wxFileName fileName(fn);
+                std::string bn = fileName.GetFullName().ToStdString();
+                obj["ObjFile"] = bn;
+                virtualDisplayData[bn] = fn;
+                MeshObject *mesh = dynamic_cast<MeshObject*>(e.second);
+                for (auto &fr : mesh->GetFileReferences()) {
+                    wxFileName fileName(fr);
+                    bn = fileName.GetFullName().ToStdString();
+                    virtualDisplayData[bn] = fr;
+                }
+            } else if (e.second->GetDisplayAs() == DisplayAsType::Image) {
+                std::string fn = obj["Image"];
+                wxFileName fileName(fn);
+                std::string bn = fileName.GetFullName().ToStdString();
+                obj["Image"] = bn;
+                virtualDisplayData[bn] = fn;
+            }
+            virtualDisplay["view_objects"].push_back(obj);
+        }
+        virtualDisplayData.emplace("/api/configfile/virtdisplay.json", virtualDisplay.dump(3, ' ', false, nlohmann::json::error_handler_t::replace));
+    }
 }
 #endif
 
@@ -3201,7 +3309,7 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
         }
         created = true;
     }
-    if (inst->typeId < 0x80) {
+    if (inst->typeId > 0 && inst->typeId < 0x80) {
         if (inst->controller->GetProtocol() != OUTPUT_DDP) {
             inst->controller->SetProtocol(OUTPUT_DDP);
         }
@@ -4055,7 +4163,7 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
 }
 
 void FPP::TypeIDtoControllerType(int typeId, FPP* inst) {
-    if (typeId < 0x80) {
+    if (typeId > 0 && typeId < 0x80) {
         inst->fppType = FPP_TYPE::FPP;
     } else if (typeId >= 0x88 && typeId <= 0x9F) {
         inst->fppType = FPP_TYPE::FALCONV4V5;

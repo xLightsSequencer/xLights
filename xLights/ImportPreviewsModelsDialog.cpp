@@ -381,7 +381,7 @@ void ImportPreviewsModelsDialog::SelectRecursiveModel(wxString m, bool checked)
             TreeListCtrl1->CheckItem(it, checked ? wxCHK_CHECKED : wxCHK_UNCHECKED);
             auto* itm = ((impTreeItemData*)TreeListCtrl1->GetItemData(it));
             if (itm && itm->IsModelGroup()) {
-                wxString const models = ((impTreeItemData*)TreeListCtrl1->GetItemData(it))->GetModelXml()->GetAttribute("models");
+                wxString const models = ((impTreeItemData*)TreeListCtrl1->GetItemData(it))->GetModelNode()->GetAttribute("models");
                 wxArrayString const modelArray = wxSplit(models, ',');
                 for (size_t i = 0; i < modelArray.size(); ++i) {
                     SelectRecursiveModel(modelArray[i], checked);

@@ -33,6 +33,7 @@ class ViewSettingsPanel: public wxPanel
 		wxCheckBox* CheckBox_ZoomMethod;
 		wxCheckBox* HousePreviewCheckBox;
 		wxCheckBox* PlayControlsCheckBox;
+		wxChoice* Choice_PaletteSize;
 		wxChoice* Choice_TimelineZooming;
 		wxChoice* CrosshairSizeChoice;
 		wxChoice* EffectAssistChoice;
@@ -57,6 +58,7 @@ class ViewSettingsPanel: public wxPanel
 		static const wxWindowID ID_CHECKBOX4;
 		static const wxWindowID ID_CHECKBOX_ZoomMethod;
 		static const wxWindowID ID_CHOICE_CROSSHAIRSIZE;
+		static const wxWindowID ID_CHOICE_PALETTE_SIZE;
 		//*)
 
 	private:
@@ -76,6 +78,7 @@ class ViewSettingsPanel: public wxPanel
 		void OnCheckBox_ZoomMethodClick(wxCommandEvent& event);
 		void OnCheckBox_DisableKeyAccelerationClick(wxCommandEvent& event);
 		void OnCrosshairSizeChoiceSelect(wxCommandEvent& event);
+		void OnChoice_PaletteSizeSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

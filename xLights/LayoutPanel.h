@@ -25,6 +25,8 @@ class wxStaticText;
 //*)
 
 #include "wxCheckedListCtrl.h"
+#include <wx/srchctrl.h>
+#include <wx/regex.h>
 #include <wx/treelist.h>
 #include <wx/treectrl.h>
 #include <wx/dataview.h>
@@ -62,9 +64,9 @@ wxDECLARE_EVENT(EVT_LISTITEM_CHECKED, wxCommandEvent);
 
 class CopyPasteBaseObject
 {
-    bool _ok;
-	bool _viewObject;
-    wxXmlNode* _xmlNode;
+    bool _ok = false;
+	bool _viewObject = false;
+    wxXmlNode* _xmlNode = nullptr;
 
 public:
     CopyPasteBaseObject(const std::string& in);
@@ -72,8 +74,7 @@ public:
     virtual ~CopyPasteBaseObject();
     bool IsOk() const { return _ok; }
 	bool IsViewObject() const { return _viewObject; }
-    wxXmlNode* GetBaseObjectXml() const
-    {
+    wxXmlNode* GetBaseObjectXml() const {
         if (_xmlNode == nullptr)
             return _xmlNode;
         else
@@ -145,7 +146,8 @@ class LayoutPanel: public wxPanel
 		static const wxWindowID ID_SPLITTERWINDOW2;
 		//*)
 
-		static const long ID_TREELISTVIEW_MODELS;
+        static const long ID_TREELISTVIEW_MODELS;
+        static const long ID_TEXTCTRL_MODEL_FILTER;
         static const long ID_PREVIEW_REPLACEMODEL;
         static const long ID_PREVIEW_RESET;
         static const long ID_PREVIEW_ALIGN;
@@ -207,6 +209,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_MODEL_DELETEPOINT;
         static const long ID_PREVIEW_MODEL_ADDCURVE;
         static const long ID_PREVIEW_MODEL_DELCURVE;
+        static const long ID_PREVIEW_MODEL_SET_SEGMENTS;
         static const long ID_PREVIEW_SAVE_LAYOUT_IMAGE;
         static const long ID_PREVIEW_PRINT_LAYOUT_IMAGE;
         static const long ID_PREVIEW_SAVE_VIEWPOINT;
@@ -276,6 +279,8 @@ class LayoutPanel: public wxPanel
         void OnPropertyGridItemExpanded(wxPropertyGridEvent& event);
         void OnPropertyGridRightClick(wxPropertyGridEvent& event);
         void OnPropertyGridContextMenu(wxCommandEvent& event);
+        void OnModelFilterTextChanged(wxCommandEvent& event);
+        void OnModelFilterCancelBtn(wxCommandEvent& event);
 
 		DECLARE_EVENT_TABLE()
 
@@ -388,6 +393,7 @@ class LayoutPanel: public wxPanel
         void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
         void SetMouseStateForModels(bool value);
 
+        bool ModelMatchesFilter(Model* model) const;
         int ModelsSelectedCount() const;
         int ViewObjectsSelectedCount() const;
         int GetSelectedModelIndex() const;
@@ -488,7 +494,6 @@ class LayoutPanel: public wxPanel
             std::string data;
             std::string models;
             std::string objects;
-            std::string groups;
         };
         std::vector<UndoStep> undoBuffer;
         void CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key = "", const std::string &data = "");
@@ -571,6 +576,10 @@ class LayoutPanel: public wxPanel
         void SelectViewObject(ViewObject *v, bool highlight_tree = true);
         void ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, bool includeEmptyGroups);
         int GetColumnIndex(const std::string& name) const;
+        wxSearchCtrl* ModelFilterCtrl = nullptr;
+        wxString _filterString;
+        wxRegEx  _filterRegex;
+        bool     _filterRegexValid = false;
 
         class ModelListComparator : public wxTreeListItemComparator
         {

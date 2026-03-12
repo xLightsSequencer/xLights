@@ -480,6 +480,7 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     Connect(subBufferPanel->GetId(),SUBBUFFER_RANGE_CHANGED,(wxObjectEventFunction)&BufferPanel::HandleCommandChange);
     
     ValidateWindow();
+    SetMinSize(wxSize(50, 50));
 }
 
 BufferPanel::~BufferPanel()
@@ -674,7 +675,7 @@ void BufferPanel::UpdateCamera(const Model* model)
             Choice_PerPreviewCamera->SetStringSelection(mg->GetDefaultCamera());
             _defaultCamera = mg->GetDefaultCamera();
         }
-        _mg = (model->GetDisplayAs() == "ModelGroup");
+        _mg = (model->GetDisplayAs() == DisplayAsType::ModelGroup);
     } else {
         _mg = false;
     }
@@ -689,7 +690,7 @@ void BufferPanel::UpdateBufferStyles(const Model* model)
         for (const auto& it : types) {
             BufferStyleChoice->Append(it);
         }
-        _mg = (model->GetDisplayAs() == "ModelGroup");
+        _mg = (model->GetDisplayAs() == DisplayAsType::ModelGroup);
         sel = model->AdjustBufferStyle(sel);
     } else {
         _mg = false;
@@ -722,7 +723,7 @@ void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
 
         Choice_PerPreviewCamera->SetStringSelection("2D");
         if (model != nullptr) {
-            _mg = (model->GetDisplayAs() == "ModelGroup");
+            _mg = (model->GetDisplayAs() == DisplayAsType::ModelGroup);
             auto mg = dynamic_cast<const ModelGroup*>(model);
             if (mg != nullptr) {
                 Choice_PerPreviewCamera->SetStringSelection(mg->GetDefaultCamera());
@@ -1029,7 +1030,10 @@ void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& event)
 
     if (BufferPanel::CanRenderBufferUseCamera(bs))
     {
+<<<<<<< fix/issue-5763-camera-reset
         // Save current selection before clearing
+=======
+>>>>>>> master
         auto currentCamera = Choice_PerPreviewCamera->GetStringSelection();
 
         Choice_PerPreviewCamera->Clear();
@@ -1043,7 +1047,10 @@ void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& event)
             Choice_PerPreviewCamera->Append(frame->viewpoint_mgr.GetCamera3D(i)->GetName());
         }
 
+<<<<<<< fix/issue-5763-camera-reset
         // Try to restore the current selection first, then fall back to default, then "2D"
+=======
+>>>>>>> master
         if (Choice_PerPreviewCamera->FindString(currentCamera) != wxNOT_FOUND) {
             if (!currentCamera.empty()) {
                 Choice_PerPreviewCamera->SetStringSelection(currentCamera);
@@ -1053,9 +1060,7 @@ void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& event)
         } else {
             Choice_PerPreviewCamera->SetStringSelection("2D");
         }
-    }
-    else
-    {
+    } else {
         Choice_PerPreviewCamera->SetStringSelection("2D");
     }
 

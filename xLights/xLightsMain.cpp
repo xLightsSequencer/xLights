@@ -41,6 +41,7 @@
 #include <cctype>
 #include <cstring>
 #include <thread>
+#include <string>
 
 #include "AboutDialog.h"
 #include "BatchRenderDialog.h"
@@ -118,7 +119,9 @@
 #include "xlColourData.h"
 #include "utils/Curl.h"
 #include "ai/chatGPT.h"
+#include "ai/AIImageDialog.h"
 #include "models/DMX/DmxMovingHeadComm.h"
+#include "ColorPanel.h"
 
 #include "../xSchedule/wxHTTPServer/wxhttpserver.h"
 
@@ -272,6 +275,7 @@ const wxWindowID xLightsFrame::ID_MNU_DUMPRENDERSTATE = wxNewId();
 const wxWindowID xLightsFrame::ID_MENU_GENERATE2DPATH = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_GenerateCustomModel = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_REMAPCUSTOM = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_GenerateAIImage = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_GENERATELYRICS = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_PREPAREAUDIO = wxNewId();
@@ -1029,6 +1033,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Menu1->Append(Menu_GenerateCustomModel);
     MenuItem_RemapCustom = new wxMenuItem(Menu1, ID_MNU_REMAPCUSTOM, _("Remap Custom Model"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_RemapCustom);
+    Menu_GenerateAIImage = new wxMenuItem(Menu1, ID_MENUITEM_GenerateAIImage, _("Generate AI Image"), _("Create images using AI - if configured."), wxITEM_NORMAL);
+    Menu1->Append(Menu_GenerateAIImage);
     MenuItem_GenerateLyrics = new wxMenuItem(Menu1, ID_MNU_GENERATELYRICS, _("Generate &Lyrics From Data"), _("Generate lyric phenomes from data"), wxITEM_NORMAL);
     Menu1->Append(MenuItem_GenerateLyrics);
     MenuItemConvert = new wxMenuItem(Menu1, ID_MENUITEM_CONVERT, _("&Convert"), wxEmptyString, wxITEM_NORMAL);
@@ -1301,6 +1307,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_MENU_GENERATE2DPATH, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_Generate2DPathSelected);
     Connect(ID_MENUITEM_GenerateCustomModel, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenu_GenerateCustomModelSelected);
     Connect(ID_MNU_REMAPCUSTOM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_RemapCustomSelected);
+    Connect(ID_MENUITEM_GenerateAIImage, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_GenerateAIImageSelected);
     Connect(ID_MNU_GENERATELYRICS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_GenerateLyricsSelected);
     Connect(ID_MENUITEM_CONVERT, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemConvertSelected);
     Connect(ID_MNU_PREPAREAUDIO, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_PrepareAudioSelected);
@@ -1374,9 +1381,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&xLightsFrame::OnClose);
     Connect(wxEVT_CHAR, (wxObjectEventFunction)&xLightsFrame::OnChar);
     //*)
-    
+
     Notebook1->SetArtProvider(new wxAuiGenericTabArt());
-    
+
     wxConfigBase* config = wxConfigBase::Get();
     if (config == nullptr) {
         logger_base.error("Null config ... this wont end well.");
@@ -1890,7 +1897,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     logger_base.debug("Effects panel initialised.");
 
     _serviceManager = std::make_unique<ServiceManager>(this);
-
+    
     EffectTreeDlg = nullptr; // must be before any call to SetDir
 
     starttime = wxDateTime::UNow();
@@ -2127,6 +2134,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     }
 
     ValidateWindow();
+    
+    GetOutputModelManager()->DisableASAPWork(false);
 
     logger_base.debug("xLightsFrame construction complete.");
 }
@@ -2263,6 +2272,7 @@ xLightsFrame::~xLightsFrame()
 
     waitForPingsToComplete();
     _outputManager.DeleteAllControllers();
+    ip_utils::shutdownResolvePool();
 
     if (CurrentSeqXmlFile) {
         delete CurrentSeqXmlFile;
@@ -2287,7 +2297,7 @@ xLightsFrame::~xLightsFrame()
     delete Button_ACCascade;
     delete Button_ACForeground;
     delete Button_ACBackground;
-
+    
 #ifndef __WXMSW__
     if (_tod != nullptr)
         delete _tod;
@@ -3193,39 +3203,19 @@ void xLightsFrame::SetPreviewSize(int width, int height)
 
 void xLightsFrame::SetXmlSetting(const wxString& settingName, const wxString& value)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // Delete existing setting node
-    if (SettingsNode != nullptr) {
-        for (wxXmlNode* e = SettingsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
-            if (e->GetName() == settingName) {
-                SettingsNode->RemoveChild(e);
-                delete e;
-                break;
-            }
-        }
-
-        // Add new one
-        wxXmlNode* setting = new wxXmlNode(wxXML_ELEMENT_NODE, settingName);
-        setting->AddAttribute("value", value);
-        SettingsNode->AddChild(setting);
-    } else {
-        logger_base.warn("xLightsFrame::SetXmlSetting SettingsNode unexpectantly null.");
+    auto& entry = _xmlSettings[settingName.ToStdString()];
+    if (entry != value.ToStdString()) {
+        entry = value.ToStdString();
+        UnsavedRgbEffectsChanges = true;
     }
 }
 
 wxString xLightsFrame::GetXmlSetting(const wxString& settingName, const wxString& defaultValue) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (SettingsNode != nullptr) {
-        for (wxXmlNode* e = SettingsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
-            if (e->GetName() == settingName) {
-                return e->GetAttribute("value", defaultValue);
-            }
-        }
-    } else {
-        logger_base.warn("xLightsFrame::GetXmlSetting SettingsNode unexpectantly null.");
+    auto it = _xmlSettings.find(settingName.ToStdString());
+    if (it != _xmlSettings.end()) {
+        return it->second;
     }
-
     return defaultValue;
 }
 
@@ -3252,7 +3242,7 @@ void xLightsFrame::ShowSequenceSettings()
     AbortRender(60000, &numThreadsAborted);
 
     // populate dialog
-    SeqSettingsDialog dialog(this, xLightsFrame::CurrentSeqXmlFile, mediaDirectories, wxEmptyString, wxEmptyString);
+    SeqSettingsDialog dialog(this, xLightsFrame::CurrentSeqXmlFile, &_sequenceElements, mediaDirectories, wxEmptyString, wxEmptyString);
     dialog.Fit();
     int ret_code = dialog.ShowModal();
 
@@ -4220,18 +4210,6 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
 
 void xLightsFrame::SaveWorkingLayout()
 {
-    // update xml with offsets and scale
-    for (const auto& it : modelPreview->GetModels()) {
-        if (AllModels.IsModelValid(it) || IsNewModel(it)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models - looks like we are missing a LayoutPanel::UpdateModelList call in some situation
-            it->UpdateXmlWithScale();
-        } else {
-            wxASSERT(false); // why did we get here
-        }
-    }
-    for (const auto& it : AllObjects) {
-        ViewObject* view_object = it.second;
-        view_object->UpdateXmlWithScale();
-    }
     SaveEffectsFile(true);
 }
 
@@ -4670,9 +4648,9 @@ void xLightsFrame::ExportModels(wxString const& filename)
     // models
     for (auto const& m : AllModels) {
         Model* model = m.second;
-        if (model->GetDisplayAs() != "ModelGroup") {
+        if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
             modelCount++;
-            wxString const stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); // NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
+            wxString const stch = model->GetModelStartChannel();
             uint32_t ch = model->GetFirstChannel() + 1;
             std::string type, description, ip, universe, inactive, baud, protocol, controllername;
             int32_t channeloffset;
@@ -4702,7 +4680,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
             write_worksheet_string(modelsheet, row, 0, model->name, format, _model_col_widths);
             write_worksheet_string(modelsheet, row, 1, model->GetShadowModelFor(), format, _model_col_widths);
             write_worksheet_string(modelsheet, row, 2, model->description, format, _model_col_widths);
-            write_worksheet_string(modelsheet, row, 3, model->GetDisplayAs(), format, _model_col_widths);
+            write_worksheet_string(modelsheet, row, 3, DisplayAsTypeToString(model->GetDisplayAs()), format, _model_col_widths);
             write_worksheet_string(modelsheet, row, 4, model->GetDimension(), format, _model_col_widths);
             write_worksheet_string(modelsheet, row, 5, model->GetStringType(), format, _model_col_widths);
             worksheet_write_number(modelsheet, row, 6, model->GetNumPhysicalStrings(), format);
@@ -4780,7 +4758,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
     row = 1;
     for (auto const& m : AllModels) {
         Model* model = m.second;
-        if (model->GetDisplayAs() == "ModelGroup") {
+        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             groupCount++;
             ModelGroup* mg = static_cast<ModelGroup*>(model);
             std::string models;
@@ -4861,7 +4839,7 @@ void xLightsFrame::ExportModels(wxString const& filename)
 
         for (auto const& m : AllModels) {
             Model* model = m.second;
-            if (model->GetDisplayAs() != "ModelGroup") {
+            if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
                 int ch = model->GetFirstChannel() + 1;
                 int endch = model->GetLastChannel() + 1;
 
@@ -5611,7 +5589,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("");
     LogCheckSequenceMsg("Models spanning controllers");
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             int32_t start = it.second->GetFirstChannel() + 1;
             int32_t end = it.second->GetLastChannel() + 1;
 
@@ -5685,7 +5663,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     wxYield();
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             std::string start = it.second->ModelStartChannel;
 
             if (start[0] == '>' || start[0] == '@') {
@@ -5717,7 +5695,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     }
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             std::string start = it.second->ModelStartChannel;
 
             if (start[0] == '>' || start[0] == '@') {
@@ -5782,8 +5760,8 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     // Check for overlapping channels in models
     for (auto it = std::begin(AllModels); it != std::end(AllModels); ++it) {
-        if (it->second->GetDisplayAs() != "ModelGroup") {
-            if(it->second->GetModelStartChannel().starts_with("@") && it->second->GetDisplayAs() == "Single Line" && it->second->GetNumStrings() > 1) {
+        if (it->second->GetDisplayAs() != DisplayAsType::ModelGroup) {
+            if(it->second->GetModelStartChannel().starts_with("@") && it->second->GetDisplayAs() == DisplayAsType::SingleLine && it->second->GetNumStrings() > 1) {
                 logger_base.debug("Skipping Overlap Checking for %s [%s]", it->second->GetFullName().c_str(), it->second->GetModelStartChannel().c_str());
                 continue;
             }
@@ -5792,7 +5770,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
             auto m1end = it->second->GetLastChannel() + 1;
 
             for (auto it2 = std::next(it); it2 != std::end(AllModels); ++it2) {
-                if (it2->second->GetDisplayAs() != "ModelGroup" && it2->second->GetShadowModelFor() != it->first && it->second->GetShadowModelFor() != it2->first) {
+                if (it2->second->GetDisplayAs() != DisplayAsType::ModelGroup && it2->second->GetShadowModelFor() != it->first && it->second->GetShadowModelFor() != it2->first) {
                     auto m2start = it2->second->GetFirstChannel() + 1;
                     auto m2end = it2->second->GetLastChannel() + 1;
 
@@ -5819,7 +5797,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
         std::map<std::string, std::list<Model*>*> modelsByPort;
         for (const auto& it : AllModels) {
-            if (it.second->GetDisplayAs() != "ModelGroup") {
+            if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
                 std::string cc = "";
                 if (it.second->IsControllerConnectionValid()) {
                     cc = wxString::Format("%s:%s:%d:%d", it.second->IsPixelProtocol() ? _("pixel") : _("serial"), it.second->GetControllerProtocol(), it.second->GetControllerPort(), it.second->GetSmartRemote()).ToStdString();
@@ -5899,9 +5877,9 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("Model nodes not allocated to layers correctly");
 
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
-        if (it->second->GetDisplayAs() != "ModelGroup") {
+        if (it->second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             if (wxString(it->second->GetStringType()).EndsWith("Nodes") && !it->second->AllNodesAllocated()) {
-                wxString msg = wxString::Format("    WARN: %s model '%s' Node Count and Layer Size allocations dont match.", it->second->GetDisplayAs().c_str(), it->first);
+                wxString msg = wxString::Format("    WARN: %s model '%s' Node Count and Layer Size allocations dont match.", DisplayAsTypeToString(it->second->GetDisplayAs()).c_str(), it->first);
                 LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "overlapnodes", errcount, warncount);
             }
         }
@@ -5952,7 +5930,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         LogCheckSequenceMsg("Model Groups containing models from different previews");
 
         for (const auto& it : AllModels) {
-            if (it.second->GetDisplayAs() == "ModelGroup") {
+            if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 std::string mgp = it.second->GetLayoutGroup();
 
                 ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
@@ -5969,7 +5947,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                             // this should never happen
                             wxString msg = wxString::Format("Model Group %s contains non existent model %s.", (const char*)mg->GetName().c_str(), (const char*)it2.c_str());
                             LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::CRITICAL, msg.ToStdString(), "grouperrors", errcount, warncount);
-                        } else if (m->GetDisplayAs() != "ModelGroup") {
+                        } else if (m->GetDisplayAs() != DisplayAsType::ModelGroup) {
                             // If model is in all previews dont report it as a problem
                             if (m->GetLayoutGroup() != "All Previews" && mg->GetLayoutGroup() != "All Previews" && mgp != m->GetLayoutGroup()) {
                                 wxString msg = wxString::Format("    WARN: Model Group '%s' in preview '%s' contains model '%s' which is in preview '%s'. This will cause the '%s' model to also appear in the '%s' preview.", mg->GetName(), mg->GetLayoutGroup(), m->GetName(), m->GetLayoutGroup(), m->GetName(), mg->GetLayoutGroup());
@@ -6017,7 +5995,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     std::list<std::string> emptyModelGroups;
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() == "ModelGroup") {
+        if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
             ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
             if (mg != nullptr) { // this should never fail
                 auto models = mg->ModelNames();
@@ -6176,7 +6154,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("Model Groups containing moving heads which have not been numbered");
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() == "ModelGroup") {
+        if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
             ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
             if (mg != nullptr) { // this should never fail
                 auto models = mg->ModelNames();
@@ -6187,7 +6165,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                     Model* model = AllModels.GetModel(m);
 
                     if (model != nullptr) {
-                        if (model->GetDisplayAs() != "DmxMovingHeadAdv" && model->GetDisplayAs() != "DmxMovingHead") {
+                        if (model->GetDisplayAs() != DisplayAsType::DmxMovingHeadAdv && model->GetDisplayAs() != DisplayAsType::DmxMovingHead) {
 							allMovingHeads = false;
 							break;
 						}
@@ -6229,7 +6207,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("SubModels with no nodes");
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             for (int i = 0; i < it.second->GetNumSubModels(); ++i) {
                 Model* sm = it.second->GetSubModel(i);
                 if (sm->GetNodeCount() == 0) {
@@ -6251,7 +6229,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("SubModels with duplicate nodes");
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             for (int i = 0; i < it.second->GetNumSubModels(); ++i) {
                 SubModel* sm = dynamic_cast<SubModel*>(it.second->GetSubModel(i));
                 if (sm != nullptr) {
@@ -6287,7 +6265,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("SubModels with nodes not in parent model");
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             for (int i = 0; i < it.second->GetNumSubModels(); ++i) {
                 SubModel* sm = (SubModel*)it.second->GetSubModel(i);
                 if (!sm->IsNodesAllValid()) {
@@ -6340,7 +6318,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
     std::list<Model*> modelssorted;
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != "ModelGroup") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             modelssorted.push_back(it.second);
         }
     }
@@ -6372,6 +6350,32 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
         if (newlast > last) {
             last = newlast;
             lastm = m;
+        }
+        // Check for single line models with left-to-right physical orientation
+        if (m->GetDisplayAs() == DisplayAsType::SingleLine) {
+            size_t nodeCount = m->GetNodeCount();
+            if (nodeCount < 2)
+                continue; // Not a valid line
+
+            TwoPointScreenLocation& screenLoc = dynamic_cast<TwoPointScreenLocation&>(m->GetBaseObjectScreenLocation());
+            glm::vec3 loc = screenLoc.GetWorldPosition();
+            float startX = loc.x;
+            float startY = loc.y;
+            float startZ = loc.z;
+            float endX = screenLoc.GetX2();
+            float endY = screenLoc.GetY2();
+            float endZ = screenLoc.GetZ2();
+
+            float deltaX = fabs(startX - endX);
+            float deltaY = fabs(startY - endY);
+            float deltaZ = fabs(startZ - endZ);
+            if (deltaX > deltaY && deltaX > deltaZ) {
+                if (startX > endX) {
+                    wxString msg = wxString::Format("    %s: Model '%s' should have the green square on the left of the blue square for best render results.",
+                        "WARN", m->GetName());
+                    LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::WARNING, msg.ToStdString(), "config", errcount, warncount);
+                }
+            }
         }
     }
     if (errcount + warncount == errcountsave + warncountsave) {
@@ -6485,7 +6489,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                     wxString msg = wxString::Format("    ERR: Model %s in your sequence does not seem to exist in the layout. This will need to be deleted or remapped to another model next time you load this sequence.", it);
                     LogAndTrack(report, "sequence", CheckSequenceReport::ReportIssue::CRITICAL, msg.ToStdString(), "modelnotinlayout", errcount, warncount);
                 } else {
-                    if (m->GetDisplayAs() == "ModelGroup") {
+                    if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                         ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
                         if (mg == nullptr)
                             logger_base.crit("CheckSequence ModelGroup cast was null. We are about to crash.");
@@ -7150,7 +7154,7 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
         wxString type = "Unknown";
         switch (e->GetType()) {
         case ElementType::ELEMENT_TYPE_MODEL:
-            if (m->GetDisplayAs() == "ModelGroup") {
+            if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 type = "Model Group";
             } else {
                 type = "Model";
@@ -7931,6 +7935,77 @@ bool xLightsFrame::IsInShowFolder(const std::string& file) const
     }
 
     return f.StartsWith(sf);
+}
+
+bool xLightsFrame::IsInShowOrMediaFolder(const std::string& file) const
+{
+    if (IsInShowFolder(file)) return true;
+
+    wxString f(file);
+#ifdef __WXMSW__
+    f.LowerCase();
+    f.Replace("\\", "/");
+#else
+    f.Replace("\\", "/");
+#endif
+
+    for (const auto& dir : mediaDirectories) {
+        wxString md(dir);
+#ifdef __WXMSW__
+        md.LowerCase();
+#endif
+        md.Replace("\\", "/");
+        if (!md.EndsWith("/")) md += "/";
+        if (f.StartsWith(md)) return true;
+    }
+    return false;
+}
+
+std::string xLightsFrame::MakeRelativePath(const std::string& file) const
+{
+    if (file.empty()) return {};
+    wxFileName fn(file);
+    if (!fn.IsAbsolute()) return {};   // already relative
+
+    wxString f(file);
+    f.Replace("\\", "/");
+
+    // Try show directory first
+    {
+        wxString sd(GetShowDirectory());
+        sd.Replace("\\", "/");
+#ifdef __WXMSW__
+        sd.MakeLower();
+        wxString fl = f.Lower();
+#else
+        const wxString& fl = f;
+#endif
+        if (!sd.EndsWith("/")) sd += "/";
+#ifdef __WXMSW__
+        if (fl.StartsWith(sd))
+            return f.Mid(sd.Length()).ToStdString();
+#else
+        if (fl.StartsWith(sd))
+            return f.Mid(sd.Length()).ToStdString();
+#endif
+    }
+
+    // Try each media directory
+    for (const auto& dir : mediaDirectories) {
+        wxString md(dir);
+        md.Replace("\\", "/");
+#ifdef __WXMSW__
+        md.MakeLower();
+        wxString fl = f.Lower();
+#else
+        const wxString& fl = f;
+#endif
+        if (!md.EndsWith("/")) md += "/";
+        if (fl.StartsWith(md))
+            return f.Mid(md.Length()).ToStdString();
+    }
+
+    return {};
 }
 
 #define FILES_MATCH_COMPARE 8192
@@ -9046,7 +9121,7 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
     MenuItem_Update->Enable(true);
     int rc = 0;
     logger_base.debug("Downloading %s", (const char*)githubTagURL.c_str());
-    
+
     bool didConnect = false;
     std::string resp;
     nlohmann::json val;
@@ -9225,7 +9300,7 @@ void xLightsFrame::ShowPresetsPanel()
 
     if (EffectTreeDlg == nullptr) {
         EffectTreeDlg = new EffectTreeDialog(this);
-        EffectTreeDlg->InitItems(_sequenceElements.GetEffectsNode());
+        EffectTreeDlg->InitItems(_effectPresetManager);
     }
     EffectTreeDlg->Show();
 }
@@ -9620,7 +9695,6 @@ void xLightsFrame::OnCharHook(wxKeyEvent& event)
 
 void xLightsFrame::OnMenuItem_ZoomSelected(wxCommandEvent& event)
 {
-    //::wxLaunchDefaultBrowser("https://zoom.us/j/175801909");
     ::wxLaunchDefaultBrowser("https://zoom.us/j/175801909?pwd=ZU1hNzM5bjJpOGZ1d1BOb1BzMUFndz09");
 }
 
@@ -10427,7 +10501,7 @@ std::string xLightsFrame::GetUniqueTimingName(const std::string& baseName)
 void xLightsFrame::ReplaceModelWithModelFixGroups(const std::string& oldModel, const std::string& newModel)
 {
     for (auto& it : AllModels) {
-        if (it.second->GetDisplayAs() == "ModelGroup") {
+        if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
             auto mg = dynamic_cast<ModelGroup*>(it.second);
             mg->ModelRenamed(newModel, oldModel);
         }
@@ -10682,6 +10756,14 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Updating from base show folder.");
+    
+    ObtainAccessToURL(_outputManager.GetBaseShowDir());
+    if (!ObtainAccessToURL(_outputManager.GetBaseShowDir() + GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE)) {
+        std::string dstr = _outputManager.GetBaseShowDir() ;
+        PromptForDirectorySelection("Reselect Base Show Directory", dstr);
+        ObtainAccessToURL(_outputManager.GetBaseShowDir());
+    }
+    
 
     // bring in any controllers overwriting some of their properties ... but not all of them
     if (_outputManager.MergeFromBase(prompt)) {
@@ -10743,6 +10825,50 @@ void xLightsFrame::OnMenuItemFindShowFolderSelected(wxCommandEvent& event)
     dlg.ShowModal();
 }
 
+std::list<std::string> xLightsFrame::GetPerspectives() {
+    std::list<std::string> perspectives;
+    for (const auto& p : _perspectives) {
+        if (!p.name.empty())
+            perspectives.push_back(p.name);
+    }
+    return perspectives;
+}
+
 aiBase* xLightsFrame::GetAIService(aiType::TYPE serviceType) {
     return _serviceManager->findService(serviceType);
+}
+std::vector<aiBase*> xLightsFrame::GetAIServices(aiType::TYPE serviceType) {
+    return _serviceManager->findServices(serviceType);
+}
+
+void xLightsFrame::OnMenuItem_GenerateAIImageSelected(wxCommandEvent& event) {
+    auto services = _serviceManager->findServices(aiType::TYPE::IMAGES);
+    if (services.empty()) {
+        wxMessageBox("No AI Services Registered for creating images", "Error", wxICON_ERROR);
+        return;
+    }
+    auto serv = services[0];
+    if (services.size() > 1) {
+        wxArrayString choices;
+        for (auto s : services) {
+            choices.push_back(s->GetLLMName());
+        }
+        wxSingleChoiceDialog dlg(this, "AI Image Generator", "Choose AI Image Generator", choices, nullptr);
+        if (dlg.ShowModal() != wxID_CANCEL) {
+            serv = services[dlg.GetSelection()];
+        }
+    }
+    AIImageDialog dlg(this, serv);
+    dlg.ShowModal();
+}
+
+void xLightsFrame::SetPaletteSizeString(const wxString& size) {
+    if (GetPaletteSizeString() != size) {
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write("PaletteSize", size);
+
+        if (colorPanel) {
+            colorPanel->RefreshPaletteSize();
+        }
+    }
 }

@@ -212,7 +212,8 @@ public:
                             } catch (std::exception& e) {
                                 wxRemoveFile(fn);
                                 fn = "";
-                                logger_base.debug("Shader file download failed load fs file.");
+                                logger_base.debug("Shader file download failed load fs file. Error: %s, JSON: %s", 
+                                    e.what(), json.ToStdString().c_str());
                                 return;
                             }
                         }

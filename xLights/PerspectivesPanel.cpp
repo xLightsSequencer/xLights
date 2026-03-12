@@ -9,12 +9,13 @@
  **************************************************************/
 
 #include "PerspectivesPanel.h"
+#include "xLightsMain.h"
 #include <wx/wx.h>
 
 //(*InternalHeaders(PerspectivesPanel)
 #include <wx/intl.h>
 #include <wx/string.h>
-//*)
+//)
 
 //(*IdInit(PerspectivesPanel)
 const long PerspectivesPanel::ID_BUTTON_ADD_PERSPECTIVE = wxNewId();
@@ -23,11 +24,11 @@ const long PerspectivesPanel::ID_BUTTON_RENAME_PERSPECTIVE = wxNewId();
 const long PerspectivesPanel::ID_BUTTON_SAVE_PERSPECTIVE = wxNewId();
 const long PerspectivesPanel::ID_LISTBOX_PERSPECTIVES = wxNewId();
 const long PerspectivesPanel::ID_STATICTEXT1 = wxNewId();
-//*)
+//)
 
 BEGIN_EVENT_TABLE(PerspectivesPanel,wxPanel)
 	//(*EventTable(PerspectivesPanel)
-	//*)
+	//)
 END_EVENT_TABLE()
 
 PerspectivesPanel::PerspectivesPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
@@ -76,7 +77,9 @@ PerspectivesPanel::PerspectivesPanel(wxWindow* parent,wxWindowID id,const wxPoin
 	Connect(ID_BUTTON_SAVE_PERSPECTIVE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PerspectivesPanel::OnButtonSavePerspectiveClick);
 	Connect(ID_LISTBOX_PERSPECTIVES,wxEVT_COMMAND_LISTBOX_DOUBLECLICKED,(wxObjectEventFunction)&PerspectivesPanel::OnListBoxPerspectivesDClick);
 	Connect(wxEVT_PAINT,(wxObjectEventFunction)&PerspectivesPanel::OnPaint);
-	//*)
+	//)
+    
+    SetMinSize(wxSize(50, 50));
 }
 
 PerspectivesPanel::~PerspectivesPanel()
@@ -84,20 +87,30 @@ PerspectivesPanel::~PerspectivesPanel()
     wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
     wxPostEvent(GetParent(), eventForceRefresh);
 	//(*Destroy(PerspectivesPanel)
-	//*)
+	//)
 }
 
+void PerspectivesPanel::SetPerspectives(xLightsFrame* frame)
+{
+    _frame = frame;
+    ListBoxPerspectives->Clear();
+    for (auto& p : frame->_perspectives) {
+        if (!p.name.empty()) {
+            ListBoxPerspectives->Append(p.name, &p);
+        }
+    }
+}
 
 void PerspectivesPanel::OnButtonAddPerspectiveClick(wxCommandEvent& event)
 {
     wxString name = wxGetTextFromUser("Enter name of perspective","Perspective Name");
-    if(name.size()>0 && !CheckForDuplicates(name))
+    if (name.size() > 0 && !CheckForDuplicates(name))
     {
-        wxXmlNode* p=new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
-        p->AddAttribute("name", name);
-        p->AddAttribute("settings","");
-        mPerspectivesNode->AddChild(p);
-        ListBoxPerspectives->Append(name,p);
+        xLightsFrame::Perspective p;
+        p.name = name.ToStdString();
+        p.settings = "";
+        _frame->_perspectives.push_back(p);
+        ListBoxPerspectives->Append(name, &_frame->_perspectives.back());
         wxCommandEvent eventPerspectivesChanged(EVT_PERSPECTIVES_CHANGED);
         wxPostEvent(GetParent(), eventPerspectivesChanged);
     }
@@ -109,29 +122,11 @@ void PerspectivesPanel::OnPaint(wxPaintEvent& event)
     wxPostEvent(GetParent(), eventForceRefresh);
 }
 
-void PerspectivesPanel::SetPerspectives(wxXmlNode* perspectivesNode)
-{
-    mPerspectivesNode = perspectivesNode;
-    ListBoxPerspectives->Clear();
-
-    for(wxXmlNode* p=mPerspectivesNode->GetChildren(); p!=NULL; p=p->GetNext() )
-    {
-        if (p->GetName() == "perspective")
-        {
-            wxString name=p->GetAttribute("name");
-            if (!name.IsEmpty())
-            {
-                ListBoxPerspectives->Append(name,p);
-            }
-        }
-    }
-}
-
 void PerspectivesPanel::OnListBoxPerspectivesDClick(wxCommandEvent& event)
 {
     int selection_index = ListBoxPerspectives->GetSelection();
-    wxXmlNode* p = (wxXmlNode*)(ListBoxPerspectives->GetClientData(selection_index));
-    if( p != nullptr )
+    xLightsFrame::Perspective* p = (xLightsFrame::Perspective*)(ListBoxPerspectives->GetClientData(selection_index));
+    if (p != nullptr)
     {
         wxCommandEvent eventLoadPerspective(EVT_LOAD_PERSPECTIVE);
         eventLoadPerspective.SetClientData(p);
@@ -142,21 +137,19 @@ void PerspectivesPanel::OnListBoxPerspectivesDClick(wxCommandEvent& event)
 void PerspectivesPanel::OnButtonRenamePerspectiveClick(wxCommandEvent& event)
 {
     int selection_index = ListBoxPerspectives->GetSelection();
-    if( selection_index >= 0 )
+    if (selection_index >= 0)
     {
-        wxXmlNode* p = (wxXmlNode*)(ListBoxPerspectives->GetClientData(selection_index));
-        if( p != nullptr )
+        xLightsFrame::Perspective* p = (xLightsFrame::Perspective*)(ListBoxPerspectives->GetClientData(selection_index));
+        if (p != nullptr)
         {
             wxString name = wxGetTextFromUser("Enter new name for perspective","Rename Perspective ");
-            if(name.size()>0 && !CheckForDuplicates(name))
+            if (name.size() > 0 && !CheckForDuplicates(name))
             {
-                if (p->GetAttribute("name") == mPerspectivesNode->GetAttribute("current")) {
-                    mPerspectivesNode->DeleteAttribute("current");
-                    mPerspectivesNode->AddAttribute("current",name);
+                if (p->name == _frame->_currentPerspectiveName) {
+                    _frame->_currentPerspectiveName = name.ToStdString();
                 }
-                p->DeleteAttribute("name");
-                p->AddAttribute("name", name);
-                ListBoxPerspectives->SetString(ListBoxPerspectives->GetSelection(),name);
+                p->name = name.ToStdString();
+                ListBoxPerspectives->SetString(selection_index, name);
 
                 wxCommandEvent eventPerspectivesChanged(EVT_PERSPECTIVES_CHANGED);
                 wxPostEvent(GetParent(), eventPerspectivesChanged);
@@ -168,12 +161,15 @@ void PerspectivesPanel::OnButtonRenamePerspectiveClick(wxCommandEvent& event)
 void PerspectivesPanel::OnButtonDeletePerspectiveClick(wxCommandEvent& event)
 {
     int selection_index = ListBoxPerspectives->GetSelection();
-    if( selection_index >= 0 )
+    if (selection_index >= 0)
     {
-        wxXmlNode* p = (wxXmlNode*)(ListBoxPerspectives->GetClientData(selection_index));
-        if( p != nullptr )
+        xLightsFrame::Perspective* p = (xLightsFrame::Perspective*)(ListBoxPerspectives->GetClientData(selection_index));
+        if (p != nullptr)
         {
-            mPerspectivesNode->RemoveChild(p);
+            // Remove from the vector
+            auto& pv = _frame->_perspectives;
+            pv.erase(std::remove_if(pv.begin(), pv.end(),
+                [&](const xLightsFrame::Perspective& ep) { return &ep == p; }), pv.end());
             ListBoxPerspectives->Delete(selection_index);
         }
         wxCommandEvent eventPerspectives(EVT_PERSPECTIVES_CHANGED);
@@ -189,15 +185,10 @@ void PerspectivesPanel::OnButtonSavePerspectiveClick(wxCommandEvent& event)
 
 bool PerspectivesPanel::CheckForDuplicates(const wxString& perspective_name)
 {
-    for(wxXmlNode* p=mPerspectivesNode->GetChildren(); p!=NULL; p=p->GetNext() )
-    {
-        if (p->GetName() == "perspective")
-        {
-            wxString name=p->GetAttribute("name");
-            if (name == perspective_name)
-            {
-                return true;
-            }
+    if (_frame == nullptr) return false;
+    for (const auto& p : _frame->_perspectives) {
+        if (p.name == perspective_name.ToStdString()) {
+            return true;
         }
     }
     return false;

@@ -139,12 +139,12 @@ void ViewObjectPanel::refreshObjectList() {
         if (model != nullptr ) {
             int end_channel = model->GetLastChannel()+1;
             wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager(), nullptr);
-            if( model->GetDisplayAs() != "ModelGroup" ) {
+            if( model->GetDisplayAs() != DisplayAsType::ModelGroup ) {
                 wxString cv = TreeListViewObjects->GetItemText(item, Col_StartChan);
                 wxString startStr = model->GetStartChannelInDisplayFormat();
                 if (cv != startStr) {
                     data->startingChannel = model->GetNumberFromChannelString(model->ModelStartChannel);
-                    if ((model->CouldComputeStartChannel || model->GetDisplayAs() == "SubModel") && model->IsValidStartChannelString())
+                    if ((model->CouldComputeStartChannel || model->GetDisplayAs() == DisplayAsType::SubModel) && model->IsValidStartChannelString())
                     {
                         TreeListViewObjects->SetItemText(item, Col_StartChan, startStr);
                     }
@@ -166,13 +166,13 @@ void ViewObjectPanel::refreshObjectList() {
 }
 
 int ViewObjectPanel::GetObjectTreeIcon(ViewObject* view_object, bool open) {
-    if( view_object->GetDisplayAs() == "ModelGroup" ) {
+    if( view_object->GetDisplayAs() == DisplayAsType::ModelGroup ) {
         return open ? Icon_FolderOpened : Icon_FolderClosed;
     } else {
-        const std::string type = view_object->GetDisplayAs();
-        if (type == "Image") {
+        const DisplayAsType type = view_object->GetDisplayAs();
+        if (type == DisplayAsType::Image) {
             return Icon_Image;
-        } else if( type == "Poly Line" ) {
+        } else if (type == DisplayAsType::PolyLine) {
             return Icon_Poly;
         }
     }
@@ -189,7 +189,7 @@ int ViewObjectPanel::AddObjectToTree(ViewObject *view_object, wxTreeListItem* pa
                                                          GetObjectTreeIcon(view_object, true),
                                                          new ObjectTreeData(view_object, nativeOrder));
 
-    /*if( model->GetDisplayAs() == "ModelGroup" ) {
+    /*if( model->GetDisplayAs() == DisplayAsType::ModelGroup ) {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         ModelGroup *grp = (ModelGroup*)model;
         int i = 0;
@@ -287,7 +287,7 @@ void ViewObjectPanel::UpdateObjectList(bool full_refresh, std::vector<ViewObject
         // add all the object groups
         /*for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
             Model *model = it->second;
-            if (model->GetDisplayAs() == "ModelGroup") {
+            if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 if (currentLayoutGroup == "All Models" || model->GetLayoutGroup() == currentLayoutGroup
                     || (model->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
                     bool expand = (std::find(expanded.begin(), expanded.end(), model->GetName()) != expanded.end());
@@ -299,7 +299,7 @@ void ViewObjectPanel::UpdateObjectList(bool full_refresh, std::vector<ViewObject
         // add all the objects
         for (auto it = objects.begin(); it != objects.end(); ++it) {
             ViewObject *view_object = *it;
-            if (view_object->GetDisplayAs() != "ModelGroup") {
+            if (view_object->GetDisplayAs() != DisplayAsType::ModelGroup) {
                 bool expand = (std::find(expanded.begin(), expanded.end(), view_object->GetName()) != expanded.end());
                 width = std::max(width, AddObjectToTree(view_object, &root, expand, 0));
             }
@@ -336,7 +336,7 @@ void ViewObjectPanel::UpdateObjectsForPreview(const std::string &group, LayoutGr
 
     for (const auto& it : layoutPanel->xlights->AllObjects) {
         ViewObject *view_object = it.second;
-        if (view_object->GetDisplayAs() != "ObjectGroup") {
+        if (view_object->GetDisplayAs() != DisplayAsType::ObjectGroup) {
             if (group == "All Models" ||
                 view_object->GetLayoutGroup() == group ||
                 (view_object->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
@@ -460,7 +460,7 @@ bool ViewObjectPanel::OnSelectionChanged(wxTreeListEvent& event, ViewObject** vi
         ObjectTreeData* data = (ObjectTreeData*)TreeListViewObjects->GetItemData(item);
         *view_object = ((data != nullptr) ? data->GetViewObject() : nullptr);
         if (*view_object != nullptr) {
-            if ((*view_object)->GetDisplayAs() == "ObjectGroup") {
+            if ((*view_object)->GetDisplayAs() == DisplayAsType::ObjectGroup) {
                 mSelectedGroup = item;
                 UpdateObjectList(false, currentLayoutGroup);
                 // model_grp_panel->UpdatePanel(view_object->name);
@@ -541,7 +541,7 @@ void ViewObjectPanel::OnItemContextMenu(wxTreeListEvent& event)
         ObjectTreeData *data = dynamic_cast<ObjectTreeData*>(TreeListViewObjects->GetItemData(item));
         ViewObject* view_object = data != nullptr ? data->GetViewObject() : nullptr;
         if( view_object != nullptr ) {
-            if( view_object->GetDisplayAs() == "ObjectGroup" ) {
+            if( view_object->GetDisplayAs() == DisplayAsType::ObjectGroup ) {
                 mSelectedGroup = item;
             } else {
                 mSelectedGroup = nullptr;
@@ -619,8 +619,8 @@ int ViewObjectPanel::ObjectListComparator::SortElementsFunction(wxTreeListCtrl *
         return 0;
     }
 
-    if (a->GetDisplayAs() == "ObjectGroup") {
-        if (b->GetDisplayAs() == "ObjectGroup") {
+    if (a->GetDisplayAs() == DisplayAsType::ObjectGroup) {
+        if (b->GetDisplayAs() == DisplayAsType::ObjectGroup) {
             return NumberAwareStringCompare(a->name, b->name);
         }
         else {
@@ -630,7 +630,7 @@ int ViewObjectPanel::ObjectListComparator::SortElementsFunction(wxTreeListCtrl *
                 return 1;
         }
     }
-    else if (b->GetDisplayAs() == "ObjectGroup") {
+    else if (b->GetDisplayAs() == DisplayAsType::ObjectGroup) {
         if (ascending)
             return 1;
         else
@@ -678,8 +678,7 @@ void ViewObjectPanel::PreviewObjectAlignWithGround()
     layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if (view_object->GroupSelected || view_object->Selected)
-        {
+        if (view_object->GroupSelected() || view_object->Selected()) {
             view_object->SetBottom(0.0f);
         }
     }
@@ -696,8 +695,7 @@ void ViewObjectPanel::PreviewObjectAlignTops()
     float top = mSelectedObject->GetTop();
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if(view_object->GroupSelected)
-        {
+        if(view_object->GroupSelected()) {
             view_object->SetTop(top);
         }
     }
@@ -714,8 +712,7 @@ void ViewObjectPanel::PreviewObjectAlignBottoms()
     float bottom = mSelectedObject->GetBottom();
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if(view_object->GroupSelected)
-        {
+        if(view_object->GroupSelected()) {
             view_object->SetBottom(bottom);
         }
     }
@@ -732,8 +729,7 @@ void ViewObjectPanel::PreviewObjectAlignLeft()
     float left = mSelectedObject->GetLeft();
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if(view_object->GroupSelected)
-        {
+        if(view_object->GroupSelected()) {
             view_object->SetLeft(left);
         }
     }
@@ -750,8 +746,7 @@ void ViewObjectPanel::PreviewObjectAlignFronts()
     float front = mSelectedObject->GetFront();
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if (view_object->GroupSelected)
-        {
+        if (view_object->GroupSelected()) {
             view_object->SetFront(front);
         }
     }
@@ -768,8 +763,7 @@ void ViewObjectPanel::PreviewObjectAlignBacks()
     float back = mSelectedObject->GetBack();
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if (view_object->GroupSelected)
-        {
+        if (view_object->GroupSelected()) {
             view_object->SetBack(back);
         }
     }
@@ -784,13 +778,11 @@ void ViewObjectPanel::PreviewObjectResize(bool sameWidth, bool sameHeight)
 
     layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
 
-    if (sameWidth)
-    {
+    if (sameWidth) {
         int width = mSelectedObject->GetWidth();
         for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
             ViewObject *view_object = it->second;
-            if (view_object->GroupSelected)
-            {
+            if (view_object->GroupSelected()) {
                 view_object->SetWidth(width);
                 bool z_scale = view_object->GetBaseObjectScreenLocation().GetSupportsZScaling();
                 if (z_scale) {
@@ -800,13 +792,11 @@ void ViewObjectPanel::PreviewObjectResize(bool sameWidth, bool sameHeight)
         }
     }
 
-    if (sameHeight)
-    {
+    if (sameHeight) {
         int height = mSelectedObject->GetHeight();
         for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
             ViewObject *view_object = it->second;
-            if (view_object->GroupSelected)
-            {
+            if (view_object->GroupSelected()) {
                 view_object->SetHeight(height);
             }
         }
@@ -824,8 +814,7 @@ void ViewObjectPanel::PreviewObjectAlignRight()
     float right = mSelectedObject->GetRight();
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if(view_object->GroupSelected)
-        {
+        if(view_object->GroupSelected()) {
             view_object->SetRight(right);
         }
     }
@@ -842,8 +831,7 @@ void ViewObjectPanel::PreviewObjectAlignHCenter()
     float center = mSelectedObject->GetHcenterPos();
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if(view_object->GroupSelected)
-        {
+        if(view_object->GroupSelected()) {
             view_object->SetHcenterPos(center);
         }
     }
@@ -860,8 +848,7 @@ void ViewObjectPanel::PreviewObjectAlignVCenter()
     float center = mSelectedObject->GetVcenterPos();
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if(view_object->GroupSelected)
-        {
+        if(view_object->GroupSelected()) {
             view_object->SetVcenterPos(center);
         }
     }
@@ -879,7 +866,7 @@ void ViewObjectPanel::PreviewObjectAlignDCenter()
     float center = mSelectedObject->GetDcenterPos();
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject* view_object = it->second;
-        if (view_object->GroupSelected) {
+        if (view_object->GroupSelected()) {
             view_object->SetDcenterPos(center);
         }
     }
@@ -922,8 +909,7 @@ void ViewObjectPanel::PreviewObjectHDistribute()
 
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if (view_object->GroupSelected || view_object->Selected)
-        {
+        if (view_object->GroupSelected() || view_object->Selected()) {
             count++;
             float x = view_object->GetHcenterPos();
 
@@ -973,8 +959,7 @@ void ViewObjectPanel::PreviewObjectVDistribute()
 
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject *view_object = it->second;
-        if (view_object->GroupSelected || view_object->Selected)
-        {
+        if (view_object->GroupSelected() || view_object->Selected()) {
             count++;
             float y = view_object->GetVcenterPos();
 
@@ -1023,7 +1008,7 @@ void ViewObjectPanel::PreviewObjectDDistribute()
 
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject* view_object = it->second;
-        if (view_object->GroupSelected || view_object->Selected) {
+        if (view_object->GroupSelected() || view_object->Selected()) {
             count++;
             float z = view_object->GetDcenterPos();
 
@@ -1069,7 +1054,7 @@ void ViewObjectPanel::PreviewObjectFlipV() {
 
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject* view_object = it->second;
-        if (view_object->Selected) {
+        if (view_object->Selected()) {
             view_object->FlipVertical();
         }
     }
@@ -1087,7 +1072,7 @@ void ViewObjectPanel::PreviewObjectFlipH() {
 
     for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
         ViewObject* view_object = it->second;
-        if (view_object->Selected) {
+        if (view_object->Selected()) {
             view_object->FlipHorizontal();
         }
     }

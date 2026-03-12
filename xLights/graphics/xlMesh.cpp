@@ -141,6 +141,28 @@ std::vector<std::string> xlMesh::GetMaterialFilenamesFromOBJ(const std::string &
     return ret;
 }
 
+std::vector<std::string> xlMesh::GetTextureFilenamesFromMTL(const std::string& mtl, bool strict) {
+    std::vector<std::string> ret;
+
+    std::ifstream input(mtl);
+    for (std::string line; std::getline(input, line);) {
+        if (line.rfind("map_Kd ", 0) == 0) {
+            line = line.substr(7);
+            auto idx = line.find(' ');
+            while (strict && idx != std::string::npos) {
+                std::string f = line.substr(0, idx);
+                ret.push_back(f);
+                line = line.substr(idx + 1);
+                idx = line.find(' ');
+            }
+            if (line != "") {
+                ret.push_back(line);
+            }
+        }
+    }
+    return ret;
+}
+
 void xlMesh::FixMaterialFilenamesInOBJ(const std::string &obj) {
     std::filesystem::copy(obj, obj + ".bak");
     

@@ -21,7 +21,7 @@ class PreviewPane;
 class LayoutGroup : public wxObject
 {
     public:
-        LayoutGroup(const std::string & name, xLightsFrame* xl, wxXmlNode *node);
+        LayoutGroup(const std::string & name, xLightsFrame* xl);
         virtual ~LayoutGroup();
 
         const std::string &GetName() const {return mName;}
@@ -31,18 +31,21 @@ class LayoutGroup : public wxObject
         const wxString &GetBackgroundImage() const { return mBackgroundImage;}
 
         void SetBackgroundScaled(bool scaled);
-        bool GetBackgroundScaled() {return mScaleBackgroundImage;}
+        bool GetBackgroundScaled() const {return mScaleBackgroundImage;}
 
         void SetBackgroundBrightness(int i, int a);
-        int GetBackgroundBrightness() {return mBackgroundBrightness;}
-        int GetBackgroundAlpha() {return mBackgroundAlpha;}
+        int GetBackgroundBrightness() const {return mBackgroundBrightness;}
+        int GetBackgroundAlpha() const {return mBackgroundAlpha;}
 
         void SetPreviewPosition(wxPoint point);
         void SetPreviewSize(wxSize size_);
+        int GetPosX() const { return mPosX; }
+        int GetPosY() const { return mPosY; }
+        int GetPaneWidth() const { return mPaneWidth; }
+        int GetPaneHeight() const { return mPaneHeight; }
         void ResetPositions();
 
         void SetFromXml(wxXmlNode* LayoutGroupNode);
-        wxXmlNode* GetLayoutGroupXml() const;
 
         void SetModels(std::vector<Model*> &models);
         std::vector<Model*> &GetModels() {
@@ -59,9 +62,6 @@ class LayoutGroup : public wxObject
         wxMenuItem* GetMenuItem() {return mMenuItemPreview;}
         void ShowPreview(bool show);
         const long GetMenuId() {return id_menu_item;}
-
-    protected:
-        wxXmlNode* LayoutGroupXml;
 
     private:
         std::string mName;

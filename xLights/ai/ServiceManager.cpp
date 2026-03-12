@@ -1,6 +1,7 @@
 #include "ServiceManager.h"
 #include "aiBase.h"
 #include "chatGPT.h"
+#include "gemini.h"
 #include "ollama.h"
 
 #ifdef __WXOSX__
@@ -28,6 +29,7 @@ ServiceManager::ServiceManager(xLightsFrame* xl)
 #endif
     m_services.push_back(std::make_unique<chatGPT>(this));
     m_services.push_back(std::make_unique<ollama>(this));
+    m_services.push_back(std::make_unique<gemini>(this));
     for (auto& service : m_services) {
         service->LoadSettings();
     }
@@ -58,6 +60,17 @@ aiBase* ServiceManager::findService(aiType::TYPE serviceType) {
         }
     }
     return nullptr;
+}
+std::vector<aiBase*> ServiceManager::findServices(aiType::TYPE serviceType) {
+    std::vector<aiBase*> ret;
+    for (auto& service : m_services) {
+        for (auto &t : service->GetTypes()) {
+            if (t == serviceType && service->IsEnabled()) {
+                ret.push_back(service.get());
+            }
+        }
+    }
+    return ret;
 }
 
 void ServiceManager::setServiceSetting(std::string const& key, int value) {
@@ -121,11 +134,11 @@ void ServiceManager::setSecretServiceToken(std::string const& service, std::stri
     }
 }
 #else
-std::string ServiceManager::getSecretServiceToken(std::string const& service) {
+std::string ServiceManager::getSecretServiceToken(std::string const& service) const {
     return getServiceSetting(service + "_token", std::string());
 }
 
-void ServiceManager::setSecretServiceToken(std::string const& service, std::string const& token){
+void ServiceManager::setSecretServiceToken(std::string const& service, std::string const& token) {
     setServiceSetting(service + "_token", token);
 }
 #endif

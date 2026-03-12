@@ -123,6 +123,7 @@ public:
     void AddNewTimingSection(const std::string& interval_name, xLightsFrame* xLightsParent, std::vector<int>& starts,
                              std::vector<int>& ends, std::vector<std::string>& labels);
     void AddFixedTimingSection(const std::string& interval_name, xLightsFrame* xLightsParent);
+    void AddFixedTimingSection(const std::string& interval_name, int interval_ms, xLightsFrame* xLightsParent);
     void AddMetronomeLabelTimingSection(const std::string& interval_name, int interval, const std::vector<std::string>& tags,  xLightsFrame* xLightsParent, int minForRandomRange = -1, bool randomTags = false);
     void DeleteTimingSection(const std::string& section);
     void SetTimingSectionName(const std::string& section, const std::string& name);
@@ -192,8 +193,6 @@ public:
     wxXmlNode* GetPalettesNode() const;
 
     // static methods
-    static void FixVersionDifferences(const wxString& filename);
-    static void FixEffectPresets(wxXmlNode* effects_node);
     static bool IsXmlSequence(wxFileName& fname);
 
 private:
@@ -216,7 +215,6 @@ private:
 
     void CreateNew();
     bool LoadSequence(const wxString& ShowDir, bool ignore_audio, const wxFileName &realFilename);
-    bool LoadV3Sequence();
     bool Save();
     bool SaveCopy() const;
     void AddTimingDisplayElement(const wxString& name, const wxString& visible, const wxString& active, const wxString &subType = "");
@@ -245,6 +243,7 @@ private:
     void SetNodeContent(wxXmlNode* node, const wxString& content);
     void CleanUpEffects() const;
     void UpdateNextId(const wxString& value);
+    void UpdateMediaFileInXML(const wxString& filename);
 
     // void FixVersionDifferences();
 

@@ -249,18 +249,15 @@ wxString RenderableEffect::GetEffectString() {
 
 bool RenderableEffect::SupportsRenderCache(const SettingsMap& settings) const
 {
-    for (const auto& it : settings)
-    {
+    for (const auto& it : settings.keys()) {
         // we want to cache blur because of compute cost
-        if (Contains(it.first, "SLIDER_Blur") ||
-            Contains(it.first, "VALUECURVE_Blur"))
-        {
+        if (Contains(it, "SLIDER_Blur") ||
+            Contains(it, "VALUECURVE_Blur")) {
             return true;
         }
         
         // we want to cache rotations because of compute cost
-        if (Contains(it.first, "VALUECURVE_Rotations"))
-        {
+        if (Contains(it, "VALUECURVE_Rotations")) {
             return true;
         }
     }
@@ -301,23 +298,22 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
         if (IsVersionOlder("2018.50", version))
         {
             // Try to fix value curve issues
-            for (auto s : sm)
-            {
-                wxString f(s.first);
-                if (f.Contains("VALUECURVE") && !f.Contains("RV=TRUE"))
-                {
-                    ValueCurve vc(s.second);
-                    sm[s.first] = vc.Serialise();
+            for (auto s : sm.keys()) {
+                wxString f(s);
+                std::string vs = sm[s];
+                wxString v(vs);
+                if (f.Contains("VALUECURVE") && !f.Contains("RV=TRUE")) {
+                    ValueCurve vc(v);
+                    sm[s] = vc.Serialise();
                 }
 
-                wxString v(s.second);
                 if (v.Contains("ID_VALUECURVE_Blur"))
                 {
                     ValueCurve vc;
                     vc.SetLimits(BLUR_MIN, BLUR_MAX);
                     vc.SetDivisor(1);
-                    vc.Deserialise(s.second);
-                    sm[s.first] = vc.Serialise();
+                    vc.Deserialise(vs);
+                    sm[s] = vc.Serialise();
                     wxASSERT(vc.IsRealValue());
                 }
                 else if (v.Contains("ID_VALUECURVE_Fan_Blade_Angle"))
@@ -325,8 +321,8 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
                     ValueCurve vc;
                     vc.SetLimits(FAN_BLADEANGLE_MIN, FAN_BLADEANGLE_MAX);
                     vc.SetDivisor(1);
-                    vc.Deserialise(s.second);
-                    sm[s.first] = vc.Serialise();
+                    vc.Deserialise(vs);
+                    sm[s] = vc.Serialise();
                     wxASSERT(vc.IsRealValue());
                 }
                 else if (v.Contains("ID_VALUECURVE_Spirals_Rotation"))
@@ -334,40 +330,40 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
                     ValueCurve vc;
                     vc.SetLimits(SPIRALS_ROTATION_MIN, SPIRALS_ROTATION_MAX);
                     vc.SetDivisor(SPIRALS_ROTATION_DIVISOR);
-                    vc.Deserialise(s.second);
-                    sm[s.first] = vc.Serialise();
+                    vc.Deserialise(vs);
+                    sm[s] = vc.Serialise();
                     wxASSERT(vc.IsRealValue());
                 }
                 else if (v.Contains("ID_VALUECURVE_Fan_Start_Angle"))
                 {
                     ValueCurve vc;
                     vc.SetLimits(FAN_STARTANGLE_MIN, FAN_STARTANGLE_MAX);
-                    vc.Deserialise(s.second);
-                    sm[s.first] = vc.Serialise();
+                    vc.Deserialise(vs);
+                    sm[s] = vc.Serialise();
                     wxASSERT(vc.IsRealValue());
                 }
                 else if (v.Contains("ID_VALUECURVE_PinwheelXC"))
                 {
                     ValueCurve vc;
                     vc.SetLimits(PINWHEEL_X_MIN, PINWHEEL_X_MAX);
-                    vc.Deserialise(s.second);
-                    sm[s.first] = vc.Serialise();
+                    vc.Deserialise(vs);
+                    sm[s] = vc.Serialise();
                     wxASSERT(vc.IsRealValue());
                 }
                 else if (v.Contains("ID_VALUECURVE_PinwheelYC"))
                 {
                     ValueCurve vc;
                     vc.SetLimits(PINWHEEL_Y_MIN, PINWHEEL_Y_MAX);
-                    vc.Deserialise(s.second);
-                    sm[s.first] = vc.Serialise();
+                    vc.Deserialise(vs);
+                    sm[s] = vc.Serialise();
                     wxASSERT(vc.IsRealValue());
                 }
                 else if (v.Contains("ID_VALUECURVE_Spirals_Count"))
                 {
                     ValueCurve vc;
                     vc.SetLimits(SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX);
-                    vc.Deserialise(s.second);
-                    sm[s.first] = vc.Serialise();
+                    vc.Deserialise(vs);
+                    sm[s] = vc.Serialise();
                     wxASSERT(vc.IsRealValue());
                 }
             }

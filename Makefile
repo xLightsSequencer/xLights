@@ -25,8 +25,8 @@ SUDO		= `which sudo`
 
 SUBDIRS         = xLights xSchedule xCapture xFade xScanner xSchedule/xSMSDaemon xSchedule/RemoteFalcon
 
-WXWIDGETS_TAG=xlights_2025.13
-ISPC_VERSION=1.28.0
+WXWIDGETS_TAG=xlights_2026.02
+ISPC_VERSION=1.30.0
 ISPC_ARCH=$(shell uname -m)
 
 ifeq '$(ISPC_ARCH)' 'aarch64'
@@ -77,7 +77,7 @@ log4cpp: FORCE
 	@printf "Checking log4cpp\n"
 	@if test "`log4cpp-config --version`" != "1.1"; \
 		then if test ! -d log4cpp; \
-			then echo Downloading log4cpp; wget --no-verbose -c https://nchc.dl.sourceforge.net/project/log4cpp/log4cpp-1.1.x%20%28new%29/log4cpp-1.1/log4cpp-1.1.4.tar.gz; \
+			then echo Downloading log4cpp; wget --no-verbose -c https://download.sourceforge.net/project/log4cpp/log4cpp-1.1.x%20%28new%29/log4cpp-1.1/log4cpp-1.1.4.tar.gz; \
 			tar xfz log4cpp-1.1.4.tar.gz ;\
 		fi; \
 		cd log4cpp; \
@@ -197,6 +197,7 @@ xLights/xLights.cbp.mak: xLights/xLights.cbp
 		| sed \
 			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
 			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
+			-e "s/^INC_LINUX_\(.*\)/INC_LINUX_\1 -I ..\/wxWidgets-$(WXWIDGETS_TAG)\/3rdparty/" \
 			-e "s#all: linux_debug linux_release#include ../build_scripts/linux/*.mak\n\nall: linux_debug linux_release#" \
 		> xLights/xLights.cbp.mak
 

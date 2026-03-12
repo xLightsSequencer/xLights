@@ -14,6 +14,10 @@
 #include "../../xlGridCanvas.h"
 #include "../../sequencer/Effect.h"
 
+class SequenceMedia;
+class SequenceElements;
+class xLightsFrame;
+
 wxDECLARE_EVENT(EVT_EFFECT_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMAGE_FILE_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMAGE_SIZE, wxCommandEvent);
@@ -37,6 +41,8 @@ class xlGridCanvasPictures : public xlGridCanvas
 
         virtual void SetEffect(Effect* effect_);
         void SetMessageParent(wxWindow* parent) { mMessageParent = parent; }
+        void SetSequenceMedia(SequenceMedia* media) { mSequenceMedia = media; }
+        void SetXLightsFrame(xLightsFrame* frame, SequenceElements* elements) { mXLFrame = frame; mSequenceElements = elements; }
         void LoadImage();
         void SaveImage();
         void SaveAsImage();
@@ -75,6 +81,7 @@ class xlGridCanvasPictures : public xlGridCanvas
         void ProcessNewImage();
         wxString GetImageFilename();
         void SaveImageToFile();
+        void SaveImageToMedia();
         void UpdateRenderedImage();
         void CalcSelection();
         void ProcessHoverDrag(int column, int row);
@@ -102,6 +109,9 @@ class xlGridCanvasPictures : public xlGridCanvas
         PaintMode mPaintMode;
         xlColor* mSelectionColor;
         wxWindow* mMessageParent;
+        SequenceMedia* mSequenceMedia = nullptr;
+        SequenceElements* mSequenceElements = nullptr;
+        xLightsFrame* mXLFrame = nullptr;
 
         int mDragStartX;
         int mDragStartY;

@@ -58,7 +58,7 @@ public:
         data["E_SLIDER_Shimmer_Blinks_Per_Row"] = "";
 
         data["E_NOTEBOOK_Text1"] = "";
-        data["E_TEXTCTRL_Pictures_Filename"] = "E_FILEPICKER_Pictures_Filename";
+        data["E_FILEPICKER_Pictures_Filename"] = "E_TEXTCTRL_Pictures_Filename";
         data["E_TEXTCTRL_Text_Font1"] = "E_FONTPICKER_Text_Font1";
         data["E_TEXTCTRL_Text_Font2"] = "E_FONTPICKER_Text_Font2";
         data["E_TEXTCTRL_Text_Font3"] = "E_FONTPICKER_Text_Font3";
@@ -86,10 +86,11 @@ public:
     }
 private:
     std::unordered_map<std::string, std::string> data;
-} Remaps;
+};
 
 void SettingsMap::RemapChangedSettingKey(std::string &n,  std::string &value)
 {
+    static const ControlRenameMap Remaps;
     Remaps.map(n);
 }
 
@@ -706,22 +707,19 @@ void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
 
-    for (std::map<std::string,std::string>::const_iterator it=mSettings.begin(); it!=mSettings.end(); ++it)
-    {
-        std::string name = it->first;
-        if (stripPfx && name[1] == '_')
-        {
+    for (auto &it : mSettings) {
+        std::string name = it.first;
+        if (stripPfx && name[1] == '_') {
             name = name.substr(2);
         }
-        target[name] = it->second;
+        target[name] = it.second;
     }
-    for (std::map<std::string,std::string>::const_iterator it=mPaletteMap.begin(); it!=mPaletteMap.end(); ++it)
-    {
-        std::string name = it->first;
-        if (stripPfx && name[1] == '_'  && (name[2] == 'S' || name[2] == 'C' || name[2] == 'V')) //only need the slider, checkbox and value curve entries
-        {
+    for (auto &it : mPaletteMap) {
+        std::string name = it.first;
+        //only need the slider, checkbox and value curve entries
+        if (stripPfx && name[1] == '_'  && (name[2] == 'S' || name[2] == 'C' || name[2] == 'V')) {
             name = name.substr(2);
-            target[name] = it->second;
+            target[name] = it.second;
         }
     }
 }

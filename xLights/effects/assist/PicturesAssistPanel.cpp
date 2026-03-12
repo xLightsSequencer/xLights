@@ -18,6 +18,7 @@
 #include <wx/regex.h>
 #include <wx/stdpaths.h>
 #include <wx/txtstrm.h>
+#include <wx/wfstream.h>
 
 #include "PicturesAssistPanel.h"
 #include "../../xlColorPicker.h"

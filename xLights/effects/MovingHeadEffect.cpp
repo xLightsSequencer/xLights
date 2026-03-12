@@ -22,21 +22,21 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
+#include "../models/DMX/DmxDimmerAbility.h"
 #include "../models/DMX/DmxMovingHeadAdv.h"
 #include "../models/DMX/DmxMovingHead.h"
 #include "../models/DMX/DmxMovingHeadComm.h"
 #include "../models/DMX/DmxMotor.h"
+#include "../models/DMX/DmxShutterAbility.h"
 #include "../models/ModelGroup.h"
 #include "../models/DMX/DmxColorAbilityWheel.h"
 
 MovingHeadEffect::MovingHeadEffect(int id) : RenderableEffect(id, "Moving Head", moving_head_16, moving_head_24, moving_head_32, moving_head_48, moving_head_64)
 {
-    //ctor
 }
 
 MovingHeadEffect::~MovingHeadEffect()
 {
-    //dtor
 }
 
 xlEffectPanel *MovingHeadEffect::CreatePanel(wxWindow *parent) {
@@ -88,6 +88,16 @@ void MovingHeadEffect::SetDefaultParameters() {
     dp->CheckBoxAutoShutter->SetValue(false);
 
     dp->CheckAllFixtures();
+
+    SetTextValue(dp->TextCtrl_MH1_Settings, xlEMPTY_STRING);
+    SetTextValue(dp->TextCtrl_MH2_Settings, xlEMPTY_STRING);
+    SetTextValue(dp->TextCtrl_MH3_Settings, xlEMPTY_STRING);
+    SetTextValue(dp->TextCtrl_MH4_Settings, xlEMPTY_STRING);
+    SetTextValue(dp->TextCtrl_MH5_Settings, xlEMPTY_STRING);
+    SetTextValue(dp->TextCtrl_MH6_Settings, xlEMPTY_STRING);
+    SetTextValue(dp->TextCtrl_MH7_Settings, xlEMPTY_STRING);
+    SetTextValue(dp->TextCtrl_MH8_Settings, xlEMPTY_STRING);
+
     dp->UpdateStatusPanel();
 }
 
@@ -103,8 +113,8 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     const std::string& string_type = model_info->GetStringType();
 
     if (StartsWith(string_type, "Single Color")) {
-        if( model_info->GetDisplayAs() == "DmxMovingHeadAdv" ||
-            model_info->GetDisplayAs() == "DmxMovingHead") {
+        if( model_info->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv ||
+            model_info->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
             MovingHeadPanel *p = (MovingHeadPanel*)panel;
             if (p == nullptr) {
                 return;
@@ -260,8 +270,8 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
                 WriteCmdToPixel(mhead->GetTiltMotor(), tilt_cmd, buffer);
             }
 
-            if (has_dimmers && mhead->HasDimmerChannel()) {
-                uint32_t dimmer_channel = mhead->GetMHDimmerChannel();
+            if (has_dimmers && mhead->GetDimmerAbility()->GetDimmerChannel() > 0) {
+                uint32_t dimmer_channel = mhead->GetDimmerAbility()->GetDimmerChannel();
                 CalculateDimmer(eff_pos, dimmers, dimmer_channel, buffer);
             }
 
@@ -272,9 +282,9 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
                         if( has_color_wheel ) {
                             xlColor c {GetWheelColor(eff_pos, colors)};
                             buffer.SetPixel(0, 0, c);
-                            auto shutter_chan = mhead->GetShutterChannel();
+                            auto shutter_chan = mhead->GetShutterAbility()->GetShutterChannel();
                             if (0 != shutter_chan && auto_shutter) {
-                                auto shutter_on = mhead->GetShutterOnValue();
+                                auto shutter_on = mhead->GetShutterAbility()->GetShutterOnValue();
                                 CalculateColorWheelShutter(mh_color, eff_pos, colors, shutter_chan, shutter_on, buffer);
                             }
                         } else if (has_color) {
@@ -542,7 +552,7 @@ void MovingHeadEffect::CalculateColorWheelShutter(DmxColorAbility* mh_color, dou
     //vc.SaveXVC(xLightsFrame::CurrentDir.ToStdString() + "//test.xvc");//this changes the point locations for some reason, do after
 }
 
-void MovingHeadEffect::WriteCmdToPixel(DmxMotorBase* motor, int value, RenderBuffer &buffer)
+void MovingHeadEffect::WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer &buffer)
 {
     xlColor lsb_c = xlBLACK;
     xlColor msb_c = xlBLACK;
@@ -570,17 +580,17 @@ std::list<const Model*> MovingHeadEffect::GetModels(const Model* model)
 {
     std::list<const Model*> model_list;
     if (model != nullptr) {
-        if (model->GetDisplayAs() == "ModelGroup") {
+        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
             auto mg = dynamic_cast<const ModelGroup*>(model);
             if (mg != nullptr) {
                 for (const auto& it : mg->GetFlatModels(true, false)) {
-                    if (it->GetDisplayAs() != "ModelGroup" && it->GetDisplayAs() != "SubModel") {
+                    if (it->GetDisplayAs() != DisplayAsType::ModelGroup && it->GetDisplayAs() != DisplayAsType::SubModel) {
                         model_list.push_back(it);
                     }
                 }
             }
         }
-        else if (model->GetDisplayAs() == "SubModel") {
+        else if (model->GetDisplayAs() == DisplayAsType::SubModel) {
             // don't add SubModels
         }
         else {
@@ -614,7 +624,7 @@ void MovingHeadEffect::SetPanelStatus(Model *cls) {
     auto models = GetModels(cls);
     bool single_model = models.size() == 1;
     for (const auto& it : models) {
-        if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
             DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
             wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", mhead->GetFixtureVal());
             wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
@@ -622,7 +632,7 @@ void MovingHeadEffect::SetPanelStatus(Model *cls) {
                 checkbox->Enable(true);
                 if( single_model ) {
                     checkbox->SetValue(true);
-               }
+                }
             }
        }
     }

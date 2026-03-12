@@ -89,6 +89,7 @@ SearchPanel::SearchPanel(SequenceElements* elements, MainSequencer* sequencer, w
     mainSequencer = sequencer;
 
     ListCtrl_Results->AppendColumn("", wxLIST_FORMAT_LEFT, 1000);
+    SetMinSize(wxSize(50, 50));
 }
 
 SearchPanel::~SearchPanel()

@@ -178,7 +178,7 @@ void ModelScreenLocation::SetRenderSize(float NewWi, float NewHt, float NewDp) {
 }
 
 // This function is used when the render size needs to be adjusted after a mesh is loaded during model creation
-void ModelScreenLocation::AdjustRenderSize(float NewWi, float NewHt, float NewDp, wxXmlNode* node) {
+void ModelScreenLocation::AdjustRenderSize(float NewWi, float NewHt, float NewDp) {
     if ((NewWi != RenderWi || NewHt != RenderHt || NewDp != RenderDp) && NewWi != 1.0f) {
         RenderHt = NewHt;
         RenderWi = NewWi;
@@ -186,12 +186,6 @@ void ModelScreenLocation::AdjustRenderSize(float NewWi, float NewHt, float NewDp
         scalex = scaley = scalez = 1.0f;
         saved_scale = glm::vec3(scalex, scaley, scalez);
         saved_size = glm::vec3(RenderWi, RenderHt, RenderWi);
-        node->DeleteAttribute("ScaleX");
-        node->DeleteAttribute("ScaleY");
-        node->DeleteAttribute("ScaleZ");
-        node->AddAttribute("ScaleX", wxString::Format("%6.4f", scalex));
-        node->AddAttribute("ScaleY", wxString::Format("%6.4f", scaley));
-        node->AddAttribute("ScaleZ", wxString::Format("%6.4f", scalez));
     }
     else {
         RenderHt = NewHt;
@@ -749,7 +743,7 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
             drag_delta = intersect - saved_intersect;
         }
     } else {
-        logger_base.warn("MoveHandle3D: Intersect not found!");
+        logger_base.warn("ModelScreenLocation::DragHandle: Intersect not found!");
     }
     return found;
 }
@@ -902,15 +896,15 @@ void ModelScreenLocation::UpdateBoundingBox(float width, float height, float dep
 
     // Set minimum bounding rectangle
     if (aabb_max.y - aabb_min.y < 4) {
-        aabb_max.y += 5;
-        aabb_min.y -= 5;
+        aabb_max.y += BOUNDING_RECT_OFFSET;
+        aabb_min.y -= BOUNDING_RECT_OFFSET;
     }
     if (aabb_max.x - aabb_min.x < 4) {
-        aabb_max.x += 5;
-        aabb_min.x -= 5;
+        aabb_max.x += BOUNDING_RECT_OFFSET;
+        aabb_min.x -= BOUNDING_RECT_OFFSET;
     }
     if (aabb_max.z - aabb_min.z < 4) {
-        aabb_max.z += 5;
-        aabb_min.z -= 5;
+        aabb_max.z += BOUNDING_RECT_OFFSET;
+        aabb_min.z -= BOUNDING_RECT_OFFSET;
     }
 }

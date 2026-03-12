@@ -425,9 +425,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     kbf.SetFullName(XLIGHTS_KEYBINDING_FILE);
     mainSequencer->keyBindings.Load(kbf);
 
-
-    LoadEffectsFile();
-
+    // Merge controllers from base show folder before loading effects file
+    // (model/view object XML merging now happens inside LoadEffectsFile before LoadModels)
     if (_outputManager.IsAutoUpdateFromBaseShowDir() && _outputManager.GetBaseShowDir() != "") {
         logger_base.debug("Updating from base folder on show folder open.");
         if (!ObtainAccessToURL(_outputManager.GetBaseShowDir(), true)) {
@@ -435,15 +434,26 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
             PromptForDirectorySelection("Reselect Base Show Directory", dstr);
             _outputManager.SetBaseShowDir(dstr);
         }
-        UpdateFromBaseShowFolder(false);
+        if (_outputManager.MergeFromBase(false)) {
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SetDir-controller");
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SetDir-controller");
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "SetDir-controller");
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SetDir-controller");
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SetDir-controller");
+        }
     }
 
+    LoadEffectsFile();
+
     logger_base.debug("Get start channels right.");
+    // make sure these won't refire
+    _outputModelManager.RemoveWork("ASAP", OutputModelManager::WORK_CALCULATE_START_CHANNELS);
+    _outputModelManager.RemoveWork("ASAP", OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG);
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SetDir");
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "SetDir");
     logger_base.debug("Start channels done.");
 
-    if (mBackupOnLaunch && !_renderMode) {
+    if (mBackupOnLaunch && !_renderMode && !CurrentDir.StartsWith(wxFileName::GetTempDir())) {
         logger_base.debug("Backing up show directory before we do anything this session in this folder : %s.", (const char *)CurrentDir.c_str());
         DoBackup(false, true);
         logger_base.debug("Backup completed.");
@@ -479,7 +489,7 @@ void xLightsFrame::OnButton_ChangeTemporarilyAgainClick(wxCommandEvent& event)
 }
 
 void xLightsFrame::OnButton_OpenBaseShowDirClick(wxCommandEvent& event) {
-    displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
+    displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr);
     layoutPanel->ClearUndo();
     SetDir(_outputManager.GetBaseShowDir(), false);
 }
@@ -490,7 +500,7 @@ void xLightsFrame::OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event)
         PromptForShowDirectory(false);
     }
     else {
-        displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
+        displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr);
         layoutPanel->ClearUndo();
         wxASSERT(_permanentShowFolder != "");
         SetDir(_permanentShowFolder, true);
@@ -547,7 +557,7 @@ bool xLightsFrame::PromptForShowDirectory(bool permanent, const std::string &def
         }
 
         if (dirOK) {
-            displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
+            displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr);
             layoutPanel->ClearUndo();
             return SetDir(newdir, permanent);
         }
@@ -627,7 +637,7 @@ void xLightsFrame::UpdateChannelNames() {
     // KW left as some of the conversions seem to use this
     for (const auto& it : AllModels) {
         Model *model = it.second;
-        if (model->GetDisplayAs() != "ModelGroup") {
+        if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
             auto NodeCount = model->GetNodeCount();
             auto ChanPerNode = model->GetChanCountPerNode();
             wxString FormatSpec = "Ch %d: " + model->name + " #%d";
@@ -1154,7 +1164,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         if (mm != nullptr) {
             //abort any render as it might crash if the model changes
             AbortRender();
-            mm->ReloadModelXml();
+            mm->ReloadModel();
             //must unselect any effect as it might now be pointing at an invalid model/submodel/strand
             UnselectEffect();
         }

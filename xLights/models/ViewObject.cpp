@@ -16,7 +16,6 @@
 #include "Model.h"
 
 ViewObject::ViewObject(const ObjectManager &manager)
-: only_3d(true)
 {
 }
 
@@ -28,16 +27,10 @@ void ViewObject::AddSizeLocationProperties(wxPropertyGridInterface *grid) {
     GetObjectScreenLocation().AddSizeLocationProperties(grid);
 }
 
-void ViewObject::SetFromXml(wxXmlNode* ObjectNode, bool zeroBased) {
-
-    ModelXml=ObjectNode;
-
-    name=ObjectNode->GetAttribute("name").ToStdString();
-    DisplayAs=ObjectNode->GetAttribute("DisplayAs").ToStdString();
+void ViewObject::Setup() {
     layout_group = "Default"; // objects in 3d can only belong to default as only default is 3d
-    _active = ObjectNode->GetAttribute("Active", "1") == "1";
 
-    GetObjectScreenLocation().Read(ObjectNode);
+    GetObjectScreenLocation().Init();
 
     InitModel();
 
@@ -49,7 +42,7 @@ void ViewObject::AddProperties(wxPropertyGridInterface *grid, OutputManager* out
     //LAYOUT_GROUPS = Model::GetLayoutGroups(modelManager);
 
     wxPGProperty *p;
-    grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
+    grid->Append(new wxPropertyCategory(DisplayAsTypeToString(DisplayAs), "ModelType"));
     p = grid->Append(new wxBoolProperty("Active", "Active", IsActive()));
     p->SetAttribute("UseCheckbox", true);
 
@@ -77,15 +70,8 @@ int ViewObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
     }
 
     int i = GetObjectScreenLocation().OnPropertyGridChange(grid, event);
-    GetObjectScreenLocation().Write(ModelXml);
+
     AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ViewObject::OnPropertyGridChange");
 
     return i;
-}
-
-void ViewObject::UpdateXmlWithScale() {
-    GetObjectScreenLocation().Write(ModelXml);
-    if (ModelXml->HasAttribute("versionNumber"))
-        ModelXml->DeleteAttribute("versionNumber");
-    ModelXml->AddAttribute("versionNumber", CUR_MODEL_POS_VER);
 }

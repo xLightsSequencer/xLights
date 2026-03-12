@@ -76,6 +76,7 @@ TopEffectsPanel::TopEffectsPanel(wxWindow* parent,wxWindowID id,const wxPoint& p
 	//*)
 
     BitmapButtonSelectedEffect->SetBitmap(wxBitmap(Off));
+    SetMinSize(wxSize(50, 50));
 }
 
 TopEffectsPanel::~TopEffectsPanel()

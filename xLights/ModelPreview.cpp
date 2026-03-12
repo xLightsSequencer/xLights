@@ -369,14 +369,14 @@ const std::vector<Model*> &ModelPreview::GetModels() {
             }
         } else if (currentLayoutGroup == "All Models") {
             for (auto a : xlights->AllModels) {
-                if (a.second->GetDisplayAs() != "ModelGroup") {
+                if (a.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
                     tmpModelList.push_back(a.second);
                 }
             }
         } else if (currentLayoutGroup == "Unassigned") {
             for (auto a : xlights->AllModels) {
                 if (a.second->GetLayoutGroup() == "Unassigned") {
-                    if (a.second->GetDisplayAs() != "ModelGroup") {
+                    if (a.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
                         tmpModelList.push_back(a.second);
                     }
                 }
@@ -414,7 +414,7 @@ bool ModelPreview::ValidateModels(const std::vector<Model*>models, const ModelMa
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     for (const auto& it : models) {
-        if (it->GetDisplayAs() != "SubModel") {
+        if (it->GetDisplayAs() != DisplayAsType::SubModel) {
             bool found = false;
             for (auto it2 : mm) {
                 if (it2.second == it) {
@@ -557,7 +557,7 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
             }
 
             const xlColor* color = defColor;
-            if (m->Selected || m->GroupSelected) {
+            if (m->Selected() || m->GroupSelected()) {
                 color = selColor;
             }
             else if (m->Overlapping && isModelSelected) {
@@ -567,7 +567,7 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                 color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
             }
 
-            if (m->GetDisplayAs() == "SubModel" && !m->GroupSelected && !m->Selected) {
+            if (m->GetDisplayAs() == DisplayAsType::SubModel && !m->GroupSelected() && !m->Selected()) {
                 // we dont display submodels if they are not selected
             } else {
                 float bounds[6];
@@ -594,7 +594,7 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                 if (allowSelected) {
                     color = selColor;
                     for (auto& sm : m->GetSubModels()) {
-                        if (sm->GroupSelected || sm->Selected) {
+                        if (sm->GroupSelected() || sm->Selected()) {
                             float bounds[6];
                             bounds[0] = bounds[1] = bounds[2] = 999999;
                             bounds[3] = bounds[4] = bounds[5] = -999999;
@@ -647,11 +647,10 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
         } else {
             DrawGroupCentre( mg->GetCentreX(), mg->GetCentreY());
             // Check whether model group boundaries have changed
-            wxXmlNode* ModelXml = mg->GetModelXml();
-            int xminx = wxAtoi(ModelXml->GetAttribute("centreMinx", "0"));
-            int xminy = wxAtoi(ModelXml->GetAttribute("centreMiny", "0"));
-            int xmaxx = wxAtoi(ModelXml->GetAttribute("centreMaxx", "0"));
-            int xmaxy = wxAtoi(ModelXml->GetAttribute("centreMaxy", "0"));
+            int xminx = mg->GetCentreMinx();
+            int xminy = mg->GetCentreMiny();
+            int xmaxx = mg->GetCentreMaxx();
+            int xmaxy = mg->GetCentreMaxy();
             if (xminx != (int)minx || xminy != (int)miny || xmaxx != (int)maxx || xmaxy != (int)maxy) {
                 // need to calc new offsets
                 float cx = mg->GetCentreX();
@@ -749,7 +748,7 @@ void ModelPreview::Render()
         std::map<int32_t, std::list<Model*>> sortedModels;
         for (auto& m : models) {
             if (xlights->AllModels.IsModelValid(m) || xlights->IsNewModel(m)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
-                if (m->Selected || m->GroupSelected) {
+                if (m->Selected() || m->GroupSelected()) {
                     isModelSelected = true;
                 }
                 auto p = ProjViewMatrix * glm::vec4(m->GetHcenterPos(), m->GetVcenterPos(), m->GetDcenterPos(), 1);
@@ -945,6 +944,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int 
     is3d = false;
     
     Mouse3DManager::INSTANCE.enableMotionEvents(this);
+    SetMinSize(wxSize(50, 50));
 }
 
 ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
@@ -970,6 +970,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
 
     is3d = false;
     Mouse3DManager::INSTANCE.enableMotionEvents(this);
+    SetMinSize(wxSize(50, 50));
 }
 
 ModelPreview::~ModelPreview()

@@ -68,6 +68,7 @@ public:
 		ColorPanel(wxWindow* parent, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ColorPanel();
 
+		void RefreshPaletteSize();
         void SetColorCount(int count);
         void SetDefaultSettings(bool optionbased = false);
         wxString GetColorString(bool colourOnly = false);

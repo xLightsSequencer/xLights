@@ -2,10 +2,12 @@
 
 //(*Headers(AIColorPaletteDialog)
 #include <wx/button.h>
+#include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/html/htmlwin.h>
 #include <wx/radiobut.h>
 #include <wx/sizer.h>
+#include <wx/stattext.h>
 #include <wx/textctrl.h>
 //*)
 
@@ -20,9 +22,11 @@ class AIColorPaletteDialog: public wxDialog
         wxButton* CancelButton;
         wxButton* GenerateButton;
         wxButton* OkButon;
+        wxChoice* AIServiceChoice;
         wxHtmlWindow* ResultHTMLCtrl;
         wxRadioButton* FreeFormRadioButton;
         wxRadioButton* SongRadioButton;
+        wxStaticText* StaticText1;
         wxTextCtrl* FreeFormText;
         wxTextCtrl* SongTextCtrl;
         //*)
@@ -32,6 +36,8 @@ class AIColorPaletteDialog: public wxDialog
     protected:
 
         //(*Identifiers(AIColorPaletteDialog)
+        static const wxWindowID ID_STATICTEXT1;
+        static const wxWindowID ID_CHOICE1;
         static const wxWindowID ID_RADIOBUTTON1;
         static const wxWindowID ID_TEXTCTRL1;
         static const wxWindowID ID_RADIOBUTTON2;

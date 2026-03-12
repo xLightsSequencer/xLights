@@ -45,6 +45,7 @@ public:
     
     static bool InvalidMaterialsList(const std::vector<std::string>& mtls);
     static std::vector<std::string> GetMaterialFilenamesFromOBJ(const std::string& obj, bool strict = true);
+    static std::vector<std::string> GetTextureFilenamesFromMTL(const std::string& mtl, bool strict = true);
     static void FixMaterialFilenamesInOBJ(const std::string &obj);
 
 protected:

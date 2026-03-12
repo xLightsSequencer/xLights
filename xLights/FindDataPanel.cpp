@@ -52,6 +52,7 @@ FindDataPanel::FindDataPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 
 	std::vector<findDataEffect> effects;
     UpdateEffects(effects, nullptr);
+    SetMinSize(wxSize(50, 50));
 }
 
 FindDataPanel::~FindDataPanel()

@@ -75,6 +75,7 @@
 #include "JobPool.h"
 #include "SequenceViewManager.h"
 #include "ColorManager.h"
+#include "EffectPresetManager.h"
 #include "ViewpointMgr.h"
 #include "PhonemeDictionary.h"
 #include "xLightsXmlFile.h"
@@ -94,6 +95,7 @@
 class wxDebugReport;
 
 class aiBase;
+class BaseSerializingVisitor;
 class ControllerCaps;
 class EffectTreeDialog;
 class ConvertDialog;
@@ -350,10 +352,18 @@ public:
     void ApplyLast(wxCommandEvent& event);
     void SetEffectControlsApplyLast(const SettingsMap &settings);
     bool ApplySetting(wxString name, const wxString &value, int count = 0);
-    void LoadPerspectivesMenu(wxXmlNode* perspectivesNode);
+    void LoadPerspectivesMenu();
+    void SerializePerspectives(BaseSerializingVisitor &visitor);
+    void SerializeSettings(BaseSerializingVisitor &visitor);
+    struct Perspective {
+        std::string name;
+        std::string settings;
+        std::string version;
+    };
+
     struct PerspectiveId {
         int id = 0;
-        wxXmlNode* p = nullptr;
+        Perspective* p = nullptr;
     };
 
     PerspectiveId perspectives[10];
@@ -463,7 +473,8 @@ public:
 
     bool ImportSuperStar(Element *el, wxXmlDocument &doc, int x_size, int y_size,
                          int x_offset, int y_offset,
-                         int imageResizeType, const wxSize &modelSize, const wxString& layerBlend);
+                         int imageResizeType, const wxSize &modelSize, const wxString& layerBlend,
+                         const wxString& defaultGroupName = {});
     bool ImportLMS(wxXmlDocument &doc, const wxFileName &filename);
     bool ImportLPE(wxXmlDocument &doc, const wxFileName &filename);
     bool ImportVixen3(const wxFileName &filename);
@@ -604,6 +615,7 @@ public:
     void OnMenuItem_ZoomSelected(wxCommandEvent& event);
     void OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event);
     void OnMenuItem_Generate2DPathSelected(wxCommandEvent& event);
+    void OnMenuItem_GenerateAIImage(wxCommandEvent& event);
     void OnMenuItem_PrepareAudioSelected(wxCommandEvent& event);
     void OnMenuItem_UserManualSelected(wxCommandEvent& event);
     void OnMenuItem_ValueCurvesSelected(wxCommandEvent& event);
@@ -646,13 +658,12 @@ public:
     void OnButton_OpenBaseShowDirClick(wxCommandEvent& event);
     void OnMenuItemFindShowFolderSelected(wxCommandEvent& event);
     void OnMenuItemShiftEffectsAndTimingSelected(wxCommandEvent& event);
+    void OnMenuItem_GenerateAIImageSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
 
 private :
-
-    //void OnMenuItem53Selected(wxCommandEvent& event);
 
     void DoMenuAction(wxMenuEvent &evt);
 	void ShowHideAllSequencerWindows(bool show);
@@ -795,6 +806,7 @@ public:
     static const wxWindowID ID_MENU_GENERATE2DPATH;
     static const wxWindowID ID_MENUITEM_GenerateCustomModel;
     static const wxWindowID ID_MNU_REMAPCUSTOM;
+    static const wxWindowID ID_MENUITEM_GenerateAIImage;
     static const wxWindowID ID_MNU_GENERATELYRICS;
     static const wxWindowID ID_MENUITEM_CONVERT;
     static const wxWindowID ID_MNU_PREPAREAUDIO;
@@ -1026,6 +1038,7 @@ public:
     wxMenuItem* MenuItem_Zoom;
     wxMenuItem* MenuItem_xScanner;
     wxMenuItem* MenuItem_xSchedule;
+    wxMenuItem* Menu_GenerateAIImage;
     wxMenuItem* Menu_GenerateCustomModel;
     wxMenuItem* Menu_Settings_Sequence;
     wxMenuItem* QuitMenuItem;
@@ -1324,6 +1337,12 @@ public:
     bool IsDisableKeyAcceleration() const { return _disableKeyAcceleration; }
     void SetDisableKeyAcceleration(bool b);
 
+    wxString GetPaletteSizeString() const {
+        wxConfigBase* config = wxConfigBase::Get();
+        return config->Read("PaletteSize", "Normal");
+    }
+    void SetPaletteSizeString(const wxString& size);
+
     bool IsSuppressFadeHints() const { return mSuppressFadeHints; }
     void SetSuppressFadeHints(bool b);
 
@@ -1338,6 +1357,7 @@ public:
     void SetHidePresetPreview(bool b);
 
     aiBase* GetAIService(aiType::TYPE serviceType = aiType::TYPE::PROMPT);
+    std::vector<aiBase*> GetAIServices(aiType::TYPE serviceType = aiType::TYPE::PROMPT);
 
     bool IsShowBaseShowFolder() const
     {
@@ -1514,8 +1534,7 @@ private:
 
     // sequence
     void LoadEffectsFile();
-    wxString LoadEffectsFileNoCheck();
-    void CreateDefaultEffectsXml();
+    void CreateDefaultEffectsXml(wxXmlDocument& doc);
     bool TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, const wxString& PageName);
     void SetPanelSequencerLabel(const std::string& sequence);
@@ -1524,9 +1543,10 @@ private:
     int ChooseRandomEffect();
 
 public:
+    std::string BuildEffectsXml();
     bool IsNewModel(Model* m) const;
     int GetCurrentPlayTime();
-    bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
+    bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount);
     Model *GetModel(const std::string& name) const;
     void RenderGridToSeqData(std::function<void(bool)>&& callback);
     bool AbortRender(int maxTimeMs = 60000, int* numThreadsAborted = nullptr);
@@ -1566,9 +1586,8 @@ public:
     void DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime, bool eraseExisting);
     void PromoteEffects(wxCommandEvent &command);
     void DoPromoteEffects(ModelElement *element);
-    wxXmlNode* CreateEffectNode(wxString& name);
-    void UpdateEffectNode(wxXmlNode* node);
-    wxXmlNode* FindPreset(wxXmlNode* node, wxArrayString& path, int level = 0) const;
+    EffectPreset* CreateEffectPreset(EffectPresetGroup* parent, const std::string& name);
+    void UpdateEffectPreset(EffectPreset* preset);
     void ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion);
     Effect* ApplyEffectsPreset(const std::string& presetName);
     std::vector<std::string> GetPresets() const;
@@ -1589,7 +1608,6 @@ public:
 
     void UpdateSequenceVideoPanel( const wxString& path );
 
-    const wxXmlDocument& GetEffectsXml() const { return EffectsXml; };
 protected:
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
     bool SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels);
@@ -1615,18 +1633,15 @@ protected:
     std::string PackageDebugFiles(bool showDialogs = true);
 
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
-    wxXmlDocument EffectsXml;
 	SequenceViewManager _sequenceViewManager;
-    wxXmlNode* EffectsNode = nullptr;
-    wxXmlNode* PerspectivesNode = nullptr;
+    EffectPresetManager _effectPresetManager;
 public:
+    std::vector<Perspective> _perspectives;
+    std::string _currentPerspectiveName;
     bool RebuildControllerConfig(OutputManager* outputManager, ModelManager* modelManager);
-    wxXmlNode* PalettesNode = nullptr;
-    wxXmlNode* ModelsNode = nullptr;
-    wxXmlNode* ModelGroupsNode = nullptr;
-    wxXmlNode* LayoutGroupsNode = nullptr;
-    wxXmlNode* ViewObjectsNode = nullptr;
+
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
+    EffectPresetManager& GetEffectPresetManager() { return _effectPresetManager; }
     void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog, const wxString &realPath = "");
     void OpenSequence(const wxString& passed_filename) {
      OpenSequence(passed_filename, nullptr); 
@@ -1643,7 +1658,7 @@ public:
     bool HandleAllKeyBinding(wxKeyEvent& event);
 
 private:
-    wxXmlNode* SettingsNode = nullptr;
+    std::map<std::string, std::string> _xmlSettings;
 
     bool MixTypeChanged = false;
     bool FadesChanged = false;
@@ -1738,6 +1753,9 @@ public:
     int GetDefaultPreviewBackgroundBrightness();
     int GetDefaultPreviewBackgroundAlpha();
     void SetPreviewBackgroundBrightness(int brightness, int alpha);
+    void LoadModels(wxXmlNode* modelsNode,
+                    wxXmlNode* modelGroupsNode,
+                    wxXmlNode* viewObjectsNode);
     void UpdateModelsList();
     void RowHeadingsChanged( wxCommandEvent& event);
     void DoForceSequencerRefresh();
@@ -1762,6 +1780,7 @@ public:
     ViewsModelsPanel* GetDisplayElementsPanel() const { return displayElementsPanel; }
     EffectsPanel* GetEffectsPanel() const { return EffectsPanel1; }
     void ResetPanelDefaultSettings(const std::string& effect, const Model* model, bool optionbased);
+    void ResetAllPanelDefaultSettings();
 
     void UnselectEffect();
     FindDataPanel* GetFindDataPanel() const
@@ -1773,6 +1792,11 @@ public:
     static xLightsFrame *GetFrame();
     void CallOnEffectBeforeSelected(std::function<bool(Effect *)> &&cb);
     void CallOnEffectAfterSelected(std::function<bool(Effect *)> &&cb);
+    
+    void ClearUsedRuler() { _usedRuler = false; }
+    void SetUsedRuler() { _usedRuler = true; }
+    bool UsedRuler() { return _usedRuler; }
+
 private:
 
     int _acParm1Intensity;
@@ -1782,7 +1806,7 @@ private:
     int _acParm2RampDown;
     int _acParm1RampUpDown;
     int _acParm2RampUpDown;
-    wxXmlNode* mCurrentPerpective = nullptr;
+    Perspective* mCurrentPerpective = nullptr;
     std::map<wxString, bool> savedPaneShown;
     SequenceElements _sequenceElements;
     MainSequencer* mainSequencer = nullptr;
@@ -1808,6 +1832,7 @@ private:
     std::unique_ptr<ScriptsDialog> _scriptsDialog{ nullptr };
     std::unique_ptr<ServiceManager> _serviceManager{ nullptr };
     int mMediaLengthMS;
+    bool _usedRuler = false;
 
     bool mSequencerInitialize = false;
     wxFlexGridSizer* FlexGridEffects = nullptr;
@@ -1882,7 +1907,7 @@ private:
     void ResizeAndMakeEffectsScroll();
     void ResizeMainSequencer();
     void LoadSequencer(xLightsXmlFile& xml_file);
-    void DoLoadPerspective(wxXmlNode *p);
+    void DoLoadPerspective(Perspective* p);
     void CheckForValidModels();
     void ExportModels(wxString const& filename);
     void ExportEffects(wxString const& filename);
@@ -1964,6 +1989,11 @@ public:
 
     std::string MoveToShowFolder(const std::string& file, const std::string& subdirectory, const bool reuse = false);
     bool IsInShowFolder(const std::string & file) const;
+    // Returns true if file is inside the show folder or any configured media folder
+    bool IsInShowOrMediaFolder(const std::string& file) const;
+    // Returns the path of file relative to the show folder or media folder it lives in.
+    // Returns empty string if file is not inside any show/media folder.
+    std::string MakeRelativePath(const std::string& file) const;
     bool FilesMatch(const std::string & file1, const std::string & file2) const;
     ColorPanel* GetColorPanel() const { return colorPanel; }
     JukeboxPanel* GetJukeboxPanel() const { return jukeboxPanel; }
@@ -1974,5 +2004,5 @@ public:
 	void DoPlaySequence();
     void RecalcModels();
     std::string GetUniqueTimingName(const std::string& baseName);
+    std::list<std::string> GetPerspectives();
 };
-

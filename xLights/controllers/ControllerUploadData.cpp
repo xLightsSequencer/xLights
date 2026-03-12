@@ -109,17 +109,18 @@ int UDControllerPortModel::GetLightsPerNode() const
 
 int UDControllerPortModel::GetDMXChannelOffset() const
 {
-    wxXmlNode* node = _model->GetControllerConnection();
-    if (node != nullptr && node->HasAttribute("channel"))
-        return wxAtoi(node->GetAttribute("channel"));
+    if (_model->GetCtrlConn().GetDMXChannel() > 0) {
+        return _model->GetCtrlConn().GetDMXChannel();
+    }
     return 1;
 }
 
 int UDControllerPortModel::GetBrightness(int currentBrightness) const
 {
     if (pwmProperties.brightness == -1) {
-        wxXmlNode* node = _model->GetControllerConnection();
-        if (node != nullptr && node->HasAttribute("brightness"))  return wxAtoi(node->GetAttribute("brightness"));
+        if (_model->GetCtrlConn().IsPropertySet(CtrlProps::BRIGHTNESS_ACTIVE)) {
+            return _model->GetCtrlConn().GetBrightness();
+        }
         return currentBrightness;
     }
     return pwmProperties.brightness;
@@ -127,17 +128,17 @@ int UDControllerPortModel::GetBrightness(int currentBrightness) const
 
 int UDControllerPortModel::GetStartNullPixels(int currentStartNullPixels) const
 {
-    wxXmlNode* node = _model->GetControllerConnection();
-    if (node != nullptr && node->HasAttribute("nullNodes"))
-        return wxAtoi(node->GetAttribute("nullNodes"));
+    if (_model->GetCtrlConn().IsPropertySet(CtrlProps::START_NULLS_ACTIVE)) {
+        return _model->GetCtrlConn().GetStartNulls();
+    }
     return currentStartNullPixels;
 }
 
 int UDControllerPortModel::GetEndNullPixels(int currentEndNullPixels) const
 {
-    wxXmlNode* node = _model->GetControllerConnection();
-    if (node != nullptr && node->HasAttribute("endNullNodes"))
-        return wxAtoi(node->GetAttribute("endNullNodes"));
+    if (_model->GetCtrlConn().IsPropertySet(CtrlProps::END_NULLS_ACTIVE)) {
+        return _model->GetCtrlConn().GetEndNulls();
+    }
     return currentEndNullPixels;
 }
 
@@ -155,18 +156,18 @@ float UDControllerPortModel::GetAmps(int defaultBrightness) const
 
 int UDControllerPortModel::GetSmartTs(int currentSmartTs) const
 {
-    wxXmlNode* node = _model->GetControllerConnection();
-    if (node != nullptr && node->HasAttribute("ts"))
-        return wxAtoi(node->GetAttribute("ts"));
+    if (_model->GetCtrlConn().IsPropertySet(CtrlProps::TS_ACTIVE)) {
+        return _model->GetCtrlConn().GetSmartTs();
+    }
     return currentSmartTs;
 }
 
 float UDControllerPortModel::GetGamma(int currentGamma)  const
 {
     if (pwmProperties.brightness == -1) {
-        wxXmlNode* node = _model->GetControllerConnection();
-        if (node != nullptr && node->HasAttribute("gamma"))
-            return wxAtof(node->GetAttribute("gamma"));
+        if (_model->GetCtrlConn().IsPropertySet(CtrlProps::GAMMA_ACTIVE)) {
+            return _model->GetCtrlConn().GetGamma();
+        }
         return currentGamma;
     }
     return pwmProperties.gamma;
@@ -174,35 +175,32 @@ float UDControllerPortModel::GetGamma(int currentGamma)  const
 
 std::string UDControllerPortModel::GetColourOrder(const std::string& currentColourOrder) const
 {
-    wxXmlNode* node = _model->GetControllerConnection();
-    if (node != nullptr && node->HasAttribute("colorOrder"))
-        return node->GetAttribute("colorOrder");
+    if (_model->GetCtrlConn().IsPropertySet(CtrlProps::COLOR_ORDER_ACTIVE)) {
+        return _model->GetCtrlConn().GetColorOrder();
+    }
     return currentColourOrder;
 }
 
 std::string UDControllerPortModel::GetDirection(const std::string& currentDirection) const
 {
-    wxXmlNode* node = _model->GetControllerConnection();
-    if (node != nullptr && node->HasAttribute("reverse"))
-        return wxAtoi(node->GetAttribute("reverse")) == 1 ? "Reverse" : "Forward";
+    if (_model->GetCtrlConn().IsPropertySet(CtrlProps::REVERSE_ACTIVE)) {
+        return _model->GetCtrlConn().GetReverse() == 1 ? "Reverse" : "Forward";
+    }
     return currentDirection;
 }
 
 int UDControllerPortModel::GetGroupCount(int currentGroupCount) const
 {
-
-    wxXmlNode* node = _model->GetControllerConnection();
-    if (node != nullptr && node->HasAttribute("groupCount")) {
-        return wxAtoi(node->GetAttribute("groupCount"));
+    if (_model->GetCtrlConn().IsPropertySet(CtrlProps::GROUP_COUNT_ACTIVE)) {
+        return _model->GetCtrlConn().GetGroupCount();
     }
     return currentGroupCount;
 }
 
 int UDControllerPortModel::GetZigZag(int currentZigZag) const
 {
-    wxXmlNode* node = _model->GetControllerConnection();
-    if (node != nullptr && node->HasAttribute("zigZag")) {
-        return wxAtoi(node->GetAttribute("zigZag"));
+    if (_model->GetCtrlConn().IsPropertySet(CtrlProps::ZIG_ZAG_ACTIVE)) {
+        return _model->GetCtrlConn().GetZigZag();
     }
     return currentZigZag;
 }
@@ -1323,7 +1321,7 @@ void UDController::Rescan(bool eliminateOverlaps) {
     ClearPorts();
 
     for (const auto& it : *_modelManager) {
-        if (!ModelProcessed(it.second, 1) && it.second->GetDisplayAs() != "ModelGroup") {
+        if (!ModelProcessed(it.second, 1) && it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
             int32_t modelstart = it.second->GetNumberFromChannelString(it.second->ModelStartChannel);
             int32_t modelend = modelstart + it.second->GetChanCount() - 1;
             if ((modelstart >= _controller->GetStartChannel() && modelstart <= _controller->GetEndChannel()) ||

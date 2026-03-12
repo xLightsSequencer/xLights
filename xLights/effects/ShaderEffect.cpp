@@ -353,23 +353,23 @@ void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bo
 
     // The way we used to do names allowed for potential settings name clashes ... this should minimise them
     std::list<std::pair<std::string, std::string>> renames;
-    for (auto& it : settings) {
-        if (it.first != "E_VALUECURVE_Shader_Zoom" &&
-            it.first != "E_VALUECURVE_Shader_Offset_Y" &&
-            it.first != "E_VALUECURVE_Shader_Speed" &&
-            it.first != "E_TEXTCTRL_Shader_LeadIn" &&
-            it.first != "E_0FILEPICKERCTRL_IFS" &&
-            it.first != "E_SLIDER_Shader_Speed" &&
-            it.first != "E_TEXTCTRL_Shader_Offset_X" &&
-            it.first != "E_TEXTCTRL_Shader_Offset_Y" &&
-            it.first != "E_TEXTCTRL_Shader_Zoom" &&
-            it.first != "E_VALUECURVE_Shader_Offset_X"
+    for (auto& it : settings.keys()) {
+        if (it != "E_VALUECURVE_Shader_Zoom" &&
+            it != "E_VALUECURVE_Shader_Offset_Y" &&
+            it != "E_VALUECURVE_Shader_Speed" &&
+            it != "E_TEXTCTRL_Shader_LeadIn" &&
+            it != "E_0FILEPICKERCTRL_IFS" &&
+            it != "E_SLIDER_Shader_Speed" &&
+            it != "E_TEXTCTRL_Shader_Offset_X" &&
+            it != "E_TEXTCTRL_Shader_Offset_Y" &&
+            it != "E_TEXTCTRL_Shader_Zoom" &&
+            it != "E_VALUECURVE_Shader_Offset_X"
            ) {
-            if (StartsWith(it.first, "E_") && !Contains(it.first, "SHADERXYZZY")) {
-                std::string undecorated = AfterFirst(it.first, '_');
+            if (StartsWith(it, "E_") && !Contains(it, "SHADERXYZZY")) {
+                std::string undecorated = AfterFirst(it, '_');
                 std::string name = AfterFirst(undecorated, '_');
-                std::string prefix = it.first.substr(0, it.first.size() - name.size());
-                renames.push_back({ it.first, prefix + "SHADERXYZZY_" + name });
+                std::string prefix = it.substr(0, it.size() - name.size());
+                renames.push_back({ it, prefix + "SHADERXYZZY_" + name });
             }
         }
     }

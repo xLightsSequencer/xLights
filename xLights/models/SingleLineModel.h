@@ -15,9 +15,8 @@
 class SingleLineModel : public ModelWithScreenLocation<TwoPointScreenLocation>
 {
     public:
-        SingleLineModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
-        SingleLineModel(int lights, const Model &base, int strand, int node = -1);
         SingleLineModel(const ModelManager &manager);
+        //SingleLineModel(int lights, const Model &base, int strand, int node = -1);
         virtual ~SingleLineModel();
 
         void InitLine();
@@ -31,7 +30,11 @@ class SingleLineModel : public ModelWithScreenLocation<TwoPointScreenLocation>
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return false; }
 
+        void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
+
         const Model *GetParent() { return parent; }
+        virtual bool SupportsModelScreenLocation() const override { return validLocation; }
+
     protected:
         static std::vector<std::string> LINE_BUFFER_STYLES;
         virtual void InitModel() override;
@@ -39,4 +42,5 @@ class SingleLineModel : public ModelWithScreenLocation<TwoPointScreenLocation>
 
     private:
         const Model *parent = nullptr;
+        bool validLocation = true;
 };

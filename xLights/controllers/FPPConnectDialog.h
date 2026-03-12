@@ -118,6 +118,7 @@ class FPPConnectDialog: public wxDialog
         void SetCheckValue(const std::string &col, bool b);
 
 		void DisplayDateModified(const wxString& filePath, wxTreeListItem &index) const;
+        void DisplayPixelCount(const wxString& filePath, wxTreeListItem &index) const;
 
 		void UpdateSeqCount();
         uint32_t GetSelectedSeqCount();

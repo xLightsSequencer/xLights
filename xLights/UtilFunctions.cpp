@@ -270,6 +270,41 @@ void SetFixFileShowDir(const wxString& ShowDir) {
     RememberShowDir = ShowDir;
 }
 
+wxString MakeRelativeFile(const wxString& file)
+{
+    if (file.IsEmpty()) return {};
+    wxFileName fn(file);
+    if (!fn.IsAbsolute()) return {};  // already relative
+
+    wxString f(file);
+    f.Replace("\\", "/");
+
+    // Helper: strip base prefix from f and return the relative portion, or ""
+    auto stripPrefix = [&](wxString base) -> wxString {
+        base.Replace("\\", "/");
+#ifdef __WXMSW__
+        base.MakeLower();
+        wxString fl = f.Lower();
+#else
+        const wxString& fl = f;
+#endif
+        if (!base.EndsWith("/")) base += "/";
+        if (fl.StartsWith(base))
+            return f.Mid(base.Length());
+        return {};
+    };
+
+    wxString rel = stripPrefix(RememberShowDir);
+    if (!rel.IsEmpty()) return rel;
+
+    for (const auto& dir : SearchDirectories) {
+        rel = stripPrefix(wxString(dir));
+        if (!rel.IsEmpty()) return rel;
+    }
+
+    return {};
+}
+
 static std::recursive_mutex __fixFilesMutex;
 static std::vector<std::string> __nonExistentFiles;
 
@@ -292,9 +327,9 @@ wxImage ApplyOrientation(const wxImage& img, int orient) {
     }
 }
 
-int GetExifOrientation(const wxString& filename) {
+int GetExifOrientation(const std::string& filename) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    std::ifstream file(filename.ToStdString(), std::ios::binary);
+    std::ifstream file(filename, std::ios::binary);
     if (!file) {
         logger_base.debug("Failed to open file: %s", (const char*)filename.c_str());
         file.close();
@@ -827,11 +862,8 @@ void SetXmlNodeAttribute(wxXmlNode* node, wxString const& property, wxString con
 void DownloadVamp() {
     wxMessageBox("We are about to download the Queen Mary Vamp plugins for your platform. Once downloaded please install them and then close and reopen xLights to use them.");
 #ifdef __WXMSW__
-    if (GetBitness() == "64bit") {
-        ::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/attachments/download/2623/qm-vamp-plugins-1.8.0-win64.msi");
-    } else {
-        ::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/attachments/download/2621/qm-vamp-plugins-1.8.0-win32.zip");
-    }
+    //::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/attachments/download/2623/qm-vamp-plugins-1.8.0-win64.msi");
+    ::wxLaunchDefaultBrowser("https://github.com/vamp-plugins/vamp-plugin-pack/releases/download/v2.0/Vamp.Plugin.Pack.Installer.2.0.exe");
 #else
     // likely can/should be used for all platforms
     ::wxLaunchDefaultBrowser("https://www.vamp-plugins.org/pack.html");
@@ -1010,6 +1042,18 @@ int ExtractInt(std::string& s) {
     int res = std::stoi(s.substr(0, i));
     s = s.substr(i);
     return res;
+}
+
+// Extract an integer from the end of a string
+int ExtractTrailingInt(const std::string& s) {
+    size_t i = 0;
+    while (i < s.size() && (s[i] > '9' || s[i] < '0')) {
+        i++;
+    }
+    if (i == 0) {
+        return -1;
+    }
+    return std::stoi(s.substr(i));
 }
 
 int NumberAwareStringCompare(const std::string& a, const std::string& b) {

@@ -32,13 +32,15 @@
 #define NEEDS_RENDER 9998
 
 class ConvertLogDialog;
+class SequenceElements;
+class ManageMediaPanel;
 
 class SeqSettingsDialog: public wxDialog
 {
     ConvertLogDialog* _plog;
 	public:
 
-		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, const std::list<std::string>& media_dirs, const wxString& warning, const wxString& defaultView, bool wizard_active_ = false, const std::string& media = "", uint32_t durationMS = 0);
+		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, SequenceElements *seqElements, const std::list<std::string>& media_dirs, const wxString& warning, const wxString& defaultView, bool wizard_active_ = false, const std::string& media = "", uint32_t durationMS = 0);
 		virtual ~SeqSettingsDialog();
 
         const std::string GetView() const {return selected_view;}
@@ -69,6 +71,7 @@ class SeqSettingsDialog: public wxDialog
 		wxPanel* PanelMetaData;
 		wxPanel* PanelTimings;
 		wxPanel* Panel_DataLayers;
+		ManageMediaPanel* Panel_ManageMedia;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
@@ -291,6 +294,7 @@ class SeqSettingsDialog: public wxDialog
         DECLARE_EVENT_TABLE()
 
         xLightsXmlFile* xml_file = nullptr;
+        SequenceElements *sequenceElements = nullptr;
         const std::list<std::string>& media_directories;
 		std::string selected_view;
 		xLightsFrame* xLightsParent = nullptr;

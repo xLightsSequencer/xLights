@@ -258,7 +258,26 @@ std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const 
         for (const auto& it : customHeaders) {
             std::string s = it.first + ": " + it.second;
             headerlist = curl_slist_append(headerlist, s.c_str());
-            logger_curl.info("    %s", (const char*)s.c_str());
+
+            std::string logValue = it.second;
+            std::string lowerKey = it.first;
+            std::transform(lowerKey.begin(), lowerKey.end(), lowerKey.begin(), ::tolower);
+
+            if (lowerKey.find("key") != std::string::npos || 
+                lowerKey.find("token") != std::string::npos ||
+                lowerKey.find("authorization") != std::string::npos ||
+                lowerKey.find("secret") != std::string::npos) {
+                // Show first 4 chars and mask the rest
+                if (logValue.length() > 8) {
+                    logValue = logValue.substr(0, 4) + "****" + logValue.substr(logValue.length() - 4);
+                } else if (logValue.length() > 4) {
+                    logValue = logValue.substr(0, 4) + "****";
+                } else {
+                    logValue = "****";
+                }
+            }
+
+            logger_curl.info("    %s: %s", it.first.c_str(), logValue.c_str());
         }
         logger_curl.info("HEADER END ----------");
 

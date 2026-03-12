@@ -33,7 +33,9 @@ void chatGPT::PopulateLLMSettings(wxPropertyGrid* page) {
     page->Append(new wxPropertyCategory("ChatGPT"));
     auto p = page->Append(new wxBoolProperty("Enabled", "ChatGPT.Enabled", _enabled));
     p->SetEditor("CheckBox");
-    page->Append(new wxStringProperty("Bearer Token", "ChatGPT.Token", bearer_token));
+    auto* tokenProp = page->Append(new wxStringProperty("Bearer Token", "ChatGPT.Token", bearer_token));
+    tokenProp->SetAttribute(wxPG_STRING_PASSWORD, true);
+    tokenProp->SetHelpString("Your ChatGPT Bearer Token (masked for security)");
     page->Append(new wxStringProperty("Model", "ChatGPT.Model", model));
 }
 

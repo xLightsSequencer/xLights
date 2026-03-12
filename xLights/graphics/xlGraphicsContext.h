@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <map>
+#include <memory>
+
 #include <wx/bitmap.h>
 #include <glm/fwd.hpp>
 
@@ -33,7 +35,7 @@ public:
     virtual xlTexture *createTexture(int w, int h, bool bgr, bool alpha) = 0;
     virtual xlTexture *createTextureForFont(const xlFontInfo &font) = 0;
     virtual xlGraphicsProgram *createGraphicsProgram() = 0;
-    virtual xlMesh *loadMeshFromObjFile(const std::string &file) = 0;
+    virtual std::unique_ptr<xlMesh> loadMeshFromObjFile(const std::string &file) = 0;
 
 
     //manipulating the matrices
@@ -49,7 +51,7 @@ public:
     virtual xlGraphicsContext* ScaleViewMatrix(float w, float h, float z) = 0;
     virtual xlGraphicsContext* TranslateViewMatrix(float x, float y, float z) = 0;
 
-    
+
 
     //setters for various states
     virtual xlGraphicsContext* enableBlending(bool e = true) = 0;
@@ -74,7 +76,7 @@ public:
     virtual xlGraphicsContext* drawTriangleStrip(xlVertexIndexedColorAccumulator *vac, int start = 0, int count = -1) = 0;
     virtual xlGraphicsContext* drawPoints(xlVertexIndexedColorAccumulator *vac, float pointSize, bool smoothPoints, int start = 0, int count = -1) = 0;
 
-    
+
     virtual xlGraphicsContext* drawTexture(xlTexture *texture,
                              float x, float y, float x2, float y2,
                              float tx = 0.0, float ty = 0.0, float tx2 = 1.0, float ty2 = 1.0,
@@ -85,16 +87,16 @@ public:
     }
     virtual xlGraphicsContext* drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture, const xlColor &c, int start = 0, int count = -1) = 0;
     virtual xlGraphicsContext* drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture, int brightness, uint8_t alpha, int start, int count) = 0;
-    
+
     virtual xlGraphicsContext* drawMeshSolids(xlMesh *mesh, int brightness, bool useViewMatrix) = 0;
     virtual xlGraphicsContext* drawMeshTransparents(xlMesh *mesh, int brightness) = 0;
     virtual xlGraphicsContext* drawMeshWireframe(xlMesh *mesh, int brightness) = 0;
-    
-    
+
+
     virtual xlGraphicsContext* pushDebugContext(const std::string &label) { return this; }
     virtual xlGraphicsContext* popDebugContext() { return this; }
 
-    
+
     xlGraphicsContext* setContextualValue(const std::string &n, void *v) {
         contextMap[n] = v;
         return this;

@@ -16,6 +16,7 @@
 #include "SevenSegmentDialog.h"
 #include "NodeSelectGrid.h"
 #include "models/Model.h"
+#include "models/SubModel.h"
 #include "xLightsApp.h"
 #include "UtilFunctions.h"
 #include "xLightsMain.h"
@@ -24,6 +25,7 @@
 #include "utils/string_utils.h"
 #include "xlColourData.h"
 #include "VendorModelDialog.h"
+#include "XmlSerializer/XmlSerializer.h"
 
 #include <log4cpp/Category.hh>
 #include <algorithm>
@@ -510,7 +512,7 @@ void ModelStateDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
             DeleteButton->Enable();
 
             // set the default type of state based on model type
-            if (model->GetDisplayAs() == "Custom") {
+            if (model->GetDisplayAs() == DisplayAsType::Custom) {
                 CustomModel* cm = dynamic_cast<CustomModel*>(model);
                 if (cm != nullptr) {
                     if (cm->IsAllNodesUnique()) {
@@ -519,7 +521,7 @@ void ModelStateDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
                         StateTypeChoice->ChangeSelection(SINGLE_NODE_STATE);
                     }
                 }
-            } else if (model->GetDisplayAs() == "Channel Block") {
+            } else if (model->GetDisplayAs() == DisplayAsType::ChannelBlock) {
                 StateTypeChoice->ChangeSelection(SINGLE_NODE_STATE);
             } else {
                 StateTypeChoice->ChangeSelection(NODE_RANGE_STATE);
@@ -620,8 +622,8 @@ void ModelStateDialog::GetValue(wxGrid *grid, const int row, const int col, std:
 void ModelStateDialog::ClearNodeColor(Model* m) {
     xlColor c(xlDARK_GREY);
     int nn = m->GetNodeCount();
-    if (m->modelDimmingCurve) {
-        m->modelDimmingCurve->apply(c);
+    if (m->GetDimmingCurve()) {
+        m->GetDimmingCurve()->apply(c);
     }
     for (int node = 0; node < nn; node++) {
         m->SetNodeColor(node, c);
@@ -707,8 +709,8 @@ bool ModelStateDialog::SetNodeColor(wxGrid* grid, int const row, xlColor const& 
     }
 
     xlColor cc(c);
-    if (model->modelDimmingCurve) {
-        model->modelDimmingCurve->apply(cc);
+    if (model->GetDimmingCurve()) {
+        model->GetDimmingCurve()->apply(cc);
     }
 
     bool found = false;
@@ -1170,27 +1172,26 @@ void ModelStateDialog::ImportSubmodel(wxGridEvent& event)
 
 wxString ModelStateDialog::getSubmodelNodes(Model* sm)
 {
-    wxXmlNode* root = sm->GetModelXml();
-    wxString row = "";
-
-    if (root->GetName() == "subModel")
-    {
-        bool isRanges = root->GetAttribute("type", "") == "ranges";
-        if (isRanges)
-        {
-            wxArrayString rows;
-            int line = 0;
-            while (root->HasAttribute(wxString::Format("line%d", line)))
-            {
-                auto l = root->GetAttribute(wxString::Format("line%d", line), "");
-                rows.Add(l);
-                line++;
-            }
-            row = wxJoin(rows, ',','\0');
+    SubModel* subModel = dynamic_cast<SubModel*>(sm);
+    if (subModel == nullptr) {
+        return "";
+    }
+    
+    // Only process if it's a ranges-type submodel
+    if (!subModel->IsRanges()) {
+        return "";
+    }
+    
+    wxArrayString rows;
+    int numRanges = subModel->GetNumRanges();
+    for (int i = 0; i < numRanges; i++) {
+        std::string range = subModel->GetRange(i);
+        if (!range.empty()) {
+            rows.Add(range);
         }
     }
-
-    return row;
+    
+    return wxJoin(rows, ',', '\0');
 }
 
 void ModelStateDialog::OnAddBtnPopup(wxCommandEvent& event) {
@@ -1270,7 +1271,7 @@ void ModelStateDialog::ImportStates(const wxString & filename)
             if (n->GetName() == "stateInfo")
             {
                 std::map<std::string, std::map<std::string, std::string> > stateInfo;
-                Model::ParseStateInfo(n, stateInfo);
+                XmlSerialize::DeserializeStateInfo(n, stateInfo);
                 if (stateInfo.size() == 0)
                 {
                     continue;

@@ -38,6 +38,7 @@ static glm::mat4 Identity(glm::mat4(1.0f));
 
 TwoPointScreenLocation::TwoPointScreenLocation() : ModelScreenLocation(3)
 {
+    _hasX2 = true;
     mSelectableHandles = 3;
     handle_aabb_min.push_back(glm::vec3(0.0f));
     handle_aabb_min.push_back(glm::vec3(0.0f));
@@ -50,80 +51,7 @@ TwoPointScreenLocation::TwoPointScreenLocation() : ModelScreenLocation(3)
 TwoPointScreenLocation::~TwoPointScreenLocation() {
 }
 
-ModelScreenLocation::MSLUPGRADE TwoPointScreenLocation::CheckUpgrade(wxXmlNode* node)
-{
-    // check for upgrade to world positioning
-    int version = wxAtoi(node->GetAttribute("versionNumber", "0"));
-    if (version < 2) {
-        // skip first upgrade call since preview size is not set
-        node->DeleteAttribute("versionNumber");
-        node->AddAttribute("versionNumber", "2");
-        return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_SKIPPED;
-    } else if (version == 2) {
-        if (node->HasAttribute("X1")) {  // Two Point model
-            float old_x1 = wxAtof(node->GetAttribute("X1", "0"));
-            float old_y1 = wxAtof(node->GetAttribute("Y1", "0"));
-            float old_x2 = wxAtof(node->GetAttribute("X2", "0"));
-            float old_y2 = wxAtof(node->GetAttribute("Y2", "0"));
-            worldPos_x = previewW * old_x1;
-            worldPos_y = previewH * old_y1;
-            worldPos_z = 0.0f;
-            x2 = previewW * old_x2 - worldPos_x;
-            y2 = previewH * old_y2 - worldPos_y;
-            z2 = 0.0f;
-            node->DeleteAttribute("X1");
-            node->DeleteAttribute("Y1");
-            node->DeleteAttribute("X2");
-            node->DeleteAttribute("Y2");
-            node->DeleteAttribute("Z2");
-            node->DeleteAttribute("WorldPosX");
-            node->DeleteAttribute("WorldPosY");
-            node->DeleteAttribute("WorldPosZ");
-            node->AddAttribute("WorldPosX", wxString::Format("%6.4f", worldPos_x));
-            node->AddAttribute("WorldPosY", wxString::Format("%6.4f", worldPos_y));
-            node->AddAttribute("WorldPosZ", wxString::Format("%6.4f", worldPos_z));
-            node->AddAttribute("X2", wxString::Format("%6.4f", x2));
-            node->AddAttribute("Y2", wxString::Format("%6.4f", y2));
-            node->AddAttribute("Z2", wxString::Format("%6.4f", z2));
-        }
-        node->DeleteAttribute("versionNumber");
-        node->AddAttribute("versionNumber", CUR_MODEL_POS_VER);
-        return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_EXEC_DONE;
-    }
-    return ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_NOT_NEEDED;
-}
-
-void TwoPointScreenLocation::Read(wxXmlNode *ModelNode) {
-    ModelScreenLocation::MSLUPGRADE upgrade_result = CheckUpgrade(ModelNode);
-    if (upgrade_result == ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_NOT_NEEDED) {
-        worldPos_x = wxAtof(ModelNode->GetAttribute("WorldPosX", "0.0"));
-        worldPos_y = wxAtof(ModelNode->GetAttribute("WorldPosY", "0.0"));
-        worldPos_z = wxAtof(ModelNode->GetAttribute("WorldPosZ", "0.0"));
-        x2 = wxAtof(ModelNode->GetAttribute("X2", "0.0"));
-        y2 = wxAtof(ModelNode->GetAttribute("Y2", "0.0"));
-        z2 = wxAtof(ModelNode->GetAttribute("Z2", "0.0"));
-        _locked = (wxAtoi(ModelNode->GetAttribute("Locked", "0")) == 1);
-    }
-}
-
-void TwoPointScreenLocation::Write(wxXmlNode *ModelXml) {
-    ModelXml->DeleteAttribute("WorldPosX");
-    ModelXml->DeleteAttribute("WorldPosY");
-    ModelXml->DeleteAttribute("WorldPosZ");
-    ModelXml->DeleteAttribute("Locked");
-    ModelXml->AddAttribute("WorldPosX", wxString::Format("%6.4f", worldPos_x));
-    ModelXml->AddAttribute("WorldPosY", wxString::Format("%6.4f", worldPos_y));
-    ModelXml->AddAttribute("WorldPosZ", wxString::Format("%6.4f", worldPos_z));
-    ModelXml->DeleteAttribute("X2");
-    ModelXml->DeleteAttribute("Y2");
-    ModelXml->DeleteAttribute("Z2");
-    ModelXml->AddAttribute("X2", std::to_string(x2));
-    ModelXml->AddAttribute("Y2", std::to_string(y2));
-    ModelXml->AddAttribute("Z2", std::to_string(z2));
-    if (_locked)
-    {
-        ModelXml->AddAttribute("Locked", "1");
-    }
+void TwoPointScreenLocation::Init() {
 }
 
 void TwoPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
@@ -319,10 +247,10 @@ bool TwoPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom,
     int startVert = va->getCount();
 
     va->PreAlloc(16);
-    if (point2.y - origin.y == 0) {
+    if (std::abs(point2.y - origin.y) <= 0.1) {
         va->AddVertex(worldPos_x, worldPos_y, xlRED);
         va->AddVertex(point2.x, point2.y, xlRED);
-    } else if (point2.x - origin.x == 0) {
+    } else if (std::abs(point2.x - origin.x) <= 0.1) {
         va->AddVertex(worldPos_x, worldPos_y, handleColor);
         va->AddVertex(point2.x, point2.y, handleColor);
     }
@@ -536,10 +464,9 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
         }
     }
 
-    if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
+    if (!DragHandle(preview, mouseX, mouseY, latch)) return MODEL_UNCHANGED;
 
     if (handle == CENTER_HANDLE) {
-
         if (axis_tool == MSLTOOL::TOOL_TRANSLATE) {
             switch (active_axis)
             {
@@ -618,6 +545,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
             saved_position = drag_delta;
             TwoPointScreenLocation::Scale(scaling);
         }
+        return MODEL_UPDATE_RGBEFFECTS;
     }
     else if (handle == START_HANDLE) {
 
@@ -689,6 +617,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
             z2 = end_pt.z - worldPos_z;
             saved_angle = angle;
         }
+        return MODEL_UPDATE_RGBEFFECTS;
     }
     else if (handle == END_HANDLE) {
 
@@ -761,8 +690,9 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
             z2 = end_pt.z - worldPos_z;
             saved_angle = angle;
         }
+        return MODEL_UPDATE_RGBEFFECTS;
     }
-    return 1;
+    return MODEL_UNCHANGED;
 }
 int TwoPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
     if (handle == CENTER_HANDLE) {
@@ -819,12 +749,12 @@ int TwoPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot
         y2 += sp.y - worldPos_y;
         z2 += sp.z - worldPos_z;
     }
-    return 1;
+    return MODEL_UPDATE_RGBEFFECTS;
 }
 
 int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
-    if (_locked) return 0;
+    if (_locked) return MODEL_UNCHANGED;
 
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
@@ -870,7 +800,7 @@ int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool S
         y2 = newy - worldPos_y;
     }
 
-    return 0;
+    return MODEL_UPDATE_RGBEFFECTS;
 }
 
 wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {

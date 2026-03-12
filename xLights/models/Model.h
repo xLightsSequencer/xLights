@@ -16,6 +16,7 @@
 #include <list>
 #include <tuple>
 
+#include "../ControllerConnection.h"
 #include "ModelScreenLocation.h"
 #include "BoxedScreenLocation.h"
 #include "TwoPointScreenLocation.h"
@@ -39,6 +40,7 @@ class wxPropertyGridInterface;
 class wxPropertyGridEvent;
 class ModelScreenLocation;
 class ModelManager;
+class SubModel;
 class xLightsFrame;
 class OutputManager;
 class wxPGProperty;
@@ -84,6 +86,7 @@ public:
 class Model : public BaseObject
 {
     friend class LayoutPanel;
+    friend class ModelManager;
     friend class SubModel;
 
 public:
@@ -126,10 +129,9 @@ public:
         return n.ToStdString();
     }
 
-    bool RenameController(const std::string& oldName, const std::string& newName);
     virtual std::string GetFullName() const { return name; }
     void Rename(std::string const& newName);
-    int GetNumStrings() const { return parm1; }
+    virtual int GetNumStrings() const { return HasOneString(DisplayAs) ? 1 : parm1; }
     PIXEL_STYLE GetPixelStyle() const { return _pixelStyle; }
     void SetPixelStyle(PIXEL_STYLE style);
     static std::string GetPixelStyleDescription(PIXEL_STYLE pixelStyle);
@@ -144,10 +146,20 @@ public:
     long GetParm1() const { return parm1; }
     long GetParm2() const { return parm2; }
     long GetParm3() const { return parm3; }
+    void SetParm1(long val) {parm1 = val;}
+    void SetParm2(long val) {parm2 = val;}
+    void SetParm3(long val) {parm3 = val;}
     int GetTransparency() const { return transparency; }
+    int GetBlackTransparency() const { return blackTransparency; }
+    std::string GetDescription() const { return description; }
+    void SetDescription(std::string const& desc) { description = desc; }
     const std::string GetNodeNames() const { return _nodeNamesString; }
     const std::string GetStrandNames() const { return _strandNamesString; }
-
+    void SetNodeNames(std::string const& nodes);
+    void SetStrandNames(std::string const& strands);
+    void SetCustomColor(std::string const& color) { customColor = color; }
+    [[nodiscard]] xlColor GetCustomColor() const { return customColor; }
+    
     void SetDirection( const std::string dir ) { _dir = dir; }
     void SetStartSide( const std::string start_side ) { _startSide = start_side; }
 
@@ -155,31 +167,38 @@ public:
     virtual bool ChangeStringCount(long count,  std::string& message) { return false; };
 
     std::string description;
-    xlColor customColor;
-    DimmingCurve* modelDimmingCurve = nullptr;
     int _controller = 0; // this is used to pass the selected controller name between property create and property change only
 
     int GetPixelSize() const { return pixelSize; }
     void SetPixelSize(int size);
     void SetTransparency(int t);
     void SetBlackTransparency(int t);
-    void ApplyDimensions(const std::string& units, float width, float height, float depth, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z);
+    
+    // Getter methods for export functionality
+    [[nodiscard]] const std::string &GetPixelCount() const { return _pixelCount; }
+    [[nodiscard]] const std::string &GetPixelType() const { return _pixelType; }
+    [[nodiscard]] const std::string &GetPixelSpacing() const { return _pixelSpacing; }
+    
+    void SetPixelCount(const std::string &pc) { _pixelCount = pc; }
+    void SetPixelType(const std::string &pt) { _pixelType = pt; }
+    void SetPixelSpacing(const std::string &ps) { _pixelSpacing = ps; }
+
+    wxString ExportSuperStringColors() const;
+    void ApplyDimensions(const std::string& units, float width, float height, float depth);
     void ExportDimensions(wxFile& f) const;
+    std::string GetRulerDim() const;
 
     virtual bool AllNodesAllocated() const { return true; }
-    static void ParseFaceInfo(wxXmlNode* fiNode, FaceStateData& faceInfo);
     static void WriteFaceInfo(wxXmlNode* fiNode, const FaceStateData& faceInfo);
     wxString SerialiseFace() const;
     wxString SerialiseState() const;
-    wxString SerialiseGroups() const;
-    wxString SerialiseConnection() const;
     void AddModelGroups(wxXmlNode* n, int w, int h, const wxString& name, bool& merge, bool& ask);
+    void ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup);
 
     void UpdateFaceInfoNodes();
     void UpdateStateInfoNodes();
 
-    static void ParseStateInfo(wxXmlNode* fiNode, FaceStateData& stateInfo);
-    static void WriteStateInfo(wxXmlNode* fiNode, const FaceStateData& stateInfo, bool customColours = false);
+     static void WriteStateInfo(wxXmlNode* fiNode, const FaceStateData& stateInfo, bool customColours = false);
 
     [[nodiscard]] virtual FaceStateData const& GetFaceInfo() const { return faceInfo; };
     [[nodiscard]] virtual FaceStateNodes const& GetFaceInfoNodes() const { return faceInfoNodes; };
@@ -191,21 +210,51 @@ public:
     virtual void SetStateInfo(FaceStateData const& info) { stateInfo = info; };
     virtual void SetStateInfoNodes(FaceStateNodes const& nodes) { stateInfoNodes = nodes; };
 
-    void AddFace(wxXmlNode* n);
-    void AddState(wxXmlNode* n);
-    void AddSubmodel(wxXmlNode* n);
-    void AddSubmodel(wxXmlNode* n, bool skipPrompt);
-    void AddModelAliases(wxXmlNode* n);
-    void ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup);
-    [[nodiscard]] Model* CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, wxXmlNode* node, xLightsFrame* xlights, const std::string& startChannel, bool& cancelled) const;
+    // Add face with data structure-based method
+    inline void AddFace(const std::map<std::string, std::string>& attributes) {
+        // Extract the face name from attributes
+        auto nameIt = attributes.find("Name");
+        if (nameIt == attributes.end()) {
+            return; // Invalid face data, must have a name
+        }
+        
+        std::string faceName = nameIt->second;
+        
+        // Create a new face entry in faceInfo
+        faceInfo[faceName] = attributes;
+        
+        // Update face info nodes
+        UpdateFaceInfoNodes();
+    }
+    
+    // Add state with data structure-based method
+    inline void AddState(const std::map<std::string, std::string>& attributes) {
+        // Extract the state name from attributes
+        auto nameIt = attributes.find("Name");
+        if (nameIt == attributes.end()) {
+            return; // Invalid state data, must have a name
+        }
+        
+        std::string stateName = nameIt->second;
+        
+        // Create a new state entry in stateInfo
+        stateInfo[stateName] = attributes;
+        
+        // Update state info nodes
+        UpdateStateInfoNodes();
+    }
+    
+    void AddSubmodel(SubModel* sm);
+    [[nodiscard]] Model* CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, wxXmlNode* node, xLightsFrame* xlights, bool& cancelled) const;
 
     [[nodiscard]] wxString SerialiseSubmodel() const;
-    [[nodiscard]] wxString SerialiseAliases() const;
     [[nodiscard]] virtual wxString CreateBufferAsSubmodel() const;
     bool importAliases = false;
     bool skipImportAliases = false;
 
     [[nodiscard]] std::map<std::string, std::map<std::string, std::string>> GetDimmingInfo() const;
+    void SetDimmingInfo(const std::map<std::string, std::map<std::string, std::string>>& info);
+    DimmingCurve *GetDimmingCurve() const { return modelDimmingCurve; }
     [[nodiscard]] virtual std::list<std::string> CheckModelSettings() override;
     [[nodiscard]] virtual const std::vector<std::string>& GetBufferStyles() const {
         return DEFAULT_BUFFER_STYLES;
@@ -217,25 +266,16 @@ public:
     [[nodiscard]] const ModelManager& GetModelManager() const {
         return modelManager;
     }
-    [[nodiscard]] virtual bool SupportsXlightsModel() {
-        return false;
-    }
     static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int& depthmm);
-    [[nodiscard]] bool ImportXlightsModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z);
-    [[nodiscard]] virtual bool ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) {
-        return true;
-    }
-    virtual void ExportXlightsModel() {}
-    virtual void ImportModelChildren(wxXmlNode* root, xLightsFrame* xlights, wxString const& newname, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z);
     bool FourChannelNodes() const;
     bool FiveChannelNodes() const;
     std::list<std::string> GetShadowedBy() const;
 
     void SetStartChannel(std::string const& startChannel);
-    void ReloadModelXml() override
+    void ReloadModel() override
     {
         GetModelScreenLocation().Reload();
-        SetFromXml(ModelXml, zeroBased);
+        Setup();
     }
 
     static const std::vector<std::string> DEFAULT_BUFFER_STYLES;
@@ -244,7 +284,6 @@ public:
     int GetDefaultBufferHt() const { return BufferHt; }
     virtual bool IsDMXModel() const { return false; }
 
-    void SetProperty(wxString const& property, wxString const& value, bool apply = false);
     virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     void GetSerialProtocolSpeeds(const std::string& protocol, wxArrayString& cp, int& idx) const;
@@ -276,12 +315,30 @@ public:
     virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event);
     virtual const ModelScreenLocation& GetModelScreenLocation() const = 0;
     virtual ModelScreenLocation& GetModelScreenLocation() = 0;
-    bool HasIndividualStartChannels() const;
-    wxString GetIndividualStartChannel(size_t s) const;
+
+    [[nodiscard]] bool HasIndividualStartChannels() const { return _hasIndivChans; }
+    void SetHasIndividualStartChannels(bool indiv) { _hasIndivChans = indiv; }
+    [[nodiscard]] std::string GetIndividualStartChannel(size_t s) const;
+    void SetIndivStartChannelCount(int count) { _indivStartChannels.resize(count); }
+    void SetIndividualStartChannel(int index, const std::string& channel) { _indivStartChannels[index] = channel; }
+    void SetIndivStartNodesCount(int count) { _indivStartNodes.resize(count); }
+    std::vector<int> GetNodeSizes() const { return _indivStartNodes;}
+    void SetNodeSize(int idx, int val) { _indivStartNodes[idx] = val; }
+
+    [[nodiscard]] bool HasIndivStartNodes() const { return _hasIndivNodes; }
+    void SetHasIndivStartNodes(bool indiv) { _hasIndivNodes = indiv; }
+    [[nodiscard]] int GetIndivStartNode(size_t s) const { return _indivStartNodes[s]; }
+    [[nodiscard]] int GetIndivStartNodesCount() const { return _indivStartNodes.size(); }
+    void AddIndivStartNode(int node) { _indivStartNodes.push_back(node); }
+    void SetIndivStartNode(int index, int node) { _indivStartNodes[index] = node; }
+    const std::string StartNodeAttrName(int idx) const { return ""; }
 
     bool IsNodeInBufferRange(size_t nodeNum, int x1, int y1, int x2, int y2);
 
     static void ApplyTransparency(xlColor& color, int transparency, int blackTransparency);
+    
+    
+    virtual bool SupportsModelScreenLocation() const { return true; }
 protected:
     void AdjustStringProperties(wxPropertyGridInterface* grid, int newNum);
     std::string ComputeStringStartChannel(int x);
@@ -300,10 +357,10 @@ protected:
     const ModelManager& modelManager;
 
     int FindNodeAtXY(int bufx, int bufy);
-    virtual void InitModel() {
-    }
-    virtual int CalcCannelsPerString();
-    virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString);
+    virtual void InitModel() {}
+    virtual int CalcChannelsPerString();
+    virtual void SetStringStartChannels(int NumberOfStrings, int StartChannel, int ChannelsPerString);
+    int ComputeStringStartNode(int x) const;
     void RecalcStartChannels();
 
     void SetBufferSize(int NewHt, int NewWi);
@@ -312,7 +369,6 @@ protected:
 
     bool FindCustomModelScale(int scale) const;
 
-    wxString ExportSuperStringColors() const;
     void ImportSuperStringColours(wxXmlNode* root);
 
     void SetLineCoord();
@@ -322,13 +378,14 @@ protected:
     int pixelSize = 2;
     int transparency = 0;
     int blackTransparency = 0;
-    wxColour modelTagColour = wxNullColour;
+    wxColour _modelTagColour = wxNullColour;
+    std::string _modelTagColourString = xlEMPTY_STRING;
     uint8_t _lowDefFactor = 100;
     std::string _startSide = "B";
     std::string _dir = "L";
+    std::string _controllerName = "";
 
     int StrobeRate = 0; // 0 = no strobing
-    bool zeroBased =  false;
 
     std::vector<std::string> strandNames;
     std::vector<std::string> nodeNames;
@@ -340,14 +397,24 @@ protected:
     bool IsLtoR = true;     // true = left to right, false = right to left
     std::vector<int32_t> stringStartChan;
     bool isBotToTop = true;
-    std::string StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
+    std::string StringType = "RGB Nodes"; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
     int rgbwHandlingType = 0;
     std::vector<xlColor> superStringColours;
+    xlColor customColor;
+
+    bool _hasIndivChans = false;
+    bool _hasIndivNodes = false;
+    std::vector<std::string> _indivStartChannels;
+    std::vector<int> _indivStartNodes;
 
     mutable std::list<std::string> aliases;
+
+    std::map<std::string, std::map<std::string, std::string>> dimmingInfo;
+    DimmingCurve* modelDimmingCurve = nullptr;
+    
     std::vector<Model*> subModels;
     std::map<std::string, Model*> sortedSubModels;
-    void ParseSubModel(wxXmlNode* subModelNode);
+    std::string _modelChain = "";
     void ColourClashingChains(wxPGProperty* p);
     [[nodiscard]] uint32_t ApplyLowDefinition(uint32_t val) const;
 
@@ -357,55 +424,30 @@ protected:
     FaceStateNodes stateInfoNodes;
 
 public:
-    [[nodiscard]] bool IsControllerConnectionValid() const;
-    [[nodiscard]] wxXmlNode* GetControllerConnection() const;
     [[nodiscard]] std::string GetControllerConnectionString() const;
     [[nodiscard]] std::string GetControllerConnectionRangeString() const;
     [[nodiscard]] std::string GetControllerConnectionPortRangeString() const;
     [[nodiscard]] std::string GetControllerConnectionAttributeString() const;
     void ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP);
-    static std::string DecodeSmartRemote(int sr);
+    std::string DecodeSmartRemote(int sr) const;
 
     void SetTagColour(wxColour colour);
+    void SetTagColourAsString(std::string const& colour);
     [[nodiscard]] wxColour GetTagColour();
+    [[nodiscard]] std::string GetTagColourAsString() const; // used by XmlSerializer
     [[nodiscard]] int32_t GetStringStartChan(int x) const;
-    void SaveSuperStringColours();
+
+    [[nodiscard]] int GetNumSuperStringColours() const { return superStringColours.size(); }
+    [[nodiscard]] std::string GetSuperStringColour(int index) const { return superStringColours[index]; }
     void SetSuperStringColours(int count);
     void SetSuperStringColour(int index, xlColor c);
-    void AddSuperStringColour(xlColor c, bool saveToXml = true);
+    void AddSuperStringColour(xlColor c);
     void SetShadowModelFor(const std::string& shadowFor);
-    void SetControllerName(const std::string& controllerName);
-    void SetControllerProtocol(const std::string& protocol);
-    void SetControllerSerialProtocolSpeed(int speed);
-    void SetControllerPort(int port);
-    void SetControllerBrightness(int brightness);
-    void ClearControllerBrightness();
-    [[nodiscard]] bool IsControllerBrightnessSet() const;
     [[nodiscard]] bool IsShadowModel() const;
     [[nodiscard]] std::string GetShadowModelFor() const;
-    [[nodiscard]] std::string GetControllerName() const;
-    [[nodiscard]] std::string GetControllerProtocol() const;
-    [[nodiscard]] int GetControllerProtocolSpeed() const;
-    [[nodiscard]] int GetControllerBrightness() const;
-    [[nodiscard]] int GetControllerDMXChannel() const;
-    [[nodiscard]] int GetSmartRemote() const;
-    [[nodiscard]] bool GetSRCascadeOnPort() const;
-    [[nodiscard]] int GetSRMaxCascade() const;
-    [[nodiscard]] std::vector<std::string> GetSmartRemoteTypes() const;
-    [[nodiscard]] std::string GetSmartRemoteType() const;
-    [[nodiscard]] int GetSmartRemoteTypeIndex(const std::string& srType) const;
-    [[nodiscard]] std::string GetSmartRemoteTypeName(int idx) const;
-    [[nodiscard]] int GetSmartRemoteCount() const;
-    [[nodiscard]] int GetControllerStartNulls() const;
-    [[nodiscard]] int GetControllerEndNulls() const;
-    [[nodiscard]] wxString GetControllerColorOrder() const;
-    [[nodiscard]] int GetControllerGroupCount() const;
-    [[nodiscard]] float GetControllerGamma() const;
-    void SetControllerStartNulls(int nulls);
-    void SetControllerEndNulls(int nulls);
-    void SetControllerColorOrder(wxString const& color);
-    void SetControllerGroupCount(int grouping);
-    void SetControllerGamma(float gamma);
+    [[nodiscard]] std::string GetRGBWHandling() const;
+    void SetRGBWHandling(std::string const& handling);
+    void SetLowDefFactor(int factor) { _lowDefFactor = factor; }
 
     bool IsAlias(const std::string& alias, bool oldnameOnly = false) const;
     void AddAlias(const std::string& alias);
@@ -414,19 +456,7 @@ public:
     const std::list<std::string> &GetAliases() const;
     void SetAliases(const std::list<std::string>& aliases);
 
-    void GetPortSR(int string, int& outport, int& outsr) const;
-    [[nodiscard]] char GetSmartRemoteLetter() const;
-    [[nodiscard]] char GetSmartRemoteLetterForString(int string = 1) const;
-    [[nodiscard]] int GetSortableSmartRemote() const;
-    [[nodiscard]] int GetSmartTs() const;
-    [[nodiscard]] int GetSmartRemoteForString(int string = 1) const;
-    [[nodiscard]] int GetControllerPort(int string = 1) const;
     void SetModelChain(const std::string& modelChain);
-    void SetSmartRemote(int sr);
-    void SetSRCascadeOnPort(bool cascade);
-    void SetSRMaxCascade(int max);
-    void SetSmartRemoteType(const std::string& type);
-    void SetControllerDMXChannel(int ch);
     [[nodiscard]] std::string GetModelChain() const;
     [[nodiscard]] const std::vector<Model*>& GetSubModels() const {
         return subModels;
@@ -440,18 +470,12 @@ public:
         return i < (int)subModels.size() ? subModels[i] : nullptr;
     }
     void RemoveSubModel(const std::string& name);
+    void RemoveAllSubModels();
     [[nodiscard]] std::list<int> ParseFaceNodes(std::string channels);
 
-    [[nodiscard]] bool IsPixelProtocol() const;
-    [[nodiscard]] bool IsSerialProtocol() const;
-    [[nodiscard]] bool IsMatrixProtocol() const;
-    [[nodiscard]] bool IsLEDPanelMatrixProtocol() const;
-    [[nodiscard]] bool IsVirtualMatrixProtocol() const;
-    [[nodiscard]] bool IsPWMProtocol() const;
-    
     virtual std::vector<PWMOutput> GetPWMOutputs() const;
 
-    static wxArrayString GetSmartRemoteValues(int smartRemoteCount);
+    wxArrayString GetSmartRemoteValues(int smartRemoteCount) const;
 
     [[nodiscard]] unsigned long GetChangeCount() const {
         return changeCount;
@@ -467,8 +491,10 @@ public:
     std::string _pixelCount{ "" };
     std::string _pixelType{ "" };
     std::string _pixelSpacing{ "" };
+    std::string _shadowModelFor{ "" };
 
-    void SetFromXml(wxXmlNode* ModelNode, bool zeroBased = false) override;
+    void UpdateChannels();
+    void Setup() override;
     virtual bool ModelRenamed(const std::string& oldName, const std::string& newName);
     [[nodiscard]] uint32_t GetNodeCount() const;
     [[nodiscard]] NodeBaseClass* GetNode(uint32_t node) const;
@@ -477,7 +503,6 @@ public:
     [[nodiscard]] int GetChanCountPerNode() const;
     [[nodiscard]] uint32_t GetCoordCount(size_t nodenum) const;
     [[nodiscard]] int GetNodeStringNumber(size_t nodenum) const;
-    void UpdateXmlWithScale() override;
     void SetPosition(double posx, double posy);
     [[nodiscard]] std::string GetChannelInStartChannelFormat(OutputManager* outputManager, uint32_t channel);
     [[nodiscard]] std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager);
@@ -489,7 +514,6 @@ public:
     uint32_t GetNumChannels() const;
     uint32_t GetNodeNumber(size_t nodenum) const;
     uint32_t GetNodeNumber(int bufY, int bufX) const;
-    bool UpdateStartChannelFromChannelString(std::map<std::string, Model*>& models, std::list<std::string>& used);
     int GetNumberFromChannelString(const std::string& sc) const;
     int GetNumberFromChannelString(const std::string& sc, bool& valid, std::string& dependsonmodel) const;
 
@@ -512,7 +536,7 @@ public:
 
     virtual bool CleanupFileLocations(xLightsFrame* frame) override;
     std::list<std::string> GetFaceFiles(const std::list<std::string>& facesUsed, bool all = false, bool includeFaceName = false) const;
-    glm::vec3 MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY);
+    glm::vec3 MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool& update_rgbeffects);
     int GetSelectedHandle();
     int GetNumHandles();
     int GetSelectedSegment();
@@ -527,9 +551,11 @@ public:
 
     bool HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction);
     const std::string& GetStringType() const { return StringType; }
+    void SetStringType(std::string const& st) { StringType = st; }
+
     virtual int NodesPerString() const;
-    virtual int NodesPerString(int string) const { return NodesPerString(); }
-    virtual int MapPhysicalStringToLogicalString(int string) const { return string; }
+    virtual int NodesPerString(int string) const;
+    virtual int MapPhysicalStringToLogicalString(int string) const;
     virtual int GetLightsPerNode() const { return 1; } // default to one unless a model supports this
     wxCursor InitializeLocation(int& handle, wxCoord x, wxCoord y, ModelPreview* preview);
 
@@ -576,6 +602,8 @@ public:
 
     bool GetIsLtoR() const { return IsLtoR; }
     bool GetIsBtoT() const { return isBotToTop; }
+    void SetIsBtoT(bool val) { isBotToTop = val; }
+    void SetIsLtoR(bool val) { IsLtoR = val; }
     virtual int GetStrandLength(int strand) const;
 
     float _savedWidth{ 0.0F };
@@ -621,10 +649,11 @@ public:
     {
         return std::string("String") + std::to_string(idx + 1); // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
     }
+
     // returns true for models that only have 1 string and where parm1 does NOT represent the # of strings
-    static bool HasOneString(const std::string& DispAs)
+    static bool HasOneString(const DisplayAsType DispAs)
     {
-        return (DispAs == "Window Frame" || DispAs == "Custom" || DispAs == "Cube");
+        return (DispAs == DisplayAsType::WindowFrame || DispAs == DisplayAsType::Cube);
     }
     // true for dumb strings and traditional strings
     bool HasSingleNode(const std::string& StrType) const
@@ -725,7 +754,7 @@ public:
     void HandlePropertyGridContextMenu(wxCommandEvent& event) override;
 
     // reverse is used for conversion scenarios where the old format was reversed
-    void DeserialiseLayerSizes(std::string const& ls, bool reverse)
+    void DeserializeLayerSizes(std::string const& ls, bool reverse)
     {
         layerSizes.resize(0);
         auto lss = wxSplit(ls, ',');
@@ -742,9 +771,82 @@ public:
             }
         }
     }
+
     uint32_t GetChannelForNode(int strandIndex, int node) const;
     
     [[nodiscard]] std::string GetAttributesAsJSON() const;
+
+    // Controller Connection Functions
+    friend class ControllerConnection;
+
+    void SetControllerProperty(enum ControllerConnection::CTRL_PROPS prop) { _controllerConnection.SetProperty(prop); }
+    void ClearControllerProperty(enum ControllerConnection::CTRL_PROPS prop) { _controllerConnection.ClearProperty(prop); }
+    void UpdateControllerProperty(enum ControllerConnection::CTRL_PROPS prop, bool value) { _controllerConnection.UpdateProperty(prop, value); }
+    bool IsCtrlPropertySet(enum ControllerConnection::CTRL_PROPS prop) { return _controllerConnection.IsPropertySet(prop); }
+
+    void SetControllerName(const std::string& controllerName, bool skip_work = false);
+    void SetControllerProtocol(const std::string& protocol) { _controllerConnection.SetProtocol(protocol); }
+    void SetControllerSerialProtocolSpeed(int speed) { _controllerConnection.SetSerialProtocolSpeed(speed); }
+    void SetControllerPort(int port) { _controllerConnection.SetCtrlPort(port); }
+
+    void SetControllerStartNulls(int nulls) { _controllerConnection.SetStartNulls(nulls); }
+    void SetControllerEndNulls(int nulls) { _controllerConnection.SetEndNulls(nulls); }
+    void SetControllerBrightness(int brightness)  { _controllerConnection.SetBrightness(brightness); }
+    void SetControllerColorOrder(std::string const& color) { _controllerConnection.SetColorOrder(color); }
+    void SetControllerGroupCount(int grouping) { _controllerConnection.SetGroupCount(grouping); }
+    void SetControllerGamma(float gamma) { _controllerConnection.SetGamma(gamma); }
+    void SetControllerReverse(int reverse) { _controllerConnection.SetReverse(reverse); }
+    void SetControllerZigZag(int zigzag)  { _controllerConnection.SetZigZag(zigzag); }
+    [[nodiscard]] bool RenameController(const std::string& oldName, const std::string& newName);
+
+    [[nodiscard]] std::string GetControllerName() const { return _controllerName; }
+    [[nodiscard]] std::string GetControllerProtocol() const { return _controllerConnection.GetProtocol(); }
+    [[nodiscard]] int GetControllerProtocolSpeed() const { return _controllerConnection.GetProtocolSpeed(); }
+    [[nodiscard]] int GetControllerPort(int string = 1) const { return _controllerConnection.GetCtrlPort(string); }
+    [[nodiscard]] int GetControllerStartNulls() const { return _controllerConnection.GetStartNulls(); }
+    [[nodiscard]] int GetControllerEndNulls() const { return _controllerConnection.GetEndNulls(); }
+    [[nodiscard]] int GetControllerBrightness() const { return _controllerConnection.GetBrightness(); }
+    [[nodiscard]] std::string GetControllerColorOrder() const { return _controllerConnection.GetColorOrder(); }
+    [[nodiscard]] int GetControllerGroupCount() const { return _controllerConnection.GetGroupCount(); }
+    [[nodiscard]] float GetControllerGamma() const { return _controllerConnection.GetGamma(); }
+    [[nodiscard]] int GetControllerReverse() const { return _controllerConnection.GetReverse(); }
+    [[nodiscard]] int GetControllerZigZag() const { return _controllerConnection.GetZigZag(); }
+
+    [[nodiscard]] int GetControllerDMXChannel() const { return _controllerConnection.GetDMXChannel(); }
+    [[nodiscard]] bool IsControllerConnectionValid() const { return _controllerConnection.IsValid(); }
+    [[nodiscard]] bool IsPixelProtocol() const { return _controllerConnection.IsPixelProtocol(); }
+    [[nodiscard]] bool IsSerialProtocol() const { return _controllerConnection.IsSerialProtocol(); }
+    [[nodiscard]] bool IsMatrixProtocol() const { return _controllerConnection.IsMatrixProtocol(); }
+    [[nodiscard]] bool IsLEDPanelMatrixProtocol() const { return _controllerConnection.IsLEDPanelMatrixProtocol(); }
+    [[nodiscard]] bool IsVirtualMatrixProtocol() const { return _controllerConnection.IsVirtualMatrixProtocol(); }
+    [[nodiscard]] bool IsPWMProtocol() const { return _controllerConnection.IsPWMProtocol(); }
+
+    // Smart Remote Functions
+    void GetPortSR(int string, int& outport, int& outsr) const { return _controllerConnection.GetPortSR(string, outport, outsr); }
+    [[nodiscard]] char GetSmartRemoteLetter() const { return _controllerConnection.GetSmartRemoteLetter(); }
+    [[nodiscard]] char GetSmartRemoteLetterForString(int string = 1) const { return _controllerConnection.GetSmartRemoteLetterForString(); }
+    [[nodiscard]] int GetSortableSmartRemote() const { return _controllerConnection.GetSortableSmartRemote(); }
+    [[nodiscard]] int GetSmartTs() const { return _controllerConnection.GetSmartTs(); }
+    [[nodiscard]] int GetSmartRemoteForString(int string = 1) const { return _controllerConnection.GetSmartRemoteForString(); }
+    void SetSmartRemote(int sr) { return _controllerConnection.SetSmartRemote(sr); }
+    void SetSmartRemoteTs(int ts ) { _controllerConnection.SetSmartRemoteTs(ts); }
+    void SetSRCascadeOnPort(bool cascade) { return _controllerConnection.SetSRCascadeOnPort(cascade); }
+    void SetSRMaxCascade(int max) { return _controllerConnection.SetSRMaxCascade(max); }
+    void SetSmartRemoteType(const std::string& type) { return _controllerConnection.SetSmartRemoteType(type); }
+    void SetControllerDMXChannel(int ch) { return _controllerConnection.SetDMXChannel(ch); }
+    [[nodiscard]] int GetSmartRemote() const { return _controllerConnection.GetSmartRemote(); }
+    [[nodiscard]] bool GetSRCascadeOnPort() const { return _controllerConnection.GetSRCascadeOnPort(); }
+    [[nodiscard]] int GetSRMaxCascade() const { return _controllerConnection.GetSRMaxCascade(); }
+    [[nodiscard]] std::vector<std::string> GetSmartRemoteTypes() const { return _controllerConnection.GetSmartRemoteTypes(); }
+    [[nodiscard]] std::string GetSmartRemoteType() const { return _controllerConnection.GetSmartRemoteType(); }
+    [[nodiscard]] int GetSmartRemoteTypeIndex(const std::string& srType) const { return _controllerConnection.GetSmartRemoteTypeIndex(srType); }
+    [[nodiscard]] std::string GetSmartRemoteTypeName(int idx) const { return _controllerConnection.GetSmartRemoteTypeName(idx); }
+    [[nodiscard]] int GetSmartRemoteCount() const { return _controllerConnection.GetSmartRemoteCount(); }
+
+    ControllerConnection& GetCtrlConn() { return _controllerConnection; }
+    const ControllerConnection& GetConstCtrlConn() const { return _controllerConnection; }
+private:
+    ControllerConnection _controllerConnection;
 
 protected:
     std::vector<int> layerSizes; // inside to outside
@@ -772,6 +874,33 @@ protected:
     virtual void deleteUIObjects();
 
 };
+
+// Inline implementation of MapPhysicalStringToLogicalString
+// This is required because users dont need to have their start nodes for each string in ascending
+// order ... this helps us name the strings correctly
+inline int Model::MapPhysicalStringToLogicalString(int string) const
+{
+    int numStrings = GetNumStrings();
+    if (numStrings == 1)
+        return string;
+
+    // FIXME
+    // This is not very efficient ... n^2 algorithm ... but given most people will have a small
+    // number of strings and it is super simple and only used on controller upload i am hoping
+    // to get away with it
+
+    std::vector<int> stringOrder;
+    for (int curr = 0; curr < numStrings; curr++) {
+        int count = 0;
+        for (int s = 0; s < numStrings; s++) {
+            if (stringStartChan[s] < stringStartChan[curr] && s != curr) {
+                count++;
+            }
+        }
+        stringOrder.push_back(count);
+    }
+    return stringOrder[string];
+}
 
 template <class ScreenLocation>
 class ModelWithScreenLocation : public Model {

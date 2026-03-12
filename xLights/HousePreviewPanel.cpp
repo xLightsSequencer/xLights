@@ -116,6 +116,7 @@ HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
 
     Fit();
     Layout();
+    SetMinSize(wxSize(50, 50));
 }
 
 HousePreviewPanel::~HousePreviewPanel()

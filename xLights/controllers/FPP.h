@@ -10,6 +10,7 @@
 #include <nlohmann/json.hpp>
 
 #include "../models/ModelManager.h"
+#include "../models/ViewObjectManager.h"
 #include "ControllerUploadData.h"
 #include "BaseController.h"
 
@@ -113,7 +114,7 @@ class FPP : public BaseController
     
     bool UploadPlaylist(const std::string &playlist);
     bool UploadModels(const nlohmann::json& models);
-    bool UploadDisplayMap(const std::string &displayMap);
+    bool UploadDisplayMap(std::map<std::string, std::string> &virtualDisplayData);
     bool UploadUDPOut(const nlohmann::json& udp);
 
     bool UploadPixelOutputs(ModelManager* allmodels,
@@ -156,7 +157,9 @@ class FPP : public BaseController
 
 #ifndef DISCOVERYONLY
     nlohmann::json CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel);
-    static std::string CreateVirtualDisplayMap(ModelManager* allmodels, int previewWi, int previewHi);
+    static void CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &objects,
+                                        int previewWi, int previewHi,
+                                        std::map<std::string, std::string> &virtualDisplayData);
     nlohmann::json CreateUniverseFile(const std::list<Controller*>& controllers, bool input, std::map<int, int>* rngs = nullptr);
     nlohmann::json CreateUniverseFile(Controller* controller, bool input);
 #endif

@@ -220,7 +220,8 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX9" variable="BellOnRenderCompletion" member="yes">
-					<label>Bell on render completion</label>
+					<label>Bell on render completion or error</label>
+					<handler function="OnBellOnRenderCompletionClick" entry="EVT_CHECKBOX" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

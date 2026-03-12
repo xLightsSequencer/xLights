@@ -1,5 +1,3 @@
-#pragma once
-
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
@@ -10,17 +8,16 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-class DmxMotorBase
-{
-public:
-    DmxMotorBase() = default;
+// StringSerializingVisitor — owns an ostringstream, delegates to
+// StreamSerializingVisitor for all XML writing.
 
-    virtual ~DmxMotorBase(){};
+#include "StringSerializingVisitor.h"
 
-    virtual int GetChannelCoarse() const = 0;
-    virtual int GetChannelFine() const = 0;
+StringSerializingVisitor::StringSerializingVisitor(bool exporting, bool prettyPrint)
+    : StreamSerializingVisitor(_oss, exporting, prettyPrint) {
+    WriteXmlDeclaration();
+}
 
-    virtual int ConvertPostoCmd(float position) = 0;
-    virtual float GetPosition(int channel_value) = 0;
-};
-
+std::string StringSerializingVisitor::GetResult() const {
+    return _oss.str();
+}

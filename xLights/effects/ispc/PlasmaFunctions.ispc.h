@@ -50,13 +50,13 @@ struct uint8_t4 { uint8_t v[4]; } __attribute__ ((aligned(4)));
 #warning "Alignment not supported on this compiler"
 #endif // defined(__cplusplus) && __cplusplus >= 201103L
 #ifndef __ISPC_ALIGNED_STRUCT__
-#if defined(__clang__) || !defined(_MSC_VER)
-// Clang, GCC, ICC
+#if defined(__clang__) || !defined(_MSC_VER) || _MSC_VER > 1943
+// Clang, GCC, ICC, Visual Studio
 #define __ISPC_ALIGNED_STRUCT__(s) struct __ISPC_ALIGN__(s)
 #else
-// Visual Studio
+// Older Visual Studio
 #define __ISPC_ALIGNED_STRUCT__(s) __ISPC_ALIGN__(s) struct
-#endif // defined(__clang__) || !defined(_MSC_VER)
+#endif // defined(__clang__) || !defined(_MSC_VER) || _MSC_VER > 1943
 #endif // __ISPC_ALIGNED_STRUCT__
 
 #ifndef __ISPC_STRUCT_PlasmaData__

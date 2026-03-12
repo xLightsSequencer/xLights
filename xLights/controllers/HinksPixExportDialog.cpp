@@ -325,6 +325,11 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
 
     CheckListBox_Sequences->EnableCheckBoxes();
 
+    wxGridCellAttr* attr = new wxGridCellAttr();
+    attr->SetEditor(new wxGridCellBoolEditor());
+    attr->SetRenderer(new wxGridCellBoolRenderer());
+    GridSchedule->SetColAttr(static_cast<int>(ScheduleColumn::Enabled), attr);
+
     CreateDriveList();
     PopulateControllerList(outputManager);
     GetFolderList(xLightsFrame::CurrentDir);
@@ -701,6 +706,14 @@ void HinksPixExportDialog::UploadSchedules(ControllerEthernet* controller) {
         schedule.saveAsFile(temp_schedule);
         hixpix->UploadFileToController(temp_schedule, schedule.getFileName(), updateProg, wxDateTime::Now());
     }
+    bool anyEnabledItems = std::any_of(m_schedules.cbegin(), m_schedules.cend(),
+                                       [](auto const& b) {
+                                           return b.hasEnabledItems();
+                                       });
+    if (!anyEnabledItems) {
+        error = true;
+        errorMsg = "No Schedule with Playlists are Checked, nothing will be Played!";
+    }
     if (error) {
         DisplayError("HinksPix Schedule Upload Error\n" + errorMsg);
     }
@@ -737,11 +750,11 @@ void HinksPixExportDialog::OnPopup(wxCommandEvent& event) {
 
 void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
 {
-    int id = event.GetId();
-    int col = GridSchedule->GetGridCursorCol();
-    int row = GridSchedule->GetGridCursorRow();
+    int const id = event.GetId();
+    int const col = GridSchedule->GetGridCursorCol();
+    int const row = GridSchedule->GetGridCursorRow();
     wxString const name = GridSchedule->GetColLabelValue(col);
-    int min = 0;
+    int const min = 0;
     int max = 59;
     if (id == ID_MNU_SETALL) {
         if (col <= static_cast<int>(ScheduleColumn::EndMin) &&
@@ -755,7 +768,7 @@ void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
                 break;
             }
             auto const val = GridSchedule->GetCellValue(row, col);
-            int ival = wxAtoi(val);
+            int const ival = wxAtoi(val);
             wxNumberEntryDialog dlg(this, "", "Set " + name, "Set " + name, ival, min, max);
             if (dlg.ShowModal() == wxID_OK) {
                 for (int i = 0; i < GridSchedule->GetNumberRows(); ++i) {
@@ -772,10 +785,11 @@ void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
             }
             
         } else if (col <= static_cast<int>(ScheduleColumn::Enabled)) {
-            wxTextEntryDialog dlg(this, "Set " + name, "Set " + name, "X");
+            wxArrayString checklist { "Unchecked", "Checked" };
+            wxSingleChoiceDialog dlg(this, "Set " + name, "Set " + name, checklist);
             if (dlg.ShowModal() == wxID_OK) {
                 for (int i = 0; i < GridSchedule->GetNumberRows(); ++i) {
-                    GridSchedule->SetCellValue(i, col, dlg.GetValue());
+                    GridSchedule->SetCellValue(i, col, dlg.GetSelection() == 0 ? "" : "1");
                 }
             }
         }
@@ -815,12 +829,13 @@ void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
                 }
             }
         } else if (col <= static_cast<int>(ScheduleColumn::Enabled)) {
-            wxTextEntryDialog dlg(this, "Set " + name, "Set " + name, "X");
+            wxArrayString checklist{ "Unchecked", "Checked" };
+            wxSingleChoiceDialog dlg(this, "Set " + name, "Set " + name, checklist);
             if (dlg.ShowModal() == wxID_OK) {
                 for (int i = 0; i < GridSchedule->GetNumberRows(); ++i) {
                     auto row_playList = GridSchedule->GetCellValue(i, static_cast<int>(ScheduleColumn::PlayList));
                     if (row_playList == playList) {
-                        GridSchedule->SetCellValue(i, col, dlg.GetValue());
+                        GridSchedule->SetCellValue(i, col, dlg.GetSelection() == 0 ? "" : "1");
                     }
                 }
             }
@@ -863,7 +878,7 @@ void HinksPixExportDialog::OnPopupGrid(wxCommandEvent& event)
 void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Scanning folder for sequences for FPP upload: %s", (const char*)dir.c_str());
+    logger_base.info("Scanning folder for sequences for HinksPix Export: %s", (const char*)dir.c_str());
 
     wxDir directory;
     directory.Open(dir);
@@ -1426,6 +1441,14 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
             }
             schedule.saveToDrive(drive);
         }
+        bool anyEnabledItems = std::any_of(m_schedules.cbegin(), m_schedules.cend(),
+                                           [](auto const& b) {
+                                               return b.hasEnabledItems();
+                                           });
+        if (!anyEnabledItems) {
+            error = true;
+            errorMsg = "No Schedule with Playlists are Checked, nothing will be Played!";
+        }
         createModeFile(drive, GetChoiceValueIndex(MODE_COL + rowStr));
     }
 
@@ -1607,6 +1630,15 @@ void HinksPixExportDialog::OnButtonUploadClick(wxCommandEvent& /*event*/) {
             schedule.saveAsFile(temp_schedule);
             hixpix->UploadFileToController(temp_schedule, schedule.getFileName(), updateProg, wxDateTime::Now());
         }
+        bool anyEnabledItems = std::any_of(m_schedules.cbegin(), m_schedules.cend(),
+                                           [](auto const& b) {
+                                               return b.hasEnabledItems();
+                                           });
+        if (!anyEnabledItems) {
+            error = true;
+            errorMsg = "No Schedule with Playlists are Checked, nothing will be Played!";
+        }
+
         prgs.Pulse("Updating Time...");
         hixpix->UploadTimeToController();
         auto mode = GetChoiceValueIndex(MODE_COL + rowStr);
@@ -2298,7 +2330,7 @@ void HinksPixExportDialog::RedrawSchedules()
         SetCell(ScheduleColumn::StartMin,  "0");
         SetCell(ScheduleColumn::EndHour,   "23");
         SetCell(ScheduleColumn::EndMin,    "59");
-        SetCell(ScheduleColumn::Enabled,   "X");
+        SetCell(ScheduleColumn::Enabled,   "1");
         row++;
     };
 
@@ -2317,7 +2349,7 @@ void HinksPixExportDialog::RedrawSchedules()
         SetCell(ScheduleColumn::StartMin , wxString::Format("%i", item.StartMin));
         SetCell(ScheduleColumn::EndHour  , wxString::Format("%i", item.EndHour));
         SetCell(ScheduleColumn::EndMin   , wxString::Format("%i", item.EndMin));
-        SetCell(ScheduleColumn::Enabled  , item.Enabled ? "X" : "");
+        SetCell(ScheduleColumn::Enabled  , item.Enabled ? "1" : "");
         row++;
     };
 
@@ -2356,6 +2388,14 @@ bool HinksPixExportDialog::CheckSchedules()
             DisplayError(wxString::Format("'%s' Schedule was invalid!\n%s", schedule.Day, reason));
             return false;
         }
+    }
+    bool anyEnabledItems = std::any_of(m_schedules.cbegin(), m_schedules.cend(),
+                                      [](auto const& b) {
+                                          return b.hasEnabledItems();
+                                      });
+    if (!anyEnabledItems) {
+        DisplayError("No Schedule with Playlists are Checked, nothing will be Played!");
+        return false;
     }
     return true;
 }

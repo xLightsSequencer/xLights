@@ -25,7 +25,7 @@ public:
     virtual xlTexture *createTexture(int w, int h, bool bgr, bool alpha) override;
     virtual xlTexture *createTextureForFont(const xlFontInfo &font) override;
     virtual xlGraphicsProgram *createGraphicsProgram() override;
-    virtual xlMesh *loadMeshFromObjFile(const std::string &file) override;
+    virtual std::unique_ptr<xlMesh> loadMeshFromObjFile(const std::string &file) override;
 
     // Setup the Viewport
     virtual xlGraphicsContext* SetViewport(int x1, int y1, int x2, int y2, bool is3D = false) override;

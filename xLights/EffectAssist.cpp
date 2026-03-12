@@ -39,6 +39,7 @@ EffectAssist::EffectAssist(wxWindow* parent, wxWindowID id)
 
     mSize.SetHeight(0);
     mSize.SetWidth(0);
+    SetMinSize(wxSize(50, 50));
 }
 
 EffectAssist::~EffectAssist()

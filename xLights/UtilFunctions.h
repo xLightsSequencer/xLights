@@ -64,6 +64,10 @@ bool IsFileInShowDir(const wxString& showDir, const std::string filename);
 void SetFixFileDirectories(const std::list<std::string>& dirs);
 void SetFixFileShowDir(const wxString& ShowDir);
 wxString FixFile(const wxString& ShowDir, const wxString& file);
+// Returns the path of file relative to the current show directory or one of the
+// configured search directories.  Returns empty string if the file is not inside
+// any of those directories (or if the path is already relative).
+wxString MakeRelativeFile(const wxString& file);
 void ClearNonExistentFiles();
 wxString FixEffectFileParameter(const wxString& paramname, const wxString& parametervalue, const wxString& ShowDir);
 int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data);
@@ -81,7 +85,7 @@ void ShiftNodes(std::map<std::string, std::string> & nodes, int shift, int min, 
 void ReverseNodes(std::map<std::string, std::string> & nodes, int max);
 
 wxImage ApplyOrientation(const wxImage& img, int orient);
-int GetExifOrientation(const wxString& filename);
+int GetExifOrientation(const std::string& filename);
 
 std::string GetResourcesDirectory();
 
@@ -117,6 +121,7 @@ void SaveWindowPosition(const std::string& tag, wxWindow* window);
 void LoadWindowPosition(const std::string& tag, wxSize& size, wxPoint& position);
 int intRand(const int& min, const int& max);
 int ExtractInt(std::string& s);
+int ExtractTrailingInt(const std::string& s);
 void SaveInt(const std::string& tag, int value);
 int LoadInt(const std::string& tag, int defaultValue);
 int NumberAwareStringCompare(const std::string &a, const std::string &b);

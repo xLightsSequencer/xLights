@@ -21,22 +21,17 @@
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
 #include "../ModelPreview.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 #include <log4cpp/Category.hh>
 
-MatrixModel::MatrixModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
-{
-    SetFromXml(node, zeroBased);
-}
-
 MatrixModel::MatrixModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
-    //ctor
+    DisplayAs = DisplayAsType::Matrix;
 }
 
 MatrixModel::~MatrixModel()
 {
-    //dtor
 }
 
 static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = { 
@@ -51,6 +46,7 @@ static const char* MATRIX_STYLES_VALUES[] = {
     "Horizontal",
     "Vertical"
 };
+
 static wxPGChoices MATRIX_STYLES(wxArrayString(2, MATRIX_STYLES_VALUES));
 
 void MatrixModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
@@ -94,12 +90,12 @@ void MatrixModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
 }
 
 void MatrixModel::AddStyleProperties(wxPropertyGridInterface *grid) {
-    grid->Append(new wxEnumProperty("Direction", "MatrixStyle", MATRIX_STYLES, vMatrix ? 1 : 0));
+    grid->Append(new wxEnumProperty("Direction", "MatrixStyle", MATRIX_STYLES, _vMatrix ? 1 : 0));
     wxPGProperty *p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
     p->SetEditor("CheckBox");
-    p->Enable(_noZig == false);
+    p->Enable(_noZigZag == false);
 
-    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", _noZig));
+    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", _noZigZag));
     p->SetEditor("CheckBox");
     p->Enable(_alternateNodes == false);
 }
@@ -107,8 +103,7 @@ void MatrixModel::AddStyleProperties(wxPropertyGridInterface *grid) {
 int MatrixModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
     if ("MatrixStyle" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("DisplayAs");
-        ModelXml->AddAttribute("DisplayAs", event.GetPropertyValue().GetLong() ? "Vert Matrix" : "Horiz Matrix");
+        _vMatrix = event.GetPropertyValue().GetLong();
         // AdjustStringProperties(grid, parm1);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::OnPropertyGridChange::MatrixStyle");
@@ -117,8 +112,7 @@ int MatrixModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MatrixModel::OnPropertyGridChange::MatrixStyle");
         return 0;
     } else if ("MatrixStringCount" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm1");
-        ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        parm1 = static_cast<int>(event.GetPropertyValue().GetLong());
         // AdjustStringProperties(grid, parm1);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::OnPropertyGridChange::MatrixStringCount");
@@ -130,8 +124,7 @@ int MatrixModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "MatrixModel::OnPropertyGridChange::MatrixStringCount");
         return 0;
     } else if ("MatrixLightCount" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm2");
-        ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        parm2 = static_cast<int>(event.GetPropertyValue().GetLong());
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::OnPropertyGridChange::MatrixLightCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::OnPropertyGridChange::MatrixLightCount");
@@ -142,8 +135,7 @@ int MatrixModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "MatrixModel::OnPropertyGridChange::MatrixLightCount");
         return 0;
     } else if ("MatrixStrandCount" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm3");
-        ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        parm3 = static_cast<int>(event.GetPropertyValue().GetLong());
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::OnPropertyGridChange::MatrixStrandCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::OnPropertyGridChange::MatrixStrandCount");
@@ -152,18 +144,15 @@ int MatrixModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MatrixModel::OnPropertyGridChange::MatrixStrandCount");
         return 0;
     } else if ("MatrixStart" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("Dir");
-        ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2 ? "L" : "R");
-        ModelXml->DeleteAttribute("StartSide");
-        ModelXml->AddAttribute("StartSide", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1 ? "T" : "B");
+        _dir = event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2 ? "L" : "R";
+        _startSide = event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1 ? "T" : "B";
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::OnPropertyGridChange::MatrixStart");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MatrixModel::OnPropertyGridChange::MatrixStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::OnPropertyGridChange::MatrixStart");
         return 0;
     } else if (event.GetPropertyName() == "AlternateNodes") {
-        ModelXml->DeleteAttribute("AlternateNodes");
-        ModelXml->AddAttribute("AlternateNodes", event.GetPropertyValue().GetBool() ? "true" : "false");
+        _alternateNodes = event.GetPropertyValue().GetBool();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::AlternateNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::AlternateNodes");
@@ -172,8 +161,7 @@ int MatrixModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         grid->GetPropertyByName("NoZig")->Enable(event.GetPropertyValue().GetBool() == false);
         return 0;
     } else if (event.GetPropertyName() == "NoZig") {
-        ModelXml->DeleteAttribute("NoZig");
-        ModelXml->AddAttribute("NoZig", event.GetPropertyValue().GetBool() ? "true" : "false");
+        _noZigZag = event.GetPropertyValue().GetBool();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::NoZig");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::NoZig");
@@ -225,12 +213,9 @@ bool MatrixModel::ChangeStringCount(long count, std::string & message)
     auto nparm2 = oldTotalPix / count;
     auto nparm3 = oldTotalStands / count;
 
-    ModelXml->DeleteAttribute("parm1");
-    ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)count));
-    ModelXml->DeleteAttribute("parm2");
-    ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)nparm2));
-    ModelXml->DeleteAttribute("parm3");
-    ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)nparm3));
+    parm1 = (int)count;
+    parm2 = (int)nparm2;
+    parm3 = (int)nparm3;
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::ChangeStringCount::MatrixStringCount");
     AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::ChangeStringCount::MatrixStringCount");
     AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MatrixModel::ChangeStringCount::MatrixStringCount");
@@ -250,7 +235,7 @@ void MatrixModel::InitSingleChannelModel()
     {
         int NumStrands = parm1 * parm3;
         int PixelsPerStrand = parm2 / parm3;
-        if (vMatrix)
+        if (_vMatrix)
         {
             SetBufferSize(SingleNode ? 1 : PixelsPerStrand, SingleNode ? parm1 : NumStrands);
             int x = 0;
@@ -280,15 +265,12 @@ void MatrixModel::InitSingleChannelModel()
 }
 
 void MatrixModel::InitModel() {
-    _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
-    _noZig = (ModelXml->GetAttribute("NoZig", "false") == "true");
-    if (DisplayAs == "Vert Matrix") {
+    if (_vMatrix) {
         InitVMatrix();
-    } else if (DisplayAs == "Horiz Matrix") {
+    } else {
         InitHMatrix();
     }
     InitSingleChannelModel();
-    DisplayAs = "Matrix";
     screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
 }
 
@@ -299,7 +281,6 @@ void MatrixModel::InitModel() {
 void MatrixModel::InitVMatrix(int firstExportStrand)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    vMatrix = true;
     int stringnum, segmentnum;
     if (parm3 > parm2) {
         parm3 = parm2;
@@ -389,7 +370,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
                             }
                         }
                     } else {
-                        if (_noZig)
+                        if (_noZigZag)
                         {
                             Nodes[idx]->Coords[0].bufY = isBotToTop == true ? y : PixelsPerStrand - y - 1;
                         } else {
@@ -428,7 +409,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
                             }
                         }
                     } else {
-                        if (_noZig)
+                        if (_noZigZag)
                         {
                             Nodes[idx]->Coords[0].bufY = isBotToTop == true ? y : PixelsPerStrand - y - 1;
                         } else {
@@ -455,7 +436,6 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
 // parm3=StrandsPerString
 void MatrixModel::InitHMatrix() {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    vMatrix = false;
     int idx,stringnum,segmentnum,xincr;
     if (parm3 > parm2) {
         parm3 = parm2;
@@ -532,7 +512,7 @@ void MatrixModel::InitHMatrix() {
                             }
                         }
                     } else {
-                        if (_noZig)
+                        if (_noZigZag)
                         {
                             Nodes[idx]->Coords[0].bufX = IsLtoR != true ? PixelsPerStrand - x - 1 : x;
                         } else {
@@ -573,7 +553,7 @@ void MatrixModel::InitHMatrix() {
                             }
                         }
                     } else {
-                        if (_noZig)
+                        if (_noZigZag)
                         {
                             Nodes[idx]->Coords[0].bufX = IsLtoR != true ? PixelsPerStrand - x - 1 : x;
                         } else {
@@ -591,163 +571,6 @@ void MatrixModel::InitHMatrix() {
                 }
             }
         }
-    }
-}
-
-void MatrixModel::ExportXlightsModel()
-{
-    wxString name = ModelXml->GetAttribute("name");
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty()) return;
-    wxFile f(filename);
-
-    if (!f.Create(filename, true) || !f.IsOpened()) {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-        return;
-    }
-
-    wxString p1 = ModelXml->GetAttribute("parm1");
-    wxString p2 = ModelXml->GetAttribute("parm2");
-    wxString p3 = ModelXml->GetAttribute("parm3");
-    wxString st = ModelXml->GetAttribute("StringType");
-    wxString ps = ModelXml->GetAttribute("PixelSize");
-    wxString t = ModelXml->GetAttribute("Transparency", "0");
-    wxString mb = ModelXml->GetAttribute("ModelBrightness", "0");
-    wxString a = ModelXml->GetAttribute("Antialias");
-    wxString ss = ModelXml->GetAttribute("StartSide");
-    wxString dir = ModelXml->GetAttribute("Dir");
-    wxString sn = ModelXml->GetAttribute("StrandNames");
-    wxString nn = ModelXml->GetAttribute("NodeNames");
-    wxString da = ModelXml->GetAttribute("DisplayAs");
-    wxString an = ModelXml->GetAttribute("AlternateNodes", "false");
-    wxString nz = ModelXml->GetAttribute("NoZig", "false");
-    wxString ld = ModelXml->GetAttribute("LowDefinition", "100");
-    wxString v = xlights_version_string;
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<matrixmodel \n");
-    f.Write(wxString::Format("name=\"%s\" ", name));
-    f.Write(wxString::Format("parm1=\"%s\" ", p1));
-    f.Write(wxString::Format("parm2=\"%s\" ", p2));
-    f.Write(wxString::Format("parm3=\"%s\" ", p3));
-    f.Write(wxString::Format("DisplayAs=\"%s\" ", da));
-    f.Write(wxString::Format("StringType=\"%s\" ", st));
-    f.Write(wxString::Format("Transparency=\"%s\" ", t));
-    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
-    f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
-    f.Write(wxString::Format("Antialias=\"%s\" ", a));
-    f.Write(wxString::Format("StartSide=\"%s\" ", ss));
-    f.Write(wxString::Format("Dir=\"%s\" ", dir));
-    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
-    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
-    f.Write(wxString::Format("AlternateNodes=\"%s\" ", an));
-    f.Write(wxString::Format("NoZig=\"%s\" ", nz));
-    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
-    f.Write(wxString::Format("LowDefinition=\"%s\" ", ld));
-    f.Write(ExportSuperStringColors());
-    f.Write(" >\n");
-    wxString aliases = SerialiseAliases();
-    if (aliases != "") {
-        f.Write(aliases);
-    }
-    wxString state = SerialiseState();
-    if (state != "")
-    {
-        f.Write(state);
-    }
-    wxString face = SerialiseFace();
-    if (face != "")
-    {
-        f.Write(face);
-    }
-    wxString submodel = SerialiseSubmodel();
-    if (submodel != "")
-    {
-        f.Write(submodel);
-    }
-    wxString groups = SerialiseGroups();
-    if (groups != "") {
-        f.Write(groups);
-    }
-    wxString connection = SerialiseConnection();
-    if (connection != "") {
-        f.Write(connection);
-    }
-    ExportDimensions(f);
-    f.Write("</matrixmodel>");
-    f.Close();
-}
-
-bool MatrixModel::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) {
-    if (root->GetName() == "matrixmodel") {
-        wxString name = root->GetAttribute("name");
-        wxString p1 = root->GetAttribute("parm1");
-        wxString p2 = root->GetAttribute("parm2");
-        wxString p3 = root->GetAttribute("parm3");
-        wxString st = root->GetAttribute("StringType");
-        wxString ps = root->GetAttribute("PixelSize");
-        wxString t = root->GetAttribute("Transparency", "0");
-        wxString mb = root->GetAttribute("ModelBrightness", "0");
-        wxString a = root->GetAttribute("Antialias");
-        wxString ss = root->GetAttribute("StartSide");
-        wxString dir = root->GetAttribute("Dir");
-        wxString sn = root->GetAttribute("StrandNames");
-        wxString nn = root->GetAttribute("NodeNames");
-        //wxString v = root->GetAttribute("SourceVersion");
-        wxString da = root->GetAttribute("DisplayAs");
-        wxString pc = root->GetAttribute("PixelCount");
-        wxString pt = root->GetAttribute("PixelType");
-        wxString psp = root->GetAttribute("PixelSpacing");
-        wxString an = root->GetAttribute("AlternateNodes");
-        wxString nz = root->GetAttribute("NoZig");
-        wxString ld = root->GetAttribute("LowDefinition", "100");
-
-        // generally xmodels dont have these ... but there are some cases where we do where it would point to a shadow model ... in those cases we want to bring it in
-        wxString smf = root->GetAttribute("ShadowModelFor");
-        wxString sc = root->GetAttribute("StartChannel");
-
-        // Add any model version conversion logic here
-        // Source version will be the program version that created the custom model
-
-        SetProperty("parm1", p1);
-        SetProperty("parm2", p2);
-        SetProperty("parm3", p3);
-        SetProperty("StringType", st);
-        SetProperty("PixelSize", ps);
-        SetProperty("Transparency", t);
-        SetProperty("ModelBrightness", mb);
-        SetProperty("Antialias", a);
-        SetProperty("StartSide", ss);
-        SetProperty("Dir", dir);
-        SetProperty("StrandNames", sn);
-        SetProperty("NodeNames", nn);
-        SetProperty("DisplayAs", da);
-        SetProperty("PixelCount", pc);
-        SetProperty("PixelType", pt);
-        SetProperty("PixelSpacing", psp);
-        SetProperty("AlternateNodes", an);
-        SetProperty("NoZig", nz);
-        SetProperty("LowDefinition", ld);
-        if (smf != "") {
-            SetProperty("ShadowModelFor", smf);
-        }
-        if (sc != "") {
-            SetControllerName("Use Start Channel");
-            SetProperty("StartChannel", sc);
-        }
-
-        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-        GetModelScreenLocation().Write(ModelXml);
-        SetProperty("name", newname, true);
-
-        ImportSuperStringColours(root);
-        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y, min_z, max_z);
-
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::ImportXlightsModel");
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::ImportXlightsModel");
-        return true;
-    } else {
-        DisplayError("Failure loading Matrix model file.");
-        return false;
     }
 }
 

@@ -11,6 +11,79 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2026.03  February 23, 2026
+    -enh (dkulp)            Completely new method for managing Pictures for pictures effect
+                                - Images can now be embedded in the xsq
+                                - New "Images" tab is Sequence Settings to manage images the sequence uses
+                                - SUP imports now embed the 100's of images it creates
+                                - Picture Effect panel now shows the image
+                                - AI Generate button on Picture Effect Panel
+                                - Images are loaded at sequence load and cached for rendering
+    -enh (MrPierreB)        Several new patterns for Kaleidoscope effect
+    -enh (derwin12)         Allow naming the metronome timing tracks
+    -enh (dkulp)            Add support for WEBP Animated images
+    -enh (derwin12)         Add filter to Layout tab to filter model list by regex
+    -enh (derwin12)         Use shift key to retain aspect ratio on layout resizing
+    -enh (dkulp)            Allow user to resize and crop the AI generated image
+    -enh (dkulp)            Upload 3D object resource to FPP10 for 3D VirtualDisplay
+    -bug (dkulp)            Prevent Save As from allowing saving sequences outside show directory
+    -bug (derwin12)         Preserve camera selection on per Preview
+    -bug (derwin12)         Use Numeric Smart Remote IDs for Hinkspix
+    -bug (derwin12)         Dont perform backup if opening an xsqz file.
+    -bug (dkulp)            Fix display of images that have pixels with transparency set at less than 50%
+    -bug (derwin12)         Fix ability to delete last point of a polyline model
+    -bug (dkulp)            Fix some very minor visual glitches/lines on the tabs of the Layout tab
+    -bug (dkulp)            Fix some layout issues in the "New Sequence" wizard pages
+    -bug (derwin12)         Mask the Gemini and ChatGPT keys
+    -bug (derwin12)         Provide more randomness to Fire Effect
+    -bug (scott)            more error handling for falcon v4 upload
+    -bug (derwin12)         Retain Center offset when using Base Folder
+    -bug (derwin12)         Update the sequence if media is found elsewhere
+    -bug (dkulp)            Fix "TransparentBlackLevel" on pictures effect that never actually worked
+2026.02  February 10, 2026
+    -change(scott)          Move from Ubuntu 22 to Ubuntu 24 for Linux
+    -enh (dkulp)            Update to latest wxWidgets (fixes some issues with File selection on OSX, some Windows dark mode fixes, etc...)
+    -enh (MrPierreB)        Allow chosing a larger size for the color selection buttons on the Color panel
+    -enh (derwin12)         Highlight perfectly vertical single lines similar to how horizontal is shown
+    -enh (dkulp)            Allow using AppleIntelligence/ImagePlayground on M# Macs to generate images
+    -enh (derwin12)         Allow using Gemini to generate images
+    -enh (dkulp)            If both ChatGPT and AppleIntelligence are enabled, allow selecting which one to use for Color Pallete generation
+    -enh (derwin12)         Add check sequence warning for reveresed single lines
+    -enh (derwin12)         Optional ring bell if error during batch render
+    -enh (derwin12)         Disable sequence duration change if media is selected
+    -enh (keith)            Updates for new pixel protocols for Minleon controllers
+    -enh (scott)            WLED Add Full xLights Control that uses xLights GPIO pins to allow Port Skipping and sets brightness factor from default brightness
+    -enh (derwin12)         Provide new source for QM Vamp for Windows
+    -bug (derwin12)         RGB Image models in layout may be be invisible
+    -bug (derwin12)         Fix or workaround several potential crashes
+    -bug (derwin12)         Fix potential crash in text effect if using external file for text
+    -bug (derwin12)         Fix FSEQ info being dumped on slight channel mismatch
+    -bug (derwin12)         Add warning to clear render cache if FPS is modified
+    -bug (gil)              MH Effect: If all commands have the same position reselect the fixtures from the commands
+    -bug (gil)              Update so new MH head effects are always have no commands. New MH's select all fixtures. Reselecting existing MH effect unchecks fixtures    
+2026.01  January 7, 2026
+    -enh (scott)            Switch HinksPix Enable Column to Check Box, add Error Checking if all schedules are disabled
+    -enh (gil)              Reduce model loading at startup from 3 times to 2
+    -enh (derwin12)         Added WEC to Minleon
+    -enh (derwin12)         Show channel count on fpp connect dialog
+    -enh (gil)              Add action to move nodes for a single submodel
+    -enh (dkulp)            Support for using the forced source port for ArtNet when uploading to FPP 9.5+
+    -enh (derwin12)         Only show Cascade Remotes for multi-string models
+    -enh (scott)            Add Right Click option to Batch Render to Check Sequences from a FPP Device's Playlist
+    -enh (dkulp)            Support Italics and Slant fonts for text effect
+    -bug (scott)            Fix HinksPix Export model start channels in non Universe Per String mode
+    -bug (scott)            Change Hinkpix Export to Foreign naming
+    -bug (rshambaugh)       Sketch Effect missing buttons on Mac UI
+    -bug (derwin12)         Face Dialog Nodes Incorrectly Sorted and Displayed
+    -bug (rshambaugh)       Face with node range generates file not found error
+    -bug (derwin12)         Crash on bad color pallete in rgbeffects file
+    -bug (derwin12)         Handle json exception when invalid unicode char is used
+    -bug (rshambaugh)       Key Bindings dialog now fits within screen bounds
+    -bug (dkulp)            Fix buttons on ColorManagerSettingsPanel only appearing on Windows
+    -bug (rshambaugh)       Improve red text readability in dark mode
+    -bug (gil)              Fix MH Reset to Defaults....clear settings last so its really clear
+    -bug (derwin12)         Reset FSEQ Channel count when Layout Changes
+    -bug (dkulp)            Use float for meteor effectState to make sure it scales properly with fps
 2025.13  December 2, 2025
     - enh (o0charlie0o)     Prevent accidental resize of effects when clicking on them
     - enh (scott)           Add json printing to fseq utility

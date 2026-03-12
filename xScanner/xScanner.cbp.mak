@@ -440,7 +440,7 @@ clean_linux_release:
 
 ../xLights/outputs/SerialOutput.cpp: ../xLights/UtilFunctions.h
 
-../xLights/outputs/OutputManager.cpp: ../xLights/Parallel.h ../xLights/UtilFunctions.h
+../xLights/outputs/OutputManager.cpp: ../xLights/Parallel.h ../xLights/UtilFunctions.h ../xLights/ExternalHooks.h
 
 ../xLights/Parallel.h: ../xLights/JobPool.h
 
@@ -508,7 +508,7 @@ ScanWork.cpp: ScanWork.h ../xLights/Parallel.h xScannerMain.h xScannerApp.h ../x
 
 ../xLights/outputs/ControllerEthernet.cpp: ../xLights/UtilFunctions.h ../xLights/SpecialOptions.h ../xLights/OutputModelManager.h ../xLights/xLightsMain.h
 
-../xLights/xLightsMain.h: ../xLights/PixelBuffer.h ../xLights/SequenceData.h ../xLights/xLightsTimer.h ../xLights/JobPool.h ../xLights/SequenceViewManager.h ../xLights/ColorManager.h ../xLights/ViewpointMgr.h ../xLights/PhonemeDictionary.h ../xLights/xLightsXmlFile.h ../xLights/RenderCache.h ../xLights/OutputModelManager.h ../xLights/SequencePackage.h ../xLights/ScriptsDialog.h ../xLights/TipOfTheDayDialog.h
+../xLights/xLightsMain.h: ../xLights/PixelBuffer.h ../xLights/SequenceData.h ../xLights/xLightsTimer.h ../xLights/JobPool.h ../xLights/SequenceViewManager.h ../xLights/ColorManager.h ../xLights/ViewpointMgr.h ../xLights/PhonemeDictionary.h ../xLights/xLightsXmlFile.h ../xLights/RenderCache.h ../xLights/OutputModelManager.h ../xLights/SequencePackage.h ../xLights/ScriptsDialog.h ../xLights/TipOfTheDayDialog.h ../xLights/CheckSequenceReport.h
 
 ../xLights/PixelBuffer.h: ../xLights/Color.h ../xLights/GPURenderUtils.h ../xLights/RenderBuffer.h ../xLights/RenderUtils.h ../xLights/ValueCurve.h
 

@@ -70,6 +70,8 @@ class SequencePackage {
         void ImportFaceInfo(Effect* mappedEffect, EffectLayer *target, const std::string& faceName);
         wxFileName CopyMediaToTarget(const std::string& targetFolder, const wxFileName& mediaToCopy);
         std::list<std::string> GetMissingMedia();
+    
+        void SetSequenceElements(SequenceElements *se) { sequenceElements = se; };
     private:
         xLightsFrame*   _xlights;
         bool            _xsqOnly = true;
@@ -87,6 +89,7 @@ class SequencePackage {
         std::map<std::string, wxFileName> _media;
         bool _modelsChanged = false;
         SeqPkgImportOptions _importOptions;
+        SequenceElements *sequenceElements;
     
         void InitDefaultImportOptions();
 };

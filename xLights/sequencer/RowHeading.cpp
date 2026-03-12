@@ -496,7 +496,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 else {
                     if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
                         Model* m = mSequenceElements->GetXLightsFrame()->AllModels[ri->element->GetModelName()];
-                        if (m != nullptr && m->GetDisplayAs() != "ModelGroup") {
+                        if (m != nullptr && m->GetDisplayAs() != DisplayAsType::ModelGroup) {
                             mnuLayer.Append(ID_ROW_MNU_CONVERT_TO_EFFECTS, "Convert To Effect");
                         }
                     }
@@ -532,10 +532,10 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 } 
 
                 modelMenu->Append(ID_ROW_MNU_PLAY_MODEL, "Play");
-                modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL, "Export")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup");
-                modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup");
-                modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL_SELECTED_EFFECTS, "Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup" && element->GetSelectedEffectCount() > 0);
-                modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL_SELECTED_EFFECTS, "Render and Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != "ModelGroup" && element->GetSelectedEffectCount() > 0);
+                modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL, "Export")->Enable(m != nullptr && m->GetDisplayAs() != DisplayAsType::ModelGroup);
+                modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export")->Enable(m != nullptr && m->GetDisplayAs() != DisplayAsType::ModelGroup);
+                modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL_SELECTED_EFFECTS, "Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != DisplayAsType::ModelGroup && element->GetSelectedEffectCount() > 0);
+                modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL_SELECTED_EFFECTS, "Render and Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != DisplayAsType::ModelGroup && element->GetSelectedEffectCount() > 0);
                 rowMenu->Append(ID_ROW_MNU_SELECT_ROW_EFFECTS, "Select Effects");
                 modelMenu->Append(ID_ROW_MNU_SELECT_MODEL_EFFECTS, "Select Effects");
                 rowMenu->Append(ID_ROW_MNU_CUT_ROW, "Cut Effects");
@@ -556,7 +556,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 modelMenu->Append(ID_ROW_MNU_DELETE_MODEL_STRAND_EFFECTS, "Delete Strand Effects");
                 modelMenu->Append(ID_ROW_MNU_DELETE_MODEL_NODE_EFFECTS, "Delete Node Effects");
 
-                if (m != nullptr && m->GetDisplayAs() == "ModelGroup") {
+                if (m != nullptr && m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                     modelMenu->Append(ID_ROW_MNU_MODEL_CONVERTTOPERMODEL, "Convert Effects to 'Per Model'");
                     rowMenu->Append(ID_ROW_MNU_ROW_CONVERTTOPERMODEL, "Convert Effects to 'Per Model'");
                 }
@@ -888,14 +888,27 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                         OptimiseDialogPosition(&dlg);
                         if (dlg.ShowModal() == wxID_OK) {
                             int ms = (dlg.GetValue() + base_timing / 2) / base_timing * base_timing;
-                            
+
                             if (ms != dlg.GetValue()) {
                                 DisplayWarning(wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetValue(), ms).ToStdString());
                             }
                             wxString ttn = wxString::Format("%dms Metronome", ms);
-                            if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame())) {
-                                xml_file->AddFixedTimingSection(ttn.ToStdString(), mSequenceElements->GetXLightsFrame());
-                                timing_added = true;
+                            // Suggest a unique name then let user edit it
+                            while (xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame())) {
+                                ttn = wxString::Format("%dms Metronome_%d", ms, 2);
+                                int suffix = 3;
+                                while (xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame())) {
+                                    ttn = wxString::Format("%dms Metronome_%d", ms, suffix++);
+                                }
+                            }
+                            wxTextEntryDialog te(this, "Enter a name for the timing track", wxGetTextFromUserPromptStr, ttn);
+                            OptimiseDialogPosition(&te);
+                            if (te.ShowModal() == wxID_OK) {
+                                ttn = RemoveUnsafeXmlChars(te.GetValue().ToStdString());
+                                if (!ttn.empty() && !xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame())) {
+                                    xml_file->AddFixedTimingSection(ttn.ToStdString(), ms, mSequenceElements->GetXLightsFrame());
+                                    timing_added = true;
+                                }
                             }
                         }
                     } else if (selected_timing == "Metronome w/ Tags") {
@@ -909,34 +922,37 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                             }
                             wxString ttn = wxString::Format("%s%dms Metronome %d Tag", dlg.IsRandomTiming() || dlg.IsRandomTags() ? "Random " : "", ms, dlg.GetTagCount());
 
-                            // Handle new random tag names
-                            if ((dlg.IsRandomTiming() || dlg.IsRandomTags()) && xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame())) {
+                            // Ensure suggested name is unique before presenting to user
+                            if (xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame())) {
                                 int copyNum = 1;
                                 wxString new_ttn = ttn;
                                 do {
-                                    wxString copyString = wxString::Format("_%d", copyNum);
-                                    new_ttn = ttn + copyString;
-                                    copyNum++;
+                                    new_ttn = ttn + wxString::Format("_%d", copyNum++);
                                 } while (xml_file->TimingAlreadyExists(new_ttn.ToStdString(), mSequenceElements->GetXLightsFrame()));
                                 ttn = new_ttn;
                             }
 
-                            if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame())) {
-                                // Get and parse custom tags
-                                std::vector<std::string> customTags = ParseTags(dlg.GetTextLabels());
-                                // If no valid custom tags, use default numbered tags (1, 2, 3, ...)
-                                if (customTags.empty()) {
-                                    for (int i = 1; i <= dlg.GetTagCount(); ++i) {
-                                        customTags.push_back(std::to_string(i));
+                            wxTextEntryDialog te(this, "Enter a name for the timing track", wxGetTextFromUserPromptStr, ttn);
+                            OptimiseDialogPosition(&te);
+                            if (te.ShowModal() == wxID_OK) {
+                                ttn = RemoveUnsafeXmlChars(te.GetValue().ToStdString());
+                                if (!ttn.empty() && !xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame())) {
+                                    // Get and parse custom tags
+                                    std::vector<std::string> customTags = ParseTags(dlg.GetTextLabels());
+                                    // If no valid custom tags, use default numbered tags (1, 2, 3, ...)
+                                    if (customTags.empty()) {
+                                        for (int i = 1; i <= dlg.GetTagCount(); ++i) {
+                                            customTags.push_back(std::to_string(i));
+                                        }
                                     }
-                                }
 
-                                // Add the timing track with custom or default tags
-                                xml_file->AddMetronomeLabelTimingSection(ttn.ToStdString(), ms, customTags, 
-                                    mSequenceElements->GetXLightsFrame(), 
-                                    dlg.GetMinRandomTiming(), 
-                                    dlg.IsRandomTags());
-                                timing_added = true;
+                                    // Add the timing track with custom or default tags
+                                    xml_file->AddMetronomeLabelTimingSection(ttn.ToStdString(), ms, customTags,
+                                        mSequenceElements->GetXLightsFrame(),
+                                        dlg.GetMinRandomTiming(),
+                                        dlg.IsRandomTags());
+                                    timing_added = true;
+                                }
                             }
                         }
                     } else {
@@ -1602,7 +1618,7 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
         ModelElement* me = dynamic_cast<ModelElement*>(e);
         Model* m = mSequenceElements->GetXLightsFrame()->AllModels[me->GetModelName()];
 
-        if (m->GetDisplayAs() == "ModelGroup") {
+        if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
             int view = mSequenceElements->GetCurrentView();
             ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
             auto models = mg->ModelNames();
@@ -1951,7 +1967,7 @@ void RowHeading::render( wxPaintEvent& event )
 
                 if (done) {
                     Model* pm = mSequenceElements->GetXLightsFrame()->AllModels[mSequenceElements->GetRowInformationFromRow(parent)->element->GetModelName()];
-                    if (pm != nullptr && pm->GetDisplayAs() == "ModelGroup") {
+                    if (pm != nullptr && pm->GetDisplayAs() == DisplayAsType::ModelGroup) {
                         name = rowInfo->element->GetFullName();
                         if (prefix.size() >= 3) {
                             prefix = prefix.substr(3);
@@ -1985,12 +2001,12 @@ void RowHeading::render( wxPaintEvent& event )
             // draw Model Group icon if necessary
             Model* m = mSequenceElements->GetXLightsFrame()->AllModels[rowInfo->element->GetModelName()];
             if (m != nullptr) {
-                if (m->GetDisplayAs() == "ModelGroup") {
+                if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                     dc.DrawBitmap(model_group_icon.GetBitmapFor(this), getWidth() - ICON_SPACE, startY + 3, true);
                 } else if (StartsWith(m->GetStringType(), "Single Color") || m->GetStringType() == "Node Single Color") {
                     if (m->GetNodeCount() > 0) {
                         xlColor color;
-                        if (m->GetDisplayAs() == "Channel Block") {
+                        if (m->GetDisplayAs() == DisplayAsType::ChannelBlock) {
                             StrandElement* se = dynamic_cast<StrandElement*>(rowInfo->element);
                             if (se != nullptr) {
                                 color = m->GetNodeMaskColor(se->GetStrand());
@@ -2009,7 +2025,7 @@ void RowHeading::render( wxPaintEvent& event )
                 }
 
                 bool hasEffects = rowInfo->element->HasEffects();
-                if (!hasEffects && groupEffectIndicator && m->GetDisplayAs() == "ModelGroup") {
+                if (!hasEffects && groupEffectIndicator && m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                     // model groups are only marked if model group has direct effects or the model with effects is otherwise hidden in the view
                     int view = mSequenceElements->GetCurrentView();
                     ModelGroup* mg = dynamic_cast<ModelGroup*>(m);

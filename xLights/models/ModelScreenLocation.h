@@ -10,7 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#define CUR_MODEL_POS_VER      "7"
+#define CUR_MODEL_POS_VER      "8"
 
 #define NO_HANDLE              -1
 #define CENTER_HANDLE          0
@@ -29,6 +29,10 @@
 
 #define FROM_BASE_HANDLES_COLOUR xlPURPLETRANSLUCENT
 #define LOCKED_HANDLES_COLOUR xlREDTRANSLUCENT
+
+#define MODEL_UNCHANGED       0
+#define MODEL_NEEDS_INIT      1
+#define MODEL_UPDATE_RGBEFFECTS 2
 
 // Lower 20 bits reserved to store handle positions and these
 // constants are modifiers to indicate special handles
@@ -92,17 +96,8 @@ protected:
         TOOL_NONE
     };
 
-    enum class MSLUPGRADE {
-        MSLUPGRADE_NOT_NEEDED,
-        MSLUPGRADE_SKIPPED,
-        MSLUPGRADE_EXEC_DONE,
-        MSLUPGRADE_EXEC_READ
-    };
-
     MSLAXIS NextAxis(MSLAXIS axis);
-    virtual void Read(wxXmlNode* node) = 0;
-    virtual void Write(wxXmlNode *node) = 0;
-    virtual MSLUPGRADE CheckUpgrade(wxXmlNode *node) = 0;
+    virtual void Init() = 0;
     void Reload() { rotation_init = true; }
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const = 0;
@@ -204,7 +199,7 @@ protected:
     }
 
     void SetRenderSize(float NewWi, float NewHt, float NewDp = 0.0f);
-    void AdjustRenderSize(float NewWi, float NewHt, float NewDp, wxXmlNode* node);
+    void AdjustRenderSize(float NewWi, float NewHt, float NewDp);
     bool IsLocked() const { return _locked; }
     void Lock(bool value = true) { _locked = value; }
     float GetRenderHt() const { return RenderHt; }
@@ -254,9 +249,9 @@ protected:
     virtual bool IsXYTransHandle() const { return false; }
     virtual bool IsElevationHandle() const { return false; }
     bool GetSupportsZScaling() const { return supportsZScaling; }
-    void SetSupportsZScaling(bool b) {
-        supportsZScaling = b;
-    }
+    void SetSupportsZScaling(bool b) { supportsZScaling = b; }
+    [[nodiscard]] bool hasX2() const { return _hasX2; }
+
     MSLPLANE GetPreferredSelectionPlane() { return preferred_selection_plane; }
     void SetPreferredSelectionPlane( MSLPLANE plane ) { preferred_selection_plane = plane; }
     void SetActivePlane( MSLPLANE plane ) { active_plane = plane; }
@@ -337,6 +332,7 @@ protected:
     MSLAXIS active_axis = MSLAXIS::NO_AXIS;
     MSLTOOL axis_tool = MSLTOOL::TOOL_TRANSLATE;
     int tool_size = 1;
+    bool _hasX2 = false;
     bool supportsZScaling = false;
     bool createWithDepth =  false;
     bool _startOnXAxis = false;

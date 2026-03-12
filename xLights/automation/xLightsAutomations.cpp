@@ -369,8 +369,9 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         if (map == "true") {
             int pw, ph;
             GetLayoutPreview()->GetVirtualCanvasSize(pw, ph);
-            std::string displayMap = FPP::CreateVirtualDisplayMap(&AllModels, pw, ph);
-            fpp->UploadDisplayMap(displayMap);
+            std::map<std::string, std::string> virtualDisplayData;
+            FPP::CreateVirtualDisplayMap(AllModels, AllObjects, pw, ph, virtualDisplayData);
+            fpp->UploadDisplayMap(virtualDisplayData);
             // virtual display map  requires a restart
             fpp->SetRestartFlag(true);
         }
@@ -530,7 +531,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             }
         }
 
-        displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
+        displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr);
         layoutPanel->ClearUndo();
         SetDir(shw, true);
 
@@ -864,10 +865,10 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         includeModels = sModels != "false";
         includeGroups = sGroups != "false";
         for (auto m = (&AllModels)->begin(); m != (&AllModels)->end(); ++m) {
-            if (m->second->GetDisplayAs() == "ModelGroup" && !includeGroups) {
+            if (m->second->GetDisplayAs() == DisplayAsType::ModelGroup && !includeGroups) {
                 continue;
             }
-            if (m->second->GetDisplayAs() != "ModelGroup" && !includeModels) {
+            if (m->second->GetDisplayAs() != DisplayAsType::ModelGroup && !includeModels) {
                 continue;
             }
             models += "\"" + JSONSafe(m->first) + "\",";

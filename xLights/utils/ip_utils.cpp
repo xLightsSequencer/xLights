@@ -258,4 +258,8 @@ namespace ip_utils
             //wxYieldIfNeeded();
         }
     }
+
+    void shutdownResolvePool() {
+        RESOLVE_POOL.Stop();
+    }
 };

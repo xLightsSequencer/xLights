@@ -68,6 +68,7 @@ enum class HEADER_INFO_TYPES;
 class Effect;
 class SettingsMap;
 class SequenceElements;
+class SequenceMedia;
 class MetalRenderBufferComputeData;
 class PixelBufferClass;
 
@@ -459,6 +460,7 @@ public:
     const Model* GetModel() const;
     const std::string &GetModelName() const;
     const wxString &GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) const;
+    SequenceMedia* GetSequenceMedia() const;
 
     void AlphaBlend(const RenderBuffer& src);
     bool IsNodeBuffer() const { return _nodeBuffer; }

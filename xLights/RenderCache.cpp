@@ -18,6 +18,7 @@
 #include <wx/filename.h>
 #include <wx/dir.h>
 #include <functional>
+#include "xLightsMain.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "TraceLog.h"
@@ -630,6 +631,21 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
     Element* e = el->GetParentElement();
     if (_properties.at("Element") != e->GetFullName()) return false;
 
+    int start_ms = std::atoi(_properties.at("StartMS").c_str());
+    int end_ms = std::atoi(_properties.at("EndMS").c_str());
+    int frame_count = std::atoi(_properties.at("Frames").c_str());
+    if (frame_count < 1) frame_count = 1;
+    long duration_ms = end_ms - start_ms;
+    long fps = (duration_ms * 1000) / (frame_count * 1000);
+
+    xLightsFrame* frame = (xLightsFrame*)wxTheApp->GetTopWindow();
+    int seqFPS = frame->_seqData.FrameTime();
+
+    if (seqFPS != fps) {
+        logger_rcache.info("RenderCache no match because FPS %ld doesn't match expected %ld", fps, seqFPS);
+        return false;
+    }
+
     if (buffer != nullptr)
     {
         std::string mname = GetModelName(buffer);
@@ -644,7 +660,7 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
     // 8 is the number of predefined tags
     if (_properties.size() - 7 != effect->GetSettings().size() + effect->GetPaletteMap().size())
     {
-        logger_rcache.debug("RenderCache no mantch because number of proprerties different.");
+        logger_rcache.debug("RenderCache no match because number of properties is different.");
         return false;
     }
 

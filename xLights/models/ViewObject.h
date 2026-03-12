@@ -35,13 +35,12 @@ public:
         return "";
     }
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
-    void SetFromXml(wxXmlNode* ObjectNode, bool zeroBased=false) override;
-    void UpdateXmlWithScale() override;
+    void Setup() override;
     virtual void InitModel() = 0;
 
-    void ReloadModelXml() override {
+    void ReloadModel() override {
         GetBaseObjectScreenLocation().Reload();
-        SetFromXml(ModelXml, false);
+        Setup();
     }
 
     bool GetIs3dOnly() { return only_3d; }
@@ -53,7 +52,7 @@ public:
 protected:
 
 private:
-    bool only_3d;
+    bool only_3d {true};
 };
 
 template <class ScreenLocation>

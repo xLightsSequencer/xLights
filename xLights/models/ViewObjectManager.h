@@ -32,6 +32,7 @@ public:
     void Delete(const std::string &name);
     bool Rename(const std::string &oldName, const std::string &newName);
     bool MergeFromBase(const std::string& baseShowDir, bool prompt);
+    static bool MergeBaseXml(const std::string& baseShowDir, wxXmlNode* localViewObjectsNode);
 
     void LoadViewObjects(wxXmlNode *objectNode);
 
@@ -40,6 +41,7 @@ public:
     std::map<std::string, ViewObject*>::const_iterator end() const;
     unsigned int size() const;
 
+    void clear();
 protected:
     ViewObject *createAndAddObject(wxXmlNode *node);
 
@@ -47,6 +49,5 @@ private:
     std::map<std::string, ViewObject *> view_objects;
     xLightsFrame* xlights;
 
-    void clear();
 };
 

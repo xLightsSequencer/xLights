@@ -69,17 +69,17 @@
         <Variant Name="K8-Max" ID="K8-Max" Base="FPP:FPPShiftStringCape">
             <MaxPixelPort>24</MaxPixelPort>
             <MaxSerialPort>1</MaxSerialPort>
-            <fppSerialPort1>DMX1</fppSerialPort1>
+            <fppSerialPort1>DMX</fppSerialPort1>
         </Variant>
         <Variant Name="K8-Pro" ID="K8-Pro" Base="FPP:FPPShiftStringCape">
             <MaxPixelPort>24</MaxPixelPort>
             <MaxSerialPort>1</MaxSerialPort>
-            <fppSerialPort1>DMX1</fppSerialPort1>
+            <fppSerialPort1>DMX</fppSerialPort1>
         </Variant>
         <Variant Name="K8" ID="K8" Base="FPP:FPPShiftStringCape">
             <MaxPixelPort>16</MaxPixelPort>
             <MaxSerialPort>1</MaxSerialPort>
-            <fppSerialPort1>DMX1</fppSerialPort1>
+            <fppSerialPort1>DMX</fppSerialPort1>
         </Variant>
         <Variant Name="K8-B" ID="K8-B" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>20</MaxPixelPort>
@@ -183,7 +183,7 @@
         <Variant Name="K16" ID="K16" Base="FPP:FPPShiftStringCape">
             <MaxPixelPort>32</MaxPixelPort>
             <MaxSerialPort>1</MaxSerialPort>
-            <fppSerialPort1>DMX1</fppSerialPort1>
+            <fppSerialPort1>DMX</fppSerialPort1>
         </Variant>
     </Controller>
     <Controller Name="K32">
@@ -208,7 +208,7 @@
         <Variant Name="K32" ID="K32" Base="FPP:FPPShiftStringCape">
             <MaxPixelPort>48</MaxPixelPort>
             <MaxSerialPort>1</MaxSerialPort>
-            <fppSerialPort1>DMX1</fppSerialPort1>
+            <fppSerialPort1>DMX</fppSerialPort1>
         </Variant>
     </Controller>
     <Controller Name="K4-PB">

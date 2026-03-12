@@ -33,7 +33,7 @@ public:
     impTreeItemData(wxString name, wxXmlNode* n, bool mg) : _name(name), _modelNode(n), _modelGroup(mg)
     {}
     wxString GetName() const { return _name; };
-    wxXmlNode* GetModelXml() const { return _modelNode; }
+    wxXmlNode* GetModelNode() const { return _modelNode; }
     bool IsModelGroup() const { return _modelGroup; }
 };
 

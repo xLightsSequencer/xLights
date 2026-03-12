@@ -120,7 +120,7 @@ public:
     MeteorsRenderCache() {};
     virtual ~MeteorsRenderCache() {};
 
-    int effectState = 0;
+    float effectState = 0;
     MeteorList meteors;
     MeteorRadialList meteorsRadial;
 };
@@ -162,6 +162,15 @@ void MeteorsEffect::SetDefaultParameters() {
     SetCheckBoxValue(mp->CheckBox_FadeWithDistance, false);
 }
 
+float MeteorsEffect::calcEffectStateOffset(int mSpeed, RenderBuffer& buffer) {
+    if (mSpeed == 0) {
+        // at least advance a little bit
+        return 0.1;
+    }
+    return (float(mSpeed * buffer.frameTimeInMs)) / 50.0f;
+}
+
+
 // ColorScheme: 0=rainbow, 1=range, 2=palette
 // MeteorsEffect: 0=down, 1=up, 2=left, 3=right, 4=implode, 5=explode
 void MeteorsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -197,7 +206,7 @@ void MeteorsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
         buffer.needToInit = false;
         cache->meteors.clear();
         cache->meteorsRadial.clear();
-        cache->effectState = mSpeed * buffer.frameTimeInMs / 50;
+        cache->effectState = calcEffectStateOffset(mSpeed, buffer);
     }
 
     switch (MeteorsEffect) {
@@ -302,7 +311,7 @@ void MeteorsEffect::RenderMeteorsHorizontal(RenderBuffer& buffer, int ColorSchem
 
     if (buffer.curPeriod == buffer.curEffStartPer) {
         for (int i = 0; i < warmupFrames; ++i) {
-            cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+            cache->effectState += calcEffectStateOffset(mSpeed, buffer);
             int mspeed = cache->effectState / 4;
             cache->effectState -= mspeed * 4;
 
@@ -312,7 +321,7 @@ void MeteorsEffect::RenderMeteorsHorizontal(RenderBuffer& buffer, int ColorSchem
         }
     }
 
-    cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+    cache->effectState += calcEffectStateOffset(mSpeed, buffer);
     int speed = cache->effectState / 4;
     cache->effectState -= speed * 4;
 
@@ -445,7 +454,7 @@ void MeteorsEffect::RenderMeteorsVertical(RenderBuffer& buffer, int ColorScheme,
 
     if (buffer.curPeriod == buffer.curEffStartPer) {
         for (int i = 0; i < warmupFrames; ++i) {
-            cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+            cache->effectState += calcEffectStateOffset(mSpeed, buffer);
             int mspeed = cache->effectState / 4;
             cache->effectState -= mspeed * 4;
 
@@ -455,7 +464,7 @@ void MeteorsEffect::RenderMeteorsVertical(RenderBuffer& buffer, int ColorScheme,
         }
     }
 
-    cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+    cache->effectState += calcEffectStateOffset(mSpeed, buffer);
     int speed = cache->effectState / 4;
     cache->effectState -= speed * 4;
 
@@ -583,7 +592,7 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer& buffer, int ColorScheme, int 
 
     if (buffer.curPeriod == buffer.curEffStartPer) {
         for (int i = 0; i < warmupFrames; ++i) {
-            cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+            cache->effectState += calcEffectStateOffset(mSpeed, buffer);
             int mspeed = cache->effectState / 4;
             cache->effectState -= mspeed * 4;
 
@@ -593,7 +602,7 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer& buffer, int ColorScheme, int 
         }
     }
 
-    cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+    cache->effectState += calcEffectStateOffset(mSpeed, buffer);
     int speed = cache->effectState / 4;
     cache->effectState -= speed * 4;
 
@@ -783,7 +792,7 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer& buffer, int ColorScheme, 
 
     if (buffer.curPeriod == buffer.curEffStartPer) {
         for (int i = 0; i < warmupFrames; ++i) {
-            cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+            cache->effectState += calcEffectStateOffset(mSpeed, buffer);
             int mspeed = cache->effectState / 4;
             cache->effectState -= mspeed * 4;
 
@@ -793,7 +802,7 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer& buffer, int ColorScheme, 
         }
     }
 
-    cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+    cache->effectState += calcEffectStateOffset(mSpeed, buffer);
     int speed = cache->effectState / 4;
     cache->effectState -= speed * 4;
 
@@ -978,7 +987,7 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer& buffer, int ColorScheme, 
 
     if (buffer.curPeriod == buffer.curEffStartPer) {
         for (int i = 0; i < warmupFrames; ++i) {
-            cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+            cache->effectState += calcEffectStateOffset(mSpeed, buffer);
             int mspeed = cache->effectState / 4;
             cache->effectState -= mspeed * 4;
 
@@ -988,7 +997,7 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer& buffer, int ColorScheme, 
         }
     }
 
-    cache->effectState += mSpeed * buffer.frameTimeInMs / 50;
+    cache->effectState += calcEffectStateOffset(mSpeed, buffer);
     int speed = cache->effectState / 4;
     cache->effectState -= speed * 4;
 

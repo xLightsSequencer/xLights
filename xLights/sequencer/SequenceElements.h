@@ -12,6 +12,7 @@
 
 #include "EffectLayer.h"
 #include "Element.h"
+#include "SequenceMedia.h"
 #include "wx/wx.h"
 #include <vector>
 #include <set>
@@ -162,10 +163,7 @@ public:
     std::string GetViewName(int view) const;
 
     void SetViewsManager(SequenceViewManager* viewsManager);
-    void SetModelsNode(wxXmlNode *modelsNode);
     std::string GetViewModels(const std::string &viewName) const;
-    void SetEffectsNode(wxXmlNode* effectsNode);
-    wxXmlNode* GetEffectsNode() const { return mEffectsNode; }
 
     void SortElements();
     void MoveElement(int index, int destinationIndex);
@@ -209,6 +207,10 @@ public:
     wxFileName &GetFileName() { return mFilename; }
     EffectManager &GetEffectManager();
     xLightsFrame *GetXLightsFrame() const { return xframe; };
+    
+    // Media cache management
+    SequenceMedia& GetSequenceMedia() { return mSequenceMedia; }
+    const SequenceMedia& GetSequenceMedia() const { return mSequenceMedia; }
 protected:
 private:
     int LoadEffects(EffectLayer *layer,
@@ -240,8 +242,6 @@ private:
     int mSelectedTimingRow;
     SequenceViewManager* _viewsManager = nullptr;
     TimeLine* _timeLine = nullptr;
-    wxXmlNode* mModelsNode = nullptr;
-    wxXmlNode* mEffectsNode = nullptr;
     xLightsFrame *xframe = nullptr;
     double mFrequency;
     int mTimingRowCount = 0;
@@ -262,5 +262,7 @@ private:
     std::map<std::string, std::set<std::string>> renderDependency;
     std::set<std::string> modelsToRender;
     std::mutex renderDepLock;
+    
+    SequenceMedia mSequenceMedia;
 };
 

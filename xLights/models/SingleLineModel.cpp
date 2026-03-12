@@ -14,24 +14,22 @@
 #include <wx/xml/xml.h>
 
 #include "ModelScreenLocation.h"
+#include "../XmlSerializer/XmlNodeKeys.h"
 
 std::vector<std::string> SingleLineModel::LINE_BUFFER_STYLES;
 
-SingleLineModel::SingleLineModel(const ModelManager &manager) : ModelWithScreenLocation(manager) {
+SingleLineModel::SingleLineModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
+{
+    DisplayAs = DisplayAsType::SingleLine;
     parm1 = 0;
     parm2 = 0;
     parm3 = 0;
 }
 
-SingleLineModel::SingleLineModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
-{
-    SetFromXml(node, zeroBased);
-}
-
-SingleLineModel::SingleLineModel(int lights, const Model &pbc, int strand, int node) : ModelWithScreenLocation(pbc.GetModelManager())
+/*SingleLineModel::SingleLineModel(int lights, const Model &pbc, int strand, int node) : ModelWithScreenLocation(pbc.GetModelManager())
 {
     Reset(lights, pbc, strand, node);
-}
+}*/
 
 bool SingleLineModel::IsNodeFirst(int n) const 
 {
@@ -40,6 +38,8 @@ bool SingleLineModel::IsNodeFirst(int n) const
 
 void SingleLineModel::Reset(int lights, const Model &pbc, int strand, int node, bool forceDirection)
 {
+    // If this method is called, we're creating a SingleLineModel to represent raw data and will not have a proper screen location
+    validLocation = false;
     parent = &pbc;
     Nodes.clear();
     parm1 = lights;
@@ -51,7 +51,7 @@ void SingleLineModel::Reset(int lights, const Model &pbc, int strand, int node, 
     SingleNode = pbc.SingleNode;
     SingleChannel = pbc.SingleChannel;
     IsLtoR = pbc.GetIsLtoR();
-    customColor = pbc.customColor;
+    SetCustomColor(pbc.GetCustomColor());
 
     bool flip = false;
     if (forceDirection) {
@@ -216,8 +216,7 @@ void SingleLineModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputMan
 int SingleLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     IncrementChangeCount();
     if ("SingleLineCount" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm1");
-        ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        parm1 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SingleLineModel::OnPropertyGridChange::SingleLineCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SingleLineModel::OnPropertyGridChange::SingleLineCount");
@@ -228,8 +227,7 @@ int SingleLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "SingleLineModel::OnPropertyGridChange::SingleLineCount");
         return 0;
     } else if ("SingleLineNodes" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm2");
-        ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        parm2 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SingleLineModel::OnPropertyGridChange::SingleLineNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SingleLineModel::OnPropertyGridChange::SingleLineNodes");
@@ -240,16 +238,14 @@ int SingleLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "SingleLineModel::OnPropertyGridChange::SingleLineNodes");
         return 0;
     } else if ("SingleLineLights" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("parm3");
-        ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        parm3 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SingleLineModel::OnPropertyGridChange::SingleLineLights");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SingleLineModel::OnPropertyGridChange::SingleLineLights");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SingleLineModel::OnPropertyGridChange::SingleLineLights");
         return 0;
     } else if ("SingleLineStart" == event.GetPropertyName()) {
-        ModelXml->DeleteAttribute("Dir");
-        ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 ? "L" : "R");
+        _dir = event.GetValue().GetLong() == 0 ? "L" : "R";
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SingleLineModel::OnPropertyGridChange::SingleLineStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SingleLineModel::OnPropertyGridChange::SingleLineStart");

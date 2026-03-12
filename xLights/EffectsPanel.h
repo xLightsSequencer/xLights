@@ -35,7 +35,7 @@ public:
     EffectsPanel(wxWindow *parent, EffectManager *effects, wxTimer *timer);
     virtual ~EffectsPanel();
     
-    void SetDefaultEffectValues(const wxString &name);
+    void SetDefaultEffectValues(const wxString &name = "");
     void SetEffectPanelStatus(Model *cls, const wxString &name, int startTimeMs, int endTimeMs);
     void SetSequenceElements(SequenceElements *els);
     void SetEffectType(int effectId);

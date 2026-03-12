@@ -13,6 +13,7 @@
 #include <string>
 #include "../OutputModelManager.h"
 #include "BaseObjectVisitor.h"
+#include "DisplayAsType.h"
 #include "ModelScreenLocation.h"
 #include <glm/mat3x3.hpp>
 
@@ -49,13 +50,13 @@ public:
     virtual std::list<std::string> GetFileReferences() { return std::list<std::string>(); }
     virtual std::list<std::string> CheckModelSettings() { std::list<std::string> res; return res; };
 
-    virtual glm::vec3 MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
-    virtual glm::vec3 MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov);
+    virtual glm::vec3 MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z, bool& update_rgbeffects);
+    virtual glm::vec3 MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov, bool& update_rgbeffects);
     void SelectHandle(int handle);
     void Lock(bool lock);
     bool IsLocked() const;
     virtual void AddASAPWork(uint32_t work, const std::string& from);
-    virtual void ReloadModelXml() = 0;
+    virtual void ReloadModel() = 0;
 
     void SetTop(float y);
     void SetBottom(float y);
@@ -72,65 +73,74 @@ public:
     bool Rotate(ModelScreenLocation::MSLAXIS axis, float factor);
     void FlipHorizontal(bool ignoreLock = false);
     void FlipVertical(bool ignoreLock = false);
-    bool IsXmlChanged(wxXmlNode* n) const;
-    bool IsFromBase() const;
-    void SetFromBase(bool fromBase);
 
-    float GetTop();
-    float GetBottom();
-    float GetLeft();
-    float GetRight();
-    float GetFront();
-    float GetBack();
-    float GetHcenterPos();
-    float GetVcenterPos();
-    float GetDcenterPos();
-    float GetWidth() const;
-    float GetHeight() const;
-    float GetDepth() const;
-    float GetRestorableMWidth() const;
-    float GetRestorableMHeight() const;
-    float GetRestorableMDepth() const;
+    [[nodiscard]] float GetTop();
+    [[nodiscard]] float GetBottom();
+    [[nodiscard]] float GetLeft();
+    [[nodiscard]] float GetRight();
+    [[nodiscard]] float GetFront();
+    [[nodiscard]] float GetBack();
+    [[nodiscard]] float GetHcenterPos();
+    [[nodiscard]] float GetVcenterPos();
+    [[nodiscard]] float GetDcenterPos();
+    [[nodiscard]] float GetWidth() const;
+    [[nodiscard]] float GetHeight() const;
+    [[nodiscard]] float GetDepth() const;
+    [[nodiscard]] float GetRestorableMWidth() const;
+    [[nodiscard]] float GetRestorableMHeight() const;
+    [[nodiscard]] float GetRestorableMDepth() const;
 
-    const std::string &Name() const { return name;}
-    const std::string &GetName() const { return name;}
-    const std::string& GetDisplayAs() const { return DisplayAs; }
+    [[nodiscard]] const std::string &Name() const { return name;}
+    [[nodiscard]] const std::string &GetName() const { return name;}
+    [[nodiscard]] DisplayAsType GetDisplayAs() const { return DisplayAs; }
+    [[nodiscard]] std::string GetDisplayAsString() const { return DisplayAsTypeToString(DisplayAs); }
+    void SetName(std::string const& newname);
 
-    void SetDisplayAs(const std::string& type) { DisplayAs = type; }
+    void SetDisplayAs(DisplayAsType type) { DisplayAs = type; }
+    //void SetDisplayAs(const std::string& type) { DisplayAs = DisplayAsTypeFromString(type); }
 
-    wxXmlNode* GetModelXml() const;
-    virtual void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false) = 0;
-
+    virtual void Setup() = 0;
+    
     virtual const std::string &GetLayoutGroup() const {return layout_group;}
-    void SetLayoutGroup(const std::string &grp);
+    void SetLayoutGroup(const std::string &grp, bool ignore_changes = false);
 
     virtual void IncrementChangeCount() { ++changeCount; uiObjectsInvalid = true; }
 
 	void AddOffset(double deltax, double deltay, double deltaz);
     void RotateAboutPoint(glm::vec3 position, glm::vec3 angle);
-    bool Scale(const glm::vec3& factor);
+    [[nodiscard]] bool Scale(const glm::vec3& factor);
 
-    bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
+    [[nodiscard]] bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
 
-	virtual void UpdateXmlWithScale() = 0;
-    
-    virtual bool SupportsVisitors() {return false;}
     virtual void Accept(BaseObjectVisitor &visitor) const {};
 
-    bool IsActive() const { return _active; }
+    [[nodiscard]] bool IsActive() const { return _active; }
     void SetActive(bool active);
 
+    [[nodiscard]] bool IsFromBase() const { return _fromBase; }
+    void SetFromBase(bool fromBase) { _fromBase = fromBase; }
+
     std::string name;
-    bool Selected = false;
-    bool Highlighted = false;
-    bool GroupSelected=false;
+    
+    bool Selected() const { return _selected; }
+    bool Highlighted() const { return _highlighted; }
+    bool GroupSelected() const { return _groupSelected; }
+    
+    void Selected(bool b) { _selected = b; }
+    void Highlighted(bool b) { _highlighted = b; }
+    void GroupSelected(bool b) { _groupSelected = b; }
 
 protected:
-    std::string DisplayAs;
-    wxXmlNode* ModelXml = nullptr;
+    bool _selected = false;
+    bool _highlighted = false;
+    bool _groupSelected = false;
+
+    
+    DisplayAsType DisplayAs = DisplayAsType::Unknown;
     std::string layout_group;
     unsigned long changeCount = 0;
     bool _active = true;
+    bool _fromBase = false;
     
     bool uiObjectsInvalid = true;
 

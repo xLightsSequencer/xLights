@@ -37,6 +37,7 @@ SequenceVideoPanel::SequenceVideoPanel(wxWindow* parent,wxWindowID id,const wxPo
 	//*)
 
    _videoPreview = new SequenceVideoPreview( this );
+    SetMinSize(wxSize(50, 50));
 }
 
 SequenceVideoPanel::~SequenceVideoPanel()

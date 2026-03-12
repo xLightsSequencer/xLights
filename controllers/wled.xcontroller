@@ -12,6 +12,8 @@
         <UniversesMustBeSequential/>
         <SupportsAutoLayout/>
         <DDPStartsAtOne/>
+        <SupportsFullxLightsControl/>
+        <SupportsDefaultBrightness/>
         <SupportsMultipleSimultaneousOutputProtocols/>
         <PixelProtocols>
             <Protocol>ws2811</Protocol>

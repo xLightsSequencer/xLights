@@ -59,6 +59,7 @@ EffectIconPanel::EffectIconPanel(const EffectManager& m, wxWindow* parent, wxWin
 
     GridSizer1->Fit(this);
     GridSizer1->SetSizeHints(this);
+    SetMinSize(wxSize(50, 50));
 }
 
 EffectIconPanel::~EffectIconPanel()

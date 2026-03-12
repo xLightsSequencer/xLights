@@ -468,7 +468,7 @@ void VirtualMatrix::Start() {
         _modelNode = new wxXmlNode(*effects.GetModel(_fromModel));
 
         if (_modelNode != nullptr) {
-            _displayAs = _modelNode->GetAttribute("DisplayAs");
+            _displayAs = _modelNode->GetAttribute("DisplayAs").ToStdString();
             if (_displayAs == "Custom") {
                 _width = wxAtoi(_modelNode->GetAttribute("parm1", "0"));
                 _height = wxAtoi(_modelNode->GetAttribute("parm2", "0"));
@@ -477,11 +477,13 @@ void VirtualMatrix::Start() {
                 _strings = wxAtol(_modelNode->GetAttribute("parm1", "0"));
                 _nodes = wxAtol(_modelNode->GetAttribute("parm2", "0"));
                 _strandsPerString = wxAtol(_modelNode->GetAttribute("parm3", "1"));
-                if (_displayAs == "Horiz Matrix") {
+                // Legacy: orientation encoded in DisplayAs. New format: Vertical="true/false" attribute.
+                if (_displayAs == "Horiz Matrix" ||
+                    (_displayAs == "Matrix" && _modelNode->GetAttribute("Vertical", "false") != "true")) {
                     _width = _nodes / _strandsPerString;
                     _height = _strings * _strandsPerString;
                     _orientation = MMORIENTATION::HORIZONTAL;
-                } else if (_displayAs == "Vert Matrix") {
+                } else {
                     _height = _nodes / _strandsPerString;
                     _width = _strings * _strandsPerString;
                     _orientation = MMORIENTATION::VERTICAL;

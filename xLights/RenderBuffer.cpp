@@ -180,6 +180,14 @@ const wxString &RenderBuffer::GetXmlHeaderInfo(HEADER_INFO_TYPES node_type) cons
     return xLightsFrame::CurrentSeqXmlFile->GetHeaderInfo(node_type);
 }
 
+SequenceMedia* RenderBuffer::GetSequenceMedia() const
+{
+    if (frame == nullptr) {
+        return nullptr;
+    }
+    return &frame->GetSequenceElements().GetSequenceMedia();
+}
+
 void RenderBuffer::AlphaBlend(const RenderBuffer& src)
 {
     if (src.BufferWi != BufferWi || src.BufferHt != BufferHt) return;
@@ -706,7 +714,7 @@ RenderBuffer::RenderBuffer(xLightsFrame *f, PixelBufferClass *p, const Model *m)
 {
     model = m == nullptr ? p->GetModel() : m;
     cur_model = model->GetFullName();
-    dmx_buffer = model->GetDisplayAs().rfind("Dmx", 0) == 0;
+    dmx_buffer = IsDmxDisplayType(model->GetDisplayAs());
     BufferHt = 0;
     BufferWi = 0;
     curPeriod = 0;

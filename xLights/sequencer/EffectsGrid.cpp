@@ -6324,19 +6324,20 @@ void EffectsGrid::UpdateSelectionRectangle() {
 }
 
 void EffectsGrid::SetRCToolTip() {
-    if (mSequenceElements == nullptr) {
-        UnsetToolTip();
+    if (mSequenceElements == nullptr || !IsShownOnScreen()) {
         return;
     }
 
-    int x = std::abs(mRangeEndCol - mRangeStartCol) + 1;
-    int y = std::abs(mRangeEndRow - mRangeStartRow) + 1;
+    int selectedRow = mSequenceElements->GetSelectedTimingRow();
+
+    const int x = std::abs(mRangeEndCol - mRangeStartCol) + 1;
+    const int y = std::abs(mRangeEndRow - mRangeStartRow) + 1;
 
     if (!mCellRangeSelected ||
         mPartialCellSelected ||
         mRangeStartCol < 0 ||
         (x == 1 && y == 1) ||
-        mSequenceElements->GetSelectedTimingRow() < 0) {
+        selectedRow < 0) {
         UnsetToolTip();
     } else {
         SetToolTip(wxString::Format("%dC x %dR", x, y));
@@ -6503,7 +6504,7 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
     xlColor colorMask = xlColor::NilColor();
     Model* m = xlights->GetModel(ri->element->GetModelName());
     if (m != nullptr) {
-        if (m->GetDisplayAs() == "Channel Block") {
+        if (m->GetDisplayAs() == DisplayAsType::ChannelBlock) {
             StrandElement* se = dynamic_cast<StrandElement*>(ri->element);
             if (se != nullptr) {
                 colorMask = m->GetNodeMaskColor(se->GetStrand());

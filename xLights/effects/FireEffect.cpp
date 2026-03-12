@@ -262,16 +262,16 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
     
     // build fire
     for (int x = 0; x < maxMWi; ++x) {
-        int r = x % 2 == 0 ? 190 + (rand() % 10) : 100 + (rand() % 50);
+        int r = 150 + (rand() % 50);
         SetFireBuffer(x, 0, r, cache->FireBuffer, maxMWi, maxMHt);
     }
-    int step = 255 * 100 / curHt / HeightPct;
+    int step = std::max(1, 255 * 100 / curHt / HeightPct);
     for (int y = 1; y < maxMHt; ++y) {
         for (int x = 0; x < maxMWi; ++x) {
             int v1 = GetFireBuffer(x - 1, y - 1, cache->FireBuffer, maxMWi, maxMHt);
-            int v2 = GetFireBuffer(x + 1, y - 1, cache->FireBuffer, maxMWi, maxMHt);
-            int v3 = GetFireBuffer(x, y - 1, cache->FireBuffer, maxMWi, maxMHt);
-            int v4 = GetFireBuffer(x, y - 1, cache->FireBuffer, maxMWi, maxMHt);
+            int v2 = GetFireBuffer(x, y - 1, cache->FireBuffer, maxMWi, maxMHt);
+            int v3 = GetFireBuffer(x + 1, y - 1, cache->FireBuffer, maxMWi, maxMHt);
+            int v4 = GetFireBuffer(x -2, y - 2, cache->FireBuffer, maxMWi, maxMHt);
             int n = 0;
             int sum = 0;
             if (v1 >= 0) {

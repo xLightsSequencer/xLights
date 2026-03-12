@@ -116,12 +116,12 @@ WLED::~WLED() {
 
 #pragma region Private Functions
 
-bool WLED::ParseOutputJSON(nlohmann::json const& jsonVal, int maxPort, ControllerCaps* caps) {
+bool WLED::ParseOutputJSON(nlohmann::json const& jsonVal, int maxPort, ControllerCaps* caps, bool fullControl) {
 
     _pixelOutputs.clear();
 
     for (int i = 1; i <= maxPort; i++) {
-        WLEDOutput* output = ExtractOutputJSON(jsonVal, i, caps);
+        WLEDOutput* output = ExtractOutputJSON(jsonVal, i, caps, fullControl);
         output->Dump();
         _pixelOutputs.push_back(output);
     }
@@ -129,11 +129,11 @@ bool WLED::ParseOutputJSON(nlohmann::json const& jsonVal, int maxPort, Controlle
     return true;
 }
 
-WLEDOutput* WLED::ExtractOutputJSON(nlohmann::json const& jsonVal, int port, ControllerCaps* caps) {
+WLEDOutput* WLED::ExtractOutputJSON(nlohmann::json const& jsonVal, int port, ControllerCaps* caps, bool fullControl) {
 
     WLEDOutput* output = new WLEDOutput(port);
 
-    if (jsonVal.contains("hw") && jsonVal.at("hw").contains("led") &&
+    if (!fullControl && jsonVal.contains("hw") && jsonVal.at("hw").contains("led") &&
         jsonVal.at("hw").at("led").contains("ins") &&
         jsonVal.at("hw").at("led").at("ins").size() > (port - 1)) {
         auto const& json = jsonVal.at("hw").at("led").at("ins").at(port - 1);
@@ -469,7 +469,10 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
         return false;
     }
 
-    int maxPort = caps->GetMaxPixelPort();
+    bool const fullControl = caps->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
+    int const defaultBrightness = controller->GetDefaultBrightnessUnderFullControl();
+
+    int const maxPort = caps->GetMaxPixelPort();
 
     //get current config JSON
     const std::string page = GetURL(GetCfgURL());
@@ -501,7 +504,7 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
         return false;
     }
 
-    bool worked = ParseOutputJSON(val, maxPort, caps);
+    bool worked = ParseOutputJSON(val, maxPort, caps, fullControl);
     if (!worked) {
         DisplayError("Unable to Parse JSON.", parent);
         progress.Update(100, "Aborting.");
@@ -543,13 +546,17 @@ bool WLED::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Con
         return false;
     }
 
+    if (fullControl) {
+        val["light"]["scale-bri"] = defaultBrightness;
+    }
+
     logger_base.info("Uploading JSON to WLED.");
     progress.Update(70, "Uploading JSON to WLED.");
 
     //reboot
     val["rb"] = true;
 
-    bool uploadWorked = PostJSON(val);
+    bool const uploadWorked = PostJSON(val);
 
     if (!uploadWorked) {
         logger_base.error("Error Uploading to WLED controller, JSON:%s.", (const char*)page.c_str());

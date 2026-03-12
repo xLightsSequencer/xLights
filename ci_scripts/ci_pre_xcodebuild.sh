@@ -35,5 +35,7 @@ brew install zstd
 # need to install the metal toolchain, issue with Xcode 26 in Xcode Cloud
 echo "Downloading and importing Metal Toolchain..."
 xcodebuild -downloadComponent metalToolchain -exportPath /tmp/MyMetalExport/
+xcodebuild -downloadComponent metalToolchain -exportPath /tmp/MyMetalExport/
+xcodebuild -downloadComponent metalToolchain
 xcodebuild -importComponent metalToolchain -importPath /tmp/MyMetalExport/MetalToolchain-*.exportedBundle
 echo "Metal Toolchain imported successfully."

@@ -22,16 +22,17 @@
 #include "../../UtilFunctions.h"
 #include "DmxColorAbilityRGB.h"
 #include "DmxPresetAbility.h"
+#include "../../XmlSerializer/XmlNodeKeys.h"
 
-DmxGeneral::DmxGeneral(wxXmlNode *node, const ModelManager &manager, bool zeroBased)
-  : DmxModel(node, manager, zeroBased)
+DmxGeneral::DmxGeneral(const ModelManager &manager)
+  : DmxModel(manager)
 {
-    SetFromXml(node, zeroBased);
+    DisplayAs = DisplayAsType::DmxGeneral;
+    color_ability = std::make_unique<DmxColorAbilityRGB>();
 }
 
 DmxGeneral::~DmxGeneral()
 {
-    //dtor
 }
 
 void DmxGeneral::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
@@ -46,7 +47,7 @@ void DmxGeneral::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager*
 
 int DmxGeneral::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
-    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, ModelXml, this) == 0) {
+    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, this) == 0) {
         return 0;
     }
 
@@ -56,108 +57,7 @@ int DmxGeneral::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGr
 void DmxGeneral::InitModel()
 {
     DmxModel::InitModel();
-
-    DisplayAs = "DmxGeneral";
-    color_ability = std::make_unique<DmxColorAbilityRGB>(ModelXml);
-
-    StringType = "Single Color White";
-    parm2 = 1;
-    parm3 = 1;
-
     screenLocation.SetRenderSize(1, 1, 1);
-}
-
-void DmxGeneral::ExportXlightsModel()
-{
-    wxString name = ModelXml->GetAttribute("name");
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (filename.IsEmpty())
-        return;
-    wxFile f(filename);
-    
-    if (!f.Create(filename, true) || !f.IsOpened()) {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-        return;
-    }
-
-    wxString sc = ModelXml->GetAttribute("DmxShutterChannel");
-    wxString so = ModelXml->GetAttribute("DmxShutterOpen");
-    wxString sov = ModelXml->GetAttribute("DmxShutterOnValue");
-    wxString bl = ModelXml->GetAttribute("DmxBeamLimit");
-    wxString dbl = ModelXml->GetAttribute("DmxBeamLength", "1");
-    wxString dbw = ModelXml->GetAttribute("DmxBeamWidth", "1");
-
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dmxgeneral \n");
-
-    f.Write(wxString::Format("DmxShutterChannel=\"%s\" ", sc));
-    f.Write(wxString::Format("DmxShutterOpen=\"%s\" ", so));
-    f.Write(wxString::Format("DmxShutterOnValue=\"%s\" ", sov));
-    f.Write(wxString::Format("DmxBeamLimit=\"%s\" ", bl));
-    f.Write(wxString::Format("DmxBeamLength=\"%s\" ", dbl));
-    f.Write(wxString::Format("DmxBeamWidth=\"%s\" ", dbw));
-    ExportBaseParameters(f);
-    color_ability->ExportParameters(f,ModelXml);
-
-    f.Write(" >\n");
-
-    wxString submodel = SerialiseSubmodel();
-    if (submodel != "") {
-        f.Write(submodel);
-    }
-    wxString state = SerialiseState();
-    if (state != "") {
-        f.Write(state);
-    }
-    wxString groups = SerialiseGroups();
-    if (groups != "") {
-        f.Write(groups);
-    }
-    //ExportDimensions(f);
-    f.Write("</dmxgeneral>");
-    f.Close();
-}
-
-bool DmxGeneral::ImportXlightsModel(wxXmlNode* root, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y, float& min_z, float& max_z) {
-    if (root->GetName() == "dmxgeneral") {
-        if (!ImportBaseParameters(root))
-            return false;
-
-        wxString name = root->GetAttribute("name");
-        //wxString v = root->GetAttribute("SourceVersion");
-
-        wxString sc = root->GetAttribute("DmxShutterChannel");
-        wxString so = root->GetAttribute("DmxShutterOpen");
-        wxString sov = root->GetAttribute("DmxShutterOnValue");
-        wxString bl = root->GetAttribute("DmxBeamLimit");
-        wxString dbl = root->GetAttribute("DmxBeamLength", "1");
-        wxString dbw = root->GetAttribute("DmxBeamWidth", "1");
-
-        // Add any model version conversion logic here
-        // Source version will be the program version that created the custom model
-
-        SetProperty("DmxShutterChannel", sc);
-        SetProperty("DmxShutterOpen", so);
-        SetProperty("DmxShutterOnValue", sov);
-        SetProperty("DmxBeamLimit", bl);
-        SetProperty("DmxBeamLength", dbl);
-        SetProperty("DmxBeamWidth", dbw);
-
-        color_ability->ImportParameters(root, this);
-
-        wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
-        GetModelScreenLocation().Write(ModelXml);
-        SetProperty("name", newname, true);
-
-        ImportModelChildren(root, xlights, newname, min_x, max_x, min_y, max_y, min_z, max_z);
-
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxGeneral::ImportXlightsModel");
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxGeneral::ImportXlightsModel");
-        return true;
-    } else {
-        DisplayError("Failure loading DmxGeneral model file.");
-        return false;
-    }
 }
 
 void DmxGeneral::DrawModel(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is3d, bool active, const xlColor* c)
@@ -305,9 +205,9 @@ void DmxGeneral::DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext* 
     tprogram->addStep([=](xlGraphicsContext* ctx) {
         ctx->PopMatrix();
     });
-    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
+    if ((Selected() || (Highlighted() && is_3d)) && c != nullptr && allowSelected) {
         if (is_3d) {
-            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted, IsFromBase());
+            GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), Highlighted(), IsFromBase());
         } else {
             GetModelScreenLocation().DrawHandles(tprogram, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), IsFromBase());
         }

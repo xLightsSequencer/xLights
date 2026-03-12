@@ -908,8 +908,8 @@ void MovingHeadPanel::ValidateWindow()
     // if single model make sure the effect setting is on correct head...if not move it
     auto model = models.front();
     if (single_model) {
-        if( model->GetDisplayAs() == "DmxMovingHeadAdv" ||
-            model->GetDisplayAs() == "DmxMovingHead") {
+        if( model->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv ||
+            model->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
             auto mh = dynamic_cast<const DmxMovingHeadComm*>(model);
             int fixture = mh->GetFixtureVal();
             wxString fixture_textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", fixture);
@@ -965,6 +965,57 @@ void MovingHeadPanel::ValidateWindow()
 
     // updates the status panel if its already active and a new effect is selected
     UpdateStatusPanel();
+
+    // If the effect already has settings then uncheck the fixtures so the user doesn't accidentally click somewhere
+    // and write to all the heads messing up what was there.  We force them to reselect the heads they want to effect.
+    // Only new effects start out with all heads checked.
+    /*bool has_settings = false;
+    bool all_same = true;
+    std::string last_mh = xlEMPTY_STRING;
+    for( int i = 1; i <= 8; ++i ) {
+        wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+        wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+        if (mh_textbox != nullptr) {
+            std::string val = mh_textbox->GetValue();
+            if ( val != xlEMPTY_STRING) {
+                has_settings = true;
+                if( last_mh == xlEMPTY_STRING ) {
+                    last_mh = val;
+                } else {
+                    if( last_mh != val ) {
+                        all_same = false;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    if (has_settings) {
+        UncheckAllFixtures();
+    }*/
+
+    // if all settings are the same check the fixtures that are active
+    /*if (all_same) {
+        wxArrayString all_cmds = wxSplit(last_mh, ';');
+        for (size_t k = 0; k < all_cmds.size(); ++k )
+        {
+            std::string cmd = all_cmds[k];
+            if( cmd == xlEMPTY_STRING ) continue;
+            int pos = cmd.find(":");
+            std::string cmd_type = cmd.substr(0, pos);
+            if( cmd_type == "Heads") {
+                std::string heads = cmd.substr(cmd.find(':') + 2);
+                auto setMH = wxSplit(heads, ',');
+                for (auto i = 0; i < setMH.size(); i++) {
+                    wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%s", setMH[i]);
+                    wxCheckBox* checkbox = (wxCheckBox*)(FindWindowByName(checkbox_ctrl));
+                    if (checkbox != nullptr) {
+                        checkbox->SetValue(true);
+                    }
+                }
+            }
+        }
+    }*/
 
     // Set current timing track in Dimmer window
     const ModelManager& mgr = model->GetModelManager();
@@ -1086,7 +1137,7 @@ void MovingHeadPanel::UpdateColorPanel()
     bool wheel_active = false;
     unsigned int num_colors = 0;
     for (const auto& it : models) {
-        if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
             DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
             bool active = IsHeadActive(mhead->GetFixtureVal()) || (models.size() == 1);
             if( active ) {
@@ -1187,7 +1238,7 @@ void MovingHeadPanel::UpdateMHSettings()
                 int fixture_num = 1;
                 auto models = GetActiveModels();
                 for (const auto& it : models) {
-                    if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+                    if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
                         DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
                         if( mhead->GetFixtureVal() == i ) {
                             fixture_num = mhead->GetFixtureVal();
@@ -1361,8 +1412,6 @@ void MovingHeadPanel::UpdateStatusPanel()
 {
     bool headselect_set = false;
     bool hasrealvalues = false;
-    if (TextCtrl_MH1_Settings->GetValue() == "")
-        CheckAllFixtures();
     GetFixturesGroups();
     Button_All->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     Button_None->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
@@ -1435,7 +1484,8 @@ void MovingHeadPanel::UpdateStatusPanel()
                             */
                             headselect_set = true;
                         }
-                        if (hasrealvalues) {
+                        // Gil - turning this off until we can find a way to prevent the button from staying permanently highlighted
+                        /*if (hasrealvalues) {
                             if (hascmd_heads == mh_evens) {
                                 Button_Evens->SetBackgroundColour(*wxBLUE);
                                 Button_Evens->SetForegroundColour(wxColour(255,255,255));
@@ -1446,7 +1496,7 @@ void MovingHeadPanel::UpdateStatusPanel()
                                 Button_All->SetBackgroundColour(*wxBLUE);
                                 Button_All->SetForegroundColour(wxColour(255,255,255));
                             }
-                        }
+                        }*/
                     }
                 }
                 if (pos_set) {
@@ -1586,7 +1636,7 @@ void MovingHeadPanel::CheckAllFixtures() {
     auto models = GetActiveModels();
 
     for (const auto& it : models) {
-        if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
             DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
             int num = mhead->GetFixtureVal();
             wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);
@@ -1600,21 +1650,7 @@ void MovingHeadPanel::CheckAllFixtures() {
 
 void MovingHeadPanel::OnButton_AllClick(wxCommandEvent& event)
 {
-    UncheckAllFixtures();
-
-    auto models = GetActiveModels();
-
-    for (const auto& it : models) {
-        if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
-            DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
-            int num = mhead->GetFixtureVal();
-            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);
-            wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
-            if( checkbox != nullptr ) {
-                checkbox->SetValue(true);
-            }
-       }
-    }
+    CheckAllFixtures();
     wxCommandEvent _event;
     OnCheckBox_MHClick(_event);
 }
@@ -1632,7 +1668,7 @@ void MovingHeadPanel::OnButton_EvensClick(wxCommandEvent& event)
     auto models = GetActiveModels();
 
     for (const auto& it : models) {
-        if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
             DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
             int num = mhead->GetFixtureVal();
             if( num % 2 == 0 ) {
@@ -1655,7 +1691,7 @@ void MovingHeadPanel::OnButton_OddsClick(wxCommandEvent& event)
     auto models = GetActiveModels();
 
     for (const auto& it : models) {
-        if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
             DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
             int num = mhead->GetFixtureVal();
             if( num % 2 > 0 ) {
@@ -1686,17 +1722,17 @@ std::list<Model*> MovingHeadPanel::GetActiveModels()
                 if (me != nullptr) {
                     auto model = xLightsApp::GetFrame()->AllModels[me->GetModelName()];
                     if (model != nullptr) {
-                        if (model->GetDisplayAs() == "ModelGroup") {
+                        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
                             auto mg = dynamic_cast<ModelGroup*>(model);
                             if (mg != nullptr) {
                                 for (const auto& it : mg->GetFlatModels(true, false)) {
-                                    if (it->GetDisplayAs() != "ModelGroup" && it->GetDisplayAs() != "SubModel") {
+                                    if (it->GetDisplayAs() != DisplayAsType::ModelGroup && it->GetDisplayAs() != DisplayAsType::SubModel) {
                                         res.push_back(it);
                                     }
                                 }
                             }
                         }
-                        else if (model->GetDisplayAs() == "SubModel") {
+                        else if (model->GetDisplayAs() == DisplayAsType::SubModel) {
                             // don't add SubModels
                         }
                         else {
@@ -2046,16 +2082,6 @@ void MovingHeadPanel::RecallSettings(const std::string mh_settings)
 void MovingHeadPanel::OnButton_ResetToDefaultClick(wxCommandEvent& event)
 {
     std::string all_settings = xlEMPTY_STRING;
-    for( int i = 1; i <= 8; ++i ) {
-        wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
-        wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
-        if( mh_textbox != nullptr ) {
-            std::string mh_settings = mh_textbox->GetValue();
-            if( mh_settings != xlEMPTY_STRING ) {
-                mh_textbox->SetValue(xlEMPTY_STRING);
-            }
-        }
-    }
 
     ValueCurve_MHPan->SetActive(false);
     ValueCurve_MHTilt->SetActive(false);
@@ -2080,7 +2106,6 @@ void MovingHeadPanel::OnButton_ResetToDefaultClick(wxCommandEvent& event)
     CheckBox_MHIgnorePan->SetValue(false);
     CheckBox_MHIgnoreTilt->SetValue(false);
     UpdatePathSettings();
-    CheckAllFixtures();
     TextCtrl_Status->SetValue("");
     if (m_rgbColorPanel != nullptr) {
         m_rgbColorPanel->ResetColours();
@@ -2088,6 +2113,19 @@ void MovingHeadPanel::OnButton_ResetToDefaultClick(wxCommandEvent& event)
     if (m_wheelColorPanel != nullptr) {
         m_wheelColorPanel->ResetColours();
     }
+
+    for( int i = 1; i <= 8; ++i ) {
+        wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+        wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+        if( mh_textbox != nullptr ) {
+            std::string mh_settings = mh_textbox->GetValue();
+            if( mh_settings != xlEMPTY_STRING ) {
+                mh_textbox->SetValue(xlEMPTY_STRING);
+            }
+        }
+    }
+    CheckAllFixtures();
+
     FireChangeEvent();
     ValidateWindow();
 }
@@ -2128,7 +2166,7 @@ void MovingHeadPanel::GetFixturesGroups() {
     if (mh_evens == "" && mh_odds == "") {
         auto models = GetActiveModels();
         for (const auto& it : models) {
-            if (it->GetDisplayAs() == "DmxMovingHeadAdv" || it->GetDisplayAs() == "DmxMovingHead") {
+            if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
                 DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
                 int num = mhead->GetFixtureVal();
                 if (!mh_all.empty()) {

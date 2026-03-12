@@ -45,7 +45,7 @@ std::string Element::GetTypeDescription() const
     case ElementType::ELEMENT_TYPE_MODEL: {
         Model* m = GetSequenceElements()->GetXLightsFrame()->AllModels[GetModelName()];
         if (m != nullptr) {
-            if (m->GetDisplayAs() == "ModelGroup") {
+            if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 return "Model Group";
             }
             return "Model";
@@ -712,9 +712,8 @@ bool ModelElement::GetSelected()
 }
 
 void ModelElement::Init(Model &model) {
-    if (model.GetDisplayAs() == "WholeHouse"
-        || model.GetDisplayAs() == "ModelGroup") {
-        //no strands for a whole house model
+    if (model.GetDisplayAs() == DisplayAsType::ModelGroup) {
+        //no strands for a model group
         return;
     }
     for (const auto& sm : model.GetSubModels()) {

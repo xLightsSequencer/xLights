@@ -355,8 +355,25 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
     wxString targetMediaFolder = wxEmptyString;
 
     if (effName == "Pictures") {
-        settingEffectFile = "E_FILEPICKER_Pictures_Filename";
         targetMediaFolder = _importOptions.GetDir(MediaTargetDir::IMAGES_DIR);
+        if (settings.Contains("E_FILEPICKER_Pictures_Filename")) {
+            // old Pictures key
+            settingEffectFile = "E_FILEPICKER_Pictures_Filename";
+        } else {
+            std::string v = settings["E_TEXTCTRL_Pictures_Filename"];
+            auto &sm = mappedEffect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+            auto &tm = target->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+            if (sm.HasImage(v)) {
+                auto img = sm.GetImage(v);
+                if (img->IsEmbedded() && !tm.HasImage(v)) {
+                    tm.AddEmbeddedImage(v, img->GetEmbeddedData());
+                } else if (!img->IsEmbedded()) {
+                    settingEffectFile = "E_TEXTCTRL_Pictures_Filename";
+                }
+            } else {
+                settingEffectFile = "E_TEXTCTRL_Pictures_Filename";
+            }
+        }
     } else if (effName == "Video") {
         settingEffectFile = "E_FILEPICKERCTRL_Video_Filename";
         targetMediaFolder = _importOptions.GetDir(MediaTargetDir::VIDEOS_DIR);
@@ -399,12 +416,18 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
 
         // import the asset if we have it, otherwise track it as missing
         wxFileName fileToCopy = _media[picFilePath.GetFullName()];
-
+        
         if (fileToCopy.IsOk() && FileExists(fileToCopy)) {
             wxFileName copiedAsset = CopyMediaToTarget(targetMediaFolder, fileToCopy);
             settings.erase(settingEffectFile);
             wxString newSetting = copiedAsset.GetFullPath().ToStdString();
             settings[settingEffectFile] = newSetting;
+            if (effName == "Pictures") {
+                auto &tm = target->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+                if (!tm.HasImage(newSetting.ToStdString())) {
+                    tm.GetImage(newSetting.ToStdString());
+                }
+            }
         } else {
             if (picFilePath != "")
                 _missingMedia.push_back(picFilePath.GetFullName().ToStdString());
@@ -457,7 +480,7 @@ void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer* target, 
 
                         // only import if type is matrix
                         if ((name == faceName || faceName == "Default") && type == "Matrix") {
-                            wxXmlNode* newFaceInfo = new wxXmlNode(wxXML_ELEMENT_NODE, "faceInfo");
+                            std::map<std::string, std::string> faceAttributes;
 
                             for (wxXmlAttribute* attr = modelChild->GetAttributes(); attr != nullptr; attr = attr->GetNext()) {
                                 wxString attrName = attr->GetName();
@@ -480,17 +503,17 @@ void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer* target, 
 
                                         if (fileToCopy.IsOk() && FileExists(fileToCopy)) {
                                             wxFileName copiedAsset = CopyMediaToTarget(_importOptions.GetDir(MediaTargetDir::FACES_DIR), fileToCopy);
-                                            newFaceInfo->AddAttribute(attrName, copiedAsset.GetFullPath());
+                                            faceAttributes[attrName.ToStdString()] = copiedAsset.GetFullPath().ToStdString();
                                         } else {
                                             _missingMedia.push_back(fileToCopy.GetFullName().ToStdString());
                                         }
                                     }
                                 } else {
-                                    newFaceInfo->AddAttribute(attrName, attrValue);
+                                    faceAttributes[attrName.ToStdString()] = attrValue.ToStdString();
                                 }
                             }
 
-                            targetModel->AddFace(newFaceInfo);
+                            targetModel->AddFace(faceAttributes);
                             targetModel->IncrementChangeCount();
                             _modelsChanged = true;
 

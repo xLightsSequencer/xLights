@@ -14,9 +14,12 @@
 
 #include "Model.h"
 
+static const std::string KEEP_XY("Keep XY");
+
 class SubModel : public Model {
 public:
-    SubModel(Model *p, wxXmlNode *n);
+    SubModel(Model *p, const std::string _name, bool vertical, bool ranges, const std::string bufferStyle);
+    SubModel(Model *newParent, const SubModel* source);  // Copy constructor with new parent
     virtual ~SubModel() {}
 
     static const std::vector<std::string> BUFFER_STYLES;
@@ -28,10 +31,10 @@ public:
 
     virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const override { return parent->GetModelScreenLocation(); }
     virtual ModelScreenLocation &GetBaseObjectScreenLocation() override { return parent->GetModelScreenLocation(); };
-    virtual glm::vec3 MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override {
+    virtual glm::vec3 MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z, bool& update_rgbeffects) override {
         return glm::vec3(0, 0, 0);
     }
-    virtual glm::vec3 MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) override {
+    virtual glm::vec3 MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov, bool& update_rgbeffects) override {
         return glm::vec3(0, 0, 0);
     }
 
@@ -68,18 +71,56 @@ public:
     [[nodiscard]] FaceStateData const& GetFaceInfo() const override { return parent->faceInfo; };
     [[nodiscard]] FaceStateNodes const& GetFaceInfoNodes() const override { return parent->faceInfoNodes; };
 
+    std::string GetSubModelLayout() const { return _layout; }
+    std::string GetSubModelType() const { return _type; }
+    std::string GetSubModelBufferStyle() const { return _bufferStyle; }
+    std::string GetSubModelLines() const { return _propertyGridDisplay; }
+
+    // Functions for adding the different buffer types
+    void AddDefaultBuffer( wxString const& nodes );
+    void AddRangeXY( wxString const& nodes );
+    void AddSubbuffer(std::string const& range );
+    
+    int GetNumRanges() const { return _ranges.size(); }
+    std::string GetRange(int idx) const { return _ranges[idx]; }
+    
+    void CheckDuplicates();
+    void CalcRangeXYBufferSize();
+
+    [[nodiscard]] bool IsRanges() const { return _isRanges; }
+    [[nodiscard]] bool IsVertical() const { return _vert; }
+    [[nodiscard]] bool IsXYBufferStyle();
+
+    
+    virtual void Setup() override;
+
 private:
-    void CheckDuplicates(const std::vector<int>& nodeIndexes);
+    void initSubbufferRange(std::string const& range);
+    void initDefaultBuffer(std::string const& nodes);
+    void initRangeXY(std::string const& nodes);
 
     Model *parent = nullptr;
     bool _nodesAllValid = false;
+    bool _vert;
+    bool _isRanges;
     const std::string _layout;
     const std::string _type;
     const std::string _bufferStyle;
     std::string _propertyGridDisplay;
     std::string _sameLineDuplicates;
     std::string _crossLineDuplicates;
-    
+    std::vector<int> _nodeIndexes;
+    std::set<int> _nodeIdx;
+    unsigned int _startChannel = UINT32_MAX;
+
     static std::vector<std::string> SUBMODEL_BUFFER_STYLES;
+
+    // variables only used for default buffer
+    int _row = 0;
+    int _col = 0;
+    int _maxRow = 0;
+    int _maxCol = 0;
+    std::map<int, int> _nodeIndexMap;
+    std::vector<std::string> _ranges;
 };
 
