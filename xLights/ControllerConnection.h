@@ -126,7 +126,7 @@ private:
     float _gamma {CtrlDefs::DEFAULT_GAMMA};
     int _reverse {CtrlDefs::DEFAULT_REVERSE};
     int _zigzag {CtrlDefs::DEFAULT_ZIGZAG};
-    int _dmxChannel {1};
+    int _dmxChannel {0};
     bool _brightnessIsSet {false};
 
     int _smartRemote {0};
