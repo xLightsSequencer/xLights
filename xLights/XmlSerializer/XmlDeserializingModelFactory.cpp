@@ -136,7 +136,27 @@ void XmlDeserializingModelFactory::CommonDeserializeSteps(Model* model, wxXmlNod
 
 void XmlDeserializingModelFactory::DeserializeControllerConnection(Model* model, wxXmlNode* ccNode) {
     auto& cc = model->GetCtrlConn();
-    cc.SetDMXChannel(std::stoi(ccNode->GetAttribute(XmlNodeKeys::ChannelAttribute, "1").ToStdString()));
+    // DMX channel handling:
+    // - If the channel attribute is present, use its value.
+    // - If it is missing and the model is chained, leave the channel at its default (typically 0/unset)
+    //   so that chained serial models can compute the next available channel automatically.
+    // - If it is missing and the model is not chained, default to channel 1.
+    int dmxChannel = 0;
+    wxString channelAttr;
+    if (ccNode->GetAttribute(XmlNodeKeys::ChannelAttribute, &channelAttr)) {
+        dmxChannel = std::stoi(channelAttr.ToStdString());
+    } else {
+        bool isChained = false;
+        if (model != nullptr) {
+            // Assume Model exposes whether it is part of a chain.
+            isChained = model->IsChained();
+        }
+        if (!isChained) {
+            dmxChannel = 1;
+        }
+        // If isChained is true, leave dmxChannel at 0 (unset) to preserve "use next channel" semantics.
+    }
+    cc.SetDMXChannel(dmxChannel);
     cc.SetProtocol(ccNode->GetAttribute(XmlNodeKeys::ProtocolAttribute, xlEMPTY_STRING).ToStdString());
     cc.SetSerialProtocolSpeed(std::stoi(ccNode->GetAttribute(XmlNodeKeys::ProtocolSpeedAttribute, std::to_string(CtrlDefs::DEFAULT_PROTOCOL_SPEED)).ToStdString()));
     cc.SetCtrlPort(std::stoi(ccNode->GetAttribute(XmlNodeKeys::PortAttribute, std::to_string(CtrlDefs::DEFAULT_PORT)).ToStdString()));
