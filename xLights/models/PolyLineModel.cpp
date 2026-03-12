@@ -1056,6 +1056,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
         AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "PolyLineModel::OnPropertyGridChange::IciclesDrops");
         return 0;
     }
     else if ("AlternateNodes" == event.GetPropertyName()) {
