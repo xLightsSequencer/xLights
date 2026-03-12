@@ -101,7 +101,7 @@ void SerializeSettingsObject(wxXmlNode* node, xLightsFrame* xlights) {
     laygrp->AddAttribute("value", xlights->GetStoredLayoutGroup());
     settings->AddChild(laygrp);
     wxXmlNode* layout3d = new wxXmlNode(wxXML_ELEMENT_NODE, "LayoutMode3D");
-    layout3d->AddAttribute("value", std::to_string(xlights->GetDefaultLayout3D()));
+    layout3d->AddAttribute("value", xlights->GetXmlSetting("LayoutMode3D", "0"));
     settings->AddChild(layout3d);
     wxXmlNode* previewW = new wxXmlNode(wxXML_ELEMENT_NODE, "previewWidth");
     previewW->AddAttribute("value", std::to_string(0));
