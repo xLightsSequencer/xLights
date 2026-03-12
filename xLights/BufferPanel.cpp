@@ -1044,10 +1044,12 @@ void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& event)
         }
 
         // Try to restore the current selection first, then fall back to default, then "2D"
-        if (!currentCamera.empty() && Choice_PerPreviewCamera->FindString(currentCamera) != wxNOT_FOUND) {
-            Choice_PerPreviewCamera->SetStringSelection(currentCamera);
-        } else if (Choice_PerPreviewCamera->FindString(_defaultCamera) != wxNOT_FOUND) {
-            Choice_PerPreviewCamera->SetStringSelection(_defaultCamera);
+        if (Choice_PerPreviewCamera->FindString(currentCamera) != wxNOT_FOUND) {
+            if (!currentCamera.empty()) {
+                Choice_PerPreviewCamera->SetStringSelection(currentCamera);
+            } else {
+                Choice_PerPreviewCamera->SetStringSelection(_defaultCamera);
+            }
         } else {
             Choice_PerPreviewCamera->SetStringSelection("2D");
         }
