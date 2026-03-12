@@ -203,10 +203,9 @@ void PolyLineModel::DeleteHandle(int handle_) {
         _polyTrailOffset.erase(_polyTrailOffset.begin() + handle);
         _polyCorner.erase(_polyCorner.begin() + handle);
         _polyLineSegDropSizes.erase(_polyLineSegDropSizes.begin() + handle);
-    } else {
-        _polyLineSizes.erase(_polyLineSizes.begin() + handle - 1);
     }
     GetModelScreenLocation().DeleteHandle(handle);
+    InitModel();
 }
 
 void PolyLineModel::InitModel()
@@ -217,6 +216,19 @@ void PolyLineModel::InitModel()
     _numSegments = screenLocation.num_points - 1;
     _numDropPoints = 0;
     
+    // Ensure per-segment vectors match the current segment count.
+    // During polyline creation, screenLocation may have more points than
+    // the per-segment vectors which are grown via AddHandle().
+    if (_polyLineSizes.size() < _numSegments) {
+        _polyLineSizes.resize(_numSegments, 50);
+        _polyLineSegDropSizes.resize(_numSegments, 1);
+        _polyLeadOffset.resize(_numSegments, 0.5);
+        _polyTrailOffset.resize(_numSegments, 0.5);
+    }
+    if (_polyCorner.size() < _numSegments + 1) {
+        _polyCorner.resize(_numSegments + 1, "Neither");
+    }
+
     // Detect and fix any size that changed from handle being added or deleted
     if (_dropSizes.size() == 0) {
         _dropSizes.push_back(1);
