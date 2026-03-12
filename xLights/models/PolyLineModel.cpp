@@ -411,6 +411,30 @@ void PolyLineModel::InitModel()
     bool up = _dropSizes[drop_index] < 0;
     int nodesInDrop = std::abs(_dropSizes[drop_index]);
     int nodesInDropLast = nodesInDrop;
+
+    // For multi-string models, pre-compute sorted string start node indices (0-based).
+    // SetNodeCount(1, ...) gives all nodes StringNum=0, so we track string
+    // membership by node index instead, matching how CustomModel and
+    // MultiPointModel handle individual start channels/nodes.
+    std::vector<std::pair<int, int>> stringStartNodes; // (startNode0based, stringIndex)
+    int sortedIdx = 0;
+    int nextStringStartNode = numLights; // default: no string transition
+    if (_strings > 1) {
+        stringStartNodes.resize(_strings);
+        for (int i = 0; i < _strings; i++) {
+            int startNode1based;
+            if (_hasIndivNodes) {
+                startNode1based = _indivStartNodes[i];
+            } else {
+                startNode1based = ComputeStringStartNode(i);
+            }
+            stringStartNodes[i] = { startNode1based - 1, i }; // convert to 0-based
+        }
+        std::sort(stringStartNodes.begin(), stringStartNodes.end());
+        sortedIdx = 1;
+        nextStringStartNode = (stringStartNodes.size() > 1) ? stringStartNodes[1].first : numLights;
+    }
+
     while (lights) {
         if (curCoord >= Nodes[curNode]->Coords.size()) {
             curNode++;
@@ -433,11 +457,27 @@ void PolyLineModel::InitModel()
             nodesInDropLast = nodesInDrop;
             up = _dropSizes[drop_index] < 0;
         }
-        if (Nodes[curNode]->StringNum != LastStringNum) {
-            LastStringNum = Nodes[curNode]->StringNum;
-            chan = stringStartChan[LastStringNum];
+        if (_strings > 1 && curNode >= nextStringStartNode) {
+            // Crossed into the next string - reset channel to that string's start
+            int curString = stringStartNodes[sortedIdx].second;
+            chan = stringStartChan[curString];
             if (!IsLtoR && !SingleNode && curCoord == 0) {
-                chan += (NodesPerString(LastStringNum) - nodesInDrop) * GetNodeChannelCount(StringType);
+                chan += (NodesPerString(curString) - nodesInDrop) * GetNodeChannelCount(StringType);
+            }
+            sortedIdx++;
+            nextStringStartNode = (sortedIdx < _strings) ? stringStartNodes[sortedIdx].first : numLights;
+        } else if (Nodes[curNode]->StringNum != LastStringNum) {
+            LastStringNum = Nodes[curNode]->StringNum;
+            if (_strings > 1 && !stringStartNodes.empty()) {
+                // First node: use the first sorted string's start channel
+                int curString = stringStartNodes[0].second;
+                chan = stringStartChan[curString];
+            } else {
+                chan = stringStartChan[LastStringNum];
+            }
+            if (!IsLtoR && !SingleNode && curCoord == 0) {
+                int sn = (_strings > 1 && !stringStartNodes.empty()) ? stringStartNodes[0].second : LastStringNum;
+                chan += (NodesPerString(sn) - nodesInDrop) * GetNodeChannelCount(StringType);
             }
         }
         Nodes[curNode]->ActChan = chan;
