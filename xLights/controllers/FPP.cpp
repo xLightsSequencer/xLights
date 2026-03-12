@@ -1718,7 +1718,6 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
             serializer.SerializeObject(*e.second, visitor);
             wxXmlNode* root = doc.GetRoot();
             if (root == nullptr) {
-                virtualDisplay["view_objects"].push_back(obj);
                 continue;
             }
 
