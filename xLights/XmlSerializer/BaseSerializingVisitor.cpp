@@ -783,7 +783,9 @@ void BaseSerializingVisitor::Visit(const ModelGroup& model) {
     }
 
     SortAttributes(attrs);
-    WriteOpenTag("modelGroup", attrs, true);
+    WriteOpenTag("modelGroup", attrs, false);
+    WriteAliases(model.GetAliases());
+    WriteCloseTag();
 }
 
 void BaseSerializingVisitor::Visit(const MultiPointModel& model) {
