@@ -28,7 +28,6 @@ public:
     virtual int GetNumStrands() const override;
     virtual const std::vector<std::string>& GetBufferStyles() const override;
     virtual void InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int stagger, bool deep = false) const override;
-    virtual int NodesPerString() const override;
     virtual int GetNumPhysicalStrings() const override;
     virtual int GetNumStrings() const override{ return _strings; }
 
@@ -44,7 +43,7 @@ public:
     virtual void OnPropertyGridItemCollapsed(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual void OnPropertyGridItemExpanded(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual bool IsNodeFirst(int node) const override;
-    virtual int NodesPerString(int string) const override;
+
     bool HasAlternateNodes() const { return _alternateNodes; }
     int GetDropPoints() const { return _numDropPoints; }
     int GetNumSegments() const { return _numSegments; }
@@ -120,8 +119,6 @@ protected:
                                         const int                       maxH,
                                         const bool                      isCurve );
 
-    int ComputeStringStartNode(int x) const;
-    int GetCustomNodeStringNumber(int node) const;
     void ParseDropSizes();
 
     float _totalLength = 0.0f;

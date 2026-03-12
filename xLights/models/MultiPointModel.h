@@ -33,8 +33,6 @@ public:
     virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual int OnPropertyGridSelection(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual bool IsNodeFirst(int node) const override;
-    virtual int NodesPerString() const override;
-    virtual int NodesPerString(int string) const override;
     
     virtual int GetNumStrings() const override{ return _strings; }
     float GetModelHeight() const { return _height; }
@@ -55,8 +53,6 @@ protected:
         float z;
     };
 
-    int ComputeStringStartNode(int x) const;
-    int GetCustomNodeStringNumber(int node) const;
     void NormalizePointData();
 
     float _height = 1.0f;

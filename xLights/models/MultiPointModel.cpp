@@ -270,59 +270,6 @@ int MultiPointModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPrope
     return Model::OnPropertyGridChange(grid, event);
 }
 
-int MultiPointModel::ComputeStringStartNode(int x) const
-{
-    if (x == 0) return 1;
-
-    int strings = GetNumPhysicalStrings();
-    int nodes = GetNodeCount();
-    float nodesPerString = (float)nodes / (float)strings;
-
-    return (int)(x * nodesPerString + 1);
-}
-
-int MultiPointModel::NodesPerString() const
-{
-    return Model::NodesPerString();
-}
-
- int MultiPointModel::NodesPerString(int string) const
-{
-     int num_nodes = 0;
-     if (_strings == 1) {
-        return NodesPerString();
-     } else {
-        if (SingleNode) {
-            return 1;
-        } else {
-            int v1 = 0;
-            int v2 = 0;
-            if (_hasIndivNodes) {
-                v1 = _indivStartNodes[string];
-                if (string < _strings - 1) { // not last string
-                    v2 = _indivStartNodes[string+1];
-                }
-            } else {
-                v1 = ComputeStringStartNode(string);
-                if (string < _strings - 1) { // not last string
-                    v2 = ComputeStringStartNode(string + 1);
-                }
-            }
-            if (string < _strings - 1) { // not last string
-                num_nodes = v2 - v1;
-            } else {
-                num_nodes = GetNodeCount() - v1 + 1;
-            }
-        }
-        int ts = GetSmartTs();
-        if (ts <= 1) {
-            return num_nodes;
-        } else {
-            return num_nodes * ts;
-        }
-     }
-}
-
 int MultiPointModel::OnPropertyGridSelection(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {
     if (event.GetPropertyName().StartsWith("ModelIndividualSegments.")) {

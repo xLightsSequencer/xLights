@@ -841,17 +841,6 @@ void CustomModel::InitCustomMatrix() {
     }
 }
 
-int CustomModel::ComputeStringStartNode(int x) const
-{
-    if (x == 0) return 1;
-
-    int strings = GetNumPhysicalStrings();
-    int nodes = GetNodeCount();
-    float nodesPerString = (float)nodes / (float)strings;
-
-    return (int)(x * nodesPerString + 1);
-}
-
 int CustomModel::GetCustomNodeStringNumber(int node) const
 {
     if (_strings == 1) {

@@ -2927,10 +2927,25 @@ void Model::SetStringStartChannels(int NumberOfStrings, int StartChannel, int Ch
             std::string dependsonmodel;
             stringStartChan[i] = GetNumberFromChannelString(_indivStartChannels[i], b, dependsonmodel) - 1;
             CouldComputeStartChannel &= b;
+        } else if (_hasIndivNodes && i < (int)_indivStartNodes.size()) {
+            int node = _indivStartNodes[i];
+            if (node < 1) node = 1;
+            stringStartChan[i] = (StartChannel - 1) + (node - 1) * GetNodeChannelCount(StringType);
         } else {
             stringStartChan[i] = (StartChannel - 1) + i * ChannelsPerString;
         }
     }
+}
+
+int Model::ComputeStringStartNode(int x) const
+{
+    if (x == 0) return 1;
+
+    int strings = GetNumPhysicalStrings();
+    int nodes = GetNodeCount();
+    float nodesPerString = (float)nodes / (float)strings;
+
+    return (int)(x * nodesPerString + 1);
 }
 
 int Model::FindNodeAtXY(int bufx, int bufy)
@@ -3249,6 +3264,37 @@ int Model::NodesPerString() const
             return parm2 * ts;
         }
     }
+}
+
+int Model::NodesPerString(int string) const
+{
+    int numStrings = GetNumStrings();
+    if (numStrings <= 1) {
+        return NodesPerString();
+    }
+    if (SingleNode) {
+        return 1;
+    }
+    int v1 = 0, v2 = 0;
+    if (_hasIndivNodes) {
+        v1 = GetIndivStartNode(string);
+        if (string < numStrings - 1) {
+            v2 = GetIndivStartNode(string + 1);
+        }
+    } else {
+        v1 = ComputeStringStartNode(string);
+        if (string < numStrings - 1) {
+            v2 = ComputeStringStartNode(string + 1);
+        }
+    }
+    int num_nodes;
+    if (string < numStrings - 1) {
+        num_nodes = v2 - v1;
+    } else {
+        num_nodes = GetNodeCount() - v1 + 1;
+    }
+    int ts = GetSmartTs();
+    return (ts <= 1) ? num_nodes : num_nodes * ts;
 }
 
 int32_t Model::NodeStartChannel(size_t nodenum) const

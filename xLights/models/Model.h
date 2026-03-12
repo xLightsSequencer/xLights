@@ -360,6 +360,7 @@ protected:
     virtual void InitModel() {}
     virtual int CalcChannelsPerString();
     virtual void SetStringStartChannels(int NumberOfStrings, int StartChannel, int ChannelsPerString);
+    int ComputeStringStartNode(int x) const;
     void RecalcStartChannels();
 
     void SetBufferSize(int NewHt, int NewWi);
@@ -553,7 +554,7 @@ public:
     void SetStringType(std::string const& st) { StringType = st; }
 
     virtual int NodesPerString() const;
-    virtual int NodesPerString(int string) const { return NodesPerString(); }
+    virtual int NodesPerString(int string) const;
     virtual int MapPhysicalStringToLogicalString(int string) const;
     virtual int GetLightsPerNode() const { return 1; } // default to one unless a model supports this
     wxCursor InitializeLocation(int& handle, wxCoord x, wxCoord y, ModelPreview* preview);

@@ -142,25 +142,11 @@ int PolyLineModel::GetNumStrands() const {
 }
 
 void PolyLineModel::SetStringStartChannels(int NumberOfStrings, int StartChannel, int ChannelsPerString) {
-    if (_hasIndivChans && !SingleNode) {
-        // let base class handle individual start channels using _strings count
-        Model::SetStringStartChannels(_strings, StartChannel, ChannelsPerString);
-    } else if (_strings == 1) {
+    if (_strings == 1) {
         Model::SetStringStartChannels(NumberOfStrings, StartChannel, ChannelsPerString);
     } else {
         ChannelsPerString /= _strings;
-        stringStartChan.clear();
-        stringStartChan.resize(_strings);
-
-        for (int i = 0; i < _strings; i++) {
-            int node = 1;
-            if (_hasIndivNodes) {
-                node = _indivStartNodes[i];
-            } else {
-                node = ((ChannelsPerString * i) / GetNodeChannelCount(StringType)) + 1;
-            }
-            stringStartChan[i] = (StartChannel - 1) + (node - 1) * GetNodeChannelCount(StringType);
-        }
+        Model::SetStringStartChannels(_strings, StartChannel, ChannelsPerString);
     }
 }
 
@@ -1102,85 +1088,6 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
     }
     return Model::OnPropertyGridChange(grid, event);
 }
-
-int PolyLineModel::ComputeStringStartNode(int x) const
-{
-    if (x == 0)
-        return 1;
-
-    int strings = GetNumPhysicalStrings();
-    int nodes = GetNodeCount();
-    float nodesPerString = (float)nodes / (float)strings;
-
-    return (int)(x * nodesPerString + 1);
-}
-
-int PolyLineModel::NodesPerString() const
-{
-    return Model::NodesPerString();
-}
-
- int PolyLineModel::NodesPerString(int string) const
-{
-     int num_nodes = 0;
-     if (_strings == 1) {
-        return NodesPerString();
-     } else {
-        if (SingleNode) {
-            return 1;
-        } else {
-            bool hasIndivNodes = HasIndivStartNodes();
-            int v1 = 0;
-            int v2 = 0;
-            if (hasIndivNodes) {
-                v1 = GetIndivStartNode(string);
-                if (string < _strings - 1) { // not last string
-                    v2 = GetIndivStartNode(string + 1);
-                }
-            } else {
-                v1 = ComputeStringStartNode(string);
-                if (string < _strings - 1) { // not last string
-                    v2 = ComputeStringStartNode(string + 1);
-                }
-            }
-            if (string < _strings - 1) { // not last string
-                num_nodes = v2 - v1;
-            } else {
-                num_nodes = GetNodeCount() - v1 + 1;
-            }
-        }
-        int ts = GetSmartTs();
-        if (ts <= 1) {
-            return num_nodes;
-        } else {
-            return num_nodes * ts;
-        }
-     }
-}
-
-/* int PolyLineModel::NodesPerString(int string) const
-{
-    if (_strings == 1) {
-        return NodesPerString();
-    }
-
-    int32_t lowestStartChannel = 2000000000;
-    for (int i = 0; i < _strings; i++) {
-        if (stringStartChan[i] < lowestStartChannel)
-            lowestStartChannel = stringStartChan[i];
-    }
-
-    int32_t ss = stringStartChan[string];
-    int32_t len = GetChanCount() - (ss - lowestStartChannel);
-    for (int i = 0; i < _strings; i++) {
-        if (i != string) {
-            if (stringStartChan[i] > ss && len > stringStartChan[i] - ss) {
-                len = stringStartChan[i] - ss;
-            }
-        }
-    }
-    return len / GetNodeChannelCount(StringType);
-}*/
 
 int PolyLineModel::OnPropertyGridSelection(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
 {

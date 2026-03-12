@@ -90,7 +90,6 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
     private:
         [[nodiscard]] int GetCustomMaxChannel() const;
         void InitCustomMatrix();
-        [[nodiscard]] int ComputeStringStartNode(int x) const;
 
         long _depth = 1;
         std::string _custom_background;
