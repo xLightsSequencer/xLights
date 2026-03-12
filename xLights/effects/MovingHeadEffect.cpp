@@ -610,16 +610,15 @@ void MovingHeadEffect::SetPanelStatus(Model *cls) {
         return;
     }
 
-    // Commenting out to allow checkboxes to initialize as checked
     // disable all fixtures
-    //for( int i = 1; i <= 8; ++i ) {
-    //    wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
-    //    wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
-    //    if( checkbox != nullptr ) {
-    //        checkbox->Enable(false);
-    //        checkbox->SetValue(false);
-    //    }
-    //}
+    for( int i = 1; i <= 8; ++i ) {
+        wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+        wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
+        if( checkbox != nullptr ) {
+            checkbox->Enable(false);
+            checkbox->SetValue(false);
+        }
+    }
 
     // find fixture numbers to enable
     auto models = GetModels(cls);
@@ -631,10 +630,9 @@ void MovingHeadEffect::SetPanelStatus(Model *cls) {
             wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
             if( checkbox != nullptr ) {
                 checkbox->Enable(true);
-                // Commenting out to allow checkboxes to initialize as checked
-                //if( single_model ) {
+                if( single_model ) {
                     checkbox->SetValue(true);
-                //}
+                }
             }
        }
     }

@@ -969,7 +969,7 @@ void MovingHeadPanel::ValidateWindow()
     // If the effect already has settings then uncheck the fixtures so the user doesn't accidentally click somewhere
     // and write to all the heads messing up what was there.  We force them to reselect the heads they want to effect.
     // Only new effects start out with all heads checked.
-    bool has_settings = false;
+    /*bool has_settings = false;
     bool all_same = true;
     std::string last_mh = xlEMPTY_STRING;
     for( int i = 1; i <= 8; ++i ) {
@@ -992,10 +992,10 @@ void MovingHeadPanel::ValidateWindow()
     }
     if (has_settings) {
         UncheckAllFixtures();
-    }
+    }*/
 
     // if all settings are the same check the fixtures that are active
-    if (all_same) {
+    /*if (all_same) {
         wxArrayString all_cmds = wxSplit(last_mh, ';');
         for (size_t k = 0; k < all_cmds.size(); ++k )
         {
@@ -1015,7 +1015,7 @@ void MovingHeadPanel::ValidateWindow()
                 }
             }
         }
-    }
+    }*/
 
     // Set current timing track in Dimmer window
     const ModelManager& mgr = model->GetModelManager();
