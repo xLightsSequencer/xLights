@@ -1606,18 +1606,21 @@ public:
         } else if (id == ControllerModelDialog::CONTROLLER_BRIGHTNESS) {
             wxNumberEntryDialog dlg(parent, "Enter the Model Brightness", "Brightness", "Model Brightness", GetModel()->GetControllerBrightness(), 0, 100);
             if (dlg.ShowModal() == wxID_OK) {
+                GetModel()->SetControllerProperty(CtrlProps::BRIGHTNESS_ACTIVE);
                 GetModel()->SetControllerBrightness(dlg.GetValue());
             }
             return true;
         } else if (id == ControllerModelDialog::CONTROLLER_STARTNULLS) {
             wxNumberEntryDialog dlg(parent, "Enter the Model Start Nulls", "Start Nulls", "Start Nulls", GetModel()->GetControllerStartNulls(), 0, 100);
             if (dlg.ShowModal() == wxID_OK) {
+                GetModel()->SetControllerProperty(CtrlProps::START_NULLS_ACTIVE);
                 GetModel()->SetControllerStartNulls(dlg.GetValue());
             }
             return true;
         } else if (id == ControllerModelDialog::CONTROLLER_ENDNULLS) {
             wxNumberEntryDialog dlg(parent, "Enter the End Nulls", "End Nulls", "Model End Nulls", GetModel()->GetControllerEndNulls(), 0, 100);
             if (dlg.ShowModal() == wxID_OK) {
+                GetModel()->SetControllerProperty(CtrlProps::END_NULLS_ACTIVE);
                 GetModel()->SetControllerEndNulls(dlg.GetValue());
             }
             return true;
@@ -1629,12 +1632,14 @@ public:
                 dlg.SetSelection(selection);
             }
             if (dlg.ShowModal() == wxID_OK) {
+                GetModel()->SetControllerProperty(CtrlProps::COLOR_ORDER_ACTIVE);
                 GetModel()->SetControllerColorOrder(choices[dlg.GetSelection()]);
             }
             return true;
         } else if (id == ControllerModelDialog::CONTROLLER_GROUPCOUNT) {
             wxNumberEntryDialog dlg(parent, "Enter the Group Count", "Group Count", "Model Group Count", GetModel()->GetControllerGroupCount(), 1, 500);
             if (dlg.ShowModal() == wxID_OK) {
+                GetModel()->SetControllerProperty(CtrlProps::GROUP_COUNT_ACTIVE);
                 GetModel()->SetControllerGroupCount(dlg.GetValue());
             }
             return true;
@@ -1643,6 +1648,7 @@ public:
             if (dialog.ShowModal() == wxID_OK) {
                 auto d_gamma = wxAtof(dialog.GetValue());
                 if (d_gamma > 0.1 && d_gamma < 100.0) {
+                    GetModel()->SetControllerProperty(CtrlProps::GAMMA_ACTIVE);
                     GetModel()->SetControllerGamma(d_gamma);
                 }
             }
