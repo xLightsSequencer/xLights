@@ -13,19 +13,25 @@
 #include "OpenAIAPI.h"
 #include "aiType.h"
 #include <string>
+#include "aiBase.h"
 
-// https://platform.openai.com/docs/api-reference/introduction
-// to get a list of models curl https://api.openai.com/v1/models -H "Authorization: Bearer YOUR_API_KEY"
+/*
+ Generic OpenAI API V1 compatible client, set base URL to http://localhost:8000/api/v1.
+ Testing with local lemonade server, https://github.com/lemonade-sdk/lemonade
+*/
 
-class chatGPT : public OpenAIAPI {
+/*
+curl http://localhost:8000/api/v1/completions -d
+{'max_tokens':7,'model':'text-davinci-003','prompt':'Say this is a test','temperature':0}'
+*/
 
+class GenericClient : public OpenAIAPI {
+    public:
 
-	public:
-
-	explicit chatGPT(ServiceManager* sm) :
-            OpenAIAPI(sm) {
+	explicit GenericClient(ServiceManager* frame) :
+            OpenAIAPI("http://localhost:8000/api/v1", "Llama-3.2-1B-Instruct-GGUF", "SD-Turbo", "fake", frame) {
         }
-	virtual ~chatGPT() {}
+    virtual ~GenericClient() = default; 
 
     void SaveSettings() const override;
     void LoadSettings() override;
@@ -35,9 +41,10 @@ class chatGPT : public OpenAIAPI {
 
     [[nodiscard]] bool IsAvailable() const override;
     [[nodiscard]] std::string GetLLMName() const override {
-        return "ChatGPT";
+        return "genericClient";
     }
-    [[nodiscard]] std::list<aiType::TYPE> GetTypes() const override {
-        return std::list({ aiType::TYPE::COLORPALETTES, aiType::TYPE::PROMPT });
+
+	[[nodiscard]] std::list<aiType::TYPE> GetTypes() const override {
+        return std::list({ aiType::TYPE::PROMPT, aiType::TYPE::COLORPALETTES, aiType::TYPE::IMAGES });
     }
 };
