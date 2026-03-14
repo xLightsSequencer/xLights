@@ -1116,7 +1116,6 @@
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
     <ClCompile Include="ai\AIImageDialog.cpp" />
-    <ClCompile Include="ai\Gemini.cpp" />
     <ClCompile Include="XmlSerializer\XmlDeserializingModelFactory.cpp">
       <Filter>XmlSerializer</Filter>
     </ClCompile>
@@ -1147,6 +1146,18 @@
     </ClCompile>
     <ClCompile Include="ManageMediaPanel.cpp" />
     <ClCompile Include="XmlSerializer\GdtfParser.cpp" />
+    <ClCompile Include="ai\Gemini.cpp">
+      <Filter>ai</Filter>
+    </ClCompile>
+    <ClCompile Include="ai\GenericClient.cpp">
+      <Filter>ai</Filter>
+    </ClCompile>
+    <ClCompile Include="ai\OpenAIAPI.cpp">
+      <Filter>ai</Filter>
+    </ClCompile>
+    <ClCompile Include="ai\OpenAIImageGenerator.cpp">
+      <Filter>ai</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -2274,7 +2285,6 @@
     <ClInclude Include="..\xSchedule\wxJSON\jsonval.h" />
     <ClInclude Include="..\xSchedule\wxJSON\jsonwriter.h" />
     <ClInclude Include="ai\AIImageDialog.h" />
-    <ClInclude Include="ai\gemini.h" />
     <ClInclude Include="XmlSerializer\XmlSerializer.h">
       <Filter>XmlSerializer</Filter>
     </ClInclude>
@@ -2314,6 +2324,18 @@
     </ClInclude>
     <ClInclude Include="ManageMediaPanel.h" />
     <ClInclude Include="XmlSerializer\GdtfParser.h" />
+    <ClInclude Include="ai\gemini.h">
+      <Filter>ai</Filter>
+    </ClInclude>
+    <ClInclude Include="ai\GenericClient.h">
+      <Filter>ai</Filter>
+    </ClInclude>
+    <ClInclude Include="ai\OpenAIAPI.h">
+      <Filter>ai</Filter>
+    </ClInclude>
+    <ClInclude Include="ai\OpenAIImageGenerator.h">
+      <Filter>ai</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
