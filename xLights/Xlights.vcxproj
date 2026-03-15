@@ -502,7 +502,10 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="ai\aiBase.cpp" />
     <ClCompile Include="ai\AIImageDialog.cpp" />
     <ClCompile Include="ai\chatGPT.cpp" />
+    <ClCompile Include="ai\GenericClient.cpp" />
     <ClCompile Include="ai\ollama.cpp" />
+    <ClCompile Include="ai\OpenAIAPI.cpp" />
+    <ClCompile Include="ai\OpenAIImageGenerator.cpp" />
     <ClCompile Include="ai\ServiceManager.cpp" />
     <ClCompile Include="ai\Gemini.cpp" />
     <ClCompile Include="AlignmentDialog.cpp" />
@@ -1041,7 +1044,10 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="ai\aiType.h" />
     <ClInclude Include="ai\chatGPT.h" />
     <ClInclude Include="ai\gemini.h" />
+    <ClInclude Include="ai\GenericClient.h" />
     <ClInclude Include="ai\ollama.h" />
+    <ClInclude Include="ai\OpenAIAPI.h" />
+    <ClInclude Include="ai\OpenAIImageGenerator.h" />
     <ClInclude Include="ai\ServiceManager.h" />
     <ClInclude Include="AlignmentDialog.h" />
     <ClInclude Include="AutoLabelDialog.h" />

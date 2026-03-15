@@ -3,6 +3,7 @@
 #include "chatGPT.h"
 #include "gemini.h"
 #include "ollama.h"
+#include "GenericClient.h"
 
 #ifdef __WXOSX__
 #include "AppleIntelligence.h"
@@ -30,6 +31,7 @@ ServiceManager::ServiceManager(xLightsFrame* xl)
     m_services.push_back(std::make_unique<chatGPT>(this));
     m_services.push_back(std::make_unique<ollama>(this));
     m_services.push_back(std::make_unique<gemini>(this));
+    m_services.push_back(std::make_unique<GenericClient>(this));
     for (auto& service : m_services) {
         service->LoadSettings();
     }
