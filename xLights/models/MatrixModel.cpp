@@ -91,11 +91,11 @@ void MatrixModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
 
 void MatrixModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     grid->Append(new wxEnumProperty("Direction", "MatrixStyle", MATRIX_STYLES, _vMatrix ? 1 : 0));
-    wxPGProperty *p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
+    wxPGProperty *p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", HasAlternateNodes()));
     p->SetEditor("CheckBox");
     p->Enable(_noZigZag == false);
 
-    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", _noZigZag));
+    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", IsNoZigZag()));
     p->SetEditor("CheckBox");
     p->Enable(_alternateNodes == false);
 }
@@ -144,29 +144,33 @@ int MatrixModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MatrixModel::OnPropertyGridChange::MatrixStrandCount");
         return 0;
     } else if ("MatrixStart" == event.GetPropertyName()) {
-        _dir = event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2 ? "L" : "R";
-        _startSide = event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1 ? "T" : "B";
+        long val = event.GetValue().GetLong();
+        SetDirection(val == 0 || val == 2 ? "L" : "R");
+        SetStartSide(val == 0 || val == 1 ? "T" : "B");
+        SetIsLtoR(val == 0 || val == 2);
+        SetIsBtoT(val >= 2);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::OnPropertyGridChange::MatrixStart");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MatrixModel::OnPropertyGridChange::MatrixStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::OnPropertyGridChange::MatrixStart");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MatrixModel::OnPropertyGridChange::MatrixStart");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MatrixModel::OnPropertyGridChange::MatrixStart");
         return 0;
     } else if (event.GetPropertyName() == "AlternateNodes") {
-        _alternateNodes = event.GetPropertyValue().GetBool();
+        SetAlternateNodes(event.GetPropertyValue().GetBool());
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::AlternateNodes");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::AlternateNodes");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::AlternateNodes");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MatrixModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MatrixModel::OnPropertyGridChange::AlternateNodes");
         grid->GetPropertyByName("NoZig")->Enable(event.GetPropertyValue().GetBool() == false);
         return 0;
     } else if (event.GetPropertyName() == "NoZig") {
-        _noZigZag = event.GetPropertyValue().GetBool();
+        SetNoZigZag(event.GetPropertyValue().GetBool());
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::NoZig");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::NoZig");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::NoZig");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::NoZig");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MatrixModel::OnPropertyGridChange::NoZig");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "MatrixModel::OnPropertyGridChange::NoZig");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "MatrixModel::OnPropertyGridChange::NoZig");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MatrixModel::OnPropertyGridChange::NoZig");
         grid->GetPropertyByName("AlternateNodes")->Enable(event.GetPropertyValue().GetBool() == false);
         return 0;
     }
@@ -355,7 +359,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
                     Nodes[idx]->ActChan = strandStartChan[x] + y * chanPerNode;
                     Nodes[idx]->Coords[0].bufX = IsLtoR ? x : NumStrands - x - 1;
                     Nodes[idx]->StringNum = stringnum;
-                    if (_alternateNodes) {
+                    if (HasAlternateNodes()) {
                         if (isBotToTop) {
                             if (y + 1 <= (PixelsPerStrand + 1) / 2) {
                                 Nodes[idx]->Coords[0].bufY = y * 2;
@@ -370,7 +374,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
                             }
                         }
                     } else {
-                        if (_noZigZag)
+                        if (IsNoZigZag())
                         {
                             Nodes[idx]->Coords[0].bufY = isBotToTop == true ? y : PixelsPerStrand - y - 1;
                         } else {
@@ -394,7 +398,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
                     Nodes[idx]->ActChan = strandStartChan[x] + y * chanPerNode;
                     Nodes[idx]->Coords[0].bufX = IsLtoR ? x : NumStrands - x - 1;
                     Nodes[idx]->StringNum = stringnum;
-                    if (_alternateNodes) {
+                    if (HasAlternateNodes()) {
                         if (isBotToTop) {
                             if (y + 1 <= (PixelsPerStrand + 1) / 2) {
                                 Nodes[idx]->Coords[0].bufY = y * 2;
@@ -409,7 +413,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
                             }
                         }
                     } else {
-                        if (_noZigZag)
+                        if (IsNoZigZag())
                         {
                             Nodes[idx]->Coords[0].bufY = isBotToTop == true ? y : PixelsPerStrand - y - 1;
                         } else {
@@ -497,7 +501,7 @@ void MatrixModel::InitHMatrix() {
                     Nodes[idx]->Coords[0].bufY = isBotToTop ? y : NumStrands - y - 1;
                     Nodes[idx]->StringNum = stringnum;
 
-                    if (_alternateNodes) {
+                    if (HasAlternateNodes()) {
                         if (IsLtoR) {
                             if (x + 1 <= (PixelsPerStrand + 1) / 2) {
                                 Nodes[idx]->Coords[0].bufX = x * 2;
@@ -512,7 +516,7 @@ void MatrixModel::InitHMatrix() {
                             }
                         }
                     } else {
-                        if (_noZigZag)
+                        if (IsNoZigZag())
                         {
                             Nodes[idx]->Coords[0].bufX = IsLtoR != true ? PixelsPerStrand - x - 1 : x;
                         } else {
@@ -538,7 +542,7 @@ void MatrixModel::InitHMatrix() {
                     Nodes[idx]->Coords[0].bufY = isBotToTop ? y : NumStrands - y - 1;
                     Nodes[idx]->StringNum = stringnum;
 
-                    if (_alternateNodes) {
+                    if (HasAlternateNodes()) {
                         if (IsLtoR) {
                             if (x + 1 <= (PixelsPerStrand + 1) / 2) {
                                 Nodes[idx]->Coords[0].bufX = x * 2;
@@ -553,7 +557,7 @@ void MatrixModel::InitHMatrix() {
                             }
                         }
                     } else {
-                        if (_noZigZag)
+                        if (IsNoZigZag())
                         {
                             Nodes[idx]->Coords[0].bufX = IsLtoR != true ? PixelsPerStrand - x - 1 : x;
                         } else {

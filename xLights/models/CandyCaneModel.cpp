@@ -78,7 +78,7 @@ void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputMana
 	p = grid->Append(new wxBoolProperty("Sticks", "CandyCaneSticks", _sticks));
 	p->SetEditor("CheckBox");
 
-    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
+    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", HasAlternateNodes()));
     p->SetEditor("CheckBox");
     if (SingleNode) {
         p->Enable(false);
@@ -167,7 +167,7 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
         AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
         return 0;
     } else if ("AlternateNodes" == event.GetPropertyName()) {
-        _alternateNodes = event.GetPropertyValue().GetBool() ? true : false;
+        SetAlternateNodes(event.GetPropertyValue().GetBool() ? true : false);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
@@ -176,6 +176,7 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
         return 0;
     } else if ("CandyCaneStart" == event.GetPropertyName()) {
         SetDirection(event.GetValue().GetLong() == 0 ? "L" : "R");
+        SetIsLtoR(event.GetValue().GetLong() == 0);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneStart");
@@ -291,7 +292,7 @@ void CandyCaneModel::InitModel() {
             Nodes[idx]->StringNum=y;
             for(size_t c=0; c < GetCoordCount(idx); c++) {
                 Nodes[idx]->Coords[c].bufX=y;
-                if (_alternateNodes)
+                if (HasAlternateNodes())
                 {
                     if (x + 1 <= (SegmentsPerCane + 1) / 2)
                     {

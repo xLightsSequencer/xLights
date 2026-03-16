@@ -340,11 +340,11 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p->SetEditor("SpinCtrl");
     p->Enable(_treeType == 0);
 
-    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
+    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", HasAlternateNodes()));
     p->SetEditor("CheckBox");
     p->Enable(_noZigZag == false);
 
-    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", _noZigZag));
+    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", IsNoZigZag()));
     p->SetEditor("CheckBox");
     p->Enable(_alternateNodes == false);
 

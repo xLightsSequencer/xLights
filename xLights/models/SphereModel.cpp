@@ -128,7 +128,7 @@ int SphereModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SphereModel::OnPropertyGridChange::Degrees");
         return 0;
     } else if (event.GetPropertyName() == "AlternateNodes") {
-        _alternateNodes = event.GetPropertyValue().GetBool();
+        SetAlternateNodes(event.GetPropertyValue().GetBool());
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::OnPropertyGridChange::AlternateNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::OnPropertyGridChange::AlternateNodes");
@@ -137,7 +137,7 @@ int SphereModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         grid->GetPropertyByName("NoZig")->Enable(event.GetPropertyValue().GetBool() == false);
         return 0;
     } else if (event.GetPropertyName() == "NoZig") {
-        _noZigZag = event.GetPropertyValue().GetBool();
+        SetNoZigZag(event.GetPropertyValue().GetBool());
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::OnPropertyGridChange::NoZig");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::OnPropertyGridChange::NoZig");
@@ -167,13 +167,13 @@ void SphereModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", "89");
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
+    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", HasAlternateNodes()));
     p->SetEditor("CheckBox");
     if (SingleNode) {
         p->Enable(_noZigZag == false);
     }
 
-    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", _noZigZag));
+    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", IsNoZigZag()));
     p->SetEditor("CheckBox");
     if (SingleNode) {
         p->Enable(_alternateNodes == false);

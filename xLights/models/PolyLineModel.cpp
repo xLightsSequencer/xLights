@@ -468,7 +468,7 @@ void PolyLineModel::InitModel()
         }
         Nodes[curNode]->ActChan = chan;
         Nodes[curNode]->Coords[curCoord].bufX = SingleNode ? 0 : width;
-        if (_alternateNodes) {
+        if (HasAlternateNodes()) {
             if (y + 1 <= (nodesInDrop + 1) / 2) {
                 if (up) {
                     Nodes[curNode]->Coords[curCoord].bufY = 2 * y;
@@ -856,7 +856,7 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
 
     p = grid->Append(new wxDropPatternProperty("Drop Pattern", "IciclesDrops", _dropPatternString));
 
-    p = grid->Append(new wxBoolProperty("Alternate Drop Nodes", "AlternateNodes", _alternateNodes));
+    p = grid->Append(new wxBoolProperty("Alternate Drop Nodes", "AlternateNodes", HasAlternateNodes()));
     p->SetEditor("CheckBox");
 
     p = grid->Append(new wxFloatProperty("Height", "ModelHeight", _height));
@@ -911,7 +911,8 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         return 0;
     }
     else if ("PolyLineStart" == event.GetPropertyName()) {
-        _dir = event.GetValue().GetLong() == 0 ? "L" : "R";
+        SetDirection(event.GetValue().GetLong() == 0 ? "L" : "R");
+        SetIsLtoR(event.GetValue().GetLong() == 0);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::PolyLineStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::PolyLineStart");
@@ -1061,7 +1062,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
         return 0;
     }
     else if ("AlternateNodes" == event.GetPropertyName()) {
-        _alternateNodes = event.GetPropertyValue().GetBool();
+        SetAlternateNodes(event.GetPropertyValue().GetBool());
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyLineModel::OnPropertyGridChange::AlternateNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyLineModel::OnPropertyGridChange::AlternateNodes");

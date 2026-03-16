@@ -465,8 +465,11 @@ int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProp
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "WindowFrameModel::OnPropertyGridChange::WFBottomCount");
         return 0;
     } else if ("WFStartLocation" == event.GetPropertyName()) {
-        _dir = (event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2) ? "L" : "R";
-        _startSide = (event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1) ? "T" : "B";
+        long val = event.GetValue().GetLong();
+        SetDirection((val == 0 || val == 2) ? "L" : "R");
+        SetStartSide((val == 0 || val == 1) ? "T" : "B");
+        SetIsLtoR(val == 0 || val == 2);
+        SetIsBtoT(val >= 2);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFStartLocation");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFStartLocation");
