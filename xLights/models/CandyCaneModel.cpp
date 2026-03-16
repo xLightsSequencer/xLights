@@ -236,6 +236,13 @@ void CandyCaneModel::InitModel() {
     int NumCanes = parm1;
     int SegmentsPerCane = parm2;
 
+    // When a SingleNode model is saved, parm2 is stored as 1 and parm3 holds lights per cane.
+    // On reload, restore parm2 from parm3 so SetNodeCount gets the correct count.
+    if (SingleNode && parm2 <= 1 && parm3 > 1) {
+        SegmentsPerCane = parm3;
+        parm2 = parm3;
+    }
+
     SetNodeCount(NumCanes, SegmentsPerCane, rgbOrder);
     if (SingleNode) {
         SegmentsPerCane = 1;
