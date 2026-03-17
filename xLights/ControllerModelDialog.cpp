@@ -785,6 +785,7 @@ public:
                     int basePort = GetBasePort();
                     for (uint8_t p = 0; p < 4; ++p) {
                         for (const auto& it : _cud->GetControllerPixelPort(basePort + p)->GetModels()) {
+                            it->GetModel()->SetControllerProperty(CtrlProps::USE_SMART_REMOTE);
                             it->GetModel()->SetSmartRemoteType(choices[dlg.GetSelection()]);
                         }
                     }
@@ -794,7 +795,11 @@ public:
         } else if (id == ControllerModelDialog::CONTROLLER_REMOVESMARTREMOTE) {
             int basePort = GetBasePort();
             for (uint8_t p = 0; p < 4; ++p) {
-                _cud->GetControllerPixelPort(basePort + p)->ClearSmartRemoteOnAllModels();
+                auto* port = _cud->GetControllerPixelPort(basePort + p);
+                for (const auto& it : port->GetModels()) {
+                    it->GetModel()->ClearControllerProperty(CtrlProps::USE_SMART_REMOTE);
+                }
+                port->ClearSmartRemoteOnAllModels();
             }
             return true;
         } else if (id == ControllerModelDialog::CONTROLLER_SETSMARTREMOTE) {
@@ -824,6 +829,7 @@ public:
                     if (lastName == it->GetModel()->Name()) {//skip multistring models sequentuial ports
                         continue;
                     }
+                    it->GetModel()->SetControllerProperty(CtrlProps::USE_SMART_REMOTE);
                     it->GetModel()->SetSmartRemote(startId + 1);
                     int max_cas = std::min(it->GetModel()->GetSRMaxCascade(), (int)std::ceil(it->GetModel()->GetNumPhysicalStrings() / 4.0));
                     max_cas = std::max(max_cas, 1);
