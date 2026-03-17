@@ -1493,11 +1493,11 @@ int SequenceElements::GetNumberOfActiveTimingEffects()
 
 void SequenceElements::DeactivateAllTimingElements()
 {
-    for(size_t i=0;i<mAllViews[mCurrentView].size();i++)
+    for(size_t i=0;i<mAllViews[MASTER_VIEW].size();i++)
     {
-        if(mAllViews[mCurrentView][i]->GetType()== ElementType::ELEMENT_TYPE_TIMING)
+        if(mAllViews[MASTER_VIEW][i]->GetType()== ElementType::ELEMENT_TYPE_TIMING)
         {
-            dynamic_cast<TimingElement*>(mAllViews[mCurrentView][i])->SetActive(false);
+            dynamic_cast<TimingElement*>(mAllViews[MASTER_VIEW][i])->SetActive(false);
         }
     }
 }
