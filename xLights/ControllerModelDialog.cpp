@@ -785,8 +785,12 @@ public:
                     int basePort = GetBasePort();
                     for (uint8_t p = 0; p < 4; ++p) {
                         for (const auto& it : _cud->GetControllerPixelPort(basePort + p)->GetModels()) {
-                            it->GetModel()->SetControllerProperty(CtrlProps::USE_SMART_REMOTE);
-                            it->GetModel()->SetSmartRemoteType(choices[dlg.GetSelection()]);
+                            auto* model = it->GetModel();
+                            if (model->GetSmartRemote() == 0) {
+                                model->SetSmartRemote(1);
+                            }
+                            model->SetControllerProperty(CtrlProps::USE_SMART_REMOTE);
+                            model->SetSmartRemoteType(choices[dlg.GetSelection()]);
                         }
                     }
                 }
