@@ -165,8 +165,10 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
     }
     else if ("CircleStart" == event.GetPropertyName()) {
         int v = event.GetValue().GetLong();
-        _dir = (v & 0x1 ? "L" : "R");
-        _startSide = ( v < 4 ? "T" : "B");
+        SetDirection(v & 0x1 ? "L" : "R");
+        SetStartSide(v < 4 ? "T" : "B");
+        SetIsLtoR(v & 0x1);
+        SetIsBtoT(v >= 4);
         _insideOut = ( v & 0x2 ? "1" : "0");
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleStart");

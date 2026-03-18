@@ -259,8 +259,8 @@ int SpinnerModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
         return 0;
     } else if ("MatrixStart" == event.GetPropertyName()) {
         DecodeStartLocation(event.GetValue().GetLong());
-        _dir = IsLtoR ? "L" : "R";
-        _startSide = isBotToTop ? "B" : "T";
+        SetDirection(IsLtoR ? "L" : "R");
+        SetStartSide(isBotToTop ? "B" : "T");
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SpinnerModel::OnPropertyGridChange::MatrixStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SpinnerModel::OnPropertyGridChange::MatrixStart");

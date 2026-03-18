@@ -245,7 +245,8 @@ int SingleLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SingleLineModel::OnPropertyGridChange::SingleLineLights");
         return 0;
     } else if ("SingleLineStart" == event.GetPropertyName()) {
-        _dir = event.GetValue().GetLong() == 0 ? "L" : "R";
+        SetDirection(event.GetValue().GetLong() == 0 ? "L" : "R");
+        SetIsLtoR(event.GetValue().GetLong() == 0);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SingleLineModel::OnPropertyGridChange::SingleLineStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SingleLineModel::OnPropertyGridChange::SingleLineStart");

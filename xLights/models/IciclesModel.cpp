@@ -63,7 +63,7 @@ void IciclesModel::InitModel()
             Nodes[curNode]->ActChan = stringStartChan[0] + curNode * GetNodeChannelCount(StringType);
             Nodes[curNode]->StringNum = x;
             Nodes[curNode]->Coords[curCoord].bufX = width;
-            if (_alternateNodes) {
+            if (HasAlternateNodes()) {
                 if (y + 1 <= (nodesInDrop + 1) / 2) {
                     Nodes[curNode]->Coords[curCoord].bufY = _maxH - 1 - (2 * y);
                     Nodes[curNode]->Coords[curCoord].screenY = (2 * y);
@@ -130,7 +130,7 @@ void IciclesModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManage
         p->SetHelpString("This is typically the total number of pixels per #String.");
     }
 
-    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
+    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", HasAlternateNodes()));
     p->SetEditor("CheckBox");
 
     grid->Append(new wxDropPatternProperty("Drop Pattern", "IciclesDrops", _dropPatternString));
@@ -170,7 +170,8 @@ int IciclesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "IciclesModel::OnPropertyGridChange::IciclesDrops");
         return 0;
     } else if ("IciclesStart" == event.GetPropertyName()) {
-        _dir = event.GetValue().GetLong() == 0 ? "L" : "R";
+        SetDirection(event.GetValue().GetLong() == 0 ? "L" : "R");
+        SetIsLtoR(event.GetValue().GetLong() == 0);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IciclesModel::OnPropertyGridChange::IciclesStart");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IciclesModel::OnPropertyGridChange::IciclesStart");
@@ -178,7 +179,7 @@ int IciclesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "IciclesModel::OnPropertyGridChange::IciclesStart");
         return 0;
     } else if ("AlternateNodes" == event.GetPropertyName()) {
-        _alternateNodes = event.GetPropertyValue().GetBool();
+        SetAlternateNodes(event.GetPropertyValue().GetBool());
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IciclesModel::OnPropertyGridChange::AlternateNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IciclesModel::OnPropertyGridChange::AlternateNodes");
