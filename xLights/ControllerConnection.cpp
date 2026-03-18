@@ -318,7 +318,10 @@ void ControllerConnection::SetSmartRemote(int sr)
     }
     if (sr != 0) {
         _smartRemote = sr;
+        active_props[USE_SMART_REMOTE] = true;
     } else {
+        _smartRemote = 0;
+        active_props[USE_SMART_REMOTE] = false;
         SetSRMaxCascade(1);
         SetSRCascadeOnPort(false);
     }
@@ -342,6 +345,7 @@ void ControllerConnection::SetSmartRemoteType(const std::string& type)
     _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetSmartRemoteType");
     _model->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerConnection::SetSmartRemoteType");
     _model->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerConnection::SetSmartRemoteType");
+    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetSmartRemoteType");
     _model->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ControllerConnection::SetSmartRemoteType");
     _model->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetSmartRemoteType");
     _model->IncrementChangeCount();
