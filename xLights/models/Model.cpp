@@ -504,12 +504,12 @@ void Model::SetControllerName(const std::string& controller, bool skip_work)
     }
 
     if (!skip_work) {
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerConnection::SetName");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerConnection::SetName");
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetName");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetName");
-        AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "ControllerConnection::SetName");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetName");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "Model::SetControllerName");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetControllerName");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetControllerName");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::SetControllerName");
+        AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "Model::SetControllerName");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::SetControllerName");
     }
     IncrementChangeCount();
 }
@@ -5955,6 +5955,8 @@ void Model::SetTagColourAsString(std::string const& colour) {
     if (_modelTagColour.IsOk()) {
         _modelTagColour = wxNullColour;
     }
+    IncrementChangeCount();
+    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetTagColourAsString");
 }
 void Model::SetTagColour(wxColour colour)
 {
@@ -5995,9 +5997,9 @@ void Model::SetPixelStyle(PIXEL_STYLE style)
 {
     if (_pixelStyle != style) {
         _pixelStyle = style;
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetPixelStyle");
     }
-    IncrementChangeCount();
-    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetPixelStyle");
 }
 
 int32_t Model::GetStringStartChan(int x) const
@@ -6120,6 +6122,7 @@ void Model::SetShadowModelFor(const std::string& shadowModelFor)
     if ( shadowModelFor != name ) { // models should not be a shadow model for themselves
         _shadowModelFor = shadowModelFor;
         IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetShadowModelFor");
     }
 }
 
@@ -6131,7 +6134,12 @@ void Model::SetRGBWHandling(std::string const& handling)
 {
     for (int x = 0; x < RGBW_HANDLING.size(); ++x) {
         if (RGBW_HANDLING[x] == handling) {
-            rgbwHandlingType = x;
+            if (rgbwHandlingType != x) {
+                rgbwHandlingType = x;
+                IncrementChangeCount();
+                AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetRGBWHandling");
+            }
+            break;
         }
     }
 }
