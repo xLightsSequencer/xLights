@@ -824,10 +824,10 @@ public:
     // Smart Remote Functions
     void GetPortSR(int string, int& outport, int& outsr) const { return _controllerConnection.GetPortSR(string, outport, outsr); }
     [[nodiscard]] char GetSmartRemoteLetter() const { return _controllerConnection.GetSmartRemoteLetter(); }
-    [[nodiscard]] char GetSmartRemoteLetterForString(int string = 1) const { return _controllerConnection.GetSmartRemoteLetterForString(); }
+    [[nodiscard]] char GetSmartRemoteLetterForString(int string = 1) const { return _controllerConnection.GetSmartRemoteLetterForString(string); }
     [[nodiscard]] int GetSortableSmartRemote() const { return _controllerConnection.GetSortableSmartRemote(); }
     [[nodiscard]] int GetSmartTs() const { return _controllerConnection.GetSmartTs(); }
-    [[nodiscard]] int GetSmartRemoteForString(int string = 1) const { return _controllerConnection.GetSmartRemoteForString(); }
+    [[nodiscard]] int GetSmartRemoteForString(int string = 1) const { return _controllerConnection.GetSmartRemoteForString(string); }
     void SetSmartRemote(int sr) { return _controllerConnection.SetSmartRemote(sr); }
     void SetSmartRemoteTs(int ts ) { _controllerConnection.SetSmartRemoteTs(ts); }
     void SetSRCascadeOnPort(bool cascade) { return _controllerConnection.SetSRCascadeOnPort(cascade); }
