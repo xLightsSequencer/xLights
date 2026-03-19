@@ -109,13 +109,10 @@ void DmxModel::UpdateChannelCount(int num_channels, bool do_work)
 {
     parm1 = num_channels;
     if (do_work) {
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxModel::UpdateChannelCount::DMXChannelCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxModel::UpdateChannelCount::DMXChannelCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxModel::UpdateChannelCount::DMXChannelCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "DmxModel::UpdateChannelCount::DMXChannelCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxModel::UpdateChannelCount::DMXChannelCount");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DmxModel::UpdateChannelCount::DMXChannelCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "DmxModel::UpdateChannelCount::DMXChannelCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxModel::UpdateChannelCount::DMXChannelCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST |
+                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "DmxModel::UpdateChannelCount::DMXChannelCount");
     }
 }
 

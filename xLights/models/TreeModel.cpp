@@ -241,52 +241,31 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         if (p != nullptr) {
             p->Enable(_treeType == 0);
         }
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeStyle");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeStyle");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeStyle");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeStyle");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "TreeModel::OnPropertyGridChange::TreeStyle");
         return 0;
     } else if (event.GetPropertyName() == "TreeDegrees") {
         _degrees = (int)event.GetPropertyValue().GetLong();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeDegrees");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeDegrees");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeDegrees");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeDegrees");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "TreeModel::OnPropertyGridChange::TreeDegrees");
         return 0;
     } else if (event.GetPropertyName() == "TreeRotation") {
         _rotation = (float)event.GetPropertyValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeRotation");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeRotation");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeRotation");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeRotation");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "TreeModel::OnPropertyGridChange::TreeRotation");
         return 0;
     } else if (event.GetPropertyName() == "TreeSpiralRotations") {
         _spiralRotations = (float)event.GetPropertyValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeSpiralRotations");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeSpiralRotations");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeSpiralRotations");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeSpiralRotations");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "TreeModel::OnPropertyGridChange::TreeSpiralRotations");
         return 0;
     } else if (event.GetPropertyName() == "TreeBottomTopRatio") {
         _botTopRatio = (float)event.GetPropertyValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeBottomTopRatio");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeBottomTopRatio");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeBottomTopRatio");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeBottomTopRatio");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "TreeModel::OnPropertyGridChange::TreeBottomTopRatio");
         return 0;
     } else if (event.GetPropertyName() == "TreePerspective") {
         _perspective = (float)(event.GetPropertyValue().GetDouble()/10.0);
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreePerspective");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreePerspective");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreePerspective");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreePerspective");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "TreeModel::OnPropertyGridChange::TreePerspective");
         return 0;
     } else if ("StrandDir" == event.GetPropertyName()) {
         _vMatrix =  event.GetPropertyValue().GetBool();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::StrandDir");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::StrandDir");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::StrandDir");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::StrandDir");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "TreeModel::OnPropertyGridChange::StrandDir");
         return 0;
     }
     return MatrixModel::OnPropertyGridChange(grid, event);

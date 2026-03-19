@@ -163,31 +163,19 @@ int DmxColorAbilityCMY::OnColorPropertyGridChange(wxPropertyGridInterface* grid,
 
     if ("DmxCyanChannel" == propName) {
         cyan_channel = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
         return 0;
     } else if ("DmxMagentaChannel" == propName) {
         magenta_channel = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
         return 0;
     } else if ("DmxYellowChannel" == propName) {
         yellow_channel = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
         return 0;
     } else if ("DmxWhiteChannel" == propName) {
         white_channel = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxColorAbilityCMY::OnColorPropertyGridChange::" + propName);
         return 0;
     }
     return -1;

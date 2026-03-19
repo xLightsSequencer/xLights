@@ -127,10 +127,7 @@ int ThreePointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid
                 height = 0.01f;
             }
         }
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ThreePointScreenLocation::OnPropertyGridChange::ModelHeight");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ThreePointScreenLocation::OnPropertyGridChange::ModelHeight");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ThreePointScreenLocation::OnPropertyGridChange::ModelHeight");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ThreePointScreenLocation::OnPropertyGridChange::ModelHeight");
+        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "ThreePointScreenLocation::OnPropertyGridChange::ModelHeight");
         return 0;
     }
     else if (_locked && "ModelHeight" == name) {
@@ -139,10 +136,7 @@ int ThreePointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid
     }
     else if (!_locked && "ModelShear" == name) {
         shear = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ThreePointScreenLocation::OnPropertyGridChange::ModelShear");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ThreePointScreenLocation::OnPropertyGridChange::ModelShear");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ThreePointScreenLocation::OnPropertyGridChange::ModelShear");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ThreePointScreenLocation::OnPropertyGridChange::ModelShear");
+        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "ThreePointScreenLocation::OnPropertyGridChange::ModelShear");
         return 0;
     }
     else if (_locked && "ModelShear" == name) {
@@ -151,10 +145,7 @@ int ThreePointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid
     }
     else if (!_locked && "RotateX" == name) {
         rotatex = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::RotateX");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TwoPointScreenLocation::OnPropertyGridChange::RotateX");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TwoPointScreenLocation::OnPropertyGridChange::RotateX");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "TwoPointScreenLocation::OnPropertyGridChange::RotateX");
+        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::RotateX");
         return 0;
     }
     else if (_locked && "RotateX" == name) {

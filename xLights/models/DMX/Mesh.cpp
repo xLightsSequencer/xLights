@@ -172,10 +172,7 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
             }
         }
 
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ObjFile");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ObjFile");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ObjFile");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::ObjFile");
+        base->AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "Mesh::OnPropertyGridChange::ObjFile");
         return 0;
     }
     else if (locked && base_name + "ObjFile" == name) {
@@ -184,8 +181,7 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "Brightness" == name) {
         brightness = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::Brightness");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::Brightness");
+        base->AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE, "Mesh::OnPropertyGridChange::Brightness");
         return 0;
     }
     else if (locked && base_name + "Brightness" == name) {
@@ -194,8 +190,7 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "MeshOnly" == name) {
         mesh_only = event.GetValue().GetBool();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::MeshOnly");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::MeshOnly");
+        base->AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE, "Mesh::OnPropertyGridChange::MeshOnly");
         return 0;
     }
     else if (locked && base_name + "MeshOnly" == name) {
@@ -204,10 +199,7 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "ScaleX" == name) {
         scalex = event.GetValue().GetDouble();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ScaleX");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ScaleX");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ScaleX");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::ScaleX");
+        base->AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "Mesh::OnPropertyGridChange::ScaleX");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
     else if (locked && base_name + "ScaleX" == name) {
@@ -216,10 +208,7 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "ScaleY" == name) {
         scaley = event.GetValue().GetDouble();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ScaleY");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ScaleY");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ScaleY");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::ScaleY");
+        base->AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "Mesh::OnPropertyGridChange::ScaleY");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
     else if (locked && base_name + "ScaleY" == name) {
@@ -229,10 +218,7 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     else if (!locked && base_name + "ScaleZ" == name) {
         scalez = event.GetValue().GetDouble();
 
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ScaleZ");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ScaleZ");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ScaleZ");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::ScaleZ");
+        base->AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "Mesh::OnPropertyGridChange::ScaleZ");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
     else if (locked && base_name + "ScaleZ" == name) {
@@ -241,10 +227,7 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "OffsetX" == name) {
         offset_x = event.GetValue().GetDouble();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ModelX");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ModelX");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ModelX");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::ModelX");
+        base->AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "Mesh::OnPropertyGridChange::ModelX");
         return 0;
     }
     else if (locked && base_name + "OffsetX" == name) {
@@ -253,10 +236,7 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "OffsetY" == name) {
         offset_y = event.GetValue().GetDouble();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ModelY");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ModelY");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ModelY");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::ModelY");
+        base->AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "Mesh::OnPropertyGridChange::ModelY");
         return 0;
     }
     else if (locked && base_name + "OffsetY" == name) {
@@ -265,10 +245,7 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "OffsetZ" == name) {
         offset_z = event.GetValue().GetDouble();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::ModelZ");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::ModelZ");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::ModelZ");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::ModelZ");
+        base->AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "Mesh::OnPropertyGridChange::ModelZ");
         return 0;
     }
     else if (locked && base_name + "OffsetZ" == name) {
@@ -277,10 +254,7 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "RotateX" == name) {
         rotatex = event.GetValue().GetDouble();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::RotateX");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::RotateX");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::RotateX");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::RotateX");
+        base->AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "Mesh::OnPropertyGridChange::RotateX");
         return 0;
     }
     else if (locked && base_name + "RotateX" == name) {
@@ -289,10 +263,7 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "RotateY" == name) {
         rotatey = event.GetValue().GetDouble();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::RotateY");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::RotateY");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::RotateY");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::RotateY");
+        base->AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "Mesh::OnPropertyGridChange::RotateY");
         return 0;
     }
     else if (locked && base_name + "RotateY" == name) {
@@ -301,10 +272,7 @@ int Mesh::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEven
     }
     else if (!locked && base_name + "RotateZ" == name) {
         rotatez = event.GetValue().GetDouble();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Mesh::OnPropertyGridChange::RotateZ");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Mesh::OnPropertyGridChange::RotateZ");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Mesh::OnPropertyGridChange::RotateZ");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Mesh::OnPropertyGridChange::RotateZ");
+        base->AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "Mesh::OnPropertyGridChange::RotateZ");
         return 0;
     }
     else if (locked && base_name + "RotateZ" == name) {

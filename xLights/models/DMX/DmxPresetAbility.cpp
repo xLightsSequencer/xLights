@@ -92,11 +92,8 @@ int DmxPresetAbility::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
             _presets.emplace_back(_presets.size() + 1, 0, "");
         }
 
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxPresetAbility::OnColorPropertyGridChange::DmxPresetSize");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxPresetAbility::OnColorPropertyGridChange::DmxPresetSize");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxPresetAbility::OnColorPropertyGridChange::DmxPresetSize");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxPresetAbility::OnColorPropertyGridChange::DmxPresetSize");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxPresetAbility::OnPropertyGridChange::DmxPresetSize");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
+                          OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxPresetAbility::OnPropertyGridChange::DmxPresetSize");
         return 0;
     } else if (event.GetPropertyName().StartsWith("DmxPresetSize.DmxPresetChannel")) {
         int dxmVal = (int)event.GetPropertyValue().GetInteger();
@@ -106,10 +103,7 @@ int DmxPresetAbility::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
         if (index >= 0 && index < _presets.size()) {
             _presets[index].DMXChannel = dxmVal;
 
-            base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxPresetAbility::OnColorPropertyGridChange::DmxPresetChannel");
-            base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxPresetAbility::OnColorPropertyGridChange::DmxPresetChannel");
-            base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxPresetAbility::OnColorPropertyGridChange::DmxPresetChannel");
-            base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxPresetAbility::OnColorPropertyGridChange::DmxPresetChannel");
+            base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxPresetAbility::OnPropertyGridChange::DmxPresetChannel");
         }
     } else if (event.GetPropertyName().StartsWith("DmxPresetSize.DmxPresetValue")) {
         int dxmVal = (int)event.GetPropertyValue().GetInteger();
@@ -119,10 +113,7 @@ int DmxPresetAbility::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
         if (index >= 0 && index < _presets.size()) {
             _presets[index].DMXValue = dxmVal;
 
-            base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxPresetAbility::OnColorPropertyGridChange::DmxPresetValue");
-            base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxPresetAbility::OnColorPropertyGridChange::DmxPresetValue");
-            base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxPresetAbility::OnColorPropertyGridChange::DmxPresetValue");
-            base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxPresetAbility::OnColorPropertyGridChange::DmxPresetValue");
+            base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxPresetAbility::OnPropertyGridChange::DmxPresetValue");
         }
     } else if (event.GetPropertyName().StartsWith("DmxPresetSize.DmxPresetDesc")) {
         auto dxmDesc = event.GetPropertyValue().GetString();
@@ -132,10 +123,7 @@ int DmxPresetAbility::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
         if (index >= 0 && index < _presets.size()) {
             _presets[index].Description = dxmDesc;
 
-            base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxPresetAbility::OnColorPropertyGridChange::DmxPresetDesc");
-            base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxPresetAbility::OnColorPropertyGridChange::DmxPresetDesc");
-            base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxPresetAbility::OnColorPropertyGridChange::DmxPresetDesc");
-            base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxPresetAbility::OnColorPropertyGridChange::DmxPresetDesc");
+            base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxPresetAbility::OnPropertyGridChange::DmxPresetDesc");
         }
     }
     return -1;
