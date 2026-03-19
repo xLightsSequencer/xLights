@@ -176,6 +176,7 @@ void ControllerConnection::SetReverse(int reverse)
     _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetReverse");
     _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetReverse");
     _model->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetReverse");
+    _model->IncrementChangeCount();
 }
 
 void ControllerConnection::SetZigZag(int zigzag)
@@ -185,7 +186,8 @@ void ControllerConnection::SetZigZag(int zigzag)
     _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetZigZag");
     _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetZigZag");
     _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetZigZag");
-    _model->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetDirection");
+    _model->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetZigZag");
+    _model->IncrementChangeCount();
 }
 
 void ControllerConnection::SetDMXChannel(int ch)
@@ -211,7 +213,7 @@ void ControllerConnection::GetPortSR(int string, int& outport, int& outsr) const
 
     int sr = GetSmartRemote();
 
-    if (_port == 0 || string == 0) {
+    if (_port == 0 || string <= 0) {
         outport = _port;
         outsr = sr;
     } else if (sr == 0) {
@@ -338,9 +340,7 @@ void ControllerConnection::SetSmartRemote(int sr)
 void ControllerConnection::SetSmartRemoteType(const std::string& type)
 {
     if (_smartRemoteType == type) return;
-    if (!type.empty()) {
-        _smartRemoteType = type;
-    }
+    _smartRemoteType = type;
     _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetSmartRemoteType");
     _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetSmartRemoteType");
     _model->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerConnection::SetSmartRemoteType");
@@ -377,13 +377,10 @@ std::string ControllerConnection::GetSmartRemoteType() const
     if (types.empty()) {
         return "";
     }
-    std::string t = GetSmartRemoteTypes().front();
-    std::string s = _smartRemoteType;
-
-    if (std::find(types.begin(), types.end(), s) == types.end()) {
-        return t;
+    if (std::find(types.begin(), types.end(), _smartRemoteType) == types.end()) {
+        return types.front();
     }
-    return s;
+    return _smartRemoteType;
 }
 
 int ControllerConnection::GetSmartRemoteTypeIndex(const std::string& srType) const
