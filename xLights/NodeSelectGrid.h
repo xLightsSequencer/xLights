@@ -29,6 +29,7 @@
 #include <wx/filepicker.h>
 #include "wxModelGridCellRenderer.h"
 #include "UtilClasses.h"
+#include "ui/wxUtilities.h"
 
 class Model;
 class DrawGrid;

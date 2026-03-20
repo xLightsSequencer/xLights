@@ -43,6 +43,7 @@
 #include "WiringDialog.h"
 #include "wxModelGridCellRenderer.h"
 #include "UtilClasses.h"
+#include "ui/wxUtilities.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 #include "ModelPreview.h"
