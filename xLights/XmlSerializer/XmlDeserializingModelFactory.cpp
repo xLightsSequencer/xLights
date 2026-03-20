@@ -1051,7 +1051,7 @@ Model* XmlDeserializingModelFactory::DeserializeDmxServo3d(wxXmlNode* node, xLig
             Mesh* msh = model->CreateStaticMesh("StaticMesh1", 0);
             DeserializeMesh(msh, n);
         } else if ("MotionMesh" == name) { // convert original name that had no number
-            Mesh* msh = model->CreateStaticMesh("MotionMesh1", 0);
+            Mesh* msh = model->CreateMotionMesh("MotionMesh1", 0);
             DeserializeMesh(msh, n);
         } else if (static_idx != std::string::npos) {
             std::string num = name.substr(10, name.length());
