@@ -127,24 +127,15 @@ int DmxColorAbilityWheel::OnColorPropertyGridChange(wxPropertyGridInterface *gri
 
     if ("DmxColorWheelChannel" == event.GetPropertyName()) {
         wheel_channel = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelChannel");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelChannel");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelChannel");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelChannel");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelChannel");
         return 0;
     } else if ("DmxDimmerChannel" == event.GetPropertyName()) {
         dimmer_channel = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxDimmerChannel");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DmxDimmerChannel");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DmxDimmerChannel");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::DmxDimmerChannel");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxDimmerChannel");
         return 0;
     } else if ("DmxColorWheelDelay" == event.GetPropertyName()) {
         wheel_delay = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelDelay");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelDelay");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelDelay");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelDelay");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelDelay");
         return 0;
     } else if ("DmxColorWheelSize" == event.GetPropertyName()) {
 
@@ -159,11 +150,8 @@ int DmxColorAbilityWheel::OnColorPropertyGridChange(wxPropertyGridInterface *gri
             auto const lastValue = (colors.back().dmxValue + 50) % 255;
             colors.emplace_back(xlRED, lastValue);
         }
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelSize");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelSize");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelSize");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelSize");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxColorAbility::OnPropertyGridChange::DmxColorWheelSize");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
+                          OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelSize");
         return 0;
     } else if (event.GetPropertyName().StartsWith("DmxColorWheelSize.DmxColorWheelDMX")) {
         int dxmVal = (int)event.GetPropertyValue().GetInteger();
@@ -172,10 +160,7 @@ int DmxColorAbilityWheel::OnColorPropertyGridChange(wxPropertyGridInterface *gri
         int index = wxAtoi(namekey);
         if (index >= 0 && index < colors.size()) {
             colors[index].dmxValue = dxmVal;
-            base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelDMX");
-            base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelDMX");
-            base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelDMX");
-            base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelDMX");
+            base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelDMX");
         }
     }
     else if (event.GetPropertyName().StartsWith("DmxColorWheelSize.DmxColorWheelColor") ){
@@ -186,10 +171,7 @@ int DmxColorAbilityWheel::OnColorPropertyGridChange(wxPropertyGridInterface *gri
         int index = wxAtoi(namekey);
         if (index >= 0 && index<colors.size()) {
             colors[index].color = xlColor(wheeleColour);
-            base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelColor");
-            base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelColor");
-            base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelColor");
-            base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelColor");
+            base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelColor");
         }
     }
     return -1;

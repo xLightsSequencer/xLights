@@ -218,70 +218,51 @@ int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
     if ("CubeStart" == event.GetPropertyName()) {
         _cubeStart = static_cast<int>(event.GetValue().GetLong());
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::OnPropertyGridChange::CubeStart");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CubeModel::OnPropertyGridChange::CubeStart");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::OnPropertyGridChange::CubeStart");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CubeModel::OnPropertyGridChange::CubeStart");
         return 0;
     } else if ("CubeStyle" == event.GetPropertyName()) {
         _cubeStyle = static_cast<int>(event.GetPropertyValue().GetLong());
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::OnPropertyGridChange::CubeStyle");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CubeModel::OnPropertyGridChange::CubeStyle");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::OnPropertyGridChange::CubeStyle");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CubeModel::OnPropertyGridChange::CubeStyle");
         return 0;
     } else if ("StrandPerLine" == event.GetPropertyName()) {
         _strandStyle =static_cast<int>(event.GetPropertyValue().GetLong());
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::OnPropertyGridChange::StrandPerLine");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CubeModel::OnPropertyGridChange::StrandPerLine");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::OnPropertyGridChange::StrandPerLine");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CubeModel::OnPropertyGridChange::StrandPerLine");
         return 0;
     } else if ("StrandPerLayer" == event.GetPropertyName()) {
         _strandPerLayer = event.GetPropertyValue().GetBool();
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::OnPropertyGridChange::StrandPerLayer");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CubeModel::OnPropertyGridChange::StrandPerLayer");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::OnPropertyGridChange::StrandPerLayer");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CubeModel::OnPropertyGridChange::StrandPerLayer");
         return 0;
     } else if ("CubeWidth" == event.GetPropertyName()) {
         parm1 = static_cast<int>(event.GetPropertyValue().GetLong());
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::OnPropertyGridChange::CubeWidth");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::OnPropertyGridChange::CubeWidth");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CubeModel::OnPropertyGridChange::CubeWidth");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CubeModel::OnPropertyGridChange::CubeWidth");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CubeModel::OnPropertyGridChange::CubeWidth");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CubeModel::OnPropertyGridChange::CubeWidth");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CubeModel::OnPropertyGridChange::CubeWidth");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
+                    OutputModelManager::WORK_RELOAD_MODELLIST |
+                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CubeModel::OnPropertyGridChange::CubeWidth");
         return 0;
     } else if ("CubeHeight" == event.GetPropertyName()) {
         parm2 = static_cast<int>(event.GetPropertyValue().GetLong());
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::OnPropertyGridChange::CubeHeight");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::OnPropertyGridChange::CubeHeight");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CubeModel::OnPropertyGridChange::CubeHeight");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CubeModel::OnPropertyGridChange::CubeHeight");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CubeModel::OnPropertyGridChange::CubeHeight");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CubeModel::OnPropertyGridChange::CubeHeight");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
+                    OutputModelManager::WORK_RELOAD_MODELLIST |
+                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CubeModel::OnPropertyGridChange::CubeHeight");
         return 0;
     } else if ("CubeDepth" == event.GetPropertyName()) {
         parm3 = static_cast<int>(event.GetPropertyValue().GetLong());
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::OnPropertyGridChange::CubeDepth");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::OnPropertyGridChange::CubeDepth");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CubeModel::OnPropertyGridChange::CubeDepth");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CubeModel::OnPropertyGridChange::CubeDepth");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CubeModel::OnPropertyGridChange::CubeDepth");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CubeModel::OnPropertyGridChange::CubeDepth");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
+                    OutputModelManager::WORK_RELOAD_MODELLIST |
+                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CubeModel::OnPropertyGridChange::CubeDepth");
         return 0;
     } else if ("CubeStrings" == event.GetPropertyName()) {
         _cubeStrings = static_cast<int>(event.GetPropertyValue().GetLong());
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CubeModel::OnPropertyGridChange::CubeStrings");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CubeModel::OnPropertyGridChange::CubeStrings");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CubeModel::OnPropertyGridChange::CubeStrings");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CubeModel::OnPropertyGridChange::CubeStrings");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CubeModel::OnPropertyGridChange::CubeStrings");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
+                    OutputModelManager::WORK_RELOAD_MODELLIST |
+                    OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CubeModel::OnPropertyGridChange::CubeStrings");
         return 0;
     }
 

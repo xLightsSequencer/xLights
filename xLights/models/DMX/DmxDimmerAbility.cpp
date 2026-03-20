@@ -40,9 +40,7 @@ int DmxDimmerAbility::OnDimmerPropertyGridChange(wxPropertyGridInterface *grid, 
 
      if ("MhDimmerChannel" == event.GetPropertyName()) {
          dimmer_channel = (int)event.GetPropertyValue().GetLong();
-         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxDimmerAbility::OnPropertyGridChange::DMXDimmerChannel");
-         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxDimmerAbility::OnPropertyGridChange::DMXDimmerChannel");
-         base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxDimmerAbility::OnPropertyGridChange::DMXDimmerChannel");
+         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxDimmerAbility::OnPropertyGridChange::DMXDimmerChannel");
          return 0;
      }
      return -1;

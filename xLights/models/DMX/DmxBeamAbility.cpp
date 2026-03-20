@@ -62,30 +62,22 @@ int DmxBeamAbility::OnBeamPropertyGridChange(wxPropertyGridInterface *grid, wxPr
 {
     if ("DmxBeamLength" == event.GetPropertyName()) {
         beam_length = (float)event.GetPropertyValue().GetDouble();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxDimmerAbility::OnDimmerPropertyGridChange::DmxBeamLength");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxDimmerAbility::OnDimmerPropertyGridChange::DmxBeamLength");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxDimmerAbility::OnDimmerPropertyGridChange::DmxBeamLength");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxBeamAbility::OnBeamPropertyGridChange::DmxBeamLength");
         return 0;
     }
     else if ("DmxBeamWidth" == event.GetPropertyName()) {
         beam_width = (float)event.GetPropertyValue().GetDouble();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxDimmerAbility::OnDimmerPropertyGridChange::DmxBeamWidth");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxDimmerAbility::OnDimmerPropertyGridChange::DmxBeamWidth");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxDimmerAbility::OnDimmerPropertyGridChange::DmxBeamWidth");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxBeamAbility::OnBeamPropertyGridChange::DmxBeamWidth");
         return 0;
     }
     else if ("DmxBeamOrient" == event.GetPropertyName()) {
         beam_orient = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DmxBeamOrient");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHeadAdv::OnPropertyGridChange::DmxBeamOrient");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DmxBeamOrient");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxBeamAbility::OnBeamPropertyGridChange::DmxBeamOrient");
         return 0;
     }
     else if ("DmxBeamYOffset" == event.GetPropertyName()) {
         beam_y_offset = (float)event.GetPropertyValue().GetDouble();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DmxBeamYOffset");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHeadAdv::OnPropertyGridChange::DmxBeamYOffset");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DmxBeamYOffset");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxBeamAbility::OnBeamPropertyGridChange::DmxBeamYOffset");
         return 0;
     }
     return -1;

@@ -1794,10 +1794,7 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
                     mPos[i].z += dz;
                 }
 
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::REALSegment");
-            AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyPointScreenLocation::OnPropertyGridChange::REALSegment");
-            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyPointScreenLocation::OnPropertyGridChange::REALSegment");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyPointScreenLocation::OnPropertyGridChange::REALSegment");
+            AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::REALSegment");
             return 0;
         }
     }
@@ -1806,10 +1803,7 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
         selected_segment = -1;
         if (!_locked && name.find("ModelX") != std::string::npos) {
             mPos[selected_handle].x = event.GetValue().GetDouble() - worldPos_x;
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::ModelX");
-            AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyPointScreenLocation::OnPropertyGridChange::ModelX");
-            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyPointScreenLocation::OnPropertyGridChange::ModelX");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyPointScreenLocation::OnPropertyGridChange::ModelX");
+            AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::ModelX");
             return 0;
         }
         else if (_locked && name.find("ModelX") != std::string::npos) {
@@ -1818,10 +1812,7 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
         }
         else if (!_locked && name.find("ModelY") != std::string::npos) {
             mPos[selected_handle].y = event.GetValue().GetDouble() - worldPos_y;
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::ModelY");
-            AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyPointScreenLocation::OnPropertyGridChange::ModelY");
-            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyPointScreenLocation::OnPropertyGridChange::ModelY");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyPointScreenLocation::OnPropertyGridChange::ModelY");
+            AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::ModelY");
             return 0;
         }
         else if (_locked && name.find("ModelY") != std::string::npos) {
@@ -1830,10 +1821,7 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
         }
         else if (!_locked && name.find("ModelZ") != std::string::npos) {
             mPos[selected_handle].z = event.GetValue().GetDouble() - worldPos_z;
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::ModelZ");
-            AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PolyPointScreenLocation::OnPropertyGridChange::ModelZ");
-            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyPointScreenLocation::OnPropertyGridChange::ModelZ");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyPointScreenLocation::OnPropertyGridChange::ModelZ");
+            AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::ModelZ");
             return 0;
         }
         else if (_locked && name.find("ModelZ") != std::string::npos) {
@@ -1844,9 +1832,8 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
     else if ("Locked" == name)
     {
         _locked = event.GetValue().GetBool();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::Locked");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PolyPointScreenLocation::OnPropertyGridChange::Locked");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyPointScreenLocation::OnPropertyGridChange::Locked");
+        AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE |
+                    OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyPointScreenLocation::OnPropertyGridChange::Locked");
         return 0;
     }
 
