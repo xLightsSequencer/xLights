@@ -342,7 +342,7 @@ public:
     [[nodiscard]] int GetIndivStartNodesCount() const { return _indivStartNodes.size(); }
     void AddIndivStartNode(int node) { _indivStartNodes.push_back(node); }
     void SetIndivStartNode(int index, int node) { _indivStartNodes[index] = node; }
-    const std::string StartNodeAttrName(int idx) const { return ""; }
+    virtual const std::string StartNodeAttrName(int idx) const { return ""; }
 
     bool IsNodeInBufferRange(size_t nodeNum, int x1, int y1, int x2, int y2);
 
