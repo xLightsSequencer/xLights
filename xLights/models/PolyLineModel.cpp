@@ -153,6 +153,7 @@ void PolyLineModel::SetStringStartChannels(int NumberOfStrings, int StartChannel
 void PolyLineModel::SetSegmentSize(int idx, int val)
 {
     _polyLineSizes[idx] = val;
+    IncrementChangeCount();
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                 OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyLineModel::SetSegmentSize");
 }
