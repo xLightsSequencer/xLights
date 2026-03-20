@@ -542,6 +542,30 @@ void BaseSerializingVisitor::WriteOtherElements(const Model* m) {
     WriteSubmodels(m);
 }
 
+void BaseSerializingVisitor::WriteDimensionsElement(const Model& model) {
+    auto ruler = RulerObject::GetRuler();
+    if (ruler == nullptr) return;
+
+    std::string u = "mm";
+    switch (ruler->GetUnits()) {
+    case RULER_UNITS_INCHES: u = "i";  break;
+    case RULER_UNITS_FEET:   u = "f";  break;
+    case RULER_UNITS_YARDS:  u = "y";  break;
+    case RULER_UNITS_MM:     u = "mm"; break;
+    case RULER_UNITS_CM:     u = "cm"; break;
+    case RULER_UNITS_M:      u = "m";  break;
+    }
+    float height = (model.GetDisplayAs() == DisplayAsType::Icicles)
+        ? model.GetModelScreenLocation().GetRestorableMHeight()
+        : model.GetModelScreenLocation().GetRealHeight();
+    AttrCollector attrs;
+    attrs.Add(XmlNodeKeys::DimUnitsAttribute,  u);
+    attrs.Add(XmlNodeKeys::DimWidthAttribute,  FloatToString(model.GetModelScreenLocation().GetRealWidth()));
+    attrs.Add(XmlNodeKeys::DimHeightAttribute, FloatToString(height));
+    attrs.Add(XmlNodeKeys::DimDepthAttribute,  FloatToString(model.GetModelScreenLocation().GetRealDepth()));
+    WriteOpenTag(XmlNodeKeys::DimNodeName, attrs, true);
+}
+
 void BaseSerializingVisitor::Visit(const ControllerConnection& cc) {
     AttrCollector attrs;
     attrs.Add(XmlNodeKeys::PortAttribute,     std::to_string(cc.GetCtrlPort()));

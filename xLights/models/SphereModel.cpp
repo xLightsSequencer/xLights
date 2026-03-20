@@ -16,6 +16,8 @@
 #include <wx/log.h>
 #include <wx/filedlg.h>
 
+#include "../XmlSerializer/FileSerializingVisitor.h"
+
 #include "SphereModel.h"
 #include "ModelScreenLocation.h"
 #include "../xLightsVersion.h"
@@ -180,22 +182,8 @@ void SphereModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     }
 }
 
-void SphereModel::ExportAsCustomXModel3D() const
+void SphereModel::ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const
 {
-
-    wxString name = GetName();
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-
-    if (filename.IsEmpty()) return;
-
-    wxFile f(filename);
-    //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-        return;
-    }
-
     float minx = 99999;
     float miny = 99999;
     float minz = 99999;
@@ -203,8 +191,7 @@ void SphereModel::ExportAsCustomXModel3D() const
     float maxy = -99999;
     float maxz = -99999;
 
-    for (auto& n : Nodes)
-    {
+    for (auto& n : Nodes) {
         minx = std::min(minx, n->Coords[0].screenX);
         miny = std::min(miny, n->Coords[0].screenY);
         minz = std::min(minz, n->Coords[0].screenZ);
@@ -219,21 +206,18 @@ void SphereModel::ExportAsCustomXModel3D() const
     int scaleFactor3D = 2;
     while (!Find3DCustomModelScale(scaleFactor3D, minx, miny, minz, w, h, d)) {
         ++scaleFactor3D;
-        if (scaleFactor3D > 20) { // Using 2D technique from Scott
+        if (scaleFactor3D > 20) {
             scaleFactor3D = 2;
             break;
         }
     }
 
     std::vector<std::vector<std::vector<int>>> data;
-    for (int l = 0; l < BufferWi * scaleFactor3D + 1; l++)
-    {
+    for (int l = 0; l < BufferWi * scaleFactor3D + 1; l++) {
         std::vector<std::vector<int>> layer;
-        for (int r = BufferHt * scaleFactor3D + 1; r >= 0; r--)
-        {
+        for (int r = BufferHt * scaleFactor3D + 1; r >= 0; r--) {
             std::vector<int> row;
-            for (int c = 0; c < BufferWi * scaleFactor3D + 1; c++)
-            {
+            for (int c = 0; c < BufferWi * scaleFactor3D + 1; c++) {
                 row.push_back(-1);
             }
             layer.push_back(row);
@@ -242,8 +226,7 @@ void SphereModel::ExportAsCustomXModel3D() const
     }
 
     int i = 1;
-    for (auto& n: Nodes)
-    {
+    for (auto& n : Nodes) {
         int xx = (scaleFactor3D * (float)BufferWi) * (n->Coords[0].screenX - minx) / w;
         int yy = (scaleFactor3D * (float)BufferHt) - (scaleFactor3D * (float)BufferHt * (n->Coords[0].screenY - miny) / h);
         int zz = (scaleFactor3D * (float)BufferWi) * (n->Coords[0].screenZ - minz) / d;
@@ -254,76 +237,40 @@ void SphereModel::ExportAsCustomXModel3D() const
         data[zz][yy][xx] = i++;
     }
 
-    wxString p1 = wxString::Format("%i", (int)(scaleFactor3D * BufferWi + 1));
-    wxString p2 = wxString::Format("%i", (int)(scaleFactor3D * BufferHt + 1));
-    wxString dd = wxString::Format("%i", (int)(scaleFactor3D * BufferWi + 1));
-    wxString p3 = wxString::Format("%i", parm3);
-    wxString st = GetStringType();
-    wxString ps = std::to_string(GetPixelSize());
-    wxString t = GetTransparency() ? "1" : "0";
-    int a = (int)GetPixelStyle();
-    wxString sn = GetStrandNames();
-    wxString nn = GetNodeNames();
-    wxString pc = GetPixelCount();
-    wxString pt = GetPixelType();
-    wxString psp = GetPixelSpacing();
-    wxString sl = wxString::Format("%d", GetStartLatitude());
-    wxString el = wxString::Format("%d", GetEndLatitude());
-    wxString dg = wxString::Format("%d", GetSphereDegrees());
-    wxString an = wxString::Format("%d", HasAlternateNodes());
-    wxString nz = wxString::Format("%d", IsNoZigZag());
+    int dim = scaleFactor3D * BufferWi + 1;
+    BaseSerializingVisitor::AttrCollector attrs;
+    attrs.Add("name", GetName());
+    attrs.Add("parm1", std::to_string(dim));
+    attrs.Add("parm2", std::to_string(scaleFactor3D * BufferHt + 1));
+    attrs.Add("parm3", std::to_string(parm3));
+    attrs.Add("Depth", std::to_string(dim));
+    attrs.Add("StringType", GetStringType());
+    attrs.Add("Transparency", GetTransparency() ? "1" : "0");
+    attrs.Add("PixelSize", std::to_string(GetPixelSize()));
+    attrs.Add("Antialias", std::to_string((int)GetPixelStyle()));
+    attrs.Add("StrandNames", GetStrandNames());
+    attrs.Add("NodeNames", GetNodeNames());
+    attrs.Add("StartLatitude", std::to_string(GetStartLatitude()));
+    attrs.Add("EndLatitude", std::to_string(GetEndLatitude()));
+    attrs.Add("Degrees", std::to_string(GetSphereDegrees()));
+    attrs.Add("AlternateNodes", std::to_string(HasAlternateNodes()));
+    attrs.Add("NoZig", std::to_string(IsNoZigZag()));
+    std::string pc = GetPixelCount();
+    if (!pc.empty()) attrs.Add("PixelCount", pc);
+    std::string pt = GetPixelType();
+    if (!pt.empty()) attrs.Add("PixelType", pt);
+    std::string psp = GetPixelSpacing();
+    if (!psp.empty()) attrs.Add("PixelSpacing", psp);
+    attrs.Add("CustomModel", CustomModel::ToCustomModel(data));
+    attrs.Add("CustomModelCompressed", CustomModel::ToCompressed(data));
+    attrs.Add("SourceVersion", xlights_version_string.ToStdString());
+    visitor.AddSuperStrings(*this, attrs);
 
-    wxString v = xlights_version_string;
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
-    f.Write(wxString::Format("name=\"%s\" ", name));
-    f.Write(wxString::Format("parm1=\"%s\" ", p1));
-    f.Write(wxString::Format("parm2=\"%s\" ", p2));
-    f.Write(wxString::Format("parm3=\"%s\" ", p3));
-    f.Write(wxString::Format("Depth=\"%s\" ", dd));
-    f.Write(wxString::Format("StringType=\"%s\" ", st));
-    f.Write(wxString::Format("Transparency=\"%s\" ", t));
-    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
-    f.Write(wxString::Format("Antialias=\"%d\" ", a));
-    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
-    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
-    f.Write(wxString::Format("StartLatitude=\"%s\" ", sl));
-    f.Write(wxString::Format("EndLatitude=\"%s\" ", el));
-    f.Write(wxString::Format("Degrees=\"%s\" ", dg));
-    f.Write(wxString::Format("AlternateNodes=\"%s\" ", an));
-    f.Write(wxString::Format("NoZig=\"%s\" ", nz));
-    if (!pc.empty())
-        f.Write(wxString::Format("PixelCount=\"%s\" ", pc));
-    if (!pt.empty())
-        f.Write(wxString::Format("PixelType=\"%s\" ", pt));
-    if (!psp.empty())
-        f.Write(wxString::Format("PixelSpacing=\"%s\" ", psp));
-    f.Write("CustomModel=\"");
-    f.Write(CustomModel::ToCustomModel(data));
-    f.Write("\" ");
-    f.Write("CustomModelCompressed=\"");
-    f.Write(CustomModel::ToCompressed(data));
-    f.Write("\" ");
-    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
-    f.Write(ExportSuperStringColors());
-    f.Write(" >\n");
-    std::string face = SerialiseFace();
-    if (!face.empty())
-    {
-        f.Write(face);
-    }
-    std::string state = SerialiseState();
-    if (!state.empty())
-    {
-        f.Write(state);
-    }
-    std::string submodel = SerialiseSubmodel();
-    if (!submodel.empty())
-    {
-        f.Write(submodel);
-    }
-    ExportDimensions(f);
-    f.Write("</custommodel>");
-    f.Close();
+    visitor.WriteOpenTag("custommodel", attrs);
+    visitor.WriteFacesAndStates(this);
+    visitor.WriteSubmodels(this);
+    visitor.WriteDimensionsElement(*this);
+    visitor.WriteCloseTag();
 }
 
 bool SphereModel::Find3DCustomModelScale(int scale, float minx, float miny, float minz, float w, float h, float d) const

@@ -16,6 +16,8 @@
 #include <wx/log.h>
 #include <wx/filedlg.h>
 
+#include "../XmlSerializer/FileSerializingVisitor.h"
+
 #include "TreeModel.h"
 #include "ModelScreenLocation.h"
 #include "../xLightsVersion.h"
@@ -388,93 +390,37 @@ static std::vector<std::vector<std::vector<int>>> BuildTreeCustomModelData(
     return data;
 }
 
-// Helper function to write custom model XML attributes
-static void WriteCustomModelAttributes(wxFile& f, const Model* model, 
-    int width, int height, int depth, long parm3,
-    const std::vector<std::vector<std::vector<int>>>& data)
+void TreeModel::ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const
 {
-    wxString name = model->GetName();
-    wxString p1 = wxString::Format("%i", width);
-    wxString p2 = wxString::Format("%i", height);
-    wxString dd = wxString::Format("%i", depth);
-    wxString p3 = wxString::Format("%i", parm3);
-    wxString st = model->GetStringType();
-    wxString ps = std::to_string(model->GetPixelSize());
-    wxString t = model->GetTransparency() ? "1" : "0";
-    int a = (int)model->GetPixelStyle();
-    wxString sn = model->GetStrandNames();
-    wxString nn = model->GetNodeNames();
-    wxString pc = model->GetPixelCount();
-    wxString pt = model->GetPixelType();
-    wxString psp = model->GetPixelSpacing();
-    wxString v = xlights_version_string;
-
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
-    f.Write(wxString::Format("name=\"%s\" ", name));
-    f.Write(wxString::Format("parm1=\"%s\" ", p1));
-    f.Write(wxString::Format("parm2=\"%s\" ", p2));
-    f.Write(wxString::Format("parm3=\"%s\" ", p3));
-    f.Write(wxString::Format("Depth=\"%s\" ", dd));
-    f.Write(wxString::Format("StringType=\"%s\" ", st));
-    f.Write(wxString::Format("Transparency=\"%s\" ", t));
-    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
-    f.Write(wxString::Format("Antialias=\"%d\" ", a));
-    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
-    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
-    if (!pc.empty())
-        f.Write(wxString::Format("PixelCount=\"%s\" ", pc));
-    if (!pt.empty())
-        f.Write(wxString::Format("PixelType=\"%s\" ", pt));
-    if (!psp.empty())
-        f.Write(wxString::Format("PixelSpacing=\"%s\" ", psp));
-    f.Write("CustomModel=\"");
-    f.Write(CustomModel::ToCustomModel(data));
-    f.Write("\" ");
-    f.Write("CustomModelCompressed=\"");
-    f.Write(CustomModel::ToCompressed(data));
-    f.Write("\" ");
-    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
-    f.Write(model->ExportSuperStringColors());
-    f.Write(" >\n");
-}
-
-void TreeModel::ExportAsCustomXModel3D() const
-{
-    wxString name = GetName();
-    wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, 
-        "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-
-    if (filename.IsEmpty())
-        return;
-
-    wxFile f(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-        return;
-    }
-
     // Build the 3D custom model data from node coordinates
     int width, height, depth;
     auto data = BuildTreeCustomModelData(Nodes, width, height, depth);
 
-    // Write XML attributes
-    WriteCustomModelAttributes(f, this, width, height, depth, parm3, data);
+    BaseSerializingVisitor::AttrCollector attrs;
+    attrs.Add("name", GetName());
+    attrs.Add("parm1", std::to_string(width));
+    attrs.Add("parm2", std::to_string(height));
+    attrs.Add("parm3", std::to_string(parm3));
+    attrs.Add("Depth", std::to_string(depth));
+    attrs.Add("StringType", GetStringType());
+    attrs.Add("Transparency", GetTransparency() ? "1" : "0");
+    attrs.Add("PixelSize", std::to_string(GetPixelSize()));
+    attrs.Add("Antialias", std::to_string((int)GetPixelStyle()));
+    attrs.Add("StrandNames", GetStrandNames());
+    attrs.Add("NodeNames", GetNodeNames());
+    std::string pc = GetPixelCount();
+    if (!pc.empty()) attrs.Add("PixelCount", pc);
+    std::string pt = GetPixelType();
+    if (!pt.empty()) attrs.Add("PixelType", pt);
+    std::string psp = GetPixelSpacing();
+    if (!psp.empty()) attrs.Add("PixelSpacing", psp);
+    attrs.Add("CustomModel", CustomModel::ToCustomModel(data));
+    attrs.Add("CustomModelCompressed", CustomModel::ToCompressed(data));
+    attrs.Add("SourceVersion", xlights_version_string.ToStdString());
+    visitor.AddSuperStrings(*this, attrs);
 
-    // Write face, state, and submodel information
-    std::string face = SerialiseFace();
-    if (!face.empty()) {
-        f.Write(face);
-    }
-    std::string state = SerialiseState();
-    if (!state.empty()) {
-        f.Write(state);
-    }
-    std::string submodel = SerialiseSubmodel();
-    if (!submodel.empty()) {
-        f.Write(submodel);
-    }
-    
-    f.Write("</custommodel>");
-    f.Close();
+    visitor.WriteOpenTag("custommodel", attrs);
+    visitor.WriteFacesAndStates(this);
+    visitor.WriteSubmodels(this);
+    visitor.WriteCloseTag();
 }

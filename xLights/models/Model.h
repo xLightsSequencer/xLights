@@ -16,6 +16,8 @@
 #include <list>
 #include <tuple>
 
+class BaseSerializingVisitor;
+
 #include "../ControllerConnection.h"
 #include "ModelScreenLocation.h"
 #include "BoxedScreenLocation.h"
@@ -195,7 +197,6 @@ public:
 
     std::string ExportSuperStringColors() const;
     void ApplyDimensions(const std::string& units, float width, float height, float depth);
-    void ExportDimensions(wxFile& f) const;
     std::string GetRulerDim() const;
 
     virtual bool AllNodesAllocated() const { return true; }
@@ -586,7 +587,7 @@ public:
     std::string GetControllerPortSortString() const;
 
     virtual std::string ChannelLayoutHtml(OutputManager* outputManager);
-    virtual void ExportAsCustomXModel() const;
+    virtual void ExportAsCustomXModel(BaseSerializingVisitor& visitor) const;
     virtual std::string GetStartLocation() const;
     bool IsCustom();
     virtual bool SupportsExportAsCustom() const = 0;
@@ -594,7 +595,7 @@ public:
     {
         return false;
     }
-    virtual void ExportAsCustomXModel3D() const
+    virtual void ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const
     {}
     virtual bool SupportsWiringView() const = 0;
     size_t GetChannelCoords(std::vector<std::string>& choices);

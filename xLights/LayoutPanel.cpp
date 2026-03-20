@@ -52,6 +52,7 @@
 #include "models/ViewObject.h"
 #include "models/RulerObject.h"
 #include "models/CustomModel.h"
+#include "XmlSerializer/FileSerializingVisitor.h"
 #include "XmlSerializer/StringSerializingVisitor.h"
 #include "XmlSerializer/XmlSerializer.h"
 #include "WiringDialog.h"
@@ -4944,12 +4945,34 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr)
             return;
-        md->ExportAsCustomXModel();
+        {
+            wxString name = wxString(md->GetName()).Trim(true).Trim(false);
+            wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
+            wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+            if (!fn.IsEmpty()) {
+                FileSerializingVisitor visitor(fn.ToStdString(), true /*exporting*/);
+                if (!visitor.IsOpen())
+                    DisplayError("Unable to create file " + fn.ToStdString());
+                else
+                    md->ExportAsCustomXModel(visitor);
+            }
+        }
     } else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM3D) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr)
             return;
-        md->ExportAsCustomXModel3D();
+        {
+            wxString name = wxString(md->GetName()).Trim(true).Trim(false);
+            wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
+            wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+            if (!fn.IsEmpty()) {
+                FileSerializingVisitor visitor(fn.ToStdString(), true /*exporting*/);
+                if (!visitor.IsOpen())
+                    DisplayError("Unable to create file " + fn.ToStdString());
+                else
+                    md->ExportAsCustomXModel3D(visitor);
+            }
+        }
     } else if (event.GetId() == ID_PREVIEW_MODEL_CREATEGROUP) {
         CreateModelGroupFromSelected();
     } else if (event.GetId() == ID_MNU_ADD_TO_EXISTING_GROUPS) {
@@ -7466,12 +7489,34 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr)
             return;
-        md->ExportAsCustomXModel();
+        {
+            wxString name = wxString(md->GetName()).Trim(true).Trim(false);
+            wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
+            wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+            if (!fn.IsEmpty()) {
+                FileSerializingVisitor visitor(fn.ToStdString(), true /*exporting*/);
+                if (!visitor.IsOpen())
+                    DisplayError("Unable to create file " + fn.ToStdString());
+                else
+                    md->ExportAsCustomXModel(visitor);
+            }
+        }
     } else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM3D) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr)
             return;
-        md->ExportAsCustomXModel3D();
+        {
+            wxString name = wxString(md->GetName()).Trim(true).Trim(false);
+            wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
+            wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+            if (!fn.IsEmpty()) {
+                FileSerializingVisitor visitor(fn.ToStdString(), true /*exporting*/);
+                if (!visitor.IsOpen())
+                    DisplayError("Unable to create file " + fn.ToStdString());
+                else
+                    md->ExportAsCustomXModel3D(visitor);
+            }
+        }
     } else if (event.GetId() == ID_PREVIEW_MODEL_CREATEGROUP) {
         CreateModelGroupFromSelected();
     } else if (event.GetId() == ID_MNU_ADD_TO_EXISTING_GROUPS) {

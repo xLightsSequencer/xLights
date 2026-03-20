@@ -54,6 +54,7 @@
 #include "../xLightsMain.h" //for Preview and Other model collections
 #include "../xLightsVersion.h"
 #include "../xLightsXmlFile.h"
+#include "../XmlSerializer/FileSerializingVisitor.h"
 #include "../XmlSerializer/XmlSerializer.h"
 #include "../XmlSerializer/GdtfParser.h"
 
@@ -4351,22 +4352,9 @@ bool Model::ParseStateElement(const std::string& multi_str, std::vector<xlPoint>
     return !first_xy.empty(); // true;
 }
 
-void Model::ExportAsCustomXModel() const
+void Model::ExportAsCustomXModel(BaseSerializingVisitor& visitor) const
 {
-    wxString name = wxString(GetName()).Trim(true).Trim(false);
-    wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-
-    if (filename.IsEmpty())
-        return;
-
-    wxFile f(filename);
-    //    bool isnew = !FileExists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-        return;
-    }
-
+    // Calculate node grid from screen coordinates
     float minsx = 99999;
     float minsy = 99999;
     float maxsx = -1;
@@ -4376,18 +4364,13 @@ void Model::ExportAsCustomXModel() const
     for (size_t i = 0; i < nodeCount; ++i) {
         float Sbufx = Nodes[i]->Coords[0].screenX;
         float Sbufy = Nodes[i]->Coords[0].screenY;
-        if (Sbufx < minsx)
-            minsx = Sbufx;
-        if (Sbufx > maxsx)
-            maxsx = Sbufx;
-        if (Sbufy < minsy)
-            minsy = Sbufy;
-        if (Sbufy > maxsy)
-            maxsy = Sbufy;
+        if (Sbufx < minsx) minsx = Sbufx;
+        if (Sbufx > maxsx) maxsx = Sbufx;
+        if (Sbufy < minsy) minsy = Sbufy;
+        if (Sbufy > maxsy) maxsy = Sbufy;
     }
 
     int scale = 1;
-
     while (!FindCustomModelScale(scale)) {
         ++scale;
         if (scale > 100) { // I(Scott) am afraid of infinite while loops
@@ -4400,99 +4383,88 @@ void Model::ExportAsCustomXModel() const
     int miny = std::floor(minsy);
     int maxx = std::ceil(maxsx);
     int maxy = std::ceil(maxsy);
-    int sizex = maxx - minx + 1;
-    int sizey = maxy - miny + 1;
-
-    sizex *= scale;
-    sizey *= scale;
+    int sizex = (maxx - minx + 1) * scale;
+    int sizey = (maxy - miny + 1) * scale;
 
     int* nodeLayout = (int*)malloc(sizey * sizex * sizeof(int));
     memset(nodeLayout, 0xFF, sizey * sizex * sizeof(int));
 
-    for (int i = 0; i < nodeCount; ++i) {
+    for (int i = 0; i < (int)nodeCount; ++i) {
         int x = (Nodes[i]->Coords[0].screenX - minx) * scale;
         int y = (sizey - ((Nodes[i]->Coords[0].screenY - miny) * scale) - 1);
         nodeLayout[y * sizex + x] = i + 1;
     }
 
     std::vector<std::vector<std::vector<int>>> data;
-
     auto layer = std::vector<std::vector<int>>();
     for (int y = 0; y < sizey; ++y) {
-		std::vector<int> row;
-		for (int x = 0; x < sizex; ++x) {
-                row.push_back(nodeLayout[y * sizex + x]);
-		}
-		layer.push_back(row);
-	}
+        std::vector<int> row;
+        for (int x = 0; x < sizex; ++x) {
+            row.push_back(nodeLayout[y * sizex + x]);
+        }
+        layer.push_back(row);
+    }
     data.push_back(layer);
-
     free(nodeLayout);
 
-    wxString p1 = wxString::Format("%i", sizex);
-    wxString p2 = wxString::Format("%i", sizey);
-    wxString st = GetStringType();
-    int ps = GetPixelSize();
-    int t = GetTransparency();
-    int a = (int)GetPixelStyle();
-    wxString sn = GetStrandNames();
-    wxString nn = GetNodeNames();
-    wxString pc = GetPixelCount();
-    wxString pt = GetPixelType();
-    wxString psp = GetPixelSpacing();
-    wxString lg = GetLayoutGroup();
+    // Build the DefaultRenderBuffer submodel node array
+    int buffW = GetDefaultBufferWi();
+    int buffH = GetDefaultBufferHt();
+    std::vector<std::vector<std::string>> nodearray(buffH, std::vector<std::string>(buffW, ""));
+    for (uint32_t i = 0; i < nodeCount; ++i) {
+        int bufx = Nodes[i]->Coords[0].bufX;
+        int bufy = Nodes[i]->Coords[0].bufY;
+        if (bufy >= 0 && bufy < (int)nodearray.size() &&
+            bufx >= 0 && bufx < (int)nodearray[bufy].size()) {
+            nodearray[bufy][bufx] = std::to_string(i + 1);
+        }
+    }
 
-    wxString v = xlights_version_string;
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
-    f.Write(wxString::Format("name=\"%s\" ", name));
-    f.Write(wxString::Format("parm1=\"%s\" ", p1));
-    f.Write(wxString::Format("parm2=\"%s\" ", p2));
-    f.Write("Depth=\"1\" ");
-    f.Write(wxString::Format("StringType=\"%s\" ", st));
-    f.Write(wxString::Format("Transparency=\"%d\" ", t));
-    f.Write(wxString::Format("PixelSize=\"%d\" ", ps));
-    f.Write(wxString::Format("Antialias=\"%d\" ", a));
-    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
-    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
-    if (pc != "")
-        f.Write(wxString::Format("PixelCount=\"%s\" ", pc));
-    if (pt != "")
-        f.Write(wxString::Format("PixelType=\"%s\" ", pt));
-    if (psp != "")
-        f.Write(wxString::Format("PixelSpacing=\"%s\" ", psp));
-    f.Write(wxString::Format("LayoutGroup=\"%s\" ", lg));
-    f.Write("CustomModel=\"");
-    f.Write(CustomModel::ToCustomModel(data));
-    f.Write("\" ");
-    f.Write("CustomModelCompressed=\"");
-    f.Write(CustomModel::ToCompressed(data));
-    f.Write("\" ");
-    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
-    f.Write(ExportSuperStringColors());
-    f.Write(" >\n");
-    std::string face = SerialiseFace();
-    if (!face.empty()) {
-        f.Write(face);
+    // Build root element attributes
+    BaseSerializingVisitor::AttrCollector attrs;
+    attrs.Add("name",        GetName());
+    attrs.Add("parm1",       std::to_string(sizex));
+    attrs.Add("parm2",       std::to_string(sizey));
+    attrs.Add("Depth",       "1");
+    attrs.Add("StringType",  GetStringType());
+    attrs.Add("Transparency", std::to_string(GetTransparency()));
+    attrs.Add("PixelSize",   std::to_string(GetPixelSize()));
+    attrs.Add("Antialias",   std::to_string((int)GetPixelStyle()));
+    attrs.Add("StrandNames", GetStrandNames());
+    attrs.Add("NodeNames",   GetNodeNames());
+    if (!GetPixelCount().empty())   attrs.Add("PixelCount",   GetPixelCount());
+    if (!GetPixelType().empty())    attrs.Add("PixelType",    GetPixelType());
+    if (!GetPixelSpacing().empty()) attrs.Add("PixelSpacing", GetPixelSpacing());
+    attrs.Add("LayoutGroup",  GetLayoutGroup());
+    attrs.Add("CustomModel",  CustomModel::ToCustomModel(data));
+    attrs.Add("CustomModelCompressed", CustomModel::ToCompressed(data));
+    attrs.Add("SourceVersion", xlights_version_string.ToStdString());
+    visitor.AddSuperStrings(*this, attrs);
+
+    visitor.WriteOpenTag("custommodel", attrs);
+
+    // Write faces and states child elements
+    visitor.WriteFacesAndStates(this);
+
+    // Write DefaultRenderBuffer submodel
+    {
+        BaseSerializingVisitor::AttrCollector bufAttrs;
+        bufAttrs.Add("name",   "DefaultRenderBuffer");
+        bufAttrs.Add("layout", "horizontal");
+        bufAttrs.Add("type",   "ranges");
+        for (int x = 0; x < (int)nodearray.size(); ++x) {
+            bufAttrs.Add("line" + std::to_string(x), CompressNodes(Join(nodearray[x], ",")));
+        }
+        visitor.WriteOpenTag("subModel", bufAttrs, true);
     }
-    std::string state = SerialiseState();
-    if (!state.empty()) {
-        f.Write(state);
-    }
-    std::string bufsubmodel = CreateBufferAsSubmodel();
-    if (!bufsubmodel.empty()) {
-        f.Write(bufsubmodel);
-    }
-    std::string submodel = SerialiseSubmodel();
-    if (!submodel.empty()) {
-        f.Write(submodel);
-    }
-    // we only save the dimensions if it is a boxed location
-    auto msl = dynamic_cast<const BoxedScreenLocation*>(&GetModelScreenLocation());
-    if (msl != nullptr) {
-        ExportDimensions(f);
-    }
-    f.Write("</custommodel>");
-    f.Close();
+
+    // Write remaining submodels
+    visitor.WriteSubmodels(this);
+
+    // Write dimensions element (when ruler is active)
+    visitor.WriteDimensionsElement(*this);
+
+    visitor.WriteCloseTag();
 }
 
 std::string Model::ExportSuperStringColors() const
@@ -6212,38 +6184,6 @@ void Model::ApplyDimensions(const std::string& units, float width, float height,
     }
 }
 
-void Model::ExportDimensions(wxFile& f) const
-{
-    auto ruler = RulerObject::GetRuler();
-
-    if (ruler != nullptr) {
-        std::string u = "mm";
-        switch (ruler->GetUnits()) {
-        case RULER_UNITS_INCHES:
-            u = "i";
-            break;
-        case RULER_UNITS_FEET:
-            u = "f";
-            break;
-        case RULER_UNITS_YARDS:
-            u = "y";
-            break;
-        case RULER_UNITS_MM:
-            u = "mm";
-            break;
-        case RULER_UNITS_CM:
-            u = "cm";
-            break;
-        case RULER_UNITS_M:
-            u = "m";
-            break;
-        }
-        f.Write(wxString::Format("<dimensions units=\"%s\" width=\"%f\" height=\"%f\" depth=\"%f\"/>",
-                                 u,
-                                 GetModelScreenLocation().GetRealWidth(),
-                                 (DisplayAs == DisplayAsType::Icicles) ? GetModelScreenLocation().GetRestorableMHeight() : GetModelScreenLocation().GetRealHeight(), GetModelScreenLocation().GetRealDepth()));
-    }
-}
 
 std::string Model::GetRulerDim() const {
     auto ruler = RulerObject::GetRuler();

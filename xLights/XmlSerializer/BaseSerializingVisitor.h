@@ -120,6 +120,19 @@ public:
 
     // Shared utilities
     static std::string FloatToString(float f);
+
+    // ---------------------------------------------------------------------------
+    // Child-element writers — public so external export functions can use them
+    // ---------------------------------------------------------------------------
+    void WriteFacesAndStates(const Model* m);
+    void WriteAliases(const std::list<std::string>& aliases);
+    void WriteSubmodels(const Model* m);
+    void WriteOtherElements(const Model* m);
+    void WriteDimensionsElement(const Model& model);
+
+    // Attribute-collecting helper — public so callers can add super-string colours
+    void AddSuperStrings(const Model& model, AttrCollector& attrs);
+
 protected:
     explicit BaseSerializingVisitor(bool exporting = false) : forExport(exporting) {}
     ~BaseSerializingVisitor() override = default;
@@ -136,7 +149,6 @@ protected:
     // ---------------------------------------------------------------------------
     void AddBaseObjectAttributes(const BaseObject& base, AttrCollector& attrs);
     void AddCommonModelAttributes(const Model& model, AttrCollector& attrs);
-    void AddSuperStrings(const Model& model, AttrCollector& attrs);
 
     void AddModelScreenLocationAttributes(const BaseObject& base, AttrCollector& attrs);
     void AddTwoPointScreenLocationAttributes(const BaseObject& base, AttrCollector& attrs);
@@ -165,12 +177,8 @@ protected:
     void WriteMeshElement(const Mesh* mesh);
     void WriteServoElement(const Servo* servo);
     void WriteDmxImageElement(const DmxImage* img);
-    void WriteFacesAndStates(const Model* m);
     void WriteControllerConnectionElement(const Model* m);
     void WriteDimmingCurve(const Model* m);
-    void WriteAliases(const std::list<std::string>& aliases);
-    void WriteSubmodels(const Model* m);
-    void WriteOtherElements(const Model* m);
 
     // Common preamble helpers
     void CommonVisitSteps(const Model& model, AttrCollector& attrs);

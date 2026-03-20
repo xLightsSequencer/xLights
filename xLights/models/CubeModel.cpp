@@ -15,6 +15,8 @@
 #include <wx/filedlg.h>
 #include <wx/msgdlg.h>
 
+#include "../XmlSerializer/FileSerializingVisitor.h"
+
 #include "CubeModel.h"
 #include "ModelScreenLocation.h"
 #include "../xLightsVersion.h"
@@ -1014,99 +1016,56 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
     return html;
 }
 
-void CubeModel::ExportAsCustomXModel3D() const
+void CubeModel::ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const
 {
-    wxString name = GetName();
-    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-
-    if (filename.IsEmpty())
-        return;
-
-    wxFile f(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-        return;
-    }
-
     int width = parm1;
     int height = parm2;
     int depth = parm3;
 
     auto locations = BuildCube();
 
-    std::vector < std::vector < std::vector<int>>> data;
-
+    std::vector<std::vector<std::vector<int>>> data;
     data.reserve(depth);
     for (int l = 0; l < depth; l++) {
-		std::vector < std::vector<int>> layer;
+        std::vector<std::vector<int>> layer;
         layer.reserve(height);
         for (int r = height - 1; r >= 0; r--) {
-			std::vector<int> row;
-			row.reserve(width);
-			for (int c = 0; c < width; c++) {
-				row.push_back(FindNodeIndex(locations, c, r, l) + 1);
-			}
-			layer.push_back(row);
-		}
+            std::vector<int> row;
+            row.reserve(width);
+            for (int c = 0; c < width; c++) {
+                row.push_back(FindNodeIndex(locations, c, r, l) + 1);
+            }
+            layer.push_back(row);
+        }
         data.push_back(layer);
     }
 
-    wxString p1 = wxString::Format("%i", width);
-    wxString p2 = wxString::Format("%i", height);
-    wxString d = wxString::Format("%i", depth);
-    wxString st = GetStringType();
-    wxString ps = std::to_string(GetPixelSize());
-    wxString t = GetTransparency() ? "1" : "0";
-    wxString sn = GetStrandNames();
-    wxString nn = GetNodeNames();
-    wxString pc = GetPixelCount();
-    wxString pt = GetPixelType();
-    wxString psp = GetPixelSpacing();
-    
-    auto a = GetPixelStyle();
+    BaseSerializingVisitor::AttrCollector attrs;
+    attrs.Add("name", GetName());
+    attrs.Add("parm1", std::to_string(width));
+    attrs.Add("parm2", std::to_string(height));
+    attrs.Add("Depth", std::to_string(depth));
+    attrs.Add("StringType", GetStringType());
+    attrs.Add("Transparency", GetTransparency() ? "1" : "0");
+    attrs.Add("PixelSize", std::to_string(GetPixelSize()));
+    attrs.Add("Antialias", std::to_string((int)GetPixelStyle()));
+    attrs.Add("StrandNames", GetStrandNames());
+    attrs.Add("NodeNames", GetNodeNames());
+    std::string pc = GetPixelCount();
+    if (!pc.empty()) attrs.Add("PixelCount", pc);
+    std::string pt = GetPixelType();
+    if (!pt.empty()) attrs.Add("PixelType", pt);
+    std::string psp = GetPixelSpacing();
+    if (!psp.empty()) attrs.Add("PixelSpacing", psp);
+    attrs.Add("CustomModel", CustomModel::ToCustomModel(data));
+    attrs.Add("CustomModelCompressed", CustomModel::ToCompressed(data));
+    attrs.Add("SourceVersion", xlights_version_string.ToStdString());
+    visitor.AddSuperStrings(*this, attrs);
 
-    wxString v = xlights_version_string;
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
-    f.Write(wxString::Format("name=\"%s\" ", name));
-    f.Write(wxString::Format("parm1=\"%s\" ", p1));
-    f.Write(wxString::Format("parm2=\"%s\" ", p2));
-    f.Write(wxString::Format("Depth=\"%s\" ", d));
-    f.Write(wxString::Format("StringType=\"%s\" ", st));
-    f.Write(wxString::Format("Transparency=\"%s\" ", t));
-    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
-    f.Write(wxString::Format("Antialias=\"%d\" ", (int)a));
-    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
-    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
-    if (!pc.empty())
-        f.Write(wxString::Format("PixelCount=\"%s\" ", pc));
-    if (!pt.empty())
-        f.Write(wxString::Format("PixelType=\"%s\" ", pt));
-    if (!psp.empty())
-        f.Write(wxString::Format("PixelSpacing=\"%s\" ", psp));
-    f.Write("CustomModel=\"");
-    f.Write(CustomModel::ToCustomModel(data));
-    f.Write("\" ");
-    f.Write("CustomModelCompressed=\"");
-    f.Write(CustomModel::ToCompressed(data));
-    f.Write("\" ");
-    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
-    f.Write(ExportSuperStringColors());
-    f.Write(" >\n");
-    std::string face = SerialiseFace();
-    if (!face.empty()) {
-        f.Write(face);
-    }
-    std::string state = SerialiseState();
-    if (!state.empty()) {
-        f.Write(state);
-    }
-    std::string submodel = SerialiseSubmodel();
-    if (!submodel.empty()) {
-        f.Write(submodel);
-    }
-    f.Write("</custommodel>");
-    f.Close();
+    visitor.WriteOpenTag("custommodel", attrs);
+    visitor.WriteFacesAndStates(this);
+    visitor.WriteSubmodels(this);
+    visitor.WriteCloseTag();
 }
 
 int CubeModel::NodesPerString() const

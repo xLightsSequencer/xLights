@@ -29,7 +29,7 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] virtual int GetStrandLength(int strand) const override { return _strandLength; }
         [[nodiscard]] virtual int GetNumStrands() const override { return _strands; };
         [[nodiscard]] virtual int MapToNodeIndex(int strand, int node) const override;
-        virtual void ExportAsCustomXModel3D() const override;
+        virtual void ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const override;
         [[nodiscard]] virtual bool SupportsExportAsCustom3D() const override { return true; }
         [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return false; }
         [[nodiscard]] virtual int NodesPerString() const override;

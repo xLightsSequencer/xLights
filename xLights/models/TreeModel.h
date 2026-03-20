@@ -20,7 +20,7 @@ class TreeModel : public MatrixModel
     
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual bool SupportsExportAsCustom() const override { return true; }
-        virtual void ExportAsCustomXModel3D() const override;
+        virtual void ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const override;
         virtual bool SupportsExportAsCustom3D() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
         virtual int NodeRenderOrder() override {return 1;}
