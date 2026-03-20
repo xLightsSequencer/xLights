@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <format>
 #include <wx/xml/xml.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
@@ -163,25 +164,25 @@ float RulerObject::MeasureDepth(glm::vec3 p1, glm::vec3 p2)
 std::string RulerObject::MeasureLengthDescription(glm::vec3 p1, glm::vec3 p2)
 {
     if (__rulerObject == nullptr) return "";
-    return wxString::Format("%0.02f%s", Measure(p1,p2), GetUnitDescription()).ToStdString();
+    return std::format("{:.2f}{}", Measure(p1,p2), GetUnitDescription());
 }
 
 std::string RulerObject::MeasureWidthDescription(glm::vec3 p1, glm::vec3 p2)
 {
     if (__rulerObject == nullptr) return "";
-    return wxString::Format("%0.02f%s", MeasureWidth(p1,p2), GetUnitDescription()).ToStdString();
+    return std::format("{:.2f}{}", MeasureWidth(p1,p2), GetUnitDescription());
 }
 
 std::string RulerObject::MeasureHeightDescription(glm::vec3 p1, glm::vec3 p2)
 {
     if (__rulerObject == nullptr) return "";
-    return wxString::Format("%0.02f%s", MeasureHeight(p1,p2), GetUnitDescription()).ToStdString();
+    return std::format("{:.2f}{}", MeasureHeight(p1,p2), GetUnitDescription());
 }
 
 std::string RulerObject::MeasureDepthDescription(glm::vec3 p1, glm::vec3 p2)
 {
     if (__rulerObject == nullptr) return "";
-    return wxString::Format("%0.02f%s", MeasureDepth(p1,p2), GetUnitDescription()).ToStdString();
+    return std::format("{:.2f}{}", MeasureDepth(p1,p2), GetUnitDescription());
 }
 
 float RulerObject::Convert(const std::string& fromUnits, int toUnits, float measure) {
@@ -434,11 +435,11 @@ float RulerObject::GetPerUnit() const
 std::string RulerObject::MeasureDescription(float length)
 {
     if (__rulerObject == nullptr) return "";
-    return wxString::Format("%0.02f%s", Measure(length), GetUnitDescription()).ToStdString();
+    return std::format("{:.2f}{}", Measure(length), GetUnitDescription());
 }
 
 std::string RulerObject::PrescaledMeasureDescription(float length)
 {
     if (__rulerObject == nullptr) return "";
-    return wxString::Format("%0.02f%s", length, GetUnitDescription()).ToStdString();
+    return std::format("{:.2f}{}", length, GetUnitDescription());
 }

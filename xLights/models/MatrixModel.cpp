@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <format>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
@@ -163,7 +164,7 @@ std::list<std::string> MatrixModel::CheckModelSettings()
 
    if (!StartsWith(StringType, "Single Color") && parm2 % parm3 != 0)
    {
-       res.push_back(wxString::Format("    ERR: Model %s strands are not equally sized %d does not divide into string length %d evenly. As a result only %d of %d nodes are initialised.", GetName(), parm3, parm2, (int)GetNodeCount(), parm1 * parm2));
+       res.push_back(std::format("    ERR: Model {} strands are not equally sized {} does not divide into string length {} evenly. As a result only {} of {} nodes are initialised.", GetName(), parm3, parm2, (int)GetNodeCount(), parm1 * parm2));
    }
 
    res.splice(res.end(), Model::CheckModelSettings());

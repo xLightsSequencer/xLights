@@ -14,6 +14,7 @@
 #include <wx/regex.h>
 
 #include <algorithm>
+#include <format>
 #include <filesystem>
 
 #include "MeshObject.h"
@@ -154,10 +155,10 @@ std::list<std::string> MeshObject::CheckModelSettings()
     std::list<std::string> res;
 
     if (_objFile == "" || !FileExists(_objFile)) {
-        res.push_back(wxString::Format("    ERR: Mesh object '%s' cant find obj file '%s'", GetName(), _objFile).ToStdString());
+        res.push_back(std::format("    ERR: Mesh object '{}' cant find obj file '{}'", GetName(), _objFile));
     } else {
         if (!IsFileInShowDir(xLightsFrame::CurrentDir, _objFile)) {
-            res.push_back(wxString::Format("    WARN: Mesh object '%s' obj file '%s' not under show/media/resource directories.", GetName(), _objFile).ToStdString());
+            res.push_back(std::format("    WARN: Mesh object '{}' obj file '{}' not under show/media/resource directories.", GetName(), _objFile));
         }
 
         wxFileName fn(_objFile);
@@ -167,7 +168,7 @@ std::list<std::string> MeshObject::CheckModelSettings()
         if (mtfs.empty() || xlMesh::InvalidMaterialsList(mtfs)) {
             mtfs = xlMesh::GetMaterialFilenamesFromOBJ(_objFile, false);
             if (!mtfs.empty()) {
-                res.push_back(wxString::Format("    WARN: Mesh object '%s' obj file '%s' has a space in the mesh file name : %s.", GetName(), _objFile, mtfs.front()).ToStdString());
+                res.push_back(std::format("    WARN: Mesh object '{}' obj file '{}' has a space in the mesh file name : {}.", GetName(), _objFile, mtfs.front()));
             }
         }
 

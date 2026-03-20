@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <format>
 #include "BoxedScreenLocation.h"
 
 #include <wx/xml/xml.h>
@@ -643,14 +644,14 @@ std::string BoxedScreenLocation::GetDimension(float factor) const
 {
     if (RulerObject::GetRuler() == nullptr) return "";
     if (supportsZScaling) {
-        return wxString::Format("Width %s Height %s Depth %s",
+        return std::format("Width {} Height {} Depth {}",
             RulerObject::MeasureDescription(GetMWidth()),
             RulerObject::MeasureDescription(GetMHeight()),
-            RulerObject::MeasureDescription(GetMDepth())).ToStdString();
+            RulerObject::MeasureDescription(GetMDepth()));
     }
-    return wxString::Format("Width %s Height %s",
+    return std::format("Width {} Height {}",
         RulerObject::MeasureDescription(GetMWidth()),
-        RulerObject::MeasureDescription(GetMHeight())).ToStdString();
+        RulerObject::MeasureDescription(GetMHeight()));
 }
 
 void BoxedScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {

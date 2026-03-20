@@ -977,7 +977,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropert
                 } else {
                     int node = _indivStartNodes[x];
                     int32_t startChannel = modelStartChannel + (node - 1) * chanPerNode;
-                    _indivStartChannels[x] = wxString::Format("%d", startChannel).ToStdString();
+                    _indivStartChannels[x] = std::to_string(startChannel);
                 }
             }
         } else if (_hasIndivChans) {

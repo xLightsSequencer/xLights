@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <format>
 #include "PolyPointScreenLocation.h"
 
 #include <wx/xml/xml.h>
@@ -2186,9 +2187,9 @@ std::string PolyPointScreenLocation::GetPointDataAsString() const
 {
     std::string point_data = "";
     for (int i = 0; i < num_points; ++i) {
-        point_data += wxString::Format("%f,", mPos[i].x);
-        point_data += wxString::Format("%f,", mPos[i].y);
-        point_data += wxString::Format("%f", mPos[i].z);
+        point_data += std::format("{:f},", mPos[i].x);
+        point_data += std::format("{:f},", mPos[i].y);
+        point_data += std::format("{:f}", mPos[i].z);
         if (i != num_points - 1) {
             point_data += ",";
         }
@@ -2223,8 +2224,8 @@ std::string PolyPointScreenLocation::GetCurveDataAsString() const
     std::string cpoint_data = "";
     for (int i = 0; i < num_points; ++i) {
         if (mPos[i].has_curve) {
-            cpoint_data += wxString::Format("%d,%f,%f,%f,%f,%f,%f,", i, mPos[i].curve->get_cp0x(), mPos[i].curve->get_cp0y(), mPos[i].curve->get_cp0z(),
-                                            mPos[i].curve->get_cp1x(), mPos[i].curve->get_cp1y(), mPos[i].curve->get_cp1z());
+            cpoint_data += std::format("{},{:f},{:f},{:f},{:f},{:f},{:f},", i, mPos[i].curve->get_cp0x(), mPos[i].curve->get_cp0y(), mPos[i].curve->get_cp0z(),
+                                       mPos[i].curve->get_cp1x(), mPos[i].curve->get_cp1y(), mPos[i].curve->get_cp1z());
         }
     }
     return cpoint_data;

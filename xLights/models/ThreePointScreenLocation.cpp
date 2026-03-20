@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <format>
 #include "ThreePointScreenLocation.h"
 
 #include <wx/xml/xml.h>
@@ -80,8 +81,9 @@ std::string ThreePointScreenLocation::GetDimension(float factor) const
 {
     if (RulerObject::GetRuler() == nullptr) return "";
     float width = RulerObject::Measure(origin, point2);
-    return wxString::Format("Length %s Height %s", RulerObject::MeasureLengthDescription(origin, point2), 
-        RulerObject::PrescaledMeasureDescription((width * height) / 2.0 * factor)).ToStdString();
+    return std::format("Length {} Height {}",
+        RulerObject::MeasureLengthDescription(origin, point2),
+        RulerObject::PrescaledMeasureDescription((width * height) / 2.0 * factor));
 }
 
 float ThreePointScreenLocation::GetRealWidth() const

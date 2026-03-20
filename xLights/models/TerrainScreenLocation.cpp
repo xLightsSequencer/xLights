@@ -7,6 +7,7 @@
  * Copyright claimed based on commit dates recorded in Github
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
+#include <format>
 #include <wx/xml/xml.h>
 #include "../utils/string_utils.h"
 #include <wx/cursor.h>
@@ -419,25 +420,25 @@ void TerrainScreenLocation::Init() {
 }
 
 const std::string TerrainScreenLocation::GetDataAsString() const {
-    wxString point_data = "";
+    std::string point_data = "";
     // store the number of points in each axis to allow for smart resizing
     // when grid is altered after terrain points have already been established
-    point_data += wxString::Format("%f,%f,", (float)num_points_wide, (float)num_points_deep);
+    point_data += std::format("{:f},{:f},", (float)num_points_wide, (float)num_points_deep);
     int num_zeroes = 0;
     for (int i = 0; i < num_points; ++i) {
         if (mPos[i] != 0) {
             if (num_zeroes > 0) {
-                point_data += wxString::Format("%f,%f,", 0.0f, (float)num_zeroes);
+                point_data += std::format("{:f},{:f},", 0.0f, (float)num_zeroes);
                 num_zeroes = 0;
             }
-            point_data += wxString::Format("%f", mPos[i]);
+            point_data += std::format("{:f}", mPos[i]);
             if (i != num_points - 1) {
                 point_data += ",";
             }
         } else {
             num_zeroes++;
             if (i == num_points - 1) {
-                point_data += wxString::Format("%f,%f", 0.0f, (float)num_zeroes);
+                point_data += std::format("{:f},{:f}", 0.0f, (float)num_zeroes);
             }
         }
     }

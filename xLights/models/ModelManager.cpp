@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include <cmath>
+#include <format>
 
 #include <wx/msgdlg.h>
 #include <wx/stdpaths.h>
@@ -495,10 +496,11 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
     }
 
     // create new groups
-    std::string nn = mgname;
+    std::string mgname_str = mgname.ToStdString();
+    std::string nn = mgname_str;
     int i = 1;
     while (models.find(nn) != models.end()) {
-        nn = wxString::Format("%s_%d", mgname, i++).ToStdString();
+        nn = std::format("{}_{}", mgname_str, i++);
     }
     
     // Create a temporary node with modified attributes to avoid using ModelXml
@@ -752,7 +754,7 @@ bool ModelManager::ReworkStartChannel() const
     for (const auto& it : outputManager->GetControllers()) {
         auto caps = it->GetControllerCaps();
 
-        wxString serialPrefix;
+        std::string serialPrefix;
         if (caps && caps->DMXAfterPixels()) {
             serialPrefix = "zzz";
         }
@@ -764,12 +766,13 @@ bool ModelManager::ReworkStartChannel() const
                 ((itm.second->GetControllerPort() != 0 && itm.second->GetControllerProtocol() != "") ||
                  (caps != nullptr && caps->GetMaxPixelPort() == 0 && caps->GetMaxSerialPort() == 0 && caps->GetMaxLEDPanelMatrixPort() == 0 && caps->GetMaxVirtualMatrixPort() == 0))) // we dont muck with unassigned models or no protocol models
             {
-                wxString cc;
+                std::string cc;
                 if (IsPixelProtocol(itm.second->GetControllerProtocol())) {
-                    cc = wxString::Format("%s:%02d:%02d", itm.second->GetControllerProtocol(), itm.second->GetControllerPort(), itm.second->GetSortableSmartRemote()).Lower();
+                    cc = std::format("{}:{:02d}:{:02d}", itm.second->GetControllerProtocol(), itm.second->GetControllerPort(), itm.second->GetSortableSmartRemote());
                 } else {
-                    cc = wxString::Format("%s%s:%02d", serialPrefix, itm.second->GetControllerProtocol(), itm.second->GetControllerPort()).Lower();
+                    cc = std::format("{}{}:{:02d}", serialPrefix, itm.second->GetControllerProtocol(), itm.second->GetControllerPort());
                 }
+                std::transform(cc.begin(), cc.end(), cc.begin(), ::tolower);
                 if (cmodels.find(cc) == cmodels.end()) {
                     std::list<Model*> ml;
                     cmodels[cc] = ml;
@@ -898,7 +901,7 @@ bool ModelManager::ReworkStartChannel() const
                         itm->GetModelChain() == ">" + last ||
                         ((itm->GetModelChain() == "Beginning" || itm->GetModelChain() == "") && last == "")) {
                         std::string osc = itm->ModelStartChannel;
-                        sc = "!" + it->GetName() + ":" + wxString::Format("%d", ch);
+                        sc = "!" + it->GetName() + ":" + std::to_string(ch);
                         itm->SetStartChannel(sc);
                         itm->ClearIndividualStartChannels();
                         last = itm->GetName();
@@ -908,7 +911,7 @@ bool ModelManager::ReworkStartChannel() const
                         }
                     } else {
                         std::string osc = itm->ModelStartChannel;
-                        sc = "!" + it->GetName() + ":" + wxString::Format("%d", chstart);
+                        sc = "!" + it->GetName() + ":" + std::to_string(chstart);
                         itm->SetStartChannel(sc);
                         itm->ClearIndividualStartChannels();
                         last = itm->GetName();
@@ -930,7 +933,7 @@ bool ModelManager::ReworkStartChannel() const
 
                     } else {
                         std::string osc = itm->ModelStartChannel;
-                        sc = "!" + it->GetName() + ":" + wxString::Format("%d", chstart);
+                        sc = "!" + it->GetName() + ":" + std::to_string(chstart);
                         itm->SetStartChannel(sc);
                         itm->ClearIndividualStartChannels();
                         last = itm->GetName();
@@ -953,7 +956,7 @@ bool ModelManager::ReworkStartChannel() const
                         (itm->GetModelChain() == last ||
                          itm->GetModelChain() == ">" + last)) {
                         auto osc = itm->ModelStartChannel;
-                        sc = "!" + it->GetName() + ":" + wxString::Format("%d", ch);
+                        sc = "!" + it->GetName() + ":" + std::to_string(ch);
                         itm->SetStartChannel(sc);
                         itm->ClearIndividualStartChannels();
                         last = itm->GetName();
@@ -965,7 +968,7 @@ bool ModelManager::ReworkStartChannel() const
                         // when not chained use dmx channel
                         uint32_t msc = chstart + itm->GetControllerDMXChannel() - 1;
                         std::string osc = itm->ModelStartChannel;
-                        sc = "!" + it->GetName() + ":" + wxString::Format("%d", msc);
+                        sc = "!" + it->GetName() + ":" + std::to_string(msc);
                         itm->SetStartChannel(sc);
                         itm->ClearIndividualStartChannels();
                         last = itm->GetName();
@@ -1046,7 +1049,7 @@ bool ModelManager::ReworkStartChannel() const
     for (const auto& it : modelsToSet) {
         Model* m = GetModel(it);
         auto osc = m->ModelStartChannel;
-        m->SetStartChannel(wxString::Format("%u", lastChannel + 1));
+        m->SetStartChannel(std::to_string(lastChannel + 1));
         m->ClearIndividualStartChannels();
         lastChannel += m->GetChanCount();
         if (osc != m->ModelStartChannel) {
@@ -2008,7 +2011,7 @@ bool ModelManager::Delete(const std::string& name)
                 ResetModelGroups();
 
                 // If models are chained to us then make their start channel ... our start channel
-                std::string chainedtous = wxString::Format(">%s:1", model->GetName()).ToStdString();
+                std::string chainedtous = ">" + model->GetName() + ":1";
                 for (auto it3 : models) {
                     if (it3.second->ModelStartChannel == chainedtous) {
                         it3.second->SetStartChannel(model->ModelStartChannel);

@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <format>
 #include <wx/xml/xml.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
@@ -194,12 +195,12 @@ std::list<std::string> ImageObject::CheckModelSettings()
     std::list<std::string> res;
 
     if (_imageFile == "" || !FileExists(_imageFile)) {
-        res.push_back(wxString::Format("    ERR: Image object '%s' cant find image file '%s'", GetName(), _imageFile).ToStdString());
+        res.push_back(std::format("    ERR: Image object '{}' cant find image file '{}'", GetName(), _imageFile));
     } else if (!wxIsReadable(_imageFile) || !wxImage::CanRead(_imageFile)) {
-        res.push_back(wxString::Format("    ERR: Image object '%s' cant load image file '%s'", GetName(), _imageFile).ToStdString());
+        res.push_back(std::format("    ERR: Image object '{}' cant load image file '{}'", GetName(), _imageFile));
     } else {
         if (!IsFileInShowDir(xLightsFrame::CurrentDir, _imageFile)) {
-            res.push_back(wxString::Format("    WARN: Image object '%s' image file '%s' not under show/media/resource directories.", GetName(), _imageFile).ToStdString());
+            res.push_back(std::format("    WARN: Image object '{}' image file '{}' not under show/media/resource directories.", GetName(), _imageFile));
         }
     }
     res.splice(res.end(), BaseObject::CheckModelSettings());

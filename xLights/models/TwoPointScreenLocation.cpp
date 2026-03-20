@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <format>
 #include "TwoPointScreenLocation.h"
 
 #include <wx/xml/xml.h>
@@ -829,7 +830,7 @@ void TwoPointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* pro
 std::string TwoPointScreenLocation::GetDimension(float factor) const
 {
     if (RulerObject::GetRuler() == nullptr) return "";
-    return wxString::Format("Length %s", RulerObject::MeasureLengthDescription(origin, point2)).ToStdString();
+    return std::format("Length {}", RulerObject::MeasureLengthDescription(origin, point2));
 }
 
 void TwoPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {

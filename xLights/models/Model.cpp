@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <format>
 #include <wx/propgrid/advprops.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/sstream.h>
@@ -1494,7 +1495,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
 
     auto caps = GetControllerCaps();
 
-    modelManager.GetXLightsFrame()->AddTraceMessage("Model::OnPropertyGridChange : " + event.GetPropertyName() + " : " + (event.GetValue().GetType() == "string" ? event.GetValue().GetString() : "N/A") + " : " + (event.GetValue().GetType() == "long" ? wxString::Format("%ld", event.GetValue().GetLong()) : "N/A"));
+    modelManager.GetXLightsFrame()->AddTraceMessage("Model::OnPropertyGridChange : " + event.GetPropertyName() + " : " + (event.GetValue().GetType() == "string" ? event.GetValue().GetString() : "N/A") + " : " + (event.GetValue().GetType() == "long" ? std::to_string(event.GetValue().GetLong()) : "N/A"));
 
     if (HandleLayerSizePropertyChange(grid, event)) {
         return 0;
@@ -2709,7 +2710,7 @@ std::string Model::GetControllerConnectionString() const
 {
     if (GetControllerProtocol() == "")
         return "";
-    std::string ret = wxString::Format("%s:%d", GetControllerProtocol(), GetControllerPort(1)).ToStdString();
+    std::string ret = std::format("{}:{}", GetControllerProtocol(), GetControllerPort(1));
 
     ret += GetControllerConnectionAttributeString();
     return ret;
@@ -2719,12 +2720,12 @@ std::string Model::GetControllerConnectionRangeString() const
 {
     if (GetControllerProtocol() == "")
         return "";
-    std::string ret = wxString::Format("%s:%d", GetControllerProtocol(), GetControllerPort(1)).ToStdString();
+    std::string ret = std::format("{}:{}", GetControllerProtocol(), GetControllerPort(1));
     if (GetControllerPort(1) == 0) {
-        ret = wxString::Format("%s", GetControllerProtocol()).ToStdString();
+        ret = GetControllerProtocol();
     }
     if (GetNumPhysicalStrings() > 1 && GetControllerPort(1) != 0 && !IsMatrixProtocol()) {
-        ret = wxString::Format("%s-%d", ret, GetControllerPort(GetNumPhysicalStrings())).ToStdString();
+        ret = std::format("{}-{}", ret, GetControllerPort(GetNumPhysicalStrings()));
     }
 
     ret += GetControllerConnectionAttributeString();
@@ -2734,9 +2735,9 @@ std::string Model::GetControllerConnectionRangeString() const
 
 std::string Model::GetControllerConnectionPortRangeString() const
 {
-    std::string ret = wxString::Format("%d", GetControllerPort(1)).ToStdString();
+    std::string ret = std::to_string(GetControllerPort(1));
     if (GetNumPhysicalStrings() > 1 && GetControllerPort(1) != 0 && !IsMatrixProtocol()) {
-        ret = wxString::Format("%s-%d", ret, GetControllerPort(GetNumPhysicalStrings())).ToStdString();
+        ret = std::format("{}-{}", ret, GetControllerPort(GetNumPhysicalStrings()));
     }
     return ret;
 }
@@ -2856,7 +2857,7 @@ std::string Model::GenerateUniqueSubmodelName(const std::string suggested) const
 
     int i = 2;
     for (;;) {
-        auto name = wxString::Format("%s_%d", suggested, i++);
+        auto name = std::format("{}_{}", suggested, i++);
         if (GetSubModel(name) == nullptr)
             return name;
     }
@@ -3019,7 +3020,7 @@ std::string Model::GetControllerPortSortString() const
     auto port = GetControllerPort();
     auto sc = GetFirstChannel(); // we assume within a port models are in channel order
 
-    return wxString::Format("%s:%08d:%08d", controller, port, sc).ToStdString();
+    return std::format("{}:{:08d}:{:08d}", controller, port, sc);
 }
 
 std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
@@ -3028,19 +3029,19 @@ std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
     if (!IsValidStartChannelString()) {
         return "(1)";
     } else if (s[0] == '>') {
-        return s + wxString::Format(" (%u)", GetFirstChannel() + 1);
+        return s + std::format(" ({})", GetFirstChannel() + 1);
     } else if (s[0] == '@') {
         if (_hasIndivChans) {
             return s;
         } else {
-            return s + wxString::Format(" (%u)", GetFirstChannel() + 1);
+            return s + std::format(" ({})", GetFirstChannel() + 1);
         };
     } else if (s[0] == '!') {
-        return s + wxString::Format(" (%u)", GetFirstChannel() + 1);
+        return s + std::format(" ({})", GetFirstChannel() + 1);
     } else if (s[0] == '#') {
         return GetFirstChannelInStartChannelFormat(outputManager);
     } else {
-        return wxString::Format("%u", GetFirstChannel() + 1);
+        return std::to_string(GetFirstChannel() + 1);
     }
 }
 
@@ -4191,9 +4192,9 @@ bool Model::IsCustom()
 // AA - AZ == 27 - 52
 // BA - BZ == 53 - 78
 // etc
-static wxString AA(int x)
+static std::string AA(int x)
 {
-    wxString retval;
+    std::string retval;
     --x;
     //    if (x >= 26 * 26) { retval += 'A' + x / (26 * 26); x %= 26 * 26; }
     if (x >= 26) {
@@ -4242,14 +4243,14 @@ std::string Model::GetNodeXY(int nodeinx)
         return "";
     if (GetCoordCount(nodeinx) > 1) // show count and first + last coordinates
         if (IsCustom())
-            return wxString::Format(wxT("%d: %d# @%s%d-%s%d"), GetNodeNumber(nodeinx), GetCoordCount(nodeinx), AA(Nodes[nodeinx]->Coords.front().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.front().bufY, AA(Nodes[nodeinx]->Coords.back().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.back().bufY).ToStdString(); // NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
+            return std::format("{}: {}# @{}{}-{}{}", GetNodeNumber(nodeinx), GetCoordCount(nodeinx), AA(Nodes[nodeinx]->Coords.front().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.front().bufY, AA(Nodes[nodeinx]->Coords.back().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.back().bufY); // NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
         else
-            return wxString::Format(wxT("%d: %d# @(%d,%d)-(%d,%d"), GetNodeNumber(nodeinx), GetCoordCount(nodeinx), Nodes[nodeinx]->Coords.front().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.front().bufY, Nodes[nodeinx]->Coords.back().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.back().bufY).ToStdString(); // NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
-    else                                                                                                                                                                                                                                                                                                           // just show singleton
+            return std::format("{}: {}# @({},{})=({},{})", GetNodeNumber(nodeinx), GetCoordCount(nodeinx), Nodes[nodeinx]->Coords.front().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.front().bufY, Nodes[nodeinx]->Coords.back().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.back().bufY); // NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
+    else                                                                                                                                                                                                                                                                                         // just show singleton
         if (IsCustom())
-            return wxString::Format(wxT("%d: @%s%d"), GetNodeNumber(nodeinx), AA(Nodes[nodeinx]->Coords.front().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.front().bufY).ToStdString();
+            return std::format("{}: @{}{}", GetNodeNumber(nodeinx), AA(Nodes[nodeinx]->Coords.front().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.front().bufY);
         else
-            return wxString::Format(wxT("%d: @(%d,%d)"), GetNodeNumber(nodeinx), Nodes[nodeinx]->Coords.front().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.front().bufY).ToStdString();
+            return std::format("{}: @({},{})", GetNodeNumber(nodeinx), Nodes[nodeinx]->Coords.front().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.front().bufY);
 }
 
 // extract first (X,Y) from string formatted above:

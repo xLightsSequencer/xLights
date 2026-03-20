@@ -13,6 +13,7 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 
+#include <format>
 #include <vector>
 
 #include "CustomModel.h"
@@ -234,7 +235,7 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
                 } else {
                     int node = _indivStartNodes[x];
                     int32_t startChannel = modelStartChannel + (node - 1) * chanPerNode;
-                    _indivStartChannels[x] = wxString::Format("%d", startChannel).ToStdString();
+                    _indivStartChannels[x] = std::to_string(startChannel);
                 }
             }
         } else if (_hasIndivChans) {
@@ -873,14 +874,14 @@ std::list<std::string> CustomModel::CheckModelSettings()
 
     // check for no nodes
     if (GetNodeCount() == 0) {
-        res.push_back(wxString::Format("    ERR: Custom model '%s' has no nodes defined.", GetName()));
+        res.push_back(std::format("    ERR: Custom model '{}' has no nodes defined.", GetName()));
     }
 
     if (!xLightsFrame::IsCheckSequenceOptionDisabled("CustomSizeCheck")) {
         if (parm1 > PERFORMANCE_IMPACT_SIZE || parm2 > PERFORMANCE_IMPACT_SIZE || _depth > PERFORMANCE_IMPACT_SIZE) {
             float pop = ((float)GetNodeCount() * 100) / (float)(parm1 * parm2);
             if (pop < 10.0) { // allow models which have more than 1 in 10 cells used as these likely need to be that large
-                res.push_back(wxString::Format("    WARN: Custom model '%s' dimensions are really large (%ld x %ld x %d : Nodes %u => %0.2f%%). This may impact xLights render performance.", GetName(), parm1, parm2, _depth, GetNodeCount(), pop).ToStdString());
+                res.push_back(std::format("    WARN: Custom model '{}' dimensions are really large ({} x {} x {} : Nodes {} => {:.2f}%). This may impact xLights render performance.", GetName(), parm1, parm2, _depth, GetNodeCount(), pop));
             }
         }
     }
@@ -901,15 +902,15 @@ std::list<std::string> CustomModel::CheckModelSettings()
                 oneFound = true;
             }
             if (std::find(begin(prevStart), end(prevStart), val) != end(prevStart)) {
-                res.push_back(wxString::Format("    ERR: Custom model '%s' String %d starts at a node %d which has already been used by another string.", GetName(), i, val).ToStdString());
+                res.push_back(std::format("    ERR: Custom model '{}' String {} starts at a node {} which has already been used by another string.", GetName(), i, val));
             }
             if (val == 0 || val > nodes) {
-                res.push_back(wxString::Format("    ERR: Custom model '%s' String %d starts at a node %d outside the node count %d in the model.", GetName(), i+1, val, nodes).ToStdString());
+                res.push_back(std::format("    ERR: Custom model '{}' String {} starts at a node {} outside the node count {} in the model.", GetName(), i+1, val, nodes));
             }
             prevStart.push_back(val);
         }
         if (!oneFound)             {
-            res.push_back(wxString::Format("    ERR: Custom model '%s' Multiple strings but none starting at node 1.", GetName()).ToStdString());
+            res.push_back(std::format("    ERR: Custom model '{}' Multiple strings but none starting at node 1.", GetName()));
         }
     }
 
@@ -924,7 +925,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
     //logger_base.debug("    CheckSequence: Checking custom model %d nodes", maxn);
     int* chs = (int*)malloc(chssize);
     if (chs == nullptr) {
-        res.push_back(wxString::Format("    WARN: Could not check Custom model '%s' for missing nodes. Error allocating memory for %d nodes.", GetName(), maxn).ToStdString());
+        res.push_back(std::format("    WARN: Could not check Custom model '{}' for missing nodes. Error allocating memory for {} nodes.", GetName(), maxn));
     }
     else {
         memset(chs, 0x00, chssize);
@@ -944,10 +945,10 @@ std::list<std::string> CustomModel::CheckModelSettings()
             else {
                 if (lastStart != -1) {
                     if (lastStart == ii - 1) {
-                        res.push_back(wxString::Format("    WARN: Custom model '%s' missing node %d.", GetName(), lastStart).ToStdString());
+                        res.push_back(std::format("    WARN: Custom model '{}' missing node {}.", GetName(), lastStart));
                     }
                     else {
-                        res.push_back(wxString::Format("    WARN: Custom model '%s' missing nodes %d-%d.", GetName(), lastStart, ii - 1).ToStdString());
+                        res.push_back(std::format("    WARN: Custom model '{}' missing nodes {}-{}.", GetName(), lastStart, ii - 1));
                     }
                     lastStart = -1;
                 }
@@ -969,10 +970,10 @@ std::list<std::string> CustomModel::CheckModelSettings()
                 std::vector<xlPoint> pts;
                 GetNodeCoords(ii, pts);
                 if (pts.size() > 1) {
-                    res.push_back(wxString::Format("    WARN: Custom model '%s' %s node has %d instances but multi instance nodes are rare in this model so this may be unintended.",
+                    res.push_back(std::format("    WARN: Custom model '{}' {} node has {} instances but multi instance nodes are rare in this model so this may be unintended.",
                         GetName(),
                         Ordinal(ii + 1),
-                        (int)pts.size()).ToStdString());
+                        (int)pts.size()));
                 }
             }
         }
@@ -1021,21 +1022,21 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
     html += "<tr><td>Display As:</td><td>" + DisplayAsTypeToString(DisplayAs) + "</td></tr>";
     html += "<tr><td>String Type:</td><td>" + StringType + "</td></tr>";
     html += "<tr><td>Start Corner:</td><td>" + direction + "</td></tr>";
-    html += wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>", (int)NodeCount);
-    html += wxString::Format("<tr><td>Width:</td><td>%d</td></tr>", BufferWi);
-    html += wxString::Format("<tr><td>Height:</td><td>%d</td></tr>", BufferHt);
+    html += std::format("<tr><td>Total nodes:</td><td>{}</td></tr>", (int)NodeCount);
+    html += std::format("<tr><td>Width:</td><td>{}</td></tr>", BufferWi);
+    html += std::format("<tr><td>Height:</td><td>{}</td></tr>", BufferHt);
     if (c != nullptr)
-        html += wxString::Format("<tr><td>Controller:</td><td>%s</td></tr>", c->GetLongDescription());
+        html += std::format("<tr><td>Controller:</td><td>{}</td></tr>", c->GetLongDescription());
     if ("" != GetControllerProtocol())
     {
-        html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", GetControllerProtocol());
+        html += std::format("<tr><td>Pixel protocol:</td><td>{}</td></tr>", GetControllerProtocol());
         if (_strings == 1)
         {
-            html += wxString::Format("<tr><td>Controller Connection:</td><td>%d</td></tr>", GetControllerPort());
+            html += std::format("<tr><td>Controller Connection:</td><td>{}</td></tr>", GetControllerPort());
         }
         else
         {
-            html += wxString::Format("<tr><td>Controller Connection:</td><td>%d-%d</td></tr>", GetControllerPort(), GetControllerPort() + _strings - 1);
+            html += std::format("<tr><td>Controller Connection:</td><td>{}-{}</td></tr>", GetControllerPort(), GetControllerPort() + _strings - 1);
         }
     }
     html += "</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
@@ -1319,7 +1320,7 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
         for (int y = 0; y < maxy; ++y) {
             for (int x = 0; x < maxx; ++x) {
                 if (data[y * maxx + x] != 0) {
-                    cm += wxString::Format("%i", data[y * maxx + x]);
+                    cm += std::to_string(data[y * maxx + x]);
                 }
                 if (x != maxx - 1)
                     cm += ",";
