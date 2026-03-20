@@ -8,6 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <format>
+
 #include "VUMeterEffect.h"
 #include "VUMeterPanel.h"
 #include "../AudioManager.h"
@@ -123,7 +125,7 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    wxString type = settings.Get("E_CHOICE_VUMeter_Type", "Waveform");
+    std::string type = settings.Get("E_CHOICE_VUMeter_Type", "Waveform");
 
     if (media == nullptr &&
         (type == "Spectrogram" ||
@@ -149,20 +151,20 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
          type == "Dominant Frequency Colour Gradient"
        ))
     {
-        res.push_back(wxString::Format("    ERR: VU Meter effect '%s' is pointless if there is no music. Model '%s', Start %s", type, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: VU Meter effect '{}' is pointless if there is no music. Model '{}', Start {}", type, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
-    wxString timing = settings.Get("E_CHOICE_VUMeter_TimingTrack", "");
+    std::string timing = settings.Get("E_CHOICE_VUMeter_TimingTrack", "");
 
-    if (type.StartsWith("Timing Event") )
+    if (type.starts_with("Timing Event"))
     {
         if (timing == "")
         {
-            res.push_back(wxString::Format("    ERR: VU Meter effect '%s' needs a timing track. Model '%s', Start %s", type, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    ERR: VU Meter effect '{}' needs a timing track. Model '{}', Start {}", type, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
         else if (GetTiming(timing) == nullptr)
         {
-            res.push_back(wxString::Format("    ERR: VU Meter effect '%s' has unknown timing track (%s). Model '%s', Start %s", type, timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    ERR: VU Meter effect '{}' has unknown timing track ({}). Model '{}', Start {}", type, timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
 
@@ -171,10 +173,10 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
         auto svgFilename = settings.Get("E_FILEPICKERCTRL_SVGFile", "");
 
         if (svgFilename == "" || !FileExists(svgFilename)) {
-            res.push_back(wxString::Format("    ERR: VUMeter effect cant find SVG file '%s'. Model '%s', Start %s", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    ERR: VUMeter effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
             if (!IsFileInShowDir(xLightsFrame::CurrentDir, svgFilename)) {
-                res.push_back(wxString::Format("    WARN: VUMeter effect SVG file '%s' not under show directory. Model '%s', Start %s", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                res.push_back(std::format("    WARN: VUMeter effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             }
         }
     }
@@ -290,11 +292,11 @@ void VUMeterEffect::SetDefaultParameters()
 
 void VUMeterEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
 {
-    wxString timing = effect->GetSettings().Get("E_CHOICE_VUMeter_TimingTrack", "");
+    std::string timing = effect->GetSettings().Get("E_CHOICE_VUMeter_TimingTrack", "");
 
-    if (timing.ToStdString() == oldname)
+    if (timing == oldname)
     {
-        effect->GetSettings()["E_CHOICE_VUMeter_TimingTrack"] = wxString(newname);
+        effect->GetSettings()["E_CHOICE_VUMeter_TimingTrack"] = newname;
     }
 }
 

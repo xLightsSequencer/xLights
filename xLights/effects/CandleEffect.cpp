@@ -11,6 +11,7 @@
 #include "CandleEffect.h"
 #include "CandlePanel.h"
 
+#include <format>
 #include <map>
 
 #include "../sequencer/Effect.h"
@@ -42,7 +43,7 @@ std::list<std::string> CandleEffect::CheckEffectSettings(const SettingsMap& sett
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Candle_GrowWithMusic", false)) {
-        res.push_back(wxString::Format("    WARN: Candle effect cant grow to music if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Candle effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;

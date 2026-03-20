@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include <cstdlib>
+#include <format>
 
 #include "StateEffect.h"
 #include "StatePanel.h"
@@ -42,24 +43,24 @@ std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& setti
 
     SubModel* sm = dynamic_cast<SubModel*>(model);
     if (sm != nullptr) {
-        res.push_back(wxString::Format("    ERR: State effect on SubModel will not render properly. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: State effect on SubModel will not render properly. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     // -Buffer not rotated
-    wxString bufferTransform = settings.Get("B_CHOICE_BufferTransform", "None");
+    std::string bufferTransform = settings.Get("B_CHOICE_BufferTransform", "None");
 
     if (bufferTransform != "None") {
-        res.push_back(wxString::Format("    WARN: State effect with transformed buffer '%s' may not render correctly. Model '%s', Start %s", model->GetFullName(), bufferTransform, FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: State effect with transformed buffer '{}' may not render correctly. Model '{}', Start {}", model->GetFullName(), bufferTransform, FORMATTIME(eff->GetStartTimeMS())));
     }
 
-    wxString timing = settings.Get("E_CHOICE_State_TimingTrack", "");
-    wxString state = settings.Get("E_CHOICE_State_State", "");
+    std::string timing = settings.Get("E_CHOICE_State_TimingTrack", "");
+    std::string state = settings.Get("E_CHOICE_State_State", "");
 
     // - Face chosen or specific phoneme
     if (state == "" && timing == "") {
-        res.push_back(wxString::Format("    ERR: State effect with no timing selected. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-    } else if (timing != "" && GetTiming(timing.ToStdString()) == nullptr) {
-        res.push_back(wxString::Format("    ERR: State effect with unknown timing (%s) selected. Model '%s', Start %s", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: State effect with no timing selected. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+    } else if (timing != "" && GetTiming(timing) == nullptr) {
+        res.push_back(std::format("    ERR: State effect with unknown timing ({}) selected. Model '{}', Start {}", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
     return res;
 }
@@ -135,8 +136,8 @@ std::list<std::string> StateEffect::GetStates(Model* cls, std::string model) {
             for (const auto& it : m->GetStateInfo()) {
                 if (model == it.first) {
                     for (const auto& it2 : it.second) {
-                        wxString f(it2.first);
-                        if (f.EndsWith("-Name") && it2.second != "" && std::find(begin(res), end(res), it2.second) == end(res)) {
+                        const std::string& f = it2.first;
+                        if (EndsWith(f, "-Name") && it2.second != "" && std::find(begin(res), end(res), it2.second) == end(res)) {
                             res.push_back(it2.second);
                         }
                     }
@@ -167,10 +168,10 @@ void StateEffect::SetDefaultParameters() {
 }
 
 void StateEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) {
-    wxString timing = effect->GetSettings().Get("E_CHOICE_State_TimingTrack", "");
+    std::string timing = effect->GetSettings().Get("E_CHOICE_State_TimingTrack", "");
 
-    if (timing.ToStdString() == oldname) {
-        effect->GetSettings()["E_CHOICE_State_TimingTrack"] = wxString(newname);
+    if (timing == oldname) {
+        effect->GetSettings()["E_CHOICE_State_TimingTrack"] = newname;
     }
 }
 

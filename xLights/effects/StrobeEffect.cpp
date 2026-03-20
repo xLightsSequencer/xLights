@@ -11,6 +11,8 @@
 #include "StrobeEffect.h"
 #include "StrobePanel.h"
 
+#include <format>
+
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
@@ -33,7 +35,7 @@ std::list<std::string> StrobeEffect::CheckEffectSettings(const SettingsMap& sett
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Strobe_Music", false)) {
-        res.push_back(wxString::Format("    WARN: Strobe effect cant follow music if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Strobe effect cant follow music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
     return res;
 }

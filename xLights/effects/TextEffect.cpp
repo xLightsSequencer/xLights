@@ -11,6 +11,7 @@
 #include "TextEffect.h"
 
 #include <cstdlib>
+#include <format>
 #include <mutex>
 #include <array>
 #include <unordered_map>
@@ -59,15 +60,15 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
     wxString lyricTrack = settings.Get("E_CHOICE_Text_LyricTrack", "");
 
     if (text == "" && textFilename == "" && lyricTrack == "") {
-        res.push_back(wxString::Format("    ERR: Text effect has no actual text. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: Text effect has no actual text. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     } else if (textFilename != "" && !FileExists(textFilename)) {
-        res.push_back(wxString::Format("    ERR: Text effect cant find file '%s'. Model '%s', Start %s", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: Text effect cant find file '{}'. Model '{}', Start {}", textFilename.ToStdString(), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     } else if (textFilename != "" && !IsFileInShowDir(xLightsFrame::CurrentDir, textFilename.ToStdString())) {
-        res.push_back(wxString::Format("    WARN: Text effect file '%s' not under show directory. Model '%s', Start %s", textFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Text effect file '{}' not under show directory. Model '{}', Start {}", textFilename.ToStdString(), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
-        res.push_back(wxString::Format("    WARN: Text effect generally does not work well on a model group. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Text effect generally does not work well on a model group. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
     return res;
 }
@@ -175,7 +176,7 @@ void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool
                 new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font2"];
                 new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed2"];
                 int pos = (std::strtol(settings["E_SLIDER_Text_Position2"].c_str(), nullptr, 10) * 2) - 100;
-                wxString strpos = wxString::Format("%d", pos);
+                std::string strpos = std::format("{}", pos);
                 new_settings["E_SLIDER_Text_XStart"] = "0";
                 new_settings["E_SLIDER_Text_XEnd"] = "0";
                 new_settings["E_SLIDER_Text_YStart"] = strpos;
@@ -198,7 +199,7 @@ void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool
                 new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font3"];
                 new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed3"];
                 int pos = (std::strtol(settings["E_SLIDER_Text_Position3"].c_str(), nullptr, 10) * 2) - 100;
-                wxString strpos = wxString::Format("%d", pos);
+                std::string strpos = std::format("{}", pos);
                 new_settings["E_SLIDER_Text_XStart"] = "0";
                 new_settings["E_SLIDER_Text_XEnd"] = "0";
                 new_settings["E_SLIDER_Text_YStart"] = strpos;
@@ -221,7 +222,7 @@ void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool
                 new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font4"];
                 new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed4"];
                 int pos = (std::strtol(settings["E_SLIDER_Text_Position4"].c_str(), nullptr, 10) * 2) - 100;
-                wxString strpos = wxString::Format("%d", pos);
+                std::string strpos = std::format("{}", pos);
                 new_settings["E_SLIDER_Text_XStart"] = "0";
                 new_settings["E_SLIDER_Text_XEnd"] = "0";
                 new_settings["E_SLIDER_Text_YStart"] = strpos;
@@ -1238,7 +1239,7 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
                 }
                 seconds = (GetCache(buffer, id)->timer_countdown - buffer.curPeriod) / framesPerSec;
                 if (seconds < 0) seconds = 0;
-                msg = wxString::Format("%i", seconds);
+                msg = wxString(std::format("{}", seconds));
             }
             break;
 //jwylie - 2016-11-01  -- enhancement: add minute seconds countdown
@@ -1283,12 +1284,12 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
             if (seconds < 0)
                 seconds = 0;
 
-            wxString tempSeconds = wxString::Format("%i", seconds);
+            std::string tempSeconds = std::format("{}", seconds);
 
-            if (tempSeconds.Len() == 1)
-                tempSeconds = tempSeconds.Pad(1, '0', false);
+            if (tempSeconds.size() == 1)
+                tempSeconds = "0" + tempSeconds;
 
-            msg = prepend + ' ' + wxString::Format("%i", minutes) + " : " + tempSeconds + append;
+            msg = prepend + ' ' + wxString(std::format("{}", minutes)) + " : " + tempSeconds + append;
             }
            break;
 
@@ -1394,11 +1395,11 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
             minutes = (longsecs / 60) % 60;
             seconds = longsecs % 60;
             if (Countdown == COUNTDOWN_D_H_M_S)
-                msg = wxString::Format("%dd %dh %dm %ds", days, hours, minutes, seconds);
+                msg = wxString(std::format("{}d {}h {}m {}s", days, hours, minutes, seconds));
             else if (Countdown == COUNTDOWN_H_M_S)
-                msg = wxString::Format("%d : %d : %d", hours, minutes, seconds);
+                msg = wxString(std::format("{} : {} : {}", hours, minutes, seconds));
             else if (Countdown == COUNTDOWN_S)
-                msg = wxString::Format("%d", 60 * 60 * hours + 60 * minutes + seconds);
+                msg = wxString(std::format("{}", 60 * 60 * hours + 60 * minutes + seconds));
             else if (Countdown == COUNTDOWN_FREEFMT)
                 //            msg = _T("%%") + Line + _T("%%") + fmt + _T("%%");
                 if (fmt == "" || (fmt.EndsWith("%") && !fmt.EndsWith("%%")))
@@ -1411,9 +1412,9 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
                 }
             else //if (Countdown == COUNTDOWN_M_or_S)
                 if (60 * hours + minutes < 5) //COUNTDOWN_M_or_S: show seconds
-                    msg = wxString::Format("%d", 60 * 60 * hours + 60 * minutes + seconds);
+                    msg = wxString(std::format("{}", 60 * 60 * hours + 60 * minutes + seconds));
                 else //COUNTDOWN_M_or_S: show minutes
-                    msg = wxString::Format("%d m", 60 * hours + minutes);
+                    msg = wxString(std::format("{} m", 60 * hours + minutes));
         }
             break;
         default:

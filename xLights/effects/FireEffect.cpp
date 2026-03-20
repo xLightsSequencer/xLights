@@ -11,6 +11,8 @@
 #include "FireEffect.h"
 #include "FirePanel.h"
 
+#include <format>
+
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
@@ -39,7 +41,7 @@ std::list<std::string> FireEffect::CheckEffectSettings(const SettingsMap& settin
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Fire_GrowWithMusic", false)) {
-        res.push_back(wxString::Format("    WARN: Fire effect cant grow to music if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Fire effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
@@ -58,9 +60,9 @@ void FireEffect::adjustSettings(const std::string& version, Effect* effect, bool
 {
     SettingsMap& settings = effect->GetSettings();
 
-    wxString growthcycles = settings.Get("E_VALUECURVE_Fire_GrowthCycles", "");
+    std::string growthcycles = settings.Get("E_VALUECURVE_Fire_GrowthCycles", "");
 
-    if (growthcycles.Contains("Active=TRUE")) {
+    if (growthcycles.find("Active=TRUE") != std::string::npos) {
         ValueCurve vc(growthcycles);
         vc.SetLimits(FIRE_GROWTHCYCLES_MIN, FIRE_GROWTHCYCLES_MAX);
         vc.SetDivisor(FIRE_GROWTHCYCLES_DIVISOR);

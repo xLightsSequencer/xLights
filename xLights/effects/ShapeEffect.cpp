@@ -12,6 +12,7 @@
 #include "ShapePanel.h"
 
 #include <cstdlib>
+#include <format>
 #include "TextEffect.h" // FontMapLock
 
 #include "../sequencer/Effect.h"
@@ -53,7 +54,7 @@ std::list<std::string> ShapeEffect::CheckEffectSettings(const SettingsMap& setti
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Shape_UseMusic", false)) {
-        res.push_back(wxString::Format("    WARN: Shape effect cant grow to music if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Shape effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     std::string object = settings["E_CHOICE_Shape_ObjectToDraw"];
@@ -61,10 +62,10 @@ std::list<std::string> ShapeEffect::CheckEffectSettings(const SettingsMap& setti
         auto svgFilename = settings.Get("E_FILEPICKERCTRL_SVG", "");
 
         if (svgFilename == "" || !FileExists(svgFilename)) {
-            res.push_back(wxString::Format("    ERR: Shape effect cant find SVG file '%s'. Model '%s', Start %s", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    ERR: Shape effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
             if (!IsFileInShowDir(xLightsFrame::CurrentDir, svgFilename)) {
-                res.push_back(wxString::Format("    WARN: Shape effect SVG file '%s' not under show directory. Model '%s', Start %s", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                res.push_back(std::format("    WARN: Shape effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             }
         }
     }
@@ -97,11 +98,11 @@ bool ShapeEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& Setting
 
 void ShapeEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
 {
-    wxString timing = effect->GetSettings().Get("E_CHOICE_Shape_FireTimingTrack", "");
+    std::string timing = effect->GetSettings().Get("E_CHOICE_Shape_FireTimingTrack", "");
 
-    if (timing.ToStdString() == oldname)
+    if (timing == oldname)
     {
-        effect->GetSettings()["E_CHOICE_Shape_FireTimingTrack"] = wxString(newname);
+        effect->GetSettings()["E_CHOICE_Shape_FireTimingTrack"] = newname;
     }
 
     SetPanelTimingTracks();
@@ -477,7 +478,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     bool useMusic = SettingsMap.GetBool("CHECKBOX_Shape_UseMusic", false);
     float sensitivity = (float)SettingsMap.GetInt("SLIDER_Shape_Sensitivity", 50) / 100.0;
     bool useTiming = SettingsMap.GetBool("CHECKBOX_Shape_FireTiming", false);
-    wxString timing = SettingsMap.Get("CHOICE_Shape_FireTimingTrack", "");
+    std::string timing = SettingsMap.Get("CHOICE_Shape_FireTimingTrack", "");
     if (timing == "") useTiming = false;
     if (useMusic) {
         if (buffer.GetMedia() != nullptr) {

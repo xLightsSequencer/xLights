@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include <cstdlib>
+#include <format>
 #include <vector>
 
 #include "../../include/piano-16.xpm"
@@ -42,11 +43,11 @@ std::list<std::string> PianoEffect::CheckEffectSettings(const SettingsMap& setti
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", "") == "") {
-        res.push_back(wxString::Format("    ERR: Piano effect needs a timing track. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: Piano effect needs a timing track. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     } else {
         std::map<int, std::list<std::pair<float, float>>> timings = LoadTimingTrack(settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", ""), 50, false);
         if (timings.size() == 0) {
-            res.push_back(wxString::Format("    ERR: Piano effect timing track '%s' has no notes. Model '%s', Start %s", settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    ERR: Piano effect timing track '{}' has no notes. Model '{}', Start {}", settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
 
@@ -85,7 +86,7 @@ void PianoEffect::adjustSettings(const std::string& version, Effect* effect, boo
 
     if (IsVersionOlder("2016.45", version)) {
         SettingsMap& settings = effect->GetSettings();
-        wxString oldsettings = settings.Get("E_CHOICE_Piano_Notes_Source", "newsettings");
+        std::string oldsettings = settings.Get("E_CHOICE_Piano_Notes_Source", "newsettings");
 
         if (oldsettings != "newsettings") {
             if (oldsettings == "Timing Track") {
@@ -131,10 +132,10 @@ void PianoEffect::SetDefaultParameters()
 
 void PianoEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
 {
-    wxString timing = effect->GetSettings().Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", "");
+    std::string timing = effect->GetSettings().Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", "");
 
-    if (timing.ToStdString() == oldname) {
-        effect->GetSettings()["E_CHOICE_Piano_MIDITrack_APPLYLAST"] = wxString(newname);
+    if (timing == oldname) {
+        effect->GetSettings()["E_CHOICE_Piano_MIDITrack_APPLYLAST"] = newname;
     }
 
     SetPanelTimingTracks();

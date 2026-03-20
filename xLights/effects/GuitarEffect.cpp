@@ -25,6 +25,7 @@
 #include "models/Model.h"
 
 #include <cstdlib>
+#include <format>
 #include <string>
 #include <list>
 
@@ -614,14 +615,14 @@ std::list<std::string> GuitarEffect::CheckEffectSettings(const SettingsMap& sett
 
     if (settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", "") == "")
     {
-        res.push_back(wxString::Format("    ERR: Guitar effect needs a timing track. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: Guitar effect needs a timing track. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
     else
     {
         std::list<NoteTiming*> timings = LoadTimingTrack(settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", ""), 50, "Guitar", 100, 6);
         if (timings.size() == 0)
         {
-            res.push_back(wxString::Format("    ERR: Guitar effect timing track '%s' has no notes. Model '%s', Start %s", settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    ERR: Guitar effect timing track '{}' has no notes. Model '{}', Start {}", settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
 
         while (timings.size() > 0)
@@ -684,11 +685,11 @@ void GuitarEffect::SetDefaultParameters() {
 
 void GuitarEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
 {
-    wxString timing = effect->GetSettings().Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", "");
+    std::string timing = effect->GetSettings().Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", "");
 
-    if (timing.ToStdString() == oldname)
+    if (timing == oldname)
     {
-        effect->GetSettings()["E_CHOICE_Guitar_MIDITrack_APPLYLAST"] = wxString(newname);
+        effect->GetSettings()["E_CHOICE_Guitar_MIDITrack_APPLYLAST"] = newname;
     }
 
     SetPanelTimingTracks();

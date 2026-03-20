@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <format>
 #include <sstream>
 
 #include "DuplicateEffect.h"
@@ -47,7 +48,7 @@ std::list<std::string> DuplicateEffect::CheckEffectSettings(const SettingsMap& s
 
     if (element == nullptr)
     {
-        res.push_back(wxString::Format("    ERR: Duplicate effect refers to model/submodel/strand '%s' which does not exist. Effect: Duplicate, Model: %s, Start %s", settings.Get("E_CHOICE_Duplicate_Model", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: Duplicate effect refers to model/submodel/strand '{}' which does not exist. Effect: Duplicate, Model: {}, Start {}", settings.Get("E_CHOICE_Duplicate_Model", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
     else
     {
@@ -55,13 +56,13 @@ std::list<std::string> DuplicateEffect::CheckEffectSettings(const SettingsMap& s
         auto ec = element->GetEffectLayer(layers - 1);
         if (layers == 0 || ec == nullptr || layers > element->GetEffectLayerCount())
         {
-            res.push_back(wxString::Format("    ERR: Duplicate effect refers to layer %d on model/submodel/strand '%s' which does not exist. Effect: Duplicate, Model: %s, Start %s", layers, settings.Get("E_CHOICE_Duplicate_Model", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    ERR: Duplicate effect refers to layer {} on model/submodel/strand '{}' which does not exist. Effect: Duplicate, Model: {}, Start {}", layers, settings.Get("E_CHOICE_Duplicate_Model", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
         else
         {
             if (!ec->HasEffects())
             {
-                res.push_back(wxString::Format("    ERR: Duplicate effect refers to layer %d on model/submodel/strand '%s' which does not have any effects. Effect: Duplicate, Model: %s, Start %s", layers, settings.Get("E_CHOICE_Duplicate_Model", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                res.push_back(std::format("    ERR: Duplicate effect refers to layer {} on model/submodel/strand '{}' which does not have any effects. Effect: Duplicate, Model: {}, Start {}", layers, settings.Get("E_CHOICE_Duplicate_Model", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             }
         }
     }

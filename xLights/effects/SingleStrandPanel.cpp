@@ -31,6 +31,8 @@
 #define XLIGHTS_FX
 #include "FX.h"
 
+#include "../utils/string_utils.h"
+
 //(*IdInit(SingleStrandPanel)
 const long SingleStrandPanel::ID_STATICTEXT_SingleStrand_Colors = wxNewId();
 const long SingleStrandPanel::ID_CHOICE_SingleStrand_Colors = wxNewId();
@@ -434,7 +436,7 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent) : xlEffectPanel(parent)
     names.Replace("\"", "");
     names.Replace("[", "");
     names.Replace("]", "");
-    auto nn = wxSplit(names, ',');
+    auto nn = Split(names.ToStdString(), ',');
 
 	for (const auto& n : nn) {
         Choice_SingleStrand_FX->AppendString(n);
@@ -446,7 +448,7 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent) : xlEffectPanel(parent)
     names.Replace("\"", "");
     names.Replace("[", "");
     names.Replace("]", "");
-    nn = wxSplit(names, ',');
+    nn = Split(names.ToStdString(), ',');
 
     for (const auto& n : nn) {
         Choice_FX_Palette->AppendString(n);

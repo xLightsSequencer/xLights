@@ -18,6 +18,8 @@
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
 
+#include <format>
+
 #include "../../include/meteors-16.xpm"
 #include "../../include/meteors-24.xpm"
 #include "../../include/meteors-32.xpm"
@@ -42,7 +44,7 @@ std::list<std::string> MeteorsEffect::CheckEffectSettings(const SettingsMap& set
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Meteors_UseMusic", false)) {
-        res.push_back(wxString::Format("    WARN: Meteors effect cant follow music if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Meteors effect cant follow music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;

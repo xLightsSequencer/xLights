@@ -26,6 +26,7 @@
 #include "../../include/music-64.xpm"
 
 #include <algorithm>
+#include <format>
 
 //#define wrdebug(...)
 
@@ -42,7 +43,7 @@ std::list<std::string> MusicEffect::CheckEffectSettings(const SettingsMap& setti
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (media == nullptr) {
-        res.push_back(wxString::Format("    ERR: Music effect is pointless if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: Music effect is pointless if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;

@@ -14,6 +14,8 @@
 #include "../../include/video-48.xpm"
 #include "../../include/video-64.xpm"
 
+#include <format>
+
 #include "VideoEffect.h"
 #include "VideoPanel.h"
 #include "../VideoReader.h"
@@ -43,7 +45,7 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    wxString filename = settings.Get("E_FILEPICKERCTRL_Video_Filename", "");
+    std::string filename = settings.Get("E_FILEPICKERCTRL_Video_Filename", "");
 
     if (settings.GetBool("E_CHECKBOX_SynchroniseWithAudio", 0) == 1) {
         if (media != nullptr) {
@@ -53,24 +55,24 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
 
     if (filename == "" || !FileExists(filename))
     {
-        res.push_back(wxString::Format("    ERR: Video effect video file '%s' does not exist. Model '%s', Start %s", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: Video effect video file '{}' does not exist. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
     else
     {
-        if (!IsFileInShowDir(xLightsFrame::CurrentDir, filename.ToStdString()))
+        if (!IsFileInShowDir(xLightsFrame::CurrentDir, filename))
         {
-            res.push_back(wxString::Format("    WARN: Video effect video file '%s' not under show directory. Model '%s', Start %s", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    WARN: Video effect video file '{}' not under show directory. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
 
-        VideoReader* videoreader = new VideoReader(filename.ToStdString(), 100, 100, false, true, true);
+        VideoReader* videoreader = new VideoReader(filename, 100, 100, false, true, true);
         if (videoreader == nullptr || videoreader->GetLengthMS() == 0)
         {
-            res.push_back(wxString::Format("    ERR: Video effect video file '%s' could not be understood. Format may not be supported. Model '%s', Start %s", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    ERR: Video effect video file '{}' could not be understood. Format may not be supported. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
         else if (videoreader != nullptr)
         {
             double starttime = settings.GetDouble("E_TEXTCTRL_Video_Starttime", 0.0);
-            wxString treatment = settings.Get("E_CHOICE_Video_DurationTreatment", "Normal");
+            std::string treatment = settings.Get("E_CHOICE_Video_DurationTreatment", "Normal");
 
             if (treatment == "Normal")
             {
@@ -78,7 +80,7 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
                 int effectduration = eff->GetEndTimeMS() - eff->GetStartTimeMS();
                 if (videoduration < effectduration)
                 {
-                    res.push_back(wxString::Format("    WARN: Video effect video file '%s' is shorter %s than effect duration %s. Model '%s', Start %s", filename, FORMATTIME(videoduration), FORMATTIME(effectduration), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                    res.push_back(std::format("    WARN: Video effect video file '{}' is shorter {} than effect duration {}. Model '{}', Start {}", filename, FORMATTIME(videoduration), FORMATTIME(effectduration), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                 }
             }
 
@@ -91,7 +93,7 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
                 if (vh > VIDEOSIZETHRESHOLD * model->GetDefaultBufferHt() || vw > VIDEOSIZETHRESHOLD * model->GetDefaultBufferWi())
                 {
                     float scale = std::max((float)vh / model->GetDefaultBufferHt(), (float)vw / model->GetDefaultBufferWi());
-                    res.push_back(wxString::Format("    WARN: Video effect video file '%s' is %.1f times the height or width of the model ... xLights is going to need to do lots of work to resize the video. Model '%s', Start %s", filename, scale, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                    res.push_back(std::format("    WARN: Video effect video file '{}' is {:.1f} times the height or width of the model ... xLights is going to need to do lots of work to resize the video. Model '{}', Start {}", filename, scale, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                 }
             }
         }
@@ -102,15 +104,15 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
         }
     }
 
-    wxString bufferstyle = settings.Get("B_CHOICE_BufferStyle", "Default");
-    wxString transform = settings.Get("B_CHOICE_BufferTransform", "None");
-    wxString camera = settings.Get("B_CHOICE_PerPreviewCamera", "2D");
+    std::string bufferstyle = settings.Get("B_CHOICE_BufferStyle", "Default");
+    std::string transform = settings.Get("B_CHOICE_BufferTransform", "None");
+    std::string camera = settings.Get("B_CHOICE_PerPreviewCamera", "2D");
     int w, h;
-    model->GetBufferSize(bufferstyle.ToStdString(), camera.ToStdString(), transform.ToStdString(), w, h, settings.GetInt("B_SPINCTRL_BufferStagger", 0));
+    model->GetBufferSize(bufferstyle, camera, transform, w, h, settings.GetInt("B_SPINCTRL_BufferStagger", 0));
 
     if (w < 2 || h < 2)
     {
-        res.push_back(wxString::Format("    ERR: Video effect video file '%s' cannot render onto model as it is not high or wide enough (%d,%d). Model '%s', Start %s", filename, w, h, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: Video effect video file '{}' cannot render onto model as it is not high or wide enough ({},{}). Model '{}', Start {}", filename, w, h, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
@@ -195,12 +197,12 @@ std::list<std::string> VideoEffect::GetFileReferences(Model* model, const Settin
 bool VideoEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap)
 {
     bool rc = false;
-    wxString file = SettingsMap["E_FILEPICKERCTRL_Video_Filename"];
+    std::string file = SettingsMap["E_FILEPICKERCTRL_Video_Filename"];
     if (FileExists(file))
     {
         if (!frame->IsInShowFolder(file))
         {
-            SettingsMap["E_FILEPICKERCTRL_Video_Filename"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Videos");
+            SettingsMap["E_FILEPICKERCTRL_Video_Filename"] = frame->MoveToShowFolder(file, std::string(1, wxFileName::GetPathSeparator()) + "Videos");
             rc = true;
         }
     }

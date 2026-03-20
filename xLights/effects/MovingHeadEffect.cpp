@@ -18,6 +18,7 @@
 #include "MovingHeadPanel.h"
 
 #include <cstdlib>
+#include <format>
 
 #include "../utils/string_utils.h"
 #include "../sequencer/Effect.h"
@@ -56,11 +57,11 @@ std::list<std::string> MovingHeadEffect::CheckEffectSettings(const SettingsMap& 
 
 void MovingHeadEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
 {
-    wxString timing = effect->GetSettings().Get("E_CHOICE_Servo_TimingTrack", "");
+    std::string timing = effect->GetSettings().Get("E_CHOICE_Servo_TimingTrack", "");
 
-    if (timing.ToStdString() == oldname)
+    if (timing == oldname)
     {
-        effect->GetSettings()["E_CHOICE_Servo_TimingTrack"] = wxString(newname);
+        effect->GetSettings()["E_CHOICE_Servo_TimingTrack"] = newname;
     }
 }
 
@@ -616,7 +617,7 @@ void MovingHeadEffect::SetPanelStatus(Model *cls) {
 
     // disable all fixtures
     for( int i = 1; i <= 8; ++i ) {
-        wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+        wxString checkbox_ctrl = wxString(std::format("IDD_CHECKBOX_MH{}", i));
         wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
         if( checkbox != nullptr ) {
             checkbox->Enable(false);
@@ -630,7 +631,7 @@ void MovingHeadEffect::SetPanelStatus(Model *cls) {
     for (const auto& it : models) {
         if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
             DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
-            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", mhead->GetFixtureVal());
+            wxString checkbox_ctrl = wxString(std::format("IDD_CHECKBOX_MH{}", mhead->GetFixtureVal()));
             wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
             if( checkbox != nullptr ) {
                 checkbox->Enable(true);
@@ -654,7 +655,7 @@ void MovingHeadEffect::SetPanelStatus(Model *cls) {
         wxStaticText* text = (wxStaticText*)(p->FindWindowByName("ID_STATICTEXT_Fixtures"));
         if( text != nullptr ) { text->Hide(); }
         for( int i = 1; i <= 8; ++i ) {
-            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+            wxString checkbox_ctrl = wxString(std::format("IDD_CHECKBOX_MH{}", i));
             wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
             if( checkbox != nullptr ) {
                 checkbox->Hide();
@@ -680,7 +681,7 @@ void MovingHeadEffect::SetPanelStatus(Model *cls) {
         wxStaticText* text = (wxStaticText*)(p->FindWindowByName("ID_STATICTEXT_Fixtures"));
         if( text != nullptr ) { text->Show(); }
         for( int i = 1; i <= 8; ++i ) {
-            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+            wxString checkbox_ctrl = wxString(std::format("IDD_CHECKBOX_MH{}", i));
             wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
             if( checkbox != nullptr ) {
                 checkbox->Show();

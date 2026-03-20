@@ -31,6 +31,7 @@
 #ifdef XLIGHTS_FX
 #include "../UtilFunctions.h"
 #include "../RenderBuffer.h"
+#include "../utils/string_utils.h"
 #include <math.h>
 #endif
 
@@ -499,7 +500,7 @@ uint8_t DecodeMode(const std::string& mode)
 
 uint8_t DecodePalette(const std::string& palette)
 {
-    static wxArrayString palettes;
+    static std::vector<std::string> palettes;
 
     {
         static std::mutex mtx;
@@ -511,7 +512,7 @@ uint8_t DecodePalette(const std::string& palette)
             names.Replace("\"", "");
             names.Replace("[", "");
             names.Replace("]", "");
-            palettes = wxSplit(names, ',');
+            palettes = Split(names.ToStdString(), ',');
         }
     }
 

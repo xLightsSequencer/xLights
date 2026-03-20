@@ -16,6 +16,7 @@
 #include <wx/wx.h>
 #include <wx/config.h>
 #include <cstdlib>
+#include <format>
 #include <semaphore>
 #include <algorithm>
 
@@ -213,12 +214,12 @@ std::list<std::string> ShaderEffect::CheckEffectSettings(const SettingsMap& sett
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    wxString ifsFilename = settings.Get("E_0FILEPICKERCTRL_IFS", "");
+    std::string ifsFilename = settings.Get("E_0FILEPICKERCTRL_IFS", "");
 
     if (ifsFilename == "" || !FileExists(ifsFilename)) {
-        res.push_back(wxString::Format("    ERR: Shader effect cant find file '%s'. Model '%s', Start %s", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-    } else if (!IsFileInShowDir(xLightsFrame::CurrentDir, ifsFilename.ToStdString())) {
-        res.push_back(wxString::Format("    WARN: Shader effect file '%s' not under show directory. Model '%s', Start %s", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: Shader effect cant find file '{}'. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+    } else if (!IsFileInShowDir(xLightsFrame::CurrentDir, ifsFilename)) {
+        res.push_back(std::format("    WARN: Shader effect file '{}' not under show directory. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
@@ -280,7 +281,7 @@ ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceEle
     if (!re.Matches(code)){
         return nullptr;
     }
-    return new ShaderConfig(filename, code, re.GetMatch(code, 1), sequenceElements);
+    return new ShaderConfig(filename, code.ToStdString(), re.GetMatch(code, 1).ToStdString(), sequenceElements);
 }
 
 void ShaderEffect::SetDefaultParameters()
@@ -307,20 +308,20 @@ void ShaderEffect::SetDefaultParameters()
             if (it.ShowParm()) {
                 if (it._type == ShaderParmType::SHADER_PARM_POINT2D) {
                     auto id = it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "X";
-                    wxWindow *c = fp->FindWindow(id);
+                    wxWindow *c = fp->FindWindow(wxString(id));
                     if (c != nullptr) {
                         BulkEditValueCurveButton *vcb = dynamic_cast<BulkEditValueCurveButton*>(c);
                         vcb->SetActive(false);
                     }
                     id = it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "Y";
-                    c = fp->FindWindow(id);
+                    c = fp->FindWindow(wxString(id));
                     if (c != nullptr) {
                         BulkEditValueCurveButton *vcb = dynamic_cast<BulkEditValueCurveButton*>(c);
                         vcb->SetActive(false);
                     }
                 } else {
                     auto id = it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE);
-                    wxWindow *c = fp->FindWindow(id);
+                    wxWindow *c = fp->FindWindow(wxString(id));
                     if (c != nullptr) {
                         BulkEditValueCurveButton *vcb = dynamic_cast<BulkEditValueCurveButton*>(c);
                         vcb->SetActive(false);
@@ -755,7 +756,7 @@ public:
     int s_rbHeight = 0;
     long _timeMS = 0;
 
-    void InitialiseShaderConfig(const wxString& filename, SequenceElements* sequenceElements) {
+    void InitialiseShaderConfig(const std::string& filename, SequenceElements* sequenceElements) {
         if (_shaderConfig != nullptr) delete _shaderConfig;
         _shaderConfig = ShaderEffect::ParseShader(filename, sequenceElements);
         s_shaderInfo = nullptr;
@@ -952,10 +953,10 @@ void adjustWGLContext(WXGLContext ctx) {
     const GLubyte* str = glGetString(GL_VERSION);
     const GLubyte* rendn = glGetString(GL_RENDERER);
     const GLubyte* vend = glGetString(GL_VENDOR);
-    wxString configs = wxString::Format("ShaderEffect - glVer:  %s  (%s)(%s)",
-                                        (const char *)str,
-                                        (const char *)rendn,
-                                        (const char *)vend);
+    std::string configs = std::format("ShaderEffect - glVer:  {}  ({})({})",
+                                      (const char *)str,
+                                      (const char *)rendn,
+                                      (const char *)vend);
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info(configs);
@@ -1024,10 +1025,10 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
         const GLubyte* str = glGetString(GL_VERSION);
         const GLubyte* rend = glGetString(GL_RENDERER);
         const GLubyte* vend = glGetString(GL_VENDOR);
-        wxString configs = wxString::Format("ShaderEffect - glVer:  %s  (%s)(%s)",
-                                            (const char *)str,
-                                            (const char *)rend,
-                                            (const char *)vend);
+        std::string configs = std::format("ShaderEffect - glVer:  {}  ({})({})",
+                                          (const char *)str,
+                                          (const char *)rend,
+                                          (const char *)vend);
 
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info(configs);
@@ -1436,25 +1437,23 @@ unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg, ShaderRenderCac
     return programId;
 }
 
-std::string SafeFloat(const wxString& s)
+std::string SafeFloat(const std::string& s)
 {
-    std::string ss = s.ToStdString();
-    if (!ss.empty() && ss[0] == '.') {
-        return "0" + ss;
-    } else if (ss.find('.') == std::string::npos) {
-        return ss + ".0";
+    if (!s.empty() && s[0] == '.') {
+        return "0" + s;
+    } else if (s.find('.') == std::string::npos) {
+        return s + ".0";
     }
-    return ss;
+    return s;
 }
 
-wxString SafeValueOption(wxString value)
+std::string SafeValueOption(std::string value)
 {
-    wxString res = value;
-    res.Replace(",", "");
-    return res;
+    value.erase(std::remove(value.begin(), value.end(), ','), value.end());
+    return value;
 }
 
-ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const wxString& json, SequenceElements* sequenceElements) :
+ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code, const std::string& json, SequenceElements* sequenceElements) :
     _filename(filename) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     /*
@@ -1668,16 +1667,16 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
 
     wxJSONReader reader;
     wxJSONValue root;
-    reader.Parse(json, &root);
-    _description = root["DESCRIPTION"].AsString();
+    reader.Parse(wxString(json), &root);
+    _description = root["DESCRIPTION"].AsString().ToStdString();
     if (_description == "xLights AudioFFT")
         _audioFFTMode = true;
     else if (_description == "xLights Audio2")
         _audioIntensityMode = true;
     wxJSONValue inputs = root["INPUTS"];
-    wxString canvasImgName, audioFFTName;
+    std::string canvasImgName, audioFFTName;
     for (int i = 0; i < inputs.Size(); i++) {
-        wxString name = inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "";
+        std::string name = inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString().ToStdString() : "";
 
         // we ignore these as xlights provides these settings
         if (name == "XL_OFFSET")
@@ -1687,28 +1686,28 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         if (name == "XL_ZOOM")
             continue;
 
-        wxString type = inputs[i]["TYPE"].AsString();
+        std::string type = inputs[i]["TYPE"].AsString().ToStdString();
         if (type == "float") {
             _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString().ToStdString() : "",
+                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString().ToStdString() : "",
                 ShaderParmType::SHADER_PARM_FLOAT,
-                (double)(inputs[i].HasMember("MIN") ? std::strtod(SafeFloat(inputs[i]["MIN"].AsString()).c_str(), nullptr) : 0.0),
-                (double)(inputs[i].HasMember("MAX") ? std::strtod(SafeFloat(inputs[i]["MAX"].AsString()).c_str(), nullptr) : 1.0),
-                (double)(inputs[i].HasMember("DEFAULT") ? std::strtod(SafeFloat(inputs[i]["DEFAULT"].AsString()).c_str(), nullptr) : 0.0)));
+                (double)(inputs[i].HasMember("MIN") ? std::strtod(SafeFloat(inputs[i]["MIN"].AsString().ToStdString()).c_str(), nullptr) : 0.0),
+                (double)(inputs[i].HasMember("MAX") ? std::strtod(SafeFloat(inputs[i]["MAX"].AsString().ToStdString()).c_str(), nullptr) : 1.0),
+                (double)(inputs[i].HasMember("DEFAULT") ? std::strtod(SafeFloat(inputs[i]["DEFAULT"].AsString().ToStdString()).c_str(), nullptr) : 0.0)));
         } else if (type == "long") {
             if (inputs[i].HasMember("MIN")) {
                 _parms.push_back(ShaderParm(
-                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString().ToStdString() : "",
+                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString().ToStdString() : "",
                     ShaderParmType::SHADER_PARM_LONG,
                     (double)(inputs[i].HasMember("MIN") ? std::strtol(inputs[i]["MIN"].AsString().ToStdString().c_str(), nullptr, 10) : 0.0),
                     (double)(inputs[i].HasMember("MAX") ? std::strtol(inputs[i]["MAX"].AsString().ToStdString().c_str(), nullptr, 10) : 1.0),
                     (double)(inputs[i].HasMember("DEFAULT") ? std::strtol(inputs[i]["DEFAULT"].AsString().ToStdString().c_str(), nullptr, 10) : 0.0)));
             } else if (inputs[i].HasMember("LABELS") && inputs[i].HasMember("VALUES")) {
                 _parms.push_back(ShaderParm(
-                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                    inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString().ToStdString() : "",
+                    inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString().ToStdString() : "",
                     ShaderParmType::SHADER_PARM_LONGCHOICE,
                     0.0,
                     0.0,
@@ -1717,29 +1716,29 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                 auto vs = inputs[i]["VALUES"];
                 int no = std::min(ls.Size(), vs.Size());
                 for (int i = 0; i < no; i++) {
-                    _parms.back()._valueOptions[vs[i].AsInt()] = SafeValueOption(ls[i].AsString());
+                    _parms.back()._valueOptions[vs[i].AsInt()] = SafeValueOption(ls[i].AsString().ToStdString());
                 }
             } else {
                 wxASSERT(false);
             }
         } else if (type == "color") {
             _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString().ToStdString() : "",
+                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString().ToStdString() : "",
                 ShaderParmType::SHADER_PARM_COLOUR));
         } else if (type == "audio") {
             _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString().ToStdString() : "",
+                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString().ToStdString() : "",
                 ShaderParmType::SHADER_PARM_AUDIO));
         } else if (type == "bool") {
             _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString().ToStdString() : "",
+                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString().ToStdString() : "",
                 ShaderParmType::SHADER_PARM_BOOL,
                 0.0,
                 0.0,
-                (double)(inputs[i].HasMember("DEFAULT") ? std::strtod(SafeFloat(inputs[i]["DEFAULT"].AsString()).c_str(), nullptr) : 0.0f)));
+                (double)(inputs[i].HasMember("DEFAULT") ? std::strtod(SafeFloat(inputs[i]["DEFAULT"].AsString().ToStdString()).c_str(), nullptr) : 0.0f)));
         } else if (type == "point2D") {
             wxRealPoint minPt = wxRealPoint(
                 inputs[i].HasMember("MIN") ? (inputs[i]["MIN"][0].IsDouble() ? inputs[i]["MIN"][0].AsDouble() : inputs[i]["MIN"][0].AsInt()) : 0.0f,
@@ -1751,8 +1750,8 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                 inputs[i].HasMember("DEFAULT") ? (inputs[i]["DEFAULT"][0].IsDouble() ? inputs[i]["DEFAULT"][0].AsDouble() : inputs[i]["DEFAULT"][0].AsInt()) : 0.0f,
                 inputs[i].HasMember("DEFAULT") ? (inputs[i]["DEFAULT"][1].IsDouble() ? inputs[i]["DEFAULT"][1].AsDouble() : inputs[i]["DEFAULT"][1].AsInt()) : 0.0f);
             _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString().ToStdString() : "",
+                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString().ToStdString() : "",
                 ShaderParmType::SHADER_PARM_POINT2D,
                 minPt,
                 maxPt,
@@ -1768,13 +1767,13 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
             //        0.0
             //    });
             if (inputs[i].HasMember("NAME")) {
-                canvasImgName = inputs[i]["NAME"].AsString();
+                canvasImgName = inputs[i]["NAME"].AsString().ToStdString();
                 //_canvasMode = true;
             }
         } else if (type == "audioFFT") {
             if (inputs[i].HasMember("NAME")) {
-                audioFFTName = inputs[i]["NAME"].AsString();
-                logger_base.info("ShaderEffect - found audioFFT shader with name '%s'", static_cast<const char*>(audioFFTName.c_str()));
+                audioFFTName = inputs[i]["NAME"].AsString().ToStdString();
+                logger_base.info("ShaderEffect - found audioFFT shader with name '%s'", audioFFTName.c_str());
             }
         } else if (type == "text") {
             // ignore these
@@ -1784,8 +1783,8 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         } else if (type == "event") {
             // ignore these
             _parms.push_back(ShaderParm(
-                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
-                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
+                inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString().ToStdString() : "",
+                inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString().ToStdString() : "",
                 ShaderParmType::SHADER_PARM_EVENT,
                 0.0,
                 0.0,
@@ -1802,19 +1801,19 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                 }
             }
         } else {
-            logger_base.warn("Unknown type parsing shader JSON : %s.", (const char*)type.c_str());
+            logger_base.warn("Unknown type parsing shader JSON : %s.", type.c_str());
             wxASSERT(false);
         }
     }
     wxJSONValue passes = root["PASSES"];
     for (int i = 0; i < passes.Size(); i++) {
-        _passes.push_back({ inputs[i].HasMember("TARGET") ? inputs[i]["TARGET"].AsString() : "",
+        _passes.push_back({ inputs[i].HasMember("TARGET") ? inputs[i]["TARGET"].AsString().ToStdString() : "",
                             passes[i].HasMember("PERSISTENT") ? passes[i]["PERSISTENT"].AsString() == "true" : false });
     }
 
     // The shader code needs declarations for the uniforms that we silently set with each call to Render()
     // and the uniforms that correspond to user-visible settings
-    wxString prependText = _(
+    std::string prependText =
         "uniform float TIME;\n"
         "uniform float TIMEDELTA;\n"
         "uniform vec2 RENDERSIZE;\n"
@@ -1836,37 +1835,31 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         "out vec4 fragmentColor;\n"
         "uniform vec4 DATE;\n\n"
         "// USE THIS IN PUBLIC SHADERS FOR CODE WHICH ONLY RUNS IN XLIGHTS\n"
-        "#define XL_SHADER\n\n");
+        "#define XL_SHADER\n\n";
 
     for (const auto& p : _parms) {
-        wxString name(p._name);
-        wxString str;
+        const std::string& name = p._name;
         switch (p._type) {
         case ShaderParmType::SHADER_PARM_FLOAT: {
-            str = wxString::Format("uniform float %s;\n", name);
-            prependText += str;
+            prependText += std::format("uniform float {};\n", name);
             break;
         }
         case ShaderParmType::SHADER_PARM_BOOL:
         case ShaderParmType::SHADER_PARM_EVENT: {
-            str = wxString::Format("uniform bool %s;\n", name);
-            prependText += str;
+            prependText += std::format("uniform bool {};\n", name);
             break;
         }
         case ShaderParmType::SHADER_PARM_LONG:
         case ShaderParmType::SHADER_PARM_LONGCHOICE: {
-            str = wxString::Format("uniform int %s;\n", name);
-            prependText += str;
+            prependText += std::format("uniform int {};\n", name);
             break;
         }
         case ShaderParmType::SHADER_PARM_POINT2D: {
-            str = wxString::Format("uniform vec2 %s;\n", name);
-            prependText += str;
+            prependText += std::format("uniform vec2 {};\n", name);
             break;
         }
         case ShaderParmType::SHADER_PARM_COLOUR: {
-            str = wxString::Format("uniform vec4 %s;\n", name);
-            prependText += str;
+            prependText += std::format("uniform vec4 {};\n", name);
             break;
         }
         default: {
@@ -1875,19 +1868,19 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         }
     }
 
-    prependText += _("vec4 IMG_NORM_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord* pct);\n}\n\n");
-    prependText += _("vec4 IMG_NORM_PIXEL(sampler2D sampler, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord);\n}\n\n");
-    prependText += _("vec4 IMG_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_2D(sampler, pct, loc / RENDERSIZE);\n}\n\n");
-    prependText += _("vec4 IMG_PIXEL(sampler2D sampler, vec2 loc) {\n   return texture(sampler, loc / RENDERSIZE);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_PIXEL(sampler2D sampler) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_NORM_PIXEL(sampler2D sampler) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_2D(sampler, pct);\n}\n\n");
-    prependText += _("vec4 IMG_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n");
-    prependText += _("vec4 IMG_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_RECT(sampler, pct, loc / RENDERSIZE);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n");
-    prependText += _("vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_RECT(sampler, pct);\n}\n\n");
-    prependText += _("ivec2 IMG_SIZE(sampler2D sampler) {\n   return textureSize(sampler, 0);\n}\n\n");
+    prependText += "vec4 IMG_NORM_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord* pct);\n}\n\n";
+    prependText += "vec4 IMG_NORM_PIXEL(sampler2D sampler, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord);\n}\n\n";
+    prependText += "vec4 IMG_PIXEL_2D(sampler2D sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_2D(sampler, pct, loc / RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_PIXEL(sampler2D sampler, vec2 loc) {\n   return texture(sampler, loc / RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_THIS_PIXEL(sampler2D sampler) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n";
+    prependText += "vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n";
+    prependText += "vec4 IMG_THIS_NORM_PIXEL(sampler2D sampler) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n";
+    prependText += "vec4 IMG_THIS_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_2D(sampler, pct);\n}\n\n";
+    prependText += "vec4 IMG_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_RECT(sampler, pct, loc / RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
+    prependText += "vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_RECT(sampler, pct);\n}\n\n";
+    prependText += "ivec2 IMG_SIZE(sampler2D sampler) {\n   return textureSize(sampler, 0);\n}\n\n";
 
 #ifdef __DEBUG
     int i = 0;
@@ -1901,31 +1894,30 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
     }
 #endif
 
-    wxUniChar ch133(133);
-    wxString shaderCode = wxString(code.mb_str(wxConvUTF8));
-    for (int x = 0; x < shaderCode.size(); x++) {
-        if (shaderCode[x] == ch133) {
-            shaderCode[x] = '.';
+    std::string shaderCode = code;
+    for (char& c : shaderCode) {
+        if ((unsigned char)c == 133) {
+            c = '.';
         }
     }
-    int pos = shaderCode.Find("*/");
-    if (pos > 0) {
+    auto pos = shaderCode.find("*/");
+    if (pos != std::string::npos && pos > 0) {
         shaderCode = shaderCode.substr(pos + 2);
     }
-    shaderCode.Replace("gl_FragColor", "fragmentColor");
-    shaderCode.Replace("vv_FragNormCoord", "xl_FragNormCoord");
-    shaderCode.Replace("isf_FragNormCoord", "xl_FragNormCoord");
-    shaderCode.Replace("isf_FragCoord", "xl_FragCoord");
-    shaderCode.Replace("gl_FragCoord", "xl_FragCoord");
-    shaderCode.Replace("gl_FragNormCoord", "xl_FragNormCoord");
-    shaderCode.Replace("varying ", "uniform ");
-    shaderCode.Replace("texture2D(", "texture(");
-    shaderCode.Replace("texture2D (", "texture(");
+    Replace(shaderCode, "gl_FragColor", "fragmentColor");
+    Replace(shaderCode, "vv_FragNormCoord", "xl_FragNormCoord");
+    Replace(shaderCode, "isf_FragNormCoord", "xl_FragNormCoord");
+    Replace(shaderCode, "isf_FragCoord", "xl_FragCoord");
+    Replace(shaderCode, "gl_FragCoord", "xl_FragCoord");
+    Replace(shaderCode, "gl_FragNormCoord", "xl_FragNormCoord");
+    Replace(shaderCode, "varying ", "uniform ");
+    Replace(shaderCode, "texture2D(", "texture(");
+    Replace(shaderCode, "texture2D (", "texture(");
     if (!audioFFTName.empty()) {
-        shaderCode.Replace(audioFFTName, "texSampler");
+        Replace(shaderCode, audioFFTName, "texSampler");
         _audioFFTMode = true;
     } else if (!canvasImgName.empty()) {
-        shaderCode.Replace(canvasImgName, "texSampler");
+        Replace(shaderCode, canvasImgName, "texSampler");
         _canvasMode = true;
     }
 
@@ -1941,8 +1933,8 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
         _code += "\n";
         shaderCode = shaderCode.substr(nidx);
     }
-    _code += prependText.ToStdString();
-    _code += shaderCode.ToStdString();
+    _code += prependText;
+    _code += shaderCode;
     wxASSERT(_code != "");
 #if 0
     std::ofstream s("C:\\Temp\\shader.txt");

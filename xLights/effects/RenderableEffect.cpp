@@ -11,6 +11,7 @@
 #include "RenderableEffect.h"
 
 #include <cstdlib>
+#include <format>
 
 #include "../sequencer/Effect.h"
 #include "EffectManager.h"
@@ -175,7 +176,7 @@ static wxString GetEffectStringFromWindow(wxWindow *ParentWin) {
         wxString AttrName = "E_" + ChildName.Mid(3);
         if (ChildName.StartsWith("ID_SLIDER")) {
             wxSlider* ctrl=(wxSlider*)ChildWin;
-            s += AttrName+ "=" + wxString::Format("%d",ctrl->GetValue()) + ",";
+            s += AttrName+ "=" + wxString(std::format("{}", ctrl->GetValue())) + ",";
         } else if (ChildName.StartsWith("ID_VALUECURVE")) {
             ValueCurveButton* ctrl = (ValueCurveButton*)ChildWin;
             if (ctrl->GetValue()->IsActive()) {
@@ -190,7 +191,7 @@ static wxString GetEffectStringFromWindow(wxWindow *ParentWin) {
         } else if (ChildName.StartsWith("ID_SPINCTRL")) {
 			wxSpinCtrl* ctrl = (wxSpinCtrl*)ChildWin;
 			int i = ctrl->GetValue();
-			s += AttrName + "=" + wxString::Format(wxT("%i"), i) + ",";
+			s += AttrName + "=" + wxString(std::format("{}", i)) + ",";
 		} else if (ChildName.StartsWith("ID_CHOICE")) {
             wxChoice* ctrl=(wxChoice*)ChildWin;
             s += AttrName + "=" + ctrl->GetStringSelection() + ",";
@@ -276,8 +277,8 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
     if (IsVersionOlder("2019.61", version)) {
         SettingsMap& sm = effect->GetSettings();
 
-        wxString rzRotations = sm.Get("B_VALUECURVE_Rotations", "");
-        if (rzRotations.Contains("VALUECURVE") && !rzRotations.Contains("RV=TRUE"))
+        std::string rzRotations = sm.Get("B_VALUECURVE_Rotations", "");
+        if (Contains(rzRotations, "VALUECURVE") && !Contains(rzRotations, "RV=TRUE"))
         {
             ValueCurve vc;
             vc.SetLimits(0, 200);
@@ -287,8 +288,8 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
             wxASSERT(vc.IsRealValue());
         }
 
-        wxString rzZoom = sm.Get("B_VALUECURVE_Zoom", "");
-        if (rzZoom.Contains("VALUECURVE") && !rzZoom.Contains("RV=TRUE"))
+        std::string rzZoom = sm.Get("B_VALUECURVE_Zoom", "");
+        if (Contains(rzZoom, "VALUECURVE") && !Contains(rzZoom, "RV=TRUE"))
         {
             ValueCurve vc;
             vc.SetLimits(0, 30);
@@ -302,15 +303,13 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
         {
             // Try to fix value curve issues
             for (auto s : sm.keys()) {
-                wxString f(s);
                 std::string vs = sm[s];
-                wxString v(vs);
-                if (f.Contains("VALUECURVE") && !f.Contains("RV=TRUE")) {
-                    ValueCurve vc(v);
+                if (Contains(s, "VALUECURVE") && !Contains(s, "RV=TRUE")) {
+                    ValueCurve vc(vs);
                     sm[s] = vc.Serialise();
                 }
 
-                if (v.Contains("ID_VALUECURVE_Blur"))
+                if (Contains(vs, "ID_VALUECURVE_Blur"))
                 {
                     ValueCurve vc;
                     vc.SetLimits(BLUR_MIN, BLUR_MAX);
@@ -319,7 +318,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
                     sm[s] = vc.Serialise();
                     wxASSERT(vc.IsRealValue());
                 }
-                else if (v.Contains("ID_VALUECURVE_Fan_Blade_Angle"))
+                else if (Contains(vs, "ID_VALUECURVE_Fan_Blade_Angle"))
                 {
                     ValueCurve vc;
                     vc.SetLimits(FAN_BLADEANGLE_MIN, FAN_BLADEANGLE_MAX);
@@ -328,7 +327,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
                     sm[s] = vc.Serialise();
                     wxASSERT(vc.IsRealValue());
                 }
-                else if (v.Contains("ID_VALUECURVE_Spirals_Rotation"))
+                else if (Contains(vs, "ID_VALUECURVE_Spirals_Rotation"))
                 {
                     ValueCurve vc;
                     vc.SetLimits(SPIRALS_ROTATION_MIN, SPIRALS_ROTATION_MAX);
@@ -337,7 +336,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
                     sm[s] = vc.Serialise();
                     wxASSERT(vc.IsRealValue());
                 }
-                else if (v.Contains("ID_VALUECURVE_Fan_Start_Angle"))
+                else if (Contains(vs, "ID_VALUECURVE_Fan_Start_Angle"))
                 {
                     ValueCurve vc;
                     vc.SetLimits(FAN_STARTANGLE_MIN, FAN_STARTANGLE_MAX);
@@ -345,7 +344,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
                     sm[s] = vc.Serialise();
                     wxASSERT(vc.IsRealValue());
                 }
-                else if (v.Contains("ID_VALUECURVE_PinwheelXC"))
+                else if (Contains(vs, "ID_VALUECURVE_PinwheelXC"))
                 {
                     ValueCurve vc;
                     vc.SetLimits(PINWHEEL_X_MIN, PINWHEEL_X_MAX);
@@ -353,7 +352,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
                     sm[s] = vc.Serialise();
                     wxASSERT(vc.IsRealValue());
                 }
-                else if (v.Contains("ID_VALUECURVE_PinwheelYC"))
+                else if (Contains(vs, "ID_VALUECURVE_PinwheelYC"))
                 {
                     ValueCurve vc;
                     vc.SetLimits(PINWHEEL_Y_MIN, PINWHEEL_Y_MAX);
@@ -361,7 +360,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
                     sm[s] = vc.Serialise();
                     wxASSERT(vc.IsRealValue());
                 }
-                else if (v.Contains("ID_VALUECURVE_Spirals_Count"))
+                else if (Contains(vs, "ID_VALUECURVE_Spirals_Count"))
                 {
                     ValueCurve vc;
                     vc.SetLimits(SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX);
@@ -373,7 +372,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
 
             if (IsVersionOlder("2018.12", version))
             {
-                wxString layerMethod = sm.Get("T_CHOICE_LayerMethod", "");
+                std::string layerMethod = sm.Get("T_CHOICE_LayerMethod", "");
 
                 if (layerMethod == "Canvas")
                 {
@@ -432,9 +431,9 @@ std::list<std::string> RenderableEffect::CheckEffectSettings(const SettingsMap& 
 {
     std::list<std::string> res;
     if (settings.Get("B_CHOICE_BufferStyle", "").starts_with("** ")) {
-        res.push_back(wxString::Format("    WARN: Effect using legacy buffer format '%s' which will be removed in the future. Model '%s', Start %s", 
-                                       settings.Get("B_CHOICE_BufferStyle", ""), model->GetFullName(),
-                                       FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Effect using legacy buffer format '{}' which will be removed in the future. Model '{}', Start {}",
+                                  settings.Get("B_CHOICE_BufferStyle", ""), model->GetFullName(),
+                                  FORMATTIME(eff->GetStartTimeMS())));
     }
     return res;
 };
@@ -560,7 +559,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                     int maxState = totalTime * speed / 50;
                     cycles = maxState / 200;
                 }
-                settings["E_TEXTCTRL_On_Cycles"] = wxString::Format("%0.2f", cycles);
+                settings["E_TEXTCTRL_On_Cycles"] = std::format("{:.2f}", cycles);
             }
             break;
         case EffectManager::eff_SNOWSTORM:
@@ -638,10 +637,10 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
             if (settings.Get("E_SLIDER_Text_Position1", "") != "") {
                 int pos = std::strtol(settings.Get("E_SLIDER_Text_Position1", "50").c_str(), nullptr, 10) * 2 - 100;
                 settings.erase("E_SLIDER_Text_Position1");
-                settings["E_SLIDER_Text_XStart1"] = wxString::Format("%d", 0);
-                settings["E_SLIDER_Text_YStart1"] = wxString::Format("%d", pos);
-                settings["E_SLIDER_Text_XEnd1"] = wxString::Format("%d", 0);
-                settings["E_SLIDER_Text_YEnd1"] = wxString::Format("%d", pos);
+                settings["E_SLIDER_Text_XStart1"] = std::format("{}", 0);
+                settings["E_SLIDER_Text_YStart1"] = std::format("{}", pos);
+                settings["E_SLIDER_Text_XEnd1"] = std::format("{}", 0);
+                settings["E_SLIDER_Text_YEnd1"] = std::format("{}", pos);
             }
             break;
         case EffectManager::eff_WAVE:
@@ -677,7 +676,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                 {
                     settings["E_CHECKBOX_ColorWash_CircularPalette"] = "1";
                 }
-                settings["E_TEXTCTRL_ColorWash_Cycles"] = wxString::Format("%0.2f", count);
+                settings["E_TEXTCTRL_ColorWash_Cycles"] = std::format("{:.2f}", count);
             }
             break;
         case EffectManager::eff_FIRE:
@@ -691,7 +690,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                     int totalTime = endMS - startMS;
                     double maxState = totalTime * speed / 50;
                     double cycles = maxState / 500.0;
-                    settings["E_TEXTCTRL_Fire_GrowthCycles"] = wxString::Format("%0.2f", cycles);
+                    settings["E_TEXTCTRL_Fire_GrowthCycles"] = std::format("{:.2f}", cycles);
                 }
                 else
                 {
@@ -714,7 +713,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                 {
                     total = 1;
                 }
-                settings["E_SLIDER_Fireworks_Explosions"] = wxString::Format("%d", total);
+                settings["E_SLIDER_Fireworks_Explosions"] = std::format("{}", total);
             }
             break;
         case EffectManager::eff_RIPPLE:
@@ -728,20 +727,20 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                     int maxState = totalTime * speed / 50;
                     cycles = maxState / 200;
                 }
-                settings["E_TEXTCTRL_Ripple_Cycles"] = wxString::Format("%0.2f", cycles);
+                settings["E_TEXTCTRL_Ripple_Cycles"] = std::format("{:.2f}", cycles);
             }
             break;
         case EffectManager::eff_BARS:
             if (settings.Get("E_TEXTCTRL_Bars_Cycles", "") == "")
             {
                 float cycles = 1.0;
-                wxString dir = settings["E_CHOICE_Bars_Direction"];
+                std::string dir = settings["E_CHOICE_Bars_Direction"];
                 if (!ftt)
                 {
                     int speed = std::strtol(settings.Get("T_SLIDER_Speed", "10").c_str(), nullptr, 10);
                     int totalTime = endMS - startMS;
                     int maxState = totalTime * speed / 50;
-                    if (dir.Contains("Altern"))
+                    if (Contains(dir, "Altern"))
                     {
                         cycles = maxState * 2;
                     }
@@ -750,7 +749,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                         cycles = maxState / 200;
                     }
                 }
-                settings["E_TEXTCTRL_Bars_Cycles"] = wxString::Format("%0.2f", cycles);
+                settings["E_TEXTCTRL_Bars_Cycles"] = std::format("{:.2f}", cycles);
             }
             break;
         case EffectManager::eff_SPIRALS:
@@ -766,7 +765,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                     int maxState = totalTime * speed / 50;
                     cycles = maxState / 600;
                 }
-                settings["E_TEXTCTRL_Spirals_Movement"] = wxString::Format("%0.2f", dir * cycles);
+                settings["E_TEXTCTRL_Spirals_Movement"] = std::format("{:.2f}", dir * cycles);
             }
             break;
         case EffectManager::eff_CURTAIN:
@@ -780,7 +779,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                     int maxState = totalTime * speed / 50;
                     cycles = maxState / 200;
                 }
-                settings["E_TEXTCTRL_Curtain_Speed"] = wxString::Format("%0.2f", cycles);
+                settings["E_TEXTCTRL_Curtain_Speed"] = std::format("{:.2f}", cycles);
             }
             break;
         case EffectManager::eff_SINGLESTRAND:
@@ -789,12 +788,12 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                 if (settings.Get("E_SLIDER_Skips_Advance", "") == "")
                 {
                     int speed = std::strtol(settings.Get("T_SLIDER_Speed", "10").c_str(), nullptr, 10);
-                    settings["E_SLIDER_Skips_Advance"] = wxString::Format("%d", speed - 1);
+                    settings["E_SLIDER_Skips_Advance"] = std::format("{}", speed - 1);
                 }
             }
             else
             {
-                wxString type = settings.Get("E_CHOICE_Chase_Type1", "Left-Right");
+                std::string type = settings.Get("E_CHOICE_Chase_Type1", "Left-Right");
                 if (type == "Auto reverse")
                 {
                     type = "Bounce from Left";
@@ -815,7 +814,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                         int maxState = totalTime * speed / 50;
                         cycles = maxState / 250.0;
                     }
-                    settings["E_TEXTCTRL_Chase_Rotations"] = wxString::Format("%0.2f", cycles);
+                    settings["E_TEXTCTRL_Chase_Rotations"] = std::format("{:.2f}", cycles);
                 }
             }
             break;
@@ -827,7 +826,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                 int totalTime = endMS - startMS;
                 int maxState = totalTime * speed / 50;
                 cycles = maxState / (100.0 * colors.size());
-                settings["E_TEXTCTRL_Shimmer_Cycles"] = wxString::Format("%0.2f", cycles);
+                settings["E_TEXTCTRL_Shimmer_Cycles"] = std::format("{:.2f}", cycles);
             }
             break;
         case EffectManager::eff_PICTURES:
@@ -847,7 +846,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                     int totalTime = endMS - startMS;
                     int maxState = totalTime * speed / 50;
                     double cycles = maxState / 300.0;
-                    settings["E_TEXTCTRL_Pictures_Speed"] = wxString::Format("%0.2f", cycles);
+                    settings["E_TEXTCTRL_Pictures_Speed"] = std::format("{:.2f}", cycles);
                 }
 
                 settings.erase("E_CHECKBOX_MovieIs20FPS");

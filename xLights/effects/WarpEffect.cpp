@@ -10,6 +10,7 @@
 
 #include <wx/checkbox.h>
 
+#include <format>
 #include <sstream>
 
 #include "../../include/warp-64.xpm"
@@ -540,7 +541,7 @@ std::list<std::string> WarpEffect::CheckEffectSettings(const SettingsMap& settin
 
     if (settings.Get("T_CHECKBOX_Canvas", "0") == "0")
     {
-        res.push_back(wxString::Format("    WARN: Canvas mode not enabled on a warp effect. Without canvas mode warp won't do anything. Effect: Warp, Model: %s, Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Canvas mode not enabled on a warp effect. Without canvas mode warp won't do anything. Effect: Warp, Model: {}, Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;

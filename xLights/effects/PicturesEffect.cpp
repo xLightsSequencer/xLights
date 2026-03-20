@@ -8,6 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <format>
+
 #include <wx/regex.h>
 #include <wx/tokenzr.h>
 #include <wx/gifdecod.h>
@@ -55,34 +57,34 @@ std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& se
     wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    wxString pictureFilename = settings.Get("E_TEXTCTRL_Pictures_Filename", "");
+    std::string pictureFilename = settings.Get("E_TEXTCTRL_Pictures_Filename", "");
     auto &mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
 
     if (pictureFilename == "" || !mm.HasImage(pictureFilename)) {
-        res.push_back(wxString::Format("    ERR: Picture effect cant find image file '%s'. Model '%s', Start %s", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: Picture effect cant find image file '{}'. Model '{}', Start {}", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     } else {
         auto img = mm.GetImage(pictureFilename);
         if (!img->IsOk()) {
-            res.push_back(wxString::Format("    ERR: Picture effect cant load image '%s'. Model '%s', Start %s", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    ERR: Picture effect cant load image '{}'. Model '{}', Start {}", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
             if (!img->IsEmbedded()) {
-                if (!IsFileInShowDir(xLightsFrame::CurrentDir, pictureFilename.ToStdString())) {
-                    res.push_back(wxString::Format("    WARN: Picture effect image file '%s' not under show directory. Model '%s', Start %s", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                if (!IsFileInShowDir(xLightsFrame::CurrentDir, pictureFilename)) {
+                    res.push_back(std::format("    WARN: Picture effect image file '{}' not under show directory. Model '{}', Start {}", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                 }
             }
             int imageCount = img->GetImageCount();
             if (imageCount <= 0) {
-                res.push_back(wxString::Format("    ERR: Picture effect '%s' contains no images. Image invalid. Model '%s', Start %s", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                res.push_back(std::format("    ERR: Picture effect '{}' contains no images. Image invalid. Model '{}', Start {}", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             }
-            
+
             if (!renderCache) {
                 int ih = img->GetImageSize().GetHeight();
                 int iw = img->GetImageSize().GetWidth();
-                    
+
 #define IMAGESIZETHRESHOLD 10
                 if (ih > IMAGESIZETHRESHOLD * model->GetDefaultBufferHt() || iw > IMAGESIZETHRESHOLD * model->GetDefaultBufferWi()) {
                     float scale = std::max((float)ih / model->GetDefaultBufferHt(), (float)iw / model->GetDefaultBufferWi());
-                    res.push_back(wxString::Format("    WARN: Picture effect image file '%s' is %.1f times the height or width of the model ... xLights is going to need to do lots of work to resize the image. Model '%s', Start %s", pictureFilename, scale, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                    res.push_back(std::format("    WARN: Picture effect image file '{}' is {:.1f} times the height or width of the model ... xLights is going to need to do lots of work to resize the image. Model '{}', Start {}", pictureFilename, scale, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                 }
             }
         }
@@ -158,9 +160,10 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
         }
         std::string NewPictureName = settings["E_TEXTCTRL_Pictures_Filename"];
         wxFileName fn(NewPictureName);
-        wxString suffix = "";
-        if (fn.GetName().Length() >= 2) {
-            suffix = fn.GetName().Right(2);
+        std::string suffix = "";
+        std::string fnName = fn.GetName().ToStdString();
+        if (fnName.length() >= 2) {
+            suffix = fnName.substr(fnName.length() - 2);
         }
         if (suffix == "-1") {// do we have a movie file?
             //  Look at ending of the filename passed in. If we have it ending as *-1.jpg or *-1.png then we will assume
@@ -451,9 +454,10 @@ void PicturesEffect::Render(RenderBuffer& buffer,
     } else {
 
         wxFileName fn(NewPictureName);
-        wxString suffix = "";
-        if (fn.GetName().Length() >= 2) {
-            suffix = fn.GetName().Right(2);
+        std::string suffix = "";
+        std::string fnName = fn.GetName().ToStdString();
+        if (fnName.length() >= 2) {
+            suffix = fnName.substr(fnName.length() - 2);
         }
 
         if (suffix == "-1") {// do we have a movie file?

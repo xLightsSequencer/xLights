@@ -17,6 +17,7 @@
 #include "../UtilClasses.h"
 #include "../../include/ColorWash.xpm"
 
+#include <format>
 #include <sstream>
 
 static const std::string CHECKBOX_ColorWash_HFade("CHECKBOX_ColorWash_HFade");
@@ -121,7 +122,7 @@ void ColorWashEffect::adjustSettings(const std::string &version, Effect *effect,
             || std::abs(y1) > 0.001f
             || std::abs(100.0f - x2) > 0.001f
             || std::abs(100.0f - y2) > 0.001f) {
-            std::string val = wxString::Format("%.2fx%.2fx%.2fx%.2f", x1, y1, x2, y2).ToStdString();
+            std::string val = std::format("{:.2f}x{:.2f}x{:.2f}x{:.2f}", x1, y1, x2, y2);
             effect->GetSettings()["B_CUSTOM_SubBuffer"] = val;
         }
     }

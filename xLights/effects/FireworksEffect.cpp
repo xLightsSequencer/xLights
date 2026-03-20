@@ -11,6 +11,8 @@
 #include "FireworksEffect.h"
 #include "FireworksPanel.h"
 
+#include <format>
+
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
@@ -40,10 +42,10 @@ std::list<std::string> FireworksEffect::CheckEffectSettings(const SettingsMap& s
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Fireworks_UseMusic", false)) {
-        res.push_back(wxString::Format("    ERR: Fireworks effect cant grow to music if there is no music. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: Fireworks effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
     if (settings.GetBool("E_CHECKBOX_FIRETIMING", false) && settings.Get("E_CHOICE_FIRETIMINGTRACK","") == "") {
-        res.push_back(wxString::Format("    ERR: Fireworks effect is meant to fire with timing track but no timing track selected. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    ERR: Fireworks effect is meant to fire with timing track but no timing track selected. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
@@ -272,11 +274,11 @@ void FireworksEffect::adjustSettings(const std::string &version, Effect *effect,
 
 void FireworksEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
 {
-    wxString timing = effect->GetSettings().Get("E_CHOICE_FIRETIMINGTRACK", "");
+    std::string timing = effect->GetSettings().Get("E_CHOICE_FIRETIMINGTRACK", "");
 
-    if (timing.ToStdString() == oldname)
+    if (timing == oldname)
     {
-        effect->GetSettings()["E_CHOICE_FIRETIMINGTRACK"] = wxString(newname);
+        effect->GetSettings()["E_CHOICE_FIRETIMINGTRACK"] = newname;
     }
 
     SetPanelTimingTracks();
@@ -348,7 +350,7 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     bool useMusic = SettingsMap.GetBool("CHECKBOX_Fireworks_UseMusic", false);
     float sensitivity = static_cast<float>(SettingsMap.GetInt("SLIDER_Fireworks_Sensitivity", 50)) / 100.0;
     bool useTiming = SettingsMap.GetBool("CHECKBOX_FIRETIMING", false);
-    wxString timing = SettingsMap.Get("CHOICE_FIRETIMINGTRACK", "");
+    std::string timing = SettingsMap.Get("CHOICE_FIRETIMINGTRACK", "");
     if (timing == "")
     {
         useTiming = false;
@@ -388,7 +390,7 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
 
         if (timing != "")
         {
-            effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->AddRenderDependency(timing.ToStdString(), buffer.cur_model);
+            effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->AddRenderDependency(timing, buffer.cur_model);
         }
     }
 

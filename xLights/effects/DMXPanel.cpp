@@ -25,6 +25,8 @@
 
 #include <wx/textentry.h>
 
+#include <format>
+
 #include "DMXPanel.h"
 #include "DMXEffect.h"
 #include "../xLightsMain.h"
@@ -1027,13 +1029,13 @@ void DMXPanel::OnButtonRemapClick(wxCommandEvent& event)
         // save the current values
         for (int i = 0; i < DMX_CHANNELS; i++)
         {
-            wxString slider_ctrl = wxString::Format("ID_SLIDER_DMX%d", i+1);
+            std::string slider_ctrl = std::format("ID_SLIDER_DMX{}", i+1);
             wxSlider* slider = (wxSlider*)(this->FindWindowByName(slider_ctrl));
             wxASSERT(slider != nullptr);
-            wxString vc_ctrl = wxString::Format("ID_VALUECURVE_DMX%d", i+1);
+            std::string vc_ctrl = std::format("ID_VALUECURVE_DMX{}", i+1);
             ValueCurveButton* curve = (ValueCurveButton*)(this->FindWindowByName(vc_ctrl));
             wxASSERT(curve != nullptr);
-            wxString ckbx_ctrl = wxString::Format("ID_CHECKBOX_INVDMX%d", i + 1);
+            std::string ckbx_ctrl = std::format("ID_CHECKBOX_INVDMX{}", i + 1);
             wxCheckBox* check_box = (wxCheckBox*)(this->FindWindowByName(ckbx_ctrl));
             wxASSERT(check_box != nullptr);
             sliders[i] = slider->GetValue();
@@ -1047,17 +1049,17 @@ void DMXPanel::OnButtonRemapClick(wxCommandEvent& event)
             {
                 int from = i;
                 int to = dlg.GetToChannel(i);
-                wxString slider_ctrl = wxString::Format("ID_SLIDER_DMX%d", to);
+                std::string slider_ctrl = std::format("ID_SLIDER_DMX{}", to);
                 wxSlider* slider = (wxSlider*)(this->FindWindowByName(slider_ctrl));
                 wxASSERT(slider != nullptr);
-                wxString vc_ctrl = wxString::Format("ID_VALUECURVE_DMX%d", to);
+                std::string vc_ctrl = std::format("ID_VALUECURVE_DMX{}", to);
                 ValueCurveButton* curve = (ValueCurveButton*)(this->FindWindowByName(vc_ctrl));
                 wxASSERT(curve != nullptr);
-                wxString text_ctrl = wxString::Format("IDD_TEXTCTRL_DMX%d", to);
+                std::string text_ctrl = std::format("IDD_TEXTCTRL_DMX{}", to);
                 wxTextCtrl* text = (wxTextCtrl*)(this->FindWindowByName(text_ctrl));
                 wxASSERT(text != nullptr);
 
-                wxString check_ctrl = wxString::Format("ID_CHECKBOX_INVDMX%d", to);
+                std::string check_ctrl = std::format("ID_CHECKBOX_INVDMX{}", to);
                 wxCheckBox* check_box = (wxCheckBox*)(this->FindWindowByName(check_ctrl));
                 wxASSERT(check_box != nullptr);
 
@@ -1072,7 +1074,7 @@ void DMXPanel::OnButtonRemapClick(wxCommandEvent& event)
                     checks[from] = false;
                 }
 
-                text->SetValue(wxString::Format("%d", new_value));
+                text->SetValue(wxString(std::format("{}", new_value)));
                 slider->SetValue(new_value);
                 check_box->SetValue(checks[from]);
                 curve->GetValue()->Deserialise(curves[from]);
@@ -1145,7 +1147,7 @@ void DMXPanel::ValidateWindow()
 
 	for (int i = 0; i < DMX_CHANNELS && !vc; i++)
     {
-        wxString vc_ctrl = wxString::Format("ID_VALUECURVE_DMX%d", i+1);
+        std::string vc_ctrl = std::format("ID_VALUECURVE_DMX{}", i+1);
         ValueCurveButton* curve = (ValueCurveButton*)(this->FindWindowByName(vc_ctrl));
         wxASSERT(curve != nullptr);
         if (curve->GetValue()->IsActive())
@@ -1242,12 +1244,12 @@ void DMXPanel::OnButton_SaveAsStateClick(wxCommandEvent& event)
 	for (uint32_t i = 0; i < DMX_CHANNELS; i++) {
 		if (i < maxChannels) {
 			// Set s#-Name attribute
-			auto attrName = wxString::Format("s%d-Name", i + 1);
-			attributes[attrName.ToStdString()] = stateName;
-			
+			auto attrName = std::format("s{}-Name", i + 1);
+			attributes[attrName] = stateName;
+
 			// Set s# attribute (node label)
-			auto attrNode = wxString::Format("s%d", i + 1);
-			wxString label_ctrl = wxString::Format("ID_STATICTEXT_DMX%d", i + 1);
+			auto attrNode = std::format("s{}", i + 1);
+			std::string label_ctrl = std::format("ID_STATICTEXT_DMX{}", i + 1);
 			wxStaticText* label = (wxStaticText*)(this->FindWindowByName(label_ctrl));
 			wxASSERT(label != nullptr);
 
@@ -1255,27 +1257,27 @@ void DMXPanel::OnButton_SaveAsStateClick(wxCommandEvent& event)
 			l = l.substr(0, l.size() - 1); // remove the :
 
 			if (StartsWith(l, "Channel")) {
-				l = wxString::Format("Node %d", i + 1);
+				l = wxString(std::format("Node {}", i + 1));
 			}
-			attributes[attrNode.ToStdString()] = l.ToStdString();
+			attributes[attrNode] = l.ToStdString();
 
 			// Set s#-Color attribute
-			auto attrColor = wxString::Format("s%d-Color", i + 1);
-			wxString slider_ctrl = wxString::Format("ID_SLIDER_DMX%d", i+1);
+			auto attrColor = std::format("s{}-Color", i + 1);
+			std::string slider_ctrl = std::format("ID_SLIDER_DMX{}", i+1);
 			wxSlider* slider = (wxSlider*)(this->FindWindowByName(slider_ctrl));
 			wxASSERT(slider != nullptr);
 
-			auto val = wxString::Format("#%02x%02x%02x", slider->GetValue(), slider->GetValue(), slider->GetValue());
-			attributes[attrColor.ToStdString()] = val.ToStdString();
+			auto val = std::format("#{:02x}{:02x}{:02x}", slider->GetValue(), slider->GetValue(), slider->GetValue());
+			attributes[attrColor] = val;
 		}
 		else {
 			// Set empty attributes for unused channels
-			auto attrName = wxString::Format("s%d-Name", i + 1);
-			attributes[attrName.ToStdString()] = "";
-			auto attrNode = wxString::Format("s%d", i + 1);
-			attributes[attrNode.ToStdString()] = "";
-			auto attrColor = wxString::Format("s%d-Color", i + 1);
-			attributes[attrColor.ToStdString()] = "";
+			auto attrName = std::format("s{}-Name", i + 1);
+			attributes[attrName] = "";
+			auto attrNode = std::format("s{}", i + 1);
+			attributes[attrNode] = "";
+			auto attrColor = std::format("s{}-Color", i + 1);
+			attributes[attrColor] = "";
 		}
 	}
 
@@ -1318,19 +1320,19 @@ void DMXPanel::OnButton_Load_StateClick(wxCommandEvent& event)
     }
 
     for (size_t i = 0; i < maxChannels; ++i) {
-        auto attr = wxString::Format("s%d-Name", (int)i + 1);
+        auto attr = std::format("s{}-Name", (int)i + 1);
         if (states.count(attr) != 0) {
-            auto colattr = wxString::Format("s%d-Color", (int)i + 1);
+            auto colattr = std::format("s{}-Color", (int)i + 1);
             xlColor dmxValue(states[colattr]);
-            wxString slider_ctrl = wxString::Format("ID_SLIDER_DMX%d", (int)i + 1);
+            std::string slider_ctrl = std::format("ID_SLIDER_DMX{}", (int)i + 1);
             wxSlider* slider = (wxSlider*)(this->FindWindowByName(slider_ctrl));
             wxASSERT(slider != nullptr);
             slider->SetValue(dmxValue.red);
 
-            wxString text_ctrl = wxString::Format("IDD_TEXTCTRL_DMX%d", (int)i + 1);
+            std::string text_ctrl = std::format("IDD_TEXTCTRL_DMX{}", (int)i + 1);
             wxTextCtrl* text = (wxTextCtrl*)(this->FindWindowByName(text_ctrl));
             wxASSERT(text != nullptr);
-            text->SetValue(wxString::Format("%d", dmxValue.red));
+            text->SetValue(wxString(std::format("{}", dmxValue.red)));
         }
     }
     FireChangeEvent();

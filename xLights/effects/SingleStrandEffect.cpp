@@ -57,7 +57,7 @@ int mapX(int x, int max, int direction, int &second) {
     return -1;
 }
 
-int mapDirection(const wxString & d) {
+int mapDirection(const std::string& d) {
     if ("Left" == d) {
         return 1;
     }
@@ -162,8 +162,8 @@ void SingleStrandEffect::adjustSettings(const std::string& version, Effect* effe
     }
     if (IsVersionOlder("2021.40", version)) {
         SettingsMap& sm = effect->GetSettings();
-        wxString rzRotations = sm.Get("E_VALUECURVE_Chase_Rotations", "");
-        if (rzRotations.Contains("VALUECURVE") && !rzRotations.Contains("RV=TRUE")) {
+        std::string rzRotations = sm.Get("E_VALUECURVE_Chase_Rotations", "");
+        if (Contains(rzRotations, "VALUECURVE") && !Contains(rzRotations, "RV=TRUE")) {
             ValueCurve vc;
             vc.SetLimits(1, 500);
             vc.Deserialise(rzRotations);

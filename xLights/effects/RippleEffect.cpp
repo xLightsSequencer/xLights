@@ -13,6 +13,8 @@
 
 #include "../utils/string_utils.h"
 
+#include <format>
+
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
@@ -1691,10 +1693,10 @@ std::list<std::string> RippleEffect::CheckEffectSettings(const SettingsMap& sett
     if (object == "SVG") {
         auto svgFilename = settings.Get("E_FILEPICKERCTRL_Ripple_SVG", "");
         if (svgFilename == "" || !FileExists(svgFilename)) {
-            res.push_back(wxString::Format("    ERR: Ripple effect can't find SVG file '%s'. Model '%s', Start %s", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    ERR: Ripple effect can't find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
             if (!IsFileInShowDir(xLightsFrame::CurrentDir, svgFilename)) {
-                res.push_back(wxString::Format("    WARN: Ripple effect SVG file '%s' not under show directory. Model '%s', Start %s", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                res.push_back(std::format("    WARN: Ripple effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             }
         }
     }
@@ -1732,8 +1734,8 @@ void RippleEffect::adjustSettings(const std::string& version, Effect* effect, bo
     /*
     SettingsMap& settings = effect->GetSettings();
 
-    wxString rr = settings.Get("E_VALUECURVE_Ripple_Rotation", "");
-    if (rr.Contains("Active=TRUE")) {
+    std::string rr = settings.Get("E_VALUECURVE_Ripple_Rotation", "");
+    if (Contains(rr, "Active=TRUE")) {
         // For some reason, the current VC code will expand the values through the whole range
         //   and will have already done so by the time it reaches here... 
         // It's already too late to get the original min/max.  A ramp from 0 - 360 is now already -360 - 360.

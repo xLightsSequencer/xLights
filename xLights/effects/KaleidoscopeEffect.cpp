@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <sstream>
+#include <format>
 
 #include "../../include/kaleidoscope-64.xpm"
 #include "../../include/kaleidoscope-48.xpm"
@@ -48,7 +48,7 @@ std::list<std::string> KaleidoscopeEffect::CheckEffectSettings(const SettingsMap
 
     if (settings.Get("T_CHECKBOX_Canvas", "0") == "0")
     {
-        res.push_back(wxString::Format("    WARN: Canvas mode not enabled on a Kaleidoscope effect. Without canvas mode Kaleidoscope won't do anything. Effect: Kaleidoscope, Model: %s, Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(std::format("    WARN: Canvas mode not enabled on a Kaleidoscope effect. Without canvas mode Kaleidoscope won't do anything. Effect: Kaleidoscope, Model: {}, Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
@@ -345,7 +345,7 @@ void DumpUsed(const std::vector<std::vector<bool>>& current, int width, int heig
         for (int x = 0; x < width; x++)
         {
             bool b = current[x][y];
-            row += wxString::Format(" %d", (int)b);
+            row += std::format(" {}", (int)b);
         }
         logger_base.debug(row);
     }

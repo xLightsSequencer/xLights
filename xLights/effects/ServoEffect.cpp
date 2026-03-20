@@ -17,6 +17,8 @@
 #include "ServoEffect.h"
 #include "ServoPanel.h"
 #include "../utils/string_utils.h"
+
+#include <format>
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
@@ -112,21 +114,21 @@ std::list<std::string> ServoEffect::CheckEffectSettings(const SettingsMap& setti
 
     bool useTiming = settings.GetBool("E_CHECKBOX_Timing_Track");
     if (useTiming) {
-        wxString timing = settings.Get("E_CHOICE_Servo_TimingTrack", "");
+        std::string timing = settings.Get("E_CHOICE_Servo_TimingTrack", "");
         if (timing == "") {
-            res.push_back(wxString::Format("    ERR: Servo effect with no timing selected. Model '%s', Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    ERR: Servo effect with no timing selected. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else if (timing != "" && GetTiming(timing) == nullptr) {
-            res.push_back(wxString::Format("    ERR: Servo effect with unknown timing (%s) selected. Model '%s', Start %s", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(std::format("    ERR: Servo effect with unknown timing ({}) selected. Model '{}', Start {}", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
     return res;
 }
 
 void ServoEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) {
-    wxString timing = effect->GetSettings().Get("E_CHOICE_Servo_TimingTrack", "");
+    std::string timing = effect->GetSettings().Get("E_CHOICE_Servo_TimingTrack", "");
 
-    if (timing.ToStdString() == oldname) {
-        effect->GetSettings()["E_CHOICE_Servo_TimingTrack"] = wxString(newname);
+    if (timing == oldname) {
+        effect->GetSettings()["E_CHOICE_Servo_TimingTrack"] = newname;
     }
 }
 
@@ -339,7 +341,7 @@ void ServoEffect::SetPanelStatus(Model* cls) {
 
     int num_channels = m->GetNumChannels();
 
-    wxString choice_ctrl = "ID_CHOICE_Channel";
+    std::string choice_ctrl = "ID_CHOICE_Channel";
     wxChoice* choice = (wxChoice*)(p->FindWindowByName(choice_ctrl));
 
     if (choice != nullptr) {
@@ -357,7 +359,7 @@ void ServoEffect::SetPanelStatus(Model* cls) {
 }
 
 int ServoEffect::GetPhonemeValue(RenderBuffer& buffer, SequenceElements* elements, const std::string& trackName) {
-    static const std::map<wxString, int> phonemeMap = {
+    static const std::map<std::string, int> phonemeMap = {
         { "AI", 90 },
         { "E", 70 },
         { "FV", 20 },
@@ -393,11 +395,10 @@ int ServoEffect::GetPhonemeValue(RenderBuffer& buffer, SequenceElements* element
         }
     }
 
-    wxString pp = phoneme;
-    std::string p = pp.BeforeFirst('-');
-    // bool shimmer = pp.Lower().EndsWith("-shimmer");
+    std::string p = BeforeFirst(phoneme, '-');
+    // bool shimmer = Lower(phoneme).ends_with("-shimmer");
 
-    std::map<wxString, int>::const_iterator it = phonemeMap.find(p);
+    std::map<std::string, int>::const_iterator it = phonemeMap.find(p);
     int PhonemeInt = 0;
     if (it != phonemeMap.end()) {
         PhonemeInt = it->second;
