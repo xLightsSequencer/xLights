@@ -95,22 +95,18 @@ int WreathModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         parm1 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
         //AdjustStringProperties(grid, parm1);
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WreathModel::OnPropertyGridChange::WreathStringCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WreathModel::OnPropertyGridChange::WreathStringCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WreathModel::OnPropertyGridChange::WreathStringCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "WreathModel::OnPropertyGridChange::WreathStringCount");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "WreathModel::OnPropertyGridChange::WreathStringCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "WreathModel::OnPropertyGridChange::WreathStringCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
+                    OutputModelManager::WORK_RELOAD_MODELLIST |
+                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "WreathModel::OnPropertyGridChange::WreathStringCount");
         return 0;
     } else if ("WreathLightCount" == event.GetPropertyName()) {
         parm2 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WreathModel::OnPropertyGridChange::WreathLightCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WreathModel::OnPropertyGridChange::WreathLightCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WreathModel::OnPropertyGridChange::WreathLightCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "WreathModel::OnPropertyGridChange::WreathLightCount");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "WreathModel::OnPropertyGridChange::WreathLightCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "WreathModel::OnPropertyGridChange::WreathLightCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
+                    OutputModelManager::WORK_RELOAD_MODELLIST |
+                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "WreathModel::OnPropertyGridChange::WreathLightCount");
         return 0;
     } else if ("WreathStart" == event.GetPropertyName()) {
         long val = event.GetValue().GetLong();
@@ -119,10 +115,7 @@ int WreathModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         SetIsLtoR(val == 0 || val == 2);
         SetIsBtoT(val >= 2);
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WreathModel::OnPropertyGridChange::WreathStart");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WreathModel::OnPropertyGridChange::WreathStart");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WreathModel::OnPropertyGridChange::WreathStart");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "WreathModel::OnPropertyGridChange::WreathStart");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "WreathModel::OnPropertyGridChange::WreathStart");
         return 0;
     }
 

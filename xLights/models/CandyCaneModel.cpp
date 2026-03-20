@@ -105,10 +105,8 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
     if ("CandyCaneCount" == event.GetPropertyName()) {
         parm1 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
         AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
@@ -117,71 +115,48 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
     } else if ("CandyCaneNodes" == event.GetPropertyName()) {
         parm2 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
         AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
         AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
         return 0;
     } else if ("CandyCaneLights" == event.GetPropertyName()) {
         parm3 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneLights");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneLights");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::CandyCaneLights");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneLights");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CandyCaneModel::OnPropertyGridChange::CandyCaneLights");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneLights");
         return 0;
     } else if ("CandyCaneReverse" == event.GetPropertyName()) {
         _reverse = event.GetPropertyValue().GetBool() ? true : false;
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneReverse");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneReverse");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::CandyCaneReverse");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneReverse");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneReverse");
         return 0;
     } else if ("CandyCaneSkew" == event.GetPropertyName()) {
         screenLocation.SetAngle(event.GetPropertyValue().GetLong());
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneSkew");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneSkew");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::CandyCaneSkew");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneSkew");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneSkew");
         return 0;
     } else if ("CandyCaneHeight" == event.GetPropertyName()) {
         _caneheight = event.GetPropertyValue().GetDouble();
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneHeight");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneHeight");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::CandyCaneHeight");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneHeight");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneHeight");
         return 0;
     } else if ("CandyCaneSticks" == event.GetPropertyName()) {
         _sticks = event.GetPropertyValue().GetBool() ? true : false;
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
         AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
         return 0;
     } else if ("AlternateNodes" == event.GetPropertyName()) {
         SetAlternateNodes(event.GetPropertyValue().GetBool() ? true : false);
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
         return 0;
     } else if ("CandyCaneStart" == event.GetPropertyName()) {
         SetDirection(event.GetValue().GetLong() == 0 ? "L" : "R");
         SetIsLtoR(event.GetValue().GetLong() == 0);
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneStart");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CandyCaneModel::OnPropertyGridChange::CandyCaneStart");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::CandyCaneStart");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::CandyCaneStart");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneStart");
     } else if (event.GetPropertyName() == "ModelStringType") {
         wxPGProperty *p = grid->GetPropertyByName("CandyCaneLights");
         p->Hide(SingleNode);

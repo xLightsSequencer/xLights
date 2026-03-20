@@ -707,10 +707,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     std::string name = event.GetPropertyName().ToStdString();
     if (!_locked && "ScaleX" == name) {
         scalex = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ScaleX");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::ScaleX");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::ScaleX");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::ScaleX");
+        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ScaleX");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
     else if (_locked && "ScaleX" == name) {
@@ -719,10 +716,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
     else if (!_locked && "ScaleY" == name) {
         scaley = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ScaleY");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::ScaleY");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::ScaleY");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::ScaleY");
+        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ScaleY");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
     else if (_locked && "ScaleY" == name) {
@@ -731,10 +725,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
     else if (!_locked && "ScaleZ" == name) {
         scalez = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ScaleZ");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::ScaleZ");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::ScaleZ");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::ScaleZ");
+        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ScaleZ");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     }
     else if (_locked && "ScaleZ" == name) {
@@ -743,10 +734,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
     else if (!_locked && "ModelX" == name) {
         worldPos_x = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ModelX");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::ModelX");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::ModelX");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::ModelX");
+        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ModelX");
         return 0;
     }
     else if (_locked && "ModelX" == name) {
@@ -755,10 +743,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
     else if (!_locked && "ModelY" == name) {
         worldPos_y = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ModelY");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::ModelY");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::ModelY");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::ModelY");
+        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ModelY");
         return 0;
     }
     else if (_locked && "ModelY" == name) {
@@ -767,10 +752,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
     else if (!_locked && "ModelZ" == name) {
         worldPos_z = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ModelZ");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::ModelZ");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::ModelZ");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::ModelZ");
+        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ModelZ");
         return 0;
     }
     else if (_locked && "ModelZ" == name) {
@@ -779,10 +761,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
     else if (!_locked && "RotateX" == name) {
         rotatex = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RotateX");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::RotateX");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::RotateX");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::RotateX");
+        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RotateX");
         return 0;
     }
     else if (_locked && "RotateX" == name) {
@@ -791,10 +770,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
     else if (!_locked && "RotateY" == name) {
         rotatey = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RotateY");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::RotateY");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::RotateY");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::RotateY");
+        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RotateY");
         return 0;
     }
     else if (_locked && "RotateY" == name) {
@@ -803,10 +779,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
     else if (!_locked && "RotateZ" == name) {
         rotatez = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RotateZ");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::RotateZ");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::RotateZ");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::RotateZ");
+        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RotateZ");
         return 0;
     }
     else if (_locked && "RotateZ" == name) {
@@ -814,30 +787,21 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
         return 0;
     } else if (!_locked && "RealWidth" == name) {
         SetMWidth(RulerObject::UnMeasure(event.GetValue().GetDouble()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RealWidth");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::RealWidth");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::RealWidth");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::RealWidth");
+        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RealWidth");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     } else if (_locked && "RealWidth" == name) {
         event.Veto();
         return 0;
     } else if (!_locked && "RealHeight" == name) {
         SetMHeight(RulerObject::UnMeasure(event.GetValue().GetDouble()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RealHeight");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::RealHeight");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::RealHeight");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::RealHeight");
+        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RealHeight");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     } else if (_locked && "RealHeight" == name) {
         event.Veto();
         return 0;
     } else if (!_locked && "RealDepth" == name) {
         SetMDepth(RulerObject::UnMeasure(event.GetValue().GetDouble()));
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RealDepth");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "BoxedScreenLocation::OnPropertyGridChange::RealDepth");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::RealDepth");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::RealDepth");
+        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RealDepth");
         return GRIDCHANGE_SUPPRESS_HOLDSIZE;
     } else if (_locked && "RealDepth" == name) {
         event.Veto();
@@ -845,8 +809,8 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     } else if ("Locked" == name)
     {
         _locked = event.GetValue().GetBool();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::Locked");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BoxedScreenLocation::OnPropertyGridChange::Locked");
+        AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE |
+                    OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::Locked");
         return 0;
     }
 

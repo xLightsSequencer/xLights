@@ -133,34 +133,25 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
     if ("CircleStringCount" == event.GetPropertyName()) {
         parm1 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleStringCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleStringCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::CircleStringCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CircleModel::OnPropertyGridChange::CircleStringCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CircleModel::OnPropertyGridChange::CircleStringCount");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CircleModel::OnPropertyGridChange::CircleStringCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CircleModel::OnPropertyGridChange::CircleStringCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
+                    OutputModelManager::WORK_RELOAD_MODELLIST |
+                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CircleModel::OnPropertyGridChange::CircleStringCount");
         return 0;
     }
     else if ("CircleLightCount" == event.GetPropertyName()) {
         parm2 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleLightCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleLightCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::CircleLightCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CircleModel::OnPropertyGridChange::CircleLightCount");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CircleModel::OnPropertyGridChange::CircleLightCount");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CircleModel::OnPropertyGridChange::CircleLightCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CircleModel::OnPropertyGridChange::CircleLightCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
+                    OutputModelManager::WORK_RELOAD_MODELLIST |
+                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CircleModel::OnPropertyGridChange::CircleLightCount");
         return 0;
     }
     else if ("CircleCenterPercent" == event.GetPropertyName()) {
         parm3 = (int)event.GetPropertyValue().GetLong();
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleCenterPercent");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleCenterPercent");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::CircleCenterPercent");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CircleModel::OnPropertyGridChange::CircleCenterPercent");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CircleModel::OnPropertyGridChange::CircleCenterPercent");
         return 0;
     }
     else if ("CircleStart" == event.GetPropertyName()) {
@@ -171,10 +162,7 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
         SetIsBtoT(v >= 4);
         _insideOut = ( v & 0x2 ? "1" : "0");
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnPropertyGridChange::CircleStart");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnPropertyGridChange::CircleStart");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnPropertyGridChange::CircleStart");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CircleModel::OnPropertyGridChange::CircleLayerSizes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CircleModel::OnPropertyGridChange::CircleStart");
         return 0;
     }
 
@@ -297,13 +285,10 @@ void CircleModel::OnLayerSizesChange(bool countChanged)
     // if string count is 1 then adjust nodes per string to match sum of nodes
     if (parm1 == 1 && GetLayerSizeCount() > 0) {
         parm2 = (int)GetLayerSizesTotalNodes();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CircleModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CircleModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CircleModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CircleModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CircleModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CircleModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CircleModel::OnLayerSizesChange");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CircleModel::OnLayerSizesChange");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
+                    OutputModelManager::WORK_RELOAD_MODELLIST |
+                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                    OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CircleModel::OnLayerSizesChange");
     }
 }

@@ -58,6 +58,42 @@ public:
     static const uint32_t WORK_REDRAW_LAYOUTPREVIEW = 0x8000;
     static const uint32_t WORK_UPDATE_NETWORK_PROPERTIES = 0x10000;
 
+    // Composite work constants for common multi-flag patterns
+
+    // Model property change requiring XML reload + rerender + layout redraw
+    // Used by: DMX color/beam/preset abilities, model visual property changes
+    static const uint32_t WORK_RELOAD_MODEL_CHANGE =
+        WORK_RGBEFFECTS_CHANGE | WORK_RELOAD_MODEL_FROM_XML |
+        WORK_MODELS_CHANGE_REQUIRING_RERENDER | WORK_REDRAW_LAYOUTPREVIEW;
+
+    // Screen location / position / rotation / scale change
+    // Used by: BoxedScreenLocation, TwoPointScreenLocation, ThreePointScreenLocation,
+    //          PolyPointScreenLocation, Mesh, Servo pivot offsets
+    static const uint32_t WORK_SCREEN_LOCATION_CHANGE =
+        WORK_RGBEFFECTS_CHANGE | WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+        WORK_REDRAW_LAYOUTPREVIEW | WORK_RELOAD_PROPERTYGRID;
+
+    // Controller connection config change (port settings like brightness, gamma, nulls)
+    // Used by: ControllerConnection brightness, gamma, null nodes, color order, etc.
+    static const uint32_t WORK_CONTROLLER_CONFIG_CHANGE =
+        WORK_RGBEFFECTS_CHANGE | WORK_RELOAD_MODELLIST |
+        WORK_MODELS_CHANGE_REQUIRING_RERENDER | WORK_RESEND_CONTROLLER_CONFIG;
+
+    // Visual-only change (appearance, no model topology change)
+    // Used by: LayoutPanel background settings, pixel size, transparency
+    static const uint32_t WORK_VISUAL_CHANGE =
+        WORK_RGBEFFECTS_CHANGE | WORK_REDRAW_LAYOUTPREVIEW;
+
+    // Network config change with channel recalculation
+    // Used by: ControllerEthernet/Serial protocol/universe/channel changes
+    static const uint32_t WORK_NETWORK_CONFIG_CHANGE =
+        WORK_NETWORK_CHANGE | WORK_NETWORK_CHANNELSCHANGE | WORK_UPDATE_NETWORK_LIST;
+
+    // Network config change without channel recalculation
+    // Used by: Controller name, description, active, auto-layout, vendor/model/variant
+    static const uint32_t WORK_NETWORK_SETTING_CHANGE =
+        WORK_NETWORK_CHANGE | WORK_UPDATE_NETWORK_LIST;
+
     OutputModelManager() {}
     void SetFrame(xLightsFrame* frame)
     {

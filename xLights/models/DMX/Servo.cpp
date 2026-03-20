@@ -213,48 +213,31 @@ int Servo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
     std::string cname = "Controller" + base_name;
     if (base_name + "Channel" == name) {
         channel = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Servo::OnPropertyGridChange::Channel");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Servo::OnPropertyGridChange::Channel");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Servo::OnPropertyGridChange::Channel");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "Servo::OnPropertyGridChange::Channel");
         return 0;
     } else if (base_name + "MinLimit" == name) {
         min_limit = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Servo::OnPropertyGridChange::MinLimit");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Servo::OnPropertyGridChange::MinLimit");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Servo::OnPropertyGridChange::MinLimit");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "Servo::OnPropertyGridChange::MinLimit");
         return 0;
     } else if (base_name + "MaxLimit" == name) {
         max_limit = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Servo::OnPropertyGridChange::MaxLimit");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Servo::OnPropertyGridChange::MaxLimit");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Servo::OnPropertyGridChange::MaxLimit");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "Servo::OnPropertyGridChange::MaxLimit");
         return 0;
     } else if (base_name + "RangeOfMotion" == name) {
         range_of_motion = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Servo::OnPropertyGridChange::RangeOfMotion");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Servo::OnPropertyGridChange::RangeOfMotion");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Servo::OnPropertyGridChange::RangeOfMotion");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "Servo::OnPropertyGridChange::RangeOfMotion");
         return 0;
     } else if (base_name + "PivotOffsetX" == name) {
         pivot_offset_x = event.GetValue().GetDouble() / offset_scale;
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Servo::OnPropertyGridChange::PivotOffsetX");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Servo::OnPropertyGridChange::PivotOffsetX");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Servo::OnPropertyGridChange::PivotOffsetX");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Servo::OnPropertyGridChange::PivotOffsetX");
+        base->AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "Servo::OnPropertyGridChange::PivotOffsetX");
         return 0;
     } else if (base_name + "PivotOffsetY" == name) {
         pivot_offset_y = event.GetValue().GetDouble() / offset_scale;
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Servo::OnPropertyGridChange::PivotOffsetY");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Servo::OnPropertyGridChange::PivotOffsetY");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Servo::OnPropertyGridChange::PivotOffsetY");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Servo::OnPropertyGridChange::PivotOffsetY");
+        base->AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "Servo::OnPropertyGridChange::PivotOffsetY");
         return 0;
     } else if (base_name + "PivotOffsetZ" == name) {
         pivot_offset_z = event.GetValue().GetDouble() / offset_scale;
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Servo::OnPropertyGridChange::PivotOffsetZ");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Servo::OnPropertyGridChange::PivotOffsetZ");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Servo::OnPropertyGridChange::PivotOffsetZ");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Servo::OnPropertyGridChange::PivotOffsetZ");
+        base->AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "Servo::OnPropertyGridChange::PivotOffsetZ");
         return 0;
     } else if (base_name + "ServoStyle" == name) {
         servo_style_val = event.GetPropertyValue().GetLong();
@@ -276,13 +259,13 @@ int Servo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         else if (servo_style_val == SERVO_STYLE_ROTATEZ) {
             servo_style = "Rotate Z";
         }
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Servo::OnPropertyGridChange::ServoStyle");
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Servo::OnPropertyGridChange::ServoStyle");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Servo::OnPropertyGridChange::ServoStyle");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Servo::OnPropertyGridChange::ServoStyle");
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Servo::OnPropertyGridChange::ServoStyle");
-        base->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Servo::OnPropertyGridChange::ServoStyle");
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Servo::OnPropertyGridChange::ServoStyle");
+        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                          OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                          OutputModelManager::WORK_RELOAD_MODEL_FROM_XML |
+                          OutputModelManager::WORK_RELOAD_MODELLIST |
+                          OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW |
+                          OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                          OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Servo::OnPropertyGridChange::ServoStyle");
         return 0;
     } else if (name.starts_with(cname)) {
         if (name.ends_with("MinLimit")) {
@@ -296,10 +279,7 @@ int Servo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         } else if (name.ends_with("DataType")) {
             controller_dataType = DATA_TYPES.GetLabel(event.GetValue().GetLong());
         }
-        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Servo::OnPropertyGridChange::" + name);
-        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Servo::OnPropertyGridChange::" + name);
-        base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Servo::OnPropertyGridChange::" + name);
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Servo::OnPropertyGridChange::" + name);
+        base->AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "Servo::OnPropertyGridChange::" + name);
     }
 
     return -1;

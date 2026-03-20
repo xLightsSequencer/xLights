@@ -510,9 +510,9 @@ void ViewObjectPanel::OnPropertyGridChange(wxPropertyGrid *propertyEditor, wxPro
                 layoutPanel->xlights->RenameObject(oldname, safename);
                 layoutPanel->SelectBaseObject(safename);
                 mSelectedObject = dynamic_cast<ViewObject*>(layoutPanel->selectedBaseObject);
-                layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ViewObjectPanel::OnPropertyGridChange::ObjectName");
-                layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ViewObjectPanel::OnPropertyGridChange::ObjectName");
-                layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_OBJECTLIST, "ViewObjectPanel::OnPropertyGridChange::ObjectName");
+                layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                                                                           OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                                                                           OutputModelManager::WORK_RELOAD_OBJECTLIST, "ViewObjectPanel::OnPropertyGridChange::ObjectName");
             }
         } else {
             int i = mSelectedObject->OnPropertyGridChange(propertyEditor, event);
@@ -583,9 +583,9 @@ void ViewObjectPanel::UnlinkSelectedObject()
         mSelectedObject->SetFromBase(false);
     }
 
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ViewObjectPanel::UnlinkSelectedObject");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::UnlinkSelectedObject");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::UnlinkSelectedObject");
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                                                               OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                               OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::UnlinkSelectedObject");
 }
 
 void ViewObjectPanel::DeleteSelectedObject()
@@ -596,10 +596,10 @@ void ViewObjectPanel::DeleteSelectedObject()
         // This should delete all selected models
         layoutPanel->xlights->AllObjects.Delete(mSelectedObject->name);
         mSelectedObject = nullptr;
-        layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::DeleteSelectedObject");
-        layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ViewObjectPanel::DeleteSelectedObject");
-        layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::DeleteSelectedObject");
-        layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::DeleteSelectedObject");
+        layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW |
+                                                                   OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                                                                   OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                                   OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::DeleteSelectedObject");
     }
 }
 
@@ -682,9 +682,9 @@ void ViewObjectPanel::PreviewObjectAlignWithGround()
             view_object->SetBottom(0.0f);
         }
     }
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectAlignWithGround");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectAlignWithGround");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignWithGround", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                               OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                                                               OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignWithGround", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
 void ViewObjectPanel::PreviewObjectAlignTops()
@@ -699,9 +699,9 @@ void ViewObjectPanel::PreviewObjectAlignTops()
             view_object->SetTop(top);
         }
     }
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectAlignTops");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectAlignTops");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignTops", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                               OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                                                               OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignTops", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
 void ViewObjectPanel::PreviewObjectAlignBottoms()
@@ -716,9 +716,9 @@ void ViewObjectPanel::PreviewObjectAlignBottoms()
             view_object->SetBottom(bottom);
         }
     }
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectAlignBottoms");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectAlignBottoms");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignBottoms", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                               OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                                                               OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignBottoms", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
 void ViewObjectPanel::PreviewObjectAlignLeft()
@@ -733,9 +733,9 @@ void ViewObjectPanel::PreviewObjectAlignLeft()
             view_object->SetLeft(left);
         }
     }
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectAlignLeft");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectAlignLeft");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignLeft", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                               OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                                                               OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignLeft", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
 void ViewObjectPanel::PreviewObjectAlignFronts()
@@ -750,9 +750,9 @@ void ViewObjectPanel::PreviewObjectAlignFronts()
             view_object->SetFront(front);
         }
     }
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectAlignFronts");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectAlignFronts");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignFronts", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                               OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                                                               OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignFronts", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
 void ViewObjectPanel::PreviewObjectAlignBacks()
@@ -767,9 +767,9 @@ void ViewObjectPanel::PreviewObjectAlignBacks()
             view_object->SetBack(back);
         }
     }
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectAlignBacks");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectAlignBacks");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignBacks", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                               OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                                                               OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignBacks", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
 void ViewObjectPanel::PreviewObjectResize(bool sameWidth, bool sameHeight)
@@ -801,9 +801,9 @@ void ViewObjectPanel::PreviewObjectResize(bool sameWidth, bool sameHeight)
             }
         }
     }
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectResize");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectResize");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectResize", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                               OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                                                               OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectResize", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
 void ViewObjectPanel::PreviewObjectAlignRight()
@@ -818,9 +818,9 @@ void ViewObjectPanel::PreviewObjectAlignRight()
             view_object->SetRight(right);
         }
     }
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectAlignRight");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectAlignRight");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignRight", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                               OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                                                               OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignRight", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
 void ViewObjectPanel::PreviewObjectAlignHCenter()
@@ -835,9 +835,9 @@ void ViewObjectPanel::PreviewObjectAlignHCenter()
             view_object->SetHcenterPos(center);
         }
     }
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectAlignHCenter");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectAlignHCenter");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignHCenter", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                               OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                                                               OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignHCenter", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
 void ViewObjectPanel::PreviewObjectAlignVCenter()
@@ -852,9 +852,9 @@ void ViewObjectPanel::PreviewObjectAlignVCenter()
             view_object->SetVcenterPos(center);
         }
     }
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectAlignVCenter");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectAlignVCenter");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignVCenter", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                               OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                                                               OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignVCenter", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
 void ViewObjectPanel::PreviewObjectAlignDCenter()
@@ -870,9 +870,9 @@ void ViewObjectPanel::PreviewObjectAlignDCenter()
             view_object->SetDcenterPos(center);
         }
     }
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectAlignDCenter");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectAlignDCenter");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignDCenter", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                               OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                                                               OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignDCenter", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
 bool SortObjectX(const ViewObject* first, const ViewObject* second)
@@ -944,9 +944,9 @@ void ViewObjectPanel::PreviewObjectHDistribute()
             x += space;
         }
     }
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectHDistribute");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectHDistribute");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectHDistribute", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                               OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                                                               OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectHDistribute", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
 void ViewObjectPanel::PreviewObjectVDistribute()
@@ -994,9 +994,9 @@ void ViewObjectPanel::PreviewObjectVDistribute()
             y += space;
         }
     }
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectVDistribute");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectVDistribute");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectVDistribute", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                               OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                                                               OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectVDistribute", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 void ViewObjectPanel::PreviewObjectDDistribute()
 {
@@ -1040,9 +1040,9 @@ void ViewObjectPanel::PreviewObjectDDistribute()
             z += space;
         }
     }
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectDDistribute");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectDDistribute");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectDDistribute", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                               OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                                                               OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectDDistribute", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
 void ViewObjectPanel::PreviewObjectFlipV() {
@@ -1058,9 +1058,9 @@ void ViewObjectPanel::PreviewObjectFlipV() {
             view_object->FlipVertical();
         }
     }
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectFlipVertical");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectFlipVertical");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectFlipVertical", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                               OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                                                               OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectFlipVertical", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
 void ViewObjectPanel::PreviewObjectFlipH() {
@@ -1076,9 +1076,9 @@ void ViewObjectPanel::PreviewObjectFlipH() {
             view_object->FlipHorizontal();
         }
     }
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "ViewObjectPanel::PreviewObjectFlipHorizontal");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ViewObjectPanel::PreviewObjectFlipHorizontal");
-    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectFlipHorizontal", nullptr, nullptr, layoutPanel->GetSelectedModelName());
+    layoutPanel->xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                               OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                                                               OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectFlipHorizontal", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
 void ViewObjectPanel::DoCut(wxCommandEvent& event)

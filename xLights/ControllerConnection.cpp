@@ -68,11 +68,11 @@ void ControllerConnection::SetProtocol(const std::string& protocol)
 {
     if (protocol == _protocol) return;
     _protocol = protocol;
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetProtocol");
-    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetProtocol");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerConnection::SetProtocol");
-    _model->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerConnection::SetProtocol");
-    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetProtocol");
+    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                        OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                        OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                        OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                        OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetProtocol");
     _model->IncrementChangeCount();
 }
 
@@ -93,11 +93,11 @@ void ControllerConnection::SetCtrlPort(int port)
     if (port > 0) {
         _port = port;
     }
-    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetCtrlPort");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetCtrlPort");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerConnection::SetCtrlPort");
-    _model->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerConnection::SetCtrlPort");
-    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetCtrlPort");
+    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                        OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                        OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                        OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                        OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetCtrlPort");
     _model->IncrementChangeCount();
 }
 
@@ -106,10 +106,7 @@ void ControllerConnection::SetBrightness(int brightness)
      if (brightness == _brightness) return;
     _brightness = brightness;
     _brightnessIsSet = true;
-    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetBrightness");
-    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetBrightness");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetBrightness");
-    _model->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetBrightness");
+    _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetBrightness");
     _model->IncrementChangeCount();
 }
 
@@ -117,10 +114,7 @@ void ControllerConnection::SetStartNulls(int nulls)
 {
     if (nulls == _startNulls ) return;
     _startNulls = nulls;
-    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetStartNulls");
-    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetStartNulls");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetStartNulls");
-    _model->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetStartNulls");
+    _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetStartNulls");
     _model->IncrementChangeCount();
 }
 
@@ -128,10 +122,7 @@ void ControllerConnection::SetEndNulls(int nulls)
 {
     if (nulls == _endNulls ) return;
    _endNulls = nulls;
-   _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetEndNulls");
-   _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetEndNulls");
-   _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetEndNulls");
-   _model->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetEndNulls");
+   _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetEndNulls");
    _model->IncrementChangeCount();
 }
 
@@ -139,10 +130,7 @@ void ControllerConnection::SetColorOrder(std::string const& color_order)
 {
     if (color_order == _colorOrder) return;
     _colorOrder = color_order;
-    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetColorOrder");
-    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetColorOrder");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetColorOrder");
-    _model->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetColorOrder");
+    _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetColorOrder");
     _model->IncrementChangeCount();
 }
 
@@ -150,10 +138,7 @@ void ControllerConnection::SetGroupCount(int grouping)
 {
     if (grouping == _groupCount) return;
     _groupCount = grouping;
-    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetGroupCount");
-    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetGroupCount");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetGroupCount");
-    _model->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetGroupCount");
+    _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetGroupCount");
     _model->IncrementChangeCount();
 }
 
@@ -161,10 +146,7 @@ void ControllerConnection::SetGamma(float gamma)
 {
     if (abs(gamma - _gamma) < 0.01) return;
     _gamma = gamma;
-    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetGamma");
-    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetGamma");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetGamma");
-    _model->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetGamma");
+    _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetGamma");
     _model->IncrementChangeCount();
 }
 
@@ -172,22 +154,16 @@ void ControllerConnection::SetReverse(int reverse)
 {
     if (_reverse == reverse) return;
     _reverse = reverse;
-    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetReverse");
-    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetReverse");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetReverse");
-    _model->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetReverse");
     _model->IncrementChangeCount();
+    _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetReverse");
 }
 
 void ControllerConnection::SetZigZag(int zigzag)
 {
     if (_zigzag == zigzag) return;
     _zigzag = zigzag;
-    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetZigZag");
-    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetZigZag");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetZigZag");
-    _model->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetZigZag");
     _model->IncrementChangeCount();
+    _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetZigZag");
 }
 
 void ControllerConnection::SetDMXChannel(int ch)
@@ -196,13 +172,13 @@ void ControllerConnection::SetDMXChannel(int ch)
     if (ch > 0) {
         _dmxChannel = ch;
     }
-    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetDMXChannel");
-    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetDMXChannel");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerConnection::SetDMXChannel");
-    _model->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerConnection::SetDMXChannel");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetDMXChannel");
-    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ControllerConnection::SetDMXChannel");
-    _model->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetDMXChannel");
+    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                        OutputModelManager::WORK_RELOAD_MODELLIST |
+                        OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                        OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                        OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                        OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                        OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetDMXChannel");
     _model->IncrementChangeCount();
 }
 
@@ -290,12 +266,12 @@ void ControllerConnection::SetSRCascadeOnPort(bool cascade)
 {
     if (_smartRemoteCascadeOnPort == cascade) return;
     _smartRemoteCascadeOnPort = cascade;
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetSRCascadeOnPort");
-    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetSRCascadeOnPort");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerConnection::SetSRCascadeOnPort");
-    _model->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerConnection::SetSRCascadeOnPort");
-    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ControllerConnection::SetSRCascadeOnPort");
-    _model->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetSRCascadeOnPort");
+    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                        OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                        OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                        OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                        OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                        OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetSRCascadeOnPort");
     _model->IncrementChangeCount();
 }
 
@@ -303,11 +279,11 @@ void ControllerConnection::SetSRMaxCascade(int max)
 {
     if (_smartRemoteMaxCascade == max) return;
     _smartRemoteMaxCascade = max;
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetSRMaxCascade");
-    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetSRMaxCascade");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerConnection::SetSRMaxCascade");
-    _model->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerConnection::SetSRMaxCascade");
-    _model->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetSRMaxCascade");
+    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                        OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                        OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                        OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                        OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetSRMaxCascade");
     _model->IncrementChangeCount();
 }
 
@@ -328,26 +304,28 @@ void ControllerConnection::SetSmartRemote(int sr)
         SetSRCascadeOnPort(false);
     }
 
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetSmartRemote");
-    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetSmartRemote");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerConnection::SetSmartRemote");
-    _model->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerConnection::SetSmartRemote");
-    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetSmartRemote");
-    _model->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetSmartRemote");
+    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                        OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                        OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                        OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                        OutputModelManager::WORK_RELOAD_MODELLIST |
+                        OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetSmartRemote");
     _model->IncrementChangeCount();
 }
 
 void ControllerConnection::SetSmartRemoteType(const std::string& type)
 {
     if (_smartRemoteType == type) return;
-    _smartRemoteType = type;
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ControllerConnection::SetSmartRemoteType");
-    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerConnection::SetSmartRemoteType");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerConnection::SetSmartRemoteType");
-    _model->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerConnection::SetSmartRemoteType");
-    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::SetSmartRemoteType");
-    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ControllerConnection::SetSmartRemoteType");
-    _model->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetSmartRemoteType");
+    if (!type.empty()) {
+        _smartRemoteType = type;
+    }
+    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                        OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                        OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                        OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                        OutputModelManager::WORK_RELOAD_MODELLIST |
+                        OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                        OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetSmartRemoteType");
     _model->IncrementChangeCount();
 }
 
@@ -355,10 +333,7 @@ void ControllerConnection::SetSmartRemoteTs(int ts)
 {
     if (_smartRemoteTs == ts) return;
     _smartRemoteTs = ts;
-    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetTs");
-    _model->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetTs");
-    _model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetTs");
-    _model->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetTs");
+    _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetSmartRemoteTs");
     _model->IncrementChangeCount();
 }
 

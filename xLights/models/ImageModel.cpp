@@ -145,9 +145,7 @@ int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         _imageFile = event.GetValue().GetString();
         ObtainAccessToURL(_imageFile);
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::Image");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::Image");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::Image");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::Image");
         return 0;
     } else if ("WhiteAsAlpha" == event.GetPropertyName()) {
         _whiteAsAlpha = event.GetValue();
@@ -156,16 +154,12 @@ int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         }
         _images.clear();
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::WhiteAsAlpha");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::WhiteAsAlpha");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::WhiteAsAlpha");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::WhiteAsAlpha");
         return 0;
     } else if ("OffBrightness" == event.GetPropertyName()) {
         _offBrightness = event.GetValue().GetInteger();
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CandyCaneModel::OnPropertyGridChange::OffBrightness");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CandyCaneModel::OnPropertyGridChange::OffBrightness");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CandyCaneModel::OnPropertyGridChange::OffBrightness");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::OffBrightness");
         return 0;
     }
 
