@@ -71,7 +71,7 @@ public:
     void SetAutoDistribute(bool val) { _autoDistributeLights = val; }
     void ClearPolyLineCreate() { _creatingNewPolyLine = false; }
 
-    const std::string StartNodeAttrName(int idx) const
+    const std::string StartNodeAttrName(int idx) const override
     {
         return "PolyNode" + std::to_string(idx + 1); // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
     }

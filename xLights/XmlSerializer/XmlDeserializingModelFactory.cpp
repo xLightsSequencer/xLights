@@ -136,7 +136,7 @@ void XmlDeserializingModelFactory::CommonDeserializeSteps(Model* model, wxXmlNod
 
 void XmlDeserializingModelFactory::DeserializeControllerConnection(Model* model, wxXmlNode* ccNode) {
     auto& cc = model->GetCtrlConn();
-    cc.SetDMXChannel(std::stoi(ccNode->GetAttribute(XmlNodeKeys::ChannelAttribute, "-1").ToStdString()));
+    cc.SetDMXChannel(std::stoi(ccNode->GetAttribute(XmlNodeKeys::ChannelAttribute, "1").ToStdString()));
     cc.SetProtocol(ccNode->GetAttribute(XmlNodeKeys::ProtocolAttribute, xlEMPTY_STRING).ToStdString());
     cc.SetSerialProtocolSpeed(std::stoi(ccNode->GetAttribute(XmlNodeKeys::ProtocolSpeedAttribute, std::to_string(CtrlDefs::DEFAULT_PROTOCOL_SPEED)).ToStdString()));
     cc.SetCtrlPort(std::stoi(ccNode->GetAttribute(XmlNodeKeys::PortAttribute, std::to_string(CtrlDefs::DEFAULT_PORT)).ToStdString()));
@@ -573,7 +573,7 @@ Model* XmlDeserializingModelFactory::DeserializeMultiPoint(wxXmlNode* node, xLig
     }
 
     // Individual Start Nodes
-    if (num_strings > 1) {
+    if (num_strings > 1 && node->HasAttribute(model->StartNodeAttrName(0))) {
         model->SetHasIndivStartNodes(true);
         model->SetIndivStartNodesCount(num_strings);
         for (auto i = 0; i < num_strings;  i++) {
@@ -615,7 +615,7 @@ Model* XmlDeserializingModelFactory::DeserializePolyLine(wxXmlNode* node, xLight
     }
 
     // Individual Start Nodes
-    if (num_strings > 1) {
+    if (num_strings > 1 && node->HasAttribute(model->StartNodeAttrName(0))) {
         model->SetHasIndivStartNodes(true);
         model->SetIndivStartNodesCount(num_strings);
         for (auto i = 0; i < num_strings;  i++) {

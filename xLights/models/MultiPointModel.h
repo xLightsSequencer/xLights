@@ -39,7 +39,7 @@ public:
     void SetNumStrings(int strings) { _strings = strings; }
     void SetModelHeight(float height) { _height = height; }
 
-    const std::string StartNodeAttrName(int idx) const
+    const std::string StartNodeAttrName(int idx) const override
     {
         return "MultiNode" + std::to_string(idx + 1); // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
     }
