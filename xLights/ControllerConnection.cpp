@@ -154,6 +154,7 @@ void ControllerConnection::SetReverse(int reverse)
 {
     if (_reverse == reverse) return;
     _reverse = reverse;
+    _model->IncrementChangeCount();
     _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetReverse");
 }
 
@@ -161,6 +162,7 @@ void ControllerConnection::SetZigZag(int zigzag)
 {
     if (_zigzag == zigzag) return;
     _zigzag = zigzag;
+    _model->IncrementChangeCount();
     _model->AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "ControllerConnection::SetZigZag");
 }
 
@@ -187,7 +189,7 @@ void ControllerConnection::GetPortSR(int string, int& outport, int& outsr) const
 
     int sr = GetSmartRemote();
 
-    if (_port == 0 || string == 0) {
+    if (_port == 0 || string <= 0) {
         outport = _port;
         outsr = sr;
     } else if (sr == 0) {
@@ -350,13 +352,10 @@ std::string ControllerConnection::GetSmartRemoteType() const
     if (types.empty()) {
         return "";
     }
-    std::string t = GetSmartRemoteTypes().front();
-    std::string s = _smartRemoteType;
-
-    if (std::find(types.begin(), types.end(), s) == types.end()) {
-        return t;
+    if (std::find(types.begin(), types.end(), _smartRemoteType) == types.end()) {
+        return types.front();
     }
-    return s;
+    return _smartRemoteType;
 }
 
 int ControllerConnection::GetSmartRemoteTypeIndex(const std::string& srType) const
