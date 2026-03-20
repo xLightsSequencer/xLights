@@ -37,5 +37,12 @@ echo "Downloading and importing Metal Toolchain..."
 xcodebuild -downloadComponent metalToolchain -exportPath /tmp/MyMetalExport/
 xcodebuild -downloadComponent metalToolchain -exportPath /tmp/MyMetalExport/
 xcodebuild -downloadComponent metalToolchain
-xcodebuild -importComponent metalToolchain -importPath /tmp/MyMetalExport/MetalToolchain-*.exportedBundle
+if ! xcodebuild -importComponent metalToolchain -importPath /tmp/MyMetalExport/MetalToolchain-*.exportedBundle; then
+    echo "Standard Metal Toolchain install failed, falling back to manual download..."
+    mkdir -p /tmp/MyMetalExport
+    curl -L -o /tmp/MetalToolchain.tgz https://dankulp.com/test/MetalToolChain.tgz
+    tar xzf /tmp/MetalToolchain.tgz -C /tmp/MyMetalExport/
+    rm -f /tmp/MetalToolchain.tgz
+    xcodebuild -importComponent metalToolchain -importPath /tmp/MyMetalExport/MetalToolchain-*.exportedBundle
+fi
 echo "Metal Toolchain imported successfully."
