@@ -765,16 +765,16 @@ public:
     void DeserializeLayerSizes(std::string const& ls, bool reverse)
     {
         layerSizes.resize(0);
-        auto lss = wxSplit(ls, ',');
+        auto lss = Split(ls, ',');
         if (reverse) {
             for (auto it = lss.rbegin(); it != lss.rend(); ++it) {
-                int l = wxAtoi(*it);
+                int l = (int)std::strtol(it->c_str(), nullptr, 10);
                 if (l > 0) layerSizes.push_back(l);
             }
         }
         else {
             for (const auto& it : lss) {
-                int l = wxAtoi(it);
+                int l = (int)std::strtol(it.c_str(), nullptr, 10);
                 if (l > 0) layerSizes.push_back(l);
             }
         }

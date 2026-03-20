@@ -85,6 +85,7 @@ Core data types and algorithms should use standard C++ equivalents rather than w
   - `xlColorToWxColour(const xlColor&) → wxColour`
   - `wxColourToXlColor(const wxColour&) → xlColor`
 - **When wx constants suffice**: If a wx API accepts a wx constant directly (e.g. `*wxBLACK`, `*wxWHITE` for `SetTextForeground`), use the wx constant rather than converting an `xl*` constant through `xlColorToWxColour`.
+- **Exceptions**: xLights has nearly non-existent exception handling — do NOT use `std::stoi`, `std::stol`, `std::stod`, etc. as they throw on invalid input. Use `std::strtol`, `std::strtod` (and friends) instead. These return 0/default on bad input without throwing.
 
 ## Key Dependencies
 

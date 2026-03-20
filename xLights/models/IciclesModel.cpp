@@ -184,12 +184,12 @@ void IciclesModel::SetDropPattern(const std::string & pattern)
 void IciclesModel::ParseDropSizes()
 {
     _dropSizes.clear();
-    wxArrayString pat = wxSplit(_dropPatternString, ',');
+    auto pat = Split(_dropPatternString, ',');
     _maxH = 0;
-    for (int x = 0; x < pat.size(); x++) {
-        int d = wxAtoi(pat[x]);
+    for (int x = 0; x < (int)pat.size(); x++) {
+        int d = (int)std::strtol(pat[x].c_str(), nullptr, 10);
         if (d >= 0) { // we dont handle drops of less than zero
-            _dropSizes.push_back(wxAtoi(pat[x]));
+            _dropSizes.push_back(d);
             _maxH = std::max(_maxH, (size_t)d);
         }
     }

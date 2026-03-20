@@ -431,9 +431,10 @@ void SubModel::CalcRangeXYBufferSize()
 auto getRange = [](std::string const& a) {
     auto pos = a.find('-');
     if (pos != std::string::npos) {
-        return std::make_pair(std::stoi(a.substr(0, pos)), std::stoi(a.substr(pos + 1)));
+        return std::make_pair((int)std::strtol(a.substr(0, pos).c_str(), nullptr, 10),
+                              (int)std::strtol(a.substr(pos + 1).c_str(), nullptr, 10));
     }
-    int i = std::stoi(a);
+    int i = (int)std::strtol(a.c_str(), nullptr, 10);
     return std::make_pair(i, i);
 };
 
@@ -575,10 +576,10 @@ void SubModel::initSubbufferRange(std::string const& range) {
     float y2 = 100;
     if (range != "") {
         auto v = Split(range, 'x');
-        x1 = v.size() > 0 ? std::stof(v[0]) : 0.0f;
-        y1 = v.size() > 1 ? std::stof(v[1]) : 0.0f;
-        x2 = v.size() > 2 ? std::stof(v[2]) : 100.0f;
-        y2 = v.size() > 3 ? std::stof(v[3]) : 100.0f;
+        x1 = v.size() > 0 ? std::strtof(v[0].c_str(), nullptr) : 0.0f;
+        y1 = v.size() > 1 ? std::strtof(v[1].c_str(), nullptr) : 0.0f;
+        x2 = v.size() > 2 ? std::strtof(v[2].c_str(), nullptr) : 100.0f;
+        y2 = v.size() > 3 ? std::strtof(v[3].c_str(), nullptr) : 100.0f;
     }
     
     if (x1 > x2) std::swap(x1, x2);

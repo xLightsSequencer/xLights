@@ -1008,7 +1008,7 @@ void Model::GetSerialProtocolSpeeds(const std::string& protocol, std::vector<std
     // now work out the index
     int i = 0;
     for (const auto& it : cs) {
-        if (std::stoi(it) == protocolSpeed) {
+        if ((int)std::strtol(it.c_str(), nullptr, 10) == protocolSpeed) {
             idxs = i;
             break;
         }
@@ -1698,7 +1698,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         int sel = -1;
         std::vector<std::string> cs;
         GetSerialProtocolSpeeds(GetControllerProtocol(), cs, sel);
-        SetControllerSerialProtocolSpeed(std::stoi(cs[event.GetValue().GetLong()]));
+        SetControllerSerialProtocolSpeed((int)std::strtol(cs[event.GetValue().GetLong()].c_str(), nullptr, 10));
         return 0;
     } else if (event.GetPropertyName() == "SmartRemoteType") {
         SetSmartRemoteType(GetSmartRemoteTypeName(wxAtoi(event.GetValue().GetString())));
@@ -2330,8 +2330,8 @@ std::string Model::ComputeStringStartChannel(int i)
         }
     }
 
-    wxString stch = ModelStartChannel;
-    wxString priorStringStartChannelAsString = (i - 1 < (int)_indivStartChannels.size()) ? (wxString)_indivStartChannels[i-1] : stch;
+    const std::string& stch = ModelStartChannel;
+    const std::string& priorStringStartChannelAsString = (i - 1 < (int)_indivStartChannels.size()) ? _indivStartChannels[i-1] : stch;
     int priorLength = CalcChannelsPerString();
     // This will be required once custom model supports multiple strings ... working on that
     // if (DisplayAs == "Custom")
@@ -2340,32 +2340,46 @@ std::string Model::ComputeStringStartChannel(int i)
     //}
     int32_t priorStringStartChannel = GetNumberFromChannelString(priorStringStartChannelAsString);
     int32_t startChannel = priorStringStartChannel + priorLength;
-    if (stch.Contains(":")) {
-        auto comps = wxSplit(priorStringStartChannelAsString, ':');
-        if (comps[0].StartsWith("#")) {
+    if (stch.find(':') != std::string::npos) {
+        // split priorStringStartChannelAsString on ':'
+        std::vector<std::string> comps;
+        std::string::size_type pos = 0, found;
+        while ((found = priorStringStartChannelAsString.find(':', pos)) != std::string::npos) {
+            comps.push_back(priorStringStartChannelAsString.substr(pos, found - pos));
+            pos = found + 1;
+        }
+        comps.push_back(priorStringStartChannelAsString.substr(pos));
+
+        if (!comps.empty() && !comps[0].empty() && comps[0][0] == '#') {
             int32_t ststch;
             Output* o = modelManager.GetOutputManager()->GetOutput(startChannel, ststch);
             if (comps.size() == 2) {
                 if (o != nullptr) {
-                    return wxString::Format("#%i:%d", o->GetUniverse(), ststch).ToStdString();
+                    return "#" + std::to_string(o->GetUniverse()) + ":" + std::to_string(ststch);
                 } else {
-                    return wxString::Format("%d", startChannel);
+                    return std::to_string(startChannel);
                 }
             } else {
                 if (o != nullptr) {
-                    return wxString::Format("%s:%i:%d", comps[0], o->GetUniverse(), ststch).ToStdString();
+                    return comps[0] + ":" + std::to_string(o->GetUniverse()) + ":" + std::to_string(ststch);
                 } else {
-                    return wxString::Format("%d", startChannel);
+                    return std::to_string(startChannel);
                 }
             }
-        } else if (comps[0].StartsWith(">") || comps[0].StartsWith("@") || comps[0].StartsWith("!")) {
-            return wxString::Format("%s:%d", comps[0], wxAtol(comps[1]) + priorLength);
+        } else if (!comps.empty() && !comps[0].empty() &&
+                   (comps[0][0] == '>' || comps[0][0] == '@' || comps[0][0] == '!')) {
+            long offset = 0;
+            if (comps.size() > 1) {
+                char* end = nullptr;
+                offset = std::strtol(comps[1].c_str(), &end, 10);
+            }
+            return comps[0] + ":" + std::to_string(offset + priorLength);
         } else {
             // This used to be on:sc but this is no longer supported
-            return wxString::Format("%d", startChannel);
+            return std::to_string(startChannel);
         }
     }
-    return wxString::Format("%d", startChannel);
+    return std::to_string(startChannel);
 }
 
 bool Model::ModelRenamed(const std::string& oldName, const std::string& newName)
@@ -2407,53 +2421,55 @@ bool Model::ModelRenamed(const std::string& oldName, const std::string& newName)
     return changed;
 }
 
+// Returns true if s is a non-empty string of digits (no '.') representing a positive integer
+static bool IsPositiveInteger(const std::string& s) {
+    if (s.empty() || s.find('.') != std::string::npos) return false;
+    for (char c : s) {
+        if (c < '0' || c > '9') return false;
+    }
+    long v = std::strtol(s.c_str(), nullptr, 10);
+    return v > 0;
+}
+
 bool Model::IsValidStartChannelString() const
 {
-    wxString sc;
+    const std::string& sc = this->ModelStartChannel;
 
-    if (GetDisplayAs() == DisplayAsType::SubModel) {
-        sc = this->ModelStartChannel;
-    } else {
-        sc = this->ModelStartChannel;
-    }
+    if (IsPositiveInteger(sc))
+        return true; // absolute
 
-    if (sc.IsNumber() && wxAtol(sc) > 0 && !sc.Contains('.'))
-        return true; // absolule
-
-    if (!sc.Contains(':'))
+    if (sc.find(':') == std::string::npos)
         return false; // all other formats need a colon
 
-    wxArrayString parts = wxSplit(sc, ':');
+    auto parts = Split(sc, ':');
 
     if (parts.size() > 3)
         return false;
 
     if (parts[0][0] == '#') {
         if (parts.size() == 2) {
-            Output* o = modelManager.GetOutputManager()->GetOutput(wxAtoi(parts[0].substr(1)), "");
-            if (o != nullptr &&
-                (parts[1].Trim(true).Trim(false).IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.'))) {
+            Output* o = modelManager.GetOutputManager()->GetOutput(std::strtol(Trim(parts[0].substr(1)).c_str(), nullptr, 10), "");
+            if (o != nullptr && IsPositiveInteger(Trim(parts[1]))) {
                 return true;
             }
         } else if (parts.size() == 3) {
-            wxString ip = parts[0].substr(1);
-            Output* o = modelManager.GetOutputManager()->GetOutput(wxAtoi(parts[1]), ip.ToStdString());
-            if (ip_utils::IsIPValidOrHostname(ip.ToStdString()) && o != nullptr &&
-                (parts[2].Trim(true).Trim(false).IsNumber() && wxAtol(parts[2]) > 0 && !parts[2].Contains('.'))) {
+            std::string ip = Trim(parts[0].substr(1));
+            Output* o = modelManager.GetOutputManager()->GetOutput(std::strtol(Trim(parts[1]).c_str(), nullptr, 10), ip);
+            if (ip_utils::IsIPValidOrHostname(ip) && o != nullptr && IsPositiveInteger(Trim(parts[2]))) {
                 return true;
             }
         }
     } else if (parts[0][0] == '>' || parts[0][0] == '@') {
         if ((parts.size() == 2) &&
-            (parts[0].Trim(true).Trim(false).substr(1) != GetName()) && // self referencing
-            (parts[1].Trim(true).Trim(false).IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.'))) {
+            (Trim(parts[0]).substr(1) != GetName()) && // self referencing
+            IsPositiveInteger(Trim(parts[1]))) {
             // dont bother checking the model name ... other processes will check for that
             return true;
         }
     } else if (parts[0][0] == '!') {
         if ((parts.size() == 2) &&
             (modelManager.GetOutputManager()->GetController(Trim(parts[0].substr(1))) != nullptr) &&
-            (parts[1].Trim(true).Trim(false).IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.'))) {
+            IsPositiveInteger(Trim(parts[1]))) {
             return true;
         }
     }
@@ -2476,7 +2492,7 @@ int Model::GetNumberFromChannelString(const std::string& str, bool& valid, std::
         std::string start = sc.substr(0, sc.find(":"));
         sc = sc.substr(sc.find(":") + 1);
         if (start[0] == '@' || start[0] == '<' || start[0] == '>') {
-            int returnChannel = wxAtoi(sc);
+            int returnChannel = (int)std::strtol(sc.c_str(), nullptr, 10);
             bool chain = start[0] == '>';
             bool fromStart = start[0] == '@';
             start = Trim(start.substr(1, start.size()));
@@ -2516,29 +2532,29 @@ int Model::GetNumberFromChannelString(const std::string& str, bool& valid, std::
                 std::string cs = Trim(start.substr(1));
                 Controller* c = modelManager.GetOutputManager()->GetController(cs);
                 if (c != nullptr && c->GetProtocol() != OUTPUT_PLAYER_ONLY) {
-                    return c->GetStartChannel() - 1 + wxAtoi(sc);
+                    return c->GetStartChannel() - 1 + (int)std::strtol(sc.c_str(), nullptr, 10);
                 }
             }
             valid = false;
             return 1;
         } else if (start[0] == '#') {
-            wxString ss = wxString(str);
-            wxArrayString cs = wxSplit(ss.SubString(1, ss.Length()), ':');
-            if (cs.Count() == 3) {
+            // str is like "#ip:universe:channel" or "#universe:channel" — split from char 1
+            auto cs = Split(str.substr(1), ':');
+            if (cs.size() == 3) {
                 // #ip:universe:channel
-                int returnUniverse = wxAtoi(cs[1]);
-                int returnChannel = wxAtoi(cs[2]);
+                int returnUniverse = (int)std::strtol(cs[1].c_str(), nullptr, 10);
+                int returnChannel = (int)std::strtol(cs[2].c_str(), nullptr, 10);
 
-                int res = modelManager.GetOutputManager()->GetAbsoluteChannel(cs[0].Trim(false).Trim(true).ToStdString(), returnUniverse - 1, returnChannel - 1);
+                int res = modelManager.GetOutputManager()->GetAbsoluteChannel(Trim(cs[0]), returnUniverse - 1, returnChannel - 1);
                 if (res < 1) {
                     res = 1;
                     valid = false;
                 }
                 return res;
-            } else if (cs.Count() == 2) {
+            } else if (cs.size() == 2) {
                 // #universe:channel
-                int returnChannel = wxAtoi(sc);
-                int returnUniverse = wxAtoi(ss.SubString(1, ss.Find(":") - 1));
+                int returnChannel = (int)std::strtol(sc.c_str(), nullptr, 10);
+                int returnUniverse = (int)std::strtol(cs[0].c_str(), nullptr, 10);
 
                 // find output based on universe number ...
                 int res = modelManager.GetOutputManager()->GetAbsoluteChannel("", returnUniverse - 1, returnChannel - 1);
@@ -2553,7 +2569,7 @@ int Model::GetNumberFromChannelString(const std::string& str, bool& valid, std::
             }
         }
     }
-    int returnChannel = wxAtoi(sc);
+    int returnChannel = (int)std::strtol(sc.c_str(), nullptr, 10);
     if (returnChannel < 1) {
         valid = false;
         returnChannel = 1;
@@ -3074,7 +3090,7 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
         Output* output = outputManager->GetOutput(channel, startChannel);
 
         if (output == nullptr) {
-            return wxString::Format("%u", channel).ToStdString();
+            return std::to_string(channel);
         }
 
         // This should not be the case any more
@@ -3085,23 +3101,23 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
         //}
 
         if (CountChar(modelFormat, ':') == 1) {
-            return wxString::Format("#%d:%d (%u)", output->GetUniverse(), startChannel, channel).ToStdString();
+            return "#" + std::to_string(output->GetUniverse()) + ":" + std::to_string(startChannel) + " (" + std::to_string(channel) + ")";
         } else {
             std::string ip = "<err>";
             if (output->IsIpOutput()) {
                 ip = ((IPOutput*)output)->GetIP();
             }
-            return wxString::Format("#%s:%d:%d (%u)", ip, output->GetUniverse(), startChannel, channel).ToStdString();
+            return "#" + ip + ":" + std::to_string(output->GetUniverse()) + ":" + std::to_string(startChannel) + " (" + std::to_string(channel) + ")";
         }
     } else if (firstChar == '!') {
-        auto comps = wxSplit(modelFormat, ':');
+        auto comps = Split(modelFormat, ':');
         auto c = outputManager->GetController(Trim(comps[0].substr(1)));
         int32_t start = 1;
         if (c != nullptr) {
             start = c->GetStartChannel();
         }
         unsigned int lastChannel = GetLastChannel() + 1;
-        return wxString(modelFormat).BeforeFirst(':').Trim(true).Trim(false) + ":" + wxString::Format("%d (%u)", lastChannel - start + 1, lastChannel);
+        return Trim(BeforeFirst(modelFormat, ':')) + ":" + std::to_string(lastChannel - start + 1) + " (" + std::to_string(lastChannel) + ")";
     } else if (firstChar == '@' || firstChar == '>' || CountChar(modelFormat, ':') == 0) {
         // absolute
         return std::to_string(channel);
@@ -4206,7 +4222,7 @@ std::string Model::GetNodeXY(const std::string& nodenumstr)
 {
     size_t NodeCount = GetNodeCount();
     try {
-        int32_t nodenum = std::stod(nodenumstr);
+        int32_t nodenum = (int32_t)std::strtol(nodenumstr.c_str(), nullptr, 10);
         for (size_t inx = 0; inx < NodeCount; ++inx) {
             if (Nodes[inx]->Coords.empty())
                 continue;
@@ -6356,10 +6372,10 @@ std::string Model::GetAttributesAsJSON() const
 std::string Model::DetermineClass(const std::string& displayAs, bool isSingingFace, bool isSpiralTree, bool isSticks, const std::string& dropPattern) {
     // drop pattern dir is 1 if dropping down and -1 if going up .. 0 if no drop pattern
     int dropPatternDir = 0;
-    if (dropPattern != "") {
-        auto drops = wxSplit(dropPattern, ',');
+    if (!dropPattern.empty()) {
+        auto drops = Split(dropPattern, ',');
         for (const auto& it : drops) {
-            int i = wxAtoi(it);
+            int i = (int)std::strtol(it.c_str(), nullptr, 10);
             if (i != 0) {
                 dropPatternDir = i < 0 ? -1 : 1;
                 break;

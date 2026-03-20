@@ -2169,14 +2169,14 @@ void PolyPointScreenLocation::SetDataFromString(const std::string& point_data)
 {
     mPos.clear();
     mPos.resize(num_points);
-    wxArrayString point_array = wxSplit(point_data, ',');
-    while (point_array.size() < num_points * 3) {
+    auto point_array = Split(point_data, ',');
+    while (point_array.size() < (size_t)(num_points * 3)) {
         point_array.push_back("0.0");
     }
     for (int i = 0; i < num_points; ++i) {
-        mPos[i].x = wxAtof(point_array[i * 3]);
-        mPos[i].y = wxAtof(point_array[i * 3 + 1]);
-        mPos[i].z = wxAtof(point_array[i * 3 + 2]);
+        mPos[i].x = std::strtof(point_array[i * 3].c_str(), nullptr);
+        mPos[i].y = std::strtof(point_array[i * 3 + 1].c_str(), nullptr);
+        mPos[i].z = std::strtof(point_array[i * 3 + 2].c_str(), nullptr);
         mPos[i].has_curve = false;
         mPos[i].curve = nullptr;
     }
@@ -2198,20 +2198,20 @@ std::string PolyPointScreenLocation::GetPointDataAsString() const
 
 void PolyPointScreenLocation::SetCurveDataFromString(const std::string& cpoint_data)
 {
-    wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
-    int num_curves = cpoint_array.size() / 7;
+    auto cpoint_array = Split(cpoint_data, ',');
+    int num_curves = (int)cpoint_array.size() / 7;
     glm::vec3 scaling(scalex, scaley, scalez);
     glm::vec3 world_pos(worldPos_x, worldPos_y, worldPos_z);
     for (int i = 0; i < num_curves; ++i) {
-        int seg_num = wxAtoi(cpoint_array[i * 7]);
+        int seg_num = (int)std::strtol(cpoint_array[i * 7].c_str(), nullptr, 10);
         mPos[seg_num].has_curve = true;
         if (mPos[seg_num].curve == nullptr) {
             mPos[seg_num].curve = new BezierCurveCubic3D();
         }
         mPos[seg_num].curve->set_p0(mPos[seg_num].x, mPos[seg_num].y, mPos[seg_num].z);
         mPos[seg_num].curve->set_p1(mPos[seg_num + 1].x, mPos[seg_num + 1].y, mPos[seg_num + 1].z);
-        mPos[seg_num].curve->set_cp0(wxAtof(cpoint_array[i * 7 + 1]), wxAtof(cpoint_array[i * 7 + 2]), wxAtof(cpoint_array[i * 7 + 3]));
-        mPos[seg_num].curve->set_cp1(wxAtof(cpoint_array[i * 7 + 4]), wxAtof(cpoint_array[i * 7 + 5]), wxAtof(cpoint_array[i * 7 + 6]));
+        mPos[seg_num].curve->set_cp0(std::strtof(cpoint_array[i * 7 + 1].c_str(), nullptr), std::strtof(cpoint_array[i * 7 + 2].c_str(), nullptr), std::strtof(cpoint_array[i * 7 + 3].c_str(), nullptr));
+        mPos[seg_num].curve->set_cp1(std::strtof(cpoint_array[i * 7 + 4].c_str(), nullptr), std::strtof(cpoint_array[i * 7 + 5].c_str(), nullptr), std::strtof(cpoint_array[i * 7 + 6].c_str(), nullptr));
         mPos[seg_num].curve->SetPositioning(scaling, world_pos);
         mPos[seg_num].curve->UpdatePoints();
         mPos[seg_num].curve->UpdateMatrices();

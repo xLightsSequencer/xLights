@@ -430,7 +430,7 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                             }
                             if (!num_str.empty()) {
                                 try {
-                                    int num = std::stoi(num_str);
+                                    int num = (int)std::strtol(num_str.c_str(), nullptr, 10);
                                     std::string itZeroPad;
                                     if (pos != std::string::npos) {
                                         size_t num_start = submodel.find_last_of(' ', pos - 1) + 1;
@@ -474,7 +474,7 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
                 if (!found) {
                     // Add SubModel if not found with keiths way.
                     // I think it makes sense to add the model if the group is in the xmodel file.
-                    const auto& newNames = wxSplit(grpModels, ',');
+                    const auto& newNames = Split(grpModels, ',');
                     for (const auto& it : newNames) {
                         auto& mmnmn = mmg->ModelNames();
                         if (Contains(it, "/")) {

@@ -1182,12 +1182,12 @@ void PolyLineModel::SetDropPattern(const std::string & pattern)
 void PolyLineModel::ParseDropSizes()
 {
     _dropSizes.clear();
-    wxArrayString pat = wxSplit(_dropPatternString, ',');
+    auto pat = Split(_dropPatternString, ',');
     // parse drop sizes
     _dropSizes.clear();
     _maxH = 0;
-    for (int x = 0; x < pat.size(); x++) {
-        int pat_size = wxAtoi(pat[x]);
+    for (int x = 0; x < (int)pat.size(); x++) {
+        int pat_size = (int)std::strtol(pat[x].c_str(), nullptr, 10);
         if( pat_size == 0 ) {
             pat_size = 1;
         }

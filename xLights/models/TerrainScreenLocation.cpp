@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 #include <wx/xml/xml.h>
+#include "../utils/string_utils.h"
 #include <wx/cursor.h>
 
 #include "../support/VectorMath.h"
@@ -377,13 +378,13 @@ void TerrainScreenLocation::SetActiveAxis(MSLAXIS axis)
 
 void TerrainScreenLocation::SetDataFromString(const std::string& point_data)
 {
-    wxArrayString point_array = wxSplit(point_data, ',');
+    auto point_array = Split(point_data, ',');
     int i = 0;
-    for (int p = 2; p < point_array.size() && i < num_points; ) {
-        float val = wxAtof(point_array[p]);
+    for (int p = 2; p < (int)point_array.size() && i < num_points; ) {
+        float val = (float)std::strtof(point_array[p].c_str(), nullptr);
         if (val == 0.0f) {
             p++;
-            float num_zeroes = wxAtof(point_array[p]);
+            float num_zeroes = (float)std::strtof(point_array[p].c_str(), nullptr);
             for (int j = 0; j < num_zeroes; ++j) {
                 if (i == num_points) {
                     break;

@@ -1045,25 +1045,25 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
         html += "<tr><td>No custom data</td></tr>";
     }
     else {
-        std::vector<std::vector<std::vector<wxString>>> _data;
+        std::vector<std::vector<std::vector<std::string>>> _data;
         int cols = parm1;
-        wxArrayString layers = wxSplit(data, '|');
-        for (auto l : layers) {
-            std::vector<std::vector<wxString>> ll;
-            wxArrayString rows = wxSplit(l, ';');
-            for (auto r : rows) {
-                std::vector<wxString> rr;
-                wxArrayString columns = wxSplit(r, ',');
-                for (auto c : columns) {
+        auto layers = Split(data, '|');
+        for (const auto& l : layers) {
+            std::vector<std::vector<std::string>> ll;
+            auto rows = Split(l, ';');
+            for (const auto& r : rows) {
+                std::vector<std::string> rr;
+                auto columns = Split(r, ',');
+                for (const auto& c : columns) {
                     rr.push_back(c);
                 }
-                while (rr.size() < cols) rr.push_back("");
+                while (rr.size() < (size_t)cols) rr.push_back("");
                 ll.push_back(rr);
             }
             // This should never happen but i have seen files where it did so lets just pad it and not crash
-            while (ll.size() < parm2) {
-                std::vector<wxString> rr;
-                while (rr.size() < cols) rr.push_back("");
+            while (ll.size() < (size_t)parm2) {
+                std::vector<std::string> rr;
+                while (rr.size() < (size_t)cols) rr.push_back("");
                 ll.push_back(rr);
             }
             _data.push_back(ll);
@@ -1073,18 +1073,18 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
             html += "<tr>";
             for (int l = 0; l < _depth; l++) {
                 for (int c = 0; c < parm1; c++) {
-                    wxString value = _data[l][r][c];
-                    if (!value.IsEmpty() && value != "0") {
+                    const std::string& value = _data[l][r][c];
+                    if (!value.empty() && value != "0") {
                         if (_strings == 1) {
                             if( IsDarkMode() ) {
-                                html += wxString::Format("<td bgcolor='#962B09'>n%s</td>", value);
+                                html += "<td bgcolor='#962B09'>n" + value + "</td>";
                             } else {
-                                html += wxString::Format("<td bgcolor='#ADD8E6'>n%s</td>", value);
+                                html += "<td bgcolor='#ADD8E6'>n" + value + "</td>";
                             }
                         }
                         else {
-                            int string = GetCustomNodeStringNumber(wxAtoi(value));
-                            wxString bgcolor;
+                            int string = GetCustomNodeStringNumber((int)std::strtol(value.c_str(), nullptr, 10));
+                            std::string bgcolor;
                             switch (string % 4)
                             {
                             case 0:
@@ -1100,7 +1100,7 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
                                 bgcolor = IsDarkMode() ? "#08403e" : "#86d0c3"; // dark teal / green
                                 break;
                             }
-                            html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ss%d</td>",value, string);
+                            html += "<td bgcolor='" + bgcolor + "'>n" + value + "s" + std::to_string(string) + "</td>";
                         }
                     }
                     else {
