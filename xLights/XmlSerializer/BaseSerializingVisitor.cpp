@@ -13,6 +13,8 @@
 
 #include "BaseSerializingVisitor.h"
 
+#include <charconv>
+
 #include "../models/ArchesModel.h"
 #include "../models/BaseObject.h"
 #include "../models/BaseObjectVisitor.h"
@@ -87,15 +89,9 @@ static std::string LowerStr(const std::string& s) {
 
 // static
 std::string BaseSerializingVisitor::FloatToString(float f) {
-    std::string ret = std::to_string(f);
-    int len = ret.length();
-    while (len && ret[len - 1] == '0') {
-        --len;
-    }
-    if (ret[len - 1] == '.') {
-        len += 2;
-    }
-    return ret.substr(0, len);
+    char buf[32];
+    auto [ptr, ec] = std::to_chars(buf, buf + sizeof(buf), f, std::chars_format::general, 6);
+    return std::string(buf, ptr);
 }
 
 // static
