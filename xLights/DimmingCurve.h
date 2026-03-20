@@ -15,6 +15,7 @@
 #include <map>
 #include <string>
 
+#include <wx/string.h>
 
 class wxXmlNode;
 
