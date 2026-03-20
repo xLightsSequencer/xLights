@@ -5926,11 +5926,14 @@ void Model::SetModelChain(const std::string& modelChain)
     if (!mc.empty() && mc != "Beginning" && !StartsWith(mc, ">")) {
         mc = ">" + mc;
     }
+    if (mc == "Beginning" || mc == ">") {
+        mc = "";
+    }
+
+    if (_modelChain == mc) return;
+    _modelChain = mc;
 
     logger_base.debug("Model '%s' chained to '%s'.", (const char*)GetName().c_str(), (const char*)mc.c_str());
-    if (!mc.empty() && mc != "Beginning" && mc != ">") {
-        _modelChain = mc;
-    }
     AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
                 OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                 OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
