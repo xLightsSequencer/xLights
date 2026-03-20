@@ -500,7 +500,17 @@ void SequenceMedia::RemoveImage(const std::string& filepath)
 }
 
 void SequenceMedia::AddAnimatedImage(const std::string& filepath, int msFrameTime) {
+    // Resolve relative paths the same way GetImage does, so FileExists and
+    // LoadFile operate on a valid absolute path.
+    std::string loadPath = filepath;
     wxFileName fn(filepath);
+    if (!fn.IsAbsolute()) {
+        wxString resolved = FixFile("", filepath);
+        if (!resolved.IsEmpty()) {
+            loadPath = resolved.ToStdString();
+            fn = wxFileName(loadPath);
+        }
+    }
     std::string extension = "." + fn.GetExt().ToStdString();
     std::string BasePicture = fn.GetPathWithSep().ToStdString() + fn.GetName().Left(fn.GetName().Length() - 2).ToStdString() + "-";
     int cur = 1;
