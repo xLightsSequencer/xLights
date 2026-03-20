@@ -12,6 +12,7 @@
 #include "../SketchEffectDrawing.h"
 
 #include "Color.h"
+#include "../../ui/wxUtilities.h"
 
 #include <wx/graphics.h>
 
@@ -77,7 +78,7 @@ wxBitmap MHPathPresetBitmapButton::CreateImage( int w, int h, double scaleFactor
 
     std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(dc));
 
-    wxColour c(xlORANGE);
+    wxColour c(xlColorToWxColour(xlORANGE));
     wxGraphicsPen pen = gc->CreatePen(wxGraphicsPenInfo(c));
     gc->SetPen(pen);
 

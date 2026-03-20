@@ -11,6 +11,7 @@
 #include "MHRgbPickerPanel.h"
 
 #include <wx/dcbuffer.h>
+#include "../../ui/wxUtilities.h"
 #include <wx/graphics.h>
 #include <wx/rawbmp.h>
 
@@ -93,16 +94,16 @@ void MHRgbPickerPanel::OnPaint(wxPaintEvent& /*event*/) {
     for (auto it = m_handles.begin(); it != m_handles.end(); ++it) {
         wxPoint ptUI {NormalizedToUI2((*it).pt)};
         xlColor c {(*it).color};
-        wxBrush b {wxColour(c)};
+        wxBrush b {xlColorToWxColour(c)};
         pdc.SetBrush(b);
         pdc.SetPen(*wxBLACK_PEN);
         pdc.DrawCircle(ptUI, handleRadius-1);
         pdc.DrawCircle(ptUI, handleRadius);
         pdc.DrawCircle(ptUI, handleRadius+1);
         if (c.asHSV().value > 0.5) {
-            pdc.SetTextForeground(wxColour(xlBLACK));
+            pdc.SetTextForeground(*wxBLACK);
         } else {
-            pdc.SetTextForeground(wxColour(xlWHITE));
+            pdc.SetTextForeground(*wxWHITE);
         }
         wxString text = wxString::Format("%d", handle);
         pdc.DrawText(text, ptUI.x-4, ptUI.y-8);
@@ -115,10 +116,10 @@ void MHRgbPickerPanel::OnPaint(wxPaintEvent& /*event*/) {
         double value {hsv.value};
         hsv.value = 1.0f;
         xlColor color{hsv};
-        wxColour dest_color {(wxColour)color};
+        wxColour dest_color {xlColorToWxColour(color)};
         hsv.value = 0.0f;
         color.fromHSV(hsv);
-        wxColour init_color {(wxColour)color};
+        wxColour init_color {xlColorToWxColour(color)};
         double setpoint {v_width * value + v_left};
         pdc.GradientFillLinear(rect, init_color, dest_color);
 
@@ -131,7 +132,7 @@ void MHRgbPickerPanel::OnPaint(wxPaintEvent& /*event*/) {
             pdc.SetBrush(*wxWHITE_BRUSH);
         }
         pdc.DrawPolygon(num_points, points, wxODDEVEN_RULE);
-        pdc.SetTextForeground(wxColour(xlBLACK));
+        pdc.SetTextForeground(*wxBLACK);
         wxString text = wxString::Format("H:%i,S:%i,V:%i",
                         int(hsv.hue * 360.0), int(hsv.saturation * 100.0), int(value * 100.0));
         pdc.DrawText(text, 0 , 0);
@@ -208,7 +209,7 @@ void MHRgbPickerPanel::OnLeftDown(wxMouseEvent& event) {
                     m_handles[active_handle].pt.m_x = m_mousePos.m_x;
                     m_handles[active_handle].pt.m_y = m_mousePos.m_y;
                     xlColor c{ GetPointColor(ptUI.m_x, ptUI.m_y) };
-                    m_handles[active_handle].color = wxColour(c);
+                    m_handles[active_handle].color = c;
                 }
             }
             m_rgbPickerParent->NotifyColorUpdated();
@@ -241,7 +242,7 @@ void MHRgbPickerPanel::OnMouseMove(wxMouseEvent& event)
                 m_handles[selected_point].pt.m_x = m_mousePos.m_x;
                 m_handles[selected_point].pt.m_y = m_mousePos.m_y;
                 xlColor c {GetPointColor(ptUI.m_x, ptUI.m_y)};
-                m_handles[selected_point].color = wxColour(c);
+                m_handles[selected_point].color = c;
                 m_rgbPickerParent->NotifyColorUpdated();
                 Refresh();
             }

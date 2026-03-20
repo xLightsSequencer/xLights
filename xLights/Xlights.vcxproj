@@ -636,6 +636,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="utils\CurlManager.cpp" />
     <ClCompile Include="utils\ip_utils.cpp" />
     <ClCompile Include="utils\Curl.cpp" />
+    <ClCompile Include="ui\wxUtilities.cpp" />
     <ClCompile Include="JukeboxPanel.cpp" />
     <ClCompile Include="KeyBindingEditDialog.cpp" />
     <ClCompile Include="LayerSelectDialog.cpp" />
@@ -1575,6 +1576,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="xLightsXmlFile.h" />
     <ClInclude Include="xlLockButton.h" />
     <ClInclude Include="xlSlider.h" />
+    <ClInclude Include="ui\wxUtilities.h" />
     <ClInclude Include="XmlSerializer\GdtfParser.h" />
     <ClInclude Include="XmlSerializer\XmlDeserializingModelFactory.h" />
     <ClInclude Include="XmlSerializer\XmlDeserializingObjectFactory.h" />

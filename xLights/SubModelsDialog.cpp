@@ -2523,7 +2523,7 @@ void SubModelsDialog::SelectRow(int r) {
     _selected.clear();
     ClearNodeColor(model);
 
-    static wxColor priorc = wxColor(255, 100, 255);
+    static xlColor priorc(255, 100, 255);
     if (r == -1) {
         for (int i = 0; i < NodesGrid->GetNumberRows(); ++i) {
             SetNodeColor(i, xlWHITE, true);

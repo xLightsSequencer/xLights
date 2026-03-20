@@ -41,6 +41,7 @@
 #include "ConvertDialog.h"
 #include "ManageMediaPanel.h"
 #include "sequencer/SequenceElements.h"
+#include "ui/wxUtilities.h"
 
 
 //(*IdInit(SeqSettingsDialog)
@@ -1880,7 +1881,7 @@ void SeqSettingsDialog::ValidateWindow()
         TextCtrl_Xml_Seq_Duration->SetHelpText("Sequence length is invalid.");
     }
     else if (duration > 3600.0) {
-        TextCtrl_Xml_Seq_Duration->SetBackgroundColour(xlORANGE.asWxColor());
+        TextCtrl_Xml_Seq_Duration->SetBackgroundColour(xlColorToWxColour(xlORANGE));
         TextCtrl_Xml_Seq_Duration->SetHelpText("Sequence is excessively long and may crash xLights.");
     }
     else {

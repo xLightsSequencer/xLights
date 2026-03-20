@@ -12,6 +12,7 @@
 #include "../SketchEffectDrawing.h"
 
 #include "Color.h"
+#include "../../ui/wxUtilities.h"
 
 #include <wx/graphics.h>
 
@@ -67,8 +68,7 @@ wxBitmap MHDimmerPresetBitmapButton::CreateImage( int w, int h, double scaleFact
     {
         std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(dc));
 
-        wxColour c(xlGREEN);
-        wxGraphicsPen pen = gc->CreatePen(wxGraphicsPenInfo(c));
+        wxGraphicsPen pen = gc->CreatePen(wxGraphicsPenInfo(*wxGREEN));
         gc->SetPen(pen);
 
         wxGraphicsPath graphicsPath(gc->CreatePath());

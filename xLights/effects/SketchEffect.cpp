@@ -30,6 +30,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include "../ui/wxUtilities.h"
 
 namespace
 {
@@ -282,7 +283,7 @@ void SketchEffect::renderSketch(const SketchEffectSketch& sketch, wxImage& img, 
     // unless a new setting was added
     if (hasMotion && paths.size() == 1 && paths.front()->isClosed()) {
         auto path = paths.front();
-        wxColor color(colors[0].asWxColor());
+        wxColor color(xlColorToWxColour(colors[0]));
         wxPen pen(color, lineThickness);
         gc->SetPen(pen);
 
@@ -295,7 +296,7 @@ void SketchEffect::renderSketch(const SketchEffectSketch& sketch, wxImage& img, 
     double cumulativeLength = 0.;
     int i = 0;
     for (auto iter = paths.cbegin(); iter != paths.cend(); ++iter, ++i) {
-        wxColor color(colors[i % colors.size()].asWxColor());
+        wxColor color(xlColorToWxColour(colors[i % colors.size()]));
         wxPen pen(color, lineThickness);
         gc->SetPen(pen);
         double pathLength = (*iter)->Length();

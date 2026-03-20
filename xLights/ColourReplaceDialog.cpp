@@ -24,6 +24,7 @@
 
 #include "Color.h"
 #include "xLightsMain.h"
+#include "ui/wxUtilities.h"
 
 #define ZERO 0
 
@@ -77,8 +78,8 @@ public:
         } else {
             xlColor c;
             c.SetFromString(s.ToStdString());
-            wxPen p(c.asWxColor());
-            wxBrush b(c.asWxColor());
+            wxPen p(xlColorToWxColour(c));
+            wxBrush b(xlColorToWxColour(c));
             dc.SetPen(p);
             dc.SetBrush(b);
             dc.DrawRectangle(0, rect.GetTop(), GetSize().GetWidth(), rect.GetHeight() - 1);

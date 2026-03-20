@@ -46,6 +46,7 @@
 #include <nlohmann/json.hpp>
 
 #include <log4cpp/Category.hh>
+#include "ui/wxUtilities.h"
 
 wxDEFINE_EVENT(EVT_MDDROP, wxCommandEvent);
 
@@ -1253,7 +1254,7 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         xLightsImportModelNode* laststrand;
         // note we deliberately passing in the models node count ... as this is most relevant
         if (channelColors.find(subModel->GetName()) != channelColors.end()) {
-            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), wxString(subModel->GetName()), std::string(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", true, "", m->GetNodeCount(), channelColors.find(subModel->GetName())->second.asWxColor(), wxString(""), effectCount);
+            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), wxString(subModel->GetName()), std::string(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", true, "", m->GetNodeCount(), xlColorToWxColour(channelColors.find(subModel->GetName())->second), wxString(""), effectCount);
         } else {
             laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), wxString(subModel->GetName()), std::string(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", true, "", m->GetNodeCount(), *wxWHITE, wxString(""), effectCount);
         }
@@ -1269,7 +1270,7 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         xLightsImportModelNode* laststrand;
         // note we deliberately passing in the models node count ... as this is most relevant
         if (channelColors.find(sn.ToStdString()) != channelColors.end()) {
-            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), sn, wxString(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", false, "", m->GetNodeCount(), channelColors.find(sn.ToStdString())->second.asWxColor(), wxString(""), effectCount);
+            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), sn, wxString(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", false, "", m->GetNodeCount(), xlColorToWxColour(channelColors.find(sn.ToStdString())->second), wxString(""), effectCount);
         } else {
             laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), sn, wxString(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", false, "", m->GetNodeCount(), *wxWHITE, wxString(""), effectCount);
         }
@@ -1282,7 +1283,7 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
             effectCount = 0;
             xLightsImportModelNode* lastnode;
             if (channelColors.find(nn.ToStdString()) != channelColors.end()) {
-                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, std::string(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", false, "", m->GetNodeCount(), channelColors.find(nn.ToStdString())->second.asWxColor(), wxString(""), effectCount);
+                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, std::string(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", false, "", m->GetNodeCount(), xlColorToWxColour(channelColors.find(nn.ToStdString())->second), wxString(""), effectCount);
             } else {
                 lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, std::string(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", false, "", m->GetNodeCount(), *wxWHITE, wxString(""), effectCount);
             }
@@ -1380,7 +1381,7 @@ void xLightsImportChannelMapDialog::OnValueChanged(wxDataViewEvent& event)
                 event.GetModel()->GetValue(vvalue, event.GetItem(), 2);
                 std::string value = vvalue.GetString().ToStdString();
                 if (channelColors.find(value) != channelColors.end()) {
-                    event.GetModel()->SetValue(wxVariant(channelColors.find(value)->second.asWxColor().GetAsString()), event.GetItem(), 4);
+                    event.GetModel()->SetValue(wxVariant(xlColorToWxColour(channelColors.find(value)->second).GetAsString()), event.GetItem(), 4);
                 }
             }
         }

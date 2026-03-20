@@ -13,6 +13,7 @@
 #include <wx/propgrid/advprops.h>
 
 #include "ChannelBlockModel.h"
+#include "../ui/wxUtilities.h"
 #include "ModelScreenLocation.h"
 #include "../OutputModelManager.h"
 #include "../UtilFunctions.h"
@@ -81,7 +82,7 @@ int ChannelBlockModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPro
     } else if (event.GetPropertyName().StartsWith("ChannelProperties.")) {
         wxColor c;
         c << event.GetProperty()->GetValue();
-        xlColor xc = c;
+        xlColor xc = wxColourToXlColor(c);
         std::string text = event.GetPropertyName();
         int val = ExtractTrailingInt(text);
         if (val < 1) val = 1;

@@ -31,6 +31,7 @@
 #include "../MetronomeLabelDialog.h"
 
 #include <log4cpp/Category.hh>
+#include "../ui/wxUtilities.h"
 
 #define ICON_SPACE FromDIP(25)
 
@@ -1824,9 +1825,9 @@ void RowHeading::render( wxPaintEvent& event )
     if (isDark) {
         outlineCol.Set(55, 55, 55);
     }
-    wxPen penOutline(outlineCol.asWxColor());
+    wxPen penOutline(xlColorToWxColour(outlineCol));
 
-    wxBrush brush(rowHeaderCol.asWxColor(), wxBRUSHSTYLE_SOLID);
+    wxBrush brush(xlColorToWxColour(rowHeaderCol), wxBRUSHSTYLE_SOLID);
     dc.SetBrush(brush);
     dc.SetPen(penOutline);
 
@@ -1846,7 +1847,7 @@ void RowHeading::render( wxPaintEvent& event )
     int dragRow = mSequenceElements->GetXLightsFrame()->GetMainSequencer()->PanelEffectGrid->GetDropRow();
 
     xlColor labelColor = ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT);
-    wxColor labelWxColor = labelColor.asWxColor();
+    wxColor labelWxColor = xlColorToWxColour(labelColor);
     
     int effectNoticeWidth = FromDIP(4);
     wxColor  effectNoticeColor(*wxYELLOW);
@@ -1868,7 +1869,7 @@ void RowHeading::render( wxPaintEvent& event )
             layers = wxString::Format(" [%d] ", (int)rowInfo->element->GetEffectLayerCount());
         }
         xlColor rowHeaderColor = GetHeaderColor(rowInfo, dragRow);
-        wxBrush brush2(rowHeaderColor.asWxColor(), wxBRUSHSTYLE_SOLID);
+        wxBrush brush2(xlColorToWxColour(rowHeaderColor), wxBRUSHSTYLE_SOLID);
         dc.SetBrush(brush2);
         int startY = DEFAULT_ROW_HEADING_HEIGHT*row;
         endY = DEFAULT_ROW_HEADING_HEIGHT*(row+1);
@@ -2017,7 +2018,7 @@ void RowHeading::render( wxPaintEvent& event )
                             color = m->GetNodeMaskColor(0);
                         }
                         dc.SetPen(*wxBLACK_PEN);
-                        dc.SetBrush(wxBrush(color.asWxColor()));
+                        dc.SetBrush(wxBrush(xlColorToWxColour(color)));
                         dc.DrawRectangle(getWidth() - FromDIP(21), startY + 5, FromDIP(12), FromDIP(12));
                         dc.SetPen(penOutline);
                         dc.SetBrush(brush2);
@@ -2077,7 +2078,7 @@ void RowHeading::render( wxPaintEvent& event )
         }
         row++;
     }
-    wxBrush b(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER).asWxColor(),wxBRUSHSTYLE_SOLID);
+    wxBrush b(xlColorToWxColour(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER)),wxBRUSHSTYLE_SOLID);
     dc.SetBrush(b);
     dc.DrawRectangle(0,endY,w,h);
 }

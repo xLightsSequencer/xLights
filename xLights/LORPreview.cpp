@@ -720,7 +720,8 @@ void LORPreview::SetStringType( S5Model const& model, Model* xModel ) {
                 auto const colors = wxSplit( model.traditionalColors, ',' );
                 //superstrings
                 for( auto const& color : colors ) {
-                    xModel->AddSuperStringColour( wxColor( color ) );
+                    xlColor c; c.SetFromString(color.ToStdString());
+                    xModel->AddSuperStringColour( c );
                 }
             }
         }
@@ -735,7 +736,8 @@ void LORPreview::SetStringType( S5Model const& model, Model* xModel ) {
                 color.Replace( "R", "Red" );           //convert to full color
                 color.Replace( "G", "Green" );
                 color.Replace( "B", "Blue" );
-                xModel->AddSuperStringColour( wxColor( color ) );
+                xlColor c; c.SetFromString(color.ToStdString());
+                xModel->AddSuperStringColour( c );
             }
         }
     } else if( model.stringType.IsSameAs( "RGB" ) ) { //RGB nodes

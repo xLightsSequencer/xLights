@@ -17,6 +17,7 @@
 #include "../Model.h"
 #include "../Node.h"
 #include "../../Color.h"
+#include "../../ui/wxUtilities.h"
 
 DmxColorAbilityWheel::DmxColorAbilityWheel() :
     DmxColorAbility()
@@ -111,7 +112,7 @@ void DmxColorAbilityWheel::AddColorTypeProperties(wxPropertyGridInterface *grid,
     for (auto const& col : colors) {
         grid->AppendIn(p,
                        new wxColourProperty(wxString::Format("Color %d", 1 + index),
-                                            wxString::Format("DmxColorWheelColor%d", index), col.color.asWxColor()));
+                                            wxString::Format("DmxColorWheelColor%d", index), xlColorToWxColour(col.color)));
         auto sp = grid->AppendIn(p,
             new wxUIntProperty(wxString::Format("Color %d DMX", 1 + index),
                 wxString::Format("DmxColorWheelDMX%d", index), col.dmxValue));
@@ -170,7 +171,7 @@ int DmxColorAbilityWheel::OnColorPropertyGridChange(wxPropertyGridInterface *gri
         namekey.Replace("DmxColorWheelSize.DmxColorWheelColor", "");
         int index = wxAtoi(namekey);
         if (index >= 0 && index<colors.size()) {
-            colors[index].color = xlColor(wheeleColour);
+            colors[index].color = wxColourToXlColor(wheeleColour);
             base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelColor");
         }
     }

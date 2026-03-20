@@ -247,7 +247,7 @@ void ImageCacheEntry::loadWEBP(wxMemoryBuffer &ins) {
             _frameTimes.push_back(frame.duration);
             _totalTime += frame.duration;
             
-            xlColor bg = frame.bgColour;
+            xlColor bg(frame.bgColour.Red(), frame.bgColour.Green(), frame.bgColour.Blue());
             wxSize sz = frame.image.GetSize();
             bool hasAlpha = frame.image.HasAlpha();
             wxImage i(frame.image);

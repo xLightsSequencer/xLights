@@ -42,6 +42,7 @@ END_EVENT_TABLE()
 
 #include "models/ModelManager.h"
 #include "models/Model.h"
+#include "ui/wxUtilities.h"
 
 StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
@@ -413,7 +414,7 @@ void StartChannelDialog::ValidateWindow()
     }
 
     if (warnSC) {
-        StartChannel->SetBackgroundColour(xlORANGE.asWxColor());
+        StartChannel->SetBackgroundColour(xlColorToWxColour(xlORANGE));
     }
     else {
         StartChannel->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));

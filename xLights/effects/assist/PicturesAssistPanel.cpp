@@ -31,6 +31,7 @@
 #include "ColorPanel.h"
 
 #include <log4cpp/Category.hh>
+#include "../../ui/wxUtilities.h"
 
 #define ZERO 0
 #define PALETTE_SIZE 8
@@ -95,8 +96,8 @@ public:
             for (auto it = as.begin(); it != as.end() && i < PALETTE_SIZE; ++it) {
                 xlColor c;
                 c.SetFromString(it->ToStdString());
-                wxPen p(c.asWxColor());
-                wxBrush b(c.asWxColor());
+                wxPen p(xlColorToWxColour(c));
+                wxBrush b(xlColorToWxColour(c));
                 dc.SetPen(p);
                 dc.SetBrush(b);
                 dc.DrawRectangle(i * SWATCH_WIDTH, rect.GetTop(), SWATCH_WIDTH - 1, rect.GetHeight() - 1);
@@ -407,7 +408,7 @@ void PicturesAssistPanel::SetDefaultPalette()
     mColorPicker->ResetPanel();
 
     xlColor c;
-    c.SetFromString(wxString("#FFFFFF"));
+    c.SetFromString(std::string("#FFFFFF"));
     mColorPicker->SetButtonColor(1, c);
     mColorPicker->SetColor(c);
     if (BitmapButton_ColourChoice->GetCount() < 2) {

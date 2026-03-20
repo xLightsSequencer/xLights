@@ -54,6 +54,7 @@
 #include "models/CustomModel.h"
 #include "outputs/OutputManager.h"
 #include "xlColourData.h"
+#include "ui/wxUtilities.h"
 #include "XmlSerializer/XmlSerializer.h"
 
 #include <log4cpp/Category.hh>
@@ -526,7 +527,7 @@ static bool SetGrid(wxGrid *grid, std::map<std::string, std::string> &info) {
             c = "#FFFFFF";
         }
         xlColor color(c);
-        grid->SetCellBackgroundColour(x, 1, color.asWxColor());
+        grid->SetCellBackgroundColour(x, 1, xlColorToWxColour(color));
         wxString pname1 = grid->GetRowLabelValue(x);
         if (pname1.Contains("Mouth") && pname1.EndsWith("2")) {
             customColor ? grid->ShowRow(x) : grid->HideRow(x);
@@ -989,8 +990,8 @@ void ModelFaceDialog::GetValue(wxGrid *grid, const int row, const int col, std::
     key.Replace(" ", "");
     if (col == 1) {
         key += "-Color";
-        xlColor color = grid->GetCellBackgroundColour(row, col);
-        info[key.ToStdString()] = color;
+        xlColor color = wxColourToXlColor(grid->GetCellBackgroundColour(row, col));
+        info[key.ToStdString()] = std::string(color);
     } else {
         info[key.ToStdString()] = grid->GetCellValue(row, col);
         if (info["Type"] == "NodeRange") {
@@ -1011,7 +1012,7 @@ void ModelFaceDialog::UpdatePreview(const std::string& channels, wxColor c)
 
     int nn = model->GetNodeCount();
     xlColor cb(xlDARK_GREY);
-    xlColor cc(c);
+    xlColor cc = wxColourToXlColor(c);
     if (model->GetDimmingCurve()) {
         model->GetDimmingCurve()->apply(cb);
         model->GetDimmingCurve()->apply(cc);

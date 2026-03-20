@@ -1161,6 +1161,8 @@
 		<Unit filename="support/VectorMath.h" />
 		<Unit filename="tmGridCell.cpp" />
 		<Unit filename="tmGridCell.h" />
+		<Unit filename="ui/wxUtilities.cpp" />
+		<Unit filename="ui/wxUtilities.h" />
 		<Unit filename="utils/Curl.cpp" />
 		<Unit filename="utils/Curl.h" />
 		<Unit filename="utils/CurlManager.cpp" />

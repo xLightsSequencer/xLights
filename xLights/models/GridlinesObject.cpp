@@ -16,6 +16,7 @@
 #include "ModelPreview.h"
 #include "Model.h"
 #include "RulerObject.h"
+#include "../ui/wxUtilities.h"
 
 GridlinesObject::GridlinesObject(const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), gridColor(xlColor(0,128, 0))
@@ -48,7 +49,7 @@ void GridlinesObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputMan
     p->SetAttribute("Max", 100000);
     p->SetEditor("SpinCtrl");
 
-    grid->Append(new wxColourProperty("Grid Color", "GridColor", gridColor.asWxColor()));
+    grid->Append(new wxColourProperty("Grid Color", "GridColor", xlColorToWxColour(gridColor)));
 
     p = grid->Append(new wxBoolProperty("Axis Lines", "GridAxis", hasAxis));
     p->SetAttribute("UseCheckbox", true);
@@ -94,7 +95,7 @@ int GridlinesObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
         wxPGProperty *p = grid->GetPropertyByName("GridColor");
         wxColour c;
         c << p->GetValue();
-        gridColor = c;
+        gridColor = wxColourToXlColor(c);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridColor");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "GridlinesObject::OnPropertyGridChange::GridColor");

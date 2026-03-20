@@ -999,6 +999,9 @@
     <ClCompile Include="utils\Curl.cpp">
       <Filter>utils</Filter>
     </ClCompile>
+    <ClCompile Include="ui\wxUtilities.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
     <ClCompile Include="DuplicateDialog.cpp" />
     <ClCompile Include="models\DMX\DmxColorAbilityCMY.cpp">
       <Filter>Models\DMX</Filter>
@@ -2189,6 +2192,9 @@
     <ClInclude Include="utils\CurlManager.h">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="ui\wxUtilities.h">
+      <Filter>ui</Filter>
+    </ClInclude>
     <ClInclude Include="controllers\FPPUploadProgressDialog.h">
       <Filter>Controllers</Filter>
     </ClInclude>
@@ -2373,6 +2379,9 @@
     </Filter>
     <Filter Include="common">
       <UniqueIdentifier>{d66f2316-0042-426b-8102-445d990406d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ui">
+      <UniqueIdentifier>{a3b2c1d0-1234-5678-abcd-ef0123456789}</UniqueIdentifier>
     </Filter>
     <Filter Include="utils">
       <UniqueIdentifier>{c1416434-1c5e-4d35-9335-0e5286dca853}</UniqueIdentifier>

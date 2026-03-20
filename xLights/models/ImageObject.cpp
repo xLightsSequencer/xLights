@@ -165,18 +165,18 @@ bool ImageObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphics
         auto vac = solid->getAccumulator();
         int startVert = vac->getCount();
         
-        vac->AddVertex(x1, y1, z1, *wxRED);
-        vac->AddVertex(x2, y2, z2, *wxRED);
-        vac->AddVertex(x2, y2, z2, *wxRED);
-        vac->AddVertex(x3, y3, z3, *wxRED);
-        vac->AddVertex(x3, y3, z3, *wxRED);
-        vac->AddVertex(x4, y4, z4, *wxRED);
-        vac->AddVertex(x4, y4, z4, *wxRED);
-        vac->AddVertex(x1, y1, z1, *wxRED);
-        vac->AddVertex(x1, y1, z1, *wxRED);
-        vac->AddVertex(x3, y3, z3, *wxRED);
-        vac->AddVertex(x2, y2, z2, *wxRED);
-        vac->AddVertex(x4, y4, z4, *wxRED);
+        vac->AddVertex(x1, y1, z1, xlRED);
+        vac->AddVertex(x2, y2, z2, xlRED);
+        vac->AddVertex(x2, y2, z2, xlRED);
+        vac->AddVertex(x3, y3, z3, xlRED);
+        vac->AddVertex(x3, y3, z3, xlRED);
+        vac->AddVertex(x4, y4, z4, xlRED);
+        vac->AddVertex(x4, y4, z4, xlRED);
+        vac->AddVertex(x1, y1, z1, xlRED);
+        vac->AddVertex(x1, y1, z1, xlRED);
+        vac->AddVertex(x3, y3, z3, xlRED);
+        vac->AddVertex(x2, y2, z2, xlRED);
+        vac->AddVertex(x4, y4, z4, xlRED);
         int end = vac->getCount();
         solid->addStep([solid, vac, startVert, end](xlGraphicsContext *ctx) {
             ctx->drawLines(vac, startVert, end - startVert);

@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <map>
 
-#include <wx/colour.h>
+#include <cctype>
 #include "Color.h"
 
 static const std::map<std::string, xlColor> NAME_MAP = {
@@ -102,6 +102,8 @@ static const std::map<std::string, xlColor> NAME_MAP = {
     {"YELLOW GREEN", xlColor( 153, 204, 50)}
 };
 
+static bool FindColourByName(const std::string& name, xlColor& result);
+
 xlColor::operator std::string() const {
     std::stringstream stream;
     stream << "#"
@@ -171,11 +173,16 @@ void xlColor::SetFromString(const std::string &str) {
             blue = c->second.blue;
             alpha = c->second.alpha;
         } else {
-            //need to do the slower lookups
-            wxColor c(str);
-            red = c.Red();
-            green = c.Green();
-            blue = c.Blue();
+            //need to do the slower case-insensitive lookups
+            xlColor found;
+            if (FindColourByName(str, found)) {
+                red = found.red;
+                green = found.green;
+                blue = found.blue;
+                alpha = found.alpha;
+            } else {
+                red = green = blue = 0;
+            }
         }
     }
 }
@@ -282,17 +289,6 @@ HSVValue& HSVValue::operator=(const xlColor& c) {
     return *this;
 }
 
-
-void xlColor::SetFromString(const wxString &str) {
-    SetFromString(str.ToStdString());
-}
-xlColor::operator wxString() const {
-    return wxString::Format("#%02x%02x%02x", red, green, blue);
-}
-
-wxColor xlColor::asWxColor() const {
-    return wxColor(red, green, blue, alpha);
-}
 
 // HSL functions
 double Hue2RGB(double v1, double v2, double H) {
@@ -408,11 +404,11 @@ typedef struct NAMED_COLOUR {
     uint8_t green;
     uint8_t blue;
 
-    float HowClose(wxColour c) const
+    float HowClose(const xlColor& c) const
     {
-      return std::sqrt(((int)c.Red() - (int)red) * ((int)c.Red() - (int)red) +
-                       ((int)c.Green() - (int)green) * ((int)c.Green() - (int)green) +
-                       ((int)c.Blue() - (int)blue) * ((int)c.Blue() - (int)blue));
+      return std::sqrt(((int)c.red - (int)red) * ((int)c.red - (int)red) +
+                       ((int)c.green - (int)green) * ((int)c.green - (int)green) +
+                       ((int)c.blue - (int)blue) * ((int)c.blue - (int)blue));
     }
 } NAMED_COLOUR;
 
@@ -562,7 +558,26 @@ static NAMED_COLOUR namedColours[] = {
     { "Black", 0x00, 0x00, 0x00 }
 };
 
-const std::string& GetColourName(const wxColour& c)
+static bool CaseInsensitiveEqual(const std::string& a, const std::string& b) {
+    if (a.size() != b.size()) return false;
+    for (size_t i = 0; i < a.size(); ++i) {
+        if (std::tolower(static_cast<unsigned char>(a[i])) != std::tolower(static_cast<unsigned char>(b[i])))
+            return false;
+    }
+    return true;
+}
+
+static bool FindColourByName(const std::string& name, xlColor& result) {
+    for (const auto& nc : namedColours) {
+        if (CaseInsensitiveEqual(name, nc.name)) {
+            result.Set(nc.red, nc.green, nc.blue);
+            return true;
+        }
+    }
+    return false;
+}
+
+const std::string& GetColourName(const xlColor& c)
 {
     const NAMED_COLOUR* nc = nullptr;
     float min = 99999999999.0f;

@@ -13,6 +13,7 @@
 #include <log4cpp/Category.hh>
 
 #include <wx/filename.h>
+#include "../ui/wxUtilities.h"
 
 //#define DEBUG_GIF
 
@@ -137,7 +138,7 @@ void GIFImage::DoCreate(wxInputStream &stream, const std::string &fname)
 
         auto color = _gifDecoder.GetBackgroundColour();
         if (color.IsOk()) {
-            _backgroundColor =  color;
+            _backgroundColor = wxColourToXlColor(color);
         }
 
         ReadFrameProperties();

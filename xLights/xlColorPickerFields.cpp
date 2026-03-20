@@ -15,6 +15,7 @@
 #include <wx/font.h>
 #include <wx/intl.h>
 #include <wx/string.h>
+#include "ui/wxUtilities.h"
 //*)
 
 //(*IdInit(xlColorPickerFields)
@@ -219,7 +220,7 @@ void xlColorPickerFields::ResetPanel()
     mActiveButton = BitmapButton_Swatch1;
     GridBagSizer1->SetItemPosition(RadioButton_SwatchMarker, wxGBPosition(12, 1));
     GridBagSizer1->Layout();
-    mCurrentColor = mActiveButton->GetBackgroundColour();
+    mCurrentColor = wxColourToXlColor(mActiveButton->GetBackgroundColour());
     NotifyColorChange();
     Refresh(false);
     Update();
@@ -249,14 +250,14 @@ void xlColorPickerFields::SetButtonColor(int selected_column, xlColor& c)
 {
     wxString ids = wxString::Format("ID_BITMAPBUTTON_Swatch%d", (selected_column));
     wxWindow* btn = wxWindow::FindWindowByName(ids, this);
-    btn->SetBackgroundColour(c.asWxColor());
+    btn->SetBackgroundColour(xlColorToWxColour(c));
     NotifyColorChange();
 }
 
 void xlColorPickerFields::SetColor(xlColor& color)
 {
-    mActiveButton->SetBackgroundColour(color.asWxColor());
-    Panel_CurrentColor->SetBackgroundColour(color.asWxColor());
+    mActiveButton->SetBackgroundColour(xlColorToWxColour(color));
+    Panel_CurrentColor->SetBackgroundColour(xlColorToWxColour(color));
     mCurrentColor = color;
     Panel_Slider->SetRGB(mCurrentColor);
     Panel_Palette->SetRGB(mCurrentColor);
@@ -360,8 +361,8 @@ void xlColorPickerFields::ProcessSliderColorChange(wxCommandEvent& event)
     SliderLeft->SetValue(GetSliderPos());
     SliderRight->SetValue(GetSliderPos());
     mCurrentColor = Panel_Slider->GetRGB();
-    Panel_CurrentColor->SetBackgroundColour(mCurrentColor.asWxColor());
-    mActiveButton->SetBackgroundColour(mCurrentColor.asWxColor());
+    Panel_CurrentColor->SetBackgroundColour(xlColorToWxColour(mCurrentColor));
+    mActiveButton->SetBackgroundColour(xlColorToWxColour(mCurrentColor));
     NotifyColorChange();
     UpdateTextFields();
     Refresh(false);
@@ -372,8 +373,8 @@ void xlColorPickerFields::ProcessPaletteColorChange(wxCommandEvent& event)
 {
     Panel_Slider->SetHSV(Panel_Palette->GetHSV());
     mCurrentColor = Panel_Slider->GetRGB();
-    Panel_CurrentColor->SetBackgroundColour(mCurrentColor.asWxColor());
-    mActiveButton->SetBackgroundColour(mCurrentColor.asWxColor());
+    Panel_CurrentColor->SetBackgroundColour(xlColorToWxColour(mCurrentColor));
+    mActiveButton->SetBackgroundColour(xlColorToWxColour(mCurrentColor));
     NotifyColorChange();
     UpdateTextFields();
     Refresh(false);
@@ -385,8 +386,8 @@ void xlColorPickerFields::OnSliderLeftCmdSliderUpdated(wxScrollEvent& event)
     SliderRight->SetValue(event.GetPosition());
     SetColorFromSliderPos(event.GetPosition());
     mCurrentColor = Panel_Slider->GetRGB();
-    Panel_CurrentColor->SetBackgroundColour(mCurrentColor.asWxColor());
-    mActiveButton->SetBackgroundColour(mCurrentColor.asWxColor());
+    Panel_CurrentColor->SetBackgroundColour(xlColorToWxColour(mCurrentColor));
+    mActiveButton->SetBackgroundColour(xlColorToWxColour(mCurrentColor));
     NotifyColorChange();
     UpdateTextFields();
     Refresh(false);
@@ -398,8 +399,8 @@ void xlColorPickerFields::OnSliderRightCmdSliderUpdated(wxScrollEvent& event)
     SliderLeft->SetValue(event.GetPosition());
     SetColorFromSliderPos(event.GetPosition());
     mCurrentColor = Panel_Slider->GetRGB();
-    Panel_CurrentColor->SetBackgroundColour(mCurrentColor.asWxColor());
-    mActiveButton->SetBackgroundColour(mCurrentColor.asWxColor());
+    Panel_CurrentColor->SetBackgroundColour(xlColorToWxColour(mCurrentColor));
+    mActiveButton->SetBackgroundColour(xlColorToWxColour(mCurrentColor));
     NotifyColorChange();
     UpdateTextFields();
     Refresh(false);
@@ -483,8 +484,8 @@ void xlColorPickerFields::OnTextCtrl_Text(wxCommandEvent& event)
     SliderLeft->SetValue(position);
     SliderRight->SetValue(position);
     mCurrentColor = Panel_Slider->GetRGB();
-    Panel_CurrentColor->SetBackgroundColour(mCurrentColor.asWxColor());
-    mActiveButton->SetBackgroundColour(mCurrentColor.asWxColor());
+    Panel_CurrentColor->SetBackgroundColour(xlColorToWxColour(mCurrentColor));
+    mActiveButton->SetBackgroundColour(xlColorToWxColour(mCurrentColor));
     NotifyColorChange();
     Refresh(false);
     Update();
@@ -513,7 +514,7 @@ void xlColorPickerFields::OnBitmapButton_SwatchClick(wxCommandEvent& event)
 	GridBagSizer1->Layout();
     wxColor button_color = mActiveButton->GetBackgroundColour();
     Panel_CurrentColor->SetBackgroundColour(button_color);
-    mCurrentColor = button_color;
+    mCurrentColor = wxColourToXlColor(button_color);
     Panel_Slider->SetRGB(mCurrentColor);
     Panel_Palette->SetRGB(mCurrentColor);
     int position = GetSliderPos();

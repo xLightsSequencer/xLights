@@ -10,7 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/colour.h>
+#include <cassert>
 #include <vector>
 #include <cstdint>
 #include <string>
@@ -20,7 +20,6 @@
 #endif
 
 class xlColor;
-class wxString;
 class ColorCurve;
 
 class HSVValue
@@ -89,12 +88,6 @@ public:
         blue = rgb.blue;
         green = rgb.green;
         alpha = rgb.alpha;
-    }
-    xlColor(const wxColor &rgb) {
-        red = rgb.Red();
-        blue = rgb.Blue();
-        green = rgb.Green();
-        alpha = 255;
     }
     xlColor(const std::string &str) {
         SetFromString(str);
@@ -217,7 +210,7 @@ public:
 
     xlColor ApplyBrightness(float b)
     {
-        wxASSERT(b >= 0.0 && b <= 1.0);
+        assert(b >= 0.0f && b <= 1.0f);
         return xlColor(b * red, b * green, b * blue);
     }
 
@@ -290,13 +283,6 @@ public:
     void SetFromString(const std::string &str);
     operator std::string() const;
 
-    void SetFromString(const wxString &str);
-    operator wxString() const;
-    wxColor asWxColor() const;
-    xlColor(const wxString &str) {
-        SetFromString(str);
-    }
-
 #if __has_include(<simd/simd.h>)
     simd_uchar4 asChar4() const {
         return {red, green, blue, alpha};
@@ -352,4 +338,4 @@ enum ColorDisplayMode
     MODE_BLUE
 };
 
-const std::string& GetColourName(const wxColour& c);
+const std::string& GetColourName(const xlColor& c);

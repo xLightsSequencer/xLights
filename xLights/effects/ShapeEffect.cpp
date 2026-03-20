@@ -32,6 +32,7 @@
 #include "../../include/shape-32.xpm"
 #include "../../include/shape-48.xpm"
 #include "../../include/shape-64.xpm"
+#include "../ui/wxUtilities.h"
 
 #define REPEATTRIGGER 20
 
@@ -1371,7 +1372,7 @@ void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc,
                 wxBrush brush(bc, wxBrushStyle::wxBRUSHSTYLE_SOLID);
                 context->SetBrush(brush);
             } else {
-                wxBrush brush(color.asWxColor(), wxBrushStyle::wxBRUSHSTYLE_SOLID);
+                wxBrush brush(xlColorToWxColour(color), wxBrushStyle::wxBRUSHSTYLE_SOLID);
                 context->SetBrush(brush);
             }
 
@@ -1383,7 +1384,7 @@ void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc,
                 context->SetPen(pen);
             } else {
                 // Fallback to effect color if stroke type is unexpected
-                wxPen pen(color.asWxColor(), thickness);
+                wxPen pen(xlColorToWxColour(color), thickness);
                 context->SetPen(pen);
             }
 

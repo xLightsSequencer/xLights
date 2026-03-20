@@ -18,6 +18,7 @@
 
 #include "ColorCurve.h"
 #include "ColorCurveDialog.h"
+#include "ui/wxUtilities.h"
 #include "UtilFunctions.h"
 #include "ColorPanel.h"
 
@@ -45,7 +46,7 @@ ColorCurve::ColorCurve()
     _values.clear();
     _active = false;
     _timecurve = TC_TIME;
-    _values.push_back(ccSortableColorPoint(0.5, *wxBLACK));
+    _values.push_back(ccSortableColorPoint(0.5, xlBLACK));
     _id = "";
 }
 
@@ -68,7 +69,7 @@ ColorCurve::ColorCurve(const std::string& s)
 
     if (_values.size() == 0)
     {
-        _values.push_back(ccSortableColorPoint(0.5, *wxBLACK));
+        _values.push_back(ccSortableColorPoint(0.5, xlBLACK));
     }
 }
 
@@ -117,7 +118,7 @@ void ColorCurve::Deserialise(const std::string& s)
 
     if (_values.size() == 0)
     {
-        _values.push_back(ccSortableColorPoint(0.5, *wxBLACK));
+        _values.push_back(ccSortableColorPoint(0.5, xlBLACK));
     }
 }
 
@@ -396,7 +397,7 @@ void ColorCurve::Flip()
     }
 }
 
-void ColorCurve::SetDefault(const wxColor& color)
+void ColorCurve::SetDefault(const xlColor& color)
 {
     // we should only set default if the current CC only has one point
     if (_values.size() == 1)
@@ -466,7 +467,7 @@ wxBitmap ColorCurve::GetImage(int x, int y, bool bars)
 
     for (int i = 0; i < x; i++)
     {
-        wxColor c = GetValueAt(static_cast<float>(i) / static_cast<float>(x)).asWxColor();
+        wxColor c = xlColorToWxColour(GetValueAt(static_cast<float>(i) / static_cast<float>(x)));
         dc.SetPen(wxPen(c, 1, wxPENSTYLE_SOLID));
         if (bars)
         {
@@ -610,7 +611,7 @@ void ColorCurveButton::LeftClick(wxCommandEvent& event)
         _cc->SetActive(false);
         color = ncolor;
         _color = color.GetAsString();
-        _cc->SetDefault(color);
+        _cc->SetDefault(wxColourToXlColor(color));
         UpdateBitmap();
         NotifyChange(true);
     }
@@ -658,13 +659,13 @@ void ColorCurveButton::ToggleActive()
 
 void ColorCurveButton::SetDefaultCC(const std::string& color)
 {
-    _cc->SetDefault(wxColor(color));
+    _cc->SetDefault(xlColor(color));
 }
 
 void ColorCurveButton::SetColor(std::string color, bool notify)
 {
     _cc->SetActive(false);
-    _cc->SetDefault(wxColor(color));
+    _cc->SetDefault(xlColor(color));
     _color = color;
     UpdateBitmap();
     if (notify) {
@@ -691,7 +692,7 @@ void ColorCurveButton::UpdateBitmap() {
         }
         wxBitmap bmp(image);
         SetBitmap(bmp);
-        SetToolTip(wxString::Format("%s\n%d,%d,%d\n%s", _color, color.Red(), color.Green(), color.Blue(), GetColourName(color)));
+        SetToolTip(wxString::Format("%s\n%d,%d,%d\n%s", _color, color.Red(), color.Green(), color.Blue(), GetColourName(wxColourToXlColor(color))));
     }
     Refresh();
 }

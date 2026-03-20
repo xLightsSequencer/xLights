@@ -15,6 +15,7 @@
 #include "XmlSerializer/XmlSerializingVisitor.h"
 
 #include <log4cpp/Category.hh>
+#include "ui/wxUtilities.h"
 
 ColorManager::ColorManager(xLightsFrame* frame)
 : xlights(frame)
@@ -49,12 +50,12 @@ void ColorManager::SysColorChanged() {
             wxColour c = wxSystemSettings::GetColour(xLights_color[i].systemColor);
 #ifdef __WXOSX__
             if (c.IsSolid()) {
-                colors_system[xLights_color[i].name] = c;
+                colors_system[xLights_color[i].name] = wxColourToXlColor(c);
             } else {
                 colors_system[xLights_color[i].name] = xLights_color[i].color;
             }
 #else
-            colors_system[xLights_color[i].name] = c;
+            colors_system[xLights_color[i].name] = wxColourToXlColor(c);
 #endif
         }
 	}
@@ -72,12 +73,12 @@ void ColorManager::ResetDefaults()
             wxColour c = wxSystemSettings::GetColour(xLights_color[i].systemColor);
 #ifdef __WXOSX__
             if (c.IsSolid()) {
-                colors_system[xLights_color[i].name] = c;
+                colors_system[xLights_color[i].name] = wxColourToXlColor(c);
             } else {
                 colors_system[xLights_color[i].name] = xLights_color[i].color;
             }
 #else
-            colors_system[xLights_color[i].name] = c;
+            colors_system[xLights_color[i].name] = wxColourToXlColor(c);
 #endif
         }
 	}
@@ -104,19 +105,19 @@ void ColorManager::RestoreSnapshot()
 
 wxColor ColorManager::CyanOrBlueOverride() {
     const xlColor* color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_TEXT_HIGHLIGHTED);
-    if (color->asWxColor() == *wxBLACK) {
+    if (*color == xlBLACK) {
         return CyanOrBlue();
     } else {
-        return color->asWxColor();
+        return xlColorToWxColour(*color);
     }
 }
 
 wxColor ColorManager::LightOrMediumGreyOverride() {
     const xlColor* color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_TEXT_UNSELECTED);
-    if (color->asWxColor() == *wxBLACK) {
+    if (*color == xlBLACK) {
         return LightOrMediumGrey();
     } else {
-        return color->asWxColor();
+        return xlColorToWxColour(*color);
     }
 }
 

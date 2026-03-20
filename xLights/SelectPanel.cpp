@@ -17,6 +17,7 @@
 #include "sequencer/Element.h"
 #include "UtilFunctions.h"
 #include "Color.h"
+#include "ui/wxUtilities.h"
 
 //(*InternalHeaders(SelectPanel)
 #include <wx/intl.h>
@@ -380,7 +381,7 @@ bool SelectPanel::ContainsColor(Effect* eff) const
 {
     int const diff = SliderColorSensitivity->GetValue();
 
-    xlColor const search_color = xlColor(ColourPickerCtrlSelect->GetColour());
+    xlColor const search_color = wxColourToXlColor(ColourPickerCtrlSelect->GetColour());
 
     // if the effect has no colour then process it as white
     if (eff->GetPalette().size() == 0) {

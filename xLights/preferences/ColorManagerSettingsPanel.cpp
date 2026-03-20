@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "ColorManagerSettingsPanel.h"
+#include "../ui/wxUtilities.h"
 
 //(*InternalHeaders(ColorManagerSettingsPanel)
 #include <wx/intl.h>
@@ -186,8 +187,7 @@ void ColorManagerSettingsPanel::SetButtonColor(wxBitmapButton* btn, const wxColo
 }
 
 void ColorManagerSettingsPanel::SetButtonColor(wxBitmapButton* btn, const xlColor &color) {
-    wxColour c = (wxColour)(color);
-    SetButtonColor(btn, c);
+    SetButtonColor(btn, xlColorToWxColour(color));
 }
 
 void ColorManagerSettingsPanel::RefreshColors()
@@ -243,7 +243,7 @@ void ColorManagerSettingsPanel::ColorButtonSelected(wxCommandEvent& event) {
     auto const& [res, newcolor] = xlColourData::INSTANCE.ShowColorDialog(this, color);
     if (res == wxID_OK) {
         SetButtonColor(button, newcolor);
-        xlColor c(newcolor);
+        xlColor c = wxColourToXlColor(newcolor);
         frame->color_mgr.SetNewColor(name.ToStdString(), c);
         RefreshColors();
         frame->color_mgr.SetDirty();

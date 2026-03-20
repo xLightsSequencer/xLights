@@ -110,6 +110,7 @@ enum {
 
 
 #include "models/Model.h"
+#include "ui/wxUtilities.h"
 
 #ifndef wxEVT_GRID_CELL_CHANGE
 //until CodeBlocks is updated to wxWidgets 3.x
@@ -462,7 +463,7 @@ static bool SetGrid(wxGrid *grid, std::map<std::string, std::string> &info) {
                 c = "#FFFFFF";
             }
             xlColor color(c);
-            grid->SetCellBackgroundColour(x, COLOUR_COL, color.asWxColor());
+            grid->SetCellBackgroundColour(x, COLOUR_COL, xlColorToWxColour(color));
         } else {
             grid->SetCellValue(x, CHANNEL_COL, "");
             grid->SetCellValue(x, NAME_COL, "");
@@ -600,8 +601,8 @@ void ModelStateDialog::GetValue(wxGrid *grid, const int row, const int col, std:
         if (grid->GetCellValue(row, NAME_COL) != "" || grid->GetCellBackgroundColour(row, COLOUR_COL) != *wxWHITE || grid->GetCellValue(row, CHANNEL_COL) != "") {
             if (col == COLOUR_COL) {
                 key += "-Color";
-                xlColor color = grid->GetCellBackgroundColour(row, col);
-                info[key.ToStdString()] = color;
+                xlColor color = wxColourToXlColor(grid->GetCellBackgroundColour(row, col));
+                info[key.ToStdString()] = std::string(color);
             } else if (col == NAME_COL) {
                 key += "-Name";
                 info[key.ToStdString()] = grid->GetCellValue(row, col).Lower();
@@ -632,7 +633,7 @@ void ModelStateDialog::ClearNodeColor(Model* m) {
 
 xlColor ModelStateDialog::GetRowColor(wxGrid* grid, int const row, bool const prev, bool const force) {
     if (force) {
-        return xlColor(grid->GetCellBackgroundColour(row, COLOUR_COL));
+        return wxColourToXlColor(grid->GetCellBackgroundColour(row, COLOUR_COL));
     }
     if (prev) {
         return xlColor(255, 100, 255);
@@ -2256,7 +2257,7 @@ void ModelStateDialog::SortState(wxGridEvent& event) {
         for (int col = 0; col < numCols; ++col) {
             wxString value = rows[row].values[col];
             if (col == COLOUR_COL && (value != "" || rows[row].colours[col] != *wxWHITE)) {
-                tempStateData[key.ToStdString() + "-Color"] = xlColor(rows[row].colours[col]);
+                tempStateData[key.ToStdString() + "-Color"] = std::string(wxColourToXlColor(rows[row].colours[col]));
             } else if (col == NAME_COL && value != "") {
                 tempStateData[key.ToStdString() + "-Name"] = value.Lower().ToStdString();
             } else if (col == CHANNEL_COL && value != "") {

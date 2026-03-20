@@ -18,6 +18,7 @@
 #include "RulerObject.h"
 #include "../ExternalHooks.h"
 #include <log4cpp/Category.hh>
+#include "../ui/wxUtilities.h"
 
 TerrainObject::TerrainObject(const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager)
@@ -98,7 +99,7 @@ void TerrainObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManag
     p->SetAttribute("Max", 100000);
     p->SetEditor("SpinCtrl");
 
-    grid->Append(new wxColourProperty("Grid Color", "gridColor", gridColor.asWxColor()));
+    grid->Append(new wxColourProperty("Grid Color", "gridColor", xlColorToWxColour(gridColor)));
 
     p = grid->Append(new wxBoolProperty("Hide Grid", "HideGrid", hide_grid));
     p->SetAttribute("UseCheckbox", true);
@@ -179,7 +180,7 @@ int TerrainObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         wxPGProperty *p = grid->GetPropertyByName("gridColor");
         wxColour c;
         c << p->GetValue();
-        gridColor = c;
+        gridColor = wxColourToXlColor(c);
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TerrainObject::OnPropertyGridChange::gridColor");
         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TerrainObject::OnPropertyGridChange::gridColor");

@@ -11,6 +11,7 @@
 #include "MHPresetBitmapButton.h"
 
 #include "../../Color.h"
+#include "../../ui/wxUtilities.h"
 #include "../../utils/string_utils.h"
 #include "../../UtilFunctions.h"
 
@@ -121,7 +122,7 @@ wxBitmap MHPresetBitmapButton::CreateImage( int w, int h, double scaleFactor ) {
                 HSVValue hsv(hue, sat, val);
                 xlColor color;
                 color.fromHSV(hsv);
-                wxColour beam_color {(wxColour)color};
+                wxColour beam_color {xlColorToWxColour(color)};
                 wxPen pen(beam_color);
                 dc.SetPen(pen);
             } else {

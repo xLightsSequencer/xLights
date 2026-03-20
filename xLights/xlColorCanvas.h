@@ -13,6 +13,7 @@
 #include "wx/wx.h"
 #include "graphics/xlGraphicsBase.h"
 #include "Color.h"
+#include "ui/wxUtilities.h"
 
 wxDECLARE_EVENT(EVT_CP_SLIDER_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CP_PALETTE_CHANGED, wxCommandEvent);
@@ -34,8 +35,8 @@ public:
     void SetMode(ColorDisplayMode mode);
     const HSVValue& GetHSV() const;
     void SetHSV(const HSVValue& hsv);
-    wxColor GetRGB() const {
-        return mRGB.asWxColor();
+    xlColor GetRGB() const {
+        return mRGB;
     }
     void SetRGB(xlColor rgb);
 

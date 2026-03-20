@@ -15,6 +15,7 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../AudioManager.h"
+#include "../ui/wxUtilities.h"
 
 #include <wx/graphics.h>
 #if wxUSE_GRAPHICS_CONTEXT == 0
@@ -205,8 +206,7 @@ void ATendril::Update(wxPoint* target, int tunemovement, int width, int height)
 
 void ATendril::Draw(PathDrawingContext* gc, xlColor colour, int thickness)
 {
-    wxColor c(colour);
-    wxPen pen(c, thickness);
+    wxPen pen(xlColorToWxColour(colour), thickness);
     gc->SetPen(pen);
 
     wxGraphicsPath path = gc->CreatePath();

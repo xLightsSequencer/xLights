@@ -11,6 +11,7 @@
 #include "MHColorWheelPanel.h"
 
 #include <wx/dcbuffer.h>
+#include "../../ui/wxUtilities.h"
 #include <wx/graphics.h>
 #include <wx/rawbmp.h>
 
@@ -94,13 +95,13 @@ void MHColorWheelPanel::OnPaint(wxPaintEvent& /*event*/)
     for (auto it = m_handles.begin(); it != m_handles.end(); ++it) {
         wxPoint ptUI {NormalizedToUI2((*it).pt)};
         xlColor c {(*it).color};
-        wxBrush b {wxColour(c)};
+        wxBrush b {xlColorToWxColour(c)};
         pdc.SetBrush(b);
         pdc.SetPen(*wxBLACK_PEN);
         pdc.DrawCircle(ptUI, handleRadius-1);
         pdc.DrawCircle(ptUI, handleRadius);
         pdc.DrawCircle(ptUI, handleRadius+1);
-        pdc.SetTextForeground(wxColour(xlBLACK));
+        pdc.SetTextForeground(*wxBLACK);
         wxString text = wxString::Format("%d", handle);
         pdc.DrawText(text, ptUI.x-4, ptUI.y-8);
         handle++;

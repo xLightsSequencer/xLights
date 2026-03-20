@@ -832,7 +832,7 @@ static xlColor GetColor(const std::string& sRed, const std::string& sGreen, cons
 
 static wxString GetColorString(const std::string& sRed, const std::string& sGreen, const std::string& sBlue)
 {
-    return GetColor(sRed, sGreen, sBlue);
+    return wxString(std::string(GetColor(sRed, sGreen, sBlue)));
 }
 
 static xlColor GetColor(const std::string& rgb)
@@ -2612,7 +2612,7 @@ void MapOnEffects(EffectManager& effectManager, EffectLayer* layer, wxXmlNode* c
 {
     std::string palette = "C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1";
     if (chancountpernode > 1) {
-        xlColor color1(color);
+        xlColor color1(color.Red(), color.Green(), color.Blue());
         palette = "C_BUTTON_Palette1=" + (std::string)color1 + ",C_CHECKBOX_Palette1=1";
     }
 
@@ -5605,7 +5605,7 @@ void AddLSPEffect(EffectLayer* layer, int pos, int epos, int in, int out, int ef
         // off
         return;
     }
-    xlColor color(c);
+    xlColor color(c.Red(), c.Green(), c.Blue());
     xlColor color2(xlBLACK);
 
     bool isShimmer = eff == 5 || eff == 6;

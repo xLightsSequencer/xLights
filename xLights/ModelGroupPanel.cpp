@@ -30,6 +30,7 @@
 #include "EditAliasesDialog.h"
 
 #include <log4cpp/Category.hh>
+#include "ui/wxUtilities.h"
 
 // This event is fired when a model is dropped between lists
 wxDEFINE_EVENT(EVT_MGDROP, wxCommandEvent);
@@ -469,7 +470,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
                                                                 ? BLUE_ON_DARK : *wxBLUE);
                 }
                 else if (Contains(it, "/")) {
-                    ListBoxModelsInGroup->SetItemTextColour(item, xlORANGE.asWxColor());
+                    ListBoxModelsInGroup->SetItemTextColour(item, xlColorToWxColour(xlORANGE));
                 }
             }
             modelsInGroup.push_back(it);
@@ -526,7 +527,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
                                 }
                                 if (matches) {
                                     long item = ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), sm->GetFullName());
-                                    ListBoxAddToModelGroup->SetItemTextColour(item, xlORANGE.asWxColor());
+                                    ListBoxAddToModelGroup->SetItemTextColour(item, xlColorToWxColour(xlORANGE));
                                 }
                             }
                         }

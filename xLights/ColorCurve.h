@@ -16,6 +16,7 @@
 #include <wx/colour.h>
 #include <wx/colourdata.h>
 
+#include <algorithm>
 #include <list>
 
 #include "Color.h"
@@ -47,9 +48,9 @@ public:
     {
         std::string res = "";
         res += "x=" + wxString::Format("%.3f", x).ToStdString();
-        wxString c = color;
-        c.Replace(",", "@", true);
-        res += "^c=" + c.ToStdString();
+        std::string c = color;
+        std::replace(c.begin(), c.end(), ',', '@');
+        res += "^c=" + c;
 
         return res;
     }
@@ -203,7 +204,7 @@ public:
     bool NearPoint(float x);
     float FindMinPointLessThan(float point);
     float FindMaxPointGreaterThan(float point);
-    void SetDefault(const wxColor& color);
+    void SetDefault(const xlColor& color);
     void LoadXCC(const std::string& filename);
 };
 

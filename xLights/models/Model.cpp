@@ -61,6 +61,7 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
+#include "../ui/wxUtilities.h"
 
 #define MOST_STRINGS_WE_EXPECT 480
 #define MOST_CONTROLLER_PORTS_WE_EXPECT 128
@@ -910,9 +911,9 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
         } else if (StringType == "Single Color White" || StringType == "W") {
             v = *wxWHITE;
         } else if (StringType == "Single Color Custom" || StringType == "Single Color Intensity" || StringType == "Node Single Color") {
-            v = customColor.asWxColor();
+            v = xlColorToWxColour(customColor);
         } else if (StringType[0] == '#') {
-            v = xlColor(StringType).asWxColor();
+            v = xlColorToWxColour(xlColor(StringType));
         }
         grid->AppendIn(p, new wxColourProperty("Color", "ModelStringColor", v));
         if (NODE_TYPES[i] == "Node Single Color") {
@@ -927,7 +928,7 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
         sp->SetAttribute("Max", 32);
         sp->SetEditor("SpinCtrl");
         for (int i = 0; i < superStringColours.size(); ++i) {
-            grid->AppendIn(p, new wxColourProperty(wxString::Format("Colour %d", i + 1), wxString::Format("SuperStringColour%d", i), superStringColours[i].asWxColor()));
+            grid->AppendIn(p, new wxColourProperty(wxString::Format("Colour %d", i + 1), wxString::Format("SuperStringColour%d", i), xlColorToWxColour(superStringColours[i])));
         }
     } else {
         sp = grid->AppendIn(p, new wxColourProperty("Color", "ModelStringColor", *wxRED));
@@ -1466,7 +1467,7 @@ static wxString GetColorString(wxPGProperty* p, xlColor& xc)
         } else if (c == *wxWHITE) {
             tp = "Single Color White";
         } else {
-            xc = c;
+            xc = wxColourToXlColor(c);
         }
     }
     return tp;
@@ -1930,10 +1931,10 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         return 0;
     } else if (event.GetPropertyName().StartsWith("SuperStringColour")) {
         int index = wxAtoi(event.GetPropertyName().substr(17));
-        wxColor c;
-        c << event.GetValue();
+        wxColor wc;
+        wc << event.GetValue();
         IncrementChangeCount();
-        SetSuperStringColour(index, c);
+        SetSuperStringColour(index, wxColourToXlColor(wc));
         return 0;
     } else if (event.GetPropertyName() == "ModelStringColor" || event.GetPropertyName() == "ModelStringType" || event.GetPropertyName() == "ModelRGBWHandling") {
         wxPGProperty* p2 = grid->GetPropertyByName("ModelStringType");
@@ -1948,7 +1949,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
                 tp = "Node Single Color";
                 wxColor cc;
                 cc << p->GetValue();
-                c = cc;
+                c = wxColourToXlColor(cc);
             }
             if (p != nullptr)
                 p->Enable();
@@ -4491,7 +4492,7 @@ wxString Model::ExportSuperStringColors() const
     }
     wxString colors;
     for (int i = 0; i < superStringColours.size(); ++i) {
-        wxString c = superStringColours[i];
+        std::string c = superStringColours[i];
         colors += wxString::Format("SuperStringColour%d=\"%s\" ", i, c);
     }
     return colors;

@@ -28,6 +28,7 @@
 
 #include <log4cpp/Category.hh>
 #include "Parallel.h"
+#include "ui/wxUtilities.h"
 
 template <class CTX>
 class ContextPool {
@@ -558,12 +559,12 @@ void TextDrawingContext::SetFont(const wxFontInfo& font, const xlColor& color)
             || font.GetFaceName() != fontName
             || color != fontColor)
         {
-            this->font = gc->CreateFont(font.GetPixelSize().y, font.GetFaceName(), style, color.asWxColor());
+            this->font = gc->CreateFont(font.GetPixelSize().y, font.GetFaceName(), style, xlColorToWxColour(color));
 
 #ifdef __WXMSW__
             // if font is not true type then we get a null font and bad things happen so at least set it to a valid font ... Somehow we really should not allow the selection of invalid fonts
             if (this->font.IsNull()) {
-                this->font = gc->CreateFont(font.GetPixelSize().y, "segoe ui", style, color.asWxColor());
+                this->font = gc->CreateFont(font.GetPixelSize().y, "segoe ui", style, xlColorToWxColour(color));
             }
 #endif
 
@@ -602,7 +603,7 @@ void TextDrawingContext::SetFont(const wxFontInfo& font, const xlColor& color)
         }
     #endif
         dc->SetFont(f);
-        dc->SetTextForeground(color.asWxColor());
+        dc->SetTextForeground(xlColorToWxColour(color));
     }
 }
 

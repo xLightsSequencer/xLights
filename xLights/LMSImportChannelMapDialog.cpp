@@ -23,6 +23,7 @@
 #include "xLightsMain.h"
 #include "models/Model.h"
 #include "xlColourData.h"
+#include "ui/wxUtilities.h"
 
 //(*IdInit(LMSImportChannelMapDialog)
 const long LMSImportChannelMapDialog::ID_CHOICE1 = wxNewId();
@@ -328,7 +329,7 @@ void LMSImportChannelMapDialog::OnChannelMapGridCellChange(wxGridEvent& event)
     int row = event.GetRow();
     int col = event.GetCol();
     std::string s = ChannelMapGrid->GetCellValue(row, col).ToStdString();
-    ChannelMapGrid->SetCellBackgroundColour(row, 4, channelColors[s].asWxColor());
+    ChannelMapGrid->SetCellBackgroundColour(row, 4, xlColorToWxColour(channelColors[s]));
     MapByStrand->Enable(false);
     ChannelMapGrid->Refresh();
     _dirty = true;
@@ -451,7 +452,7 @@ void LMSImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
                     }
                 } else {
                     ChannelMapGrid->SetCellValue(r, 3, mapping);
-                    ChannelMapGrid->SetCellBackgroundColour(r, 4, color.asWxColor());
+                    ChannelMapGrid->SetCellBackgroundColour(r, 4, xlColorToWxColour(color));
                 }
                 r++;
             }
@@ -475,12 +476,12 @@ void LMSImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
         }
         for (int x = 0; x < ChannelMapGrid->GetNumberRows(); x++) {
             wxColor wxc = ChannelMapGrid->GetCellBackgroundColour(x, 4);
-            xlColor c(wxc);
+            xlColor c = wxColourToXlColor(wxc);
             text.WriteString(ChannelMapGrid->GetCellValue(x, 0)
                              + "\t" + ChannelMapGrid->GetCellValue(x, 1)
                              + "\t" + ChannelMapGrid->GetCellValue(x, 2)
                              + "\t" + ChannelMapGrid->GetCellValue(x, 3)
-                             + "\t" + c + "\n");
+                             + "\t" + std::string(c) + "\n");
         }
         _dirty = false;
     }

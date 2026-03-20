@@ -13,6 +13,7 @@
 #include "xLightsMain.h"
 #include "ColorPanel.h"
 #include "ColorCurve.h"
+#include "ui/wxUtilities.h"
 #include "effects/EffectPanelUtils.h"
 #include "UtilFunctions.h"
 #include "xLightsApp.h"
@@ -40,6 +41,7 @@
 #include <wx/regex.h>
 
 #include <log4cpp/Category.hh>
+#include "ui/wxUtilities.h"
 
 
 #define PALETTE_SIZE 8
@@ -169,8 +171,8 @@ public:
                 {
                     xlColor c;
                     c.SetFromString(it->ToStdString());
-                    wxPen p(c.asWxColor());
-                    wxBrush b(c.asWxColor());
+                    wxPen p(xlColorToWxColour(c));
+                    wxBrush b(xlColorToWxColour(c));
                     dc.SetPen(p);
                     dc.SetBrush(b);
                     dc.DrawRectangle(i * swatchWidth, rect.GetTop(), swatchWidth - 1, rect.GetHeight() - 1);
@@ -544,8 +546,8 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 ColorPanelTouchBar* ColorPanel::SetupTouchBar(xlTouchBarSupport &tbs) {
     if (touchBar == nullptr && tbs.HasTouchBar()) {
         touchBar = std::unique_ptr<ColorPanelTouchBar>(new ColorPanelTouchBar(
-            [this](int idx, xlColor c) {
-                this->SetButtonColor(idx, c, false);
+            [this](int idx, wxColor c) {
+                this->SetButtonColor(idx, wxColourToXlColor(c), false);
             },
             [this](int v) {
                 this->BitmapButton_SparkleFrequencyVC->SetValue(wxString::Format("%d", v));
