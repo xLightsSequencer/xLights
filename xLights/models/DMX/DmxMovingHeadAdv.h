@@ -14,6 +14,8 @@
 #include "DmxMotor.h"
 #include "Mesh.h"
 #include <memory>
+#include <string>
+#include <vector>
 
 class MhFeature;
 
@@ -65,7 +67,7 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm
         virtual float GetDefaultBeamWidth() const { return 1.5f; }
 
         void CorrectDefaultColorChannels();
-        void MapChannelName(wxArrayString& array, int chan, std::string name);
+        void MapChannelName(std::vector<std::string>& array, int chan, std::string name);
 
         int GetMinChannels();
 
@@ -84,7 +86,7 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm
         std::unique_ptr<Mesh> head_mesh = nullptr;
 
         wxXmlNode* features_xml_node = nullptr;
-        wxString obj_path = "";
+        std::string obj_path;
         std::vector<std::unique_ptr<MhFeature>> features;
         std::map<std::string, PanTiltState> panTiltStates;
 };

@@ -1093,15 +1093,15 @@ void CubeModel::ExportAsCustomXModel3D() const
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
-    wxString face = SerialiseFace();
+    std::string face = SerialiseFace();
     if (!face.empty()) {
         f.Write(face);
     }
-    wxString state = SerialiseState();
+    std::string state = SerialiseState();
     if (!state.empty()) {
         f.Write(state);
     }
-    wxString submodel = SerialiseSubmodel();
+    std::string submodel = SerialiseSubmodel();
     if (!submodel.empty()) {
         f.Write(submodel);
     }

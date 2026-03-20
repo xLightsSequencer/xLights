@@ -1626,7 +1626,7 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
     int mw = m->GetDefaultBufferWi();
     int mh = m->GetDefaultBufferHt();
 
-    std::vector<wxPoint> coords;
+    std::vector<xlPoint> coords;
     m->GetNodeCoords(channel, coords);
     int bufx = -1;
     int bufy = -1;

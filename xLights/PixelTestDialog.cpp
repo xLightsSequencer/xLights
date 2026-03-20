@@ -1985,7 +1985,7 @@ void PixelTestDialog::OnPreviewLeftDClick(wxMouseEvent& event)
         int x = ray_origin.x;
         int y = ray_origin.y;
 
-        auto stNode = model->GetNodeNear(_modelPreview, wxPoint(x, y), false);
+        wxString stNode = model->GetNodeNear(_modelPreview, xlPoint(x, y), false);
         if (stNode.IsEmpty())
             return;
 
@@ -2063,7 +2063,7 @@ void PixelTestDialog::SelectAllInBoundingRect(bool shiftDwn)
     Model* model = _modelManager->GetModel(Choice_VisualModel->GetStringSelection());
     if (model != nullptr) {
         std::vector<wxRealPoint> pts;
-        std::vector<int> nodes = model->GetNodesInBoundingBox(_modelPreview, wxPoint(m_bound_start_x, m_bound_start_y), wxPoint(m_bound_end_x, m_bound_end_y));
+        std::vector<int> nodes = model->GetNodesInBoundingBox(_modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
         if (nodes.size() == 0)
             return;
 

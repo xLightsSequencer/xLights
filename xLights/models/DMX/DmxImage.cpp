@@ -113,7 +113,7 @@ void DmxImage::AddTypeProperties(wxPropertyGridInterface *grid) {
     prop->SetAttribute("Step", 1.0);
     prop->SetEditor("SpinCtrl");
 
-    grid->Collapse(base_name + "Properties");
+    grid->Collapse(wxString(base_name + "Properties"));
 }
 
 int DmxImage::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base, bool locked) {

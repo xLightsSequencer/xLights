@@ -50,7 +50,7 @@ class ChannelBlockModel : public ModelWithScreenLocation<TwoPointScreenLocation>
         static std::vector<std::string> LINE_BUFFER_STYLES;
         static std::string ChanColorAttrName(int idx)
         {
-            return wxString::Format(wxT("ChannelColor%i"), idx + 1).ToStdString();  // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
+            return "ChannelColor" + std::to_string(idx + 1);  // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
         }
         void AdjustChannelProperties(wxPropertyGridInterface *grid, int newNum);
 };

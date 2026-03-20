@@ -93,7 +93,7 @@ static const char* CONTROLLER_COLORORDER_VALUES[] = {
     "RGBW", "RBGW", "GBRW", "GRBW", "BRGW", "BGRW",
     "WRGB", "WRBG", "WGBR", "WGRB", "WBRG", "WBGR"
 };
-wxArrayString Model::CONTROLLER_COLORORDER(18, CONTROLLER_COLORORDER_VALUES);
+std::vector<std::string> Model::CONTROLLER_COLORORDER(CONTROLLER_COLORORDER_VALUES, CONTROLLER_COLORORDER_VALUES + 18);
 
 static wxArrayString LAYOUT_GROUPS;
 static wxArrayString CONTROLLERS;
@@ -469,9 +469,9 @@ protected:
     Model* m_model = nullptr;
 };
 
-wxArrayString Model::GetLayoutGroups(const ModelManager& mm)
+std::vector<std::string> Model::GetLayoutGroups(const ModelManager& mm)
 {
-    wxArrayString lg;
+    std::vector<std::string> lg;
     lg.push_back("Default");
     lg.push_back("All Previews");
     lg.push_back("Unassigned");
@@ -751,7 +751,11 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxStopWatch sw;
 
-    LAYOUT_GROUPS = Model::GetLayoutGroups(modelManager);
+    auto layoutGroupsList = Model::GetLayoutGroups(modelManager);
+    LAYOUT_GROUPS.clear();
+    for (const auto& g : layoutGroupsList) {
+        LAYOUT_GROUPS.Add(wxString(g));
+    }
 
     wxPGProperty* sp;
 
@@ -976,7 +980,7 @@ void Model::ClearIndividualStartChannels()
     _indivStartChannels.clear();
 }
 
-void Model::GetSerialProtocolSpeeds(const std::string& protocol, wxArrayString& cs, int& idxs) const {
+void Model::GetSerialProtocolSpeeds(const std::string& protocol, std::vector<std::string>& cs, int& idxs) const {
     if (protocol == "dmx" || Contains(protocol, "DMX")) {
         cs.push_back("250000");
     } else if (protocol == "renard" || protocol == "Renard") {
@@ -1004,7 +1008,7 @@ void Model::GetSerialProtocolSpeeds(const std::string& protocol, wxArrayString& 
     // now work out the index
     int i = 0;
     for (const auto& it : cs) {
-        if (wxAtoi(it) == protocolSpeed) {
+        if (std::stoi(it) == protocolSpeed) {
             idxs = i;
             break;
         }
@@ -1012,22 +1016,20 @@ void Model::GetSerialProtocolSpeeds(const std::string& protocol, wxArrayString& 
     }
 }
 
-void Model::GetControllerProtocols(wxArrayString& cp, int& idx) 
+void Model::GetControllerProtocols(std::vector<std::string>& cp, int& idx)
 {
     auto caps = GetControllerCaps();
     Controller* c = GetController();
-    wxString protocol = GetControllerProtocol();
+    std::string protocol = GetControllerProtocol();
     if (c) {
         ControllerSerial* cs = dynamic_cast<ControllerSerial*>(c);
         if (cs) {
-            wxString cprotocol = cs->GetProtocol();
-            cp.push_back(cprotocol);
+            cp.push_back(cs->GetProtocol());
             idx = 0;
             return;
         }
     }
-    wxString protocolLC = protocol;
-    protocolLC.LowerCase();
+    std::string protocolLC = Lower(protocol);
 
     if (caps == nullptr) {
         for (const auto& it : GetAllPixelTypes(true, false)) {
@@ -1067,19 +1069,19 @@ void Model::GetControllerProtocols(wxArrayString& cp, int& idx)
     }
 }
 
-wxArrayString Model::GetSmartRemoteValues(int smartRemoteCount) const
+std::vector<std::string> Model::GetSmartRemoteValues(int smartRemoteCount) const
 {
-    wxArrayString res;
+    std::vector<std::string> res;
     auto caps = GetControllerCaps();
     bool hinkspix = (caps && caps->GetVendor() == "HinksPix");
 
     for (int i = 0; i < smartRemoteCount; ++i) {
         if (hinkspix) {
-            res.push_back(wxString::Format("%d", i));
-        } else { 
-            res.push_back(wxString(char(65 + i)));
-        } 
-    } 
+            res.push_back(std::to_string(i));
+        } else {
+            res.push_back(std::string(1, char(65 + i)));
+        }
+    }
     return res;
 }
 
@@ -1112,13 +1114,13 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
     }
     sp->SetEditor("SpinCtrl");
 
-    wxArrayString cp;
+    std::vector<std::string> cp;
     int idx = -1;
     GetControllerProtocols(cp, idx);
 
-    wxArrayString cs;
+    std::vector<std::string> cs;
     int idxs = -1;
-    if (idx >= 0 && idx < cp.size()) {
+    if (idx >= 0 && idx < (int)cp.size()) {
         GetSerialProtocolSpeeds(cp[idx], cs, idxs);
     }
 
@@ -1151,7 +1153,8 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
                     }
                 }
 
-                wxArrayString srv = GetSmartRemoteValues(smartRemoteCount);
+                wxArrayString srv;
+                for (const auto& v : GetSmartRemoteValues(smartRemoteCount)) srv.Add(wxString(v));
                 grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", srv, wxArrayInt(), sr - 1));
 
                 if (GetNumPhysicalStrings() > 1) {
@@ -1170,7 +1173,9 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
     }
 
     if (cp.size() > 0) {
-        sp = grid->AppendIn(p, new wxEnumProperty("Protocol", "ModelControllerConnectionProtocol", cp, wxArrayInt(), idx));
+        wxArrayString cpWx;
+        for (const auto& s : cp) cpWx.Add(wxString(s));
+        sp = grid->AppendIn(p, new wxEnumProperty("Protocol", "ModelControllerConnectionProtocol", cpWx, wxArrayInt(), idx));
         if (cp.size() == 1 && idx == 0) {
             grid->DisableProperty(sp);
         }
@@ -1185,9 +1190,11 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
             sp->SetAttribute("Max", caps->GetMaxSerialPortChannels());
         }
         sp->SetEditor("SpinCtrl");
-        if (cp[idx] != "dmx" || Contains(protocol, "DMX")) {
+        if (idx >= 0 && idx < (int)cp.size() && (cp[idx] != "dmx" || Contains(protocol, "DMX"))) {
             // non dmx protocols support speeds
-            sp = grid->AppendIn(p, new wxEnumProperty("Speed", "ModelControllerConnectionSpeed", cs, wxArrayInt(), idxs));
+            wxArrayString csWx;
+            for (const auto& s : cs) csWx.Add(wxString(s));
+            sp = grid->AppendIn(p, new wxEnumProperty("Speed", "ModelControllerConnectionSpeed", csWx, wxArrayInt(), idxs));
             if (cs.size() == 1 && idxs == 0) {
                 grid->DisableProperty(sp);
             }
@@ -1265,8 +1272,10 @@ void Model::AddControllerProperties(wxPropertyGridInterface* grid)
         if (caps == nullptr || caps->SupportsPixelPortColourOrder()) {
             sp = grid->AppendIn(p, new wxBoolProperty("Set Color Order", "ModelControllerConnectionPixelSetColorOrder", IsCtrlPropertySet(CtrlProps::COLOR_ORDER_ACTIVE)));
             sp->SetAttribute("UseCheckbox", true);
-            int cidx = CONTROLLER_COLORORDER.Index(GetControllerColorOrder());
-            auto sp2 = grid->AppendIn(sp, new wxEnumProperty("Color Order", "ModelControllerConnectionPixelColorOrder", CONTROLLER_COLORORDER, wxArrayInt(), cidx < 0 ? 0 : cidx));
+            wxArrayString colorOrderChoices;
+            for (const auto& co : CONTROLLER_COLORORDER) colorOrderChoices.Add(wxString(co));
+            int cidx = colorOrderChoices.Index(GetControllerColorOrder());
+            auto sp2 = grid->AppendIn(sp, new wxEnumProperty("Color Order", "ModelControllerConnectionPixelColorOrder", colorOrderChoices, wxArrayInt(), cidx < 0 ? 0 : cidx));
             if (!IsCtrlPropertySet(CtrlProps::COLOR_ORDER_ACTIVE)) {
                 grid->DisableProperty(sp2);
                 grid->Collapse(sp);
@@ -1687,15 +1696,15 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEve
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionSpeed") {
         int sel = -1;
-        wxArrayString cs;
-        GetSerialProtocolSpeeds(GetControllerProtocol() , cs, sel);
-        SetControllerSerialProtocolSpeed(wxAtoi(cs[event.GetValue().GetLong()]));
+        std::vector<std::string> cs;
+        GetSerialProtocolSpeeds(GetControllerProtocol(), cs, sel);
+        SetControllerSerialProtocolSpeed(std::stoi(cs[event.GetValue().GetLong()]));
         return 0;
     } else if (event.GetPropertyName() == "SmartRemoteType") {
         SetSmartRemoteType(GetSmartRemoteTypeName(wxAtoi(event.GetValue().GetString())));
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionProtocol") {
-        wxArrayString cp;
+        std::vector<std::string> cp;
         int idx;
         GetControllerProtocols(cp, idx);
         std::string oldProtocol = GetControllerProtocol();
@@ -2123,9 +2132,9 @@ void Model::AddSubmodel(SubModel* sm)
     sortedSubModels[sm->GetName()] = sm;
 }
 
-wxString Model::SerialiseFace() const
+std::string Model::SerialiseFace() const
 {
-    wxString res = "";
+    std::string res;
 
     if (!faceInfo.empty()) {
         for (const auto& it : faceInfo) {
@@ -2135,7 +2144,7 @@ wxString Model::SerialiseFace() const
             }
             res += "/>\n";
         }
-        res.Replace("&", "&amp;", true);
+        Replace(res, "&", "&amp;");
     }
 
     return res;
@@ -2238,27 +2247,27 @@ void Model::WriteStateInfo(wxXmlNode* rootXml, const FaceStateData& stateInfo, b
     }
 }
 
-wxString Model::SerialiseState() const
+std::string Model::SerialiseState() const
 {
-    wxString res = "";
+    std::string res;
 
     if (!stateInfo.empty()) {
         for (const auto& it : stateInfo) {
             res += "    <stateInfo Name=\"" + it.first + "\" ";
             for (const auto& it2 : it.second) {
-                if (wxString(it2.first).Trim(false).Trim(true) != "") {
+                if (!Trim(it2.first).empty()) {
                     res += it2.first + "=\"" + it2.second + "\" ";
                 }
             }
             res += "/>\n";
         }
-        res.Replace("&", "&amp;", true);
+        Replace(res, "&", "&amp;");
     }
 
     return res;
 }
 
-void Model::AddModelGroups(wxXmlNode* n, int w, int h, const wxString& name, bool& merge, bool& ask)
+void Model::AddModelGroups(wxXmlNode* n, int w, int h, const std::string& name, bool& merge, bool& ask)
 {
     auto grpModels = n->GetAttribute("models");
     if (grpModels.length() == 0)
@@ -4146,12 +4155,12 @@ void Model::GetNode3DScreenCoords(int nodeidx, std::vector<std::tuple<float, flo
     }
 }
 
-void Model::GetNodeCoords(int nodeidx, std::vector<wxPoint>& pts)
+void Model::GetNodeCoords(int nodeidx, std::vector<xlPoint>& pts)
 {
     if (nodeidx >= Nodes.size())
         return;
     for (size_t x = 0; x < Nodes[nodeidx]->Coords.size(); ++x) {
-        pts.push_back(wxPoint(Nodes[nodeidx]->Coords[x].bufX, Nodes[nodeidx]->Coords[x].bufY));
+        pts.push_back(xlPoint(Nodes[nodeidx]->Coords[x].bufX, Nodes[nodeidx]->Coords[x].bufY));
     }
 }
 
@@ -4181,31 +4190,15 @@ static wxString AA(int x)
 
 // add just the node#s to a choice list:
 // NO add parsed info to choice list or check list box:
-size_t Model::GetChannelCoords(wxArrayString& choices)
+size_t Model::GetChannelCoords(std::vector<std::string>& choices)
 { // wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3)
-    //    if (choices1) choices1->Clear();
-    //    if (choices2) choices2->Clear();
-    //    if (choices3) choices3->Clear();
-    //    if (choices1) choices1->Append(wxT("0: (none)"));
-    //    if (choices2) choices2->Append(wxT("0: (none)"));
-    //    if (choices3) choices3->Append(wxT("0: (none)"));
     size_t NodeCount = GetNodeCount();
     for (size_t n = 0; n < NodeCount; ++n) {
-        //        debug(10, "model::node[%d/%d]: #coords %d, ach# %d, str %d", n, NodeCount, Nodes[n]->Coords.size(), Nodes[n]->StringNum, Nodes[n]->ActChan);
         if (Nodes[n]->Coords.empty())
             continue;
-        //        wxString newstr = wxString::Format(wxT("%i"), GetNodeNumber(n));
-        //        choices.Add(newstr);
-        choices.Add(GetNodeXY(n));
-        //        if (choices1) choices1->Append(newstr);
-        //        if (choices2) choices2->Append(newstr);
-        //        if (choices3)
-        //        {
-        //            wxArrayString strary;
-        //            choices3->InsertItems(strary, choices3->GetCount() + 0);
-        //        }
+        choices.push_back(GetNodeXY(n));
     }
-    return choices.GetCount(); // choices1? choices1->GetCount(): 0) + (choices2? choices2->GetCount(): 0);
+    return choices.size();
 }
 
 // get parsed node info:
@@ -4244,7 +4237,7 @@ std::string Model::GetNodeXY(int nodeinx)
 }
 
 // extract first (X,Y) from string formatted above:
-bool Model::ParseFaceElement(const std::string& multi_str, std::vector<wxPoint>& first_xy)
+bool Model::ParseFaceElement(const std::string& multi_str, std::vector<xlPoint>& first_xy)
 {
     //    first_xy->x = first_xy->y = 0;
     //    first_xy.clear();
@@ -4285,7 +4278,7 @@ bool Model::ParseFaceElement(const std::string& multi_str, std::vector<wxPoint>&
             if (!xystr.empty() && (xystr[0] != '-'))
                 continue; // return false;
         }
-        wxPoint newxy(xval, yval);
+        xlPoint newxy(xval, yval);
         first_xy.push_back(newxy);
     }
 
@@ -4293,7 +4286,7 @@ bool Model::ParseFaceElement(const std::string& multi_str, std::vector<wxPoint>&
 }
 
 // extract first (X,Y) from string formatted above:
-bool Model::ParseStateElement(const std::string& multi_str, std::vector<wxPoint>& first_xy)
+bool Model::ParseStateElement(const std::string& multi_str, std::vector<xlPoint>& first_xy)
 {
     //    first_xy->x = first_xy->y = 0;
     //    first_xy.clear();
@@ -4334,7 +4327,7 @@ bool Model::ParseStateElement(const std::string& multi_str, std::vector<wxPoint>
             if (!xystr.empty() && (xystr[0] != '-'))
                 continue; // return false;
         }
-        wxPoint newxy(xval, yval);
+        xlPoint newxy(xval, yval);
         first_xy.push_back(newxy);
     }
 
@@ -4460,20 +4453,20 @@ void Model::ExportAsCustomXModel() const
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(ExportSuperStringColors());
     f.Write(" >\n");
-    wxString face = SerialiseFace();
-    if (face != "") {
+    std::string face = SerialiseFace();
+    if (!face.empty()) {
         f.Write(face);
     }
-    wxString state = SerialiseState();
-    if (state != "") {
+    std::string state = SerialiseState();
+    if (!state.empty()) {
         f.Write(state);
     }
-    wxString bufsubmodel = CreateBufferAsSubmodel();
-    if (bufsubmodel != "") {
+    std::string bufsubmodel = CreateBufferAsSubmodel();
+    if (!bufsubmodel.empty()) {
         f.Write(bufsubmodel);
     }
-    wxString submodel = SerialiseSubmodel();
-    if (submodel != "") {
+    std::string submodel = SerialiseSubmodel();
+    if (!submodel.empty()) {
         f.Write(submodel);
     }
     // we only save the dimensions if it is a boxed location
@@ -4485,15 +4478,15 @@ void Model::ExportAsCustomXModel() const
     f.Close();
 }
 
-wxString Model::ExportSuperStringColors() const
+std::string Model::ExportSuperStringColors() const
 {
     if (superStringColours.size() == 0) {
         return "";
     }
-    wxString colors;
-    for (int i = 0; i < superStringColours.size(); ++i) {
+    std::string colors;
+    for (int i = 0; i < (int)superStringColours.size(); ++i) {
         std::string c = superStringColours[i];
-        colors += wxString::Format("SuperStringColour%d=\"%s\" ", i, c);
+        colors += "SuperStringColour" + std::to_string(i) + "=\"" + c + "\" ";
     }
     return colors;
 }
@@ -4931,7 +4924,7 @@ void Model::GetScreenLocation(float& sx, float& sy, const NodeBaseClass::CoordSt
     sx = (sx * scale) + (w / 2);
 }
 
-wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip)
+std::string Model::GetNodeNear(ModelPreview* preview, xlPoint pt, bool flip)
 {
     int w, h;
     float scale = GetPreviewDimScale(preview, w, h);
@@ -4961,7 +4954,7 @@ wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip)
 
             if (sx >= (px - pointScale) && sx <= (px + pointScale) &&
                 sy >= (py - pointScale) && sy <= (py + pointScale)) {
-                return wxString::Format(wxT("%i"), i);
+                return std::to_string(i);
             }
         }
         i++;
@@ -4989,7 +4982,7 @@ bool Model::GetScreenLocations(ModelPreview* preview, std::map<int, std::pair<fl
     return true;
 }
 
-std::vector<int> Model::GetNodesInBoundingBox(ModelPreview* preview, wxPoint start, wxPoint end)
+std::vector<int> Model::GetNodesInBoundingBox(ModelPreview* preview, xlPoint start, xlPoint end)
 {
     int w, h;
     float scale = GetPreviewDimScale(preview, w, h);
@@ -5742,45 +5735,45 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
     return model;
 }
 
-wxString Model::SerialiseSubmodel() const
+std::string Model::SerialiseSubmodel() const
 {
-    wxString res = "";
-    
+    std::string res;
+
     const std::vector<Model*>& submodelList = GetSubModels();
-    
+
     for (Model* s : submodelList) {
         const SubModel* submodel = dynamic_cast<const SubModel*>(s);
         if (submodel == nullptr) {
             continue; // Skip if not a valid SubModel
         }
-        
+
         // Build the XML string manually
         res += "    <subModel";
-        res += wxString::Format(" name=\"%s\"", XmlSafe(s->GetName()));
-        res += wxString::Format(" layout=\"%s\"", XmlSafe(submodel->GetSubModelLayout()));
-        res += wxString::Format(" type=\"%s\"", XmlSafe(submodel->GetSubModelType()));
-        
+        res += " name=\"" + XmlSafe(s->GetName()) + "\"";
+        res += " layout=\"" + XmlSafe(submodel->GetSubModelLayout()) + "\"";
+        res += " type=\"" + XmlSafe(submodel->GetSubModelType()) + "\"";
+
         std::string bufferStyle = submodel->GetSubModelBufferStyle();
         if (!bufferStyle.empty()) {
-            res += wxString::Format(" bufferstyle=\"%s\"", XmlSafe(bufferStyle));
+            res += " bufferstyle=\"" + XmlSafe(bufferStyle) + "\"";
         }
-        
+
         // Add range or buffer data
         if (submodel->IsRanges()) {
             for (int x = 0; x < submodel->GetNumRanges(); ++x) {
-                res += wxString::Format(" line%d=\"%s\"", x, XmlSafe(submodel->GetRange(x)));
+                res += " line" + std::to_string(x) + "=\"" + XmlSafe(submodel->GetRange(x)) + "\"";
             }
         } else {
-            res += wxString::Format(" subBuffer=\"%s\"", XmlSafe(submodel->GetSubModelLines()));
+            res += " subBuffer=\"" + XmlSafe(submodel->GetSubModelLines()) + "\"";
         }
-        
+
         // Check if we need to add aliases as child elements
         const std::list<std::string>& aliases = s->GetAliases();
         if (!aliases.empty()) {
             res += ">\n";
             res += "        <aliases>\n";
             for (const auto& alias : aliases) {
-                res += wxString::Format("            <alias name=\"%s\"/>\n", XmlSafe(alias));
+                res += "            <alias name=\"" + XmlSafe(alias) + "\"/>\n";
             }
             res += "        </aliases>\n";
             res += "    </subModel>\n";
@@ -5788,11 +5781,11 @@ wxString Model::SerialiseSubmodel() const
             res += " />\n";
         }
     }
-    
+
     return res;
 }
 
-wxString Model::CreateBufferAsSubmodel() const
+std::string Model::CreateBufferAsSubmodel() const
 {
     int buffW = GetDefaultBufferWi();
     int buffH = GetDefaultBufferHt();
@@ -5801,20 +5794,20 @@ wxString Model::CreateBufferAsSubmodel() const
     for (uint32_t i = 0; i < nodeCount; ++i) {
         int bufx = Nodes[i]->Coords[0].bufX;
         int bufy = Nodes[i]->Coords[0].bufY;
-        if (bufy > nodearray.size() || bufy < 0) {
+        if (bufy > (int)nodearray.size() || bufy < 0) {
             continue;
         }
-        if (bufx > nodearray[bufy].size() || bufx < 0) {
+        if (bufx > (int)nodearray[bufy].size() || bufx < 0) {
             continue;
         }
-        nodearray[bufy][bufx] = wxString::Format("%d", i + 1);
+        nodearray[bufy][bufx] = std::to_string(i + 1);
     }
     wxXmlNode* child = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
     child->AddAttribute("name", "DefaultRenderBuffer");
     child->AddAttribute("layout", "horizontal");
     child->AddAttribute("type", "ranges");
 
-    for (int x = 0; x < nodearray.size(); ++x) {
+    for (int x = 0; x < (int)nodearray.size(); ++x) {
         child->AddAttribute(wxString::Format("line%d", x), CompressNodes(Join(nodearray[x], ",")));
     }
 
@@ -5824,7 +5817,7 @@ wxString Model::CreateBufferAsSubmodel() const
     new_doc.Save(stream);
     wxString s = stream.GetString();
     s = s.SubString(s.Find("\n") + 1, s.Length()); // skip over xml format header
-    return s;
+    return s.ToStdString();
 }
 
 std::list<std::string> Model::CheckModelSettings()

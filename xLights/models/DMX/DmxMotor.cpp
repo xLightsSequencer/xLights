@@ -134,7 +134,7 @@ void DmxMotor::AddTypeProperties(wxPropertyGridInterface *grid) {
     p = grid->Append(new wxBoolProperty("Upside Down", base_name + "UpsideDown", upside_down));
     p->SetAttribute("UseCheckbox", true);
 
-    grid->Collapse(base_name + "Properties");
+    grid->Collapse(wxString(base_name + "Properties"));
 }
 
 int DmxMotor::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base, bool locked) {

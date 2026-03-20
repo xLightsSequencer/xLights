@@ -10,7 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/string.h>
+#include <string>
 #include <glm/glm.hpp>
 class wxPropertyGridInterface;
 class wxPropertyGridEvent;
@@ -62,7 +62,7 @@ protected:
 
 protected:
 
-    wxString base_name;
+    std::string base_name;
     int channel_coarse{ 0 };
     int channel_fine{ 0 };
     int min_value{ 0 };

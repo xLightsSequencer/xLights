@@ -129,7 +129,7 @@ private:
     float rotatez = 0.0f;
     float half_height = 1.0f;
     float rscale = 1.0f;
-    wxString base_name;
+    std::string base_name;
 
     float bmin[3] = { 0.0, 0.0, 0.0 };
     float bmax[3] = { 0.0, 0.0, 0.0 };

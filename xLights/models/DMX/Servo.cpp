@@ -205,7 +205,7 @@ void Servo::AddTypeProperties(wxPropertyGridInterface *grid, bool pwm) {
         grid->Append(new wxEnumProperty("Controller Zero Behavior", "Controller" + base_name + "ZeroBehavior", ZERO_BEHAVIORS, zbv));
         grid->Append(new wxEnumProperty("Controller DataType", "Controller" + base_name + "DataType", DATA_TYPES, dtv));
     }
-    grid->Collapse(base_name + "Properties");
+    grid->Collapse(wxString(base_name + "Properties"));
 }
 
 int Servo::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base, bool locked) {

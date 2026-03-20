@@ -10,8 +10,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/string.h>
-#include <glm/glm.hpp>
+#include <string>
+#include <vector>
+#include <memory>
 
 //#include "SerializedObject.h"
 
@@ -21,7 +22,7 @@ class wxXmlNode;
 class MhFeature// : public SerializedObject
 {
     public:
-        MhFeature(wxXmlNode* node, wxString _xml_name, wxString pretty_name);
+        MhFeature(wxXmlNode* node, const std::string& _xml_name, const std::string& pretty_name);
         virtual ~MhFeature();
 
         void Init();
@@ -36,8 +37,8 @@ class MhFeature// : public SerializedObject
 
     private:
         wxXmlNode* node_xml;
-        wxString name;
-        wxString xml_name;
+        std::string name;
+        std::string xml_name;
         std::vector<std::unique_ptr<MhChannel>> channels;
 };
 

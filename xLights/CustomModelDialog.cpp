@@ -3451,7 +3451,7 @@ void CustomModelDialog::DrawDupNodes()
     auto grid = GetActiveGrid();
     _dup_pts.clear();
     for (size_t ii = 0; ii < _model->GetNodeCount(); ii++) {
-        std::vector<wxPoint> pts;
+        std::vector<xlPoint> pts;
         _model->GetNodeCoords(ii, pts);
         if (pts.size() > 1) {
             for (auto const& pt : pts)

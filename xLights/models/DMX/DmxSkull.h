@@ -190,7 +190,7 @@ protected:
     std::unique_ptr<Servo> eye_ud_servo = nullptr;
     std::unique_ptr<Servo> eye_lr_servo = nullptr;
     bool _16bit = true;
-    wxString obj_path = "";
+    std::string obj_path;
     int eye_brightness_channel {0};
     int default_channels[6];
     int default_min_limit[6];

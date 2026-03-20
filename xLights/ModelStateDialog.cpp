@@ -1529,7 +1529,7 @@ void ModelStateDialog::OnPreviewLeftDClick(wxMouseEvent& event)
     GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
     int x = ray_origin.x;
     int y = ray_origin.y;
-    wxString stNode = model->GetNodeNear(modelPreview, wxPoint(x, y), false);
+    wxString stNode = model->GetNodeNear(modelPreview, xlPoint(x, y), false);
     if (stNode.IsEmpty())
         return;
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
@@ -1643,7 +1643,7 @@ void ModelStateDialog::SelectAllInBoundingRect(bool shiftDwn)
         return;
 
     std::vector<wxRealPoint> pts;
-    std::vector<int> nodes = model->GetNodesInBoundingBox(modelPreview, wxPoint(m_bound_start_x, m_bound_start_y), wxPoint(m_bound_end_x, m_bound_end_y));
+    std::vector<int> nodes = model->GetNodesInBoundingBox(modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
     if (nodes.size() == 0)
         return;
 
@@ -1690,7 +1690,7 @@ void ModelStateDialog::RemoveNodes()
         return;
 
     std::vector<wxRealPoint> pts;
-    std::vector<int> nodes = model->GetNodesInBoundingBox(modelPreview, wxPoint(m_bound_start_x, m_bound_start_y), wxPoint(m_bound_end_x, m_bound_end_y));
+    std::vector<int> nodes = model->GetNodesInBoundingBox(modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
     if (nodes.size() == 0)
         return;
     wxString oldnodes = ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));

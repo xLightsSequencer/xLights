@@ -39,30 +39,7 @@ class OutputManager;
 #include <list>
 #include <map>
 
-#pragma region xlPoint
-
 class xLightsFrame;
-
-// This is required so I can use points in std::maps
-class xlPoint : public wxPoint
-{
-public:
-    xlPoint(int x, int y) : wxPoint(x, y) {}
-    bool operator<(const xlPoint& r) const
-    {
-        if (x < r.x) return true;
-        if (y < r.y) return true;
-        return false;
-    }
-    friend bool operator<(const xlPoint& l, const xlPoint& r) 
-    {
-        if (l.x < r.x) return true;
-        if (l.y < r.y) return true;
-        return false;
-    }
-};
-
-#pragma endregion xlPoint
 
 class MyGenericStaticBitmap;
 

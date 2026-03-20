@@ -89,6 +89,6 @@ private:
     float rotatex {0.0f};
     float rotatey {0.0f};
     float rotatez {0.0f};
-    wxString base_name;
+    std::string base_name;
 };
 

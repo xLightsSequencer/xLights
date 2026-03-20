@@ -10,7 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/string.h>
+#include <string>
 #include <glm/glm.hpp>
 
 #include "../PWMOutput.h"
@@ -89,7 +89,7 @@ private:
         SERVO_STYLE_ROTATEZ
     };
 
-    wxString base_name;
+    std::string base_name;
     int channel {0};
     int min_limit {1};
     int max_limit {65535};

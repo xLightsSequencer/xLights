@@ -3214,7 +3214,7 @@ void SubModelsDialog::OnPreviewLeftDClick(wxMouseEvent& event)
     GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
     int x = ray_origin.x;
     int y = ray_origin.y;
-    wxString stNode = model->GetNodeNear(modelPreview, wxPoint(x, y), false);
+    wxString stNode = model->GetNodeNear(modelPreview, xlPoint(x, y), false);
     if (stNode.IsEmpty())
         return;
     wxString name = GetSelectedName();
@@ -3323,7 +3323,7 @@ void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
         return;
 
     std::vector<wxRealPoint> pts;
-    std::vector<int> nodes = model->GetNodesInBoundingBox(modelPreview, wxPoint(m_bound_start_x, m_bound_start_y), wxPoint(m_bound_end_x, m_bound_end_y));
+    std::vector<int> nodes = model->GetNodesInBoundingBox(modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
     if (nodes.size() == 0)
         return;
     wxString oldnodes = ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
@@ -3371,7 +3371,7 @@ void SubModelsDialog::RemoveNodes(bool suppress)
         return;
 
     std::vector<wxRealPoint> pts;
-    std::vector<int> nodes = model->GetNodesInBoundingBox(modelPreview, wxPoint(m_bound_start_x, m_bound_start_y), wxPoint(m_bound_end_x, m_bound_end_y));
+    std::vector<int> nodes = model->GetNodesInBoundingBox(modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
     if (nodes.size() == 0)
         return;
     wxString oldnodes = ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
@@ -3987,7 +3987,7 @@ void SubModelsDialog::ExportSubModelAsxModel(wxString const& filename, const std
                         int incr = (end - start) / std::abs(end - start);
                         for (int n = start; n != end + incr; n += incr) {
 
-                            std::vector<wxPoint> pts;
+                            std::vector<xlPoint> pts;
                             model->GetNodeCoords(n-1, pts);
 
                             if (pts.size() > 0) {
@@ -4000,7 +4000,7 @@ void SubModelsDialog::ExportSubModelAsxModel(wxString const& filename, const std
             } else {
                 int n = wxAtoi(Trim(r));
                 if (n > 0) {
-                    std::vector<wxPoint> pts;
+                    std::vector<xlPoint> pts;
                     model->GetNodeCoords(n-1, pts);
 
                     if (pts.size() > 0) {

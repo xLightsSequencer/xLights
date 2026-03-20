@@ -728,7 +728,7 @@ void RenderModelOnImage(wxImage& image, Model* model, uint8_t* framedata, int st
         xlColor c = model->GetNodeColor(i);
 
         // Get all the bulbs attached to these nodes
-        std::vector<wxPoint> pts;
+        std::vector<xlPoint> pts;
         model->GetNodeCoords(i, pts);
 
         // for each bulb

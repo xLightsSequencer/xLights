@@ -27,15 +27,25 @@
 #include "../Color.h"
 #include "BaseObject.h"
 #include "../UtilFunctions.h"
-#include <wx/gdicmn.h>
 #include <wx/propgrid/props.h>
+
+struct xlPoint {
+    int x = 0;
+    int y = 0;
+    xlPoint() = default;
+    xlPoint(int x_, int y_) : x(x_), y(y_) {}
+    bool operator<(const xlPoint& r) const {
+        if (x < r.x) return true;
+        if (x > r.x) return false;
+        return y < r.y;
+    }
+};
 
 
 class wxProgressDialog;
 class DimmingCurve;
 class wxXmlNode;
 class ModelPreview;
-class wxArrayString;
 class wxPropertyGridInterface;
 class wxPropertyGridEvent;
 class ModelScreenLocation;
@@ -98,11 +108,11 @@ public:
         PIXEL_STYLE_BLENDED_CIRCLE
     };
 
-    static wxArrayString CONTROLLER_COLORORDER;
+    static std::vector<std::string> CONTROLLER_COLORORDER;
 
     Model(const ModelManager& manager);
     virtual ~Model();
-    static wxArrayString GetLayoutGroups(const ModelManager& mm);
+    static std::vector<std::string> GetLayoutGroups(const ModelManager& mm);
     static std::string SafeModelName(const std::string& name)
     {
         wxString n(Trim(name).c_str());
@@ -183,16 +193,16 @@ public:
     void SetPixelType(const std::string &pt) { _pixelType = pt; }
     void SetPixelSpacing(const std::string &ps) { _pixelSpacing = ps; }
 
-    wxString ExportSuperStringColors() const;
+    std::string ExportSuperStringColors() const;
     void ApplyDimensions(const std::string& units, float width, float height, float depth);
     void ExportDimensions(wxFile& f) const;
     std::string GetRulerDim() const;
 
     virtual bool AllNodesAllocated() const { return true; }
     static void WriteFaceInfo(wxXmlNode* fiNode, const FaceStateData& faceInfo);
-    wxString SerialiseFace() const;
-    wxString SerialiseState() const;
-    void AddModelGroups(wxXmlNode* n, int w, int h, const wxString& name, bool& merge, bool& ask);
+    std::string SerialiseFace() const;
+    std::string SerialiseState() const;
+    void AddModelGroups(wxXmlNode* n, int w, int h, const std::string& name, bool& merge, bool& ask);
     void ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup);
 
     void UpdateFaceInfoNodes();
@@ -247,8 +257,8 @@ public:
     void AddSubmodel(SubModel* sm);
     [[nodiscard]] Model* CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, wxXmlNode* node, xLightsFrame* xlights, bool& cancelled) const;
 
-    [[nodiscard]] wxString SerialiseSubmodel() const;
-    [[nodiscard]] virtual wxString CreateBufferAsSubmodel() const;
+    [[nodiscard]] std::string SerialiseSubmodel() const;
+    [[nodiscard]] virtual std::string CreateBufferAsSubmodel() const;
     bool importAliases = false;
     bool skipImportAliases = false;
 
@@ -286,8 +296,8 @@ public:
 
     virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    void GetSerialProtocolSpeeds(const std::string& protocol, wxArrayString& cp, int& idx) const;
-    void GetControllerProtocols(wxArrayString& cp, int& idx);
+    void GetSerialProtocolSpeeds(const std::string& protocol, std::vector<std::string>& cp, int& idx) const;
+    void GetControllerProtocols(std::vector<std::string>& cp, int& idx);
     virtual void AddControllerProperties(wxPropertyGridInterface* grid);
     virtual void UpdateControllerProperties(wxPropertyGridInterface* grid);
     virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) {};
@@ -475,7 +485,7 @@ public:
 
     virtual std::vector<PWMOutput> GetPWMOutputs() const;
 
-    wxArrayString GetSmartRemoteValues(int smartRemoteCount) const;
+    std::vector<std::string> GetSmartRemoteValues(int smartRemoteCount) const;
 
     [[nodiscard]] unsigned long GetChangeCount() const {
         return changeCount;
@@ -530,8 +540,8 @@ public:
     float GetPreviewDimScale(ModelPreview* preview, int& w, int& h);
     void GetScreenLocation(float& sx, float& sy, const NodeBaseClass::CoordStruct& it2, int w, int h, float scale);
     bool GetScreenLocations(ModelPreview *preview, std::map<int, std::pair<float, float>>& coords);
-    wxString GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip);
-    std::vector<int> GetNodesInBoundingBox(ModelPreview* preview, wxPoint start, wxPoint end);
+    std::string GetNodeNear(ModelPreview* preview, xlPoint pt, bool flip);
+    std::vector<int> GetNodesInBoundingBox(ModelPreview* preview, xlPoint start, xlPoint end);
     bool IsMultiCoordsPerNode() const;
 
     virtual bool CleanupFileLocations(xLightsFrame* frame) override;
@@ -587,9 +597,9 @@ public:
     virtual void ExportAsCustomXModel3D() const
     {}
     virtual bool SupportsWiringView() const = 0;
-    size_t GetChannelCoords(wxArrayString& choices); //wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3);
-    static bool ParseFaceElement(const std::string& str, std::vector<wxPoint>& first_xy);
-    static bool ParseStateElement(const std::string& str, std::vector<wxPoint>& first_xy);
+    size_t GetChannelCoords(std::vector<std::string>& choices);
+    static bool ParseFaceElement(const std::string& str, std::vector<xlPoint>& first_xy);
+    static bool ParseStateElement(const std::string& str, std::vector<xlPoint>& first_xy);
     virtual bool SupportsLowDefinitionRender() const
     {
         return false;
@@ -597,7 +607,7 @@ public:
     std::string GetNodeXY(const std::string& nodenumstr);
     std::string GetNodeXY(int nodeinx);
 
-    void GetNodeCoords(int nodeidx, std::vector<wxPoint>& pts);
+    void GetNodeCoords(int nodeidx, std::vector<xlPoint>& pts);
     void GetNode3DScreenCoords(int nodeidx, std::vector<std::tuple<float, float, float>>& pts);
 
     bool GetIsLtoR() const { return IsLtoR; }
@@ -722,14 +732,12 @@ public:
         if (GetLayerSizeCount() > layer && size != 0) {
             layerSizes[layer] = size;
         }
-        //else wxASSERT(false);
     }
     int GetLayerSize(int layer) const
     {
         if (GetLayerSizeCount() > layer) {
             return layerSizes[layer];
         }
-        wxASSERT(false);
         return 0;
     }
     void AddLayerSizeProperty(wxPropertyGridInterface* grid);

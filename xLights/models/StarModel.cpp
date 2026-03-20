@@ -211,21 +211,21 @@ bool StarModel::AllNodesAllocated() const
 // parm3 is number of points
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
 
-wxRealPoint StarModel::GetPointOnCircle(double radius, double angle)
+StarModel::xlRealPoint StarModel::GetPointOnCircle(double radius, double angle)
 {
-    return wxRealPoint(radius * std::sin(angle), radius * std::cos(angle));
+    return xlRealPoint(radius * std::sin(angle), radius * std::cos(angle));
 }
 
-double StarModel::LineLength(wxRealPoint start, wxRealPoint end)
+double StarModel::LineLength(const xlRealPoint& start, const xlRealPoint& end)
 {
     return std::sqrt((end.x - start.x) * (end.x - start.x) + (end.y - start.y) * (end.y - start.y));
 }
 
-wxRealPoint StarModel::GetPositionOnLine(wxRealPoint start, wxRealPoint end, double distance)
+StarModel::xlRealPoint StarModel::GetPositionOnLine(const xlRealPoint& start, const xlRealPoint& end, double distance)
 {
     if (LineLength(start, end) == 0) return start;
     double t = distance / LineLength(start, end);
-    return wxRealPoint(((1.0 - t) * start.x + t * end.x), ((1.0 - t) * start.y + t * end.y));
+    return xlRealPoint(((1.0 - t) * start.x + t * end.x), ((1.0 - t) * start.y + t * end.y));
 }
 
 void StarModel::InitModel()
@@ -330,8 +330,8 @@ void StarModel::InitModel()
             bool startOuter = !Contains(_starStartLocation, "Bottom Ctr");
 
             // segments are all the same length so i can calculate length once
-            wxRealPoint start = GetPointOnCircle(startOuter ? outerRadius : innerRadius, startAngle);
-            wxRealPoint end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, startAngle + (pointAngleGap / 2.0));
+            xlRealPoint start = GetPointOnCircle(startOuter ? outerRadius : innerRadius, startAngle);
+            xlRealPoint end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, startAngle + (pointAngleGap / 2.0));
             double segmentLength = LineLength(start, end);
             double totalSegmentLength = starSegments * segmentLength;
             double coordGap = totalSegmentLength / (layerNodes * coordsPerNode);
@@ -363,7 +363,7 @@ void StarModel::InitModel()
                     Nodes[currentNode]->ActChan = chan;
 
                     for (int c = 0; c < coordsPerNode; c++) {
-                        wxRealPoint point = GetPositionOnLine(start, end, curPos - segStartLen);
+                        xlRealPoint point = GetPositionOnLine(start, end, curPos - segStartLen);
 
                         Nodes[currentNode]->Coords[c].bufX = point.x + BufferWi / 2;
                         Nodes[currentNode]->Coords[c].bufY = point.y + BufferHt / 2 - 1;
@@ -412,7 +412,7 @@ void StarModel::InitModel()
     } else {
         for (int l = startLayer; l != endLayer; l += layerIncr) {
 
-            wxRealPoint lastCoord; // we remember this so any excess coords are placed with the last coord
+            xlPoint lastCoord; // we remember this so any excess coords are placed with the last coord
 
             if (currentNode >= Nodes.size()) break;
 
@@ -427,8 +427,8 @@ void StarModel::InitModel()
             bool startOuter = !Contains(_starStartLocation, "Bottom Ctr");
 
             // segments are all the same length so i can calculate length once
-            wxRealPoint start = GetPointOnCircle(startOuter ? outerRadius : innerRadius, startAngle);
-            wxRealPoint end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, startAngle + (pointAngleGap / 2.0));
+            xlRealPoint start = GetPointOnCircle(startOuter ? outerRadius : innerRadius, startAngle);
+            xlRealPoint end = GetPointOnCircle(startOuter ? innerRadius : outerRadius, startAngle + (pointAngleGap / 2.0));
             double segmentLength = LineLength(start, end);
             double totalSegmentLength = starSegments * segmentLength;
             double coordGap = totalSegmentLength / (layerNodes * coordsPerNode);
@@ -449,13 +449,13 @@ void StarModel::InitModel()
 
                     Nodes[currentNode]->ActChan = chan;
 
-                    wxRealPoint point = GetPositionOnLine(start, end, curPos - segStartLen);
+                    xlRealPoint point = GetPositionOnLine(start, end, curPos - segStartLen);
 
                     Nodes[currentNode]->Coords[currentCoord].bufX = point.x + BufferWi / 2;
                     Nodes[currentNode]->Coords[currentCoord].bufY = point.y + BufferHt / 2 - 1;
                     Nodes[currentNode]->Coords[currentCoord].screenX = point.x;
                     Nodes[currentNode]->Coords[currentCoord].screenY = point.y;
-                    lastCoord = wxPoint(Nodes[currentNode]->Coords[currentCoord].bufX, Nodes[currentNode]->Coords[currentCoord].bufY);
+                    lastCoord = xlPoint(Nodes[currentNode]->Coords[currentCoord].bufX, Nodes[currentNode]->Coords[currentCoord].bufY);
 
                     curPos += coordGap;
 

@@ -956,7 +956,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
 
         int multinodecount = 0;
         for (size_t ii = 0; ii < GetNodeCount(); ii++) {
-            std::vector<wxPoint> pts;
+            std::vector<xlPoint> pts;
             GetNodeCoords(ii, pts);
             if (pts.size() > 1) {
                 multinodecount++;
@@ -966,7 +966,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
         // >0% but less than 10% multi-nodes ... these may be accidental duplicates
         if (multinodecount > 0 && multinodecount < 0.1 * maxn) {
             for (size_t ii = 0; ii < GetNodeCount(); ii++) {
-                std::vector<wxPoint> pts;
+                std::vector<xlPoint> pts;
                 GetNodeCoords(ii, pts);
                 if (pts.size() > 1) {
                     res.push_back(wxString::Format("    WARN: Custom model '%s' %s node has %d instances but multi instance nodes are rare in this model so this may be unintended.",
@@ -1116,27 +1116,18 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
     return html;
 }
 
-bool point_compare(const wxPoint first, const wxPoint second)
+void RemoveDuplicatePixels(std::list<std::list<xlPoint>>& chs)
 {
-    if (first.x == second.x) {
-        return first.y < second.y;
-    }
-
-    return first.x < second.x;
-}
-
-void RemoveDuplicatePixels(std::list<std::list<wxPoint>>& chs)
-{
-    std::list<wxPoint> flat;
-    std::list<wxPoint> duplicates;
+    std::list<xlPoint> flat;
+    std::list<xlPoint> duplicates;
 
     for (const auto& ch : chs) {
         for (const auto& it : ch) {
-            flat.push_back(wxPoint(it.x, it.y));
+            flat.push_back(xlPoint(it.x, it.y));
         }
     }
 
-    flat.sort(point_compare);
+    flat.sort();
 
     for (auto it = flat.begin(); it != flat.end(); ++it) {
         auto it2 = it;
@@ -1171,20 +1162,20 @@ void RemoveDuplicatePixels(std::list<std::list<wxPoint>>& chs)
     }
 }
 
-bool HasDuplicates(float divisor, std::list<std::list<wxPoint>> chs)
+bool HasDuplicates(float divisor, std::list<std::list<xlPoint>> chs)
 {
-    std::list<wxPoint> scaled;
+    std::list<xlPoint> scaled;
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Checking for duplicates at scale %f.", divisor);
 
     for (const auto& ch : chs) {
         for (const auto& it : ch) {
-            scaled.push_back(wxPoint((float)it.x * divisor, (float)it.y * divisor));
+            scaled.push_back(xlPoint((int)((float)it.x * divisor), (int)((float)it.y * divisor)));
         }
     }
 
-    scaled.sort(point_compare);
+    scaled.sort();
 
     for (auto it = scaled.begin(); it != scaled.end(); ++it) {
         auto it2 = it;
@@ -1209,7 +1200,7 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
 
         wxXmlNode* root = doc.GetRoot();
 
-        std::list<std::list<wxPoint>> chs;
+        std::list<std::list<xlPoint>> chs;
 
         for (wxXmlNode* n1 = root->GetChildren(); n1 != nullptr; n1 = n1->GetNext()) {
             if (n1->GetName() == "DrawObjects") {
@@ -1217,10 +1208,10 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
                     if (n2->GetName() == "DrawObject") {
                         for (wxXmlNode* n3 = n2->GetChildren(); n3 != nullptr; n3 = n3->GetNext()) {
                             if (n3->GetName() == "DrawPoints") {
-                                std::list<wxPoint> points;
+                                std::list<xlPoint> points;
                                 for (wxXmlNode* n4 = n3->GetChildren(); n4 != nullptr; n4 = n4->GetNext()) {
                                     if (n4->GetName() == "DrawPoint") {
-                                        points.push_back(wxPoint(wxAtoi(n4->GetAttribute("X", "-5")) / 5, wxAtoi(n4->GetAttribute("Y", "-1")) / 5));
+                                        points.push_back(xlPoint(wxAtoi(n4->GetAttribute("X", "-5")) / 5, wxAtoi(n4->GetAttribute("Y", "-1")) / 5));
                                     }
                                 }
                                 chs.push_back(points);

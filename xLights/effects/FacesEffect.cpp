@@ -879,7 +879,7 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
     HSVValue hsv;
     buffer.Color2HSV(color, hsv);
 
-    std::vector<wxPoint> first_xy;
+    std::vector<xlPoint> first_xy;
     const Model* model_info = buffer.GetModel();
 
     if (!model_info || !parse_model(buffer.cur_model))

@@ -73,17 +73,17 @@ public:
 
     const std::string StartNodeAttrName(int idx) const
     {
-        return wxString::Format(wxT("PolyNode%i"), idx + 1).ToStdString(); // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
+        return "PolyNode" + std::to_string(idx + 1); // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
     }
 
     const std::string SegAttrName(int idx) const
     {
-        return wxString::Format(wxT("Seg%d"), idx + 1).ToStdString();
+        return "Seg" + std::to_string(idx + 1);
     }
-    
+
     const std::string CornerAttrName(int idx) const
     {
-        return wxString::Format(wxT("Corner%d"), idx + 1).ToStdString();
+        return "Corner" + std::to_string(idx + 1);
     }
 
 protected:

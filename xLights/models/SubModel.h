@@ -77,8 +77,8 @@ public:
     std::string GetSubModelLines() const { return _propertyGridDisplay; }
 
     // Functions for adding the different buffer types
-    void AddDefaultBuffer( wxString const& nodes );
-    void AddRangeXY( wxString const& nodes );
+    void AddDefaultBuffer( std::string const& nodes );
+    void AddRangeXY( std::string const& nodes );
     void AddSubbuffer(std::string const& range );
     
     int GetNumRanges() const { return _ranges.size(); }

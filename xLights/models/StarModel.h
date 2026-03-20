@@ -12,6 +12,7 @@
 
 #include "Model.h"
 #include <string>
+#include <cmath>
 
 class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
@@ -49,11 +50,18 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     protected:
+        struct xlRealPoint {
+            double x = 0.0;
+            double y = 0.0;
+            xlRealPoint() = default;
+            xlRealPoint(double x_, double y_) : x(x_), y(y_) {}
+        };
+
         static std::vector<std::string> STAR_BUFFER_STYLES;
         virtual void InitModel() override;
-        wxRealPoint GetPointOnCircle(double radius, double angle);
-        double LineLength(wxRealPoint start, wxRealPoint end);
-        wxRealPoint GetPositionOnLine(wxRealPoint start, wxRealPoint end, double distance);
+        xlRealPoint GetPointOnCircle(double radius, double angle);
+        double LineLength(const xlRealPoint& start, const xlRealPoint& end);
+        xlRealPoint GetPositionOnLine(const xlRealPoint& start, const xlRealPoint& end, double distance);
 
     private:
         // The ratio between the inner and outer radius of the star; default is 2.618034.

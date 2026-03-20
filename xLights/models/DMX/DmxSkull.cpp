@@ -37,9 +37,9 @@ DmxSkull::DmxSkull(const ModelManager& manager) :
 
     wxStandardPaths stdp = wxStandardPaths::Get();
 #ifndef __WXMSW__
-    obj_path = wxStandardPaths::Get().GetResourcesDir() + "/meshobjects/Skull/";
+    obj_path = wxStandardPaths::Get().GetResourcesDir().ToStdString() + "/meshobjects/Skull/";
 #else
-    obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/meshobjects/Skull/";
+    obj_path = wxFileName(stdp.GetExecutablePath()).GetPath().ToStdString() + "/meshobjects/Skull/";
 #endif
 
     default_channels[JAW] = 1;

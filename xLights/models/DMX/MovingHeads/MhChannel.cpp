@@ -16,7 +16,7 @@
 #include "MhChannel.h"
 #include <glm/gtc/type_ptr.hpp>
 
-MhChannel::MhChannel(wxXmlNode* node, wxString pretty_name)
+MhChannel::MhChannel(wxXmlNode* node, const std::string& pretty_name)
 : node_xml(node), name(pretty_name)
 {
 }
@@ -65,7 +65,7 @@ void MhChannel::AddRange(std::string& name)
     ranges.push_back(std::move(newRange));
 }
 
-MhChannel::MhRange::MhRange(wxXmlNode* node, wxString pretty_name)
+MhChannel::MhRange::MhRange(wxXmlNode* node, const std::string& pretty_name)
     : range_node(node), name(pretty_name)
 {
 }

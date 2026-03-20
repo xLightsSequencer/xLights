@@ -2055,10 +2055,12 @@ void LayoutPanel::BulkEditControllerPreview()
         }
     }
 
-    wxArrayString choices = Model::GetLayoutGroups(xlights->AllModels);
+    auto groupList = Model::GetLayoutGroups(xlights->AllModels);
+    wxArrayString choices;
+    for (const auto& g : groupList) choices.push_back(g);
     int sel = 0;
     int j = 0;
-    for (const auto& it : choices)
+    for (const auto& it : groupList)
     {
         if (it == p) {
             sel = j;
@@ -2089,7 +2091,9 @@ void LayoutPanel::BulkEditControllerPreview()
 }
 
 void LayoutPanel::BulkEditGroupControllerPreview() {
-    wxArrayString choices = Model::GetLayoutGroups(xlights->AllModels);
+    auto groupList = Model::GetLayoutGroups(xlights->AllModels);
+    wxArrayString choices;
+    for (const auto& g : groupList) choices.push_back(g);
     int sel = 0;
     wxSingleChoiceDialog dlg(this, "Preview", "Preview", choices);
     dlg.SetSelection(sel);

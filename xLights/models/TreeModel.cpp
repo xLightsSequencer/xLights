@@ -462,15 +462,15 @@ void TreeModel::ExportAsCustomXModel3D() const
     WriteCustomModelAttributes(f, this, width, height, depth, parm3, data);
 
     // Write face, state, and submodel information
-    wxString face = SerialiseFace();
+    std::string face = SerialiseFace();
     if (!face.empty()) {
         f.Write(face);
     }
-    wxString state = SerialiseState();
+    std::string state = SerialiseState();
     if (!state.empty()) {
         f.Write(state);
     }
-    wxString submodel = SerialiseSubmodel();
+    std::string submodel = SerialiseSubmodel();
     if (!submodel.empty()) {
         f.Write(submodel);
     }

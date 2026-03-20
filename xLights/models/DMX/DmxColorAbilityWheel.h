@@ -61,7 +61,7 @@ class DmxColorAbilityWheel : public DmxColorAbility
         void SetWheelChannel(uint32_t chan) { wheel_channel = chan; }
         void SetDimmerChannel(uint32_t chan) { dimmer_channel = chan; }
         void SetWheelDelay(uint32_t delay) { wheel_delay = delay; }
-        void AddColor(wxString dmxcolor, uint8_t dmxVal);
+        void AddColor(const std::string& dmxcolor, uint8_t dmxVal);
 
         virtual void GetPWMOutputs(std::map<uint32_t, PWMOutput> &map) const override;
 

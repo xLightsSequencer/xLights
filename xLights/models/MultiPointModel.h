@@ -41,7 +41,7 @@ public:
 
     const std::string StartNodeAttrName(int idx) const
     {
-        return wxString::Format(wxT("MultiNode%i"), idx + 1).ToStdString(); // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
+        return "MultiNode" + std::to_string(idx + 1); // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
     }
 
 protected:

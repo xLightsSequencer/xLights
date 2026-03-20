@@ -77,12 +77,12 @@ DmxMovingHeadAdv::DmxMovingHeadAdv(const ModelManager &manager) :
     DisplayAs = DisplayAsType::DmxMovingHeadAdv;
     wxStandardPaths stdp = wxStandardPaths::Get();
 #ifndef __WXMSW__
-    obj_path = wxStandardPaths::Get().GetResourcesDir() + "/meshobjects/SimpleMovingHead/";
+    obj_path = wxStandardPaths::Get().GetResourcesDir().ToStdString() + "/meshobjects/SimpleMovingHead/";
 #else
 #ifdef _DEBUG
-    obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/../../../meshobjects/SimpleMovingHead/";
+    obj_path = wxFileName(stdp.GetExecutablePath()).GetPath().ToStdString() + "/../../../meshobjects/SimpleMovingHead/";
 #else
-    obj_path = wxFileName(stdp.GetExecutablePath()).GetPath() + "/meshobjects/SimpleMovingHead/";
+    obj_path = wxFileName(stdp.GetExecutablePath()).GetPath().ToStdString() + "/meshobjects/SimpleMovingHead/";
 #endif
 #endif
     color_ability = std::make_unique<DmxColorAbilityRGB>();
@@ -343,7 +343,7 @@ int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxProp
     return DmxModel::OnPropertyGridChange(grid, event);
 }
 
-void DmxMovingHeadAdv::MapChannelName(wxArrayString& array, int chan, std::string name)
+void DmxMovingHeadAdv::MapChannelName(std::vector<std::string>& array, int chan, std::string name)
 {
     if (chan > 0) {
         array[chan-1] = name;
@@ -358,8 +358,7 @@ void DmxMovingHeadAdv::InitModel()
     if (base_mesh == nullptr) {
         std::string new_name = "BaseMesh";
         base_mesh = std::make_unique<Mesh>(new_name);
-        wxString f = obj_path + "MovingHeadBase.obj";
-        base_mesh->SetObjFile(f);
+        base_mesh->SetObjFile(obj_path + "MovingHeadBase.obj");
         base_mesh->SetBrightness(40);
     }
 
@@ -367,8 +366,7 @@ void DmxMovingHeadAdv::InitModel()
     if (yoke_mesh == nullptr) {
         std::string new_name = "YokeMesh";
         yoke_mesh = std::make_unique<Mesh>(new_name);
-        wxString f = obj_path + "MovingHeadYoke.obj";
-        yoke_mesh->SetObjFile(f);
+        yoke_mesh->SetObjFile(obj_path + "MovingHeadYoke.obj");
         yoke_mesh->SetBrightness(50);
         yoke_mesh->SetRotateY(90);
     }
@@ -377,8 +375,7 @@ void DmxMovingHeadAdv::InitModel()
     if (head_mesh == nullptr) {
         std::string new_name = "HeadMesh";
         head_mesh = std::make_unique<Mesh>(new_name);
-        wxString f = obj_path + "MovingHead.obj";
-        head_mesh->SetObjFile(f);
+        head_mesh->SetObjFile(obj_path + "MovingHead.obj");
         head_mesh->SetBrightness(80);
         head_mesh->SetRotateX(90);
         head_mesh->SetRotateY(90);
@@ -401,7 +398,7 @@ void DmxMovingHeadAdv::InitModel()
 
     // create node names
     std::string names = "";
-    wxArrayString nodestrings;
+    std::vector<std::string> nodestrings;
     nodestrings.resize(GetNumChannels());
     if (nodeNames.size() == 0) {
         int chan = pan_motor->GetChannelCoarse();
@@ -440,7 +437,10 @@ void DmxMovingHeadAdv::InitModel()
                 MapChannelName(nodestrings, chan, "White");
             }
         }
-        names = wxJoin( nodestrings, ',');
+        for (size_t i = 0; i < nodestrings.size(); i++) {
+            if (i > 0) names += ',';
+            names += nodestrings[i];
+        }
     }
     SetNodeNames(names, update_node_names);
     
@@ -597,23 +597,23 @@ std::list<std::string> DmxMovingHeadAdv::CheckModelSettings()
     int nodeCount = Nodes.size();
     int min_channels = GetMinChannels();
     if (min_channels > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s requires more channels %d than have been allocated to it %d.", GetName(), min_channels, nodeCount));
+        res.push_back("    ERR: Model " + GetName() + " requires more channels " + std::to_string(min_channels) + " than have been allocated to it " + std::to_string(nodeCount) + ".");
     }
     
     if (pan_motor->GetChannelCoarse() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s pan motor coarse is assigned to channel %d but the model only has %d channels.", GetName(), pan_motor->GetChannelCoarse(), nodeCount));
+        res.push_back("    ERR: Model " + GetName() + " pan motor coarse is assigned to channel " + std::to_string(pan_motor->GetChannelCoarse()) + " but the model only has " + std::to_string(nodeCount) + " channels.");
     }
 
     if (pan_motor->GetChannelFine() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s pan motor fine is assigned to channel %d but the model only has %d channels.", GetName(), pan_motor->GetChannelFine(), nodeCount));
+        res.push_back("    ERR: Model " + GetName() + " pan motor fine is assigned to channel " + std::to_string(pan_motor->GetChannelFine()) + " but the model only has " + std::to_string(nodeCount) + " channels.");
     }
 
     if (tilt_motor->GetChannelCoarse() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s tilt motor coarse is assigned to channel %d but the model only has %d channels.", GetName(), tilt_motor->GetChannelCoarse(), nodeCount));
+        res.push_back("    ERR: Model " + GetName() + " tilt motor coarse is assigned to channel " + std::to_string(tilt_motor->GetChannelCoarse()) + " but the model only has " + std::to_string(nodeCount) + " channels.");
     }
 
     if (tilt_motor->GetChannelFine() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s tilt motor fine is assigned to channel %d but the model only has %d channels.", GetName(), tilt_motor->GetChannelFine(), nodeCount));
+        res.push_back("    ERR: Model " + GetName() + " tilt motor fine is assigned to channel " + std::to_string(tilt_motor->GetChannelFine()) + " but the model only has " + std::to_string(nodeCount) + " channels.");
     }
 
     res.splice(res.end(), Model::CheckModelSettings());

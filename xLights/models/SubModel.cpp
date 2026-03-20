@@ -373,13 +373,13 @@ void SubModel::CheckDuplicates()
     for (int node : sameDupNodes) {
         if (_sameLineDuplicates != "")
             _sameLineDuplicates += ", ";
-        _sameLineDuplicates += wxString::Format("%d", node + 1);
+        _sameLineDuplicates += std::to_string(node + 1);
     }
 
     for (int node : crossDupNodes) {
         if (_crossLineDuplicates != "")
             _crossLineDuplicates += ", ";
-        _crossLineDuplicates += wxString::Format("%d", node + 1);
+        _crossLineDuplicates += std::to_string(node + 1);
     }
 }
 
@@ -428,16 +428,16 @@ void SubModel::CalcRangeXYBufferSize()
     }
 }
 
-auto getRange = [](wxString const& a) {
-    if (a.Contains("-")) {
-        int idx = a.Index('-');
-        return std::make_pair(wxAtoi(a.Left(idx)), wxAtoi(a.Right(a.size() - idx - 1)));
+auto getRange = [](std::string const& a) {
+    auto pos = a.find('-');
+    if (pos != std::string::npos) {
+        return std::make_pair(std::stoi(a.substr(0, pos)), std::stoi(a.substr(pos + 1)));
     }
-    int i = wxAtoi(a);
+    int i = std::stoi(a);
     return std::make_pair(i, i);
 };
 
-void SubModel::AddRangeXY( wxString const& nodes ) {
+void SubModel::AddRangeXY( std::string const& nodes ) {
     _ranges.push_back(nodes);
     if (_propertyGridDisplay == "") {
         _propertyGridDisplay = nodes;
@@ -447,9 +447,7 @@ void SubModel::AddRangeXY( wxString const& nodes ) {
     initRangeXY(nodes);
 }
 void SubModel::initRangeXY(std::string const& nodes) {
-    wxStringTokenizer wtkz(nodes, ",");
-    while (wtkz.HasMoreTokens()) {
-        wxString valstr = wtkz.GetNextToken();
+    for (const auto& valstr : Split(nodes, ',')) {
         auto [start, end] = getRange(valstr);
         if (start != 0) {
             if (start > end) {//order is always lowest to highest for grid
@@ -464,12 +462,12 @@ void SubModel::initRangeXY(std::string const& nodes) {
         }
     }
     _nodeIndexes.push_back(-1);
-    
+
     //ModelStartChannel is 1 based
-    this->ModelStartChannel = wxString::Format("%u", (_startChannel + 1));
+    this->ModelStartChannel = std::to_string(_startChannel + 1);
 }
 
-void SubModel::AddDefaultBuffer( wxString const& nodes )
+void SubModel::AddDefaultBuffer( std::string const& nodes )
 {
     _ranges.push_back(nodes);
     if (_propertyGridDisplay == "") {
@@ -481,9 +479,7 @@ void SubModel::AddDefaultBuffer( wxString const& nodes )
 }
 
 void SubModel::initDefaultBuffer(const std::string &nodes) {
-    wxStringTokenizer wtkz(nodes, ",");
-    while (wtkz.HasMoreTokens()) {
-        wxString valstr = wtkz.GetNextToken();
+    for (const auto& valstr : Split(nodes, ',')) {
         auto [start, end] = getRange(valstr);
         if (start == 0) {
             if (_vert) {
@@ -495,7 +491,7 @@ void SubModel::initDefaultBuffer(const std::string &nodes) {
             start--;
             end--;
             bool done = false;
-            wxInt32 nn = start;
+            int nn = start;
             while (!done) {
                 if ((uint32_t)nn < parent->GetNodeCount()) {
                     _nodeIndexes.push_back(nn);
@@ -563,7 +559,7 @@ void SubModel::initDefaultBuffer(const std::string &nodes) {
     SetBufferSize(_maxRow + 1, _maxCol + 1);
 
     //ModelStartChannel is 1 based
-    this->ModelStartChannel = wxString::Format("%u", (_startChannel + 1));
+    this->ModelStartChannel = std::to_string(_startChannel + 1);
 }
 
 void SubModel::AddSubbuffer(std::string const& range )
@@ -578,11 +574,11 @@ void SubModel::initSubbufferRange(std::string const& range) {
     float y1 = 0;
     float y2 = 100;
     if (range != "") {
-        wxArrayString v = wxSplit(range, 'x');
-        x1 = v.size() > 0 ? wxAtof(v[0]) : 0.0;
-        y1 = v.size() > 1 ? wxAtof(v[1]) : 0.0;
-        x2 = v.size() > 2 ? wxAtof(v[2]) : 100.0;
-        y2 = v.size() > 3 ? wxAtof(v[3]) : 100.0;
+        auto v = Split(range, 'x');
+        x1 = v.size() > 0 ? std::stof(v[0]) : 0.0f;
+        y1 = v.size() > 1 ? std::stof(v[1]) : 0.0f;
+        x2 = v.size() > 2 ? std::stof(v[2]) : 100.0f;
+        y2 = v.size() > 3 ? std::stof(v[3]) : 100.0f;
     }
     
     if (x1 > x2) std::swap(x1, x2);
@@ -640,7 +636,7 @@ void SubModel::initSubbufferRange(std::string const& range) {
     }
     
     //ModelStartChannel is 1 based
-    this->ModelStartChannel = wxString::Format("%u", (_startChannel + 1));
+    this->ModelStartChannel = std::to_string(_startChannel + 1);
 }
 
 

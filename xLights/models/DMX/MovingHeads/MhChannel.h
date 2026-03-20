@@ -10,8 +10,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/string.h>
-#include <glm/glm.hpp>
+#include <string>
+#include <vector>
+#include <memory>
 
 class wxXmlNode;
 
@@ -22,7 +23,7 @@ class MhChannel
         class MhRange
         {
         public:
-            MhRange(wxXmlNode* node, wxString pretty_name);
+            MhRange(wxXmlNode* node, const std::string& pretty_name);
             virtual ~MhRange() = default;
 
             void Init();
@@ -32,19 +33,19 @@ class MhChannel
             std::string GetName() { return name; }
             int GetMin() { return min; }
             int GetMax() { return max; }
-            std::string GetMinStr() { return wxString::Format(wxT("%i"), min ); }
-            std::string GetMaxStr() { return wxString::Format(wxT("%i"), max ); }
+            std::string GetMinStr() { return std::to_string(min); }
+            std::string GetMaxStr() { return std::to_string(max); }
 
             void SetName(std::string& val) { name = val; }
 
         private:
             wxXmlNode* range_node;
-            wxString name;
+            std::string name;
             unsigned int min = 0;
             unsigned int max = 255;
         };
 
-        MhChannel(wxXmlNode* node, wxString pretty_name);
+        MhChannel(wxXmlNode* node, const std::string& pretty_name);
         virtual ~MhChannel() = default;
 
         void Init();
@@ -57,8 +58,8 @@ class MhChannel
         int GetChannelCoarse() const { return channel_coarse; }
         int GetChannelFine() const { return channel_fine; }
 
-        std::string GetChanCoarseStr() { return channel_coarse > 0 ? wxString::Format(wxT("%i"), channel_coarse ) : ""; }
-        std::string GetChanFineStr() { return channel_fine > 0 ? wxString::Format(wxT("%i"), channel_fine ) : ""; }
+        std::string GetChanCoarseStr() { return channel_coarse > 0 ? std::to_string(channel_coarse) : ""; }
+        std::string GetChanFineStr() { return channel_fine > 0 ? std::to_string(channel_fine) : ""; }
 
         void SetChannelCoarse(std::string& val);
         void SetChannelFine(std::string& val);
@@ -71,7 +72,7 @@ class MhChannel
 
     private:
         wxXmlNode* node_xml;
-        wxString name;
+        std::string name;
         int channel_coarse = 0;
         int channel_fine = 0;
     

@@ -17,7 +17,7 @@
 #include "MhChannel.h"
 #include <glm/gtc/type_ptr.hpp>
 
-MhFeature::MhFeature(wxXmlNode* node, wxString _xml_name, wxString pretty_name)
+MhFeature::MhFeature(wxXmlNode* node, const std::string& _xml_name, const std::string& pretty_name)
     : /*SerializedObject(_xml_name), */ node_xml(node), name(pretty_name), xml_name(_xml_name)
 {
 }

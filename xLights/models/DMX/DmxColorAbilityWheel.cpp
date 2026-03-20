@@ -70,10 +70,10 @@ std::list<std::string> DmxColorAbilityWheel::CheckModelSettings(Model *m) const
     auto nodeCount = m->GetNodeCount();
 
     if (wheel_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s color wheel channel refers to a channel (%d) not present on the model which only has %d channels.", m->GetName(), wheel_channel, nodeCount));
+        res.push_back("    ERR: Model " + m->GetName() + " color wheel channel refers to a channel (" + std::to_string(wheel_channel) + ") not present on the model which only has " + std::to_string(nodeCount) + " channels.");
     }
     if (dimmer_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s dimmer channel refers to a channel (%d) not present on the model which only has %d channels.", m->GetName(), dimmer_channel, nodeCount));
+        res.push_back("    ERR: Model " + m->GetName() + " dimmer channel refers to a channel (" + std::to_string(dimmer_channel) + ") not present on the model which only has " + std::to_string(nodeCount) + " channels.");
     }
     return res;
 }
@@ -275,7 +275,7 @@ void DmxColorAbilityWheel::SetNodeNames(std::vector<std::string>& names, const s
     }
 }
 
-void DmxColorAbilityWheel::AddColor(wxString dmxcolor, uint8_t dmxVal)
+void DmxColorAbilityWheel::AddColor(const std::string& dmxcolor, uint8_t dmxVal)
 {
     colors.emplace_back(xlColor(dmxcolor), dmxVal);
 }

@@ -1635,15 +1635,17 @@ public:
             }
             return true;
         } else if (id == ControllerModelDialog::CONTROLLER_COLORORDER) {
-            auto choices = Model::CONTROLLER_COLORORDER;
+            const auto& colorOrderList = Model::CONTROLLER_COLORORDER;
+            wxArrayString choices;
+            for (const auto& c : colorOrderList) choices.push_back(c);
             int selection = choices.Index(GetModel()->GetControllerColorOrder());
             wxSingleChoiceDialog dlg(parent, "Model Color Order", "Color Order", choices);
-            if (selection >= 0 && selection < choices.size()) {
+            if (selection >= 0 && selection < (int)choices.size()) {
                 dlg.SetSelection(selection);
             }
             if (dlg.ShowModal() == wxID_OK) {
                 GetModel()->SetControllerProperty(CtrlProps::COLOR_ORDER_ACTIVE);
-                GetModel()->SetControllerColorOrder(choices[dlg.GetSelection()]);
+                GetModel()->SetControllerColorOrder(colorOrderList[dlg.GetSelection()]);
             }
             return true;
         } else if (id == ControllerModelDialog::CONTROLLER_GROUPCOUNT) {

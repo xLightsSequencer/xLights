@@ -426,7 +426,7 @@ void NodeSelectGrid::LoadGrid(const std::vector<wxString>& rows)
         return;
     }
     for (uint32_t i = 0; i < nodeCount; ++i) {
-        std::vector<wxPoint> pts;
+        std::vector<xlPoint> pts;
         model->GetNodeCoords(i, pts);
         if (pts.size() > 0) {
             float Sbufx = pts[0].x;
@@ -449,7 +449,7 @@ void NodeSelectGrid::LoadGrid(const std::vector<wxString>& rows)
     GridNodes->AppendRows(sizey);
 
     for (uint32_t i = 0; i < nodeCount; ++i) {
-        std::vector<wxPoint> pts;
+        std::vector<xlPoint> pts;
         model->GetNodeCoords(i, pts);
         if (pts.size() > 0)
         {
