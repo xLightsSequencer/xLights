@@ -11,7 +11,10 @@
 #include "GlediatorEffect.h"
 #include "GlediatorPanel.h"
 
+#include <cstdlib>
+
 #include "../sequencer/SequenceElements.h"
+#include "../utils/string_utils.h"
 
 #include <wx/filename.h>
 #include <wx/filepicker.h>
@@ -122,11 +125,11 @@ void CSVReader::GetFrame(size_t frame, char* buffer, size_t size)
 {
     wxString line = _f.GetLine(frame);
 
-    wxArrayString data = wxSplit(line, ',');
+    auto data = Split(line.ToStdString(), ',');
 
     for (int i = 0; i < std::min(data.size(), size); i++)
     {
-        *(buffer + i) = wxAtoi(data[i]);
+        *(buffer + i) = std::strtol(data[i].c_str(), nullptr, 10);
     }
 }
 

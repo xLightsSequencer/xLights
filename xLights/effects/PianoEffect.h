@@ -28,7 +28,7 @@ public:
         return false;
     }
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
-    static std::vector<float> Parse(wxString& l);
+    static std::vector<float> Parse(const std::string& l);
     virtual void SetDefaultParameters() override;
     virtual void SetPanelStatus(Model* cls) override;
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;

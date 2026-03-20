@@ -11,6 +11,8 @@
 #include "RippleEffect.h"
 #include "RipplePanel.h"
 
+#include "../utils/string_utils.h"
+
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
@@ -1025,7 +1027,7 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     bool drawLines = false;
     bool rippleSpaced = false;
 
-    auto swords = wxSplit(StyleStr, ' ');
+    auto swords = Split(StyleStr, ' ');
     if (swords.size() > 1) {
         drawNew = true;
         if (swords[0] == "Lines") {

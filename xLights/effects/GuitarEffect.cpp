@@ -24,6 +24,7 @@
 #include "../UtilFunctions.h"
 #include "models/Model.h"
 
+#include <cstdlib>
 #include <string>
 #include <list>
 
@@ -977,22 +978,22 @@ void GuitarEffect::DrawGuitar(RenderBuffer& buffer, GuitarTiming* pdata, const s
     }
 }
 
-std::vector<float> GuitarEffect::Parse(wxString& l)
+std::vector<float> GuitarEffect::Parse(const std::string& l)
 {
 	std::vector<float> res;
-	wxString s = l;
-	while (s.Len() != 0)
+	std::string s = l;
+	while (!s.empty())
 	{
-		int end = s.First('\t');
-		if (end > 0)
+		auto end = s.find('\t');
+		if (end != std::string::npos)
 		{
-			res.push_back(wxAtof(s.SubString(0, end - 1)));
-			s = s.Right(s.Len() - end - 1);
+			res.push_back(std::strtod(s.substr(0, end).c_str(), nullptr));
+			s = s.substr(end + 1);
 		}
 		else
 		{
-			res.push_back(wxAtof(s));
-			s = "";
+			res.push_back(std::strtod(s.c_str(), nullptr));
+			s.clear();
 		}
 	}
 
@@ -1107,7 +1108,7 @@ int GuitarEffect::ConvertNote(const std::string& note)
         break;
     default:
         {
-            int number = wxAtoi(n);
+            int number = std::strtol(n.c_str(), nullptr, 10);
             if (number < 0) number = 0;
             if (number > 127) number = 127;
             return number;
@@ -1141,7 +1142,7 @@ int GuitarEffect::ConvertNote(const std::string& note)
 
     if (n != "")
     {
-        octave = wxAtoi(n);
+        octave = std::strtol(n.c_str(), nullptr, 10);
     }
 
     int number = 12 + (octave * 12) + nletter + sharp;

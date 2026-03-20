@@ -10,6 +10,8 @@
 
 #include "ShapeEffect.h"
 #include "ShapePanel.h"
+
+#include <cstdlib>
 #include "TextEffect.h" // FontMapLock
 
 #include "../sequencer/Effect.h"
@@ -1233,7 +1235,7 @@ void ShapeEffect::adjustSettings(const std::string& version, Effect* effect, boo
             std::string val = settings.Get("E_SLIDER_Shape_CentreY", "");
             // int val = effect->GetSettings().GetInt("E_SLIDER_Shape_CentreY", 0);
             if (val != "") {
-                settings["E_SLIDER_Shape_CentreY"] = wxString::Format(wxT("%d"), 100 - wxAtoi(val));
+                settings["E_SLIDER_Shape_CentreY"] = std::to_string(100 - std::strtol(val.c_str(), nullptr, 10));
             }
         }
     }

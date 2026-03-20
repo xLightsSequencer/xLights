@@ -10,6 +10,8 @@
 
 #include "DMXEffect.h"
 #include "DMXPanel.h"
+
+#include <cstdlib>
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
@@ -79,9 +81,9 @@ xlEffectPanel *DMXEffect::CreatePanel(wxWindow *parent) {
     return new DMXPanel(parent);
 }
 
-static int GetPct(wxString const& val)
+static int GetPct(const std::string& val)
 {
-    int value = wxAtoi(val);
+    int value = std::strtol(val.c_str(), nullptr, 10);
     return (value * 100) / 255;
 }
 

@@ -16,6 +16,7 @@
 
 #include "ServoEffect.h"
 #include "ServoPanel.h"
+#include "../utils/string_utils.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
@@ -332,7 +333,7 @@ void ServoEffect::SetPanelStatus(Model* cls) {
     }
 
     p->Choice_Servo_TimingTrack->Clear();
-    for (const auto& it : wxSplit(GetTimingTracks(0, 3), '|')) {
+    for (const auto& it : Split(GetTimingTracks(0, 3), '|')) {
         p->Choice_Servo_TimingTrack->Append(it);
     }
 

@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cstdlib>
 #include <vector>
 
 #include "../../include/piano-16.xpm"
@@ -520,18 +521,18 @@ void PianoEffect::DrawBarsPiano(RenderBuffer& buffer, std::list<std::pair<float,
     }
 }
 
-std::vector<float> PianoEffect::Parse(wxString& l)
+std::vector<float> PianoEffect::Parse(const std::string& l)
 {
     std::vector<float> res;
-    wxString s = l;
-    while (s.Len() != 0) {
-        int end = s.First('\t');
-        if (end > 0) {
-            res.push_back(wxAtof(s.SubString(0, end - 1)));
-            s = s.Right(s.Len() - end - 1);
+    std::string s = l;
+    while (!s.empty()) {
+        auto end = s.find('\t');
+        if (end != std::string::npos) {
+            res.push_back(std::strtod(s.substr(0, end).c_str(), nullptr));
+            s = s.substr(end + 1);
         } else {
-            res.push_back(wxAtof(s));
-            s = "";
+            res.push_back(std::strtod(s.c_str(), nullptr));
+            s.clear();
         }
     }
 
@@ -597,7 +598,7 @@ int PianoEffect::ConvertNote(const std::string& note)
         nletter = 7;
         break;
     default: {
-        int number = wxAtoi(n);
+        int number = std::strtol(n.c_str(), nullptr, 10);
         if (number < 0)
             number = 0;
         if (number > 127)
@@ -625,7 +626,7 @@ int PianoEffect::ConvertNote(const std::string& note)
     }
 
     if (n != "") {
-        octave = wxAtoi(n);
+        octave = std::strtol(n.c_str(), nullptr, 10);
     }
 
     int number = 12 + (octave * 12) + nletter + sharp;

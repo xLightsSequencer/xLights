@@ -24,7 +24,7 @@
 #include "PicturesEffect.h"
 #include "../ExternalHooks.h"
 
-#include <wx/tokenzr.h>
+#include "../utils/string_utils.h"
 
 #include "../../include/corofaces.xpm"
 
@@ -278,7 +278,7 @@ void FacesEffect::SetPanelStatus(Model* cls) {
     fp->Choice1->Append("");
     fp->Choice_Faces_TimingTrack->Clear();
     fp->Face_FaceDefinitonChoice->Clear();
-    for (const auto& it : wxSplit(GetTimingTracks(0, 3), '|')) {
+    for (const auto& it : Split(GetTimingTracks(0, 3), '|')) {
         fp->Choice_Faces_TimingTrack->Append(it);
     }
 
@@ -1435,11 +1435,9 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
             }
         } else {
             std::string channels = findKey(faceInfoDef, todo[t]);
-            wxStringTokenizer wtkz(channels, ",");
-            while (wtkz.HasMoreTokens()) {
-                wxString valstr = wtkz.GetNextToken();
+            for (const auto& valstr : Split(channels, ',')) {
                 if (type == 0) {
-                    auto it2 = cache->nodeNameCache.find(valstr.ToStdString());
+                    auto it2 = cache->nodeNameCache.find(valstr);
                     if (it2 != cache->nodeNameCache.end()) {
                         int n = it2->second;
                         buffer.SetNodePixel(n, colors[t], true);

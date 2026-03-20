@@ -11,6 +11,8 @@
 #include "WaveEffect.h"
 #include "WavePanel.h"
 
+#include <cstdlib>
+
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
@@ -49,7 +51,7 @@ void WaveEffect::adjustSettings(const std::string& version, Effect* effect, bool
         std::string speed = settings.Get("E_SLIDER_Wave_Speed", "");
         if (speed != "") {
             settings.erase("E_SLIDER_Wave_Speed");
-            settings["E_TEXTCTRL_Wave_Speed"] = wxString::Format("%d", wxAtoi(speed));
+            settings["E_TEXTCTRL_Wave_Speed"] = std::to_string(std::strtol(speed.c_str(), nullptr, 10));
         } else {
             speed = settings.Get("E_VALUECURVE_Wave_Speed", "");
             if (Contains(speed, "Active=TRUE")) {
