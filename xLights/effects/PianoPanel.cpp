@@ -29,6 +29,7 @@
 
 #include "PianoPanel.h"
 #include "EffectPanelUtils.h"
+#include "../utils/string_utils.h"
 #include "../sequencer/Effect.h"
 #include "PianoEffect.h"
 #include "UtilFunctions.h"
@@ -203,7 +204,7 @@ void PianoPanel::ValidateWindow()
 
 void PianoPanel::SetTimingTracks(wxCommandEvent& event)
 {
-    auto timingtracks = wxSplit(event.GetString(), '|');
+    auto timingtracks = Split(event.GetString().ToStdString(), '|');
 
     wxString selection = Choice_Piano_MIDITrack_APPLYLAST->GetStringSelection();
 

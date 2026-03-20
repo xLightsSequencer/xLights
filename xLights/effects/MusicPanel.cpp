@@ -25,6 +25,8 @@
 
 #include "MusicPanel.h"
 #include "EffectPanelUtils.h"
+
+#include <cstdlib>
 #include "MusicEffect.h"
 #include "UtilFunctions.h"
 
@@ -309,8 +311,8 @@ void MusicPanel::OnTextCtrl_Music_StartNoteEnter(wxCommandEvent& event)
 
 void MusicPanel::ApplyText(wxEvent& event)
 {
-	int start = wxAtoi(TextCtrl_Music_StartNote->GetValue());
-	int end = wxAtoi(TextCtrl_Music_EndNote->GetValue());
+	int start = std::strtol(TextCtrl_Music_StartNote->GetValue().ToStdString().c_str(), nullptr, 10);
+	int end = std::strtol(TextCtrl_Music_EndNote->GetValue().ToStdString().c_str(), nullptr, 10);
 	if (event.GetEventObject() == TextCtrl_Music_StartNote) {
 		if (end < start) {
 			end = start;

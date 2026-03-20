@@ -16,6 +16,10 @@
 
 #include "MovingHeadEffect.h"
 #include "MovingHeadPanel.h"
+
+#include <cstdlib>
+
+#include "../utils/string_utils.h"
 #include "../sequencer/Effect.h"
 #include "../sequencer/Element.h"
 #include "../sequencer/SequenceElements.h"
@@ -128,7 +132,7 @@ void MovingHeadEffect::RenderMovingHeads(MovingHeadPanel *p, const Model* model_
 {
     auto models = GetModels(model_info);
     for( int i = 1; i <= 8; ++i ) {
-        wxString mh_textbox = wxString::Format("TEXTCTRL_MH%d_Settings", i);
+        std::string mh_textbox = "TEXTCTRL_MH" + std::to_string(i) + "_Settings";
         std::string mh_settings = SettingsMap[mh_textbox];
         if( mh_settings != xlEMPTY_STRING ) {
             RenderMovingHead(mh_settings, i, model_info, buffer);
@@ -156,11 +160,11 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
     bool has_dimmers = false;
     bool auto_shutter = false;
     std::string path_setting = "";
-    wxArrayString heads;
-    wxArrayString colors;
-    wxArrayString dimmers;
+    std::vector<std::string> heads;
+    std::vector<std::string> colors;
+    std::vector<std::string> dimmers;
     int groupings = 1;
-    wxArrayString all_cmds = wxSplit(mh_settings, ';');
+    auto all_cmds = Split(mh_settings, ';');
 
     // Need to look for Cycles setting first to calculate effect position
     for (size_t j = 0; j < all_cmds.size(); ++j )
@@ -215,7 +219,7 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
             path_setting = settings;
             path_parsed = true;
         } else if( cmd_type == "Heads" ) {
-            heads = wxSplit(settings, ',');
+            heads = Split(settings, ',');
         } else if( cmd_type == "Groupings" ) {
             groupings = atoi(settings.c_str());
         } else if( cmd_type == "Groupings VC" ) {
@@ -237,13 +241,13 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
             vc.SetDivisor(MOVING_HEAD_DIVISOR);
             path_scale = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
         } else if( cmd_type == "Color" ) {
-            colors = wxSplit(settings, ',');
+            colors = Split(settings, ',');
             has_color = true;
         } else if( cmd_type == "Wheel" ) {
-            colors = wxSplit(settings, ',');
+            colors = Split(settings, ',');
             has_color_wheel = true;
         } else if( cmd_type == "Dimmer" ) {
-            dimmers = wxSplit(settings, ',');
+            dimmers = Split(settings, ',');
             has_dimmers = true;
         } else if (cmd_type == "AutoShutter") {
             auto_shutter = true;
@@ -299,14 +303,14 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
     }
 }
 
-xlColor MovingHeadEffect::GetMultiColorBlend(double eff_pos, const wxArrayString& colors, RenderBuffer &buffer)
+xlColor MovingHeadEffect::GetMultiColorBlend(double eff_pos, const std::vector<std::string>& colors, RenderBuffer &buffer)
 {
     size_t colorcnt = colors.size() / 3;
     if (colorcnt <= 1)
     {
-        double hue {wxAtof(colors[0])};
-        double sat {wxAtof(colors[1])};
-        double val {wxAtof(colors[2])};
+        double hue {std::strtod(colors[0].c_str(), nullptr)};
+        double sat {std::strtod(colors[1].c_str(), nullptr)};
+        double val {std::strtod(colors[2].c_str(), nullptr)};
         HSVValue v{hue,sat,val};
         return xlColor(v);
     }
@@ -318,12 +322,12 @@ xlColor MovingHeadEffect::GetMultiColorBlend(double eff_pos, const wxArrayString
     float ratio = realidx - float(coloridx1);
     coloridx1 *= 3;
     coloridx2 *= 3;
-    double h1 {wxAtof(colors[coloridx1])};
-    double s1 {wxAtof(colors[coloridx1+1])};
-    double v1 {wxAtof(colors[coloridx1+2])};
-    double h2 {wxAtof(colors[coloridx2])};
-    double s2 {wxAtof(colors[coloridx2+1])};
-    double v2 {wxAtof(colors[coloridx2+2])};
+    double h1 {std::strtod(colors[coloridx1].c_str(), nullptr)};
+    double s1 {std::strtod(colors[coloridx1+1].c_str(), nullptr)};
+    double v1 {std::strtod(colors[coloridx1+2].c_str(), nullptr)};
+    double h2 {std::strtod(colors[coloridx2].c_str(), nullptr)};
+    double s2 {std::strtod(colors[coloridx2+1].c_str(), nullptr)};
+    double v2 {std::strtod(colors[coloridx2+2].c_str(), nullptr)};
 
     xlColor color;
     HSVValue hsv1(h1,s1,v1);
@@ -336,15 +340,15 @@ xlColor MovingHeadEffect::GetMultiColorBlend(double eff_pos, const wxArrayString
     return color;
 }
 
-xlColor MovingHeadEffect::GetWheelColor(double eff_pos, const wxArrayString& colors)
+xlColor MovingHeadEffect::GetWheelColor(double eff_pos, const std::vector<std::string>& colors)
 {
     size_t colorcnt = colors.size() / 3;
     float colorsize = 1.0f / (float)colorcnt;
     if (colorcnt <= 1)
     {
-        double hue {wxAtof(colors[0])};
-        double sat {wxAtof(colors[1])};
-        double val {wxAtof(colors[2])};
+        double hue {std::strtod(colors[0].c_str(), nullptr)};
+        double sat {std::strtod(colors[1].c_str(), nullptr)};
+        double val {std::strtod(colors[2].c_str(), nullptr)};
         HSVValue v{hue,sat,val};
         return xlColor(v);
     }
@@ -352,21 +356,21 @@ xlColor MovingHeadEffect::GetWheelColor(double eff_pos, const wxArrayString& col
     if (eff_pos < 0.0) eff_pos = 0.0f;
     int coloridx1 = (int)(eff_pos / colorsize);
     coloridx1 *= 3;
-    double h1 {wxAtof(colors[coloridx1])};
-    double s1 {wxAtof(colors[coloridx1+1])};
-    double v1 {wxAtof(colors[coloridx1+2])};
+    double h1 {std::strtod(colors[coloridx1].c_str(), nullptr)};
+    double s1 {std::strtod(colors[coloridx1+1].c_str(), nullptr)};
+    double v1 {std::strtod(colors[coloridx1+2].c_str(), nullptr)};
     HSVValue hsv1(h1,s1,v1);
     xlColor c1(hsv1);
     return c1;
 }
 
-void MovingHeadEffect::CalculateDimmer(double eff_pos, wxArrayString& dimmers, uint32_t dimmer_channel, RenderBuffer &buffer)
+void MovingHeadEffect::CalculateDimmer(double eff_pos, std::vector<std::string>& dimmers, uint32_t dimmer_channel, RenderBuffer &buffer)
 {
     ValueCurve vc;
     size_t num_pts = dimmers.size() / 2;
     for (size_t i = 0; i < num_pts; ++i) {
-        double x { wxAtof(dimmers[i*2]) };
-        double y { wxAtof(dimmers[i*2+1]) };
+        double x { std::strtod(dimmers[i*2].c_str(), nullptr) };
+        double y { std::strtod(dimmers[i*2+1].c_str(), nullptr) };
         vc.SetValueAt( x, y, true);
     }
     vc.SetType("Custom");
@@ -391,12 +395,12 @@ void MovingHeadEffect::GetValueCurvePosition(float& position, const std::string&
     position = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 }
 
-void MovingHeadEffect::CalculatePosition(int location, float& position, wxArrayString& heads, int groupings, float offset, float& delta )
+void MovingHeadEffect::CalculatePosition(int location, float& position, std::vector<std::string>& heads, int groupings, float offset, float& delta )
 {
     std::map<int, int> locations;
     for (size_t i = 0; i < heads.size(); ++i )
     {
-        int head = wxAtoi(heads[i]);
+        int head = std::strtol(heads[i].c_str(), nullptr, 10);
         locations[head] = i+1;
     }
 
@@ -484,7 +488,7 @@ void MovingHeadEffect::CalculatePathPositions(bool pan_path_active, bool tilt_pa
     }
 }
 
-void MovingHeadEffect::CalculateColorWheelShutter(DmxColorAbility* mh_color, double eff_pos, const wxArrayString& colors, int shutter_channel, int shutter_on, RenderBuffer& buffer) {
+void MovingHeadEffect::CalculateColorWheelShutter(DmxColorAbility* mh_color, double eff_pos, const std::vector<std::string>& colors, int shutter_channel, int shutter_on, RenderBuffer& buffer) {
     size_t num_colors = colors.size() / 3;
     if (0 == num_colors) {
         return;
@@ -494,10 +498,10 @@ void MovingHeadEffect::CalculateColorWheelShutter(DmxColorAbility* mh_color, dou
         return;
     }
 
-    auto arrayToColor = [colors](int index) {
-        double hue{ wxAtof(colors[index]) };
-        double sat{ wxAtof(colors[index + 1]) };
-        double val{ wxAtof(colors[index + 2]) };
+    auto arrayToColor = [&colors](int index) {
+        double hue{ std::strtod(colors[index].c_str(), nullptr) };
+        double sat{ std::strtod(colors[index + 1].c_str(), nullptr) };
+        double val{ std::strtod(colors[index + 2].c_str(), nullptr) };
         HSVValue v{ hue, sat, val };
         return xlColor(v);
     };

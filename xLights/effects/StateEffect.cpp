@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/tokenzr.h>
+#include <cstdlib>
 
 #include "StateEffect.h"
 #include "StatePanel.h"
@@ -20,6 +20,8 @@
 #include "../models/SubModel.h"
 #include "../sequencer/Effect.h"
 #include "../sequencer/SequenceElements.h"
+
+#include "../utils/string_utils.h"
 
 #include "../../include/state-16.xpm"
 #include "../../include/state-64.xpm"
@@ -82,7 +84,7 @@ void StateEffect::SetPanelStatus(Model* cls) {
     fp->Choice_State_TimingTrack->Clear();
     fp->Choice_StateDefinitonChoice->Clear();
 
-    for (const auto& it : wxSplit(GetTimingTracks(1), '|')) {
+    for (const auto& it : Split(GetTimingTracks(1), '|')) {
         fp->Choice_State_TimingTrack->Append(it);
     }
 
@@ -307,23 +309,27 @@ void StateEffect::RenderState(RenderBuffer& buffer,
     std::vector<std::string> sstates;
 
     if (mode == "Default" || startms == -1) {
-        wxString ss = wxString(tstates);
-        wxStringTokenizer tkz(ss, wxT(" ,;:"));
-        while (tkz.HasMoreTokens()) {
-            wxString token = tkz.GetNextToken();
-            if (token == "*" || token == "<ALL>") {
-                for (auto it2 : definitionSi) {
-                    if (EndsWith(it2.first, "-Name") && it2.second != "") {
-                        sstates.push_back(Lower(it2.second));
+        size_t pos = 0;
+        while (pos < tstates.size()) {
+            size_t next = tstates.find_first_of(" ,;:", pos);
+            if (next == std::string::npos) next = tstates.size();
+            if (next > pos) {
+                std::string token = tstates.substr(pos, next - pos);
+                if (token == "*" || token == "<ALL>") {
+                    for (auto it2 : definitionSi) {
+                        if (EndsWith(it2.first, "-Name") && it2.second != "") {
+                            sstates.push_back(Lower(it2.second));
+                        }
                     }
+                } else {
+                    sstates.push_back(Lower(token));
                 }
-            } else {
-                sstates.push_back(token.Lower().ToStdString());
             }
+            pos = next + 1;
         }
     } else if (mode == "Countdown") {
         // tstates should contain the starting number
-        int val = wxAtoi(tstates);
+        int val = std::strtol(tstates.c_str(), nullptr, 10);
 
         val = val * 1000;
         int subtracttime = (posms - startms);
@@ -333,12 +339,12 @@ void StateEffect::RenderState(RenderBuffer& buffer,
         int v = val;
         bool force = false;
         if ((v / 1000) * 1000 > 0) {
-            sstates.push_back(wxString::Format("%d", (v / 1000) * 1000).ToStdString());
+            sstates.push_back(std::to_string((v / 1000) * 1000));
             force = true;
         }
         v = v - (v / 1000) * 1000;
         if ((v / 100) * 100 > 0) {
-            sstates.push_back(wxString::Format("%d", (v / 100) * 100).ToStdString());
+            sstates.push_back(std::to_string((v / 100) * 100));
             force = true;
         } else {
             if (force) {
@@ -347,14 +353,14 @@ void StateEffect::RenderState(RenderBuffer& buffer,
         }
         v = v - (v / 100) * 100;
         if ((v / 10) * 10 > 0) {
-            sstates.push_back(wxString::Format("%d", (v / 10) * 10).ToStdString());
+            sstates.push_back(std::to_string((v / 10) * 10));
         } else {
             if (force) {
                 sstates.push_back("00");
             }
         }
         v = v - (v / 10) * 10;
-        sstates.push_back(wxString::Format("%d", v).ToStdString());
+        sstates.push_back(std::to_string(v));
     } else if (mode == "Time Countdown") {
         wxDateTime dt;
         dt.ParseFormat(tstates.c_str(), "%H:%M:%S");
@@ -367,43 +373,43 @@ void StateEffect::RenderState(RenderBuffer& buffer,
             dt.Subtract(wxTimeSpan(0, 0, 0, (buffer.curPeriod - buffer.curEffStartPer) * buffer.frameTimeInMs));
             int m = dt.GetMinute();
             if ((m / 10) * 1000 > 0) {
-                sstates.push_back(wxString::Format("%d", (m / 10) * 1000).ToStdString());
+                sstates.push_back(std::to_string((m / 10) * 1000));
             } else {
                 sstates.push_back("0000");
             }
             m = m - (m / 10) * 10;
             if (m * 100 > 0) {
-                sstates.push_back(wxString::Format("%d", m * 100).ToStdString());
+                sstates.push_back(std::to_string(m * 100));
             } else {
                 sstates.push_back("000");
             }
             int s = dt.GetSecond();
             if ((s / 10) * 10 > 0) {
-                sstates.push_back(wxString::Format("%d", (s / 10) * 10).ToStdString());
+                sstates.push_back(std::to_string((s / 10) * 10));
             } else {
                 sstates.push_back("00");
             }
             s = s - (s / 10) * 10;
-            sstates.push_back(wxString::Format("%d", s).ToStdString());
+            sstates.push_back(std::to_string(s));
         }
         sstates.push_back("colon");
     } else if (mode == "Number") // used for FM frequencies
     {
-        double f = wxAtof(tstates);
+        double f = std::strtod(tstates.c_str(), nullptr);
         sstates.push_back("dot");
         double f2 = f - int(f);
         f2 = (int)(f2 * 10 + 0.5);
-        sstates.push_back(wxString::Format("%d", (int)f2).ToStdString());
+        sstates.push_back(std::to_string((int)f2));
 
         int v = f;
         bool force = false;
         if ((v / 100) * 1000 > 0) {
-            sstates.push_back(wxString::Format("%d", (v / 100) * 1000).ToStdString());
+            sstates.push_back(std::to_string((v / 100) * 1000));
             force = true;
         }
         v = v - (v / 100) * 100;
         if ((v / 10) * 100 > 0) {
-            sstates.push_back(wxString::Format("%d", (v / 10) * 100).ToStdString());
+            sstates.push_back(std::to_string((v / 10) * 100));
         } else {
             if (force) {
                 sstates.push_back("000");
@@ -411,7 +417,7 @@ void StateEffect::RenderState(RenderBuffer& buffer,
         }
         v = v - (v / 10) * 10;
         if (v * 10 > 0) {
-            sstates.push_back(wxString::Format("%d", v * 10).ToStdString());
+            sstates.push_back(std::to_string(v * 10));
         } else {
             sstates.push_back("00");
         }
@@ -419,19 +425,23 @@ void StateEffect::RenderState(RenderBuffer& buffer,
         float progressthroughtimeinterval = ((float)posms - (float)startms) / ((float)endms - (float)startms);
 
         std::vector<std::string> tmpstates;
-        wxString ss = wxString(tstates);
-        wxStringTokenizer tkz(ss, wxT(" ,;:"));
-        while (tkz.HasMoreTokens()) {
-            wxString token = tkz.GetNextToken();
-            if (token == "*" || token == "<ALL>") {
-                for (auto it2 : definitionSi) {
-                    if (EndsWith(it2.first, "-Name") && it2.second != "") {
-                        sstates.push_back(Lower(it2.second));
+        size_t tpos = 0;
+        while (tpos < tstates.size()) {
+            size_t tnext = tstates.find_first_of(" ,;:", tpos);
+            if (tnext == std::string::npos) tnext = tstates.size();
+            if (tnext > tpos) {
+                std::string token = tstates.substr(tpos, tnext - tpos);
+                if (token == "*" || token == "<ALL>") {
+                    for (auto it2 : definitionSi) {
+                        if (EndsWith(it2.first, "-Name") && it2.second != "") {
+                            sstates.push_back(Lower(it2.second));
+                        }
                     }
+                } else {
+                    tmpstates.push_back(Lower(token));
                 }
-            } else {
-                tmpstates.push_back(token.Lower().ToStdString());
             }
+            tpos = tnext + 1;
         }
 
         int which = tmpstates.size() * progressthroughtimeinterval;
@@ -459,7 +469,7 @@ void StateEffect::RenderState(RenderBuffer& buffer,
                         buffer.palette.GetColor((intervalnumber - 1) % buffer.GetColorCount(), color);
                     } else {
                         // allocate
-                        int statenum = wxAtoi(statename.substr(1));
+                        int statenum = std::strtol(statename.substr(1).c_str(), nullptr, 10);
                         buffer.palette.GetColor((statenum - 1) % buffer.GetColorCount(), color);
                     }
                     if (customColor) {
@@ -476,13 +486,10 @@ void StateEffect::RenderState(RenderBuffer& buffer,
                             buffer.SetNodePixel(it, color, true);
                         }
                     } else {
-                        wxStringTokenizer wtkz(channels, ",");
-                        while (wtkz.HasMoreTokens()) {
-                            wxString valstr = wtkz.GetNextToken();
-
+                        for (const auto& valstr : Split(channels, ',')) {
                             if (type == 0) {
                                 for (size_t n = 0; n < model_info->GetNodeCount(); n++) {
-                                    wxString nn = model_info->GetNodeName(n, true);
+                                    std::string nn = model_info->GetNodeName(n, true);
                                     if (nn == valstr) {
                                         buffer.SetNodePixel(n, color, true);
                                     }

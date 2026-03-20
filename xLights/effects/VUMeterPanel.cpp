@@ -27,6 +27,8 @@
 #include "VUMeterPanel.h"
 #include "EffectPanelUtils.h"
 #include "VUMeterEffect.h"
+
+#include <cstdlib>
 #include "UtilFunctions.h"
 
 //(*IdInit(VUMeterPanel)
@@ -649,8 +651,8 @@ void VUMeterPanel::OnTextCtrl_VUMeter_StartNoteEnter(wxCommandEvent& event)
 
 void VUMeterPanel::ApplyText(wxEvent& event)
 {
-    int start = wxAtoi(TextCtrl_VUMeter_StartNote->GetValue());
-    int end = wxAtoi(TextCtrl_VUMeter_EndNote->GetValue());
+    int start = std::strtol(TextCtrl_VUMeter_StartNote->GetValue().ToStdString().c_str(), nullptr, 10);
+    int end = std::strtol(TextCtrl_VUMeter_EndNote->GetValue().ToStdString().c_str(), nullptr, 10);
     if (event.GetEventObject() == TextCtrl_VUMeter_StartNote) {
         if (end < start) {
             end = start;

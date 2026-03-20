@@ -24,6 +24,7 @@
 
 #include "GuitarPanel.h"
 #include "EffectPanelUtils.h"
+#include "../utils/string_utils.h"
 #include "../sequencer/Effect.h"
 #include "GuitarEffect.h"
 #include "UtilFunctions.h"
@@ -177,7 +178,7 @@ void GuitarPanel::ValidateWindow()
 
 void GuitarPanel::SetTimingTracks(wxCommandEvent& event)
 {
-    auto timingtracks = wxSplit(event.GetString(), '|');
+    auto timingtracks = Split(event.GetString().ToStdString(), '|');
 
     wxString selection = Choice_Guitar_MIDITrack_APPLYLAST->GetStringSelection();
 

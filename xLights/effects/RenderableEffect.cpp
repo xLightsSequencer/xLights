@@ -9,6 +9,9 @@
  **************************************************************/
 
 #include "RenderableEffect.h"
+
+#include <cstdlib>
+
 #include "../sequencer/Effect.h"
 #include "EffectManager.h"
 #include "assist/xlGridCanvasEmpty.h"
@@ -528,7 +531,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
         settings["E_CHOICE_Faces_FaceDefinition"] = "xlights_papagayo.xml";
     }
 
-    int ftt = wxAtoi(settings.Get("T_CHECKBOX_FitToTime", "1"));
+    int ftt = std::strtol(settings.Get("T_CHECKBOX_FitToTime", "1").c_str(), nullptr, 10);
     switch (effectIdx)
     {
             //these effects have never used the FitToTime or speed settings, nothing to do
@@ -552,7 +555,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                 float cycles = 1.0;
                 if (!ftt)
                 {
-                    int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
+                    int speed = std::strtol(settings.Get("T_SLIDER_Speed", "10").c_str(), nullptr, 10);
                     int totalTime = endMS - startMS;
                     int maxState = totalTime * speed / 50;
                     cycles = maxState / 200;
@@ -633,7 +636,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
             }
 
             if (settings.Get("E_SLIDER_Text_Position1", "") != "") {
-                int pos = wxAtoi(settings.Get("E_SLIDER_Text_Position1", "50")) * 2 - 100;
+                int pos = std::strtol(settings.Get("E_SLIDER_Text_Position1", "50").c_str(), nullptr, 10) * 2 - 100;
                 settings.erase("E_SLIDER_Text_Position1");
                 settings["E_SLIDER_Text_XStart1"] = wxString::Format("%d", 0);
                 settings["E_SLIDER_Text_YStart1"] = wxString::Format("%d", pos);
@@ -654,7 +657,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
             }
             if (settings.Get("E_CHECKBOX_Spirograph_Animate", "") != "")
             {
-                int i = wxAtoi(settings.Get("E_CHECKBOX_Spirograph_Animate", "0"));
+                int i = std::strtol(settings.Get("E_CHECKBOX_Spirograph_Animate", "0").c_str(), nullptr, 10);
                 settings["E_TEXTCTRL_Spirograph_Animate"] = (i == 0 ? "0" : "10");
                 settings.erase("E_CHECKBOX_Spirograph_Animate");
             }
@@ -663,7 +666,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
         case EffectManager::eff_COLORWASH:
             if (settings.Get("E_TEXTCTRL_ColorWash_Cycles", "") == "")
             {
-                double count = wxAtoi(settings.Get("E_SLIDER_ColorWash_Count", "1"));
+                double count = std::strtol(settings.Get("E_SLIDER_ColorWash_Count", "1").c_str(), nullptr, 10);
                 settings.erase("E_SLIDER_ColorWash_Count");
                 if (settings["T_CHECKBOX_FitToTime"] == "1")
                 {
@@ -684,7 +687,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                 settings.erase("E_CHECKBOX_Fire_GrowFire");
                 if (grow)
                 {
-                    int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
+                    int speed = std::strtol(settings.Get("T_SLIDER_Speed", "10").c_str(), nullptr, 10);
                     int totalTime = endMS - startMS;
                     double maxState = totalTime * speed / 50;
                     double cycles = maxState / 500.0;
@@ -699,9 +702,9 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
         case EffectManager::eff_FIREWORKS:
             if (settings.Get("E_SLIDER_Fireworks_Number_Explosions", "") != "")
             {
-                int cnt = wxAtoi(settings.Get("E_SLIDER_Fireworks_Number_Explosions", "10"));
+                int cnt = std::strtol(settings.Get("E_SLIDER_Fireworks_Number_Explosions", "10").c_str(), nullptr, 10);
                 settings.erase("E_SLIDER_Fireworks_Number_Explosions");
-                int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
+                int speed = std::strtol(settings.Get("T_SLIDER_Speed", "10").c_str(), nullptr, 10);
                 int total = (speed * cnt) / 50;
                 if (total > 50)
                 {
@@ -720,7 +723,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                 float cycles = 1.0;
                 if (!ftt)
                 {
-                    int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
+                    int speed = std::strtol(settings.Get("T_SLIDER_Speed", "10").c_str(), nullptr, 10);
                     int totalTime = endMS - startMS;
                     int maxState = totalTime * speed / 50;
                     cycles = maxState / 200;
@@ -735,7 +738,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                 wxString dir = settings["E_CHOICE_Bars_Direction"];
                 if (!ftt)
                 {
-                    int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
+                    int speed = std::strtol(settings.Get("T_SLIDER_Speed", "10").c_str(), nullptr, 10);
                     int totalTime = endMS - startMS;
                     int maxState = totalTime * speed / 50;
                     if (dir.Contains("Altern"))
@@ -754,11 +757,11 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
             if (settings.Get("E_TEXTCTRL_Spirals_Movement", "") == "")
             {
                 float cycles = 1.0;
-                int dir = wxAtoi(settings.Get("E_SLIDER_Spirals_Direction", "1"));
+                int dir = std::strtol(settings.Get("E_SLIDER_Spirals_Direction", "1").c_str(), nullptr, 10);
                 settings.erase("E_SLIDER_Spirals_Direction");
                 if (!ftt)
                 {
-                    int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
+                    int speed = std::strtol(settings.Get("T_SLIDER_Speed", "10").c_str(), nullptr, 10);
                     int totalTime = endMS - startMS;
                     int maxState = totalTime * speed / 50;
                     cycles = maxState / 600;
@@ -772,7 +775,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                 float cycles = 1.0;
                 if (!ftt)
                 {
-                    int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
+                    int speed = std::strtol(settings.Get("T_SLIDER_Speed", "10").c_str(), nullptr, 10);
                     int totalTime = endMS - startMS;
                     int maxState = totalTime * speed / 50;
                     cycles = maxState / 200;
@@ -785,7 +788,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
             {
                 if (settings.Get("E_SLIDER_Skips_Advance", "") == "")
                 {
-                    int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
+                    int speed = std::strtol(settings.Get("T_SLIDER_Speed", "10").c_str(), nullptr, 10);
                     settings["E_SLIDER_Skips_Advance"] = wxString::Format("%d", speed - 1);
                 }
             }
@@ -807,7 +810,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                     float cycles = 1.0;
                     if (!ftt)
                     {
-                        int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
+                        int speed = std::strtol(settings.Get("T_SLIDER_Speed", "10").c_str(), nullptr, 10);
                         int totalTime = endMS - startMS;
                         int maxState = totalTime * speed / 50;
                         cycles = maxState / 250.0;
@@ -820,7 +823,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
             if (settings.Get("E_TEXTCTRL_Shimmer_Cycles", "") == "")
             {
                 float cycles = 1.0;
-                int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
+                int speed = std::strtol(settings.Get("T_SLIDER_Speed", "10").c_str(), nullptr, 10);
                 int totalTime = endMS - startMS;
                 int maxState = totalTime * speed / 50;
                 cycles = maxState / (100.0 * colors.size());
@@ -840,7 +843,7 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
                 }
                 else if (!ftt)
                 {
-                    int speed = wxAtoi(settings.Get("T_SLIDER_Speed", "10"));
+                    int speed = std::strtol(settings.Get("T_SLIDER_Speed", "10").c_str(), nullptr, 10);
                     int totalTime = endMS - startMS;
                     int maxState = totalTime * speed / 50;
                     double cycles = maxState / 300.0;

@@ -10,6 +10,7 @@
 
 #include "FireworksPanel.h"
 #include "EffectPanelUtils.h"
+#include "../utils/string_utils.h"
 #include "../sequencer/Effect.h"
 #include "FireworksEffect.h"
 
@@ -346,7 +347,7 @@ void FireworksPanel::OnChoice_TimingTrackSelect(wxCommandEvent& event)
 
 void FireworksPanel::SetTimingTracks(wxCommandEvent& event)
 {
-    auto timingtracks = wxSplit(event.GetString(), '|');
+    auto timingtracks = Split(event.GetString().ToStdString(), '|');
 
     wxString selection = Choice_TimingTrack->GetStringSelection();
 

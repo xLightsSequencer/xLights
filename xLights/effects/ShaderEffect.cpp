@@ -15,8 +15,9 @@
 #include "../../include/shader_16.xpm"
 #include <wx/wx.h>
 #include <wx/config.h>
+#include <cstdlib>
 #include <semaphore>
-#include <algorithm> 
+#include <algorithm>
 
 #ifndef __WXOSX__
     #include <GL/gl.h>
@@ -1435,14 +1436,15 @@ unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg, ShaderRenderCac
     return programId;
 }
 
-wxString SafeFloat(const wxString& s)
+std::string SafeFloat(const wxString& s)
 {
-    if (s.StartsWith(".")) {
-        return "0" + s;
-    } else if (!s.Contains(".")) {
-        return s + ".0";
+    std::string ss = s.ToStdString();
+    if (!ss.empty() && ss[0] == '.') {
+        return "0" + ss;
+    } else if (ss.find('.') == std::string::npos) {
+        return ss + ".0";
     }
-    return s;
+    return ss;
 }
 
 wxString SafeValueOption(wxString value)
@@ -1691,18 +1693,18 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                 inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
                 inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
                 ShaderParmType::SHADER_PARM_FLOAT,
-                (double)(inputs[i].HasMember("MIN") ? wxAtof(SafeFloat(inputs[i]["MIN"].AsString())) : 0.0),
-                (double)(inputs[i].HasMember("MAX") ? wxAtof(SafeFloat(inputs[i]["MAX"].AsString())) : 1.0),
-                (double)(inputs[i].HasMember("DEFAULT") ? wxAtof(SafeFloat(inputs[i]["DEFAULT"].AsString())) : 0.0)));
+                (double)(inputs[i].HasMember("MIN") ? std::strtod(SafeFloat(inputs[i]["MIN"].AsString()).c_str(), nullptr) : 0.0),
+                (double)(inputs[i].HasMember("MAX") ? std::strtod(SafeFloat(inputs[i]["MAX"].AsString()).c_str(), nullptr) : 1.0),
+                (double)(inputs[i].HasMember("DEFAULT") ? std::strtod(SafeFloat(inputs[i]["DEFAULT"].AsString()).c_str(), nullptr) : 0.0)));
         } else if (type == "long") {
             if (inputs[i].HasMember("MIN")) {
                 _parms.push_back(ShaderParm(
                     inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
                     inputs[i].HasMember("LABEL") ? inputs[i]["LABEL"].AsString() : "",
                     ShaderParmType::SHADER_PARM_LONG,
-                    (double)(inputs[i].HasMember("MIN") ? wxAtol(inputs[i]["MIN"].AsString()) : 0.0),
-                    (double)(inputs[i].HasMember("MAX") ? wxAtol(inputs[i]["MAX"].AsString()) : 1.0),
-                    (double)(inputs[i].HasMember("DEFAULT") ? wxAtol(inputs[i]["DEFAULT"].AsString()) : 0.0)));
+                    (double)(inputs[i].HasMember("MIN") ? std::strtol(inputs[i]["MIN"].AsString().ToStdString().c_str(), nullptr, 10) : 0.0),
+                    (double)(inputs[i].HasMember("MAX") ? std::strtol(inputs[i]["MAX"].AsString().ToStdString().c_str(), nullptr, 10) : 1.0),
+                    (double)(inputs[i].HasMember("DEFAULT") ? std::strtol(inputs[i]["DEFAULT"].AsString().ToStdString().c_str(), nullptr, 10) : 0.0)));
             } else if (inputs[i].HasMember("LABELS") && inputs[i].HasMember("VALUES")) {
                 _parms.push_back(ShaderParm(
                     inputs[i].HasMember("NAME") ? inputs[i]["NAME"].AsString() : "",
@@ -1710,7 +1712,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                     ShaderParmType::SHADER_PARM_LONGCHOICE,
                     0.0,
                     0.0,
-                    (double)(inputs[i].HasMember("DEFAULT") ? wxAtol(inputs[i]["DEFAULT"].AsString()) : 0.0)));
+                    (double)(inputs[i].HasMember("DEFAULT") ? std::strtol(inputs[i]["DEFAULT"].AsString().ToStdString().c_str(), nullptr, 10) : 0.0)));
                 auto ls = inputs[i]["LABELS"];
                 auto vs = inputs[i]["VALUES"];
                 int no = std::min(ls.Size(), vs.Size());
@@ -1737,7 +1739,7 @@ ShaderConfig::ShaderConfig(const wxString& filename, const wxString& code, const
                 ShaderParmType::SHADER_PARM_BOOL,
                 0.0,
                 0.0,
-                (double)(inputs[i].HasMember("DEFAULT") ? wxAtof(SafeFloat(inputs[i]["DEFAULT"].AsString())) : 0.0f)));
+                (double)(inputs[i].HasMember("DEFAULT") ? std::strtod(SafeFloat(inputs[i]["DEFAULT"].AsString()).c_str(), nullptr) : 0.0f)));
         } else if (type == "point2D") {
             wxRealPoint minPt = wxRealPoint(
                 inputs[i].HasMember("MIN") ? (inputs[i]["MIN"][0].IsDouble() ? inputs[i]["MIN"][0].AsDouble() : inputs[i]["MIN"][0].AsInt()) : 0.0f,

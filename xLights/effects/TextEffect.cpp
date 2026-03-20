@@ -10,6 +10,7 @@
 
 #include "TextEffect.h"
 
+#include <cstdlib>
 #include <mutex>
 #include <array>
 #include <unordered_map>
@@ -28,6 +29,7 @@
 #include "../xLightsMain.h"
 #include "../ExternalHooks.h"
 #include "../xLightsXmlFile.h"
+#include "../utils/string_utils.h"
 
 #include "../../include/text-16.xpm"
 #include "../../include/text-24.xpm"
@@ -172,7 +174,7 @@ void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool
                 new_settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect2"];
                 new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font2"];
                 new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed2"];
-                int pos = (wxAtoi(settings["E_SLIDER_Text_Position2"]) * 2) - 100;
+                int pos = (std::strtol(settings["E_SLIDER_Text_Position2"].c_str(), nullptr, 10) * 2) - 100;
                 wxString strpos = wxString::Format("%d", pos);
                 new_settings["E_SLIDER_Text_XStart"] = "0";
                 new_settings["E_SLIDER_Text_XEnd"] = "0";
@@ -195,7 +197,7 @@ void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool
                 new_settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect3"];
                 new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font3"];
                 new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed3"];
-                int pos = (wxAtoi(settings["E_SLIDER_Text_Position3"]) * 2) - 100;
+                int pos = (std::strtol(settings["E_SLIDER_Text_Position3"].c_str(), nullptr, 10) * 2) - 100;
                 wxString strpos = wxString::Format("%d", pos);
                 new_settings["E_SLIDER_Text_XStart"] = "0";
                 new_settings["E_SLIDER_Text_XEnd"] = "0";
@@ -218,7 +220,7 @@ void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool
                 new_settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect4"];
                 new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font4"];
                 new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed4"];
-                int pos = (wxAtoi(settings["E_SLIDER_Text_Position4"]) * 2) - 100;
+                int pos = (std::strtol(settings["E_SLIDER_Text_Position4"].c_str(), nullptr, 10) * 2) - 100;
                 wxString strpos = wxString::Format("%d", pos);
                 new_settings["E_SLIDER_Text_XStart"] = "0";
                 new_settings["E_SLIDER_Text_XEnd"] = "0";
@@ -283,10 +285,10 @@ void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool
 void TextEffect::SelectTextColor(std::string& palette, int index) const
 {
     wxString new_palette = "";
-    wxArrayString palette_array = wxSplit(palette, ',');
+    auto palette_array = Split(palette, ',');
     int found_color = 0;
     for( int i=0; i < palette_array.size(); i++ ) {
-        if( palette_array[i].StartsWith("C_CHECKBOX_Palette") ) {
+        if( StartsWith(palette_array[i], "C_CHECKBOX_Palette") ) {
             found_color++;
             if( found_color != index ) {
                 continue;
@@ -464,10 +466,10 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             if (file.IsOpened()) {
                 wxString fileContent;
                 if (file.ReadAll(&fileContent)) {
-                    wxArrayString lines = wxSplit(fileContent, '\n');
+                    auto lines = Split(fileContent, '\n');
 
                     text.Clear();
-                    int lineCount = std::min((int)lines.GetCount(), MAXTEXTLINES);
+                    int lineCount = std::min((int)lines.size(), MAXTEXTLINES);
 
                     for (int i = 0; i < lineCount; i++) {
                         if (i > 0) {
@@ -534,23 +536,23 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
 
     if (!text.IsEmpty()) {
 
-        int starty = wxAtoi(SettingsMap.Get("SLIDER_Text_YStart", "0"));
-        int startx = wxAtoi(SettingsMap.Get("SLIDER_Text_XStart", "0"));
-        int endy = wxAtoi(SettingsMap.Get("SLIDER_Text_YEnd", "0"));
-        int endx = wxAtoi(SettingsMap.Get("SLIDER_Text_XEnd", "0"));
-        bool pixelOffsets = wxAtoi(SettingsMap.Get("CHECKBOX_Text_PixelOffsets", "0"));
-        bool perWord = wxAtoi(SettingsMap.Get("CHECKBOX_Text_Color_PerWord", "0"));
+        int starty = std::strtol(SettingsMap.Get("SLIDER_Text_YStart", "0").c_str(), nullptr, 10);
+        int startx = std::strtol(SettingsMap.Get("SLIDER_Text_XStart", "0").c_str(), nullptr, 10);
+        int endy = std::strtol(SettingsMap.Get("SLIDER_Text_YEnd", "0").c_str(), nullptr, 10);
+        int endx = std::strtol(SettingsMap.Get("SLIDER_Text_XEnd", "0").c_str(), nullptr, 10);
+        bool pixelOffsets = std::strtol(SettingsMap.Get("CHECKBOX_Text_PixelOffsets", "0").c_str(), nullptr, 10);
+        bool perWord = std::strtol(SettingsMap.Get("CHECKBOX_Text_Color_PerWord", "0").c_str(), nullptr, 10);
 
         wxImage * i = RenderTextLine(buffer,
                        buffer.GetTextDrawingContext(),
                        text,
                        SettingsMap["FONTPICKER_Text_Font"],
                        TextEffectDirectionsIndex(SettingsMap["CHOICE_Text_Dir"]),
-                       wxAtoi(SettingsMap["CHECKBOX_TextToCenter"]),
-                       wxAtoi(SettingsMap["CHECKBOX_TextNoRepeat"]),
+                       std::strtol(SettingsMap["CHECKBOX_TextToCenter"].c_str(), nullptr, 10),
+                       std::strtol(SettingsMap["CHECKBOX_TextNoRepeat"].c_str(), nullptr, 10),
                        TextEffectsIndex(SettingsMap["CHOICE_Text_Effect"]),
                        TextCountDownIndex(SettingsMap["CHOICE_Text_Count"]),
-                       wxAtoi(SettingsMap.Get("TEXTCTRL_Text_Speed", "10")),
+                       std::strtol(SettingsMap.Get("TEXTCTRL_Text_Speed", "10").c_str(), nullptr, 10),
                        startx, starty, endx, endy, pixelOffsets, perWord);
         
         if (i == nullptr) {
@@ -1253,15 +1255,15 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
                 append = "";
                 prepend = "";
             }
-            wxArrayString minSec = wxSplit(timePart, ':');
+            auto minSec = Split(timePart, ':');
             if (minSec.size() == 1)
             {
-                seconds = wxAtoi(minSec[0]);
+                seconds = std::strtol(minSec[0].c_str(), nullptr, 10);
             }
             else if (minSec.size() == 2)
             {
-                minutes = wxAtoi(minSec[0]);
-                seconds = (minutes * 60) + wxAtoi(minSec[1]);
+                minutes = std::strtol(minSec[0].c_str(), nullptr, 10);
+                seconds = (minutes * 60) + std::strtol(minSec[1].c_str(), nullptr, 10);
                 //MessageBoxA(NULL, "total seconds: " + wxString::Format("%i", seconds), "message", MB_ICONINFORMATION | MB_OK | MB_DEFBUTTON2);
             }
             else //invalid format
@@ -1484,7 +1486,7 @@ std::string TextEffect::FlipWord(const SettingsMap& settings, const std::string&
 
     if (words.size() > 1) {
         // we need to adjust the text
-        int tspeed = wxAtoi(settings.Get("TEXTCTRL_Text_Speed", "10")); // 0 to 50
+        int tspeed = std::strtol(settings.Get("TEXTCTRL_Text_Speed", "10").c_str(), nullptr, 10); // 0 to 50
 
         // zero means just show the first word ... never advance
         // one means go through words once
@@ -1511,12 +1513,12 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     int num_colors = buffer.palette.Size();
     buffer.palette.GetColor(0, c);
 
-    int starty = wxAtoi(settings.Get("SLIDER_Text_YStart", "0"));
-    int startx = wxAtoi(settings.Get("SLIDER_Text_XStart", "0"));
-    int endy = wxAtoi(settings.Get("SLIDER_Text_YEnd", "0"));
-    int endx = wxAtoi(settings.Get("SLIDER_Text_XEnd", "0"));
-    bool pixelOffsets = wxAtoi(settings.Get("CHECKBOX_Text_PixelOffsets", "0"));
-    bool perWord = wxAtoi(settings.Get("CHECKBOX_Text_Color_PerWord", "0"));
+    int starty = std::strtol(settings.Get("SLIDER_Text_YStart", "0").c_str(), nullptr, 10);
+    int startx = std::strtol(settings.Get("SLIDER_Text_XStart", "0").c_str(), nullptr, 10);
+    int endy = std::strtol(settings.Get("SLIDER_Text_YEnd", "0").c_str(), nullptr, 10);
+    int endx = std::strtol(settings.Get("SLIDER_Text_XEnd", "0").c_str(), nullptr, 10);
+    bool pixelOffsets = std::strtol(settings.Get("CHECKBOX_Text_PixelOffsets", "0").c_str(), nullptr, 10);
+    bool perWord = std::strtol(settings.Get("CHECKBOX_Text_Color_PerWord", "0").c_str(), nullptr, 10);
 
     int OffsetLeft = startx * buffer.BufferWi / 100;
     int OffsetTop = -starty * buffer.BufferHt / 100;
@@ -1545,10 +1547,10 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
             if (file.IsOpened()) {
                 wxString fileContent;
                 if (file.ReadAll(&fileContent)) {
-                    wxArrayString lines = wxSplit(fileContent, '\n');
+                    auto lines = Split(fileContent, '\n');
 
                     text.Clear();
-                    int lineCount = std::min((int)lines.GetCount(), MAXTEXTLINES);
+                    int lineCount = std::min((int)lines.size(), MAXTEXTLINES);
 
                     for (int i = 0; i < lineCount; i++) {
                         if (i > 0) {
@@ -1598,7 +1600,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     wxString msg = text;
     int Countdown = TextCountDownIndex(settings["CHOICE_Text_Count"]);
     if (Countdown > 0) {
-        int tspeed = wxAtoi(settings.Get("TEXTCTRL_Text_Speed", "10"));
+        int tspeed = std::strtol(settings.Get("TEXTCTRL_Text_Speed", "10").c_str(), nullptr, 10);
         int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
         wxString Line = text;
         FormatCountdown(Countdown, state, Line, buffer, msg, text);
@@ -1607,7 +1609,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     ReplaceVaribles(msg, buffer);
     text = msg;
 
-    wxArrayString lines = wxSplit(text, '\n');
+    auto lines = Split(text, '\n');
     std::vector<int> line_lengths;
     int max_line_length = 0;
     for (const auto& line : lines) {
@@ -1733,7 +1735,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
 void TextEffect::AddMotions(int& OffsetLeft, int& OffsetTop, const SettingsMap& settings, RenderBuffer &buffer,
     int txtLen, int endx, int endy, bool pixelOffsets, int PreOffsetLeft, int PreOffsetTop, int text_len, int char_width, int char_height, bool vertical, bool rotate_90) const
 {
-    int tspeed = wxAtoi(settings.Get("TEXTCTRL_Text_Speed", "10"));
+    int tspeed = std::strtol(settings.Get("TEXTCTRL_Text_Speed", "10").c_str(), nullptr, 10);
     int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
 
     int txtwidth = text_len;
@@ -1757,8 +1759,8 @@ void TextEffect::AddMotions(int& OffsetLeft, int& OffsetTop, const SettingsMap& 
     int ylimit = totheight * 8 + 1;
 
     TextDirection dir = TextEffectDirectionsIndex(settings["CHOICE_Text_Dir"]);
-    int center = wxAtoi(settings["CHECKBOX_TextToCenter"]);
-    int norepeat = wxAtoi(settings["CHECKBOX_TextNoRepeat"]);
+    int center = std::strtol(settings["CHECKBOX_TextToCenter"].c_str(), nullptr, 10);
+    int norepeat = std::strtol(settings["CHECKBOX_TextNoRepeat"].c_str(), nullptr, 10);
 
     switch (dir) {
     case TEXTDIR_VECTOR:

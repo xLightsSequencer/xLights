@@ -10,6 +10,7 @@
 
 #include "ShapePanel.h"
 #include "EffectPanelUtils.h"
+#include "../utils/string_utils.h"
 #include "ShapeEffect.h"
 #include "RenderBuffer.h"
 #include "../CharMapDialog.h"
@@ -706,7 +707,7 @@ void ShapePanel::OnChoice_Shape_TimingTrackSelect(wxCommandEvent& event)
 
 void ShapePanel::SetTimingTracks(wxCommandEvent& event)
 {
-    auto timingtracks = wxSplit(event.GetString(), '|');
+    auto timingtracks = Split(event.GetString().ToStdString(), '|');
 
     wxString selection = Choice_Shape_TimingTrack->GetStringSelection();
 
