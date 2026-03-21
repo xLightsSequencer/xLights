@@ -132,7 +132,7 @@ void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
         wxString nm = StartNodeAttrName(0);
 
         p = grid->Append(new wxStringProperty("Start Nodes", "ModelIndividualStartNodes", ""));
-        wxPGProperty* psn = grid->AppendIn(p, new wxUIntProperty(nm, nm, _hasIndivNodes ? _indivStartNodes[0] : 1));
+        wxPGProperty* psn = grid->AppendIn(p, new wxUIntProperty(nm, nm, (_hasIndivNodes && !_indivStartNodes.empty()) ? _indivStartNodes[0] : 1));
         psn->SetAttribute("Min", 1);
         psn->SetAttribute("Max", (int)GetNodeCount());
         psn->SetEditor("SpinCtrl");
@@ -141,7 +141,7 @@ void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager
             int c = _strings;
             for (int x = 0; x < c; ++x) {
                 nm = StartNodeAttrName(x);
-                int v = _indivStartNodes[x];
+                int v = (x < (int)_indivStartNodes.size()) ? _indivStartNodes[x] : 0;
                 if (v < 1) v = ComputeStringStartNode(x);
                 if (v > NodesPerString()) v = NodesPerString();
                 if (x == 0) {
@@ -233,7 +233,7 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyG
                 if (x == 0) {
                     _indivStartChannels[x] = ModelStartChannel;
                 } else {
-                    int node = _indivStartNodes[x];
+                    int node = (x < (int)_indivStartNodes.size()) ? _indivStartNodes[x] : 0;
                     int32_t startChannel = modelStartChannel + (node - 1) * chanPerNode;
                     _indivStartChannels[x] = std::to_string(startChannel);
                 }
@@ -845,7 +845,7 @@ int CustomModel::GetCustomNodeStringNumber(int node) const
     for (int i = 0; i < _strings; i++) {
         int startNode = 1;
         if (_hasIndivNodes) {
-            startNode = _indivStartNodes[i];
+            startNode = (i < (int)_indivStartNodes.size()) ? _indivStartNodes[i] : ComputeStringStartNode(i);
         } else {
             startNode = ComputeStringStartNode(i);
         }
@@ -897,7 +897,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
         int nodes = GetChanCount() / GetChanCountPerNode();
         for (int i = 0; i < _strings; i++) {
             nm = StartNodeAttrName(i);
-            auto val = _indivStartNodes[i];
+            auto val = (i < (int)_indivStartNodes.size()) ? _indivStartNodes[i] : 0;
             if (val == 1) {
                 oneFound = true;
             }
@@ -1361,12 +1361,11 @@ bool CustomModel::ChangeStringCount(long count, std::string& message)
     }
 
     _strings = count;
+    _hasIndivNodes = (count > 1);
     if (count != 1) {
-        if (_hasIndivNodes) {
-            _indivStartNodes.resize(count);
-            for (int x = 0; x < count; x++) {
-                _indivStartNodes[x] = ComputeStringStartNode(x);
-            }
+        _indivStartNodes.resize(count);
+        for (int x = 0; x < count; x++) {
+            _indivStartNodes[x] = ComputeStringStartNode(x);
         }
     }
 
