@@ -400,7 +400,7 @@ void CustomModel::SetStringStartChannels(int NumberOfStrings, int StartChannel, 
         stringStartChan.clear();
         stringStartChan.resize(_strings);
         for (int i = 0; i < _strings; i++) {
-            int node = _indivStartNodes[i];
+            int node = (i < (int)_indivStartNodes.size()) ? _indivStartNodes[i] : 0;
             if (node == 0) {
                 node = ((ChannelsPerString * i) / GetNodeChannelCount(StringType)) + 1;
             }
