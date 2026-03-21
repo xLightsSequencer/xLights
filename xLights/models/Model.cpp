@@ -2663,6 +2663,13 @@ void Model::UpdateChannels()
     Nodes.clear();
     InitModel();
 
+    // Submodels clone parent nodes during Setup, so when parent channels
+    // change (e.g. after RecalcStartChannels resolves chain dependencies),
+    // submodels must be re-setup to pick up the new ActChan values.
+    for (auto& sm : subModels) {
+        sm->Setup();
+    }
+
     IncrementChangeCount();
 }
 

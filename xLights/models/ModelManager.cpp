@@ -271,8 +271,13 @@ void ModelManager::LoadModels(wxXmlNode* modelNode, int previewW, int previewH)
         }
     }
 
+    // Must recalculate start channels synchronously after parallel loading.
+    // During parallel_for, models with chained start channels (>ModelName:1)
+    // cannot resolve correctly because their dependency may not be loaded yet.
+    // RecalcStartChannels resolves chains in topological order now that all
+    // models are loaded.
+    RecalcStartChannels();
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ModelManager::LoadModels");
-    // RecalcStartChannels();
 }
 
 uint32_t ModelManager::GetLastChannel() const
