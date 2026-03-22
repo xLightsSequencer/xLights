@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "LightningEffect.h"
-#include "LightningPanel.h"
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -89,33 +88,6 @@ LightningEffect::LightningEffect(int id) : RenderableEffect(id, "Lightning", lig
 LightningEffect::~LightningEffect()
 {
     //dtor
-}
-
-xlEffectPanel *LightningEffect::CreatePanel(wxWindow *parent) {
-    return new LightningPanel(parent);
-}
-
-void LightningEffect::SetDefaultParameters() {
-    LightningPanel *lp = (LightningPanel*)panel;
-    if (lp == nullptr) {
-        return;
-    }
-
-    lp->BitmapButton_Lightning_TopXVC->SetActive(false);
-    lp->BitmapButton_Lightning_TopYVC->SetActive(false);
-    lp->BitmapButton_Number_BoltsVC->SetActive(false);
-    lp->BitmapButton_Number_SegmentsVC->SetActive(false);
-
-    SetSliderValue(lp->Slider_Number_Bolts, 10);
-    SetSliderValue(lp->Slider_Number_Segments, 5);
-    SetSliderValue(lp->Slider_Lightning_TopX, 0);
-    SetSliderValue(lp->Slider_Lightning_TopY, 0);
-    SetSliderValue(lp->Slider_Lightning_BOTX, 0);
-    SetSliderValue(lp->Slider_Lightning_WIDTH, 1);
-
-    SetChoiceValue(lp->CHOICE_Lightning_Direction, "Up");
-
-    SetCheckBoxValue(lp->CheckBox_ForkedLightning, false);
 }
 
 void LightningEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {

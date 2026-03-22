@@ -16,7 +16,7 @@
 //*)
 
 #include "xlGridCanvas.h"
-#include "effects/assist/AssistPanel.h"
+#include "ui/effectpanels/assist/AssistPanel.h"
 
 class xLightsFrame;
 

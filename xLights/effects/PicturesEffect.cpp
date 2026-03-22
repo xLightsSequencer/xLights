@@ -22,13 +22,12 @@
 #include "../../include/pictures-64.xpm"
 
 #include "PicturesEffect.h"
-#include "PicturesPanel.h"
 #include "../render/Effect.h"
 #include "../render/SequenceMedia.h"
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
-#include "assist/xlGridCanvasPictures.h"
-#include "assist/PicturesAssistPanel.h"
+#include "../ui/effectpanels/assist/xlGridCanvasPictures.h"
+#include "../ui/effectpanels/assist/PicturesAssistPanel.h"
 #include "../xLightsXmlFile.h"
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
@@ -90,10 +89,6 @@ std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& se
         }
     }
     return res;
-}
-
-xlEffectPanel *PicturesEffect::CreatePanel(wxWindow *parent) {
-    return new PicturesPanel(parent);
 }
 
 AssistPanel *PicturesEffect::GetAssistPanel(wxWindow *parent, xLightsFrame* xl_frame) {
@@ -317,40 +312,6 @@ void PicturesEffect::SetTransparentBlackPixel(RenderBuffer& buffer, int x, int y
     } else {
         buffer.ProcessPixel(x, y, c, wrap);
     }
-}
-
-void PicturesEffect::SetDefaultParameters() {
-    PicturesPanel *pp = (PicturesPanel*)panel;
-    if (pp == nullptr) {
-        return;
-    }
-
-    pp->FileNameCtrl->SetValue("");
-    pp->BitmapButton_PicturesXC->SetActive(false);
-    pp->BitmapButton_PicturesYC->SetActive(false);
-
-    SetSliderValue(pp->Slider_Pictures_Speed, 10);
-    SetSliderValue(pp->Slider_Pictures_FR, 10);
-    SetSliderValue(pp->Slider1, 0);
-    SetSliderValue(pp->Slider_PicturesXC, 0);
-    SetSliderValue(pp->Slider_PicturesYC, 0);
-    SetSliderValue(pp->Slider_PicturesEndXC, 0);
-    SetSliderValue(pp->Slider_PicturesEndYC, 0);
-    SetSliderValue(pp->Slider_Pictures_EndScale, 100);
-    SetSliderValue(pp->Slider_Pictures_StartScale, 100);
-
-    SetChoiceValue(pp->Choice_Pictures_Direction, "none");
-    SetChoiceValue(pp->Choice_Scaling, "No Scaling");
-
-    SetCheckBoxValue(pp->CheckBox_Pictures_PixelOffsets, false);
-    SetCheckBoxValue(pp->CheckBox_Pictures_WrapX, false);
-    SetCheckBoxValue(pp->CheckBox_Pictures_Shimmer, false);
-    SetCheckBoxValue(pp->CheckBox_LoopGIF, false);
-    SetCheckBoxValue(pp->CheckBox_SuppressGIFBackground, true);
-    SetCheckBoxValue(pp->CheckBox_TransparentBlack, false);
-
-
-    pp->ValidateWindow();
 }
 
 std::list<std::string> PicturesEffect::GetFileReferences(Model* model, const SettingsMap &SettingsMap) const

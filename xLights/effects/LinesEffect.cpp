@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "LinesEffect.h"
-#include "LinesPanel.h"
 #include "../AudioManager.h"
 #include "../render/SequenceElements.h"
 
@@ -31,29 +30,6 @@ LinesEffect::LinesEffect(int id) : RenderableEffect(id, "Lines", lines_16, lines
 
 LinesEffect::~LinesEffect()
 {
-}
-
-xlEffectPanel *LinesEffect::CreatePanel(wxWindow *parent) {
-	return new LinesPanel(parent);
-}
-
-void LinesEffect::SetDefaultParameters() 
-{
-    LinesPanel *lp = static_cast<LinesPanel*>(panel);
-    if (lp == nullptr) {
-        return;
-    }
-
-    lp->BitmapButton_Lines_Speed->SetActive(false);
-    lp->BitmapButton_Lines_Thickness->SetActive(false);
-
-    SetSliderValue(lp->Slider_Lines_Objects, 2);
-    SetSliderValue(lp->Slider_Lines_Segments, 3);
-    SetSliderValue(lp->Slider_Lines_Speed, 1);
-    SetSliderValue(lp->Slider_Lines_Trails, 0);
-    SetSliderValue(lp->Slider_Lines_Thickness, 1);
-    SetCheckBoxValue(lp->CheckBox_FadeTrails, true);
-    lp->ValidateWindow();
 }
 
 void LinesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {

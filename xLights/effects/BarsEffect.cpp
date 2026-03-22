@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "BarsEffect.h"
-#include "BarsPanel.h"
 
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
@@ -30,11 +29,6 @@ BarsEffect::BarsEffect(int i) :
 BarsEffect::~BarsEffect()
 {
     // dtor
-}
-
-xlEffectPanel* BarsEffect::CreatePanel(wxWindow* parent)
-{
-    return new BarsPanel(parent);
 }
 
 static inline int GetDirection(const std::string& DirectionString)
@@ -69,29 +63,6 @@ static inline int GetDirection(const std::string& DirectionString)
         return 13;
     }
     return 0;
-}
-
-void BarsEffect::SetDefaultParameters()
-{
-    BarsPanel* bp = (BarsPanel*)panel;
-    if (bp == nullptr) {
-        return;
-    }
-
-    bp->BitmapButton_Bars_BarCount->SetActive(false);
-    bp->BitmapButton_Bars_Cycles->SetActive(false);
-    bp->BitmapButton_Bars_Center->SetActive(false);
-
-    SetSliderValue(bp->Slider_Bars_BarCount, 1);
-    SetSliderValue(bp->Slider_Bars_Cycles, 10);
-    SetSliderValue(bp->Slider_Bars_Center, 0);
-
-    SetChoiceValue(bp->Choice_Bars_Direction, "up");
-
-    SetCheckBoxValue(bp->CheckBox_Bars_Highlight, false);
-    SetCheckBoxValue(bp->CheckBox_UseFirstColorForHighlight, false);
-    SetCheckBoxValue(bp->CheckBox_Bars_3D, false);
-    SetCheckBoxValue(bp->CheckBox_Bars_Gradient, false);
 }
 
 void BarsEffect::GetSpatialColor(xlColor& color, size_t colorIndex, float x, float y, RenderBuffer& buffer, bool gradient, const xlColor& highlightColour, bool highlight, bool show3d, int BarHt, int n, float pct, int color2Index) {

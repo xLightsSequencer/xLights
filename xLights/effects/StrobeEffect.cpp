@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "StrobeEffect.h"
-#include "StrobePanel.h"
 
 #include <format>
 
@@ -39,11 +38,6 @@ std::list<std::string> StrobeEffect::CheckEffectSettings(const SettingsMap& sett
     }
     return res;
 }
-
-xlEffectPanel *StrobeEffect::CreatePanel(wxWindow *parent) {
-    return new StrobePanel(parent);
-}
-
 
 class StrobeClass
 {
@@ -75,19 +69,6 @@ public:
 
     std::list<StrobeClass> strobe;
 };
-
-void StrobeEffect::SetDefaultParameters()
-{
-    StrobePanel *sp = (StrobePanel*)panel;
-    if (sp == nullptr) {
-        return;
-    }
-
-    SetSliderValue(sp->Slider_Number_Strobes, 3);
-    SetSliderValue(sp->Slider_Strobe_Duration, 10);
-    SetSliderValue(sp->Slider_Strobe_Type, 1);
-    SetCheckBoxValue(sp->CheckBox_Strobe_Music, false);
-}
 
 void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     int Number_Strobes = SettingsMap.GetInt("SLIDER_Number_Strobes", 3);

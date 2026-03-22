@@ -12,7 +12,6 @@
 #include <sstream>
 
 #include "DuplicateEffect.h"
-#include "DuplicatePanel.h"
 #include "../render/RenderBuffer.h"
 #include "UtilFunctions.h"
 #include "../models/Model.h"
@@ -84,46 +83,6 @@ int DuplicateEffect::GetLayersForModel(const wxString& model)
     }
 
     return res;
-}
-
-xlEffectPanel *DuplicateEffect::CreatePanel(wxWindow *parent) {
-    return new DuplicatePanel(parent);
-}
-
-void DuplicateEffect::SetDefaultParameters() {
-    DuplicatePanel *p = (DuplicatePanel*)panel;
-
-    SetChoiceValue(p->Choice_Model, "");
-    SetCheckBoxValue(p->CheckBox1, false);
-    SetCheckBoxValue(p->CheckBox2, false);
-    SetCheckBoxValue(p->CheckBox3, false);
-    SetCheckBoxValue(p->CheckBox_Override_Palette, false);
-    SetSpinValue(p->SpinCtrl_Layer, 1);
-}
-
-void DuplicateEffect::SetPanelStatus(Model* cls)
-{
-    DuplicatePanel* dp = (DuplicatePanel*)panel;
-    if (dp == nullptr)
-        return;
-
-    // remove all the models
-    dp->Choice_Model->Clear();
-
-    if (cls == nullptr)
-        return;
-
-    const ModelManager& mgr = cls->GetModelManager();
-    xLightsFrame* xlights = mgr.GetXLightsFrame();
-    if (xlights == nullptr) return;
-
-    // get the sequence elements
-    auto& se = cls->GetModelManager().GetXLightsFrame()->GetSequenceElements();
-
-    for (const auto& it : se.GetAllElementNamesWithEffectsExtended())
-    {
-        if (it != cls->GetFullName()) dp->Choice_Model->AppendString(it);
-    }
 }
 
 void DuplicateEffect::Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)

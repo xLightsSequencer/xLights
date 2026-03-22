@@ -10,14 +10,16 @@
 
 #include "SketchEffect.h"
 
-#include "BulkEditControls.h"
+#include "../BulkEditControls.h"
 #include "../render/RenderBuffer.h"
 #include "SketchEffectDrawing.h"
-#include "SketchPanel.h"
+#include "../ui/effectpanels/SketchPanel.h"
+#include "../ui/effectpanels/EffectPanelManager.h"
 #include "../UtilFunctions.h"
+#include "../xLightsApp.h"
 #include "../xLightsMain.h"
-#include "assist/AssistPanel.h"
-#include "assist/SketchAssistPanel.h"
+#include "../ui/effectpanels/assist/AssistPanel.h"
+#include "../ui/effectpanels/assist/SketchAssistPanel.h"
 #include "../ExternalHooks.h"
 
 #include "../../include/sketch-16.xpm"
@@ -128,28 +130,6 @@ void SketchEffect::Render(Effect* /*effect*/, const SettingsMap& settings, Rende
     }
 }
 
-void SketchEffect::SetDefaultParameters()
-{
-    SketchPanel* p = (SketchPanel*)panel;
-
-    SetTextValue(p->TextCtrl_SketchDef, SketchEffectSketch::DefaultSketchString());
-
-    p->BitmapButton_DrawPercentage->SetActive(false);
-    p->BitmapButton_Thickness->SetActive(false);
-    p->BitmapButton_MotionPercentage->SetActive(false);
-
-    SetCheckBoxValue(p->CheckBox_MotionEnabled, false);
-
-    SetSliderValue(p->Slider_SketchBackgroundOpacity, 0x30);
-    SetSliderValue(p->Slider_DrawPercentage, SketchPanel::DrawPercentageDef);
-    SetSliderValue(p->Slider_Thickness, SketchPanel::ThicknessDef);
-    SetSliderValue(p->Slider_MotionPercentage, SketchPanel::MotionPercentageDef);
-
-    p->FilePicker_SketchBackground->SetFileName(wxFileName());
-
-    p->ValidateWindow();
-}
-
 bool SketchEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap)
 {
     bool rc = false;
@@ -203,22 +183,29 @@ std::list<std::string> SketchEffect::GetFileReferences(Model* model, const Setti
     return res;
 }
 
+SketchPanel* SketchEffect::getPanel() const
+{
+    return static_cast<SketchPanel*>(xLightsApp::GetFrame()->effectPanelManager.GetPanel(id, nullptr));
+}
+
 AssistPanel* SketchEffect::GetAssistPanel(wxWindow* parent, xLightsFrame* /*xl_frame*/)
 {
-    if (m_panel == nullptr)
+    SketchPanel* sketchPanel = getPanel();
+    if (sketchPanel == nullptr)
         return nullptr;
     auto lambda = [this](const std::string& sketchDef, const std::string& picPath, unsigned char alpha) {
-        if (m_panel != nullptr) {
-            m_panel->TextCtrl_SketchDef->SetValue(sketchDef);
-            m_panel->FilePicker_SketchBackground->SetFileName(wxFileName(picPath));
-            SetSliderValue(m_panel->Slider_SketchBackgroundOpacity, alpha);
+        SketchPanel* sp = getPanel();
+        if (sp != nullptr) {
+            sp->TextCtrl_SketchDef->SetValue(sketchDef);
+            sp->FilePicker_SketchBackground->SetFileName(wxFileName(picPath));
+            xlEffectPanel::SetSliderValue(sp->Slider_SketchBackgroundOpacity, alpha);
         }
     };
 
     AssistPanel* assistPanel = new AssistPanel(parent);
 
     auto sketchAssistPanel = new SketchAssistPanel(assistPanel->GetCanvasParent());
-    sketchAssistPanel->SetSketchDef(m_panel->TextCtrl_SketchDef->GetValue().ToStdString());
+    sketchAssistPanel->SetSketchDef(sketchPanel->TextCtrl_SketchDef->GetValue().ToStdString());
     sketchAssistPanel->SetSketchUpdateCallback(lambda);
     // sketchAssistPanel->SetxLightsFrame(xl_frame);
     assistPanel->AddPanel(sketchAssistPanel, wxALL | wxEXPAND);
@@ -255,11 +242,6 @@ void SketchEffect::RemoveDefaults(const std::string& version, Effect* effect)
 {
 }
 
-xlEffectPanel* SketchEffect::CreatePanel(wxWindow* parent)
-{
-    m_panel = new SketchPanel(parent);
-    return m_panel;
-}
 
 void SketchEffect::renderSketch(const SketchEffectSketch& sketch, wxImage& img, double progress, double drawPercentage, int lineThickness, bool hasMotion, double motionPercentage, const xlColorVector& colors)
 {
@@ -323,11 +305,12 @@ void SketchEffect::renderSketch(const SketchEffectSketch& sketch, wxImage& img, 
 
 void SketchEffect::updateSketchAssistBackground() const
 {
-    if (m_panel == nullptr || m_sketchAssistPanel == nullptr)
+    SketchPanel* sketchPanel = getPanel();
+    if (sketchPanel == nullptr || m_sketchAssistPanel == nullptr)
         return;
 
-    wxString path(m_panel->FilePicker_SketchBackground->GetFileName().GetFullPath());
-    int opacity = m_panel->Slider_SketchBackgroundOpacity->GetValue();
+    wxString path(sketchPanel->FilePicker_SketchBackground->GetFileName().GetFullPath());
+    int opacity = sketchPanel->Slider_SketchBackgroundOpacity->GetValue();
 
     m_sketchAssistPanel->UpdateSketchBackground(path, opacity);
 }

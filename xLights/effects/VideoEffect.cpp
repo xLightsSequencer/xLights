@@ -17,7 +17,7 @@
 #include <format>
 
 #include "VideoEffect.h"
-#include "VideoPanel.h"
+#include "../ui/effectpanels/VideoPanel.h"
 #include "../VideoReader.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -123,10 +123,6 @@ bool VideoEffect::IsVideoFile(std::string filename)
     return VideoReader::IsVideoFile(filename);
 }
 
-xlEffectPanel *VideoEffect::CreatePanel(wxWindow *parent) {
-    return new VideoPanel(parent);
-}
-
 void VideoEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
 {
     // give the base class a chance to adjust any settings
@@ -158,31 +154,6 @@ void VideoEffect::adjustSettings(const std::string &version, Effect *effect, boo
         //long st = wxAtol(settings["E_SLIDER_Video_Starttime"]);
         //settings["E_SLIDER_Video_Starttime"] = wxString::Format(wxT("%i"), st / 10);
     }
-}
-
-void VideoEffect::SetDefaultParameters()
-{
-    VideoPanel *vp = (VideoPanel*)panel;
-    if (vp == nullptr) {
-        return;
-    }
-
-    vp->FilePicker_Video_Filename->SetFileName(wxFileName());
-    SetSliderValue(vp->Slider_Video_Starttime, 0);
-    SetSliderValue(vp->Slider_Video_CropBottom, 0);
-    SetSliderValue(vp->Slider_Video_CropLeft, 0);
-    SetSliderValue(vp->Slider_Video_CropRight, 100);
-    SetSliderValue(vp->Slider_Video_CropTop, 100);
-    vp->BitmapButton_Video_CropLeftVC->SetActive(false);
-    vp->BitmapButton_Video_CropRightVC->SetActive(false);
-    vp->BitmapButton_Video_CropTopVC->SetActive(false);
-    vp->BitmapButton_Video_CropBottomVC->SetActive(false);
-    vp->BitmapButton_Video_Speed->SetActive(false);
-    SetCheckBoxValue(vp->CheckBox_Video_AspectRatio, false);
-    SetChoiceValue(vp->Choice_Video_DurationTreatment, "Normal");
-
-    SetCheckBoxValue(vp->CheckBox_TransparentBlack, false);
-    SetSliderValue(vp->Slider1, 0);
 }
 
 std::list<std::string> VideoEffect::GetFileReferences(Model* model, const SettingsMap &SettingsMap) const
@@ -365,15 +336,17 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                 // read the first frame ... if i dont it thinks the first frame i read is the first frame
                 _videoreader->GetNextFrame(0);
 
-                VideoPanel *fp = static_cast<VideoPanel*>(panel);
-                if (fp != nullptr)
-                {
-                    wxCommandEvent event(EVT_VIDEODETAILS);
-                    event.SetInt(videolen);
-                    event.SetString(filename);
-                    wxPostEvent(fp, event);
-                    //fp->addVideoTime(filename, videolen);
-                }
+                // TODO: Future cleanup needed - this code accesses the panel from the render
+                // thread which is not safe. Need to find an alternative way to communicate
+                // video details back to the panel (e.g., via an event to the main thread).
+                // VideoPanel *fp = static_cast<VideoPanel*>(panel);
+                // if (fp != nullptr)
+                // {
+                //     wxCommandEvent event(EVT_VIDEODETAILS);
+                //     event.SetInt(videolen);
+                //     event.SetString(filename);
+                //     wxPostEvent(fp, event);
+                // }
 
                 if (starttime != 0)
                 {

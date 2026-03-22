@@ -31,7 +31,7 @@
 #include "xlLockButton.h"
 #include "ColorCurve.h"
 #include "BulkEditControls.h"
-#include "effects/EffectPanelUtils.h"
+#include "ui/effectpanels/EffectPanelUtils.h"
 
 #if __has_include("osxUtils/TouchBars.h")
 #include "osxUtils/TouchBars.h"

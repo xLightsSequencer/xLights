@@ -596,270 +596,271 @@
 		<Unit filename="controllers/WebSocketClient.h" />
 		<Unit filename="effects/AdjustEffect.cpp" />
 		<Unit filename="effects/AdjustEffect.h" />
-		<Unit filename="effects/AdjustPanel.cpp" />
-		<Unit filename="effects/AdjustPanel.h" />
+		<Unit filename="ui/effectpanels/AdjustPanel.cpp" />
+		<Unit filename="ui/effectpanels/AdjustPanel.h" />
 		<Unit filename="effects/BarsEffect.cpp" />
 		<Unit filename="effects/BarsEffect.h" />
-		<Unit filename="effects/BarsPanel.cpp" />
-		<Unit filename="effects/BarsPanel.h" />
-		<Unit filename="effects/BaseEffectPanel.h" />
+		<Unit filename="ui/effectpanels/BarsPanel.cpp" />
+		<Unit filename="ui/effectpanels/BarsPanel.h" />
 		<Unit filename="effects/ButterflyEffect.cpp" />
 		<Unit filename="effects/ButterflyEffect.h" />
-		<Unit filename="effects/ButterflyPanel.cpp" />
-		<Unit filename="effects/ButterflyPanel.h" />
+		<Unit filename="ui/effectpanels/ButterflyPanel.cpp" />
+		<Unit filename="ui/effectpanels/ButterflyPanel.h" />
 		<Unit filename="effects/CandleEffect.cpp" />
 		<Unit filename="effects/CandleEffect.h" />
-		<Unit filename="effects/CandlePanel.cpp" />
-		<Unit filename="effects/CandlePanel.h" />
+		<Unit filename="ui/effectpanels/CandlePanel.cpp" />
+		<Unit filename="ui/effectpanels/CandlePanel.h" />
 		<Unit filename="effects/CirclesEffect.cpp" />
 		<Unit filename="effects/CirclesEffect.h" />
-		<Unit filename="effects/CirclesPanel.cpp" />
-		<Unit filename="effects/CirclesPanel.h" />
+		<Unit filename="ui/effectpanels/CirclesPanel.cpp" />
+		<Unit filename="ui/effectpanels/CirclesPanel.h" />
 		<Unit filename="effects/ColorWashEffect.cpp" />
 		<Unit filename="effects/ColorWashEffect.h" />
-		<Unit filename="effects/ColorWashPanel.cpp" />
-		<Unit filename="effects/ColorWashPanel.h" />
+		<Unit filename="ui/effectpanels/ColorWashPanel.cpp" />
+		<Unit filename="ui/effectpanels/ColorWashPanel.h" />
 		<Unit filename="effects/CurtainEffect.cpp" />
 		<Unit filename="effects/CurtainEffect.h" />
-		<Unit filename="effects/CurtainPanel.cpp" />
-		<Unit filename="effects/CurtainPanel.h" />
+		<Unit filename="ui/effectpanels/CurtainPanel.cpp" />
+		<Unit filename="ui/effectpanels/CurtainPanel.h" />
 		<Unit filename="effects/DMXEffect.cpp" />
 		<Unit filename="effects/DMXEffect.h" />
-		<Unit filename="effects/DMXPanel.cpp" />
-		<Unit filename="effects/DMXPanel.h" />
+		<Unit filename="ui/effectpanels/DMXPanel.cpp" />
+		<Unit filename="ui/effectpanels/DMXPanel.h" />
 		<Unit filename="effects/DuplicateEffect.cpp" />
 		<Unit filename="effects/DuplicateEffect.h" />
-		<Unit filename="effects/DuplicatePanel.cpp" />
-		<Unit filename="effects/DuplicatePanel.h" />
+		<Unit filename="ui/effectpanels/DuplicatePanel.cpp" />
+		<Unit filename="ui/effectpanels/DuplicatePanel.h" />
 		<Unit filename="effects/EffectManager.cpp" />
 		<Unit filename="effects/EffectManager.h" />
-		<Unit filename="effects/EffectPanelUtils.cpp" />
-		<Unit filename="effects/EffectPanelUtils.h" />
+		<Unit filename="ui/effectpanels/EffectPanelUtils.cpp" />
+		<Unit filename="ui/effectpanels/EffectPanelUtils.h" />
+		<Unit filename="ui/effectpanels/EffectPanelManager.cpp" />
+		<Unit filename="ui/effectpanels/EffectPanelManager.h" />
 		<Unit filename="effects/FX.cpp" />
 		<Unit filename="effects/FX.h" />
 		<Unit filename="effects/FacesEffect.cpp" />
 		<Unit filename="effects/FacesEffect.h" />
-		<Unit filename="effects/FacesPanel.cpp" />
-		<Unit filename="effects/FacesPanel.h" />
+		<Unit filename="ui/effectpanels/FacesPanel.cpp" />
+		<Unit filename="ui/effectpanels/FacesPanel.h" />
 		<Unit filename="effects/FanEffect.cpp" />
 		<Unit filename="effects/FanEffect.h" />
-		<Unit filename="effects/FanPanel.cpp" />
-		<Unit filename="effects/FanPanel.h" />
+		<Unit filename="ui/effectpanels/FanPanel.cpp" />
+		<Unit filename="ui/effectpanels/FanPanel.h" />
 		<Unit filename="effects/FillEffect.cpp" />
 		<Unit filename="effects/FillEffect.h" />
-		<Unit filename="effects/FillPanel.cpp" />
-		<Unit filename="effects/FillPanel.h" />
+		<Unit filename="ui/effectpanels/FillPanel.cpp" />
+		<Unit filename="ui/effectpanels/FillPanel.h" />
 		<Unit filename="effects/FireEffect.cpp" />
 		<Unit filename="effects/FireEffect.h" />
-		<Unit filename="effects/FirePanel.cpp" />
-		<Unit filename="effects/FirePanel.h" />
+		<Unit filename="ui/effectpanels/FirePanel.cpp" />
+		<Unit filename="ui/effectpanels/FirePanel.h" />
 		<Unit filename="effects/FireworksEffect.cpp" />
 		<Unit filename="effects/FireworksEffect.h" />
-		<Unit filename="effects/FireworksPanel.cpp" />
-		<Unit filename="effects/FireworksPanel.h" />
+		<Unit filename="ui/effectpanels/FireworksPanel.cpp" />
+		<Unit filename="ui/effectpanels/FireworksPanel.h" />
 		<Unit filename="effects/GIFImage.cpp" />
 		<Unit filename="effects/GIFImage.h" />
 		<Unit filename="effects/GalaxyEffect.cpp" />
 		<Unit filename="effects/GalaxyEffect.h" />
-		<Unit filename="effects/GalaxyPanel.cpp" />
-		<Unit filename="effects/GalaxyPanel.h" />
+		<Unit filename="ui/effectpanels/GalaxyPanel.cpp" />
+		<Unit filename="ui/effectpanels/GalaxyPanel.h" />
 		<Unit filename="effects/GarlandsEffect.cpp" />
 		<Unit filename="effects/GarlandsEffect.h" />
-		<Unit filename="effects/GarlandsPanel.cpp" />
-		<Unit filename="effects/GarlandsPanel.h" />
+		<Unit filename="ui/effectpanels/GarlandsPanel.cpp" />
+		<Unit filename="ui/effectpanels/GarlandsPanel.h" />
 		<Unit filename="effects/GlediatorEffect.cpp" />
 		<Unit filename="effects/GlediatorEffect.h" />
-		<Unit filename="effects/GlediatorPanel.cpp" />
-		<Unit filename="effects/GlediatorPanel.h" />
+		<Unit filename="ui/effectpanels/GlediatorPanel.cpp" />
+		<Unit filename="ui/effectpanels/GlediatorPanel.h" />
 		<Unit filename="effects/GuitarEffect.cpp" />
 		<Unit filename="effects/GuitarEffect.h" />
-		<Unit filename="effects/GuitarPanel.cpp" />
-		<Unit filename="effects/GuitarPanel.h" />
+		<Unit filename="ui/effectpanels/GuitarPanel.cpp" />
+		<Unit filename="ui/effectpanels/GuitarPanel.h" />
 		<Unit filename="effects/KaleidoscopeEffect.cpp" />
 		<Unit filename="effects/KaleidoscopeEffect.h" />
-		<Unit filename="effects/KaleidoscopePanel.cpp" />
-		<Unit filename="effects/KaleidoscopePanel.h" />
+		<Unit filename="ui/effectpanels/KaleidoscopePanel.cpp" />
+		<Unit filename="ui/effectpanels/KaleidoscopePanel.h" />
 		<Unit filename="effects/LifeEffect.cpp" />
 		<Unit filename="effects/LifeEffect.h" />
-		<Unit filename="effects/LifePanel.cpp" />
-		<Unit filename="effects/LifePanel.h" />
+		<Unit filename="ui/effectpanels/LifePanel.cpp" />
+		<Unit filename="ui/effectpanels/LifePanel.h" />
 		<Unit filename="effects/LightningEffect.cpp" />
 		<Unit filename="effects/LightningEffect.h" />
-		<Unit filename="effects/LightningPanel.cpp" />
-		<Unit filename="effects/LightningPanel.h" />
+		<Unit filename="ui/effectpanels/LightningPanel.cpp" />
+		<Unit filename="ui/effectpanels/LightningPanel.h" />
 		<Unit filename="effects/LinesEffect.cpp" />
 		<Unit filename="effects/LinesEffect.h" />
-		<Unit filename="effects/LinesPanel.cpp" />
-		<Unit filename="effects/LinesPanel.h" />
+		<Unit filename="ui/effectpanels/LinesPanel.cpp" />
+		<Unit filename="ui/effectpanels/LinesPanel.h" />
 		<Unit filename="effects/LiquidEffect.cpp" />
 		<Unit filename="effects/LiquidEffect.h" />
-		<Unit filename="effects/LiquidPanel.cpp" />
-		<Unit filename="effects/LiquidPanel.h" />
+		<Unit filename="ui/effectpanels/LiquidPanel.cpp" />
+		<Unit filename="ui/effectpanels/LiquidPanel.h" />
 		<Unit filename="effects/MarqueeEffect.cpp" />
 		<Unit filename="effects/MarqueeEffect.h" />
-		<Unit filename="effects/MarqueePanel.cpp" />
-		<Unit filename="effects/MarqueePanel.h" />
+		<Unit filename="ui/effectpanels/MarqueePanel.cpp" />
+		<Unit filename="ui/effectpanels/MarqueePanel.h" />
 		<Unit filename="effects/MeteorsEffect.cpp" />
 		<Unit filename="effects/MeteorsEffect.h" />
-		<Unit filename="effects/MeteorsPanel.cpp" />
-		<Unit filename="effects/MeteorsPanel.h" />
+		<Unit filename="ui/effectpanels/MeteorsPanel.cpp" />
+		<Unit filename="ui/effectpanels/MeteorsPanel.h" />
 		<Unit filename="effects/MorphEffect.cpp" />
 		<Unit filename="effects/MorphEffect.h" />
-		<Unit filename="effects/MorphPanel.cpp" />
-		<Unit filename="effects/MorphPanel.h" />
+		<Unit filename="ui/effectpanels/MorphPanel.cpp" />
+		<Unit filename="ui/effectpanels/MorphPanel.h" />
 		<Unit filename="effects/MovingHeadEffect.cpp" />
 		<Unit filename="effects/MovingHeadEffect.h" />
-		<Unit filename="effects/MovingHeadPanel.cpp" />
-		<Unit filename="effects/MovingHeadPanel.h" />
-		<Unit filename="effects/MovingHeadPanels/MHColorPanel.h" />
-		<Unit filename="effects/MovingHeadPanels/MHColorWheelPanel.cpp" />
-		<Unit filename="effects/MovingHeadPanels/MHColorWheelPanel.h" />
-		<Unit filename="effects/MovingHeadPanels/MHDimmerPresetBitmapButton.cpp" />
-		<Unit filename="effects/MovingHeadPanels/MHDimmerPresetBitmapButton.h" />
-		<Unit filename="effects/MovingHeadPanels/MHPathPresetBitmapButton.cpp" />
-		<Unit filename="effects/MovingHeadPanels/MHPathPresetBitmapButton.h" />
-		<Unit filename="effects/MovingHeadPanels/MHPresetBitmapButton.cpp" />
-		<Unit filename="effects/MovingHeadPanels/MHPresetBitmapButton.h" />
-		<Unit filename="effects/MovingHeadPanels/MHRgbPickerPanel.cpp" />
-		<Unit filename="effects/MovingHeadPanels/MHRgbPickerPanel.h" />
-		<Unit filename="effects/MovingHeadPanels/MovingHeadCanvasPanel.cpp" />
-		<Unit filename="effects/MovingHeadPanels/MovingHeadCanvasPanel.h" />
-		<Unit filename="effects/MovingHeadPanels/MovingHeadDimmerPanel.cpp" />
-		<Unit filename="effects/MovingHeadPanels/MovingHeadDimmerPanel.h" />
+		<Unit filename="ui/effectpanels/MovingHeadPanel.cpp" />
+		<Unit filename="ui/effectpanels/MovingHeadPanel.h" />
+		<Unit filename="ui/effectpanels/MovingHeadPanels/MHColorPanel.h" />
+		<Unit filename="ui/effectpanels/MovingHeadPanels/MHColorWheelPanel.cpp" />
+		<Unit filename="ui/effectpanels/MovingHeadPanels/MHColorWheelPanel.h" />
+		<Unit filename="ui/effectpanels/MovingHeadPanels/MHDimmerPresetBitmapButton.cpp" />
+		<Unit filename="ui/effectpanels/MovingHeadPanels/MHDimmerPresetBitmapButton.h" />
+		<Unit filename="ui/effectpanels/MovingHeadPanels/MHPathPresetBitmapButton.cpp" />
+		<Unit filename="ui/effectpanels/MovingHeadPanels/MHPathPresetBitmapButton.h" />
+		<Unit filename="ui/effectpanels/MovingHeadPanels/MHPresetBitmapButton.cpp" />
+		<Unit filename="ui/effectpanels/MovingHeadPanels/MHPresetBitmapButton.h" />
+		<Unit filename="ui/effectpanels/MovingHeadPanels/MHRgbPickerPanel.cpp" />
+		<Unit filename="ui/effectpanels/MovingHeadPanels/MHRgbPickerPanel.h" />
+		<Unit filename="ui/effectpanels/MovingHeadPanels/MovingHeadCanvasPanel.cpp" />
+		<Unit filename="ui/effectpanels/MovingHeadPanels/MovingHeadCanvasPanel.h" />
+		<Unit filename="ui/effectpanels/MovingHeadPanels/MovingHeadDimmerPanel.cpp" />
+		<Unit filename="ui/effectpanels/MovingHeadPanels/MovingHeadDimmerPanel.h" />
 		<Unit filename="effects/MusicEffect.cpp" />
 		<Unit filename="effects/MusicEffect.h" />
-		<Unit filename="effects/MusicPanel.cpp" />
-		<Unit filename="effects/MusicPanel.h" />
+		<Unit filename="ui/effectpanels/MusicPanel.cpp" />
+		<Unit filename="ui/effectpanels/MusicPanel.h" />
 		<Unit filename="effects/OffEffect.cpp" />
 		<Unit filename="effects/OffEffect.h" />
-		<Unit filename="effects/OffPanel.cpp" />
-		<Unit filename="effects/OffPanel.h" />
+		<Unit filename="ui/effectpanels/OffPanel.cpp" />
+		<Unit filename="ui/effectpanels/OffPanel.h" />
 		<Unit filename="effects/OnEffect.cpp" />
 		<Unit filename="effects/OnEffect.h" />
-		<Unit filename="effects/OnPanel.cpp" />
-		<Unit filename="effects/OnPanel.h" />
+		<Unit filename="ui/effectpanels/OnPanel.cpp" />
+		<Unit filename="ui/effectpanels/OnPanel.h" />
 		<Unit filename="effects/PianoEffect.cpp" />
 		<Unit filename="effects/PianoEffect.h" />
-		<Unit filename="effects/PianoPanel.cpp" />
-		<Unit filename="effects/PianoPanel.h" />
+		<Unit filename="ui/effectpanels/PianoPanel.cpp" />
+		<Unit filename="ui/effectpanels/PianoPanel.h" />
 		<Unit filename="effects/PicturesEffect.cpp" />
 		<Unit filename="effects/PicturesEffect.h" />
-		<Unit filename="effects/PicturesPanel.cpp" />
-		<Unit filename="effects/PicturesPanel.h" />
+		<Unit filename="ui/effectpanels/PicturesPanel.cpp" />
+		<Unit filename="ui/effectpanels/PicturesPanel.h" />
 		<Unit filename="effects/PinwheelEffect.cpp" />
 		<Unit filename="effects/PinwheelEffect.h" />
-		<Unit filename="effects/PinwheelPanel.cpp" />
-		<Unit filename="effects/PinwheelPanel.h" />
+		<Unit filename="ui/effectpanels/PinwheelPanel.cpp" />
+		<Unit filename="ui/effectpanels/PinwheelPanel.h" />
 		<Unit filename="effects/PlasmaEffect.cpp" />
 		<Unit filename="effects/PlasmaEffect.h" />
-		<Unit filename="effects/PlasmaPanel.cpp" />
-		<Unit filename="effects/PlasmaPanel.h" />
+		<Unit filename="ui/effectpanels/PlasmaPanel.cpp" />
+		<Unit filename="ui/effectpanels/PlasmaPanel.h" />
 		<Unit filename="effects/RenderableEffect.cpp" />
 		<Unit filename="effects/RenderableEffect.h" />
 		<Unit filename="effects/RippleEffect.cpp" />
 		<Unit filename="effects/RippleEffect.h" />
-		<Unit filename="effects/RipplePanel.cpp" />
-		<Unit filename="effects/RipplePanel.h" />
+		<Unit filename="ui/effectpanels/RipplePanel.cpp" />
+		<Unit filename="ui/effectpanels/RipplePanel.h" />
 		<Unit filename="effects/ServoEffect.cpp" />
 		<Unit filename="effects/ServoEffect.h" />
-		<Unit filename="effects/ServoPanel.cpp" />
-		<Unit filename="effects/ServoPanel.h" />
+		<Unit filename="ui/effectpanels/ServoPanel.cpp" />
+		<Unit filename="ui/effectpanels/ServoPanel.h" />
 		<Unit filename="effects/ShaderEffect.cpp" />
 		<Unit filename="effects/ShaderEffect.h" />
-		<Unit filename="effects/ShaderPanel.cpp" />
-		<Unit filename="effects/ShaderPanel.h" />
+		<Unit filename="ui/effectpanels/ShaderPanel.cpp" />
+		<Unit filename="ui/effectpanels/ShaderPanel.h" />
 		<Unit filename="effects/ShapeEffect.cpp" />
 		<Unit filename="effects/ShapeEffect.h" />
-		<Unit filename="effects/ShapePanel.cpp" />
-		<Unit filename="effects/ShapePanel.h" />
+		<Unit filename="ui/effectpanels/ShapePanel.cpp" />
+		<Unit filename="ui/effectpanels/ShapePanel.h" />
 		<Unit filename="effects/ShimmerEffect.cpp" />
 		<Unit filename="effects/ShimmerEffect.h" />
-		<Unit filename="effects/ShimmerPanel.cpp" />
-		<Unit filename="effects/ShimmerPanel.h" />
+		<Unit filename="ui/effectpanels/ShimmerPanel.cpp" />
+		<Unit filename="ui/effectpanels/ShimmerPanel.h" />
 		<Unit filename="effects/ShockwaveEffect.cpp" />
 		<Unit filename="effects/ShockwaveEffect.h" />
-		<Unit filename="effects/ShockwavePanel.cpp" />
-		<Unit filename="effects/ShockwavePanel.h" />
+		<Unit filename="ui/effectpanels/ShockwavePanel.cpp" />
+		<Unit filename="ui/effectpanels/ShockwavePanel.h" />
 		<Unit filename="effects/SingleStrandEffect.cpp" />
 		<Unit filename="effects/SingleStrandEffect.h" />
-		<Unit filename="effects/SingleStrandPanel.cpp" />
-		<Unit filename="effects/SingleStrandPanel.h" />
+		<Unit filename="ui/effectpanels/SingleStrandPanel.cpp" />
+		<Unit filename="ui/effectpanels/SingleStrandPanel.h" />
 		<Unit filename="effects/SketchEffect.cpp" />
 		<Unit filename="effects/SketchEffect.h" />
 		<Unit filename="effects/SketchEffectDrawing.cpp" />
 		<Unit filename="effects/SketchEffectDrawing.h" />
-		<Unit filename="effects/SketchPanel.cpp" />
-		<Unit filename="effects/SketchPanel.h" />
+		<Unit filename="ui/effectpanels/SketchPanel.cpp" />
+		<Unit filename="ui/effectpanels/SketchPanel.h" />
 		<Unit filename="effects/SnowflakesEffect.cpp" />
 		<Unit filename="effects/SnowflakesEffect.h" />
-		<Unit filename="effects/SnowflakesPanel.cpp" />
-		<Unit filename="effects/SnowflakesPanel.h" />
+		<Unit filename="ui/effectpanels/SnowflakesPanel.cpp" />
+		<Unit filename="ui/effectpanels/SnowflakesPanel.h" />
 		<Unit filename="effects/SnowstormEffect.cpp" />
 		<Unit filename="effects/SnowstormEffect.h" />
-		<Unit filename="effects/SnowstormPanel.cpp" />
-		<Unit filename="effects/SnowstormPanel.h" />
+		<Unit filename="ui/effectpanels/SnowstormPanel.cpp" />
+		<Unit filename="ui/effectpanels/SnowstormPanel.h" />
 		<Unit filename="effects/SpiralsEffect.cpp" />
 		<Unit filename="effects/SpiralsEffect.h" />
-		<Unit filename="effects/SpiralsPanel.cpp" />
-		<Unit filename="effects/SpiralsPanel.h" />
+		<Unit filename="ui/effectpanels/SpiralsPanel.cpp" />
+		<Unit filename="ui/effectpanels/SpiralsPanel.h" />
 		<Unit filename="effects/SpirographEffect.cpp" />
 		<Unit filename="effects/SpirographEffect.h" />
-		<Unit filename="effects/SpirographPanel.cpp" />
-		<Unit filename="effects/SpirographPanel.h" />
+		<Unit filename="ui/effectpanels/SpirographPanel.cpp" />
+		<Unit filename="ui/effectpanels/SpirographPanel.h" />
 		<Unit filename="effects/StateEffect.cpp" />
 		<Unit filename="effects/StateEffect.h" />
-		<Unit filename="effects/StatePanel.cpp" />
-		<Unit filename="effects/StatePanel.h" />
+		<Unit filename="ui/effectpanels/StatePanel.cpp" />
+		<Unit filename="ui/effectpanels/StatePanel.h" />
 		<Unit filename="effects/StrobeEffect.cpp" />
 		<Unit filename="effects/StrobeEffect.h" />
-		<Unit filename="effects/StrobePanel.cpp" />
-		<Unit filename="effects/StrobePanel.h" />
+		<Unit filename="ui/effectpanels/StrobePanel.cpp" />
+		<Unit filename="ui/effectpanels/StrobePanel.h" />
 		<Unit filename="effects/TendrilEffect.cpp" />
 		<Unit filename="effects/TendrilEffect.h" />
-		<Unit filename="effects/TendrilPanel.cpp" />
-		<Unit filename="effects/TendrilPanel.h" />
+		<Unit filename="ui/effectpanels/TendrilPanel.cpp" />
+		<Unit filename="ui/effectpanels/TendrilPanel.h" />
 		<Unit filename="effects/TextEffect.cpp" />
 		<Unit filename="effects/TextEffect.h" />
-		<Unit filename="effects/TextPanel.cpp" />
-		<Unit filename="effects/TextPanel.h" />
+		<Unit filename="ui/effectpanels/TextPanel.cpp" />
+		<Unit filename="ui/effectpanels/TextPanel.h" />
 		<Unit filename="effects/TreeEffect.cpp" />
 		<Unit filename="effects/TreeEffect.h" />
-		<Unit filename="effects/TreePanel.cpp" />
-		<Unit filename="effects/TreePanel.h" />
+		<Unit filename="ui/effectpanels/TreePanel.cpp" />
+		<Unit filename="ui/effectpanels/TreePanel.h" />
 		<Unit filename="effects/TwinkleEffect.cpp" />
 		<Unit filename="effects/TwinkleEffect.h" />
-		<Unit filename="effects/TwinklePanel.cpp" />
-		<Unit filename="effects/TwinklePanel.h" />
+		<Unit filename="ui/effectpanels/TwinklePanel.cpp" />
+		<Unit filename="ui/effectpanels/TwinklePanel.h" />
 		<Unit filename="effects/VUMeterEffect.cpp" />
 		<Unit filename="effects/VUMeterEffect.h" />
-		<Unit filename="effects/VUMeterPanel.cpp" />
-		<Unit filename="effects/VUMeterPanel.h" />
+		<Unit filename="ui/effectpanels/VUMeterPanel.cpp" />
+		<Unit filename="ui/effectpanels/VUMeterPanel.h" />
 		<Unit filename="effects/VideoEffect.cpp" />
 		<Unit filename="effects/VideoEffect.h" />
-		<Unit filename="effects/VideoPanel.cpp" />
-		<Unit filename="effects/VideoPanel.h" />
+		<Unit filename="ui/effectpanels/VideoPanel.cpp" />
+		<Unit filename="ui/effectpanels/VideoPanel.h" />
 		<Unit filename="effects/WarpEffect.cpp" />
 		<Unit filename="effects/WarpEffect.h" />
-		<Unit filename="effects/WarpPanel.cpp" />
-		<Unit filename="effects/WarpPanel.h" />
+		<Unit filename="ui/effectpanels/WarpPanel.cpp" />
+		<Unit filename="ui/effectpanels/WarpPanel.h" />
 		<Unit filename="effects/WaveEffect.cpp" />
 		<Unit filename="effects/WaveEffect.h" />
-		<Unit filename="effects/WavePanel.cpp" />
-		<Unit filename="effects/WavePanel.h" />
-		<Unit filename="effects/assist/AssistPanel.cpp" />
-		<Unit filename="effects/assist/AssistPanel.h" />
-		<Unit filename="effects/assist/PicturesAssistPanel.cpp" />
-		<Unit filename="effects/assist/PicturesAssistPanel.h" />
-		<Unit filename="effects/assist/SketchAssistPanel.cpp" />
-		<Unit filename="effects/assist/SketchAssistPanel.h" />
-		<Unit filename="effects/assist/SketchCanvasPanel.cpp" />
-		<Unit filename="effects/assist/SketchCanvasPanel.h" />
-		<Unit filename="effects/assist/xlGridCanvasEmpty.cpp" />
-		<Unit filename="effects/assist/xlGridCanvasEmpty.h" />
-		<Unit filename="effects/assist/xlGridCanvasMorph.cpp" />
-		<Unit filename="effects/assist/xlGridCanvasMorph.h" />
-		<Unit filename="effects/assist/xlGridCanvasPictures.cpp" />
-		<Unit filename="effects/assist/xlGridCanvasPictures.h" />
+		<Unit filename="ui/effectpanels/WavePanel.cpp" />
+		<Unit filename="ui/effectpanels/WavePanel.h" />
+		<Unit filename="ui/effectpanels/assist/AssistPanel.cpp" />
+		<Unit filename="ui/effectpanels/assist/AssistPanel.h" />
+		<Unit filename="ui/effectpanels/assist/PicturesAssistPanel.cpp" />
+		<Unit filename="ui/effectpanels/assist/PicturesAssistPanel.h" />
+		<Unit filename="ui/effectpanels/assist/SketchAssistPanel.cpp" />
+		<Unit filename="ui/effectpanels/assist/SketchAssistPanel.h" />
+		<Unit filename="ui/effectpanels/assist/SketchCanvasPanel.cpp" />
+		<Unit filename="ui/effectpanels/assist/SketchCanvasPanel.h" />
+		<Unit filename="ui/effectpanels/assist/xlGridCanvasEmpty.cpp" />
+		<Unit filename="ui/effectpanels/assist/xlGridCanvasEmpty.h" />
+		<Unit filename="ui/effectpanels/assist/xlGridCanvasMorph.cpp" />
+		<Unit filename="ui/effectpanels/assist/xlGridCanvasMorph.h" />
+		<Unit filename="ui/effectpanels/assist/xlGridCanvasPictures.cpp" />
+		<Unit filename="ui/effectpanels/assist/xlGridCanvasPictures.h" />
 		<Unit filename="effects/ispc/ButterflyFunctions.ispc">
 			<Option link="1" />
 		</Unit>
@@ -1598,72 +1599,72 @@
 					<wxPanel wxs="wxsmith/PerspectivesPanel.wxs" src="PerspectivesPanel.cpp" hdr="PerspectivesPanel.h" fwddecl="0" i18n="1" name="PerspectivesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/xlColorPickerFields.wxs" src="xlColorPickerFields.cpp" hdr="xlColorPickerFields.h" fwddecl="0" i18n="1" name="xlColorPickerFields" language="CPP" />
 					<wxPanel wxs="wxsmith/EffectAssist.wxs" src="EffectAssist.cpp" hdr="EffectAssist.h" fwddecl="0" i18n="1" name="EffectAssist" language="CPP" />
-					<wxPanel wxs="wxsmith/OnPanel.wxs" src="effects/OnPanel.cpp" hdr="effects/OnPanel.h" fwddecl="1" i18n="1" name="OnPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/AdjustPanel.wxs" src="effects/AdjustPanel.cpp" hdr="effects/AdjustPanel.h" fwddecl="1" i18n="1" name="AdjustPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/BarsPanel.wxs" src="effects/BarsPanel.cpp" hdr="effects/BarsPanel.h" fwddecl="1" i18n="1" name="BarsPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/OffPanel.wxs" src="effects/OffPanel.cpp" hdr="effects/OffPanel.h" fwddecl="1" i18n="1" name="OffPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/ButterflyPanel.wxs" src="effects/ButterflyPanel.cpp" hdr="effects/ButterflyPanel.h" fwddecl="1" i18n="1" name="ButterflyPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/CandlePanel.wxs" src="effects/CandlePanel.cpp" hdr="effects/CandlePanel.h" fwddecl="1" i18n="1" name="CandlePanel" language="CPP" />
-					<wxPanel wxs="wxsmith/CirclesPanel.wxs" src="effects/CirclesPanel.cpp" hdr="effects/CirclesPanel.h" fwddecl="1" i18n="1" name="CirclesPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/ColorWashPanel.wxs" src="effects/ColorWashPanel.cpp" hdr="effects/ColorWashPanel.h" fwddecl="1" i18n="1" name="CirclesPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/CurtainPanel.wxs" src="effects/CurtainPanel.cpp" hdr="effects/CurtainPanel.h" fwddecl="1" i18n="1" name="CurtainPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/DMXPanel.wxs" src="effects/DMXPanel.cpp" hdr="effects/DMXPanel.h" fwddecl="1" i18n="1" name="DMXPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/DuplicatePanel.wxs" src="effects/DuplicatePanel.cpp" hdr="effects/DuplicatePanel.h" fwddecl="1" i18n="1" name="DuplicatePanel" language="CPP" />
-					<wxPanel wxs="wxsmith/FacesPanel.wxs" src="effects/FacesPanel.cpp" hdr="effects/FacesPanel.h" fwddecl="1" i18n="1" name="FacesPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/FanPanel.wxs" src="effects/FanPanel.cpp" hdr="effects/FanPanel.h" fwddecl="1" i18n="1" name="FanPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/FillPanel.wxs" src="effects/FillPanel.cpp" hdr="effects/FillPanel.h" fwddecl="1" i18n="1" name="FillPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/OnPanel.wxs" src="ui/effectpanels/OnPanel.cpp" hdr="ui/effectpanels/OnPanel.h" fwddecl="1" i18n="1" name="OnPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/AdjustPanel.wxs" src="ui/effectpanels/AdjustPanel.cpp" hdr="ui/effectpanels/AdjustPanel.h" fwddecl="1" i18n="1" name="AdjustPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/BarsPanel.wxs" src="ui/effectpanels/BarsPanel.cpp" hdr="ui/effectpanels/BarsPanel.h" fwddecl="1" i18n="1" name="BarsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/OffPanel.wxs" src="ui/effectpanels/OffPanel.cpp" hdr="ui/effectpanels/OffPanel.h" fwddecl="1" i18n="1" name="OffPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ButterflyPanel.wxs" src="ui/effectpanels/ButterflyPanel.cpp" hdr="ui/effectpanels/ButterflyPanel.h" fwddecl="1" i18n="1" name="ButterflyPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/CandlePanel.wxs" src="ui/effectpanels/CandlePanel.cpp" hdr="ui/effectpanels/CandlePanel.h" fwddecl="1" i18n="1" name="CandlePanel" language="CPP" />
+					<wxPanel wxs="wxsmith/CirclesPanel.wxs" src="ui/effectpanels/CirclesPanel.cpp" hdr="ui/effectpanels/CirclesPanel.h" fwddecl="1" i18n="1" name="CirclesPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ColorWashPanel.wxs" src="ui/effectpanels/ColorWashPanel.cpp" hdr="ui/effectpanels/ColorWashPanel.h" fwddecl="1" i18n="1" name="CirclesPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/CurtainPanel.wxs" src="ui/effectpanels/CurtainPanel.cpp" hdr="ui/effectpanels/CurtainPanel.h" fwddecl="1" i18n="1" name="CurtainPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/DMXPanel.wxs" src="ui/effectpanels/DMXPanel.cpp" hdr="ui/effectpanels/DMXPanel.h" fwddecl="1" i18n="1" name="DMXPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/DuplicatePanel.wxs" src="ui/effectpanels/DuplicatePanel.cpp" hdr="ui/effectpanels/DuplicatePanel.h" fwddecl="1" i18n="1" name="DuplicatePanel" language="CPP" />
+					<wxPanel wxs="wxsmith/FacesPanel.wxs" src="ui/effectpanels/FacesPanel.cpp" hdr="ui/effectpanels/FacesPanel.h" fwddecl="1" i18n="1" name="FacesPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/FanPanel.wxs" src="ui/effectpanels/FanPanel.cpp" hdr="ui/effectpanels/FanPanel.h" fwddecl="1" i18n="1" name="FanPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/FillPanel.wxs" src="ui/effectpanels/FillPanel.cpp" hdr="ui/effectpanels/FillPanel.h" fwddecl="1" i18n="1" name="FillPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/FindDataPanel.wxs" src="FindDataPanel.cpp" hdr="FindDataPanel.h" fwddecl="1" i18n="1" name="FindDataPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/FirePanel.wxs" src="effects/FirePanel.cpp" hdr="effects/FirePanel.h" fwddecl="1" i18n="1" name="FirePanel" language="CPP" />
-					<wxPanel wxs="wxsmith/FireworksPanel.wxs" src="effects/FireworksPanel.cpp" hdr="effects/FireworksPanel.h" fwddecl="1" i18n="1" name="FireworksPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/GalaxyPanel.wxs" src="effects/GalaxyPanel.cpp" hdr="effects/GalaxyPanel.h" fwddecl="1" i18n="1" name="GalaxyPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/GarlandsPanel.wxs" src="effects/GarlandsPanel.cpp" hdr="effects/GarlandsPanel.h" fwddecl="1" i18n="1" name="GarlandsPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/GlediatorPanel.wxs" src="effects/GlediatorPanel.cpp" hdr="effects/GlediatorPanel.h" fwddecl="1" i18n="1" name="GlediatorPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/GuitarPanel.wxs" src="effects/GuitarPanel.cpp" hdr="effects/GuitarPanel.h" fwddecl="1" i18n="1" name="GuitarPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/KaleidoscopePanel.wxs" src="effects/KaleidoscopePanel.cpp" hdr="effects/KaleidoscopePanel.h" fwddecl="1" i18n="1" name="KaleidoscopePanel" language="CPP" />
-					<wxPanel wxs="wxsmith/LifePanel.wxs" src="effects/LifePanel.cpp" hdr="effects/LifePanel.h" fwddecl="1" i18n="1" name="LifePanel" language="CPP" />
-					<wxPanel wxs="wxsmith/LightningPanel.wxs" src="effects/LightningPanel.cpp" hdr="effects/LightningPanel.h" fwddecl="1" i18n="1" name="LightningPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/LinesPanel.wxs" src="effects/LinesPanel.cpp" hdr="effects/LinesPanel.h" fwddecl="1" i18n="1" name="LinesPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/MarqueePanel.wxs" src="effects/MarqueePanel.cpp" hdr="effects/MarqueePanel.h" fwddecl="1" i18n="1" name="MarqueePanel" language="CPP" />
-					<wxPanel wxs="wxsmith/MeteorsPanel.wxs" src="effects/MeteorsPanel.cpp" hdr="effects/MeteorsPanel.h" fwddecl="1" i18n="1" name="MeteorsPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/MorphPanel.wxs" src="effects/MorphPanel.cpp" hdr="effects/MorphPanel.h" fwddecl="1" i18n="1" name="MorphPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/MusicPanel.wxs" src="effects/MusicPanel.cpp" hdr="effects/MusicPanel.h" fwddecl="1" i18n="1" name="MusicPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/PianoPanel.wxs" src="effects/PianoPanel.cpp" hdr="effects/PianoPanel.h" fwddecl="1" i18n="1" name="PianoPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/PicturesPanel.wxs" src="effects/PicturesPanel.cpp" hdr="effects/PicturesPanel.h" fwddecl="1" i18n="1" name="PicturesPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/PinwheelPanel.wxs" src="effects/PinwheelPanel.cpp" hdr="effects/PinwheelPanel.h" fwddecl="1" i18n="1" name="PinwheelPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/PlasmaPanel.wxs" src="effects/PlasmaPanel.cpp" hdr="effects/PlasmaPanel.h" fwddecl="1" i18n="1" name="PlasmaPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/RipplePanel.wxs" src="effects/RipplePanel.cpp" hdr="effects/RipplePanel.h" fwddecl="1" i18n="1" name="RipplePanel" language="CPP" />
-					<wxPanel wxs="wxsmith/ShapePanel.wxs" src="effects/ShapePanel.cpp" hdr="effects/ShapePanel.h" fwddecl="1" i18n="1" name="ShapePanel" language="CPP" />
-					<wxPanel wxs="wxsmith/ShimmerPanel.wxs" src="effects/ShimmerPanel.cpp" hdr="effects/ShimmerPanel.h" fwddecl="1" i18n="1" name="ShimmerPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/ShockwavePanel.wxs" src="effects/ShockwavePanel.cpp" hdr="effects/ShockwavePanel.h" fwddecl="1" i18n="1" name="ShockwavePanel" language="CPP" />
-					<wxPanel wxs="wxsmith/SingleStrandPanel.wxs" src="effects/SingleStrandPanel.cpp" hdr="effects/SingleStrandPanel.h" fwddecl="1" i18n="1" name="SingleStrandPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/SnowflakesPanel.wxs" src="effects/SnowflakesPanel.cpp" hdr="effects/SnowflakesPanel.h" fwddecl="1" i18n="1" name="SnowflakesPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/SnowstormPanel.wxs" src="effects/SnowstormPanel.cpp" hdr="effects/SnowstormPanel.h" fwddecl="1" i18n="1" name="SnowstormPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/SpiralsPanel.wxs" src="effects/SpiralsPanel.cpp" hdr="effects/SpiralsPanel.h" fwddecl="1" i18n="1" name="SpiralsPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/SpirographPanel.wxs" src="effects/SpirographPanel.cpp" hdr="effects/SpirographPanel.h" fwddecl="1" i18n="1" name="SpirographPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/StatePanel.wxs" src="effects/StatePanel.cpp" hdr="effects/StatePanel.h" fwddecl="1" i18n="1" name="StatePanel" language="CPP" />
-					<wxPanel wxs="wxsmith/StrobePanel.wxs" src="effects/StrobePanel.cpp" hdr="effects/StrobePanel.h" fwddecl="1" i18n="1" name="StrobePanel" language="CPP" />
-					<wxPanel wxs="wxsmith/TendrilPanel.wxs" src="effects/TendrilPanel.cpp" hdr="effects/TendrilPanel.h" fwddecl="1" i18n="1" name="TendrilPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/LiquidPanel.wxs" src="effects/LiquidPanel.cpp" hdr="effects/LiquidPanel.h" fwddecl="1" i18n="1" name="LiquidPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/TextPanel.wxs" src="effects/TextPanel.cpp" hdr="effects/TextPanel.h" fwddecl="1" i18n="1" name="TextPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/TreePanel.wxs" src="effects/TreePanel.cpp" hdr="effects/TreePanel.h" fwddecl="1" i18n="1" name="TreePanel" language="CPP" />
-					<wxPanel wxs="wxsmith/TwinklePanel.wxs" src="effects/TwinklePanel.cpp" hdr="effects/TwinklePanel.h" fwddecl="1" i18n="1" name="TwinklePanel" language="CPP" />
-					<wxPanel wxs="wxsmith/VideoPanel.wxs" src="effects/VideoPanel.cpp" hdr="effects/VideoPanel.h" fwddecl="1" i18n="1" name="VideoPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/VUMeterPanel.wxs" src="effects/VUMeterPanel.cpp" hdr="effects/VUMeterPanel.h" fwddecl="1" i18n="1" name="VUMeterPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/WavePanel.wxs" src="effects/WavePanel.cpp" hdr="effects/WavePanel.h" fwddecl="1" i18n="1" name="WavePanel" language="CPP" />
-					<wxPanel wxs="wxsmith/PicturesAssistPanel.wxs" src="effects/assist/PicturesAssistPanel.cpp" hdr="effects/assist/PicturesAssistPanel.h" fwddecl="0" i18n="1" name="PicturesAssistPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/AssistPanel.wxs" src="effects/assist/AssistPanel.cpp" hdr="effects/assist/AssistPanel.h" fwddecl="0" i18n="1" name="AssistPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/FirePanel.wxs" src="ui/effectpanels/FirePanel.cpp" hdr="ui/effectpanels/FirePanel.h" fwddecl="1" i18n="1" name="FirePanel" language="CPP" />
+					<wxPanel wxs="wxsmith/FireworksPanel.wxs" src="ui/effectpanels/FireworksPanel.cpp" hdr="ui/effectpanels/FireworksPanel.h" fwddecl="1" i18n="1" name="FireworksPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/GalaxyPanel.wxs" src="ui/effectpanels/GalaxyPanel.cpp" hdr="ui/effectpanels/GalaxyPanel.h" fwddecl="1" i18n="1" name="GalaxyPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/GarlandsPanel.wxs" src="ui/effectpanels/GarlandsPanel.cpp" hdr="ui/effectpanels/GarlandsPanel.h" fwddecl="1" i18n="1" name="GarlandsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/GlediatorPanel.wxs" src="ui/effectpanels/GlediatorPanel.cpp" hdr="ui/effectpanels/GlediatorPanel.h" fwddecl="1" i18n="1" name="GlediatorPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/GuitarPanel.wxs" src="ui/effectpanels/GuitarPanel.cpp" hdr="ui/effectpanels/GuitarPanel.h" fwddecl="1" i18n="1" name="GuitarPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/KaleidoscopePanel.wxs" src="ui/effectpanels/KaleidoscopePanel.cpp" hdr="ui/effectpanels/KaleidoscopePanel.h" fwddecl="1" i18n="1" name="KaleidoscopePanel" language="CPP" />
+					<wxPanel wxs="wxsmith/LifePanel.wxs" src="ui/effectpanels/LifePanel.cpp" hdr="ui/effectpanels/LifePanel.h" fwddecl="1" i18n="1" name="LifePanel" language="CPP" />
+					<wxPanel wxs="wxsmith/LightningPanel.wxs" src="ui/effectpanels/LightningPanel.cpp" hdr="ui/effectpanels/LightningPanel.h" fwddecl="1" i18n="1" name="LightningPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/LinesPanel.wxs" src="ui/effectpanels/LinesPanel.cpp" hdr="ui/effectpanels/LinesPanel.h" fwddecl="1" i18n="1" name="LinesPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/MarqueePanel.wxs" src="ui/effectpanels/MarqueePanel.cpp" hdr="ui/effectpanels/MarqueePanel.h" fwddecl="1" i18n="1" name="MarqueePanel" language="CPP" />
+					<wxPanel wxs="wxsmith/MeteorsPanel.wxs" src="ui/effectpanels/MeteorsPanel.cpp" hdr="ui/effectpanels/MeteorsPanel.h" fwddecl="1" i18n="1" name="MeteorsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/MorphPanel.wxs" src="ui/effectpanels/MorphPanel.cpp" hdr="ui/effectpanels/MorphPanel.h" fwddecl="1" i18n="1" name="MorphPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/MusicPanel.wxs" src="ui/effectpanels/MusicPanel.cpp" hdr="ui/effectpanels/MusicPanel.h" fwddecl="1" i18n="1" name="MusicPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PianoPanel.wxs" src="ui/effectpanels/PianoPanel.cpp" hdr="ui/effectpanels/PianoPanel.h" fwddecl="1" i18n="1" name="PianoPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PicturesPanel.wxs" src="ui/effectpanels/PicturesPanel.cpp" hdr="ui/effectpanels/PicturesPanel.h" fwddecl="1" i18n="1" name="PicturesPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PinwheelPanel.wxs" src="ui/effectpanels/PinwheelPanel.cpp" hdr="ui/effectpanels/PinwheelPanel.h" fwddecl="1" i18n="1" name="PinwheelPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PlasmaPanel.wxs" src="ui/effectpanels/PlasmaPanel.cpp" hdr="ui/effectpanels/PlasmaPanel.h" fwddecl="1" i18n="1" name="PlasmaPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/RipplePanel.wxs" src="ui/effectpanels/RipplePanel.cpp" hdr="ui/effectpanels/RipplePanel.h" fwddecl="1" i18n="1" name="RipplePanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ShapePanel.wxs" src="ui/effectpanels/ShapePanel.cpp" hdr="ui/effectpanels/ShapePanel.h" fwddecl="1" i18n="1" name="ShapePanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ShimmerPanel.wxs" src="ui/effectpanels/ShimmerPanel.cpp" hdr="ui/effectpanels/ShimmerPanel.h" fwddecl="1" i18n="1" name="ShimmerPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ShockwavePanel.wxs" src="ui/effectpanels/ShockwavePanel.cpp" hdr="ui/effectpanels/ShockwavePanel.h" fwddecl="1" i18n="1" name="ShockwavePanel" language="CPP" />
+					<wxPanel wxs="wxsmith/SingleStrandPanel.wxs" src="ui/effectpanels/SingleStrandPanel.cpp" hdr="ui/effectpanels/SingleStrandPanel.h" fwddecl="1" i18n="1" name="SingleStrandPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/SnowflakesPanel.wxs" src="ui/effectpanels/SnowflakesPanel.cpp" hdr="ui/effectpanels/SnowflakesPanel.h" fwddecl="1" i18n="1" name="SnowflakesPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/SnowstormPanel.wxs" src="ui/effectpanels/SnowstormPanel.cpp" hdr="ui/effectpanels/SnowstormPanel.h" fwddecl="1" i18n="1" name="SnowstormPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/SpiralsPanel.wxs" src="ui/effectpanels/SpiralsPanel.cpp" hdr="ui/effectpanels/SpiralsPanel.h" fwddecl="1" i18n="1" name="SpiralsPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/SpirographPanel.wxs" src="ui/effectpanels/SpirographPanel.cpp" hdr="ui/effectpanels/SpirographPanel.h" fwddecl="1" i18n="1" name="SpirographPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/StatePanel.wxs" src="ui/effectpanels/StatePanel.cpp" hdr="ui/effectpanels/StatePanel.h" fwddecl="1" i18n="1" name="StatePanel" language="CPP" />
+					<wxPanel wxs="wxsmith/StrobePanel.wxs" src="ui/effectpanels/StrobePanel.cpp" hdr="ui/effectpanels/StrobePanel.h" fwddecl="1" i18n="1" name="StrobePanel" language="CPP" />
+					<wxPanel wxs="wxsmith/TendrilPanel.wxs" src="ui/effectpanels/TendrilPanel.cpp" hdr="ui/effectpanels/TendrilPanel.h" fwddecl="1" i18n="1" name="TendrilPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/LiquidPanel.wxs" src="ui/effectpanels/LiquidPanel.cpp" hdr="ui/effectpanels/LiquidPanel.h" fwddecl="1" i18n="1" name="LiquidPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/TextPanel.wxs" src="ui/effectpanels/TextPanel.cpp" hdr="ui/effectpanels/TextPanel.h" fwddecl="1" i18n="1" name="TextPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/TreePanel.wxs" src="ui/effectpanels/TreePanel.cpp" hdr="ui/effectpanels/TreePanel.h" fwddecl="1" i18n="1" name="TreePanel" language="CPP" />
+					<wxPanel wxs="wxsmith/TwinklePanel.wxs" src="ui/effectpanels/TwinklePanel.cpp" hdr="ui/effectpanels/TwinklePanel.h" fwddecl="1" i18n="1" name="TwinklePanel" language="CPP" />
+					<wxPanel wxs="wxsmith/VideoPanel.wxs" src="ui/effectpanels/VideoPanel.cpp" hdr="ui/effectpanels/VideoPanel.h" fwddecl="1" i18n="1" name="VideoPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/VUMeterPanel.wxs" src="ui/effectpanels/VUMeterPanel.cpp" hdr="ui/effectpanels/VUMeterPanel.h" fwddecl="1" i18n="1" name="VUMeterPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/WavePanel.wxs" src="ui/effectpanels/WavePanel.cpp" hdr="ui/effectpanels/WavePanel.h" fwddecl="1" i18n="1" name="WavePanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PicturesAssistPanel.wxs" src="ui/effectpanels/assist/PicturesAssistPanel.cpp" hdr="ui/effectpanels/assist/PicturesAssistPanel.h" fwddecl="0" i18n="1" name="PicturesAssistPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/AssistPanel.wxs" src="ui/effectpanels/assist/AssistPanel.cpp" hdr="ui/effectpanels/assist/AssistPanel.h" fwddecl="0" i18n="1" name="AssistPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/BufferPanel.wxs" src="BufferPanel.cpp" hdr="BufferPanel.h" fwddecl="0" i18n="1" name="BufferPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/LayoutPanel.wxs" src="LayoutPanel.cpp" hdr="LayoutPanel.h" fwddecl="1" i18n="1" name="LayoutPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ModelGroupPanel.wxs" src="ModelGroupPanel.cpp" hdr="ModelGroupPanel.h" fwddecl="0" i18n="1" name="ModelGroupPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/ServoPanel.wxs" src="effects/ServoPanel.cpp" hdr="effects/ServoPanel.h" fwddecl="1" i18n="1" name="ServoPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ServoPanel.wxs" src="ui/effectpanels/ServoPanel.cpp" hdr="ui/effectpanels/ServoPanel.h" fwddecl="1" i18n="1" name="ServoPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ViewsModelsPanel.wxs" src="ViewsModelsPanel.cpp" hdr="ViewsModelsPanel.h" fwddecl="0" i18n="1" name="ViewsModelsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/HousePreviewPanel.wxs" src="HousePreviewPanel.cpp" hdr="HousePreviewPanel.h" fwddecl="0" i18n="1" name="HousePreviewPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/SelectPanel.wxs" src="SelectPanel.cpp" hdr="SelectPanel.h" fwddecl="0" i18n="1" name="SelectPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/SequenceVideoPanel.wxs" src="SequenceVideoPanel.cpp" hdr="SequenceVideoPanel.h" fwddecl="0" i18n="1" name="SequenceVideoPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/JukeboxPanel.wxs" src="JukeboxPanel.cpp" hdr="JukeboxPanel.h" fwddecl="0" i18n="1" name="JukeboxPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/WarpPanel.wxs" src="effects/WarpPanel.cpp" hdr="effects/WarpPanel.h" fwddecl="0" i18n="1" name="WarpPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/WarpPanel.wxs" src="ui/effectpanels/WarpPanel.cpp" hdr="ui/effectpanels/WarpPanel.h" fwddecl="0" i18n="1" name="WarpPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ViewObjectPanel.wxs" src="ViewObjectPanel.cpp" hdr="ViewObjectPanel.h" fwddecl="0" i18n="1" name="ViewObjectPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/ShaderPanel.wxs" src="effects/ShaderPanel.cpp" hdr="effects/ShaderPanel.h" fwddecl="0" i18n="1" name="ShaderPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ShaderPanel.wxs" src="ui/effectpanels/ShaderPanel.cpp" hdr="ui/effectpanels/ShaderPanel.h" fwddecl="0" i18n="1" name="ShaderPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/BackupSettingsPanel.wxs" src="preferences/BackupSettingsPanel.cpp" hdr="preferences/BackupSettingsPanel.h" fwddecl="1" i18n="1" name="BackupSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/CheckSequenceSettingsPanel.wxs" src="preferences/CheckSequenceSettingsPanel.cpp" hdr="preferences/CheckSequenceSettingsPanel.h" fwddecl="1" i18n="1" name="CheckSequenceSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ViewSettingsPanel.wxs" src="preferences/ViewSettingsPanel.cpp" hdr="preferences/ViewSettingsPanel.h" fwddecl="1" i18n="1" name="ViewSettingsPanel" language="CPP" />
@@ -1674,7 +1675,7 @@
 					<wxPanel wxs="wxsmith/RandomEffectsSettingsPanel.wxs" src="preferences/RandomEffectsSettingsPanel.cpp" hdr="preferences/RandomEffectsSettingsPanel.h" fwddecl="1" i18n="1" name="RandomEffectsSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ColorManagerSettingsPanel.wxs" src="preferences/ColorManagerSettingsPanel.cpp" hdr="preferences/ColorManagerSettingsPanel.h" fwddecl="0" i18n="1" name="ColorManagerSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/SearchPanel.wxs" src="SearchPanel.cpp" hdr="SearchPanel.h" fwddecl="0" i18n="1" name="SearchPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/MovingHeadPanel.wxs" src="effects/MovingHeadPanel.cpp" hdr="effects/MovingHeadPanel.h" fwddecl="0" i18n="1" name="MovingHeadPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/MovingHeadPanel.wxs" src="ui/effectpanels/MovingHeadPanel.cpp" hdr="ui/effectpanels/MovingHeadPanel.h" fwddecl="0" i18n="1" name="MovingHeadPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/BulkEditColourPickerDialog.wxs" src="BulkEditColourPickerDialog.cpp" hdr="BulkEditColourPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditColourPickerDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/KeyBindingEditDialog.wxs" src="KeyBindingEditDialog.cpp" hdr="KeyBindingEditDialog.h" fwddecl="0" i18n="1" name="KeyBindingEditDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/AboutDialog.wxs" src="AboutDialog.cpp" hdr="AboutDialog.h" fwddecl="1" i18n="1" name="AboutDialog" language="CPP" />

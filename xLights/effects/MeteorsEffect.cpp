@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "MeteorsEffect.h"
-#include "MeteorsPanel.h"
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -48,10 +47,6 @@ std::list<std::string> MeteorsEffect::CheckEffectSettings(const SettingsMap& set
     }
 
     return res;
-}
-
-xlEffectPanel *MeteorsEffect::CreatePanel(wxWindow *parent) {
-    return new MeteorsPanel(parent);
 }
 
 //these must match list indexes in xLightsMain.h: -DJ
@@ -135,33 +130,6 @@ static MeteorsRenderCache* GetCache(RenderBuffer &buffer, int id) {
         buffer.infoCache[id] = cache;
     }
     return cache;
-}
-
-void MeteorsEffect::SetDefaultParameters() {
-    MeteorsPanel *mp = (MeteorsPanel*)panel;
-    if (mp == nullptr) {
-        return;
-    }
-
-    mp->BitmapButton_Meteors_Count->SetActive(false);
-    mp->BitmapButton_Meteors_Length->SetActive(false);
-    mp->BitmapButton_Meteors_Speed->SetActive(false);
-    mp->BitmapButton_Meteors_Swirl_Intensity->SetActive(false);
-    mp->BitmapButton_Meteors_XOffsetVC->SetActive(false);
-    mp->BitmapButton_Meteors_YOffsetVC->SetActive(false);
-
-    SetChoiceValue(mp->Choice_Meteors_Effect, "Down");
-    SetChoiceValue(mp->Choice_Meteors_Type, "Rainbow");
-
-    SetSliderValue(mp->Slider_Meteors_Count, 10);
-    SetSliderValue(mp->Slider_Meteors_Length, 25);
-    SetSliderValue(mp->Slider_Meteors_Swirl_Intensity, 0);
-    SetSliderValue(mp->Slider_Meteors_Speed, 10);
-    SetSliderValue(mp->Slider_Meteors_XOffset, 0);
-    SetSliderValue(mp->Slider_Meteors_YOffset, 0);
-
-    SetCheckBoxValue(mp->CheckBox_Meteors_UseMusic, false);
-    SetCheckBoxValue(mp->CheckBox_FadeWithDistance, false);
 }
 
 float MeteorsEffect::calcEffectStateOffset(int mSpeed, RenderBuffer& buffer) {

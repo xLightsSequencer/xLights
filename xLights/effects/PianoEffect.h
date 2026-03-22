@@ -13,7 +13,6 @@
 #include "RenderableEffect.h"
 
 #include <list>
-class PianoPanel;
 
 #define PIANO_SCALE_MIN 0
 #define PIANO_SCALE_MAX 100
@@ -29,8 +28,6 @@ public:
     }
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     static std::vector<float> Parse(const std::string& l);
-    virtual void SetDefaultParameters() override;
-    virtual void SetPanelStatus(Model* cls) override;
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
     virtual int GetColorSupportedCount() const override
     {
@@ -58,7 +55,6 @@ public:
     }
 
 protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
     virtual bool needToAdjustSettings(const std::string& version) override
     {
         return true;
@@ -67,7 +63,6 @@ protected:
     void SetPanelTimingTracks();
 
 private:
-    PianoPanel* _panel;
     void RenderPiano(RenderBuffer& buffer, SequenceElements* elements, const int startmidi, const int endmidi, const bool sharps, const std::string type, int scale, std::string MIDITrack, int xoffset, bool fadeNotes);
     void ReduceChannels(std::list<std::pair<float, float>>* pdata, int start, int end, bool sharps);
     void DrawTruePiano(RenderBuffer& buffer, std::list<std::pair<float, float>>* pdata, bool sharps, int start, int end, int scale, int xoffset, bool fadeNotes);

@@ -9,10 +9,10 @@
  **************************************************************/
 
 #include "WaveEffect.h"
-#include "WavePanel.h"
 
 #include <cstdlib>
 
+#include "../ValueCurve.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
@@ -33,10 +33,6 @@ WaveEffect::~WaveEffect()
 {
     //dtor
 }
-xlEffectPanel *WaveEffect::CreatePanel(wxWindow *parent) {
-    return new WavePanel(parent);
-}
-
 bool WaveEffect::needToAdjustSettings(const std::string& version)
 {
     return IsVersionOlder("2022.06", version);
@@ -101,28 +97,6 @@ static inline int GetWaveFillColor(const std::string &color) {
         return 2;
     }
     return 0; //None
-}
-
-void WaveEffect::SetDefaultParameters() {
-    WavePanel *wp = (WavePanel*)panel;
-    if (wp == nullptr) {
-        return;
-    }
-
-    SetChoiceValue(wp->Choice_Wave_Type, "Sine");
-    SetChoiceValue(wp->Choice_Fill_Colors, "None");
-    SetCheckBoxValue(wp->CheckBox_Mirror_Wave, false);
-    SetSliderValue(wp->Slider_Number_Waves, 900);
-    SetSliderValue(wp->Slider_Thickness_Percentage, 5);
-    SetSliderValue(wp->Slider_Wave_Height, 50);
-    SetSliderValue(wp->Slider_Wave_Speed, 1000);
-    SetSliderValue(wp->Slider_Y_Offset, 0);
-    SetChoiceValue(wp->Choice_Wave_Direction, "Right to Left");
-    wp->BitmapButton_Number_WavesVC->SetActive(false);
-    wp->BitmapButton_Thickness_PercentageVC->SetActive(false);
-    wp->BitmapButton_Wave_HeightVC->SetActive(false);
-    wp->BitmapButton_Wave_SpeedVC->SetActive(false);
-    wp->BitmapButton_Wave_YOffsetVC->SetActive(false);
 }
 
 void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {

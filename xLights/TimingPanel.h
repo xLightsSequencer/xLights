@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "BulkEditControls.h"
-#include "effects/EffectPanelUtils.h"
+#include "ui/effectpanels/EffectPanelUtils.h"
 
 //(*Headers(TimingPanel)
 #include <wx/bmpbuttn.h>

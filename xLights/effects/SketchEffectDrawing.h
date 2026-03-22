@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "assist/SketchCanvasPanel.h"
+#include "../ui/effectpanels/assist/SketchCanvasPanel.h"
 
 class wxGraphicsContext;
 class wxGraphicsPath;

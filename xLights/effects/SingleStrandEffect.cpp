@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "SingleStrandEffect.h"
-#include "SingleStrandPanel.h"
+#include "../ValueCurve.h"
 #include "../render/Effect.h"
 #include "../render/EffectLayer.h"
 #include "../render/Element.h"
@@ -32,10 +32,6 @@ SingleStrandEffect::SingleStrandEffect(int id)
 SingleStrandEffect::~SingleStrandEffect()
 {
     //dtor
-}
-
-xlEffectPanel *SingleStrandEffect::CreatePanel(wxWindow *parent) {
-    return new SingleStrandPanel(parent);
 }
 
 int mapX(int x, int max, int direction, int &second) {
@@ -72,41 +68,6 @@ int mapDirection(const std::string& d) {
     }
 
     return 0;
-}
-
-void SingleStrandEffect::SetDefaultParameters()
-{
-    SingleStrandPanel *sp = (SingleStrandPanel*)panel;
-    if (sp == nullptr) {
-        return;
-    }
-
-    sp->BitmapButton_Color_Mix1VC->SetActive(false);
-    sp->BitmapButton_Number_ChasesVC->SetActive(false);
-    sp->BitmapButton_Chase_Rotations->SetActive(false);
-    sp->BitmapButton_Chase_OffsetVC->SetActive(false);
-    sp->BitmapButton_FX_IntensityVC->SetActive(false);
-    sp->BitmapButton_FX_SpeedVC->SetActive(false);
-
-    SetChoiceValue(sp->Choice_SingleStrand_Colors, "Palette");
-    SetChoiceValue(sp->Choice_Skips_Direction, "Left");
-    SetChoiceValue(sp->Choice_Chase_Type1, "Left-Right");
-    SetChoiceValue(sp->Choice_SingleStrand_FX, "Fireworks 1D");
-    SetChoiceValue(sp->Choice_FX_Palette, "* Colors Only");
-
-    SetSliderValue(sp->Slider_Number_Chases, 1);
-    SetSliderValue(sp->Slider_Color_Mix1, 10);
-    SetSliderValue(sp->Slider_Chase_Rotations, 10);
-    SetSliderValue(sp->Slider_Chase_Offset, 0);
-    SetSliderValue(sp->Slider_Skips_BandSize, 1);
-    SetSliderValue(sp->Slider_Skips_SkipSize, 1);
-    SetSliderValue(sp->Slider_Skips_StartPos, 1);
-    SetSliderValue(sp->Slider_Skips_Advance, 0);
-    SetSliderValue(sp->Slider_FX_Intensity, 128);
-    SetSliderValue(sp->Slider_FX_Speed, 128);
-
-    SetChoiceValue(sp->Choice_Fade_Type, "None");
-    SetCheckBoxValue(sp->CheckBox_Chase_Group_All, false);
 }
 
 bool SingleStrandEffect::needToAdjustSettings(const std::string& version) {

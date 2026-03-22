@@ -34,8 +34,6 @@ public:
     {
         return true;
     }
-    virtual void SetDefaultParameters() override;
-    virtual wxString GetEffectString() override;
     virtual bool CanRenderPartialTimeInterval() const override
     {
         return true;
@@ -56,5 +54,4 @@ public:
 
 protected:
     virtual void RemoveDefaults(const std::string& version, Effect* effect) override;
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 };

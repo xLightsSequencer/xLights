@@ -57,7 +57,7 @@
 #include "../ViewpointMgr.h"
 #include "../LayoutPanel.h"
 #include "../TraceLog.h"
-#include "../effects/EffectPanelUtils.h"
+#include "../ui/effectpanels/EffectPanelUtils.h"
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
 #include "../models/ModelGroup.h"
@@ -107,7 +107,7 @@ void xLightsFrame::CreateSequencer()
 
     logger_base.debug("        Effect settings.");
     // This step takes about 5 seconds to create all the effects panels
-    EffectsPanel1 = new EffectsPanel(effectsPnl, &effectManager, &EffectSettingsTimer);
+    EffectsPanel1 = new EffectsPanel(effectsPnl, &effectManager, &effectPanelManager, &EffectSettingsTimer);
     EffectsPanel1->SetSequenceElements(&_sequenceElements);
     effectsPnl->EffectSizer->Add(EffectsPanel1, wxEXPAND);
     effectsPnl->MainSizer->Fit(effectsPnl);
@@ -3067,12 +3067,8 @@ void xLightsFrame::ValidatePanels()
 
 std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette) const
 {
-    RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
-    if (eff == nullptr) {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.crit("xLightsFrame::GetEffectTextFromWindows eff returned nullptr for effect %d. This is going to crash.", EffectsPanel1->EffectChoicebook->GetSelection());
-    }
-    wxString effectText = eff->GetEffectString();
+    int selection = EffectsPanel1->EffectChoicebook->GetSelection();
+    wxString effectText = EffectsPanel1->GetEffectString(selection);
     if (effectText.size() > 0 && effectText[effectText.size()-1] != ',') {
         effectText += ",";
     }

@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "TendrilEffect.h"
-#include "TendrilPanel.h"
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -386,39 +385,6 @@ TendrilEffect::TendrilEffect(int id) : RenderableEffect(id, "Tendril", tendril_1
 
 TendrilEffect::~TendrilEffect()
 {
-}
-
-xlEffectPanel *TendrilEffect::CreatePanel(wxWindow *parent) {
-    return new TendrilPanel(parent);
-}
-
-void TendrilEffect::SetDefaultParameters()
-{
-    TendrilPanel* tp = (TendrilPanel*)panel;
-    if (tp == nullptr) {
-        return;
-    }
-
-    tp->BitmapButton_Tendril_ManualXVC->SetActive(false);
-    tp->BitmapButton_Tendril_ManualYVC->SetActive(false);
-    tp->BitmapButton_Tendril_ThicknessVC->SetActive(false);
-    tp->BitmapButton_Tendril_TuneMovementVC->SetActive(false);
-    tp->BitmapButton_Tendril_XOffsetVC->SetActive(false);
-    tp->BitmapButton_Tendril_YOffsetVC->SetActive(false);
-
-    SetChoiceValue(tp->Choice_Tendril_Movement, "Random");
-    SetSliderValue(tp->Slider_Tendril_TuneMovement, 10);
-    SetSliderValue(tp->Slider_Tendril_Speed, 10);
-    SetSliderValue(tp->Slider_Tendril_Thickness, 1);
-    SetSliderValue(tp->Slider_Tendril_Friction, 10);
-    SetSliderValue(tp->Slider_Tendril_Dampening, 10);
-    SetSliderValue(tp->Slider_Tendril_Tension, 20);
-    SetSliderValue(tp->Slider_Tendril_Trails, 1);
-    SetSliderValue(tp->Slider_Tendril_Length, 60);
-    SetSliderValue(tp->Slider_Tendril_XOffset, 0);
-    SetSliderValue(tp->Slider_Tendril_YOffset, 0);
-    SetSliderValue(tp->Slider_Tendril_ManualX, 0);
-    SetSliderValue(tp->Slider_Tendril_ManualY, 0);
 }
 
 void TendrilEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)

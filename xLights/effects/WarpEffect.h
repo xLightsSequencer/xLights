@@ -51,7 +51,6 @@ public:
     {
         return false;
     }
-    virtual void SetDefaultParameters() override;
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
@@ -75,5 +74,4 @@ public:
 
 protected:
     virtual void RemoveDefaults(const std::string& version, Effect* effect) override;
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 };

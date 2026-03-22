@@ -205,7 +205,6 @@ public:
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) const override { return false; }
     virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
-    virtual void SetDefaultParameters() override;
     virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
     virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
@@ -261,7 +260,6 @@ protected:
     void UnsetGLContext(ShaderRenderCache*);
 
     virtual void RemoveDefaults(const std::string& version, Effect* effect) override;
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 
     void sizeForRenderBuffer(const RenderBuffer& rb,
         bool& s_shadersInit,

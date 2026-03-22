@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "RippleEffect.h"
-#include "RipplePanel.h"
+#include "../ValueCurve.h"
 
 #include "../utils/string_utils.h"
 
@@ -39,10 +39,6 @@ RippleEffect::~RippleEffect()
 {
     //dtor
 }
-xlEffectPanel *RippleEffect::CreatePanel(wxWindow *parent) {
-    return new RipplePanel(parent);
-}
-
 #define RENDER_RIPPLE_CIRCLE     0
 #define RENDER_RIPPLE_SQUARE     1
 #define RENDER_RIPPLE_TRIANGLE   2
@@ -59,49 +55,6 @@ xlEffectPanel *RippleEffect::CreatePanel(wxWindow *parent) {
 #define MOVEMENT_EXPLODE    0
 #define MOVEMENT_IMPLODE    1
 #define MOVEMENT_NONE       2
-
-void RippleEffect::SetDefaultParameters()
-{
-    RipplePanel* rp = (RipplePanel*)panel;
-    if (rp == nullptr) {
-        return;
-    }
-
-    rp->BitmapButton_Ripple_CyclesVC->SetActive(false);
-    rp->BitmapButton_Ripple_ThicknessVC->SetActive(false);
-    rp->BitmapButton_Ripple_RotationVC->SetActive(false);
-    rp->BitmapButton_Ripple_XCVC->SetActive(false);
-    rp->BitmapButton_Ripple_YCVC->SetActive(false);
-
-    rp->BitmapButton_Ripple_SpacingVC->SetActive(false);
-    rp->BitmapButton_Ripple_ScaleVC->SetActive(false);
-    rp->BitmapButton_Ripple_TwistVC->SetActive(false);
-    rp->BitmapButton_Ripple_VelocityVC->SetActive(false);
-    rp->BitmapButton_Ripple_DirectionVC->SetActive(false);
-    rp->BitmapButton_Ripple_OutlineVC->SetActive(false);
-
-    SetChoiceValue(rp->Choice_Ripple_Object_To_Draw, "Circle");
-    SetChoiceValue(rp->Choice_Ripple_Movement, "Explode");
-
-    SetSliderValue(rp->Slider_Ripple_Thickness, 3);
-    SetSliderValue(rp->Slider_Ripple_Cycles, 10);
-    SetSliderValue(rp->Slider_Ripple_Points, 5);
-    SetSliderValue(rp->Slider_Ripple_Rotation, 0);
-    SetSliderValue(rp->Slider_Ripple_XC, 0);
-    SetSliderValue(rp->Slider_Ripple_YC, 0);
-
-    SetSliderValue(rp->Slider_Ripple_Scale, 100);
-    SetSliderValue(rp->Slider_Ripple_Direction, 0);
-    SetSliderValue(rp->Slider_Ripple_Velocity, 0);
-    SetSliderValue(rp->Slider_Ripple_Twist, 0);
-    SetSliderValue(rp->Slider_Ripple_Spacing, 10);
-    SetSliderValue(rp->Slider_Ripple_Outline, 10);
-
-    rp->FilePickerCtrl_Ripple_SVG->SetFileName(wxFileName(""));
-
-    SetCheckBoxValue(rp->CheckBox_Ripple3D, false);
-    SetChoiceValue(rp->Choice_Ripple_Draw_Style, "Old");
-}
 
 typedef std::pair<double, double> dpoint;
 typedef std::pair<int, int> ipoint;

@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "SnowstormEffect.h"
-#include "SnowstormPanel.h"
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -27,10 +26,6 @@ SnowstormEffect::SnowstormEffect(int id) : RenderableEffect(id, "Snowstorm", sno
 }
 
 SnowstormEffect::~SnowstormEffect() {}
-
-xlEffectPanel *SnowstormEffect::CreatePanel(wxWindow *parent) {
-    return new SnowstormPanel(parent);
-}
 
 class SnowstormClass
 {
@@ -123,18 +118,6 @@ public:
     int LastSnowstormCount;
     std::list<SnowstormClass> SnowstormItems;
 };
-
-void SnowstormEffect::SetDefaultParameters()
-{
-    SnowstormPanel *sp = (SnowstormPanel*)panel;
-    if (sp == nullptr) {
-        return;
-    }
-
-    SetSliderValue(sp->Slider_Snowstorm_Count, 50);
-    SetSliderValue(sp->Slider_Snowstorm_Length, 50);
-    SetSliderValue(sp->Slider_Snowstorm_Speed, 10);
-}
 
 void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
 

@@ -57,9 +57,7 @@ class RippleEffect : public RenderableEffect
 public:
     RippleEffect(int id);
     virtual ~RippleEffect();
-    virtual void SetDefaultParameters() override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
-    //virtual void SetPanelStatus(Model* cls) override;
     //virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
     virtual bool AppropriateOnNodes() const override
     {
@@ -155,9 +153,6 @@ public:
             return RIPPLE_OUTLINE_DIVISOR;
         return RenderableEffect::GetSettingVCDivisor(name);
     }
-
-protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 
 private:
 

@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "GlediatorEffect.h"
-#include "GlediatorPanel.h"
 
 #include <cstdlib>
 #include <format>
@@ -166,12 +165,6 @@ std::list<std::string> GlediatorEffect::CheckEffectSettings(const SettingsMap& s
 
 void GlediatorEffect::SetSequenceElements(SequenceElements *els) {
     mSequenceElements = els;
-    if (panel == nullptr) {
-        return;
-    }
-    wxFileName fn(els->GetFileName());
-
-    ((GlediatorPanel*)panel)->defaultDir = fn.GetPath();
 }
 
 bool GlediatorEffect::IsGlediatorFile(std::string filename)
@@ -201,20 +194,6 @@ bool GlediatorEffect::IsCSVFile(std::string filename) const
     }
 
     return false;
-}
-
-xlEffectPanel *GlediatorEffect::CreatePanel(wxWindow *parent) {
-    return new GlediatorPanel(parent);
-}
-
-void GlediatorEffect::SetDefaultParameters() {
-    GlediatorPanel *gp = (GlediatorPanel*)panel;
-    if (gp == nullptr) {
-        return;
-    }
-
-    gp->FilePickerCtrl_Glediator_Filename->SetFileName(wxFileName());
-    SetChoiceValue(gp->Choice_Glediator_DurationTreatment, "Normal");
 }
 
 void GlediatorEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)

@@ -27,7 +27,7 @@
 #include <string>
 
 #include "BulkEditControls.h"
-#include "effects/EffectPanelUtils.h"
+#include "ui/effectpanels/EffectPanelUtils.h"
 
 #define BLUR_MIN 1
 #define BLUR_MAX 15

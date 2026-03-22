@@ -17,13 +17,9 @@
 #include "../../include/kaleidoscope-16.xpm"
 
 #include "KaleidoscopeEffect.h"
-#include "KaleidoscopePanel.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
-#include "../xLightsMain.h"
-#include "../xLightsApp.h"
-#include "../TimingPanel.h"
 #include "UtilFunctions.h"
 
 #include "../Parallel.h"
@@ -37,11 +33,6 @@ KaleidoscopeEffect::~KaleidoscopeEffect()
 {
 }
 
-xlEffectPanel *KaleidoscopeEffect::CreatePanel(wxWindow *parent)
-{
-    return new KaleidoscopePanel(parent);
-}
-
 std::list<std::string> KaleidoscopeEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
@@ -52,28 +43,6 @@ std::list<std::string> KaleidoscopeEffect::CheckEffectSettings(const SettingsMap
     }
 
     return res;
-}
-
-void KaleidoscopeEffect::SetDefaultParameters()
-{
-    KaleidoscopePanel *p = (KaleidoscopePanel *)panel;
-
-    p->BitmapButton_Kaleidoscope_X->SetActive(false);
-    p->BitmapButton_Kaleidoscope_Y->SetActive(false);
-    p->BitmapButton_Kaleidoscope_Size->SetActive(false);
-    p->BitmapButton_Kaleidoscope_Rotation->SetActive(false);
-
-    p->Choice_Kaleidoscope_Type->SetSelection(0);
-
-    SetSliderValue(p->Slider_Kaleidoscope_X, 50);
-    SetSliderValue(p->Slider_Kaleidoscope_Y, 50);
-    SetSliderValue(p->Slider_Kaleidoscope_Size, 5);
-    SetSliderValue(p->Slider_Kaleidoscope_Rotation, 0);
-
-    // Turn on canvas mode as this really only makes sense in canvas mode
-    xLightsFrame* frame = xLightsApp::GetFrame();
-    TimingPanel* layerBlendingPanel = frame->GetLayerBlendingPanel();
-    layerBlendingPanel->CheckBox_Canvas->SetValue(true);
 }
 
 class KaleidoscopeRenderCache : public EffectRenderCache {

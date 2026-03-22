@@ -25,7 +25,7 @@
 #include "render/PixelBuffer.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"
-#include "effects/EffectPanelUtils.h"
+#include "ui/effectpanels/EffectPanelUtils.h"
 #include "ValueCurveDialog.h"
 #include "SubBufferPanel.h"
 #include "xLightsMain.h"
@@ -110,7 +110,7 @@ BEGIN_EVENT_TABLE(BufferPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size) : xlEffectPanel(parent)
+BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size) : xlEffectPanel()
 {
 	//(*Initialize(BufferPanel)
 	wxFlexGridSizer* FlexGridSizer10;

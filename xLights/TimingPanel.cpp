@@ -21,7 +21,7 @@
 
 #include "TimingPanel.h"
 #include "models/Model.h"
-#include "effects/EffectPanelUtils.h"
+#include "ui/effectpanels/EffectPanelUtils.h"
 #include "LayerSelectDialog.h"
 #include "xLightsMain.h"
 #include "UtilFunctions.h"
@@ -73,7 +73,7 @@ BEGIN_EVENT_TABLE(TimingPanel,wxPanel)
 END_EVENT_TABLE()
 
 TimingPanel::TimingPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size) :
-    xlEffectPanel(parent)
+    xlEffectPanel()
 {
     _startLayer = -1;
     _endLayer = -1;

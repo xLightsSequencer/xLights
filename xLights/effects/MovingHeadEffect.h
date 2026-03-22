@@ -40,9 +40,6 @@ public:
     }
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
-    virtual void SetPanelStatus(Model* cls) override;
-    virtual void SetEffectTimeRange(int startTimeMs, int endTimeMs) override;
-    virtual void SetDefaultParameters() override;
     virtual bool CanRenderPartialTimeInterval() const override
     {
         return false;
@@ -115,7 +112,6 @@ public:
     }
 
 protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
     virtual bool needToAdjustSettings(const std::string& version) override
     {
         return false;

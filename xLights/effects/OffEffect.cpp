@@ -11,7 +11,6 @@
 #include <format>
 
 #include "OffEffect.h"
-#include "OffPanel.h"
 #include "../render/RenderBuffer.h"
 #include "UtilFunctions.h"
 #include "models/Model.h"
@@ -44,15 +43,6 @@ std::list<std::string> OffEffect::CheckEffectSettings(const SettingsMap& setting
     }
 
     return res;
-}
-
-xlEffectPanel *OffEffect::CreatePanel(wxWindow *parent) {
-    return new OffPanel(parent);
-}
-
-void OffEffect::SetDefaultParameters() {
-    OffPanel *p = (OffPanel*)panel;
-    p->OffStyleChoice->SetSelection(0);
 }
 
 bool OffEffect::needToAdjustSettings(const std::string& version) {
@@ -105,12 +95,3 @@ void OffEffect::Render(Effect* effect, const SettingsMap& settings, RenderBuffer
 
 }
 
-wxString OffEffect::GetEffectString()
-{
-    OffPanel* p = (OffPanel*)panel;
-    std::string style = p->OffStyleChoice->GetStringSelection().ToStdString();
-    if (style != "Black") {
-        return "E_CHOICE_Off_Style=" + style + ",";
-    }
-    return "";
-}

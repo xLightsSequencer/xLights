@@ -30,7 +30,6 @@ public:
     }
     void Render( Effect* effect, const SettingsMap& settings, RenderBuffer& buffer ) override;
 
-    void SetDefaultParameters() override;
     bool needToAdjustSettings( const std::string& version ) override;
     void adjustSettings( const std::string& version, Effect* effect, bool removeDefaults = true ) override;
     std::list<std::string> CheckEffectSettings( const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache ) override;
@@ -48,7 +47,6 @@ public:
 
 protected:
     void RemoveDefaults( const std::string& version, Effect* effect ) override;
-    xlEffectPanel* CreatePanel( wxWindow* parent ) override;
 
     void renderSketch(const SketchEffectSketch& sketch,
                       wxImage& img, double progress,
@@ -56,10 +54,7 @@ protected:
                       const xlColorVector& colors);
 
     void updateSketchAssistBackground() const;
-
-    // Since SketchEffect and SketchPanel are more-or-less singletons,
-    // having a raw pointer to the effect's panel is sufficient
-    SketchPanel* m_panel = nullptr;
+    SketchPanel* getPanel() const;
 
     // Assist panels come and go and are owned by the window passed into
     // GetAssistPanel()... so we just store the latest one as a weak_ptr

@@ -40,7 +40,6 @@ class PinwheelEffect : public RenderableEffect
 public:
     PinwheelEffect(int id);
     virtual ~PinwheelEffect();
-    virtual void SetDefaultParameters() override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual bool SupportsRadialColorCurves(const SettingsMap& SettingsMap) const override
     {
@@ -127,8 +126,6 @@ protected:
         float pos;
     };
 
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
-    
     void RenderNewMethod(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer);
     virtual void RenderNewArms(RenderBuffer& buffer, PinwheelData &data);
     void RenderOldMethod(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer);

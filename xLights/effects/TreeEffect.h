@@ -17,7 +17,6 @@ class TreeEffect : public RenderableEffect
     public:
         TreeEffect(int id);
         virtual ~TreeEffect();
-        virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool needToAdjustSettings(const std::string &version) override;
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
@@ -25,5 +24,4 @@ class TreeEffect : public RenderableEffect
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
     protected:
-        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
 };

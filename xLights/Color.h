@@ -211,7 +211,7 @@ public:
     xlColor ApplyBrightness(float b)
     {
         assert(b >= 0.0f && b <= 1.0f);
-        return xlColor(b * red, b * green, b * blue);
+        return xlColor(static_cast<uint8_t>(b * red), static_cast<uint8_t>(b * green), static_cast<uint8_t>(b * blue));
     }
 
     int Brightness() const;

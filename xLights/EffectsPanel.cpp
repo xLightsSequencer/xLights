@@ -27,7 +27,8 @@
 #include "EffectsPanel.h"
 #include "RenderCommandEvent.h"
 #include "UtilFunctions.h"
-#include "effects/EffectPanelUtils.h"
+#include "ui/effectpanels/EffectPanelUtils.h"
+#include "ui/effectpanels/EffectPanelManager.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
 #include "sequencer/MainSequencer.h"
@@ -44,7 +45,7 @@ BEGIN_EVENT_TABLE(EffectsPanel,wxPanel)
 END_EVENT_TABLE()
 
 
-EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager, wxTimer *timer) : effectManager(manager), effectChangeTimer(timer)
+EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager, EffectPanelManager *panelMgr, wxTimer *timer) : effectManager(manager), effectPanelManager(panelMgr), effectChangeTimer(timer)
 {
     //(*Initialize(EffectsPanel)
     wxFlexGridSizer* FlexGridSizer1;
@@ -67,7 +68,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager, wxTimer *ti
     for (const auto& it : *effectManager) {
         RenderableEffect *p = it;
         wxScrolledWindow* sw = new wxScrolledWindow(EffectChoicebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, "ID_PANEL" + p->Name());
-        xlEffectPanel *panel = p->GetPanel(sw);
+        xlEffectPanel *panel = effectPanelManager->GetPanel(p->GetId(), sw);
         panel->AddChangeListeners(timer);
         wxFlexGridSizer *fgs = new wxFlexGridSizer(1, 1, 0, 0);
         fgs->AddGrowableCol(0);
@@ -84,7 +85,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager, wxTimer *ti
     EffectChoicebook->SetSelection(0);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
-    
+
     SetMinSize(wxSize(50, 50));
 }
 
@@ -116,17 +117,11 @@ void EffectsPanel::OnRightDownChoice(wxMouseEvent& event)
 void EffectsPanel::SetDefaultEffectValues(const wxString &name) {
     if (name.empty()) {
         for (int x = 0; x < effectManager->GetLastEffectId(); x++) {
-            RenderableEffect *eff = effectManager->GetEffect(x);
-            if (eff != nullptr) {
-                eff->SetDefaultParameters();
-            }
+            effectPanelManager->SetDefaultParameters(x);
         }
         return;
     }
-    RenderableEffect *eff = effectManager->GetEffect(name.ToStdString());
-    if (eff != nullptr) {
-        eff->SetDefaultParameters();
-	}
+    effectPanelManager->SetDefaultParameters(name.ToStdString());
 }
 
 void EffectsPanel::SetSequenceElements(SequenceElements *els) {
@@ -134,6 +129,10 @@ void EffectsPanel::SetSequenceElements(SequenceElements *els) {
     RenderableEffect *p = effectManager->GetEffect(x);
     while (p != nullptr) {
         p->SetSequenceElements(els);
+        xlEffectPanel *panel = effectPanelManager->GetPanel(x, nullptr);
+        if (panel != nullptr) {
+            panel->SetSequenceElements(els);
+        }
         x++;
         p = effectManager->GetEffect(x);
     }
@@ -155,11 +154,15 @@ void EffectsPanel::ValidateWindow()
 }
 
 void EffectsPanel::SetEffectPanelStatus(Model *cls, const wxString &name, int startTimeMs, int endTimeMs) {
+    effectPanelManager->SetPanelStatus(name.ToStdString(), cls);
     RenderableEffect *eff = effectManager->GetEffect(name.ToStdString());
     if (eff != nullptr) {
-        eff->SetPanelStatus(cls);
-        eff->SetEffectTimeRange(startTimeMs, endTimeMs);
-	}
+        effectPanelManager->SetEffectTimeRange(eff->GetId(), startTimeMs, endTimeMs);
+    }
+}
+
+wxString EffectsPanel::GetEffectString(int effectId) {
+    return effectPanelManager->GetEffectString(effectId);
 }
 
 int EffectsPanel::GetRandomSliderValue(wxSlider* slider) const

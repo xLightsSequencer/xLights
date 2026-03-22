@@ -53,7 +53,6 @@ public:
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual int DrawEffectBackground(const Effect* e, int x1, int y1, int x2, int y2,
                                      xlVertexColorAccumulator& backgrounds, xlColor* colorMask, bool ramps) override;
-    virtual void SetDefaultParameters() override;
     virtual bool CanRenderPartialTimeInterval() const override
     {
         return true;
@@ -115,5 +114,4 @@ public:
     }
 
 protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 };

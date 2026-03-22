@@ -32,7 +32,6 @@ public:
     {
         return false;
     }
-    virtual void SetDefaultParameters() override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
     virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap) override;
@@ -74,7 +73,6 @@ public:
     }
 
 protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
     virtual bool needToAdjustSettings(const std::string& version) override
     {
         return true;

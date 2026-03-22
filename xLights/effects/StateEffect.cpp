@@ -12,7 +12,6 @@
 #include <format>
 
 #include "StateEffect.h"
-#include "StatePanel.h"
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
@@ -74,54 +73,6 @@ std::list<std::string> StateEffect::GetStatesUsed(const SettingsMap& SettingsMap
     return res;
 }
 
-void StateEffect::SetPanelStatus(Model* cls) {
-    StatePanel* fp = (StatePanel*)panel;
-    if (fp == nullptr) {
-        return;
-    }
-
-    auto lastTiming = fp->Choice_State_TimingTrack->GetStringSelection();
-    auto lastState = fp->Choice_StateDefinitonChoice->GetStringSelection();
-    fp->Choice_State_TimingTrack->Clear();
-    fp->Choice_StateDefinitonChoice->Clear();
-
-    for (const auto& it : Split(GetTimingTracks(1), '|')) {
-        fp->Choice_State_TimingTrack->Append(it);
-    }
-
-    if (fp->Choice_State_TimingTrack->GetCount() > 0) {
-        fp->Choice_State_TimingTrack->SetSelection(0);
-    }
-
-    if (cls != nullptr) {
-        Model* m = cls;
-        if (cls->GetDisplayAs() == DisplayAsType::ModelGroup) {
-            m = ((ModelGroup*)cls)->GetFirstModel();
-        }
-
-        std::list<std::string> used;
-        if (m != nullptr) {
-            for (const auto& it : m->GetStateInfo()) {
-                if (std::find(begin(used), end(used), it.first) == end(used)) {
-                    fp->Choice_StateDefinitonChoice->Append(it.first);
-                    used.push_back(it.first);
-                }
-            }
-        }
-    }
-
-    if (lastTiming != "")
-        fp->Choice_State_TimingTrack->SetStringSelection(lastTiming);
-    if (lastState != "") {
-        fp->Choice_StateDefinitonChoice->SetStringSelection(lastState);
-    }
-
-    if (fp->Choice_StateDefinitonChoice->GetSelection() == -1 && fp->Choice_StateDefinitonChoice->GetCount() > 0) {
-        fp->Choice_StateDefinitonChoice->SetSelection(0);
-    }
-
-    fp->SetEffect(this, cls);
-}
 
 std::list<std::string> StateEffect::GetStates(Model* cls, std::string model) {
     std::list<std::string> res;
@@ -147,24 +98,6 @@ std::list<std::string> StateEffect::GetStates(Model* cls, std::string model) {
     }
 
     return res;
-}
-
-xlEffectPanel* StateEffect::CreatePanel(wxWindow* parent) {
-    return new StatePanel(parent);
-}
-
-void StateEffect::SetDefaultParameters() {
-    StatePanel* sp = (StatePanel*)panel;
-    if (sp == nullptr) {
-        return;
-    }
-
-    sp->SetEffect(nullptr, nullptr);
-    SetChoiceValue(sp->Choice_State_Mode, "Default");
-    SetChoiceValue(sp->Choice_State_Color, "Graduate");
-    sp->Choice_StateDefinitonChoice->SetSelection(0);
-    SetRadioValue(sp->RadioButton1);
-    sp->ValidateWindow();
 }
 
 void StateEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) {

@@ -16,13 +16,16 @@
 #include "../../include/piano-64.xpm"
 
 #include "PianoEffect.h"
-#include "PianoPanel.h"
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
 #include "../render/Effect.h"
 #include "../xLightsXmlFile.h"
 #include "models/Model.h"
+#include "../xLightsApp.h"
+#include "../xLightsMain.h"
+#include "../ui/effectpanels/EffectPanelUtils.h"
+#include "../ui/effectpanels/EffectPanelManager.h"
 
 #include <log4cpp/Category.hh>
 
@@ -30,7 +33,6 @@ PianoEffect::PianoEffect(int id) :
     RenderableEffect(id, "Piano", piano_16, piano_64, piano_64, piano_64, piano_64)
 {
     // ctor
-    _panel = nullptr;
 }
 
 PianoEffect::~PianoEffect()
@@ -54,19 +56,14 @@ std::list<std::string> PianoEffect::CheckEffectSettings(const SettingsMap& setti
     return res;
 }
 
-void PianoEffect::SetPanelStatus(Model* cls)
-{
-    SetPanelTimingTracks();
-}
-
 void PianoEffect::SetPanelTimingTracks()
 {
-    PianoPanel* fp = (PianoPanel*)panel;
-    if (fp == nullptr) {
+    if (mSequenceElements == nullptr) {
         return;
     }
 
-    if (mSequenceElements == nullptr) {
+    auto fp = xLightsApp::GetFrame()->effectPanelManager.GetPanel(id, nullptr);
+    if (fp == nullptr) {
         return;
     }
 
@@ -102,32 +99,6 @@ void PianoEffect::adjustSettings(const std::string& version, Effect* effect, boo
             settings.erase("E_SLIDER_Piano_MIDI_Speed");
         }
     }
-}
-
-xlEffectPanel* PianoEffect::CreatePanel(wxWindow* parent)
-{
-    _panel = new PianoPanel(parent);
-    return _panel;
-}
-
-void PianoEffect::SetDefaultParameters()
-{
-    PianoPanel* pp = (PianoPanel*)panel;
-    if (pp == nullptr) {
-        return;
-    }
-
-    pp->BitmapButton_Piano_ScaleVC->SetActive(false);
-
-    SetChoiceValue(pp->Choice_Piano_Type, "True Piano");
-    SetSpinValue(pp->SpinCtrl_Piano_StartMIDI, 60);
-    SetSpinValue(pp->SpinCtrl_Piano_EndMIDI, 72);
-    SetCheckBoxValue(pp->CheckBox_Piano_ShowSharps, true);
-    SetCheckBoxValue(pp->CheckBox_FadeNotes, false);
-    SetSliderValue(pp->Slider_Piano_Scale, 100);
-    SetSliderValue(pp->Slider_Piano_XOffset, 0);
-
-    SetPanelTimingTracks();
 }
 
 void PianoEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)

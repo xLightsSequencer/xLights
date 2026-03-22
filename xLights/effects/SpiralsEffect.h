@@ -31,7 +31,6 @@ class SpiralsEffect : public RenderableEffect
 public:
     SpiralsEffect(int id);
     virtual ~SpiralsEffect();
-    virtual void SetDefaultParameters() override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) const override;
     virtual bool CanRenderPartialTimeInterval() const override
@@ -75,5 +74,4 @@ public:
     }
 
 protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 };

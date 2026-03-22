@@ -24,9 +24,7 @@ class TextEffect : public RenderableEffect
 public:
     TextEffect(int id);
     virtual ~TextEffect();
-    virtual void SetDefaultParameters() override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
-    virtual void SetPanelStatus(Model* cls) override;
 #ifdef LINUX
     virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override { return false; };
 #endif
@@ -41,7 +39,6 @@ public:
     virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap) override;
 
 protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 private:
     void SelectTextColor(std::string& palette, int index) const;
     void FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer& buffer, wxString& msg, wxString Line_orig) const;

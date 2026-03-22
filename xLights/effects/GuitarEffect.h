@@ -13,7 +13,6 @@
 #include "RenderableEffect.h"
 
 #include <list>
-class GuitarPanel;
 
 #define Guitar_SCALE_MIN 0
 #define Guitar_SCALE_MAX 100
@@ -32,8 +31,6 @@ public:
     }
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     static std::vector<float> Parse(const std::string& l);
-    virtual void SetDefaultParameters() override;
-    virtual void SetPanelStatus(Model* cls) override;
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
     virtual int GetColorSupportedCount() const override
     {
@@ -47,12 +44,7 @@ public:
     // Currently not possible but I think changes could be made to make it support partial
     // virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
-protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
-    void SetPanelTimingTracks();
-
 private:
-    GuitarPanel* _panel;
     void RenderGuitar(RenderBuffer& buffer, SequenceElements* elements, const std::string& type, const std::string& MIDITrack, const std::string& stringAppearance, int maxFrets, bool showStrings, bool fade, bool collapse, double stringWaveFactor, double baseWaveFactor, bool varyWavelengthBasedOnFret);
     void DrawGuitar(RenderBuffer& buffer, GuitarTiming* pdata, const std::string& stringAppearance, uint8_t maxFrets, uint8_t strings, bool showStrings, bool fade, bool collapse, double stringWaveFactor, double baseWaveFactor, bool varyWavelengthBasedOnFret);
     std::list<NoteTiming*> LoadTimingTrack(const std::string& track, int intervalMS, const std::string& type, uint8_t maxFrets, uint8_t strings);

@@ -47,7 +47,6 @@ class MarqueeEffect : public RenderableEffect
 public:
     MarqueeEffect(int id);
     virtual ~MarqueeEffect();
-    virtual void SetDefaultParameters() override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual bool CanRenderPartialTimeInterval() const override
     {
@@ -104,6 +103,4 @@ public:
         return RenderableEffect::GetSettingVCMax(name);
     }
 
-protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 };

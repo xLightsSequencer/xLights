@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "ColorWashEffect.h"
-#include "ColorWashPanel.h"
 #include "../render/Effect.h"
 #include "../render/EffectLayer.h"
 #include "../render/Element.h"
@@ -18,7 +17,6 @@
 #include "../../include/ColorWash.xpm"
 
 #include <format>
-#include <sstream>
 
 static const std::string CHECKBOX_ColorWash_HFade("CHECKBOX_ColorWash_HFade");
 static const std::string CHECKBOX_ColorWash_VFade("CHECKBOX_ColorWash_VFade");
@@ -52,58 +50,6 @@ int ColorWashEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x
         bg.AddHBlendedRectangleAsTriangles(x1, y1, x2, y2, colorMask, 0, e->GetPalette());
     }
     return 2;
-}
-
-void ColorWashEffect::SetDefaultParameters() {
-    ColorWashPanel *p = (ColorWashPanel*)panel;
-    if (p == nullptr) {
-        return;
-    }
-    p->CyclesTextCtrl->SetValue("1.0");
-    SetCheckBoxValue(p->HFadeCheckBox, false);
-    SetCheckBoxValue(p->VFadeCheckBox, false);
-    SetCheckBoxValue(p->ReverseFadesCheckBox, false);
-    SetCheckBoxValue(p->ShimmerCheckBox, false);
-    SetCheckBoxValue(p->CircularPaletteCheckBox, false);
-    p->BitmapButton_ColorWash_CyclesVC->SetActive(false);
-}
-
-wxString ColorWashEffect::GetEffectString() {
-    ColorWashPanel *p = (ColorWashPanel*)panel;
-    std::stringstream ret;
-
-    // You must always include value curves or they wont update correctly
-    if (p->BitmapButton_ColorWash_CyclesVC->GetValue()->IsActive()) {
-        ret << "E_VALUECURVE_ColorWash_Cycles=";
-        ret << p->BitmapButton_ColorWash_CyclesVC->GetValue()->Serialise();
-        ret << ",";
-    }
-
-    if (10 != p->SliderCycles->GetValue()) {
-        ret << "E_TEXTCTRL_ColorWash_Cycles=";
-        ret << p->CyclesTextCtrl->GetValue();
-        ret << ",";
-    }
-    if (p->VFadeCheckBox->GetValue()) {
-        ret << "E_CHECKBOX_ColorWash_VFade=1,";
-    }
-    if (p->HFadeCheckBox->GetValue()) {
-        ret << "E_CHECKBOX_ColorWash_HFade=1,";
-    }
-    if (p->ReverseFadesCheckBox->GetValue()) {
-        ret << "E_CHECKBOX_ColorWash_ReverseFades=1,";
-    }
-    if (p->ShimmerCheckBox->GetValue()) {
-        ret << "E_CHECKBOX_ColorWash_Shimmer=1,";
-    }
-    if (p->CircularPaletteCheckBox->GetValue()) {
-        ret << "E_CHECKBOX_ColorWash_CircularPalette=1,";
-    }
-    return ret.str();
-}
-
-xlEffectPanel *ColorWashEffect::CreatePanel(wxWindow *parent) {
-    return new ColorWashPanel(parent);
 }
 
 bool ColorWashEffect::needToAdjustSettings(const std::string &version) {

@@ -54,7 +54,6 @@ class LiquidEffect : public RenderableEffect
 public:
     LiquidEffect(int id);
     virtual ~LiquidEffect();
-    virtual void SetDefaultParameters() override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual bool AppropriateOnNodes() const override
@@ -120,7 +119,6 @@ public:
     }
 
 protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
     void Render(RenderBuffer& buffer,
                 bool top, bool bottom, bool left, bool right,
                 int lifetime, bool holdcolor, bool mixcolors, int size, int warmUpFrames,

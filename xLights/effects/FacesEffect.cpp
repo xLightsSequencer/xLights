@@ -12,7 +12,6 @@
 #include <list>
 
 #include "FacesEffect.h"
-#include "FacesPanel.h"
 #include "../models/Model.h"
 #include "../models/SubModel.h"
 #include "../models/ModelGroup.h"
@@ -70,71 +69,6 @@ FacesEffect::FacesEffect(int id) :
 
 FacesEffect::~FacesEffect() {
     //dtor
-}
-
-wxString FacesEffect::GetEffectString() {
-    FacesPanel* p = (FacesPanel*)panel;
-    std::stringstream ret;
-
-    if (p->CheckBox_Faces_Outline->GetValue()) {
-        ret << "E_CHECKBOX_Faces_Outline=1,";
-
-        if (p->Choice1->GetStringSelection() != "") {
-            ret << "E_CHOICE_Faces_UseState=";
-            ret << p->Choice1->GetStringSelection();
-            ret << ",";
-        }
-    }
-
-    if (p->CheckBox_SuppressShimmer->GetValue()) {
-        ret << "E_CHECKBOX_Faces_SuppressShimmer=1,";
-    }
-
-    if (p->CheckBox_SuppressWhenNotSinging->GetValue() && !p->RadioButton1->GetValue()) {
-        ret << "E_CHECKBOX_Faces_SuppressWhenNotSinging=1,";
-        if (p->CheckBox_Fade->GetValue()) {
-            ret << "E_CHECKBOX_Faces_Fade=1,";
-        }
-        if (p->SpinCtrl_LeadFrames->GetValue() > 0) {
-            ret << "E_SPINCTRL_Faces_LeadFrames=";
-            ret << p->SpinCtrl_LeadFrames->GetValue();
-            ret << ",";
-        }
-    }
-
-    if (p->CheckBox_TransparentBlack->GetValue()) {
-        ret << "E_CHECKBOX_Faces_TransparentBlack=1,";
-        ret << "E_TEXTCTRL_Faces_TransparentBlack=";
-        ret << p->TextCtrl_Faces_TransparentBlack->GetValue().ToStdString();
-        ret << ",";
-    }
-
-    ret << "E_CHOICE_Faces_Eyes=";
-    ret << p->Choice_Faces_Eyes->GetStringSelection().ToStdString();
-    ret << ",";
-
-    ret << "E_CHOICE_Faces_EyeBlinkFrequency=";
-    ret << p->Choice_Faces_EyeBlinkFrequency->GetStringSelection().ToStdString();
-    ret << ",";
-
-    ret << "E_CHOICE_Faces_EyeBlinkDuration=";
-    ret << p->Choice_Faces_EyeBlinkDuration->GetStringSelection().ToStdString();
-    ret << ",";
-
-    ret << "E_CHOICE_Faces_FaceDefinition=";
-    ret << p->Face_FaceDefinitonChoice->GetStringSelection().ToStdString();
-    ret << ",";
-
-    if (p->RadioButton1->GetValue()) {
-        ret << "E_CHOICE_Faces_Phoneme=";
-        ret << p->Choice_Faces_Phoneme->GetStringSelection().ToStdString();
-        ret << ",";
-    } else {
-        ret << "E_CHOICE_Faces_TimingTrack=";
-        ret << p->Choice_Faces_TimingTrack->GetStringSelection().ToStdString();
-        ret << ",";
-    }
-    return ret.str();
 }
 
 std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) {
@@ -270,59 +204,6 @@ int FacesEffect::GetEyeBlinkDuration(std::string& eyeBlinkDurationString) const 
     return EyeBlinkDuration;
 }
 
-void FacesEffect::SetPanelStatus(Model* cls) {
-    FacesPanel* fp = (FacesPanel*)panel;
-    if (fp == nullptr)
-        return;
-
-    fp->Choice1->Clear();
-    fp->Choice1->Append("");
-    fp->Choice_Faces_TimingTrack->Clear();
-    fp->Face_FaceDefinitonChoice->Clear();
-    for (const auto& it : Split(GetTimingTracks(0, 3), '|')) {
-        fp->Choice_Faces_TimingTrack->Append(it);
-    }
-
-    bool addRender = true;
-    if (cls != nullptr) {
-        Model* m = cls;
-
-        if (cls->GetDisplayAs() == DisplayAsType::ModelGroup) {
-            m = ((ModelGroup*)cls)->GetFirstModel();
-        } else if (cls->GetDisplayAs() == DisplayAsType::SubModel) {
-            m = ((SubModel*)cls)->GetParent();
-        }
-
-        if (m != nullptr) {
-            for (auto it : m->GetFaceInfo()) {
-                if (it.first != "") {
-                    fp->Face_FaceDefinitonChoice->Append(it.first);
-                    if (it.second["Type"] == "Coro" || it.second["Type"] == "SingleNode" || it.second["Type"] == "NodeRange") {
-                        addRender = false;
-                    }
-                }
-            }
-
-            std::list<std::string> used;
-            for (const auto& it : m->GetStateInfo()) {
-                if (std::find(begin(used), end(used), it.first) == end(used) )
-                {
-                    fp->Choice1->Append(it.first);
-                    used.push_back(it.first);
-                }
-            }
-        }
-    }
-    if (fp->Face_FaceDefinitonChoice->GetCount() == 0) {
-        fp->Face_FaceDefinitonChoice->Append("Default");
-        addRender = false;
-    }
-    if (addRender) {
-        fp->Face_FaceDefinitonChoice->Append("Rendered");
-    }
-    fp->Face_FaceDefinitonChoice->SetSelection(0);
-}
-
 std::list<std::string> FacesEffect::GetFacesUsed(const SettingsMap& SettingsMap) const {
     std::list<std::string> res;
     auto face = SettingsMap.Get("E_CHOICE_Faces_FaceDefinition", "Default");
@@ -373,35 +254,6 @@ std::list<std::string> FacesEffect::GetFileReferences(Model* model, const Settin
         }
     }
     return res;
-}
-
-xlEffectPanel* FacesEffect::CreatePanel(wxWindow* parent) {
-    return new FacesPanel(parent);
-}
-
-void FacesEffect::SetDefaultParameters() {
-    FacesPanel* fp = (FacesPanel*)panel;
-    if (fp == nullptr) {
-        return;
-    }
-
-    SetRadioValue(fp->RadioButton1);
-    SetChoiceValue(fp->Choice_Faces_Phoneme, "AI");
-    SetChoiceValue(fp->Choice_Faces_Eyes, "Auto");
-    SetChoiceValue(fp->Choice_Faces_EyeBlinkFrequency, "Normal");
-    SetChoiceValue(fp->Choice1, "");
-
-    if (fp->Face_FaceDefinitonChoice->GetCount() > 0) {
-        fp->Face_FaceDefinitonChoice->SetSelection(0);
-    }
-
-    SetCheckBoxValue(fp->CheckBox_SuppressShimmer, false);
-    SetCheckBoxValue(fp->CheckBox_Faces_Outline, false);
-    SetCheckBoxValue(fp->CheckBox_SuppressWhenNotSinging, false);
-    SetCheckBoxValue(fp->CheckBox_Fade, false);
-    SetSpinValue(fp->SpinCtrl_LeadFrames, 0);
-    SetCheckBoxValue(fp->CheckBox_TransparentBlack, false);
-    SetSliderValue(fp->Slider_Faces_TransparentBlack, 0);
 }
 
 void FacesEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) {

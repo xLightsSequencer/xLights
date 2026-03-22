@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "SpiralsEffect.h"
-#include "SpiralsPanel.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
@@ -32,33 +31,6 @@ SpiralsEffect::~SpiralsEffect()
 {
     //dtor
 }
-xlEffectPanel *SpiralsEffect::CreatePanel(wxWindow *parent) {
-    return new SpiralsPanel(parent);
-}
-
-void SpiralsEffect::SetDefaultParameters()
-{
-    SpiralsPanel *sp = (SpiralsPanel*)panel;
-    if (sp == nullptr) {
-        return;
-    }
-
-    sp->BitmapButton_VCSpiralsCount->SetActive(false);
-    sp->BitmapButton_VCSpirals_Movement->SetActive(false);
-    sp->BitmapButton_VCSpirals_Rotation->SetActive(false);
-    sp->BitmapButton_VCSpirals_Thickness->SetActive(false);
-
-    SetSliderValue(sp->Slider_Spirals_Count, 1);
-    SetSliderValue(sp->Slider_Spirals_Rotation, 20);
-    SetSliderValue(sp->Slider_Spirals_Thickness, 50);
-    SetSliderValue(sp->Slider_Spirals_Movement, 10);
-
-    SetCheckBoxValue(sp->CheckBox_Spirals_3D, false);
-    SetCheckBoxValue(sp->CheckBox_Spirals_Blend, false);
-    SetCheckBoxValue(sp->CheckBox_Spirals_Grow, false);
-    SetCheckBoxValue(sp->CheckBox_Spirlas_Shrink, false);
-}
-
 bool SpiralsEffect::SupportsLinearColorCurves(const SettingsMap &SettingsMap) const
 {
     // The blend setting is incompatible with linear colour curves

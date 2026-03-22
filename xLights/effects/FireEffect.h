@@ -27,7 +27,6 @@ class FireEffect : public RenderableEffect
 public:
     FireEffect(int id);
     virtual ~FireEffect();
-    virtual void SetDefaultParameters() override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
 
@@ -61,5 +60,4 @@ public:
 protected:
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 };

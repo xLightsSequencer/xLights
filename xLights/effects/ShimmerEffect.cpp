@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "ShimmerEffect.h"
-#include "ShimmerPanel.h"
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -25,27 +24,6 @@ ShimmerEffect::ShimmerEffect(int id) : RenderableEffect(id, "Shimmer", shimmer, 
 ShimmerEffect::~ShimmerEffect()
 {
     //dtor
-}
-
-xlEffectPanel *ShimmerEffect::CreatePanel(wxWindow *parent) {
-    return new ShimmerPanel(parent);
-}
-
-void ShimmerEffect::SetDefaultParameters()
-{
-    ShimmerPanel *sp = (ShimmerPanel*)panel;
-    if (sp == nullptr) {
-        return;
-    }
-
-    sp->BitmapButton_Shimmer_CyclesVC->SetActive(false);
-    sp->BitmapButton_Shimmer_Duty_FactorVC->SetActive(false);
-
-    SetSliderValue(sp->Slider_Shimmer_Duty_Factor, 50);
-    SetSliderValue(sp->Slider_Shimmer_Cycles, 10);
-
-    SetCheckBoxValue(sp->CheckBox_Shimmer_Use_All_Colors, false);
-    SetCheckBoxValue(sp->CheckBox_PRE_2017_7, false);
 }
 
 bool ShimmerEffect::needToAdjustSettings(const std::string &version)

@@ -19,8 +19,6 @@ class DuplicateEffect : public RenderableEffect
         virtual ~DuplicateEffect();
         virtual bool CanBeRandom() override {return false;}
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual void SetDefaultParameters() override;
-        virtual void SetPanelStatus(Model* cls) override;
         virtual bool CanRenderPartialTimeInterval() const override
         {
             return true;
@@ -29,6 +27,5 @@ class DuplicateEffect : public RenderableEffect
         static int GetLayersForModel(const wxString& model);
 
     protected:
-        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
     private:
 };

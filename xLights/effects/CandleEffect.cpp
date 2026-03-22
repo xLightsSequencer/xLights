@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "CandleEffect.h"
-#include "CandlePanel.h"
 
 #include <format>
 #include <map>
@@ -47,10 +46,6 @@ std::list<std::string> CandleEffect::CheckEffectSettings(const SettingsMap& sett
     }
 
     return res;
-}
-
-xlEffectPanel *CandleEffect::CreatePanel(wxWindow *parent) {
-    return new CandlePanel(parent);
 }
 
 class CandleState {
@@ -93,26 +88,6 @@ static CandleRenderCache* GetCache(RenderBuffer& buffer, int id)
     return cache;
 }
 
-void CandleEffect::SetDefaultParameters()
-{
-    CandlePanel* fp = (CandlePanel*)panel;
-    if (fp == nullptr) {
-        return;
-    }
-
-    fp->BitmapButton_Candle_FlameAgilityVC->SetActive(false);
-    fp->BitmapButton_Candle_WindBaselineVC->SetActive(false);
-    fp->BitmapButton_Candle_WindVariabilityVC->SetActive(false);
-    fp->BitmapButton_Candle_WindCalmnessVC->SetActive(false);
-
-    SetSliderValue(fp->Slider_Candle_FlameAgility, 2);
-    SetSliderValue(fp->Slider_Candle_WindBaseline, 30);
-    SetSliderValue(fp->Slider_Candle_WindCalmness, 2);
-    SetSliderValue(fp->Slider_Candle_WindVariability, 5);
-
-    SetCheckBoxValue(fp->CheckBox_PerNode, false);
-    SetCheckBoxValue(fp->CheckBox_UsePalette, false);
-}
 
 void CandleEffect::Update(wxByte& flameprime, wxByte& flame, wxByte& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline)
 {

@@ -9,16 +9,11 @@
  **************************************************************/
 
 #include "AdjustEffect.h"
-#include "AdjustPanel.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../models/Model.h"
 #include "../models/ModelGroup.h"
-#include "../xLightsApp.h"
-#include "../xLightsMain.h"
-#include "../TimingPanel.h"
-
 #include "../../include/adjust16.xpm"
 #include "../../include/adjust24.xpm"
 #include "../../include/adjust32.xpm"
@@ -39,10 +34,6 @@ AdjustEffect::~AdjustEffect()
     //dtor
 }
 
-xlEffectPanel *AdjustEffect::CreatePanel(wxWindow *parent) {
-    return new AdjustPanel(parent);
-}
-
 std::list<std::string> AdjustEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
@@ -52,24 +43,6 @@ std::list<std::string> AdjustEffect::CheckEffectSettings(const SettingsMap& sett
     }
 
     return res;
-}
-
-void AdjustEffect::SetDefaultParameters() {
-    AdjustPanel *ap = (AdjustPanel*)panel;
-    if (ap == nullptr) {
-        return;
-    }
-
-	SetChoiceValue(ap->Choice_Action, "None");
-    SetSpinValue(ap->SpinCtrl_Value1, 0);
-    SetSpinValue(ap->SpinCtrl_Value2, 0);
-    SetSpinValue(ap->SpinCtrl_NthChannel, 1);
-    SetSpinValue(ap->SpinCtrl_StartingAt, 1);
-
-    // Turn on canvas mode as this really only makes sense in canvas mode
-    xLightsFrame* frame = xLightsApp::GetFrame();
-    TimingPanel* layerBlendingPanel = frame->GetLayerBlendingPanel();
-    layerBlendingPanel->CheckBox_Canvas->SetValue(true);
 }
 
 void AdjustEffect::AdjustChannels(bool singleColour, int numChannels, RenderBuffer& buffer, const std::string& action, int value1, int value2, int nth, int starting, int count)

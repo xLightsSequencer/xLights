@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "FireEffect.h"
-#include "FirePanel.h"
+#include "../ValueCurve.h"
 
 #include <format>
 
@@ -45,10 +45,6 @@ std::list<std::string> FireEffect::CheckEffectSettings(const SettingsMap& settin
     }
 
     return res;
-}
-
-xlEffectPanel *FireEffect::CreatePanel(wxWindow *parent) {
-    return new FirePanel(parent);
 }
 
 bool FireEffect::needToAdjustSettings(const std::string &version)
@@ -170,24 +166,6 @@ static FireRenderCache* GetCache(RenderBuffer &buffer, int id) {
         buffer.infoCache[id] = cache;
     }
     return cache;
-}
-
-void FireEffect::SetDefaultParameters()
-{
-    FirePanel* fp = (FirePanel*)panel;
-    if (fp == nullptr) {
-        return;
-    }
-
-    fp->BitmapButton_Fire_GrowthCyclesVC->SetActive(false);
-    fp->BitmapButton_Fire_HeightVC->SetActive(false);
-    fp->BitmapButton_Fire_HueShiftVC->SetActive(false);
-
-    SetSliderValue(fp->Slider_Fire_Height, 50);
-    SetSliderValue(fp->Slider_Fire_HueShift, 0);
-    SetSliderValue(fp->Slider_Fire_GrowthCycles, 0);
-
-    SetCheckBoxValue(fp->CheckBox_Fire_GrowWithMusic, false);
 }
 
 // 10 <= HeightPct <= 100

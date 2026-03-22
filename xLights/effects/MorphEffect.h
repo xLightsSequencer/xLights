@@ -53,7 +53,6 @@ public:
         return true;
     }
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
-    virtual void SetDefaultParameters() override;
     virtual bool CanRenderPartialTimeInterval() const override
     {
         return true;
@@ -106,6 +105,4 @@ public:
         return RenderableEffect::GetSettingVCMax(name);
     }
 
-protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
 };

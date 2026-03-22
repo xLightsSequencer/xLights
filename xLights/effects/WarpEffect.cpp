@@ -20,14 +20,11 @@
 #include "../../include/warp-16.xpm"
 
 #include "WarpEffect.h"
-#include "WarpPanel.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../xLightsMain.h"
 #include "../DissolveTransitionPattern.h"
-#include "../xLightsApp.h"
-#include "../TimingPanel.h"
 #include "UtilFunctions.h"
 
 #include "../Parallel.h"
@@ -507,11 +504,6 @@ WarpEffect::~WarpEffect()
 {
 }
 
-xlEffectPanel *WarpEffect::CreatePanel(wxWindow *parent)
-{
-    return new WarpPanel(parent);
-}
-
 bool WarpEffect::needToAdjustSettings(const std::string &version)
 {
     return IsVersionOlder("2018.20", version);
@@ -545,37 +537,6 @@ std::list<std::string> WarpEffect::CheckEffectSettings(const SettingsMap& settin
     }
 
     return res;
-}
-
-void WarpEffect::SetDefaultParameters()
-{
-    WarpPanel *p = (WarpPanel *)panel;
-    if (p == nullptr) {
-        return;
-    }
-
-    p->BitmapButton_Warp_X->SetActive( false );
-    p->BitmapButton_Warp_Y->SetActive( false );
-
-    if (p->Choice_Warp_Type->GetStringSelection() == "") {
-        SetChoiceValue(p->Choice_Warp_Type, "water drops");
-        SetChoiceValue(p->Choice_Warp_Treatment, "constant");
-    }
-
-    SetSliderValue( p->Slider_Warp_X, 50 );
-
-    SetSliderValue( p->Slider_Warp_Y, 50 );
-
-    SetSliderValue( p->Slider_Warp_Cycle_Count, 1 );
-
-    SetSliderValue( p->Slider_Warp_Speed, 20 );
-
-    SetSliderValue( p->Slider_Warp_Frequency, 20 );
-
-    // Turn on canvas mode as this really only makes sense in canvas mode
-    xLightsFrame* frame = xLightsApp::GetFrame();
-    TimingPanel* layerBlendingPanel = frame->GetLayerBlendingPanel();
-    layerBlendingPanel->CheckBox_Canvas->SetValue(true);
 }
 
 void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)

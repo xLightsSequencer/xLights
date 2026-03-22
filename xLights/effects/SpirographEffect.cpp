@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "SpirographEffect.h"
-#include "SpirographPanel.h"
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -30,34 +29,6 @@ SpirographEffect::~SpirographEffect()
 {
     //dtor
 }
-xlEffectPanel *SpirographEffect::CreatePanel(wxWindow *parent) {
-    return new SpirographPanel(parent);
-}
-
-void SpirographEffect::SetDefaultParameters()
-{
-    SpirographPanel *sp = (SpirographPanel*)panel;
-    if (sp == nullptr) {
-        return;
-    }
-
-    sp->BitmapButton_Spirograph_AnimateVC->SetActive(false);
-    sp->BitmapButton_Spirograph_LengthVC->SetActive(false);
-    sp->BitmapButton_Spirograph_WidthVC->SetActive(false);
-    sp->BitmapButton_Spirograph_dVC->SetActive(false);
-    sp->BitmapButton_Spirograph_RVC->SetActive(false);
-    sp->BitmapButton_Spirograph_rVC->SetActive(false);
-    sp->BitmapButton_Spirograph_SpeedrVC->SetActive(false);
-
-    SetSliderValue(sp->Slider_Spirograph_Speed, 10);
-    SetSliderValue(sp->Slider_Spirograph_R, 20);
-    SetSliderValue(sp->Slider_Spirograph_r, 10);
-    SetSliderValue(sp->Slider_Spirograph_d, 30);
-    SetSliderValue(sp->Slider_Spirograph_Animate, 0);
-    SetSliderValue(sp->Slider_Spirograph_Length, 20);
-    SetSliderValue(sp->Slider_Spirograph_Width, 1);
-}
-
 void SpirographEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();

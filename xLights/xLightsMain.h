@@ -69,6 +69,7 @@
 #include "render/PixelBuffer.h"
 #include "SequenceData.h"
 #include "effects/EffectManager.h"
+#include "ui/effectpanels/EffectPanelManager.h"
 #include "models/ModelManager.h"
 #include "models/ViewObjectManager.h"
 #include "xLightsTimer.h"
@@ -1113,6 +1114,7 @@ public:
     wxDateTime starttime;
     ModelPreview* modelPreview = nullptr;
     EffectManager effectManager;
+    EffectPanelManager effectPanelManager;
     int effGridPrevX;
     int effGridPrevY;
     bool _backupSubfolders = true;

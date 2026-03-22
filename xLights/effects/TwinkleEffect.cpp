@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "TwinkleEffect.h"
-#include "TwinklePanel.h"
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -40,10 +39,6 @@ TwinkleEffect::~TwinkleEffect()
 {
     //dtor
 }
-xlEffectPanel *TwinkleEffect::CreatePanel(wxWindow *parent) {
-    return new TwinklePanel(parent);
-}
-
 class StrobeClass
 {
 public:
@@ -65,23 +60,6 @@ public:
     int curNumStrobe = 0;
     std::atomic_int lights_to_renew = 0;
 };
-
-void TwinkleEffect::SetDefaultParameters()
-{
-    TwinklePanel *tp = (TwinklePanel*)panel;
-    if (tp == nullptr) {
-        return;
-    }
-
-    tp->BitmapButton_Twinkle_CountVC->SetActive(false);
-    tp->BitmapButton_Twinkle_StepsVC->SetActive(false);
-
-    SetSliderValue(tp->Slider_Twinkle_Count, 3);
-    SetSliderValue(tp->Slider_Twinkle_Steps, 30);
-    SetCheckBoxValue(tp->CheckBox_Twinkle_Strobe, false);
-    SetCheckBoxValue(tp->CheckBox_Twinkle_ReRandom, false);
-    SetChoiceValue(tp->Choice_Twinkle_Style, "New Render Method");
-}
 
 bool TwinkleEffect::needToAdjustSettings(const std::string& version) {
     // give the base class a chance to adjust any settings

@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "FireworksEffect.h"
-#include "FireworksPanel.h"
 
 #include <format>
 
@@ -49,10 +48,6 @@ std::list<std::string> FireworksEffect::CheckEffectSettings(const SettingsMap& s
     }
 
     return res;
-}
-
-xlEffectPanel *FireworksEffect::CreatePanel(wxWindow *parent) {
-    return new FireworksPanel(parent);
 }
 
 class FireworkParticle
@@ -217,43 +212,6 @@ public:
 
 #define REPEATTRIGGER 20
 
-void FireworksEffect::SetDefaultParameters() {
-    FireworksPanel *fp = static_cast<FireworksPanel*>(panel);
-    if (fp == nullptr) {
-        return;
-    }
-
-    fp->BitmapButton_Fireworks_Count->SetActive(false);
-    fp->BitmapButton_Fireworks_Velocity->SetActive(false);
-    fp->BitmapButton_Fireworks_XVelocity->SetActive(false);
-    fp->BitmapButton_Fireworks_YVelocity->SetActive(false);
-    fp->BitmapButton_Fireworks_XLocation->SetActive(false);
-    fp->BitmapButton_Fireworks_YLocation->SetActive(false);
-    fp->BitmapButton_Fireworks_Fade->SetActive(false);
-
-    SetSliderValue(fp->Slider_Fireworks_Num_Explosions, 16);
-    SetSliderValue(fp->Slider_Fireworks_Count, 50);
-    SetSliderValue(fp->Slider_Fireworks_Velocity, 2);
-    SetSliderValue(fp->Slider_Fireworks_Fade, 50);
-    SetSliderValue(fp->Slider_Fireworks_Sensitivity, 50);
-    SetSliderValue(fp->Slider_Fireworks_XVelocity, 0);
-    SetSliderValue(fp->Slider_Fireworks_YVelocity, 0);
-    SetSliderValue(fp->Slider_Fireworks_XLocation, -1);
-    SetSliderValue(fp->Slider_Fireworks_YLocation, -1);
-
-    SetCheckBoxValue(fp->CheckBox_Fireworks_UseMusic, false);
-    SetCheckBoxValue(fp->CheckBox_FireTiming, false);
-    SetCheckBoxValue(fp->CheckBox_Fireworks_Gravity, true);
-    SetCheckBoxValue(fp->CheckBox_Fireworks_HoldColor, true);
-
-    SetPanelTimingTracks();
-}
-
-void FireworksEffect::SetPanelStatus(Model *cls)
-{
-    SetPanelTimingTracks();
-}
-
 bool FireworksEffect::needToAdjustSettings(const std::string &version)
 {
     return IsVersionOlder("2019.9", version);
@@ -281,27 +239,6 @@ void FireworksEffect::RenameTimingTrack(std::string oldname, std::string newname
         effect->GetSettings()["E_CHOICE_FIRETIMINGTRACK"] = newname;
     }
 
-    SetPanelTimingTracks();
-}
-
-void FireworksEffect::SetPanelTimingTracks() const
-{
-    FireworksPanel *fp = static_cast<FireworksPanel*>(panel);
-    if (fp == nullptr)
-    {
-        return;
-    }
-
-    if (mSequenceElements == nullptr)
-    {
-        return;
-    }
-
-    // Load the names of the timing tracks
-    std::string timingtracks = GetTimingTracks(1);
-    wxCommandEvent event(EVT_SETTIMINGTRACKS);
-    event.SetString(timingtracks);
-    wxPostEvent(fp, event);
 }
 
 std::pair<int,int> FireworksEffect::GetFireworkLocation(int width, int height, int overridex, int overridey)
@@ -379,7 +316,6 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
 
     if (buffer.needToInit) {
         buffer.needToInit = false;
-        SetPanelTimingTracks();
         sinceLastTriggered = 0;
         if (!useMusic && !useTiming)
         {

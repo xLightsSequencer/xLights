@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "ShapeEffect.h"
-#include "ShapePanel.h"
 
 #include <cstdlib>
 #include <format>
@@ -104,47 +103,6 @@ void ShapeEffect::RenameTimingTrack(std::string oldname, std::string newname, Ef
     {
         effect->GetSettings()["E_CHOICE_Shape_FireTimingTrack"] = newname;
     }
-
-    SetPanelTimingTracks();
-}
-
-void ShapeEffect::SetPanelStatus(Model *cls)
-{
-    SetPanelTimingTracks();
-}
-
-void ShapeEffect::SetPanelTimingTracks() const
-{
-    ShapePanel *fp = (ShapePanel*)panel;
-    if (fp == nullptr)
-    {
-        return;
-    }
-
-    if (mSequenceElements == nullptr)
-    {
-        return;
-    }
-
-    // Load the names of the timing tracks
-    std::string timingtracks = "";
-    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++)
-    {
-        Element* e = mSequenceElements->GetElement(i);
-        if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING)
-        {
-            if (timingtracks != "") timingtracks += "|";
-            timingtracks += e->GetName();
-        }
-    }
-
-    wxCommandEvent event(EVT_SETTIMINGTRACKS);
-    event.SetString(timingtracks);
-    wxPostEvent(fp, event);
-}
-
-xlEffectPanel *ShapeEffect::CreatePanel(wxWindow *parent) {
-    return new ShapePanel(parent);
 }
 
 #define RENDER_SHAPE_CIRCLE     0
@@ -164,50 +122,6 @@ xlEffectPanel *ShapeEffect::CreatePanel(wxWindow *parent) {
 #define RENDER_SHAPE_EMOJI 14
 #define RENDER_SHAPE_SVG 15
 
-void ShapeEffect::SetDefaultParameters() {
-    ShapePanel *sp = (ShapePanel*)panel;
-    if (sp == nullptr) {
-        return;
-    }
-
-    sp->BitmapButton_Shape_ThicknessVC->SetActive(false);
-    sp->BitmapButton_Shape_CentreXVC->SetActive(false);
-    sp->BitmapButton_Shape_CentreYVC->SetActive(false);
-    sp->BitmapButton_Shapes_Velocity->SetActive(false);
-    sp->BitmapButton_Shapes_Direction->SetActive(false);
-    sp->BitmapButton_Shape_LifetimeVC->SetActive(false);
-    sp->BitmapButton_Shape_GrowthVC->SetActive(false);
-    sp->BitmapButton_Shape_CountVC->SetActive(false);
-    sp->BitmapButton_Shape_StartSizeVC->SetActive(false);
-    sp->BitmapButton_Shape_RotationVC->SetActive(false);
-
-    SetChoiceValue(sp->Choice_Shape_ObjectToDraw, "Circle");
-
-    SetSliderValue(sp->Slider_Shape_Thickness, 1);
-    SetSliderValue(sp->Slider_Shape_StartSize, 1);
-    SetSliderValue(sp->Slider_Shape_CentreX, 50);
-    SetSliderValue(sp->Slider_Shape_CentreY, 50);
-    SetSliderValue(sp->Slider_Shape_Points, 5);
-    SetSliderValue(sp->Slider_Shape_Count, 5);
-    SetSliderValue(sp->Slider_Shape_Growth, 10);
-    SetSliderValue(sp->Slider_Shape_Lifetime, 5);
-    SetSliderValue(sp->Slider_Shape_Sensitivity, 50);
-    SetSliderValue(sp->Slider_Shape_Rotation, 0);
-    SetSliderValue(sp->Slider_Shapes_Velocity, 0);
-    SetSliderValue(sp->Slider_Shapes_Direction, 90);
-
-    SetCheckBoxValue(sp->CheckBox_Shape_RandomLocation, true);
-    SetCheckBoxValue(sp->CheckBox_Shape_FadeAway, true);
-    SetCheckBoxValue(sp->CheckBox_Shape_UseMusic, false);
-    SetCheckBoxValue(sp->CheckBox_Shape_FireTiming, false);
-    SetCheckBoxValue(sp->CheckBox_Shape_RandomInitial, true);
-    SetCheckBoxValue(sp->CheckBox_Shape_HoldColour, true);
-    SetCheckBoxValue(sp->CheckBox_FilterLabelReg, false);
-
-    sp->TextCtrl_Shape_FilterLabel->SetValue("");
-
-    sp->FilePickerCtrl_SVG->SetFileName(wxFileName(""));
-}
 
 struct ShapeData
 {

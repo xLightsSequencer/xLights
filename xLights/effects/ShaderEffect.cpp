@@ -72,7 +72,8 @@
 #endif
 
 #include "ShaderEffect.h"
-#include "ShaderPanel.h"
+#include "../ui/effectpanels/ShaderPanel.h"
+#include "../ui/effectpanels/EffectPanelManager.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
@@ -205,11 +206,6 @@ bool ShaderEffect::IsShaderFile(std::string filename)
     return false;
 }
 
-xlEffectPanel *ShaderEffect::CreatePanel(wxWindow *parent)
-{
-    return new ShaderPanel(parent);
-}
-
 std::list<std::string> ShaderEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
@@ -282,54 +278,6 @@ ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceEle
         return nullptr;
     }
     return new ShaderConfig(filename, code.ToStdString(), re.GetMatch(code, 1).ToStdString(), sequenceElements);
-}
-
-void ShaderEffect::SetDefaultParameters()
-{
-    ShaderPanel* fp = (ShaderPanel*)panel;
-    if (fp == nullptr) {
-        return;
-    }
-
-    fp->BitmapButton_Shader_Speed->SetActive(false);
-    fp->BitmapButton_Shader_Offset_X->SetActive(false);
-    fp->BitmapButton_Shader_Offset_Y->SetActive(false);
-    fp->BitmapButton_Shader_Zoom->SetActive(false);
-
-    SetSliderValue(fp->Slider_Shader_LeadIn, 0);
-    SetSliderValue(fp->Slider_Shader_Speed, 100);
-    fp->FilePickerCtrl1->SetFileName(wxFileName());
-    SetSliderValue(fp->Slider_Shader_Offset_X, 0);
-    SetSliderValue(fp->Slider_Shader_Offset_Y, 0);
-    SetSliderValue(fp->Slider_Shader_Zoom, 0);
-    
-    if (fp->_shaderConfig != nullptr) {
-        for (const auto& it : fp->_shaderConfig->GetParms()) {
-            if (it.ShowParm()) {
-                if (it._type == ShaderParmType::SHADER_PARM_POINT2D) {
-                    auto id = it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "X";
-                    wxWindow *c = fp->FindWindow(wxString(id));
-                    if (c != nullptr) {
-                        BulkEditValueCurveButton *vcb = dynamic_cast<BulkEditValueCurveButton*>(c);
-                        vcb->SetActive(false);
-                    }
-                    id = it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE) + "Y";
-                    c = fp->FindWindow(wxString(id));
-                    if (c != nullptr) {
-                        BulkEditValueCurveButton *vcb = dynamic_cast<BulkEditValueCurveButton*>(c);
-                        vcb->SetActive(false);
-                    }
-                } else {
-                    auto id = it.GetId(ShaderCtrlType::SHADER_CTRL_VALUECURVE);
-                    wxWindow *c = fp->FindWindow(wxString(id));
-                    if (c != nullptr) {
-                        BulkEditValueCurveButton *vcb = dynamic_cast<BulkEditValueCurveButton*>(c);
-                        vcb->SetActive(false);
-                    }
-                }
-            }
-        }
-    }
 }
 
 bool ShaderEffect::needToAdjustSettings(const std::string& version)
@@ -1014,7 +962,7 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
     WXGLSetCurrentContext(cache->s_glContext);
     return true;
 #elif defined(__WXMSW__)
-    ShaderPanel *p = (ShaderPanel *)panel;
+    ShaderPanel *p = static_cast<ShaderPanel*>(xLightsApp::GetFrame()->effectPanelManager.GetPanel(id, nullptr));
     if (!ShaderEffect::IsBackgroundRender()) {
         p->_preview->SetCurrentGLContext();
     } else if (cache->glContextInfo == nullptr) {
@@ -1038,7 +986,7 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
     }
     return true;
 #else
-    ShaderPanel *p = (ShaderPanel *)panel;
+    ShaderPanel *p = static_cast<ShaderPanel*>(xLightsApp::GetFrame()->effectPanelManager.GetPanel(id, nullptr));
     cache->preview = p->_preview;
     p->_preview->SetCurrentGLContext();
     return true;

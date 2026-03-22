@@ -15,7 +15,11 @@
 #include "../../include/moving-head-64.xpm"
 
 #include "MovingHeadEffect.h"
-#include "MovingHeadPanel.h"
+#include "../ValueCurve.h"
+#include "../ui/effectpanels/MovingHeadPanel.h"
+#include "../ui/effectpanels/EffectPanelManager.h"
+#include "../xLightsApp.h"
+#include "../xLightsMain.h"
 
 #include <cstdlib>
 #include <format>
@@ -44,10 +48,6 @@ MovingHeadEffect::~MovingHeadEffect()
 {
 }
 
-xlEffectPanel *MovingHeadEffect::CreatePanel(wxWindow *parent) {
-    return new MovingHeadPanel(parent);
-}
-
 std::list<std::string> MovingHeadEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
@@ -65,47 +65,6 @@ void MovingHeadEffect::RenameTimingTrack(std::string oldname, std::string newnam
     }
 }
 
-void MovingHeadEffect::SetDefaultParameters() {
-    MovingHeadPanel *dp = (MovingHeadPanel*)panel;
-    if (dp == nullptr) {
-        return;
-    }
-
-    dp->ValueCurve_MHPan->SetActive(false);
-    dp->ValueCurve_MHTilt->SetActive(false);
-    dp->ValueCurve_MHPanOffset->SetActive(false);
-    dp->ValueCurve_MHTiltOffset->SetActive(false);
-    dp->ValueCurve_MHGroupings->SetActive(false);
-    dp->ValueCurve_MHPathScale->SetActive(false);
-    dp->ValueCurve_MHTimeOffset->SetActive(false);
-
-    SetSliderValue(dp->Slider_MHPan, 0.0f);
-    SetSliderValue(dp->Slider_MHTilt, 0.0f);
-    SetSliderValue(dp->Slider_MHPanOffset, 0.0f);
-    SetSliderValue(dp->Slider_MHTiltOffset, 0.0f);
-    SetSliderValue(dp->Slider_MHGroupings, 1);
-    SetSliderValue(dp->Slider_MHCycles, 10);
-    SetSliderValue(dp->Slider_MHPathScale, 0.0f);
-    SetSliderValue(dp->Slider_MHTimeOffset, 0.0f);
-
-    dp->CheckBox_MHIgnorePan->SetValue(false);
-    dp->CheckBox_MHIgnoreTilt->SetValue(false);
-    dp->CheckBoxAutoShutter->SetValue(false);
-
-    dp->CheckAllFixtures();
-
-    SetTextValue(dp->TextCtrl_MH1_Settings, xlEMPTY_STRING);
-    SetTextValue(dp->TextCtrl_MH2_Settings, xlEMPTY_STRING);
-    SetTextValue(dp->TextCtrl_MH3_Settings, xlEMPTY_STRING);
-    SetTextValue(dp->TextCtrl_MH4_Settings, xlEMPTY_STRING);
-    SetTextValue(dp->TextCtrl_MH5_Settings, xlEMPTY_STRING);
-    SetTextValue(dp->TextCtrl_MH6_Settings, xlEMPTY_STRING);
-    SetTextValue(dp->TextCtrl_MH7_Settings, xlEMPTY_STRING);
-    SetTextValue(dp->TextCtrl_MH8_Settings, xlEMPTY_STRING);
-
-    dp->UpdateStatusPanel();
-}
-
 void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     if (buffer.cur_model == "") {
         return;
@@ -120,7 +79,7 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     if (StartsWith(string_type, "Single Color")) {
         if( model_info->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv ||
             model_info->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
-            MovingHeadPanel *p = (MovingHeadPanel*)panel;
+            MovingHeadPanel *p = static_cast<MovingHeadPanel*>(xLightsApp::GetFrame()->effectPanelManager.GetPanel(id, nullptr));
             if (p == nullptr) {
                 return;
             }
@@ -606,105 +565,3 @@ std::list<const Model*> MovingHeadEffect::GetModels(const Model* model)
     return model_list;
 }
 
-void MovingHeadEffect::SetPanelStatus(Model *cls) {
-    MovingHeadPanel *p = (MovingHeadPanel*)panel;
-    if (p == nullptr) {
-        return;
-    }
-    if (cls == nullptr) {
-        return;
-    }
-
-    // disable all fixtures
-    for( int i = 1; i <= 8; ++i ) {
-        wxString checkbox_ctrl = wxString(std::format("IDD_CHECKBOX_MH{}", i));
-        wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
-        if( checkbox != nullptr ) {
-            checkbox->Enable(false);
-            checkbox->SetValue(false);
-        }
-    }
-
-    // find fixture numbers to enable
-    auto models = GetModels(cls);
-    bool single_model = models.size() == 1;
-    for (const auto& it : models) {
-        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
-            DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
-            wxString checkbox_ctrl = wxString(std::format("IDD_CHECKBOX_MH{}", mhead->GetFixtureVal()));
-            wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
-            if( checkbox != nullptr ) {
-                checkbox->Enable(true);
-                if( single_model ) {
-                    checkbox->SetValue(true);
-                }
-            }
-       }
-    }
-
-    if( single_model ) {
-        // Hide all the stuff not applicable to a single moving head
-        wxButton* button = (wxButton*)(p->FindWindowByName("ID_BUTTON_All"));
-        if( button != nullptr ) { button->Hide(); }
-        button = (wxButton*)(p->FindWindowByName("ID_BUTTON_None"));
-        if( button != nullptr ) { button->Hide(); }
-        button = (wxButton*)(p->FindWindowByName("ID_BUTTON_Evens"));
-        if( button != nullptr ) { button->Hide(); }
-        button = (wxButton*)(p->FindWindowByName("ID_BUTTON_Odds"));
-        if( button != nullptr ) { button->Hide(); }
-        wxStaticText* text = (wxStaticText*)(p->FindWindowByName("ID_STATICTEXT_Fixtures"));
-        if( text != nullptr ) { text->Hide(); }
-        for( int i = 1; i <= 8; ++i ) {
-            wxString checkbox_ctrl = wxString(std::format("IDD_CHECKBOX_MH{}", i));
-            wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
-            if( checkbox != nullptr ) {
-                checkbox->Hide();
-            }
-        }
-        wxTextCtrl* groupings = (wxTextCtrl*)(p->FindWindowByName("IDD_TEXTCTRL_MHGroupings"));
-        if( groupings != nullptr ) { groupings->Enable(); groupings->SetValue("1"); groupings->Hide(); }
-        wxSlider* slider = (wxSlider*)(p->FindWindowByName("ID_SLIDER_MHGroupings"));
-        if( slider != nullptr ) { slider->Enable(); slider->Hide(); }
-        BulkEditValueCurveButton* curve = (BulkEditValueCurveButton*)(p->FindWindowByName("ID_VALUECURVE_MHGroupings"));
-        if( curve != nullptr ) { curve->Hide(); }
-        text = (wxStaticText*)(p->FindWindowByName("ID_STATICTEXT_Groupings"));
-        if( text != nullptr ) { text->Hide(); }
-    } else {
-        wxButton* button = (wxButton*)(p->FindWindowByName("ID_BUTTON_All"));
-        if( button != nullptr ) { button->Show(); }
-        button = (wxButton*)(p->FindWindowByName("ID_BUTTON_None"));
-        if( button != nullptr ) { button->Show(); }
-        button = (wxButton*)(p->FindWindowByName("ID_BUTTON_Evens"));
-        if( button != nullptr ) { button->Show(); }
-        button = (wxButton*)(p->FindWindowByName("ID_BUTTON_Odds"));
-        if( button != nullptr ) { button->Show(); }
-        wxStaticText* text = (wxStaticText*)(p->FindWindowByName("ID_STATICTEXT_Fixtures"));
-        if( text != nullptr ) { text->Show(); }
-        for( int i = 1; i <= 8; ++i ) {
-            wxString checkbox_ctrl = wxString(std::format("IDD_CHECKBOX_MH{}", i));
-            wxCheckBox* checkbox = (wxCheckBox*)(p->FindWindowByName(checkbox_ctrl));
-            if( checkbox != nullptr ) {
-                checkbox->Show();
-            }
-        }
-        wxTextCtrl* groupings = (wxTextCtrl*)(p->FindWindowByName("IDD_TEXTCTRL_MHGroupings"));
-        if( groupings != nullptr ) { groupings->Show(); }
-        wxSlider* slider = (wxSlider*)(p->FindWindowByName("ID_SLIDER_MHGroupings"));
-        if( slider != nullptr ) { slider->Show(); }
-        BulkEditValueCurveButton* curve = (BulkEditValueCurveButton*)(p->FindWindowByName("ID_VALUECURVE_MHGroupings"));
-        if( curve != nullptr ) { curve->Show(); }
-        text = (wxStaticText*)(p->FindWindowByName("ID_STATICTEXT_Groupings"));
-        if( text != nullptr ) { text->Show(); }
-   }
-    p->FlexGridSizerPosition->Layout();
-    p->FlexGridSizer_Main->Layout();
-    p->Refresh();
-}
-
-void MovingHeadEffect::SetEffectTimeRange(int startTimeMs, int endTimeMs) {
-    MovingHeadPanel *p = (MovingHeadPanel*)panel;
-    if (p == nullptr) {
-        return;
-    }
-    p->SetEffectTimeRange(startTimeMs, endTimeMs);
-}

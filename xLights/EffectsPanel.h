@@ -22,6 +22,7 @@ class SequenceElements;
 class Model;
 class wxSlider;
 class EffectManager;
+class EffectPanelManager;
 class xlLockButton;
 class wxTimer;
 
@@ -32,11 +33,12 @@ public:
     wxString* CurrentDir;
     bool _suppressChangeEvent = false;
 
-    EffectsPanel(wxWindow *parent, EffectManager *effects, wxTimer *timer);
+    EffectsPanel(wxWindow *parent, EffectManager *effects, EffectPanelManager *panelManager, wxTimer *timer);
     virtual ~EffectsPanel();
-    
+
     void SetDefaultEffectValues(const wxString &name = "");
     void SetEffectPanelStatus(Model *cls, const wxString &name, int startTimeMs, int endTimeMs);
+    wxString GetEffectString(int effectId);
     void SetSequenceElements(SequenceElements *els);
     void SetEffectType(int effectId);
     void ValidateWindow();
@@ -52,6 +54,7 @@ public:
 
 protected:
     EffectManager *effectManager;
+    EffectPanelManager *effectPanelManager;
 
     //(*Identifiers(EffectsPanel)
     static const long ID_CHOICEBOOK1;

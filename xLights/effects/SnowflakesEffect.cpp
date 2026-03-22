@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "SnowflakesEffect.h"
-#include "SnowflakesPanel.h"
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -29,10 +28,6 @@ SnowflakesEffect::SnowflakesEffect(int id) : RenderableEffect(id, "Snowflakes", 
 SnowflakesEffect::~SnowflakesEffect()
 {
     //dtor
-}
-
-xlEffectPanel *SnowflakesEffect::CreatePanel(wxWindow *parent) {
-    return new SnowflakesPanel(parent);
 }
 
 bool SnowflakesEffect::needToAdjustSettings(const std::string &version)
@@ -143,22 +138,6 @@ public:
     std::string LastFalling;
     int effectState;
 };
-
-void SnowflakesEffect::SetDefaultParameters()
-{
-    SnowflakesPanel *sp = (SnowflakesPanel*)panel;
-    if (sp == nullptr) {
-        return;
-    }
-
-    sp->BitmapButton_Snowflakes_Count->SetActive(false);
-    sp->BitmapButton_Snowflakes_Speed->SetActive(false);
-
-    SetSliderValue(sp->Slider_Snowflakes_Count, 5);
-    SetSliderValue(sp->Slider_Snowflakes_Type, 1);
-    SetSliderValue(sp->Slider_Snowflakes_Speed, 10);
-    SetChoiceValue(sp->Choice_Falling, "Driving");
-}
 
 void SnowflakesEffect::MoveFlakes(RenderBuffer& buffer, int snowflakeType, const std::string& falling, int count, const xlColor& color1, int& effectState)
 {

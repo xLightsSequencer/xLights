@@ -24,7 +24,7 @@
 #include <list>
 
 #include "GenerateCustomModelDialog.h"
-#include "effects/VideoPanel.h"
+#include "ui/effectpanels/VideoPanel.h"
 #include "xLightsVersion.h"
 #include "xLightsXmlFile.h"
 #include "outputs/OutputManager.h"

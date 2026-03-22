@@ -14,7 +14,7 @@
 #include "ColorPanel.h"
 #include "ColorCurve.h"
 #include "ui/wxUtilities.h"
-#include "effects/EffectPanelUtils.h"
+#include "ui/effectpanels/EffectPanelUtils.h"
 #include "UtilFunctions.h"
 #include "xLightsApp.h"
 #include "ExternalHooks.h"
@@ -270,7 +270,7 @@ BEGIN_EVENT_TABLE(ColorPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const wxSize& size) : xlEffectPanel(parent)
+ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const wxSize& size) : xlEffectPanel()
 {
     _supportslinear = false;
     _supportsradial = false;

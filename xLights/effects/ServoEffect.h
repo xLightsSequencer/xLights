@@ -25,8 +25,6 @@ public:
     }
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
-    virtual void SetPanelStatus(Model* cls) override;
-    virtual void SetDefaultParameters() override;
     virtual bool CanRenderPartialTimeInterval() const override {
         return true;
     }
@@ -53,6 +51,5 @@ public:
     virtual void AdjustSettingsAfterSplit(Effect *first, Effect *second) override;
     
 protected:
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) override;
     int GetPhonemeValue(RenderBuffer& buffer, SequenceElements* elements, const std::string& trackName);
 };

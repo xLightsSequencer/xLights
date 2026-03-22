@@ -10,8 +10,6 @@
 
 #include "ButterflyEffect.h"
 
-#include "ButterflyPanel.h"
-
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
@@ -37,10 +35,6 @@ ButterflyEffect::~ButterflyEffect()
 }
 
 
-xlEffectPanel *ButterflyEffect::CreatePanel(wxWindow *parent) {
-    return new ButterflyPanel(parent);
-}
-
 /*
  01) x*y^3-y*x^3
  (02) (x^2+3*y^2)*e^(-x^2-y^2)
@@ -58,26 +52,6 @@ static inline int GetButterflyColorScheme(const std::string &color) {
     }
     return 0;
 }
-
-void ButterflyEffect::SetDefaultParameters() {
-    ButterflyPanel *bp = (ButterflyPanel*)panel;
-    if (bp == nullptr) {
-        return;
-    }
-
-    SetChoiceValue(bp->Choice_Butterfly_Colors, "Rainbow");
-    SetChoiceValue(bp->Choice_Butterfly_Direction, "Normal");
-
-    bp->BitmapButton_Butterfly_Chunks->SetActive(false);
-    bp->BitmapButton_Butterfly_Skip->SetActive(false);
-    bp->BitmapButton_Butterfly_Speed->SetActive(false);
-
-    SetSliderValue(bp->Slider_Butterfly_Style, 1);
-    SetSliderValue(bp->Slider_Butterfly_Chunks, 1);
-    SetSliderValue(bp->Slider_Butterfly_Skip, 2);
-    SetSliderValue(bp->Slider_Butterfly_Speed, 10);
-}
-
 
 void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer)
 {

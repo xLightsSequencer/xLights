@@ -16,7 +16,6 @@
 #include <array>
 #include <unordered_map>
 
-#include "TextPanel.h"
 #include <wx/checkbox.h>
 
 #include "../render/Effect.h"
@@ -98,10 +97,6 @@ bool TextEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &Settings
     }
 
     return rc;
-}
-
-xlEffectPanel *TextEffect::CreatePanel(wxWindow *parent) {
-    return new TextPanel(parent);
 }
 
 static inline void SetCheckboxValue(wxWindow *w, int id, bool b) {
@@ -301,80 +296,6 @@ void TextEffect::SelectTextColor(std::string& palette, int index) const
         }
     }
     palette = new_palette;
-}
-
-void TextEffect::SetDefaultParameters() {
-    TextPanel *tp = (TextPanel*)panel;
-    if (tp == nullptr) {
-        return;
-    }
-
-    SetTextValue(tp->TextCtrl_Text, "");
-    tp->FilePickerCtrl1->SetFileName(wxFileName(""));
-    SetChoiceValue(tp->Choice_Text_Dir, "none");
-    tp->Choice_LyricTrack->SetSelection(-1);
-    SetSliderValue(tp->Slider_Text_Speed, 10);
-    SetChoiceValue(tp->Choice_Text_Effect, "normal");
-    SetChoiceValue(tp->Choice_Text_Count, "none");
-    SetCheckboxValue(tp, tp->ID_CHECKBOX_TextToCenter, false);
-    SetCheckBoxValue(tp->CheckBox_Text_PixelOffsets, false);
-    SetCheckboxValue(tp, tp->ID_CHECKBOX_Text_Color_PerWord, false);
-    SetSliderValue(tp->Slider_Text_XStart, 0);
-    SetSliderValue(tp->Slider_Text_YStart, 0);
-    SetSliderValue(tp->Slider_Text_XEnd, 0);
-    SetSliderValue(tp->Slider_Text_YEnd, 0);
-}
-
-void TextEffect::SetPanelStatus(Model* cls)
-{
-    TextPanel* tp = static_cast<TextPanel*>(panel);
-    if (tp == nullptr)
-    {
-        return;
-    }
-
-    tp->Choice_LyricTrack->Clear();
-    if (mSequenceElements == nullptr)
-    {
-        tp->ValidateWindow();
-        return;
-    }
-
-    // Load the names of the timing tracks
-    tp->Choice_LyricTrack->Append("");
-    for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
-    {
-        Element* e = mSequenceElements->GetElement(i);
-        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING)
-        {
-            TimingElement* te = dynamic_cast<TimingElement*>(e);
-            auto n = e->GetName();
-            if (e->GetEffectLayerCount() > 1)
-            {
-                if (te->HasLyrics(0)) {
-                    tp->Choice_LyricTrack->Append(n + " - Phrases");
-                }
-                if (te->HasLyrics(1)) {
-                    tp->Choice_LyricTrack->Append(n + " - Words");
-                }
-            }
-            else
-            {
-                if (te->HasLyrics(0)) {
-                    tp->Choice_LyricTrack->Append(n + " - Phrases");
-                }
-            }
-        }
-    }
-
-    // Select the first one
-    if (tp->Choice_LyricTrack->GetCount() > 0)
-    {
-        tp->Choice_LyricTrack->Select(0);
-    }
-
-    // Validate the window (includes enabling and disabling controls)
-    tp->ValidateWindow();
 }
 
 //formatting notes:

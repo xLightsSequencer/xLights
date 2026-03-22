@@ -56,7 +56,6 @@ class KaleidoscopeEffect : public RenderableEffect
         virtual bool CanBeRandom() override {return false;}
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) const override { return false; }
-        virtual void SetDefaultParameters() override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
 
         virtual double GetSettingVCMin(const std::string& name) const override
@@ -86,7 +85,6 @@ class KaleidoscopeEffect : public RenderableEffect
         }
 
     protected:
-        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
         bool KaleidoscopeDone(const std::vector<std::vector<bool>>& current);
         std::pair<int, int> GetSourceLocation(int x, int y, const KaleidoscopeEdge& edge, int width, int height);
         void RenderNew(const std::string& type, int xCentre, int yCentre, int size, int rotation, RenderBuffer& buffer);

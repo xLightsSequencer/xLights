@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "ShockwaveEffect.h"
-#include "ShockwavePanel.h"
 #include <cmath>
 
 #include "../render/RenderBuffer.h"
@@ -34,11 +33,6 @@ ShockwaveEffect::~ShockwaveEffect()
     // dtor
 }
 
-xlEffectPanel* ShockwaveEffect::CreatePanel(wxWindow* parent)
-{
-    return new ShockwavePanel(parent);
-}
-
 int ShockwaveEffect::DrawEffectBackground(const Effect* e, int x1, int y1, int x2, int y2,
                                           xlVertexColorAccumulator& backgrounds, xlColor* colorMask, bool ramps)
 {
@@ -51,33 +45,6 @@ int ShockwaveEffect::DrawEffectBackground(const Effect* e, int x1, int y1, int x
     }
 
     return 2;
-}
-
-void ShockwaveEffect::SetDefaultParameters()
-{
-    ShockwavePanel* sp = (ShockwavePanel*)panel;
-    if (sp == nullptr) {
-        return;
-    }
-
-    sp->BitmapButton_Shockwave_CenterX->SetActive(false);
-    sp->BitmapButton_Shockwave_CenterY->SetActive(false);
-    sp->BitmapButton_Shockwave_End_Radius->SetActive(false);
-    sp->BitmapButton_Shockwave_Start_Radius->SetActive(false);
-    sp->BitmapButton_Shockwave_Start_Width->SetActive(false);
-    sp->BitmapButton_Shockwave_End_Width->SetActive(false);
-
-    SetSliderValue(sp->Slider_Shockwave_Accel, 0);
-    SetSliderValue(sp->Slider_Shockwave_CenterX, 50);
-    SetSliderValue(sp->Slider_Shockwave_CenterY, 50);
-    SetSliderValue(sp->Slider_Shockwave_End_Radius, 10);
-    SetSliderValue(sp->Slider_Shockwave_End_Width, 10);
-    SetSliderValue(sp->Slider_Shockwave_Start_Radius, 1);
-    SetSliderValue(sp->Slider_Shockwave_Start_Width, 5);
-    SetSliderValue(sp->Slider_Shockwave_Cycles, 1);
-
-    SetCheckBoxValue(sp->CheckBox_Shockwave_Blend_Edges, true);
-    SetCheckBoxValue(sp->CheckBox_Shockwave_Scale, true);
 }
 
 bool ShockwaveEffect::needToAdjustSettings(const std::string& version) {

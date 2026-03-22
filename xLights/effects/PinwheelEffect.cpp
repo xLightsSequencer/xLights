@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "PinwheelEffect.h"
-#include "PinwheelPanel.h"
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -35,39 +34,6 @@ PinwheelEffect::~PinwheelEffect()
 {
     //dtor
 }
-xlEffectPanel *PinwheelEffect::CreatePanel(wxWindow *parent) {
-    return new PinwheelPanel(parent);
-}
-
-void PinwheelEffect::SetDefaultParameters() {
-    PinwheelPanel* pp = (PinwheelPanel*)panel;
-    if (pp == nullptr) {
-        return;
-    }
-
-    pp->BitmapButton_PinwheelXCVC->SetActive(false);
-    pp->BitmapButton_PinwheelYCVC->SetActive(false);
-    pp->BitmapButton_Pinwheel_ArmSizeVC->SetActive(false);
-    pp->BitmapButton_Pinwheel_SpeedVC->SetActive(false);
-    pp->BitmapButton_Pinwheel_ThicknessVC->SetActive(false);
-    pp->BitmapButton_Pinwheel_TwistVC->SetActive(false);
-    pp->BitmapButton_Pinwheel_OffsetVC->SetActive(false);
-
-    SetChoiceValue(pp->Choice_Pinwheel_3D, "none");
-    SetChoiceValue(pp->Choice_Pinwheel_Style, "New Render Method");
-
-    SetSliderValue(pp->Slider_PinwheelXC, 0);
-    SetSliderValue(pp->Slider_PinwheelYC, 0);
-    SetSliderValue(pp->Slider_Pinwheel_Arms, 3);
-    SetSliderValue(pp->Slider_Pinwheel_ArmSize, 100);
-    SetSliderValue(pp->Slider_Pinwheel_Thickness, 0);
-    SetSliderValue(pp->Slider_Pinwheel_Twist, 0);
-    SetSliderValue(pp->Slider_Pinwheel_Speed, 10);
-    SetSliderValue(pp->Slider_Pinwheel_Offset, 0);
-
-    SetCheckBoxValue(pp->CheckBox_Pinwheel_Rotation, true);
-}
-
 bool PinwheelEffect::needToAdjustSettings(const std::string &version) {
     // give the base class a chance to adjust any settings
     return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2017.5", version);

@@ -16,7 +16,6 @@
 #include "../../include/guitar-64.xpm"
 
 #include "GuitarEffect.h"
-#include "GuitarPanel.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
@@ -598,10 +597,9 @@ public:
 };
 
 GuitarEffect::GuitarEffect(int id) :
-    RenderableEffect(id, "Guitar", Guitar_16_xpm, Guitar_64_xpm, Guitar_64_xpm, Guitar_64_xpm, Guitar_64_xpm) 
+    RenderableEffect(id, "Guitar", Guitar_16_xpm, Guitar_64_xpm, Guitar_64_xpm, Guitar_64_xpm, Guitar_64_xpm)
 {
     //ctor
-	_panel = nullptr;
 }
 
 GuitarEffect::~GuitarEffect()
@@ -635,54 +633,6 @@ std::list<std::string> GuitarEffect::CheckEffectSettings(const SettingsMap& sett
     return res;
 }
 
-void GuitarEffect::SetPanelStatus(Model *cls)
-{
-    SetPanelTimingTracks();
-}
-
-void GuitarEffect::SetPanelTimingTracks()
-{
-    GuitarPanel *fp = (GuitarPanel*)panel;
-    if (fp == nullptr)
-    {
-        return;
-    }
-
-    if (mSequenceElements == nullptr)
-    {
-        return;
-    }
-
-    // Load the names of the timing tracks
-    std::string timingtracks = GetTimingTracks(1);
-    wxCommandEvent event(EVT_SETTIMINGTRACKS);
-    event.SetString(timingtracks);
-    wxPostEvent(fp, event);
-}
-
-xlEffectPanel *GuitarEffect::CreatePanel(wxWindow *parent) {
-    _panel = new GuitarPanel(parent);
-	return _panel;
-}
-
-void GuitarEffect::SetDefaultParameters() {
-    GuitarPanel *pp = (GuitarPanel*)panel;
-    if (pp == nullptr) {
-        return;
-    }
-
-    SetChoiceValue(pp->Choice_Guitar_Type, "Guitar");
-    SetChoiceValue(pp->Choice_StringAppearance, "On");
-    SetSliderValue(pp->Slider_MaxFrets, 19);
-    SetCheckBoxValue(pp->CheckBox_Collapse, false);
-    SetCheckBoxValue(pp->CheckBox_Fade, false);
-    SetCheckBoxValue(pp->CheckBox_ShowStrings, false);
-    SetCheckBoxValue(pp->CheckBox_VaryWaveLengthOnFret, true);
-    SetSliderValue(pp->Slider_StringWaveFactor, 0);
-    SetSliderValue(pp->Slider_BaseWaveFactor, 10);
-    SetPanelTimingTracks();
-}
-
 void GuitarEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
 {
     std::string timing = effect->GetSettings().Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", "");
@@ -691,8 +641,6 @@ void GuitarEffect::RenameTimingTrack(std::string oldname, std::string newname, E
     {
         effect->GetSettings()["E_CHOICE_Guitar_MIDITrack_APPLYLAST"] = newname;
     }
-
-    SetPanelTimingTracks();
 }
 
 void GuitarEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -812,9 +760,6 @@ void GuitarEffect::RenderGuitar(RenderBuffer& buffer, SequenceElements* elements
     uint8_t strings = NoteTiming::GetStrings(type);
 
     if (buffer.needToInit) {
-        // just in case the timing tracks have changed
-        SetPanelTimingTracks();
-
         buffer.needToInit = false;
         if (_MIDITrack != MIDITrack) {
             cache->ClearTimings();

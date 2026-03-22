@@ -15,7 +15,7 @@
 #include "../../include/servo-64.xpm"
 
 #include "ServoEffect.h"
-#include "ServoPanel.h"
+#include "../ValueCurve.h"
 #include "../utils/string_utils.h"
 
 #include <format>
@@ -44,9 +44,6 @@ ServoEffect::~ServoEffect() {
     // dtor
 }
 
-xlEffectPanel* ServoEffect::CreatePanel(wxWindow* parent) {
-    return new ServoPanel(parent);
-}
 bool ServoEffect::needToAdjustSettings(const std::string& version) {
     if (IsVersionOlder("2024.11", version)) {
         return true;
@@ -130,23 +127,6 @@ void ServoEffect::RenameTimingTrack(std::string oldname, std::string newname, Ef
     if (timing == oldname) {
         effect->GetSettings()["E_CHOICE_Servo_TimingTrack"] = newname;
     }
-}
-
-void ServoEffect::SetDefaultParameters() {
-    ServoPanel* dp = (ServoPanel*)panel;
-    if (dp == nullptr) {
-        return;
-    }
-    dp->EndLinkedButton->SetValue(false);
-    dp->StartLinkedButton->SetValue(false);
-    dp->ValueCurve_Servo->SetActive(false);
-    SetSliderValue(dp->Slider_Servo, 0);
-    SetSliderValue(dp->SliderEndValue, 0);
-    dp->Choice_Channel->SetSelection(-1);
-    dp->CheckBox_16bit->SetValue(false);
-    SetCheckBoxValue(dp->CheckBox_Timing_Track, false);
-    dp->Choice_Servo_TimingTrack->SetSelection(-1);
-    dp->SyncCheckBox->SetValue(false);
 }
 
 void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
@@ -316,46 +296,6 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
         float pos = 1.0 - (position / 100.0);
         buffer.SetDisplayListVRect(effect, idx, x1, pos - 0.028, x2, pos + 0.028, xlYELLOW, xlYELLOW);
     }
-}
-
-void ServoEffect::SetPanelStatus(Model* cls) {
-    ServoPanel* p = (ServoPanel*)panel;
-    if (p == nullptr) {
-        return;
-    }
-    if (cls == nullptr) {
-        return;
-    }
-
-    Model* m = cls;
-    if (cls->GetDisplayAs() == DisplayAsType::ModelGroup) {
-        m = dynamic_cast<ModelGroup*>(cls)->GetFirstModel();
-        if (m == nullptr)
-            m = cls;
-    }
-
-    p->Choice_Servo_TimingTrack->Clear();
-    for (const auto& it : Split(GetTimingTracks(0, 3), '|')) {
-        p->Choice_Servo_TimingTrack->Append(it);
-    }
-
-    int num_channels = m->GetNumChannels();
-
-    std::string choice_ctrl = "ID_CHOICE_Channel";
-    wxChoice* choice = (wxChoice*)(p->FindWindowByName(choice_ctrl));
-
-    if (choice != nullptr) {
-        choice->Clear();
-        for (int i = 0; i <= num_channels; ++i) {
-            std::string name = m->GetNodeName(i);
-            if (name != "" && name[0] != '-') {
-                choice->Append(name);
-            }
-        }
-        choice->SetSelection(0);
-    }
-    p->FlexGridSizer_Main->Layout();
-    p->Refresh();
 }
 
 int ServoEffect::GetPhonemeValue(RenderBuffer& buffer, SequenceElements* elements, const std::string& trackName) {

@@ -8,7 +8,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "MusicPanel.h"
 #include "MusicEffect.h"
 #include "../AudioManager.h"
 #include "../render/SequenceElements.h"
@@ -49,10 +48,6 @@ std::list<std::string> MusicEffect::CheckEffectSettings(const SettingsMap& setti
     return res;
 }
 
-xlEffectPanel *MusicEffect::CreatePanel(wxWindow *parent) {
-	return new MusicPanel(parent);
-}
-
 bool MusicEffect::needToAdjustSettings(const std::string &version)
 {
     return IsVersionOlder("2021.26", version);
@@ -83,27 +78,6 @@ void MusicEffect::adjustSettings(const std::string& version, Effect* effect, boo
             settings["E_CHOICE_Music_Type"] = "Separate";
         }
     }
-}
-
-void MusicEffect::SetDefaultParameters() {
-    MusicPanel *mp = (MusicPanel*)panel;
-    if (mp == nullptr) {
-        return;
-    }
-
-    mp->BitmapButton_Music_OffsetVC->SetActive(false);
-
-    SetSliderValue(mp->Slider_Music_Bars, 20);
-    SetChoiceValue(mp->Choice_Music_Type, "Morph");
-    SetSliderValue(mp->Slider_Music_Sensitivity, 50);
-    SetCheckBoxValue(mp->CheckBox_Music_Scale, false);
-    SetChoiceValue(mp->Choice_Music_Scaling, "None");
-    SetSliderValue(mp->Slider_Music_Offset, 0);
-    SetSliderValue(mp->Slider_Music_StartNote, 60);
-    SetSliderValue(mp->Slider_Music_EndNote, 80);
-    SetChoiceValue(mp->Choice_Music_Colour, "Distinct");
-    SetCheckBoxValue(mp->CheckBox_Music_Fade, false);
-    SetCheckBoxValue(mp->CheckBox_Music_LogarithmicXAxis, false);
 }
 
 void MusicEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {

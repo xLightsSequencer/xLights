@@ -27,7 +27,6 @@ class PicturesEffect : public RenderableEffect
         PicturesEffect(int id);
         virtual ~PicturesEffect();
         virtual bool CanBeRandom() override {return false;}
-        virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         static void Render(RenderBuffer &buffer,
                            const std::string & dirstr, const std::string &NewPictureName2,
@@ -64,8 +63,6 @@ class PicturesEffect : public RenderableEffect
             return RenderableEffect::GetSettingVCMax(name);
         }
     
-    protected:
-        virtual xlEffectPanel *CreatePanel(wxWindow *parent) override;
     private:
         static void SetTransparentBlackPixel(RenderBuffer &buffer, int x, int y, xlColor c, bool transparentBlack, int transparentBlackLevel);
         static void SetTransparentBlackPixel(RenderBuffer &buffer, int x, int y, xlColor c, bool wrap, bool transparentBlack, int transparentBlackLevel);

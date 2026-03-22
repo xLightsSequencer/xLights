@@ -11,7 +11,6 @@
 #include <format>
 
 #include "VUMeterEffect.h"
-#include "VUMeterPanel.h"
 #include "../AudioManager.h"
 #include "../render/SequenceElements.h"
 #include "../xLightsMain.h"
@@ -226,68 +225,6 @@ void VUMeterEffect::adjustSettings(const std::string& version, Effect* effect, b
             settings["E_SLIDER_VUMeter_Sensitivity"] = "100";
         }
     }
-}
-
-xlEffectPanel *VUMeterEffect::CreatePanel(wxWindow *parent) {
-	return new VUMeterPanel(parent);
-}
-
-void VUMeterEffect::SetPanelStatus(Model* cls)
-{
-    VUMeterPanel *vp = static_cast<VUMeterPanel*>(panel);
-    if (vp == nullptr) { return; }
-
-    vp->Choice_VUMeter_TimingTrack->Clear();
-    if (mSequenceElements == nullptr)
-    {
-        vp->ValidateWindow();
-        return;
-    }
-
-    // Load the names of the timing tracks
-    for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
-    {
-        Element* e = mSequenceElements->GetElement(i);
-        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING)
-        {
-            vp->Choice_VUMeter_TimingTrack->Append(e->GetName());
-        }
-    }
-
-    // Select the first one
-    if (vp->Choice_VUMeter_TimingTrack->GetCount() > 0)
-    {
-        vp->Choice_VUMeter_TimingTrack->Select(0);
-    }
-
-    // Validate the window (includes enabling and disabling controls)
-    vp->ValidateWindow();
-}
-
-void VUMeterEffect::SetDefaultParameters()
-{
-    VUMeterPanel *vp = static_cast<VUMeterPanel*>(panel);
-    if (vp == nullptr) {
-        return;
-    }
-
-    SetSliderValue(vp->Slider_VUMeter_Bars, 6);
-    SetChoiceValue(vp->Choice_VUMeter_Type, "Waveform");
-    SetSliderValue(vp->Slider_VUMeter_Sensitivity, 70);
-    SetChoiceValue(vp->Choice_VUMeter_Shape, "Circle");
-    SetCheckBoxValue(vp->CheckBox_VUMeter_SlowDownFalls, true);
-    SetCheckBoxValue(vp->CheckBox_LogarithmicXAxis, false);
-    SetSliderValue(vp->Slider_VUMeter_StartNote, 36);
-    SetSliderValue(vp->Slider_VUMeter_EndNote, 84);
-    SetSliderValue(vp->Slider_VUMeter_XOffset, 0);
-    SetSliderValue(vp->Slider_VUMeter_YOffset, 0);
-    SetSliderValue(vp->Slider_VUMeter_Gain, 0);
-    vp->BitmapButton_VUMeter_YOffsetVC->SetActive(false);
-    vp->BitmapButton_VUMeter_Gain->SetActive(false);
-    vp->ValidateWindow();
-    SetTextValue(vp->TextCtrl_Filter, "");
-    SetCheckBoxValue(vp->CheckBox_Regex, false);
-    vp->FilePickerCtrl_SVGFile->SetFileName(wxFileName());
 }
 
 void VUMeterEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)

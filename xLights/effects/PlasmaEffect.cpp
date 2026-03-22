@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "PlasmaEffect.h"
-#include "PlasmaPanel.h"
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -35,10 +34,6 @@ PlasmaEffect::~PlasmaEffect()
 {
     //dtor
 }
-xlEffectPanel *PlasmaEffect::CreatePanel(wxWindow *parent) {
-    return new PlasmaPanel(parent);
-}
-
 #define PLASMA_NORMAL_COLORS    0
 #define PLASMA_PRESET1          1
 #define PLASMA_PRESET2          2
@@ -56,21 +51,6 @@ int PlasmaEffect::GetPlasmaColorScheme(const std::string &ColorSchemeStr) {
         return PLASMA_PRESET4;
     }
     return PLASMA_NORMAL_COLORS;
-}
-
-void PlasmaEffect::SetDefaultParameters() {
-    PlasmaPanel *pp = (PlasmaPanel*)panel;
-    if (pp == nullptr) {
-        return;
-    }
-
-    pp->BitmapButton_Plasma_SpeedVC->SetActive(false);
-
-    SetSliderValue(pp->Slider_Plasma_Style, 1);
-    SetSliderValue(pp->Slider_Plasma_Line_Density, 1);
-    SetSliderValue(pp->Slider_Plasma_Speed, 10);
-
-    SetChoiceValue(pp->Choice_Plasma_Color, "Normal");
 }
 
 void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {

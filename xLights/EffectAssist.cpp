@@ -10,7 +10,7 @@
 
 #include "EffectAssist.h"
 #include "effects/EffectManager.h"
-#include "effects/assist/xlGridCanvasEmpty.h"
+#include "ui/effectpanels/assist/xlGridCanvasEmpty.h"
 #include "xLightsXmlFile.h"
 
 //(*InternalHeaders(EffectAssist)

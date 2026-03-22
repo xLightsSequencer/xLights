@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "TreeEffect.h"
-#include "TreePanel.h"
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -29,22 +28,6 @@ TreeEffect::TreeEffect(int id) : RenderableEffect(id, "Tree", tree_16, tree_24, 
 TreeEffect::~TreeEffect()
 {
     //dtor
-}
-
-xlEffectPanel *TreeEffect::CreatePanel(wxWindow *parent) {
-    return new TreePanel(parent);
-}
-
-void TreeEffect::SetDefaultParameters()
-{
-    TreePanel *tp = (TreePanel*)panel;
-    if (tp == nullptr) {
-        return;
-    }
-
-    SetSliderValue(tp->Slider_Tree_Branches, 3);
-    SetSliderValue(tp->Slider_Tree_Speed, 10);
-    SetCheckBoxValue(tp->CheckBox1, false);
 }
 
 bool TreeEffect::needToAdjustSettings(const std::string &version)

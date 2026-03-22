@@ -15,7 +15,7 @@
 
 #include "../render/Effect.h"
 #include "EffectManager.h"
-#include "assist/xlGridCanvasEmpty.h"
+#include "../ui/effectpanels/assist/xlGridCanvasEmpty.h"
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
 #include "../render/SequenceElements.h"
@@ -32,7 +32,7 @@
 #include "FanEffect.h"
 #include "SpiralsEffect.h"
 #include "PinwheelEffect.h"
-#include "EffectPanelUtils.h"
+#include "../ui/effectpanels/EffectPanelUtils.h"
 #include "../ColorPanel.h"
 #include "../BufferPanel.h"
 #include "../TimingPanel.h"
@@ -48,7 +48,7 @@ RenderableEffect::RenderableEffect(int i, std::string n,
                                    const char **data32,
                                    const char **data48,
                                    const char **data64)
-    : id(i), name(n), tooltip(n), panel(nullptr), mSequenceElements(nullptr)
+    : id(i), name(n), tooltip(n), mSequenceElements(nullptr)
 {
     initBitmaps(data16, data24, data32, data48, data64);
 }
@@ -69,13 +69,6 @@ const wxBitmapBundle &RenderableEffect::GetEffectIcon(int sz) const {
     return icon16;
 }
 
-
-xlEffectPanel *RenderableEffect::GetPanel(wxWindow *parent) {
-    if (panel == nullptr) {
-        panel = CreatePanel(parent);
-    }
-    return panel;
-}
 
 AssistPanel *RenderableEffect::GetAssistPanel(wxWindow *parent, xLightsFrame* xl_frame) {
     AssistPanel *assist_panel = new AssistPanel(parent);
@@ -162,93 +155,6 @@ void RenderableEffect::initBitmaps(const char **data16,
 bool RenderableEffect::IsVersionOlder(const std::string& compare, const std::string& version)
 {
     return ::IsVersionOlder(compare, version);
-}
-
-// this is recursive
-static wxString GetEffectStringFromWindow(wxWindow *ParentWin) {
-    wxString s;
-    for (const auto& it : ParentWin->GetChildren()) {
-        wxWindow *ChildWin = it;
-        if (!ChildWin->IsEnabled()) {
-            continue;
-        }
-        wxString ChildName = ChildWin->GetName();
-        wxString AttrName = "E_" + ChildName.Mid(3);
-        if (ChildName.StartsWith("ID_SLIDER")) {
-            wxSlider* ctrl=(wxSlider*)ChildWin;
-            s += AttrName+ "=" + wxString(std::format("{}", ctrl->GetValue())) + ",";
-        } else if (ChildName.StartsWith("ID_VALUECURVE")) {
-            ValueCurveButton* ctrl = (ValueCurveButton*)ChildWin;
-            if (ctrl->GetValue()->IsActive()) {
-                s += AttrName + "=" + ctrl->GetValue()->Serialise() + ",";
-            }
-        } else if (ChildName.StartsWith("ID_TEXTCTRL")) {
-            wxTextCtrl* ctrl=(wxTextCtrl*)ChildWin;
-            wxString v = ctrl->GetValue();
-            v.Replace("&", "&amp;", true);
-            v.Replace(",", "&comma;", true);
-            s += AttrName + "=" + v + ",";
-        } else if (ChildName.StartsWith("ID_SPINCTRL")) {
-			wxSpinCtrl* ctrl = (wxSpinCtrl*)ChildWin;
-			int i = ctrl->GetValue();
-			s += AttrName + "=" + wxString(std::format("{}", i)) + ",";
-		} else if (ChildName.StartsWith("ID_CHOICE")) {
-            wxChoice* ctrl=(wxChoice*)ChildWin;
-            s += AttrName + "=" + ctrl->GetStringSelection() + ",";
-        } else if (ChildName.StartsWith("ID_CHECKBOX")) {
-            wxCheckBox* ctrl=(wxCheckBox*)ChildWin;
-            wxString checkedVal =(ctrl->IsChecked()) ? "1" : "0";
-            s += AttrName + "=" + checkedVal + ",";
-        } else if (ChildName.StartsWith("ID_TOGGLEBUTTON")) {
-            wxToggleButton* ctrl=(wxToggleButton*)ChildWin;
-            wxString checkedVal = ctrl->GetValue() ? "1" : "0";
-            s += AttrName + "=" + checkedVal + ",";
-        } else if (ChildName.StartsWith("ID_FILEPICKER") || ChildName.StartsWith("ID_0FILEPICKER")) {
-            wxFilePickerCtrl* ctrl=(wxFilePickerCtrl*)ChildWin;
-            ObtainAccessToURL(ctrl->GetFileName().GetFullPath());
-            s += AttrName + "=" + ctrl->GetFileName().GetFullPath() + ",";
-        } else if (ChildName.StartsWith("ID_FONTPICKER")) {
-            wxFontPickerCtrl* ctrl=(wxFontPickerCtrl*)ChildWin;
-            wxFont f = ctrl->GetSelectedFont();
-            if (f.IsOk()) {
-                wxString FontDesc=f.GetNativeFontInfoUserDesc();
-                FontDesc.Replace(" unknown-90","");
-                s += AttrName + "=" + FontDesc + ",";
-            } else {
-                s += AttrName + "=,";
-            }
-        } else if (ChildName.StartsWith("ID_NOTEBOOK") || ChildName.StartsWith("IDD_NOTEBOOK")) {
-            wxNotebook* ctrl=(wxNotebook*)ChildWin;
-            //for IDD_ stuff, don't record the value of the actual page selected
-            if (ChildName.StartsWith("ID_NOTEBOOK")) {
-                s+= AttrName + "=" ;
-                s+=ctrl->GetPageText(ctrl->GetSelection());
-                s+=",";
-            }
-            for(int i = 0; i<ctrl->GetPageCount(); i++) {
-                wxString pageString = GetEffectStringFromWindow(ctrl->GetPage(i));
-                if (pageString.size() > 0) {
-                    s += pageString;
-                    if (!s.EndsWith(",")) {
-                        s += ",";
-                    }
-                }
-            }
-        } else if (ChildName.StartsWith("ID_PANEL_")) {
-            wxString pageString = GetEffectStringFromWindow(ChildWin);
-            if (pageString.size() > 0) {
-                s += pageString;
-                if (!s.EndsWith(",")) {
-                    s += ",";
-                }
-            }
-        }
-    }
-    return s.Mid(0,s.size()-1);
-}
-
-wxString RenderableEffect::GetEffectString() {
-    return GetEffectStringFromWindow(panel);
 }
 
 bool RenderableEffect::SupportsRenderCache(const SettingsMap& settings) const
@@ -870,54 +776,6 @@ void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &s
     settings.erase("T_SLIDER_Speed");
 }
 
-
-void RenderableEffect::SetSliderValue(wxSlider *slider, int value) {
-    slider->SetValue(value);
-    wxScrollEvent event(wxEVT_SLIDER, slider->GetId());
-    event.SetEventObject(slider);
-    event.SetInt(value);
-    slider->ProcessWindowEvent(event);
-}
-
-void RenderableEffect::SetSpinValue(wxSpinCtrl *spin, int value) {
-    spin->SetValue(value);
-    wxCommandEvent event(wxEVT_SPIN, spin->GetId());
-    event.SetEventObject(spin);
-    event.SetInt(value);
-    spin->ProcessWindowEvent(event);
-}
-
-void RenderableEffect::SetChoiceValue(wxChoice *choice, std::string value) {
-    choice->SetStringSelection(wxString(value.c_str()));
-    wxCommandEvent event(wxEVT_CHOICE, choice->GetId());
-    event.SetEventObject(choice);
-    event.SetString(wxString(value.c_str()));
-    choice->ProcessWindowEvent(event);
-}
-
-void RenderableEffect::SetTextValue(wxTextCtrl *text, std::string value) {
-    text->SetValue(wxString(value.c_str()));
-    wxCommandEvent event(wxEVT_TEXT, text->GetId());
-    event.SetEventObject(text);
-    event.SetString(wxString(value.c_str()));
-    text->ProcessWindowEvent(event);
-}
-
-void RenderableEffect::SetCheckBoxValue(wxCheckBox *c, bool b) {
-    c->SetValue(b);
-    wxCommandEvent evt(wxEVT_COMMAND_CHECKBOX_CLICKED, c->GetId());
-    evt.SetEventObject(c);
-    evt.SetInt(b);
-    c->ProcessWindowEvent(evt);
-}
-
-void RenderableEffect::SetRadioValue(wxRadioButton *r) {
-    r->SetValue(true);
-    wxCommandEvent evt(wxEVT_RADIOBUTTON, r->GetId());
-    evt.SetEventObject(r);
-    evt.SetInt(true);
-    r->ProcessWindowEvent(evt);
-}
 
 double RenderableEffect::GetValueCurveDouble(const std::string &name, double def, const SettingsMap &SettingsMap, float offset, double min, double max, long startMS, long endMS, int divisor)
 {

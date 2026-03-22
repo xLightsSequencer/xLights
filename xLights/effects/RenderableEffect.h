@@ -13,7 +13,7 @@
 #include <wx/bmpbndl.h>
 #include <string>
 #include "../Color.h"
-#include "assist/AssistPanel.h"
+#include "../ui/effectpanels/assist/AssistPanel.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 
 class wxPanel;
@@ -24,11 +24,7 @@ class SequenceElements;
 class Effect;
 class SettingsMap;
 class RenderBuffer;
-class wxSlider;
-class wxCheckBox;
 class AudioManager;
-class wxSpinCtrl;
-class xlEffectPanel;
 class EffectManager;
 class EffectLayer;
 
@@ -101,15 +97,6 @@ public:
         mSequenceElements = els;
     }
 
-    xlEffectPanel* GetPanel(wxWindow* parent);
-    virtual void SetDefaultParameters()
-    {}
-    virtual void SetPanelStatus(Model* cls)
-    {}
-    virtual void SetEffectTimeRange(int startTimeMs, int endTimeMs)
-    {}
-    virtual wxString GetEffectString();
-
     // Methods for rendering the effect
     virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
     {
@@ -144,13 +131,6 @@ public:
 
     static std::string UpgradeValueCurve(EffectManager* effectManager, const std::string& name, const std::string& value, const std::string& effectName);
 protected:
-    static void SetSliderValue(wxSlider* slider, int value);
-    static void SetSpinValue(wxSpinCtrl* spin, int value);
-    static void SetChoiceValue(wxChoice* choice, std::string value);
-    static void SetRadioValue(wxRadioButton* radio);
-    static void SetTextValue(wxTextCtrl* choice, std::string value);
-    static void SetCheckBoxValue(wxCheckBox* w, bool b);
-
     virtual double GetSettingVCMin(const std::string& name) const
     {
         wxASSERT(false);
@@ -182,11 +162,9 @@ protected:
                      const char** data48,
                      const char** data64);
 
-    virtual xlEffectPanel* CreatePanel(wxWindow* parent) = 0;
     std::string name;
     std::string tooltip;
     int id;
-    xlEffectPanel* panel;
     SequenceElements* mSequenceElements;
     wxBitmapBundle icon16;
     wxBitmapBundle icon24;

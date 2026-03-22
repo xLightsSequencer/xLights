@@ -1,0 +1,60 @@
+#pragma once
+
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/xLightsSequencer/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
+ **************************************************************/
+
+#include <functional>
+#include <map>
+#include <string>
+#include <vector>
+
+class xlEffectPanel;
+class wxWindow;
+class Model;
+class SequenceElements;
+
+class EffectPanelManager {
+public:
+    using PanelFactory = std::function<xlEffectPanel*(wxWindow*)>;
+
+    EffectPanelManager();
+    ~EffectPanelManager();
+
+    xlEffectPanel* GetPanel(int effectId, wxWindow* parent);
+    xlEffectPanel* GetPanel(const std::string& effectName, wxWindow* parent);
+
+    void SetDefaultParameters(int effectId);
+    void SetDefaultParameters(const std::string& effectName);
+    void SetPanelStatus(int effectId, Model* cls);
+    void SetPanelStatus(const std::string& effectName, Model* cls);
+    void SetEffectTimeRange(int effectId, int startTimeMs, int endTimeMs);
+    void SetSequenceElements(SequenceElements* els);
+    wxString GetEffectString(int effectId);
+
+    int GetPanelCount() const { return static_cast<int>(panels.size()); }
+
+private:
+    void RegisterPanels();
+    void RegisterPanel(int effectId, const std::string& name, PanelFactory factory);
+
+    template<typename PanelT>
+    void Register(int effectId, const std::string& name) {
+        RegisterPanel(effectId, name, [](wxWindow* p) -> xlEffectPanel* { return new PanelT(p); });
+    }
+
+    struct PanelInfo {
+        PanelFactory factory;
+        std::string name;
+        xlEffectPanel* panel = nullptr;
+    };
+
+    std::vector<PanelInfo> panels;
+    std::map<std::string, int> panelsByName;
+};
