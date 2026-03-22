@@ -190,7 +190,7 @@ void CustomModel::SetStringStartChannels(int NumberOfStrings, int StartChannel, 
         stringStartChan.clear();
         stringStartChan.resize(_strings);
         for (int i = 0; i < _strings; i++) {
-            int node = _indivStartNodes[i];
+            int node = (i < (int)_indivStartNodes.size()) ? _indivStartNodes[i] : 0;
             if (node == 0) {
                 node = ((ChannelsPerString * i) / GetNodeChannelCount(StringType)) + 1;
             }
@@ -635,7 +635,7 @@ int CustomModel::GetCustomNodeStringNumber(int node) const
     for (int i = 0; i < _strings; i++) {
         int startNode = 1;
         if (_hasIndivNodes) {
-            startNode = _indivStartNodes[i];
+            startNode = (i < (int)_indivStartNodes.size()) ? _indivStartNodes[i] : ComputeStringStartNode(i);
         } else {
             startNode = ComputeStringStartNode(i);
         }
@@ -687,7 +687,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
         int nodes = GetChanCount() / GetChanCountPerNode();
         for (int i = 0; i < _strings; i++) {
             nm = StartNodeAttrName(i);
-            auto val = _indivStartNodes[i];
+            auto val = (i < (int)_indivStartNodes.size()) ? _indivStartNodes[i] : 0;
             if (val == 1) {
                 oneFound = true;
             }
@@ -1151,12 +1151,11 @@ bool CustomModel::ChangeStringCount(long count, std::string& message)
     }
 
     _strings = count;
+    _hasIndivNodes = (count > 1);
     if (count != 1) {
-        if (_hasIndivNodes) {
-            _indivStartNodes.resize(count);
-            for (int x = 0; x < count; x++) {
-                _indivStartNodes[x] = ComputeStringStartNode(x);
-            }
+        _indivStartNodes.resize(count);
+        for (int x = 0; x < count; x++) {
+            _indivStartNodes[x] = ComputeStringStartNode(x);
         }
     }
 
