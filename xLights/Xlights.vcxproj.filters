@@ -92,9 +92,9 @@
     <ClCompile Include="tmGridCell.cpp" />
     <ClCompile Include="TopEffectsPanel.cpp" />
     <ClCompile Include="UpdaterDialog.cpp" />
-    <ClCompile Include="ValueCurve.cpp" />
-    <ClCompile Include="ValueCurveButton.cpp" />
-    <ClCompile Include="ValueCurveDialog.cpp" />
+    <ClCompile Include="render\ValueCurve.cpp" />
+    <ClCompile Include="ui\ValueCurveButton.cpp" />
+    <ClCompile Include="ui\ValueCurveDialog.cpp" />
     <ClCompile Include="VAMPPluginDialog.cpp" />
     <ClCompile Include="VideoExporter.cpp" />
     <ClCompile Include="VendorModelDialog.cpp" />
@@ -493,8 +493,9 @@
     </ClCompile>
     <ClCompile Include="CheckboxSelectDialog.cpp" />
     <ClCompile Include="EmailDialog.cpp" />
-    <ClCompile Include="DragValueCurveBitmapButton.cpp" />
-    <ClCompile Include="ValueCurvesPanel.cpp" />
+    <ClCompile Include="ui\DragValueCurveBitmapButton.cpp" />
+    <ClCompile Include="ui\ValueCurveRendering.cpp" />
+    <ClCompile Include="ui\ValueCurvesPanel.cpp" />
     <ClCompile Include="ColoursPanel.cpp" />
     <ClCompile Include="DragColoursBitmapButton.cpp" />
     <ClCompile Include="TraceLog.cpp" />
@@ -1474,9 +1475,9 @@
     <ClInclude Include="TopEffectsPanel.h" />
     <ClInclude Include="UpdaterDialog.h" />
     <ClInclude Include="UtilClasses.h" />
-    <ClInclude Include="ValueCurve.h" />
-    <ClInclude Include="ValueCurveButton.h" />
-    <ClInclude Include="ValueCurveDialog.h" />
+    <ClInclude Include="render\ValueCurve.h" />
+    <ClInclude Include="ui\ValueCurveButton.h" />
+    <ClInclude Include="ui\ValueCurveDialog.h" />
     <ClInclude Include="VAMPPluginDialog.h" />
     <ClInclude Include="VideoExporter.h" />
     <ClInclude Include="VendorModelDialog.h" />
@@ -1889,8 +1890,9 @@
       <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="EmailDialog.h" />
-    <ClInclude Include="DragValueCurveBitmapButton.h" />
-    <ClInclude Include="ValueCurvesPanel.h" />
+    <ClInclude Include="ui\DragValueCurveBitmapButton.h" />
+    <ClInclude Include="ui\ValueCurveRendering.h" />
+    <ClInclude Include="ui\ValueCurvesPanel.h" />
     <ClInclude Include="ColoursPanel.h" />
     <ClInclude Include="DragColoursBitmapButton.h" />
     <ClInclude Include="SpecialOptions.h" />

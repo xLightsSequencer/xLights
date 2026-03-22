@@ -24,8 +24,9 @@
 
 #include "ExternalHooks.h"
 #include "UtilFunctions.h"
-#include "ValueCurve.h"
+#include "render/ValueCurve.h"
 #include "ValueCurveDialog.h"
+#include "ValueCurveRendering.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
 #include "xLightsVersion.h"
@@ -1434,9 +1435,9 @@ void ValueCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs) {
         }
         if (!found) {
             ValueCurve vc("");
-            vc.LoadXVC(fn);
+            vc.LoadXVC(fn.GetFullPath().ToStdString());
             long id = wxNewId();
-            wxBitmapButton* bmb = new wxBitmapButton(this, id, vc.GetImage(30, 30, GetContentScaleFactor()), wxDefaultPosition,
+            wxBitmapButton* bmb = new wxBitmapButton(this, id, GetValueCurveImage(vc, 30, 30, GetContentScaleFactor()), wxDefaultPosition,
                                                      wxSize(30, 30), wxBU_AUTODRAW | wxNO_BORDER);
             bmb->SetLabel(fn.GetFullPath());
             bmb->SetToolTip(fn.GetFullPath());

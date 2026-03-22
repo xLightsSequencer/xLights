@@ -15,7 +15,7 @@
 #include "../../include/moving-head-64.xpm"
 
 #include "MovingHeadEffect.h"
-#include "../ValueCurve.h"
+#include "render/ValueCurve.h"
 #include "../ui/effectpanels/MovingHeadPanel.h"
 #include "../ui/effectpanels/EffectPanelManager.h"
 #include "../xLightsApp.h"

@@ -8,25 +8,32 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/wx.h>
-#include <wx/string.h>
-#include <wx/msgdlg.h>
+#include <wx/xml/xml.h>
 
 #include "ValueCurve.h"
 #include "xLightsVersion.h"
 #include "xLightsMain.h"
-#include "xLightsXmlFile.h"
 #include "UtilFunctions.h"
 #include "AudioManager.h"
 #include "ExternalHooks.h"
-#include "render/SequenceElements.h"
+#include "SequenceElements.h"
 
 #include <log4cpp/Category.hh>
 
+#include <cassert>
+#include <cstdio>
+#include <filesystem>
+#include <fstream>
 #include <limits>
 
 AudioManager* ValueCurve::__audioManager = nullptr;
 SequenceElements* ValueCurve::__sequenceElements = nullptr;
+
+static std::string fmt2f(float v) {
+    char buf[32];
+    std::snprintf(buf, sizeof(buf), "%.2f", v);
+    return buf;
+}
 
 float ValueCurve::SafeParameter(size_t p, float v)
 {
@@ -37,8 +44,8 @@ float ValueCurve::SafeParameter(size_t p, float v)
     if (low == MINVOID) low = _min;
     if (high == MAXVOID) high = _max;
 
-    wxASSERT(_min != MINVOIDF);
-    wxASSERT(_max != MAXVOIDF);
+    assert(_min != MINVOIDF);
+    assert(_max != MAXVOIDF);
 
     return std::min(high, std::max(low, v));
 }
@@ -77,12 +84,12 @@ float ValueCurve::Denormalise(int parm, float value) const
 
     if (low == MINVOID)
     {
-        wxASSERT(_min != MINVOIDF);
+        assert(_min != MINVOIDF);
         low = _min;
     }
     if (high == MAXVOID)
     {
-        wxASSERT(_max != MAXVOIDF);
+        assert(_max != MAXVOIDF);
         high = _max;
     }
 
@@ -105,10 +112,10 @@ std::string ValueCurve::GetValueCurveFolder(const std::string& showFolder)
     if (showFolder == "") return "";
 
     std::string vcf = showFolder + "/valuecurves";
-    if (!wxDir::Exists(vcf))
+    if (!std::filesystem::exists(vcf))
     {
-        wxMkdir(vcf);
-        if (!wxDir::Exists(vcf))
+        std::filesystem::create_directory(vcf);
+        if (!std::filesystem::exists(vcf))
         {
             return "";
         }
@@ -639,7 +646,7 @@ void ValueCurve::Flip()
     }
     else if (_type == "Decaying Sine") {}
     else if (_type == "Abs Sine") {}
-    else { wxASSERT(false); }
+    else { assert(false); }
 }
 
 // call this function from adjustSettings when a value curve has been changed to have a different divider ... it will convert the values to the equivalent and then you can serialise the value curve
@@ -663,12 +670,12 @@ float ValueCurve::Normalise(int parm, float value)
 
     if (low == MINVOID)
     {
-        wxASSERT(_min != MINVOIDF);
+        assert(_min != MINVOIDF);
         low = _min;
     }
     if (high == MAXVOID)
     {
-        wxASSERT(_max != MAXVOIDF);
+        assert(_max != MAXVOIDF);
         high = _max;
     }
 
@@ -795,7 +802,7 @@ void ValueCurve::ConvertChangedScale(float newmin, float newmax)
     if (newrange < oldrange)
     {
         // this is suspicious ... generally ranges increase with versions not decrease so I am going to ignore this request
-        wxASSERT(false);
+        assert(false);
         // continue otherwise it doesnt stop it happening in future
         // return;
     }
@@ -824,8 +831,8 @@ void ValueCurve::ConvertChangedScale(float newmin, float newmax)
     // now handle custom
     if (_type == "Custom")
     {
-        wxASSERT(_min != MINVOIDF);
-        wxASSERT(_max != MAXVOIDF);
+        assert(_min != MINVOIDF);
+        assert(_max != MAXVOIDF);
         //old max of 10, 1.0 = 10 
         //new max of 20, 0.5 = 10 
         //y = y * 0.5 or 10/20 i.e. old range/new range
@@ -1283,7 +1290,7 @@ ValueCurve::ValueCurve(const std::string& id, float min, float max, const std::s
     _timingTrack = timingTrack;
     _filterLabelText = filterLabelText;
     _isFilterLabelRegex = isFilterLabelRegex;
-    wxASSERT(_divisor == 1 || _divisor == 10 || _divisor == 100);
+    assert(_divisor == 1 || _divisor == 10 || _divisor == 100);
     _timeOffset = 0;
     _parameter1 = SafeParameter(1, parameter1);
     _parameter2 = SafeParameter(2, parameter2);
@@ -1319,7 +1326,7 @@ void ValueCurve::SetDefault(float min, float max, int divisor)
     {
         _divisor = divisor;
     }
-    wxASSERT(_divisor == 1 || _divisor == 10 || _divisor == 100);
+    assert(_divisor == 1 || _divisor == 10 || _divisor == 100);
 
     RenderType();
 }
@@ -1450,8 +1457,8 @@ std::string ValueCurve::Serialise()
 
     if (IsActive())
     {
-        wxASSERT(_min != MINVOIDF);
-        wxASSERT(_max != MAXVOIDF);
+        assert(_min != MINVOIDF);
+        assert(_max != MAXVOIDF);
 
         res += "Active=TRUE|";
         res += "Id=" + _id + "|";
@@ -1459,8 +1466,8 @@ std::string ValueCurve::Serialise()
         {
             res += "Type=" + _type + "|";
         }
-        res += "Min=" + std::string(wxString::Format("%.2f", _min).c_str()) + "|";
-        res += "Max=" + std::string(wxString::Format("%.2f", _max).c_str()) + "|";
+        res += "Min=" + fmt2f(_min) + "|";
+        res += "Max=" + fmt2f(_max) + "|";
         if (_timingTrack != "") {
             res += "TT=" + _timingTrack + "|";
         }
@@ -1472,19 +1479,19 @@ std::string ValueCurve::Serialise()
         }
         if (_parameter1 != 0)
         {
-            res += "P1=" + std::string(wxString::Format("%.2f", _parameter1).c_str()) + "|";
+            res += "P1=" + fmt2f(_parameter1) + "|";
         }
         if (_parameter2 != 0)
         {
-            res += "P2=" + std::string(wxString::Format("%.2f", _parameter2).c_str()) + "|";
+            res += "P2=" + fmt2f(_parameter2) + "|";
         }
         if (_parameter3 != 0)
         {
-            res += "P3=" + std::string(wxString::Format("%.2f", _parameter3).c_str()) + "|";
+            res += "P3=" + fmt2f(_parameter3) + "|";
         }
         if (_parameter4 != 0)
         {
-            res += "P4=" + std::string(wxString::Format("%.2f", _parameter4).c_str()) + "|";
+            res += "P4=" + fmt2f(_parameter4) + "|";
         }
         if (_timeOffset != 0)
         {
@@ -1504,7 +1511,7 @@ std::string ValueCurve::Serialise()
             res += "Values=";
             for (auto it = _values.begin(); it != _values.end(); ++it)
             {
-                res += std::string(wxString::Format("%.2f", it->x).c_str()) + ":" + std::string(wxString::Format("%.2f", it->y).c_str());
+                res += fmt2f(it->x) + ":" + fmt2f(it->y);
                 if (!(*it == _values.back()))
                 {
                     res += ";";
@@ -1518,11 +1525,6 @@ std::string ValueCurve::Serialise()
         res += "Active=FALSE|";
     }
     return res;
-}
-
-void ValueCurve::LoadXVC(const wxFileName& fn)
-{
-    LoadXVC(fn.GetFullPath().ToStdString());
 }
 
 void ValueCurve::LoadXVC(const std::string& fn)
@@ -1573,20 +1575,15 @@ void ValueCurve::LoadXVC(const std::string& fn)
     }
 }
 
-void ValueCurve::SaveXVC(const wxFileName& fn)
-{
-    SaveXVC(fn.GetFullPath().ToStdString());
-}
-
 void ValueCurve::SaveXVC(const std::string& filename)
 {
-    wxFile f(filename);
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Saving to xvc file %s.", (const char *)filename.c_str());
 
-    if (!f.Create(filename, true) || !f.IsOpened())
+    std::ofstream f(filename);
+    if (!f.is_open())
     {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        DisplayError("Unable to create file " + filename + ".\n");
         return;
     }
 
@@ -1595,17 +1592,16 @@ void ValueCurve::SaveXVC(const std::string& filename)
     if (id == "") SetId("Dummy");
     SetActive(true);
 
-    wxString v = xlights_version_string;
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<valuecurve \n");
+    f << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<valuecurve \n";
     ValueCurve vc(Serialise());
     vc.SetId("ID_VALUECURVE_XVC");
     vc.SetLimits(0, 100);
     vc.UnFixChangedScale(GetMin(), GetMax());
-    f.Write(wxString::Format("data=\"%s\" ", (const char *)vc.Serialise().c_str()));
-    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
-    f.Write(" >\n");
-    f.Write("</valuecurve>");
-    f.Close();
+    f << "data=\"" << vc.Serialise() << "\" ";
+    f << "SourceVersion=\"" << xlights_version_string << "\" ";
+    f << " >\n";
+    f << "</valuecurve>";
+    f.close();
     SetActive(active);
     SetId(id);
 }
@@ -1619,7 +1615,7 @@ void ValueCurve::SetSerialisedValue(const std::string &k, const std::string &s)
             _active = false;
         } else {
             // it should already be true
-            wxASSERT(_active == true);
+            assert(_active == true);
         }
     } else if (k == "Type") {
         _type = s;
@@ -1679,22 +1675,22 @@ void ValueCurve::SetType(std::string type)
 
 float ValueCurve::GetScaledValue(float offset) const
 {
-    wxASSERT(_min != MINVOIDF);
-    wxASSERT(_max != MAXVOIDF);
+    assert(_min != MINVOIDF);
+    assert(_max != MAXVOIDF);
     return (_min + (_max - _min) * offset) / _divisor;
 }
 
 float ValueCurve::GetOutputValueAt(float offset, long startMS, long endMS)
 {
-    wxASSERT(_min != MINVOIDF);
-    wxASSERT(_max != MAXVOIDF);
+    assert(_min != MINVOIDF);
+    assert(_max != MAXVOIDF);
     return _min + (_max - _min) * GetValueAt(offset, startMS, endMS);
 }
 
 float ValueCurve::GetOutputValueAtDivided(float offset, long startMS, long endMS)
 {
-    wxASSERT(_min != MINVOIDF);
-    wxASSERT(_max != MAXVOIDF);
+    assert(_min != MINVOIDF);
+    assert(_max != MAXVOIDF);
     return (_min + (_max - _min) * GetValueAt(offset, startMS, endMS)) / _divisor;
 }
 
@@ -2139,66 +2135,6 @@ void ValueCurve::SetPointAt(float x, float y)
     }
 }
 
-wxBitmap ValueCurve::GetImage(int w, int h, double scaleFactor)
-{
-    if (scaleFactor < 1.0) {
-        scaleFactor = 1.0;
-    }
-    float width = w * scaleFactor;
-    float height = h * scaleFactor;
-
-    wxBitmap bmp(width, height);
-
-    wxMemoryDC dc(bmp);
-    dc.SetBrush(*wxLIGHT_GREY_BRUSH);
-    dc.DrawRectangle(0, 0, width, height);
-    dc.SetPen(*wxBLACK_PEN);
-    float lastY = height - 1 - (GetValueAt(0, 0, 1)) * height;
-
-    if (_type == "Music" || _type == "Inverted Music" || _type == "Music Trigger Fade")
-    {
-        dc.DrawCircle(width / 4, height - height / 4, wxCoord(std::min(width / 5, height / 5)));
-        dc.DrawLine(width / 4 + width / 5, height - height / 4, width / 4 + width / 5, height / 5);
-        dc.DrawLine(width / 4 + width / 5, height / 5, width - width/10, height/ 4);
-        dc.DrawLine(width / 4 + width / 5, height / 4, width - width/10, height/ 3);
-        float min = (GetParameter1() - _min) / (_max - _min) * height;
-        float max = (GetParameter2() - _min) / (_max - _min) * height;
-        dc.SetPen(*wxGREEN_PEN);
-        dc.DrawLine(0, height - min, width, height - min);
-        dc.SetPen(*wxRED_PEN);
-        dc.DrawLine(0, height - max, width, height - max);
-    }
-    else if (_type == "Timing Track Toggle" || _type == "Timing Track Fade Fixed" || _type == "Timing Track Fade Proportional") {
-        dc.DrawLine(width / 4, height / 4, width - width / 4, height / 4);
-        dc.DrawLine(width / 3, height - height / 4, width / 3, height / 4);
-        dc.DrawLine(width - width / 3, height - height / 4, width - width / 3, height / 4);
-        dc.SetPen(*wxGREEN_PEN);
-        float min = (GetParameter1() - _min) / (_max - _min) * height;
-        float max = (GetParameter2() - _min) / (_max - _min) * height;
-        dc.DrawLine(0, height - min, width, height - min);
-        dc.SetPen(*wxRED_PEN);
-        dc.DrawLine(0, height - max, width, height - max);
-    }
-    else
-    {
-        for (int x = 1; x < width; x++) {
-            float x1 = x;
-            x1 /= (float)width;
-
-            float y = (GetValueAt(x1, 0, 1)) * (float)width;
-            y = (float)height - 1.0f - y;
-            dc.DrawLine(x - 1, lastY, x, std::round(y));
-            lastY = y;
-        }
-    }
-
-    if (scaleFactor > 1.0f) {
-        wxImage img = bmp.ConvertToImage();
-        return wxBitmap(img, 8, scaleFactor);
-    }
-    return bmp;
-}
-
 void ValueCurve::ScaleAndOffsetValues(float scale, int offset)
 {
     if (offset == 0 && abs(scale - 1.0) < 0.0001) {
@@ -2218,7 +2154,7 @@ void ValueCurve::ScaleAndOffsetValues(float scale, int offset)
         // custom values are 0-1, so we need to scale them
         float range = _max - _min;
         if (std::abs(range) <= std::numeric_limits<float>::epsilon()) {
-            wxASSERT(false); // shouldn't be zero
+            assert(false); // shouldn't be zero
             return;
         }
         for (auto& it : _values) {

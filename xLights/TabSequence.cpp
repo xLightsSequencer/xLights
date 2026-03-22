@@ -37,7 +37,7 @@
 #include "ModelPreview.h"
 #include "ViewsModelsPanel.h"
 #include "PerspectivesPanel.h"
-#include "ValueCurvesPanel.h"
+#include "ui/ValueCurvesPanel.h"
 #include "ColoursPanel.h"
 #include "sequencer/MainSequencer.h"
 #include "HousePreviewPanel.h"

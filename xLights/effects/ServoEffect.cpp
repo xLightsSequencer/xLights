@@ -15,7 +15,7 @@
 #include "../../include/servo-64.xpm"
 
 #include "ServoEffect.h"
-#include "../ValueCurve.h"
+#include "render/ValueCurve.h"
 #include "../utils/string_utils.h"
 
 #include <format>

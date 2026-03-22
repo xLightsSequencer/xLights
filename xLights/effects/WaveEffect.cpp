@@ -12,7 +12,7 @@
 
 #include <cstdlib>
 
-#include "../ValueCurve.h"
+#include "render/ValueCurve.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"

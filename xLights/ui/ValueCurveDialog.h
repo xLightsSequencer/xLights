@@ -22,7 +22,7 @@
 //*)
 
 #include "xlCustomControl.h"
-#include "ValueCurve.h"
+#include "render/ValueCurve.h"
 #include <wx/dir.h>
 
 class Element;

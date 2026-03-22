@@ -10,7 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/position.h>
+#include <cassert>
 #include <string>
 #include <list>
 
@@ -21,7 +21,6 @@
 
 #define VC_X_POINTS 200.0
 
-class wxFileName;
 class AudioManager;
 class SequenceElements;
 
@@ -126,11 +125,8 @@ public:
     ValueCurve(const std::string& serialised);
     ValueCurve(const std::string& id, float min, float max = 100.0f, const std::string type = "Flat", float parameter1 = 0.0f, float parameter2 = 0.0f, float parameter3 = 0.0f, float parameter4 = 0.0f, bool wrap = false, float divisor = 1.0, const std::string& timingTrack = "", const std::string& filterLabelText = "", bool isFilterLabelRegex = false);
     void SetDefault(float min = MINVOIDF, float max = MAXVOIDF, int divisor = MAXVOID);
-    wxBitmap GetImage(int x, int y, double scaleFactor = 1.0);
     std::string Serialise();
-    void LoadXVC(const wxFileName& fn);
     void LoadXVC(const std::string& fn);
-    void SaveXVC(const wxFileName& fn);
     void SaveXVC(const std::string& fn);
     static void GetRangeParm(int parm, const std::string& type, float& low, float& high);
     bool IsOk() const { return _id != ""; }
@@ -139,9 +135,9 @@ public:
     void FixChangedScale(float oldmin, float oldmax, int divisor);
     void UnFixChangedScale(float newmin, float newmax);
     void ConvertChangedScale(float newmin, float newmax);
-    float GetMax() const { wxASSERT(_max != MAXVOIDF); return _max; }
-    float GetMin() const { wxASSERT(_min != MINVOIDF); return _min; }
-    int GetDivisor() const { wxASSERT(_divisor != MAXVOID); return (int)_divisor; }
+    float GetMax() const { assert(_max != MAXVOIDF); return _max; }
+    float GetMin() const { assert(_min != MINVOIDF); return _min; }
+    int GetDivisor() const { assert(_divisor != MAXVOID); return (int)_divisor; }
     void SetRealValue() { _realValues = true; }
     void SetLimits(float min, float max) { _min = min; _max = max; }
     void FixScale(int scale);

@@ -17,7 +17,7 @@
 #include <wx/combobox.h>
 #include <wx/checkbox.h>
 #include <wx/fontpicker.h>
-#include "ValueCurveButton.h"
+#include "ui/ValueCurveButton.h"
 #include "xlLockButton.h"
 #include <wx/filepicker.h>
 #include <wx/clrpicker.h>

@@ -37,8 +37,8 @@
 #include <wx/clrpicker.h>
 
 #include "../../BitmapCache.h"
-#include "../../ValueCurveButton.h"
-#include "../../ValueCurveDialog.h"
+#include "ui/ValueCurveButton.h"
+#include "ui/ValueCurveDialog.h"
 #include "../../xLightsApp.h"
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"

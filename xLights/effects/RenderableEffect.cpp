@@ -27,7 +27,7 @@
 
 #include <sstream>
 #include "../UtilFunctions.h"
-#include "../ValueCurveButton.h"
+#include "ui/ValueCurveButton.h"
 #include "../render/PixelBuffer.h"
 #include "FanEffect.h"
 #include "SpiralsEffect.h"

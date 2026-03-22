@@ -30,7 +30,7 @@
 #include <wx/textctrl.h>
 //*)
 
-#include "../../ValueCurveButton.h"
+#include "ui/ValueCurveButton.h"
 
 //(*IdInit(FireworksPanel)
 const long FireworksPanel::ID_STATICTEXT_Fireworks_Explosions = wxNewId();

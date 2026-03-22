@@ -9,6 +9,8 @@
  **************************************************************/
 
 #include "DragValueCurveBitmapButton.h"
+#include "ValueCurveRendering.h"
+#include "render/ValueCurve.h"
 #include <wx/dnd.h>
 #include "xLightsMain.h"
 #include "UtilFunctions.h"
@@ -48,8 +50,7 @@ void DragValueCurveBitmapButton::SetValueCurve(const std::string& valueCurve)
 
     if (vc.IsOk()) {
         wxSize size = GetSize();
-        const wxBitmap& bbmp = vc.GetImage(size.GetWidth(), size.GetHeight(), GetContentScaleFactor());
-        SetBitmap(bbmp);
+        SetBitmap(GetValueCurveImage(vc, size.GetWidth(), size.GetHeight(), GetContentScaleFactor()));
     }
 }
 

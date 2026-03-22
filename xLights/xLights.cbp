@@ -227,8 +227,8 @@
 		<Unit filename="DissolveTransitionPattern.cpp" />
 		<Unit filename="DragColoursBitmapButton.cpp" />
 		<Unit filename="DragColoursBitmapButton.h" />
-		<Unit filename="DragValueCurveBitmapButton.cpp" />
-		<Unit filename="DragValueCurveBitmapButton.h" />
+		<Unit filename="ui/DragValueCurveBitmapButton.cpp" />
+		<Unit filename="ui/DragValueCurveBitmapButton.h" />
 		<Unit filename="DuplicateDialog.cpp" />
 		<Unit filename="DuplicateDialog.h" />
 		<Unit filename="EditAliasesDialog.cpp" />
@@ -463,14 +463,16 @@
 		<Unit filename="VAMPPluginDialog.h" />
 		<Unit filename="VSAFile.cpp" />
 		<Unit filename="VSAFile.h" />
-		<Unit filename="ValueCurve.cpp" />
-		<Unit filename="ValueCurve.h" />
-		<Unit filename="ValueCurveButton.cpp" />
-		<Unit filename="ValueCurveButton.h" />
-		<Unit filename="ValueCurveDialog.cpp" />
-		<Unit filename="ValueCurveDialog.h" />
-		<Unit filename="ValueCurvesPanel.cpp" />
-		<Unit filename="ValueCurvesPanel.h" />
+		<Unit filename="render/ValueCurve.cpp" />
+		<Unit filename="render/ValueCurve.h" />
+		<Unit filename="ui/ValueCurveButton.cpp" />
+		<Unit filename="ui/ValueCurveButton.h" />
+		<Unit filename="ui/ValueCurveDialog.cpp" />
+		<Unit filename="ui/ValueCurveDialog.h" />
+		<Unit filename="ui/ValueCurveRendering.cpp" />
+		<Unit filename="ui/ValueCurveRendering.h" />
+		<Unit filename="ui/ValueCurvesPanel.cpp" />
+		<Unit filename="ui/ValueCurvesPanel.h" />
 		<Unit filename="VendorModelDialog.cpp" />
 		<Unit filename="VendorModelDialog.h" />
 		<Unit filename="VendorMusicDialog.cpp" />
@@ -1583,7 +1585,7 @@
 					<wxDialog wxs="wxsmith/SubModelsDialog.wxs" src="SubModelsDialog.cpp" hdr="SubModelsDialog.h" fwddecl="1" i18n="1" name="SubModelsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SuperStarImportDialog.wxs" src="SuperStarImportDialog.cpp" hdr="SuperStarImportDialog.h" fwddecl="0" i18n="1" name="SuperStarImportDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/UpdaterDialog.wxs" src="UpdaterDialog.cpp" hdr="UpdaterDialog.h" fwddecl="0" i18n="1" name="UpdaterDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ValueCurveDialog.wxs" src="ValueCurveDialog.cpp" hdr="ValueCurveDialog.h" fwddecl="0" i18n="1" name="ValueCurveDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ValueCurveDialog.wxs" src="ui/ValueCurveDialog.cpp" hdr="ui/ValueCurveDialog.h" fwddecl="0" i18n="1" name="ValueCurveDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/VAMPPluginDialog.wxs" src="VAMPPluginDialog.cpp" hdr="VAMPPluginDialog.h" fwddecl="0" i18n="1" name="VAMPPluginDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/VendorModelDialog.wxs" src="VendorModelDialog.cpp" hdr="VendorModelDialog.h" fwddecl="0" i18n="1" name="VendorModelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/VendorMusicDialog.wxs" src="VendorMusicDialog.cpp" hdr="VendorMusicDialog.h" fwddecl="0" i18n="1" name="VendorMusicDialog" language="CPP" />
@@ -1597,7 +1599,7 @@
 					<wxPanel wxs="wxsmith/TimingPanel.wxs" src="TimingPanel.cpp" hdr="TimingPanel.h" fwddecl="0" i18n="1" name="TimingPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TopEffectsPanel.wxs" src="TopEffectsPanel.cpp" hdr="TopEffectsPanel.h" fwddecl="0" i18n="1" name="TopEffectsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EffectIconPanel.wxs" src="EffectIconPanel.cpp" hdr="EffectIconPanel.h" fwddecl="0" i18n="1" name="EffectIconPanel" language="CPP" />
-					<wxPanel wxs="wxsmith/ValueCurvesPanel.wxs" src="ValueCurvesPanel.cpp" hdr="ValueCurvesPanel.h" fwddecl="0" i18n="1" name="ValueCurvesPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ValueCurvesPanel.wxs" src="ui/ValueCurvesPanel.cpp" hdr="ui/ValueCurvesPanel.h" fwddecl="0" i18n="1" name="ValueCurvesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ColoursPanel.wxs" src="ColoursPanel.cpp" hdr="ColoursPanel.h" fwddecl="0" i18n="1" name="ColoursPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PerspectivesPanel.wxs" src="PerspectivesPanel.cpp" hdr="PerspectivesPanel.h" fwddecl="0" i18n="1" name="PerspectivesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/xlColorPickerFields.wxs" src="xlColorPickerFields.cpp" hdr="xlColorPickerFields.h" fwddecl="0" i18n="1" name="xlColorPickerFields" language="CPP" />

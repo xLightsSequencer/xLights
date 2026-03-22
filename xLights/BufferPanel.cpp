@@ -26,7 +26,7 @@
 #include "models/Model.h"
 #include "models/ModelGroup.h"
 #include "ui/effectpanels/EffectPanelUtils.h"
-#include "ValueCurveDialog.h"
+#include "ui/ValueCurveDialog.h"
 #include "SubBufferPanel.h"
 #include "xLightsMain.h"
 #include "xLightsApp.h"

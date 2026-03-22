@@ -10,7 +10,7 @@
 
 #include "ValueCurvesPanel.h"
 #include "UtilFunctions.h"
-#include "ValueCurve.h"
+#include "render/ValueCurve.h"
 #include "ValueCurveButton.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
@@ -62,7 +62,7 @@ int ValueCurvesPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
         }
         if (!found) {
             ValueCurve vc("");
-            vc.LoadXVC(fn);
+            vc.LoadXVC(fn.GetFullPath().ToStdString());
             if (vc.IsOk()) {
                 wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)GridSizer1->GetItemCount());
                 DragValueCurveBitmapButton* bmb = new DragValueCurveBitmapButton(ScrolledWindow1, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(30, 30),

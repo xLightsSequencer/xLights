@@ -12,7 +12,7 @@
 #include "../../../BitmapCache.h"
 #include "../../../xLightsApp.h"
 #include "../../../xLightsMain.h"
-#include "../../../ValueCurveButton.h"
+#include "ui/ValueCurveButton.h"
 
 #include <log4cpp/Category.hh>
 

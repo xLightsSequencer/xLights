@@ -15,7 +15,7 @@
 #include "../effects/EffectManager.h"
 #include "../ColorCurve.h"
 #include "../UtilFunctions.h"
-#include "../ValueCurve.h"
+#include "ValueCurve.h"
 #include "../UtilClasses.h"
 #include "RenderCache.h"
 #include "../models/Model.h"

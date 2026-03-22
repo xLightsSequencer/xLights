@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "SingleStrandEffect.h"
-#include "../ValueCurve.h"
+#include "render/ValueCurve.h"
 #include "../render/Effect.h"
 #include "../render/EffectLayer.h"
 #include "../render/Element.h"

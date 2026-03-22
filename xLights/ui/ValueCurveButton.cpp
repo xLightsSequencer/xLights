@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "ValueCurveButton.h"
+#include "ValueCurveRendering.h"
 
 #include <wx/artprov.h>
 #include <wx/dcmemory.h>
@@ -124,7 +125,7 @@ void ValueCurveButton::UpdateState()
 }
 
 void ValueCurveButton::RenderNewBitmap() {
-    SetBitmap(_vc->GetImage(24, 24, GetContentScaleFactor()));
+    SetBitmap(GetValueCurveImage(*_vc, 24, 24, GetContentScaleFactor()));
 }
 
 void ValueCurveButton::SetValue(const wxString& value)

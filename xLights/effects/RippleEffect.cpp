@@ -10,7 +10,7 @@
 
 #include "RippleEffect.h"
 #include "../utils/xlPoint.h"
-#include "../ValueCurve.h"
+#include "render/ValueCurve.h"
 
 #include "../utils/string_utils.h"
 

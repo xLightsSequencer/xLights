@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include <wx/bmpbuttn.h>
-#include "ValueCurve.h"
+#include "render/ValueCurve.h"
 
 wxDECLARE_EVENT(EVT_VC_CHANGED, wxCommandEvent);
 

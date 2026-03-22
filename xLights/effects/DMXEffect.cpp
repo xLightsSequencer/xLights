@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "DMXEffect.h"
-#include "../ValueCurve.h"
+#include "render/ValueCurve.h"
 
 #include <cstdlib>
 #include <format>

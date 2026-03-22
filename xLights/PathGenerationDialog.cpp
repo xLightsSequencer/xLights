@@ -21,7 +21,7 @@
 #include <wx/msgdlg.h>
 #include <wx/log.h>
 
-#include "ValueCurve.h"
+#include "render/ValueCurve.h"
 #include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
@@ -145,26 +145,26 @@ void PathGenerationDialog::OnButton_LoadClick(wxCommandEvent& event)
     wxFileName fn(filename);
     if (fn.GetName().Last() == 'Y')
     {
-        vc2.LoadXVC(fn);
+        vc2.LoadXVC(fn.GetFullPath().ToStdString());
         wxFileName fn2 = fn;
         fn2.SetName(fn.GetName().Left(fn.GetName().Length() - 1) + "X");
         if (FileExists(fn2))
         {
-            vc1.LoadXVC(fn2);
+            vc1.LoadXVC(fn2.GetFullPath().ToStdString());
         }
     }
     else if (fn.GetName().Last() == 'X')
     {
-        vc1.LoadXVC(fn);
+        vc1.LoadXVC(fn.GetFullPath().ToStdString());
         wxFileName fn2 = fn;
         fn2.SetName(fn.GetName().Left(fn.GetName().Length() - 1) + "Y");
         if (FileExists(fn2)) {
-            vc2.LoadXVC(fn2);
+            vc2.LoadXVC(fn2.GetFullPath().ToStdString());
         }
     }
     else
     {
-        vc1.LoadXVC(fn);
+        vc1.LoadXVC(fn.GetFullPath().ToStdString());
     }
 
     auto p1 = vc1.GetPoints();
@@ -295,8 +295,8 @@ void PathGenerationDialog::OnButton_GenerateClick(wxCommandEvent& event)
     }
     wxASSERT(x >= 0.999 && x <= 1.0);
 
-    vc1.SaveXVC(fn1);
-    vc2.SaveXVC(fn2);
+    vc1.SaveXVC(fn1.GetFullPath().ToStdString());
+    vc2.SaveXVC(fn2.GetFullPath().ToStdString());
 
     unsaved = false;
 }

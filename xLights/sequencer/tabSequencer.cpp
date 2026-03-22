@@ -24,7 +24,7 @@
 #include "../ManageMediaPanel.h"
 #include "../TopEffectsPanel.h"
 #include "../EffectIconPanel.h"
-#include "../ValueCurvesPanel.h"
+#include "ui/ValueCurvesPanel.h"
 #include "../ColoursPanel.h"
 #include "Element.h"
 #include "Effect.h"

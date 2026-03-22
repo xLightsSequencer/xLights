@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "FireEffect.h"
-#include "../ValueCurve.h"
+#include "render/ValueCurve.h"
 
 #include <format>
 

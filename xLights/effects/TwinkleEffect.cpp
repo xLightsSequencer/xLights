@@ -19,7 +19,7 @@
 #include "../../include/twinkle-32.xpm"
 #include "../../include/twinkle-48.xpm"
 #include "../../include/twinkle-64.xpm"
-#include "ValueCurve.h"
+#include "render/ValueCurve.h"
 
 #include "../Parallel.h"
 

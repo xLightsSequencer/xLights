@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "BufferSizeDialog.h"
-#include "ValueCurveDialog.h"
+#include "ui/ValueCurveDialog.h"
 #include "UtilFunctions.h"
 #include "xLightsMain.h"
 #include "BufferPanel.h"

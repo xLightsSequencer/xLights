@@ -15,7 +15,7 @@
 #include <wx/string.h>
 //*)
 
-#include "ValueCurveDialog.h"
+#include "ui/ValueCurveDialog.h"
 #include "UtilFunctions.h"
 
 //(*IdInit(BulkEditSliderDialog)

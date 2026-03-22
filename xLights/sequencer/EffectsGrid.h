@@ -24,7 +24,7 @@
 #include "Effect.h"
 #include "Element.h"
 #include "../EffectTreeDialog.h"
-#include "../ValueCurve.h"
+#include "render/ValueCurve.h"
 #include "RowHeading.h"
 
 #include <map>
