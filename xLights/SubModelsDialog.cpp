@@ -4041,8 +4041,8 @@ void SubModelsDialog::ExportSubModelAsxModel(wxString const& filename, const std
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
     f.Write(wxString::Format("name=\"%s\" ", name));
-    f.Write(wxString::Format("parm1=\"%d\" ", cols));
-    f.Write(wxString::Format("parm2=\"%d\" ", rows));
+    f.Write(wxString::Format("CustomWidth=\"%d\" ", cols));
+    f.Write(wxString::Format("CustomHeight=\"%d\" ", rows));
     f.Write("Depth=\"1\" ");
     f.Write("CustomModel=\"");
     f.Write(CustomModel::ToCustomModel(data3d));

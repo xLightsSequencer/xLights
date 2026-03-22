@@ -27,24 +27,24 @@ CandyCanePropertyAdapter::CandyCanePropertyAdapter(Model& model)
     : ModelPropertyAdapter(model), _candyCane(static_cast<CandyCaneModel&>(model)) {}
 
 void CandyCanePropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
-    wxPGProperty* p = grid->Append(new wxUIntProperty("# Canes", "CandyCaneCount", _candyCane.GetParm1()));
+    wxPGProperty* p = grid->Append(new wxUIntProperty("# Canes", "CandyCaneCount", _candyCane.GetNumCanes()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 20);
     p->SetEditor("SpinCtrl");
 
     if (_candyCane.IsSingleNode()) {
-        p = grid->Append(new wxUIntProperty("Lights Per Cane", "CandyCaneNodes", _candyCane.GetParm3()));
+        p = grid->Append(new wxUIntProperty("Lights Per Cane", "CandyCaneNodes", _candyCane.GetLightsPerNode()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 250);
         p->SetEditor("SpinCtrl");
     } else {
-        p = grid->Append(new wxUIntProperty("Nodes Per Cane", "CandyCaneNodes", _candyCane.GetParm2()));
+        p = grid->Append(new wxUIntProperty("Nodes Per Cane", "CandyCaneNodes", _candyCane.GetNodesPerCane()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 250);
         p->SetEditor("SpinCtrl");
     }
 
-    p = grid->Append(new wxUIntProperty("Lights Per Node", "CandyCaneLights", _candyCane.GetParm3()));
+    p = grid->Append(new wxUIntProperty("Lights Per Node", "CandyCaneLights", _candyCane.GetLightsPerNode()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 250);
     p->SetEditor("SpinCtrl");
@@ -91,8 +91,8 @@ void CandyCanePropertyAdapter::UpdateTypeProperties(wxPropertyGridInterface* gri
 }
 
 void CandyCanePropertyAdapter::AddDimensionProperties(wxPropertyGridInterface* grid) {
-    if (_candyCane.GetParm1() != 0) {
-        ScreenLocationPropertyHelper::AddDimensionProperties(_candyCane.GetModelScreenLocation(), grid, 6.0 / _candyCane.GetParm1());
+    if (_candyCane.GetNumCanes() != 0) {
+        ScreenLocationPropertyHelper::AddDimensionProperties(_candyCane.GetModelScreenLocation(), grid, 6.0 / _candyCane.GetNumCanes());
     } else {
         ScreenLocationPropertyHelper::AddDimensionProperties(_candyCane.GetModelScreenLocation(), grid, 6.0);
     }
@@ -100,7 +100,7 @@ void CandyCanePropertyAdapter::AddDimensionProperties(wxPropertyGridInterface* g
 
 int CandyCanePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     if ("CandyCaneCount" == event.GetPropertyName()) {
-        _candyCane.SetParm1(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _candyCane.SetNumCanes(static_cast<int>(event.GetPropertyValue().GetLong()));
         _candyCane.IncrementChangeCount();
         _candyCane.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCanePropertyAdapter::OnPropertyGridChange::CandyCaneCount");
         _candyCane.AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CandyCanePropertyAdapter::OnPropertyGridChange::CandyCaneCount");
@@ -110,7 +110,7 @@ int CandyCanePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid
         _candyCane.AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CandyCanePropertyAdapter::OnPropertyGridChange::CandyCaneCount");
         return 0;
     } else if ("CandyCaneNodes" == event.GetPropertyName()) {
-        _candyCane.SetParm2(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _candyCane.SetNodesPerCane(static_cast<int>(event.GetPropertyValue().GetLong()));
         _candyCane.IncrementChangeCount();
         _candyCane.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCanePropertyAdapter::OnPropertyGridChange::CandyCaneNodes");
         _candyCane.AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CandyCanePropertyAdapter::OnPropertyGridChange::CandyCaneNodes");
@@ -118,7 +118,7 @@ int CandyCanePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid
         _candyCane.AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CandyCanePropertyAdapter::OnPropertyGridChange::CandyCaneNodes");
         return 0;
     } else if ("CandyCaneLights" == event.GetPropertyName()) {
-        _candyCane.SetParm3(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _candyCane.SetLightsPerNode(static_cast<int>(event.GetPropertyValue().GetLong()));
         _candyCane.IncrementChangeCount();
         _candyCane.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCanePropertyAdapter::OnPropertyGridChange::CandyCaneLights");
         _candyCane.AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CandyCanePropertyAdapter::OnPropertyGridChange::CandyCaneLights");

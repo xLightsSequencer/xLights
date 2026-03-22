@@ -28,13 +28,13 @@ DmxServoPropertyAdapter::DmxServoPropertyAdapter(Model& model)
 
 void DmxServoPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
     // DmxModel base properties (# Channels + preset)
-    auto p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", _servo.GetParm1()));
+    auto p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", _servo.GetDmxChannelCount()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
 
     if (_servo.HasPresetAbility()) {
-        DmxAbilityPropertyHelpers::AddPresetProperties(grid, *_servo.GetPresetAbility(), _servo.GetParm1());
+        DmxAbilityPropertyHelpers::AddPresetProperties(grid, *_servo.GetPresetAbility(), _servo.GetDmxChannelCount());
     }
 
     p = grid->Append(new wxUIntProperty("Num Servos", "NumServos", (int)_servo.GetNumServos()));
@@ -107,7 +107,7 @@ int DmxServoPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid,
         }
 
         int min_channels = _servo.GetNumServos() * (is16bit ? 2 : 1);
-        if (_servo.GetParm1() < min_channels) {
+        if (_servo.GetDmxChannelCount() < min_channels) {
             _servo.UpdateChannelCount(min_channels, true);
         }
         _servo.SetUpdateNodeNames(true);
@@ -155,7 +155,7 @@ int DmxServoPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid,
         return 0;
     }
 
-    if (_servo.HasPresetAbility() && DmxAbilityPropertyHelpers::OnPresetPropertyGridChange(grid, event, *_servo.GetPresetAbility(), _servo.GetParm1(), &_servo) == 0) {
+    if (_servo.HasPresetAbility() && DmxAbilityPropertyHelpers::OnPresetPropertyGridChange(grid, event, *_servo.GetPresetAbility(), _servo.GetDmxChannelCount(), &_servo) == 0) {
         _servo.IncrementChangeCount();
         return 0;
     }

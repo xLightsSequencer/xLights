@@ -124,13 +124,13 @@ DmxServo3dPropertyAdapter::DmxServo3dPropertyAdapter(Model& model)
 
 void DmxServo3dPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
     // DmxModel base properties (# Channels + preset)
-    auto p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", _servo3d.GetParm1()));
+    auto p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", _servo3d.GetDmxChannelCount()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
 
     if (_servo3d.HasPresetAbility()) {
-        DmxAbilityPropertyHelpers::AddPresetProperties(grid, *_servo3d.GetPresetAbility(), _servo3d.GetParm1());
+        DmxAbilityPropertyHelpers::AddPresetProperties(grid, *_servo3d.GetPresetAbility(), _servo3d.GetDmxChannelCount());
     }
 
     p = grid->Append(new ServoPopupDialogProperty(&_servo3d, "Servo Config", "ServoConfig", CLICK_TO_EDIT, 1));
@@ -269,7 +269,7 @@ int DmxServo3dPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* gri
         return 0;
     }
 
-    if (_servo3d.HasPresetAbility() && DmxAbilityPropertyHelpers::OnPresetPropertyGridChange(grid, event, *_servo3d.GetPresetAbility(), _servo3d.GetParm1(), &_servo3d) == 0) {
+    if (_servo3d.HasPresetAbility() && DmxAbilityPropertyHelpers::OnPresetPropertyGridChange(grid, event, *_servo3d.GetPresetAbility(), _servo3d.GetDmxChannelCount(), &_servo3d) == 0) {
         _servo3d.IncrementChangeCount();
         return 0;
     }

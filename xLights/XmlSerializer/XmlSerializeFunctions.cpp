@@ -291,8 +291,11 @@ std::optional<CustomModelImportData> LoadCustomModelFromXml(const wxXmlNode* nod
     
     // Load basic attributes
     data.name = node->GetAttribute("name", "").ToStdString();
-    data.width = wxAtoi(node->GetAttribute("parm1", "1"));
-    data.height = wxAtoi(node->GetAttribute("parm2", "1"));
+    // Read new attribute names first, fall back to old parm names
+    data.width = wxAtoi(node->HasAttribute("CustomWidth") ?
+        node->GetAttribute("CustomWidth", "1") : node->GetAttribute("parm1", "1"));
+    data.height = wxAtoi(node->HasAttribute("CustomHeight") ?
+        node->GetAttribute("CustomHeight", "1") : node->GetAttribute("parm2", "1"));
     data.depth = wxAtoi(node->GetAttribute("Depth", "1"));
     
     // Check if it's a 1-depth model (or empty for pre-3D models)

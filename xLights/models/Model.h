@@ -130,7 +130,7 @@ public:
 
     virtual std::string GetFullName() const { return name; }
     void Rename(std::string const& newName);
-    virtual int GetNumStrings() const { return HasOneString(DisplayAs) ? 1 : parm1; }
+    virtual int GetNumStrings() const { return 1; }
     PIXEL_STYLE GetPixelStyle() const { return _pixelStyle; }
     void SetPixelStyle(PIXEL_STYLE style);
     static std::string GetPixelStyleDescription(PIXEL_STYLE pixelStyle);
@@ -142,12 +142,7 @@ public:
     std::string GetModelStartChannel() const { return ModelStartChannel; }
     const std::string GetStartSide() const { return _startSide; }
     const std::string GetDirection() const { return _dir; }
-    long GetParm1() const { return parm1; }
-    long GetParm2() const { return parm2; }
-    long GetParm3() const { return parm3; }
-    void SetParm1(long val) {parm1 = val;}
-    void SetParm2(long val) {parm2 = val;}
-    void SetParm3(long val) {parm3 = val;}
+    // parm1/2/3 removed - use model-specific named accessors instead
     int GetTransparency() const { return transparency; }
     int GetBlackTransparency() const { return blackTransparency; }
     std::string GetDescription() const { return description; }
@@ -368,9 +363,7 @@ protected:
     std::vector<std::string> nodeNames;
     std::string _nodeNamesString;
     std::string _strandNamesString;
-    long parm1 = 0;         /* Number of strings in the model or number of arches or canes (except for frames & custom) */
-    long parm2 = 0;         /* Number of nodes per string in the model or number of segments per arch or cane (except for frames & custom) */
-    long parm3 = 0;         /* Number of strands per string in the model or number of lights per arch or cane segment (except for frames & custom) */
+    // parm1/2/3 removed - each model subclass now has its own named member variables
     bool IsLtoR = true;     // true = left to right, false = right to left
     std::vector<int32_t> stringStartChan;
     bool isBotToTop = true;
@@ -539,7 +532,8 @@ public:
     virtual int NodesPerString() const;
     virtual int NodesPerString(int string) const;
     virtual int MapPhysicalStringToLogicalString(int string) const;
-    virtual int GetLightsPerNode() const { return 1; } // default to one unless a model supports this
+    virtual int GetLightsPerNode() const { return 1; }
+    virtual int GetStrandsPerString() const { return 1; }
     wxCursor InitializeLocation(int& handle, wxCoord x, wxCoord y, ModelPreview* preview);
 
     int32_t NodeStartChannel(size_t nodenum) const;
@@ -634,7 +628,7 @@ public:
         return std::string("String") + std::to_string(idx + 1); // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
     }
 
-    // returns true for models that only have 1 string and where parm1 does NOT represent the # of strings
+    // returns true for models that only have 1 string (e.g., WindowFrame, Cube)
     static bool HasOneString(const DisplayAsType DispAs)
     {
         return (DispAs == DisplayAsType::WindowFrame || DispAs == DisplayAsType::Cube);

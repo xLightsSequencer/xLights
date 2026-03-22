@@ -50,15 +50,27 @@ bool CircleModel::AllNodesAllocated() const
     return (allocated == GetNodeCount());
 }
 
-// parm3 is number of points
+// _centerPercent controls inner circle size
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
+int CircleModel::NodesPerString() const
+{
+    if (SingleNode) {
+        return 1;
+    }
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return _nodesPerString;
+    }
+    return _nodesPerString * ts;
+}
+
 void CircleModel::InitModel()
 {
     if (GetLayerSizeCount() == 0) {
         SetLayerSizeCount(1);
     }
     if (GetLayerSizeCount() == 1) {
-        SetLayerSize(0, parm1 * parm2);
+        SetLayerSize(0, _numStrings * _nodesPerString);
     }
 
     InitCircle();
@@ -79,7 +91,7 @@ int CircleModel::maxSize() {
 void CircleModel::InitCircle()
 {
     int maxLights = 0;
-    int numLights = parm1 * parm2;
+    int numLights = _numStrings * _nodesPerString;
     int cnt = 0;
 
     if (GetLayerSizeCount() == 0) {
@@ -102,7 +114,7 @@ void CircleModel::InitCircle()
         }
     }
 
-    SetNodeCount(parm1, parm2, rgbOrder);
+    SetNodeCount(_numStrings, _nodesPerString, rgbOrder);
     SetBufferSize(GetLayerSizeCount(), maxLights);
     int LastStringNum = -1;
     int chan = 0;
@@ -154,7 +166,7 @@ void CircleModel::SetCircleCoord()
     int nodesToMap = NodeCount;
     int node = 0;
     double maxRadius = maxLights / 2.0;
-    double minRadius = (double)parm3 / 100.0 * maxRadius;
+    double minRadius = (double)_centerPercent / 100.0 * maxRadius;
     for (int c2 = 0; c2 < GetLayerSizeCount(); c2++) {
         int circle = c2;
         int loop_count = std::min(nodesToMap, GetStrandLength(circle));
@@ -180,8 +192,8 @@ void CircleModel::SetCircleCoord()
 void CircleModel::OnLayerSizesChange(bool countChanged)
 {
     // if string count is 1 then adjust nodes per string to match sum of nodes
-    if (parm1 == 1 && GetLayerSizeCount() > 0) {
-        parm2 = (int)GetLayerSizesTotalNodes();
+    if (_numStrings == 1 && GetLayerSizeCount() > 0) {
+        _nodesPerString = (int)GetLayerSizesTotalNodes();
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
                     OutputModelManager::WORK_CALCULATE_START_CHANNELS |

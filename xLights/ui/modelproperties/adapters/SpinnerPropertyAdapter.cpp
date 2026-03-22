@@ -29,18 +29,18 @@ SpinnerPropertyAdapter::SpinnerPropertyAdapter(Model& model)
     : ModelPropertyAdapter(model), _spinner(static_cast<SpinnerModel&>(model)) {}
 
 void SpinnerPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
-    wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "SpinnerStringCount", _spinner.GetParm1()));
+    wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "SpinnerStringCount", _spinner.GetNumSpinnerStrings()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
     p->SetEditor("SpinCtrl");
     p->SetHelpString("This is typically the number of connections from the prop to your controller.");
 
-    p = grid->Append(new wxUIntProperty("Arms/String", "FoldCount", _spinner.GetParm3()));
+    p = grid->Append(new wxUIntProperty("Arms/String", "FoldCount", _spinner.GetArmsPerString()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 250);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Lights/Arm", "SpinnerArmNodeCount", _spinner.GetParm2()));
+    p = grid->Append(new wxUIntProperty("Lights/Arm", "SpinnerArmNodeCount", _spinner.GetNodesPerArm()));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 200);
     p->SetEditor("SpinCtrl");
@@ -73,7 +73,7 @@ void SpinnerPropertyAdapter::UpdateTypeProperties(wxPropertyGridInterface* grid)
 
 int SpinnerPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     if ("SpinnerStringCount" == event.GetPropertyName()) {
-        _spinner.SetParm1(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _spinner.SetNumSpinnerStrings(static_cast<int>(event.GetPropertyValue().GetLong()));
         _spinner.IncrementChangeCount();
         _spinner.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
@@ -81,14 +81,14 @@ int SpinnerPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, 
                     OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "SpinnerPropertyAdapter::OnPropertyGridChange::SpinnerStringCount");
         return 0;
     } else if ("SpinnerArmNodeCount" == event.GetPropertyName()) {
-        _spinner.SetParm2(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _spinner.SetNodesPerArm(static_cast<int>(event.GetPropertyValue().GetLong()));
         _spinner.IncrementChangeCount();
         _spinner.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_CALCULATE_START_CHANNELS |
                     OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "SpinnerPropertyAdapter::OnPropertyGridChange::SpinnerArmNodeCount");
         return 0;
     } else if ("FoldCount" == event.GetPropertyName()) {
-        _spinner.SetParm3(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _spinner.SetArmsPerString(static_cast<int>(event.GetPropertyValue().GetLong()));
         _spinner.IncrementChangeCount();
         _spinner.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_CALCULATE_START_CHANNELS |

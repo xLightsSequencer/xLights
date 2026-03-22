@@ -73,8 +73,8 @@ int CustomModel::MapToNodeIndex(int strand, int node) const
 }
 
 void CustomModel::UpdateModel(int width, int height, int depth, const std::vector<std::vector<std::vector<int>>>& modelData) {
-    parm1 = width;
-    parm2 = height;
+    _customWidth = width;
+    _customHeight = height;
     _depth = depth;
     _locations = modelData;
     Setup();
@@ -84,7 +84,7 @@ void CustomModel::InitModel()
 {
     InitCustomMatrix();
     //CopyBufCoord2ScreenCoord();
-    screenLocation.SetRenderSize(parm1, parm2, _depth);
+    screenLocation.SetRenderSize(_customWidth, _customHeight, _depth);
     if (_depth > 1) {
         screenLocation.SetPerspective2D(0.1f); // if i dont do this you cant see the back nodes in 2D
     }
@@ -92,12 +92,12 @@ void CustomModel::InitModel()
 
 void CustomModel::SetCustomWidth(long w)
 {
-    parm1 = w;
+    _customWidth = w;
 }
 
 void CustomModel::SetCustomHeight(long h)
 {
-    parm2 = h;
+    _customHeight = h;
 }
 
 void CustomModel::SetCustomDepth(long d)
@@ -240,8 +240,8 @@ const std::vector<std::string>& CustomModel::GetBufferStyles() const
 
 void CustomModel::GetBufferSize(const std::string& tp, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const
 {
-    int width = parm1;
-    int height = parm2;
+    int width = _customWidth;
+    int height = _customHeight;
     int depth = _depth;
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
 
@@ -312,8 +312,8 @@ void CustomModel::GetBufferSize(const std::string& tp, const std::string& camera
 
 void CustomModel::InitRenderBufferNodes(const std::string& tp, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int stagger, bool deep) const
 {
-    int width = parm1;
-    int height = parm2;
+    int width = _customWidth;
+    int height = _customHeight;
     int depth = _depth;
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
 
@@ -618,7 +618,7 @@ void CustomModel::InitCustomMatrix() {
 
     // we have 2 sources of truth for the width, height and depth but we take the parm settings rather than the data
     //SetBufferSize(height, width * depth);
-    SetBufferSize(parm2, parm1 * _depth);
+    SetBufferSize(_customHeight, _customWidth * _depth);
     if (screenLocation.RenderDp < 10.0f) {
         screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
     }
@@ -668,10 +668,10 @@ std::list<std::string> CustomModel::CheckModelSettings()
     }
 
     if (!xLightsFrame::IsCheckSequenceOptionDisabled("CustomSizeCheck")) {
-        if (parm1 > PERFORMANCE_IMPACT_SIZE || parm2 > PERFORMANCE_IMPACT_SIZE || _depth > PERFORMANCE_IMPACT_SIZE) {
-            float pop = ((float)GetNodeCount() * 100) / (float)(parm1 * parm2);
+        if (_customWidth > PERFORMANCE_IMPACT_SIZE || _customHeight > PERFORMANCE_IMPACT_SIZE || _depth > PERFORMANCE_IMPACT_SIZE) {
+            float pop = ((float)GetNodeCount() * 100) / (float)(_customWidth * _customHeight);
             if (pop < 10.0) { // allow models which have more than 1 in 10 cells used as these likely need to be that large
-                res.push_back(std::format("    WARN: Custom model '{}' dimensions are really large ({} x {} x {} : Nodes {} => {:.2f}%). This may impact xLights render performance.", GetName(), parm1, parm2, _depth, GetNodeCount(), pop));
+                res.push_back(std::format("    WARN: Custom model '{}' dimensions are really large ({} x {} x {} : Nodes {} => {:.2f}%). This may impact xLights render performance.", GetName(), _customWidth, _customHeight, _depth, GetNodeCount(), pop));
             }
         }
     }
@@ -837,7 +837,7 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
     }
     else {
         std::vector<std::vector<std::vector<std::string>>> _data;
-        int cols = parm1;
+        int cols = _customWidth;
         auto layers = Split(data, '|');
         for (const auto& l : layers) {
             std::vector<std::vector<std::string>> ll;
@@ -852,7 +852,7 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
                 ll.push_back(rr);
             }
             // This should never happen but i have seen files where it did so lets just pad it and not crash
-            while (ll.size() < (size_t)parm2) {
+            while (ll.size() < (size_t)_customHeight) {
                 std::vector<std::string> rr;
                 while (rr.size() < (size_t)cols) rr.push_back("");
                 ll.push_back(rr);
@@ -860,10 +860,10 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
             _data.push_back(ll);
         }
 
-        for (int r = 0; r < parm2; r++) {
+        for (int r = 0; r < _customHeight; r++) {
             html += "<tr>";
             for (int l = 0; l < _depth; l++) {
-                for (int c = 0; c < parm1; c++) {
+                for (int c = 0; c < _customWidth; c++) {
                     const std::string& value = _data[l][r][c];
                     if (!value.empty() && value != "0") {
                         if (_strings == 1) {
@@ -1085,8 +1085,8 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
 
         logger_base.debug("Divisor chosen %f. Model dimensions %d,%d", divisor, maxx + 1, maxy + 1);
 
-        SetParm1(maxx);
-        SetParm2(maxy);
+        _customWidth = maxx;
+        _customHeight = maxy;
 
         int* data = (int*)malloc(maxx * maxy * sizeof(int));
         memset(data, 0x00, maxx * maxy * sizeof(int));

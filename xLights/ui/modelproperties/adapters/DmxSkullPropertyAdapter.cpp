@@ -140,13 +140,13 @@ DmxSkullPropertyAdapter::DmxSkullPropertyAdapter(Model& model)
 
 void DmxSkullPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
     // DmxModel base properties (# Channels + preset)
-    auto p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", _skull.GetParm1()));
+    auto p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", _skull.GetDmxChannelCount()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
 
     if (_skull.HasPresetAbility()) {
-        DmxAbilityPropertyHelpers::AddPresetProperties(grid, *_skull.GetPresetAbility(), _skull.GetParm1());
+        DmxAbilityPropertyHelpers::AddPresetProperties(grid, *_skull.GetPresetAbility(), _skull.GetDmxChannelCount());
     }
 
     p = grid->Append(new SkullPopupDialogProperty(&_skull, "Skull Config", "SkullConfig", CLICK_TO_EDIT, 1));
@@ -364,7 +364,7 @@ int DmxSkullPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid,
         return 0;
     }
 
-    if (_skull.HasPresetAbility() && DmxAbilityPropertyHelpers::OnPresetPropertyGridChange(grid, event, *_skull.GetPresetAbility(), _skull.GetParm1(), &_skull) == 0) {
+    if (_skull.HasPresetAbility() && DmxAbilityPropertyHelpers::OnPresetPropertyGridChange(grid, event, *_skull.GetPresetAbility(), _skull.GetDmxChannelCount(), &_skull) == 0) {
         _skull.IncrementChangeCount();
         return 0;
     }

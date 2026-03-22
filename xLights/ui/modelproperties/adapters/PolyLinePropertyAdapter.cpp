@@ -34,17 +34,17 @@ PolyLinePropertyAdapter::PolyLinePropertyAdapter(Model& model)
 void PolyLinePropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
     wxPGProperty* p;
     if (_polyLine.IsSingleNode()) {
-        p = grid->Append(new wxUIntProperty("# Lights", "PolyLineNodes", _polyLine.GetParm2()));
+        p = grid->Append(new wxUIntProperty("# Lights", "PolyLineNodes", _polyLine.GetTotalLightCount()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
     } else {
-        p = grid->Append(new wxUIntProperty("# Nodes", "PolyLineNodes", _polyLine.GetParm2()));
+        p = grid->Append(new wxUIntProperty("# Nodes", "PolyLineNodes", _polyLine.GetTotalLightCount()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
 
-        p = grid->Append(new wxUIntProperty("Lights/Node", "PolyLineLights", _polyLine.GetParm3()));
+        p = grid->Append(new wxUIntProperty("Lights/Node", "PolyLineLights", _polyLine.GetLightsPerNode()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 300);
         p->SetEditor("SpinCtrl");
@@ -118,12 +118,12 @@ void PolyLinePropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, O
 
 int PolyLinePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     if ("PolyLineNodes" == event.GetPropertyName()) {
-        _polyLine.SetParm2((int)event.GetPropertyValue().GetLong());
+        _polyLine.SetTotalLightCount((int)event.GetPropertyValue().GetLong());
         wxPGProperty* sp = grid->GetPropertyByLabel("# Nodes");
         if (sp == nullptr) {
             sp = grid->GetPropertyByLabel("# Lights");
         }
-        sp->SetValueFromInt(_polyLine.GetParm2());
+        sp->SetValueFromInt(_polyLine.GetTotalLightCount());
         _polyLine.SetAutoDistribute(true);
         _polyLine.IncrementChangeCount();
         _polyLine.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
@@ -132,7 +132,7 @@ int PolyLinePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid,
                     OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyLineModel::OnPropertyGridChange::PolyLineNodes");
         return 0;
     } else if ("PolyLineLights" == event.GetPropertyName()) {
-        _polyLine.SetParm3((int)event.GetPropertyValue().GetLong());
+        _polyLine.SetLightsPerNode((int)event.GetPropertyValue().GetLong());
         _polyLine.IncrementChangeCount();
         _polyLine.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_CALCULATE_START_CHANNELS |

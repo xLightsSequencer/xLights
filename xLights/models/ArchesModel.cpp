@@ -77,17 +77,17 @@ bool ArchesModel::IsNodeFirst(int n) const
 void ArchesModel::InitModel()
 {
     if (GetLayerSizeCount() == 0) {
-        int NumArches = parm1;
-        int SegmentsPerArch = parm2;
+        int NumArches = _numArches;
+        int SegmentsPerArch = _nodesPerArch;
 
         SetBufferSize(NumArches, SegmentsPerArch);
         if (SingleNode) {
-            SetNodeCount(NumArches * SegmentsPerArch, parm3, rgbOrder);
+            SetNodeCount(NumArches * SegmentsPerArch, _lightsPerNode, rgbOrder);
         } else {
             SetNodeCount(NumArches, SegmentsPerArch, rgbOrder);
-            if (parm3 > 1) {
+            if (_lightsPerNode > 1) {
                 for (size_t x = 0; x < Nodes.size(); x++) {
-                    Nodes[x]->Coords.resize(parm3);
+                    Nodes[x]->Coords.resize(_lightsPerNode);
                 }
             }
         }
@@ -122,12 +122,12 @@ void ArchesModel::InitModel()
         }
         SetBufferSize(lcount, maxLen);
         if (SingleNode) {
-            SetNodeCount(parm2, parm3, rgbOrder);
+            SetNodeCount(_nodesPerArch, _lightsPerNode, rgbOrder);
         } else {
-            SetNodeCount(1, parm2, rgbOrder);
-            if (parm3 > 1) {
+            SetNodeCount(1, _nodesPerArch, rgbOrder);
+            if (_lightsPerNode > 1) {
                 for (size_t x = 0; x < Nodes.size(); x++) {
-                    Nodes[x]->Coords.resize(parm3);
+                    Nodes[x]->Coords.resize(_lightsPerNode);
                 }
             }
         }
@@ -189,13 +189,25 @@ int ArchesModel::MapToNodeIndex(int strand, int node) const {
         idx += node;
         return idx;
     }
-    return strand * parm2 + node;
+    return strand * _nodesPerArch + node;
 }
 int ArchesModel::GetNumStrands() const {
     if (GetLayerSizeCount() != 0) {
         return GetLayerSizeCount();
     }
-    return parm1;
+    return _numArches;
+}
+
+int ArchesModel::NodesPerString() const
+{
+    if (SingleNode) {
+        return 1;
+    }
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return _nodesPerArch;
+    }
+    return _nodesPerArch * ts;
 }
 
 int ArchesModel::GetStrandLength(int strand) const
@@ -218,7 +230,7 @@ int ArchesModel::GetMappedStrand(int strand) const
 int ArchesModel::CalcChannelsPerString()
 {
     SingleChannel = false;
-    return GetNodeChannelCount(StringType) * parm2;
+    return GetNodeChannelCount(StringType) * _nodesPerArch;
 }
 
 static void rotate_point(float cx, float cy, float angle, float& x, float& y)
@@ -243,7 +255,7 @@ void ArchesModel::SetLayerdArchCoord(int arches, int maxLen)
 {
     double x;
     size_t NodeCount = GetNodeCount();
-    double midpt = maxLen * parm3;
+    double midpt = maxLen * _lightsPerNode;
     midpt -= 1.0;
     midpt /= 2.0;
     double total = toRadians(_arc);
@@ -251,8 +263,8 @@ void ArchesModel::SetLayerdArchCoord(int arches, int maxLen)
     float skew_angle = toRadians(screenLocation.GetAngle());
 
     double angle = -M_PI / 2.0 + start;
-    x = midpt * sin(angle) * 2.0 + maxLen * parm3;
-    double width = maxLen * parm3 * 2 - x;
+    x = midpt * sin(angle) * 2.0 + maxLen * _lightsPerNode;
+    double width = maxLen * _lightsPerNode * 2 - x;
 
     double archgap = 0;
     if (arches > 1) {
@@ -264,9 +276,9 @@ void ArchesModel::SetLayerdArchCoord(int arches, int maxLen)
         size_t CoordCount = GetCoordCount(n);
         double adj = 1.0 - archgap * (arches - 1 - Nodes[n]->Coords[0].bufY);
         for (size_t c = 0; c < CoordCount; c++) {
-            double angle2 = -M_PI / 2.0 + start + total * ((double)(Nodes[n]->Coords[c].bufX * parm3 + c)) / midpt / 2.0;
-            x = midpt * sin(angle2) * 2.0 * adj + maxLen * parm3;
-            double y = (maxLen * parm3) * cos(angle2);
+            double angle2 = -M_PI / 2.0 + start + total * ((double)(Nodes[n]->Coords[c].bufX * _lightsPerNode + c)) / midpt / 2.0;
+            x = midpt * sin(angle2) * 2.0 * adj + maxLen * _lightsPerNode;
+            double y = (maxLen * _lightsPerNode) * cos(angle2);
             Nodes[n]->Coords[c].screenX = x;
             Nodes[n]->Coords[c].screenY = y * screenLocation.GetMHeight() * adj;
             rotate_point(x, 0, skew_angle,
@@ -275,7 +287,7 @@ void ArchesModel::SetLayerdArchCoord(int arches, int maxLen)
             minY = std::min(minY, y);
         }
     }
-    float renderHt = parm2 * parm3;
+    float renderHt = _nodesPerArch * _lightsPerNode;
     if (minY > 1) {
         renderHt -= minY;
         for (const auto& it : Nodes) {
@@ -291,7 +303,7 @@ void ArchesModel::SetArchCoord()
 {
     double x;
     size_t NodeCount = GetNodeCount();
-    double midpt = parm2 * parm3;
+    double midpt = _nodesPerArch * _lightsPerNode;
     midpt -= 1.0;
     midpt /= 2.0;
     double total = toRadians(_arc);
@@ -299,8 +311,8 @@ void ArchesModel::SetArchCoord()
     float skew_angle = toRadians(screenLocation.GetAngle());
 
     double angle = -M_PI / 2.0 + start;
-    x = midpt * sin(angle) * 2.0 + parm2 * parm3;
-    double width = parm2 * parm3 * 2 - x;
+    x = midpt * sin(angle) * 2.0 + _nodesPerArch * _lightsPerNode;
+    double width = _nodesPerArch * _lightsPerNode * 2 - x;
 
     double minY = 999999;
     int gaps = 0;
@@ -308,9 +320,9 @@ void ArchesModel::SetArchCoord()
         double xoffset = Nodes[n]->StringNum * width;
         size_t CoordCount = GetCoordCount(n);
         for (size_t c = 0; c < CoordCount; c++) {
-            double angle2 = -M_PI / 2.0 + start + total * ((double)(Nodes[n]->Coords[c].bufX * parm3 + c)) / midpt / 2.0;
-            x = xoffset + midpt * sin(angle2) * 2.0 + parm2 * parm3 + gaps * _gap;
-            double y = (parm2 * parm3) * cos(angle2);
+            double angle2 = -M_PI / 2.0 + start + total * ((double)(Nodes[n]->Coords[c].bufX * _lightsPerNode + c)) / midpt / 2.0;
+            x = xoffset + midpt * sin(angle2) * 2.0 + _nodesPerArch * _lightsPerNode + gaps * _gap;
+            double y = (_nodesPerArch * _lightsPerNode) * cos(angle2);
             Nodes[n]->Coords[c].screenX = x;
             Nodes[n]->Coords[c].screenY = y * screenLocation.GetMHeight();
             rotate_point(x, 0, skew_angle,
@@ -318,11 +330,11 @@ void ArchesModel::SetArchCoord()
                 Nodes[n]->Coords[c].screenY);
             minY = std::min(minY, y);
         }
-        if ((n + 1) % parm2 == 0) {
+        if ((n + 1) % _nodesPerArch == 0) {
             gaps++;
         }
     }
-    float renderHt = parm2 * parm3;
+    float renderHt = _nodesPerArch * _lightsPerNode;
     if (minY > 1) {
         renderHt -= minY;
         for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
@@ -331,13 +343,13 @@ void ArchesModel::SetArchCoord()
             }
         }
     }
-    screenLocation.SetRenderSize(width * parm1 + (parm1 - 1) * _gap, renderHt);
+    screenLocation.SetRenderSize(width * _numArches + (_numArches - 1) * _gap, renderHt);
 }
 
 std::string ArchesModel::GetDimension() const
 {
-    if (GetLayerSizeCount() == 0 && parm1 != 0) {
-        return GetModelScreenLocation().GetDimension(1.0 / parm1);
+    if (GetLayerSizeCount() == 0 && _numArches != 0) {
+        return GetModelScreenLocation().GetDimension(1.0 / _numArches);
     }
     return GetModelScreenLocation().GetDimension(1.0);
 }
@@ -345,8 +357,8 @@ std::string ArchesModel::GetDimension() const
 void ArchesModel::OnLayerSizesChange(bool countChanged)
 {
     // if string count is 1 then adjust nodes per string to match sum of nodes
-    if (parm1 == 1 && GetLayerSizeCount() > 0) {
-        SetParm2((int)GetLayerSizesTotalNodes());
+    if (_numArches == 1 && GetLayerSizeCount() > 0) {
+        _nodesPerArch = (int)GetLayerSizesTotalNodes();
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
                     OutputModelManager::WORK_CALCULATE_START_CHANNELS |

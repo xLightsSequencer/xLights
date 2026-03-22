@@ -20,13 +20,13 @@ DmxPropertyAdapter::DmxPropertyAdapter(Model& model)
     : ModelPropertyAdapter(model), _dmx(static_cast<DmxModel&>(model)) {}
 
 void DmxPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
-    wxPGProperty* p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", _dmx.GetParm1()));
+    wxPGProperty* p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", _dmx.GetDmxChannelCount()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
 
     if (_dmx.HasPresetAbility()) {
-        DmxAbilityPropertyHelpers::AddPresetProperties(grid, *_dmx.GetPresetAbility(), _dmx.GetParm1());
+        DmxAbilityPropertyHelpers::AddPresetProperties(grid, *_dmx.GetPresetAbility(), _dmx.GetDmxChannelCount());
     }
 }
 
@@ -38,7 +38,7 @@ int DmxPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPr
         return 0;
     }
 
-    if (_dmx.HasPresetAbility() && DmxAbilityPropertyHelpers::OnPresetPropertyGridChange(grid, event, *_dmx.GetPresetAbility(), _dmx.GetParm1(), &_dmx) == 0) {
+    if (_dmx.HasPresetAbility() && DmxAbilityPropertyHelpers::OnPresetPropertyGridChange(grid, event, *_dmx.GetPresetAbility(), _dmx.GetDmxChannelCount(), &_dmx) == 0) {
         _dmx.IncrementChangeCount();
         return 0;
     }

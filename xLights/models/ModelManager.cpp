@@ -1202,135 +1202,163 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
 {
     Model* model;
 
-    std::string type_conversion = type;
     std::string protocol = "ws2811";
-    int parm1 = 1;
-    int parm2 = 50;
-    int parm3 = 1;
 
     if (type == "Star") {
-        model = new StarModel(*this);
-        parm3 = 5;
-        dynamic_cast<StarModel*>(model)->SetStarStartLocation("Bottom Ctr-CW");
+        auto* m = new StarModel(*this);
+        m->SetNumStarStrings(1);
+        m->SetStarNodesPerString(50);
+        m->SetStarPoints(5);
+        m->SetStarStartLocation("Bottom Ctr-CW");
+        model = m;
     } else if (type == "Arches") {
-        model = new ArchesModel(*this);
+        auto* m = new ArchesModel(*this);
+        m->SetNumArches(1);
+        m->SetNodesPerArch(50);
+        m->SetLightsPerNode(1);
+        model = m;
     } else if (type == "Candy Canes") {
-        model = new CandyCaneModel(*this);
-        parm1 = 3;
-        parm2 = 18;
+        auto* m = new CandyCaneModel(*this);
+        m->SetNumCanes(3);
+        m->SetNodesPerCane(18);
+        m->SetLightsPerNode(1);
+        model = m;
     } else if (type == "Channel Block") {
-        model = new ChannelBlockModel(*this);
-        parm1 = 16;
+        auto* m = new ChannelBlockModel(*this);
+        m->SetNumChannels(16);
         protocol = xlEMPTY_STRING;
-        model->SetStringType("Single Color White");
-        model->SetPixelSize(12);
+        m->SetStringType("Single Color White");
+        m->SetPixelSize(12);
+        model = m;
     } else if (type == "Circle") {
-        model = new CircleModel(*this);
-        parm3 = 50;
-        dynamic_cast<CircleModel*>(model)->SetInsideOut(false);
+        auto* m = new CircleModel(*this);
+        m->SetNumCircleStrings(1);
+        m->SetCircleNodesPerString(50);
+        m->SetInsideOut(false);
+        model = m;
     } else if (type == "DmxMovingHead") {
-        model = new DmxMovingHead(*this);
+        auto* m = new DmxMovingHead(*this);
         protocol = xlEMPTY_STRING;
-        parm1 = 8;
-        parm2 = 1;
-        dynamic_cast<DmxMovingHead*>(model)->SetDmxStyle("Moving Head Top");
-        model->SetStringType("Single Color White");
+        m->SetDmxChannelCount(8);
+        m->SetDmxStyle("Moving Head Top");
+        m->SetStringType("Single Color White");
+        model = m;
     } else if (type == "DmxGeneral") {
-        model = new DmxGeneral(*this);
+        auto* m = new DmxGeneral(*this);
         protocol = xlEMPTY_STRING;
-        parm1 = 8;
-        parm2 = 1;
-        parm3 = 1;
-        model->SetStringType("Single Color White");
+        m->SetDmxChannelCount(8);
+        m->SetStringType("Single Color White");
+        model = m;
     } else if (type == "DmxMovingHeadAdv") {
-        model = new DmxMovingHeadAdv(*this);
+        auto* m = new DmxMovingHeadAdv(*this);
         protocol = xlEMPTY_STRING;
-        parm1 = 8;
-        parm2 = 1;
-        model->SetStringType("Single Color White");
+        m->SetDmxChannelCount(8);
+        m->SetStringType("Single Color White");
+        model = m;
     } else if (type == "DmxFloodlight") {
-        model = new DmxFloodlight(*this);
-        parm1 = 3;
-        parm2 = 1;
-        model->SetStringType("Single Color White");
+        auto* m = new DmxFloodlight(*this);
+        m->SetDmxChannelCount(3);
+        m->SetStringType("Single Color White");
+        model = m;
     } else if (type == "DmxFloodArea") {
-        model = new DmxFloodArea(*this);
+        auto* m = new DmxFloodArea(*this);
         protocol = xlEMPTY_STRING;
-        parm1 = 3;
-        parm2 = 1;
-        model->SetStringType("Single Color White");
+        m->SetDmxChannelCount(3);
+        m->SetStringType("Single Color White");
+        model = m;
     } else if (type == "DmxSkull") {
-        model = new DmxSkull(*this);
+        auto* m = new DmxSkull(*this);
         protocol = xlEMPTY_STRING;
-        parm1 = 26;
-        parm2 = 1;
-        model->SetStringType("Single Color White");
+        m->SetDmxChannelCount(26);
+        m->SetStringType("Single Color White");
+        model = m;
     } else if (type == "DmxServo") {
-        model = new DmxServo(*this);
+        auto* m = new DmxServo(*this);
         protocol = xlEMPTY_STRING;
-        parm1 = 2;
-        parm2 = 1;
-        model->SetStringType("Single Color White");
+        m->SetDmxChannelCount(2);
+        m->SetStringType("Single Color White");
+        model = m;
     } else if (type == "DmxServo3d" || type == "DmxServo3Axis") {
-        model = new DmxServo3d(*this);
+        auto* m = new DmxServo3d(*this);
         protocol = xlEMPTY_STRING;
-        parm1 = 2;
-        parm2 = 1;
-        model->SetStringType("Single Color White");
+        m->SetDmxChannelCount(2);
+        m->SetStringType("Single Color White");
         if (type == "DmxServo3Axis") {
-            dynamic_cast<DmxServo3d*>(model)->SetNumServos(3);
-            dynamic_cast<DmxServo3d*>(model)->SetNumStatic(1);
-            dynamic_cast<DmxServo3d*>(model)->SetNumMotion(3);
-            model->SetParm1(6);
+            m->SetNumServos(3);
+            m->SetNumStatic(1);
+            m->SetNumMotion(3);
+            m->SetDmxChannelCount(6);
         }
+        model = m;
     } else if (type == "Image") {
         model = new ImageModel(*this);
         protocol = xlEMPTY_STRING;
-        parm1 = 1;
-        parm2 = 1;
         dynamic_cast<ImageModel*>(model)->SetImageFile("");
         model->SetStringType("Single Color White");
     } else if (type == "Window Frame") {
-        model = new WindowFrameModel(*this);
-        parm1 = 16;
-        parm3 = 16;
+        auto* m = new WindowFrameModel(*this);
+        m->SetTopNodes(16);
+        m->SetSideNodes(50);
+        m->SetBottomNodes(16);
+        model = m;
     } else if (type == "Wreath") {
-        model = new WreathModel(*this);
+        auto* m = new WreathModel(*this);
+        m->SetNumWreathStrings(1);
+        m->SetWreathNodesPerString(50);
+        model = m;
     } else if (type.find("Sphere") == 0) {
-        model = new SphereModel(*this);
-        parm1 = 10;
-        parm2 = 10;
+        auto* m = new SphereModel(*this);
+        m->SetNumMatrixStrings(10);
+        m->SetNodesPerString(10);
+        m->SetStrandsPerString(1);
+        model = m;
     } else if (type == "Single Line") {
-        model = new SingleLineModel(*this);
+        auto* m = new SingleLineModel(*this);
+        m->SetNumLines(1);
+        m->SetNodesPerLine(50);
+        m->SetLightsPerNode(1);
+        model = m;
     } else if (type == "Poly Line") {
         model = new PolyLineModel(*this);
     } else if (type == "MultiPoint") {
         model = new MultiPointModel(*this);
     } else if (type == "Cube") {
-        model = new CubeModel(*this);
-        parm1 = 5;
-        parm2 = 5;
-        parm3 = 5;
-        dynamic_cast<CubeModel*>(model)->SetCubeStyle("Horizontal Left/Right");
+        auto* m = new CubeModel(*this);
+        m->SetCubeWidth(5);
+        m->SetCubeHeight(5);
+        m->SetCubeDepth(5);
+        m->SetCubeStyle("Horizontal Left/Right");
+        model = m;
     } else if (type == "Custom") {
-        model = new CustomModel(*this);
-        parm1 = 5;
-        parm2 = 5;
+        auto* m = new CustomModel(*this);
+        m->SetCustomWidth(5);
+        m->SetCustomHeight(5);
+        model = m;
     } else if (type.find("Tree") == 0) {
-        model = new TreeModel(*this);
-        parm1 = 16;
+        auto* m = new TreeModel(*this);
+        m->SetNumMatrixStrings(16);
+        m->SetNodesPerString(50);
+        m->SetStrandsPerString(1);
+        model = m;
     } else if (type == "Matrix") {
-        model = new MatrixModel(*this);
-        parm1 = 16;
-        model->SetStartSide("T");
+        auto* m = new MatrixModel(*this);
+        m->SetNumMatrixStrings(16);
+        m->SetNodesPerString(50);
+        m->SetStrandsPerString(1);
+        m->SetStartSide("T");
+        model = m;
     } else if (type == "Spinner") {
-        model = new SpinnerModel(*this);
-        parm2 = 10;
-        parm3 = 5;
+        auto* m = new SpinnerModel(*this);
+        m->SetNumSpinnerStrings(1);
+        m->SetNodesPerArm(10);
+        m->SetArmsPerString(5);
+        model = m;
     } else if (type == "Icicles") {
-        model = new IciclesModel(*this);
-        parm2 = 80;
-        dynamic_cast<IciclesModel*>(model)->SetDropPattern("3,4,5,4");
+        auto* m = new IciclesModel(*this);
+        m->SetNumIcicleStrings(1);
+        m->SetLightsPerString(80);
+        m->SetDropPattern("3,4,5,4");
+        model = m;
     } else {
         DisplayError(std::format("'{}' is not a valid model type for a model", type));
         return nullptr;
@@ -1341,10 +1369,7 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
 
     model->SetName(GenerateModelName(type));
     model->SetStartChannel(startChannel);
-    model->SetParm1(parm1);
-    model->SetParm2(parm2);
-    model->SetParm3(parm3);
-    
+
     model->Setup();
 
     return model;

@@ -349,9 +349,9 @@ int Model::GetNumPhysicalStrings() const
 {
     int ts = GetSmartTs();
     if (ts <= 1) {
-        return parm1;
+        return GetNumStrings();
     } else {
-        int strings = parm1 / ts;
+        int strings = GetNumStrings() / ts;
         if (strings == 0)
             strings = 1;
         return strings;
@@ -1202,7 +1202,7 @@ std::string Model::GenerateUniqueSubmodelName(const std::string suggested) const
 
 int Model::CalcChannelsPerString()
 {
-    int ChannelsPerString = parm2 * GetNodeChannelCount(StringType);
+    int ChannelsPerString = NodesPerString() * GetNodeChannelCount(StringType);
     if (SingleChannel)
         ChannelsPerString = 1;
     else if (SingleNode)
@@ -1515,14 +1515,12 @@ void Model::SetPosition(double posx, double posy)
 }
 
 // initialize screen coordinates
-// parm1=Number of Strings/Arches/Canes
-// parm2=Pixels Per String/Arch/Cane
 void Model::SetLineCoord()
 {
     float x, y;
     float idx = 0;
     size_t NodeCount = GetNodeCount();
-    int numlights = parm1 * parm2;
+    int numlights = GetNumStrings() * NodesPerString();
     float half = numlights / 2;
     GetModelScreenLocation().SetRenderSize(numlights, numlights * 2);
 
@@ -1549,16 +1547,8 @@ void Model::SetBufferSize(int NewHt, int NewWi)
 // not valid for Frame or Custom
 int Model::NodesPerString() const
 {
-    if (SingleNode) {
-        return 1;
-    } else {
-        int ts = GetSmartTs();
-        if (ts <= 1) {
-            return parm2;
-        } else {
-            return parm2 * ts;
-        }
-    }
+    // Base implementation returns 1. Subclasses override with their specific node counts.
+    return 1;
 }
 
 int Model::NodesPerString(int string) const
@@ -2687,8 +2677,8 @@ void Model::ExportAsCustomXModel(BaseSerializingVisitor& visitor) const
     // Build root element attributes
     BaseSerializingVisitor::AttrCollector attrs;
     attrs.Add("name",        GetName());
-    attrs.Add("parm1",       std::to_string(sizex));
-    attrs.Add("parm2",       std::to_string(sizey));
+    attrs.Add("CustomWidth",  std::to_string(sizex));
+    attrs.Add("CustomHeight", std::to_string(sizey));
     attrs.Add("Depth",       "1");
     attrs.Add("StringType",  GetStringType());
     attrs.Add("Transparency", std::to_string(GetTransparency()));
@@ -3590,11 +3580,12 @@ int Model::MapToNodeIndex(int strand, int node) const
     if (SingleNode) {
         return strand;
     }
-    if (parm3 == 0) {
-        logger_base.crit("Map node to index with illegal parm3 = 0.");
+    int strandsPerStr = GetStrandsPerString();
+    if (strandsPerStr == 0) {
+        logger_base.crit("Map node to index with illegal strandsPerString = 0.");
         return node;
     }
-    return (strand * parm2 / parm3) + node;
+    return (strand * NodesPerString() / strandsPerStr) + node;
 }
 
 void Model::RecalcStartChannels()
@@ -3676,7 +3667,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         if (model != nullptr) { delete model; }
         model = serializer.DeserializeModel(n, xlights, true);
         if( model != nullptr ) {
-            // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
+            // Multiply by 5 because default custom model has width and height set to 5 and DMX model is 1 pixel
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
         } else {
             cancelled = true;
@@ -3688,7 +3679,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         if (model != nullptr) { delete model; }
         model = serializer.DeserializeModel(n, xlights, true);
         if (model != nullptr) {
-            // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
+            // Multiply by 5 because default custom model has width and height set to 5 and DMX model is 1 pixel
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
         }
         return model;
@@ -3700,7 +3691,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         if (model != nullptr) { delete model; }
         model = serializer.DeserializeModel(n, xlights, true);
         if (model != nullptr) {
-            // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
+            // Multiply by 5 because default custom model has width and height set to 5 and DMX model is 1 pixel
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
         }
         return model;

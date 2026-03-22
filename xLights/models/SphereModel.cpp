@@ -157,9 +157,9 @@ void SphereModel::ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const
     int dim = scaleFactor3D * BufferWi + 1;
     BaseSerializingVisitor::AttrCollector attrs;
     attrs.Add("name", GetName());
-    attrs.Add("parm1", std::to_string(dim));
-    attrs.Add("parm2", std::to_string(scaleFactor3D * BufferHt + 1));
-    attrs.Add("parm3", std::to_string(parm3));
+    attrs.Add("CustomWidth", std::to_string(dim));
+    attrs.Add("CustomHeight", std::to_string(scaleFactor3D * BufferHt + 1));
+    attrs.Add("StrandsPerString", std::to_string(_strandsPerString));
     attrs.Add("Depth", std::to_string(dim));
     attrs.Add("StringType", GetStringType());
     attrs.Add("Transparency", GetTransparency() ? "1" : "0");

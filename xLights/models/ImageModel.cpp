@@ -71,9 +71,6 @@ void ImageModel::InitRenderBufferNodes(const std::string &type, const std::strin
 
 void ImageModel::InitModel()
 {
-    parm2 = 1;
-    parm3 = 1;
-
     SetNodeCount(1, 1, rgbOrder);
 	Nodes[0]->ActChan = stringStartChan[0];
 	Nodes[0]->StringNum = 0;

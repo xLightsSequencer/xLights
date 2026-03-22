@@ -22,19 +22,19 @@ WreathPropertyAdapter::WreathPropertyAdapter(Model& model)
     : ModelPropertyAdapter(model), _wreath(static_cast<WreathModel&>(model)) {}
 
 void WreathPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
-    wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "WreathStringCount", _wreath.GetParm1()));
+    wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "WreathStringCount", _wreath.GetNumWreathStrings()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
     p->SetEditor("SpinCtrl");
     p->SetHelpString("This is typically the number of connections from the prop to your controller.");
 
     if (_wreath.IsSingleNode()) {
-        p = grid->Append(new wxUIntProperty("Lights/String", "WreathLightCount", _wreath.GetParm2()));
+        p = grid->Append(new wxUIntProperty("Lights/String", "WreathLightCount", _wreath.GetNodesPerString()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 640);
         p->SetEditor("SpinCtrl");
     } else {
-        p = grid->Append(new wxUIntProperty("Nodes/String", "WreathLightCount", _wreath.GetParm2()));
+        p = grid->Append(new wxUIntProperty("Nodes/String", "WreathLightCount", _wreath.GetNodesPerString()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 640);
         p->SetEditor("SpinCtrl");
@@ -47,7 +47,7 @@ void WreathPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, Out
 
 int WreathPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     if ("WreathStringCount" == event.GetPropertyName()) {
-        _wreath.SetParm1(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _wreath.SetNumWreathStrings(static_cast<int>(event.GetPropertyValue().GetLong()));
         _wreath.IncrementChangeCount();
         _wreath.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
@@ -55,7 +55,7 @@ int WreathPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, w
                     OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "WreathPropertyAdapter::OnPropertyGridChange::WreathStringCount");
         return 0;
     } else if ("WreathLightCount" == event.GetPropertyName()) {
-        _wreath.SetParm2(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _wreath.SetWreathNodesPerString(static_cast<int>(event.GetPropertyValue().GetLong()));
         _wreath.IncrementChangeCount();
         _wreath.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |

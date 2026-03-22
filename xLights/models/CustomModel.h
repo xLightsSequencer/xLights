@@ -37,8 +37,8 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] virtual std::string GetStartLocation() const override { return "n/a"; }
 
         [[nodiscard]] bool IsAllNodesUnique() const;
-        [[nodiscard]] long GetCustomWidth() const { return parm1;}
-        [[nodiscard]] long GetCustomHeight() const { return parm2;}
+        [[nodiscard]] long GetCustomWidth() const { return _customWidth;}
+        [[nodiscard]] long GetCustomHeight() const { return _customHeight;}
         [[nodiscard]] long GetCustomDepth() const { return _depth;}
         void SetCustomWidth(long w);
         void SetCustomHeight(long u);
@@ -89,6 +89,8 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] int GetCustomMaxChannel() const;
         void InitCustomMatrix();
 
+        long _customWidth = 1;
+        long _customHeight = 1;
         long _depth = 1;
         std::string _custom_background;
         int _strings = 1;

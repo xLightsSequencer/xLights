@@ -21,6 +21,14 @@ public:
     [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return true; }
     [[nodiscard]] virtual bool SupportsWiringView() const override { return true; }
     [[nodiscard]] virtual std::string GetDimension() const override;
+    virtual int GetNumStrings() const override { return _numStrings; }
+    virtual int NodesPerString() const override;
+
+    [[nodiscard]] int GetNumIcicleStrings() const { return _numStrings; }
+    [[nodiscard]] int GetLightsPerString() const { return _lightsPerString; }
+    void SetNumIcicleStrings(int val) { _numStrings = val; }
+    void SetLightsPerString(int val) { _lightsPerString = val; }
+
     [[nodiscard]] bool HasAlternateNodes() const { return _alternateNodes; }
     [[nodiscard]] std::string GetDropPattern() const { return _dropPatternString; }
     void SetDropPattern(const std::string & pattern);
@@ -34,6 +42,8 @@ protected:
 private:
     void SetIciclesCoord();
     void ParseDropSizes();
+    int _numStrings = 1;
+    int _lightsPerString = 1;
     bool _alternateNodes = false;
     std::string _dropPatternString = "3,4,5,4";
     std::vector<size_t> _dropSizes;

@@ -33,17 +33,17 @@ WindowFramePropertyAdapter::WindowFramePropertyAdapter(Model& model)
     : ModelPropertyAdapter(model), _windowFrame(static_cast<WindowFrameModel&>(model)) {}
 
 void WindowFramePropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
-    wxPGProperty* p = grid->Append(new wxUIntProperty("# Lights Top", "WFTopCount", _windowFrame.GetParm1()));
+    wxPGProperty* p = grid->Append(new wxUIntProperty("# Lights Top", "WFTopCount", _windowFrame.GetTopNodes()));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 1000);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("# Lights Left/Right", "WFLeftRightCount", _windowFrame.GetParm2()));
+    p = grid->Append(new wxUIntProperty("# Lights Left/Right", "WFLeftRightCount", _windowFrame.GetSideNodes()));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 1000);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("# Lights Bottom", "WFBottomCount", _windowFrame.GetParm3()));
+    p = grid->Append(new wxUIntProperty("# Lights Bottom", "WFBottomCount", _windowFrame.GetBottomNodes()));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 1000);
     p->SetEditor("SpinCtrl");
@@ -56,19 +56,19 @@ void WindowFramePropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid
 
 int WindowFramePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     if ("WFTopCount" == event.GetPropertyName()) {
-        _windowFrame.SetParm1(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _windowFrame.SetTopNodes(static_cast<int>(event.GetPropertyValue().GetLong()));
         _windowFrame.IncrementChangeCount();
         _windowFrame.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST, "WindowFramePropertyAdapter::OnPropertyGridChange::WFTopCount");
         return 0;
     } else if ("WFLeftRightCount" == event.GetPropertyName()) {
-        _windowFrame.SetParm2(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _windowFrame.SetSideNodes(static_cast<int>(event.GetPropertyValue().GetLong()));
         _windowFrame.IncrementChangeCount();
         _windowFrame.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST, "WindowFramePropertyAdapter::OnPropertyGridChange::WFLeftRightCount");
         return 0;
     } else if ("WFBottomCount" == event.GetPropertyName()) {
-        _windowFrame.SetParm3(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _windowFrame.SetBottomNodes(static_cast<int>(event.GetPropertyValue().GetLong()));
         _windowFrame.IncrementChangeCount();
         _windowFrame.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST, "WindowFramePropertyAdapter::OnPropertyGridChange::WFBottomCount");

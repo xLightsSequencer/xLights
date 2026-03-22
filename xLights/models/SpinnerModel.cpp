@@ -127,17 +127,17 @@ void SpinnerModel::GetBufferSize(const std::string &type, const std::string &cam
 
 int SpinnerModel::GetNumStrands() const {
     if (SingleChannel) {
-        return parm1;
+        return _numStrings;
     }
-    return parm1*parm3;
+    return _numStrings*_armsPerString;
 }
 
 void SpinnerModel::InitModel() {
-    int stringcount = parm1;
-    int nodesperarm = parm2;
-    int armsperstring = parm3;
-    int pixelsperstring = parm3*parm2;
-    int armcount = parm3*parm1;
+    int stringcount = _numStrings;
+    int nodesperarm = _nodesPerArm;
+    int armsperstring = _armsPerString;
+    int pixelsperstring = _armsPerString*_nodesPerArm;
+    int armcount = _armsPerString*_numStrings;
     SetNodeCount(stringcount, pixelsperstring, rgbOrder);
     screenLocation.SetRenderSize(2 * nodesperarm + 3 + (_hollow * 2.0 * nodesperarm) / 100.0, 2 * nodesperarm + 3 + (_hollow * 2.0 * nodesperarm) / 100.0);
 
@@ -209,9 +209,9 @@ void SpinnerModel::InitRenderBufferNodes(const std::string &tp, const std::strin
         BufferHi = 1;
         BufferWi = GetNodeCount();
 
-        int stringcount = parm1;
-        int nodesperarm = parm2;
-        int armsperstring = parm3;
+        int stringcount = _numStrings;
+        int nodesperarm = _nodesPerArm;
+        int armsperstring = _armsPerString;
         int cur = 0;
         if (SingleNode)
         {
@@ -247,10 +247,10 @@ void SpinnerModel::InitRenderBufferNodes(const std::string &tp, const std::strin
 }
 
 void SpinnerModel::SetSpinnerCoord() {
-    int stringcount = parm1;
-    int nodesperarm = parm2;
-    int armsperstring = parm3;
-    int armcount = parm3*parm1;
+    int stringcount = _numStrings;
+    int nodesperarm = _nodesPerArm;
+    int armsperstring = _armsPerString;
+    int armcount = _armsPerString*_numStrings;
 
     float angle = ((float)M_PI * 2.0f * (270.0f + _startAngle)) / 360.0f;
     float angleincrement = (M_PI * 2.0f * (float)_arc) / ((float)stringcount * (float)armsperstring * 360.0f);
@@ -370,13 +370,13 @@ int SpinnerModel::MapToNodeIndex(int strand, int node) const {
         return strand;
     }
 
-    return strand * parm2 + node;
+    return strand * _nodesPerArm + node;
 }
 int SpinnerModel::CalcChannelsPerString() {
     if (SingleNode) {
         return GetNodeChannelCount(StringType);
     }
-    return GetNodeChannelCount(StringType) * parm2 * parm3;
+    return GetNodeChannelCount(StringType) * _nodesPerArm * _armsPerString;
 }
 
 int SpinnerModel::NodesPerString() const {
@@ -386,10 +386,10 @@ int SpinnerModel::NodesPerString() const {
     else {
         int ts = GetSmartTs();
         if (ts <= 1) {
-            return parm2 * parm3;
+            return _nodesPerArm * _armsPerString;
         }
         else {
-            return parm2 * parm3 * ts;
+            return _nodesPerArm * _armsPerString * ts;
         }
     }
 }

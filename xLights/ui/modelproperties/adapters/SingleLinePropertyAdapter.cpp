@@ -22,25 +22,25 @@ SingleLinePropertyAdapter::SingleLinePropertyAdapter(Model& model)
     : ModelPropertyAdapter(model), _singleLine(static_cast<SingleLineModel&>(model)) {}
 
 void SingleLinePropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
-    wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "SingleLineCount", _singleLine.GetParm1()));
+    wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "SingleLineCount", _singleLine.GetNumLines()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
     p->SetHelpString("This is typically the number of connections from the prop to your controller.");
 
     if (_singleLine.IsSingleNode()) {
-        p = grid->Append(new wxUIntProperty("Lights/String", "SingleLineNodes", _singleLine.GetParm2()));
+        p = grid->Append(new wxUIntProperty("Lights/String", "SingleLineNodes", _singleLine.GetNodesPerString()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
     } else {
-        p = grid->Append(new wxUIntProperty("Nodes/String", "SingleLineNodes", _singleLine.GetParm2()));
+        p = grid->Append(new wxUIntProperty("Nodes/String", "SingleLineNodes", _singleLine.GetNodesPerString()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
         p->SetHelpString("This is typically the total number of pixels per #String.");
 
-        p = grid->Append(new wxUIntProperty("Lights/Node", "SingleLineLights", _singleLine.GetParm3()));
+        p = grid->Append(new wxUIntProperty("Lights/Node", "SingleLineLights", _singleLine.GetLightsPerNode()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 300);
         p->SetEditor("SpinCtrl");
@@ -52,7 +52,7 @@ void SingleLinePropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid,
 int SingleLinePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     _singleLine.IncrementChangeCount();
     if ("SingleLineCount" == event.GetPropertyName()) {
-        _singleLine.SetParm1(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _singleLine.SetNumLines(static_cast<int>(event.GetPropertyValue().GetLong()));
         _singleLine.IncrementChangeCount();
         _singleLine.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
@@ -60,7 +60,7 @@ int SingleLinePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* gri
                     OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "SingleLinePropertyAdapter::OnPropertyGridChange::SingleLineCount");
         return 0;
     } else if ("SingleLineNodes" == event.GetPropertyName()) {
-        _singleLine.SetParm2(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _singleLine.SetNodesPerLine(static_cast<int>(event.GetPropertyValue().GetLong()));
         _singleLine.IncrementChangeCount();
         _singleLine.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
@@ -68,7 +68,7 @@ int SingleLinePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* gri
                     OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "SingleLinePropertyAdapter::OnPropertyGridChange::SingleLineNodes");
         return 0;
     } else if ("SingleLineLights" == event.GetPropertyName()) {
-        _singleLine.SetParm3(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _singleLine.SetLightsPerNode(static_cast<int>(event.GetPropertyValue().GetLong()));
         _singleLine.IncrementChangeCount();
         _singleLine.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "SingleLinePropertyAdapter::OnPropertyGridChange::SingleLineLights");
         return 0;

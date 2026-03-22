@@ -39,13 +39,13 @@ void DmxMovingHeadAdvPropertyAdapter::AddTypeProperties(wxPropertyGridInterface*
     grid->Append(new wxEnumProperty("Fixture", "DmxFixture", DMX_FIXTURES, _mha.GetFixtureVal() - 1));
 
     // DmxModel base properties (# Channels + preset)
-    auto p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", _mha.GetParm1()));
+    auto p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", _mha.GetDmxChannelCount()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
 
     if (_mha.HasPresetAbility()) {
-        DmxAbilityPropertyHelpers::AddPresetProperties(grid, *_mha.GetPresetAbility(), _mha.GetParm1());
+        DmxAbilityPropertyHelpers::AddPresetProperties(grid, *_mha.GetPresetAbility(), _mha.GetDmxChannelCount());
     }
 
     DmxComponentPropertyHelpers::AddMotorProperties(grid, *_mha.GetPanMotor());
@@ -157,7 +157,7 @@ int DmxMovingHeadAdvPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterfac
         return 0;
     }
 
-    if (_mha.HasPresetAbility() && DmxAbilityPropertyHelpers::OnPresetPropertyGridChange(grid, event, *_mha.GetPresetAbility(), _mha.GetParm1(), &_mha) == 0) {
+    if (_mha.HasPresetAbility() && DmxAbilityPropertyHelpers::OnPresetPropertyGridChange(grid, event, *_mha.GetPresetAbility(), _mha.GetDmxChannelCount(), &_mha) == 0) {
         _mha.IncrementChangeCount();
         return 0;
     }

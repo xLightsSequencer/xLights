@@ -21,13 +21,13 @@ DmxFloodlightPropertyAdapter::DmxFloodlightPropertyAdapter(Model& model)
     : DmxPropertyAdapter(model), _flood(static_cast<DmxFloodlight&>(model)) {}
 
 void DmxFloodlightPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
-    auto p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", _flood.GetParm1()));
+    auto p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", _flood.GetDmxChannelCount()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
 
     if (_flood.HasPresetAbility()) {
-        DmxAbilityPropertyHelpers::AddPresetProperties(grid, *_flood.GetPresetAbility(), _flood.GetParm1());
+        DmxAbilityPropertyHelpers::AddPresetProperties(grid, *_flood.GetPresetAbility(), _flood.GetDmxChannelCount());
     }
 
     ControllerCaps* caps = _flood.GetControllerCaps();
@@ -97,7 +97,7 @@ int DmxFloodlightPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* 
         return 0;
     }
 
-    if (_flood.HasPresetAbility() && DmxAbilityPropertyHelpers::OnPresetPropertyGridChange(grid, event, *_flood.GetPresetAbility(), _flood.GetParm1(), &_flood) == 0) {
+    if (_flood.HasPresetAbility() && DmxAbilityPropertyHelpers::OnPresetPropertyGridChange(grid, event, *_flood.GetPresetAbility(), _flood.GetDmxChannelCount(), &_flood) == 0) {
         _flood.IncrementChangeCount();
         return 0;
     }

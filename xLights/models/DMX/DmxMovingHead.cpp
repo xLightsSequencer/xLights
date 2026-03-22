@@ -134,8 +134,7 @@ void DmxMovingHead::InitModel() {
         screenLocation.SetScaleZ(1.0);
     }
     StringType = "Single Color White";
-    parm2 = 1;
-    parm3 = 1;
+    // DmxMovingHead is single-channel-per-node
 
     pan_motor->Init();
     tilt_motor->Init();

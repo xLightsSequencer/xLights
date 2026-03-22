@@ -32,6 +32,10 @@ class ChannelBlockModel : public ModelWithScreenLocation<TwoPointScreenLocation>
         virtual int GetNumStrands() const override;
 
         void SetChannelColor(int idx, const std::string & color) { _channelColors[idx] = color; }
+        virtual int GetNumStrings() const override { return _numChannels; }
+
+        [[nodiscard]] int GetNumChannels() const { return _numChannels; }
+        void SetNumChannels(int val) { _numChannels = val; }
 
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
@@ -41,6 +45,7 @@ class ChannelBlockModel : public ModelWithScreenLocation<TwoPointScreenLocation>
         virtual int CalcChannelsPerString() override;
 
     private:
+        int _numChannels = 1;
         std::vector<std::string> _channelColors;
 		void InitChannelBlock();
         static std::vector<std::string> LINE_BUFFER_STYLES;

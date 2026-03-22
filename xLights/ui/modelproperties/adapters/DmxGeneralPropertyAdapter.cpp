@@ -21,13 +21,13 @@ DmxGeneralPropertyAdapter::DmxGeneralPropertyAdapter(Model& model)
     : DmxPropertyAdapter(model), _general(static_cast<DmxGeneral&>(model)) {}
 
 void DmxGeneralPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
-    auto p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", _general.GetParm1()));
+    auto p = grid->Append(new wxUIntProperty("# Channels", "DmxChannelCount", _general.GetDmxChannelCount()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
 
     if (_general.HasPresetAbility()) {
-        DmxAbilityPropertyHelpers::AddPresetProperties(grid, *_general.GetPresetAbility(), _general.GetParm1());
+        DmxAbilityPropertyHelpers::AddPresetProperties(grid, *_general.GetPresetAbility(), _general.GetDmxChannelCount());
     }
 
     if (_general.HasColorAbility()) {
@@ -49,7 +49,7 @@ int DmxGeneralPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* gri
         return 0;
     }
 
-    if (_general.HasPresetAbility() && DmxAbilityPropertyHelpers::OnPresetPropertyGridChange(grid, event, *_general.GetPresetAbility(), _general.GetParm1(), &_general) == 0) {
+    if (_general.HasPresetAbility() && DmxAbilityPropertyHelpers::OnPresetPropertyGridChange(grid, event, *_general.GetPresetAbility(), _general.GetDmxChannelCount(), &_general) == 0) {
         _general.IncrementChangeCount();
         return 0;
     }

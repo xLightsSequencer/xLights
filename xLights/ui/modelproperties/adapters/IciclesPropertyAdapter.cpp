@@ -26,19 +26,19 @@ IciclesPropertyAdapter::IciclesPropertyAdapter(Model& model)
     : ModelPropertyAdapter(model), _icicles(static_cast<IciclesModel&>(model)) {}
 
 void IciclesPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
-    wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "IciclesStrings", _icicles.GetParm1()));
+    wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "IciclesStrings", _icicles.GetNumIcicleStrings()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
     p->SetHelpString("This is typically the number of connections from the prop to your controller.");
 
     if (_icicles.IsSingleNode()) {
-        p = grid->Append(new wxUIntProperty("Lights/String", "IciclesLights", _icicles.GetParm2()));
+        p = grid->Append(new wxUIntProperty("Lights/String", "IciclesLights", _icicles.GetLightsPerString()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 2000);
         p->SetEditor("SpinCtrl");
     } else {
-        p = grid->Append(new wxUIntProperty("Nodes/String", "IciclesLights", _icicles.GetParm2()));
+        p = grid->Append(new wxUIntProperty("Nodes/String", "IciclesLights", _icicles.GetLightsPerString()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 2000);
         p->SetEditor("SpinCtrl");
@@ -55,7 +55,7 @@ void IciclesPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, Ou
 
 int IciclesPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     if ("IciclesStrings" == event.GetPropertyName()) {
-        _icicles.SetParm1(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _icicles.SetNumIcicleStrings(static_cast<int>(event.GetPropertyValue().GetLong()));
         _icicles.IncrementChangeCount();
         _icicles.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
@@ -63,7 +63,7 @@ int IciclesPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, 
                     OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "IciclesPropertyAdapter::OnPropertyGridChange::IciclesStrings");
         return 0;
     } else if ("IciclesLights" == event.GetPropertyName()) {
-        _icicles.SetParm2(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _icicles.SetLightsPerString(static_cast<int>(event.GetPropertyValue().GetLong()));
         _icicles.IncrementChangeCount();
         _icicles.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |

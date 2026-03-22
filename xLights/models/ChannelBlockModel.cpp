@@ -52,7 +52,7 @@ void ChannelBlockModel::InitRenderBufferNodes(const std::string &type, const std
     BufferHi = 1;
     BufferWi = GetNodeCount();
         
-    int NumChannels=parm1;
+    int NumChannels=_numChannels;
     int cur = 0;
     for (int y=0; y < NumChannels; ++y) {
 		int idx = y;
@@ -98,17 +98,17 @@ void ChannelBlockModel::InitModel() {
 
 void ChannelBlockModel::InitChannelBlock() {
     size_t NodeCount = GetNodeCount();
-    if (NodeCount != parm1) {
-        SetNodeCount(parm1, 1, rgbOrder);
-        NodeCount = parm1;
+    if (NodeCount != _numChannels) {
+        SetNodeCount(_numChannels, 1, rgbOrder);
+        NodeCount = _numChannels;
     }
-    SetBufferSize(1, parm1);
+    SetBufferSize(1, _numChannels);
     int LastStringNum = -1;
     int chan = 0;
     int ChanIncr = 1;
-    _channelColors.resize(parm1);
+    _channelColors.resize(_numChannels);
 
-    for (int x = 0; x < parm1; ++x) {
+    for (int x = 0; x < _numChannels; ++x) {
         if (_channelColors[x] == xlEMPTY_STRING) {
             _channelColors[x] = "white";
         }
@@ -140,7 +140,7 @@ int ChannelBlockModel::MapToNodeIndex(int strand, int node) const {
     return strand;
 }
 int ChannelBlockModel::GetNumStrands() const {
-     return parm1;
+     return _numChannels;
 }
 int ChannelBlockModel::CalcChannelsPerString() {
 	return GetNodeChannelCount(StringType);

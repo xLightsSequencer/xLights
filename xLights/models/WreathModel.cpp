@@ -20,6 +20,18 @@ WreathModel::~WreathModel()
 {
 }
 
+int WreathModel::NodesPerString() const
+{
+    if (SingleNode) {
+        return 1;
+    }
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return _nodesPerString;
+    }
+    return _nodesPerString * ts;
+}
+
 void WreathModel::InitModel() {
     InitWreath();
     CopyBufCoord2ScreenCoord();
@@ -28,8 +40,8 @@ void WreathModel::InitModel() {
 
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
 void WreathModel::InitWreath() {
-    SetNodeCount(parm1,parm2,rgbOrder);
-    int numlights=parm1*parm2;
+    SetNodeCount(_numStrings,_nodesPerString,rgbOrder);
+    int numlights=_numStrings*_nodesPerString;
     SetBufferSize(numlights+1,numlights+1);
     int LastStringNum=-1;
     int offset=numlights/2;

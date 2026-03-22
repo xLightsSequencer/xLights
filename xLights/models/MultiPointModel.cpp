@@ -16,7 +16,7 @@
 MultiPointModel::MultiPointModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
     DisplayAs = DisplayAsType::MultiPoint;
-    parm1 = parm2 = parm3 = 0;
+    // MultiPointModel: parm values not used directly
 }
 
 MultiPointModel::~MultiPointModel()
@@ -34,8 +34,6 @@ int MultiPointModel::MapToNodeIndex(int strand, int node) const {
 
 void MultiPointModel::InitModel()
 {
-    parm1 = 1;
-    
     InitLine();
 
     // calculate min/max for the model
@@ -109,14 +107,12 @@ void MultiPointModel::InitModel()
     }
 }
 
-// initialize buffer coordinates
-// parm1=Number of Strings/Arches/Canes
-// parm2=Pixels Per String/Arch/Cane
 void MultiPointModel::InitLine() {
-    int numLights = parm1 * screenLocation.num_points;
+    int numStrings = 1;
+    int numLights = numStrings * screenLocation.num_points;
     Nodes.clear();
-    SetNodeCount(parm1,screenLocation.num_points,rgbOrder);
-    SetBufferSize(1,SingleNode?parm1:numLights);
+    SetNodeCount(numStrings,screenLocation.num_points,rgbOrder);
+    SetBufferSize(1,SingleNode?numStrings:numLights);
     int LastStringNum=-1;
     int chan = 0;
     int ChanIncr = GetNodeChannelCount(StringType);
@@ -137,7 +133,7 @@ void MultiPointModel::InitLine() {
         }
         Nodes[n]->ActChan=chan;
         chan+=ChanIncr;
-        Nodes[n]->Coords.resize(SingleNode?screenLocation.num_points:parm3);
+        Nodes[n]->Coords.resize(SingleNode?screenLocation.num_points:GetLightsPerNode());
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++) {
             Nodes[n]->Coords[c].bufX=idx;

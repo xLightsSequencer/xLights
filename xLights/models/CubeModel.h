@@ -38,6 +38,15 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
+        virtual int GetNumStrings() const override { return 1; }
+
+        [[nodiscard]] int GetCubeWidth() const { return _cubeWidth; }
+        [[nodiscard]] int GetCubeHeight() const { return _cubeHeight; }
+        [[nodiscard]] int GetCubeDepth() const { return _cubeDepth; }
+        void SetCubeWidth(int val) { _cubeWidth = val; }
+        void SetCubeHeight(int val) { _cubeHeight = val; }
+        void SetCubeDepth(int val) { _cubeDepth = val; }
+
         [[nodiscard]] std::string GetCubeStyle() const;
         [[nodiscard]] std::string GetStrandStyle() const;
         [[nodiscard]] int GetCubeStrings() const { return _cubeStrings; }
@@ -71,6 +80,9 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void InitModel() override;
         
     private:
+        int _cubeWidth = 1;
+        int _cubeHeight = 1;
+        int _cubeDepth = 1;
         int _strandLength = 1;
         int _strands = 1;
         int _cubeStart = 0;

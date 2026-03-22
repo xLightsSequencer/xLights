@@ -31,26 +31,26 @@ CirclePropertyAdapter::CirclePropertyAdapter(Model& model)
     : ModelPropertyAdapter(model), _circle(static_cast<CircleModel&>(model)) {}
 
 void CirclePropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
-    wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "CircleStringCount", _circle.GetParm1()));
+    wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "CircleStringCount", _circle.GetNumCircleStrings()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
     p->SetHelpString("This is typically the number of connections from the prop to your controller.");
 
     if (_circle.IsSingleNode()) {
-        p = grid->Append(new wxUIntProperty("Lights/String", "CircleLightCount", _circle.GetParm2()));
+        p = grid->Append(new wxUIntProperty("Lights/String", "CircleLightCount", _circle.GetNodesPerString()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 2000);
         p->SetEditor("SpinCtrl");
     } else {
-        p = grid->Append(new wxUIntProperty("Nodes/String", "CircleLightCount", _circle.GetParm2()));
+        p = grid->Append(new wxUIntProperty("Nodes/String", "CircleLightCount", _circle.GetNodesPerString()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 2000);
         p->SetEditor("SpinCtrl");
         p->SetHelpString("This is typically the total number of pixels per #String.");
     }
 
-    p = grid->Append(new wxUIntProperty("Center %", "CircleCenterPercent", _circle.GetParm3()));
+    p = grid->Append(new wxUIntProperty("Center %", "CircleCenterPercent", _circle.GetCenterPercent()));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
@@ -69,7 +69,7 @@ void CirclePropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, Out
 
 int CirclePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     if ("CircleStringCount" == event.GetPropertyName()) {
-        _circle.SetParm1(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _circle.SetNumCircleStrings(static_cast<int>(event.GetPropertyValue().GetLong()));
         _circle.IncrementChangeCount();
         _circle.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
@@ -77,7 +77,7 @@ int CirclePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, w
                     OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CirclePropertyAdapter::OnPropertyGridChange::CircleStringCount");
         return 0;
     } else if ("CircleLightCount" == event.GetPropertyName()) {
-        _circle.SetParm2(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _circle.SetCircleNodesPerString(static_cast<int>(event.GetPropertyValue().GetLong()));
         _circle.IncrementChangeCount();
         _circle.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
@@ -85,7 +85,7 @@ int CirclePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, w
                     OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CirclePropertyAdapter::OnPropertyGridChange::CircleLightCount");
         return 0;
     } else if ("CircleCenterPercent" == event.GetPropertyName()) {
-        _circle.SetParm3(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _circle.SetCenterPercent(static_cast<int>(event.GetPropertyValue().GetLong()));
         _circle.IncrementChangeCount();
         _circle.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CirclePropertyAdapter::OnPropertyGridChange::CircleCenterPercent");
         return 0;

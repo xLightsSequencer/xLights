@@ -264,9 +264,9 @@ std::string CubeModel::GetStartLocation() const
 
 std::vector<std::tuple<int, int, int>> CubeModel::BuildCube() const
 {
-    int width = parm1;
-    int height = parm2;
-    int depth = parm3;
+    int width = _cubeWidth;
+    int height = _cubeHeight;
+    int depth = _cubeDepth;
 
     std::vector<std::tuple<int, int, int>> nodes;
     nodes.resize(width*height*depth);
@@ -334,14 +334,14 @@ std::vector<std::tuple<int, int, int>> CubeModel::BuildCube() const
         RotateZ90Degrees(node, zr, w, h);
         if (abs(zr) == 1) std::swap(w, h);
 
-        assert(w == parm1 && h == parm2 && d == parm3);
+        assert(w == _cubeWidth && h == _cubeHeight && d == _cubeDepth);
 
         if(xf > 0) FlipX(node, w);
 
         nodes[i] = node;
     }
 
-    //DumpNodes(nodes, parm1, parm2, parm3);
+    //DumpNodes(nodes, _cubeWidth, _cubeHeight, _cubeDepth);
 
     return nodes;
 }
@@ -425,9 +425,9 @@ const std::vector<std::string> &CubeModel::GetBufferStyles() const {
 void CubeModel::GetBufferSize(const std::string& tp, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi, int stagger) const
 {
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
-    int width = parm1;
-    int height = parm2;
-    int depth = parm3;
+    int width = _cubeWidth;
+    int height = _cubeHeight;
+    int depth = _cubeDepth;
 
     if (SingleNode || SingleChannel)
     {
@@ -550,9 +550,9 @@ void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& 
 {
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
 
-    int width = parm1;
-    int height = parm2;
-    int depth = parm3;
+    int width = _cubeWidth;
+    int height = _cubeHeight;
+    int depth = _cubeDepth;
 
     int oldNodes = Nodes.size();
 
@@ -795,9 +795,9 @@ void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& 
 
 void CubeModel::InitModel()
 {
-    int width = parm1;
-    int height = parm2;
-    int depth = parm3;
+    int width = _cubeWidth;
+    int height = _cubeHeight;
+    int depth = _cubeDepth;
 
     if (SingleNode || SingleChannel)
     {
@@ -884,9 +884,9 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
     html += "<tr><td>String Type:</td><td>" + StringType + "</td></tr>";
     html += "<tr><td>Start Corner:</td><td>" + direction + "</td></tr>";
     html += std::format("<tr><td>Total nodes:</td><td>{}</td></tr>", NodeCount);
-    html += std::format("<tr><td>Width:</td><td>{}</td></tr>", parm1);
-    html += std::format("<tr><td>Height:</td><td>{}</td></tr>", parm2);
-    html += std::format("<tr><td>Depth:</td><td>{}</td></tr>", parm3);
+    html += std::format("<tr><td>Width:</td><td>{}</td></tr>", _cubeWidth);
+    html += std::format("<tr><td>Height:</td><td>{}</td></tr>", _cubeHeight);
+    html += std::format("<tr><td>Depth:</td><td>{}</td></tr>", _cubeDepth);
 
     if (c != nullptr) {
         html += std::format("<tr><td>Controller:</td><td>{}</td></tr>", c->GetLongDescription());
@@ -904,11 +904,11 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
 
     auto locations = BuildCube();
 
-    for (int y = parm2 - 1; y >= 0; y--) {
+    for (int y = _cubeHeight - 1; y >= 0; y--) {
         html += "<tr>";
-        for (int j = 0; j < parm1 * parm3; j++) {
-            int z = j / parm1;
-            int x = j % parm1;
+        for (int j = 0; j < _cubeWidth * _cubeDepth; j++) {
+            int z = j / _cubeWidth;
+            int x = j % _cubeWidth;
 
             int index = FindNodeIndex(locations, x, y, z);
             int string = index / nodesPerString + 1;
@@ -927,9 +927,9 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
 
 void CubeModel::ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const
 {
-    int width = parm1;
-    int height = parm2;
-    int depth = parm3;
+    int width = _cubeWidth;
+    int height = _cubeHeight;
+    int depth = _cubeDepth;
 
     auto locations = BuildCube();
 
@@ -951,8 +951,8 @@ void CubeModel::ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const
 
     BaseSerializingVisitor::AttrCollector attrs;
     attrs.Add("name", GetName());
-    attrs.Add("parm1", std::to_string(width));
-    attrs.Add("parm2", std::to_string(height));
+    attrs.Add("CustomWidth", std::to_string(width));
+    attrs.Add("CustomHeight", std::to_string(height));
     attrs.Add("Depth", std::to_string(depth));
     attrs.Add("StringType", GetStringType());
     attrs.Add("Transparency", GetTransparency() ? "1" : "0");
@@ -982,9 +982,9 @@ int CubeModel::NodesPerString() const
     int strings = _cubeStrings;
     if (strings == 0)
         strings = 1;
-    int width = parm1;
-    int height = parm2;
-    int depth = parm3;
+    int width = _cubeWidth;
+    int height = _cubeHeight;
+    int depth = _cubeDepth;
     int nodes = (width * height * depth) / strings;
 
     int ts = GetSmartTs();

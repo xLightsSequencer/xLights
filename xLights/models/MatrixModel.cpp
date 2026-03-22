@@ -33,9 +33,9 @@ std::list<std::string> MatrixModel::CheckModelSettings()
 {
    std::list<std::string> res;
 
-   if (!StartsWith(StringType, "Single Color") && parm2 % parm3 != 0)
+   if (!StartsWith(StringType, "Single Color") && _nodesPerString % _strandsPerString != 0)
    {
-       res.push_back(std::format("    ERR: Model {} strands are not equally sized {} does not divide into string length {} evenly. As a result only {} of {} nodes are initialised.", GetName(), parm3, parm2, (int)GetNodeCount(), parm1 * parm2));
+       res.push_back(std::format("    ERR: Model {} strands are not equally sized {} does not divide into string length {} evenly. As a result only {} of {} nodes are initialised.", GetName(), _strandsPerString, _nodesPerString, (int)GetNodeCount(), _numStrings * _nodesPerString));
    }
 
    res.splice(res.end(), Model::CheckModelSettings());
@@ -44,18 +44,30 @@ std::list<std::string> MatrixModel::CheckModelSettings()
 
 int MatrixModel::GetNumStrands() const {
     if (SingleChannel || SingleNode) {
-        return parm1;
+        return _numStrings;
     }
-    return parm1*parm3;
+    return _numStrings*_strandsPerString;
+}
+
+int MatrixModel::NodesPerString() const
+{
+    if (SingleNode) {
+        return 1;
+    }
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return _nodesPerString;
+    }
+    return _nodesPerString * ts;
 }
 
 bool MatrixModel::ChangeStringCount(long count, std::string & message)
 {
-    if (count == parm1) {
+    if (count == _numStrings) {
         return true;
     }
-    auto oldTotalPix = parm1 * parm2;
-    auto oldTotalStands = parm1 * parm3;
+    auto oldTotalPix = _numStrings * _nodesPerString;
+    auto oldTotalStands = _numStrings * _strandsPerString;
     if (oldTotalPix % count != 0) {
         message = "Pixel Count (" + std::to_string(oldTotalPix) + ") is not divisible by " + std::to_string(count);
         return false;
@@ -65,12 +77,12 @@ bool MatrixModel::ChangeStringCount(long count, std::string & message)
         return false;
     }
 
-    auto nparm2 = oldTotalPix / count;
-    auto nparm3 = oldTotalStands / count;
+    auto newNodesPerString = oldTotalPix / count;
+    auto newStrandsPerString = oldTotalStands / count;
 
-    parm1 = (int)count;
-    parm2 = (int)nparm2;
-    parm3 = (int)nparm3;
+    _numStrings = (int)count;
+    _nodesPerString = (int)newNodesPerString;
+    _strandsPerString = (int)newStrandsPerString;
     AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                 OutputModelManager::WORK_RELOAD_MODELLIST |
                 OutputModelManager::WORK_CALCULATE_START_CHANNELS |
@@ -85,11 +97,11 @@ void MatrixModel::InitSingleChannelModel()
     // rework bufX/bufY for singleChannel
     if (SingleNode)
     {
-        int NumStrands = parm1 * parm3;
-        int PixelsPerStrand = parm2 / parm3;
+        int NumStrands = _numStrings * _strandsPerString;
+        int PixelsPerStrand = _nodesPerString / _strandsPerString;
         if (_vMatrix)
         {
-            SetBufferSize(SingleNode ? 1 : PixelsPerStrand, SingleNode ? parm1 : NumStrands);
+            SetBufferSize(SingleNode ? 1 : PixelsPerStrand, SingleNode ? _numStrings : NumStrands);
             int x = 0;
             for (size_t n = 0; n < Nodes.size(); n++) {
                 for (auto& c : Nodes[n]->Coords)
@@ -102,7 +114,7 @@ void MatrixModel::InitSingleChannelModel()
         }
         else
         {
-            SetBufferSize(SingleNode ? parm1 : NumStrands, SingleNode ? 1 : PixelsPerStrand);
+            SetBufferSize(SingleNode ? _numStrings : NumStrands, SingleNode ? 1 : PixelsPerStrand);
             int y = 0;
             for (size_t n = 0; n < Nodes.size(); n++) {
                 for (auto& c : Nodes[n]->Coords)
@@ -127,21 +139,21 @@ void MatrixModel::InitModel() {
 }
 
 // initialize buffer coordinates
-// parm1=NumStrings
-// parm2=PixelsPerString
-// parm3=StrandsPerString
+// _numStrings=number of strings
+// _nodesPerString=pixels per string
+// _strandsPerString=strands per string
 void MatrixModel::InitVMatrix(int firstExportStrand)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int stringnum, segmentnum;
-    if (parm3 > parm2) {
-        parm3 = parm2;
+    if (_strandsPerString > _nodesPerString) {
+        _strandsPerString = _nodesPerString;
     }
-    int NumStrands = parm1 * parm3;
-    int PixelsPerStrand = parm2 / parm3;
-    int PixelsPerString = PixelsPerStrand * parm3;
+    int NumStrands = _numStrings * _strandsPerString;
+    int PixelsPerStrand = _nodesPerString / _strandsPerString;
+    int PixelsPerString = PixelsPerStrand * _strandsPerString;
     SetBufferSize(ApplyLowDefinition(PixelsPerStrand), ApplyLowDefinition(NumStrands));
-    SetNodeCount(parm1, PixelsPerString, rgbOrder);
+    SetNodeCount(_numStrings, PixelsPerString, rgbOrder);
     screenLocation.SetRenderSize(NumStrands, PixelsPerStrand, 2.0f);
     int chanPerNode = GetNodeChannelCount(StringType);
 
@@ -184,8 +196,8 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
         strandStartChan.clear();
         strandStartChan.resize(NumStrands);
         for (int x2 = 0; x2 < NumStrands; x2++) {
-            stringnum = x2 / parm3;
-            segmentnum = x2 % parm3;
+            stringnum = x2 / _strandsPerString;
+            segmentnum = x2 % _strandsPerString;
             strandStartChan[x2] = stringStartChan[stringnum] + segmentnum * PixelsPerStrand * chanPerNode;
         }
         if (firstExportStrand > 0 && firstExportStrand < NumStrands) {
@@ -200,8 +212,8 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
 
         if (_lowDefFactor == 100 || !SupportsLowDefinitionRender() || !GetModelManager().GetXLightsFrame()->IsLowDefinitionRender()) {
             for (int x = 0; x < NumStrands; x++) {
-                stringnum = x / parm3;
-                segmentnum = x % parm3;
+                stringnum = x / _strandsPerString;
+                segmentnum = x % _strandsPerString;
                 for (int y = 0; y < PixelsPerStrand; y++) {
                     int idx = stringnum * PixelsPerString + segmentnum * PixelsPerStrand + y;
                     Nodes[idx]->ActChan = strandStartChan[x] + y * chanPerNode;
@@ -239,8 +251,8 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
             int yoffset = PixelsPerStrand / 2;
 
             for (int x = 0; x < NumStrands; x++) {
-                stringnum = x / parm3;
-                segmentnum = x % parm3;
+                stringnum = x / _strandsPerString;
+                segmentnum = x % _strandsPerString;
                 for (int y = 0; y < PixelsPerStrand; y++) {
                     int idx = stringnum * PixelsPerString + segmentnum * PixelsPerStrand + y;
                     Nodes[idx]->ActChan = strandStartChan[x] + y * chanPerNode;
@@ -283,20 +295,20 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
 }
 
 // initialize buffer coordinates
-// parm1=NumStrings
-// parm2=PixelsPerString
-// parm3=StrandsPerString
+// _numStrings=number of strings
+// _nodesPerString=pixels per string
+// _strandsPerString=strands per string
 void MatrixModel::InitHMatrix() {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int idx,stringnum,segmentnum,xincr;
-    if (parm3 > parm2) {
-        parm3 = parm2;
+    if (_strandsPerString > _nodesPerString) {
+        _strandsPerString = _nodesPerString;
     }
-    int NumStrands=parm1*parm3;
-    int PixelsPerStrand=parm2/parm3;
-    int PixelsPerString=PixelsPerStrand*parm3;
+    int NumStrands=_numStrings*_strandsPerString;
+    int PixelsPerStrand=_nodesPerString/_strandsPerString;
+    int PixelsPerString=PixelsPerStrand*_strandsPerString;
     SetBufferSize(ApplyLowDefinition(NumStrands), ApplyLowDefinition(PixelsPerStrand));
-    SetNodeCount(parm1,PixelsPerString,rgbOrder);
+    SetNodeCount(_numStrings,PixelsPerString,rgbOrder);
     screenLocation.SetRenderSize(PixelsPerStrand, NumStrands, 2.0f);
     
     int chanPerNode = GetNodeChannelCount(StringType);
@@ -340,8 +352,8 @@ void MatrixModel::InitHMatrix() {
     } else {
         if (_lowDefFactor == 100 || !SupportsLowDefinitionRender() || !GetModelManager().GetXLightsFrame()->IsLowDefinitionRender()) {
             for (int y = 0; y < NumStrands; y++) {
-                stringnum = y / parm3;
-                segmentnum = y % parm3;
+                stringnum = y / _strandsPerString;
+                segmentnum = y % _strandsPerString;
                 for (int x = 0; x < PixelsPerStrand; x++) {
                     idx = stringnum * PixelsPerString + segmentnum * PixelsPerStrand + x;
                     Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand * chanPerNode + x * chanPerNode;
@@ -381,8 +393,8 @@ void MatrixModel::InitHMatrix() {
             int yoffset = NumStrands / 2;
 
             for (int y = 0; y < NumStrands; y++) {
-                stringnum = y / parm3;
-                segmentnum = y % parm3;
+                stringnum = y / _strandsPerString;
+                segmentnum = y % _strandsPerString;
                 for (int x = 0; x < PixelsPerStrand; x++) {
                     idx = stringnum * PixelsPerString + segmentnum * PixelsPerStrand + x;
                     Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand * chanPerNode + x * chanPerNode;

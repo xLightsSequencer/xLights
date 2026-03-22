@@ -286,9 +286,9 @@ void TreeModel::ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const
 
     BaseSerializingVisitor::AttrCollector attrs;
     attrs.Add("name", GetName());
-    attrs.Add("parm1", std::to_string(width));
-    attrs.Add("parm2", std::to_string(height));
-    attrs.Add("parm3", std::to_string(parm3));
+    attrs.Add("CustomWidth", std::to_string(width));
+    attrs.Add("CustomHeight", std::to_string(height));
+    attrs.Add("StrandsPerString", std::to_string(_strandsPerString));
     attrs.Add("Depth", std::to_string(depth));
     attrs.Add("StringType", GetStringType());
     attrs.Add("Transparency", GetTransparency() ? "1" : "0");

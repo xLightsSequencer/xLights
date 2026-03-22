@@ -316,8 +316,10 @@ void RemapModelProperties::Load(const std::string& filename)
 			} else {
                 // extract model properties
                 // dimensions
-                _w = wxAtoi(_xmodel.GetRoot()->GetAttribute("parm1", "0"));
-                _h = wxAtoi(_xmodel.GetRoot()->GetAttribute("parm2", "0"));
+                _w = wxAtoi(_xmodel.GetRoot()->HasAttribute("CustomWidth") ?
+                    _xmodel.GetRoot()->GetAttribute("CustomWidth", "0") : _xmodel.GetRoot()->GetAttribute("parm1", "0"));
+                _h = wxAtoi(_xmodel.GetRoot()->HasAttribute("CustomHeight") ?
+                    _xmodel.GetRoot()->GetAttribute("CustomHeight", "0") : _xmodel.GetRoot()->GetAttribute("parm2", "0"));
                 _d = wxAtoi(_xmodel.GetRoot()->GetAttribute("Depth", "1"));
 
 				_message += "\nW: " + std::to_string(_w) + " H: " + std::to_string(_h) + " D: " + std::to_string(_d);

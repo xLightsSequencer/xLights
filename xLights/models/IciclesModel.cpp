@@ -23,10 +23,22 @@ IciclesModel::~IciclesModel()
 {
 }
 
+int IciclesModel::NodesPerString() const
+{
+    if (SingleNode) {
+        return 1;
+    }
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return _lightsPerString;
+    }
+    return _lightsPerString * ts;
+}
+
 void IciclesModel::InitModel()
 {
-    int numStrings = parm1;
-    int lightsPerString = parm2;
+    int numStrings = _numStrings;
+    int lightsPerString = _lightsPerString;
 
     SetNodeCount(numStrings, lightsPerString, rgbOrder);
     ParseDropSizes();

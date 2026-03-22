@@ -24,13 +24,21 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;
         virtual int GetNumPhysicalStrings() const override { return 1; }
 
-        virtual int GetLightsPerNode() const override { return parm3; } // default to one unless a model supports this
+        virtual int GetLightsPerNode() const override { return _lightsPerNode; }
+        virtual int GetNumStrings() const override { return _numArches; }
+        virtual int NodesPerString() const override;
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
         virtual std::string GetDimension() const override;
 
         virtual bool ModelSupportsLayerSizes() const override { return true; }
         virtual void OnLayerSizesChange(bool countChanged) override;
+
+        [[nodiscard]] int GetNumArches() const { return _numArches; }
+        [[nodiscard]] int GetNodesPerArch() const { return _nodesPerArch; }
+        void SetNumArches(int val) { _numArches = val; }
+        void SetNodesPerArch(int val) { _nodesPerArch = val; }
+        void SetLightsPerNode(int val) { _lightsPerNode = val; }
 
         [[nodiscard]] bool GetZigZag() const { return _zigzag; }
         [[nodiscard]] int GetHollow() const { return _hollow; }
@@ -56,6 +64,9 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
     private:
         void SetLayerdArchCoord(int archcount, int maxLen);
         void SetArchCoord();
+        int _numArches = 1;
+        int _nodesPerArch = 1;
+        int _lightsPerNode = 1;
         int _arc = 180;
         int _gap = 0;
         int _hollow = 70;

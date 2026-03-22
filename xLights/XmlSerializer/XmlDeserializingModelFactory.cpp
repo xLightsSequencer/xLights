@@ -59,6 +59,14 @@
 
 using namespace XmlSerialize;
 
+// Helper to read a new named attribute, falling back to a legacy parm attribute
+static long ReadAttrWithParmFallback(wxXmlNode* node, const char* newAttr, const char* parmAttr, const char* defaultVal) {
+    if (node->HasAttribute(newAttr)) {
+        return std::strtol(node->GetAttribute(newAttr, defaultVal).ToStdString().c_str(), nullptr, 10);
+    }
+    return std::strtol(node->GetAttribute(parmAttr, defaultVal).ToStdString().c_str(), nullptr, 10);
+}
+
 Model* XmlDeserializingModelFactory::Deserialize(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     wxString type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute, "DisplayAs Missing");
 
@@ -193,9 +201,8 @@ void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model
     }
     model->SetDirection(node->GetAttribute(XmlNodeKeys::DirAttribute, "L"));
     model->SetIsLtoR(node->GetAttribute(XmlNodeKeys::DirAttribute, "L") != "R");
-    model->SetParm1(std::stol(node->GetAttribute(XmlNodeKeys::Parm1Attribute,"0").ToStdString()));
-    model->SetParm2(std::stol(node->GetAttribute(XmlNodeKeys::Parm2Attribute,"0").ToStdString()));
-    model->SetParm3(std::stol(node->GetAttribute(XmlNodeKeys::Parm3Attribute,"0").ToStdString()));
+    // Note: parm1/2/3 are no longer read here.
+    // Each model's specific deserializer reads its own named attributes with parm fallback.
     model->SetPixelStyle((Model::PIXEL_STYLE)(std::stol(node->GetAttribute(XmlNodeKeys::AntialiasAttribute, std::to_string((int)Model::PIXEL_STYLE::PIXEL_STYLE_SMOOTH)).ToStdString())));
     model->SetPixelSize(std::stoi(node->GetAttribute(XmlNodeKeys::PixelSizeAttribute, "2").ToStdString()));
     model->SetRGBWHandling((std::string)node->GetAttribute(XmlNodeKeys::RGBWHandleAttribute));
@@ -225,7 +232,19 @@ void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model
     bool hasIndivChan = std::stol(node->GetAttribute(XmlNodeKeys::AdvancedAttribute,"0").ToStdString());
     model->SetHasIndividualStartChannels(hasIndivChan);
     if (hasIndivChan) {
-        int num_strings = model->GetParm1();
+        // Read string count from new attribute names, falling back to parm1 for backward compat
+        int num_strings = ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1");
+        // Try model-specific attribute names if NumStrings wasn't found
+        if (!node->HasAttribute(XmlNodeKeys::NumStringsAttribute) && !node->HasAttribute(XmlNodeKeys::Parm1Attribute)) {
+            if (node->HasAttribute(XmlNodeKeys::NumArchesAttribute))
+                num_strings = std::stol(node->GetAttribute(XmlNodeKeys::NumArchesAttribute, "1").ToStdString());
+            else if (node->HasAttribute(XmlNodeKeys::NumCanesAttribute))
+                num_strings = std::stol(node->GetAttribute(XmlNodeKeys::NumCanesAttribute, "1").ToStdString());
+            else if (node->HasAttribute(XmlNodeKeys::NumChannelsAttribute))
+                num_strings = std::stol(node->GetAttribute(XmlNodeKeys::NumChannelsAttribute, "1").ToStdString());
+            else if (node->HasAttribute(XmlNodeKeys::DmxChannelCountAttribute))
+                num_strings = std::stol(node->GetAttribute(XmlNodeKeys::DmxChannelCountAttribute, "1").ToStdString());
+        }
         model->SetIndivStartChannelCount(num_strings);
         for (auto i = 0; i < num_strings;  i++) {
             model->SetIndividualStartChannel(i, node->GetAttribute(model->StartChanAttrName(i), "").ToStdString());
@@ -400,6 +419,9 @@ void XmlDeserializingModelFactory::DeserializeSuperStrings(Model* model, wxXmlNo
 Model* XmlDeserializingModelFactory::DeserializeArches(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     ArchesModel* model = new ArchesModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumArches(ReadAttrWithParmFallback(node, XmlNodeKeys::NumArchesAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerArch(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerArchAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetLightsPerNode(ReadAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     DeserializeThreePointScreenLocationAttributes(model, node);
     model->SetZigZag(node->GetAttribute(XmlNodeKeys::ZigZagAttribute).ToStdString() == "true");
     if (node->HasAttribute(XmlNodeKeys::HollowAttribute)) { model->SetHollow(std::stoi(node->GetAttribute(XmlNodeKeys::HollowAttribute).ToStdString())); }
@@ -420,6 +442,9 @@ Model* XmlDeserializingModelFactory::DeserializeArches(wxXmlNode* node, xLightsF
 Model* XmlDeserializingModelFactory::DeserializeCandyCane(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     CandyCaneModel* model = new CandyCaneModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumCanes(ReadAttrWithParmFallback(node, XmlNodeKeys::NumCanesAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerCane(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerCaneAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetLightsPerNode(ReadAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     DeserializeThreePointScreenLocationAttributes(model, node);
     model->SetReverse(node->GetAttribute(XmlNodeKeys::CCReverseAttribute, "false") == "true");
     model->SetSticks(node->GetAttribute(XmlNodeKeys::CCSticksAttribute, "false") == "true");
@@ -437,6 +462,7 @@ Model* XmlDeserializingModelFactory::DeserializeCandyCane(wxXmlNode* node, xLigh
 Model* XmlDeserializingModelFactory::DeserializeChannelBlock(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     ChannelBlockModel* model = new ChannelBlockModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumChannels(ReadAttrWithParmFallback(node, XmlNodeKeys::NumChannelsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     DeserializeTwoPointScreenLocationAttributes(model, node);
     // Setup the model early to size the vector for number of colors
     model->Setup();
@@ -450,6 +476,8 @@ Model* XmlDeserializingModelFactory::DeserializeChannelBlock(wxXmlNode* node, xL
 Model* XmlDeserializingModelFactory::DeserializeCircle(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     CircleModel* model = new CircleModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumCircleStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetCircleNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     // convert old circle sizes to new Layer sizes setting - this also reverses the order
     std::string layer_sizes = xlEMPTY_STRING;
     if (node->GetAttribute(XmlNodeKeys::CircleSizesAttribute, xlEMPTY_STRING) != xlEMPTY_STRING) {
@@ -469,6 +497,9 @@ Model* XmlDeserializingModelFactory::DeserializeCircle(wxXmlNode* node, xLightsF
 Model* XmlDeserializingModelFactory::DeserializeCube(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     CubeModel* model = new CubeModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetCubeWidth(ReadAttrWithParmFallback(node, XmlNodeKeys::CubeWidthAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetCubeHeight(ReadAttrWithParmFallback(node, XmlNodeKeys::CubeHeightAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetCubeDepth(ReadAttrWithParmFallback(node, XmlNodeKeys::CubeDepthAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     model->SetCubeStrings(std::stoi(node->GetAttribute(XmlNodeKeys::CubeStringsAttribute, "1").ToStdString()));
     model->SetCubeStart(node->GetAttribute(XmlNodeKeys::CubeStartAttribute, xlEMPTY_STRING).ToStdString());
     model->SetCubeStyle(node->GetAttribute(XmlNodeKeys::StyleAttribute, xlEMPTY_STRING));
@@ -481,6 +512,8 @@ Model* XmlDeserializingModelFactory::DeserializeCube(wxXmlNode* node, xLightsFra
 Model* XmlDeserializingModelFactory::DeserializeCustom(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     CustomModel* model = new CustomModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetCustomWidth(ReadAttrWithParmFallback(node, XmlNodeKeys::CustomWidthAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetCustomHeight(ReadAttrWithParmFallback(node, XmlNodeKeys::CustomHeightAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     model->SetCustomDepth(std::stol(node->GetAttribute(XmlNodeKeys::CMDepthAttribute, "1").ToStdString()));
     int num_strings = std::stoi(node->GetAttribute(XmlNodeKeys::CustomStringsAttribute, "1").ToStdString());
     model->SetNumStrings(num_strings);
@@ -509,7 +542,6 @@ Model* XmlDeserializingModelFactory::DeserializeCustom(wxXmlNode* node, xLightsF
     }
 
     // Individual Start Channels - re-read with correct string count
-    // (CommonDeserializeSteps used parm1 which is the grid width for CustomModel)
     if (model->HasIndividualStartChannels()) {
         model->SetIndivStartChannelCount(num_strings);
         for (auto i = 0; i < num_strings; i++) {
@@ -524,6 +556,8 @@ Model* XmlDeserializingModelFactory::DeserializeCustom(wxXmlNode* node, xLightsF
 Model* XmlDeserializingModelFactory::DeserializeIcicles(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     IciclesModel* model = new IciclesModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumIcicleStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetLightsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     DeserializeThreePointScreenLocationAttributes(model, node);
     model->SetDropPattern(node->GetAttribute(XmlNodeKeys::DropPatternAttribute, "3,4,5,4"));
     model->SetAlternateNodes(node->GetAttribute(XmlNodeKeys::AlternateNodesAttribute, "false") == "true");
@@ -544,6 +578,9 @@ Model* XmlDeserializingModelFactory::DeserializeImage(wxXmlNode* node, xLightsFr
 Model* XmlDeserializingModelFactory::DeserializeMatrix(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     MatrixModel* model = new MatrixModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumMatrixStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetStrandsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::StrandsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     model->SetAlternateNodes(node->GetAttribute(XmlNodeKeys::AlternateNodesAttribute, "false") == "true");
     model->SetNoZigZag(node->GetAttribute(XmlNodeKeys::NoZigZagAttribute, "false") == "true");
     std::string type = node->GetAttribute(XmlNodeKeys::DisplayAsAttribute, "Matrix");
@@ -588,6 +625,9 @@ Model* XmlDeserializingModelFactory::DeserializeMultiPoint(wxXmlNode* node, xLig
 Model* XmlDeserializingModelFactory::DeserializeSingleLine(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     SingleLineModel* model = new SingleLineModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumLines(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerLine(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "50"));
+    model->SetLightsPerNode(ReadAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     DeserializeTwoPointScreenLocationAttributes(model, node);
     model->Setup();
     return model;
@@ -596,6 +636,8 @@ Model* XmlDeserializingModelFactory::DeserializeSingleLine(wxXmlNode* node, xLig
 Model* XmlDeserializingModelFactory::DeserializePolyLine(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     PolyLineModel* model = new PolyLineModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetLightsPerNode(ReadAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetTotalLightCount(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "0"));
     DeserializePolyPointScreenLocationAttributes(model, node);
     int num_strings = std::stoi(node->GetAttribute(XmlNodeKeys::PolyStringsAttribute, "1").ToStdString());
     model->SetNumStrings(num_strings);
@@ -604,8 +646,6 @@ Model* XmlDeserializingModelFactory::DeserializePolyLine(wxXmlNode* node, xLight
     model->SetModelHeight(std::stof(node->GetAttribute(XmlNodeKeys::ModelHeightAttribute, "1.0").ToStdString()));
     PolyPointScreenLocation& screenLoc = dynamic_cast<PolyPointScreenLocation&>(model->GetBaseObjectScreenLocation());
 
-    // The common deserializer reads parm1-count individual start channels, but for PolyLine
-    // parm1 is _numSegments. PolyLine should use string count like all other models.
     // Re-read the individual start channels using num_strings count.
     if (model->HasIndividualStartChannels()) {
         model->SetIndivStartChannelCount(num_strings);
@@ -654,6 +694,9 @@ Model* XmlDeserializingModelFactory::DeserializePolyLine(wxXmlNode* node, xLight
 Model* XmlDeserializingModelFactory::DeserializeSphere(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     SphereModel* model = new SphereModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumMatrixStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetStrandsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::StrandsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     model->SetStartLatitude(std::stoi(node->GetAttribute(XmlNodeKeys::StartLatAttribute, "-86").ToStdString()));
     model->SetEndLatitude(std::stoi(node->GetAttribute(XmlNodeKeys::EndLatAttribute, "86").ToStdString()));
     model->SetDegrees(std::stoi(node->GetAttribute(XmlNodeKeys::DegreesAttribute, "360").ToStdString()));
@@ -678,6 +721,9 @@ Model* XmlDeserializingModelFactory::DeserializeSphere(wxXmlNode* node, xLightsF
 Model* XmlDeserializingModelFactory::DeserializeSpinner(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     SpinnerModel* model = new SpinnerModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumSpinnerStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerArm(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerArmAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetArmsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::ArmsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     model->SetHollow(std::stoi(node->GetAttribute(XmlNodeKeys::HollowAttribute, "20").ToStdString()));
     model->SetStartAngle(std::stoi(node->GetAttribute(XmlNodeKeys::StartAngleAttribute, "0").ToStdString()));
     model->SetArc(std::stoi(node->GetAttribute(XmlNodeKeys::ArcAttribute, "360").ToStdString()));
@@ -690,6 +736,9 @@ Model* XmlDeserializingModelFactory::DeserializeSpinner(wxXmlNode* node, xLights
 Model* XmlDeserializingModelFactory::DeserializeStar(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     StarModel* model = new StarModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumStarStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetStarNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetStarPoints(ReadAttrWithParmFallback(node, XmlNodeKeys::StarPointsAttribute, XmlNodeKeys::Parm3Attribute, "5"));
 
     // convert old star sizes to new Layer sizes setting
     std::string layer_sizes = xlEMPTY_STRING;
@@ -716,6 +765,9 @@ Model* XmlDeserializingModelFactory::DeserializeStar(wxXmlNode* node, xLightsFra
 Model* XmlDeserializingModelFactory::DeserializeTree(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     TreeModel* model = new TreeModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumMatrixStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetStrandsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::StrandsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     model->SetAlternateNodes(node->GetAttribute(XmlNodeKeys::AlternateNodesAttribute, "false") == "true");
     model->SetNoZigZag(node->GetAttribute(XmlNodeKeys::NoZigZagAttribute, "false") == "true");
     model->SetVertical(node->GetAttribute(XmlNodeKeys::StrandDirAttribute, "Vertical") == "Vertical");
@@ -751,6 +803,9 @@ Model* XmlDeserializingModelFactory::DeserializeTree(wxXmlNode* node, xLightsFra
 Model* XmlDeserializingModelFactory::DeserializeWindow(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     WindowFrameModel* model = new WindowFrameModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetTopNodes(ReadAttrWithParmFallback(node, XmlNodeKeys::TopNodesAttribute, XmlNodeKeys::Parm1Attribute, "0"));
+    model->SetSideNodes(ReadAttrWithParmFallback(node, XmlNodeKeys::SideNodesAttribute, XmlNodeKeys::Parm2Attribute, "0"));
+    model->SetBottomNodes(ReadAttrWithParmFallback(node, XmlNodeKeys::BottomNodesAttribute, XmlNodeKeys::Parm3Attribute, "0"));
     model->SetRotation((node->GetAttribute("Rotation", "CW") == "Clockwise" || node->GetAttribute("Rotation", "CW") == "CW") ? 0 : 1);
     model->Setup();
     return model;
@@ -759,6 +814,8 @@ Model* XmlDeserializingModelFactory::DeserializeWindow(wxXmlNode* node, xLightsF
 Model* XmlDeserializingModelFactory::DeserializeWreath(wxXmlNode* node, xLightsFrame* xlights, bool importing) {
     WreathModel* model = new WreathModel(xlights->AllModels);
     CommonDeserializeSteps(model, node, xlights, importing);
+    model->SetNumWreathStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetWreathNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "50"));
     model->Setup();
     return model;
 }
@@ -831,6 +888,7 @@ Model* XmlDeserializingModelFactory::DeserializeModelGroup(wxXmlNode* node, xLig
 // **********************                        DMX Section                           ************************
 // ************************************************************************************************************
 void XmlDeserializingModelFactory::DeserializeDmxModel(DmxModel* dmx_model, wxXmlNode* node) {
+    dmx_model->SetDmxChannelCount(ReadAttrWithParmFallback(node, XmlNodeKeys::DmxChannelCountAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     if (dmx_model->HasBeamAbility()) {
         DeserializeBeamAbility(dmx_model, node);
     }

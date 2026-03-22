@@ -64,7 +64,7 @@ void DmxModel::InitRenderBufferNodes(const std::string& type, const std::string&
 
 void DmxModel::UpdateChannelCount(int num_channels, bool do_work)
 {
-    parm1 = num_channels;
+    _dmxChannelCount = num_channels;
     if (do_work) {
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxModel::UpdateChannelCount::DMXChannelCount");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST |
@@ -76,10 +76,8 @@ void DmxModel::UpdateChannelCount(int num_channels, bool do_work)
 void DmxModel::InitModel()
 {
     StringType = "Single Color White";
-    parm2 = 1;
-    parm3 = 1;
 
-    int numChannels = parm1;
+    int numChannels = _dmxChannelCount;
     SetNodeCount(numChannels, 1, rgbOrder);
 
     int curNode = 0;
@@ -103,7 +101,7 @@ void DmxModel::InitModel()
         Nodes[curNode]->Coords[0].bufY = 0;
         curNode++;
     }
-    SetBufferSize(1, parm1);
+    SetBufferSize(1, _dmxChannelCount);
 }
 
 int DmxModel::GetChannelValue(int channel, bool bits16)
@@ -235,7 +233,7 @@ void DmxModel::DrawInvalid(xlGraphicsProgram* pg, ModelScreenLocation* msl, bool
 std::vector<std::string> DmxModel::GenerateNodeNames() const
 {
     std::vector<std::string> names;
-    for (int i=0; i< parm1; ++i) {// parm1 is channel count
+    for (int i=0; i< _dmxChannelCount; ++i) {
         names.push_back("");
     }
     if (nullptr != color_ability) {

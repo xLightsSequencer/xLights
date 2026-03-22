@@ -37,10 +37,6 @@ SubModel::SubModel(Model *p, const std::string _name, bool vertical, bool ranges
     DisplayAs = DisplayAsType::SubModel;
 
     name = _name;
-    parm1 = 1;
-    parm2 = 1;
-    parm3 = 1;
-    
     StringType = p->StringType;
 
      // inherit pixel properties from parent model
@@ -69,10 +65,6 @@ SubModel::SubModel(Model *newParent, const SubModel* source) :
     DisplayAs = DisplayAsType::SubModel;
 
     name = source->name;
-    parm1 = source->parm1;
-    parm2 = source->parm2;
-    parm3 = source->parm3;
-    
     StringType = newParent->StringType;
 
     // Inherit pixel properties from new parent model

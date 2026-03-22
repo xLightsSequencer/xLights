@@ -1151,9 +1151,9 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
                 matrixModel->SetPixelStyle(Model::PIXEL_STYLE::PIXEL_STYLE_SMOOTH); // Antialias = 1
                 matrixModel->SetPixelSize(2);
                 matrixModel->SetTransparency(0);
-                matrixModel->SetParm1(PRESET_ICON_SIZE);
-                matrixModel->SetParm2(PRESET_ICON_SIZE);
-                matrixModel->SetParm3(1);
+                matrixModel->SetNumMatrixStrings(PRESET_ICON_SIZE);
+                matrixModel->SetNodesPerString(PRESET_ICON_SIZE);
+                matrixModel->SetStrandsPerString(1);
                 matrixModel->SetVertical(false); // Horiz Matrix
                 matrixModel->SetDirection("L");
                 matrixModel->SetStartSide("T");

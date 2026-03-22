@@ -45,9 +45,9 @@ void WindowFrameModel::GetCoordinates(int side, bool clockwise, bool LtoR, bool 
 {
     // sides - left, top, right, bottom
 
-    float top = parm1;
-    float height = parm2;
-    float bottom = parm3;
+    float top = _topNodes;
+    float height = _sideNodes;
+    float bottom = _bottomNodes;
 
     float width = std::max(top, bottom) + 2;
 
@@ -102,21 +102,21 @@ void WindowFrameModel::GetCoordinates(int side, bool clockwise, bool LtoR, bool 
 }
 
 // initialize buffer coordinates
-// parm1=Nodes on Top
-// parm2=Nodes left and right
-// parm3=Nodes on Bottom
+// _topNodes=Nodes on Top
+// _sideNodes=Nodes left and right
+// _bottomNodes=Nodes on Bottom
 void WindowFrameModel::InitFrame()
 {
     //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    SetNodeCount(1, parm1 + 2 * parm2 + parm3, rgbOrder);
+    SetNodeCount(1, _topNodes + 2 * _sideNodes + _bottomNodes, rgbOrder);
 
-    int left = parm2;
-    int top = parm1;
-    int bottom = parm3;
+    int left = _sideNodes;
+    int top = _topNodes;
+    int bottom = _bottomNodes;
 
     int width = std::max(top, bottom) + 2;
-    int height = parm2;
+    int height = _sideNodes;
 
     SetBufferSize(height, width);   // treat as outside of matrix
     screenLocation.SetRenderSize(width, height);

@@ -30,14 +30,14 @@ CandyCaneModel::~CandyCaneModel()
 
 bool CandyCaneModel::IsNodeFirst(int n) const
 {
-    return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == Nodes.size() - parm2);
+    return (GetIsLtoR() && n == 0) || (!GetIsLtoR() && n == Nodes.size() - _nodesPerCane);
 }
 
 // Canes are 3 high per width of each indivudual cane, then multiply by 2 because standard ThreePointLocation applies a / 2 for heights
 std::string CandyCaneModel::GetDimension() const
 {
-    if (parm1 != 0) {
-        return GetModelScreenLocation().GetDimension(6.0 / parm1);
+    if (_numCanes != 0) {
+        return GetModelScreenLocation().GetDimension(6.0 / _numCanes);
     }
     return GetModelScreenLocation().GetDimension(6.0);
 }
@@ -60,8 +60,8 @@ void CandyCaneModel::InitRenderBufferNodes(const std::string &tp, const std::str
         BufferHi = 1;
         BufferWi = GetNodeCount();
 
-        int NumCanes=parm1;
-        int SegmentsPerCane=parm2;
+        int NumCanes=_numCanes;
+        int SegmentsPerCane=_nodesPerCane;
         int cur = 0;
         for (int y=0; y < NumCanes; y++) {
             for(int x=0; x<SegmentsPerCane; x++) {
@@ -81,27 +81,27 @@ void CandyCaneModel::InitRenderBufferNodes(const std::string &tp, const std::str
 }
 
 void CandyCaneModel::InitModel() {
-    int NumCanes = parm1;
-    int SegmentsPerCane = parm2;
+    int NumCanes = _numCanes;
+    int SegmentsPerCane = _nodesPerCane;
 
-    // When a SingleNode model is saved, parm2 is stored as 1 and parm3 holds lights per cane.
-    // On reload, restore parm2 from parm3 so SetNodeCount gets the correct count.
-    if (SingleNode && parm2 <= 1 && parm3 > 1) {
-        SegmentsPerCane = parm3;
-        parm2 = parm3;
+    // When a SingleNode model is saved, _nodesPerCane is stored as 1 and _lightsPerNode holds lights per cane.
+    // On reload, restore _nodesPerCane from _lightsPerNode so SetNodeCount gets the correct count.
+    if (SingleNode && _nodesPerCane <= 1 && _lightsPerNode > 1) {
+        SegmentsPerCane = _lightsPerNode;
+        _nodesPerCane = _lightsPerNode;
     }
 
     SetNodeCount(NumCanes, SegmentsPerCane, rgbOrder);
     if (SingleNode) {
         SegmentsPerCane = 1;
-        parm3 = parm2;
-        parm2 = 1;
+        _lightsPerNode = _nodesPerCane;
+        _nodesPerCane = 1;
     } else {
-        if (parm3 > 1)
+        if (_lightsPerNode > 1)
 		{
             for (size_t x = 0; x < Nodes.size(); x++)
 			{
-                Nodes[x]->Coords.resize(parm3);
+                Nodes[x]->Coords.resize(_lightsPerNode);
             }
         }
     }
@@ -144,18 +144,29 @@ void CandyCaneModel::InitModel() {
 }
 
 int CandyCaneModel::MapToNodeIndex(int strand, int node) const {
-    return strand * parm2 + node;
+    return strand * _nodesPerCane + node;
 }
 
 int CandyCaneModel::GetNumStrands() const {
-     return parm1;
+     return _numCanes;
 }
 
 int CandyCaneModel::CalcChannelsPerString() {
     if (SingleNode) {
         return GetNodeChannelCount(StringType);
     }
-    return GetNodeChannelCount(StringType) * parm2;
+    return GetNodeChannelCount(StringType) * _nodesPerCane;
+}
+
+int CandyCaneModel::NodesPerString() const {
+    if (SingleNode) {
+        return 1;
+    }
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return _nodesPerCane;
+    }
+    return _nodesPerCane * ts;
 }
 
 static void rotate_point(float cx,float cy, float angle, float &x, float &y)
@@ -180,9 +191,9 @@ void CandyCaneModel::SetCaneCoord() {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    int NumCanes = parm1;
-    size_t SegmentsPerCane = parm2;
-    int LightsPerNode = parm3;
+    int NumCanes = _numCanes;
+    size_t SegmentsPerCane = _nodesPerCane;
+    int LightsPerNode = _lightsPerNode;
 
     int lightspercane = SegmentsPerCane * LightsPerNode;
     float angle = toRadians(screenLocation.GetAngle());
@@ -193,9 +204,9 @@ void CandyCaneModel::SetCaneCoord() {
 
     double caneGap = 2.0;
     int upright = SegmentsPerCane * 6.0 / 9.0;
-    upright *= parm3;
+    upright *= _lightsPerNode;
     if (SingleNode) {
-        upright = parm3 * 6.0 / 9.0;
+        upright = _lightsPerNode * 6.0 / 9.0;
     }
     double widthPerCane = double(lightspercane)*3.0/9.0;
     width = (double)NumCanes*widthPerCane + (NumCanes - 1) * caneGap;
@@ -222,7 +233,7 @@ void CandyCaneModel::SetCaneCoord() {
                 }
                 else
                 {
-                    auto node = FindNodeAtXY(i, y / parm3);
+                    auto node = FindNodeAtXY(i, y / _lightsPerNode);
                     for (size_t c = 0; c < CoordCount; c++) {
                         if (node == -1)
                         {
@@ -278,7 +289,7 @@ void CandyCaneModel::SetCaneCoord() {
                 }
                 else
                 {
-                    auto node = FindNodeAtXY(i, y / parm3);
+                    auto node = FindNodeAtXY(i, y / _lightsPerNode);
                     for (size_t c = 0; c < CoordCount; c++) {
                         if (node == -1)
                         {
@@ -329,7 +340,7 @@ void CandyCaneModel::SetCaneCoord() {
                 }
                 else
                 {
-                    auto node = FindNodeAtXY(i, curLight / parm3);
+                    auto node = FindNodeAtXY(i, curLight / _lightsPerNode);
                     for (; c < CoordCount; c++)
                     {
                         // drawing left to right

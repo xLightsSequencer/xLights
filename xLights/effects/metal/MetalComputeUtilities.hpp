@@ -6,7 +6,7 @@
 
 #include "GPURenderUtils.h"
 #include "MetalEffectDataTypes.h"
-#include "PixelBuffer.h"
+#include "../../render/PixelBuffer.h"
 
 class PixelBufferClass;
 class RenderBuffer;

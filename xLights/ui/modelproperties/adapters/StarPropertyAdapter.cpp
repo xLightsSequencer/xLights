@@ -36,26 +36,26 @@ StarPropertyAdapter::StarPropertyAdapter(Model& model)
     : ModelPropertyAdapter(model), _star(static_cast<StarModel&>(model)) {}
 
 void StarPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
-    wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "StarStringCount", _star.GetParm1()));
+    wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "StarStringCount", _star.GetNumStarStrings()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 640);
     p->SetEditor("SpinCtrl");
     p->SetHelpString("This is typically the number of connections from the prop to your controller.");
 
     if (_star.IsSingleNode()) {
-        p = grid->Append(new wxUIntProperty("Lights/String", "StarLightCount", _star.GetParm2()));
+        p = grid->Append(new wxUIntProperty("Lights/String", "StarLightCount", _star.GetNodesPerString()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
     } else {
-        p = grid->Append(new wxUIntProperty("Nodes/String", "StarLightCount", _star.GetParm2()));
+        p = grid->Append(new wxUIntProperty("Nodes/String", "StarLightCount", _star.GetNodesPerString()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
         p->SetHelpString("This is typically the total number of pixels per #String.");
     }
 
-    p = grid->Append(new wxUIntProperty("# Points", "StarStrandCount", _star.GetParm3()));
+    p = grid->Append(new wxUIntProperty("# Points", "StarStrandCount", _star.GetStarPoints()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 250);
     p->SetEditor("SpinCtrl");
@@ -87,7 +87,7 @@ void StarPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, Outpu
 
 int StarPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     if ("StarStringCount" == event.GetPropertyName()) {
-        _star.SetParm1(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _star.SetNumStarStrings(static_cast<int>(event.GetPropertyValue().GetLong()));
         _star.IncrementChangeCount();
         _star.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
@@ -95,7 +95,7 @@ int StarPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxP
                     OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "StarPropertyAdapter::OnPropertyGridChange::StarStringCount");
         return 0;
     } else if ("StarLightCount" == event.GetPropertyName()) {
-        _star.SetParm2(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _star.SetStarNodesPerString(static_cast<int>(event.GetPropertyValue().GetLong()));
         _star.IncrementChangeCount();
         _star.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
@@ -103,7 +103,7 @@ int StarPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxP
                     OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "StarPropertyAdapter::OnPropertyGridChange::StarLightCount");
         return 0;
     } else if ("StarStrandCount" == event.GetPropertyName()) {
-        _star.SetParm3(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _star.SetStarPoints(static_cast<int>(event.GetPropertyValue().GetLong()));
         _star.IncrementChangeCount();
         _star.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |

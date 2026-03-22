@@ -53,24 +53,24 @@ void MatrixPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, Out
     p->SetHelpString("This is typically the number of connections from the prop to your controller. *This would also be the 'Height' of a Horizontal Virtual Matrix.");
 
     if (_matrix.IsSingleNode()) {
-        p = grid->Append(new wxUIntProperty("Lights/String", "MatrixLightCount", _matrix.GetParm2()));
+        p = grid->Append(new wxUIntProperty("Lights/String", "MatrixLightCount", _matrix.GetNodesPerString()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
     } else {
-        p = grid->Append(new wxUIntProperty("Nodes/String", "MatrixLightCount", _matrix.GetParm2()));
+        p = grid->Append(new wxUIntProperty("Nodes/String", "MatrixLightCount", _matrix.GetNodesPerString()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
         p->SetHelpString("This is typically the total number of pixels per #String. \n *This would also be the 'Width' of a Horizontal Virtual Matrix.");
     }
 
-    p = grid->Append(new wxUIntProperty("Strands/String", "MatrixStrandCount", _matrix.GetParm3()));
+    p = grid->Append(new wxUIntProperty("Strands/String", "MatrixStrandCount", _matrix.GetStrandsPerString()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 2500);
     p->SetEditor("SpinCtrl");
     p->SetHelpString("This is typically how many times the #String ZigZags.");
-    if (_matrix.GetParm2() % _matrix.GetParm3() != 0) {
+    if (_matrix.GetNodesPerString() % _matrix.GetStrandsPerString() != 0) {
         p->SetBackgroundColour(*wxRED);
         p->SetHelpString("Strands/String must divide into Nodes/String evenly.");
     } else {
@@ -88,7 +88,7 @@ int MatrixPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, w
         _matrix.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "MatrixPropertyAdapter::OnPropertyGridChange::MatrixStyle");
         return 0;
     } else if ("MatrixStringCount" == event.GetPropertyName()) {
-        _matrix.SetParm1(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _matrix.SetNumMatrixStrings(static_cast<int>(event.GetPropertyValue().GetLong()));
         _matrix.IncrementChangeCount();
         _matrix.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
@@ -96,7 +96,7 @@ int MatrixPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, w
                     OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "MatrixPropertyAdapter::OnPropertyGridChange::MatrixStringCount");
         return 0;
     } else if ("MatrixLightCount" == event.GetPropertyName()) {
-        _matrix.SetParm2(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _matrix.SetNodesPerString(static_cast<int>(event.GetPropertyValue().GetLong()));
         _matrix.IncrementChangeCount();
         _matrix.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
@@ -104,7 +104,7 @@ int MatrixPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, w
                     OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "MatrixPropertyAdapter::OnPropertyGridChange::MatrixLightCount");
         return 0;
     } else if ("MatrixStrandCount" == event.GetPropertyName()) {
-        _matrix.SetParm3(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _matrix.SetStrandsPerString(static_cast<int>(event.GetPropertyValue().GetLong()));
         _matrix.IncrementChangeCount();
         _matrix.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST, "MatrixPropertyAdapter::OnPropertyGridChange::MatrixStrandCount");

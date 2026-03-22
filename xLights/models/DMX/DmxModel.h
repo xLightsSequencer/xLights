@@ -51,7 +51,11 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual bool SupportsWiringView() const override { return false; }
         virtual int GetNumPhysicalStrings() const override { return 1; }
+        virtual int GetNumStrings() const override { return _dmxChannelCount; }
         virtual bool IsDMXModel() const override { return true; }
+
+        [[nodiscard]] int GetDmxChannelCount() const { return _dmxChannelCount; }
+        void SetDmxChannelCount(int val) { _dmxChannelCount = val; }
         virtual std::list<std::string> CheckModelSettings() override;
 
         [[nodiscard]] virtual std::vector<std::string> GenerateNodeNames() const;
@@ -67,6 +71,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int GetChannelValue(int channel_coarse, int channel_fine);
         void SetNodeNames(const std::string& default_names, bool force = false);
 
+        int _dmxChannelCount = 1;
         std::unique_ptr<DmxBeamAbility> beam_ability{ nullptr };
         std::unique_ptr<DmxColorAbility> color_ability{ nullptr };
         std::unique_ptr<DmxPresetAbility> preset_ability{ nullptr };

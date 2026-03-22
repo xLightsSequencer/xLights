@@ -27,7 +27,7 @@
 
 PolyLineModel::PolyLineModel(const ModelManager &manager) : ModelWithScreenLocation(manager) {
     DisplayAs = DisplayAsType::PolyLine;
-    parm1 = parm2 = parm3 = 0;
+    // PolyLineModel: parameters derived from segments and drop sizes
     stringStartChan.resize(_strings);
     _polyCorner.resize(2);
     _polyLineSizes.resize(1);
@@ -84,7 +84,7 @@ void PolyLineModel::InitRenderBufferNodes(const std::string& tp, const std::stri
             int end_node = idx + _polyLineSizes[m];
             float scale = (float)BufferWi / (float)_polyLineSizes[m];
             for (size_t n = idx; n < end_node; n++) {
-                newNodes[idx]->Coords.resize(SingleNode ? parm2 : parm3);
+                newNodes[idx]->Coords.resize(SingleNode ? _totalLightCount : _lightsPerNode);
                 size_t CoordCount = GetCoordCount(idx);
                 int location = seg_idx * scale + scale / 2.0;
                 for (size_t c = 0; c < CoordCount; c++) {
@@ -210,7 +210,6 @@ void PolyLineModel::InitModel()
     // setup number of lights per line segment
     unsigned int drop_index = 0;
     if (!_autoDistributeLights) {
-        parm1 = SingleNode ? 1 : _numSegments;
         for (int x = 0; x < _numSegments; x++) {
             unsigned int drop_lights_this_segment = 0;
             for (size_t z = 0; z < _polyLineSizes[x]; z++) {
@@ -221,11 +220,9 @@ void PolyLineModel::InitModel()
             _numDropPoints += _polyLineSizes[x];
             _polyLineSegDropSizes[x] = drop_lights_this_segment;
         }
-        parm2 = numLights;
     }
     else {
-        parm1 = 1;
-        int lights = parm2;
+        int lights = _totalLightCount;
         while (lights > 0) {
             unsigned int lights_this_drop = std::abs(_dropSizes[drop_index++]);
             numLights += lights_this_drop;
@@ -233,19 +230,17 @@ void PolyLineModel::InitModel()
             _numDropPoints++;
             lights -= lights_this_drop;
         }
-        if (numLights != parm2) {
-            parm2 = numLights;
-        }
     }
+    _totalLightCount = numLights;
 
     // reset node information
     Nodes.clear();
     SetNodeCount(1, numLights, rgbOrder);
 
     if (!SingleNode) {
-        if (parm3 > 1) {
+        if (_lightsPerNode > 1) {
             for (size_t x = 0; x < Nodes.size(); x++) {
-                Nodes[x]->Coords.resize(parm3);
+                Nodes[x]->Coords.resize(_lightsPerNode);
             }
         }
     }
@@ -375,7 +370,7 @@ void PolyLineModel::InitModel()
     int chan = 0;
     int LastStringNum = -1;
     int ChanIncr = GetNodeChannelCount(StringType);
-    int lights = numLights * (SingleNode ? 1 : parm3);
+    int lights = numLights * (SingleNode ? 1 : _lightsPerNode);
     int y = 0;
     drop_index = 0;
     int width = 0;
@@ -491,7 +486,7 @@ void PolyLineModel::InitModel()
         Nodes[curNode]->Coords[curCoord].screenX = width;
         lights--;
         curCoord++;
-        if( SingleNode || curCoord == parm3 ) {
+        if( SingleNode || curCoord == _lightsPerNode ) {
             y++;
         }
     }
@@ -798,11 +793,11 @@ int PolyLineModel::NodesPerString() const
     }
 
     // For multi-string PolyLine, we need to account for drop pattern
-    // which can increase the actual node count beyond parm2
+    // which can increase the actual node count beyond _totalLightCount
     int totalNodes = 0;
     if (_autoDistributeLights || _dropSizes.empty()) {
         // If auto-distributing or no drop pattern set yet, use simple division
-        return parm2 / _strings;
+        return _totalLightCount / _strings;
     }
 
     // Calculate total nodes including drops
@@ -832,7 +827,7 @@ int PolyLineModel::NodesPerString(int string) const
             // Calculate total nodes including drops
             int totalNodes = 0;
             if (_dropSizes.empty()) {
-                totalNodes = parm2;
+                totalNodes = _totalLightCount;
             } else {
                 unsigned int drop_index = 0;
                 for (size_t i = 0; i < _numDropPoints; ++i) {

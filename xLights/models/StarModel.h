@@ -35,6 +35,15 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform, std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;
     
+        virtual int GetNumStrings() const override { return _numStrings; }
+        virtual int NodesPerString() const override;
+        [[nodiscard]] int GetNumStarStrings() const { return _numStrings; }
+        [[nodiscard]] int GetNodesPerString() const { return _nodesPerString; }
+        [[nodiscard]] int GetStarPoints() const { return _starPoints; }
+        void SetNumStarStrings(int val) { _numStrings = val; }
+        void SetStarNodesPerString(int val) { _nodesPerString = val; }
+        void SetStarPoints(int val) { _starPoints = val; }
+
         virtual bool ModelSupportsLayerSizes() const override { return true; }
         virtual void OnLayerSizesChange(bool countChanged) override;
         float GetStarRatio() const { return _starRatio; }
@@ -61,6 +70,9 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
         xlRealPoint GetPositionOnLine(const xlRealPoint& start, const xlRealPoint& end, double distance);
 
     private:
+        int _numStrings = 1;
+        int _nodesPerString = 1;
+        int _starPoints = 5;
         // The ratio between the inner and outer radius of the star; default is 2.618034.
     float _starRatio = 2.618034f;
         // The ratio between the inner start and outer star radius (if more than 1 layer)

@@ -200,7 +200,7 @@ bool StarModel::AllNodesAllocated() const
     return (allocated == GetNodeCount());
 }
 
-// parm3 is number of points
+// _starPoints is number of points
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
 
 StarModel::xlRealPoint StarModel::GetPointOnCircle(double radius, double angle)
@@ -220,10 +220,22 @@ StarModel::xlRealPoint StarModel::GetPositionOnLine(const xlRealPoint& start, co
     return xlRealPoint(((1.0 - t) * start.x + t * end.x), ((1.0 - t) * start.y + t * end.y));
 }
 
+int StarModel::NodesPerString() const
+{
+    if (SingleNode) {
+        return 1;
+    }
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return _nodesPerString;
+    }
+    return _nodesPerString * ts;
+}
+
 void StarModel::InitModel()
 {
-    if (parm3 < 2) parm3 = 2; // need at least 2 arms
-    SetNodeCount(parm1, parm2, rgbOrder);
+    if (_starPoints < 2) _starPoints = 2; // need at least 2 arms
+    SetNodeCount(_numStrings, _nodesPerString, rgbOrder);
 
     // Found a problem where a user had multiple layer sizes but just 1 string and set to RGB dumb string type.
     // I think the commented out code would fix this but I am not sure it would work in all situations.
@@ -241,7 +253,7 @@ void StarModel::InitModel()
     // each layer is then applied inside the prior one by some factor
     // the radius of the outer circle starts are bufferWi / 2
 
-    int numlights = parm1 * parm2;
+    int numlights = _numStrings * _nodesPerString;
     if (numlights == 0) return;
     if (GetLayerSizeCount() == 0) {
         SetLayerSizeCount(1);
@@ -269,8 +281,8 @@ void StarModel::InitModel()
         }
         layerRadiusDelta = (outerRadius * (float)(100.0f-_innerPercent)) / (100.0f * ((float)layerCount - 1.0f)); // space between the outer layer radii
     }
-    if (parm3 == 0) parm3 = 1;
-    double pointAngleGap = (M_PI * 2.0) / parm3; // angle between star points
+    if (_starPoints == 0) _starPoints = 1;
+    double pointAngleGap = (M_PI * 2.0) / _starPoints;
     double directionUnit = Contains(_starStartLocation, "-CCW") ? -1.0 : 1.0; // which way the angle should be applied
     double startAngle;
     if (Contains(_starStartLocation, "Top")) { // head
@@ -279,16 +291,16 @@ void StarModel::InitModel()
         startAngle = (M_PI * 2.0 * 2.0) / 4.0;
     } else if (Contains(_starStartLocation, "Left")) { // left leg
         startAngle = (M_PI * 2.0 * 2.0) / 4.0;
-        if (parm3 % 2 == 1) {
+        if (_starPoints % 2 == 1) {
             startAngle += pointAngleGap / 2.0;
         }
     } else { // Right leg
         startAngle = (M_PI * 2.0 * 2.0) / 4.0;
-        if (parm3 % 2 == 1) {
+        if (_starPoints % 2 == 1) {
             startAngle -= pointAngleGap / 2.0;
         }
     }
-    int starSegments = 2 * parm3; // parm3 is points
+    int starSegments = 2 * _starPoints;
     int channelsPerNode = GetNodeChannelCount(StringType);
     int coordsPerNode = GetCoordCount(0);
     if (coordsPerNode == 0) return;
@@ -347,8 +359,8 @@ void StarModel::InitModel()
 
                 while (curPos < segEndLen && currentNode < endNodeForLayer) {
 
-                    int currentString = currentNode / parm2;
-                    int nodeInString = currentNode % parm2;
+                    int currentString = currentNode / _nodesPerString;
+                    int nodeInString = currentNode % _nodesPerString;
                     if (nodeInString == 0 && currentString < GetNumStrings()) {
                         chan = stringStartChan[currentString];
                     }
@@ -385,8 +397,8 @@ void StarModel::InitModel()
 
         // handle any left over nodes
         for (int n = currentNode; n < Nodes.size(); n++) {
-            int currentString = n / parm2;
-            int nodeInString = n % parm2;
+            int currentString = n / _nodesPerString;
+            int nodeInString = n % _nodesPerString;
             if (nodeInString == 0) {
                 chan = stringStartChan[currentString];
             }
@@ -487,8 +499,8 @@ void StarModel::InitModel()
 void StarModel::OnLayerSizesChange(bool countChanged)
 {
     // if string count is 1 then adjust nodes per string to match sum of nodes
-    if (parm1 == 1) {
-        parm2 = (int)GetLayerSizesTotalNodes();
+    if (_numStrings == 1) {
+        _nodesPerString = (int)GetLayerSizesTotalNodes();
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |

@@ -39,17 +39,17 @@ void ArchesPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, Out
     p->SetEditor("CheckBox");
 
     if (_arches.GetLayerSizeCount() == 0) {
-        p = grid->Append(new wxUIntProperty("# Arches", "ArchesCount", _arches.GetParm1()));
+        p = grid->Append(new wxUIntProperty("# Arches", "ArchesCount", _arches.GetNumArches()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 100);
         p->SetEditor("SpinCtrl");
 
-        p = grid->Append(new wxUIntProperty("Nodes Per Arch", "ArchesNodes", _arches.GetParm2()));
+        p = grid->Append(new wxUIntProperty("Nodes Per Arch", "ArchesNodes", _arches.GetNodesPerArch()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 1000);
         p->SetEditor("SpinCtrl");
     } else {
-        p = grid->Append(new wxUIntProperty("Nodes", "ArchesNodes", _arches.GetParm2()));
+        p = grid->Append(new wxUIntProperty("Nodes", "ArchesNodes", _arches.GetNodesPerArch()));
         p->SetAttribute("Min", 1);
         p->SetAttribute("Max", 10000);
         p->SetEditor("SpinCtrl");
@@ -65,7 +65,7 @@ void ArchesPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, Out
         p->SetEditor("CheckBox");
     }
 
-    p = grid->Append(new wxUIntProperty("Lights Per Node", "ArchesLights", _arches.GetParm3()));
+    p = grid->Append(new wxUIntProperty("Lights Per Node", "ArchesLights", _arches.GetLightsPerNode()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 250);
     p->SetEditor("SpinCtrl");
@@ -96,8 +96,8 @@ void ArchesPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, Out
 }
 
 void ArchesPropertyAdapter::AddDimensionProperties(wxPropertyGridInterface* grid) {
-    if (_arches.GetLayerSizeCount() == 0 && _arches.GetParm1() != 0) {
-        ScreenLocationPropertyHelper::AddDimensionProperties(_arches.GetModelScreenLocation(), grid, 1.0 / _arches.GetParm1());
+    if (_arches.GetLayerSizeCount() == 0 && _arches.GetNumArches() != 0) {
+        ScreenLocationPropertyHelper::AddDimensionProperties(_arches.GetModelScreenLocation(), grid, 1.0 / _arches.GetNumArches());
     } else {
         ScreenLocationPropertyHelper::AddDimensionProperties(_arches.GetModelScreenLocation(), grid, 1.0);
     }
@@ -105,7 +105,7 @@ void ArchesPropertyAdapter::AddDimensionProperties(wxPropertyGridInterface* grid
 
 int ArchesPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     if ("ArchesCount" == event.GetPropertyName()) {
-        _arches.SetParm1(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _arches.SetNumArches(static_cast<int>(event.GetPropertyValue().GetLong()));
         _arches.IncrementChangeCount();
         _arches.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
@@ -115,7 +115,7 @@ int ArchesPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, w
                     OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ArchesPropertyAdapter::OnPropertyGridChange::ArchesCount");
         return 0;
     } else if ("ArchesNodes" == event.GetPropertyName()) {
-        _arches.SetParm2(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _arches.SetNodesPerArch(static_cast<int>(event.GetPropertyValue().GetLong()));
         _arches.IncrementChangeCount();
         _arches.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
@@ -123,7 +123,7 @@ int ArchesPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, w
                     OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ArchesPropertyAdapter::OnPropertyGridChange::ArchesNodes");
         return 0;
     } else if ("ArchesLights" == event.GetPropertyName()) {
-        _arches.SetParm3(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _arches.SetLightsPerNode(static_cast<int>(event.GetPropertyValue().GetLong()));
         _arches.IncrementChangeCount();
         _arches.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "ArchesPropertyAdapter::OnPropertyGridChange::ArchesLights");
         return 0;
@@ -139,9 +139,9 @@ int ArchesPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, w
         return 0;
     } else if ("LayeredArches" == event.GetPropertyName()) {
         if (event.GetPropertyValue().GetBool()) {
-            _arches.SetParm1(1);
+            _arches.SetNumArches(1);
             _arches.SetLayerSizeCount(1);
-            _arches.SetLayerSize(0, _arches.GetParm2());
+            _arches.SetLayerSize(0, _arches.GetNodesPerArch());
         } else {
             _arches.SetLayerSizeCount(0);
         }

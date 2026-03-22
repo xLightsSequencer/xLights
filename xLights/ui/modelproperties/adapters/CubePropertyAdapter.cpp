@@ -54,17 +54,17 @@ void CubePropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, Outpu
     auto p = grid->Append(new wxBoolProperty("Layers All Start in Same Place", "StrandPerLayer", _cube.IsStrandPerLayer()));
     p->SetAttribute("UseCheckbox", true);
 
-    p = grid->Append(new wxUIntProperty("Width", "CubeWidth", _cube.GetParm1()));
+    p = grid->Append(new wxUIntProperty("Width", "CubeWidth", _cube.GetCubeWidth()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Height", "CubeHeight", _cube.GetParm2()));
+    p = grid->Append(new wxUIntProperty("Height", "CubeHeight", _cube.GetCubeHeight()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxUIntProperty("Depth", "CubeDepth", _cube.GetParm3()));
+    p = grid->Append(new wxUIntProperty("Depth", "CubeDepth", _cube.GetCubeDepth()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
@@ -98,7 +98,7 @@ int CubePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxP
         _cube.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CubePropertyAdapter::OnPropertyGridChange::StrandPerLayer");
         return 0;
     } else if ("CubeWidth" == event.GetPropertyName()) {
-        _model.SetParm1(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _cube.SetCubeWidth(static_cast<int>(event.GetPropertyValue().GetLong()));
         _model.IncrementChangeCount();
         _model.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
@@ -106,14 +106,14 @@ int CubePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxP
                     OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CubePropertyAdapter::OnPropertyGridChange::CubeWidth");
         return 0;
     } else if ("CubeHeight" == event.GetPropertyName()) {
-        _model.SetParm2(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _cube.SetCubeHeight(static_cast<int>(event.GetPropertyValue().GetLong()));
         _model.IncrementChangeCount();
         _model.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
                     OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CubePropertyAdapter::OnPropertyGridChange::CubeHeight");
         return 0;
     } else if ("CubeDepth" == event.GetPropertyName()) {
-        _model.SetParm3(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _cube.SetCubeDepth(static_cast<int>(event.GetPropertyValue().GetLong()));
         _model.IncrementChangeCount();
         _model.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |

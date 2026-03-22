@@ -18,7 +18,7 @@ public:
     PolyLineModel(const ModelManager& manager);
     virtual ~PolyLineModel();
 
-    virtual int GetLightsPerNode() const override { return parm3; } // default to one unless a model supports this
+    virtual int GetLightsPerNode() const override { return _lightsPerNode; }
     virtual int GetStrandLength(int strand) const override;
     virtual int MapToNodeIndex(int strand, int node) const override;
 
@@ -66,6 +66,9 @@ public:
     void SetCornerString( int idx, const std::string & corner) { _polyCorner[idx] = corner; }
     [[nodiscard]] bool GetAutoDistribute() const { return _autoDistributeLights; }
     void SetAutoDistribute(bool val) { _autoDistributeLights = val; }
+    void SetLightsPerNode(int val) { _lightsPerNode = val; }
+    [[nodiscard]] int GetTotalLightCount() const { return _totalLightCount; }
+    void SetTotalLightCount(int val) { _totalLightCount = val; }
     void ClearPolyLineCreate() { _creatingNewPolyLine = false; }
 
     const std::string StartNodeAttrName(int idx) const override
@@ -134,6 +137,8 @@ protected:
     unsigned int _numDropPoints = 0;
     float _height = 1.0f;
     bool _alternateNodes = false;
+    int _lightsPerNode = 1;
+    int _totalLightCount = 0;
     int _strings = 1;
     unsigned int _maxH = 0;
     std::vector<std::string> _polyCorner;

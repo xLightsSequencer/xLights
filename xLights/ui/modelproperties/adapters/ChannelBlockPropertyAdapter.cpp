@@ -23,7 +23,7 @@ ChannelBlockPropertyAdapter::ChannelBlockPropertyAdapter(Model& model)
     : ModelPropertyAdapter(model), _channelBlock(static_cast<ChannelBlockModel&>(model)) {}
 
 void ChannelBlockPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
-    wxPGProperty* p = grid->Append(new wxUIntProperty("# Channels", "ChannelBlockCount", _channelBlock.GetParm1()));
+    wxPGProperty* p = grid->Append(new wxUIntProperty("# Channels", "ChannelBlockCount", _channelBlock.GetNumChannels()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", MAX_CB_CHANNELS);
     p->SetEditor("SpinCtrl");
@@ -32,7 +32,7 @@ void ChannelBlockPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* gri
     p->Enable(false);
 
     const auto& colors = _channelBlock.GetChannelColors();
-    for (int x = 0; x < _channelBlock.GetParm1(); ++x) {
+    for (int x = 0; x < _channelBlock.GetNumChannels(); ++x) {
         wxString nm = "ChannelColor" + std::to_string(x + 1);
         grid->AppendIn(p, new wxColourProperty(nm, nm, wxColor(colors[x])));
     }
@@ -40,7 +40,7 @@ void ChannelBlockPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* gri
 
 int ChannelBlockPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     if ("ChannelBlockCount" == event.GetPropertyName()) {
-        _channelBlock.SetParm1(static_cast<int>(event.GetPropertyValue().GetLong()));
+        _channelBlock.SetNumChannels(static_cast<int>(event.GetPropertyValue().GetLong()));
         _channelBlock.IncrementChangeCount();
         _channelBlock.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
@@ -55,7 +55,7 @@ int ChannelBlockPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* g
         std::string text = event.GetPropertyName();
         int val = ExtractTrailingInt(text);
         if (val < 1) val = 1;
-        if (val > _channelBlock.GetParm1()) val = _channelBlock.GetParm1();
+        if (val > _channelBlock.GetNumChannels()) val = _channelBlock.GetNumChannels();
         _channelBlock.SetChannelColor(val - 1, std::string(xc));
         _channelBlock.IncrementChangeCount();
         _channelBlock.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "ChannelBlockPropertyAdapter::OnPropertyGridChange::ChannelProperties");

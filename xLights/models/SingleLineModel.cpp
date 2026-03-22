@@ -18,9 +18,9 @@ std::vector<std::string> SingleLineModel::LINE_BUFFER_STYLES;
 SingleLineModel::SingleLineModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
     DisplayAs = DisplayAsType::SingleLine;
-    parm1 = 0;
-    parm2 = 0;
-    parm3 = 0;
+    _numStrings = 0;
+    _nodesPerString = 0;
+    _lightsPerNode = 0;
 }
 
 /*SingleLineModel::SingleLineModel(int lights, const Model &pbc, int strand, int node) : ModelWithScreenLocation(pbc.GetModelManager())
@@ -39,9 +39,9 @@ void SingleLineModel::Reset(int lights, const Model &pbc, int strand, int node, 
     validLocation = false;
     parent = &pbc;
     Nodes.clear();
-    parm1 = lights;
-    parm2 = 1;
-    parm3 = 1;
+    _numStrings = lights;
+    _nodesPerString = 1;
+    _lightsPerNode = 1;
 
     StringType = pbc.GetStringType();
     rgbOrder = pbc.rgbOrder;
@@ -141,13 +141,25 @@ void SingleLineModel::InitModel() {
 }
 
 
+int SingleLineModel::NodesPerString() const
+{
+    if (SingleNode) {
+        return 1;
+    }
+    int ts = GetSmartTs();
+    if (ts <= 1) {
+        return _nodesPerString;
+    }
+    return _nodesPerString * ts;
+}
+
 // initialize buffer coordinates
-// parm1=Number of Strings/Arches/Canes
-// parm2=Pixels Per String/Arch/Cane
+// _numStrings=Number of Strings/Arches/Canes
+// _nodesPerString=Pixels Per String/Arch/Cane
 void SingleLineModel::InitLine() {
-    int numLights = parm1 * parm2;
-    SetNodeCount(parm1,parm2,rgbOrder);
-    SetBufferSize(1,SingleNode?parm1:numLights);
+    int numLights = _numStrings * _nodesPerString;
+    SetNodeCount(_numStrings,_nodesPerString,rgbOrder);
+    SetBufferSize(1,SingleNode?_numStrings:numLights);
     int LastStringNum=-1;
     int chan = 0;
     int ChanIncr = GetNodeChannelCount(StringType);
@@ -168,7 +180,7 @@ void SingleLineModel::InitLine() {
         }
         Nodes[n]->ActChan=chan;
         chan+=ChanIncr;
-        Nodes[n]->Coords.resize(SingleNode?parm2:parm3);
+        Nodes[n]->Coords.resize(SingleNode?_nodesPerString:_lightsPerNode);
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++) {
             Nodes[n]->Coords[c].bufX=idx;

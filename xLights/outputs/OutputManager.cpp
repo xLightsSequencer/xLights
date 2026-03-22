@@ -471,7 +471,14 @@ bool OutputManager::ConvertModelStartChannels(wxXmlNode* modelsNode) const {
             }
 
             if (model->GetAttribute("Advanced", "0") == "1") {
-                int strings = wxAtoi(model->GetAttribute("parm1", "0"));
+                // Try new attribute names first, fall back to old parm names
+                wxString strAttr = model->GetAttribute("NumStrings", "");
+                if (strAttr.empty()) strAttr = model->GetAttribute("NumArches", "");
+                if (strAttr.empty()) strAttr = model->GetAttribute("NumCanes", "");
+                if (strAttr.empty()) strAttr = model->GetAttribute("NumChannels", "");
+                if (strAttr.empty()) strAttr = model->GetAttribute("DmxChannelCount", "");
+                if (strAttr.empty()) strAttr = model->GetAttribute("parm1", "0");
+                int strings = wxAtoi(strAttr);
                 for (int i = 1; i <= strings; i++) {
                     auto s = wxString::Format("String%d", i);
                     std::string sc = UnXmlSafe(model->GetAttribute(s).ToStdString());

@@ -26,6 +26,9 @@
 #include "models/SpinnerModel.h"
 #include "models/StarModel.h"
 #include "models/TreeModel.h"
+#include "models/SingleLineModel.h"
+#include "models/WindowFrameModel.h"
+#include "models/PolyLineModel.h"
 #include "models/BoxedScreenLocation.h"
 #include "models/TwoPointScreenLocation.h"
 #include "models/ThreePointScreenLocation.h"
@@ -221,13 +224,16 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
     Model* m = nullptr;
     if( model.shapeName.StartsWith( "Arch" ) ) {
         m = xlights->AllModels.CreateDefaultModel( "Arches", startChan );
-        if( model.stringType.IsSameAs( "Traditional" ) ) {
-            m->SetParm1( 1 );                    //number of arches
-            m->SetParm2( model.parms.at( 0 ) );  //sections in LOR
-            m->SetParm3( model.parms.at( 1 ) );  //number of lights per section
-        } else {
-            m->SetParm1( 1 );                                      //number of arches
-            m->SetParm2( model.parms.at( 0 ) * model.parms.at( 1 ) ); //number of nodes
+        auto* archesModel = dynamic_cast<ArchesModel*>( m );
+        if( archesModel != nullptr ) {
+            if( model.stringType.IsSameAs( "Traditional" ) ) {
+                archesModel->SetNumArches( 1 );                    //number of arches
+                archesModel->SetNodesPerArch( model.parms.at( 0 ) );  //sections in LOR
+                archesModel->SetLightsPerNode( model.parms.at( 1 ) );  //number of lights per section
+            } else {
+                archesModel->SetNumArches( 1 );                                      //number of arches
+                archesModel->SetNodesPerArch( model.parms.at( 0 ) * model.parms.at( 1 ) ); //number of nodes
+            }
         }
         SetDirection( model, m );
         ScaleToPreview( model, m, previewW, previewH );
@@ -239,8 +245,8 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         m = xlights->AllModels.CreateDefaultModel( "Candy Canes", startChan );
         auto* candyModel = dynamic_cast<CandyCaneModel*>( m );
         if( candyModel != nullptr ) {
-            candyModel->SetParm1( 1 );                                       //number of canes
-            candyModel->SetParm2( model.parms.at( 0 ) * model.parms.at( 1 ) ); //number of nodes
+            candyModel->SetNumCanes( 1 );                                       //number of canes
+            candyModel->SetNodesPerCane( model.parms.at( 0 ) * model.parms.at( 1 ) ); //number of nodes
             candyModel->SetReverse( model.shapeName.Contains( "Left" ) );
         }
 
@@ -264,9 +270,9 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
 
         auto* circleModel = dynamic_cast<CircleModel*>( m );
         if( circleModel != nullptr ) {
-            circleModel->SetParm1( 1 );                  //number of strings
-            circleModel->SetParm2( totalCount );         //number of nodes
-            circleModel->SetParm3( model.parms[ 0 ] );   //center percentage
+            circleModel->SetNumCircleStrings( 1 );                  //number of strings
+            circleModel->SetCircleNodesPerString( totalCount );         //number of nodes
+            circleModel->SetCenterPercent( model.parms[ 0 ] );   //center percentage
             circleModel->DeserializeLayerSizes( layers.ToStdString(), false );
             circleModel->SetStartSide( model.startLocation.Left( 1 ).ToStdString() );
             if( model.startLocation.Contains( "CCW" ) ) {
@@ -292,9 +298,9 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         m = xlights->AllModels.CreateDefaultModel( "Tree", startChan );
         auto* treeModel = dynamic_cast<TreeModel*>( m );
         if( treeModel != nullptr ) {
-            treeModel->SetParm1( model.parms.at( 0 ) );       //number of strings
-            treeModel->SetParm2( model.parms.at( 1 ) );       //number of nodes
-            treeModel->SetParm3( model.parms.at( 2 ) + 1 );   //number of folds is one less than number of stands per string in xLights
+            treeModel->SetNumMatrixStrings( model.parms.at( 0 ) );       //number of strings
+            treeModel->SetNodesPerString( model.parms.at( 1 ) );       //number of nodes
+            treeModel->SetStrandsPerString( model.parms.at( 2 ) + 1 );   //number of folds is one less than number of stands per string in xLights
             treeModel->SetTreeDegrees( model.parms.at( 4 ) * 90 );
             treeModel->SetTreeBottomTopRatio( 1.0 );
 
@@ -305,7 +311,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
                 }
                 treeModel->SetTreeSpiralRotations( roation );
             } else {
-                treeModel->SetParm3( model.parms.at( 2 ) + 1 ); //number of folds is one less than number of stands per string in xLights
+                treeModel->SetStrandsPerString( model.parms.at( 2 ) + 1 ); //number of folds is one less than number of stands per string in xLights
             }
         }
 
@@ -316,9 +322,9 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         auto* spinnerModel = dynamic_cast<SpinnerModel*>( m );
         if( spinnerModel != nullptr ) {
             supportsMultiString = true;
-            spinnerModel->SetParm1( model.parms.at( 0 ) );
-            spinnerModel->SetParm2( model.parms.at( 1 ) );
-            spinnerModel->SetParm3( 1 );
+            spinnerModel->SetNumSpinnerStrings( model.parms.at( 0 ) );
+            spinnerModel->SetNodesPerArm( model.parms.at( 1 ) );
+            spinnerModel->SetArmsPerString( 1 );
             spinnerModel->SetStartAngle( 90 );
             spinnerModel->SetArc( 180 );
 
@@ -341,8 +347,11 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         int segments   = model.parms.at( 0 );
         int nodesper = model.parms.at( 1 );
 
-        m->SetParm1( segments ); //sections in LOR
-        m->SetParm2( nodesper ); //number of lights per section
+        auto* singleLineModel = dynamic_cast<SingleLineModel*>( m );
+        if( singleLineModel != nullptr ) {
+            singleLineModel->SetNumLines( segments ); //sections in LOR
+            singleLineModel->SetNodesPerLine( nodesper ); //number of lights per section
+        }
 
         ScaleModelToSingleLine( model, m, previewW, previewH );
     } else if( model.shapeName.StartsWith( "Icicles" ) ) {
@@ -373,8 +382,8 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         dropPattern.RemoveLast(); //remove last ","
         auto* iciclesModel = dynamic_cast<IciclesModel*>( m );
         if( iciclesModel != nullptr ) {
-            iciclesModel->SetParm1( 1 );
-            iciclesModel->SetParm2( totalNodels );
+            iciclesModel->SetNumIcicleStrings( 1 );
+            iciclesModel->SetLightsPerString( totalNodels );
             iciclesModel->SetDropPattern( dropPattern.ToStdString() );
         }
 
@@ -384,7 +393,10 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
 
         //int segments   = model.parms.at( 0 );
         int totalNodes = model.parms.at( 1 );
-        m->SetParm2( totalNodes );
+        auto* polyLineModel = dynamic_cast<PolyLineModel*>( m );
+        if( polyLineModel != nullptr ) {
+            polyLineModel->SetTotalLightCount( totalNodes );
+        }
         if( model.shapeName.Contains( "-Connected" ) ) {
             wxString point_data;
 
@@ -471,9 +483,9 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         auto* matrixModel = dynamic_cast<MatrixModel*>( m );
         if( matrixModel != nullptr ) {
             supportsMultiString = true;
-            matrixModel->SetParm1( model.parms.at( 0 ) );       //number of strings
-            matrixModel->SetParm2( model.parms.at( 1 ) );       //number of nodes
-            matrixModel->SetParm3( model.parms.at( 2 ) + 1 );   //number of folds is one less than number of stands per string in xLights
+            matrixModel->SetNumMatrixStrings( model.parms.at( 0 ) );       //number of strings
+            matrixModel->SetNodesPerString( model.parms.at( 1 ) );       //number of nodes
+            matrixModel->SetStrandsPerString( model.parms.at( 2 ) + 1 );   //number of folds is one less than number of stands per string in xLights
             matrixModel->SetVertical( model.shapeName.Contains( "Vertical" ) );
         }
 
@@ -484,9 +496,9 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         m = xlights->AllModels.CreateDefaultModel( "Sphere", startChan );
         auto* sphereModel = dynamic_cast<SphereModel*>( m );
         if( sphereModel != nullptr ) {
-            sphereModel->SetParm1( model.parms.at( 0 ) );       //number of strings
-            sphereModel->SetParm2( model.parms.at( 1 ) );       //number of nodes
-            sphereModel->SetParm3( model.parms.at( 2 ) + 1 );   //number of folds is one less than number of stands per string in xLights
+            sphereModel->SetNumMatrixStrings( model.parms.at( 0 ) );       //number of strings
+            sphereModel->SetNodesPerString( model.parms.at( 1 ) );       //number of nodes
+            sphereModel->SetStrandsPerString( model.parms.at( 2 ) + 1 );   //number of folds is one less than number of stands per string in xLights
             sphereModel->SetDegrees( model.parms.at( 4 ) * 90 );
             sphereModel->SetStartLatitude( (float)model.parms.at( 5 ) / 100.0 * -86.0 );
             sphereModel->SetEndLatitude( (float)model.parms.at( 5 ) / 100.0 * 86.0 );
@@ -499,9 +511,9 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         auto* spinnerModel = dynamic_cast<SpinnerModel*>( m );
         if( spinnerModel != nullptr ) {
             supportsMultiString = true;
-            spinnerModel->SetParm1( model.parms.at( 0 ) );
-            spinnerModel->SetParm2( model.parms.at( 1 ) );
-            spinnerModel->SetParm3( 1 );
+            spinnerModel->SetNumSpinnerStrings( model.parms.at( 0 ) );
+            spinnerModel->SetNodesPerArm( model.parms.at( 1 ) );
+            spinnerModel->SetArmsPerString( 1 );
 
             if( model.startLocation.Contains( "Top" ) ) {
                 spinnerModel->SetStartSide( "T" );
@@ -535,18 +547,18 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
 
             auto* starModel = dynamic_cast<StarModel*>( m );
             if( starModel != nullptr ) {
-                starModel->SetParm1( 1 );           //number of strings
-                starModel->SetParm2( totalCount );  //number of nodes
-                starModel->SetParm3( 5 );           //number of points
+                starModel->SetNumStarStrings( 1 );           //number of strings
+                starModel->SetStarNodesPerString( totalCount );  //number of nodes
+                starModel->SetStarPoints( 5 );           //number of points
                 starModel->DeserializeLayerSizes( layers.ToStdString(), false );
             }
         } else { //Regular Star
             supportsMultiString = true;
             auto* starModel = dynamic_cast<StarModel*>( m );
             if( starModel != nullptr ) {
-                starModel->SetParm1( model.parms.at( 0 ) ); //number of strings
-                starModel->SetParm2( model.parms.at( 1 ) ); //number of nodes
-                starModel->SetParm3( model.parms.at( 2 ) ); //number of points
+                starModel->SetNumStarStrings( model.parms.at( 0 ) ); //number of strings
+                starModel->SetStarNodesPerString( model.parms.at( 1 ) ); //number of nodes
+                starModel->SetStarPoints( model.parms.at( 2 ) ); //number of points
 
                 //try to convert LOR ratio to xLights
                 float radio = 2.618034F * ( (float)model.parms.at( 3 ) / 10.0 );
@@ -573,8 +585,8 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         auto* treeModel = dynamic_cast<TreeModel*>( m );
         if( treeModel != nullptr ) {
             supportsMultiString = true;
-            treeModel->SetParm1( model.parms.at( 0 ) ); //number of strings
-            treeModel->SetParm2( model.parms.at( 1 ) ); //number of nodes
+            treeModel->SetNumMatrixStrings( model.parms.at( 0 ) ); //number of strings
+            treeModel->SetNodesPerString( model.parms.at( 1 ) ); //number of nodes
 
             // DecodeTreeType returns string like "Tree 360" - extract the degrees
             wxString treeTypeStr = DecodeTreeType( model.shapeName );
@@ -591,7 +603,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
                 treeModel->SetTreeSpiralRotations( roation );
             } else {
                 //normal tree
-                treeModel->SetParm3( model.parms.at( 2 ) + 1 ); //number of folds is one less than number of stands per string in xLights
+                treeModel->SetStrandsPerString( model.parms.at( 2 ) + 1 ); //number of folds is one less than number of stands per string in xLights
             }
         }
         //Decode Direction and Start Location
@@ -599,17 +611,20 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         ScaleToPreview( model, m, previewW, previewH );
     } else if( model.shapeName.StartsWith( "Window Frame" ) ) {
         m = xlights->AllModels.CreateDefaultModel( "Window Frame", startChan );
-        m->SetParm1( model.parms.at( 0 ) ); //sections in LOR
-        m->SetParm2( model.parms.at( 1 ) ); //number of lights per section
-        m->SetParm3( model.parms.at( 2 ) ); //number of lights per section
+        auto* windowFrameModel = dynamic_cast<WindowFrameModel*>( m );
+        if( windowFrameModel != nullptr ) {
+            windowFrameModel->SetTopNodes( model.parms.at( 0 ) ); //sections in LOR
+            windowFrameModel->SetSideNodes( model.parms.at( 1 ) ); //number of lights per section
+            windowFrameModel->SetBottomNodes( model.parms.at( 2 ) ); //number of lights per section
+        }
 
         ScaleToPreview( model, m, previewW, previewH );
     } else if( model.shapeName.StartsWith( "Wreath" ) ) {
         m = xlights->AllModels.CreateDefaultModel( "Circle", startChan );
         auto* circleModel = dynamic_cast<CircleModel*>( m );
         if( circleModel != nullptr ) {
-            circleModel->SetParm1( model.parms[ 0 ] ); //number of "sections"
-            circleModel->SetParm2( model.parms[ 1 ] ); //number of nodes
+            circleModel->SetNumCircleStrings( model.parms[ 0 ] ); //number of "sections"
+            circleModel->SetCircleNodesPerString( model.parms[ 1 ] ); //number of nodes
 
             if( model.startLocation.Contains( "Top" ) || model.startLocation.Contains( "Bottom" ) ) {
                 circleModel->SetStartSide( model.startLocation.Left( 1 ).ToStdString() );
@@ -1068,11 +1083,10 @@ void LORPreview::BulbToCustomModel(S5Model const& model, Model* m, int pvwW, int
         cm_data.pop_back(); // remove last semicolen
     }
 
-    m->SetParm1(scalesize.x+1); // width
-    m->SetParm2(scalesize.y+1); // height
-
     auto cm = dynamic_cast<CustomModel*>(m);
-    if( cm != nullptr) {
+    if( cm != nullptr ) {
+        cm->SetCustomWidth(scalesize.x+1); // width
+        cm->SetCustomHeight(scalesize.y+1); // height
         std::vector<std::vector<std::vector<int>>>& locations = cm->GetData();
         locations = XmlSerialize::ParseCustomModel(cm_data);
     }
