@@ -91,7 +91,9 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
     } else if (command == "") {
         char s[4096];
         memset(s, 0x00, sizeof(s));
-        fgets(s, sizeof(s) - 1, stdin);
+        if (fgets(s, sizeof(s) - 1, stdin) == nullptr) {
+            s[0] = '\0';
+        }
         command = wxString(s);
         if (verbose) {
             fprintf(stderr, "\u001b[36;1mCommand read from stdin: %s.\u001b[0m\n", (const char*)command.c_str());

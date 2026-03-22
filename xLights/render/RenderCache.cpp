@@ -824,7 +824,7 @@ bool RenderCacheItem::GetFrame(RenderBuffer* buffer)
     if (frame < modelFrames.size() && modelFrames[frame]) {
         // its in memory ... read it from there
         unsigned char* pc = modelFrames[frame];
-        memcpy(buffer->GetPixels(), pc, _frameSize.at(mname));
+        memcpy(static_cast<void*>(buffer->GetPixels()), pc, _frameSize.at(mname));
         return true;
     }
 

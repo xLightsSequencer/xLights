@@ -9,6 +9,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include <cmath>
 #ifdef _MSC_VER
 	// required so M_PI will be defined by MSC
@@ -857,7 +858,7 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
 void RenderBuffer::Clear()
 {
     if (pixelVector.size() > 0) {
-        memset(pixels, 0x00, sizeof(xlColor) * pixelVector.size());
+        std::fill(pixels, pixels + pixelVector.size(), xlColor(0, 0, 0, 0));
     }
 }
 
@@ -1505,10 +1506,10 @@ void RenderBuffer::ClearTempBuf()
     }
 }
 void RenderBuffer::CopyTempBufToPixels() {
-    memcpy(pixels, tempbuf, pixelVector.size() * 4);
+    std::copy(tempbuf, tempbuf + pixelVector.size(), pixels);
 }
 void RenderBuffer::CopyPixelsToTempBuf() {
-    memcpy(tempbuf, pixels, pixelVector.size() * 4);
+    std::copy(pixels, pixels + pixelVector.size(), tempbuf);
 }
 
 // Gets the maximum oversized buffer size a model could have

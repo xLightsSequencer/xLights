@@ -366,7 +366,7 @@ void ZCPPOutput::InitialiseModelDataPacket(ZCPP_packet_t* packet, int seq, uint8
     packet->Configuration.Header.protocolVersion = ZCPP_CURRENT_PROTOCOL_VERSION;
     packet->Configuration.sequenceNumber = ntohs(seq);
     packet->Configuration.priority = priority;
-    strncpy(packet->Configuration.userControllerName, description.c_str(), sizeof(packet->Configuration.userControllerName));
+    strncpy(packet->Configuration.userControllerName, description.c_str(), sizeof(packet->Configuration.userControllerName) - 1);
 }
 
 std::string ZCPPOutput::DecodeProtocol(int protocol) {

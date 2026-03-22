@@ -66,7 +66,7 @@ void SyncFPP::Ping(bool remote, const std::string& localIP)
     std::vector<uint8_t> buffer(bufsize);
 
     ControlPkt* cp = reinterpret_cast<ControlPkt*>(&buffer[0]);
-    strncpy(cp->fppd, "FPPD", 4);
+    memcpy(cp->fppd, "FPPD", 4);
     cp->pktType = CTRL_PKT_PING;
     cp->extraDataLen = 294; // v3 ping length
 
@@ -224,7 +224,7 @@ void SyncBroadcastFPP::SendFPPSync(const std::string& item, uint32_t stepMS, uin
     std::vector<uint8_t> buffer(bufsize);
 
     ControlPkt* cp = reinterpret_cast<ControlPkt*>(&buffer[0]);
-    strncpy(cp->fppd, "FPPD", 4);
+    memcpy(cp->fppd, "FPPD", 4);
     cp->pktType = CTRL_PKT_SYNC;
     cp->extraDataLen = bufsize - sizeof(ControlPkt);
 
@@ -327,7 +327,7 @@ void SyncMulticastFPP::SendFPPSync(const std::string& item, uint32_t stepMS, uin
     std::vector<uint8_t> buffer(bufsize);
 
     ControlPkt* cp = reinterpret_cast<ControlPkt*>(&buffer[0]);
-    strncpy(cp->fppd, "FPPD", 4);
+    memcpy(cp->fppd, "FPPD", 4);
     cp->pktType = CTRL_PKT_SYNC;
     cp->extraDataLen = bufsize - sizeof(ControlPkt);
 
@@ -649,7 +649,7 @@ void SyncUnicastFPP::SendUnicastSync(const std::string& ip, const std::string& i
     std::vector<uint8_t> buffer(bufsize);
 
     ControlPkt* cp = reinterpret_cast<ControlPkt*>(&buffer[0]);
-    strncpy(cp->fppd, "FPPD", 4);
+    memcpy(cp->fppd, "FPPD", 4);
     cp->pktType = CTRL_PKT_SYNC;
     cp->extraDataLen = bufsize - sizeof(ControlPkt);
 

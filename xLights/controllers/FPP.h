@@ -163,6 +163,7 @@ class FPP : public BaseController
     nlohmann::json CreateUniverseFile(const std::list<Controller*>& controllers, bool input, std::map<int, int>* rngs = nullptr);
     nlohmann::json CreateUniverseFile(Controller* controller, bool input);
 #endif
+    using BaseController::GetModel;
     static std::string GetVendor(const std::string& type);
     static std::string GetModel(const std::string& type);
 

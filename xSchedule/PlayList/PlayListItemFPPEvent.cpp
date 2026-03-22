@@ -105,7 +105,7 @@ public:
 
                 if (dbuffer != nullptr) {
                     ControlPkt* cp = (ControlPkt*)dbuffer;
-                    strncpy(cp->fppd, "FPPD", 4);
+                    memcpy(cp->fppd, "FPPD", 4);
                     cp->pktType = CTRL_PKT_EVENT;
                     cp->extraDataLen = dbufsize - sizeof(ControlPkt) - 1;
                     strcpy((char*)(dbuffer + sizeof(ControlPkt)), eventString.c_str());

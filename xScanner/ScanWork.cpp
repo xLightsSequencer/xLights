@@ -329,10 +329,10 @@ std::string HTTPWork::GetControllerTypeBasedOnPageContent(const std::string& pag
         return "Minleon NDBPro";
     if (Contains(page, "NDB"))
         return "Minleon NDB+";
-	if (Contains(page, "WLED")) return "WLED";         // this is speculative ... I have no idea if this will work
-	if (Contains(page, "Hinkspix")) return "Hinkspix"; // this is speculative ... I have no idea if this will work
-	if (Contains(page, "Alphapix")) return "Alphapix"; // this is speculative ... I have no idea if this will work
-	return "";
+    if (Contains(page, "WLED")) return "WLED";         // this is speculative ... I have no idea if this will work
+    if (Contains(page, "Hinkspix")) return "Hinkspix"; // this is speculative ... I have no idea if this will work
+    if (Contains(page, "Alphapix")) return "Alphapix"; // this is speculative ... I have no idea if this will work
+    return "";
 }
 
 void HTTPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
@@ -783,7 +783,7 @@ void xScheduleWork::DoWork(WorkManager& workManager, wxSocketClient* client)
             auto root = nlohmann::json::parse(xs);
             results.push_back({ "Version", root.value<std::string>("version", defaultValue) });
         }
-		catch(std::exception ex) {
+		catch(const std::exception& ex) {
 
         }
 		PublishResult(workManager, results);
@@ -920,7 +920,7 @@ void ComputerWork::ScanARP(WorkManager& workManager)
 	FILE* fp = fopen("/proc/net/arp", "r");
 	if (fp != NULL) {
 		char line[size];
-		fgets(line, size, fp);    // Skip the first line, which consists of column headers.
+		if (fgets(line, size, fp) == nullptr) {} // Skip the first line, which consists of column headers.
 		while (fgets(line, size, fp)) {
 			sscanf(line, "%s 0x%x 0x%x %s %s %s\n",
 				ip_address,

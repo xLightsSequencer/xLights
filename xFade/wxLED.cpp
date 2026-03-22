@@ -21,8 +21,8 @@ wxLed::wxLed (wxWindow * parent, wxWindowID id, const char * disabledColor, cons
 	m_bitmap (nullptr)
 {
 	this->m_isEnabled = false ;
-	strncpy (this->m_enabledColor, "FFFFFF", 7) ;
-	strncpy (this->m_disabledColor, disabledColor, 7) ;
+	snprintf (this->m_enabledColor, sizeof(this->m_enabledColor), "%s", "FFFFFF") ;
+	snprintf (this->m_disabledColor, sizeof(this->m_disabledColor), "%s", disabledColor) ;
 	* this->m_color = '\0' ;
 	this->SetBitmap(this->m_disabledColor) ;
 }
@@ -115,7 +115,7 @@ void wxLed::SetBitmap (const char * color)
 		this->SetSize (wxSize (this->m_bitmap->GetWidth (), this->m_bitmap->GetHeight ())) ;
 		this->m_mutex.Unlock () ;
 		this->Refresh () ;
-		strncpy (this->m_color, color, 7) ;
+		snprintf (this->m_color, sizeof(this->m_color), "%s", color) ;
 	end :
 		delete [] xpm ;
 		delete [] xpmData ;

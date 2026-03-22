@@ -150,7 +150,7 @@ bool ESPixelStick::GetHttpConfig(std::string const& FileName, std::string const&
         nlohmann::json ParsedData = nlohmann::json::parse(RawData);
         Response = ParsedData[key];
     }
-    catch (nlohmann::json::exception ex)
+    catch (const nlohmann::json::exception& ex)
     {
         Response.clear();
         logger_base.debug(std::string("GetHttpConfig: ERROR: Could not parse json: ") + RawData);
@@ -193,7 +193,7 @@ bool ESPixelStick::GetWsConfig(std::string const& SectionName, std::string const
     try {
         nlohmann::json ParsedData = nlohmann::json::parse(RawData);
         Response = ParsedData["get"][key];
-    } catch (nlohmann::json::exception ex) {
+    } catch (const nlohmann::json::exception& ex) {
         Response.clear();
         logger_base.debug(std::string("GetWsConfig: ERROR: Could not parse json: ") + RawData);
         logger_base.error(std::string("GetWsConfig: ERROR: Could not parse json: ") + ex.what());
@@ -218,7 +218,7 @@ bool ESPixelStick::SetWsConfig(std::string const& SectionName, std::string const
     try {
         nlohmann::json ParsedData = nlohmann::json::parse(RawData);
         Response = ParsedData["cmd"];
-    } catch (nlohmann::json::exception ex) {
+    } catch (const nlohmann::json::exception& ex) {
         logger_base.debug(std::string("SetWsConfig: ERROR: Could not parse json: ") + RawData);
         logger_base.error(std::string("SetWsConfig: ERROR: Could not parse json: ") + ex.what());
     }
@@ -272,7 +272,7 @@ std::string ESPixelStick::GetFromJSON(std::string const& section, std::string co
                 }
             }
         }
-    } catch (nlohmann::json::exception ex) {
+    } catch (const nlohmann::json::exception& ex) {
         logger_base.error(std::string("GetFromJSON: ERROR: Could not parse json: ") + ex.what());
     }
 
@@ -1007,7 +1007,7 @@ bool ESPixelStick::SetOutputsV3(ModelManager* allmodels, OutputManager* outputMa
         } else {
             DisplayError("Not uploaded due to errors.\n" + check);
         }
-    } catch (nlohmann::json::exception ex) {
+    } catch (const nlohmann::json::exception& ex) {
         logger_base.error(std::string("SetOutputsV3: ERROR: Could not parse json: ") + ex.what());
     }
 
