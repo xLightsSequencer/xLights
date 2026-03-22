@@ -31,7 +31,7 @@ protected:
 public:
 
     #pragma region Constructors and Destructors
-    LOROutput(wxXmlNode* node);
+    LOROutput(pugi::xml_node node);
     LOROutput(const LOROutput& from);
     LOROutput();
     virtual ~LOROutput() override {};

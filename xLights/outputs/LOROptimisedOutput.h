@@ -34,7 +34,7 @@ class LOROptimisedOutput : public LOROutput
 
     #pragma region Private Functions
     void InitialiseTypes();
-    virtual void Save(wxXmlNode* node) override;
+    virtual void SaveAttr(pugi::xml_node node) override;
 	void CalcChannels(int& channel_count, int& channels_per_pass, int& controller_channels_to_process, LorController* cntrl);
     void CalcTotalChannels();
     void GenerateCommand(uint8_t d[], size_t& idx, int unit_id, int bank, bool value_byte, uint8_t dbyte, uint8_t lsb, uint8_t msb);
@@ -43,7 +43,7 @@ class LOROptimisedOutput : public LOROutput
 public:
 
     #pragma region Constructors and Destructors
-    LOROptimisedOutput(wxXmlNode* node);
+    LOROptimisedOutput(pugi::xml_node node);
     LOROptimisedOutput(const LOROptimisedOutput& from);
     LOROptimisedOutput();
     virtual ~LOROptimisedOutput() override {}

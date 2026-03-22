@@ -8,14 +8,11 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-#include <wx/sstream.h>
-
 #include "MhFeature.h"
 #include "MhChannel.h"
 #include <glm/gtc/type_ptr.hpp>
 
-MhFeature::MhFeature(wxXmlNode* node, const std::string& _xml_name, const std::string& pretty_name)
+MhFeature::MhFeature(pugi::xml_node node, const std::string& _xml_name, const std::string& pretty_name)
     : /*SerializedObject(_xml_name), */ node_xml(node), name(pretty_name), xml_name(_xml_name)
 {
 }
@@ -25,10 +22,10 @@ MhFeature::~MhFeature()
 }
 
 void MhFeature::Init() {
-    wxXmlNode* n = node_xml->GetChildren();
-    while (n != nullptr) {
-        std::string node_name = n->GetName();
-        std::string channel_name = n->GetAttribute("Name", node_name);
+    pugi::xml_node n = node_xml.first_child();
+    while (n) {
+        std::string node_name = n.name();
+        std::string channel_name = n.attribute("Name").as_string(node_name.c_str());
         bool channel_found {false};
         for (auto it = channels.begin(); it != channels.end(); ++it) {
             if( (*it)->GetName() == channel_name ) {
@@ -42,6 +39,6 @@ void MhFeature::Init() {
             newChannel->Init();
             channels.push_back(std::move(newChannel));
         }
-        n = n->GetNext();
+        n = n.next_sibling();
     }
 }

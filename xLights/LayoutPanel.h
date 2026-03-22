@@ -30,13 +30,14 @@ class wxStaticText;
 #include <wx/treelist.h>
 #include <wx/treectrl.h>
 #include <wx/dataview.h>
-#include <wx/xml/xml.h>
 #include <glm/glm.hpp>
+#include <pugixml.hpp>
 
 #include "ControllerConnectionDialog.h"
 #include "xlPropertyGrid.h"
 
 #include <memory>
+#include <sstream>
 #include <vector>
 #include <list>
 #include <map>
@@ -59,30 +60,39 @@ class NewModelBitmapButton;
 class wxImageFileProperty;
 class wxScrolledWindow;
 class LayoutGroup;
-class wxStringInputStream;
 class impTreeItemData;
 class Motion3DEvent;
 
 wxDECLARE_EVENT(EVT_LISTITEM_CHECKED, wxCommandEvent);
 
+// Wrapper that owns a pugi::xml_document and exposes its root as a pugi::xml_node.
+// Keeps the document alive as long as this object exists.
+struct OwnedXmlNode {
+    std::shared_ptr<pugi::xml_document> _doc;
+    pugi::xml_node node() const { return _doc ? _doc->document_element() : pugi::xml_node(); }
+    operator pugi::xml_node() const { return node(); }
+    explicit operator bool() const { return _doc && _doc->document_element(); }
+};
+
 class CopyPasteBaseObject
 {
     bool _ok = false;
 	bool _viewObject = false;
-    wxXmlNode* _xmlNode = nullptr;
+    std::shared_ptr<pugi::xml_document> _xmlDoc;
 
 public:
     CopyPasteBaseObject(const std::string& in);
     CopyPasteBaseObject();
-    virtual ~CopyPasteBaseObject();
+    virtual ~CopyPasteBaseObject() = default;
     bool IsOk() const { return _ok; }
 	bool IsViewObject() const { return _viewObject; }
-    wxXmlNode* GetBaseObjectXml() const {
-        if (_xmlNode == nullptr)
-            return _xmlNode;
-        else
-            // we return a new copy assuming the recipient will delete it
-            return new wxXmlNode(*_xmlNode);
+    OwnedXmlNode GetBaseObjectXml() const {
+        if (!_xmlDoc)
+            return {};
+        // Return a deep copy so callers can modify without affecting the stored XML
+        auto copy = std::make_shared<pugi::xml_document>();
+        copy->append_copy(_xmlDoc->document_element());
+        return {copy};
     }
     void SetBaseObject(BaseObject* model);
     std::string Serialise() const;

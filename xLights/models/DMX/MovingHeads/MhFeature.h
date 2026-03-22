@@ -14,29 +14,30 @@
 #include <vector>
 #include <memory>
 
+#include <pugixml.hpp>
+
 //#include "SerializedObject.h"
 
 class MhChannel;
-class wxXmlNode;
 
 class MhFeature// : public SerializedObject
 {
     public:
-        MhFeature(wxXmlNode* node, const std::string& _xml_name, const std::string& pretty_name);
+        MhFeature(pugi::xml_node node, const std::string& _xml_name, const std::string& pretty_name);
         virtual ~MhFeature();
 
         void Init();
 
         std::string GetName() { return name; }
         std::string GetXmlName() { return xml_name; }
-        wxXmlNode* GetXmlNode() { return node_xml; }
+        pugi::xml_node GetXmlNode() { return node_xml; }
 
         std::vector<std::unique_ptr<MhChannel>>& GetChannels() { return channels; }
 
     protected:
 
     private:
-        wxXmlNode* node_xml;
+        pugi::xml_node node_xml;
         std::string name;
         std::string xml_name;
         std::vector<std::unique_ptr<MhChannel>> channels;

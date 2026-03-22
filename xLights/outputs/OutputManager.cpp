@@ -9,12 +9,11 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 #include <wx/msgdlg.h>
 #include <wx/config.h>
 #include <wx/filename.h>
 #include <wx/dir.h>
-#include <wx/wfstream.h>
 
 #include "IPOutput.h"
 #include "OutputManager.h"
@@ -35,6 +34,7 @@
 #include "utils/ip_utils.h"
 #include <wx/regex.h>
 
+#include <format>
 #include <numeric>
 
 #include <log4cpp/Category.hh>
@@ -172,27 +172,28 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
     ObtainAccessToURL(_filename);
     FileExists(_filename, true);
 
-    wxXmlDocument doc;
-    doc.Load(fn.GetFullPath());
-    
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_file(fn.GetFullPath().ToStdString().c_str());
+
     Controller* cu = nullptr;
     std::string lasttype = "";
     std::string lastport = "";
     int lastuniv = -1;
 
-    if (doc.IsOk()) {
-        _globalFPPProxy = doc.GetRoot()->GetAttribute("GlobalFPPProxy");
-        _globalForceLocalIP = doc.GetRoot()->GetAttribute("GlobalForceLocalIP");
+    if (result) {
+        pugi::xml_node root = doc.document_element();
+        _globalFPPProxy = root.attribute("GlobalFPPProxy").as_string("");
+        _globalForceLocalIP = root.attribute("GlobalForceLocalIP").as_string("");
 
-        _autoUpdateFromBaseShowDir = doc.GetRoot()->GetAttribute("AutoUpdateFromBase", "0") == "1";
-        _baseShowDir = doc.GetRoot()->GetAttribute("BaseShowDir", "");
+        _autoUpdateFromBaseShowDir = std::string_view(root.attribute("AutoUpdateFromBase").as_string("0")) == "1";
+        _baseShowDir = root.attribute("BaseShowDir").as_string("");
 
         std::map<std::string, bool> multiip;
-        for (auto e = doc.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-            if (e->GetName() == "network")
+        for (pugi::xml_node e = root.first_child(); e; e = e.next_sibling()) {
+            if (std::string_view(e.name()) == "network")
             {
-                auto port = e->GetAttribute("ComPort");
-                auto univ = wxAtoi(e->GetAttribute("BaudRate", "-1"));
+                std::string port = e.attribute("ComPort").as_string("");
+                int univ = e.attribute("BaudRate").as_int(-1);
 
                 if (multiip.find(port) == multiip.end()) {
                     multiip[port] = false;
@@ -209,17 +210,17 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
         lastuniv = -1;
         lastport = "";
-        for (auto e = doc.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-            if (e->GetName() == "network") {
+        for (pugi::xml_node e = root.first_child(); e; e = e.next_sibling()) {
+            if (std::string_view(e.name()) == "network") {
                 Output* conversionOutput = Output::Create(nullptr, e, showdir);
 
-                wxString type = e->GetAttribute("NetworkType", "");
-                auto port = e->GetAttribute("ComPort");
-                int univ = wxAtoi(e->GetAttribute("BaudRate", "-1"));
-                int univcount = wxAtoi(e->GetAttribute("NumUniverses", "1"));
-                if (type.EndsWith(" Ethernet") && type[0] == 'S' && type[1] == 'y') { type = OUTPUT_xxxETHERNET; }
+                std::string type = e.attribute("NetworkType").as_string("");
+                std::string port = e.attribute("ComPort").as_string("");
+                int univ = e.attribute("BaudRate").as_int(-1);
+                int univcount = e.attribute("NumUniverses").as_int(1);
+                if (type.ends_with(" Ethernet") && type[0] == 'S' && type[1] == 'y') { type = OUTPUT_xxxETHERNET; }
                 if (type == OUTPUT_xxxETHERNET) {
-                    univ = wxAtoi(e->GetAttribute("Port", "1"));
+                    univ = e.attribute("Port").as_int(1);
                 }
                 bool dups = multiip[port];
 
@@ -281,13 +282,13 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
                 lastuniv = univ + univcount - 1;
                 _didConvert = true;
             }
-            else if (e->GetName() == "e131sync") {
-                _syncUniverse = wxAtoi(e->GetAttribute("universe"));
+            else if (std::string_view(e.name()) == "e131sync") {
+                _syncUniverse = e.attribute("universe").as_int(0);
             }
-            else if (e->GetName() == "suppressframes") {
-                _suppressFrames = wxAtoi(e->GetAttribute("frames"));
+            else if (std::string_view(e.name()) == "suppressframes") {
+                _suppressFrames = e.attribute("frames").as_int(0);
             }
-            else if (e->GetName() == "testpreset") {
+            else if (std::string_view(e.name()) == "testpreset") {
                 logger_base.debug("Loading test presets.");
                 TestPreset* tp = new TestPreset(e);
 
@@ -307,7 +308,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
                     _testPresets.push_back(tp);
                 }
             }
-            else if (e->GetName() == "Controller") {
+            else if (std::string_view(e.name()) == "Controller") {
                 _controllers.push_back(Controller::Create(this, e, showdir));
                 // remove any that were not created ... usually as this version does not have that controller supported
                 if (_controllers.back() == nullptr) _controllers.pop_back();
@@ -399,92 +400,83 @@ bool OutputManager::MergeFromBase(bool prompt)
     return changed;
 }
 
-wxXmlDocument OutputManager::SaveToXML() {
-    wxXmlDocument doc;
-    wxXmlNode* root = new wxXmlNode(wxXML_ELEMENT_NODE, "Networks");
+void OutputManager::SaveToXML(pugi::xml_document& doc) {
+    pugi::xml_node decl = doc.prepend_child(pugi::node_declaration);
+    decl.append_attribute("version") = "1.0";
+    decl.append_attribute("encoding") = "UTF-8";
 
-    root->AddAttribute("computer", wxGetHostName());
-    root->AddAttribute("GlobalFPPProxy", _globalFPPProxy);
-    root->AddAttribute("GlobalForceLocalIP", _globalForceLocalIP);
+    pugi::xml_node root = doc.append_child("Networks");
 
-    root->AddAttribute("AutoUpdateFromBase", _autoUpdateFromBaseShowDir  ? "1" : "0");
-    root->AddAttribute("BaseShowDir", _baseShowDir);
+    root.append_attribute("computer") = wxGetHostName().ToStdString();
+    root.append_attribute("GlobalFPPProxy") = _globalFPPProxy;
+    root.append_attribute("GlobalForceLocalIP") = _globalForceLocalIP;
 
-    doc.SetRoot(root);
+    root.append_attribute("AutoUpdateFromBase") = _autoUpdateFromBaseShowDir ? "1" : "0";
+    root.append_attribute("BaseShowDir") = _baseShowDir;
 
     if (_syncUniverse != 0) {
-        wxXmlNode* newNode = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "e131sync");
-        newNode->AddAttribute("universe", wxString::Format("%d", _syncUniverse));
-        root->AddChild(newNode);
+        pugi::xml_node newNode = root.append_child("e131sync");
+        newNode.append_attribute("universe") = _syncUniverse;
     }
 
     if (_suppressFrames != 0) {
-        wxXmlNode* newNode = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "suppressframes");
-        newNode->AddAttribute("frames", wxString::Format("%d", _suppressFrames));
-        root->AddChild(newNode);
+        pugi::xml_node newNode = root.append_child("suppressframes");
+        newNode.append_attribute("frames") = _suppressFrames;
     }
 
     for (const auto& it : _controllers) {
-        root->AddChild(it->Save());
+        it->Save(root);
     }
 
     for (const auto& it : _testPresets) {
-        root->AddChild(it->Save());
+        it->Save(root);
     }
-    return doc;
 }
 
 bool OutputManager::Save() {
-    wxXmlDocument doc = SaveToXML();
+    pugi::xml_document doc;
+    SaveToXML(doc);
 
-    wxFileOutputStream fout(_filename);
-    wxBufferedOutputStream *bout = new wxBufferedOutputStream(fout, 2 * 1024 * 1024);
-    if (doc.Save(*bout)) {
+    if (doc.save_file(_filename.c_str())) {
         _dirty = false;
-    }
-    delete bout;
-    if (!fout.Close()) {
-        _dirty = true;
     }
 
     return (_dirty == false);
 }
 
 // This function is used purely to locate and fix any outputnumber:startchannel model start channels when the networks file is first converted
-bool OutputManager::ConvertModelStartChannels(wxXmlNode* modelsNode) const {
+bool OutputManager::ConvertModelStartChannels(pugi::xml_node modelsNode) const {
 
     // check if any conversion has been done
     if (_conversionOutputs.size() == 0) return false;
 
     bool changed = false;
 
-    for (wxXmlNode* model = modelsNode->GetChildren(); model != nullptr; model = model->GetNext()) {
-        if (model->GetName() == "model") {
+    for (pugi::xml_node model = modelsNode.first_child(); model; model = model.next_sibling()) {
+        if (std::string_view(model.name()) == "model") {
 
             // Do main model start channel
-            std::string sc = UnXmlSafe(model->GetAttribute("StartChannel").ToStdString());
+            std::string sc = UnXmlSafe(model.attribute("StartChannel").as_string(""));
             std::string newsc;
             if (ConvertStartChannel(sc, newsc)) {
-                model->DeleteAttribute("StartChannel");
-                model->AddAttribute("StartChannel", XmlSafe(newsc));
+                SetXmlNodeAttribute(model, "StartChannel", XmlSafe(newsc));
                 changed = true;
             }
 
-            if (model->GetAttribute("Advanced", "0") == "1") {
+            if (std::string_view(model.attribute("Advanced").as_string("0")) == "1") {
                 // Try new attribute names first, fall back to old parm names
-                wxString strAttr = model->GetAttribute("NumStrings", "");
-                if (strAttr.empty()) strAttr = model->GetAttribute("NumArches", "");
-                if (strAttr.empty()) strAttr = model->GetAttribute("NumCanes", "");
-                if (strAttr.empty()) strAttr = model->GetAttribute("NumChannels", "");
-                if (strAttr.empty()) strAttr = model->GetAttribute("DmxChannelCount", "");
-                if (strAttr.empty()) strAttr = model->GetAttribute("parm1", "0");
-                int strings = wxAtoi(strAttr);
+                std::string strAttr = model.attribute("NumStrings").as_string("");
+                if (strAttr.empty()) strAttr = model.attribute("NumArches").as_string("");
+                if (strAttr.empty()) strAttr = model.attribute("NumCanes").as_string("");
+                if (strAttr.empty()) strAttr = model.attribute("NumChannels").as_string("");
+                if (strAttr.empty()) strAttr = model.attribute("DmxChannelCount").as_string("");
+                if (strAttr.empty()) strAttr = model.attribute("parm1").as_string("0");
+                int strings = std::strtol(strAttr.c_str(), nullptr, 10);
                 for (int i = 1; i <= strings; i++) {
-                    auto s = wxString::Format("String%d", i);
-                    std::string sc = UnXmlSafe(model->GetAttribute(s).ToStdString());
+                    auto s = std::format("String{}", i);
+                    std::string sc = UnXmlSafe(model.attribute(s).as_string(""));
                     if (ConvertStartChannel(sc, newsc)) {
-                        model->DeleteAttribute(s);
-                        model->AddAttribute(s, XmlSafe(newsc));
+                        SetXmlNodeAttribute(model, s, XmlSafe(newsc));
                         changed = true;
                     }
                 }

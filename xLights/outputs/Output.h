@@ -16,10 +16,10 @@
 
 #include <wx/window.h>
 #include <wx/time.h>
+#include <pugixml.hpp>
 
 class ModelManager;
 class OutputManager;
-class wxXmlNode;
 class OutputModelManager;
 class wxPGProperty;
 class wxPropertyGrid;
@@ -87,7 +87,7 @@ protected:
     #pragma endregion
 
 #pragma region Private Functions
-    virtual void Save(wxXmlNode* node);
+    virtual void SaveAttr(pugi::xml_node node);
 #pragma endregion
 
 public:
@@ -104,16 +104,16 @@ public:
     };
 
     #pragma region Constructors and Destructors
-    Output(wxXmlNode* node);
+    Output(pugi::xml_node node);
     Output(const Output& from);
     Output();
     virtual ~Output();
-    virtual wxXmlNode* Save();
+    virtual pugi::xml_node Save(pugi::xml_node parent);
     virtual Output* Copy() = 0;
     #pragma endregion 
 
     #pragma region Static Functions
-    static Output* Create(Controller* c, wxXmlNode* node, std::string showDir);
+    static Output* Create(Controller* c, pugi::xml_node node, std::string showDir);
     static std::list<ControllerEthernet*> Discover(OutputManager* outputManager) { return std::list<ControllerEthernet*>(); } // Discovers controllers supporting this protocol
     #pragma endregion Static Functions
 

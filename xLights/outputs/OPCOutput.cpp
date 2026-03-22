@@ -14,7 +14,6 @@
 #include "../UtilFunctions.h"
 #include "../utils/ip_utils.h"
 
-#include <wx/xml/xml.h>
 #include <wx/process.h>
 
 #include <log4cpp/Category.hh>
@@ -76,7 +75,7 @@ void OPCOutput::OpenSocket() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-OPCOutput::OPCOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
+OPCOutput::OPCOutput(pugi::xml_node node, bool isActive) : IPOutput(node, isActive) {
 
     if (_channels > GetMaxChannels()) SetChannels(GetMaxChannels());
     _socket = nullptr;
@@ -109,10 +108,10 @@ OPCOutput::~OPCOutput()
     if (_data != nullptr) delete _data;
 }
 
-wxXmlNode* OPCOutput::Save() {
+pugi::xml_node OPCOutput::Save(pugi::xml_node parent) {
 
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    IPOutput::Save(node);
+    pugi::xml_node node = parent.append_child("network");
+    IPOutput::SaveAttr(node);
 
     return node;
 }

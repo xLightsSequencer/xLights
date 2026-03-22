@@ -10,9 +10,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
 #include <list>
 #include <string>
+#include <pugixml.hpp>
 
 #include "XmlSerializer/BaseSerializingVisitor.h"
 
@@ -27,9 +27,9 @@ class SequenceView
 
 public:
 	SequenceView(const std::string& name, ModelManager* modelManager);
-	SequenceView(wxXmlNode* node, ModelManager* modelManager);
+	SequenceView(pugi::xml_node node, ModelManager* modelManager);
 	virtual ~SequenceView() {};
-	void Load(wxXmlNode* node);
+	void Load(pugi::xml_node node);
 	void Save(BaseSerializingVisitor& visitor) const;
 	std::list<std::string> GetModels() const { return _modelNames; }
 	std::string GetName() const { return _name; }
@@ -62,7 +62,7 @@ public:
 	virtual ~SequenceViewManager();
 	std::list<SequenceView*> GetViews() { AddMasterView(); return _views; }
 	void SetModelManager(ModelManager* modelManager) { _modelManager = modelManager; }
-	void Load(wxXmlNode* node, int selectedView);
+	void Load(pugi::xml_node node, int selectedView);
 	void Save(BaseSerializingVisitor& visitor) const;
 	int GetSelectedViewIndex() const { return _selectedView; }
 	SequenceView* GetSelectedView() const { return GetView(_selectedView); }

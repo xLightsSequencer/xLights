@@ -15,7 +15,6 @@
 
 #include "Controller.h"
 
-class wxXmlNode;
 class Output;
 
 // An serial controller sends data to a unique com port
@@ -29,12 +28,12 @@ protected:
 public:
 
 #pragma region Constructors and Destructors
-    ControllerNull(OutputManager* om, wxXmlNode* node, const std::string& showDir);
+    ControllerNull(OutputManager* om, pugi::xml_node node, const std::string& showDir);
     ControllerNull(OutputManager* om);
     ControllerNull(OutputManager* om, const ControllerNull& from);
     virtual ~ControllerNull()
     {}
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     virtual bool UpdateFrom(Controller* from) override;
     virtual Controller* Copy(OutputManager* om) override;
 #pragma endregion Constructors and Destructors
@@ -52,7 +51,7 @@ public:
 
     virtual std::string GetType() const override { return CONTROLLER_NULL; }
 
-    virtual void Convert(wxXmlNode* node, std::string showDir) override; // loads a legacy networks node
+    virtual void Convert(pugi::xml_node node, std::string showDir) override; // loads a legacy networks node
 
     virtual bool NeedsControllerConfig() const override { return false; }
 

@@ -11,7 +11,6 @@
 
 #include "LOROutput.h"
 
-#include <wx/xml/xml.h>
 
 #pragma region Constructors and Destructors
 LOROutput::LOROutput(const LOROutput& from) :
@@ -22,7 +21,7 @@ LOROutput::LOROutput(const LOROutput& from) :
     memset(_data, 0, sizeof(_data));
 }
 
-LOROutput::LOROutput(wxXmlNode* node) : SerialOutput(node) {
+LOROutput::LOROutput(pugi::xml_node node) : SerialOutput(node) {
 
     memset(_lastSent, 0x00, sizeof(_lastSent));
     memset(_notSentCount, 0x00, sizeof(_notSentCount));

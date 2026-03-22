@@ -82,7 +82,6 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm
         std::unique_ptr<Mesh> yoke_mesh = nullptr;
         std::unique_ptr<Mesh> head_mesh = nullptr;
 
-        wxXmlNode* features_xml_node = nullptr;
         std::string obj_path;
         std::vector<std::unique_ptr<MhFeature>> features;
         std::map<std::string, PanTiltState> panTiltStates;

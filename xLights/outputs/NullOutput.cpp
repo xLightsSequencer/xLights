@@ -12,24 +12,23 @@
 #include "NullOutput.h"
 #include "../OutputModelManager.h"
 
-#include <wx/xml/xml.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 
 #pragma region Constructors and Destructors
-NullOutput::NullOutput(wxXmlNode* node) : Output(node) {
+NullOutput::NullOutput(pugi::xml_node node) : Output(node) {
 
-    SetId(wxAtoi(node->GetAttribute("Id", "64001")));
+    SetId(node.attribute("Id").as_int(64001));
 }
 
 NullOutput::NullOutput(const NullOutput& from) : Output(from)
 {
 }
 
-wxXmlNode* NullOutput::Save() {
+pugi::xml_node NullOutput::Save(pugi::xml_node parent) {
 
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    Output::Save(node);
+    pugi::xml_node node = parent.append_child("network");
+    Output::SaveAttr(node);
 
     return node;
 }

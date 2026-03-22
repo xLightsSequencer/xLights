@@ -17,8 +17,6 @@
 
 #include <wx/string.h>
 
-class wxXmlNode;
-
 class DimmingCurve
 {
     public:

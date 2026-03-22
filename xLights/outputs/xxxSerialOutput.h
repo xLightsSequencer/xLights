@@ -12,8 +12,6 @@
 
 #include "SerialOutput.h"
 
-class wxXmlNode;
-
 class xxxSerialOutput : public SerialOutput
 {
 protected:
@@ -40,7 +38,7 @@ protected:
 public:
 
     #pragma region Constructors and Destructors
-    xxxSerialOutput(wxXmlNode* node);
+    xxxSerialOutput(pugi::xml_node node);
     xxxSerialOutput(const xxxSerialOutput& from);
     xxxSerialOutput();
     virtual ~xxxSerialOutput() override {};
@@ -67,7 +65,7 @@ public:
         }
         SetChannels(channels);
     }
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
 
     virtual int32_t GetMaxChannels() const override { return xxx_MAX_CHANNELS; }
     static int GetMaxxxxChannels() { return xxx_MAX_CHANNELS; }

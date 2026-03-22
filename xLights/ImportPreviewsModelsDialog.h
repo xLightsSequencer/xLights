@@ -18,7 +18,7 @@
 //*)
 
 #include <wx/treelist.h>
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 #include "models/ModelManager.h"
 
@@ -26,27 +26,27 @@ class LayoutGroup;
 
 class impTreeItemData : public wxClientData
 {
-    wxXmlNode* _modelNode;
+    pugi::xml_node _modelNode;
     bool _modelGroup;
     const wxString _name;
 public:
-    impTreeItemData(wxString name, wxXmlNode* n, bool mg) : _name(name), _modelNode(n), _modelGroup(mg)
+    impTreeItemData(wxString name, pugi::xml_node n, bool mg) : _name(name), _modelNode(n), _modelGroup(mg)
     {}
     wxString GetName() const { return _name; };
-    wxXmlNode* GetModelNode() const { return _modelNode; }
+    pugi::xml_node GetModelNode() const { return _modelNode; }
     bool IsModelGroup() const { return _modelGroup; }
 };
 
 class ImportPreviewsModelsDialog: public wxDialog
 {
     wxTreeListCtrl* TreeListCtrl1;
-    wxXmlDocument _doc;
+    pugi::xml_document _doc;
     wxTreeListItem _item;
     ModelManager& _allModels;
     std::vector<LayoutGroup*>& _layoutGroups;
 
     void ValidateWindow();
-    void AddModels(wxTreeListCtrl* tree, wxTreeListItem item, wxXmlNode* models, wxXmlNode* modelgroups, wxString preview);
+    void AddModels(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node models, pugi::xml_node modelgroups, wxString preview);
     void SelectAll(bool checked);
     void SelectHighlighted(bool checked);
     void SelectRecursiveModel(wxString m, bool checked);

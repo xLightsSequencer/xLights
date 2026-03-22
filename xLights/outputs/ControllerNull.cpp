@@ -9,8 +9,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-
 #include "ControllerNull.h"
 #include "OutputManager.h"
 #include "Output.h"
@@ -21,7 +19,7 @@
 #include "../models/ModelManager.h"
 
 #pragma region Constructors and Destructors
-ControllerNull::ControllerNull(OutputManager* om, wxXmlNode* node, const std::string& showDir) : Controller(om, node, showDir) {
+ControllerNull::ControllerNull(OutputManager* om, pugi::xml_node node, const std::string& showDir) : Controller(om, node, showDir) {
     _dirty = false;
     wxASSERT(_outputs.size() == 1);
 }
@@ -37,8 +35,8 @@ ControllerNull::ControllerNull(OutputManager* om, const ControllerNull& from) :
     // Nothing to actually copy
 }
 
-wxXmlNode* ControllerNull::Save() {
-    wxXmlNode* um = Controller::Save();
+pugi::xml_node ControllerNull::Save(pugi::xml_node parent) {
+    pugi::xml_node um = Controller::Save(parent);
 
     return um;
 }
@@ -86,7 +84,7 @@ std::string ControllerNull::GetShortDescription() const {
 	return res;
 }
 
-void ControllerNull::Convert(wxXmlNode* node, std::string showDir) {
+void ControllerNull::Convert(pugi::xml_node node, std::string showDir) {
 
     Controller::Convert(node, showDir);
 

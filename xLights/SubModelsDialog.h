@@ -12,9 +12,9 @@
 
 #include <map>
 #include <vector>
+#include <pugixml.hpp>
 #include <wx/dnd.h>
 #include <wx/listctrl.h>
-#include <wx/xml/xml.h>
 #include <wx/regex.h>
 #include <wx/timer.h>
 #include <glm/glm.hpp>
@@ -100,7 +100,7 @@ class SubModelsDialog : public wxDialog
         bool isRanges{true};
         wxString subBuffer;
         wxString bufferStyle{"Default"};
-        std::vector<wxString> strands;
+        std::vector<std::string> strands;
     };
 
     wxTimer timer1;
@@ -266,7 +266,7 @@ protected:
     bool IsUniqueName(wxString const& newname) const;
     void ImportCustomModel(std::string filename);
     void CreateSubmodel(const std::string& name, const std::list<std::string>& nodes);
-    void FixNodes(wxXmlNode* n, const std::string& attribute, std::map<int, int>& nodeMap);
+    void FixNodes(pugi::xml_node n, const std::string& attribute, std::map<int, int>& nodeMap);
     
     // Helper methods for ImportCustomModel refactoring
     int CalculateAlignmentOffset(int alignment, int targetSize, int sourceSize);
@@ -321,7 +321,7 @@ protected:
 
     void ImportSubModel(std::string filename);
     void RetrieveSubModelInfo(Model* model);
-    void ImportSubModelXML(wxXmlNode* xmlData);  // Legacy - will be deprecated
+    void ImportSubModelXML(pugi::xml_node xmlData);
     void ImportSubModels(const std::vector<XmlSerialize::SubModelImportData>& subModels);
     void ImportCSVSubModel(wxString const& filename);
     wxArrayString getModelList(ModelManager* modelManager);
@@ -334,7 +334,7 @@ protected:
     void SortSubModelsByName();
     void Symmetrize();
 
-    void processAllStrands(wxString (*func)(wxString));
+    void processAllStrands(std::string (*func)(const std::string&));
     int CountNodesInRange(const wxString& range);
 
 private:

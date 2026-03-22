@@ -11,10 +11,11 @@
 #include <wx/utils.h>
 #include <wx/tokenzr.h>
 #include <wx/clipbrd.h>
-#include <wx/xml/xml.h>
 #include <wx/config.h>
 #include <wx/wfstream.h>
 #include <wx/sstream.h>
+
+#include <pugixml.hpp>
 
 #include "xLightsMain.h"
 #include "SeqSettingsDialog.h"
@@ -136,7 +137,7 @@ void xLightsFrame::LoadEffectsFile()
     effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
     UnsavedRgbEffectsChanges = false;
 
-    wxXmlDocument effectsXml;
+    pugi::xml_document effectsXml;
 
     if (!FileExists(effectsFile)) {
         // file does not exist, so create an empty xml doc
@@ -191,46 +192,35 @@ void xLightsFrame::LoadEffectsFile()
                 }
             }
         }
-        wxXmlParseError error;
-        if (!effectsXml.Load(effectsFile.GetFullPath(), wxXMLDOC_NONE, &error)) {
-            DisplayError(wxString::Format("Unable to load RGB effects File ... Creating a Default One.\nError at Line: %d Column: %d Error '%s'", error.line, error.column, error.message), this);
+        pugi::xml_parse_result result = effectsXml.load_file(effectsFile.GetFullPath().ToStdString().c_str());
+        if (!result) {
+            DisplayError(wxString::Format("Unable to load RGB effects File ... Creating a Default One.\nError at offset: %td Error '%s'", result.offset, result.description()), this);
             CreateDefaultEffectsXml(effectsXml);
         }
-        wxXmlDoctype dt("");
-        effectsXml.SetDoctype(dt);
     }
 
-    wxXmlNode* root = effectsXml.GetRoot();
-    if (root->GetName() != "xrgb") {
+    pugi::xml_node root = effectsXml.document_element();
+    if (std::string_view(root.name()) != "xrgb") {
         DisplayError("Invalid RGB effects file ... creating a default one.", this);
         CreateDefaultEffectsXml(effectsXml);
+        root = effectsXml.document_element();
     }
-    
-    
-    wxXmlNode* modelsNode = nullptr;
-    wxXmlNode* viewObjectsNode = nullptr;
-    wxXmlNode* modelGroupsNode = nullptr;
-    wxXmlNode* effectsNode = nullptr;
-    wxXmlNode* viewsNode = nullptr;
-    wxXmlNode* colorsNode = nullptr;
-    wxXmlNode* viewpointsNode = nullptr;
-    wxXmlNode* layoutGroupsNode = nullptr;
-    wxXmlNode* perspectivesNode = nullptr;
-    for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "models") modelsNode = e;
-        if (e->GetName() == "view_objects") viewObjectsNode = e;
-        if (e->GetName() == "effects") effectsNode = e;
-        if (e->GetName() == "views") viewsNode = e;
-        if (e->GetName() == "colors") colorsNode = e;
-        if (e->GetName() == "Viewpoints") viewpointsNode = e;
-        if (e->GetName() == "modelGroups") modelGroupsNode = e;
-        if (e->GetName() == "layoutGroups") layoutGroupsNode = e;
-        if (e->GetName() == "settings") {
-            for (wxXmlNode* s = e->GetChildren(); s != nullptr; s = s->GetNext()) {
-                _xmlSettings[s->GetName().ToStdString()] = s->GetAttribute("value").ToStdString();
-            }
+
+
+    pugi::xml_node modelsNode = root.child("models");
+    pugi::xml_node viewObjectsNode = root.child("view_objects");
+    pugi::xml_node modelGroupsNode = root.child("modelGroups");
+    pugi::xml_node effectsNode = root.child("effects");
+    pugi::xml_node viewsNode = root.child("views");
+    pugi::xml_node colorsNode = root.child("colors");
+    pugi::xml_node viewpointsNode = root.child("Viewpoints");
+    pugi::xml_node layoutGroupsNode = root.child("layoutGroups");
+    pugi::xml_node perspectivesNode = root.child("perspectives");
+    pugi::xml_node settingsNode = root.child("settings");
+    if (settingsNode) {
+        for (pugi::xml_node s = settingsNode.first_child(); s; s = s.next_sibling()) {
+            _xmlSettings[s.name()] = s.attribute("value").as_string();
         }
-        if (e->GetName() == "perspectives") perspectivesNode = e;
     }
 
     // This is the earliest we can do the backup as now the settings node will be populated
@@ -262,33 +252,33 @@ void xLightsFrame::LoadEffectsFile()
     }
     if (effectsVersion < "0005") {
         //flip to AntiAlias=1 by default
-        for (wxXmlNode *el = modelsNode->GetChildren(); el != nullptr; el = el->GetNext()) {
-            if (el->GetAttribute("Antialias", "1") == "0") {
-                el->DeleteAttribute("Antialias");
-                el->AddAttribute("Antialias", "1");
+        for (pugi::xml_node el = modelsNode.first_child(); el; el = el.next_sibling()) {
+            if (std::string_view(el.attribute("Antialias").as_string("1")) == "0") {
+                el.remove_attribute("Antialias");
+                el.append_attribute("Antialias") = "1";
                 UnsavedRgbEffectsChanges = true;
             }
         }
     }
     if (effectsVersion < "0006") {
         // need to convert models/groups to remove MyDisplay and add preview assignments
-        for (wxXmlNode *model = modelsNode->GetChildren(); model != nullptr; model = model->GetNext()) {
-            if (model->GetName() == "model") {
-                std::string my_display = model->GetAttribute("MyDisplay").ToStdString();
+        for (pugi::xml_node model = modelsNode.first_child(); model; model = model.next_sibling()) {
+            if (std::string_view(model.name()) == "model") {
+                std::string my_display = model.attribute("MyDisplay").as_string();
                 std::string layout_group = "Unassigned";
                 if (my_display == "1") {
                     layout_group = "Default";
                 }
-                model->DeleteAttribute("MyDisplay");
-                model->DeleteAttribute("LayoutGroup");
-                model->AddAttribute("LayoutGroup", layout_group);
+                model.remove_attribute("MyDisplay");
+                model.remove_attribute("LayoutGroup");
+                model.append_attribute("LayoutGroup") = layout_group;
             }
         }
         // parse groups once to figure out if any of them are selected
         bool groups_are_selected = false;
-        for (wxXmlNode *group = modelGroupsNode->GetChildren(); group != nullptr; group = group->GetNext()) {
-            if (group->GetName() == "modelGroup") {
-                std::string selected = group->GetAttribute("selected").ToStdString();
+        for (pugi::xml_node group = modelGroupsNode.first_child(); group; group = group.next_sibling()) {
+            if (std::string_view(group.name()) == "modelGroup") {
+                std::string selected = group.attribute("selected").as_string();
                 if (selected == "1") {
                     groups_are_selected = true;
                     break;
@@ -297,22 +287,22 @@ void xLightsFrame::LoadEffectsFile()
         }
         // if no groups are selected then models remain as set above and all groups goto Default
         if (!groups_are_selected) {
-            for (wxXmlNode *group = modelGroupsNode->GetChildren(); group != nullptr; group = group->GetNext()) {
-                if (group->GetName() == "modelGroup") {
-                    group->DeleteAttribute("selected");
-                    group->DeleteAttribute("LayoutGroup");
-                    group->AddAttribute("LayoutGroup", "Default");
+            for (pugi::xml_node group = modelGroupsNode.first_child(); group; group = group.next_sibling()) {
+                if (std::string_view(group.name()) == "modelGroup") {
+                    group.remove_attribute("selected");
+                    group.remove_attribute("LayoutGroup");
+                    group.append_attribute("LayoutGroup") = "Default";
                 }
             }
         }
         else { // otherwise need to set models in unchecked groups to unassigned
             std::set<std::string> modelsAdded;
-            for (wxXmlNode *group = modelGroupsNode->GetChildren(); group != nullptr; group = group->GetNext()) {
-                if (group->GetName() == "modelGroup") {
-                    std::string selected = group->GetAttribute("selected").ToStdString();
+            for (pugi::xml_node group = modelGroupsNode.first_child(); group; group = group.next_sibling()) {
+                if (std::string_view(group.name()) == "modelGroup") {
+                    std::string selected = group.attribute("selected").as_string();
                     std::string layout_group = "Unassigned";
                     if (selected == "1") {
-                        wxArrayString mn = wxSplit(group->GetAttribute("models"), ',');
+                        wxArrayString mn = wxSplit(wxString(group.attribute("models").as_string()), ',');
                         for (int x = 0; x < mn.size(); x++) {
                             std::string name = mn[x].Trim(true).Trim(false).ToStdString();
                             if (modelsAdded.find(name) == modelsAdded.end()) {
@@ -321,18 +311,18 @@ void xLightsFrame::LoadEffectsFile()
                         }
                         layout_group = "Default";
                     }
-                    group->DeleteAttribute("selected");
-                    group->DeleteAttribute("LayoutGroup");
-                    group->AddAttribute("LayoutGroup", layout_group);
+                    group.remove_attribute("selected");
+                    group.remove_attribute("LayoutGroup");
+                    group.append_attribute("LayoutGroup") = layout_group;
                 }
             }
             // now move models back to unassigned that were not part of a checked group
-            for (wxXmlNode *model = modelsNode->GetChildren(); model != nullptr; model = model->GetNext()) {
-                if (model->GetName() == "model") {
-                    std::string mn = model->GetAttribute("name").ToStdString();
+            for (pugi::xml_node model = modelsNode.first_child(); model; model = model.next_sibling()) {
+                if (std::string_view(model.name()) == "model") {
+                    std::string mn = model.attribute("name").as_string();
                     if (modelsAdded.find(mn) == modelsAdded.end()) {
-                        model->DeleteAttribute("LayoutGroup");
-                        model->AddAttribute("LayoutGroup", "Unassigned");
+                        model.remove_attribute("LayoutGroup");
+                        model.append_attribute("LayoutGroup") = "Unassigned";
                     }
                 }
             }
@@ -342,56 +332,53 @@ void xLightsFrame::LoadEffectsFile()
 
     if (effectsVersion < "0007") {
         // fix any no longer supported smart remote settings *A*->*B*->*C* and a->*B*->*C*
-        for (wxXmlNode* model = modelsNode->GetChildren(); model != nullptr; model = model->GetNext()) {
-            if (model->GetName() == "model") {
-                for (wxXmlNode* cc = model->GetChildren(); cc != nullptr; cc = cc->GetNext()) {
-                    auto sr = cc->GetAttribute("SmartRemote", "0");
+        for (pugi::xml_node model = modelsNode.first_child(); model; model = model.next_sibling()) {
+            if (std::string_view(model.name()) == "model") {
+                for (pugi::xml_node cc = model.first_child(); cc; cc = cc.next_sibling()) {
+                    std::string_view sr = cc.attribute("SmartRemote").as_string("0");
                     if (sr == "4") {
-                        cc->DeleteAttribute("SmartRemote");
-                        cc->AddAttribute("SmartRemote", "1");
-                        cc->AddAttribute("SRMaxCascade", "3");
+                        cc.remove_attribute("SmartRemote");
+                        cc.append_attribute("SmartRemote") = "1";
+                        cc.append_attribute("SRMaxCascade") = "3";
                     }
                     else if (sr == "5") {
-                        cc->DeleteAttribute("SmartRemote");
-                        cc->AddAttribute("SmartRemote", "2");
-                        cc->AddAttribute("SRMaxCascade", "2");
+                        cc.remove_attribute("SmartRemote");
+                        cc.append_attribute("SmartRemote") = "2";
+                        cc.append_attribute("SRMaxCascade") = "2";
                     }
                 }
             }
         }
     }
 
-    if (modelsNode == nullptr) {
-        modelsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "models");
-        root->AddChild(modelsNode);
+    if (!modelsNode) {
+        modelsNode = root.append_child("models");
     }
-    if (viewObjectsNode == nullptr) {
-        viewObjectsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "view_objects");
-        root->AddChild(viewObjectsNode);
-        wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "view_object");
-        viewObjectsNode->AddChild(node);
-        node->AddAttribute("DisplayAs", "Gridlines");
-        node->AddAttribute("LayoutGroup", "Default");
-        node->AddAttribute("name", "Gridlines");
-        node->AddAttribute("GridLineSpacing", "50");
-        node->AddAttribute("GridWidth", "2000.0");
-        node->AddAttribute("GridHeight", "1000.0");
-        node->AddAttribute("WorldPosX", "0.0000");
-        node->AddAttribute("WorldPosY", "0.0000");
-        node->AddAttribute("WorldPosZ", "0.0000");
-        node->AddAttribute("ScaleX", "1.0000");
-        node->AddAttribute("ScaleY", "1.0000");
-        node->AddAttribute("ScaleZ", "1.0000");
-        node->AddAttribute("RotateX", "90.0");
-        node->AddAttribute("RotateY", "0");
-        node->AddAttribute("RotateZ", "0");
-        node->AddAttribute("versionNumber", "3");
-        node->AddAttribute("Active", "1");
+    if (!viewObjectsNode) {
+        viewObjectsNode = root.append_child("view_objects");
+        pugi::xml_node node = viewObjectsNode.append_child("view_object");
+        node.append_attribute("DisplayAs") = "Gridlines";
+        node.append_attribute("LayoutGroup") = "Default";
+        node.append_attribute("name") = "Gridlines";
+        node.append_attribute("GridLineSpacing") = "50";
+        node.append_attribute("GridWidth") = "2000.0";
+        node.append_attribute("GridHeight") = "1000.0";
+        node.append_attribute("WorldPosX") = "0.0000";
+        node.append_attribute("WorldPosY") = "0.0000";
+        node.append_attribute("WorldPosZ") = "0.0000";
+        node.append_attribute("ScaleX") = "1.0000";
+        node.append_attribute("ScaleY") = "1.0000";
+        node.append_attribute("ScaleZ") = "1.0000";
+        node.append_attribute("RotateX") = "90.0";
+        node.append_attribute("RotateY") = "0";
+        node.append_attribute("RotateZ") = "0";
+        node.append_attribute("versionNumber") = "3";
+        node.append_attribute("Active") = "1";
         UnsavedRgbEffectsChanges = true;
     }
 
 
-    if (viewsNode == nullptr) {
+    if (!viewsNode) {
         UnsavedRgbEffectsChanges = true;
     } else {
         _sequenceViewManager.Load(viewsNode, _sequenceElements.GetCurrentView());
@@ -406,55 +393,54 @@ void xLightsFrame::LoadEffectsFile()
         UnsavedRgbEffectsChanges = true;
     }
 
-    if (colorsNode != nullptr) {
+    if (colorsNode) {
         color_mgr.Load(colorsNode);
     }
 
-    if (viewpointsNode != nullptr) {
+    if (viewpointsNode) {
         viewpoint_mgr.Load(viewpointsNode);
         layoutPanel->GetMainPreview()->RestoreDefaultCameraPosition();
         _housePreviewPanel->GetModelPreview()->RestoreDefaultCameraPosition();
     }
 
-    if (modelGroupsNode == nullptr) {
-        modelGroupsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroups");
-        root->AddChild(modelGroupsNode);
+    if (!modelGroupsNode) {
+        modelGroupsNode = root.append_child("modelGroups");
     }
 
     // perspectivesNode is used locally to load _perspectives, then discarded
     _perspectives.clear();
     _currentPerspectiveName = "";
-    if (perspectivesNode != nullptr) {
-        _currentPerspectiveName = perspectivesNode->GetAttribute("current").ToStdString();
-        for (wxXmlNode* p = perspectivesNode->GetChildren(); p != nullptr; p = p->GetNext()) {
-            if (p->GetName() == "perspective") {
+    if (perspectivesNode) {
+        _currentPerspectiveName = perspectivesNode.attribute("current").as_string();
+        for (pugi::xml_node p = perspectivesNode.first_child(); p; p = p.next_sibling()) {
+            if (std::string_view(p.name()) == "perspective") {
                 Perspective pv;
-                pv.name = p->GetAttribute("name").ToStdString();
-                pv.settings = p->GetAttribute("settings").ToStdString();
-                pv.version = p->GetAttribute("version", "2.0").ToStdString();
+                pv.name = p.attribute("name").as_string();
+                pv.settings = p.attribute("settings").as_string();
+                pv.version = p.attribute("version").as_string("2.0");
                 _perspectives.push_back(pv);
             }
         }
     }
 
-    int previewWidth = wxAtoi(GetXmlSetting("previewWidth", "1280"));
-    int previewHeight = wxAtoi(GetXmlSetting("previewHeight", "720"));
+    int previewWidth = (int)std::strtol(GetXmlSetting("previewWidth", "1280").c_str(), nullptr, 10);
+    int previewHeight = (int)std::strtol(GetXmlSetting("previewHeight", "720").c_str(), nullptr, 10);
     if (previewWidth == 0 || previewHeight == 0) {
         previewWidth = 1280;
         previewHeight = 720;
     }
     SetPreviewSize(previewWidth, previewHeight);
 
-    mBackgroundImage = FixFile(GetShowDirectory(), GetXmlSetting("backgroundImage", ""));
-    ObtainAccessToURL(mBackgroundImage.ToStdString());
-    if (mBackgroundImage != "" && (!FileExists(mBackgroundImage) || !wxIsReadable(mBackgroundImage))) {
+    mBackgroundImage = FixFile(GetShowDirectory(), GetXmlSetting("backgroundImage", "")).ToStdString();
+    ObtainAccessToURL(mBackgroundImage);
+    if (!mBackgroundImage.empty() && (!FileExists(mBackgroundImage) || !wxIsReadable(mBackgroundImage))) {
         //image doesn't exist there, lets look for it in media directories
-        wxString bgImg = GetXmlSetting("backgroundImage", "");
+        std::string bgImg = GetXmlSetting("backgroundImage", "");
         for (auto &dir : mediaDirectories) {
             wxString fn = FixFile(dir, bgImg);
             ObtainAccessToURL(fn.ToStdString());
             if (FileExists(fn) && wxIsReadable(fn)) {
-                mBackgroundImage = fn;
+                mBackgroundImage = fn.ToStdString();
                 break;
             }
         }
@@ -462,8 +448,8 @@ void xLightsFrame::LoadEffectsFile()
             wxFileName name(mBackgroundImage);
             name.SetPath(CurrentDir);
             if (name.Exists()) {
-                mBackgroundImage = name.GetFullPath();
-                ObtainAccessToURL(name.GetFullPath().ToStdString());
+                mBackgroundImage = name.GetFullPath().ToStdString();
+                ObtainAccessToURL(mBackgroundImage);
             }
         }
     }
@@ -477,7 +463,7 @@ void xLightsFrame::LoadEffectsFile()
     SetDisplay2DCenter0(GetXmlSetting("Display2DCenter0", "0") == "1");
     layoutPanel->SetDisplay2DCenter0(GetDisplay2DCenter0());
     SetDisplay2DGrid(GetXmlSetting("Display2DGrid", "0") == "1");
-    SetDisplay2DGridSpacing(wxAtol(GetXmlSetting("Display2DGridSpacing", "100")));
+    SetDisplay2DGridSpacing(std::strtol(GetXmlSetting("Display2DGridSpacing", "100").c_str(), nullptr, 10));
     layoutPanel->SetDisplay2DGridSpacing(GetDisplay2DGrid(), GetDisplay2DGridSpacing());
 
     //Load FSEQ and Backup directory settings
@@ -520,19 +506,19 @@ void xLightsFrame::LoadEffectsFile()
     bool found_saved_preview = false;
     LayoutGroups.clear();
     layoutPanel->Reset();
-    if (layoutGroupsNode != nullptr) {
-        for (wxXmlNode* e = layoutGroupsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
-            if (e->GetName() == "layoutGroup") {
-                wxString grp_name = e->GetAttribute("name");
-                if (!grp_name.IsEmpty()) {
-                    if (grp_name.ToStdString() == mStoredLayoutGroup) {
+    if (layoutGroupsNode) {
+        for (pugi::xml_node e = layoutGroupsNode.first_child(); e; e = e.next_sibling()) {
+            if (std::string_view(e.name()) == "layoutGroup") {
+                std::string grp_name = e.attribute("name").as_string();
+                if (!grp_name.empty()) {
+                    if (grp_name == mStoredLayoutGroup) {
                         found_saved_preview = true;
                     }
-                    LayoutGroup* grp = new LayoutGroup(grp_name.ToStdString(), this);
+                    LayoutGroup* grp = new LayoutGroup(grp_name, this);
                     grp->SetFromXml(e);
                     LayoutGroups.push_back(grp);
                     AddPreviewOption(grp);
-                    layoutPanel->AddPreviewChoice(grp_name.ToStdString());
+                    layoutPanel->AddPreviewChoice(grp_name);
                 }
             }
         }
@@ -542,10 +528,10 @@ void xLightsFrame::LoadEffectsFile()
     }
     AllModels.SetLayoutGroups(&LayoutGroups);  // provides easy access to layout names for the model class
 
-    mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness", "100"));
-    mBackgroundAlpha = wxAtoi(GetXmlSetting("backgroundAlpha", "100"));
+    mBackgroundBrightness = (int)std::strtol(GetXmlSetting("backgroundBrightness", "100").c_str(), nullptr, 10);
+    mBackgroundAlpha = (int)std::strtol(GetXmlSetting("backgroundAlpha", "100").c_str(), nullptr, 10);
     SetPreviewBackgroundBrightness(mBackgroundBrightness, mBackgroundAlpha);
-    mScaleBackgroundImage = wxAtoi(GetXmlSetting("scaleImage", "0")) > 0;
+    mScaleBackgroundImage = std::strtol(GetXmlSetting("scaleImage", "0").c_str(), nullptr, 10) > 0;
     SetPreviewBackgroundScaled(mScaleBackgroundImage);
 
     std::string group = layoutPanel->GetCurrentLayoutGroup();
@@ -783,12 +769,10 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     return true;
 }
 
-void xLightsFrame::CreateDefaultEffectsXml(wxXmlDocument& doc)
+void xLightsFrame::CreateDefaultEffectsXml(pugi::xml_document& doc)
 {
-    wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, "xrgb" );
-    doc.SetRoot( root );
-    wxXmlDoctype dt("");
-    doc.SetDoctype(dt);
+    doc.reset();
+    doc.append_child("xrgb");
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
     UpdateControllerSave();
@@ -977,13 +961,13 @@ static void AddModelsToPreview(ModelGroup* grp, std::vector<Model*>& PreviewMode
     }
 }
 
-void xLightsFrame::LoadModels(wxXmlNode* modelsNode,
-                              wxXmlNode* modelGroupsNode,
-                              wxXmlNode* viewObjectsNode)
+void xLightsFrame::LoadModels(pugi::xml_node modelsNode,
+                              pugi::xml_node modelGroupsNode,
+                              pugi::xml_node viewObjectsNode)
 {
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
     logger_work.debug("        LoadModels.");
-    
+
     playModel = nullptr;
     PreviewModels.clear();
     AllModels.LoadModels(modelsNode,
@@ -996,83 +980,89 @@ void xLightsFrame::LoadModels(wxXmlNode* modelsNode,
     for (const auto& it : AllModels) {
         current.push_back(it.first);
     }
-    for (wxXmlNode* e = modelGroupsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "modelGroup") {
-            std::string name = e->GetAttribute("name").Trim(true).Trim(false).ToStdString();
+    for (pugi::xml_node e = modelGroupsNode.first_child(); e; e = e.next_sibling()) {
+        if (std::string_view(e.name()) == "modelGroup") {
+            wxString nameStr = e.attribute("name").as_string();
+            std::string name = nameStr.Trim(true).Trim(false).ToStdString();
             current.push_back(name);
         }
     }
-    for (wxXmlNode* e = modelGroupsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "modelGroup") {
-            std::string name = e->GetAttribute("name").Trim(true).Trim(false).ToStdString();
-            Model* model = AllModels[name];
-            if (model != nullptr) {
-                wxArrayString choices;
-                choices.push_back("Rename Model");
-                choices.push_back("Delete Model");
-                choices.push_back("Rename Group");
-                choices.push_back("Delete Group");
+    {
+        pugi::xml_node e = modelGroupsNode.first_child();
+        while (e) {
+            pugi::xml_node nextE = e.next_sibling();
+            if (std::string_view(e.name()) == "modelGroup") {
+                wxString nameStr = e.attribute("name").as_string();
+                std::string name = nameStr.Trim(true).Trim(false).ToStdString();
+                Model* model = AllModels[name];
+                if (model != nullptr) {
+                    wxArrayString choices;
+                    choices.push_back("Rename Model");
+                    choices.push_back("Delete Model");
+                    choices.push_back("Rename Group");
+                    choices.push_back("Delete Group");
 
-                wxString msg = "A model of name \'" + name + "\' already exists.  What action should we take?";
-                wxSingleChoiceDialog dlg(this, msg, "Model/Group Name Conflict", choices, (void**)nullptr,
-                    wxDEFAULT_DIALOG_STYLE | wxOK | wxCENTRE | wxRESIZE_BORDER, wxDefaultPosition);
-                bool done = false;
-                do {
-                    dlg.ShowModal();
-                    int sel = dlg.GetSelection();
-                    switch (sel) {
-                    case 0:
-                    case 1:
-                        for (wxXmlNode* e2 = modelsNode->GetChildren(); e2 != nullptr; e2 = e2->GetNext()) {
-                            if (e2->GetName() == "model") {
-                                std::string mname = e2->GetAttribute("name").Trim(true).Trim(false).ToStdString();
-                                if (mname == name) {
-                                    UnsavedRgbEffectsChanges = true;
-                                    if (sel == 1) {
-                                        modelsNode->RemoveChild(e2);
-                                        done = true;
-                                    }
-                                    else {
-                                        //rename
-                                        std::string newName = chooseNewName(this, current, "Rename Model", mname);
-                                        if (newName != mname) {
-                                            current.push_back(newName);
-                                            e2->DeleteAttribute("name");
-                                            e2->AddAttribute("name", newName);
+                    wxString msg = "A model of name \'" + name + "\' already exists.  What action should we take?";
+                    wxSingleChoiceDialog dlg(this, msg, "Model/Group Name Conflict", choices, (void**)nullptr,
+                        wxDEFAULT_DIALOG_STYLE | wxOK | wxCENTRE | wxRESIZE_BORDER, wxDefaultPosition);
+                    bool done = false;
+                    do {
+                        dlg.ShowModal();
+                        int sel = dlg.GetSelection();
+                        switch (sel) {
+                        case 0:
+                        case 1:
+                            for (pugi::xml_node e2 = modelsNode.first_child(); e2; e2 = e2.next_sibling()) {
+                                if (std::string_view(e2.name()) == "model") {
+                                    wxString mnameStr = e2.attribute("name").as_string();
+                                    std::string mname = mnameStr.Trim(true).Trim(false).ToStdString();
+                                    if (mname == name) {
+                                        UnsavedRgbEffectsChanges = true;
+                                        if (sel == 1) {
+                                            modelsNode.remove_child(e2);
                                             done = true;
                                         }
+                                        else {
+                                            //rename
+                                            std::string newName = chooseNewName(this, current, "Rename Model", mname);
+                                            if (newName != mname) {
+                                                current.push_back(newName);
+                                                e2.remove_attribute("name");
+                                                e2.append_attribute("name") = newName;
+                                                done = true;
+                                            }
+                                        }
+                                        AllModels.LoadModels(modelsNode,
+                                            modelPreview->GetVirtualCanvasWidth(),
+                                            modelPreview->GetVirtualCanvasHeight());
+                                        break; // node may have been removed; stop iterating
                                     }
-                                    AllModels.LoadModels(modelsNode,
-                                        modelPreview->GetVirtualCanvasWidth(),
-                                        modelPreview->GetVirtualCanvasHeight());
                                 }
                             }
+                            break;
+                        case 2: {
+                            std::string newName = chooseNewName(this, current, "Rename Model Group", name);
+                            if (newName != name) {
+                                current.push_back(newName);
+                                e.remove_attribute("name");
+                                e.append_attribute("name") = newName;
+                                done = true;
+                            }
                         }
-                        break;
-                    case 2: {
-                        std::string newName = chooseNewName(this, current, "Rename Model Group", name);
-                        if (newName != name) {
-                            current.push_back(newName);
-                            e->DeleteAttribute("name");
-                            e->AddAttribute("name", newName);
+                              break;
+                        case 3:
+                            modelGroupsNode.remove_child(e);
+                            nextE = modelGroupsNode.first_child(); // restart from beginning
+                            UnsavedRgbEffectsChanges = true;
                             done = true;
-                        }
-                    }
-                          break;
-                    case 3:
-                        modelGroupsNode->RemoveChild(e);
-                        e = modelGroupsNode->GetChildren();
-                        UnsavedRgbEffectsChanges = true;
-                        done = true;
-                        if (e == nullptr) {
+                            break;
+                        default:
                             break;
                         }
-                        break;
-                    default:
-                        break;
-                    }
-                } while (!done);
+                    } while (!done);
+                }
             }
+            e = nextE;
         }
     }
     AllModels.LoadGroups(modelGroupsNode,

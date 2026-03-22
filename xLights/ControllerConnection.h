@@ -12,6 +12,7 @@
  **************************************************************/
 #include <map>
 #include <string>
+#include <string_view>
 #include <vector>
 
 class Model;
@@ -26,7 +27,7 @@ constexpr int DEFAULT_GROUP_COUNT = 0;
 constexpr int DEFAULT_REVERSE = 0;
 constexpr int DEFAULT_ZIGZAG = 0;
 constexpr float DEFAULT_GAMMA = 1.0f;
-constexpr auto DEFAULT_COLOR_ORDER = "RGB";
+constexpr std::string_view DEFAULT_COLOR_ORDER = "RGB";
 
 } // end namespace CTRL_CONN
 

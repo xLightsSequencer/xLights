@@ -9,7 +9,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
 #include <wx/msgdlg.h>
 
 #include "SerialOutput.h"
@@ -29,35 +28,35 @@
 #include <log4cpp/Category.hh>
 
 #pragma region Private Functions
-void SerialOutput::Save(wxXmlNode* node) {
+void SerialOutput::SaveAttr(pugi::xml_node node) {
 
     if (_commPort != "") {
-        node->AddAttribute("ComPort", _commPort.c_str());
+        node.append_attribute("ComPort") = _commPort;
     }
 
     if (_baudRate != 0) {
-        node->AddAttribute("BaudRate", wxString::Format(wxT("%i"), _baudRate));
+        node.append_attribute("BaudRate") = _baudRate;
     }
     else {
-        node->AddAttribute("BaudRate", "n/a");
+        node.append_attribute("BaudRate") = "n/a";
     }
 
-    Output::Save(node);
+    Output::SaveAttr(node);
 }
 #pragma endregion
 
 #pragma region Constructors and Destructors
-SerialOutput::SerialOutput(wxXmlNode* node) : Output(node) {
-    
+SerialOutput::SerialOutput(pugi::xml_node node) : Output(node) {
+
     strcpy(_serialConfig, "8N1");
-    _commPort = node->GetAttribute("ComPort", "").ToStdString();
-    if (node->GetAttribute("BaudRate", "n/a") == "n/a") {
+    _commPort = node.attribute("ComPort").as_string("");
+    if (std::string_view(node.attribute("BaudRate").as_string("n/a")) == "n/a") {
         _baudRate = 0;
     }
     else {
-        _baudRate = wxAtoi(node->GetAttribute("BaudRate", ""));
+        _baudRate = node.attribute("BaudRate").as_int(0);
     }
-    SetId(wxAtoi(node->GetAttribute("Id", "0")));
+    SetId(node.attribute("Id").as_int(0));
 }
 
 SerialOutput::SerialOutput(const SerialOutput& from) :
@@ -80,14 +79,14 @@ SerialOutput::~SerialOutput() {
     if (_serial != nullptr) delete _serial;
 }
 
-wxXmlNode* SerialOutput::Save() {
+pugi::xml_node SerialOutput::Save(pugi::xml_node parent) {
 
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    Save(node);
+    pugi::xml_node node = parent.append_child("network");
+    SaveAttr(node);
 
     return node;
 }
-#pragma endregion 
+#pragma endregion
 
 #pragma region static Functions
 std::list<std::string> SerialOutput::GetPossibleSerialPorts() {

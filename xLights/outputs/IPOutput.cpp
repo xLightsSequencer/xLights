@@ -12,7 +12,6 @@
 #include "IPOutput.h"
 
 #include <wx/socket.h>
-#include <wx/xml/xml.h>
 #include <wx/regex.h>
 #include <wx/protocol/http.h>
 
@@ -30,27 +29,27 @@
 #include <log4cpp/Category.hh>
 
 #pragma region Private Functions
-void IPOutput::Save(wxXmlNode* node) {
+void IPOutput::SaveAttr(pugi::xml_node node) {
 
     if (_ip != "") {
-        node->AddAttribute("ComPort", _ip);
+        node.append_attribute("ComPort") = _ip;
     }
-    node->AddAttribute("BaudRate", wxString::Format("%d", _universe));
+    node.append_attribute("BaudRate") = _universe;
 
-    Output::Save(node);
+    Output::SaveAttr(node);
 }
 #pragma endregion
 
 #pragma region Constructors and Destructors
-IPOutput::IPOutput(wxXmlNode* node, bool isActive) : Output(node) {
-    _ip = node->GetAttribute("ComPort", "").ToStdString();
+IPOutput::IPOutput(pugi::xml_node node, bool isActive) : Output(node) {
+    _ip = node.attribute("ComPort").as_string("");
     if (isActive) {
         SetResolvedIP(_ip);
         ip_utils::ResolveIP(_ip, [this](const std::string &r) {
             SetResolvedIP(r);
         });
     }
-    _universe = wxAtoi(node->GetAttribute("BaudRate", "1"));
+    _universe = node.attribute("BaudRate").as_int(1);
 }
 
 IPOutput::IPOutput() : Output() {
@@ -69,12 +68,12 @@ IPOutput::~IPOutput() {
     ip_utils::waitForAllToResolve();
 }
 
-wxXmlNode* IPOutput::Save() {
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    Save(node);
+pugi::xml_node IPOutput::Save(pugi::xml_node parent) {
+    pugi::xml_node node = parent.append_child("network");
+    SaveAttr(node);
     return node;
 }
-#pragma endregion 
+#pragma endregion
 
 #pragma region Static Functions
 Output::PINGSTATE IPOutput::Ping(const std::string& ip, const std::string& proxy) {

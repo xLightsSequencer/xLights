@@ -13,11 +13,9 @@
 #include <string>
 #include <vector>
 #include <glm/glm.hpp>
+#include <pugixml.hpp>
 
 #include "XmlSerializer/BaseSerializingVisitor.h"
-
-class wxXmlDocument;
-class wxXmlNode;
 
 class PreviewCamera
 {
@@ -94,7 +92,7 @@ public:
     virtual ~ViewpointMgr();
 
     void Save(BaseSerializingVisitor& visitor) const;
-    void Load(wxXmlNode* vp_node);
+    void Load(pugi::xml_node vp_node);
 
     void SetDefaultCamera2D(PreviewCamera* current_camera) { 
         if (_defaultCamera2D != nullptr) delete _defaultCamera2D; 
@@ -118,7 +116,7 @@ public:
     bool IsNameUnique(const std::string& name, bool is_3d);
 
 private:
-    PreviewCamera* CreateCameraFromNode(wxXmlNode* node);
+    PreviewCamera* CreateCameraFromNode(pugi::xml_node node);
     void SaveCameraToVisitor(BaseSerializingVisitor& visitor, PreviewCamera* camera,
                              const std::string& nodename, const std::string& nameOverride = "") const;
 

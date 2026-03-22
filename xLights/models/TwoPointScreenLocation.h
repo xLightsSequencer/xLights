@@ -108,6 +108,5 @@ protected:
     float saved_angle = 0.0f;
     bool minMaxSet = false;
 
-    wxXmlNode *old = nullptr;
     mutable glm::mat4 matrix;
 };

@@ -22,7 +22,6 @@
 #include "../UtilFunctions.h"
 #include "Output.h"
 
-class wxXmlNode;
 class OutputManager;
 class OutputModelManager;
 class ModelManager;
@@ -76,11 +75,11 @@ protected:
 public:
 
     #pragma region Constructors and Destructors
-    Controller(OutputManager* om, wxXmlNode* node, const std::string& showDir);
+    Controller(OutputManager* om, pugi::xml_node node, const std::string& showDir);
     Controller(OutputManager* om);
     Controller(OutputManager* om, const Controller& from);
     virtual ~Controller();
-    virtual wxXmlNode* Save();
+    virtual pugi::xml_node Save(pugi::xml_node parent);
     virtual Controller* Copy(OutputManager* om) = 0;
     virtual bool UpdateFrom(Controller* from);
     #pragma endregion
@@ -92,7 +91,7 @@ public:
     static Controller::ACTIVESTATE EncodeActiveState(const std::string& state);
     static std::string DecodeActiveState(Controller::ACTIVESTATE state);
 
-    static Controller* Create(OutputManager* om, wxXmlNode* node, std::string showDir);
+    static Controller* Create(OutputManager* om, pugi::xml_node node, std::string showDir);
     static void ConvertOldTypeToVendorModel(const std::string& old, std::string& vendor, std::string& model, std::string &variant);
 
     #pragma endregion Static Functions
@@ -241,7 +240,7 @@ public:
     virtual std::string GetType() const = 0;
 
     // convert an output onto this controller
-    virtual void Convert(wxXmlNode* node, std::string showDir);
+    virtual void Convert(pugi::xml_node node, std::string showDir);
 
     // true if config needs to be rebuilt
     virtual bool NeedsControllerConfig() const { return false; }

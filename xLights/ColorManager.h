@@ -12,12 +12,11 @@
 
 #include <map>
 #include <wx/settings.h>
+#include <pugixml.hpp>
 #include "Color.h"
 #include "XmlSerializer/BaseSerializingVisitor.h"
 
 class xLightsFrame;
-class wxXmlDocument;
-class wxXmlNode;
 
 class ColorManager
 {
@@ -110,7 +109,7 @@ class ColorManager
         void RestoreSnapshot();
 
         void Save(BaseSerializingVisitor& visitor) const;
-        void Load(wxXmlNode* colors_node);
+        void Load(pugi::xml_node colors_node);
         wxColor CyanOrBlueOverride();
         wxColor LightOrMediumGreyOverride();
 
@@ -165,8 +164,6 @@ class ColorManager
     protected:
 
     private:
-        wxXmlNode* Save() const;
-
         std::map<std::string, xlColor> colors;
         std::map<std::string, xlColor> colors_backup;
         std::map<std::string, xlColor> colors_default;

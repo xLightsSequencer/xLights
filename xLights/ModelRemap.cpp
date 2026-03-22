@@ -125,9 +125,9 @@ void ModelRemap::ValidateWindow()
 	}
 }
 
-void RemapModelProperties::RemapNodes(wxXmlNode* n, const std::string& attr, const std::map<uint32_t, uint32_t>& mapping)
+void RemapModelProperties::RemapNodes(pugi::xml_node n, const std::string& attr, const std::map<uint32_t, uint32_t>& mapping)
 {
-    auto str = n->GetAttribute(attr, "");
+    wxString str = n.attribute(attr).as_string();
 
     std::vector<uint32_t> nl;
 
@@ -270,8 +270,8 @@ void RemapModelProperties::RemapNodes(wxXmlNode* n, const std::string& attr, con
         }
     }
 
-    n->DeleteAttribute(attr);
-    n->AddAttribute(attr, stro);
+    n.remove_attribute(attr);
+    n.append_attribute(attr) = stro;
 }
 
 void RemapModelProperties::ParseData(const std::string& data)
@@ -306,21 +306,22 @@ void RemapModelProperties::Load(const std::string& filename)
     _filename = filename;
     _message = "";
     if (wxFile::Exists(filename)) {
-        _xmodel.Load(filename);
-        if (_xmodel.IsOk()) {
+        _xmodel.load_file(filename.c_str());
+        pugi::xml_node root = _xmodel.document_element();
+        if (root) {
 			// check it is a custom model
             _message = filename;
 
-			if (_xmodel.GetRoot()->GetName() != "custommodel") {
-                _message += "\nModel is not a custom model: " + _xmodel.GetRoot()->GetName();
+			if (std::string_view(root.name()) != "custommodel") {
+                _message += std::string("\nModel is not a custom model: ") + root.name();
 			} else {
                 // extract model properties
                 // dimensions
-                _w = wxAtoi(_xmodel.GetRoot()->HasAttribute("CustomWidth") ?
-                    _xmodel.GetRoot()->GetAttribute("CustomWidth", "0") : _xmodel.GetRoot()->GetAttribute("parm1", "0"));
-                _h = wxAtoi(_xmodel.GetRoot()->HasAttribute("CustomHeight") ?
-                    _xmodel.GetRoot()->GetAttribute("CustomHeight", "0") : _xmodel.GetRoot()->GetAttribute("parm2", "0"));
-                _d = wxAtoi(_xmodel.GetRoot()->GetAttribute("Depth", "1"));
+                _w = !root.attribute("CustomWidth").empty() ?
+                    root.attribute("CustomWidth").as_int(0) : root.attribute("parm1").as_int(0);
+                _h = !root.attribute("CustomHeight").empty() ?
+                    root.attribute("CustomHeight").as_int(0) : root.attribute("parm2").as_int(0);
+                _d = root.attribute("Depth").as_int(1);
 
 				_message += "\nW: " + std::to_string(_w) + " H: " + std::to_string(_h) + " D: " + std::to_string(_d);
 
@@ -328,7 +329,7 @@ void RemapModelProperties::Load(const std::string& filename)
                     _message += "\nAt least one dimension invalid.";
 				} else {
                     // number of pixels
-                    ParseData(_xmodel.GetRoot()->GetAttribute("CustomModel"));
+                    ParseData(root.attribute("CustomModel").as_string());
 
 					uint32_t cnt = 0;
                     for (const auto& it: _data) {
@@ -344,12 +345,13 @@ void RemapModelProperties::Load(const std::string& filename)
                         _message += "\nPixels: " + std::to_string(cnt);
                         _ok = true;
 
-                        for (auto n = _xmodel.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
-                            if (n->GetName() == "faceInfo")
+                        for (pugi::xml_node n = root.first_child(); n; n = n.next_sibling()) {
+                            std::string_view nname = n.name();
+                            if (nname == "faceInfo")
                                 _faces++;
-                            else if (n->GetName() == "subModel")
+                            else if (nname == "subModel")
                                 _submodels++;
-                            else if (n->GetName() == "stateInfo")
+                            else if (nname == "stateInfo")
                                 _states++;
                         }
                         _message += "\nFaces: " + std::to_string(_faces) + " States: " + std::to_string(_states) + " Submodels: " + std::to_string(_submodels);
@@ -399,14 +401,16 @@ void RemapModelProperties::Remap(RemapModelProperties& original)
 {
     // remove existing faces, states and submodels
 
-    std::list<wxXmlNode*> toremove;
-    for (auto n = _xmodel.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
-        if (n->GetName() == "faceInfo" || n->GetName() == "subModel" || n->GetName() == "stateInfo") {
+    pugi::xml_node root = _xmodel.document_element();
+    std::vector<pugi::xml_node> toremove;
+    for (pugi::xml_node n = root.first_child(); n; n = n.next_sibling()) {
+        std::string_view nname = n.name();
+        if (nname == "faceInfo" || nname == "subModel" || nname == "stateInfo") {
             toremove.push_back(n);
         }
     }
     for (const auto& it : toremove) {
-        _xmodel.GetRoot()->RemoveChild(it);
+        root.remove_child(it);
     }
 
     std::map<uint32_t, uint32_t> mapping;
@@ -423,9 +427,11 @@ void RemapModelProperties::Remap(RemapModelProperties& original)
         ++it2;
     }
 
-    for (auto n = original.GetXml()->GetChildren(); n != nullptr; n = n->GetNext()) {
-        if (n->GetName() == "faceInfo") {
-            wxXmlNode* nn = new wxXmlNode(*n);
+    pugi::xml_node origXml = original.GetXml();
+    for (pugi::xml_node n = origXml.first_child(); n; n = n.next_sibling()) {
+        std::string_view nname = n.name();
+        if (nname == "faceInfo") {
+            pugi::xml_node nn = root.append_copy(n);
 
             RemapNodes(nn, "Eyes-Closed", mapping);
             RemapNodes(nn, "Eyes-Closed2", mapping);
@@ -445,30 +451,24 @@ void RemapModelProperties::Remap(RemapModelProperties& original)
             RemapNodes(nn, "Mouth-WQ", mapping);
             RemapNodes(nn, "Mouth-etc", mapping);
             RemapNodes(nn, "Mouth-rest", mapping);
-
-            _xmodel.GetRoot()->AddChild(nn);
-        } else if (n->GetName() == "stateInfo") {
-            wxXmlNode* nn = new wxXmlNode(*n);
+        } else if (nname == "stateInfo") {
+            pugi::xml_node nn = root.append_copy(n);
 
             for (uint32_t i = 0; i < 400; ++i) {
                 auto attr = "s" + std::to_string(i);
-                if (nn->HasAttribute(attr)) {
+                if (!nn.attribute(attr).empty()) {
                     RemapNodes(nn, attr, mapping);
                 }
             }
-
-            _xmodel.GetRoot()->AddChild(nn);
-        } else if (n->GetName() == "subModel") {
-            wxXmlNode* nn = new wxXmlNode(*n);
+        } else if (nname == "subModel") {
+            pugi::xml_node nn = root.append_copy(n);
 
             for (uint32_t i = 0; i < 1000; ++i) {
                 auto attr = "line" + std::to_string(i);
-                if (nn->HasAttribute(attr)) {
+                if (!nn.attribute(attr).empty()) {
                     RemapNodes(nn, attr, mapping);
                 }
             }
-
-            _xmodel.GetRoot()->AddChild(nn);
         }
     }
 }
@@ -478,7 +478,7 @@ void RemapModelProperties::Save(wxWindow* parent)
     wxFileName fn(_filename);
     auto newfn = fn.GetPath() + "/" + fn.GetName() + "_REMAP." + fn.GetExt();
 
-    _xmodel.Save(newfn);
+    _xmodel.save_file(newfn.ToStdString().c_str());
 
     wxMessageBox("xModel file " + newfn + " created.", "xModel file saved", 5L, parent);
 }

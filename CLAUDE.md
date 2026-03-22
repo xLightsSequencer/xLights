@@ -6,13 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 xLights is a cross-platform (Windows/macOS/Linux) C++20 show sequencer for controlling lighting via USB/DMX/sACN/ArtNet/DDP. Built on wxWidgets 3.3 (custom fork). The main application is xLights; companion apps include xSchedule, xCapture, xFade, xScanner.
 
+**Minimum supported platforms:** macOS 11, Linux (Debian 12 / Ubuntu 24.04), Windows 8.
+
 ## Build Commands
 
 ### macOS
 ```bash
 # Xcode project at macOS/xLights.xcodeproj
 xcodebuild                    # CLI build
-# Or open in Xcode. Dependencies auto-download if using matching Xcode version.
+# Or open in Xcode. Requires Xcode 26.3 or newer.
+# Dependencies auto-download if using matching Xcode version.
 # Libraries install to /opt/local/lib (release) and /opt/local/libdbg (debug)
 ```
 

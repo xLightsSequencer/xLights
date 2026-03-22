@@ -8,8 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-
+#include <pugixml.hpp>
 #include "ValueCurve.h"
 #include "xLightsVersion.h"
 #include "xLightsMain.h"
@@ -1536,21 +1535,21 @@ void ValueCurve::LoadXVC(const std::string& fn)
         DisplayError("Failure loading value curve file " + fn + ".");
         return;
     }
-    wxXmlDocument doc(fn);
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_file(fn.c_str());
 
-    if (doc.IsOk())
+    if (result)
     {
-        wxXmlNode* root = doc.GetRoot();
+        pugi::xml_node root = doc.document_element();
 
-        if (root->GetName() == "valuecurve")
+        if (root && std::string_view(root.name()) == "valuecurve")
         {
-            wxString data = root->GetAttribute("data");
-            //wxString v = root->GetAttribute("SourceVersion");
+            std::string data = root.attribute("data").as_string();
 
             // Add any valuecurve version conversion logic here
             // Source version will be the program version that created the custom model
 
-            Deserialise(data.ToStdString(), true);
+            Deserialise(data, true);
 
             if (GetId() == "ID_VALUECURVE_XVC")
             {

@@ -28,10 +28,10 @@
 #define ENSURELEDMODE_SECS 60
 
 #pragma region Constructors and Destructors
-TwinklyOutput::TwinklyOutput(wxXmlNode* node, bool isActive) :
+TwinklyOutput::TwinklyOutput(pugi::xml_node node, bool isActive) :
     IPOutput(node, isActive)
 {
-    _httpPort = wxAtoi(node->GetAttribute("HTTPPort", "80"));
+    _httpPort = node.attribute("HTTPPort").as_int(80);
 }
 
 TwinklyOutput::TwinklyOutput()
@@ -50,13 +50,13 @@ TwinklyOutput::~TwinklyOutput()
         _datagram = nullptr;
     }
 }
-wxXmlNode* TwinklyOutput::Save()
+pugi::xml_node TwinklyOutput::Save(pugi::xml_node parent)
 {
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
+    pugi::xml_node node = parent.append_child("network");
 
-    node->AddAttribute("HTTPPort", wxString::Format("%d", _httpPort));
+    node.append_attribute("HTTPPort") = _httpPort;
 
-    IPOutput::Save(node);
+    IPOutput::SaveAttr(node);
 
     return node;
 }

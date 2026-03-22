@@ -20,8 +20,6 @@
 #include <wx/imaggif.h>
 #include <wx/anidecod.h>
 #include <wx/quantize.h>
-#include <wx/xml/xml.h>
-
 extern "C"
 {
     #include <libavcodec/avcodec.h>

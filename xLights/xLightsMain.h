@@ -45,6 +45,8 @@
 #include <wx/filename.h>
 #include <wx/xml/xml.h>
 #include <wx/dir.h>
+
+#include <pugixml.hpp>
 #include <wx/treebase.h>
 #include <wx/socket.h>
 #include <wx/listctrl.h>
@@ -1153,7 +1155,7 @@ public:
     SequenceData _presetSequenceData; // we create our own sequence data to render into
     SequenceElements _presetSequenceElements;
     bool _presetRendering = false;
-    wxString _defaultSeqView;
+    std::string _defaultSeqView;
     wxString _videoExportCodec;
     int _videoExportBitrate;
 
@@ -1385,7 +1387,7 @@ public:
     const wxArrayString &RandomEffectsToUse() const { return _randomEffectsToUse;}
     void SetRandomEffectsToUse(const wxArrayString &e);
 
-    const wxString& GetDefaultSeqView() const { return _defaultSeqView; }
+    const std::string& GetDefaultSeqView() const { return _defaultSeqView; }
     void SetDefaultSeqView(const wxString& view);
     wxArrayString GetSequenceViews();
 
@@ -1495,7 +1497,7 @@ public:
     wxArrayInt ChannelColors;
     long seekPoint;
 
-    wxString mBackgroundImage;
+    std::string mBackgroundImage;
     int mBackgroundBrightness;
     int mBackgroundAlpha;
     bool mScaleBackgroundImage = false;
@@ -1536,7 +1538,7 @@ private:
 
     // sequence
     void LoadEffectsFile();
-    void CreateDefaultEffectsXml(wxXmlDocument& doc);
+    void CreateDefaultEffectsXml(pugi::xml_document& doc);
     bool TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, const wxString& PageName);
     void SetPanelSequencerLabel(const std::string& sequence);
@@ -1604,8 +1606,8 @@ public:
     void SetFrequency(int frequency);
     void RenderAll();
 
-    void SetXmlSetting(const wxString& settingName,const wxString& value);
-    wxString GetXmlSetting(const wxString& settingName,const wxString& defaultValue) const;
+    void SetXmlSetting(const std::string& settingName, const std::string& value);
+    std::string GetXmlSetting(const std::string& settingName, const std::string& defaultValue) const;
     uint32_t GetMaxNumChannels();
 
     void UpdateSequenceVideoPanel( const wxString& path );
@@ -1750,14 +1752,14 @@ public:
     long GetDisplay2DGridSpacing() const;
     void SetDisplay2DCenter0(bool bb);
     bool GetDisplay2DCenter0() const;
-    const wxString & GetDefaultPreviewBackgroundImage();
+    const std::string & GetDefaultPreviewBackgroundImage();
     bool GetDefaultPreviewBackgroundScaled();
     int GetDefaultPreviewBackgroundBrightness();
     int GetDefaultPreviewBackgroundAlpha();
     void SetPreviewBackgroundBrightness(int brightness, int alpha);
-    void LoadModels(wxXmlNode* modelsNode,
-                    wxXmlNode* modelGroupsNode,
-                    wxXmlNode* viewObjectsNode);
+    void LoadModels(pugi::xml_node modelsNode,
+                    pugi::xml_node modelGroupsNode,
+                    pugi::xml_node viewObjectsNode);
     void UpdateModelsList();
     void RowHeadingsChanged( wxCommandEvent& event);
     void DoForceSequencerRefresh();

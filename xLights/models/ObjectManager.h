@@ -12,7 +12,6 @@
 
 #include <string>
 
-class wxXmlNode;
 class BaseObject;
 
 class ObjectManager
@@ -24,12 +23,4 @@ public:
     std::string GenerateObjectName(const std::string& candidateName) const;
 
     virtual BaseObject *GetObject(const std::string &name) const = 0;
-
-protected:
-    wxXmlNode *modelNode;
-    wxXmlNode *groupNode;
-
-private:
-
 };
-

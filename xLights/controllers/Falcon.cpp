@@ -13,8 +13,6 @@
 #include <wx/progdlg.h>
 #include <wx/regex.h>
 #include <wx/sstream.h>
-#include <wx/xml/xml.h>
-
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
 
@@ -1727,14 +1725,15 @@ void Falcon::DumpStringData(std::vector<FalconString*> stringData) const {
 #pragma endregion
 
 #pragma region strings.xml Handling
-int Falcon::CountStrings(const wxXmlDocument& stringsDoc) const {
-    if (stringsDoc.GetRoot() == nullptr)
+int Falcon::CountStrings(const pugi::xml_document& stringsDoc) const {
+    pugi::xml_node root = stringsDoc.document_element();
+    if (!root)
         return 0;
 
     int count = 0;
     int last = -1;
-    for (auto e = stringsDoc.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        int port = wxAtoi(e->GetAttribute("p"));
+    for (pugi::xml_node e = root.first_child(); e; e = e.next_sibling()) {
+        int port = e.attribute("p").as_int(0);
         if (port > last) {
             count++;
         }
@@ -1760,24 +1759,25 @@ int Falcon::NumConfiguredStrings() {
     if (strings == "") {
         return 0;
     }
-    wxStringInputStream strm(strings);
-    wxXmlDocument stringsDoc(strm);
+    pugi::xml_document stringsDoc;
+    pugi::xml_parse_result r = stringsDoc.load_string(strings.c_str());
 
-    if (!stringsDoc.IsOk()) {
+    if (!r) {
         return 0;
     }
     return CountStrings(stringsDoc);
 }
 
-void Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconString*>& stringData, int defaultBrightness, float defaultGamma) const {
+void Falcon::ReadStringData(const pugi::xml_document& stringsDoc, std::vector<FalconString*>& stringData, int defaultBrightness, float defaultGamma) const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (stringsDoc.GetRoot() == nullptr) {
+    pugi::xml_node root = stringsDoc.document_element();
+    if (!root) {
         return;
     }
 
     int count = 0;
-    for (auto n = stringsDoc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
+    for (pugi::xml_node n = root.first_child(); n; n = n.next_sibling()) {
         count++;
     }
 
@@ -1794,56 +1794,42 @@ void Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconS
 
     int i = 0;
     int lastString = -1;
-    for (auto e = stringsDoc.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        int port = wxAtoi(e->GetAttribute("p"));
+    for (pugi::xml_node e = root.first_child(); e; e = e.next_sibling()) {
+        int port = e.attribute("p").as_int(0);
 
         //<vs y="" p="7" u="2000" us="0" s="0" c="50" g="1" t="0" d="0" o="0" n="0" z="0" b="13" bl="0" ga="0"/>
-        // y = description
-        // u = universe
-        // us = universe start channel - 1
-        // s = absolute channel I think
-        // c = pixel count
-        // g = grouping
-        // t = protocol
-        // d = direction (index 0 - forward, 1 - reversed)
-        // o = pixel order (index 0 - RGB, 1 - RBG, 2 - GRB, 3 - GBR, 4 - BRG, 5 - BGR)
-        // n = null pixels
-        // z = zig zag count - IGNORED
-        // b = brightness (index 0 - 100, 1 - 95, 2 - 90, 3 - 85, 4 - 80, 5 - 75, 6 - 70, 7 - 65, 8 - 60, 9 - 50, 10 - 40, 11 - 30, 12 - 20, 13 - 10)
-        // bl = blank (1 if checked) - IGNORED
-        // ga = gamma (index 0 - none, 1 - 2.0, 2 - 2.3, 3 - 2.5, 4 - 2.8, 5 - 3.0
         FalconString* string = new FalconString(defaultBrightness, defaultGamma);
-        string->startChannel = wxAtoi(e->GetAttribute("us")) + 1;
+        string->startChannel = e.attribute("us").as_int(0) + 1;
         if (!_usingAbsolute) {
             if (string->startChannel < 1 || string->startChannel > 512) {
                 string->startChannel = 1;
             }
         }
-        string->pixels = wxAtoi(e->GetAttribute("c"));
+        string->pixels = e.attribute("c").as_int(0);
         if (string->pixels < 0 || string->pixels > GetMaxPixels()) {
             string->pixels = 0;
         }
-        string->protocol = wxAtoi(e->GetAttribute("t", "0"));
-        string->universe = wxAtoi(e->GetAttribute("u"));
+        string->protocol = e.attribute("t").as_int(0);
+        string->universe = e.attribute("u").as_int(0);
         if (string->universe <= 1 || string->universe > 64000) {
             string->universe = 1;
         }
-        string->description = e->GetAttribute("y", "").ToStdString();
-        string->port = wxAtoi(e->GetAttribute("p"));
-        string->brightness = DecodeBrightness(wxAtoi(e->GetAttribute("b", "0")));
-        string->nullPixels = wxAtoi(e->GetAttribute("n", "0"));
-        string->gamma = DecodeGamma(wxAtoi(e->GetAttribute("ga", "0")));
-        string->colourOrder = DecodeColourOrder(wxAtoi(e->GetAttribute("o", "0")));
-        string->direction = DecodeDirection(wxAtoi(e->GetAttribute("d", "0")));
-        string->groupCount = std::max(1, wxAtoi(e->GetAttribute("g", "1")));
-        string->zig = wxAtoi(e->GetAttribute("z", "0"));
-        int sr = wxAtoi(e->GetAttribute("sr", "-1"));
+        string->description = e.attribute("y").as_string("");
+        string->port = e.attribute("p").as_int(0);
+        string->brightness = DecodeBrightness(e.attribute("b").as_int(0));
+        string->nullPixels = e.attribute("n").as_int(0);
+        string->gamma = DecodeGamma(e.attribute("ga").as_int(0));
+        string->colourOrder = DecodeColourOrder(e.attribute("o").as_int(0));
+        string->direction = DecodeDirection(e.attribute("d").as_int(0));
+        string->groupCount = std::max(1, e.attribute("g").as_int(1));
+        string->zig = e.attribute("z").as_int(0);
+        int sr = e.attribute("sr").as_int(-1);
         if (sr == -1) {
-            string->smartRemote = wxAtoi(e->GetAttribute("x", "0"));
+            string->smartRemote = e.attribute("x").as_int(0);
         } else {
             string->smartRemote = sr;
         }
-        string->virtualStringIndex = wxAtoi(e->GetAttribute("si", "0"));
+        string->virtualStringIndex = e.attribute("si").as_int(0);
         string->index = i;
         stringData[i] = string;
 
@@ -1852,18 +1838,19 @@ void Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconS
     }
 }
 
-int Falcon::MaxPixels(const wxXmlDocument& stringsDoc, int board) const {
-    if (stringsDoc.GetRoot() == nullptr){
+int Falcon::MaxPixels(const pugi::xml_document& stringsDoc, int board) const {
+    pugi::xml_node root = stringsDoc.document_element();
+    if (!root){
         return 0;
     }
 
     switch (board) {
     case 0:
-        return wxAtoi(stringsDoc.GetRoot()->GetAttribute("k0"));
+        return root.attribute("k0").as_int(0);
     case 1:
-        return wxAtoi(stringsDoc.GetRoot()->GetAttribute("k1"));
+        return root.attribute("k1").as_int(0);
     case 2:
-        return wxAtoi(stringsDoc.GetRoot()->GetAttribute("k2"));
+        return root.attribute("k2").as_int(0);
     default:
         return 0;
     }
@@ -1911,7 +1898,7 @@ void Falcon::UploadStringPorts(std::vector<FalconString*>& stringData, int maxMa
 #define PACKETSIZE 40
     int packets = (stringData.size() + PACKETSIZE - 1) / PACKETSIZE;
     for (int p = 0; p < packets; p++) {
-        std::string message = base + "&q=" + wxString::Format("%d", p).ToStdString();
+        std::string message = base + "&q=" + std::to_string(p);
 
         for (int i = p * PACKETSIZE; i < stringData.size() && i < (p + 1) * PACKETSIZE; ++i) {
             message += BuildStringPort(stringData[i]);
@@ -2176,9 +2163,9 @@ bool Falcon::IsEnhancedV2Firmware() const {
     int minorfw = 0;
 
     if (fwv.size() > 0) {
-        majorfw = wxAtoi(fwv[0]);
+        majorfw = (int)std::strtol(fwv[0].c_str(), nullptr, 10);
         if (fwv.size() > 1) {
-            minorfw = wxAtoi(fwv[1]);
+            minorfw = (int)std::strtol(fwv[1].c_str(), nullptr, 10);
         }
     }
 
@@ -2224,9 +2211,9 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) :
     }
     logger_base.debug("status.xml:\n%s", (const char*)versionxml.c_str());
 
-    wxStringInputStream stream(versionxml);
-    wxXmlDocument xml(stream);
-    if (!xml.IsOk() || xml.GetRoot() == nullptr) {
+    pugi::xml_document xml;
+    pugi::xml_parse_result xmlResult = xml.load_string(versionxml.c_str());
+    if (!xmlResult || !xml.document_element()) {
         logger_base.error("     Status XML parses as invalid.");
         _firmwareVersion = "UNKNOWN";
         _usingAbsolute = false;
@@ -2234,22 +2221,22 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) :
         _model = "UNKNOWN";
         _connected = false;
     } else {
-        wxXmlNode* node = xml.GetRoot()->GetChildren();
-        while (node) {
-            if (node->GetName() == "v" || node->GetName() == "fv") {
-                _firmwareVersion = node->GetNodeContent();
-            } else if (node->GetName() == "a") {
-                _usingAbsolute = node->GetNodeContent() == "0";
-            } else if (node->GetName() == "n") {
-                _name = node->GetNodeContent().Trim();
-            } else if (node->GetName() == "p") {
-                p = wxAtoi(node->GetNodeContent());
+        for (pugi::xml_node node = xml.document_element().first_child(); node; node = node.next_sibling()) {
+            std::string nodeName = node.name();
+            std::string nodeContent = node.text().as_string("");
+            if (nodeName == "v" || nodeName == "fv") {
+                _firmwareVersion = nodeContent;
+            } else if (nodeName == "a") {
+                _usingAbsolute = nodeContent == "0";
+            } else if (nodeName == "n") {
+                _name = wxString(nodeContent).Trim().ToStdString();
+            } else if (nodeName == "p") {
+                p = (int)std::strtol(nodeContent.c_str(), nullptr, 10);
                 DecodeModelVersion(p, _modelnum, _versionnum);
                 _model = std::format("F{}v{}", _modelnum, _versionnum);
                 if (_model == "F48v3"){ _model = "F48";}
             }
-            _status[node->GetName()] = node->GetNodeContent();
-            node = node->GetNext();
+            _status[nodeName] = nodeContent;
         }
 
         if (_versionnum == 4 || _versionnum == 5) {
@@ -2279,8 +2266,8 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) :
             if (_firmwareVersion != "") {
                 static wxRegEx majminregex("(\\d+)\\.(\\d+)(.*)", wxRE_ADVANCED);
                 if (majminregex.Matches(wxString(_firmwareVersion))) {
-                    _majorFirmwareVersion = wxAtoi(majminregex.GetMatch(wxString(_firmwareVersion), 1));
-                    _minorFirmwareVersion = wxAtoi(majminregex.GetMatch(wxString(_firmwareVersion), 2));
+                    _majorFirmwareVersion = (int)std::strtol(majminregex.GetMatch(wxString(_firmwareVersion), 1).c_str(), nullptr, 10);
+                    _minorFirmwareVersion = (int)std::strtol(majminregex.GetMatch(wxString(_firmwareVersion), 2).c_str(), nullptr, 10);
                     logger_base.error("    Parsed firmware version %d.%d.", _majorFirmwareVersion, _minorFirmwareVersion);
                 }
             }
@@ -2534,13 +2521,13 @@ bool Falcon::SetInputUniverses(Controller* controller, wxWindow* parent) {
 
     int cm = -1;
     std::string strings = GetURL("/strings.xml");
-    wxStringInputStream stream(strings);
-    wxXmlDocument xml(stream);
-    if (!xml.IsOk() || xml.GetRoot() == nullptr) {
+    pugi::xml_document xml;
+    pugi::xml_parse_result xmlr = xml.load_string(strings.c_str());
+    if (!xmlr || !xml.document_element()) {
     } else {
-        wxXmlNode* node = xml.GetRoot();
-        if (node != nullptr) {
-            cm = wxAtoi(node->GetAttribute("m", "-1"));
+        pugi::xml_node node = xml.document_element();
+        if (node) {
+            cm = node.attribute("m").as_int(-1);
         }
 
         // the m parameter in strings.xml is not reliable ... so get the home page and search for "<input type="hidden" name="m" id="m"  value="64" />"
@@ -2548,7 +2535,7 @@ bool Falcon::SetInputUniverses(Controller* controller, wxWindow* parent) {
         if (status != "") {
             static wxRegEx mregex("(id=\"m\" +value=\")([0-9]+)\"", wxRE_ADVANCED);
             if (mregex.Matches(wxString(status))) {
-                cm = wxAtoi(mregex.GetMatch(wxString(status), 2).ToStdString());
+                cm = (int)std::strtol(mregex.GetMatch(wxString(status), 2).c_str(), nullptr, 10);
             }
         }
     }
@@ -2732,10 +2719,10 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
             return false;
         }
 
-        wxStringInputStream strm(wxString(strings.c_str()));
-        wxXmlDocument stringsDoc(strm);
+        pugi::xml_document stringsDoc;
+        pugi::xml_parse_result stringsResult = stringsDoc.load_string(strings.c_str());
 
-        if (!stringsDoc.IsOk()) {
+        if (!stringsResult) {
             DisplayError("Falcon Outputs Upload: Could not parse Falcon strings.xml.", parent);
             if (doProgress) {
                 progress->Update(100, "Aborting.");
@@ -3038,7 +3025,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
         if (maxMain + maxDaughter1 + maxDaughter2 > maxPixels) {
             success = false;
-            check += "ERROR: Total pixels exceeded maximum allowed on a pixel port: " + wxString::Format("%d", maxPixels).ToStdString() + "\n";
+            check += "ERROR: Total pixels exceeded maximum allowed on a pixel port: " + std::to_string(maxPixels) + "\n";
             if (largestDaughter2Port >= 0) {
                 check += wxString::Format("       Bank 1 Port %d=%d, Bank 2 Port %d=%d, Bank 3 Port %d=%d\n", largestMainPort, maxMain, largestDaughter1Port, maxDaughter1, largestDaughter2Port, maxDaughter2);
             } else if (largestDaughter1Port >= 0) {

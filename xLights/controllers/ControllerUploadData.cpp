@@ -10,7 +10,6 @@
  **************************************************************/
 
 #include <wx/msgdlg.h>
-#include <wx/xml/xml.h>
 
 #include "ControllerUploadData.h"
 #include "../outputs/Output.h"
@@ -209,7 +208,7 @@ std::string UDControllerPortModel::GetName() const {
     if (_string == -1 || !pwmProperties.label.empty()) {
         return _model->GetName();
     } else {
-        return _model->GetName() + "-str-" + wxString::Format("%d", _string + 1).ToStdString();
+        return _model->GetName() + "-str-" + std::to_string(_string + 1);
     }
 }
 std::string UDControllerPortModel::GetLabel() const {

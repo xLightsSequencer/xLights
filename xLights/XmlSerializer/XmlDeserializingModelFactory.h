@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "XmlNodeKeys.h"
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 class DmxModel;
 class DmxMovingHeadComm;;
@@ -26,67 +26,67 @@ class Servo;
 class xLightsFrame;
 
 struct XmlDeserializingModelFactory {
-    Model* Deserialize(wxXmlNode* node, xLightsFrame* xlights, bool importing);
+    Model* Deserialize(pugi::xml_node node, xLightsFrame* xlights, bool importing);
 
 private:
 
-    void CommonDeserializeSteps(Model* model, wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    void DeserializeControllerConnection(Model* model, wxXmlNode* node);
-    void DeserializeBaseObjectAttributes(Model* model, wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    void DeserializeCommonModelAttributes(Model* model, wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    void DeserializeCommonModelChildElements(Model* model, wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    void DeserializeSubModel(Model* model, wxXmlNode* node);
-    void DeserializeAliases(Model* model, wxXmlNode* node);
-    void DeserializeSuperStrings(Model* model, wxXmlNode* node);
-    void DeserializeDimmingCurve(Model* model, wxXmlNode* node);
+    void CommonDeserializeSteps(Model* model, pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    void DeserializeControllerConnection(Model* model, pugi::xml_node node);
+    void DeserializeBaseObjectAttributes(Model* model, pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    void DeserializeCommonModelAttributes(Model* model, pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    void DeserializeCommonModelChildElements(Model* model, pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    void DeserializeSubModel(Model* model, pugi::xml_node node);
+    void DeserializeAliases(Model* model, pugi::xml_node node);
+    void DeserializeSuperStrings(Model* model, pugi::xml_node node);
+    void DeserializeDimmingCurve(Model* model, pugi::xml_node node);
 
-    Model* DeserializeArches(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeCandyCane(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeChannelBlock(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeCircle(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeCube(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeCustom(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeIcicles(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeImage(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeMatrix(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeMultiPoint(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeSingleLine(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializePolyLine(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeSphere(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeSpinner(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeStar(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeTree(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeWindow(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeWreath(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    
+    Model* DeserializeArches(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeCandyCane(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeChannelBlock(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeCircle(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeCube(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeCustom(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeIcicles(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeImage(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeMatrix(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeMultiPoint(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeSingleLine(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializePolyLine(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeSphere(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeSpinner(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeStar(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeTree(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeWindow(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeWreath(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+
     // Model Groups
-    Model* DeserializeModelGroup(wxXmlNode* node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeModelGroup(pugi::xml_node node, xLightsFrame* xlights, bool importing);
 
     // ************************************************************************************************************
     // **********************                        DMX Section                           ************************
     // ************************************************************************************************************
-    void DeserializeDmxModel(DmxModel* dmx_model, wxXmlNode* node);
-    void DeserializeBeamAbility(DmxModel* model, wxXmlNode* node);
-    void DeserializePresetAbility(DmxModel* model, wxXmlNode* node);
-    void DeserializeDynamicColorAbility(DmxModel* model, wxXmlNode* node);
-    void DeserializeColorAbility(DmxModel* model, wxXmlNode* node);
-    void DeserializeColorAbilityRGBAttributes(DmxColorAbilityRGB* ability, wxXmlNode* node);
-    void DeserializeColorWheelAttributes(DmxColorAbilityWheel* ability, wxXmlNode* node);
-    void DeserializeColorAbilityCMYAttributes(DmxColorAbilityCMY* ability, wxXmlNode* node);
-    void DeserializeShutterAbility(DmxModel* model, wxXmlNode* node);
-    void DeserializeDimmerAbility(DmxModel* model, wxXmlNode* node);
-    void DeserializeDmxImage(DmxImage* img, wxXmlNode* node);
-    void DeserializeDmxMotor(DmxMotor* motor, wxXmlNode* node);
-    void DeserializeMesh(Mesh* mesh, wxXmlNode* node);
-    void DeserializeServo(Servo* servo, wxXmlNode* node);
-    void DeserializeDmxMovingHeadComm(DmxMovingHeadComm* model, wxXmlNode* node);
+    void DeserializeDmxModel(DmxModel* dmx_model, pugi::xml_node node);
+    void DeserializeBeamAbility(DmxModel* model, pugi::xml_node node);
+    void DeserializePresetAbility(DmxModel* model, pugi::xml_node node);
+    void DeserializeDynamicColorAbility(DmxModel* model, pugi::xml_node node);
+    void DeserializeColorAbility(DmxModel* model, pugi::xml_node node);
+    void DeserializeColorAbilityRGBAttributes(DmxColorAbilityRGB* ability, pugi::xml_node node);
+    void DeserializeColorWheelAttributes(DmxColorAbilityWheel* ability, pugi::xml_node node);
+    void DeserializeColorAbilityCMYAttributes(DmxColorAbilityCMY* ability, pugi::xml_node node);
+    void DeserializeShutterAbility(DmxModel* model, pugi::xml_node node);
+    void DeserializeDimmerAbility(DmxModel* model, pugi::xml_node node);
+    void DeserializeDmxImage(DmxImage* img, pugi::xml_node node);
+    void DeserializeDmxMotor(DmxMotor* motor, pugi::xml_node node);
+    void DeserializeMesh(Mesh* mesh, pugi::xml_node node);
+    void DeserializeServo(Servo* servo, pugi::xml_node node);
+    void DeserializeDmxMovingHeadComm(DmxMovingHeadComm* model, pugi::xml_node node);
 
-    Model* DeserializeDmxGeneral(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeDmxFloodArea(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeDmxFloodlight(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeDmxMovingHead(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeDmxMovingHeadAdv(wxXmlNode *node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeDmxServo3d(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeDmxServo(wxXmlNode* node, xLightsFrame* xlights, bool importing);
-    Model* DeserializeDmxSkull(wxXmlNode* node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeDmxGeneral(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeDmxFloodArea(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeDmxFloodlight(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeDmxMovingHead(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeDmxMovingHeadAdv(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeDmxServo3d(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeDmxServo(pugi::xml_node node, xLightsFrame* xlights, bool importing);
+    Model* DeserializeDmxSkull(pugi::xml_node node, xLightsFrame* xlights, bool importing);
 };

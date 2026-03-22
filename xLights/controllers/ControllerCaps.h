@@ -15,7 +15,7 @@
 #include <map>
 #include <string>
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 class Controller;
 class BaseController;
@@ -27,7 +27,8 @@ class ControllerCaps
     #pragma region Member Variables
     std::string _vendor;
     std::string _model;
-    wxXmlNode* _config = nullptr;
+    pugi::xml_document _configDoc;
+    pugi::xml_node _config;
     #pragma endregion
 
     #pragma region Static Variables
@@ -39,8 +40,8 @@ class ControllerCaps
 public:
 
     #pragma region Constructors and Destructors
-    ControllerCaps(const std::string& v, const std::string& m, wxXmlNode* n) : _vendor(v), _model(m) { _config = new wxXmlNode(*n); }
-    virtual ~ControllerCaps() { if (_config != nullptr) { delete _config; } }
+    ControllerCaps(const std::string& v, const std::string& m, pugi::xml_node n) : _vendor(v), _model(m) { _configDoc.reset(); _config = _configDoc.append_copy(n); }
+    virtual ~ControllerCaps() {}
     #pragma endregion Constructors and Destructors
 
     #pragma region Static Functions

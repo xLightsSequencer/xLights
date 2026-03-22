@@ -38,7 +38,6 @@ enum class controller_connection_bulkedit
     CEBE_SMARTREMOTETYPE
 };
 
-class wxXmlNode;
 class Model;
 
 class ControllerConnectionDialog: public wxDialog

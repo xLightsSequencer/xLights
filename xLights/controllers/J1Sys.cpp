@@ -21,7 +21,6 @@
 
 #include <wx/msgdlg.h>
 #include <wx/regex.h>
-#include <wx/xml/xml.h>
 #include <wx/sstream.h>
 
 #include <log4cpp/Category.hh>

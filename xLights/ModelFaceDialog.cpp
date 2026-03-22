@@ -1575,16 +1575,17 @@ void ModelFaceDialog::ImportFacesFromModel()
 
 void ModelFaceDialog::ImportFaces(const wxString& filename)
 {
-    wxXmlDocument doc(filename);
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_file(filename.ToStdString().c_str());
 
-    if (!doc.IsOk())
+    if (!result)
     {
         DisplayError(filename + " Failure loading xModel file.");
         return;
     }
 
-    wxXmlNode* root = doc.GetRoot();
-    if (root == nullptr)
+    pugi::xml_node root = doc.document_element();
+    if (!root)
     {
         DisplayError(filename + " contains invalid XML structure.");
         return;
@@ -1592,12 +1593,9 @@ void ModelFaceDialog::ImportFaces(const wxString& filename)
 
     // Collect all face definitions from the model file
     FaceStateData allFaces;
-    for (wxXmlNode* node = root->GetChildren(); node != nullptr; node = node->GetNext())
+    for (pugi::xml_node node : root.children("faceInfo"))
     {
-        if (node->GetName() == "faceInfo")
-        {
-            XmlSerialize::DeserializeFaceInfo(node, allFaces);
-        }
+        XmlSerialize::DeserializeFaceInfo(node, allFaces);
     }
 
     if (allFaces.empty())

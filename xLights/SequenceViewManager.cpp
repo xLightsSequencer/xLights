@@ -27,16 +27,16 @@ SequenceView::SequenceView(const std::string& name, ModelManager* modelManager)
 	_name = name;
 }
 
-SequenceView::SequenceView(wxXmlNode* node, ModelManager* modelManager)
+SequenceView::SequenceView(pugi::xml_node node, ModelManager* modelManager)
 {
 	_modelManager = modelManager;
 	Load(node);
 }
 
-void SequenceView::Load(wxXmlNode* node)
+void SequenceView::Load(pugi::xml_node node)
 {
-	_name = node->GetAttribute("name").ToStdString();
-	SetModels(node->GetAttribute("models").ToStdString());
+	_name = node.attribute("name").as_string("");
+	SetModels(node.attribute("models").as_string(""));
 }
 
 void SequenceView::SetModels(const std::string& models)
@@ -201,7 +201,7 @@ SequenceViewManager::~SequenceViewManager()
 	Reset();
 }
 
-void SequenceViewManager::Load(wxXmlNode* node, int selectedView)
+void SequenceViewManager::Load(pugi::xml_node node, int selectedView)
 {
 	wxASSERT(_modelManager != nullptr);
 
@@ -209,7 +209,7 @@ void SequenceViewManager::Load(wxXmlNode* node, int selectedView)
 
 	AddMasterView();
 
-	for (wxXmlNode* view = node->GetChildren(); view != nullptr; view = view->GetNext())
+	for (pugi::xml_node view = node.first_child(); view; view = view.next_sibling())
 	{
 		_views.push_back(new SequenceView(view, _modelManager));
 	}

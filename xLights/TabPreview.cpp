@@ -80,7 +80,7 @@ bool xLightsFrame::GetDisplay2DGrid() const
 void xLightsFrame::SetDisplay2DGridSpacing(long spacing)
 {
     if (spacing != GetDisplay2DGridSpacing()) {
-        SetXmlSetting("Display2DGridSpacing", wxString::Format("%d", (int)spacing));
+        SetXmlSetting("Display2DGridSpacing", std::to_string((int)spacing));
         UnsavedRgbEffectsChanges = true;
         GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SetDisplay2DGridSpacing");
     }
@@ -88,7 +88,7 @@ void xLightsFrame::SetDisplay2DGridSpacing(long spacing)
 
 long xLightsFrame::GetDisplay2DGridSpacing() const
 {
-    return wxAtol(GetXmlSetting("Display2DGridSpacing", "100"));
+    return std::strtol(GetXmlSetting("Display2DGridSpacing", "100").c_str(), nullptr, 10);
 }
 
 void xLightsFrame::SetDisplay2DCenter0(bool bb) {
@@ -103,7 +103,7 @@ bool xLightsFrame::GetDisplay2DCenter0() const {
     return (GetXmlSetting("Display2DCenter0", "0") == "1");
 }
 
-const wxString & xLightsFrame::GetDefaultPreviewBackgroundImage()
+const std::string & xLightsFrame::GetDefaultPreviewBackgroundImage()
 {
     return mBackgroundImage;
 }
@@ -112,12 +112,12 @@ void xLightsFrame::SetPreviewBackgroundBrightness(int i, int a)
 {
     if (mBackgroundBrightness != i) {
         mBackgroundBrightness = i;
-        SetXmlSetting("backgroundBrightness",wxString::Format("%d",mBackgroundBrightness));
+        SetXmlSetting("backgroundBrightness", std::to_string(mBackgroundBrightness));
         UnsavedRgbEffectsChanges=true;
     }
     if (mBackgroundAlpha != a) {
         mBackgroundAlpha = a;
-        SetXmlSetting("backgroundAlpha",wxString::Format("%d",mBackgroundAlpha));
+        SetXmlSetting("backgroundAlpha", std::to_string(mBackgroundAlpha));
         UnsavedRgbEffectsChanges=true;
     }
     modelPreview->SetBackgroundBrightness(mBackgroundBrightness, mBackgroundAlpha);
@@ -133,7 +133,7 @@ bool xLightsFrame::GetDefaultPreviewBackgroundScaled()
 void xLightsFrame::SetPreviewBackgroundScaled(bool scaled) {
     if (mScaleBackgroundImage != scaled) {
         mScaleBackgroundImage = scaled;
-        SetXmlSetting("scaleImage",wxString::Format("%d",scaled));
+        SetXmlSetting("scaleImage", std::to_string((int)scaled));
         UnsavedRgbEffectsChanges=true;
     }
     modelPreview->SetScaleBackgroundImage(scaled);

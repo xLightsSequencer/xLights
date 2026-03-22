@@ -23,8 +23,8 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
 
-        static bool AllModelsExist(wxXmlNode* node, const ModelManager& models);
-        static bool RemoveNonExistentModels(wxXmlNode* node, const std::set<std::string>& allmodels);
+        static bool AllModelsExist(pugi::xml_node node, const ModelManager& models);
+        static bool RemoveNonExistentModels(pugi::xml_node node, const std::set<std::string>& allmodels);
 
         ModelGroup(const ModelManager &manager);
         virtual ~ModelGroup();

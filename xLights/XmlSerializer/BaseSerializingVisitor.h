@@ -145,7 +145,7 @@ protected:
     static void SortAttributes(AttrCollector& collector);
 
     // ---------------------------------------------------------------------------
-    // Attribute-collecting helpers (take AttrCollector& instead of wxXmlNode*)
+    // Attribute-collecting helpers
     // ---------------------------------------------------------------------------
     void AddBaseObjectAttributes(const BaseObject& base, AttrCollector& attrs);
     void AddCommonModelAttributes(const Model& model, AttrCollector& attrs);

@@ -13,7 +13,7 @@
 #include <format>
 
 #include <wx/msgdlg.h>
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 #include "ArchesModel.h"
 #include "BaseObject.h"
@@ -232,7 +232,7 @@ bool ModelManager::IsModelOverlapping(const Model* model) const
     return false;
 }
 
-void ModelManager::LoadModels(wxXmlNode* modelNode, int previewW, int previewH)
+void ModelManager::LoadModels(pugi::xml_node modelNode, int previewW, int previewH)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // logger_base.debug("ModelManager loading models.");
@@ -241,18 +241,17 @@ void ModelManager::LoadModels(wxXmlNode* modelNode, int previewW, int previewH)
     clear();
     previewWidth = previewW;
     previewHeight = previewH;
-    this->modelNode = modelNode;
     wxStopWatch timer;
-    std::list<wxXmlNode*> modelsToLoad;
-    for (wxXmlNode* e = modelNode->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "model") {
-            std::string name = e->GetAttribute("name").Trim(true).Trim(false).ToStdString();
+    std::list<pugi::xml_node> modelsToLoad;
+    for (pugi::xml_node e = modelNode.first_child(); e; e = e.next_sibling()) {
+        if (std::string_view(e.name()) == "model") {
+            std::string name = Trim(e.attribute("name").as_string());
             if (!name.empty()) {
                 modelsToLoad.push_back(e);
             }
         }
     }
-    std::function<void(wxXmlNode*&, int)> f = [this, previewW, previewH](wxXmlNode* e, int idx) {
+    std::function<void(pugi::xml_node&, int)> f = [this, previewW, previewH](pugi::xml_node e, int idx) {
         createAndAddModel(e, previewW, previewH);
     };
     RunInAutoReleasePool([&]() {parallel_for(modelsToLoad, f);});
@@ -360,17 +359,17 @@ void ModelManager::ReplaceIPInStartChannels(const std::string& oldIP, const std:
     }
 }
 
-void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string& mname, bool& merge, bool& ask) {
+void ModelManager::AddModelGroups(pugi::xml_node n, int w, int h, const std::string& mname, bool& merge, bool& ask) {
     // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // logger_base.debug("ModelManager adding groups.");
 
-    auto grpModels = n->GetAttribute("models");
+    std::string grpModels = n.attribute("models").as_string();
     if (grpModels.empty())
     {
         return;
     }
 
-    auto mgname = n->GetAttribute("name");
+    std::string mgname = n.attribute("name").as_string();
     bool alias { false };
     if (models.find(mgname) != models.end()) {
         for (const auto& [name, mm] : models) {
@@ -501,32 +500,31 @@ void ModelManager::AddModelGroups(wxXmlNode* n, int w, int h, const std::string&
     }
 
     // create new groups
-    std::string mgname_str = mgname.ToStdString();
-    std::string nn = mgname_str;
+    std::string nn = mgname;
     int i = 1;
     while (models.find(nn) != models.end()) {
-        nn = std::format("{}_{}", mgname_str, i++);
+        nn = std::format("{}_{}", mgname, i++);
     }
-    
-    // Create a temporary node with modified attributes to avoid using ModelXml
-    wxXmlNode tempNode(*n);
-    tempNode.DeleteAttribute("name");
-    tempNode.AddAttribute("name", nn);
-    
+
+    // Create a temporary document with a copy of the node and modified attributes
+    pugi::xml_document tempDoc;
+    tempDoc.append_copy(n);
+    pugi::xml_node tempNode = tempDoc.first_child();
+    tempNode.attribute("name").set_value(nn);
+
     // Fix model names by replacing EXPORTEDMODEL with the actual model name
-    auto modelsList = Split(tempNode.GetAttribute("models").ToStdString(), ',');
+    auto modelsList = Split(std::string(tempNode.attribute("models").as_string()), ',');
     std::string fixedModels;
     for (auto& it : modelsList) {
         if (!fixedModels.empty()) fixedModels += ",";
         Replace(it, "EXPORTEDMODEL", mname);
         fixedModels += it;
     }
-    tempNode.DeleteAttribute("models");
-    tempNode.AddAttribute("models", fixedModels);
-    
+    tempNode.attribute("models").set_value(fixedModels);
+
     // Use Deserialize to create the ModelGroup
     XmlDeserializingModelFactory factory;
-    Model* model = factory.Deserialize(&tempNode, xlights, false);
+    Model* model = factory.Deserialize(tempNode, xlights, false);
     if (model != nullptr) {
         model->GetModelScreenLocation().previewW = w;
         model->GetModelScreenLocation().previewH = h;
@@ -1089,21 +1087,20 @@ bool ModelManager::ModelHasNoDependencyOnNoController(Model* m, std::list<std::s
     return true;
 }
 
-bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH)
+bool ModelManager::LoadGroups(pugi::xml_node groupNode, int previewW, int previewH)
 {
     // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // logger_base.debug("ModelManager loading groups.");
-   this->groupNode = groupNode;
     bool changed = false;
-    std::list<wxXmlNode*> toBeDone;
+    std::list<pugi::xml_node> toBeDone;
     std::set<std::string> allModels;
     std::lock_guard<std::recursive_mutex> lock(_modelMutex);
     XmlDeserializingModelFactory factory;
 
     // do all the models without embedded groups first or where the model order means everything exists
-    for (wxXmlNode* e = groupNode->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "modelGroup") {
-            std::string name = e->GetAttribute("name").ToStdString();
+    for (pugi::xml_node e = groupNode.first_child(); e; e = e.next_sibling()) {
+        if (std::string_view(e.name()) == "modelGroup") {
+            std::string name = e.attribute("name").as_string();
             if (!name.empty()) {
                 allModels.insert(name);
                 if (ModelGroup::AllModelsExist(e, *this)) {
@@ -1142,7 +1139,7 @@ bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH)
     int maxIter = toBeDone.size();
     while (maxIter > 0 && toBeDone.size() > 0) {
         maxIter--;
-        std::list<wxXmlNode*> processing(toBeDone);
+        std::list<pugi::xml_node> processing(toBeDone);
         toBeDone.clear();
         for (const auto& it : processing) {
             if (ModelGroup::AllModelsExist(it, *this)) {
@@ -1165,7 +1162,7 @@ bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH)
 
     // anything left in toBeDone is now due to model loops
     for (const auto& it : toBeDone) {
-        std::string name = it->GetAttribute("name").ToStdString();
+        std::string name = it.attribute("name").as_string();
         std::string msg = "Could not process model group " + name + " likely due to model groups loops. See Check Sequence for details.";
         DisplayWarning(msg);
         assert(false);
@@ -1380,9 +1377,9 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
     return model;
 }
 
-Model* ModelManager::CreateModel(wxXmlNode* node, int previewW, int previewH) const
+Model* ModelManager::CreateModel(pugi::xml_node node, int previewW, int previewH) const
 {
-    if (node->GetName() == "modelGroup") {
+    if (std::string_view(node.name()) == "modelGroup") {
         XmlDeserializingModelFactory factory;
         return factory.Deserialize(node, xlights, false);
     }
@@ -1425,7 +1422,7 @@ void ModelManager::ReplaceModel(const std::string &name, Model* nm) {
     }
 }
 
-Model* ModelManager::createAndAddModel(wxXmlNode* node, int previewW, int previewH)
+Model* ModelManager::createAndAddModel(pugi::xml_node node, int previewW, int previewH)
 {
     Model* model = CreateModel(node, previewW, previewH);
     AddModel(model);
@@ -1582,30 +1579,34 @@ std::string MergeModels(const std::string& ml1, const std::string& ml2)
 }
 
 // Helper: find a child XML node with a given tag name and "name" attribute value
-static wxXmlNode* FindChildByNameAttr(wxXmlNode* parent, const wxString& childTag, const wxString& name)
+static pugi::xml_node FindChildByNameAttr(pugi::xml_node parent, const std::string& childTag, const std::string& name)
 {
-    for (wxXmlNode* n = parent->GetChildren(); n != nullptr; n = n->GetNext()) {
-        if (n->GetName() == childTag && n->GetAttribute("name") == name) {
+    for (pugi::xml_node n = parent.first_child(); n; n = n.next_sibling()) {
+        if (std::string_view(n.name()) == childTag && std::string_view(n.attribute("name").as_string()) == name) {
             return n;
         }
     }
-    return nullptr;
+    return pugi::xml_node();
 }
 
-// Helper: set an attribute on a node (delete + re-add pattern)
-static void SetXmlAttribute(wxXmlNode* node, const wxString& attr, const wxString& value)
+// Helper: set an attribute on a node (update or add)
+static void SetXmlAttribute(pugi::xml_node node, const std::string& attr, const std::string& value)
 {
-    if (node->HasAttribute(attr)) node->DeleteAttribute(attr);
-    node->AddAttribute(attr, value);
+    pugi::xml_attribute a = node.attribute(attr);
+    if (a) {
+        a.set_value(value);
+    } else {
+        node.append_attribute(attr) = value;
+    }
 }
 
 // Helper: compare name attributes on child nodes for XML comparison
-static bool CheckNameAttrs(wxXmlNode* nn, wxXmlNode* cc)
+static bool CheckNameAttrs(pugi::xml_node nn, pugi::xml_node cc)
 {
-    if (nn->HasAttribute("name")) {
-        return (cc->GetAttribute("name") == nn->GetAttribute("name"));
-    } else if (nn->HasAttribute("Name")) {
-        return (cc->GetAttribute("Name") == nn->GetAttribute("Name"));
+    if (!nn.attribute("name").empty()) {
+        return std::string_view(cc.attribute("name").as_string()) == std::string_view(nn.attribute("name").as_string());
+    } else if (!nn.attribute("Name").empty()) {
+        return std::string_view(cc.attribute("Name").as_string()) == std::string_view(nn.attribute("Name").as_string());
     }
     return true;
 }
@@ -1643,30 +1644,32 @@ static std::set<std::string> BASE_EMPTY = {
 };
 
 // Helper: compare two XML nodes to detect changes (standalone version operating on raw nodes)
-static bool IsXmlNodeChanged(wxXmlNode* local, wxXmlNode* base)
+static bool IsXmlNodeChanged(pugi::xml_node local, pugi::xml_node base)
 {
     // Check if base has attributes that differ from local
     bool changed = false;
-    for (wxXmlAttribute* a = base->GetAttributes(); a != nullptr; a = a->GetNext()) {
-        if (!local->HasAttribute(a->GetName()) || local->GetAttribute(a->GetName()) != a->GetValue()) {
-            if (a->GetName() != "StartChannel" || !local->HasAttribute("Controller")) {
+    for (pugi::xml_attribute a : base.attributes()) {
+        std::string_view aName = a.name();
+        std::string_view aValue = a.value();
+        pugi::xml_attribute localAttr = local.attribute(a.name());
+        if (localAttr.empty() || std::string_view(localAttr.as_string()) != aValue) {
+            if (aName != "StartChannel" || !local.attribute("Controller").empty()) {
                 // For float attributes, compare rounded to 4 decimal places as older versions of xLights only output to 4 decimals
-                if (FLOAT_ATTRIBUTES.count(a->GetName().ToStdString()) > 0 && local->HasAttribute(a->GetName())) {
-                    double baseVal = 0.0, localVal = 0.0;
-                    a->GetValue().ToDouble(&baseVal);
-                    local->GetAttribute(a->GetName()).ToDouble(&localVal);
+                if (FLOAT_ATTRIBUTES.count(std::string(aName)) > 0 && !localAttr.empty()) {
+                    double baseVal = a.as_double(0.0);
+                    double localVal = localAttr.as_double(0.0);
                     if (std::round(baseVal * 10000.0) == std::round(localVal * 10000.0)) {
                         continue;
                     }
                 }
                 // In some cases, old versions of xLights would put an empty attribute but the new version will not put the attribute at all.
-                if (!(BASE_EMPTY.contains(a->GetName().ToStdString()) && a->GetValue().IsEmpty() && !local->HasAttribute(a->GetName()))) {
+                if (!(BASE_EMPTY.contains(std::string(aName)) && aValue.empty() && localAttr.empty())) {
 #ifdef DEBUG_MERGEFROMBASE
                     if (!changed) {
-                        printf("%s\n", local->GetAttribute("name").ToStdString().c_str());
+                        printf("%s\n", local.attribute("name").as_string());
                     }
-                    printf("  %s:  %s\n", a->GetName().ToStdString().c_str(), a->GetValue().ToStdString().c_str());
-                    printf("          %s\n", local->GetAttribute(a->GetName()).ToStdString().c_str());
+                    printf("  %s:  %s\n", a.name(), a.value());
+                    printf("          %s\n", localAttr.as_string());
                     changed = true;
 #else
                     return true;
@@ -1680,13 +1683,14 @@ static bool IsXmlNodeChanged(wxXmlNode* local, wxXmlNode* base)
     }
 
     // Check child nodes
-    for (wxXmlNode* nn = base->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+    for (pugi::xml_node nn = base.first_child(); nn; nn = nn.next_sibling()) {
         bool found = false;
-        for (wxXmlNode* cc = local->GetChildren(); cc != nullptr; cc = cc->GetNext()) {
-            if (cc->GetName() == nn->GetName() && CheckNameAttrs(nn, cc)) {
+        for (pugi::xml_node cc = local.first_child(); cc; cc = cc.next_sibling()) {
+            if (std::string_view(cc.name()) == std::string_view(nn.name()) && CheckNameAttrs(nn, cc)) {
                 found = true;
-                for (wxXmlAttribute* a = nn->GetAttributes(); a != nullptr; a = a->GetNext()) {
-                    if (!cc->HasAttribute(a->GetName()) || cc->GetAttribute(a->GetName()) != a->GetValue()) {
+                for (pugi::xml_attribute a : nn.attributes()) {
+                    pugi::xml_attribute ccAttr = cc.attribute(a.name());
+                    if (ccAttr.empty() || std::string_view(ccAttr.as_string()) != std::string_view(a.value())) {
                         return true;
                     }
                 }
@@ -1700,153 +1704,146 @@ static bool IsXmlNodeChanged(wxXmlNode* local, wxXmlNode* base)
 }
 
 // Helper: copy preserved local controller attributes onto a new node replacing a FromBase model
-static void PreserveLocalControllerAttrs(wxXmlNode* localNode, wxXmlNode* newNode)
+static void PreserveLocalControllerAttrs(pugi::xml_node localNode, pugi::xml_node newNode)
 {
     // Find the local port from ControllerConnection child
-    wxString port;
-    for (wxXmlNode* p = localNode->GetChildren(); p != nullptr; p = p->GetNext()) {
-        if (p->GetName() == "ControllerConnection") {
-            port = p->GetAttribute("Port");
+    std::string port;
+    for (pugi::xml_node p = localNode.first_child(); p; p = p.next_sibling()) {
+        if (std::string_view(p.name()) == "ControllerConnection") {
+            port = p.attribute("Port").as_string();
         }
     }
 
     if (!port.empty()) {
         // Preserve ModelChain if local has one
-        wxString modelChain = localNode->GetAttribute("ModelChain");
+        std::string modelChain = localNode.attribute("ModelChain").as_string();
         if (!modelChain.empty()) {
             SetXmlAttribute(newNode, "ModelChain", modelChain);
         }
-        SetXmlAttribute(newNode, "StartChannel", localNode->GetAttribute("StartChannel"));
-        SetXmlAttribute(newNode, "Controller", localNode->GetAttribute("Controller"));
+        SetXmlAttribute(newNode, "StartChannel", localNode.attribute("StartChannel").as_string());
+        SetXmlAttribute(newNode, "Controller", localNode.attribute("Controller").as_string());
     }
 }
 
 // Helper: copy the local ControllerConnection port onto the new node's ControllerConnection child if it has no port
-static void PreserveLocalControllerPort(wxXmlNode* localNode, wxXmlNode* newNode)
+static void PreserveLocalControllerPort(pugi::xml_node localNode, pugi::xml_node newNode)
 {
-    wxString port;
-    for (wxXmlNode* p = localNode->GetChildren(); p != nullptr; p = p->GetNext()) {
-        if (p->GetName() == "ControllerConnection") {
-            port = p->GetAttribute("Port");
+    std::string port;
+    for (pugi::xml_node p = localNode.first_child(); p; p = p.next_sibling()) {
+        if (std::string_view(p.name()) == "ControllerConnection") {
+            port = p.attribute("Port").as_string();
         }
     }
     if (!port.empty()) {
-        for (wxXmlNode* bp = newNode->GetChildren(); bp != nullptr; bp = bp->GetNext()) {
-            if (bp->GetName() == "ControllerConnection") {
-                if (!bp->HasAttribute("Port")) {
-                    bp->AddAttribute("Port", port);
+        for (pugi::xml_node bp = newNode.first_child(); bp; bp = bp.next_sibling()) {
+            if (std::string_view(bp.name()) == "ControllerConnection") {
+                if (bp.attribute("Port").empty()) {
+                    bp.append_attribute("Port") = port;
                 }
             }
         }
     }
 }
-static void RemoveControllerConnection(wxXmlNode *node) {
-    for (wxXmlNode* p = node->GetChildren(); p != nullptr; p = p->GetNext()) {
-        if (p->GetName() == "ControllerConnection") {
-            node->RemoveChild(p);
-            return;
-        }
+static void RemoveControllerConnection(pugi::xml_node node) {
+    pugi::xml_node cc = node.child("ControllerConnection");
+    if (cc) {
+        node.remove_child(cc);
     }
 }
 
 // Shared method: merge base XML into current XML, updating currentModelsNode and currentGroupsNode in-place.
 // Populates changedModels and changedGroups with names of models/groups that were added or updated.
 // Only updates models/groups that are new or have FromBase="1" on the current side.
-static bool MergeBaseIntoCurrentXml(wxXmlNode* currentModelsNode, wxXmlNode* currentGroupsNode,
-                                    wxXmlNode* baseModelsNode, wxXmlNode* baseGroupsNode,
+static bool MergeBaseIntoCurrentXml(pugi::xml_node currentModelsNode, pugi::xml_node currentGroupsNode,
+                                    pugi::xml_node baseModelsNode, pugi::xml_node baseGroupsNode,
                                     std::vector<std::string>& changedModels,
                                     std::vector<std::string>& changedGroups)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool changed = false;
 
-    if (baseModelsNode != nullptr && currentModelsNode != nullptr) {
-        for (wxXmlNode* bm = baseModelsNode->GetChildren(); bm != nullptr; bm = bm->GetNext()) {
-            if (bm->GetName() != "model") continue;
-            auto name = bm->GetAttribute("name");
+    if (baseModelsNode && currentModelsNode) {
+        for (pugi::xml_node bm = baseModelsNode.first_child(); bm; bm = bm.next_sibling()) {
+            if (std::string_view(bm.name()) != "model") continue;
+            std::string name = bm.attribute("name").as_string();
             if (name.empty()) continue;
 
-            wxXmlNode* local = FindChildByNameAttr(currentModelsNode, "model", name);
+            pugi::xml_node local = FindChildByNameAttr(currentModelsNode, "model", name);
 
-            if (local == nullptr) {
+            if (!local) {
                 // Model does not exist locally -- add it
-                wxXmlNode* copy = new wxXmlNode(*bm);
+                pugi::xml_node copy = currentModelsNode.append_copy(bm);
                 SetXmlAttribute(copy, "FromBase", "1");
-                currentModelsNode->AddChild(copy);
-                changedModels.push_back(name.ToStdString());
+                changedModels.push_back(name);
                 changed = true;
-                logger_base.debug("MergeBase: Adding model from base: '%s'.", (const char*)name.c_str());
-            } else if (local->GetAttribute("FromBase") == "1") {
+                logger_base.debug("MergeBase: Adding model from base: '%s'.", name.c_str());
+            } else if (std::string_view(local.attribute("FromBase").as_string()) == "1") {
                 // Model exists and came from base -- update if changed
                 if (IsXmlNodeChanged(local, bm)) {
-                    wxXmlNode* copy = new wxXmlNode(*bm);
+                    pugi::xml_node copy = currentModelsNode.insert_copy_after(bm, local);
                     SetXmlAttribute(copy, "FromBase", "1");
                     PreserveLocalControllerAttrs(local, copy);
                     PreserveLocalControllerPort(local, copy);
 
-                    currentModelsNode->InsertChildAfter(copy, local);
-                    currentModelsNode->RemoveChild(local);
-                    delete local;
-                    changedModels.push_back(name.ToStdString());
+                    currentModelsNode.remove_child(local);
+                    changedModels.push_back(name);
                     changed = true;
-                    logger_base.debug("MergeBase: Updating model from base: '%s'.", (const char*)name.c_str());
+                    logger_base.debug("MergeBase: Updating model from base: '%s'.", name.c_str());
                 }
             }
             // If model exists locally without FromBase, skip silently
         }
     }
 
-    if (baseGroupsNode != nullptr && currentGroupsNode != nullptr) {
-        for (wxXmlNode* bg = baseGroupsNode->GetChildren(); bg != nullptr; bg = bg->GetNext()) {
-            if (bg->GetName() != "modelGroup") continue;
-            auto name = bg->GetAttribute("name");
+    if (baseGroupsNode && currentGroupsNode) {
+        for (pugi::xml_node bg = baseGroupsNode.first_child(); bg; bg = bg.next_sibling()) {
+            if (std::string_view(bg.name()) != "modelGroup") continue;
+            std::string name = bg.attribute("name").as_string();
             if (name.empty()) continue;
 
-            wxXmlNode* local = FindChildByNameAttr(currentGroupsNode, "modelGroup", name);
+            pugi::xml_node local = FindChildByNameAttr(currentGroupsNode, "modelGroup", name);
 
-            if (local == nullptr) {
+            if (!local) {
                 // Group does not exist locally -- add it
-                wxXmlNode* copy = new wxXmlNode(*bg);
+                pugi::xml_node copy = currentGroupsNode.append_copy(bg);
                 SetXmlAttribute(copy, "FromBase", "1");
-                currentGroupsNode->AddChild(copy);
-                changedGroups.push_back(name.ToStdString());
+                changedGroups.push_back(name);
                 changed = true;
-                logger_base.debug("MergeBase: Adding model group from base: '%s'.", (const char*)name.c_str());
-            } else if (local->GetAttribute("FromBase") == "1") {
+                logger_base.debug("MergeBase: Adding model group from base: '%s'.", name.c_str());
+            } else if (std::string_view(local.attribute("FromBase").as_string()) == "1") {
                 // Group exists and came from base -- merge model lists and update if changed
-                auto baseModelList = bg->GetAttribute("models");
-                auto localModelList = local->GetAttribute("models");
-                std::string mergedList = MergeModels(baseModelList.ToStdString(), localModelList.ToStdString());
+                std::string baseModelList = bg.attribute("models").as_string();
+                std::string localModelList = local.attribute("models").as_string();
+                std::string mergedList = MergeModels(baseModelList, localModelList);
 
-                // Create a temp copy with merged model list to compare
-                wxXmlNode* copy = new wxXmlNode(*bg);
+                // Create a temp doc with copy of bg to modify for comparison
+                pugi::xml_document tempDoc;
+                pugi::xml_node copy = tempDoc.append_copy(bg);
                 SetXmlAttribute(copy, "models", mergedList);
                 SetXmlAttribute(copy, "FromBase", "1");
-                copy->DeleteAttribute("selected");
-                copy->DeleteAttribute("BaseModels");
+                copy.remove_attribute("selected");
+                copy.remove_attribute("BaseModels");
 
                 RemoveControllerConnection(copy);
 
-                // Remove ControllerConnection from local copy for comparison purposes only
-                wxXmlNode localCopy(*local);
-                RemoveControllerConnection(&localCopy);
+                // Make a local copy for comparison purposes (without ControllerConnection)
+                pugi::xml_document localCopyDoc;
+                pugi::xml_node localCopy = localCopyDoc.append_copy(local);
+                RemoveControllerConnection(localCopy);
 
-                if (IsXmlNodeChanged(&localCopy, copy)) {
+                if (IsXmlNodeChanged(localCopy, copy)) {
                     SetXmlAttribute(copy, "BaseModels", baseModelList);
                     // Preserve local X/Y centre offsets
-                    wxString xOffset = local->GetAttribute("GridCentreX", "");
-                    wxString yOffset = local->GetAttribute("GridCentreY", "");
+                    std::string xOffset = local.attribute("GridCentreX").as_string();
+                    std::string yOffset = local.attribute("GridCentreY").as_string();
                     if (!xOffset.empty()) SetXmlAttribute(copy, "GridCentreX", xOffset);
                     if (!yOffset.empty()) SetXmlAttribute(copy, "GridCentreY", yOffset);
 
-                    currentGroupsNode->InsertChildAfter(copy, local);
-                    currentGroupsNode->RemoveChild(local);
-                    delete local;
-                    changedGroups.push_back(name.ToStdString());
+                    currentGroupsNode.insert_copy_after(copy, local);
+                    currentGroupsNode.remove_child(local);
+                    changedGroups.push_back(name);
                     changed = true;
-                    logger_base.debug("MergeBase: Updating model group from base: '%s'.", (const char*)name.c_str());
-                } else {
-                    delete copy;
+                    logger_base.debug("MergeBase: Updating model group from base: '%s'.", name.c_str());
                 }
             }
             // If group exists locally without FromBase, skip silently
@@ -1857,28 +1854,30 @@ static bool MergeBaseIntoCurrentXml(wxXmlNode* currentModelsNode, wxXmlNode* cur
 }
 
 // Load base XML document and find <models> and <modelGroups> nodes
-static bool LoadBaseXmlNodes(const std::string& baseShowDir, wxXmlDocument& doc,
-                             wxXmlNode*& baseModels, wxXmlNode*& baseGroups)
+static bool LoadBaseXmlNodes(const std::string& baseShowDir, pugi::xml_document& doc,
+                             pugi::xml_node& baseModels, pugi::xml_node& baseGroups)
 {
-    baseModels = nullptr;
-    baseGroups = nullptr;
-    doc.Load(baseShowDir + GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE);
-    if (!doc.IsOk()) return false;
+    baseModels = pugi::xml_node();
+    baseGroups = pugi::xml_node();
+    std::string path = baseShowDir + GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE;
+    pugi::xml_parse_result result = doc.load_file(path.c_str());
+    if (!result) return false;
 
-    for (wxXmlNode* m = doc.GetRoot(); m != nullptr; m = m->GetNext()) {
-        for (wxXmlNode* mm = m->GetChildren(); mm != nullptr; mm = mm->GetNext()) {
-            if (mm->GetName() == "models") baseModels = mm;
-            else if (mm->GetName() == "modelGroups") baseGroups = mm;
+    pugi::xml_node root = doc.document_element();
+    if (root) {
+        for (pugi::xml_node mm = root.first_child(); mm; mm = mm.next_sibling()) {
+            if (std::string_view(mm.name()) == "models") baseModels = mm;
+            else if (std::string_view(mm.name()) == "modelGroups") baseGroups = mm;
         }
     }
     return true;
 }
 
-bool ModelManager::MergeBaseXml(const std::string& baseShowDir, wxXmlNode* localModelsNode, wxXmlNode* localGroupsNode)
+bool ModelManager::MergeBaseXml(const std::string& baseShowDir, pugi::xml_node localModelsNode, pugi::xml_node localGroupsNode)
 {
-    wxXmlDocument baseDoc;
-    wxXmlNode* baseModels = nullptr;
-    wxXmlNode* baseGroups = nullptr;
+    pugi::xml_document baseDoc;
+    pugi::xml_node baseModels;
+    pugi::xml_node baseGroups;
     if (!LoadBaseXmlNodes(baseShowDir, baseDoc, baseModels, baseGroups)) return false;
 
     std::vector<std::string> changedModels;
@@ -1892,34 +1891,34 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
 {
     bool changed = false;
 
-    wxXmlDocument baseDoc;
-    wxXmlNode* baseModels = nullptr;
-    wxXmlNode* baseGroups = nullptr;
+    pugi::xml_document baseDoc;
+    pugi::xml_node baseModels;
+    pugi::xml_node baseGroups;
     if (!LoadBaseXmlNodes(baseShowDir, baseDoc, baseModels, baseGroups)) return false;
-    if (baseModels == nullptr) return false;
+    if (!baseModels) return false;
 
     // Handle prompt mode: ask user about non-FromBase models that clash with base
     if (prompt) {
-        for (wxXmlNode* bm = baseModels->GetChildren(); bm != nullptr; bm = bm->GetNext()) {
-            if (bm->GetName() != "model") continue;
-            auto name = bm->GetAttribute("name");
+        for (pugi::xml_node bm = baseModels.first_child(); bm; bm = bm.next_sibling()) {
+            if (std::string_view(bm.name()) != "model") continue;
+            std::string name = bm.attribute("name").as_string();
             if (name.empty()) continue;
             auto curr = GetModel(name);
             if (curr != nullptr && !curr->IsFromBase()) {
-                if (wxMessageBox(std::format("Model {} found that clashes with base show directory. Do you want to take the base show directory version?", name.ToStdString()),
+                if (wxMessageBox(std::format("Model {} found that clashes with base show directory. Do you want to take the base show directory version?", name),
                                  "Model clash", wxICON_QUESTION | wxYES_NO, xlights) == wxYES) {
                     curr->SetFromBase(true);
                 }
             }
         }
-        if (baseGroups != nullptr) {
-            for (wxXmlNode* bg = baseGroups->GetChildren(); bg != nullptr; bg = bg->GetNext()) {
-                if (bg->GetName() != "modelGroup") continue;
-                auto name = bg->GetAttribute("name");
+        if (baseGroups) {
+            for (pugi::xml_node bg = baseGroups.first_child(); bg; bg = bg.next_sibling()) {
+                if (std::string_view(bg.name()) != "modelGroup") continue;
+                std::string name = bg.attribute("name").as_string();
                 if (name.empty()) continue;
                 auto curr = GetModel(name);
                 if (curr != nullptr && !curr->IsFromBase()) {
-                    if (wxMessageBox(std::format("Model Group {} found that clashes with base show directory. Do you want to take the base show directory version?", name.ToStdString()),
+                    if (wxMessageBox(std::format("Model Group {} found that clashes with base show directory. Do you want to take the base show directory version?", name),
                                      "Model group clash", wxICON_QUESTION | wxYES_NO, xlights) == wxYES) {
                         curr->SetFromBase(true);
                     }
@@ -1929,9 +1928,9 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
     }
 
     // Serialize all current models to a temporary XML document for comparison
-    XmlSerializer serializer;
-    wxXmlNode* currentModelsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "models");
-    wxXmlNode* currentGroupsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroups");
+    pugi::xml_document tempDoc;
+    pugi::xml_node currentModelsNode = tempDoc.append_child("models");
+    pugi::xml_node currentGroupsNode = tempDoc.append_child("modelGroups");
 
     {
         XmlSerializingVisitor visitor{currentModelsNode};
@@ -1961,28 +1960,26 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
 
     // Apply changes: replace changed models with new ones created from the updated XML
     for (const auto& name : changedModels) {
-        wxXmlNode* updatedNode = FindChildByNameAttr(currentModelsNode, "model", name);
-        if (updatedNode != nullptr) {
-            wxXmlNode* copy = new wxXmlNode(*updatedNode);
+        pugi::xml_node updatedNode = FindChildByNameAttr(currentModelsNode, "model", name);
+        if (updatedNode) {
             auto curr = GetModel(name);
             if (curr != nullptr) {
-                Model* newm = CreateModel(copy, previewWidth, previewHeight);
+                Model* newm = CreateModel(updatedNode, previewWidth, previewHeight);
                 ReplaceModel(name, newm);
             } else {
-                createAndAddModel(copy, previewWidth, previewHeight);
+                createAndAddModel(updatedNode, previewWidth, previewHeight);
             }
         }
     }
     for (const auto& name : changedGroups) {
-        wxXmlNode* updatedNode = FindChildByNameAttr(currentGroupsNode, "modelGroup", name);
-        if (updatedNode != nullptr) {
-            wxXmlNode* copy = new wxXmlNode(*updatedNode);
+        pugi::xml_node updatedNode = FindChildByNameAttr(currentGroupsNode, "modelGroup", name);
+        if (updatedNode) {
             auto curr = GetModel(name);
             if (curr != nullptr) {
-                Model* newm = CreateModel(copy, previewWidth, previewHeight);
+                Model* newm = CreateModel(updatedNode, previewWidth, previewHeight);
                 ReplaceModel(name, newm);
             } else {
-                createAndAddModel(copy, previewWidth, previewHeight);
+                createAndAddModel(updatedNode, previewWidth, previewHeight);
             }
         }
     }
@@ -1990,10 +1987,6 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
     if (changed) {
         RecalcStartChannels();
     }
-
-    // Clean up temporary XML nodes
-    delete currentModelsNode;
-    delete currentGroupsNode;
 
     return changed;
 }

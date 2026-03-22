@@ -14,7 +14,6 @@
 #endif
 #include <list>
 
-#include <wx/xml/xml.h>
 #include <wx/file.h>
 #include <wx/filename.h>
 
@@ -101,7 +100,7 @@ std::string ZCPPOutput::SerialiseProtocols() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-ZCPPOutput::ZCPPOutput(Controller* c, wxXmlNode* node, std::string showdir) : IPOutput(node, c->IsActive()) {
+ZCPPOutput::ZCPPOutput(Controller* c, pugi::xml_node node, std::string showdir) : IPOutput(node, c->IsActive()) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -114,14 +113,14 @@ ZCPPOutput::ZCPPOutput(Controller* c, wxXmlNode* node, std::string showdir) : IP
         if (_data != nullptr) memset(_data, 0x00, _channels);
     }
     memset(&_packet, 0, sizeof(_packet));
-    _vendor = wxAtoi(node->GetAttribute("Vendor", "65535"));
-    _model = wxAtoi(node->GetAttribute("Model", "65535"));
-    _priority = wxAtoi(node->GetAttribute("Priority", "100"));
-    _supportsVirtualStrings = node->GetAttribute("SupportsVirtualStrings", "FALSE") == "TRUE";
-    _supportsSmartRemotes = node->GetAttribute("SupportsSmartRemotes", "FALSE") == "TRUE";
-    _multicast = node->GetAttribute("Multicast", "FALSE") == "TRUE";
-    _dontConfigure = node->GetAttribute("DontConfigure", "FALSE") == "TRUE";
-    DeserialiseProtocols(node->GetAttribute("Protocols", ""));
+    _vendor = node.attribute("Vendor").as_int(65535);
+    _model = node.attribute("Model").as_int(65535);
+    _priority = node.attribute("Priority").as_int(100);
+    _supportsVirtualStrings = std::string_view(node.attribute("SupportsVirtualStrings").as_string("FALSE")) == "TRUE";
+    _supportsSmartRemotes = std::string_view(node.attribute("SupportsSmartRemotes").as_string("FALSE")) == "TRUE";
+    _multicast = std::string_view(node.attribute("Multicast").as_string("FALSE")) == "TRUE";
+    _dontConfigure = std::string_view(node.attribute("DontConfigure").as_string("FALSE")) == "TRUE";
+    DeserialiseProtocols(node.attribute("Protocols").as_string(""));
 
     if (!_dontConfigure) {
         wxString fileName = GetIP();
@@ -257,29 +256,19 @@ ZCPPOutput::~ZCPPOutput() {
     if (_data != nullptr) free(_data);
 }
 
-wxXmlNode* ZCPPOutput::Save() {
+pugi::xml_node ZCPPOutput::Save(pugi::xml_node parent) {
 
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
+    pugi::xml_node node = parent.append_child("network");
 
-    node->AddAttribute("Vendor", wxString::Format("%d", _vendor));
-    node->AddAttribute("Model", wxString::Format("%d", _model));
-    node->AddAttribute("Priority", wxString::Format("%d", _priority));
-    if (_supportsVirtualStrings) {
-        node->AddAttribute("SupportsVirtualStrings", "TRUE");
-    }
-    else {
-        node->AddAttribute("SupportsVirtualStrings", "FALSE");
-    }
-    if (_supportsSmartRemotes) {
-        node->AddAttribute("SupportsSmartRemotes", "TRUE");
-    }
-    else {
-        node->AddAttribute("SupportsSmartRemotes", "FALSE");
-    }
-    if (_dontConfigure)node->AddAttribute("DontConfigure", "TRUE");
-    if (_multicast)node->AddAttribute("Multicast", "TRUE");
-    node->AddAttribute("Protocols", SerialiseProtocols());
-    IPOutput::Save(node);
+    node.append_attribute("Vendor") = _vendor;
+    node.append_attribute("Model") = _model;
+    node.append_attribute("Priority") = _priority;
+    node.append_attribute("SupportsVirtualStrings") = _supportsVirtualStrings ? "TRUE" : "FALSE";
+    node.append_attribute("SupportsSmartRemotes") = _supportsSmartRemotes ? "TRUE" : "FALSE";
+    if (_dontConfigure) node.append_attribute("DontConfigure") = "TRUE";
+    if (_multicast) node.append_attribute("Multicast") = "TRUE";
+    node.append_attribute("Protocols") = SerialiseProtocols();
+    IPOutput::SaveAttr(node);
 
     return node;
 }

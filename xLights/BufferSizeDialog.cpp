@@ -11,6 +11,8 @@
 #include "BufferSizeDialog.h"
 #include "ui/ValueCurveDialog.h"
 #include "UtilFunctions.h"
+#include <pugixml.hpp>
+#include <string_view>
 #include "xLightsMain.h"
 #include "BufferPanel.h"
 #include "ExternalHooks.h"
@@ -386,24 +388,23 @@ void BufferSizeDialog::SaveBufferPreset(wxString const& name)
     }
     const wxString filename = xLightsFrame::CurrentDir + wxFileName::GetPathSeparator() + "buffers" + wxFileName::GetPathSeparator() + name + ".xbuffer";
 
-    wxXmlNode* n = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "Buffer");
+    pugi::xml_document doc;
+    pugi::xml_node n = doc.append_child("Buffer");
 
-    n->AddAttribute("Left", wxString::Format("%g", SpinCtrl_Left->GetValue()));
-    n->AddAttribute("Right", wxString::Format("%g", SpinCtrl_Right->GetValue()));
-    n->AddAttribute("Top", wxString::Format("%g", SpinCtrl_Top->GetValue()));
-    n->AddAttribute("Bottom", wxString::Format("%g", SpinCtrl_Bottom->GetValue()));
-    n->AddAttribute("XC", wxString::Format("%g", SpinCtrl_XC->GetValue()));
-    n->AddAttribute("YC", wxString::Format("%g", SpinCtrl_YC->GetValue()));
-    n->AddAttribute("VCLeft", ValueCurve_Left->GetValue()->Serialise());
-    n->AddAttribute("VCRight", ValueCurve_Right->GetValue()->Serialise());
-    n->AddAttribute("VCTop", ValueCurve_Top->GetValue()->Serialise());
-    n->AddAttribute("VCBottom", ValueCurve_Bottom->GetValue()->Serialise());
-    n->AddAttribute("VCX", ValueCurve_XC->GetValue()->Serialise());
-    n->AddAttribute("VCY", ValueCurve_YC->GetValue()->Serialise());
+    n.append_attribute("Left").set_value(SpinCtrl_Left->GetValue(), 6);
+    n.append_attribute("Right").set_value(SpinCtrl_Right->GetValue(), 6);
+    n.append_attribute("Top").set_value(SpinCtrl_Top->GetValue(), 6);
+    n.append_attribute("Bottom").set_value(SpinCtrl_Bottom->GetValue(), 6);
+    n.append_attribute("XC").set_value(SpinCtrl_XC->GetValue(), 6);
+    n.append_attribute("YC").set_value(SpinCtrl_YC->GetValue(), 6);
+    n.append_attribute("VCLeft") = ValueCurve_Left->GetValue()->Serialise();
+    n.append_attribute("VCRight") = ValueCurve_Right->GetValue()->Serialise();
+    n.append_attribute("VCTop") = ValueCurve_Top->GetValue()->Serialise();
+    n.append_attribute("VCBottom") = ValueCurve_Bottom->GetValue()->Serialise();
+    n.append_attribute("VCX") = ValueCurve_XC->GetValue()->Serialise();
+    n.append_attribute("VCY") = ValueCurve_YC->GetValue()->Serialise();
 
-    wxXmlDocument doc;
-    doc.SetRoot(n);
-    doc.Save(filename);
+    doc.save_file(filename.ToStdString().c_str());
 }
 
 void BufferSizeDialog::LoadBufferPreset(wxString const& name)
@@ -417,22 +418,22 @@ void BufferSizeDialog::LoadBufferPreset(wxString const& name)
 
     logger_base.debug("Loading buffer file %s.", (const char*)filename.c_str());
 
-    wxXmlDocument doc;
-    if (FileExists(filename) && doc.Load(filename) && doc.IsOk()) {
-        auto n = doc.GetRoot();
-        if (n != nullptr && n->GetName() == "Buffer") {
-            SpinCtrl_Left->SetValue(wxAtof(n->GetAttribute("Left", "0.0")));
-            SpinCtrl_Right->SetValue(wxAtof(n->GetAttribute("Right", "100.0")));
-            SpinCtrl_Top->SetValue(wxAtof(n->GetAttribute("Top", "100.0")));
-            SpinCtrl_Bottom->SetValue(wxAtof(n->GetAttribute("Bottom", "0.0")));
-            SpinCtrl_XC->SetValue(wxAtof(n->GetAttribute("XC", "0.0")));
-            SpinCtrl_YC->SetValue(wxAtof(n->GetAttribute("YC", "0.0")));
-            ValueCurve_Left->GetValue()->Deserialise(n->GetAttribute("VCLeft", "Active=FALSE|"), true);
-            ValueCurve_Right->GetValue()->Deserialise(n->GetAttribute("VCRight", "Active=FALSE|"), true);
-            ValueCurve_Top->GetValue()->Deserialise(n->GetAttribute("VCTop", "Active=FALSE|"), true);
-            ValueCurve_Bottom->GetValue()->Deserialise(n->GetAttribute("VCBottom", "Active=FALSE|"), true);
-            ValueCurve_XC->GetValue()->Deserialise(n->GetAttribute("VCX", "Active=FALSE|"), true);
-            ValueCurve_YC->GetValue()->Deserialise(n->GetAttribute("VCY", "Active=FALSE|"), true);
+    pugi::xml_document doc;
+    if (FileExists(filename) && doc.load_file(filename.ToStdString().c_str())) {
+        pugi::xml_node n = doc.document_element();
+        if (n && std::string_view(n.name()) == "Buffer") {
+            SpinCtrl_Left->SetValue(n.attribute("Left").as_double(0.0));
+            SpinCtrl_Right->SetValue(n.attribute("Right").as_double(100.0));
+            SpinCtrl_Top->SetValue(n.attribute("Top").as_double(100.0));
+            SpinCtrl_Bottom->SetValue(n.attribute("Bottom").as_double(0.0));
+            SpinCtrl_XC->SetValue(n.attribute("XC").as_double(0.0));
+            SpinCtrl_YC->SetValue(n.attribute("YC").as_double(0.0));
+            ValueCurve_Left->GetValue()->Deserialise(n.attribute("VCLeft").as_string("Active=FALSE|"), true);
+            ValueCurve_Right->GetValue()->Deserialise(n.attribute("VCRight").as_string("Active=FALSE|"), true);
+            ValueCurve_Top->GetValue()->Deserialise(n.attribute("VCTop").as_string("Active=FALSE|"), true);
+            ValueCurve_Bottom->GetValue()->Deserialise(n.attribute("VCBottom").as_string("Active=FALSE|"), true);
+            ValueCurve_XC->GetValue()->Deserialise(n.attribute("VCX").as_string("Active=FALSE|"), true);
+            ValueCurve_YC->GetValue()->Deserialise(n.attribute("VCY").as_string("Active=FALSE|"), true);
             ValueCurve_Left->UpdateBitmap();
             ValueCurve_Right->UpdateBitmap();
             ValueCurve_Top->UpdateBitmap();

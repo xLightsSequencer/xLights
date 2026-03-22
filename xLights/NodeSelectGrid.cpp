@@ -19,7 +19,6 @@
 #include <wx/tokenzr.h>
 #include <wx/settings.h>
 #include <wx/settings.h>
-#include <wx/xml/xml.h>
 #include <wx/msgdlg.h>
 #include <wx/filedlg.h>
 #include <wx/config.h>
@@ -891,10 +890,11 @@ wxString NodeSelectGrid::EncodeNodeLine(const std::vector<wxString>& nodes, cons
 //Import Model Shape From xModel File
 void NodeSelectGrid::ImportModel(const std::string& filename)
 {
-    wxXmlDocument doc(filename);
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_file(filename.c_str());
 
-    if (doc.IsOk()) {
-        wxXmlNode* root = doc.GetRoot();
+    if (result) {
+        pugi::xml_node root = doc.document_element();
         ImportModelXML(root);
     } else {
         DisplayError("Failure loading xModel file.");
@@ -902,9 +902,9 @@ void NodeSelectGrid::ImportModel(const std::string& filename)
 }
 
 //Load Custom Model As Selection
-void NodeSelectGrid::ImportModelXML(wxXmlNode* xmlData)
+void NodeSelectGrid::ImportModelXML(pugi::xml_node xmlData)
 {
-    if (xmlData->GetName() != "custommodel") {
+    if (std::string_view(xmlData.name()) != "custommodel") {
         DisplayError("xModel file not a Custom Model.");
         return;
     }

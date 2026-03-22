@@ -13,8 +13,6 @@
 #include <wx/file.h>
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
-#include <wx/xml/xml.h>
-
 #include <cmath>
 
 #include "ExternalHooks.h"

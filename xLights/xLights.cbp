@@ -44,6 +44,7 @@
 					<Add directory="../dependencies/libxlsxwriter/include" />
 					<Add directory="../include/sol2-3.5.0" />
 					<Add directory="../dependencies" />
+					<Add directory="../dependencies/pugixml/src" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
@@ -101,6 +102,7 @@
 					<Add directory="../dependencies/libxlsxwriter/include" />
 					<Add directory="../include/sol2-3.5.0" />
 					<Add directory="../dependencies" />
+					<Add directory="../dependencies/pugixml/src" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
@@ -498,6 +500,7 @@
 		<Unit filename="WiringDialog.cpp" />
 		<Unit filename="WiringDialog.h" />
 		<Unit filename="XlightsDrawable.h" />
+		<Unit filename="../dependencies/pugixml/src/pugixml.cpp" />
 		<Unit filename="XmlSerializer/BaseSerializingVisitor.cpp" />
 		<Unit filename="XmlSerializer/BaseSerializingVisitor.h" />
 		<Unit filename="XmlSerializer/GdtfParser.cpp" />

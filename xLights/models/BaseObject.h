@@ -18,7 +18,6 @@
 #include <glm/mat3x3.hpp>
 
 class xLightsFrame;
-class wxXmlNode;
 class ModelScreenLocation;
 class ModelPreview;
 

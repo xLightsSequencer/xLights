@@ -1,10 +1,9 @@
 #include "RenardOutput.h"
 
-#include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
 
 #pragma region Constructors and Destructors
-RenardOutput::RenardOutput(wxXmlNode* node) : SerialOutput(node)
+RenardOutput::RenardOutput(pugi::xml_node node) : SerialOutput(node)
 {
     _datalen = 0;
     _data = std::vector<uint8_t>(RENARD_MAX_CHANNELS+9);

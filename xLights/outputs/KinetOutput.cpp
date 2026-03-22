@@ -9,7 +9,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
 
 #include "KinetOutput.h"
 #include "OutputManager.h"
@@ -119,12 +118,12 @@ void KinetOutput::PopulateHeader()
 #pragma endregion
 
 #pragma region Constructors and Destructors
-KinetOutput::KinetOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
+KinetOutput::KinetOutput(pugi::xml_node node, bool isActive) : IPOutput(node, isActive) {
 
     if (_channels > 512) SetChannels(512);
     _sequenceNum = 0;
     _datagram = nullptr;
-    _version = wxAtoi(node->GetAttribute("Version", "2"));
+    _version = node.attribute("Version").as_int(2);
     memset(_data, 0, sizeof(_data));
 }
 
@@ -149,13 +148,12 @@ KinetOutput::~KinetOutput() {
     if (_datagram != nullptr) delete _datagram;
 }
 
-wxXmlNode* KinetOutput::Save()
+pugi::xml_node KinetOutput::Save(pugi::xml_node parent)
 {
+    pugi::xml_node node = parent.append_child("network");
+    IPOutput::SaveAttr(node);
 
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
-    IPOutput::Save(node);
-
-    node->AddAttribute("Version", wxString::Format(wxT("%i"), _version));
+    node.append_attribute("Version") = _version;
 
     return node;
 }

@@ -9,8 +9,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-
 #include "ArtNetOutput.h"
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
@@ -73,7 +71,7 @@ void ArtNetOutput::OpenDatagram() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-ArtNetOutput::ArtNetOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
+ArtNetOutput::ArtNetOutput(pugi::xml_node node, bool isActive) : IPOutput(node, isActive) {
 
     if (_channels > 512) SetChannels(512);
     if (_autoSize_CONVERT) _autoSize_CONVERT = false;
@@ -82,7 +80,7 @@ ArtNetOutput::ArtNetOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isAc
     _forceSourcePort = false;
     memset(_data, 0, sizeof(_data));
 
-    _forceSourcePort = node->GetAttribute("ForceSourcePort", "FALSE") == "TRUE";
+    _forceSourcePort = std::string_view(node.attribute("ForceSourcePort").as_string("FALSE")) == "TRUE";
 }
 
 ArtNetOutput::ArtNetOutput() : IPOutput() {
@@ -613,11 +611,12 @@ void ArtNetOutput::RemoveProperties(wxPropertyGrid* propertyGrid) {
 #endif
 #pragma endregion
 
-wxXmlNode* ArtNetOutput::Save()
+pugi::xml_node ArtNetOutput::Save(pugi::xml_node parent)
 {
-    auto node = IPOutput::Save();
+    pugi::xml_node node = parent.append_child("network");
+    IPOutput::SaveAttr(node);
     if (_forceSourcePort) {
-        node->AddAttribute("ForceSourcePort", "TRUE");
+        node.append_attribute("ForceSourcePort") = "TRUE";
     }
     return node;
 }

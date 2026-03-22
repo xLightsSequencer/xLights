@@ -9,7 +9,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 #include <wx/dir.h>
@@ -85,47 +84,49 @@ const std::vector<ControllerNameVendorMap> __controllerNameMap =
 };
 
 #pragma region Constructors and Destructors
-Controller::Controller(OutputManager* om, wxXmlNode* node, const std::string& showDir) : _outputManager(om)
+Controller::Controller(OutputManager* om, pugi::xml_node node, const std::string& showDir) : _outputManager(om)
 {
-    if (node->GetAttribute("ActiveState", "") == "") {
-        if (node->GetAttribute("Active", "1") == "0") {
+    std::string activeState = node.attribute("ActiveState").as_string("");
+    if (activeState.empty()) {
+        if (std::string_view(node.attribute("Active").as_string("1")) == "0") {
             SetActive("Inactive");
         } else {
             SetActive("Active");
         }
     } else {
-        SetActive(node->GetAttribute("ActiveState", "Active"));
+        SetActive(activeState);
     }
 
-    for (wxXmlNode* n = node->GetChildren(); n != nullptr; n = n->GetNext()) {
-        if (n->GetName() == "network") {
+    for (pugi::xml_node n = node.first_child(); n; n = n.next_sibling()) {
+        if (std::string_view(n.name()) == "network") {
             _outputs.push_back(Output::Create(this, n, showDir));
             if (_outputs.back() == nullptr) {
                 // this shouldnt happen unless we are loading a future file with an output type we dont recognise
                 _outputs.pop_back();
             }
-        } else if (n->GetName() == "ExtraProperty") {
-            _extraProperties[n->GetAttribute("name")] = n->GetAttribute("value");
+        } else if (std::string_view(n.name()) == "ExtraProperty") {
+            _extraProperties[n.attribute("name").as_string("")] = n.attribute("value").as_string("");
         }
     }
 
-    _id = wxAtoi(node->GetAttribute("Id", "64001"));
-    _name = node->GetAttribute("Name", om->UniqueName(node->GetName() + "_")).Trim(true).Trim(false);
-    _description = node->GetAttribute("Description", "").Trim(true).Trim(false);
-    _fromBase = node->GetAttribute("FromBase", "0") == "1";
-    _autoSize = node->GetAttribute("AutoSize", "0") == "1";
-    SetAutoLayout(node->GetAttribute("AutoLayout", "1") == "1");
-    _fullxLightsControl = node->GetAttribute("FullxLightsControl", "FALSE") == "TRUE";
-    _defaultBrightnessUnderFullControl = wxAtoi(node->GetAttribute("DefaultBrightnessUnderFullControl", "100"));
-    _defaultGammaUnderFullControl = wxAtof(node->GetAttribute("DefaultGammaUnderFullControl", "1.0"));
-    SetAutoUpload(node->GetAttribute("AutoUpload", "0") == "1");
+    _id = node.attribute("Id").as_int(64001);
+    std::string defaultName = om->UniqueName(std::string(node.name()) + "_");
+    _name = wxString(node.attribute("Name").as_string(defaultName.c_str())).Trim(true).Trim(false).ToStdString();
+    _description = wxString(node.attribute("Description").as_string("")).Trim(true).Trim(false).ToStdString();
+    _fromBase = std::string_view(node.attribute("FromBase").as_string("0")) == "1";
+    _autoSize = std::string_view(node.attribute("AutoSize").as_string("0")) == "1";
+    SetAutoLayout(std::string_view(node.attribute("AutoLayout").as_string("1")) == "1");
+    _fullxLightsControl = std::string_view(node.attribute("FullxLightsControl").as_string("FALSE")) == "TRUE";
+    _defaultBrightnessUnderFullControl = node.attribute("DefaultBrightnessUnderFullControl").as_int(100);
+    _defaultGammaUnderFullControl = node.attribute("DefaultGammaUnderFullControl").as_float(1.0);
+    SetAutoUpload(std::string_view(node.attribute("AutoUpload").as_string("0")) == "1");
     if (!_autoLayout) _autoSize = false;
-    _vendor = node->GetAttribute("Vendor");
-    _model = node->GetAttribute("Model");
-    _variant = node->GetAttribute("Variant");
+    _vendor = node.attribute("Vendor").as_string("");
+    _model = node.attribute("Model").as_string("");
+    _variant = node.attribute("Variant").as_string("");
 
-    SetSuppressDuplicateFrames(node->GetAttribute("SuppressDuplicates", "0") == "1");
-    SetMonitoring(node->GetAttribute("Monitor", "1") == "1");
+    SetSuppressDuplicateFrames(std::string_view(node.attribute("SuppressDuplicates").as_string("0")) == "1");
+    SetMonitoring(std::string_view(node.attribute("Monitor").as_string("1")) == "1");
 
     _dirty = false;
     SearchForNewVendor(_vendor, _model, _variant);
@@ -165,39 +166,37 @@ Controller::~Controller() {
     DeleteAllOutputs();
 }
 
-wxXmlNode* Controller::Save() {
+pugi::xml_node Controller::Save(pugi::xml_node parent) {
 
     _dirty = false;
 
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "Controller");
-    node->AddAttribute("Id", wxString::Format("%d", _id));
-    node->AddAttribute("Name", _name);
-    node->AddAttribute("Description", _description);
-    node->AddAttribute("Type", GetType());
-    node->AddAttribute("Vendor", GetVendor());
-    node->AddAttribute("Model", GetModel());
-    node->AddAttribute("Variant", GetVariant());
-    node->AddAttribute("AutoSize", _autoSize ? "1" : "0");
-    node->AddAttribute("FromBase", _fromBase ? "1" : "0");
+    pugi::xml_node node = parent.append_child("Controller");
+    node.append_attribute("Id") = _id;
+    node.append_attribute("Name") = _name;
+    node.append_attribute("Description") = _description;
+    node.append_attribute("Type") = GetType();
+    node.append_attribute("Vendor") = GetVendor();
+    node.append_attribute("Model") = GetModel();
+    node.append_attribute("Variant") = GetVariant();
+    node.append_attribute("AutoSize") = _autoSize ? "1" : "0";
+    node.append_attribute("FromBase") = _fromBase ? "1" : "0";
     if (_fullxLightsControl)
-        node->AddAttribute("FullxLightsControl", "TRUE");
-    node->AddAttribute("DefaultBrightnessUnderFullControl", wxString::Format("%d", _defaultBrightnessUnderFullControl));
-    node->AddAttribute("DefaultGammaUnderFullControl", wxString::Format("%g", _defaultGammaUnderFullControl));
-    node->AddAttribute("ActiveState", DecodeActiveState(_active));
-    node->AddAttribute("AutoLayout", _autoLayout ? "1" : "0");
-    node->AddAttribute("AutoUpload", _autoUpload && SupportsAutoUpload() ? "1" : "0");
-    node->AddAttribute("SuppressDuplicates", _suppressDuplicateFrames ? "1" : "0");
-    node->AddAttribute("Monitor", _monitor ? "1" : "0");
+        node.append_attribute("FullxLightsControl") = "TRUE";
+    node.append_attribute("DefaultBrightnessUnderFullControl") = _defaultBrightnessUnderFullControl;
+    node.append_attribute("DefaultGammaUnderFullControl") = _defaultGammaUnderFullControl;
+    node.append_attribute("ActiveState") = DecodeActiveState(_active);
+    node.append_attribute("AutoLayout") = _autoLayout ? "1" : "0";
+    node.append_attribute("AutoUpload") = (_autoUpload && SupportsAutoUpload()) ? "1" : "0";
+    node.append_attribute("SuppressDuplicates") = _suppressDuplicateFrames ? "1" : "0";
+    node.append_attribute("Monitor") = _monitor ? "1" : "0";
     for (const auto& it : _outputs) {
-        node->AddChild(it->Save());
+        it->Save(node);
     }
     if (!_extraProperties.empty()) {
-        
         for (auto &p : _extraProperties) {
-            wxXmlNode *ep = new wxXmlNode(wxXML_ELEMENT_NODE, "ExtraProperty");
-            ep->AddAttribute("name", p.first);
-            ep->AddAttribute("value", p.second);
-            node->AddChild(ep);
+            pugi::xml_node ep = node.append_child("ExtraProperty");
+            ep.append_attribute("name") = p.first;
+            ep.append_attribute("value") = p.second;
         }
     }
     return node;
@@ -355,11 +354,11 @@ std::string Controller::DecodeActiveState(Controller::ACTIVESTATE state)
     return "Active";
 }
 
-Controller* Controller::Create(OutputManager* om, wxXmlNode* node, std::string showDir) {
+Controller* Controller::Create(OutputManager* om, pugi::xml_node node, std::string showDir) {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    std::string type = node->GetAttribute("Type", "").ToStdString();
+    std::string type = node.attribute("Type").as_string("");
 
     if (type == CONTROLLER_NULL) {
         return new ControllerNull(om, node, showDir);
@@ -616,7 +615,7 @@ bool Controller::SupportsAutoUpload() const {
     return false;
 }
 
-void Controller::Convert(wxXmlNode* node, std::string showDir) {
+void Controller::Convert(pugi::xml_node node, std::string showDir) {
 
     _dirty = true;
 
@@ -625,7 +624,7 @@ void Controller::Convert(wxXmlNode* node, std::string showDir) {
         _autoSize = _outputs.front()->IsAutoSize_CONVERT();
     }
 
-    auto const c = node->GetAttribute("Controller");
+    std::string c = node.attribute("Controller").as_string("");
     if (c != "") {
 
         for (const auto& it : __controllerNameMap) {

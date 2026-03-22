@@ -8,8 +8,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-
 #include <algorithm>
 #include <filesystem>
 

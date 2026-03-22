@@ -11,7 +11,6 @@
 
 #include "xxxEthernetOutput.h"
 
-#include <wx/xml/xml.h>
 #include <wx/process.h>
 
 #include "OutputManager.h"
@@ -114,12 +113,12 @@ void xxxEthernetOutput::OpenDatagram() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-xxxEthernetOutput::xxxEthernetOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
+xxxEthernetOutput::xxxEthernetOutput(pugi::xml_node node, bool isActive) : IPOutput(node, isActive) {
 
-    SetId(wxAtoi(node->GetAttribute("Id", "0")));
-    if (wxAtoi(node->GetAttribute("Port", "-1")) != -1)
+    SetId(node.attribute("Id").as_int(0));
+    if (node.attribute("Port").as_int(-1) != -1)
     {
-        _universe = wxAtoi(node->GetAttribute("Port"));
+        _universe = node.attribute("Port").as_int(0);
     }
     _data = (uint8_t*)malloc(_channels + xxxETHERNET_PACKET_HEADERLEN + xxxETHERNET_PACKET_FOOTERLEN);
     memset(_data, 0, _channels + xxxETHERNET_PACKET_HEADERLEN + xxxETHERNET_PACKET_FOOTERLEN);
@@ -147,13 +146,13 @@ xxxEthernetOutput::~xxxEthernetOutput() {
     }
 }
 
-wxXmlNode* xxxEthernetOutput::Save() {
+pugi::xml_node xxxEthernetOutput::Save(pugi::xml_node parent) {
 
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
+    pugi::xml_node node = parent.append_child("network");
 
-    node->AddAttribute("Id", wxString::Format(wxT("%i"), GetId()));
+    node.append_attribute("Id") = GetId();
 
-    IPOutput::Save(node);
+    IPOutput::SaveAttr(node);
 
     return node;
 }

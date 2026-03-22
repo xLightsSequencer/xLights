@@ -11,7 +11,6 @@
 #include "ControllerConnectionDialog.h"
 #include "models/Model.h"
 
-#include <wx/xml/xml.h>
 #include "xLightsApp.h"
 #include "xLightsMain.h"
 #include "Pixels.h"

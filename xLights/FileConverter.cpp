@@ -34,6 +34,8 @@
 
 #include "render/FSEQFile.h"
 #include "FileConverter.h"
+#include <pugixml.hpp>
+#include <sstream>
 #include "UtilFunctions.h"
 #include "outputs/OutputManager.h"
 #include "outputs/Controller.h"
@@ -1877,8 +1879,13 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
                     }
                 }
                 if (header.data.size() == 0) {
+                    pugi::xml_document xmlDoc;
+                    params._outputManager->SaveToXML(xmlDoc);
+                    std::ostringstream oss;
+                    xmlDoc.save(oss);
+                    std::string xmlStr = oss.str();
                     wxMemoryOutputStream out;
-                    params._outputManager->SaveToXML().Save(out);
+                    out.Write(xmlStr.data(), xmlStr.size());
                     header.data.resize(out.GetLength());
                     int sz = compressMemoryBuffer(out, &header.data[0], out.GetLength(), pool);
                     header.data.resize(sz);

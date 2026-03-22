@@ -8,8 +8,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-
 #include "ColorManager.h"
 #include "xLightsMain.h"
 #include "XmlSerializer/XmlSerializingVisitor.h"
@@ -204,21 +202,18 @@ void ColorManager::Save(BaseSerializingVisitor& visitor) const
     visitor.WriteCloseTag();
 }
 
-void ColorManager::Load(wxXmlNode* colors_node)
+void ColorManager::Load(pugi::xml_node colors_node)
 {
-	if (colors_node != nullptr)
+	if (colors_node)
 	{
         ResetDefaults();
-        for (wxXmlNode* c = colors_node->GetChildren(); c != nullptr; c = c->GetNext())
+        for (pugi::xml_node c = colors_node.first_child(); c; c = c.next_sibling())
         {
-            std::string name = c->GetName().ToStdString();
-            wxString red_attr;
-            c->GetAttribute("Red", &red_attr);
-            wxString green_attr;
-            c->GetAttribute("Green", &green_attr);
-            wxString blue_attr;
-            c->GetAttribute("Blue", &blue_attr);
-            colors[name] = xlColor(wxAtoi(red_attr),wxAtoi(green_attr),wxAtoi(blue_attr));
+            std::string name = c.name();
+            int red = c.attribute("Red").as_int(0);
+            int green = c.attribute("Green").as_int(0);
+            int blue = c.attribute("Blue").as_int(0);
+            colors[name] = xlColor(red, green, blue);
         }
 	}
 }

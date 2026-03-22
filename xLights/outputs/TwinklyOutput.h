@@ -26,11 +26,11 @@ class TwinklyOutput : public IPOutput
 
 public:
 #pragma region Constructors and Destructors
-    TwinklyOutput(wxXmlNode* node, bool isActive);
+    TwinklyOutput(pugi::xml_node node, bool isActive);
     TwinklyOutput();
     TwinklyOutput(const TwinklyOutput& from);
     virtual ~TwinklyOutput() override;
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     virtual Output* Copy() override
     {
         return new TwinklyOutput(*this);

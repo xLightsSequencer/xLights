@@ -11,10 +11,9 @@
 
 #include "OpenDMXOutput.h"
 
-#include <wx/xml/xml.h>
 
 #pragma region Constructors and Destructors
-OpenDMXOutput::OpenDMXOutput(wxXmlNode* node) : SerialOutput(node) {
+OpenDMXOutput::OpenDMXOutput(pugi::xml_node node) : SerialOutput(node) {
     _baudRate = GetDefaultBaudRate();
     memset(_data, 0x00, sizeof(_data));
 }

@@ -14,7 +14,7 @@
 #include <vector>
 #include <memory>
 
-class wxXmlNode;
+#include <pugixml.hpp>
 
 class MhChannel
 {
@@ -23,7 +23,7 @@ class MhChannel
         class MhRange
         {
         public:
-            MhRange(wxXmlNode* node, const std::string& pretty_name);
+            MhRange(pugi::xml_node node, const std::string& pretty_name);
             virtual ~MhRange() = default;
 
             void Init();
@@ -39,19 +39,19 @@ class MhChannel
             void SetName(std::string& val) { name = val; }
 
         private:
-            wxXmlNode* range_node;
+            pugi::xml_node range_node;
             std::string name;
             unsigned int min = 0;
             unsigned int max = 255;
         };
 
-        MhChannel(wxXmlNode* node, const std::string& pretty_name);
+        MhChannel(pugi::xml_node node, const std::string& pretty_name);
         virtual ~MhChannel() = default;
 
         void Init();
 
         std::string GetName() { return name; }
-        wxXmlNode* GetXmlNode() { return node_xml; }
+        pugi::xml_node GetXmlNode() { return node_xml; }
 
         std::vector<std::unique_ptr<MhRange>>& GetRanges() { return ranges; }
 
@@ -71,7 +71,7 @@ class MhChannel
     protected:
 
     private:
-        wxXmlNode* node_xml;
+        pugi::xml_node node_xml;
         std::string name;
         int channel_coarse = 0;
         int channel_fine = 0;

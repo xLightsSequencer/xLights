@@ -15,7 +15,6 @@
 #include <glm/glm.hpp>
 
 class BaseObject;
-class wxXmlNode;
 class ModelPreview;
 
 class DmxImage
@@ -71,7 +70,6 @@ public:
 protected:
 
 private:
-    wxXmlNode* node_xml;
     std::string _imageFile {""};
     int width {1};
     int height {1};

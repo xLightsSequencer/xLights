@@ -14,7 +14,6 @@
 #include "../OutputModelManager.h"
 #include "../UtilFunctions.h"
 
-#include <wx/xml/xml.h>
 #include <wx/propgrid/propgrid.h>
 
 #include <log4cpp/Category.hh>
@@ -87,12 +86,11 @@ void LOROptimisedOutput::InitialiseTypes() {
 #pragma endregion
 
 #pragma region Private Functions
-void LOROptimisedOutput::Save(wxXmlNode* node) {
+void LOROptimisedOutput::SaveAttr(pugi::xml_node node) {
 
-    wxXmlNode* cntrl_node = new wxXmlNode(wxXML_ELEMENT_NODE, "controllers");
-    node->AddChild(cntrl_node);
+    pugi::xml_node cntrl_node = node.append_child("controllers");
     _controllers.Save(cntrl_node);
-    SerialOutput::Save(node);
+    SerialOutput::SaveAttr(node);
 }
 
 void LOROptimisedOutput::CalcChannels(int& channel_count, int& channels_per_pass, int& controller_channels_to_process, LorController* cntrl) {
@@ -206,7 +204,7 @@ LOROptimisedOutput::LOROptimisedOutput(const LOROptimisedOutput& from) :
     SetupHistory();
 }
 
-LOROptimisedOutput::LOROptimisedOutput(wxXmlNode* node) : LOROutput(node), _controllers(node) {
+LOROptimisedOutput::LOROptimisedOutput(pugi::xml_node node) : LOROutput(node), _controllers(node) {
     InitialiseTypes();
     SetupHistory();
     CalcTotalChannels();

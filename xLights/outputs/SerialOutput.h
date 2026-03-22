@@ -26,18 +26,18 @@ protected:
 #pragma endregion
 
     #pragma region Private Functions
-    virtual void Save(wxXmlNode* node) override;
+    virtual void SaveAttr(pugi::xml_node node) override;
     void SetDontDieUntil(wxLongLong dieTime) { _dieTime = dieTime; }
     #pragma endregion
 
 public:
 
     #pragma region Constructors and Destructors
-    SerialOutput(wxXmlNode* node);
+    SerialOutput(pugi::xml_node node);
     SerialOutput(const SerialOutput& from);
     SerialOutput();
     virtual ~SerialOutput() override;
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     #pragma endregion 
 
     #pragma region Static Functions

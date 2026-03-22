@@ -14,102 +14,69 @@
 
 #include <memory>
 
-void SerializeViewsObject(wxXmlNode* node, xLightsFrame* xlights) {
-    wxXmlNode* viewsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "views");
+void SerializeViewsObject(pugi::xml_node node, xLightsFrame* xlights) {
+    pugi::xml_node viewsNode = node.append_child("views");
     SequenceViewManager* seqViewMgr = xlights->GetViewsManager();
     std::list<SequenceView*> views = seqViewMgr->GetViews();
     for (SequenceView* view : views) {
         std::string name = view->GetName();
         if (name != "Master View") {
-            wxXmlNode* viewChild = new wxXmlNode(wxXML_ELEMENT_NODE, "view");
-            viewChild->AddAttribute("name", name);
-            viewChild->AddAttribute(XmlNodeKeys::ModelsAttribute, view->GetModelsString());
-            viewsNode->AddChild(viewChild);
+            pugi::xml_node viewChild = viewsNode.append_child("view");
+            viewChild.append_attribute("name") = name;
+            viewChild.append_attribute(XmlNodeKeys::ModelsAttribute) = view->GetModelsString();
         }
     }
-    node->AddChild(viewsNode);
 }
 
-void SerializeColorsObject(wxXmlNode* node, xLightsFrame* xlights) {
-    wxXmlNode* colorsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "colors");
+void SerializeColorsObject(pugi::xml_node node, xLightsFrame* xlights) {
+    pugi::xml_node colorsNode = node.append_child("colors");
     auto colorMgr = std::make_unique<ColorManager>(xlights);
     std::map<std::string, xlColor> colors = colorMgr->GetColors();
     for (const auto& c : colors) {
-        wxXmlNode* colorChild = new wxXmlNode(wxXML_ELEMENT_NODE, c.first);
-        colorChild->AddAttribute(XmlNodeKeys::RedAttribute, std::to_string(c.second.red));
-        colorChild->AddAttribute(XmlNodeKeys::GreenAttribute, std::to_string(c.second.green));
-        colorChild->AddAttribute(XmlNodeKeys::BlueAttribute, std::to_string(c.second.blue));
-        colorsNode->AddChild(colorChild);
+        pugi::xml_node colorChild = colorsNode.append_child(c.first);
+        colorChild.append_attribute(XmlNodeKeys::RedAttribute) = c.second.red;
+        colorChild.append_attribute(XmlNodeKeys::GreenAttribute) = c.second.green;
+        colorChild.append_attribute(XmlNodeKeys::BlueAttribute) = c.second.blue;
     }
-    node->AddChild(colorsNode);
 }
 
-void SerializeLayoutGroupsObject(wxXmlNode* node, xLightsFrame* xlights) {
-    wxXmlNode* lgNode = new wxXmlNode(wxXML_ELEMENT_NODE, "layoutGroups");
+void SerializeLayoutGroupsObject(pugi::xml_node node, xLightsFrame* xlights) {
+    pugi::xml_node lgNode = node.append_child("layoutGroups");
     for (LayoutGroup* lg : xlights->LayoutGroups) {
-        wxXmlNode* lgChild = new wxXmlNode(wxXML_ELEMENT_NODE, "layoutGroup");
-        lgChild->AddAttribute("name", lg->GetName());
-        lgChild->AddAttribute(XmlNodeKeys::BackgroundImageAttribute, lg->GetBackgroundImage());
-        lgChild->AddAttribute(XmlNodeKeys::BackgroundBrightnessAttribute, std::to_string(lg->GetBackgroundBrightness()));
-        lgChild->AddAttribute(XmlNodeKeys::BackgroundAlphaAttribute, std::to_string(lg->GetBackgroundAlpha()));
-        lgChild->AddAttribute(XmlNodeKeys::ScaleImageAttribute, std::to_string(lg->GetBackgroundScaled()));
-        lgChild->AddAttribute("PosX", std::to_string(lg->GetPosX()));
-        lgChild->AddAttribute("PosY", std::to_string(lg->GetPosY()));
-        lgChild->AddAttribute("PaneWidth", std::to_string(lg->GetPaneWidth()));
-        lgChild->AddAttribute("PaneHeight", std::to_string(lg->GetPaneHeight()));
-        lgNode->AddChild(lgChild);
+        pugi::xml_node lgChild = lgNode.append_child("layoutGroup");
+        lgChild.append_attribute("name") = lg->GetName();
+        lgChild.append_attribute(XmlNodeKeys::BackgroundImageAttribute) = lg->GetBackgroundImage();
+        lgChild.append_attribute(XmlNodeKeys::BackgroundBrightnessAttribute) = lg->GetBackgroundBrightness();
+        lgChild.append_attribute(XmlNodeKeys::BackgroundAlphaAttribute) = lg->GetBackgroundAlpha();
+        lgChild.append_attribute(XmlNodeKeys::ScaleImageAttribute) = (int)lg->GetBackgroundScaled();
+        lgChild.append_attribute("PosX") = lg->GetPosX();
+        lgChild.append_attribute("PosY") = lg->GetPosY();
+        lgChild.append_attribute("PaneWidth") = lg->GetPaneWidth();
+        lgChild.append_attribute("PaneHeight") = lg->GetPaneHeight();
     }
-    node->AddChild(lgNode);
 }
 
-void SerializePerspectivesObject(wxXmlNode* node, xLightsFrame* xlights) {
+void SerializePerspectivesObject(pugi::xml_node node, xLightsFrame* xlights) {
     std::list<std::string> perspectives = xlights->GetPerspectives();
-    wxXmlNode* perspectivesNode = new wxXmlNode(wxXML_ELEMENT_NODE, "perspectives");
-    for (std::string p : perspectives) {
-        wxXmlNode* pChild = new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
-        pChild->AddAttribute("name", p);
-        perspectivesNode->AddChild(pChild);
+    pugi::xml_node perspectivesNode = node.append_child("perspectives");
+    for (const std::string& p : perspectives) {
+        pugi::xml_node pChild = perspectivesNode.append_child("perspective");
+        pChild.append_attribute("name") = p;
     }
-    node->AddChild(perspectivesNode);
 }
 
-void SerializeSettingsObject(wxXmlNode* node, xLightsFrame* xlights) {
-    wxXmlNode* settings = new wxXmlNode(wxXML_ELEMENT_NODE, "settings");
-    wxXmlNode* scaleimage = new wxXmlNode(wxXML_ELEMENT_NODE, "scaleImage");
-    scaleimage->AddAttribute("value", std::to_string(xlights->GetDefaultPreviewBackgroundScaled()));
-    settings->AddChild(scaleimage);
-    wxXmlNode* bkgimage = new wxXmlNode(wxXML_ELEMENT_NODE, "backgroundImage");
-    bkgimage->AddAttribute("value", xlights->GetDefaultPreviewBackgroundImage());
-    settings->AddChild(bkgimage);
-    wxXmlNode* bkgbright = new wxXmlNode(wxXML_ELEMENT_NODE, "backgroundBrightness");
-    bkgbright->AddAttribute("value", std::to_string(xlights->GetDefaultPreviewBackgroundBrightness()));
-    settings->AddChild(bkgbright);
-    wxXmlNode* bkgalpha = new wxXmlNode(wxXML_ELEMENT_NODE, "backgroundAlpha");
-    bkgalpha->AddAttribute("value", std::to_string(xlights->GetDefaultPreviewBackgroundAlpha()));
-    settings->AddChild(bkgalpha);
-    wxXmlNode* boundbox = new wxXmlNode(wxXML_ELEMENT_NODE, "Display2DBoundingBox");
-    boundbox->AddAttribute("value", std::to_string(xlights->GetDisplay2DBoundingBox()));
-    settings->AddChild(boundbox);
-    wxXmlNode* grid = new wxXmlNode(wxXML_ELEMENT_NODE, "Display2DGrid");
-    grid->AddAttribute("value", std::to_string(xlights->GetDisplay2DGrid()));
-    settings->AddChild(grid);
-    wxXmlNode* gridspace = new wxXmlNode(wxXML_ELEMENT_NODE, "Display2DGridSpacing");
-    gridspace->AddAttribute("value", std::to_string(xlights->GetDisplay2DGridSpacing()));
-    settings->AddChild(gridspace);
-    wxXmlNode* center0 = new wxXmlNode(wxXML_ELEMENT_NODE, "Display2DCenter0");
-    center0->AddAttribute("value", std::to_string(xlights->GetDisplay2DCenter0()));
-    settings->AddChild(center0);
-    wxXmlNode* laygrp = new wxXmlNode(wxXML_ELEMENT_NODE, "storedLayoutGroup");
-    laygrp->AddAttribute("value", xlights->GetStoredLayoutGroup());
-    settings->AddChild(laygrp);
-    wxXmlNode* layout3d = new wxXmlNode(wxXML_ELEMENT_NODE, "LayoutMode3D");
-    layout3d->AddAttribute("value", xlights->GetXmlSetting("LayoutMode3D", "0"));
-    settings->AddChild(layout3d);
-    wxXmlNode* previewW = new wxXmlNode(wxXML_ELEMENT_NODE, "previewWidth");
-    previewW->AddAttribute("value", std::to_string(0));
-    settings->AddChild(previewW);
-    wxXmlNode* previewH = new wxXmlNode(wxXML_ELEMENT_NODE, "previewHeight");
-    previewH->AddAttribute("value", std::to_string(0));
-    settings->AddChild(previewH);
-    node->AddChild(settings);
+void SerializeSettingsObject(pugi::xml_node node, xLightsFrame* xlights) {
+    pugi::xml_node settings = node.append_child("settings");
+    settings.append_child("scaleImage").append_attribute("value") = (int)xlights->GetDefaultPreviewBackgroundScaled();
+    settings.append_child("backgroundImage").append_attribute("value") = xlights->GetDefaultPreviewBackgroundImage();
+    settings.append_child("backgroundBrightness").append_attribute("value") = xlights->GetDefaultPreviewBackgroundBrightness();
+    settings.append_child("backgroundAlpha").append_attribute("value") = xlights->GetDefaultPreviewBackgroundAlpha();
+    settings.append_child("Display2DBoundingBox").append_attribute("value") = (int)xlights->GetDisplay2DBoundingBox();
+    settings.append_child("Display2DGrid").append_attribute("value") = (int)xlights->GetDisplay2DGrid();
+    settings.append_child("Display2DGridSpacing").append_attribute("value") = xlights->GetDisplay2DGridSpacing();
+    settings.append_child("Display2DCenter0").append_attribute("value") = (int)xlights->GetDisplay2DCenter0();
+    settings.append_child("storedLayoutGroup").append_attribute("value") = xlights->GetStoredLayoutGroup();
+    settings.append_child("LayoutMode3D").append_attribute("value") = xlights->GetXmlSetting("LayoutMode3D", "0");
+    settings.append_child("previewWidth").append_attribute("value") = 0;
+    settings.append_child("previewHeight").append_attribute("value") = 0;
 }

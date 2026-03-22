@@ -14,9 +14,10 @@
 #include <wx/sstream.h>
 #include <wx/stdpaths.h>
 #include <wx/tokenzr.h>
+#include <wx/mstream.h>
 #include <wx/wfstream.h>
 #include <wx/wx.h>
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 #include <wx/zipstrm.h>
 
 #include "CachedFileDownloader.h"
@@ -54,6 +55,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include "../ui/wxUtilities.h"
 
@@ -451,14 +453,14 @@ std::string Model::GetIndividualStartChannel(size_t s) const
 }
 
 
-void Model::WriteFaceInfo(wxXmlNode* rootXml, const FaceStateData& faceInfo) {
+void Model::WriteFaceInfo(pugi::xml_node rootXml, const FaceStateData& faceInfo) {
     if (!faceInfo.empty()) {
         for (const auto& it : faceInfo) {
-            wxXmlNode* f = new wxXmlNode(rootXml, wxXML_ELEMENT_NODE, "faceInfo");
+            pugi::xml_node f = rootXml.prepend_child("faceInfo");
             std::string name = it.first;
-            f->AddAttribute("Name", name);
+            f.append_attribute("Name") = name;
             for (const auto& it2 : it.second) {
-                f->AddAttribute(it2.first, it2.second);
+                f.append_attribute(it2.first) = it2.second;
             }
         }
     }
@@ -566,19 +568,19 @@ void Model::UpdateStateInfoNodes()
     }
 }
 
-void Model::WriteStateInfo(wxXmlNode* rootXml, const FaceStateData& stateInfo, bool forceCustom) {
+void Model::WriteStateInfo(pugi::xml_node rootXml, const FaceStateData& stateInfo, bool forceCustom) {
     if (!stateInfo.empty()) {
         for (const auto& it : stateInfo) {
             std::string name = it.first;
-            if (wxString(name).Trim(true).Trim(false) != "") {
-                wxXmlNode* f = new wxXmlNode(rootXml, wxXML_ELEMENT_NODE, "stateInfo");
-                f->AddAttribute("Name", name);
+            if (!Trim(name).empty()) {
+                pugi::xml_node f = rootXml.prepend_child("stateInfo");
+                f.append_attribute("Name") = name;
                 if (forceCustom) {
-                    f->AddAttribute("CustomColors", "1");
+                    f.append_attribute("CustomColors") = "1";
                 }
                 for (const auto& it2 : it.second) {
-                    if (wxString(it2.first).Trim(true).Trim(false) != "")
-                        f->AddAttribute(it2.first, it2.second);
+                    if (!Trim(it2.first).empty())
+                        f.append_attribute(it2.first) = it2.second;
                 }
             }
         }
@@ -605,23 +607,23 @@ std::string Model::SerialiseState() const
     return res;
 }
 
-void Model::AddModelGroups(wxXmlNode* n, int w, int h, const std::string& name, bool& merge, bool& ask)
+void Model::AddModelGroups(pugi::xml_node n, int w, int h, const std::string& name, bool& merge, bool& ask)
 {
-    auto grpModels = n->GetAttribute("models");
-    if (grpModels.length() == 0)
+    std::string grpModels = n.attribute("models").as_string("");
+    if (grpModels.empty())
         return;
 
     modelManager.GetXLightsFrame()->AllModels.AddModelGroups(n, w, h, name, merge, ask);
 }
 
-void Model::ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup) {
+void Model::ImportExtraModels(pugi::xml_node n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup) {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     int x = GetHcenterPos();
     int y = GetVcenterPos();
 
     // import the shadow models as well
-    for (auto m = n->GetChildren(); m != nullptr; m = m->GetNext()) {
+    for (auto m = n.first_child(); m; m = m.next_sibling()) {
         bool cancelled = false;
         Model* model = xlights->AllModels.CreateDefaultModel("Custom", "1"); // start with a custom model
         model = model->CreateDefaultModelFromSavedModelNode(model, modelPreview, m, xlights, cancelled);
@@ -650,7 +652,7 @@ void Model::ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview*
                         OutputModelManager::WORK_RELOAD_MODELLIST, "Model::ImportExtraModels");
             IncrementChangeCount();
         } else {
-            logger_base.error("Unable to import %s. Create failed.", (const char*)m->GetName().c_str());
+            logger_base.error("Unable to import %s. Create failed.", m.name());
         }
     }
 }
@@ -1093,21 +1095,18 @@ bool compare_pairstring(const std::pair<std::string, std::string>& a, const std:
 
 std::string Model::GetControllerConnectionAttributeString() const
 {
-    wxXmlDocument doc;
-    wxXmlNode *root = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "cc");
-    doc.SetRoot(root);
+    pugi::xml_document doc;
+    pugi::xml_node root = doc.append_child("cc");
     XmlSerializingVisitor v(root);
     v.Visit(_controllerConnection);
-    wxXmlNode *n = root->GetChildren();
-    
+    pugi::xml_node n = root.first_child();
+
     std::string ret;
-    auto attr = n->GetAttributes();
-    while (attr != nullptr) {
-        if (attr->GetName() != "Protocol" && attr->GetName() != "Port") {
+    for (auto attr = n.first_attribute(); attr; attr = attr.next_attribute()) {
+        if (std::string_view(attr.name()) != "Protocol" && std::string_view(attr.name()) != "Port") {
             ret += ":";
-            ret += attr->GetName().ToStdString() + "=" + attr->GetValue();
+            ret += std::string(attr.name()) + "=" + attr.value();
         }
-        attr = attr->GetNext();
     }
     return ret;
 }
@@ -2741,14 +2740,15 @@ std::string Model::ExportSuperStringColors() const
     return colors;
 }
 
-void Model::ImportSuperStringColours(wxXmlNode* root)
+void Model::ImportSuperStringColours(pugi::xml_node root)
 {
     bool found = true;
     int index = 0;
     while (found) {
         auto an = std::format("SuperStringColour{}", index);
-        if (root->HasAttribute(an)) {
-            superStringColours.push_back(xlColor(root->GetAttribute(an)));
+        auto attr = root.attribute(an);
+        if (!attr.empty()) {
+            superStringColours.push_back(xlColor(std::string(attr.as_string())));
         } else {
             found = false;
         }
@@ -3606,14 +3606,15 @@ std::string Model::GetDimension() const
     return GetModelScreenLocation().GetDimension();
 }
 
-Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, wxXmlNode* node, xLightsFrame* xlights, bool& cancelled) const {
+Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, pugi::xml_node node, xLightsFrame* xlights, bool& cancelled) const {
 
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // This code should work to import model with old formats as well as new Serializer formats
     auto n = node;
-    if (node->GetName() == "models") {
-        n = node->GetChildren();
+    if (std::string_view(node.name()) == "models") {
+        n = node.first_child();
+        if (!n) return model;
     }
     // grab the attributes I want to keep
     std::string sc = model->GetModelStartChannel();
@@ -3624,26 +3625,26 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
     XmlSerializer serializer;
     xlights->ClearUsedRuler();
 
-    if (node->GetName() == "custommodel") {
+    if (std::string_view(node.name()) == "custommodel") {
         if (model != nullptr) { delete model; }
         model = serializer.DeserializeModel(n, xlights, true);
         return model;
-    } else if (node->GetName() == "polylinemodel") {
+    } else if (std::string_view(node.name()) == "polylinemodel") {
         if (model != nullptr) { delete model; }
         model = serializer.DeserializeModel(n, xlights, true);
         return model;
-    } else if (node->GetName() == "multipointmodel") {
+    } else if (std::string_view(node.name()) == "multipointmodel") {
         if (model != nullptr) { delete model; }
         model = serializer.DeserializeModel(n, xlights, true);
         return model;
-    } else if (node->GetName() == "matrixmodel") {
+    } else if (std::string_view(node.name()) == "matrixmodel") {
         if (model != nullptr) { delete model; }
         model = serializer.DeserializeModel(n, xlights, true);
         if (model != nullptr) {
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(1, 1);
         }
         return model;
-    } else if (node->GetName() == "archesmodel") {
+    } else if (std::string_view(node.name()) == "archesmodel") {
         int l = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetLeft();
         int r = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetRight();
         int t = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetTop();
@@ -3657,17 +3658,17 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
             ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetBottom(b);
             ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMHeight(2 * (float)std::abs(t - b) / (float)std::abs(r - l));
         }
-    } else if (node->GetName() == "starmodel") {
+    } else if (std::string_view(node.name()) == "starmodel") {
         if (model != nullptr) { delete model; }
         model = serializer.DeserializeModel(n, xlights, true);
         ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(1, 1);
         return model;
-    } else if (node->GetName() == "treemodel") {
+    } else if (std::string_view(node.name()) == "treemodel") {
         if (model != nullptr) { delete model; }
         model = serializer.DeserializeModel(n, xlights, true);
         ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(1, 1);
         return model;
-    } else if (node->GetName() == "dmxmodel") {
+    } else if (std::string_view(node.name()) == "dmxmodel") {
         // grab the attributes I want to keep
         auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
         auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
@@ -3680,7 +3681,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
             cancelled = true;
         }
         return model;
-    } else if (node->GetName() == "dmxgeneral") {
+    } else if (std::string_view(node.name()) == "dmxgeneral") {
         auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
         auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
         if (model != nullptr) { delete model; }
@@ -3690,7 +3691,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
         }
         return model;
-    } else if (node->GetName() == "dmxservo") {
+    } else if (std::string_view(node.name()) == "dmxservo") {
         // grab the attributes I want to keep
         std::string startChannel = model->GetModelStartChannel();
         auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
@@ -3702,19 +3703,19 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
         }
         return model;
-    } else if (node->GetName() == "dmxservo3axis" ||
-               node->GetName() == "dmxservo3d") {
+    } else if (std::string_view(node.name()) == "dmxservo3axis" ||
+               std::string_view(node.name()) == "dmxservo3d") {
         if (model != nullptr) { delete model; }
         model = serializer.DeserializeModel(n, xlights, true);
         if (model != nullptr) {
             model->GetModelScreenLocation().SetScaleMatrix(glm::vec3(1, 1, 1));
         }
         return model;
-    } else if (node->GetName() == "circlemodel") {
+    } else if (std::string_view(node.name()) == "circlemodel") {
         if (model != nullptr) { delete model; }
         model = serializer.DeserializeModel(n, xlights, true);
         return model;
-    } else if (node->GetName() == "spheremodel") {
+    } else if (std::string_view(node.name()) == "spheremodel") {
         auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();
         if (model != nullptr) { delete model; }
         model = serializer.DeserializeModel(n, xlights, true);
@@ -3722,7 +3723,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
         }
         return model;
-    } else if (node->GetName() == "iciclemodel") {
+    } else if (std::string_view(node.name()) == "iciclemodel") {
         auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();
         if (model != nullptr) { delete model; }
         model = serializer.DeserializeModel(n, xlights, true);
@@ -3730,7 +3731,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScaleMatrix(scale);
         }
         return model;
-    } else if (node->GetName() == "Cubemodel") {
+    } else if (std::string_view(node.name()) == "Cubemodel") {
         auto scale = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleMatrix();
         if (model != nullptr) { delete model; }
         model = serializer.DeserializeModel(n, xlights, true);
@@ -3741,8 +3742,8 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         if (model != nullptr) { delete model; }
         model = serializer.DeserializeModel(n, xlights, true);
         if (model == nullptr) {
-            logger_base.error("GetXlightsModel no code to convert to " + node->GetName());
-            xlights->AddTraceMessage("GetXlightsModel no code to convert to " + node->GetName());
+            logger_base.error("GetXlightsModel no code to convert to " + std::string(node.name()));
+            xlights->AddTraceMessage("GetXlightsModel no code to convert to " + std::string(node.name()));
             cancelled = true;
         }
     }
@@ -3759,7 +3760,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
 
 Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int&depthmm)
 {
-    wxXmlDocument doc;
+    pugi::xml_document doc;
     bool docLoaded = false;
     if (last_model.empty()) {
         if (download) {
@@ -3806,19 +3807,19 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             last_model = filename.ToStdString();
 
             if (wxString(last_model).Lower().EndsWith(".xmodel")) {
-                doc.Load(last_model);
-                if (doc.IsOk() && doc.GetRoot()->GetAttribute("name", "") != "") {
+                doc.load_file(last_model.c_str());
+                if (doc.document_element() && !doc.document_element().attribute("name").empty()) {
                     docLoaded = true;
-                    wxString modelName = doc.GetRoot()->GetAttribute("name", "");
+                    wxString modelName = doc.document_element().attribute("name").as_string("");
 
-                    if (doc.GetRoot()->GetAttribute("widthmm", "") != "") {
-						widthmm = (int)std::strtol(doc.GetRoot()->GetAttribute("widthmm", "").c_str(), nullptr, 10);
+                    if (!doc.document_element().attribute("widthmm").empty()) {
+						widthmm = (int)std::strtol(doc.document_element().attribute("widthmm").as_string(""), nullptr, 10);
 					}
-                    if (doc.GetRoot()->GetAttribute("heightmm", "") != "") {
-						heightmm = (int)std::strtol(doc.GetRoot()->GetAttribute("heightmm", "").c_str(), nullptr, 10);
+                    if (!doc.document_element().attribute("heightmm").empty()) {
+						heightmm = (int)std::strtol(doc.document_element().attribute("heightmm").as_string(""), nullptr, 10);
 					}
-                    if (doc.GetRoot()->GetAttribute("depthmm", "") != "") {
-						depthmm = (int)std::strtol(doc.GetRoot()->GetAttribute("depthmm", "").c_str(), nullptr, 10);
+                    if (!doc.document_element().attribute("depthmm").empty()) {
+						depthmm = (int)std::strtol(doc.document_element().attribute("depthmm").as_string(""), nullptr, 10);
 					}
 
 #ifdef __WXMSW__
@@ -3943,8 +3944,14 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
 
         while (ent != nullptr) {
             if (ent->GetName() == "description.xml") {
-                wxXmlDocument gdtf_doc;
-                gdtf_doc.Load(zin);
+                pugi::xml_document gdtf_doc;
+                // Read wxZipInputStream into buffer for pugixml
+                wxMemoryOutputStream memStream;
+                zin.Read(memStream);
+                size_t sz = memStream.GetLength();
+                std::vector<char> buf(sz);
+                memStream.CopyTo(buf.data(), sz);
+                gdtf_doc.load_buffer(buf.data(), sz);
                 
                 XmlSerialize::GdtfModelData gdtfData;
                 if (XmlSerialize::ParseGdtfDescriptionXml(gdtf_doc, xlights, cancelled, gdtfData)) {
@@ -3963,10 +3970,10 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
     }
 
     if (!docLoaded) {
-        doc.Load(last_model);
+        doc.load_file(last_model.c_str());
     }
-    if (doc.IsOk()) {
-        wxXmlNode* root = doc.GetRoot();
+    if (doc.document_element()) {
+        pugi::xml_node root = doc.document_element();
         
         model->SetStartChannel("1");
         model = model->CreateDefaultModelFromSavedModelNode(model, modelPreview, root, xlights, cancelled);
@@ -4044,22 +4051,20 @@ std::string Model::CreateBufferAsSubmodel() const
         }
         nodearray[bufy][bufx] = std::to_string(i + 1);
     }
-    wxXmlNode* child = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
-    child->AddAttribute("name", "DefaultRenderBuffer");
-    child->AddAttribute("layout", "horizontal");
-    child->AddAttribute("type", "ranges");
+    pugi::xml_document new_doc;
+    pugi::xml_node child = new_doc.append_child("subModel");
+    child.append_attribute("name") = "DefaultRenderBuffer";
+    child.append_attribute("layout") = "horizontal";
+    child.append_attribute("type") = "ranges";
 
     for (int x = 0; x < (int)nodearray.size(); ++x) {
-        child->AddAttribute(std::format("line{}", x), CompressNodes(Join(nodearray[x], ",")));
+        child.append_attribute(std::format("line{}", x)) = CompressNodes(Join(nodearray[x], ","));
     }
 
-    wxXmlDocument new_doc;
-    new_doc.SetRoot(new wxXmlNode(*child));
-    wxStringOutputStream stream;
-    new_doc.Save(stream);
-    wxString s = stream.GetString();
-    s = s.SubString(s.Find("\n") + 1, s.Length()); // skip over xml format header
-    return s.ToStdString();
+    // Save just the node (not the xml declaration) to a string
+    std::ostringstream oss;
+    new_doc.save(oss, "  ", pugi::format_default | pugi::format_no_declaration);
+    return oss.str();
 }
 
 std::list<std::string> Model::CheckModelSettings()
@@ -4541,19 +4546,19 @@ std::string Model::GetAttributesAsJSON() const
 {
     // Serialize the model to XML using XmlSerializer
     XmlSerializer serializer;
-    wxXmlDocument doc = serializer.SerializeModel(this, const_cast<xLightsFrame*>(modelManager.GetXLightsFrame()));
-    
+    pugi::xml_document doc = serializer.SerializeModel(this);
+
     // Get the root node - the model node should be the first child
-    wxXmlNode* root = doc.GetRoot();
+    pugi::xml_node root = doc.document_element();
     if (!root) {
         return "{}";
     }
-    
-    wxXmlNode* modelNode = root->GetChildren();
+
+    pugi::xml_node modelNode = root.first_child();
     if (!modelNode) {
         return "{}";
     }
-    
+
     // Use the helper function from XmlSerialize namespace
     return XmlSerialize::GetModelAttributesAsJSON(modelNode);
 }

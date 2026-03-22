@@ -17,7 +17,7 @@ class GenericSerialOutput : public SerialOutput
 public:
 
     #pragma region Constructors and Destructors
-    GenericSerialOutput(wxXmlNode* node);
+    GenericSerialOutput(pugi::xml_node node);
     GenericSerialOutput(const GenericSerialOutput& from);
     GenericSerialOutput();
     virtual ~GenericSerialOutput() override {};

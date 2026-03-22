@@ -13,7 +13,6 @@
 
 #include "Output.h"
 
-#include <wx/xml/xml.h>
 
 #include <log4cpp/Category.hh>
 
@@ -28,7 +27,7 @@ uDMXOutput::uDMXOutput(SerialOutput* output) : SerialOutput(output) {
     memset(_data, 0, sizeof(_data));
 }
 
-uDMXOutput::uDMXOutput(wxXmlNode* node)  : SerialOutput(node) {
+uDMXOutput::uDMXOutput(pugi::xml_node node)  : SerialOutput(node) {
    // _baudRate = GetDefaultBaudRate();
     _datalen = 0;
     memset(_data, 0x00, sizeof(_data));

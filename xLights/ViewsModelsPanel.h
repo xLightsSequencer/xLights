@@ -26,7 +26,6 @@
 #include <list>
 #include <map>
 
-class wxXmlNode;
 class SequenceElements;
 class xLightsFrame;
 class Element;
@@ -55,7 +54,6 @@ class ViewsModelsPanel : public wxPanel
     xLightsFrame* _xlFrame = nullptr;
     SequenceData* _seqData = nullptr;
     SequenceElements* _sequenceElements = nullptr;
-    wxXmlNode* _views = nullptr;
     SequenceViewManager* _sequenceViewManager = nullptr;
     wxImageList* _imageList = nullptr;
     int _numViews = 0;

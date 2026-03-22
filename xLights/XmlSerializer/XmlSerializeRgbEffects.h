@@ -10,11 +10,11 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 // These functions are not used yet...I moved them to this file just to save them for when we handle RGB effects file later
-    void SerializeViewsObject(wxXmlNode* node, xLightsFrame* xlights);
-    void SerializeColorsObject(wxXmlNode* node, xLightsFrame* xlights);
-    void SerializeLayoutGroupsObject(wxXmlNode* node, xLightsFrame* xlights);
-    void SerializePerspectivesObject(wxXmlNode* node, xLightsFrame* xlights);
-    void SerializeSettingsObject(wxXmlNode* node, xLightsFrame* xlights);
+    void SerializeViewsObject(pugi::xml_node node, xLightsFrame* xlights);
+    void SerializeColorsObject(pugi::xml_node node, xLightsFrame* xlights);
+    void SerializeLayoutGroupsObject(pugi::xml_node node, xLightsFrame* xlights);
+    void SerializePerspectivesObject(pugi::xml_node node, xLightsFrame* xlights);
+    void SerializeSettingsObject(pugi::xml_node node, xLightsFrame* xlights);

@@ -15,7 +15,6 @@
 
 #include "Controller.h"
 
-class wxXmlNode;
 class Output;
 class SerialOutput;
 
@@ -51,12 +50,12 @@ public:
 #pragma endregion
 
 #pragma region Constructors and Destructors
-    ControllerSerial(OutputManager* om, wxXmlNode* node, const std::string& showDir);
+    ControllerSerial(OutputManager* om, pugi::xml_node node, const std::string& showDir);
     ControllerSerial(OutputManager* om);
     ControllerSerial(OutputManager* om, const ControllerSerial& from);
     virtual ~ControllerSerial()
     {}
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     virtual bool UpdateFrom(Controller* from) override;
     virtual Controller* Copy(OutputManager* om) override;
 #pragma endregion
@@ -96,7 +95,7 @@ public:
 
     virtual std::string GetType() const override { return CONTROLLER_SERIAL; }
 
-    void Convert(wxXmlNode* node, std::string showDir) override; // loads a legacy networks node
+    void Convert(pugi::xml_node node, std::string showDir) override; // loads a legacy networks node
 
     virtual bool NeedsControllerConfig() const override { return false; }
 

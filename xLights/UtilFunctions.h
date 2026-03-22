@@ -14,6 +14,7 @@
 #include <wx/socket.h>
 #include <wx/filename.h>
 #include <wx/xml/xml.h>
+#include <pugixml.hpp>
 #include <nlohmann/json.hpp>
 
 #include "utils/string_utils.h"
@@ -57,8 +58,12 @@ inline bool isOdd(int n) { return n % 2 != 0; }
 wxString GetXmlNodeAttribute(wxXmlNode* parent, const std::string& path, const std::string& attribute, const std::string& def = "");
 wxString GetXmlNodeContent(wxXmlNode* parent, const std::string& path, const std::string& def = "");
 std::vector<std::string> GetXmlNodeListContent(wxXmlNode* parent, const std::string& path, const std::string& listNodeName);
-bool DoesXmlNodeExist(wxXmlNode* parent, const std::string& path);
+bool DoesXmlNodeExist(pugi::xml_node parent, const std::string& path);
+std::string GetXmlNodeContent(pugi::xml_node parent, const std::string& path, const std::string& def = "");
+std::string GetXmlNodeAttribute(pugi::xml_node parent, const std::string& path, const std::string& attribute, const std::string& def = "");
+std::vector<std::string> GetXmlNodeListContent(pugi::xml_node parent, const std::string& path, const std::string& listNodeName);
 void SetXmlNodeAttribute(wxXmlNode* node, wxString const& property, wxString const& value);
+void SetXmlNodeAttribute(pugi::xml_node node, const std::string& property, const std::string& value);
 void DownloadVamp();
 bool IsFileInShowDir(const wxString& showDir, const std::string filename);
 void SetFixFileDirectories(const std::list<std::string>& dirs);
@@ -76,8 +81,8 @@ void OptimiseDialogPosition(wxDialog* dlg);
 nlohmann::json xLightsRequest(int xFadePort, const wxString& request, const std::string& ipAddress = "127.0.0.1");
 bool xLightsRequest(std::string& result, int xFadePort, const wxString& request, const std::string& ipAddress = "127.0.0.1");
 
-wxString ExpandNodes(const wxString& nodes);
-wxString CompressNodes(const wxString& nodes);
+std::string ExpandNodes(const std::string& nodes);
+std::string CompressNodes(const std::string& nodes);
 
 //shift nodes  numbering 1->21, 50->70
 void ShiftNodes(std::map<std::string, std::string> & nodes, int shift, int min, int max);

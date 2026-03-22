@@ -11,7 +11,6 @@
 
 #include "OpenPixelNetOutput.h"
 
-#include <wx/xml/xml.h>
 
 #pragma region Constructs and Destructors
 OpenPixelNetOutput::OpenPixelNetOutput(const OpenPixelNetOutput& from) :
@@ -23,7 +22,7 @@ OpenPixelNetOutput::OpenPixelNetOutput(const OpenPixelNetOutput& from) :
     memset(_serialBuffer, 0x00, sizeof(_serialBuffer));
 }
 
-OpenPixelNetOutput::OpenPixelNetOutput(wxXmlNode* node) : SerialOutput(node) {
+OpenPixelNetOutput::OpenPixelNetOutput(pugi::xml_node node) : SerialOutput(node) {
 
     _baudRate = GetDefaultBaudRate();
     _datalen = 0;

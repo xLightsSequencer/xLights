@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include <wx/thread.h>
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 #include <list>
 #include <map>
@@ -19,7 +19,6 @@
 #include <vector>
 
 class wxWindow;
-class wxXmlNode;
 
 class Output;
 class Controller;
@@ -76,9 +75,9 @@ public:
     #pragma region Save and Load
     bool Load(const std::string& showdir, bool syncEnabled = false);
     bool Save();
-    wxXmlDocument SaveToXML();
+    void SaveToXML(pugi::xml_document& doc);
     bool DidConvert() const { return _didConvert; }
-    bool ConvertModelStartChannels(wxXmlNode* modelsNode) const;
+    bool ConvertModelStartChannels(pugi::xml_node modelsNode) const;
     #pragma endregion 
 
     #pragma region Static Functions

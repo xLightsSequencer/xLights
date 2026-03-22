@@ -13,7 +13,6 @@
 #include "ControllerSerial.h"
 #include "OutputModelManager.h"
 
-#include <wx/xml/xml.h>
 
 #pragma region Private Functions
 void xxxSerialOutput::SendHeartbeat() const {
@@ -41,11 +40,11 @@ xxxSerialOutput::xxxSerialOutput(const xxxSerialOutput& from) : SerialOutput(fro
     _dirty = false;
 }
 
-xxxSerialOutput::xxxSerialOutput(wxXmlNode* node) : SerialOutput(node) {
+xxxSerialOutput::xxxSerialOutput(pugi::xml_node node) : SerialOutput(node) {
     memset(_lastSent, 0x00, sizeof(_lastSent));
     memset(_notSentCount, 0x00, sizeof(_notSentCount));
     memset(_data, 0, sizeof(_data));
-    SetDeviceChannels(node->GetAttribute("DeviceChannels", "8"));
+    SetDeviceChannels(node.attribute("DeviceChannels").as_string("8"));
     _dirty = false;
 }
 
@@ -56,12 +55,12 @@ xxxSerialOutput::xxxSerialOutput() : SerialOutput() {
 }
 #pragma endregion
 
-wxXmlNode* xxxSerialOutput::Save() {
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
+pugi::xml_node xxxSerialOutput::Save(pugi::xml_node parent) {
+    pugi::xml_node node = parent.append_child("network");
 
-    node->AddAttribute("DeviceChannels", _deviceChannels);
+    node.append_attribute("DeviceChannels") = _deviceChannels;
 
-    SerialOutput::Save(node);
+    SerialOutput::SaveAttr(node);
 
     return node;
 }

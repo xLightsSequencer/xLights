@@ -12,9 +12,7 @@
 #include "UtilFunctions.h"
 #include "XmlSerializer/BaseSerializingVisitor.h"
 
-#include <wx/xml/xml.h>
 #include <wx/tokenzr.h>
-
 #include <wx/filename.h>
 
 #include <algorithm>
@@ -48,11 +46,11 @@ EffectPreset::EffectPreset(const std::string& name, const std::string& settings,
 {
 }
 
-EffectPreset::EffectPreset(wxXmlNode* node, EffectPresetGroup* parent)
-    : EffectPresetItem(node->GetAttribute("name", "").ToStdString(), parent)
-    , _settings(node->GetAttribute("settings", "").ToStdString())
-    , _version(node->GetAttribute("version", "").ToStdString())
-    , _xLightsVersion(node->GetAttribute("xLightsVersion", "4.0").ToStdString())
+EffectPreset::EffectPreset(pugi::xml_node node, EffectPresetGroup* parent)
+    : EffectPresetItem(node.attribute("name").as_string(""), parent)
+    , _settings(node.attribute("settings").as_string(""))
+    , _version(node.attribute("version").as_string(""))
+    , _xLightsVersion(node.attribute("xLightsVersion").as_string("4.0"))
 {
 }
 
@@ -75,20 +73,22 @@ EffectPresetGroup::EffectPresetGroup(const std::string& name, EffectPresetGroup*
 {
 }
 
-EffectPresetGroup::EffectPresetGroup(wxXmlNode* node, EffectPresetGroup* parent)
-    : EffectPresetItem(node->GetAttribute("name", "").ToStdString(), parent)
+EffectPresetGroup::EffectPresetGroup(pugi::xml_node node, EffectPresetGroup* parent)
+    : EffectPresetItem(node.attribute("name").as_string(""), parent)
 {
     LoadChildren(node);
 }
 
-void EffectPresetGroup::LoadChildren(wxXmlNode* node)
+void EffectPresetGroup::LoadChildren(pugi::xml_node node)
 {
-    for (wxXmlNode* child = node->GetChildren(); child != nullptr; child = child->GetNext()) {
-        if (child->GetName() == "effectGroup") {
+    for (pugi::xml_node child = node.first_child(); child; child = child.next_sibling()) {
+        std::string_view childName = child.name();
+        if (childName == "effectGroup") {
             _children.push_back(std::make_unique<EffectPresetGroup>(child, this));
-        } else if (child->GetName() == "effect") {
+        } else if (childName == "effect") {
             // Only load presets that have tab-separated settings (valid format)
-            if (child->GetAttribute("settings").Contains("\t")) {
+            std::string settings = child.attribute("settings").as_string("");
+            if (settings.find('\t') != std::string::npos) {
                 _children.push_back(std::make_unique<EffectPreset>(child, this));
             }
         }
@@ -173,19 +173,21 @@ EffectPresetManager::EffectPresetManager()
 }
 
 
-void EffectPresetManager::Load(wxXmlNode* effectsNode)
+void EffectPresetManager::Load(pugi::xml_node effectsNode)
 {
     Reset();
-    if (effectsNode == nullptr)
+    if (!effectsNode)
         return;
 
-    _version = effectsNode->GetAttribute("version", "0000").ToStdString();
+    _version = effectsNode.attribute("version").as_string("0000");
 
-    for (wxXmlNode* child = effectsNode->GetChildren(); child != nullptr; child = child->GetNext()) {
-        if (child->GetName() == "effectGroup") {
+    for (pugi::xml_node child = effectsNode.first_child(); child; child = child.next_sibling()) {
+        std::string_view childName = child.name();
+        if (childName == "effectGroup") {
             _root.AddChild(std::make_unique<EffectPresetGroup>(child, &_root));
-        } else if (child->GetName() == "effect") {
-            if (child->GetAttribute("settings").Contains("\t")) {
+        } else if (childName == "effect") {
+            std::string settings = child.attribute("settings").as_string("");
+            if (settings.find('\t') != std::string::npos) {
                 _root.AddChild(std::make_unique<EffectPreset>(child, &_root));
             }
         }
@@ -342,17 +344,18 @@ void EffectPresetManager::UpdatePresetSettings(EffectPreset* preset,
 // Import
 // ---------------------------------------------------------------------------
 
-void EffectPresetManager::ImportFromXml(wxXmlNode* node, EffectPresetGroup* parent)
+void EffectPresetManager::ImportFromXml(pugi::xml_node node, EffectPresetGroup* parent)
 {
-    if (node == nullptr)
+    if (!node)
         return;
     if (parent == nullptr)
         parent = &_root;
 
-    for (wxXmlNode* child = node->GetChildren(); child != nullptr; child = child->GetNext()) {
-        if (child->GetName() == "effectGroup") {
+    for (pugi::xml_node child = node.first_child(); child; child = child.next_sibling()) {
+        std::string_view childName = child.name();
+        if (childName == "effectGroup") {
             parent->AddChild(std::make_unique<EffectPresetGroup>(child, parent));
-        } else if (child->GetName() == "effect") {
+        } else if (childName == "effect") {
             parent->AddChild(std::make_unique<EffectPreset>(child, parent));
         }
     }

@@ -12,7 +12,7 @@
 
 #include <string>
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 class LorController
 {
@@ -38,10 +38,10 @@ class LorController
 
     #pragma region Constructors and Destructors
         LorController();
-        LorController(wxXmlNode* node);
+        LorController(pugi::xml_node node);
         LorController(const LorController& from);
         virtual ~LorController() {}
-        void Save(wxXmlNode* node);
+        void Save(pugi::xml_node node);
         LorController* Copy() const
         {
             return new LorController(*this);

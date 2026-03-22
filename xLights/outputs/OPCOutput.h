@@ -37,11 +37,11 @@ class OPCOutput : public IPOutput
 public:
 
     #pragma region Constructors and Destructors
-    OPCOutput(wxXmlNode* node, bool isActive);
+    OPCOutput(pugi::xml_node node, bool isActive);
     OPCOutput();
     OPCOutput(const OPCOutput& from);
     virtual ~OPCOutput() override;
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     virtual Output* Copy() override
     {
         return new OPCOutput(*this);

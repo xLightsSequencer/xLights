@@ -35,7 +35,7 @@ class BaseSerializingVisitor;
 
 class wxProgressDialog;
 class DimmingCurve;
-class wxXmlNode;
+#include <pugixml.hpp>
 class ModelPreview;
 class ModelScreenLocation;
 class ModelManager;
@@ -172,16 +172,16 @@ public:
     std::string GetRulerDim() const;
 
     virtual bool AllNodesAllocated() const { return true; }
-    static void WriteFaceInfo(wxXmlNode* fiNode, const FaceStateData& faceInfo);
+    static void WriteFaceInfo(pugi::xml_node fiNode, const FaceStateData& faceInfo);
     std::string SerialiseFace() const;
     std::string SerialiseState() const;
-    void AddModelGroups(wxXmlNode* n, int w, int h, const std::string& name, bool& merge, bool& ask);
-    void ImportExtraModels(wxXmlNode* n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup);
+    void AddModelGroups(pugi::xml_node n, int w, int h, const std::string& name, bool& merge, bool& ask);
+    void ImportExtraModels(pugi::xml_node n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup);
 
     void UpdateFaceInfoNodes();
     void UpdateStateInfoNodes();
 
-     static void WriteStateInfo(wxXmlNode* fiNode, const FaceStateData& stateInfo, bool customColours = false);
+     static void WriteStateInfo(pugi::xml_node fiNode, const FaceStateData& stateInfo, bool customColours = false);
 
     [[nodiscard]] virtual FaceStateData const& GetFaceInfo() const { return faceInfo; };
     [[nodiscard]] virtual FaceStateNodes const& GetFaceInfoNodes() const { return faceInfoNodes; };
@@ -228,7 +228,7 @@ public:
     }
     
     void AddSubmodel(SubModel* sm);
-    [[nodiscard]] Model* CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, wxXmlNode* node, xLightsFrame* xlights, bool& cancelled) const;
+    [[nodiscard]] Model* CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, pugi::xml_node node, xLightsFrame* xlights, bool& cancelled) const;
 
     [[nodiscard]] std::string SerialiseSubmodel() const;
     [[nodiscard]] virtual std::string CreateBufferAsSubmodel() const;
@@ -331,7 +331,7 @@ protected:
 
     bool FindCustomModelScale(int scale) const;
 
-    void ImportSuperStringColours(wxXmlNode* root);
+    void ImportSuperStringColours(pugi::xml_node root);
 
     void SetLineCoord();
     std::string GetNextName();

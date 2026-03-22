@@ -14,7 +14,6 @@
 
 #include <wx/socket.h>
 
-class wxXmlNode;
 class wxWindow;
 class OutputManager;
 class ModelManager;
@@ -46,11 +45,11 @@ protected:
 public:
 
     #pragma region Constructors and Destructors
-    xxxEthernetOutput(wxXmlNode* node, bool isActive);
+    xxxEthernetOutput(pugi::xml_node node, bool isActive);
     xxxEthernetOutput(const xxxEthernetOutput& from);
     xxxEthernetOutput();
     virtual ~xxxEthernetOutput() override;
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     virtual Output* Copy() override
     {
         return new xxxEthernetOutput(*this);

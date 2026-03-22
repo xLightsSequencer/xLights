@@ -3193,26 +3193,26 @@ wxXmlNode* xLightsFrame::FindNode(wxXmlNode* parent, const wxString& tag, const 
 
 void xLightsFrame::SetPreviewSize(int width, int height)
 {
-    SetXmlSetting("previewWidth", wxString::Format(wxT("%i"), width));
-    SetXmlSetting("previewHeight", wxString::Format(wxT("%i"), height));
+    SetXmlSetting("previewWidth", std::to_string(width));
+    SetXmlSetting("previewHeight", std::to_string(height));
     modelPreview->SetCanvasSize(width, height);
     modelPreview->Refresh();
     _housePreviewPanel->GetModelPreview()->SetVirtualCanvasSize(width, height);
     _housePreviewPanel->Refresh();
 }
 
-void xLightsFrame::SetXmlSetting(const wxString& settingName, const wxString& value)
+void xLightsFrame::SetXmlSetting(const std::string& settingName, const std::string& value)
 {
-    auto& entry = _xmlSettings[settingName.ToStdString()];
-    if (entry != value.ToStdString()) {
-        entry = value.ToStdString();
+    auto& entry = _xmlSettings[settingName];
+    if (entry != value) {
+        entry = value;
         UnsavedRgbEffectsChanges = true;
     }
 }
 
-wxString xLightsFrame::GetXmlSetting(const wxString& settingName, const wxString& defaultValue) const
+std::string xLightsFrame::GetXmlSetting(const std::string& settingName, const std::string& defaultValue) const
 {
-    auto it = _xmlSettings.find(settingName.ToStdString());
+    auto it = _xmlSettings.find(settingName);
     if (it != _xmlSettings.end()) {
         return it->second;
     }

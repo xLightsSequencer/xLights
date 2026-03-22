@@ -11,7 +11,6 @@
  **************************************************************/
 
 #include <nlohmann/json.hpp>
-#include <wx/xml/xml.h>
 
 #include <string>
 #include <vector>

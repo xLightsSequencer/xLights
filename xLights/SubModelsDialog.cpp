@@ -1138,7 +1138,7 @@ void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
             wxASSERT(false);
         } else {
             wxString newValue = NodesGrid->GetCellValue(r, 0);
-            sm->strands[str] = newValue;
+            sm->strands[str] = newValue.ToStdString();
             NodesGrid->SetCellValue(r, 1, wxString::Format("%d", CountNodesInRange(newValue)));
 
         }
@@ -1275,36 +1275,43 @@ void SubModelsDialog::OnNodesGridPopup(wxCommandEvent& event)
     } else if (event.GetId() == SUBMODEL_DIALOG_COMBINE_STRANDS) {
         CombineStrands();
     } else if (event.GetId() == SUBMODEL_DIALOG_EXPAND_STRANDS_ALL) {
-        processAllStrands([](wxString str) { return ExpandNodes(str); });
+        processAllStrands([](const std::string& str) { return ExpandNodes(str); });
     } else if (event.GetId() == SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL) {
-        processAllStrands([](wxString str) { return CompressNodes(str); });
+        processAllStrands([](const std::string& str) { return CompressNodes(str); });
     } else if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_ZERO) {
-        processAllStrands([](wxString str) {
-            auto ns = wxSplit(str, ',');
-            for (auto i = ns.begin(); i != ns.end(); ++i) {
-                if (*i == "")
-                    *i = "0";
+        processAllStrands([](const std::string& str) {
+            std::vector<std::string> ns;
+            Split(str, ',', ns);
+            std::string result;
+            for (auto& s : ns) {
+                if (!result.empty()) result += ",";
+                result += s.empty() ? "0" : s;
             }
-            return wxJoin(ns, ',');
+            return result;
         });
     } else if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_EMPTY) {
-        processAllStrands([](wxString str) {
-            auto ns = wxSplit(str, ',');
-            for (auto i = ns.begin(); i != ns.end(); ++i) {
-                if (*i == "0")
-                    *i = "";
+        processAllStrands([](const std::string& str) {
+            std::vector<std::string> ns;
+            Split(str, ',', ns);
+            std::string result;
+            for (auto& s : ns) {
+                if (!result.empty()) result += ",";
+                result += (s == "0") ? "" : s;
             }
-            return wxJoin(ns, ',');
+            return result;
         });
     } else if (event.GetId() == SUBMODEL_DIALOG_REMOVE_BLANKS_ZEROS) {
-        processAllStrands([](wxString str) {
-            auto ns = wxSplit(str, ',');
-            ns.erase(std::remove_if(ns.begin(), ns.end(),
-                                    [](wxString& v) {
-                                        return (v == "0" || v == "");
-                                    }),
-                     ns.end());
-            return wxJoin(ns, ',');
+        processAllStrands([](const std::string& str) {
+            std::vector<std::string> ns;
+            Split(str, ',', ns);
+            std::string result;
+            for (auto& s : ns) {
+                if (s != "0" && !s.empty()) {
+                    if (!result.empty()) result += ",";
+                    result += s;
+                }
+            }
+            return result;
         });
     }
 }
@@ -1338,7 +1345,7 @@ void SubModelsDialog::OnButton_ReverseNodesClick(wxCommandEvent& event)
     {
         for (auto it = sm->strands.begin(); it != sm->strands.end(); ++it)
         {
-            *it = ReverseRow(*it);
+            *it = ReverseRow(wxString(*it)).ToStdString();
         }
         Select(GetSelectedName());
     }
@@ -1819,7 +1826,7 @@ void SubModelsDialog::Symmetrize()
                     }
                 }
             }
-            sm->strands.push_back(CompressNodes(str));
+            sm->strands.push_back(CompressNodes(str.ToStdString()));
         }
     }
 
@@ -1861,7 +1868,7 @@ void SubModelsDialog::Symmetrize()
     }
 }
 
-void SubModelsDialog::processAllStrands(wxString (*func)(wxString))
+void SubModelsDialog::processAllStrands(std::string (*func)(const std::string&))
 {
     wxString name = GetSelectedName();
     if (name.empty()) {
@@ -1893,7 +1900,7 @@ void SubModelsDialog::processAllStrands(wxString (*func)(wxString))
 
 static wxString OrderPointsI(std::map<int, std::pair<float, float>>& coords, const wxString& instr, std::pair<float, float> centroid, bool radial, float startangle, bool ccw_outside)
 {
-    wxArrayString inp = wxSplit(ExpandNodes(instr), ',');
+    wxArrayString inp = wxSplit(ExpandNodes(instr.ToStdString()), ',');
 
     std::vector<std::pair<int, int>> nodeAndBlanksBefore;
     int blanks = 0;
@@ -2201,7 +2208,7 @@ void SubModelsDialog::OrderPoints(bool wholesub)
             uangle += mangle;
         }
 
-        strand = OrderPointsI(coords, strand, ctr, radial, uangle, ccw_outside);
+        strand = OrderPointsI(coords, strand, ctr, radial, uangle, ccw_outside).ToStdString();
         sm->strands[sm->strands.size() - 1 - crow] = strand;
     }
 
@@ -2728,11 +2735,11 @@ void SubModelsDialog::Generate()
                     last = end;
                     if (start == end)
                     {
-                        sm->strands[0] = wxString::Format("%i", start);
+                        sm->strands[0] = std::to_string(start);
                     }
                     else
                     {
-                        sm->strands[0] = wxString::Format("%i-%i", start, end);
+                        sm->strands[0] = std::to_string(start) + "-" + std::to_string(end);
                     }
                 }
                 _subModels.push_back(sm);
@@ -2921,7 +2928,7 @@ void SubModelsDialog::OnButton_ReverseRowClick(wxCommandEvent& event)
 
     int row = NodesGrid->GetGridCursorRow();
 
-    sm->strands[sm->strands.size() - 1 - row] = ReverseRow(sm->strands[sm->strands.size() - 1 - row]);
+    sm->strands[sm->strands.size() - 1 - row] = ReverseRow(wxString(sm->strands[sm->strands.size() - 1 - row])).ToStdString();
 
     Select(GetSelectedName());
 
@@ -2952,7 +2959,7 @@ void SubModelsDialog::OnButton_SortRowClick(wxCommandEvent& event)
             return wxAtoi(a) < wxAtoi(b);
         });
 
-    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArrray, ','));
+    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArrray, ',').ToStdString());
 
     Select(GetSelectedName());
 
@@ -3081,10 +3088,12 @@ void SubModelsDialog::OnButton_Draw_ModelClick(wxCommandEvent& event)
     bool wasOutputting = StopOutputToLights();
     { // we need to scope the dialog
         SubModelInfo* sm = GetSubModelInfo(name);
-        NodeSelectGrid dialog(true, name, model, sm->strands, _outputManager, this);
+        std::vector<wxString> wxStrands(sm->strands.begin(), sm->strands.end());
+        NodeSelectGrid dialog(true, name, model, wxStrands, _outputManager, this);
 
         if (dialog.ShowModal() == wxID_OK) {
-            sm->strands = dialog.GetRowData();
+            auto wxRows = dialog.GetRowData();
+            sm->strands.assign(wxRows.begin(), wxRows.end());
 
             Select(GetSelectedName());
             dialog.Close();
@@ -3120,7 +3129,7 @@ void SubModelsDialog::OnNodesGridCellLeftDClick(wxGridEvent& event)
         NodeSelectGrid dialog(false, title, model, sm->strands[sm->strands.size() - 1 - row], _outputManager, this);
 
         if (dialog.ShowModal() == wxID_OK) {
-            sm->strands[sm->strands.size() - 1 - row] = dialog.GetNodeList(false);
+            sm->strands[sm->strands.size() - 1 - row] = dialog.GetNodeList(false).ToStdString();
 
             Select(GetSelectedName());
             dialog.Close();
@@ -3243,7 +3252,7 @@ void SubModelsDialog::OnPreviewLeftDClick(wxMouseEvent& event)
     if (!found) {
         oldNodeArrray.push_back(stNode);//add if not in list
     }
-    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArrray, ','));
+    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArrray, ',').ToStdString());
 
     Select(GetSelectedName());
     NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
@@ -3343,7 +3352,7 @@ void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
         }
     }
 
-    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArrray, ','));
+    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArrray, ',').ToStdString());
 
     Select(GetSelectedName());
 
@@ -3398,7 +3407,7 @@ void SubModelsDialog::RemoveNodes(bool suppress)
         }
     }
 
-    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArrray, ','));
+    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArrray, ',').ToStdString());
 
     Select(GetSelectedName());
     NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
@@ -3413,11 +3422,12 @@ void SubModelsDialog::RemoveNodes(bool suppress)
 //Import SubModel From xModel File
 void SubModelsDialog::ImportSubModel(std::string filename)
 {
-    wxXmlDocument doc(filename);
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_file(filename.c_str());
 
-    if (doc.IsOk())
+    if (result)
     {
-        wxXmlNode* root = doc.GetRoot();
+        pugi::xml_node root = doc.document_element();
         ImportSubModelXML(root);
     }
     else
@@ -3455,7 +3465,7 @@ void SubModelsDialog::RetrieveSubModelInfo(Model* model)
     ValidateWindow();
 }
 
-void SubModelsDialog::ImportSubModelXML(wxXmlNode* xmlData)
+void SubModelsDialog::ImportSubModelXML(pugi::xml_node xmlData)
 {
     // Load submodels using XmlSerializer
     auto subModels = XmlSerialize::LoadSubModelsFromXml(xmlData);
@@ -3503,11 +3513,7 @@ void SubModelsDialog::ImportSubModels(const std::vector<XmlSerialize::SubModelIm
         sm->vertical = smData.vertical;
         sm->subBuffer = wxString(smData.subBuffer);
         sm->bufferStyle = wxString(smData.bufferStyle);
-        // Convert std::vector<std::string> to std::vector<wxString>
-        sm->strands.clear();
-        for (const auto& strand : smData.strands) {
-            sm->strands.push_back(wxString(strand));
-        }
+        sm->strands = smData.strands;
         
         // Cannot have duplicate submodel names, what to do?
         if (GetSubModelInfoIndex(name) != -1) {
@@ -3558,7 +3564,7 @@ void SubModelsDialog::ImportCSVSubModel(wxString const& filename)
         wxString l = f.GetFirstLine();
         while (!f.Eof()) {
             if (!l.empty()) {
-                reverse_lines.push_front(CompressNodes(l));
+                reverse_lines.push_front(CompressNodes(l.ToStdString()));
             }
             l = f.GetNextLine();
         }
@@ -3597,10 +3603,10 @@ wxArrayString SubModelsDialog::getModelList(ModelManager* modelManager)
     return choices;
 }
 
-void SubModelsDialog::FixNodes(wxXmlNode* n, const std::string& attribute, std::map<int, int>& nodeMap)
+void SubModelsDialog::FixNodes(pugi::xml_node n, const std::string& attribute, std::map<int, int>& nodeMap)
 {
-    auto l = n->GetAttribute(attribute, "");
-    n->DeleteAttribute(attribute);
+    std::string l = n.attribute(attribute).as_string();
+    n.remove_attribute(attribute);
 
     wxString row = "";
 
@@ -3640,7 +3646,7 @@ void SubModelsDialog::FixNodes(wxXmlNode* n, const std::string& attribute, std::
             row += wxString::Format("%d,", nodeMap[rr]);
         }
     }
-    n->AddAttribute(attribute, row);
+    n.append_attribute(attribute) = row.ToStdString();
 }
 
 void SubModelsDialog::CreateSubmodel(const std::string& name, const std::list<std::string>& nodes)
@@ -3776,7 +3782,7 @@ SubModelsDialog::SubModelInfo* SubModelsDialog::CreateSubModelFromCustomModelDat
         if (outRow.size() > 0) {
             outRow = outRow.Left(outRow.size() - 1);
         }
-        sm->strands.push_back(outRow);
+        sm->strands.push_back(outRow.ToStdString());
         rnum++;
     }
     
@@ -3799,7 +3805,7 @@ void SubModelsDialog::ImportCustomModelSubModels(
             // Remap nodes from custom model numbering to target model numbering
             for (const auto& strand : smData.strands) {
                 wxString remappedStrand = RemapNodesInStrand(strand, nodeMap);
-                sm2->strands.push_back(remappedStrand);
+                sm2->strands.push_back(remappedStrand.ToStdString());
             }
             
             _subModels.push_back(sm2);
@@ -4088,7 +4094,7 @@ void SubModelsDialog::Shift()
                                 newNodeArray.Add( wxString::Format("%ld", newVal) );
                             }
                         }
-                        sm->strands[x] = CompressNodes(wxJoin(newNodeArray, ','));
+                        sm->strands[x] = CompressNodes(wxJoin(newNodeArray, ',').ToStdString());
                     }
                 }
             }
@@ -4134,7 +4140,7 @@ void SubModelsDialog::ShiftSingleSubmodel()
                             newNodeArray.Add( wxString::Format("%ld", newVal) );
                         }
                     }
-                    sm->strands[x] = CompressNodes(wxJoin(newNodeArray, ','));
+                    sm->strands[x] = CompressNodes(wxJoin(newNodeArray, ',').ToStdString());
                 }
             }
             ValidateWindow();
@@ -4155,7 +4161,7 @@ void SubModelsDialog::FlipHorizontal()
     for (auto a : _subModels) {
         if (a->isRanges) {
             for (auto & strand : a->strands) {
-                strand = ReverseRow(strand);
+                strand = ReverseRow(wxString(strand)).ToStdString();
             }
         }
     }
@@ -4218,7 +4224,7 @@ void SubModelsDialog::Reverse()
                         newNodeArray.Add( wxString::Format("%ld", newVal) );
                     }
                 }
-                sm->strands[x] = CompressNodes(wxJoin(newNodeArray, ','));
+                sm->strands[x] = CompressNodes(wxJoin(newNodeArray, ',').ToStdString());
             }
         }
     }
@@ -4264,7 +4270,7 @@ void SubModelsDialog::RemoveDuplicates(bool suppress)
         oldNodeArray.erase(end, oldNodeArray.end());
     }
 
-    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArray, ','));
+    sm->strands[sm->strands.size() - 1 - row] = CompressNodes(wxJoin(oldNodeArray, ',').ToStdString());
     Select(GetSelectedName());
 
     NodesGrid->SetGridCursor(row, 0);
@@ -4342,7 +4348,7 @@ void SubModelsDialog::RemoveAllDuplicates(bool leftright, bool suppress)
                 ++it;
             }
         }
-        sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(data[i], ','));
+        sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(data[i], ',').ToStdString());
     }
 
     // Update UI
@@ -4396,7 +4402,7 @@ void SubModelsDialog::MakeRowsUniform()
             D += dlt;
         }
 
-        sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(ndata, ','));
+        sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(ndata, ',').ToStdString());
     }
 
     // Update UI
@@ -4436,7 +4442,7 @@ void SubModelsDialog::MakeRowsUniformFront() {
         for (unsigned s = 0; s < dlt; ++s) {
             row_data.insert(row_data.begin(), "");
         }
-        sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(row_data, ','));
+        sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(row_data, ',').ToStdString());
     }
 
     // Update UI
@@ -4476,7 +4482,7 @@ void SubModelsDialog::MakeRowsUniformRear() {
         for (unsigned s = 0; s < dlt; ++s) {
             row_data.push_back("");
         }
-        sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(row_data, ','));
+        sm->strands[sm->strands.size() - 1 - i] = CompressNodes(wxJoin(row_data, ',').ToStdString());
     }
 
     // Update UI
@@ -4525,7 +4531,7 @@ void SubModelsDialog::PivotRowsColumns()
     // Write back
     sm->strands.clear();
     for (int i = int(mlen-1); i >= 0; --i) {
-        sm->strands.push_back(CompressNodes(wxJoin(ndata[i], ',')));
+        sm->strands.push_back(CompressNodes(wxJoin(ndata[i], ',').ToStdString()));
     }
 
     // Update UI
@@ -4785,32 +4791,26 @@ void SubModelsDialog::ImportLayoutSubModel() {
 }
 
 void SubModelsDialog::ReadRGBEffectsFile(wxString const& filename) {
-    wxXmlDocument _doc;
-    _doc.Load(filename);
-    if (_doc.IsOk()) {
-        wxXmlNode* models = nullptr;
-        for (wxXmlNode* m = _doc.GetRoot(); m != nullptr; m = m->GetNext()) {
-            for (wxXmlNode* mm = m->GetChildren(); mm != nullptr; mm = mm->GetNext()) {
-                if (mm->GetName() == "models") {
-                    models = mm;
-                } 
-            }
-        }
+    pugi::xml_document _doc;
+    pugi::xml_parse_result result = _doc.load_file(filename.ToStdString().c_str());
+    if (result) {
+        pugi::xml_node root = _doc.document_element();
+        pugi::xml_node models = root.child("models");
         wxArrayString choices;
-        if (models != nullptr) {
-            for (wxXmlNode* m = models->GetChildren(); m != nullptr; m = m->GetNext()) {
-                wxString const mn = m->GetAttribute("name");
+        if (models) {
+            for (pugi::xml_node m = models.first_child(); m; m = m.next_sibling()) {
+                wxString const mn = m.attribute("name").as_string();
                 choices.Add(mn);
             }
         } else {
             return;
         }
-        
+
         choices.Sort();
         wxSingleChoiceDialog dlg(GetParent(), "", "Select Model", choices);
         if (dlg.ShowModal() == wxID_OK) {
-            for (wxXmlNode* m = models->GetChildren(); m != nullptr; m = m->GetNext()) {
-                wxString const mn = m->GetAttribute("name");
+            for (pugi::xml_node m = models.first_child(); m; m = m.next_sibling()) {
+                wxString const mn = m.attribute("name").as_string();
                 if (dlg.GetStringSelection() == mn) {
                     ImportSubModelXML(m);
                     break;

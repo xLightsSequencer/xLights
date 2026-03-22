@@ -52,11 +52,11 @@ class ZCPPOutput : public IPOutput
 public:
 
     #pragma region Constructors and Destructors
-    ZCPPOutput(Controller* c, wxXmlNode* node, std::string showdir);
+    ZCPPOutput(Controller* c, pugi::xml_node node, std::string showdir);
     ZCPPOutput();
     ZCPPOutput(const ZCPPOutput& from);
     virtual ~ZCPPOutput() override;
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     virtual Output* Copy() override
     {
         return new ZCPPOutput(*this);

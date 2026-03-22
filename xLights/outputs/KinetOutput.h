@@ -43,11 +43,11 @@ class KinetOutput : public IPOutput
 public:
 
     #pragma region Constructors and Destructors
-    KinetOutput(wxXmlNode* node, bool isActive);
+    KinetOutput(pugi::xml_node node, bool isActive);
     KinetOutput();
     KinetOutput(const KinetOutput& from);
     virtual ~KinetOutput() override;
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     virtual Output* Copy() override
     {
         return new KinetOutput(*this);

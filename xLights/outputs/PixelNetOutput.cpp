@@ -10,7 +10,6 @@
 
 #include "PixelNetOutput.h"
 
-#include <wx/xml/xml.h>
 
 #pragma region Constructors and Destructors
 PixelNetOutput::PixelNetOutput(const PixelNetOutput& from) :
@@ -21,7 +20,7 @@ PixelNetOutput::PixelNetOutput(const PixelNetOutput& from) :
     memset(_serialBuffer, 0x00, sizeof(_serialBuffer));
 }
 
-PixelNetOutput::PixelNetOutput(wxXmlNode* node) : SerialOutput(node)
+PixelNetOutput::PixelNetOutput(pugi::xml_node node) : SerialOutput(node)
 {
     _datalen = 0;
     memset(_data, 0x00, sizeof(_data));

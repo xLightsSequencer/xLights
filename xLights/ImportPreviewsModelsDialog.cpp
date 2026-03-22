@@ -17,7 +17,6 @@
 
 #include <wx/menu.h>
 #include <wx/treebase.h>
-#include <wx/xml/xml.h>
 #include <wx/dataview.h>
 
 #include "LayoutGroup.h"
@@ -95,47 +94,29 @@ ImportPreviewsModelsDialog::ImportPreviewsModelsDialog(wxWindow* parent, const w
     wxTreeListItem defaultItem = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), "Default");
     wxTreeListItem unassignedItem = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), "Unassigned");
 
-    _doc.Load(filename);
-    if (_doc.IsOk())
+    pugi::xml_parse_result parseResult = _doc.load_file(filename.ToStdString().c_str());
+    if (parseResult)
     {
-        wxXmlNode* models = nullptr;
-        wxXmlNode* modelgroups = nullptr;
-        for (wxXmlNode* m = _doc.GetRoot(); m != nullptr; m = m->GetNext())
-        {
-            for (wxXmlNode* mm = m->GetChildren(); mm != nullptr; mm = mm->GetNext())
-            {
-                if (mm->GetName() == "models")
-                {
-                    models = mm;
-                }
-                else if (mm->GetName() == "modelGroups")
-                {
-                    modelgroups = mm;
-                }
-            }
-        }
+        pugi::xml_node root = _doc.document_element();
+        pugi::xml_node models = root.child("models");
+        pugi::xml_node modelgroups = root.child("modelGroups");
 
-        if (models != nullptr || modelgroups != nullptr)
+        if (models || modelgroups)
         {
             AddModels(TreeListCtrl1, defaultItem, models, modelgroups, "Default");
             AddModels(TreeListCtrl1, unassignedItem, models, modelgroups, "Unassigned");
 
-            for (wxXmlNode* n = _doc.GetRoot(); n != nullptr; n = n->GetNext())
+            pugi::xml_node layoutGroupsNode = root.child("layoutGroups");
+            if (layoutGroupsNode)
             {
-                for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext())
+                for (pugi::xml_node nnn = layoutGroupsNode.first_child(); nnn; nnn = nnn.next_sibling())
                 {
-                    if (nn->GetName() == "layoutGroups")
-                    {
-                        for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
+                    if (std::string_view(nnn.name()) == "layoutGroup") {
+                        wxString lg = nnn.attribute("name").as_string();
+                        if (lg != "")
                         {
-                            if (nnn->GetName() == "layoutGroup") {
-                                wxString lg = nnn->GetAttribute("name");
-                                if (lg != "")
-                                {
-                                    wxTreeListItem t = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), lg);
-                                    AddModels(TreeListCtrl1, t, models, modelgroups, lg);
-                                }
-                            }
+                            wxTreeListItem t = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), lg);
+                            AddModels(TreeListCtrl1, t, models, modelgroups, lg);
                         }
                     }
                 }
@@ -212,27 +193,27 @@ std::list<impTreeItemData*> ImportPreviewsModelsDialog::GetModelsInPreview(wxStr
 }
 
 
-void ImportPreviewsModelsDialog::AddModels(wxTreeListCtrl* tree, wxTreeListItem item, wxXmlNode* models, wxXmlNode* modelgroups, wxString preview)
+void ImportPreviewsModelsDialog::AddModels(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node models, pugi::xml_node modelgroups, wxString preview)
 {
-    if (modelgroups != nullptr)
+    if (modelgroups)
     {
-        for (wxXmlNode* m = modelgroups->GetChildren(); m != nullptr; m = m->GetNext())
+        for (pugi::xml_node m = modelgroups.first_child(); m; m = m.next_sibling())
         {
-            if (m->GetAttribute("LayoutGroup") == preview)
+            if (wxString(m.attribute("LayoutGroup").as_string()) == preview)
             {
-                wxString mn = m->GetAttribute("name");
+                wxString mn = m.attribute("name").as_string();
                 tree->AppendItem(item, mn + " - Group", -1, -1, new impTreeItemData(mn, m, true));
                 if (!tree->IsExpanded(item)) tree->Expand(item);
             }
         }
     }
-    if (models != nullptr)
+    if (models)
     {
-        for (wxXmlNode* m = models->GetChildren(); m != nullptr; m = m->GetNext())
+        for (pugi::xml_node m = models.first_child(); m; m = m.next_sibling())
         {
-            if (m->GetAttribute("LayoutGroup") == preview)
+            if (wxString(m.attribute("LayoutGroup").as_string()) == preview)
             {
-                wxString mn = m->GetAttribute("name");
+                wxString mn = m.attribute("name").as_string();
                 tree->AppendItem(item, mn, -1, -1, new impTreeItemData(mn, m, false));
                 if (!tree->IsExpanded(item)) tree->Expand(item);
             }
@@ -381,7 +362,7 @@ void ImportPreviewsModelsDialog::SelectRecursiveModel(wxString m, bool checked)
             TreeListCtrl1->CheckItem(it, checked ? wxCHK_CHECKED : wxCHK_UNCHECKED);
             auto* itm = ((impTreeItemData*)TreeListCtrl1->GetItemData(it));
             if (itm && itm->IsModelGroup()) {
-                wxString const models = ((impTreeItemData*)TreeListCtrl1->GetItemData(it))->GetModelNode()->GetAttribute("models");
+                wxString const models = ((impTreeItemData*)TreeListCtrl1->GetItemData(it))->GetModelNode().attribute("models").as_string();
                 wxArrayString const modelArray = wxSplit(models, ',');
                 for (size_t i = 0; i < modelArray.size(); ++i) {
                     SelectRecursiveModel(modelArray[i], checked);

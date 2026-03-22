@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <map>
+#include <pugixml.hpp>
 
 #include "ObjectManager.h"
 
@@ -27,14 +28,14 @@ public:
     ViewObject *GetViewObject(const std::string &name) const;
 
     ViewObject* CreateAndAddObject(const std::string &type);
-    ViewObject* CreateObject(wxXmlNode *node) const;
+    ViewObject* CreateObject(pugi::xml_node node) const;
     void AddViewObject(ViewObject *view_object);
     void Delete(const std::string &name);
     bool Rename(const std::string &oldName, const std::string &newName);
     bool MergeFromBase(const std::string& baseShowDir, bool prompt);
-    static bool MergeBaseXml(const std::string& baseShowDir, wxXmlNode* localViewObjectsNode);
+    static bool MergeBaseXml(const std::string& baseShowDir, pugi::xml_node localViewObjectsNode);
 
-    void LoadViewObjects(wxXmlNode *objectNode);
+    void LoadViewObjects(pugi::xml_node objectNode);
 
     ViewObject *operator[](const std::string &name) const;
     std::map<std::string, ViewObject*>::const_iterator begin() const;
@@ -43,11 +44,10 @@ public:
 
     void clear();
 protected:
-    ViewObject *createAndAddObject(wxXmlNode *node);
+    ViewObject *createAndAddObject(pugi::xml_node node);
 
 private:
     std::map<std::string, ViewObject *> view_objects;
     xLightsFrame* xlights;
 
 };
-

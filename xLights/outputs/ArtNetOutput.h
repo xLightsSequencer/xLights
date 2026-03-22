@@ -55,7 +55,7 @@ class ArtNetOutput : public IPOutput
 public:
 
 #pragma region Constructors and Destructors
-    ArtNetOutput(wxXmlNode* node, bool isActive);
+    ArtNetOutput(pugi::xml_node node, bool isActive);
     ArtNetOutput();
     ArtNetOutput(const ArtNetOutput& from);
     virtual ~ArtNetOutput() override;
@@ -121,5 +121,5 @@ public:
 #endif
 #pragma endregion
 
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
 };

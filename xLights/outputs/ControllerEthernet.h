@@ -19,7 +19,6 @@
 #include "Controller.h"
 #include "IPOutput.h"
 
-class wxXmlNode;
 class Output;
 
 // An ethernet controller sends data to a unique IP address
@@ -55,11 +54,11 @@ protected:
 public:
 
 #pragma region Constructors and Destructors
-    ControllerEthernet(OutputManager* om, wxXmlNode* node, const std::string& showDir);
+    ControllerEthernet(OutputManager* om, pugi::xml_node node, const std::string& showDir);
     ControllerEthernet(OutputManager* om, bool acceptDuplicates = false);
     ControllerEthernet(OutputManager* om, const ControllerEthernet& from);
     virtual ~ControllerEthernet();
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     virtual bool UpdateFrom(Controller* from) override;
     virtual Controller* Copy(OutputManager* om) override;
 #pragma endregion
@@ -118,7 +117,7 @@ public:
 
     virtual std::string GetType() const override { return CONTROLLER_ETHERNET; }
 
-    void Convert(wxXmlNode* node, std::string showDir) override; // loads a legacy networks node
+    void Convert(pugi::xml_node node, std::string showDir) override; // loads a legacy networks node
 
     virtual bool NeedsControllerConfig() const override { return GetProtocol() == OUTPUT_ZCPP; }
 

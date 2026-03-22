@@ -10,7 +10,7 @@
 
 #include <wx/wx.h>
 #include <wx/string.h>
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 #include <wx/bitmap.h>
 #include <wx/colour.h>
 #include <wx/colordlg.h>
@@ -416,21 +416,18 @@ void ColorCurve::LoadXCC(const std::string& filename)
     _active = false;
     _timecurve = TC_TIME;
 
-    wxXmlDocument doc(filename);
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_file(filename.c_str());
 
-    if (doc.IsOk())
+    if (result)
     {
-        wxXmlNode* root = doc.GetRoot();
+        pugi::xml_node root = doc.document_element();
 
-        if (root->GetName() == "colorcurve")
+        if (root && std::string_view(root.name()) == "colorcurve")
         {
-            wxString data = root->GetAttribute("data");
+            std::string data = root.attribute("data").as_string();
 
-            // Add any colorcurve version conversion logic here
-            // Source version will be the program version that created the custom model
-            //wxString v = root->GetAttribute("SourceVersion");
-
-            Deserialise(data.ToStdString());
+            Deserialise(data);
             SetActive(true);
         }
     }

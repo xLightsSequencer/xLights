@@ -325,9 +325,9 @@ const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
     return GROUP_BUFFER_STYLES;
 }
 
-bool ModelGroup::AllModelsExist(wxXmlNode* node, const ModelManager& models)
+bool ModelGroup::AllModelsExist(pugi::xml_node node, const ModelManager& models)
 {
-    std::string nms = node->GetAttribute("models").ToStdString();
+    std::string nms = node.attribute("models").as_string();
     std::vector<std::string> mn;
     Split(nms, ',', mn, true);
     for (auto& it : mn) {
@@ -339,14 +339,14 @@ bool ModelGroup::AllModelsExist(wxXmlNode* node, const ModelManager& models)
     return true;
 }
 
-bool ModelGroup::RemoveNonExistentModels(wxXmlNode* node, const std::set<std::string>& allmodels)
+bool ModelGroup::RemoveNonExistentModels(pugi::xml_node node, const std::set<std::string>& allmodels)
 {
     bool changed = false;
 
     std::string models;
     std::string modelsRemoved;
 
-    std::string nms = node->GetAttribute("models", "").ToStdString();
+    std::string nms = node.attribute("models").as_string();
     std::vector<std::string> mn;
     Split(nms, ',', mn, true);
     for (auto& mm : mn) {
@@ -370,8 +370,8 @@ bool ModelGroup::RemoveNonExistentModels(wxXmlNode* node, const std::set<std::st
     }
 
     if (changed && !modelsRemoved.empty()) {
-        node->DeleteAttribute("models");
-        node->AddAttribute("models", models);
+        node.remove_attribute("models");
+        node.append_attribute("models") = models;
     }
     return changed;
 }

@@ -13,7 +13,6 @@
 #include <wx/msgdlg.h>
 #include <wx/sstream.h>
 #include <wx/regex.h>
-#include <wx/xml/xml.h>
 #include <wx/progdlg.h>
 
 #include "../utils/Curl.h"

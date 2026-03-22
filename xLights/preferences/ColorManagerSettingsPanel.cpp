@@ -203,15 +203,18 @@ void ColorManagerSettingsPanel::RefreshColors()
 void ColorManagerSettingsPanel::OnButtonImportClick(wxCommandEvent& event) {
     wxFileDialog dlg(this, "Import Theme", wxEmptyString, "Colors", "Theme Files (*.xtheme)|*.xtheme|All Files (*.)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dlg.ShowModal() == wxID_OK) {
-        wxXmlDocument themeXml(dlg.GetPath());
-        wxXmlNode* root = themeXml.GetRoot();
-        if (root->GetName() == "theme") {
-            wxXmlNode* colorNode = root->GetChildren();
-            if (colorNode->GetName() == "colors") {
-                frame->color_mgr.Load(colorNode);
-                UpdateButtonColors();
-                RefreshColors();
-                frame->color_mgr.SetDirty();
+        pugi::xml_document themeXml;
+        pugi::xml_parse_result result = themeXml.load_file(dlg.GetPath().ToStdString().c_str());
+        if (result) {
+            pugi::xml_node root = themeXml.document_element();
+            if (std::string_view(root.name()) == "theme") {
+                pugi::xml_node colorNode = root.first_child();
+                if (std::string_view(colorNode.name()) == "colors") {
+                    frame->color_mgr.Load(colorNode);
+                    UpdateButtonColors();
+                    RefreshColors();
+                    frame->color_mgr.SetDirty();
+                }
             }
         }
     }
@@ -219,12 +222,11 @@ void ColorManagerSettingsPanel::OnButtonImportClick(wxCommandEvent& event) {
 void ColorManagerSettingsPanel::OnButtonExportClick(wxCommandEvent& event) {
     wxFileDialog dlg(this, "Export Theme", wxEmptyString, "Colors", "Theme Files (*.xtheme)|*.xtheme|All Files (*.)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (dlg.ShowModal() == wxID_OK) {
-        wxXmlDocument themeXml;
-        wxXmlNode *root = new wxXmlNode(wxXML_ELEMENT_NODE, "theme");
-        themeXml.SetRoot(root);
+        pugi::xml_document themeXml;
+        pugi::xml_node root = themeXml.append_child("theme");
         XmlSerializingVisitor v{root};
         frame->color_mgr.Save(v);
-        themeXml.Save(dlg.GetPath());
+        themeXml.save_file(dlg.GetPath().ToStdString().c_str());
     }
 }
 void ColorManagerSettingsPanel::OnButton_ResetClick(wxCommandEvent& event) {

@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include <wx/wx.h>
-#include <wx/xml/xml.h>
 
 #include "LayoutGroup.h"
 #include "xLightsMain.h"
@@ -31,7 +30,7 @@ LayoutGroup::~LayoutGroup()
     previewModels.clear();
 }
 
-void LayoutGroup::SetBackgroundImage(const wxString& filename)
+void LayoutGroup::SetBackgroundImage(const std::string& filename)
 {
     if (mBackgroundImage != filename) {
         mBackgroundImage = filename;
@@ -87,17 +86,17 @@ void LayoutGroup::SetPreviewSize(wxSize size_)
     }
 }
 
-void LayoutGroup::SetFromXml(wxXmlNode* LayoutGroupNode)
+void LayoutGroup::SetFromXml(pugi::xml_node LayoutGroupNode)
 {
-    mName = LayoutGroupNode->GetAttribute("name").ToStdString();
-    mBackgroundImage = LayoutGroupNode->GetAttribute("backgroundImage").ToStdString();
-    mBackgroundBrightness = wxAtoi(LayoutGroupNode->GetAttribute("backgroundBrightness", "100").ToStdString());
-    mBackgroundAlpha = wxAtoi(LayoutGroupNode->GetAttribute("backgroundAlpha", "100").ToStdString());
-    mScaleBackgroundImage = wxAtoi(LayoutGroupNode->GetAttribute("scaleImage", "0").ToStdString()) > 0;
-    mPosX = wxAtoi(LayoutGroupNode->GetAttribute("PosX", "-1"));
-    mPosY = wxAtoi(LayoutGroupNode->GetAttribute("PosY", "-1"));
-    mPaneWidth = wxAtoi(LayoutGroupNode->GetAttribute("PaneWidth", "-1"));
-    mPaneHeight = wxAtoi(LayoutGroupNode->GetAttribute("PaneHeight", "-1"));
+    mName = LayoutGroupNode.attribute("name").as_string("");
+    mBackgroundImage = LayoutGroupNode.attribute("backgroundImage").as_string("");
+    mBackgroundBrightness = LayoutGroupNode.attribute("backgroundBrightness").as_int(100);
+    mBackgroundAlpha = LayoutGroupNode.attribute("backgroundAlpha").as_int(100);
+    mScaleBackgroundImage = LayoutGroupNode.attribute("scaleImage").as_int(0) > 0;
+    mPosX = LayoutGroupNode.attribute("PosX").as_int(-1);
+    mPosY = LayoutGroupNode.attribute("PosY").as_int(-1);
+    mPaneWidth = LayoutGroupNode.attribute("PaneWidth").as_int(-1);
+    mPaneHeight = LayoutGroupNode.attribute("PaneHeight").as_int(-1);
 }
 
 void LayoutGroup::SetModels(std::vector<Model*> &models)

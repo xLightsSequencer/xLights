@@ -833,23 +833,102 @@ std::vector<std::string> GetXmlNodeListContent(wxXmlNode* parent, const std::str
     return res;
 }
 
-bool DoesXmlNodeExist(wxXmlNode* parent, const std::string& path) {
-    wxXmlNode* curr = parent;
-    auto pe = wxSplit(path, '/');
+bool DoesXmlNodeExist(pugi::xml_node parent, const std::string& path) {
+    pugi::xml_node curr = parent;
+    std::vector<std::string> pe;
+    Split(path, '/', pe);
 
     for (const auto& it : pe) {
-        for (wxXmlNode* n = curr->GetChildren(); n != nullptr; n = n->GetNext()) {
-            if (n->GetName() == it) {
+        bool found = false;
+        for (pugi::xml_node n = curr.first_child(); n; n = n.next_sibling()) {
+            if (std::string_view(n.name()) == it) {
                 if (it == pe.back())
                     return true;
 
                 curr = n;
+                found = true;
                 break;
             }
         }
+        if (!found) return false;
     }
 
     return false;
+}
+
+std::string GetXmlNodeContent(pugi::xml_node parent, const std::string& path, const std::string& def) {
+    pugi::xml_node curr = parent;
+    std::vector<std::string> pe;
+    Split(path, '/', pe);
+
+    for (const auto& it : pe) {
+        bool found = false;
+        for (pugi::xml_node n = curr.first_child(); n; n = n.next_sibling()) {
+            if (std::string_view(n.name()) == it) {
+                if (it == pe.back()) {
+                    const char* text = n.child_value();
+                    return (text && text[0]) ? text : def;
+                }
+                curr = n;
+                found = true;
+                break;
+            }
+        }
+        if (!found) return def;
+    }
+    return def;
+}
+
+std::string GetXmlNodeAttribute(pugi::xml_node parent, const std::string& path, const std::string& attribute, const std::string& def) {
+    pugi::xml_node curr = parent;
+    std::vector<std::string> pe;
+    Split(path, '/', pe);
+
+    for (const auto& it : pe) {
+        bool found = false;
+        for (pugi::xml_node n = curr.first_child(); n; n = n.next_sibling()) {
+            if (std::string_view(n.name()) == it) {
+                if (it == pe.back()) {
+                    pugi::xml_attribute a = n.attribute(attribute);
+                    return a.empty() ? def : a.as_string();
+                }
+                curr = n;
+                found = true;
+                break;
+            }
+        }
+        if (!found) return def;
+    }
+    return def;
+}
+
+std::vector<std::string> GetXmlNodeListContent(pugi::xml_node parent, const std::string& path, const std::string& listNodeName) {
+    std::vector<std::string> res;
+    pugi::xml_node curr = parent;
+    std::vector<std::string> pe;
+    Split(path, '/', pe);
+
+    for (const auto& it : pe) {
+        bool found = false;
+        for (pugi::xml_node n = curr.first_child(); n; n = n.next_sibling()) {
+            if (std::string_view(n.name()) == it) {
+                curr = n;
+                found = true;
+                break;
+            }
+        }
+        if (!found) return res;
+    }
+
+    for (pugi::xml_node n = curr.first_child(); n; n = n.next_sibling()) {
+        if (std::string_view(n.name()) == listNodeName) {
+            const char* text = n.child_value();
+            if (text && text[0]) {
+                res.push_back(text);
+            }
+        }
+    }
+    return res;
 }
 
 void SetXmlNodeAttribute(wxXmlNode* node, wxString const& property, wxString const& value) {
@@ -857,6 +936,14 @@ void SetXmlNodeAttribute(wxXmlNode* node, wxString const& property, wxString con
         node->DeleteAttribute(property);
     }
     node->AddAttribute(property, value);
+}
+
+void SetXmlNodeAttribute(pugi::xml_node node, const std::string& property, const std::string& value) {
+    auto attr = node.attribute(property);
+    if (!attr) {
+        attr = node.append_attribute(property);
+    }
+    attr.set_value(value);
 }
 
 void DownloadVamp() {
@@ -1517,16 +1604,17 @@ void CleanupIpAddress(wxString& IpAddr) {
     }
 }
 
-wxString CompressNodes(const wxString& nodes) {
-    wxString res = "";
-    if (nodes.IsEmpty())
+std::string CompressNodes(const std::string& nodes) {
+    std::string res;
+    if (nodes.empty())
         return res;
     // make sure it is fully expanded first
     auto s = ExpandNodes(nodes);
     int dir = 0;
     int start = -1;
     int last = -1;
-    auto as = wxSplit(s, ',');
+    std::vector<std::string> as;
+    Split(s, ',', as);
 
     // There is no difference between empty row and row with one blank pixel (shrug)
     // We will take removal of the last comma approach
@@ -1536,9 +1624,9 @@ wxString CompressNodes(const wxString& nodes) {
             // Flush out start/last if any
             if (start != -1) {
                 if (last != start) {
-                    res += wxString::Format("%d-%d,", start, last);
+                    res += std::to_string(start) + "-" + std::to_string(last) + ",";
                 } else {
-                    res += wxString::Format("%d,", start);
+                    res += std::to_string(start) + ",";
                 }
             }
             // Add empty and separator
@@ -1548,18 +1636,18 @@ wxString CompressNodes(const wxString& nodes) {
             continue;
         }
         if (start == -1) {
-            start = wxAtoi(i);
+            start = (int)std::strtol(i.c_str(), nullptr, 10);
             last = start;
             dir = 0;
         } else {
-            int j = wxAtoi(i);
+            int j = (int)std::strtol(i.c_str(), nullptr, 10);
             if (dir == 0) {
                 if (j == last + 1) {
                     dir = 1;
                 } else if (j == last - 1) {
                     dir = -1;
                 } else {
-                    res += wxString::Format("%d,", start);
+                    res += std::to_string(start) + ",";
                     start = j;
                     dir = 0;
                 }
@@ -1567,7 +1655,7 @@ wxString CompressNodes(const wxString& nodes) {
             } else {
                 if (j == last + dir) {
                 } else {
-                    res += wxString::Format("%d-%d,", start, last);
+                    res += std::to_string(start) + "-" + std::to_string(last) + ",";
                     start = j;
                     dir = 0;
                 }
@@ -1579,9 +1667,9 @@ wxString CompressNodes(const wxString& nodes) {
     if (start == -1) {
         // nothing to do
     } else if (start == last) {
-        res += wxString::Format("%d,", start);
+        res += std::to_string(start) + ",";
     } else {
-        res += wxString::Format("%d-%d,", start, last);
+        res += std::to_string(start) + "-" + std::to_string(last) + ",";
     }
 
     if (!res.empty())
@@ -1590,38 +1678,40 @@ wxString CompressNodes(const wxString& nodes) {
     return res;
 }
 
-wxString ExpandNodes(const wxString& nodes) {
-    wxString res = "";
+std::string ExpandNodes(const std::string& nodes) {
+    std::string res;
 
-    auto as = wxSplit(nodes, ',');
+    std::vector<std::string> as;
+    Split(nodes, ',', as);
 
     bool first = true;
     for (const auto& i : as) {
-        if (i.Contains("-")) {
-            auto as2 = wxSplit(i, '-');
+        if (i.find('-') != std::string::npos) {
+            std::vector<std::string> as2;
+            Split(i, '-', as2);
             if (as2.size() == 2) {
-                int start = wxAtoi(as2[0]);
-                int end = wxAtoi(as2[1]);
+                int start = (int)std::strtol(as2[0].c_str(), nullptr, 10);
+                int end = (int)std::strtol(as2[1].c_str(), nullptr, 10);
                 if (start < end) {
                     for (int j = start; j <= end; j++) {
-                        if (!first || res != "")
+                        if (!first || !res.empty())
                             res += ",";
-                        res += wxString::Format("%d", j);
+                        res += std::to_string(j);
                     }
                 } else if (start == end) {
-                    if (!first || res != "")
+                    if (!first || !res.empty())
                         res += ",";
-                    res += wxString::Format("%d", start);
+                    res += std::to_string(start);
                 } else {
                     for (int j = start; j >= end; j--) {
-                        if (!first || res != "")
+                        if (!first || !res.empty())
                             res += ",";
-                        res += wxString::Format("%d", j);
+                        res += std::to_string(j);
                     }
                 }
             }
         } else {
-            if (!first || res != "")
+            if (!first || !res.empty())
                 res += ",";
             res += i;
         }
@@ -1641,22 +1731,24 @@ void ShiftNodes(std::map<std::string, std::string>& nodes, int shift, int min, i
         if (Contains(line.first, "Type"))
             continue;
         auto const oldnodes = ExpandNodes(line.second);
-        auto const oldNodeArray = wxSplit(oldnodes, ',');
-        wxArrayString newNodeArray;
+        std::vector<std::string> oldNodeArray;
+        Split(oldnodes, ',', oldNodeArray);
+        std::string newNodes;
         for (auto const& node : oldNodeArray) {
-            long val;
-            if (node.ToCLong(&val) == true) {
+            long val = std::strtol(node.c_str(), nullptr, 10);
+            if (val != 0 || node == "0") {
                 long newVal = val + shift;
                 if (newVal > max) {
                     newVal -= max;
                 } else if (newVal < min) {
                     newVal += max;
                 }
-                newNodeArray.Add(wxString::Format("%ld", newVal));
+                if (!newNodes.empty()) newNodes += ",";
+                newNodes += std::to_string(newVal);
             }
         }
-        if (newNodeArray.size() > 0)
-            line.second = CompressNodes(wxJoin(newNodeArray, ','));
+        if (!newNodes.empty())
+            line.second = CompressNodes(newNodes);
     }
 }
 
@@ -1671,17 +1763,19 @@ void ReverseNodes(std::map<std::string, std::string>& nodes, int max) {
         if (Contains(line.first, "Type"))
             continue;
         auto const oldnodes = ExpandNodes(line.second);
-        auto const oldNodeArray = wxSplit(oldnodes, ',');
-        wxArrayString newNodeArray;
+        std::vector<std::string> oldNodeArray;
+        Split(oldnodes, ',', oldNodeArray);
+        std::string newNodes;
         for (auto const& node : oldNodeArray) {
-            long val;
-            if (node.ToCLong(&val) == true) {
+            long val = std::strtol(node.c_str(), nullptr, 10);
+            if (val != 0 || node == "0") {
                 long newVal = max - val;
-                newNodeArray.Add(wxString::Format("%ld", newVal));
+                if (!newNodes.empty()) newNodes += ",";
+                newNodes += std::to_string(newVal);
             }
         }
-        if (newNodeArray.size() > 0)
-            line.second = CompressNodes(wxJoin(newNodeArray, ','));
+        if (!newNodes.empty())
+            line.second = CompressNodes(newNodes);
     }
 }
 

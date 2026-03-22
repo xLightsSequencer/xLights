@@ -1259,27 +1259,25 @@ void ModelStateDialog::ImportStatesFromModel()
 
 void ModelStateDialog::ImportStates(const wxString & filename)
 {
-    wxXmlDocument doc(filename);
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_file(filename.ToStdString().c_str());
 
-    if (doc.IsOk())
+    if (result)
     {
         std::map<std::string, std::map<std::string, std::string> > newStateInfo = stateData;
-        wxXmlNode* root = doc.GetRoot();
+        pugi::xml_node root = doc.document_element();
         bool stateFound = false;
 
-        for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
+        for (pugi::xml_node n : root.children("stateInfo"))
         {
-            if (n->GetName() == "stateInfo")
+            std::map<std::string, std::map<std::string, std::string> > stateInfo;
+            XmlSerialize::DeserializeStateInfo(n, stateInfo);
+            if (stateInfo.size() == 0)
             {
-                std::map<std::string, std::map<std::string, std::string> > stateInfo;
-                XmlSerialize::DeserializeStateInfo(n, stateInfo);
-                if (stateInfo.size() == 0)
-                {
-                    continue;
-                }
-                stateFound = true;
-                AddStates(stateInfo);
+                continue;
             }
+            stateFound = true;
+            AddStates(stateInfo);
         }
         overRide = false;
         showDialog = true;

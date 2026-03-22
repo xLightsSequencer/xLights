@@ -10,7 +10,8 @@
 
 #include <format>
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
+
 #include <wx/msgdlg.h>
 
 #include "ViewObjectManager.h"
@@ -74,8 +75,8 @@ ViewObject* ViewObjectManager::CreateAndAddObject(const std::string &type) {
     return view_object;
 }
 
-ViewObject* ViewObjectManager::CreateObject(wxXmlNode *node) const {
-    std::string type = node->GetAttribute("DisplayAs").ToStdString();
+ViewObject* ViewObjectManager::CreateObject(pugi::xml_node node) const {
+    std::string type = node.attribute("DisplayAs").as_string();
     XmlSerializer serializer;
     ViewObject* view_object {nullptr};
     view_object = serializer.DeserializeObject(node, xlights, false);
@@ -103,12 +104,11 @@ void ViewObjectManager::clear() {
     view_objects.clear();
 }
 
-void ViewObjectManager::LoadViewObjects(wxXmlNode *modelNode) {
+void ViewObjectManager::LoadViewObjects(pugi::xml_node modelNode) {
     clear();
-    this->modelNode = modelNode;
-    for (wxXmlNode* e=modelNode->GetChildren(); e!=nullptr; e=e->GetNext()) {
-        if (e->GetName() == "view_object") {
-            std::string name = e->GetAttribute("name").ToStdString();
+    for (pugi::xml_node e = modelNode.first_child(); e; e = e.next_sibling()) {
+        if (std::string_view(e.name()) == "view_object") {
+            std::string name = e.attribute("name").as_string();
             if (!name.empty()) {
                 createAndAddObject(e);
             }
@@ -116,7 +116,7 @@ void ViewObjectManager::LoadViewObjects(wxXmlNode *modelNode) {
     }
 }
 
-ViewObject *ViewObjectManager::createAndAddObject(wxXmlNode *node) {
+ViewObject *ViewObjectManager::createAndAddObject(pugi::xml_node node) {
     ViewObject* view_object = CreateObject(node);
     AddViewObject(view_object);
     return view_object;
@@ -153,49 +153,54 @@ void ViewObjectManager::Delete(const std::string &name) {
 }
 
 // Helper: find a child XML node by tag name and "name" attribute
-static wxXmlNode* FindVOChildByNameAttr(wxXmlNode* parent, const wxString& childTag, const wxString& name)
+static pugi::xml_node FindVOChildByNameAttr(pugi::xml_node parent, std::string_view childTag, std::string_view name)
 {
-    for (wxXmlNode* n = parent->GetChildren(); n != nullptr; n = n->GetNext()) {
-        if (n->GetName() == childTag && n->GetAttribute("name") == name) {
+    for (pugi::xml_node n = parent.first_child(); n; n = n.next_sibling()) {
+        if (std::string_view(n.name()) == childTag && std::string_view(n.attribute("name").as_string()) == name) {
             return n;
         }
     }
-    return nullptr;
+    return {};
 }
 
-// Helper: set attribute (delete + re-add)
-static void SetVOXmlAttribute(wxXmlNode* node, const wxString& attr, const wxString& value)
+// Helper: set attribute (add or update)
+static void SetVOXmlAttribute(pugi::xml_node node, const char* attr, const char* value)
 {
-    if (node->HasAttribute(attr)) node->DeleteAttribute(attr);
-    node->AddAttribute(attr, value);
+    auto a = node.attribute(attr);
+    if (!a) {
+        a = node.append_attribute(attr);
+    }
+    a.set_value(value);
 }
 
 // Helper: compare name attributes on child nodes
-static bool CheckVONameAttrs(wxXmlNode* nn, wxXmlNode* cc)
+static bool CheckVONameAttrs(pugi::xml_node nn, pugi::xml_node cc)
 {
-    if (nn->HasAttribute("name")) {
-        return (cc->GetAttribute("name") == nn->GetAttribute("name"));
-    } else if (nn->HasAttribute("Name")) {
-        return (cc->GetAttribute("Name") == nn->GetAttribute("Name"));
+    if (!nn.attribute("name").empty()) {
+        return std::string_view(cc.attribute("name").as_string()) == std::string_view(nn.attribute("name").as_string());
+    } else if (!nn.attribute("Name").empty()) {
+        return std::string_view(cc.attribute("Name").as_string()) == std::string_view(nn.attribute("Name").as_string());
     }
     return true;
 }
 
 // Helper: compare two XML nodes for changes
-static bool IsVOXmlNodeChanged(wxXmlNode* local, wxXmlNode* base)
+static bool IsVOXmlNodeChanged(pugi::xml_node local, pugi::xml_node base)
 {
-    for (wxXmlAttribute* a = base->GetAttributes(); a != nullptr; a = a->GetNext()) {
-        if (!local->HasAttribute(a->GetName()) || local->GetAttribute(a->GetName()) != a->GetValue()) {
+    for (auto a : base.attributes()) {
+        auto localAttr = local.attribute(a.name());
+        if (localAttr.empty() || std::string_view(localAttr.as_string()) != std::string_view(a.as_string())) {
             return true;
         }
     }
-    for (wxXmlNode* nn = base->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
+    for (pugi::xml_node nn = base.first_child(); nn; nn = nn.next_sibling()) {
         bool found = false;
-        for (wxXmlNode* cc = local->GetChildren(); cc != nullptr; cc = cc->GetNext()) {
-            if (cc->GetName() == nn->GetName() && CheckVONameAttrs(nn, cc)) {
+        for (pugi::xml_node cc = local.first_child(); cc; cc = cc.next_sibling()) {
+            if (std::string_view(cc.name()) == std::string_view(nn.name()) && CheckVONameAttrs(nn, cc)) {
                 found = true;
-                for (wxXmlAttribute* a = nn->GetAttributes(); a != nullptr; a = a->GetNext()) {
-                    if (!cc->HasAttribute(a->GetName()) || cc->GetAttribute(a->GetName()) != a->GetValue()) {
+                for (auto a : nn.attributes()) {
+                    auto ccAttr = cc.attribute(a.name());
+                    if (ccAttr.empty() || std::string_view(ccAttr.as_string()) != std::string_view(a.as_string())) {
                         return true;
                     }
                 }
@@ -208,41 +213,38 @@ static bool IsVOXmlNodeChanged(wxXmlNode* local, wxXmlNode* base)
 
 // Shared method: merge base view objects XML into current XML, updating currentObjectsNode in-place.
 // Populates changedObjects with names of objects that were added or updated.
-static bool MergeBaseIntoCurrentObjectsXml(wxXmlNode* currentObjectsNode, wxXmlNode* baseObjectsNode,
+static bool MergeBaseIntoCurrentObjectsXml(pugi::xml_node currentObjectsNode, pugi::xml_node baseObjectsNode,
                                            std::vector<std::string>& changedObjects)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool changed = false;
 
-    if (baseObjectsNode == nullptr || currentObjectsNode == nullptr) return false;
+    if (!baseObjectsNode || !currentObjectsNode) return false;
 
-    for (wxXmlNode* bo = baseObjectsNode->GetChildren(); bo != nullptr; bo = bo->GetNext()) {
-        if (bo->GetName() != "view_object") continue;
-        auto name = bo->GetAttribute("name");
+    for (pugi::xml_node bo = baseObjectsNode.first_child(); bo; bo = bo.next_sibling()) {
+        if (std::string_view(bo.name()) != "view_object") continue;
+        std::string name = bo.attribute("name").as_string();
         if (name.empty()) continue;
 
-        wxXmlNode* local = FindVOChildByNameAttr(currentObjectsNode, "view_object", name);
+        pugi::xml_node local = FindVOChildByNameAttr(currentObjectsNode, "view_object", name);
 
-        if (local == nullptr) {
+        if (!local) {
             // Object does not exist locally -- add it
-            wxXmlNode* copy = new wxXmlNode(*bo);
+            pugi::xml_node copy = currentObjectsNode.append_copy(bo);
             SetVOXmlAttribute(copy, "FromBase", "1");
-            currentObjectsNode->AddChild(copy);
-            changedObjects.push_back(name.ToStdString());
+            changedObjects.push_back(name);
             changed = true;
-            logger_base.debug("MergeBase: Adding view object from base: '%s'.", (const char*)name.c_str());
-        } else if (local->GetAttribute("FromBase") == "1") {
+            logger_base.debug("MergeBase: Adding view object from base: '%s'.", name.c_str());
+        } else if (std::string_view(local.attribute("FromBase").as_string()) == "1") {
             // Object exists and came from base -- update if changed
             if (IsVOXmlNodeChanged(local, bo)) {
-                wxXmlNode* copy = new wxXmlNode(*bo);
+                pugi::xml_node copy = currentObjectsNode.insert_copy_after(bo, local);
                 SetVOXmlAttribute(copy, "FromBase", "1");
 
-                currentObjectsNode->InsertChildAfter(copy, local);
-                currentObjectsNode->RemoveChild(local);
-                delete local;
-                changedObjects.push_back(name.ToStdString());
+                currentObjectsNode.remove_child(local);
+                changedObjects.push_back(name);
                 changed = true;
-                logger_base.debug("MergeBase: Updating view object from base: '%s'.", (const char*)name.c_str());
+                logger_base.debug("MergeBase: Updating view object from base: '%s'.", name.c_str());
             }
         }
         // If object exists locally without FromBase, skip silently
@@ -252,24 +254,26 @@ static bool MergeBaseIntoCurrentObjectsXml(wxXmlNode* currentObjectsNode, wxXmlN
 }
 
 // Load base XML document and find <view_objects> node
-static bool LoadBaseObjectXmlNodes(const std::string& baseShowDir, wxXmlDocument& doc, wxXmlNode*& baseObjects)
+static bool LoadBaseObjectXmlNodes(const std::string& baseShowDir, pugi::xml_document& doc, pugi::xml_node& baseObjects)
 {
-    baseObjects = nullptr;
-    doc.Load(baseShowDir + GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE);
-    if (!doc.IsOk()) return false;
+    baseObjects = {};
+    std::string path = baseShowDir + GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE;
+    pugi::xml_parse_result result = doc.load_file(path.c_str());
+    if (!result) return false;
 
-    for (wxXmlNode* m = doc.GetRoot(); m != nullptr; m = m->GetNext()) {
-        for (wxXmlNode* mm = m->GetChildren(); mm != nullptr; mm = mm->GetNext()) {
-            if (mm->GetName() == "view_objects") baseObjects = mm;
+    pugi::xml_node root = doc.document_element();
+    if (root) {
+        for (pugi::xml_node mm = root.first_child(); mm; mm = mm.next_sibling()) {
+            if (std::string_view(mm.name()) == "view_objects") baseObjects = mm;
         }
     }
     return true;
 }
 
-bool ViewObjectManager::MergeBaseXml(const std::string& baseShowDir, wxXmlNode* localViewObjectsNode)
+bool ViewObjectManager::MergeBaseXml(const std::string& baseShowDir, pugi::xml_node localViewObjectsNode)
 {
-    wxXmlDocument baseDoc;
-    wxXmlNode* baseObjects = nullptr;
+    pugi::xml_document baseDoc;
+    pugi::xml_node baseObjects;
     if (!LoadBaseObjectXmlNodes(baseShowDir, baseDoc, baseObjects)) return false;
 
     std::vector<std::string> changedObjects;
@@ -278,20 +282,20 @@ bool ViewObjectManager::MergeBaseXml(const std::string& baseShowDir, wxXmlNode* 
 
 bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
 {
-    wxXmlDocument baseDoc;
-    wxXmlNode* baseObjects = nullptr;
+    pugi::xml_document baseDoc;
+    pugi::xml_node baseObjects;
     if (!LoadBaseObjectXmlNodes(baseShowDir, baseDoc, baseObjects)) return false;
-    if (baseObjects == nullptr) return false;
+    if (!baseObjects) return false;
 
     // Handle prompt mode: ask user about non-FromBase objects that clash with base
     if (prompt) {
-        for (wxXmlNode* bo = baseObjects->GetChildren(); bo != nullptr; bo = bo->GetNext()) {
-            if (bo->GetName() != "view_object") continue;
-            auto name = bo->GetAttribute("name");
+        for (pugi::xml_node bo = baseObjects.first_child(); bo; bo = bo.next_sibling()) {
+            if (std::string_view(bo.name()) != "view_object") continue;
+            std::string name = bo.attribute("name").as_string();
             if (name.empty()) continue;
             auto curr = GetObject(name);
             if (curr != nullptr && !curr->IsFromBase()) {
-                if (wxMessageBox(std::format("Object {} found that clashes with base show directory. Do you want to take the base show directory version?", name.ToStdString()),
+                if (wxMessageBox(std::format("Object {} found that clashes with base show directory. Do you want to take the base show directory version?", name),
                                  "Object clash", wxICON_QUESTION | wxYES_NO, xlights) == wxYES) {
                     curr->SetFromBase(true);
                 }
@@ -299,8 +303,9 @@ bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool promp
         }
     }
 
-    // Serialize all current view objects to a temporary XML node for comparison
-    wxXmlNode* currentObjectsNode = new wxXmlNode(wxXML_ELEMENT_NODE, "view_objects");
+    // Serialize all current view objects to a temporary XML document for comparison
+    pugi::xml_document tempDoc;
+    pugi::xml_node currentObjectsNode = tempDoc.append_child("view_objects");
     {
         XmlSerializingVisitor visitor{currentObjectsNode};
         for (auto v = begin(); v != end(); ++v) {
@@ -315,9 +320,11 @@ bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool promp
 
     // Apply changes: replace changed objects with new ones created from the updated XML
     for (const auto& name : changedObjects) {
-        wxXmlNode* updatedNode = FindVOChildByNameAttr(currentObjectsNode, "view_object", name);
-        if (updatedNode != nullptr) {
-            wxXmlNode* copy = new wxXmlNode(*updatedNode);
+        pugi::xml_node updatedNode = FindVOChildByNameAttr(currentObjectsNode, "view_object", name);
+        if (updatedNode) {
+            // Copy the node into a persistent document so it outlives the loop
+            pugi::xml_document copyDoc;
+            pugi::xml_node copy = copyDoc.append_copy(updatedNode);
             auto curr = GetViewObject(name);
             if (curr != nullptr) {
                 Delete(name);
@@ -325,9 +332,6 @@ bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool promp
             createAndAddObject(copy);
         }
     }
-
-    // Clean up temporary XML node
-    delete currentObjectsNode;
 
     return changed;
 }

@@ -13,9 +13,9 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <pugixml.hpp>
 
 class BaseSerializingVisitor;
-class wxXmlNode;
 
 // ---------------------------------------------------------------------------
 // EffectPresetItem — abstract base for items in the preset tree
@@ -52,7 +52,7 @@ public:
     EffectPreset(const std::string& name, const std::string& settings,
                  const std::string& version, const std::string& xLightsVersion,
                  EffectPresetGroup* parent = nullptr);
-    explicit EffectPreset(wxXmlNode* node, EffectPresetGroup* parent = nullptr);
+    explicit EffectPreset(pugi::xml_node node, EffectPresetGroup* parent = nullptr);
 
     bool IsGroup() const override { return false; }
     void Save(BaseSerializingVisitor& visitor) const override;
@@ -78,7 +78,7 @@ private:
 class EffectPresetGroup : public EffectPresetItem {
 public:
     explicit EffectPresetGroup(const std::string& name, EffectPresetGroup* parent = nullptr);
-    explicit EffectPresetGroup(wxXmlNode* node, EffectPresetGroup* parent = nullptr);
+    explicit EffectPresetGroup(pugi::xml_node node, EffectPresetGroup* parent = nullptr);
 
     bool IsGroup() const override { return true; }
     void Save(BaseSerializingVisitor& visitor) const override;
@@ -101,7 +101,7 @@ public:
     bool HasChildNamed(const std::string& name) const;
 
 private:
-    void LoadChildren(wxXmlNode* node);
+    void LoadChildren(pugi::xml_node node);
 
     std::vector<std::unique_ptr<EffectPresetItem>> _children;
 };
@@ -115,7 +115,7 @@ public:
     ~EffectPresetManager() = default;
 
     // Lifecycle
-    void Load(wxXmlNode* effectsNode);
+    void Load(pugi::xml_node effectsNode);
     void Save(BaseSerializingVisitor& visitor) const;
     void Reset();
 
@@ -145,7 +145,7 @@ public:
                               const std::string& xLightsVersion);
 
     // Import from XML (for .xpreset files or another show's effects node)
-    void ImportFromXml(wxXmlNode* node, EffectPresetGroup* parent);
+    void ImportFromXml(pugi::xml_node node, EffectPresetGroup* parent);
 
     // Name fixup (migrated from EffectTreeDialog::FixRgbEffects)
     bool FixRgbEffects();

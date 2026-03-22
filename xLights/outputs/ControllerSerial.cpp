@@ -9,7 +9,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
 
 #include "ControllerSerial.h"
 #include "../OutputModelManager.h"
@@ -179,17 +178,17 @@ std::vector<uint8_t> ControllerSerial::Encode(const std::string& s)
     return res;
 }
 
-ControllerSerial::ControllerSerial(OutputManager* om, wxXmlNode* node, const std::string& showDir) : Controller(om, node, showDir) {
-    _type = node->GetAttribute("Protocol");
+ControllerSerial::ControllerSerial(OutputManager* om, pugi::xml_node node, const std::string& showDir) : Controller(om, node, showDir) {
+    _type = node.attribute("Protocol").as_string("");
     _serialOutput = dynamic_cast<SerialOutput*>(_outputs.front());
     _serialOutput->SetId(GetId());
     InitialiseTypes(_type == OUTPUT_xxxSERIAL);
-    SetSpeed(wxAtoi(node->GetAttribute("Speed")));
-    SetPrefix(node->GetAttribute("Prefix"));
-    SetPostfix(node->GetAttribute("Postfix"));
-    SetFPPProxy(node->GetAttribute("FPPProxy"));
+    SetSpeed(node.attribute("Speed").as_int(0));
+    SetPrefix(node.attribute("Prefix").as_string(""));
+    SetPostfix(node.attribute("Postfix").as_string(""));
+    SetFPPProxy(node.attribute("FPPProxy").as_string(""));
     VMVChanged();
-    SetPort(node->GetAttribute("Port"));
+    SetPort(node.attribute("Port").as_string(""));
     _dirty = false;
 }
 
@@ -221,21 +220,21 @@ ControllerSerial::ControllerSerial(OutputManager* om, const ControllerSerial& fr
     _serialOutput = static_cast<SerialOutput*>(from._serialOutput->Copy());
 }
 
-wxXmlNode* ControllerSerial::Save() {
+pugi::xml_node ControllerSerial::Save(pugi::xml_node parent) {
     Output *o = _outputs.front();
     if (o != _serialOutput) {
         _outputs.pop_front();
         _outputs.push_back(_serialOutput);
     }
 
-    wxXmlNode* um = Controller::Save();
+    pugi::xml_node um = Controller::Save(parent);
 
-    um->AddAttribute("Port", _port);
-    um->AddAttribute("Speed", wxString::Format("%d", _speed));
-    um->AddAttribute("Protocol", _type);
-    um->AddAttribute("Prefix", _saveablePrefix);
-    um->AddAttribute("Postfix", _saveablePostfix);
-    um->AddAttribute("FPPProxy", _fppProxy);
+    um.append_attribute("Port") = _port;
+    um.append_attribute("Speed") = _speed;
+    um.append_attribute("Protocol") = _type;
+    um.append_attribute("Prefix") = _saveablePrefix;
+    um.append_attribute("Postfix") = _saveablePostfix;
+    um.append_attribute("FPPProxy") = _fppProxy;
 
     if (o != _serialOutput) {
         _outputs.pop_front();
@@ -498,7 +497,7 @@ std::string ControllerSerial::GetShortDescription() const {
 	return res;
 }
 
-void ControllerSerial::Convert(wxXmlNode* node, std::string showDir) {
+void ControllerSerial::Convert(pugi::xml_node node, std::string showDir) {
 
     Controller::Convert(node, showDir);
 

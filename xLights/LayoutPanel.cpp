@@ -28,7 +28,9 @@
 #include <wx/propgrid/advprops.h>
 #include <wx/tglbtn.h>
 #include <wx/srchctrl.h>
-#include <wx/sstream.h>
+#include <pugixml.hpp>
+#include <format>
+#include <sstream>
 #include <wx/artprov.h>
 #include <wx/dataview.h>
 #include <wx/config.h>
@@ -7114,16 +7116,17 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 
             if (copyData.IsOk())
             {
-                wxXmlNode* nd = copyData.GetBaseObjectXml();
+                auto ownedNd = copyData.GetBaseObjectXml();
+                pugi::xml_node nd = ownedNd;
                 std::string source_model_name = xlEMPTY_STRING;
 
-                if (nd != nullptr)
+                if (nd)
                 {
-                    auto nda = DisplayAsTypeFromString(nd->GetAttribute("DisplayAs"));
-                    auto nx = (int)wxAtof(nd->GetAttribute("WorldPosX"));
-                    auto ny = (int)wxAtof(nd->GetAttribute("WorldPosY"));
-                    auto nz = (int)wxAtof(nd->GetAttribute("WorldPosZ"));
-                    source_model_name = nd->GetAttribute("name");
+                    auto nda = DisplayAsTypeFromString(nd.attribute("DisplayAs").as_string());
+                    auto nx = (int)nd.attribute("WorldPosX").as_double();
+                    auto ny = (int)nd.attribute("WorldPosY").as_double();
+                    auto nz = (int)nd.attribute("WorldPosZ").as_double();
+                    source_model_name = nd.attribute("name").as_string();
 
                     bool moved = true;
                     while (moved)
@@ -7143,7 +7146,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                                     nz == z)
                                 {
                                     nx += 40;
-                                    nd->AddAttribute("WorldPosX", wxString::Format("%6.4f", (float)nx));
+                                    SetXmlNodeAttribute(nd, "WorldPosX", std::format("{:6.4f}", (float)nx));
                                     moved = true;
                                     break;
                                 }
@@ -7162,16 +7165,13 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 
                         // Remove any existing controller port config
                         newModel->SetModelChain("");
-                        nd->DeleteAttribute("Controller");
-                        for (auto n = nd->GetChildren(); n != nullptr; n = n->GetNext()) {
-                            if (n->GetName() == "ControllerConnection") {
-                                nd->RemoveChild(n);
-                                delete n;
-                                break;
-                            }
+                        nd.remove_attribute("Controller");
+                        pugi::xml_node cc = nd.child("ControllerConnection");
+                        if (cc) {
+                            nd.remove_child(cc);
                         }
                         newModel->SetStartChannel("1");
-                        
+
 						name = xlights->AllModels.GenerateModelName(newModel->name);
                         newModel->SetControllerName(NO_CONTROLLER);
 						newModel->name = name;
@@ -7282,10 +7282,11 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             logger_base.debug("LayoutPanel::DoUndo SingleModel");
             Model *m = xlights->AllModels[undoBuffer[sz].model];
             if (m != nullptr) {
-                wxStringInputStream min(undoBuffer[sz].data);
-                wxXmlDocument mdoc(min);
-                wxXmlNode* modelNode = mdoc.GetRoot() ? mdoc.GetRoot()->GetChildren() : nullptr;
-                if (modelNode != nullptr) {
+                pugi::xml_document mdoc;
+                mdoc.load_string(undoBuffer[sz].data.c_str());
+                pugi::xml_node root = mdoc.document_element();
+                pugi::xml_node modelNode = root ? root.first_child() : pugi::xml_node();
+                if (modelNode) {
                     Model* newModel = xlights->AllModels.CreateModel(modelNode,
                         modelPreview->GetVirtualCanvasWidth(),
                         modelPreview->GetVirtualCanvasHeight());
@@ -7301,10 +7302,11 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             logger_base.debug("LayoutPanel::DoUndo SingleObject");
             ViewObject *m = xlights->AllObjects[undoBuffer[sz].model];
             if (m != nullptr) {
-                wxStringInputStream min(undoBuffer[sz].data);
-                wxXmlDocument mdoc(min);
-                wxXmlNode* objectNode = mdoc.GetRoot() ? mdoc.GetRoot()->GetChildren() : nullptr;
-                if (objectNode != nullptr) {
+                pugi::xml_document mdoc;
+                mdoc.load_string(undoBuffer[sz].data.c_str());
+                pugi::xml_node root = mdoc.document_element();
+                pugi::xml_node objectNode = root ? root.first_child() : pugi::xml_node();
+                if (objectNode) {
                     xlights->AllObjects.Delete(undoBuffer[sz].model);
                     ViewObject* newObj = xlights->AllObjects.CreateObject(objectNode);
                     if (newObj != nullptr) {
@@ -7320,21 +7322,18 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             UnSelectAllModels();
 
             // Restore models and groups from serialized XML
-            wxStringInputStream min(undoBuffer[sz].models);
-            wxXmlDocument mdoc(min);
-            if (mdoc.IsOk() && mdoc.GetRoot() != nullptr) {
-                wxXmlNode* modelsNode = nullptr;
-                wxXmlNode* groupsNode = nullptr;
-                for (wxXmlNode* n = mdoc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
-                    if (n->GetName() == "models") modelsNode = n;
-                    else if (n->GetName() == "modelGroups") groupsNode = n;
-                }
-                if (modelsNode != nullptr) {
+            pugi::xml_document mdoc;
+            mdoc.load_string(undoBuffer[sz].models.c_str());
+            pugi::xml_node mroot = mdoc.document_element();
+            if (mroot) {
+                pugi::xml_node modelsNode = mroot.child("models");
+                pugi::xml_node groupsNode = mroot.child("modelGroups");
+                if (modelsNode) {
                     xlights->AllModels.LoadModels(modelsNode,
                         modelPreview->GetVirtualCanvasWidth(),
                         modelPreview->GetVirtualCanvasHeight());
                 }
-                if (groupsNode != nullptr) {
+                if (groupsNode) {
                     xlights->AllModels.LoadGroups(groupsNode,
                         modelPreview->GetVirtualCanvasWidth(),
                         modelPreview->GetVirtualCanvasHeight());
@@ -7342,17 +7341,12 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             }
 
             // Restore view objects from serialized XML
-            wxStringInputStream oin(undoBuffer[sz].objects);
-            wxXmlDocument odoc(oin);
-            if (odoc.IsOk() && odoc.GetRoot() != nullptr) {
-                wxXmlNode* objectsNode = nullptr;
-                for (wxXmlNode* n = odoc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
-                    if (n->GetName() == "view_objects") {
-                        objectsNode = n;
-                        break;
-                    }
-                }
-                if (objectsNode != nullptr) {
+            pugi::xml_document odoc;
+            odoc.load_string(undoBuffer[sz].objects.c_str());
+            pugi::xml_node oroot = odoc.document_element();
+            if (oroot) {
+                pugi::xml_node objectsNode = oroot.child("view_objects");
+                if (objectsNode) {
                     xlights->AllObjects.LoadViewObjects(objectsNode);
                 }
             }
@@ -7449,11 +7443,11 @@ void LayoutPanel::CreateUndoPoint(const std::string &tp, const std::string &mode
         }
         
         // Use XmlSerializer to create the XML document
-        wxXmlDocument doc = serializer.SerializeModel(m, false);
-       
-        wxStringOutputStream stream;
-        doc.Save(stream);
-        undoBuffer[idx].data = stream.GetString();
+        pugi::xml_document doc = serializer.SerializeModel(m, false);
+
+        std::ostringstream stream;
+        doc.save(stream);
+        undoBuffer[idx].data = stream.str();
     } else if (type == "SingleObject") {
         ViewObject *obj = nullptr;
         if( selectedBaseObject == nullptr ) {
@@ -7934,20 +7928,18 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         std::string name = xlights->AllModels.GenerateModelName(sel);
 
         // Serialize the existing group to a temporary XML node, then rename it
-        wxXmlNode* groupsRoot = new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroups");
+        pugi::xml_document groupsDoc;
+        pugi::xml_node groupsRoot = groupsDoc.append_child("modelGroups");
         XmlSerializingVisitor visitor{ groupsRoot };
         mg->Accept(visitor);
-        wxXmlNode* node = groupsRoot->GetChildren();
-        if (node != nullptr) {
-            groupsRoot->RemoveChild(node);
-            node->DeleteAttribute("name");
-            node->AddAttribute("name", name);
+        pugi::xml_node node = groupsRoot.first_child();
+        if (node) {
+            node.remove_attribute("name");
+            node.append_attribute("name") = name;
         }
-        delete groupsRoot;
 
-        if (node != nullptr) {
+        if (node) {
             xlights->AllModels.AddModel(xlights->AllModels.CreateModel(node));
-            delete node;
         }
         //model_grp_panel->UpdatePanel(name);
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
@@ -8084,10 +8076,10 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
             if (xlights->AllModels.GetModel(newName) != nullptr) {
                 newName = xlights->AllModels.GenerateModelName(it2->GetName());
             }
-            it2->GetModelNode()->DeleteAttribute("name");
-            it2->GetModelNode()->DeleteAttribute("LayoutGroup");
-            it2->GetModelNode()->AddAttribute("name", newName);
-            it2->GetModelNode()->AddAttribute("LayoutGroup", layoutGroup);
+            it2->GetModelNode().remove_attribute("name");
+            it2->GetModelNode().remove_attribute("LayoutGroup");
+            it2->GetModelNode().append_attribute("name") = newName;
+            it2->GetModelNode().append_attribute("LayoutGroup") = layoutGroup.ToStdString();
             xlights->AllModels.createAndAddModel(it2->GetModelNode(), modelPreview->getWidth(), modelPreview->getHeight());
             logger_base.debug("Imported model '%s' as '%s'.", (const char*)it2->GetName().c_str(), (const char*)newName.c_str());
         }
@@ -8098,7 +8090,7 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
     {
         if (it2->IsModelGroup())//if a group, try to add models if exist
         {
-            wxString const smodels = it2->GetModelNode()->GetAttribute("models");
+            wxString const smodels = it2->GetModelNode().attribute("models").as_string();
             auto models = wxSplit(smodels, ',');
 
             models.erase(std::remove_if(models.begin(), models.end(), [&](std::string const& s)
@@ -8114,8 +8106,8 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
             wxString const name = it2->GetName();
             Model* model = xlights->AllModels.GetModel(name);
             if (model == nullptr) {//if group doesnt exist, create it
-                it2->GetModelNode()->DeleteAttribute("LayoutGroup");
-                it2->GetModelNode()->AddAttribute("LayoutGroup", layoutGroup);
+                it2->GetModelNode().remove_attribute("LayoutGroup");
+                it2->GetModelNode().append_attribute("LayoutGroup") = layoutGroup.ToStdString();
                 model = xlights->AllModels.createAndAddModel(it2->GetModelNode(), modelPreview->getWidth(), modelPreview->getHeight());
                 logger_base.debug("Imported model group '%s'.", (const char*)name.c_str());
             }
@@ -8902,21 +8894,11 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp) {
     UpdateModelList(true, models);
 }
 
-CopyPasteBaseObject::~CopyPasteBaseObject() {
-    if (_xmlNode != nullptr) {
-        delete _xmlNode;
-    }
-}
-
 CopyPasteBaseObject::CopyPasteBaseObject() {
 }
 
 CopyPasteBaseObject::CopyPasteBaseObject(const std::string& in)
 {
-    _ok = false;
-    _xmlNode = nullptr;
-	_viewObject = false;
-
     // check it looks like xml ... to stop parser errors
     wxString xml = in;
     if (!xml.StartsWith("<?xml") || (!xml.Contains("<model ") && !xml.Contains("<view_object "))) {
@@ -8925,57 +8907,46 @@ CopyPasteBaseObject::CopyPasteBaseObject(const std::string& in)
     }
 
 	if (xml.Contains("<view_object ")) {
-		// not valid
 		_viewObject = true;
 	}
 
-    wxStringInputStream strm(xml);
-    wxXmlDocument doc(strm);
+    _xmlDoc = std::make_shared<pugi::xml_document>();
+    pugi::xml_parse_result result = _xmlDoc->load_string(in.c_str());
 
-    wxXmlNode* xmlNode = doc.GetRoot();
-
-    if (xmlNode == nullptr) {
+    if (!result || !_xmlDoc->document_element()) {
         // not valid
+        _xmlDoc.reset();
         return;
     }
 
-    _xmlNode = new wxXmlNode(*xmlNode);
     _ok = true;
 }
 
 void CopyPasteBaseObject::SetBaseObject(BaseObject* model)
 {
-    if (_xmlNode != nullptr) {
-        delete _xmlNode;
-        _xmlNode = nullptr;
-    }
-
+    _xmlDoc.reset();
     _ok = false;
     if (model != nullptr) {
-        wxXmlNode nd;
-        XmlSerializingVisitor visitor{ &nd };
+        _xmlDoc = std::make_shared<pugi::xml_document>();
+        XmlSerializingVisitor visitor{ _xmlDoc.get() };
         model->Accept(visitor);
-        
-        _xmlNode = nd.GetChildren();
-        if (_xmlNode != nullptr) {
-            nd.RemoveChild(_xmlNode);
+
+        if (_xmlDoc->document_element()) {
             _ok = true;
+        } else {
+            _xmlDoc.reset();
         }
     }
 }
 
 std::string CopyPasteBaseObject::Serialise() const
 {
-    if (_xmlNode == nullptr) {
+    if (!_xmlDoc) {
         return "";
     } else {
-        wxXmlDocument doc;
-        doc.SetRoot(_xmlNode);
-        wxStringOutputStream stream;
-        doc.Save(stream);
-        std::string copyData = stream.GetString().ToStdString();
-        doc.DetachRoot();
-        return copyData;
+        std::ostringstream stream;
+        _xmlDoc->save(stream);
+        return stream.str();
     }
 }
 

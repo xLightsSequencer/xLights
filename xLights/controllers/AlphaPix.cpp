@@ -12,7 +12,6 @@
 #include <wx/msgdlg.h>
 #include <wx/sstream.h>
 #include <wx/regex.h>
-#include <wx/xml/xml.h>
 #include <wx/sckstrm.h>
 #include <wx/tokenzr.h>
 #include <wx/progdlg.h>

@@ -10,7 +10,7 @@
 #include <wx/textctrl.h>
 //*)
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 #include <map>
 
@@ -19,7 +19,7 @@ class RemapModelProperties
     std::string _filename;
     std::string _message;
     bool _ok = false;
-    wxXmlDocument _xmodel;
+    pugi::xml_document _xmodel;
     std::vector<uint32_t> _data;
     uint32_t _faces = 0;
     uint32_t _states = 0;
@@ -28,7 +28,7 @@ class RemapModelProperties
     uint32_t _h = 0;
     uint32_t _d = 0;
 
-    void RemapNodes(wxXmlNode* n, const std::string& attr, const std::map<uint32_t, uint32_t>& mapping);
+    void RemapNodes(pugi::xml_node n, const std::string& attr, const std::map<uint32_t, uint32_t>& mapping);
 	void ParseData(const std::string& data);
     uint32_t GetWidth() const
     {
@@ -46,9 +46,9 @@ class RemapModelProperties
     {
         return _data;
     }
-    wxXmlNode* GetXml()
+    pugi::xml_node GetXml()
     {
-        return _xmodel.GetRoot();
+        return _xmodel.document_element();
     }
 
 public:

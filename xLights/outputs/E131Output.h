@@ -49,11 +49,11 @@ class E131Output : public IPOutput
 public:
 
     #pragma region Constructors and Destructors
-    E131Output(wxXmlNode* node, bool isActive);
+    E131Output(pugi::xml_node node, bool isActive);
     E131Output();
     E131Output(const E131Output& from);
     virtual ~E131Output() override;
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     virtual Output* Copy() override
     {
         return new E131Output(*this);

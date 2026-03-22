@@ -9,7 +9,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
 
 #include "ControllerEthernet.h"
 #include "OutputManager.h"
@@ -97,17 +96,17 @@ void ControllerEthernet::InitialiseTypes(bool forceXXX) {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-ControllerEthernet::ControllerEthernet(OutputManager* om, wxXmlNode* node, const std::string& showDir) : Controller(om, node, showDir) {
+ControllerEthernet::ControllerEthernet(OutputManager* om, pugi::xml_node node, const std::string& showDir) : Controller(om, node, showDir) {
 
-    _type = node->GetAttribute("Protocol");
+    _type = node.attribute("Protocol").as_string("");
     InitialiseTypes(_type == OUTPUT_xxxETHERNET);
-    SetIP(node->GetAttribute("IP"));
-    SetFPPProxy(node->GetAttribute("FPPProxy"));
-    SetPriority(wxAtoi(node->GetAttribute("Priority", "100")));
-    SetVersion(wxAtoi(node->GetAttribute("Version", "1")));
-    _expanded = node->GetAttribute("Expanded", "FALSE") == "TRUE";
-    _universePerString = node->GetAttribute("UPS", "FALSE") == "TRUE";
-    _forceLocalIP = node->GetAttribute("ForceLocalIP", "");
+    SetIP(node.attribute("IP").as_string(""));
+    SetFPPProxy(node.attribute("FPPProxy").as_string(""));
+    SetPriority(node.attribute("Priority").as_int(100));
+    SetVersion(node.attribute("Version").as_int(1));
+    _expanded = std::string_view(node.attribute("Expanded").as_string("FALSE")) == "TRUE";
+    _universePerString = std::string_view(node.attribute("UPS").as_string("FALSE")) == "TRUE";
+    _forceLocalIP = node.attribute("ForceLocalIP").as_string("");
     _dirty = false;
 }
 
@@ -143,18 +142,18 @@ ControllerEthernet::~ControllerEthernet() {
     }
 }
 
-wxXmlNode* ControllerEthernet::Save() {
+pugi::xml_node ControllerEthernet::Save(pugi::xml_node parent) {
 
-    wxXmlNode* um = Controller::Save();
+    pugi::xml_node um = Controller::Save(parent);
 
-    um->AddAttribute("IP", _ip);
-    um->AddAttribute("Protocol", _type);
-    um->AddAttribute("FPPProxy", _fppProxy);
-    um->AddAttribute("Priority", wxString::Format("%d", _priority));
-    um->AddAttribute("Version", wxString::Format("%d", _version));
-    um->AddAttribute("Expanded", _expanded ? _("TRUE") : _("FALSE"));
-    um->AddAttribute("UPS", _universePerString ? _("TRUE") : _("FALSE"));
-    um->AddAttribute("ForceLocalIP", _forceLocalIP);
+    um.append_attribute("IP") = _ip;
+    um.append_attribute("Protocol") = _type;
+    um.append_attribute("FPPProxy") = _fppProxy;
+    um.append_attribute("Priority") = _priority;
+    um.append_attribute("Version") = _version;
+    um.append_attribute("Expanded") = _expanded ? "TRUE" : "FALSE";
+    um.append_attribute("UPS") = _universePerString ? "TRUE" : "FALSE";
+    um.append_attribute("ForceLocalIP") = _forceLocalIP;
 
     return um;
 }
@@ -567,7 +566,7 @@ std::string ControllerEthernet::GetShortDescription() const {
 	return res;
 }
 
-void ControllerEthernet::Convert(wxXmlNode* node, std::string showDir) {
+void ControllerEthernet::Convert(pugi::xml_node node, std::string showDir) {
 
     _outputs.push_back(Output::Create(this, node, showDir));
     if (_outputs.back() == nullptr) {

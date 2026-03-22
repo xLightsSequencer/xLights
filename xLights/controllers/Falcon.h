@@ -10,7 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 #include <vector>
 
@@ -177,9 +177,9 @@ class Falcon : public BaseController
     bool ValidateBoard(Controller* controller);
 
     #pragma region Strings.xml Handling
-    int CountStrings(const wxXmlDocument& stringsDoc) const;
-    void ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconString*>& stringData, int defaultBrightness, float defaultGamma) const;
-    int MaxPixels(const wxXmlDocument& stringsDoc, int board) const;
+    int CountStrings(const pugi::xml_document& stringsDoc) const;
+    void ReadStringData(const pugi::xml_document& stringsDoc, std::vector<FalconString*>& stringData, int defaultBrightness, float defaultGamma) const;
+    int MaxPixels(const pugi::xml_document& stringsDoc, int board) const;
     #pragma endregion
 
     #pragma region FalconString Handling

@@ -32,7 +32,7 @@ class OpenDMXOutput : public SerialOutput
 public:
 
     #pragma region Constructors and Destructors
-    OpenDMXOutput(wxXmlNode* node);
+    OpenDMXOutput(pugi::xml_node node);
     OpenDMXOutput();
     OpenDMXOutput(const OpenDMXOutput& from);
     virtual ~OpenDMXOutput() override {};

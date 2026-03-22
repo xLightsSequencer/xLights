@@ -11,7 +11,6 @@
 
 // Based on the protocol as described at http://www.3waylabs.com/ddp/
 
-#include <wx/xml/xml.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 
@@ -68,11 +67,11 @@ void DDPOutput::OpenDatagram() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-DDPOutput::DDPOutput(wxXmlNode* node, bool isActive) : IPOutput(node, isActive) {
+DDPOutput::DDPOutput(pugi::xml_node node, bool isActive) : IPOutput(node, isActive) {
 
     _fulldata = nullptr;
-    _channelsPerPacket = wxAtoi(node->GetAttribute("ChannelsPerPacket"));
-    _keepChannelNumbers = wxAtoi(node->GetAttribute("KeepChannelNumbers"));
+    _channelsPerPacket = node.attribute("ChannelsPerPacket").as_int(0);
+    _keepChannelNumbers = node.attribute("KeepChannelNumbers").as_int(0);
     _sequenceNum = 0;
     _datagram = nullptr;
     memset(_data, 0, sizeof(_data));
@@ -107,13 +106,13 @@ DDPOutput::~DDPOutput() {
     if (_fulldata != nullptr) delete _fulldata;
 }
 
-wxXmlNode* DDPOutput::Save() {
+pugi::xml_node DDPOutput::Save(pugi::xml_node parent) {
 
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
+    pugi::xml_node node = parent.append_child("network");
 
-    node->AddAttribute("ChannelsPerPacket", wxString::Format("%i", _channelsPerPacket));
-    node->AddAttribute("KeepChannelNumbers", _keepChannelNumbers ? "1" : "0");
-    IPOutput::Save(node);
+    node.append_attribute("ChannelsPerPacket") = _channelsPerPacket;
+    node.append_attribute("KeepChannelNumbers") = _keepChannelNumbers ? "1" : "0";
+    IPOutput::SaveAttr(node);
 
     return node;
 }

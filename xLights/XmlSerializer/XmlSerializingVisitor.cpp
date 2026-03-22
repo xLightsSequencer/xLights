@@ -10,24 +10,26 @@
 
 #include "XmlSerializingVisitor.h"
 
-XmlSerializingVisitor::XmlSerializingVisitor(wxXmlNode* parentNode, bool exporting)
+#include <cassert>
+
+XmlSerializingVisitor::XmlSerializingVisitor(pugi::xml_node parentNode, bool exporting)
     : BaseSerializingVisitor(exporting) {
     nodeStack.push_back(parentNode);
 }
-XmlSerializingVisitor::XmlSerializingVisitor(wxXmlDocument* parent, bool exporting)
+XmlSerializingVisitor::XmlSerializingVisitor(pugi::xml_document* parent, bool exporting)
     : BaseSerializingVisitor(exporting), doc(parent) {
 }
 
 void XmlSerializingVisitor::WriteOpenTag(const std::string& name,
                                           const AttrCollector& attrs, bool selfClose) {
-    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, name);
-    for (const auto& [key, val] : attrs.attrs) {
-        node->AddAttribute(key, val);
-    }
+    pugi::xml_node node;
     if (nodeStack.empty()) {
-        doc->SetRoot(node);
+        node = doc->append_child(name);
     } else {
-        nodeStack.back()->AddChild(node);
+        node = nodeStack.back().append_child(name);
+    }
+    for (const auto& [key, val] : attrs.attrs) {
+        node.append_attribute(key) = val;
     }
     if (!selfClose) {
         nodeStack.push_back(node);
@@ -35,10 +37,10 @@ void XmlSerializingVisitor::WriteOpenTag(const std::string& name,
 }
 
 void XmlSerializingVisitor::WriteCloseTag() {
-    wxASSERT(!nodeStack.empty());
+    assert(!nodeStack.empty());
     nodeStack.pop_back();
 }
 
 void XmlSerializingVisitor::WriteBodyText(const std::string& txt) {
-    nodeStack.back()->SetContent(txt);
+    nodeStack.back().text().set(txt);
 }

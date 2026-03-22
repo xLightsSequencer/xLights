@@ -10,6 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <pugixml.hpp>
 //(*Headers(NodeSelectGrid)
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
@@ -145,7 +146,7 @@ class NodeSelectGrid: public wxDialog
         std::vector<int> DecodeNodeList(const std::vector<wxString> &rows) const;
         wxString EncodeNodeLine(const std::vector<wxString> &nodes, const bool sort) const;
         void ImportModel(const std::string &filename);
-        void ImportModelXML(wxXmlNode* xmlData);
+        void ImportModelXML(pugi::xml_node xmlData);
 		void UpdateSelectedFromText();
 		void UpdateTextFromGrid();
 		void AddNode(int col, int row);

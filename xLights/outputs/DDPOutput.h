@@ -69,11 +69,11 @@ class DDPOutput : public IPOutput
 public:
 
     #pragma region Constructors and Destructors
-    DDPOutput(wxXmlNode* node, bool isActive);
+    DDPOutput(pugi::xml_node node, bool isActive);
     DDPOutput();
     DDPOutput(const DDPOutput& from);
     virtual ~DDPOutput() override;
-    virtual wxXmlNode* Save() override;
+    virtual pugi::xml_node Save(pugi::xml_node parent) override;
     virtual Output* Copy() override
     {
         return new DDPOutput(*this);

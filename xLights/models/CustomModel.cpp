@@ -11,7 +11,8 @@
 #include <cassert>
 #include <cstdlib>
 #include <wx/wx.h>
-#include <wx/xml/xml.h>
+
+#include <pugixml.hpp>
 
 #include <format>
 #include <vector>
@@ -984,25 +985,26 @@ bool HasDuplicates(float divisor, std::list<std::list<xlPoint>> chs)
 bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxXmlDocument doc(filename);
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_file(filename.c_str());
 
-    if (doc.IsOk()) {
+    if (result) {
         logger_base.debug("Loading LOR model %s.", (const char*)filename.c_str());
 
-        wxXmlNode* root = doc.GetRoot();
+        pugi::xml_node root = doc.document_element();
 
         std::list<std::list<xlPoint>> chs;
 
-        for (wxXmlNode* n1 = root->GetChildren(); n1 != nullptr; n1 = n1->GetNext()) {
-            if (n1->GetName() == "DrawObjects") {
-                for (wxXmlNode* n2 = n1->GetChildren(); n2 != nullptr; n2 = n2->GetNext()) {
-                    if (n2->GetName() == "DrawObject") {
-                        for (wxXmlNode* n3 = n2->GetChildren(); n3 != nullptr; n3 = n3->GetNext()) {
-                            if (n3->GetName() == "DrawPoints") {
+        for (pugi::xml_node n1 = root.first_child(); n1; n1 = n1.next_sibling()) {
+            if (std::string_view(n1.name()) == "DrawObjects") {
+                for (pugi::xml_node n2 = n1.first_child(); n2; n2 = n2.next_sibling()) {
+                    if (std::string_view(n2.name()) == "DrawObject") {
+                        for (pugi::xml_node n3 = n2.first_child(); n3; n3 = n3.next_sibling()) {
+                            if (std::string_view(n3.name()) == "DrawPoints") {
                                 std::list<xlPoint> points;
-                                for (wxXmlNode* n4 = n3->GetChildren(); n4 != nullptr; n4 = n4->GetNext()) {
-                                    if (n4->GetName() == "DrawPoint") {
-                                        points.push_back(xlPoint((int)std::strtol(n4->GetAttribute("X", "-5").ToStdString().c_str(), nullptr, 10) / 5, (int)std::strtol(n4->GetAttribute("Y", "-1").ToStdString().c_str(), nullptr, 10) / 5));
+                                for (pugi::xml_node n4 = n3.first_child(); n4; n4 = n4.next_sibling()) {
+                                    if (std::string_view(n4.name()) == "DrawPoint") {
+                                        points.push_back(xlPoint((int)std::strtol(n4.attribute("X").as_string("-5"), nullptr, 10) / 5, (int)std::strtol(n4.attribute("Y").as_string("-1"), nullptr, 10) / 5));
                                     }
                                 }
                                 chs.push_back(points);

@@ -11,7 +11,6 @@
 
 #include "ControllerCaps.h"
 
-#include <wx/xml/xml.h>
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 #include <wx/dir.h>
@@ -43,16 +42,15 @@ inline ControllerCaps *FindVariant(std::list<ControllerCaps*> &variants, const s
     return nullptr;
 }
 
-static void merge(std::map<std::string, wxXmlNode *> &abstracts, const std::string &base, wxXmlNode *t) {
-    wxXmlNode *baseNode = abstracts[base];
+static void merge(std::map<std::string, pugi::xml_node> &abstracts, const std::string &base, pugi::xml_node t) {
+    pugi::xml_node baseNode = abstracts[base];
     if (baseNode) {
-        for (wxXmlNode* nn = baseNode->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
-            if (!DoesXmlNodeExist(t, nn->GetName())) {
-                wxXmlNode *newNode = new wxXmlNode(*nn);
-                t->AddChild(newNode);
+        for (pugi::xml_node nn = baseNode.first_child(); nn; nn = nn.next_sibling()) {
+            if (!DoesXmlNodeExist(t, nn.name())) {
+                t.append_copy(nn);
             }
         }
-        auto newBase = baseNode->GetAttribute("Base");
+        std::string newBase = baseNode.attribute("Base").as_string("");
         if (newBase != "") {
             merge(abstracts, newBase, t);
         }
@@ -89,30 +87,30 @@ void ControllerCaps::LoadControllers() {
         wxDir dir(d);
         wxArrayString files;
         GetAllFilesInDir(d, files, "*.xcontroller");
-        std::vector<wxXmlDocument> docs;
+        std::vector<pugi::xml_document> docs;
         docs.resize(files.size());
         int count = 0;
         for (auto &filename : files) {
             wxFileName fn(filename);
             if (FileExists(fn.GetFullPath())) {
-                wxXmlDocument doc;
-                docs[count].Load(fn.GetFullPath());
-                if (!docs[count].IsOk()) {
+                pugi::xml_parse_result result = docs[count].load_file(fn.GetFullPath().ToStdString().c_str());
+                if (!result) {
                     wxASSERT(false);
                     logger_base.error("Problem loading " + fn.GetFullPath());
                 }
                 count++;
             }
         }
-        std::map<std::string, wxXmlNode *> abstracts;
+        std::map<std::string, pugi::xml_node> abstracts;
         for (auto &doc : docs) {
-            if (doc.IsOk()) {
-                for (wxXmlNode* n = doc.GetRoot(); n != nullptr; n = n->GetNext()) {
-                    if (n->GetName() == "Vendor") {
-                        auto vendor = n->GetAttribute("Name");
-                        for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
-                            if (nn->GetName() == "AbstractVariant") {
-                                auto var = nn->GetAttribute("Name");
+            pugi::xml_node root = doc.document_element();
+            if (root) {
+                for (pugi::xml_node n = root; n; n = n.next_sibling()) {
+                    if (std::string_view(n.name()) == "Vendor") {
+                        std::string vendor = n.attribute("Name").as_string("");
+                        for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
+                            if (std::string_view(nn.name()) == "AbstractVariant") {
+                                std::string var = nn.attribute("Name").as_string("");
                                 abstracts[vendor + ":" + var] = nn;
                             }
                         }
@@ -121,10 +119,11 @@ void ControllerCaps::LoadControllers() {
             }
         }
         for (auto &doc : docs) {
-            if (doc.IsOk()) {
-                for (wxXmlNode* n = doc.GetRoot(); n != nullptr; n = n->GetNext()) {
-                    if (n->GetName() == "Vendor") {
-                        auto vendor = n->GetAttribute("Name");
+            pugi::xml_node root = doc.document_element();
+            if (root) {
+                for (pugi::xml_node n = root; n; n = n.next_sibling()) {
+                    if (std::string_view(n.name()) == "Vendor") {
+                        std::string vendor = n.attribute("Name").as_string("");
 
                         if (__controllers.find(vendor) == end(__controllers)) {
                             __controllers[vendor] = std::map<std::string, std::list<ControllerCaps*>>();
@@ -132,18 +131,18 @@ void ControllerCaps::LoadControllers() {
 
                         auto& v = __controllers[vendor];
 
-                        for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
-                            if (nn->GetName() == "Controller") {
-                                auto controller = nn->GetAttribute("Name");
+                        for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
+                            if (std::string_view(nn.name()) == "Controller") {
+                                std::string controller = nn.attribute("Name").as_string("");
                                 if (v.find(controller) == v.end()) {
                                     v[controller] = std::list<ControllerCaps*>();
                                 }
 
                                 auto& c = v[controller];
-                                for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
-                                    if (nnn->GetName() == "Variant") {
-                                        if (nnn->HasAttribute("Base")) {
-                                            auto base = nnn->GetAttribute("Base");
+                                for (pugi::xml_node nnn = nn.first_child(); nnn; nnn = nnn.next_sibling()) {
+                                    if (std::string_view(nnn.name()) == "Variant") {
+                                        if (!nnn.attribute("Base").empty()) {
+                                            std::string base = nnn.attribute("Base").as_string("");
                                             merge(abstracts, base, nnn);
                                         }
                                         c.push_back(new ControllerCaps(vendor, controller, nnn));
@@ -162,7 +161,7 @@ void ControllerCaps::LoadControllers() {
 
 void ControllerCaps::UnloadControllers() {
 
-    // delete all the wxXmlNodes
+    // delete all the ControllerCaps
     for (const auto& it : __controllers) {
         for (const auto& it2 : it.second) {
             for (auto it3 : it2.second) {
@@ -724,12 +723,10 @@ std::vector<std::string> ControllerCaps::GetAllProtocols() const
 }
 
 std::string ControllerCaps::GetVariantName() const {
-    auto name = _config->GetAttribute("Name");
-    return name.ToStdString();
+    return _config.attribute("Name").as_string();
 }
 std::string ControllerCaps::GetID() const {
-    auto name = _config->GetAttribute("ID");
-    return name.ToStdString();
+    return _config.attribute("ID").as_string();
 }
 
 std::string ControllerCaps::GetPreferredInputProtocol() const
@@ -813,11 +810,11 @@ void ControllerCaps::Dump() const
 
 
 void ControllerCaps::AddProperties(Controller *controller, wxPropertyGrid* propertyGrid) {
-    for (wxXmlNode* n = _config->GetChildren(); n != nullptr; n = n->GetNext()) {
-        if (n->GetName() == "ExtraProperties") {
-            for (wxXmlNode* pnode = n->GetChildren(); pnode != nullptr; pnode = pnode->GetNext()) {
-                std::string name = pnode->GetAttribute("name");
-                std::string label = pnode->GetAttribute("label");
+    for (pugi::xml_node n = _config.first_child(); n; n = n.next_sibling()) {
+        if (std::string_view(n.name()) == "ExtraProperties") {
+            for (pugi::xml_node pnode = n.first_child(); pnode; pnode = pnode.next_sibling()) {
+                std::string name = pnode.attribute("name").as_string("");
+                std::string label = pnode.attribute("label").as_string("");
                 std::string def = GetXmlNodeContent(pnode, "Default");
                 std::string type = GetXmlNodeContent(pnode, "Type", "String");
                 if (type == "Enum") {
@@ -836,10 +833,10 @@ void ControllerCaps::AddProperties(Controller *controller, wxPropertyGrid* prope
     }
 }
 bool ControllerCaps::HandlePropertyEvent(Controller *controller, wxPropertyGridEvent& event) {
-    for (wxXmlNode* n = _config->GetChildren(); n != nullptr; n = n->GetNext()) {
-        if (n->GetName() == "ExtraProperties") {
-            for (wxXmlNode* pnode = n->GetChildren(); pnode != nullptr; pnode = pnode->GetNext()) {
-                std::string name = pnode->GetAttribute("name");
+    for (pugi::xml_node n = _config.first_child(); n; n = n.next_sibling()) {
+        if (std::string_view(n.name()) == "ExtraProperties") {
+            for (pugi::xml_node pnode = n.first_child(); pnode; pnode = pnode.next_sibling()) {
+                std::string name = pnode.attribute("name").as_string("");
                 std::string type = GetXmlNodeContent(pnode, "Type", "String");
                 if (event.GetPropertyName() == "Controller" + name) {
                     if (type == "String") {

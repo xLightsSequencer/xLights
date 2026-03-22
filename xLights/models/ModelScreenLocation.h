@@ -42,7 +42,6 @@
 #define HANDLE_CP0     0x0400000
 #define HANDLE_CP1     0x0800000
 
-class wxXmlNode;
 class ModelPreview;
 class wxCursor;
 class PreviewCamera;

@@ -14,8 +14,8 @@
 
 #include <wx/wx.h>
 #include <wx/config.h>
-#include <wx/xml/xml.h>
 #include <wx/menu.h>
+#include <pugixml.hpp>
 
 class xLightsFrame;
 class Model;
@@ -31,8 +31,8 @@ class LayoutGroup : public wxObject
         const std::string &GetName() const {return mName;}
         void SetName(const std::string & name) {mName = name;}
 
-        void SetBackgroundImage(const wxString &filename);
-        const wxString &GetBackgroundImage() const { return mBackgroundImage;}
+        void SetBackgroundImage(const std::string &filename);
+        const std::string &GetBackgroundImage() const { return mBackgroundImage;}
 
         void SetBackgroundScaled(bool scaled);
         bool GetBackgroundScaled() const {return mScaleBackgroundImage;}
@@ -49,7 +49,7 @@ class LayoutGroup : public wxObject
         int GetPaneHeight() const { return mPaneHeight; }
         void ResetPositions();
 
-        void SetFromXml(wxXmlNode* LayoutGroupNode);
+        void SetFromXml(pugi::xml_node LayoutGroupNode);
 
         void SetModels(std::vector<Model*> &models);
         std::vector<Model*> &GetModels() {
@@ -69,7 +69,7 @@ class LayoutGroup : public wxObject
 
     private:
         std::string mName;
-        wxString mBackgroundImage;
+        std::string mBackgroundImage;
         bool mScaleBackgroundImage;
         int mBackgroundBrightness;
         int mBackgroundAlpha;

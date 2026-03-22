@@ -17,9 +17,9 @@
 #include <atomic>
 
 #include "ObjectManager.h"
+#include <pugixml.hpp>
 
 class Model;
-class wxXmlNode;
 class OutputManager;
 class xLightsFrame;
 class LayoutGroup;
@@ -59,9 +59,9 @@ class ModelManager : public ObjectManager
         std::string GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel, const std::string& protocol) const;
         std::string GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel, const std::string& protocol, int smartReceiver) const;
         void ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP);
-        void AddModelGroups(wxXmlNode* n, int w, int h, const std::string& name, bool& merge, bool& ask);
-        void LoadModels(wxXmlNode *modelNode, int previewW, int previewH);
-        bool LoadGroups(wxXmlNode *groupNode, int previewW, int previewH);
+        void AddModelGroups(pugi::xml_node n, int w, int h, const std::string& name, bool& merge, bool& ask);
+        void LoadModels(pugi::xml_node modelNode, int previewW, int previewH);
+        bool LoadGroups(pugi::xml_node groupNode, int previewW, int previewH);
         bool ModelHasNoDependencyOnNoController(Model* m, std::list<std::string>& visited) const;
 
         bool RenameController(const std::string& oldName, const std::string& newName);
@@ -76,11 +76,11 @@ class ModelManager : public ObjectManager
         unsigned int size() const;
 
         //Make sure the Model is deleted when done with
-        Model *CreateModel(wxXmlNode *node, int previewW = 0, int previewH = 0) const;
+        Model *CreateModel(pugi::xml_node node, int previewW = 0, int previewH = 0) const;
         Model *CreateDefaultModel(const std::string &type, const std::string &startChannel = "1") const;
         xLightsFrame* GetXLightsFrame() const { return xlights; }
         bool IsValidControllerModelChain(Model* m, std::string& tip) const;
-        Model *createAndAddModel(wxXmlNode *node, int previewW, int previewH);
+        Model *createAndAddModel(pugi::xml_node node, int previewW, int previewH);
         std::string GetModelsOnChannels(uint32_t start, uint32_t end, int perLine) const;
         std::vector<std::string> GetGroupsContainingModel(const Model* model) const;
         std::vector<std::string> GetGroupsContainingModelOrSubmodel(const Model* model) const;
@@ -90,7 +90,7 @@ class ModelManager : public ObjectManager
         int GetPreviewWidth() const { return previewWidth; }
         int GetPreviewHeight() const { return previewHeight; }
         bool MergeFromBase(const std::string& baseShowDir, bool prompt);
-        static bool MergeBaseXml(const std::string& baseShowDir, wxXmlNode* localModelsNode, wxXmlNode* localGroupsNode);
+        static bool MergeBaseXml(const std::string& baseShowDir, pugi::xml_node localModelsNode, pugi::xml_node localGroupsNode);
         std::string GetLastGeneratedModelName() const { return lastGeneratedModelName; }
 
         std::map<std::string, Model *> GetModels() const { return models; }
