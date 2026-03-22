@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <list>
+#include <string>
 #include <cstdint>
 
 class xLightsFrame;

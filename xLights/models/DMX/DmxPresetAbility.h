@@ -12,6 +12,9 @@
 
 #include "../Node.h"
 
+#include <list>
+#include <string>
+
 class Model;
 class xlColor;
 

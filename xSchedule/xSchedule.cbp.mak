@@ -1744,7 +1744,7 @@ PlayList/PlayListItemText.cpp: MatrixMapper.h xScheduleMain.h ScheduleManager.h 
 
 PlayList/PlayListSimpleDialog.cpp: MyTreeItemData.h ../xLights/UtilFunctions.h ScheduleOptions.h
 
-PlayList/PlayListStep.cpp: xScheduleMain.h ScheduleManager.h ReentrancyCounter.h ../xLights/UtilFunctions.h ../xLights/FSEQFile.h ScheduleOptions.h
+PlayList/PlayListStep.cpp: xScheduleMain.h ScheduleManager.h ReentrancyCounter.h ../xLights/UtilFunctions.h ScheduleOptions.h
 
 PlayList/PlayerFrame.cpp: ../include/xLights.xpm
 
@@ -1862,8 +1862,6 @@ BackgroundPlaylistDialog.cpp: BackgroundPlaylistDialog.h
 
 ../xLights/Discovery.cpp: ../xLights/Discovery.h ../xLights/UtilFunctions.h
 
-../xLights/FSEQFile.cpp: ../xLights/FSEQFile.h ../include/zstd.h
-
 ../xLights/JobPool.cpp: ../xLights/JobPool.h ../xLights/ExternalHooks.h ../xLights/TraceLog.h
 
 ../xLights/Parallel.cpp: ../xLights/Parallel.h ../xLights/JobPool.h
@@ -1884,13 +1882,7 @@ BackgroundPlaylistDialog.cpp: BackgroundPlaylistDialog.h
 
 ../xLights/outputs/ControllerEthernet.cpp: ../xLights/UtilFunctions.h ../xLights/SpecialOptions.h ../xLights/OutputModelManager.h ../xLights/xLightsMain.h
 
-../xLights/xLightsMain.h: ../xLights/PixelBuffer.h ../xLights/SequenceData.h ../xLights/xLightsTimer.h ../xLights/JobPool.h ../xLights/SequenceViewManager.h ../xLights/ColorManager.h ../xLights/EffectPresetManager.h ../xLights/ViewpointMgr.h ../xLights/PhonemeDictionary.h ../xLights/xLightsXmlFile.h ../xLights/RenderCache.h ../xLights/OutputModelManager.h ../xLights/SequencePackage.h ../xLights/ScriptsDialog.h ../xLights/TipOfTheDayDialog.h ../xLights/CheckSequenceReport.h
-
-../xLights/PixelBuffer.h: ../xLights/Color.h ../xLights/GPURenderUtils.h ../xLights/RenderBuffer.h ../xLights/RenderUtils.h ../xLights/ValueCurve.h
-
-../xLights/RenderBuffer.h: ../include/globals.h ../xLights/Color.h ../xLights/ColorCurve.h
-
-../xLights/ColorCurve.h: ../xLights/Color.h
+../xLights/xLightsMain.h: ../xLights/SequenceData.h ../xLights/xLightsTimer.h ../xLights/JobPool.h ../xLights/SequenceViewManager.h ../xLights/ColorManager.h ../xLights/EffectPresetManager.h ../xLights/ViewpointMgr.h ../xLights/PhonemeDictionary.h ../xLights/xLightsXmlFile.h ../xLights/OutputModelManager.h ../xLights/SequencePackage.h ../xLights/ScriptsDialog.h ../xLights/TipOfTheDayDialog.h ../xLights/CheckSequenceReport.h
 
 ../xLights/ColorManager.h: ../xLights/Color.h
 
@@ -1950,7 +1942,7 @@ PlayList/PlayListItem.cpp: ../xLights/AudioManager.h RunningSchedule.h ScheduleM
 
 PlayList/PlayListItemARTNetTrigger.cpp: Control.h ../xLights/UtilFunctions.h
 
-PlayList/PlayListItemFSEQVideoPanel.cpp: ../xLights/AudioManager.h ../xLights/FSEQFile.h ScheduleManager.h xScheduleMain.h
+PlayList/PlayListItemFSEQVideoPanel.cpp: ../xLights/AudioManager.h ScheduleManager.h xScheduleMain.h
 
 PlayList/PlayListItemFadePanel.cpp: xScheduleMain.h ScheduleManager.h
 
@@ -1968,11 +1960,11 @@ PlayList/PlayListItemFPPEvent.cpp: ../xLights/UtilFunctions.h Control.h
 
 OutputProcessThreeToFour.cpp: OutputProcessThreeToFour.h
 
-PlayList/PlayListItemFSEQ.cpp: ../xLights/AudioManager.h ../xLights/FSEQFile.h ../xLights/UtilFunctions.h
+PlayList/PlayListItemFSEQ.cpp: ../xLights/AudioManager.h ../xLights/UtilFunctions.h
 
-PlayList/PlayListItemFSEQPanel.cpp: ../xLights/AudioManager.h ../xLights/FSEQFile.h ScheduleManager.h xScheduleMain.h
+PlayList/PlayListItemFSEQPanel.cpp: ../xLights/AudioManager.h ScheduleManager.h xScheduleMain.h
 
-PlayList/PlayListItemFSEQVideo.cpp: ../xLights/AudioManager.h ../xLights/FSEQFile.h ../xLights/UtilFunctions.h ../xLights/VideoReader.h ScheduleManager.h ScheduleOptions.h VideoCache.h xScheduleApp.h xScheduleMain.h
+PlayList/PlayListItemFSEQVideo.cpp: ../xLights/AudioManager.h ../xLights/UtilFunctions.h ../xLights/VideoReader.h ScheduleManager.h ScheduleOptions.h VideoCache.h xScheduleApp.h xScheduleMain.h
 
 EventOSCPanel.cpp: EventOSCPanel.h EventDialog.h
 
@@ -2018,7 +2010,7 @@ DimWhiteDialog.cpp: DimWhiteDialog.h xScheduleMain.h ScheduleManager.h
 
 ESEQFile.cpp: ESEQFile.h ../xLights/UtilFunctions.h
 
-ESEQFile.h: Blend.h ../xLights/FSEQFile.h
+ESEQFile.h: Blend.h
 
 EventARTNetPanel.cpp: EventARTNetPanel.h
 

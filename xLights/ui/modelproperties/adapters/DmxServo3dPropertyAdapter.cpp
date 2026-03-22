@@ -16,7 +16,7 @@
 #include "DmxServo3dPropertyAdapter.h"
 #include "../helpers/DmxAbilityPropertyHelpers.h"
 #include "../helpers/DmxComponentPropertyHelpers.h"
-#include "../../../models/DMX/DmxServo3d.h"
+#include "../../../models/DMX/DmxServo3D.h"
 #include "../../../models/DMX/Mesh.h"
 #include "../../../models/DMX/Servo.h"
 #include "ServoConfigDialog.h"

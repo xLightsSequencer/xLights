@@ -470,7 +470,7 @@ ScanWork.cpp: ScanWork.h ../xLights/Parallel.h xScannerMain.h xScannerApp.h ../x
 
 ../xLights/controllers/Falcon.cpp: ../xLights/UtilFunctions.h
 
-../xLights/controllers/FPP.cpp: ../include/zstd.h ../xLights/UtilFunctions.h ../xLights/xLightsVersion.h ../xLights/Parallel.h ../xLights/ExternalHooks.h ../xLights/TempFileManager.h ../xLights/FSEQFile.h ../xLights/Discovery.h ../xLights/TraceLog.h
+../xLights/controllers/FPP.cpp: ../include/zstd.h ../xLights/UtilFunctions.h ../xLights/xLightsVersion.h ../xLights/Parallel.h ../xLights/ExternalHooks.h ../xLights/TempFileManager.h ../xLights/Discovery.h ../xLights/TraceLog.h
 
 ../xLights/controllers/ControllerCaps.cpp: ../xLights/UtilFunctions.h ../xLights/ExternalHooks.h
 
@@ -508,13 +508,7 @@ ScanWork.cpp: ScanWork.h ../xLights/Parallel.h xScannerMain.h xScannerApp.h ../x
 
 ../xLights/outputs/ControllerEthernet.cpp: ../xLights/UtilFunctions.h ../xLights/SpecialOptions.h ../xLights/OutputModelManager.h ../xLights/xLightsMain.h
 
-../xLights/xLightsMain.h: ../xLights/PixelBuffer.h ../xLights/SequenceData.h ../xLights/xLightsTimer.h ../xLights/JobPool.h ../xLights/SequenceViewManager.h ../xLights/ColorManager.h ../xLights/EffectPresetManager.h ../xLights/ViewpointMgr.h ../xLights/PhonemeDictionary.h ../xLights/xLightsXmlFile.h ../xLights/RenderCache.h ../xLights/OutputModelManager.h ../xLights/SequencePackage.h ../xLights/ScriptsDialog.h ../xLights/TipOfTheDayDialog.h ../xLights/CheckSequenceReport.h
-
-../xLights/PixelBuffer.h: ../xLights/Color.h ../xLights/GPURenderUtils.h ../xLights/RenderBuffer.h ../xLights/RenderUtils.h ../xLights/ValueCurve.h
-
-../xLights/RenderBuffer.h: ../include/globals.h ../xLights/Color.h ../xLights/ColorCurve.h
-
-../xLights/ColorCurve.h: ../xLights/Color.h
+../xLights/xLightsMain.h: ../xLights/SequenceData.h ../xLights/xLightsTimer.h ../xLights/JobPool.h ../xLights/SequenceViewManager.h ../xLights/ColorManager.h ../xLights/EffectPresetManager.h ../xLights/ViewpointMgr.h ../xLights/PhonemeDictionary.h ../xLights/xLightsXmlFile.h ../xLights/OutputModelManager.h ../xLights/SequencePackage.h ../xLights/ScriptsDialog.h ../xLights/TipOfTheDayDialog.h ../xLights/CheckSequenceReport.h
 
 ../xLights/ColorManager.h: ../xLights/Color.h
 

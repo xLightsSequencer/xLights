@@ -10,7 +10,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <list>
 #include <map>
+#include <string>
 
 #include "../Node.h"
 #include "../PWMOutput.h"

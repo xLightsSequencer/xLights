@@ -16,6 +16,7 @@
 
 class Model;
 class OutputManager;
+class xlColor;
 
 // only allows 0-9,- characters
 class wxDropPatternProperty : public wxStringProperty {
