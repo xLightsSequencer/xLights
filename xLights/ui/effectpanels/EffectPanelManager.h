@@ -15,6 +15,8 @@
 #include <string>
 #include <vector>
 
+#include <wx/string.h>
+
 class xlEffectPanel;
 class wxWindow;
 class Model;

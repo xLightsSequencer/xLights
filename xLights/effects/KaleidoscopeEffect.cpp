@@ -17,6 +17,7 @@
 #include "../../include/kaleidoscope-16.xpm"
 
 #include "KaleidoscopeEffect.h"
+#include "../models/Model.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"

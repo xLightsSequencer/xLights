@@ -3,6 +3,8 @@
 #include "../../render/PixelBuffer.h"
 #include "../../render/RenderBuffer.h"
 
+#include <thread>
+
 #include <MetalPerformanceShaders/MetalPerformanceShaders.h>
 
 #include "MetalEffectDataTypes.h"

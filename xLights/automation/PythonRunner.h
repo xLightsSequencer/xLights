@@ -12,6 +12,8 @@
 
 #include <wx/string.h>
 
+#include <functional>
+#include <list>
 #include <map>
 #include <string>
 

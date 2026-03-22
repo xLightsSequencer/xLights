@@ -19,6 +19,8 @@
 #include <wx/propgrid/advprops.h>
 #include <wx/thread.h>
 
+#include <thread>
+
 #include "xLightsMain.h"
 #include "LayoutPanel.h"
 #include "xLightsXmlFile.h"

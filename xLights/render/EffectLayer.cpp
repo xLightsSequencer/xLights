@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include <algorithm>
+#include <thread>
 #include <vector>
 
 #include "EffectLayer.h"
