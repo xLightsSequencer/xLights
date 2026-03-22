@@ -1015,6 +1015,9 @@
     <ClCompile Include="ai\chatGPT.cpp">
       <Filter>ai</Filter>
     </ClCompile>
+    <ClCompile Include="ai\claude.cpp">
+      <Filter>ai</Filter>
+    </ClCompile>
     <ClCompile Include="CheckSequenceReport.cpp" />
     <ClCompile Include="ai\ollama.cpp">
       <Filter>ai</Filter>
@@ -2403,6 +2406,9 @@
       <Filter>ai</Filter>
     </ClInclude>
     <ClInclude Include="ai\chatGPT.h">
+      <Filter>ai</Filter>
+    </ClInclude>
+    <ClInclude Include="ai\claude.h">
       <Filter>ai</Filter>
     </ClInclude>
     <ClInclude Include="CheckSequenceReport.h" />

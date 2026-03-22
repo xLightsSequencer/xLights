@@ -17,26 +17,39 @@
 
 
 bool AppleIntelligence::IsAvailable() const {
-    return _enabled;
+    return !_enabledTypes.empty();
 }
 
 void AppleIntelligence::SaveSettings() const {
-    _sm->setServiceSetting("appleAIEnable", _enabled);
+    for (auto t : GetTypes()) {
+        _sm->setServiceSetting(std::string("appleAIEnable_") + aiType::TypeSettingsSuffix(t), IsEnabledForType(t));
+    }
 }
 
 void AppleIntelligence::LoadSettings() {
-    _enabled = _sm->getServiceSetting("appleAIEnable", _enabled);
+    bool oldEnabled = _sm->getServiceSetting("appleAIEnable", false);
+    for (auto t : GetTypes()) {
+        bool enabled = _sm->getServiceSetting(std::string("appleAIEnable_") + aiType::TypeSettingsSuffix(t), oldEnabled);
+        SetEnabledForType(t, enabled);
+    }
 }
 
 void AppleIntelligence::PopulateLLMSettings(wxPropertyGrid* page) {
     page->Append(new wxPropertyCategory("Apple Intelligence"));
-    auto p = page->Append(new wxBoolProperty("Enabled", "AppleIntelligence.Enabled", _enabled));
-    p->SetEditor("CheckBox");
+    for (auto t : GetTypes()) {
+        auto p = page->Append(new wxBoolProperty(wxString("Enable ") + aiType::TypeName(t),
+                                                  wxString("AppleIntelligence.Enable_") + aiType::TypeSettingsSuffix(t),
+                                                  IsEnabledForType(t)));
+        p->SetEditor("CheckBox");
+    }
 }
 
 void AppleIntelligence::SetSetting(const std::string& key, const wxVariant& value) {
-    if (key == "AppleIntelligence.Enabled") {
-        _enabled = value.GetBool();
+    for (auto t : GetTypes()) {
+        if (key == std::string("AppleIntelligence.Enable_") + aiType::TypeSettingsSuffix(t)) {
+            SetEnabledForType(t, value.GetBool());
+            return;
+        }
     }
 }
 

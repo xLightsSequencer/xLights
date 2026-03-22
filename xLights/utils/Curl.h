@@ -36,9 +36,13 @@ public:
     };
     typedef struct Var Var;
     
+    static std::string HTTPSPost(const std::string& url, const std::string& body, const std::string& user, const std::string& password, const std::string& contentType, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders, int* responseCode);
+
     static std::string HTTPSPost(const std::string& url, const wxString& body, const std::string& user = "", const std::string& password = "", const std::string& contentType = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {}, int* responseCode = nullptr);
-    
+
     static std::string HTTPSPost(const std::string& url, const std::vector<Var>& vars, const std::string& user = "", const std::string& password = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {});
+
+    static std::string HTTPSDelete(const std::string& url, const std::string& body, const std::string& user, const std::string& password, const std::string& contentType, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders, int* responseCode);
 
     static std::string HTTPSDelete(const std::string& url, const wxString& body, const std::string& user = "", const std::string& password = "", const std::string& contentType = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {}, int* responseCode = nullptr);
 

@@ -17,27 +17,37 @@
 //#define TEST_WITH_LOCAL_IMAGE
 
 bool gemini::IsAvailable() const {
-    return !api_key.empty() && _enabled;
+    return !api_key.empty() && !_enabledTypes.empty();
 }
 
 void gemini::SaveSettings() const {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _sm->setServiceSetting("GeminiModel", model);
-    _sm->setServiceSetting("GeminiEnable", _enabled);
     _sm->setSecretServiceToken("GeminiApiKey", api_key);
+    for (auto t : GetTypes()) {
+        _sm->setServiceSetting(std::string("GeminiEnable_") + aiType::TypeSettingsSuffix(t), IsEnabledForType(t));
+    }
     logger_base.info("Gemini settings saved successfully");
 }
 
 void gemini::LoadSettings() {
     model = _sm->getServiceSetting("GeminiModel", model);
-    _enabled = _sm->getServiceSetting("GeminiEnable", _enabled);
     api_key = _sm->getSecretServiceToken("GeminiApiKey");
+    bool oldEnabled = _sm->getServiceSetting("GeminiEnable", false);
+    for (auto t : GetTypes()) {
+        bool enabled = _sm->getServiceSetting(std::string("GeminiEnable_") + aiType::TypeSettingsSuffix(t), oldEnabled);
+        SetEnabledForType(t, enabled);
+    }
 }
 
 void gemini::PopulateLLMSettings(wxPropertyGrid* page) {
     page->Append(new wxPropertyCategory("Gemini"));
-    auto p = page->Append(new wxBoolProperty("Enabled", "Gemini.Enabled", _enabled));
-    p->SetEditor("CheckBox");
+    for (auto t : GetTypes()) {
+        auto p = page->Append(new wxBoolProperty(wxString("Enable ") + aiType::TypeName(t),
+                                                  wxString("Gemini.Enable_") + aiType::TypeSettingsSuffix(t),
+                                                  IsEnabledForType(t)));
+        p->SetEditor("CheckBox");
+    }
     auto* apiKeyProp = page->Append(new wxStringProperty("API Key", "Gemini.Key", api_key));
     apiKeyProp->SetAttribute(wxPG_STRING_PASSWORD, true);
     apiKeyProp->SetHelpString("Your Google Gemini API key (masked for security)");
@@ -45,9 +55,13 @@ void gemini::PopulateLLMSettings(wxPropertyGrid* page) {
 }
 
 void gemini::SetSetting(const std::string& key, const wxVariant& value) {
-    if (key == "Gemini.Enabled") {
-        _enabled = value.GetBool();
-    } else if (key == "Gemini.Key") {
+    for (auto t : GetTypes()) {
+        if (key == std::string("Gemini.Enable_") + aiType::TypeSettingsSuffix(t)) {
+            SetEnabledForType(t, value.GetBool());
+            return;
+        }
+    }
+    if (key == "Gemini.Key") {
         api_key = value.GetString();
     } else if (key == "Gemini.Model") {
         model = value.GetString();

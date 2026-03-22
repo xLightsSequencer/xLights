@@ -38,9 +38,11 @@
 #include "xlColourData.h"
 #include "utils/string_utils.h"
 #include "ai/aiBase.h"
+#include "ai/aiType.h"
 
 #include <algorithm>
 #include <fstream>
+#include <set>
 #include <string>
 #include <iostream>
 #include <nlohmann/json.hpp>
@@ -699,7 +701,10 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     CheckBox_LockEffects->SetValue(config->ReadBool("ImportEffectsLocked", false));
     CheckBox_ConvertRenderStyle->SetValue(config->ReadBool("ImportEffectsRenderStyle", false));
 
-    auto ai = xlights->GetAIService();
+    auto ai = xlights->GetAIService(aiType::TYPE::MAPPING);
+    if (ai == nullptr) {
+        ai = xlights->GetAIService();
+    }
     Button_AIMap->Enable(ai != nullptr);
 
     EnsureWindowHeaderIsOnScreen(this);
@@ -1233,6 +1238,11 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
     }
 
     xLightsImportModelNode* lastmodel = new xLightsImportModelNode(nullptr, m->GetName(), std::string(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), groupModels, false, modelClass, m->GetNodeCount(), *wxWHITE, (m->GetDisplayAs() == DisplayAsType::ModelGroup), wxString(""), effectCount);
+    lastmodel->_strandCount = m->GetNumStrands();
+    int bufW = 0, bufH = 0;
+    m->GetBufferSize("Default", "2D", "None", bufW, bufH, 0);
+    lastmodel->_width = bufW;
+    lastmodel->_height = bufH;
     _dataModel->BulkInsert(lastmodel, ms++);
 
      for (int s = 0; s < m->GetNumSubModels(); ++s) {
@@ -1258,6 +1268,11 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         } else {
             laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), wxString(subModel->GetName()), std::string(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", true, "", m->GetNodeCount(), *wxWHITE, wxString(""), effectCount);
         }
+        laststrand->_strandCount = subModel->GetNumStrands();
+        int smW = 0, smH = 0;
+        subModel->GetBufferSize("Default", "2D", "None", smW, smH, 0);
+        laststrand->_width = smW;
+        laststrand->_height = smH;
         lastmodel->Append(laststrand);
     }
 
@@ -2838,6 +2853,123 @@ bool xLightsImportChannelMapDialog::RunAIPrompt(wxProgressDialog* dlg, const std
     return mapped;
 }
 
+bool xLightsImportChannelMapDialog::DoStructuredAIMapping(const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels) {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    auto ai = xlights->GetAIService(aiType::TYPE::MAPPING);
+    if (ai == nullptr)
+        return false;
+
+    // Build source model info
+    std::vector<aiBase::MappingModelInfo> sourceInfo;
+    for (const auto& m : sourceModels) {
+        aiBase::MappingModelInfo info;
+        info.name = m->name;
+        info.type = m->type;
+        info.modelClass = m->modelClass;
+        info.effectCount = m->effectCount;
+        info.groupModels = m->groupModels;
+        info.isSubModel = m->IsSubModel();
+        info.isStrand = m->IsStrand();
+        info.isNode = m->IsNode();
+        info.nodeCount = m->nodeCount;
+        info.strandCount = m->strandCount;
+        info.width = m->width;
+        info.height = m->height;
+        info.subModelNames = m->subModelNames;
+        info.aliases = m->aliases;
+        sourceInfo.push_back(info);
+    }
+
+    // Build target model info and collect existing mappings
+    std::vector<aiBase::MappingModelInfo> targetInfo;
+    std::map<std::string, std::string> existingMappings;
+    for (const auto& m : targetModels) {
+        std::string name = m->GetModelName();
+        if (m->HasMapping() && !m->_mapping.empty()) {
+            existingMappings[name] = m->_mapping;
+            continue;
+        }
+
+        aiBase::MappingModelInfo info;
+        info.name = name;
+        info.type = m->_modelType;
+        if (m->IsSubModel()) {
+            info.type = "SubModel";
+            info.isSubModel = true;
+        } else if (m->IsStrand()) {
+            info.type = "strand";
+            info.isStrand = true;
+        } else if (m->IsNode()) {
+            info.type = "pixel";
+            info.isNode = true;
+        }
+        info.modelClass = m->_modelClass;
+        info.groupModels = m->_groupModels;
+        info.nodeCount = m->_nodeCount;
+        info.strandCount = m->_strandCount;
+        info.width = m->_width;
+        info.height = m->_height;
+        info.aliases.assign(m->_aliases.begin(), m->_aliases.end());
+        // Collect submodel names from children
+        for (unsigned int c = 0; c < m->GetChildCount(); ++c) {
+            auto child = m->GetNthChild(c);
+            if (child != nullptr && child->_isSubmodel) {
+                info.subModelNames.push_back(child->_strand);
+            }
+        }
+        targetInfo.push_back(info);
+    }
+
+    if (targetInfo.empty()) {
+        logger_base.debug("No unmapped targets for structured AI mapping");
+        return false;
+    }
+
+    logger_base.debug("Structured AI mapping: %zu sources, %zu targets, %zu existing",
+                       sourceInfo.size(), targetInfo.size(), existingMappings.size());
+
+    auto result = ai->GenerateModelMapping(sourceInfo, targetInfo, existingMappings);
+
+    if (!result.error.empty()) {
+        logger_base.error("Structured AI mapping error: %s", result.error.c_str());
+        wxMessageBox(result.error, "AI Mapping Error", wxICON_ERROR);
+        return false;
+    }
+
+    if (result.mappings.empty()) {
+        logger_base.debug("Structured AI mapping returned no mappings");
+        return false;
+    }
+
+    // Build a quick lookup for source model validation
+    std::set<std::string> validSources;
+    for (const auto& m : sourceModels) {
+        validSources.insert(m->name);
+    }
+
+    // Apply the mappings
+    bool mapped = false;
+    size_t appliedCount = 0;
+    for (const auto& target : targetModels) {
+        if (target->HasMapping())
+            continue;
+
+        std::string targetName = target->GetModelName();
+        auto it = result.mappings.find(targetName);
+        if (it != result.mappings.end() && validSources.count(it->second) > 0) {
+            target->Map(it->second, findModelType(it->second));
+            mapped = true;
+            ++appliedCount;
+        }
+    }
+
+    logger_base.debug("Structured AI mapping: applied %zu of %zu returned mappings",
+                       appliedCount, result.mappings.size());
+
+    return mapped;
+}
+
 bool xLightsImportChannelMapDialog::AIModelMap(wxProgressDialog* dlg, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels) {
     // we only model map if there are models in target
     if (targetModels.size() == 0)
@@ -3074,13 +3206,26 @@ void xLightsImportChannelMapDialog::DoAIAutoMap(bool select) {
     wxProgressDialog* dlg = new wxProgressDialog("Generating mapping", "Please give me some time to map your models. This can take a minute or two.", 100, this, wxPD_APP_MODAL | wxPD_SMOOTH | wxPD_AUTO_HIDE);
     dlg->Show();
 
-    bool mapped = AIModelMap(dlg, sourceModels, targetModels);
-    TreeListCtrl_Mapping->Refresh();
-    mapped = AISubModelMap(dlg, sourceModels, targetModels) || mapped;
-    TreeListCtrl_Mapping->Refresh();
-    mapped = AIStrandMap(dlg, sourceModels, targetModels) || mapped;
-    TreeListCtrl_Mapping->Refresh();
-    mapped = AINodeMap(dlg, sourceModels, targetModels) || mapped;
+    // Try structured AI mapping first (e.g., Claude with GenerateModelMapping)
+    auto mappingService = xlights->GetAIService(aiType::TYPE::MAPPING);
+    bool mapped = false;
+    if (mappingService != nullptr) {
+        dlg->Update(10, "Using structured AI mapping...");
+        mapped = DoStructuredAIMapping(sourceModels, targetModels);
+        TreeListCtrl_Mapping->Refresh();
+        dlg->Update(50, "Structured mapping complete");
+    }
+
+    // Fall back to prompt-based mapping for any remaining unmapped models
+    if (xlights->GetAIService() != nullptr) {
+        mapped = AIModelMap(dlg, sourceModels, targetModels) || mapped;
+        TreeListCtrl_Mapping->Refresh();
+        mapped = AISubModelMap(dlg, sourceModels, targetModels) || mapped;
+        TreeListCtrl_Mapping->Refresh();
+        mapped = AIStrandMap(dlg, sourceModels, targetModels) || mapped;
+        TreeListCtrl_Mapping->Refresh();
+        mapped = AINodeMap(dlg, sourceModels, targetModels) || mapped;
+    }
 
     delete dlg;
 
@@ -3398,38 +3543,98 @@ void xLightsImportChannelMapDialog::LoadRgbEffectsFile() {
                     bool sticks = node->GetAttribute("CandyCaneSticks", "false") == "true";
                     std::string dropPattern = node->GetAttribute("DropPattern", "");
                     mm->modelClass = Model::DetermineClass(mm->type, singingFace, spiralTree, sticks, dropPattern);
-                    if (mm->type == "Channel Block")
-                    {
-                        // these models use param1 only
-                        mm->nodeCount = wxAtoi(node->GetAttribute("param1", "1"));
-                    } else if (mm->type == "Cube") {
-                        // these use param1 * param2 * param3
-                        mm->nodeCount = wxAtoi(node->GetAttribute("param1", "1")) * wxAtoi(node->GetAttribute("param2", "1")) * wxAtoi(node->GetAttribute("param3", "1"));
-                    } 
-                    else if (mm->type == "Custom") {
-                        auto data = XmlSerialize::ParseCustomModel(node->GetAttribute("CustomModel", ""));
+                    // Extract structural dimensions from XML attributes
+                    // Support both old format (param1/param2/param3) and new format (model-specific attrs)
+                    auto getAttr = [&node](const std::string& newName, const std::string& oldName, const std::string& defVal = "1") -> int {
+                        std::string val = node->GetAttribute(newName, "");
+                        if (val.empty()) val = node->GetAttribute(oldName, defVal);
+                        return wxAtoi(val);
+                    };
 
+                    if (mm->type == "Channel Block") {
+                        mm->nodeCount = getAttr("NumChannels", "param1");
+                    } else if (mm->type == "Cube") {
+                        int w = getAttr("CubeWidth", "param1");
+                        int h = getAttr("CubeHeight", "param2");
+                        int d = getAttr("CubeDepth", "param3");
+                        mm->nodeCount = w * h * d;
+                        mm->width = w;
+                        mm->height = h;
+                    } else if (mm->type == "Custom") {
+                        auto data = XmlSerialize::ParseCustomModel(node->GetAttribute("CustomModel", ""));
                         int count = 0;
+                        int maxRow = 0;
+                        int maxCol = 0;
                         for (int l = 0; l < data.size(); l++) {
                             for (int r = 0; r < data[l].size(); r++) {
                                 for (int c = 0; c < data[l][r].size(); c++) {
                                     if (data[l][r][c] != 0) {
                                         ++count;
+                                        if (r + 1 > maxRow) maxRow = r + 1;
+                                        if (c + 1 > maxCol) maxCol = c + 1;
                                     }
                                 }
                             }
                         }
                         mm->nodeCount = count;
-                    }
-                    else {
-                        // these use param1 * param2
-                        mm->nodeCount = wxAtoi(node->GetAttribute("param1", "1")) * wxAtoi(node->GetAttribute("param2", "1"));
+                        mm->width = wxAtoi(node->GetAttribute("CustomWidth", std::to_string(maxCol)));
+                        mm->height = wxAtoi(node->GetAttribute("CustomHeight", std::to_string(maxRow)));
+                        mm->strandCount = wxAtoi(node->GetAttribute("NumStrings", node->GetAttribute("param1", "1")));
+                    } else if (mm->type.find("Matrix") != std::string::npos || mm->type.find("Tree") != std::string::npos) {
+                        int strings = getAttr("NumStrings", "param1");
+                        int nodesPerString = getAttr("NodesPerString", "param2");
+                        mm->nodeCount = strings * nodesPerString;
+                        mm->strandCount = strings;
+                        mm->width = strings;
+                        mm->height = nodesPerString;
+                    } else if (mm->type == "Arches") {
+                        int numArches = getAttr("NumArches", "param1");
+                        int nodesPerArch = getAttr("NodesPerArch", "param2");
+                        mm->nodeCount = numArches * nodesPerArch;
+                        mm->strandCount = numArches;
+                    } else if (mm->type == "Candy Canes") {
+                        int numCanes = getAttr("NumCanes", "param1");
+                        int nodesPerCane = getAttr("NodesPerCane", "param2");
+                        mm->nodeCount = numCanes * nodesPerCane;
+                        mm->strandCount = numCanes;
+                    } else if (mm->type == "Icicles") {
+                        int strings = getAttr("NumStrings", "param1");
+                        int nodesPerString = getAttr("NodesPerString", "param2");
+                        mm->nodeCount = strings * nodesPerString;
+                        mm->strandCount = strings;
+                    } else {
+                        int p1 = getAttr("NumStrings", "param1");
+                        int p2 = getAttr("NodesPerString", "param2");
+                        mm->nodeCount = p1 * p2;
+                        mm->strandCount = p1;
                     }
                 }
+                // Collect submodel names, aliases, and mark submodel channels
+                auto parentChannel = GetImportChannel(node->GetAttribute("name"));
                 for (wxXmlNode* n = node->GetChildren(); n != nullptr; n = n->GetNext()) {
                     if (n->GetName() == "subModel") {
-                        if (auto mm = GetImportChannel(node->GetAttribute("name") + "/" + n->GetAttribute("name")); mm) {
-                            mm->type = "SubModel";
+                        std::string subName = n->GetAttribute("name");
+                        if (parentChannel) {
+                            parentChannel->subModelNames.push_back(subName);
+                        }
+                        if (auto subChannel = GetImportChannel(node->GetAttribute("name") + "/" + subName); subChannel) {
+                            subChannel->type = "SubModel";
+                            // Collect aliases for the submodel
+                            for (wxXmlNode* a = n->GetChildren(); a != nullptr; a = a->GetNext()) {
+                                if (a->GetName() == "alias") {
+                                    std::string aliasName = a->GetAttribute("name");
+                                    if (!aliasName.empty()) {
+                                        subChannel->aliases.push_back(aliasName);
+                                    }
+                                }
+                            }
+                        }
+                    } else if (n->GetName() == "alias") {
+                        if (parentChannel) {
+                            std::string aliasName = n->GetAttribute("name");
+                            if (!aliasName.empty()) {
+                                parentChannel->aliases.push_back(aliasName);
+                            }
                         }
                     }
                 }

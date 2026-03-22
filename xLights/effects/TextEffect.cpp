@@ -99,15 +99,6 @@ bool TextEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &Settings
     return rc;
 }
 
-static inline void SetCheckboxValue(wxWindow *w, int id, bool b) {
-    wxCheckBox *c = (wxCheckBox*)w->FindWindowById(id);
-    c->SetValue(b);
-    wxCommandEvent evt(wxEVT_COMMAND_CHECKBOX_CLICKED, id);
-    evt.SetEventObject(c);
-    evt.SetInt(b);
-    c->ProcessWindowEvent(evt);
-}
-
 bool TextEffect::SupportsRenderCache(const SettingsMap& settings) const
 {
     // we dont want to use render cache if text is coming from a file as the file might have changed

@@ -275,6 +275,9 @@ public:     // public to avoid getters/setters
     bool _isSubmodel = false;
     std::string _modelClass;
     int _nodeCount = 0;
+    int _strandCount = 0;
+    int _width = 0;
+    int _height = 0;
     int _effectCount = 0;
     std::string _mappingModelType;
 
@@ -412,6 +415,11 @@ struct ImportChannel
     std::string groupModels;
     std::string modelClass;
     int nodeCount = 0;
+    int strandCount = 0;
+    int width = 0;
+    int height = 0;
+    std::vector<std::string> subModelNames;
+    std::vector<std::string> aliases;
 
     //ImportChannel(std::string name_, std::string type_):
     //    name(std::move(name_)), type(std::move(type_))
@@ -473,6 +481,7 @@ class xLightsImportChannelMapDialog: public wxDialog
     std::string BuildTargetModelPrompt(const std::list<xLightsImportModelNode*>& targetModels, std::function<bool(const xLightsImportModelNode*)> filter);
     std::string BuildAlreadyMappedPrompt(const std::list<xLightsImportModelNode*>& targetModels, std::function<bool(const xLightsImportModelNode*)> filter);
     bool RunAIPrompt(wxProgressDialog* dlg, const std::string& prompt, const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels);
+    bool DoStructuredAIMapping(const std::list<ImportChannel*>& sourceModels, const std::list<xLightsImportModelNode*>& targetModels);
 
     bool _dirty;
     wxFileName _filename;

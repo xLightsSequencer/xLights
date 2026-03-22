@@ -217,7 +217,7 @@ static size_t headerFunction(char* buffer, size_t size, size_t nitems, void* use
 }
 #endif
 
-std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const std::string& user, const std::string& password, const std::string& contentType, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders, int* responseCode)
+std::string Curl::HTTPSPost(const std::string& url, const std::string& body, const std::string& user, const std::string& password, const std::string& contentType, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders, int* responseCode)
 {
     static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
     logger_curl.info("URL: %s", url.c_str());
@@ -235,7 +235,7 @@ std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const 
 
         logger_curl.info("CONTENTTYPE: %s", contentType.c_str());
         if (contentType == "JSON") {
-            static const char buf2[] = "Content-Type: application/json";
+            static const char buf2[] = "Content-Type: application/json; charset=utf-8";
             headerlist = curl_slist_append(headerlist, buf2);
         } else if (contentType == "XML") {
             static const char buf2[] = "Content-Type: application/xml";
@@ -263,7 +263,7 @@ std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const 
             std::string lowerKey = it.first;
             std::transform(lowerKey.begin(), lowerKey.end(), lowerKey.begin(), ::tolower);
 
-            if (lowerKey.find("key") != std::string::npos || 
+            if (lowerKey.find("key") != std::string::npos ||
                 lowerKey.find("token") != std::string::npos ||
                 lowerKey.find("authorization") != std::string::npos ||
                 lowerKey.find("secret") != std::string::npos) {
@@ -301,12 +301,12 @@ std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const 
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
 
         logger_curl.info("BODY START ----------");
-        logger_curl.info("%s", (const char*)body.c_str());
+        logger_curl.info("%s", body.c_str());
         logger_curl.info("BODY END ----------");
-        logger_curl.info("BODY SIZE: %d", body.size());
+        logger_curl.info("BODY SIZE: %zu", body.size());
         logger_curl.info("TIMEOUT: %d", timeout);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)body.size());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)body.c_str());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.c_str());
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
         curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 
@@ -326,7 +326,7 @@ std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const 
         }
         if (res == CURLE_OK) {
             logger_curl.debug("RESPONSE START ------");
-            logger_curl.debug("%s", (const char*)buffer.c_str());
+            logger_curl.debug("%s", buffer.c_str());
             logger_curl.debug("RESPONSE END ------");
             return buffer;
         } else {
@@ -335,6 +335,11 @@ std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const 
     }
 
     return "";
+}
+
+std::string Curl::HTTPSPost(const std::string& url, const wxString& body, const std::string& user, const std::string& password, const std::string& contentType, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders, int* responseCode)
+{
+    return HTTPSPost(url, body.utf8_string(), user, password, contentType, timeout, customHeaders, responseCode);
 }
 
 std::string Curl::HTTPSPost(const std::string& url, const std::vector<Var>& vars, const std::string& user, const std::string& password, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders)
@@ -856,7 +861,7 @@ bool Curl::HTTPUploadFile(const std::string& url, const std::string& filename, c
     return res;
 }
 
-std::string Curl::HTTPSDelete(const std::string& url, const wxString& body, const std::string& user, const std::string& password, const std::string& contentType, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders, int* responseCode) {
+std::string Curl::HTTPSDelete(const std::string& url, const std::string& body, const std::string& user, const std::string& password, const std::string& contentType, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders, int* responseCode) {
     static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
     logger_curl.info("URL: %s", url.c_str());
 
@@ -873,7 +878,7 @@ std::string Curl::HTTPSDelete(const std::string& url, const wxString& body, cons
 
         logger_curl.info("CONTENTTYPE: %s", contentType.c_str());
         if (contentType == "JSON") {
-            static const char buf2[] = "Content-Type: application/json";
+            static const char buf2[] = "Content-Type: application/json; charset=utf-8";
             headerlist = curl_slist_append(headerlist, buf2);
         } else if (contentType == "XML") {
             static const char buf2[] = "Content-Type: application/xml";
@@ -896,7 +901,7 @@ std::string Curl::HTTPSDelete(const std::string& url, const wxString& body, cons
         for (const auto& it : customHeaders) {
             std::string s = it.first + ": " + it.second;
             headerlist = curl_slist_append(headerlist, s.c_str());
-            logger_curl.info("    %s", (const char*)s.c_str());
+            logger_curl.info("    %s", s.c_str());
         }
         logger_curl.info("HEADER END ----------");
 
@@ -909,8 +914,6 @@ std::string Curl::HTTPSDelete(const std::string& url, const wxString& body, cons
             curl_easy_setopt(curl, CURLOPT_USERPWD, sAuth.c_str());
         }
 
-        // This prevents us verifying the remote site certificate ... not thrilled about that but without it https calls are failing on windows.
-        // This may be because of the library we are including ... really not sure. Right now RemoteFalcon will not work without this.
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
 
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
@@ -920,16 +923,13 @@ std::string Curl::HTTPSDelete(const std::string& url, const wxString& body, cons
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
 
         logger_curl.info("BODY START ----------");
-        logger_curl.info("%s", (const char*)body.c_str());
+        logger_curl.info("%s", body.c_str());
         logger_curl.info("BODY END ----------");
+        logger_curl.info("BODY SIZE: %zu", body.size());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)body.size());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)body.c_str());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.c_str());
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
         curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
-
-        // #ifdef _DEBUG
-        //             curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, headerFunction);
-        // #endif
 
         CURLcode res = curl_easy_perform(curl);
         if (responseCode) {
@@ -943,13 +943,17 @@ std::string Curl::HTTPSDelete(const std::string& url, const wxString& body, cons
         }
         if (res == CURLE_OK) {
             logger_curl.debug("RESPONSE START ------");
-            logger_curl.debug("%s", (const char*)buffer.c_str());
+            logger_curl.debug("%s", buffer.c_str());
             logger_curl.debug("RESPONSE END ------");
             return buffer;
         } else {
-            logger_curl.error("Curl post failed: %d", res);
+            logger_curl.error("Curl delete failed: %d", res);
         }
     }
 
     return "";
+}
+
+std::string Curl::HTTPSDelete(const std::string& url, const wxString& body, const std::string& user, const std::string& password, const std::string& contentType, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders, int* responseCode) {
+    return HTTPSDelete(url, body.utf8_string(), user, password, contentType, timeout, customHeaders, responseCode);
 }

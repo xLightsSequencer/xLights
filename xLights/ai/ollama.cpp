@@ -13,27 +13,37 @@
 #include <Color.h>
 
 bool ollama::IsAvailable() const {
-    return !host.empty() && _enabled;
+    return !host.empty() && !_enabledTypes.empty();
 }
 
 void ollama::SaveSettings() const {
-    _sm->setServiceSetting("ollamaEnable", _enabled);
     _sm->setServiceSetting("ollamaHost", host);
     _sm->setServiceSetting("ollamaPort", port_num);
     _sm->setServiceSetting("ollamaModel", model);
+    for (auto t : GetTypes()) {
+        _sm->setServiceSetting(std::string("ollamaEnable_") + aiType::TypeSettingsSuffix(t), IsEnabledForType(t));
+    }
 }
 
 void ollama::LoadSettings() {
-    _enabled = _sm->getServiceSetting("ollamaEnable", _enabled);
     host = _sm->getServiceSetting("ollamaHost", host);
     model = _sm->getServiceSetting("ollamaModel", model);
     port_num = _sm->getServiceSetting("ollamaPort", port_num);
+    bool oldEnabled = _sm->getServiceSetting("ollamaEnable", false);
+    for (auto t : GetTypes()) {
+        bool enabled = _sm->getServiceSetting(std::string("ollamaEnable_") + aiType::TypeSettingsSuffix(t), oldEnabled);
+        SetEnabledForType(t, enabled);
+    }
 }
 
 void ollama::PopulateLLMSettings(wxPropertyGrid* page) {
     page->Append(new wxPropertyCategory("ollama"));
-    auto p = page->Append(new wxBoolProperty("Enabled", "ollama.Enabled", _enabled));
-    p->SetEditor("CheckBox");
+    for (auto t : GetTypes()) {
+        auto p = page->Append(new wxBoolProperty(wxString("Enable ") + aiType::TypeName(t),
+                                                  wxString("ollama.Enable_") + aiType::TypeSettingsSuffix(t),
+                                                  IsEnabledForType(t)));
+        p->SetEditor("CheckBox");
+    }
     page->Append(new wxStringProperty("Host", "ollama.Host", host));
     page->Append(new wxIntProperty("Port", "ollama.Port", port_num));
     auto pp = page->Append(new wxBoolProperty("Https", "ollama.Https", https));
@@ -42,9 +52,13 @@ void ollama::PopulateLLMSettings(wxPropertyGrid* page) {
 }
 
 void ollama::SetSetting(const std::string& key, const wxVariant& value) {
-	if (key == "ollama.Enabled") {
-		_enabled = value.GetBool();
-	} else if (key == "ollama.Host") {
+    for (auto t : GetTypes()) {
+        if (key == std::string("ollama.Enable_") + aiType::TypeSettingsSuffix(t)) {
+            SetEnabledForType(t, value.GetBool());
+            return;
+        }
+    }
+    if (key == "ollama.Host") {
 		host = value.GetString();
 	} else if (key == "ollama.Port") {
 		port_num = value.GetLong();
