@@ -63,7 +63,7 @@ wxBitmap GetValueCurveImage(ValueCurve& vc, int w, int h, double scaleFactor)
             float x1 = x;
             x1 /= (float)width;
 
-            float y = (vc.GetValueAt(x1, 0, 1)) * (float)width;
+            float y = (vc.GetValueAt(x1, 0, 1)) * (float)height;
             y = (float)height - 1.0f - y;
             dc.DrawLine(x - 1, lastY, x, std::round(y));
             lastY = y;

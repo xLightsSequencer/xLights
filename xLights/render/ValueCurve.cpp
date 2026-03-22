@@ -21,7 +21,9 @@
 #include <log4cpp/Category.hh>
 
 #include <cassert>
-#include <cstdio>
+#include <cerrno>
+#include <charconv>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <limits>
@@ -31,8 +33,8 @@ SequenceElements* ValueCurve::__sequenceElements = nullptr;
 
 static std::string fmt2f(float v) {
     char buf[32];
-    std::snprintf(buf, sizeof(buf), "%.2f", v);
-    return buf;
+    auto [ptr, ec] = std::to_chars(buf, buf + sizeof(buf), v, std::chars_format::fixed, 2);
+    return std::string(buf, ptr);
 }
 
 float ValueCurve::SafeParameter(size_t p, float v)
@@ -112,10 +114,11 @@ std::string ValueCurve::GetValueCurveFolder(const std::string& showFolder)
     if (showFolder == "") return "";
 
     std::string vcf = showFolder + "/valuecurves";
-    if (!std::filesystem::exists(vcf))
+    std::error_code ec;
+    if (!std::filesystem::exists(vcf, ec))
     {
-        std::filesystem::create_directory(vcf);
-        if (!std::filesystem::exists(vcf))
+        std::filesystem::create_directory(vcf, ec);
+        if (!std::filesystem::exists(vcf, ec))
         {
             return "";
         }
@@ -1583,7 +1586,7 @@ void ValueCurve::SaveXVC(const std::string& filename)
     std::ofstream f(filename);
     if (!f.is_open())
     {
-        DisplayError("Unable to create file " + filename + ".\n");
+        DisplayError("Unable to create file " + filename + ". " + strerror(errno) + "\n");
         return;
     }
 
