@@ -12,6 +12,7 @@
 
 #include "RenderableEffect.h"
 
+#include <map>
 #include <string>
 class SequenceElements;
 

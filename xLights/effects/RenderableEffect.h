@@ -26,6 +26,7 @@ class RenderBuffer;
 class AudioManager;
 class EffectManager;
 class EffectLayer;
+class xLightsFrame;
 
 class RenderableEffect
 {

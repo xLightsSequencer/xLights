@@ -55,3 +55,4 @@ xScanner/x64
 /xLights/enc_temp_folder
 *~
 /.vs/xLights/v17
+*.cbp.mak

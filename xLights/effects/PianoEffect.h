@@ -13,6 +13,7 @@
 #include "RenderableEffect.h"
 
 #include <list>
+#include <map>
 
 #define PIANO_SCALE_MIN 0
 #define PIANO_SCALE_MAX 100

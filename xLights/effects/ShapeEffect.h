@@ -12,6 +12,7 @@
 
 #include "RenderableEffect.h"
 
+#include <wx/font.h>
 #include "../Color.h"
 #include "../utils/xlPoint.h"
 

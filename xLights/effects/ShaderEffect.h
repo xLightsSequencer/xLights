@@ -13,6 +13,7 @@
 #include "RenderableEffect.h"
 #include "../UtilFunctions.h"
 #include <format>
+#include <map>
 #include <string>
 
 class SequenceElements;
