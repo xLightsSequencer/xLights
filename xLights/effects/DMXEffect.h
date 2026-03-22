@@ -32,7 +32,7 @@ public:
     {
         return true;
     }
-    void RemapSelectedDMXEffectValues(Effect* effect, const std::vector<std::tuple<int, int, float, int, wxString>>& dmxmappings) const;
+    void RemapSelectedDMXEffectValues(Effect* effect, const std::vector<std::tuple<int, int, float, int, std::string>>& dmxmappings) const;
 
     virtual double GetSettingVCMin(const std::string& name) const override
     {

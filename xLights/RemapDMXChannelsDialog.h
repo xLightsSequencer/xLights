@@ -38,7 +38,7 @@ class RemapDMXChannelsDialog: public wxDialog
 		double GetChanScale(int idx);
 		int GetChanOffset(int idx);
 		int GetToChannel(int idx);
-        wxString GetChanInvert(int idx);
+        std::string GetChanInvert(int idx);
 
 	protected:
 

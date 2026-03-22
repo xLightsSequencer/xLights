@@ -241,7 +241,7 @@ private:
     int frameTimeInMs = 50;
 
     // both fg and bg may be modified, bg will contain the new, mixed color to be the bg for the next mix
-    void mixColors(const wxCoord& x, const wxCoord& y, xlColor& fg, xlColor& bg, int layer);
+    void mixColors(int x, int y, xlColor& fg, xlColor& bg, int layer);
     void reset(int layers, int timing, bool isNode = false);
     void Blur(LayerInfo* layer, float offset);
     void RotoZoom(LayerInfo* layer, float offset);

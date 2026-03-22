@@ -172,8 +172,8 @@ int RemapDMXChannelsDialog::GetChanOffset(int idx)
 	return wxAtoi(Grid1->GetCellValue(idx, DMXMappingColumns::Offset));
 }
 
-wxString RemapDMXChannelsDialog::GetChanInvert(int idx) {
-    return Grid1->GetCellValue(idx, DMXMappingColumns::Invert);
+std::string RemapDMXChannelsDialog::GetChanInvert(int idx) {
+    return Grid1->GetCellValue(idx, DMXMappingColumns::Invert).ToStdString();
 }
 
 bool RemapDMXChannelsDialog::DoMapping(int idx)

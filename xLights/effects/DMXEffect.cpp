@@ -36,7 +36,7 @@ DMXEffect::~DMXEffect()
     //dtor
 }
 
-void DMXEffect::RemapSelectedDMXEffectValues(Effect* effect, const std::vector<std::tuple<int, int, float, int, wxString>>& dmxmappings) const {
+void DMXEffect::RemapSelectedDMXEffectValues(Effect* effect, const std::vector<std::tuple<int, int, float, int, std::string>>& dmxmappings) const {
     SettingsMap &settings = effect->GetSettings();
     SettingsMap const oldSettings = settings;
     for (auto const& [fromi, toi, scale, offset, inv] : dmxmappings) {

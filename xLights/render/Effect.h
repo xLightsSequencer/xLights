@@ -10,8 +10,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "wx/wx.h"
+#include <wx/event.h>
 
+#include <cstdint>
 #include <vector>
 #include <string>
 #include <mutex>
@@ -59,7 +60,7 @@ class Effect
     xlColorCurveVector mCC;
     xlDisplayList background;
     RenderCacheItem *mCache = nullptr;
-    wxLongLong _timeToDelete = 0;
+    int64_t _timeToDelete = 0;
 
     Effect() {}  //don't allow default or copy constructor
     static void ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColors, xlColorCurveVector& mCC);
@@ -83,7 +84,7 @@ public:
     const std::string &GetEffectName(int index) const;
     void SetEffectName(const std::string & name);
 
-    wxString GetDescription() const;
+    std::string GetDescription() const;
     std::string GetSetting(const std::string& id) const;
     bool SetSetting(const std::string& id, const std::string &v);
 

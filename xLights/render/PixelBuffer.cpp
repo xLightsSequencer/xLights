@@ -19,6 +19,9 @@
 #include "models/SingleLineModel.h"
 #include <log4cpp/Category.hh>
 #include <wx/tokenzr.h>
+#include "utils/xlPoint.h"
+#include <cassert>
+#include <cstdlib>
 
 #include "DissolveTransitionPattern.h"
 #include "GPURenderUtils.h"
@@ -958,7 +961,7 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
 void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, int timing) {
     for (const auto& it : model.ActiveModels()) {
         Model* m = it;
-        wxASSERT(m != nullptr);
+        assert(m != nullptr);
         RenderBuffer* buf = new RenderBuffer(frame, this, m);
         buf->SetFrameTimeInMs(timing);
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
@@ -972,7 +975,7 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, i
 void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int layer, int timing) {
     for (const auto& it : model.GetFlatModels(false, true)) {
         Model* m = it;
-        wxASSERT(m != nullptr);
+        assert(m != nullptr);
         RenderBuffer* buf = new RenderBuffer(frame, this, m);
         buf->SetFrameTimeInMs(timing);
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
@@ -1105,7 +1108,7 @@ double ColourDistance(xlColor e1, xlColor e2) {
     return sqrt((((512 + rmean) * r * r) >> 8) + 4 * g * g + (((767 - rmean) * b * b) >> 8));
 }
 
-void PixelBufferClass::mixColors(const wxCoord& x, const wxCoord& y, xlColor& fg, xlColor& bg, int layerNum) {
+void PixelBufferClass::mixColors(int x, int y, xlColor& fg, xlColor& bg, int layerNum) {
     static const int n = 0; // increase to change the curve of the crossfade
 
     LayerInfo* layer = layers[layerNum];
@@ -1938,79 +1941,79 @@ void ComputeSubBuffer(const std::string& subBuffer, std::vector<NodeBaseClassPtr
     if (subBuffer.empty()) {
         return;
     }
-    wxString sb = subBuffer;
-    sb.Replace("Max", "yyz");
+    std::string sb = subBuffer;
+    Replace(sb, "Max", "yyz");
 
-    wxArrayString v = wxSplit(sb, 'x');
+    auto v = Split(sb, 'x');
 
-    bool fx1vc = v.size() > 0 && v[0].Contains("Active=TRUE");
-    bool fy1vc = v.size() > 1 && v[1].Contains("Active=TRUE");
-    bool fx2vc = v.size() > 2 && v[2].Contains("Active=TRUE");
-    bool fy2vc = v.size() > 3 && v[3].Contains("Active=TRUE");
-    bool fxvc = v.size() > 4 && v[4].Contains("Active=TRUE"); // X centre
-    bool fyvc = v.size() > 5 && v[5].Contains("Active=TRUE"); // y centre
+    bool fx1vc = v.size() > 0 && Contains(v[0], "Active=TRUE");
+    bool fy1vc = v.size() > 1 && Contains(v[1], "Active=TRUE");
+    bool fx2vc = v.size() > 2 && Contains(v[2], "Active=TRUE");
+    bool fy2vc = v.size() > 3 && Contains(v[3], "Active=TRUE");
+    bool fxvc = v.size() > 4 && Contains(v[4], "Active=TRUE"); // X centre
+    bool fyvc = v.size() > 5 && Contains(v[5], "Active=TRUE"); // y centre
 
     float x = 0.0;
     if (fxvc) {
-        v[4].Replace("yyz", "Max");
-        ValueCurve vc(v[4].ToStdString());
+        Replace(v[4], "yyz", "Max");
+        ValueCurve vc(v[4]);
         vc.SetLimits(SB_CENTRE_MIN, SB_CENTRE_MAX);
         x = vc.GetOutputValueAt(progress, startMS, endMS);
     } else if (v.size() > 4) {
-        x = wxAtof(v[4]);
+        x = std::strtod(v[4].c_str(), nullptr);
     }
 
     float y = 0.0;
     if (fyvc) {
-        v[5].Replace("yyz", "Max");
-        ValueCurve vc(v[5].ToStdString());
+        Replace(v[5], "yyz", "Max");
+        ValueCurve vc(v[5]);
         vc.SetLimits(SB_CENTRE_MIN, SB_CENTRE_MAX);
         y = vc.GetOutputValueAt(progress, startMS, endMS);
     } else if (v.size() > 5) {
-        y = wxAtof(v[5]);
+        y = std::strtod(v[5].c_str(), nullptr);
     }
 
     float x1 = 0.0;
     if (fx1vc) {
-        v[0].Replace("yyz", "Max");
-        ValueCurve vc(v[0].ToStdString());
+        Replace(v[0], "yyz", "Max");
+        ValueCurve vc(v[0]);
         vc.SetLimits(SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MAX);
         x1 = vc.GetOutputValueAt(progress, startMS, endMS);
     } else if (v.size() > 0) {
-        x1 = wxAtof(v[0]);
+        x1 = std::strtod(v[0].c_str(), nullptr);
     }
     x1 += x;
 
     float y1 = 0.0;
     if (fy1vc) {
-        v[1].Replace("yyz", "Max");
-        ValueCurve vc(v[1].ToStdString());
+        Replace(v[1], "yyz", "Max");
+        ValueCurve vc(v[1]);
         vc.SetLimits(SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MAX);
         y1 = vc.GetOutputValueAt(progress, startMS, endMS);
     } else if (v.size() > 1) {
-        y1 = wxAtof(v[1]);
+        y1 = std::strtod(v[1].c_str(), nullptr);
     }
     y1 += y;
 
     float x2 = 100.0;
     if (fx2vc) {
-        v[2].Replace("yyz", "Max");
-        ValueCurve vc(v[2].ToStdString());
+        Replace(v[2], "yyz", "Max");
+        ValueCurve vc(v[2]);
         vc.SetLimits(SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MAX);
         x2 = vc.GetOutputValueAt(progress, startMS, endMS);
     } else if (v.size() > 2) {
-        x2 = wxAtof(v[2]);
+        x2 = std::strtod(v[2].c_str(), nullptr);
     }
     x2 += x;
 
     float y2 = 100.0;
     if (fy2vc) {
-        v[3].Replace("yyz", "Max");
-        ValueCurve vc(v[3].ToStdString());
+        Replace(v[3], "yyz", "Max");
+        ValueCurve vc(v[3]);
         vc.SetLimits(SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MAX);
         y2 = vc.GetOutputValueAt(progress, startMS, endMS);
     } else if (v.size() > 3) {
-        y2 = wxAtof(v[3]);
+        y2 = std::strtod(v[3].c_str(), nullptr);
     }
     y2 += y;
 
@@ -2359,7 +2362,7 @@ void PixelBufferClass::UnMergeBuffersForLayer(int layer) {
                         for (const auto& mb : *(layers[layer]->modelBuffers)) {
                             mbnodes += mb->Nodes.size();
                         }
-                        wxASSERT(false);
+                        assert(false);
                     }
                 }
             }
@@ -2399,7 +2402,7 @@ void PixelBufferClass::MergeBuffersForLayer(int layer) {
                         for (const auto& mb : *(layers[layer]->modelBuffers)) {
                             mbnodes += mb->Nodes.size();
                         }
-                        wxASSERT(false);
+                        assert(false);
                     }
                 }
             }
@@ -3060,7 +3063,7 @@ void PixelBufferClass::LayerInfo::createSquareExplodeMask(bool out) {
     }
 }
 
-static bool isLeft(const wxPoint& a, const wxPoint& b, const wxPoint& test) {
+static bool isLeft(const xlPoint& a, const xlPoint& b, const xlPoint& test) {
     return ((b.x - a.x) * (test.y - a.y) - (b.y - a.y) * (test.x - a.x)) > 0;
 }
 
@@ -3117,14 +3120,14 @@ void PixelBufferClass::LayerInfo::createWipeMask(bool out) {
         endx = curx;
         endy = cury + 10;
     }
-    wxPoint start(curx, cury);
-    wxPoint end(endx, endy);
+    xlPoint start(curx, cury);
+    xlPoint end(endx, endy);
 
     // start bottom left 0, 0
     // y = slope * x + y'
     for (int x = 0; x < BufferWi; x++) {
         for (int y = 0; y < BufferHt; y++) {
-            mask[x * BufferHt + y] = isLeft(start, end, wxPoint(x, y)) ? m1 : m2;
+            mask[x * BufferHt + y] = isLeft(start, end, xlPoint(x, y)) ? m1 : m2;
         }
     }
 }

@@ -13,8 +13,8 @@
 #include "Effect.h"
 #include "../sequencer/UndoManager.h"
 #include "../effects/EffectManager.h"
-#include "wx/wx.h"
 #include <atomic>
+#include <tuple>
 #include <list>
 #include <mutex>
 #include <string>
@@ -105,7 +105,7 @@ public:
     int ReplaceColours(xLightsFrame* frame, const std::string& from, const std::string& to, bool selectedOnly, UndoManager& undo_mgr);
     void ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid, EffectManager& effectManager, RangeAccumulator& rangeAccumulator);
     void ApplyButtonPressToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, const std::string id, EffectManager& effectManager, RangeAccumulator& rangeAccumulator);
-    void RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoManager& undo_manager, const std::vector<std::tuple<int, int, float, int, wxString>>& dmxmappings, const EffectManager& effect_manager, RangeAccumulator& range_accumulator);
+    void RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoManager& undo_manager, const std::vector<std::tuple<int, int, float, int, std::string>>& dmxmappings, const EffectManager& effect_manager, RangeAccumulator& range_accumulator);
     void ConvertSelectedEffectsTo(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, EffectManager& effectManager, RangeAccumulator& rangeAccumulator);
     void UnTagAllEffects();
     void DeleteSelectedEffects(UndoManager& undo_mgr);

@@ -2173,7 +2173,7 @@ void EffectsGrid::ApplyButtonPressToSelected(const std::string& effectName, cons
     }
 }
 
-void EffectsGrid::RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int, wxString>>& dmxmappings) {
+void EffectsGrid::RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int, std::string>>& dmxmappings) {
     Element* lastModel = nullptr;
     RangeAccumulator rangeAccumulator;
 

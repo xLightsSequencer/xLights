@@ -24,6 +24,9 @@
 #include "../effects/RenderableEffect.h"
 #include "../ExternalHooks.h"
 
+#include <cassert>
+#include <filesystem>
+#include <chrono>
 #include <unordered_map>
 #include <regex>
 
@@ -263,17 +266,23 @@ Effect::~Effect()
 
 #pragma endregion
 
+static int64_t GetCurrentTimeMillis()
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
 void Effect::SetTimeToDelete()
 {
     // we can delete the effect 1 minute later ... this tries to guarantee all dangling pointers are gone at the expense of some memory use
     // I suspect this is a key reason for some of the crashes
-    _timeToDelete = wxGetUTCTimeMillis() + 60000;
+    _timeToDelete = GetCurrentTimeMillis() + 60000;
 }
 
 bool Effect::IsTimeToDelete() const
 {
-    wxASSERT(_timeToDelete != 0);
-    return wxGetUTCTimeMillis() > _timeToDelete;
+    assert(_timeToDelete != 0);
+    return GetCurrentTimeMillis() > _timeToDelete;
 }
 
 void Effect::SetEffectIndex(int effectIndex)
@@ -295,7 +304,7 @@ const std::string& Effect::GetEffectName() const
 
     if (GetParentEffectLayer() == nullptr) {
         logger_base.crit("Call to Effect::GetEffectName() called but parent effect layer was null ... this will crash.");
-        wxASSERT(false);
+        assert(false);
     }
     
     return GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectName(mEffectIndex);
@@ -307,7 +316,7 @@ const std::string& Effect::GetEffectName(int index) const
     if (GetParentEffectLayer() == nullptr) {
         // This really should never happen ... we should be digging into why it does
         logger_base.crit("Call to Effect::GetEffectName(int) called but parent effect layer was null ... this will crash.");
-        wxASSERT(false);
+        assert(false);
     }
 
     if (index < 0) {
@@ -353,14 +362,14 @@ bool Effect::SetSetting(const std::string& id, const std::string &v)
     return false;
 }
 
-wxString Effect::GetDescription() const
+std::string Effect::GetDescription() const
 {
         return GetSetting("X_Effect_Description");
 }
 
 void Effect::SetStartTimeMS(int startTimeMS)
 {
-    wxASSERT(!IsLocked());
+    assert(!IsLocked());
 
     if (startTimeMS > mStartTime) {
         IncrementChangeCount();
@@ -373,7 +382,7 @@ void Effect::SetStartTimeMS(int startTimeMS)
 
 void Effect::SetEndTimeMS(int endTimeMS)
 {
-    wxASSERT(!IsLocked());
+    assert(!IsLocked());
 
     if (endTimeMS < mEndTime) {
         IncrementChangeCount();
@@ -438,10 +447,10 @@ void Effect::ConvertTo(int effectIndex)
         std::string palette;
         std::string effectText = xLightsApp::GetFrame()->GetEffectTextFromWindows(palette);
 
-        auto es = wxSplit(effectText, ',');
-        for (auto it: es) {
+        auto es = Split(effectText, ',');
+        for (const auto& it: es) {
             if (StartsWith(it, "E_")) {
-                auto sv = wxSplit(it, '=');
+                auto sv = Split(it, '=');
                 if (sv.size()==2) {
                     mSettings[sv[0]] = sv[1];
                 }
@@ -584,8 +593,7 @@ void Effect::PressButton(RenderableEffect* re, const std::string& id)
 void Effect::ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxString idd(id);
-    if (idd.StartsWith("C_"))
+    if (StartsWith(id, "C_"))
     {
         if (vc != nullptr && vc->IsActive())
         {
@@ -607,44 +615,55 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
         {
             mSettings.erase(vcid);
 
-            wxString wid = id;
-
-            if (wid.Contains("FILEPICKER")) {
-                wxString realid = wid.substr(0, wid.Length() - 3);
-                if (wid.EndsWith("_FN")) {
+            if (Contains(id, "FILEPICKER")) {
+                std::string realid = id.substr(0, id.length() - 3);
+                if (EndsWith(id, "_FN")) {
                     mSettings[realid] = value;
-                } else if (wid.EndsWith("_PN")) {
+                } else if (EndsWith(id, "_PN")) {
                     if (mSettings.Contains(realid) && mSettings.Get(realid, "") != "") {
-                        wxString origName = mSettings[realid];
-                        wxFileName fn(origName, origName[1] == ':' ? wxPATH_WIN : wxPATH_UNIX);
-                        fn.SetPath(value);
-                        wxString newName = fn.GetFullPath();
+                        std::string origName = mSettings[realid];
+                        // Normalize Windows backslashes for cross-platform path parsing
+                        if (origName.size() > 1 && origName[1] == ':') {
+                            Replace(origName, "\\", "/");
+                        }
+                        std::filesystem::path fn(origName);
+                        std::string newName = (std::filesystem::path(value) / fn.filename()).string();
                         mSettings[realid] = newName;
                     }
                 }
-                else if (wid.EndsWith("_SF")) {
+                else if (EndsWith(id, "_SF")) {
                     if (mSettings.Contains(realid) && mSettings.Get(realid, "") != "") {
 
                         // This moves through all possible options to locate the file relative to the provided show folder.
-                        // This will be the deepest path possible ... so if the file exists in multiple locations it will find the 
+                        // This will be the deepest path possible ... so if the file exists in multiple locations it will find the
                         // deepest valid path
                         // This only updates the path if we find the file ... if not found there will be no errors but it will log the issue
-                        wxString origName = mSettings[realid];
+                        std::string origName = mSettings[realid];
+                        // Normalize Windows backslashes for cross-platform path parsing
+                        if (origName.size() > 1 && origName[1] == ':') {
+                            Replace(origName, "\\", "/");
+                        }
+                        std::filesystem::path fn(origName);
 
-                        wxFileName fn(origName, origName[1] == ':' ? wxPATH_WIN : wxPATH_UNIX);
-
-                        auto file = fn.GetFullName();
-                        auto dirs = fn.GetDirs();    
+                        auto file = fn.filename().string();
+                        // Collect directory components (skip root/drive elements)
+                        std::vector<std::string> dirs;
+                        for (const auto& part : fn.parent_path()) {
+                            std::string s = part.string();
+                            if (!s.empty() && s != "/" && s.find(':') == std::string::npos) {
+                                dirs.push_back(s);
+                            }
+                        }
                         for (int i = 0; i < dirs.size(); i++)
                         {
-                            auto pth = value + GetPathSeparator();
+                            std::filesystem::path pth(value);
                             for (int j = i; j < dirs.size(); j++) {
-                                pth += dirs[j] + fn.GetPathSeparator();
+                                pth /= dirs[j];
                             }
-                            pth += file;
-                            if (FileExists(pth)) {
+                            pth /= file;
+                            if (FileExists(pth.string())) {
                                 // found it
-                                mSettings[realid] = pth;
+                                mSettings[realid] = pth.string();
                                 break;
                             }
                         }
@@ -783,8 +802,7 @@ void Effect::SetColourOnlyPalette(const std::string& i, bool json)
     // copy over all the non colour entries
     for (auto it = oldPalette.begin(); it != oldPalette.end(); ++it)
     {
-        wxString key(it->first);
-        if (!key.StartsWith("C_BUTTON_Palette") && !key.StartsWith("C_CHECKBOX_Palette"))
+        if (!StartsWith(it->first, "C_BUTTON_Palette") && !StartsWith(it->first, "C_CHECKBOX_Palette"))
         {
             mPaletteMap[it->first] = it->second;
         }

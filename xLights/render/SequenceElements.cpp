@@ -12,6 +12,7 @@
 #include <wx/utils.h>
 #include <wx/tokenzr.h>
 #include <wx/filename.h>
+#include <cassert>
 
 #include <algorithm>
 
@@ -295,7 +296,7 @@ void SequenceElements::RenameTimingTrack(std::string oldname, std::string newnam
 bool SequenceElements::TimingIsPartOfView(TimingElement* timing, int view) const
 {
     std::string view_name = GetViewName(view);
-    wxArrayString views = wxSplit(timing->GetViews(), ',');
+    auto views = Split(timing->GetViews(), ',');
     for (size_t v = 0; v < views.size(); v++)
     {
         if (views[v] == view_name)
@@ -459,7 +460,7 @@ void SequenceElements::DeleteTimingFromView(const std::string &name, int view)
     if (elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_TIMING)
     {
         std::string views = elem->GetViews();
-        wxArrayString all_views = wxSplit(views, ',');
+        auto all_views = Split(views, ',');
         int found = -1;
         for (size_t j = 0; j < all_views.size(); j++)
         {
@@ -472,7 +473,7 @@ void SequenceElements::DeleteTimingFromView(const std::string &name, int view)
         if (found != -1)
         {
             all_views.erase(all_views.begin() + found);
-            views = wxJoin(all_views, ',');
+            views = Join(all_views, ",");
             elem->SetViews(views);
         }
     }
@@ -488,7 +489,7 @@ void SequenceElements::DeleteTimingsFromView(int view)
         {
             TimingElement* te = dynamic_cast<TimingElement*>(el);
             std::string views = te->GetViews();
-            wxArrayString all_views = wxSplit(views, ',');
+            auto all_views = Split(views, ',');
             int found = -1;
             for (size_t j = 0; j < all_views.size(); j++)
             {
@@ -501,7 +502,7 @@ void SequenceElements::DeleteTimingsFromView(int view)
             if (found != -1)
             {
                 all_views.erase(all_views.begin() + found);
-                views = wxJoin(all_views, ',');
+                views = Join(all_views, ",");
                 te->SetViews(views);
             }
         }
@@ -586,7 +587,7 @@ std::string SequenceElements::UniqueElementName(const std::string& basename) con
     int i = 1;
     for (;;)
     {
-        std::string newName = wxString::Format("%s-%i", basename, i).ToStdString();
+        std::string newName = basename + "-" + std::to_string(i);
         timing = GetElement(newName);
         if (timing == nullptr) return newName;
         i++;
@@ -882,7 +883,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                                     }
                                     int layer = wxAtoi(effectLayerNode->GetAttribute("layer", "0"));
                                     SubModelElement* se = dynamic_cast<ModelElement*>(element)->GetSubModel(name.ToStdString(), true);
-                                    wxASSERT(se != nullptr);
+                                    assert(se != nullptr);
                                     while (layer >= se->GetEffectLayerCount()) {
                                         se->AddEffectLayer();
                                     }
@@ -911,12 +912,12 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                                         GetXLightsFrame()->SetStatusText(wxString::Format("Effects Loaded: %i%%.", loaded * 100 / count));
                                     }
                                 } else {
-                                    wxASSERT(false);
+                                    assert(false);
                                 }
                             }
                         }
                     } else {
-                        wxASSERT(false);
+                        assert(false);
                     }
                 }
             }
@@ -976,7 +977,7 @@ void SequenceElements::RemoveView(int view_index)
 void SequenceElements::SetCurrentView(int view)
 {
     mCurrentView = view;
-    wxASSERT(_viewsManager != nullptr);
+    assert(_viewsManager != nullptr);
     _viewsManager->SetSelectedView(view);
 }
 
@@ -984,10 +985,10 @@ void SequenceElements::AddMissingModelsToSequence(const std::string &models, boo
 {
     if(models.length()> 0)
     {
-        wxArrayString model=wxSplit(models,',');
+        auto model=Split(models,',');
         for(size_t m=0;m<model.size();m++)
         {
-            std::string modelName = model[m].Trim(true).Trim(false).ToStdString();
+            std::string modelName = Trim(model[m]);
             Model *model1 = xframe->AllModels[modelName];
             if (model1 != nullptr) {
                 if (model1->GetDisplayAs() == DisplayAsType::SubModel) {
@@ -1020,9 +1021,9 @@ void SequenceElements::SetTimingVisibility(const std::string& name)
             }
             else {
                 te->SetVisible(false);
-                wxArrayString views = wxSplit(te->GetViews(), ',');
+                auto views = Split(te->GetViews(), ',');
                 for (size_t v = 0; v < views.size(); v++) {
-                    std::string viewName = views[v].ToStdString();
+                    const std::string& viewName = views[v];
                     if (name == viewName) {
                         te->SetVisible(true);
                         break;
@@ -1069,7 +1070,7 @@ void SequenceElements::AddTimingToView(const std::string& timing, const std::str
     if( elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_TIMING )
     {
         std::string views = te->GetViews();
-        wxArrayString all_views = wxSplit(views,',');
+        auto all_views = Split(views,',');
         bool found = false;
         for( size_t j = 0; j < all_views.size(); j++ )
         {
@@ -1082,7 +1083,7 @@ void SequenceElements::AddTimingToView(const std::string& timing, const std::str
         if( !found )
         {
             all_views.push_back(name);
-            views = wxJoin(all_views, ',');
+            views = Join(all_views, ",");
             te->SetViews(views);
         }
     }
@@ -1096,10 +1097,10 @@ void SequenceElements::PopulateView(const std::string &models, int view)
 
     if(models.length()> 0)
     {
-        wxArrayString model=wxSplit(models,',');
+        auto model=Split(models,',');
         for(size_t m=0;m<model.size();m++)
         {
-            std::string modelName = model[m].ToStdString();
+            const std::string& modelName = model[m];
             Element* elem = GetElement(modelName);
             if (elem != nullptr) {
                 mAllViews[view].push_back(elem);
@@ -1830,9 +1831,9 @@ std::list<std::string> SequenceElements::GetAllEffectDescriptions()
                 {
                     Effect* eff = el->GetEffect(k);
 
-                    if (eff->GetDescription() != "" && std::find(res.begin(), res.end(), eff->GetDescription().ToStdString()) == res.end())
+                    if (!eff->GetDescription().empty() && std::find(res.begin(), res.end(), eff->GetDescription()) == res.end())
                     {
-                        res.push_back(eff->GetDescription().ToStdString());
+                        res.push_back(eff->GetDescription());
                     }
                 }
             }
@@ -2319,7 +2320,7 @@ void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time,
                 phoneme_end_time = end_time;
             }
             // This can fire if the interval is too short to fit in all the phonemes
-            wxASSERT(phoneme_start_time < phoneme_end_time);
+            assert(phoneme_start_time < phoneme_end_time);
 
             // only create phonemes with duration
             if (phoneme_end_time > phoneme_start_time)

@@ -12,6 +12,7 @@
 #include "../models/Model.h"
 #include <list>
 #include <numeric>
+#include <thread>
 #include "UtilFunctions.h"
 #include <log4cpp/Category.hh>
 #include "SequenceElements.h"
@@ -492,7 +493,7 @@ ModelElement::~ModelElement()
     std::unique_lock<std::recursive_timed_mutex> lock(changeLock);
     while (waitCount > 0) {
         lock.unlock();
-        wxSleep(1);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         lock.lock();
     }
     for (size_t x = 0; x < mStrands.size(); x++) {
@@ -650,10 +651,9 @@ std::string  TimingElement::GetPapagayoExport(int fps) const
     EffectLayer* l3 = *l;
 
     std::string res = "lipsync version 1\nxlights.wav\n";
-    wxString samppersec = wxString::Format("%d", fps);
-    res += std::string(samppersec.c_str()) + "\n";
+    res += std::to_string(fps) + "\n";
     int end = mEffectLayers.front()->GetEffect(l1count - 1)->GetEndTimeMS() / ms;
-    res += std::string(wxString::Format("%d", end).c_str()) + "\n";
+    res += std::to_string(end) + "\n";
     res += "1\n"; // only ever one voice
     res += "\tVoice 1\n\t";
     for (int i = 0; i < l1count; i++)
@@ -661,21 +661,21 @@ std::string  TimingElement::GetPapagayoExport(int fps) const
         res += l1->GetEffect(i)->GetEffectName() + "|";
     }
     res += "\n";
-    res += "\t" + std::string(wxString::Format("%d", l1count).c_str()) + "\n";
+    res += "\t" + std::to_string(l1count) + "\n";
     for (int i = 0; i < l1count; i++) // each line
     {
         res += "\t\t" + l1->GetEffect(i)->GetEffectName() + "\n";
-        res += "\t\t" + std::string(wxString::Format("%d", l1->GetEffect(i)->GetStartTimeMS() / ms).c_str()) + "\n";
-        res += "\t\t" + std::string(wxString::Format("%d", l1->GetEffect(i)->GetEndTimeMS() / ms).c_str()) + "\n";
+        res += "\t\t" + std::to_string(l1->GetEffect(i)->GetStartTimeMS() / ms) + "\n";
+        res += "\t\t" + std::to_string(l1->GetEffect(i)->GetEndTimeMS() / ms) + "\n";
         std::list<Effect*> words = GetEffectsBetween(l2, l1->GetEffect(i)->GetStartTimeMS(), l1->GetEffect(i)->GetEndTimeMS());
-        res += "\t\t" + std::string(wxString::Format("%d", words.size()).c_str()) + "\n";
+        res += "\t\t" + std::to_string(words.size()) + "\n";
         for (const auto& w : words)
         {
             std::list<Effect*> ph = GetEffectsBetween(l3, w->GetStartTimeMS(), w->GetEndTimeMS());
-            res += "\t\t\t" + w->GetEffectName() + " " + std::string(wxString::Format("%d", w->GetStartTimeMS() / ms).c_str()) + " " + std::string(wxString::Format("%d", w->GetEndTimeMS() / ms).c_str()) + " " + std::string(wxString::Format("%d", ph.size()).c_str()) + "\n";
+            res += "\t\t\t" + w->GetEffectName() + " " + std::to_string(w->GetStartTimeMS() / ms) + " " + std::to_string(w->GetEndTimeMS() / ms) + " " + std::to_string(ph.size()) + "\n";
             for (const auto& p : ph)
             {
-                res += "\t\t\t\t" + std::string(wxString::Format("%d", p->GetStartTimeMS() / ms).c_str()) + " " + p->GetEffectName() + "\n";
+                res += "\t\t\t\t" + std::to_string(p->GetStartTimeMS() / ms) + " " + p->GetEffectName() + "\n";
             }
         }
     }
@@ -691,8 +691,8 @@ std::string TimingElement::GetExport() const
         res += "   <EffectLayer>\n";
         for (int i = 0; i < l->GetEffectCount(); i++) {
             res += "      <Effect label=\"" + XmlSafe(l->GetEffect(i)->GetEffectName()) +
-                "\" starttime=\"" + std::string(wxString::Format("%d", l->GetEffect(i)->GetStartTimeMS())) +
-                "\" endtime=\"" + std::string(wxString::Format("%d", l->GetEffect(i)->GetEndTimeMS())) +
+                "\" starttime=\"" + std::to_string(l->GetEffect(i)->GetStartTimeMS()) +
+                "\" endtime=\"" + std::to_string(l->GetEffect(i)->GetEndTimeMS()) +
                 "\" />\n";
         }
         res += "   </EffectLayer>\n";

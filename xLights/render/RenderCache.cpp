@@ -15,10 +15,14 @@
 
 #include <log4cpp/Category.hh>
 
-#include <wx/filename.h>
-#include <wx/dir.h>
+#include <cassert>
+#include <cstdio>
+#include <filesystem>
+#include <format>
 #include <functional>
+#include <thread>
 #include "xLightsMain.h"
+#include "xLightsApp.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "TraceLog.h"
@@ -26,61 +30,55 @@
 
 #ifdef __WXOSX__
 #include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #define USE_MMAP_RENDERCACHE
 #endif
 
 #pragma region RenderCache
 
-class RenderCacheLoadThread : public wxThread
+namespace fs = std::filesystem;
+
+static void RenderCacheLoadThreadEntry(RenderCache* cache)
 {
-public:
-    RenderCacheLoadThread(RenderCache* cache)
-    {
-        _cache = cache;
-        Run();
-    }
+    std::unique_lock<std::mutex> lock(cache->GetLoadMutex());
 
-private:
-    RenderCache* _cache;
-    virtual void* Entry() override
-    {
-        std::unique_lock<std::mutex> lock(_cache->GetLoadMutex());
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Loading cache.");
 
-        logger_base.debug("Loading cache.");
-
-        wxString cacheFolder = _cache->GetCacheFolder();
-
-        wxDir dir(cacheFolder);
-        wxArrayString files;
-        GetAllFilesInDir(cacheFolder, files, "*.cache");
-
-        for (const auto& it : files) {
-            // allow up to 3 times physical memory
-            // This means the render cache will be swapped out ... but I think that is still better than re-rendering
-            // Abandon loading render cache if we use too much memory
-            if (IsExcessiveMemoryUsage(3.0)) {
-                logger_base.warn("Render cache loading abandoned due to too much memory use.");
-                break;
-            }
-
-            auto rci = new RenderCacheItem(_cache, it);
-            if (rci != nullptr && !rci->IsPurged()) {
-                _cache->AddCacheItem(rci);
-            } else {
-                if (rci != nullptr) {
-                    delete rci;
-                }
-                logger_base.warn("Failed to load cache item %s.", (const char*)it.c_str());
+    std::string cacheFolder = cache->GetCacheFolder();
+    std::vector<std::string> files;
+    std::error_code ec;
+    if (fs::exists(cacheFolder, ec)) {
+        for (const auto& entry : fs::recursive_directory_iterator(cacheFolder, ec)) {
+            if (entry.is_regular_file() && entry.path().extension() == ".cache") {
+                files.push_back(entry.path().string());
             }
         }
-
-        logger_base.debug("Cache contained %d files.", (int)files.size());
-        TraceLog::ClearTraceMessages();
-        return nullptr;
     }
-};
+
+    for (const auto& it : files) {
+        // allow up to 3 times physical memory
+        // This means the render cache will be swapped out ... but I think that is still better than re-rendering
+        // Abandon loading render cache if we use too much memory
+        if (IsExcessiveMemoryUsage(3.0)) {
+            logger_base.warn("Render cache loading abandoned due to too much memory use.");
+            break;
+        }
+
+        auto rci = new RenderCacheItem(cache, it);
+        if (!rci->IsPurged()) {
+            cache->AddCacheItem(rci);
+        } else {
+            delete rci;
+            logger_base.warn("Failed to load cache item %s.", (const char*)it.c_str());
+        }
+    }
+
+    logger_base.debug("Cache contained %d files.", (int)files.size());
+    TraceLog::ClearTraceMessages();
+}
 
 RenderCache::RenderCache()
 {
@@ -107,61 +105,59 @@ void RenderCache::EnforceMaximumSize()
     if (_maximumSizeMB == 0)
         return;
 
-    if (_baseCache == "")
+    if (_baseCache.empty())
         return;
 
-    if (!wxDir::Exists(_baseCache))
+    std::error_code ec;
+    if (!fs::exists(_baseCache, ec))
         return;
 
-    wxDir dir(_baseCache);
-    wxULongLong total = dir.GetTotalSize(_baseCache);
-    if ((total / 1024 / 1024).ToULong() < _maximumSizeMB)
+    // Calculate total size of cache directory
+    uintmax_t total = 0;
+    for (const auto& entry : fs::recursive_directory_iterator(_baseCache, ec)) {
+        if (entry.is_regular_file()) {
+            total += entry.file_size();
+        }
+    }
+    if (total / 1024 / 1024 < _maximumSizeMB)
         return;
 
     // get the size and last written date of all render cache entries
-    typedef struct CACHE_ENTRY {
-        wxULongLong size = 0;
+    struct CacheEntry {
+        uintmax_t size = 0;
         std::string name;
-        wxDateTime modified;
+        fs::file_time_type modified;
 
-        bool operator<(const struct CACHE_ENTRY& ce) const
+        bool operator<(const CacheEntry& ce) const
         {
             return modified < ce.modified;
         }
-    } CACHE_ENTRY;
+    };
 
-    std::list<CACHE_ENTRY> entries;
+    std::list<CacheEntry> entries;
 
-    // wxArrayString dirs;
-    // GetAllFilesInDir(_baseCache, dirs, wxALL_FILES_PATTERN, wxDIR_DIRS);
+    for (const auto& entry : fs::recursive_directory_iterator(_baseCache, ec)) {
+        if (entry.is_regular_file() && entry.path().extension() == ".cache") {
+            CacheEntry ce;
+            ce.name = entry.path().string();
+            ce.size = entry.file_size();
+            ce.modified = entry.last_write_time();
 
-    // each sequence is in a directory
-    // for (const auto& d : dirs) {
-    wxArrayString files;
-    GetAllFilesInDir(_baseCache, files, "*.cache", wxDIR_FILES | wxDIR_DIRS);
-
-    for (const auto& f : files) {
-        wxFileName fn(f);
-        CACHE_ENTRY ce;
-        ce.name = f;
-        ce.size = fn.GetSize();
-        ce.modified = fn.GetModificationTime();
-
-        if ((ce.size / 1024 / 1024).ToULong() > _maximumSizeMB / 2) {
-            // we always delete anything larger than half the maximum as these are essentially making the cache useless
-            wxRemoveFile(ce.name);
-            total -= ce.size;
-        } else {
-            entries.push_back(ce);
+            if (ce.size / 1024 / 1024 > _maximumSizeMB / 2) {
+                // we always delete anything larger than half the maximum as these are essentially making the cache useless
+                fs::remove(ce.name, ec);
+                total -= ce.size;
+            } else {
+                entries.push_back(ce);
+            }
         }
     }
-    //}
 
     entries.sort();
 
-    while ((total / 1024 / 1024).ToULong() > _maximumSizeMB && entries.size() > 0) {
-        if (wxFile::Exists(entries.front().name)) {
-            wxRemoveFile(entries.front().name);
+    while (total / 1024 / 1024 > _maximumSizeMB && entries.size() > 0) {
+        if (fs::exists(entries.front().name, ec)) {
+            fs::remove(entries.front().name, ec);
             total -= entries.front().size;
         }
         entries.pop_front();
@@ -173,8 +169,11 @@ void RenderCache::LoadCache()
     // the thread self deletes so we dont need to track it
     if (IsEnabled())
     {
-        wxASSERT(GetBitness() != "32bit");
-        new RenderCacheLoadThread(this);
+        assert(GetBitness() != "32bit");
+        if (_loadThread.joinable()) {
+            _loadThread.join();
+        }
+        _loadThread = std::thread(RenderCacheLoadThreadEntry, this);
     }
 }
 
@@ -205,7 +204,8 @@ void RenderCache::SetSequence(const std::string& path, const std::string& sequen
         if (sequenceFile != "")
         {
             _cacheFolder = path + GetPathSeparator() + "RenderCache" + GetPathSeparator() + sequenceFile + "_RENDER_CACHE";
-            if (wxDir::Exists(_cacheFolder))
+            std::error_code ec;
+            if (fs::exists(_cacheFolder, ec))
             {
                 if (GetBitness() == "32bit")
                 {
@@ -214,7 +214,7 @@ void RenderCache::SetSequence(const std::string& path, const std::string& sequen
                 else
                 {
                     logger_base.debug("Render cache disabled so removing folder %s.", (const char *)_cacheFolder.c_str());
-                    wxDir::Remove(_cacheFolder, wxPATH_RMDIR_RECURSIVE);
+                    fs::remove_all(_cacheFolder, ec);
                 }
             }
         }
@@ -225,17 +225,18 @@ void RenderCache::SetSequence(const std::string& path, const std::string& sequen
     {
         _cacheFolder = path + GetPathSeparator() + "RenderCache" + GetPathSeparator() + sequenceFile + "_RENDER_CACHE";
 
-        if (!wxDir::Exists(_cacheFolder))
+        std::error_code ec;
+        if (!fs::exists(_cacheFolder, ec))
         {
-            wxString common = path + GetPathSeparator() + "RenderCache";
-            if (!wxDir::Exists(common))
+            std::string common = path + GetPathSeparator() + "RenderCache";
+            if (!fs::exists(common, ec))
             {
                 logger_base.debug("Creating render cache folder %s.", (const char *)common.c_str());
-                wxDir::Make(common);
+                fs::create_directory(common, ec);
             }
 
             logger_base.debug("Creating render cache folder %s.", (const char *)_cacheFolder.c_str());
-            wxDir::Make(_cacheFolder);
+            fs::create_directory(_cacheFolder, ec);
         }
         else
         {
@@ -366,9 +367,9 @@ void RenderCache::Close()
 
     logger_base.debug("Closing render cache folder %s.", (const char *)_cacheFolder.c_str());
 
-    {
-        // wait for the cache to finish loading
-        std::unique_lock<std::mutex> lock(_loadMutex);
+    // wait for the cache load thread to finish
+    if (_loadThread.joinable()) {
+        _loadThread.join();
     }
 
     logger_base.debug("    Got lock.");
@@ -567,14 +568,14 @@ std::string RenderCacheItem::GetModelName(RenderBuffer* buffer)
     if (buffer == nullptr) {
         return "";
     } else {
-        wxString mname = buffer->GetModelName();
-        mname.Replace("/", "_");
-        mname.Replace("\\", "_");
-        mname.Replace(":", "_");
-        mname.Replace("?", "_");
-        mname.Replace("*", "_");
-        mname.Replace("$", "_");
-        return mname.ToStdString();
+        std::string mname = buffer->GetModelName();
+        Replace(mname, "/", "_");
+        Replace(mname, "\\", "_");
+        Replace(mname, ":", "_");
+        Replace(mname, "?", "_");
+        Replace(mname, "*", "_");
+        Replace(mname, "$", "_");
+        return mname;
     }
 }
 
@@ -585,28 +586,27 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, Effect* effect, Rende
     _purged = false;
     _dirty = true;
     std::string mname = GetModelName(buffer);
-    wxASSERT(mname != "");
+    assert(mname != "");
     _frameSize[mname] = sizeof(xlColor) * buffer->GetPixelCount();
-    wxString elname = effect->GetParentEffectLayer()->GetParentElement()->GetFullName();
-    elname.Replace("/", "_");
-    elname.Replace("\\", "_");
-    elname.Replace(":", "_");
-    elname.Replace("?", "_");
-    elname.Replace("*", "_");
-    elname.Replace("$", "_");
-    std::string file = wxString::Format("%s_%s_%d_%d.cache",
-            effect->GetEffectName(),
-            elname,
+    std::string elname = effect->GetParentEffectLayer()->GetParentElement()->GetFullName();
+    Replace(elname, "/", "_");
+    Replace(elname, "\\", "_");
+    Replace(elname, ":", "_");
+    Replace(elname, "?", "_");
+    Replace(elname, "*", "_");
+    Replace(elname, "$", "_");
+    std::string file = std::format("{}_{}_{}_{}.cache",
+            effect->GetEffectName(), elname,
             effect->GetParentEffectLayer()->GetLayerNumber(),
-            effect->GetStartTimeMS()).ToStdString();
+            effect->GetStartTimeMS());
     _effectName = effect->GetEffectName();
     _cacheFile = renderCache->GetCacheFolder() + GetPathSeparator() + file;
     _properties["Effect"] = effect->GetEffectName();
     _properties["Element"] = effect->GetParentEffectLayer()->GetParentElement()->GetFullName();
-    _properties["EffectLayer"] = wxString::Format("%d", effect->GetParentEffectLayer()->GetLayerNumber());
-    _properties["StartMS"] = wxString::Format("%d", effect->GetStartTimeMS());
-    _properties["EndMS"] = wxString::Format("%d", effect->GetEndTimeMS());
-    _properties["Frames"] = wxString::Format("%d", buffer->curEffEndPer - buffer->curEffStartPer + 1);
+    _properties["EffectLayer"] = std::to_string(effect->GetParentEffectLayer()->GetLayerNumber());
+    _properties["StartMS"] = std::to_string(effect->GetStartTimeMS());
+    _properties["EndMS"] = std::to_string(effect->GetEndTimeMS());
+    _properties["Frames"] = std::to_string(buffer->curEffEndPer - buffer->curEffStartPer + 1);
     _properties["Models"] = "-1";
     for (const auto& it : effect->GetSettings())
     {
@@ -638,7 +638,7 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
     long duration_ms = end_ms - start_ms;
     long fps = (duration_ms * 1000) / (frame_count * 1000);
 
-    xLightsFrame* frame = (xLightsFrame*)wxTheApp->GetTopWindow();
+    xLightsFrame* frame = xLightsApp::GetFrame();
     int seqFPS = frame->_seqData.FrameTime();
 
     if (seqFPS != fps) {
@@ -703,9 +703,9 @@ void RenderCacheItem::Delete()
 {
     static log4cpp::Category& logger_rcache = log4cpp::Category::getInstance(std::string("log_rendercache"));
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxLogNull logNo; //kludge: avoid user error messahe
     if (!_purged && FileExists(_cacheFile)) {
-        if (!wxRemoveFile(_cacheFile)) {
+        std::error_code ec;
+        if (!fs::remove(_cacheFile, ec)) {
             logger_base.warn("Unable to remove cache file " + _cacheFile);
         } else {
             logger_rcache.info("RenderCache removed file " + _cacheFile);
@@ -780,7 +780,7 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
     if (frameBuffer == nullptr) {
         logger_base.warn("RenderCacheItem::AddFrame failed to allocate frameBuffer.");
         PurgeFrames();
-        wxASSERT(false);
+        assert(false);
         return;
     }
     memcpy(frameBuffer, buffer->GetPixels(), _frameSize.at(mname));
@@ -834,8 +834,8 @@ bool RenderCacheItem::GetFrame(RenderBuffer* buffer)
 
 void RenderCacheItem::Touch() const
 {
-    wxFileName fn(_cacheFile);
-    fn.Touch();
+    std::error_code ec;
+    fs::last_write_time(_cacheFile, fs::file_time_type::clock::now(), ec);
 }
 
 void RenderCacheItem::Save()
@@ -861,43 +861,45 @@ void RenderCacheItem::Save()
         }
     }
 
-    wxFile file;
+    FILE* fp = std::fopen(_cacheFile.c_str(), "wb");
 
-    if (file.Create(_cacheFile, true)) {
-        _properties["Models"] = wxString::Format("%d", (int)_frames.size());
+    if (fp != nullptr) {
+        _properties["Models"] = std::to_string((int)_frames.size());
         // write the header fields
         for (const auto& it : _properties) {
-            file.Write(it.first);
-            file.Write(&zero, 1);
-            file.Write(it.second);
-            file.Write(&zero, 1);
+            std::fwrite(it.first.c_str(), 1, it.first.size(), fp);
+            std::fwrite(&zero, 1, 1, fp);
+            std::fwrite(it.second.c_str(), 1, it.second.size(), fp);
+            std::fwrite(&zero, 1, 1, fp);
         }
 
-        file.Write("RC_HEADEREND");
-        file.Write(&zero, 1);
+        std::fwrite("RC_HEADEREND", 1, 12, fp);
+        std::fwrite(&zero, 1, 1, fp);
 
         for (const auto& it : _frames) {
-            file.Write(it.first);
-            file.Write(&zero, 1);
-            file.Write(wxString::Format("%d", (int)it.second.size()));
-            file.Write(&zero, 1);
-            file.Write(wxString::Format("%ld", _frameSize.at(it.first)));
-            file.Write(&zero, 1);
+            std::fwrite(it.first.c_str(), 1, it.first.size(), fp);
+            std::fwrite(&zero, 1, 1, fp);
+            std::string numFrames = std::to_string((int)it.second.size());
+            std::fwrite(numFrames.c_str(), 1, numFrames.size(), fp);
+            std::fwrite(&zero, 1, 1, fp);
+            std::string fsize = std::to_string(_frameSize.at(it.first));
+            std::fwrite(fsize.c_str(), 1, fsize.size(), fp);
+            std::fwrite(&zero, 1, 1, fp);
         }
-        _firstFrameOffset = file.Tell();
-        
+        _firstFrameOffset = std::ftell(fp);
+
         // write the frames
         for (const auto& itm : _frames) {
             for (const auto& it : itm.second) {
-                wxASSERT(it != nullptr);
+                assert(it != nullptr);
                 if (it != nullptr) {
-                    file.Write(it, _frameSize.at(itm.first));
+                    std::fwrite(it, 1, _frameSize.at(itm.first), fp);
                 }
             }
         }
 
-        file.Close();
-        
+        std::fclose(fp);
+
         remmap();
     } else {
         logger_base.warn("    Failed to create file.");
@@ -919,19 +921,19 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& fi
     _mmap = nullptr;
     _mmapSize = 0;
     _cacheFile = filename;
-    wxFileName fn(_cacheFile);
-    _effectName = fn.GetName();
+    fs::path fnPath(_cacheFile);
+    _effectName = fnPath.stem().string();
     int idx = _effectName.find('_');
     _effectName = _effectName.substr(0, idx);
     _purged = false;
     _dirty = false;
 
-    wxFile file;
+    FILE* fp = std::fopen(_cacheFile.c_str(), "rb");
 
-    if (file.Open(_cacheFile)) {
+    if (fp != nullptr) {
         char headerBuffer[8192];
         memset(headerBuffer, 0x00, sizeof(headerBuffer));
-        file.Read(headerBuffer, sizeof(headerBuffer));
+        std::fread(headerBuffer, 1, sizeof(headerBuffer), fp);
 
         char* ps = headerBuffer;
 
@@ -945,6 +947,7 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& fi
                 // file looks corrupt
                 logger_base.debug("Cache file %s appears corrupt.", (const char*)filename.c_str());
                 _purged = true;
+                std::fclose(fp);
                 return;
             } else {
                 _properties[key] = value;
@@ -959,24 +962,25 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& fi
             ps += strlen(ps) + 1;
             std::string frames(ps);
             ps += strlen(ps) + 1;
-            int fs = std::atoi(frames.c_str());
+            int frameCount = std::atoi(frames.c_str());
             std::string frameSize(ps);
             ps += strlen(ps) + 1;
-            long fsz = wxAtol(frameSize);
+            long fsz = std::strtol(frameSize.c_str(), nullptr, 10);
 
             std::vector<unsigned char *> n;
             _frames[model] = n;
-            _frames.at(model).resize(fs);
+            _frames.at(model).resize(frameCount);
             _frameSize[model] = fsz;
         }
 
         _firstFrameOffset = ps - headerBuffer;
 #ifdef USE_MMAP_RENDERCACHE
         if (renderCache->UseMMap()) {
-            file.Seek(0);
-            _mmapSize = file.Length();
-            _mmap = (uint8_t*)mmap(nullptr, _mmapSize, PROT_READ, MAP_PRIVATE, file.fd(), 0);
-            
+            struct stat st;
+            fstat(fileno(fp), &st);
+            _mmapSize = st.st_size;
+            _mmap = (uint8_t*)mmap(nullptr, _mmapSize, PROT_READ, MAP_PRIVATE, fileno(fp), 0);
+
             if (_mmap == MAP_FAILED) {
                 _mmap = nullptr;
                 _mmapSize = 0;
@@ -988,28 +992,28 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& fi
                         cur += _frameSize.at(itm.first);
                     }
                 }
-                file.Close();
+                std::fclose(fp);
                 return;
             }
         }
 #endif
-        file.Seek(_firstFrameOffset);
+        std::fseek(fp, _firstFrameOffset, SEEK_SET);
         for (auto& itm : _frames) {
             for (int i = 0; i < itm.second.size(); i++) {
                 uint8_t* frameBuffer = (uint8_t *)malloc(_frameSize.at(itm.first));
-                
+
                 if (frameBuffer == nullptr) {
-                    file.Close();
+                    std::fclose(fp);
                     PurgeFrames();
                     logger_base.debug("Render Cache Item file %s fails due to memory allocation issue.", (const char*)filename.c_str());
                     return;
                 }
-                
-                file.Read(frameBuffer, _frameSize.at(itm.first));
+
+                std::fread(frameBuffer, 1, _frameSize.at(itm.first), fp);
                 itm.second[i] = frameBuffer;
             }
         }
-        file.Close();
+        std::fclose(fp);
     }
 }
 
@@ -1036,11 +1040,13 @@ void RenderCacheItem::remmap() {
     if (_mmap) return;
     if (!_renderCache->UseMMap()) return;
 
-    wxFile file;
-    if (file.Open(_cacheFile)) {
-        file.Seek(0);
-        _mmapSize = file.Length();
-        _mmap = (uint8_t*)mmap(nullptr, _mmapSize, PROT_READ, MAP_PRIVATE, file.fd(), 0);
+    FILE* fp = std::fopen(_cacheFile.c_str(), "rb");
+    if (fp != nullptr) {
+        struct stat st;
+        fstat(fileno(fp), &st);
+        _mmapSize = st.st_size;
+        _mmap = (uint8_t*)mmap(nullptr, _mmapSize, PROT_READ, MAP_PRIVATE, fileno(fp), 0);
+        std::fclose(fp);
         if (_mmap == MAP_FAILED) {
             _mmap = nullptr;
             _mmapSize = 0;

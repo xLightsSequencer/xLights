@@ -1113,7 +1113,7 @@ void DMXPanel::OnChoicePopup(wxCommandEvent& event)
     RemapDMXChannelsDialog dlg(this);
     if (dlg.ShowModal() == wxID_OK)
     {
-        std::vector<std::tuple<int, int, float, int, wxString>> dmxmappings;
+        std::vector<std::tuple<int, int, float, int, std::string>> dmxmappings;
 
         for (int i = 0; i < DMX_CHANNELS; i++)
         {

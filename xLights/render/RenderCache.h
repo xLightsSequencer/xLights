@@ -16,13 +16,13 @@
 #include <vector>
 #include <mutex>
 #include <shared_mutex>
+#include <thread>
 
 
 class Effect;
 class RenderCache;
 class SequenceElements;
 class RenderBuffer;
-class RenderCacheLoadThread;
 
 class RenderCacheItem
 {
@@ -76,6 +76,7 @@ class RenderCache
 	std::map<std::string, PerEffectCache*> _cache;
     std::string _enabled; // Disabled | Locked Only | Enabled
     std::mutex _loadMutex;
+    std::thread _loadThread;
     size_t _maximumSizeMB = 0;
     std::string _baseCache = "";
 

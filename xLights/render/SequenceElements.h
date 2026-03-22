@@ -47,8 +47,8 @@ public:
 
 struct EffectRange
 {
-    wxDouble StartTime;
-    wxDouble EndTime;
+    double StartTime;
+    double EndTime;
     EffectLayer* Layer;
     int Row;
 };
