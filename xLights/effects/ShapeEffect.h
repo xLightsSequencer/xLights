@@ -13,6 +13,7 @@
 #include "RenderableEffect.h"
 
 #include "../Color.h"
+#include "../utils/xlPoint.h"
 
 #define SHAPE_THICKNESS_MIN 1
 #define SHAPE_THICKNESS_MAX 100
@@ -138,5 +139,5 @@ private:
     void Drawellipse(RenderBuffer& buffer, int xc, int yc, double radius, int multipler, xlColor color, int thickness, double rotation = 0) const;
     void DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
     bool areSame(double a, double b, float eps) const;
-    bool areCollinear(const wxPoint2DDouble& a, const wxPoint2DDouble& b, const wxPoint2DDouble& c, double eps) const;
+    bool areCollinear(const xlPointD& a, const xlPointD& b, const xlPointD& c, double eps) const;
 };

@@ -10,6 +10,7 @@
 
 #include "EffectPanelManager.h"
 #include "EffectPanelUtils.h"
+#include "assist/AssistPanel.h"
 
 #include <wx/debug.h>
 
@@ -214,4 +215,18 @@ wxString EffectPanelManager::GetEffectString(int effectId) {
         return panels[effectId].panel->GetEffectString();
     }
     return wxString();
+}
+
+bool EffectPanelManager::HasAssistPanel(int effectId) {
+    if (effectId >= 0 && effectId < static_cast<int>(panels.size()) && panels[effectId].panel != nullptr) {
+        return panels[effectId].panel->HasAssistPanel();
+    }
+    return false;
+}
+
+AssistPanel* EffectPanelManager::GetAssistPanel(int effectId, wxWindow* parent, xLightsFrame* xl_frame) {
+    if (effectId >= 0 && effectId < static_cast<int>(panels.size()) && panels[effectId].panel != nullptr) {
+        return panels[effectId].panel->GetAssistPanel(parent, xl_frame);
+    }
+    return nullptr;
 }

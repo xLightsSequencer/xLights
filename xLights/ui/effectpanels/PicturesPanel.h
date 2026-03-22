@@ -58,6 +58,8 @@ class PicturesPanel: public xlEffectPanel
 		virtual ~PicturesPanel();
 		virtual void ValidateWindow() override;
 		virtual void SetDefaultParameters() override;
+		bool HasAssistPanel() override { return true; }
+		AssistPanel* GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame) override;
 
 		//(*Declarations(PicturesPanel)
 		BulkEditCheckBox* CheckBox_LoopGIF;

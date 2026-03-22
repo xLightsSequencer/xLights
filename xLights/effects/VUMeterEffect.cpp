@@ -11,6 +11,7 @@
 #include <format>
 
 #include "VUMeterEffect.h"
+#include "../utils/xlPoint.h"
 #include "../AudioManager.h"
 #include "../render/SequenceElements.h"
 #include "../xLightsMain.h"
@@ -302,7 +303,7 @@ public:
 	std::vector<float> _lastvalues;
 	std::vector<float> _lastpeaks;
     std::list<int> _pausepeakfall;
-    std::list<std::vector<wxPoint>> _lineHistory;
+    std::list<std::vector<xlPoint>> _lineHistory;
 	float _lastsize = 0.0f;
     int _colourindex = 0;
     int _nCount = 0;
@@ -481,7 +482,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
     int& _nCount = cache->_nCount;
 	float& _lastsize = cache->_lastsize;
     int & _colourindex = cache->_colourindex;
-    std::list<std::vector<wxPoint>>& _lineHistory = cache->_lineHistory;
+    std::list<std::vector<xlPoint>>& _lineHistory = cache->_lineHistory;
     int& _lastDirection = cache->_lastDirection;
 	// Check for config changes which require us to reset
 	if (buffer.needToInit)
@@ -661,7 +662,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 	}
 }
 
-void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::vector<float>& lastvalues, std::vector<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startNote, int endNote, int xoffset, int yoffset, bool peak, int peakhold, bool line, bool logarithmicX, bool circle, int gain, int sensitivity, std::list<std::vector<wxPoint>>& lineHistory) const
+void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::vector<float>& lastvalues, std::vector<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startNote, int endNote, int xoffset, int yoffset, bool peak, int peakhold, bool line, bool logarithmicX, bool circle, int gain, int sensitivity, std::list<std::vector<xlPoint>>& lineHistory) const
 {
     if (buffer.GetMedia() == nullptr) return;
 
@@ -821,7 +822,7 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
         int lastColX = -1;
         float firstVector = -1;
         float lastVector = -1;
-        std::vector<wxPoint> linePoints;
+        std::vector<xlPoint> linePoints;
         for (int j = 0; j < usebars; j++)
         {
             float f = 0;
@@ -873,7 +874,7 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
                     {
                         int x1 = buffer.BufferWi / 2 + truexoffset + vector * sin(toRadians(angle));
                         int y1 = buffer.BufferHt / 2 + trueyoffset + vector * cos(toRadians(angle));
-                        linePoints.push_back(wxPoint(x1, y1));
+                        linePoints.push_back(xlPoint(x1, y1));
                     }
                     else
                     {
@@ -882,14 +883,14 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
                         int x2 = buffer.BufferWi / 2 + truexoffset + vector * sin(toRadians(angle));
                         int y2 = buffer.BufferHt / 2 + trueyoffset + vector * cos(toRadians(angle));
                         buffer.DrawLine(x1, y1, x2, y2, color);
-                        linePoints.push_back(wxPoint(x2, y2));
+                        linePoints.push_back(xlPoint(x2, y2));
 
                         if (j == usebars - 1)
                         {
                             x1 = buffer.BufferWi / 2 + truexoffset + firstVector * sin(toRadians(angle + angleper));
                             y1 = buffer.BufferHt / 2 + trueyoffset + firstVector * cos(toRadians(angle + angleper));
                             buffer.DrawLine(x2, y2, x1, y1, color);
-                            linePoints.push_back(wxPoint(x1, y1));
+                            linePoints.push_back(xlPoint(x1, y1));
                         }
                     }
                     lastVector = vector;
@@ -897,7 +898,7 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
                 else
                 {
                     int mid = cols * j + cols / 2.0;
-                    linePoints.push_back(wxPoint(mid, colheight));
+                    linePoints.push_back(xlPoint(mid, colheight));
 
                     // draw lines to mid point of each column
                     if (lastColHeight >= 0)
@@ -1829,30 +1830,30 @@ void VUMeterEffect::DrawTree(RenderBuffer &buffer, int xc, int yc, double radius
 {
 	struct line
 	{
-		wxPoint start;
-		wxPoint end;
+		xlPoint start;
+		xlPoint end;
 
-		line(const wxPoint s, const wxPoint e)
+		line(const xlPoint s, const xlPoint e)
 		{
 			start = s;
 			end = e;
 		}
 	};
 
-	const line points[] = { line(wxPoint(3,0), wxPoint(5,0)),
-		line(wxPoint(5,0), wxPoint(5,3)),
-		line(wxPoint(3,0), wxPoint(3,3)),
-		line(wxPoint(0,3), wxPoint(8,3)),
-		line(wxPoint(0,3), wxPoint(2,6)),
-		line(wxPoint(8,3), wxPoint(6,6)),
-		line(wxPoint(1,6), wxPoint(2,6)),
-		line(wxPoint(6,6), wxPoint(7,6)),
-		line(wxPoint(1,6), wxPoint(3,9)),
-		line(wxPoint(7,6), wxPoint(5,9)),
-		line(wxPoint(2,9), wxPoint(3,9)),
-		line(wxPoint(5,9), wxPoint(6,9)),
-		line(wxPoint(6,9), wxPoint(4,11)),
-		line(wxPoint(2,9), wxPoint(4,11))
+	const line points[] = { line(xlPoint(3,0), xlPoint(5,0)),
+		line(xlPoint(5,0), xlPoint(5,3)),
+		line(xlPoint(3,0), xlPoint(3,3)),
+		line(xlPoint(0,3), xlPoint(8,3)),
+		line(xlPoint(0,3), xlPoint(2,6)),
+		line(xlPoint(8,3), xlPoint(6,6)),
+		line(xlPoint(1,6), xlPoint(2,6)),
+		line(xlPoint(6,6), xlPoint(7,6)),
+		line(xlPoint(1,6), xlPoint(3,9)),
+		line(xlPoint(7,6), xlPoint(5,9)),
+		line(xlPoint(2,9), xlPoint(3,9)),
+		line(xlPoint(5,9), xlPoint(6,9)),
+		line(xlPoint(6,9), xlPoint(4,11)),
+		line(xlPoint(2,9), xlPoint(4,11))
 	};
 	int count = sizeof(points) / sizeof(line);
 
@@ -1880,7 +1881,7 @@ void VUMeterEffect::DrawTree(RenderBuffer &buffer, int xc, int yc, double radius
 	}
 }
 
-static inline wxPoint2DDouble ScaleMovePoint(const wxPoint2DDouble pt, const wxPoint2DDouble imageCentre, const wxPoint2DDouble centre, float factor, float scaleTo)
+static inline xlPointD ScaleMovePoint(const xlPointD pt, const xlPointD imageCentre, const xlPointD centre, float factor, float scaleTo)
 {
     return centre + ((pt - imageCentre) * factor * scaleTo * 10);
 }
@@ -1915,7 +1916,7 @@ static inline bool areSame(double a, double b, float eps)
     return std::fabs(a - b) < eps;
 }
 
-static inline bool areCollinear(const wxPoint2DDouble& a, const wxPoint2DDouble& b, const wxPoint2DDouble& c, double eps)
+static inline bool areCollinear(const xlPointD& a, const xlPointD& b, const xlPointD& c, double eps)
 {
     // use dot product to determine if point are in a strait line
     auto [a_x, a_y] = a;
@@ -1941,8 +1942,8 @@ void VUMeterEffect::DrawSVG(RenderBuffer& buffer, int xc, int yc, double radius,
         auto context = buffer.GetPathDrawingContext();
         context->Clear();
 
-        wxPoint2DDouble centre((float)xc, (float)yc);
-        wxPoint2DDouble imageCentre((float)image->width / 2.0, (float)image->height / 2.0);
+        xlPointD centre((float)xc, (float)yc);
+        xlPointD imageCentre((float)image->width / 2.0, (float)image->height / 2.0);
 
         for (NSVGshape* shape = image->shapes; shape != nullptr; shape = shape->next) {
             if (GetSVGExAlpha(shape->fill.color) != 0) {
@@ -1992,20 +1993,20 @@ void VUMeterEffect::DrawSVG(RenderBuffer& buffer, int xc, int yc, double radius,
                 for (int i = 0; i < path->npts - 1; i += 3) {
                     float* p = &path->pts[i * 2];
                     auto ih = image->height;
-                    wxPoint2DDouble start = ScaleMovePoint(wxPoint2DDouble(p[0], ih - p[1]), imageCentre, centre, cache->_svgScaleBase, radius);
-                    wxPoint2DDouble cp1 = ScaleMovePoint(wxPoint2DDouble(p[2], ih - p[3]), imageCentre, centre, cache->_svgScaleBase, radius);
-                    wxPoint2DDouble cp2 = ScaleMovePoint(wxPoint2DDouble(p[4], ih - p[5]), imageCentre, centre, cache->_svgScaleBase, radius);
-                    wxPoint2DDouble end = ScaleMovePoint(wxPoint2DDouble(p[6], ih - p[7]), imageCentre, centre, cache->_svgScaleBase, radius);
+                    xlPointD start = ScaleMovePoint(xlPointD(p[0], ih - p[1]), imageCentre, centre, cache->_svgScaleBase, radius);
+                    xlPointD cp1 = ScaleMovePoint(xlPointD(p[2], ih - p[3]), imageCentre, centre, cache->_svgScaleBase, radius);
+                    xlPointD cp2 = ScaleMovePoint(xlPointD(p[4], ih - p[5]), imageCentre, centre, cache->_svgScaleBase, radius);
+                    xlPointD end = ScaleMovePoint(xlPointD(p[6], ih - p[7]), imageCentre, centre, cache->_svgScaleBase, radius);
 
                     if (i == 0)
-                        cpath.MoveToPoint(start);
+                        cpath.MoveToPoint(start.x, start.y);
 
                     if (areCollinear(start, cp1, end, 0.001f) && areCollinear(start, cp2, end, 0.001f)) { // check if its a straight line
-                        cpath.AddLineToPoint(end);
-                    } else if (areSame(end.m_x, cp2.m_x, 0.001f) && areSame(end.m_y, cp2.m_y, 0.001f)) { // check if control points2 is the end
-                        cpath.AddQuadCurveToPoint(cp1.m_x, cp1.m_y, end.m_x, end.m_y);
+                        cpath.AddLineToPoint(end.x, end.y);
+                    } else if (areSame(end.x, cp2.x, 0.001f) && areSame(end.y, cp2.y, 0.001f)) { // check if control points2 is the end
+                        cpath.AddQuadCurveToPoint(cp1.x, cp1.y, end.x, end.y);
                     } else {
-                        cpath.AddCurveToPoint(cp1.m_x, cp1.m_y, cp2.m_x, cp2.m_y, end.m_x, end.m_y);
+                        cpath.AddCurveToPoint(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
                     }
                 }
                 if (path->closed) {
@@ -2038,28 +2039,28 @@ void VUMeterEffect::DrawCrucifix(RenderBuffer &buffer, int xc, int yc, double ra
 {
 	struct line
 	{
-		wxPoint start;
-		wxPoint end;
+		xlPoint start;
+		xlPoint end;
 
-		line(const wxPoint s, const wxPoint e)
+		line(const xlPoint s, const xlPoint e)
 		{
 			start = s;
 			end = e;
 		}
 	};
 
-	const line points[] = { line(wxPoint(2,0), wxPoint(2,6)),
-		line(wxPoint(2,6), wxPoint(0,6)),
-		line(wxPoint(0,6), wxPoint(0,7)),
-		line(wxPoint(0,7), wxPoint(2,7)),
-		line(wxPoint(2,7), wxPoint(2,10)),
-		line(wxPoint(2,10), wxPoint(3,10)),
-		line(wxPoint(3,10), wxPoint(3,7)),
-		line(wxPoint(3,7), wxPoint(5,7)),
-		line(wxPoint(5,7), wxPoint(5,6)),
-		line(wxPoint(5,6), wxPoint(3,6)),
-		line(wxPoint(3,6), wxPoint(3,0)),
-		line(wxPoint(3,0), wxPoint(2,0))
+	const line points[] = { line(xlPoint(2,0), xlPoint(2,6)),
+		line(xlPoint(2,6), xlPoint(0,6)),
+		line(xlPoint(0,6), xlPoint(0,7)),
+		line(xlPoint(0,7), xlPoint(2,7)),
+		line(xlPoint(2,7), xlPoint(2,10)),
+		line(xlPoint(2,10), xlPoint(3,10)),
+		line(xlPoint(3,10), xlPoint(3,7)),
+		line(xlPoint(3,7), xlPoint(5,7)),
+		line(xlPoint(5,7), xlPoint(5,6)),
+		line(xlPoint(5,6), xlPoint(3,6)),
+		line(xlPoint(3,6), xlPoint(3,0)),
+		line(xlPoint(3,0), xlPoint(2,0))
 	};
 	int count = sizeof(points) / sizeof(line);
 
@@ -2091,25 +2092,25 @@ void VUMeterEffect::DrawPresent(RenderBuffer &buffer, int xc, int yc, double rad
 {
 	struct line
 	{
-		wxPoint start;
-		wxPoint end;
+		xlPoint start;
+		xlPoint end;
 
-		line(const wxPoint s, const wxPoint e)
+		line(const xlPoint s, const xlPoint e)
 		{
 			start = s;
 			end = e;
 		}
 	};
 
-	const line points[] = { line(wxPoint(0,0), wxPoint(0,9)),
-		line(wxPoint(0,9), wxPoint(10,9)),
-		line(wxPoint(10,9), wxPoint(10,0)),
-		line(wxPoint(10,0), wxPoint(0,0)),
-		line(wxPoint(5,0), wxPoint(5,9)),
-		line(wxPoint(5,9), wxPoint(2,11)),
-		line(wxPoint(2,11), wxPoint(2,9)),
-		line(wxPoint(5,9), wxPoint(8,11)),
-		line(wxPoint(8,11), wxPoint(8,9))
+	const line points[] = { line(xlPoint(0,0), xlPoint(0,9)),
+		line(xlPoint(0,9), xlPoint(10,9)),
+		line(xlPoint(10,9), xlPoint(10,0)),
+		line(xlPoint(10,0), xlPoint(0,0)),
+		line(xlPoint(5,0), xlPoint(5,9)),
+		line(xlPoint(5,9), xlPoint(2,11)),
+		line(xlPoint(2,11), xlPoint(2,9)),
+		line(xlPoint(5,9), xlPoint(8,11)),
+		line(xlPoint(8,11), xlPoint(8,9))
 	};
 	int count = sizeof(points) / sizeof(line);
 

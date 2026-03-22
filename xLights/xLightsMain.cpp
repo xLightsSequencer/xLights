@@ -3727,7 +3727,7 @@ void xLightsFrame::UpdateEffectAssistWindow(Effect* effect, RenderableEffect* re
         return;
     }
 
-    bool effect_is_supported = ren_effect->HasAssistPanel();
+    bool effect_is_supported = effectPanelManager.HasAssistPanel(ren_effect->GetId());
 
     if (tempEffectAssistMode == EFFECT_ASSIST_TOGGLE_MODE) {
         if (effect_is_supported) {
@@ -3739,7 +3739,7 @@ void xLightsFrame::UpdateEffectAssistWindow(Effect* effect, RenderableEffect* re
 
     AssistPanel* panel;
     if (effect_is_supported) {
-        panel = ren_effect->GetAssistPanel(sEffectAssist, this);
+        panel = effectPanelManager.GetAssistPanel(ren_effect->GetId(), sEffectAssist, this);
     } else {
         panel = sEffectAssist->GetDefaultAssistPanel();
     }

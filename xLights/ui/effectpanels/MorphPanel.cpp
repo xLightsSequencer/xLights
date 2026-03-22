@@ -10,6 +10,8 @@
 
 #include "MorphPanel.h"
 #include "EffectPanelUtils.h"
+#include "assist/AssistPanel.h"
+#include "assist/xlGridCanvasMorph.h"
 #include "../../effects/MorphEffect.h"
 #include "../../xLightsApp.h"
 #include "../../UtilFunctions.h"
@@ -795,4 +797,11 @@ void MorphPanel::SetDefaultParameters()
     SetCheckBoxValue(CheckBox_Morph_Start_Link, false);
     SetCheckBoxValue(CheckBox_ShowHeadAtStart, false);
     SetCheckBoxValue(CheckBox_Morph_AutoRepeat, false);
+}
+
+AssistPanel* MorphPanel::GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame) {
+    AssistPanel* assist_panel = new AssistPanel(parent);
+    xlGridCanvas* grid = new xlGridCanvasMorph(assist_panel->GetCanvasParent(), wxNewId(), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("MorphGrid"));
+    assist_panel->SetGridCanvas(grid);
+    return assist_panel;
 }

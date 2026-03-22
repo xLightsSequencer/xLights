@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "RenderableEffect.h"
+#include "../utils/xlPoint.h"
 
 #define KALEIDOSCOPE_X_MIN 0
 #define KALEIDOSCOPE_X_MAX 100
@@ -28,9 +29,9 @@
 
 struct KaleidoscopeEdge
 {
-    wxPoint _p1;
-    wxPoint _p2;
-    KaleidoscopeEdge(const wxPoint &p1, const wxPoint& p2) { _p1 = p1; _p2 = p2; }
+    xlPoint _p1;
+    xlPoint _p2;
+    KaleidoscopeEdge(const xlPoint &p1, const xlPoint& p2) { _p1 = p1; _p2 = p2; }
 };
 
 struct KaleidoscopeVertex {

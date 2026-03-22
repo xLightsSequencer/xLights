@@ -30,17 +30,7 @@ class BaseSerializingVisitor;
 #include "BaseObject.h"
 #include "../UtilFunctions.h"
 
-struct xlPoint {
-    int x = 0;
-    int y = 0;
-    xlPoint() = default;
-    xlPoint(int x_, int y_) : x(x_), y(y_) {}
-    bool operator<(const xlPoint& r) const {
-        if (x < r.x) return true;
-        if (x > r.x) return false;
-        return y < r.y;
-    }
-};
+#include "../utils/xlPoint.h"
 
 
 class wxProgressDialog;

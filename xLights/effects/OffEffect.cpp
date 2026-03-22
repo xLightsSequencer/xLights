@@ -11,6 +11,7 @@
 #include <format>
 
 #include "OffEffect.h"
+#include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "UtilFunctions.h"
 #include "models/Model.h"

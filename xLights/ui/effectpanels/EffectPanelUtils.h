@@ -42,6 +42,7 @@ class wxCheckBox;
 class wxRadioButton;
 class Model;
 class SequenceElements;
+class xLightsFrame;
 
 class EffectPanelUtils
 {
@@ -72,6 +73,9 @@ public:
     virtual void SetEffectTimeRange(int startTimeMs, int endTimeMs) {}
     void SetSequenceElements(SequenceElements* els) { mSequenceElements = els; }
     virtual wxString GetEffectString();
+
+    virtual bool HasAssistPanel() { return false; }
+    virtual class AssistPanel* GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame);
 
     void AddChangeListeners(wxTimer *timer);
 

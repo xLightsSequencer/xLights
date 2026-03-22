@@ -2203,6 +2203,9 @@
     <ClInclude Include="utils\string_utils.h">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="utils\xlPoint.h">
+      <Filter>utils</Filter>
+    </ClInclude>
     <ClInclude Include="UtilFunctions.h">
       <Filter>utils</Filter>
     </ClInclude>

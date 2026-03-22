@@ -40,6 +40,9 @@ public:
     void SetSequenceElements(SequenceElements* els);
     wxString GetEffectString(int effectId);
 
+    bool HasAssistPanel(int effectId);
+    class AssistPanel* GetAssistPanel(int effectId, wxWindow* parent, class xLightsFrame* xl_frame);
+
     int GetPanelCount() const { return static_cast<int>(panels.size()); }
 
 private:

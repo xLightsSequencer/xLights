@@ -59,11 +59,11 @@ public:
         flameprimeg = rand01() * flameprimer;
         wind = rand01() * 255;
     }
-    wxByte flameprimer;
-    wxByte flamer;
-    wxByte wind;
-    wxByte flameprimeg;
-    wxByte flameg;
+    uint8_t flameprimer;
+    uint8_t flamer;
+    uint8_t wind;
+    uint8_t flameprimeg;
+    uint8_t flameg;
 };
 
 class CandleRenderCache : public EffectRenderCache
@@ -89,11 +89,11 @@ static CandleRenderCache* GetCache(RenderBuffer& buffer, int id)
 }
 
 
-void CandleEffect::Update(wxByte& flameprime, wxByte& flame, wxByte& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline)
+void CandleEffect::Update(uint8_t& flameprime, uint8_t& flame, uint8_t& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline)
 {
     // We simulate a gust of wind by setting the wind var to a random value
-    if (wxByte(rand01() * 255.0) < windVariability) {
-        wind = wxByte(rand01() * 255.0);
+    if (uint8_t(rand01() * 255.0) < windVariability) {
+        wind = uint8_t(rand01() * 255.0);
     }
 
     // The wind constantly settles towards its baseline value
@@ -108,8 +108,8 @@ void CandleEffect::Update(wxByte& flameprime, wxByte& flame, wxByte& wind, size_
 
     // Depending on the wind strength and the calmness modifier we calculate the odds
     // of the wind knocking down the flame by setting it to random values
-    if (wxByte(rand01() * 255) < (wind >> windCalmness)) {
-        flame = wxByte(rand01() * 255);
+    if (uint8_t(rand01() * 255) < (wind >> windCalmness)) {
+        flame = uint8_t(rand01() * 255);
     }
 
     // Real flames ook like they have inertia so we use this constant-aproach-rate filter
@@ -197,9 +197,9 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
                     xlColor c;
                     if (usePalette) {
                         float t = float(state->flameprimer) / 255.0f;
-                        c.red = wxByte(c1.red * (1.0f - t) + c2.red * t);
-                        c.green = wxByte(c1.green * (1.0f - t) + c2.green * t);
-                        c.blue = wxByte(c1.blue * (1.0f - t) + c2.blue * t);
+                        c.red = uint8_t(c1.red * (1.0f - t) + c2.red * t);
+                        c.green = uint8_t(c1.green * (1.0f - t) + c2.green * t);
+                        c.blue = uint8_t(c1.blue * (1.0f - t) + c2.blue * t);
                     } else {
                         c = xlColor(state->flameprimer, state->flameprimeg / 2, 0);
                     }
@@ -222,9 +222,9 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         xlColor c;
         if (usePalette) {
             float t = float(state->flameprimer) / 255.0f;
-            c.red = wxByte(c1.red * (1.0f - t) + c2.red * t);
-            c.green = wxByte(c1.green * (1.0f - t) + c2.green * t);
-            c.blue = wxByte(c1.blue * (1.0f - t) + c2.blue * t);
+            c.red = uint8_t(c1.red * (1.0f - t) + c2.red * t);
+            c.green = uint8_t(c1.green * (1.0f - t) + c2.green * t);
+            c.blue = uint8_t(c1.blue * (1.0f - t) + c2.blue * t);
         } else {
             c = xlColor(state->flameprimer, state->flameprimeg / 2, 0);
         }

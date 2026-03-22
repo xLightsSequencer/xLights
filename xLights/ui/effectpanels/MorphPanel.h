@@ -37,6 +37,8 @@ class MorphPanel: public xlEffectPanel
 		virtual ~MorphPanel();
 		virtual void ValidateWindow() override;
 		virtual void SetDefaultParameters() override;
+		bool HasAssistPanel() override { return true; }
+		AssistPanel* GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame) override;
 
 		//(*Declarations(MorphPanel)
 		BulkEditButton* ButtonSwap;

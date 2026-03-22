@@ -121,7 +121,7 @@ public:
             if (bl == tl && bl == tr && bl == br) return false;
         }
 
-        _edges.push_back(KaleidoscopeEdge(wxPoint(x1, y1), wxPoint(x2, y2)));
+        _edges.push_back(KaleidoscopeEdge(xlPoint(x1, y1), xlPoint(x2, y2)));
         return true;
     }
 

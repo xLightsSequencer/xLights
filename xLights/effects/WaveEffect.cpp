@@ -289,7 +289,6 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
             int y1mirror = yc + (yc - y1);
             int y2mirror = yc + (yc - y2);
             deltay = y2 - y1;
-            wxASSERT(deltay > 0);
 
             for (y = y1; y <= y2; y++) {
                 int adjustedY = y + roundedWaveYOffset;

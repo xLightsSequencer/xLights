@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "RippleEffect.h"
+#include "../utils/xlPoint.h"
 #include "../ValueCurve.h"
 
 #include "../utils/string_utils.h"
@@ -114,18 +115,18 @@ static void getCirclePoints(dpointvec& ppts)
 
 static void getCrossPoints(dpointvec& ppts)
 {
-    const wxPoint points[] = { wxPoint(2, 0),
-                               wxPoint(2, 6),
-                               wxPoint(0, 6),
-                               wxPoint(0, 7),
-                               wxPoint(2, 7),
-                               wxPoint(2, 10),
-                               wxPoint(3, 10),
-                               wxPoint(3, 7),
-                               wxPoint(5, 7),
-                               wxPoint(5, 6),
-                               wxPoint(3, 6),
-                               wxPoint(3, 0) };
+    const xlPoint points[] = { xlPoint(2, 0),
+                               xlPoint(2, 6),
+                               xlPoint(0, 6),
+                               xlPoint(0, 7),
+                               xlPoint(2, 7),
+                               xlPoint(2, 10),
+                               xlPoint(3, 10),
+                               xlPoint(3, 7),
+                               xlPoint(5, 7),
+                               xlPoint(5, 6),
+                               xlPoint(3, 6),
+                               xlPoint(3, 0) };
     ppts.clear();
     for (const auto& pt : points) {
         ppts.push_back({ (pt.x - 2.5) / 7.0, (pt.y - 6.5) / 10 });
@@ -134,22 +135,22 @@ static void getCrossPoints(dpointvec& ppts)
 
 static void getTreePoints(dpointvec& ppts)
 {
-    const wxPoint points[] = {
-        wxPoint(3, 3),
-        wxPoint(3, 0),
-        wxPoint(5, 0),
-        wxPoint(5, 3),
-        wxPoint(0, 3),
-        wxPoint(2, 6),
-        wxPoint(1, 6),
-        wxPoint(3, 9),
-        wxPoint(2, 9),
-        wxPoint(4, 11),
-        wxPoint(6, 9),
-        wxPoint(5, 9),
-        wxPoint(7, 6),
-        wxPoint(6, 6),
-        wxPoint(8, 3)
+    const xlPoint points[] = {
+        xlPoint(3, 3),
+        xlPoint(3, 0),
+        xlPoint(5, 0),
+        xlPoint(5, 3),
+        xlPoint(0, 3),
+        xlPoint(2, 6),
+        xlPoint(1, 6),
+        xlPoint(3, 9),
+        xlPoint(2, 9),
+        xlPoint(4, 11),
+        xlPoint(6, 9),
+        xlPoint(5, 9),
+        xlPoint(7, 6),
+        xlPoint(6, 6),
+        xlPoint(8, 3)
     };
     ppts.clear();
     for (const auto& pt : points) {
@@ -159,20 +160,20 @@ static void getTreePoints(dpointvec& ppts)
 
 static void getPresentPoints(dpointvec& ppts)
 {
-    const wxPoint points[] = {
-        wxPoint(5, 9),
-        wxPoint(2, 11),
-        wxPoint(2, 9),
-        wxPoint(5, 9),
-        wxPoint(8, 11),
-        wxPoint(8, 9),
-        wxPoint(5, 9),
-        wxPoint(0, 9),
-        wxPoint(0, 0),
-        wxPoint(10, 0),
-        wxPoint(10, 9),
-        wxPoint(5, 9),
-        wxPoint(5, 0)
+    const xlPoint points[] = {
+        xlPoint(5, 9),
+        xlPoint(2, 11),
+        xlPoint(2, 9),
+        xlPoint(5, 9),
+        xlPoint(8, 11),
+        xlPoint(8, 9),
+        xlPoint(5, 9),
+        xlPoint(0, 9),
+        xlPoint(0, 0),
+        xlPoint(10, 0),
+        xlPoint(10, 9),
+        xlPoint(5, 9),
+        xlPoint(5, 0)
     };
 
     for (const auto& pt : points) {
@@ -1422,30 +1423,30 @@ void RippleEffect::Drawheart(RenderBuffer& buffer, int Movement, int xc, int yc,
 void RippleEffect::Drawtree(RenderBuffer& buffer, int Movement, int xc, int yc, double radius, HSVValue& hsv, int Ripple_Thickness, int CheckBox_Ripple3D)
 {
     struct line {
-        wxPoint start;
-        wxPoint end;
+        xlPoint start;
+        xlPoint end;
 
-        line(const wxPoint s, const wxPoint e)
+        line(const xlPoint s, const xlPoint e)
         {
             start = s;
             end = e;
         }
     };
 
-    const line points[] = { line(wxPoint(3, 0), wxPoint(5, 0)),
-                            line(wxPoint(5, 0), wxPoint(5, 3)),
-                            line(wxPoint(3, 0), wxPoint(3, 3)),
-                            line(wxPoint(0, 3), wxPoint(8, 3)),
-                            line(wxPoint(0, 3), wxPoint(2, 6)),
-                            line(wxPoint(8, 3), wxPoint(6, 6)),
-                            line(wxPoint(1, 6), wxPoint(2, 6)),
-                            line(wxPoint(6, 6), wxPoint(7, 6)),
-                            line(wxPoint(1, 6), wxPoint(3, 9)),
-                            line(wxPoint(7, 6), wxPoint(5, 9)),
-                            line(wxPoint(2, 9), wxPoint(3, 9)),
-                            line(wxPoint(5, 9), wxPoint(6, 9)),
-                            line(wxPoint(6, 9), wxPoint(4, 11)),
-                            line(wxPoint(2, 9), wxPoint(4, 11)) };
+    const line points[] = { line(xlPoint(3, 0), xlPoint(5, 0)),
+                            line(xlPoint(5, 0), xlPoint(5, 3)),
+                            line(xlPoint(3, 0), xlPoint(3, 3)),
+                            line(xlPoint(0, 3), xlPoint(8, 3)),
+                            line(xlPoint(0, 3), xlPoint(2, 6)),
+                            line(xlPoint(8, 3), xlPoint(6, 6)),
+                            line(xlPoint(1, 6), xlPoint(2, 6)),
+                            line(xlPoint(6, 6), xlPoint(7, 6)),
+                            line(xlPoint(1, 6), xlPoint(3, 9)),
+                            line(xlPoint(7, 6), xlPoint(5, 9)),
+                            line(xlPoint(2, 9), xlPoint(3, 9)),
+                            line(xlPoint(5, 9), xlPoint(6, 9)),
+                            line(xlPoint(6, 9), xlPoint(4, 11)),
+                            line(xlPoint(2, 9), xlPoint(4, 11)) };
     int count = sizeof(points) / sizeof(line);
 
     xlColor color(hsv);
@@ -1481,28 +1482,28 @@ void RippleEffect::Drawtree(RenderBuffer& buffer, int Movement, int xc, int yc, 
 void RippleEffect::Drawcrucifix(RenderBuffer& buffer, int Movement, int xc, int yc, double radius, HSVValue& hsv, int Ripple_Thickness, int CheckBox_Ripple3D)
 {
     struct line {
-        wxPoint start;
-        wxPoint end;
+        xlPoint start;
+        xlPoint end;
 
-        line(const wxPoint s, const wxPoint e)
+        line(const xlPoint s, const xlPoint e)
         {
             start = s;
             end = e;
         }
     };
 
-    const line points[] = { line(wxPoint(2, 0), wxPoint(2, 6)),
-                            line(wxPoint(2, 6), wxPoint(0, 6)),
-                            line(wxPoint(0, 6), wxPoint(0, 7)),
-                            line(wxPoint(0, 7), wxPoint(2, 7)),
-                            line(wxPoint(2, 7), wxPoint(2, 10)),
-                            line(wxPoint(2, 10), wxPoint(3, 10)),
-                            line(wxPoint(3, 10), wxPoint(3, 7)),
-                            line(wxPoint(3, 7), wxPoint(5, 7)),
-                            line(wxPoint(5, 7), wxPoint(5, 6)),
-                            line(wxPoint(5, 6), wxPoint(3, 6)),
-                            line(wxPoint(3, 6), wxPoint(3, 0)),
-                            line(wxPoint(3, 0), wxPoint(2, 0)) };
+    const line points[] = { line(xlPoint(2, 0), xlPoint(2, 6)),
+                            line(xlPoint(2, 6), xlPoint(0, 6)),
+                            line(xlPoint(0, 6), xlPoint(0, 7)),
+                            line(xlPoint(0, 7), xlPoint(2, 7)),
+                            line(xlPoint(2, 7), xlPoint(2, 10)),
+                            line(xlPoint(2, 10), xlPoint(3, 10)),
+                            line(xlPoint(3, 10), xlPoint(3, 7)),
+                            line(xlPoint(3, 7), xlPoint(5, 7)),
+                            line(xlPoint(5, 7), xlPoint(5, 6)),
+                            line(xlPoint(5, 6), xlPoint(3, 6)),
+                            line(xlPoint(3, 6), xlPoint(3, 0)),
+                            line(xlPoint(3, 0), xlPoint(2, 0)) };
     int count = sizeof(points) / sizeof(line);
 
     xlColor color(hsv);
@@ -1538,25 +1539,25 @@ void RippleEffect::Drawcrucifix(RenderBuffer& buffer, int Movement, int xc, int 
 void RippleEffect::Drawpresent(RenderBuffer& buffer, int Movement, int xc, int yc, double radius, HSVValue& hsv, int Ripple_Thickness, int CheckBox_Ripple3D)
 {
     struct line {
-        wxPoint start;
-        wxPoint end;
+        xlPoint start;
+        xlPoint end;
 
-        line(const wxPoint s, const wxPoint e)
+        line(const xlPoint s, const xlPoint e)
         {
             start = s;
             end = e;
         }
     };
 
-    const line points[] = { line(wxPoint(0, 0), wxPoint(0, 9)),
-                            line(wxPoint(0, 9), wxPoint(10, 9)),
-                            line(wxPoint(10, 9), wxPoint(10, 0)),
-                            line(wxPoint(10, 0), wxPoint(0, 0)),
-                            line(wxPoint(5, 0), wxPoint(5, 9)),
-                            line(wxPoint(5, 9), wxPoint(2, 11)),
-                            line(wxPoint(2, 11), wxPoint(2, 9)),
-                            line(wxPoint(5, 9), wxPoint(8, 11)),
-                            line(wxPoint(8, 11), wxPoint(8, 9)) };
+    const line points[] = { line(xlPoint(0, 0), xlPoint(0, 9)),
+                            line(xlPoint(0, 9), xlPoint(10, 9)),
+                            line(xlPoint(10, 9), xlPoint(10, 0)),
+                            line(xlPoint(10, 0), xlPoint(0, 0)),
+                            line(xlPoint(5, 0), xlPoint(5, 9)),
+                            line(xlPoint(5, 9), xlPoint(2, 11)),
+                            line(xlPoint(2, 11), xlPoint(2, 9)),
+                            line(xlPoint(5, 9), xlPoint(8, 11)),
+                            line(xlPoint(8, 11), xlPoint(8, 9)) };
     int count = sizeof(points) / sizeof(line);
 
     xlColor color(hsv);

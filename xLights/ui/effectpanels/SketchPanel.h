@@ -40,6 +40,8 @@ public:
 
     void ValidateWindow() override;
     void SetDefaultParameters() override;
+    bool HasAssistPanel() override { return true; }
+    AssistPanel* GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame) override;
 
     // controls are public to allow SketchEffect access
     BulkEditTextCtrl* TextCtrl_SketchDef = nullptr;
@@ -91,4 +93,6 @@ private:
     void OnCheckBox_MotionClick(wxCommandEvent& event);
 
     void updateSketchAssist(SketchAssistPanel* panel);
+    void updateSketchAssistBackground() const;
+    mutable SketchAssistPanel* m_sketchAssistPanel = nullptr;
 };

@@ -13,8 +13,6 @@
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
-#include "../ui/effectpanels/assist/AssistPanel.h"
-#include "../ui/effectpanels/assist/xlGridCanvasMorph.h"
 #include "../models/Model.h"
 
 #include "../../include/morph-16.xpm"
@@ -57,13 +55,6 @@ bool MorphEffect::PressButton(const std::string& id, SettingsMap& paletteMap, Se
     }
 
     return false;
-}
-
-AssistPanel *MorphEffect::GetAssistPanel(wxWindow *parent, xLightsFrame* xl_frame) {
-    AssistPanel *assist_panel = new AssistPanel(parent);
-    xlGridCanvas* grid = new xlGridCanvasMorph(assist_panel->GetCanvasParent(), wxNewId(), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("MorphGrid"));
-    assist_panel->SetGridCanvas(grid);
-    return assist_panel;
 }
 
 std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)

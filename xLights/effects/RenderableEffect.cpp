@@ -70,13 +70,6 @@ const wxBitmapBundle &RenderableEffect::GetEffectIcon(int sz) const {
 }
 
 
-AssistPanel *RenderableEffect::GetAssistPanel(wxWindow *parent, xLightsFrame* xl_frame) {
-    AssistPanel *assist_panel = new AssistPanel(parent);
-    xlGridCanvas* grid = new xlGridCanvasEmpty(assist_panel->GetCanvasParent(), wxNewId(), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("EmptyGrid"));
-    assist_panel->SetGridCanvas(grid);
-    return assist_panel;
-}
-
 int RenderableEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
                                            xlVertexColorAccumulator &background, xlColor* colorMask, bool ramps) {
     if (e->HasBackgroundDisplayList()) {

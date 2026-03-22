@@ -36,12 +36,6 @@ public:
     virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
     virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap& SettingsMap) override;
 
-    AssistPanel* GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame) override;
-    bool HasAssistPanel() override
-    {
-        return true;
-    }
-
     virtual double GetSettingVCMin(const std::string& name) const override;
     virtual double GetSettingVCMax(const std::string& name) const override;
 
@@ -53,10 +47,5 @@ protected:
                       double drawPercentage, int lineThickness, bool hasMotion, double motionPercentage,
                       const xlColorVector& colors);
 
-    void updateSketchAssistBackground() const;
     SketchPanel* getPanel() const;
-
-    // Assist panels come and go and are owned by the window passed into
-    // GetAssistPanel()... so we just store the latest one as a weak_ptr
-    SketchAssistPanel* m_sketchAssistPanel = nullptr;
 };

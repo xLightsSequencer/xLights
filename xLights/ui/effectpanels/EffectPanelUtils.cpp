@@ -9,6 +9,8 @@
  **************************************************************/
 
 #include "EffectPanelUtils.h"
+#include "assist/AssistPanel.h"
+#include "assist/xlGridCanvasEmpty.h"
 
 #include <wx/artprov.h>
 #include <wx/scrolwin.h>
@@ -538,6 +540,12 @@ wxString xlEffectPanel::GetEffectString() {
     return GetEffectStringFromWindow(this);
 }
 
+AssistPanel* xlEffectPanel::GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame) {
+    AssistPanel* assist_panel = new AssistPanel(parent);
+    xlGridCanvas* grid = new xlGridCanvasEmpty(assist_panel->GetCanvasParent(), wxNewId(), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("EmptyGrid"));
+    assist_panel->SetGridCanvas(grid);
+    return assist_panel;
+}
 
 LinkedToggleButton::LinkedToggleButton(wxWindow* parent, wxWindowID id, const wxString& label, const wxPoint& pos, const wxSize& size, long style, const wxValidator& validator, const wxString& name) : wxBitmapToggleButton(parent, id, wxArtProvider::GetBitmapBundle("xlART_UNLINKED"), pos, size, style, validator, name) {
     this->SetBitmapPressed(wxArtProvider::GetBitmapBundle("xlART_LINKED"));

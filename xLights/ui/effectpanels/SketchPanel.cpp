@@ -1,8 +1,9 @@
 #include "SketchPanel.h"
+#include "assist/AssistPanel.h"
+#include "assist/SketchAssistPanel.h"
 #include "../../effects/SketchEffectDrawing.h"
 #include "../../BulkEditControls.h"
 #include "../../xLightsMain.h"
-#include "assist/SketchAssistPanel.h"
 
 #include <wx/filepicker.h>
 #include <wx/hyperlink.h>
@@ -269,4 +270,36 @@ void SketchPanel::SetDefaultParameters()
     FilePicker_SketchBackground->SetFileName(wxFileName());
 
     ValidateWindow();
+}
+
+AssistPanel* SketchPanel::GetAssistPanel(wxWindow* parent, xLightsFrame* /*xl_frame*/)
+{
+    auto lambda = [this](const std::string& sketchDef, const std::string& picPath, unsigned char alpha) {
+        TextCtrl_SketchDef->SetValue(sketchDef);
+        FilePicker_SketchBackground->SetFileName(wxFileName(picPath));
+        SetSliderValue(Slider_SketchBackgroundOpacity, alpha);
+    };
+
+    AssistPanel* assistPanel = new AssistPanel(parent);
+
+    auto sketchAssistPanel = new SketchAssistPanel(assistPanel->GetCanvasParent());
+    sketchAssistPanel->SetSketchDef(TextCtrl_SketchDef->GetValue().ToStdString());
+    sketchAssistPanel->SetSketchUpdateCallback(lambda);
+    assistPanel->AddPanel(sketchAssistPanel, wxALL | wxEXPAND);
+
+    m_sketchAssistPanel = sketchAssistPanel;
+    updateSketchAssistBackground();
+
+    return assistPanel;
+}
+
+void SketchPanel::updateSketchAssistBackground() const
+{
+    if (m_sketchAssistPanel == nullptr)
+        return;
+
+    wxString path(FilePicker_SketchBackground->GetFileName().GetFullPath());
+    int opacity = Slider_SketchBackgroundOpacity->GetValue();
+
+    m_sketchAssistPanel->UpdateSketchBackground(path, opacity);
 }

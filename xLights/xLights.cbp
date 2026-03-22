@@ -1252,6 +1252,7 @@
 		<Unit filename="utils/ip_utils.h" />
 		<Unit filename="utils/string_utils.cpp" />
 		<Unit filename="utils/string_utils.h" />
+		<Unit filename="utils/xlPoint.h" />
 		<Unit filename="vamp-hostsdk/Files.cpp" />
 		<Unit filename="vamp-hostsdk/Files.h" />
 		<Unit filename="vamp-hostsdk/Plugin.h" />

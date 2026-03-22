@@ -36,8 +36,6 @@ class PicturesEffect : public RenderableEffect
                            int start_scale, int end_scale, const std::string& scale_to_fit,
                            bool pixelOffsets, bool wrap_x, bool shimmer, bool loopGIF, bool suppressGIFBackground, bool transparentBlack, int transparentBlackLevel);
 
-        virtual AssistPanel *GetAssistPanel(wxWindow *parent, xLightsFrame* xl_frame) override;
-        virtual bool HasAssistPanel() override { return true; }
         virtual bool needToAdjustSettings(const std::string &version) override;
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;

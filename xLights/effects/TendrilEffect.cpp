@@ -87,10 +87,9 @@ TendrilNode::TendrilNode(float x_, float y_)
     vy = 0;
 }
 
-// Note callers of this function have to delete the returned wxPoint
-wxPoint* TendrilNode::Point()
+xlPoint TendrilNode::Point()
 {
-    return new wxPoint(rint(x) ,rint(y));
+    return xlPoint(rint(x) ,rint(y));
 }
 
 ATendril::~ATendril()
@@ -104,7 +103,7 @@ ATendril::~ATendril()
     }
 }
 
-ATendril::ATendril(float friction, int size, float dampening, float tension, float spring, const wxPoint& start)
+ATendril::ATendril(float friction, int size, float dampening, float tension, float spring, const xlPoint& start)
 {
     _size = 60;
     if (size > 0) {
@@ -138,7 +137,7 @@ ATendril::ATendril(float friction, int size, float dampening, float tension, flo
     }
 }
 
-void ATendril::Update(wxPoint* target, int tunemovement, int width, int height)
+void ATendril::Update(const xlPoint& target, int tunemovement, int width, int height)
 {
     if (_lastWidth == -1)
         _lastWidth = width;
@@ -167,8 +166,8 @@ void ATendril::Update(wxPoint* target, int tunemovement, int width, int height)
                 node->vx = 0.01 * ySign;
         }
 
-        node->vx += (target->x - node->x) * spring;
-        node->vy += (target->y - node->y) * spring;
+        node->vx += (target.x - node->x) * spring;
+        node->vy += (target.y - node->y) * spring;
 
         TendrilNode* prev = nullptr;
         for (const auto& ci : _nodes) {
@@ -234,14 +233,13 @@ void ATendril::Draw(PathDrawingContext* gc, xlColor colour, int thickness)
     gc->StrokePath(path);
 }
 
-wxPoint* ATendril::LastLocation()
+xlPoint ATendril::LastLocation()
 {
     TendrilNode* last = _nodes.back();
     if (last != nullptr) {
         return last->Point();
-    } else {
-        return nullptr;
     }
+    return xlPoint(0, 0);
 }
 
 Tendril::~Tendril()
@@ -255,7 +253,7 @@ Tendril::~Tendril()
     }
 }
 
-Tendril::Tendril(float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, const wxPoint& start)
+Tendril::Tendril(float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, const xlPoint& start)
 {
     float sb = 0.45f;
     if (springbase >= 0) {
@@ -297,69 +295,56 @@ void Tendril::UpdateRandomMove(int tunemovement, int width, int height)
 
     ATendril* t = _tendrils.front();
     if (t != nullptr) {
-        wxPoint* current = t->LastLocation();
+        xlPoint current = t->LastLocation();
 
-        if (current != nullptr) {
-            int realminmovex = minmovex;
-            if (minmovex < 0) {
-                realminmovex = -1 * std::min(current->x, minmovex * -1);
-            }
-            int realmaxmovex = maxmovex;
-            if (maxmovex > 0) {
-                realmaxmovex = std::min(maxx - current->x, maxmovex);
-            }
-            int realminmovey = minmovey;
-            if (minmovey < 0) {
-                realminmovey = -1 * std::min(current->y, minmovey * -1);
-            }
-            int realmaxmovey = maxmovey;
-            if (maxmovey > 0) {
-                realmaxmovey = std::min(maxy - current->y, maxmovey);
-            }
-
-            int xmove = -1 * realminmovex + realmaxmovex;
-            int ymove = -1 * realminmovey + realmaxmovey;
-            int x = 0;
-            if (xmove > 0) {
-                x = (rand() % xmove) + realminmovex;
-            }
-            int y = 0;
-            if (ymove > 0) {
-                y = (rand() % ymove) + realminmovey;
-            }
-
-            current->x = current->x + x;
-            current->y = current->y + y;
-
-            if (current->x < minx) {
-                current->x = minx;
-            }
-            if (current->x > maxx) {
-                current->x = maxx;
-            }
-            if (current->y < miny) {
-                current->y = miny;
-            }
-            if (current->y > maxy) {
-                current->y = maxy;
-            }
-            Update(current, tunemovement, width, height);
-            delete current;
+        int realminmovex = minmovex;
+        if (minmovex < 0) {
+            realminmovex = -1 * std::min(current.x, minmovex * -1);
         }
-#ifdef _DEBUG
-        else {
-            int a = 0;
+        int realmaxmovex = maxmovex;
+        if (maxmovex > 0) {
+            realmaxmovex = std::min(maxx - current.x, maxmovex);
         }
-#endif
+        int realminmovey = minmovey;
+        if (minmovey < 0) {
+            realminmovey = -1 * std::min(current.y, minmovey * -1);
+        }
+        int realmaxmovey = maxmovey;
+        if (maxmovey > 0) {
+            realmaxmovey = std::min(maxy - current.y, maxmovey);
+        }
+
+        int xmove = -1 * realminmovex + realmaxmovex;
+        int ymove = -1 * realminmovey + realmaxmovey;
+        int x = 0;
+        if (xmove > 0) {
+            x = (rand() % xmove) + realminmovex;
+        }
+        int y = 0;
+        if (ymove > 0) {
+            y = (rand() % ymove) + realminmovey;
+        }
+
+        current.x = current.x + x;
+        current.y = current.y + y;
+
+        if (current.x < minx) {
+            current.x = minx;
+        }
+        if (current.x > maxx) {
+            current.x = maxx;
+        }
+        if (current.y < miny) {
+            current.y = miny;
+        }
+        if (current.y > maxy) {
+            current.y = maxy;
+        }
+        Update(current, tunemovement, width, height);
     }
-#ifdef _DEBUG
-    else {
-        int a = 0;
-    }
-#endif
 }
 
-void Tendril::Update(wxPoint* target, int tunemovement, size_t width, size_t height)
+void Tendril::Update(const xlPoint& target, int tunemovement, size_t width, size_t height)
 {
     for (const auto& ci : _tendrils) {
         ci->Update(target, tunemovement, width, height);
@@ -368,8 +353,8 @@ void Tendril::Update(wxPoint* target, int tunemovement, size_t width, size_t hei
 
 void Tendril::Update(int x, int y, int tunemovement, size_t width, size_t height)
 {
-    wxPoint pt(x,y);
-    Update(&pt, tunemovement, width, height);
+    xlPoint pt(x,y);
+    Update(pt, tunemovement, width, height);
 }
 
 void Tendril::Draw(PathDrawingContext* gc, xlColor colour, int thickness)
@@ -502,10 +487,10 @@ void TendrilEffect::Render(RenderBuffer& buffer, const std::string& movement,
 
     if (_tendril == nullptr || buffer.needToInit) {
         buffer.needToInit = false;
-        wxPoint startmiddle(buffer.BufferWi / 2 + truexoffset / 2, buffer.BufferHt / 2 + trueyoffset / 2);
-        wxPoint startmiddlebottom(buffer.BufferWi / 2 + truexoffset / 2, 0 + trueyoffset);
-        wxPoint startbottomleft(0 + truexoffset, 0 + trueyoffset);
-        wxPoint startmiddleleft(0 + truexoffset, buffer.BufferHt / 2 + trueyoffset / 2);
+        xlPoint startmiddle(buffer.BufferWi / 2 + truexoffset / 2, buffer.BufferHt / 2 + trueyoffset / 2);
+        xlPoint startmiddlebottom(buffer.BufferWi / 2 + truexoffset / 2, 0 + trueyoffset);
+        xlPoint startbottomleft(0 + truexoffset, 0 + trueyoffset);
+        xlPoint startmiddleleft(0 + truexoffset, buffer.BufferHt / 2 + trueyoffset / 2);
 
         if (_tendril != nullptr) {
             delete _tendril;
@@ -592,7 +577,7 @@ void TendrilEffect::Render(RenderBuffer& buffer, const std::string& movement,
             _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddleleft);
             break;
         case 10:
-            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, wxPoint(manualx * buffer.BufferWi / 100, manualy * buffer.BufferHt / 100));
+            _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, xlPoint(manualx * buffer.BufferWi / 100, manualy * buffer.BufferHt / 100));
             break;
         }
     }

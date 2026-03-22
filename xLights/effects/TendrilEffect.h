@@ -14,10 +14,7 @@
 #include "../render/RenderBuffer.h"
 #include <string>
 #include <list>
-#include <wx/gdicmn.h>
-#include <wx/colour.h>
-#include <wx/dcmemory.h>
-class wxString;
+#include "../utils/xlPoint.h"
 
 #define TENDRIL_MOVEMENT_MIN 0
 #define TENDRIL_MOVEMENT_MAX 20
@@ -46,7 +43,7 @@ class TendrilNode
     float vy;
 
     TendrilNode(float x_, float y_);
-    wxPoint* Point();
+    xlPoint Point();
 };
 
 class ATendril
@@ -65,10 +62,10 @@ class ATendril
 	public:
 
 	~ATendril();
-	ATendril(float friction, int size, float dampening, float tension, float spring, const wxPoint& start);
-    void Update(wxPoint* target, int tunemovement, int width, int height);
+	ATendril(float friction, int size, float dampening, float tension, float spring, const xlPoint& start);
+    void Update(const xlPoint& target, int tunemovement, int width, int height);
 	void Draw(PathDrawingContext* gc, xlColor colour, int thickness);
-	wxPoint* LastLocation();
+	xlPoint LastLocation();
 };
 
 class Tendril
@@ -78,9 +75,9 @@ class Tendril
 	public:
 
 	~Tendril();
-	Tendril(float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, const wxPoint& start);
+	Tendril(float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, const xlPoint& start);
 	void UpdateRandomMove(int tunemovement, int width, int height);
-    void Update(wxPoint* target, int tunemovement, size_t width, size_t height);
+    void Update(const xlPoint& target, int tunemovement, size_t width, size_t height);
     void Update(int x, int y, int tunemovement, size_t width, size_t height);
     void Draw(PathDrawingContext* gc, xlColor colour, int thickness);
 };

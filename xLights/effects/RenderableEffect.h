@@ -13,7 +13,6 @@
 #include <wx/bmpbndl.h>
 #include <string>
 #include "../Color.h"
-#include "../ui/effectpanels/assist/AssistPanel.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 
 class wxPanel;
@@ -122,12 +121,6 @@ public:
     virtual bool needToAdjustSettings(const std::string& version);
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true);
     virtual void AdjustSettingsAfterSplit(Effect *first, Effect *second) {}
-
-    virtual AssistPanel* GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame);
-    virtual bool HasAssistPanel()
-    {
-        return false;
-    }
 
     static std::string UpgradeValueCurve(EffectManager* effectManager, const std::string& name, const std::string& value, const std::string& effectName);
 protected:
