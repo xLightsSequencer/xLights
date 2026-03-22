@@ -8,12 +8,10 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
 #include <format>
 #include "BoxedScreenLocation.h"
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
@@ -185,7 +183,7 @@ bool BoxedScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_directio
 wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const
 {
     // NOTE:  This routine is designed for the 2D layout handle selection only
-    wxASSERT(!preview->Is3D());
+    assert(!preview->Is3D());
 
     handle = NO_HANDLE;
 
@@ -594,7 +592,7 @@ bool BoxedScreenLocation::DrawHandles(xlGraphicsProgram* program, float zoom, in
                 vac->AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUETRANSLUCENT);
                 break;
             default:
-                wxASSERT(false);
+                assert(false);
                 break;
             }
             lineCount = vac->getCount();
@@ -605,21 +603,6 @@ bool BoxedScreenLocation::DrawHandles(xlGraphicsProgram* program, float zoom, in
         }
     }
     return true;
-}
-
-void BoxedScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const
-{
-    wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Width (%s)", RulerObject::GetUnitDescription()), "RealWidth", GetRealWidth()));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Min", 0.01);
-    prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Height (%s)", RulerObject::GetUnitDescription()), "RealHeight", GetRealHeight()));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Min", 0.01);
-    if (supportsZScaling) {
-        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Depth (%s)", RulerObject::GetUnitDescription()), "RealDepth", GetRealDepth()));
-        prop->SetAttribute("Precision", 2);
-        prop->SetAttribute("Min", 0.01);
-    }
 }
 
 float BoxedScreenLocation::GetRealWidth() const
@@ -652,170 +635,6 @@ std::string BoxedScreenLocation::GetDimension(float factor) const
     return std::format("Width {} Height {}",
         RulerObject::MeasureDescription(GetMWidth()),
         RulerObject::MeasureDescription(GetMHeight()));
-}
-
-void BoxedScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
-    wxPGProperty *prop = propertyEditor->Append(new wxBoolProperty("Locked", "Locked", _locked));
-    prop->SetAttribute("UseCheckbox", 1);
-    prop = propertyEditor->Append(new wxFloatProperty("X", "ModelX", worldPos_x));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxRED);
-    prop = propertyEditor->Append(new wxFloatProperty("Y", "ModelY", worldPos_y));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxGREEN);
-    prop = propertyEditor->Append(new wxFloatProperty("Z", "ModelZ", worldPos_z));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(BlueOrLightBlue());
-    prop = propertyEditor->Append(new wxFloatProperty("ScaleX", "ScaleX", scalex));
-    prop->SetAttribute("Precision", 3);
-    prop->SetAttribute("Step", 0.1);
-    prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxFloatProperty("ScaleY", "ScaleY", scaley));
-    prop->SetAttribute("Precision", 3);
-    prop->SetAttribute("Step", 0.1);
-    prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxFloatProperty("ScaleZ", "ScaleZ", scalez));
-    prop->SetAttribute("Precision", 3);
-    prop->SetAttribute("Step", 0.1);
-    prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxFloatProperty("RotateX", "RotateX", rotatex));
-    prop->SetAttribute("Min", "-180");
-    prop->SetAttribute("Max", "180");
-    prop->SetAttribute("Precision", 8);
-    prop->SetAttribute("Step", 1.0);
-    prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxFloatProperty("RotateY", "RotateY", rotatey));
-    prop->SetAttribute("Min", "-180");
-    prop->SetAttribute("Max", "180");
-    prop->SetAttribute("Precision", 8);
-    prop->SetAttribute("Step", 1.0);
-    prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxFloatProperty("RotateZ", "RotateZ", rotatez));
-    prop->SetAttribute("Min", "-180");
-    prop->SetAttribute("Max", "180");
-    prop->SetAttribute("Precision", 8);
-    prop->SetAttribute("Step", 1.0);
-    prop->SetEditor("SpinCtrl");
-}
-
-int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    std::string name = event.GetPropertyName().ToStdString();
-    if (!_locked && "ScaleX" == name) {
-        scalex = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ScaleX");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    }
-    else if (_locked && "ScaleX" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "ScaleY" == name) {
-        scaley = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ScaleY");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    }
-    else if (_locked && "ScaleY" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "ScaleZ" == name) {
-        scalez = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ScaleZ");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    }
-    else if (_locked && "ScaleZ" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "ModelX" == name) {
-        worldPos_x = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ModelX");
-        return 0;
-    }
-    else if (_locked && "ModelX" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "ModelY" == name) {
-        worldPos_y = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ModelY");
-        return 0;
-    }
-    else if (_locked && "ModelY" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "ModelZ" == name) {
-        worldPos_z = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::ModelZ");
-        return 0;
-    }
-    else if (_locked && "ModelZ" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "RotateX" == name) {
-        rotatex = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RotateX");
-        return 0;
-    }
-    else if (_locked && "RotateX" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "RotateY" == name) {
-        rotatey = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RotateY");
-        return 0;
-    }
-    else if (_locked && "RotateY" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "RotateZ" == name) {
-        rotatez = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RotateZ");
-        return 0;
-    }
-    else if (_locked && "RotateZ" == name) {
-        event.Veto();
-        return 0;
-    } else if (!_locked && "RealWidth" == name) {
-        SetMWidth(RulerObject::UnMeasure(event.GetValue().GetDouble()));
-        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RealWidth");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    } else if (_locked && "RealWidth" == name) {
-        event.Veto();
-        return 0;
-    } else if (!_locked && "RealHeight" == name) {
-        SetMHeight(RulerObject::UnMeasure(event.GetValue().GetDouble()));
-        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RealHeight");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    } else if (_locked && "RealHeight" == name) {
-        event.Veto();
-        return 0;
-    } else if (!_locked && "RealDepth" == name) {
-        SetMDepth(RulerObject::UnMeasure(event.GetValue().GetDouble()));
-        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "BoxedScreenLocation::OnPropertyGridChange::RealDepth");
-        return GRIDCHANGE_SUPPRESS_HOLDSIZE;
-    } else if (_locked && "RealDepth" == name) {
-        event.Veto();
-        return 0;
-    } else if ("Locked" == name)
-    {
-        _locked = event.GetValue().GetBool();
-        AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::Locked");
-        return 0;
-    }
-
-    return 0;
 }
 
 bool BoxedScreenLocation::Rotate(MSLAXIS axis, float factor)

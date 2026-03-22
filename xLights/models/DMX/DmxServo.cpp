@@ -8,8 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
+#include <format>
 #include <wx/xml/xml.h>
 
 #include <glm/mat4x4.hpp>
@@ -21,7 +20,6 @@
 #include "DmxImage.h"
 #include "Servo.h"
 
-#include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
@@ -40,123 +38,6 @@ DmxServo::DmxServo(const ModelManager &manager)
 
 DmxServo::~DmxServo()
 {
-}
-
-void DmxServo::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    DmxModel::AddTypeProperties(grid, outputManager);
-
-    wxPGProperty* p = grid->Append(new wxUIntProperty("Num Servos", "NumServos", (int)num_servos));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", SUPPORTED_SERVOS);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxBoolProperty("16 Bit", "Bits16", _16bit));
-    p->SetAttribute("UseCheckbox", true);
-
-    p = grid->Append(new wxUIntProperty("Brightness", "Brightness", (int)brightness));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("Transparency", "Transparency", transparency));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-
-    for (const auto& it : servos) {
-        ControllerCaps *caps = GetControllerCaps();
-        it->AddTypeProperties(grid, IsPWMProtocol() && caps != nullptr && caps->SupportsPWM());
-    }
-
-    for (const auto& it : static_images) {
-        it->AddTypeProperties(grid);
-    }
-
-    for (const auto& it : motion_images) {
-        it->AddTypeProperties(grid);
-    }
-
-    grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
-}
-
-int DmxServo::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    std::string name = event.GetPropertyName().ToStdString();
-
-    if ("DmxChannelCount" == event.GetPropertyName()) {
-        int channels = (int)event.GetPropertyValue().GetLong();
-        int min_channels = num_servos * (_16bit ? 2 : 1);
-        if (channels < min_channels) {
-            wxPGProperty* p = grid->GetPropertyByName("DmxChannelCount");
-            if (p != nullptr) {
-                p->SetValue(min_channels);
-            }
-            std::string msg = wxString::Format("You have %d servos at %d bits so you need %d channels minimum.", num_servos, _16bit ? 16 : 8, min_channels);
-            wxMessageBox(msg, "Minimum Channel Violation", wxOK | wxCENTER);
-            return 0;
-        }
-    }
-    if ("NumServos" == name) {
-        update_node_names = true;
-        num_servos = (int)event.GetPropertyValue().GetLong();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::NumServos");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxServo::OnPropertyGridChange::NumServos");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::NumServos");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo::OnPropertyGridChange::NumServos");
-        return 0;
-    }
-    if (event.GetPropertyName() == "Bits16") {
-        _16bit = event.GetValue().GetBool();
-
-        for (int i = 0; i < num_servos; ++i) {
-            if (servos[i] != nullptr) {
-                servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1);
-            }
-        }
-
-        int min_channels = num_servos * (_16bit ? 2 : 1);
-        if (parm1 < min_channels) {
-            UpdateChannelCount(min_channels, true);
-        }
-        update_node_names = true;
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::Bits16");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxServo::OnPropertyGridChange::Bits16");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::Bits16");
-        return 0;
-    }
-    if ("Transparency" == name) {
-        transparency = (int)event.GetPropertyValue().GetLong();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::Transparency");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::Transparency");
-        return 0;
-    }
-    if ("Brightness" == name) {
-        brightness = (int)event.GetPropertyValue().GetLong();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxServo::OnPropertyGridChange::Brightness");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxServo::OnPropertyGridChange::Brightness");
-        return 0;
-    }
-
-    for (const auto& it : servos) {
-        if (it->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked() || IsFromBase()) == 0) {
-            return 0;
-        }
-    }
-
-    for (const auto& it : static_images) {
-        if (it->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked() || IsFromBase()) == 0) {
-            return 0;
-        }
-    }
-
-    for (const auto& it : motion_images) {
-        if (it->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked() || IsFromBase()) == 0) {
-            return 0;
-        }
-    }
-
-    return DmxModel::OnPropertyGridChange(grid, event);
 }
 
 void DmxServo::SetNumServos(int val)
@@ -197,7 +78,7 @@ void DmxServo::InitModel()
 
     if (parm1 < min_channels) {
         UpdateChannelCount(min_channels, false);
-        std::string msg = wxString::Format("Channel count increased to %d to accommodate %d servos at %d bits.", min_channels, num_servos, _16bit ? 16 : 8);
+        std::string msg = std::format("Channel count increased to {} to accommodate {} servos at {} bits.", min_channels, num_servos, _16bit ? 16 : 8);
         wxMessageBox(msg, "Minimum Channel Violation", wxOK | wxCENTER);
     }
 
@@ -364,15 +245,15 @@ std::list<std::string> DmxServo::CheckModelSettings()
     int min_channels = num_servos * (_16bit ? 2 : 1);
 
     if (min_channels > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s requires more channels %d than have been allocated to it %d.", GetName(), min_channels, nodeCount));
+        res.push_back(std::format("    ERR: Model {} requires more channels {} than have been allocated to it {}.", GetName(), min_channels, nodeCount));
     }
     if (motion_images.size() < num_servos) {
-        res.push_back(wxString::Format("    ERR: Model %s Insufficient images defined %d when %d required.", GetName(), motion_images.size(), num_servos));
+        res.push_back(std::format("    ERR: Model {} Insufficient images defined {} when {} required.", GetName(), motion_images.size(), num_servos));
     }
     int i = 1;
     for (const auto& it : servos) {
         if (it->GetChannel() > nodeCount) {
-            res.push_back(wxString::Format("    ERR: Model %s servo %d is assigned to channel %d but the model only has %d channels.", GetName(), i, it->GetChannel(), nodeCount));
+            res.push_back(std::format("    ERR: Model {} servo {} is assigned to channel {} but the model only has {} channels.", GetName(), i, it->GetChannel(), nodeCount));
         }
         i++;
     }

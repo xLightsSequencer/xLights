@@ -32,8 +32,6 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm
                                           float *boundingBox = nullptr) override;
         virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
         virtual std::list<std::string> CheckModelSettings() override;
 
         int GetNumMotors() const { return NUM_MOTORS; }
@@ -63,7 +61,6 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm
 
         void Draw3DBeam(xlVertexColorAccumulator *vac, xlColor beam_color, float beam_length_displayed, float pan_angle_raw, float tilt_angle, bool shutter_open, float beam_offset);
 
-        virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;
         virtual float GetDefaultBeamWidth() const { return 1.5f; }
 
         void CorrectDefaultColorChannels();

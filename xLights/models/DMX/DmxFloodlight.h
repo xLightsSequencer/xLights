@@ -27,11 +27,6 @@ public:
 protected:
     virtual void InitModel() override;
 
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;
-    virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
-
-
     virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
                                       xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
                                       const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,

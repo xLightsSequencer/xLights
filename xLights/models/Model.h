@@ -29,7 +29,6 @@ class BaseSerializingVisitor;
 #include "../Color.h"
 #include "BaseObject.h"
 #include "../UtilFunctions.h"
-#include <wx/propgrid/props.h>
 
 struct xlPoint {
     int x = 0;
@@ -48,14 +47,11 @@ class wxProgressDialog;
 class DimmingCurve;
 class wxXmlNode;
 class ModelPreview;
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
 class ModelScreenLocation;
 class ModelManager;
 class SubModel;
 class xLightsFrame;
 class OutputManager;
-class wxPGProperty;
 class ControllerCaps;
 class NodeBaseClass;
 class xlGraphicsProgram;
@@ -83,23 +79,14 @@ enum {
     //GRIDCHANGE_MARK_DIRTY_AND_REFRESH = 0x0003
 };
 
-// only allows 0-9,- characters
-class wxDropPatternProperty : public wxStringProperty
-{
-public:
-    wxDropPatternProperty(const wxString& label = wxPG_LABEL,
-        const wxString& name = wxPG_LABEL,
-        const wxString& value = wxEmptyString
-    ) : wxStringProperty(label, name, value)
-    { }
-    virtual bool ValidateValue(wxVariant& value, wxPGValidationInfo& validationInfo) const override;
-};
+class wxDropPatternProperty;
 
 class Model : public BaseObject
 {
     friend class LayoutPanel;
     friend class ModelManager;
     friend class SubModel;
+    friend class ModelPropertyAdapter;
 
 public:
 
@@ -295,35 +282,13 @@ public:
     int GetDefaultBufferHt() const { return BufferHt; }
     virtual bool IsDMXModel() const { return false; }
 
-    virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
     void GetSerialProtocolSpeeds(const std::string& protocol, std::vector<std::string>& cp, int& idx) const;
     void GetControllerProtocols(std::vector<std::string>& cp, int& idx);
-    virtual void AddControllerProperties(wxPropertyGridInterface* grid);
-    virtual void UpdateControllerProperties(wxPropertyGridInterface* grid);
-    virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) {};
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override{};
-    virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {};
-    virtual void AddSizeLocationProperties(wxPropertyGridInterface* grid) override;
-    virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override;
-    virtual void OnPropertyGridChanging(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {};
-    virtual int OnPropertyGridSelection(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) { return 0; };
-    virtual void OnPropertyGridItemCollapsed(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {};
-    virtual void OnPropertyGridItemExpanded(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {};
     virtual std::string GetDimension() const override;
     virtual bool IsNodeFirst(int n) const
     {
         return n == 0;
     }
-    /**
-     * Returns a combination of:
-     *     0x0001  -  Refresh displays
-     *     0x0002  -  Mark settings as "dirty"/"changed"
-     *     0x0004  -  Rebuild the property grid
-     *     0x0008  -  Rebuild the model list
-     *     0x0010  -  Update all model lists
-     */
-    virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event);
     virtual const ModelScreenLocation& GetModelScreenLocation() const = 0;
     virtual ModelScreenLocation& GetModelScreenLocation() = 0;
 
@@ -350,9 +315,11 @@ public:
     
     
     virtual bool SupportsModelScreenLocation() const { return true; }
-protected:
-    void AdjustStringProperties(wxPropertyGridInterface* grid, int newNum);
+
     std::string ComputeStringStartChannel(int x);
+    int ComputeStringStartNode(int x) const;
+
+protected:
     void ApplyTransform(const std::string& transform,
         std::vector<NodeBaseClassPtr>& Nodes,
         int& bufferWi, int& bufferHi, int startNode = 0) const;
@@ -371,7 +338,6 @@ protected:
     virtual void InitModel() {}
     virtual int CalcChannelsPerString();
     virtual void SetStringStartChannels(int NumberOfStrings, int StartChannel, int ChannelsPerString);
-    int ComputeStringStartNode(int x) const;
     void RecalcStartChannels();
 
     void SetBufferSize(int NewHt, int NewWi);
@@ -426,7 +392,6 @@ protected:
     std::vector<Model*> subModels;
     std::map<std::string, Model*> sortedSubModels;
     std::string _modelChain = "";
-    void ColourClashingChains(wxPGProperty* p);
     [[nodiscard]] uint32_t ApplyLowDefinition(uint32_t val) const;
 
     FaceStateData faceInfo;
@@ -459,6 +424,13 @@ public:
     [[nodiscard]] std::string GetRGBWHandling() const;
     void SetRGBWHandling(std::string const& handling);
     void SetLowDefFactor(int factor) { _lowDefFactor = factor; }
+    [[nodiscard]] int GetLowDefFactor() const { return _lowDefFactor; }
+    [[nodiscard]] int GetRGBWHandlingType() const { return rgbwHandlingType; }
+    [[nodiscard]] const std::vector<xlColor>& GetSuperStringColours() const { return superStringColours; }
+    void InitSuperStringColours() { if (superStringColours.empty()) superStringColours.push_back(xlRED); }
+    [[nodiscard]] size_t IndivStartChannelCount() const { return _indivStartChannels.size(); }
+    void AddIndivStartChannel(const std::string& ch) { _indivStartChannels.push_back(ch); }
+    void PopIndivStartChannel() { _indivStartChannels.pop_back(); }
 
     bool IsAlias(const std::string& alias, bool oldnameOnly = false) const;
     void AddAlias(const std::string& alias);
@@ -615,6 +587,7 @@ public:
     bool GetIsBtoT() const { return isBotToTop; }
     void SetIsBtoT(bool val) { isBotToTop = val; }
     void SetIsLtoR(bool val) { IsLtoR = val; }
+    bool IsSingleNode() const { return SingleNode; }
     virtual int GetStrandLength(int strand) const;
 
     float _savedWidth{ 0.0F };
@@ -741,8 +714,6 @@ public:
         }
         return 0;
     }
-    void AddLayerSizeProperty(wxPropertyGridInterface* grid);
-    bool HandleLayerSizePropertyChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event);
     std::string SerialiseLayerSizes() const
     {
         std::string res;
@@ -759,8 +730,6 @@ public:
     virtual void OnLayerSizesChange(bool countChanged) {}
     static const long ID_LAYERSIZE_DELETE;
     static const long ID_LAYERSIZE_INSERT;
-    void HandlePropertyGridRightClick(wxPropertyGridEvent& event, wxMenu& mnu) override;
-    void HandlePropertyGridContextMenu(wxCommandEvent& event) override;
 
     // reverse is used for conversion scenarios where the old format was reversed
     void DeserializeLayerSizes(std::string const& ls, bool reverse)

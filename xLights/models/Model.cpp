@@ -8,9 +8,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
 #include <format>
-#include <wx/propgrid/advprops.h>
-#include <wx/propgrid/propgrid.h>
+#include <wx/regex.h>
 #include <wx/sstream.h>
 #include <wx/stdpaths.h>
 #include <wx/tokenzr.h>
@@ -30,17 +30,9 @@
 #include "SubModel.h"
 #include "../Color.h"
 #include "../DimmingCurve.h"
-#include "../EditAliasesDialog.h"
 #include "../ExternalHooks.h"
-#include "../ModelChainDialog.h"
-#include "../ModelDimmingCurveDialog.h"
-#include "../ModelFaceDialog.h"
 #include "../ModelPreview.h"
-#include "../ModelStateDialog.h"
 #include "../Pixels.h"
-#include "../StartChannelDialog.h"
-#include "../StrandNodeNamesDialog.h"
-#include "../SubModelsDialog.h"
 #include "../UtilFunctions.h"
 #include "../VendorModelDialog.h"
 #include "../controllers/ControllerCaps.h"
@@ -71,24 +63,11 @@
 const long Model::ID_LAYERSIZE_INSERT = wxNewId();
 const long Model::ID_LAYERSIZE_DELETE = wxNewId();
 
-static const char* NODE_TYPE_VLUES[] = {
-    "RGB Nodes", "RBG Nodes", "GBR Nodes", "GRB Nodes",
-    "BRG Nodes", "BGR Nodes", "Node Single Color", "3 Channel RGB",
-    "4 Channel RGBW", "4 Channel WRGB", "Strobes", "Single Color",
-    "Single Color Intensity", "Superstring", "WRGB Nodes", "WRBG Nodes",
-    "WGBR Nodes", "WGRB Nodes", "WBRG Nodes", "WBGR Nodes", "RGBW Nodes",
-    "RBGW Nodes", "GBRW Nodes", "GRBW Nodes", "BRGW Nodes", "BGRW Nodes", "RGBWW Nodes"
-};
-static wxArrayString NODE_TYPES(27, NODE_TYPE_VLUES);
-
 static const char* RGBW_HANDLING_VALUES[] = { "R=G=B -> W", "RGB Only", "White Only", "Advanced", "White On All" };
 static wxArrayString RGBW_HANDLING(5, RGBW_HANDLING_VALUES);
 
 static const char* PIXEL_STYLES_VALUES[] = { "Square", "Smooth", "Solid Circle", "Blended Circle" };
 static wxArrayString PIXEL_STYLES(4, PIXEL_STYLES_VALUES);
-
-static const char* CONTROLLER_DIRECTION_VALUES[] = { "Forward", "Reverse" };
-static wxArrayString CONTROLLER_DIRECTION(2, CONTROLLER_DIRECTION_VALUES);
 
 static const char* CONTROLLER_COLORORDER_VALUES[] = {
     "RGB", "RBG", "GBR", "GRB", "BRG", "BGR",
@@ -96,10 +75,6 @@ static const char* CONTROLLER_COLORORDER_VALUES[] = {
     "WRGB", "WRBG", "WGBR", "WGRB", "WBRG", "WBGR"
 };
 std::vector<std::string> Model::CONTROLLER_COLORORDER(CONTROLLER_COLORORDER_VALUES, CONTROLLER_COLORORDER_VALUES + 18);
-
-static wxArrayString LAYOUT_GROUPS;
-static wxArrayString CONTROLLERS;
-static wxArrayString OTHERMODELLIST;
 
 static const std::string DEFAULT("Default");
 static const std::string PER_PREVIEW("Per Preview");
@@ -135,107 +110,6 @@ Model::~Model()
     }
 }
 
-static const std::string CLICK_TO_EDIT("--Click To Edit--");
-class StrandNodeNamesDialogAdapter : public wxPGEditorDialogAdapter
-{
-public:
-    StrandNodeNamesDialogAdapter(Model* model) :
-        wxPGEditorDialogAdapter(), m_model(model)
-    {
-    }
-    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-                              wxPGProperty* WXUNUSED(property)) override
-    {
-        StrandNodeNamesDialog dlg(propGrid);
-        dlg.Setup(m_model, m_model->GetNodeNames(), m_model->GetStrandNames());
-        if (dlg.ShowModal() == wxID_OK) {
-            m_model->SetNodeNames(dlg.GetNodeNames());
-            m_model->SetStrandNames(dlg.GetStrandNames());
-            wxVariant v(CLICK_TO_EDIT);
-            SetValue(v);
-            return true;
-        }
-        return false;
-    }
-
-protected:
-    Model* m_model;
-};
-
-class FacesDialogAdapter : public wxPGEditorDialogAdapter
-{
-public:
-    FacesDialogAdapter(Model* model, OutputManager* om) :
-        wxPGEditorDialogAdapter(), m_model(model), _outputManager(om)
-    {
-    }
-    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-                              wxPGProperty* WXUNUSED(property)) override
-    {
-        ModelFaceDialog dlg(propGrid, _outputManager);
-        dlg.SetFaceInfo(m_model, m_model->GetFaceInfo());
-        if (dlg.ShowModal() == wxID_OK) {
-            m_model->SetFaceInfo(dlg.GetFaceInfo());
-            wxVariant v(CLICK_TO_EDIT);
-            SetValue(v);
-            return true;
-        }
-        return false;
-    }
-
-protected:
-    Model* m_model = nullptr;
-    OutputManager* _outputManager = nullptr;
-};
-
-class AliasDialogAdapter : public wxPGEditorDialogAdapter
-{
-public:
-    AliasDialogAdapter(Model* model) :
-        wxPGEditorDialogAdapter(), m_model(model)
-    {
-    }
-    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-                              wxPGProperty* WXUNUSED(property)) override
-    {
-        EditAliasesDialog dlg(propGrid, m_model);
-        if (dlg.ShowModal() == wxID_OK) {
-            wxVariant v(CLICK_TO_EDIT);
-            SetValue(v);
-            return true;
-        }
-        return false;
-    }
-
-protected:
-    Model* m_model = nullptr;
-};
-
-class StatesDialogAdapter : public wxPGEditorDialogAdapter
-{
-public:
-    StatesDialogAdapter(Model* model, OutputManager* om) :
-        wxPGEditorDialogAdapter(), m_model(model), _outputManager(om)
-    {
-    }
-    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-                              wxPGProperty* WXUNUSED(property)) override
-    {
-        ModelStateDialog dlg(propGrid, _outputManager);
-        dlg.SetStateInfo(m_model, m_model->GetStateInfo());
-        if (dlg.ShowModal() == wxID_OK) {
-            m_model->SetStateInfo(dlg.GetStateInfo());
-            wxVariant v(CLICK_TO_EDIT);
-            SetValue(v);
-            return true;
-        }
-        return false;
-    }
-
-protected:
-    Model* m_model = nullptr;
-    OutputManager* _outputManager = nullptr;
-};
 
 std::map<std::string, std::map<std::string, std::string>> Model::GetDimmingInfo() const
 {
@@ -253,220 +127,6 @@ void Model::SetDimmingInfo(const std::map<std::string, std::map<std::string, std
         modelDimmingCurve = DimmingCurve::createFromInfo(dimmingInfo);
     }
 }
-
-class DimmingCurveDialogAdapter : public wxPGEditorDialogAdapter
-{
-public:
-    DimmingCurveDialogAdapter(Model* model) :
-        wxPGEditorDialogAdapter(), m_model(model)
-    {
-    }
-    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-                              wxPGProperty* WXUNUSED(property)) override
-    {
-        ModelDimmingCurveDialog dlg(propGrid);
-        auto di = m_model->GetDimmingInfo();
-        if (di.empty()) {
-            di["all"]["gamma"] = "1.0";
-            di["all"]["brightness"] = "0";
-        }
-        dlg.Init(di);
-        if (dlg.ShowModal() == wxID_OK) {
-            di.clear();
-            dlg.Update(di);
-            m_model->SetDimmingInfo(di);
-            wxVariant v(CLICK_TO_EDIT);
-            SetValue(v);
-            return true;
-        }
-        return false;
-    }
-
-protected:
-    Model* m_model;
-};
-class SubModelsDialogAdapter : public wxPGEditorDialogAdapter
-{
-public:
-    SubModelsDialogAdapter(Model* model, OutputManager* om) :
-        wxPGEditorDialogAdapter(), m_model(model), _outputManager(om)
-    {
-    }
-    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-                              wxPGProperty* WXUNUSED(property)) override
-    {
-        SubModelsDialog dlg(propGrid, _outputManager);
-        dlg.Setup(m_model);
-        if (dlg.ShowModal() == wxID_OK) {
-            dlg.Save();
-            wxVariant v(CLICK_TO_EDIT);
-            SetValue(v);
-            return true;
-        }
-        if (dlg.ReloadLayout) { // force grid to reload
-            wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-            wxPostEvent(m_model->GetModelManager().GetXLightsFrame(), eventForceRefresh);
-            m_model->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
-                                 OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
-                                 OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SubModelsDialog::SubModels");
-        }
-        return false;
-    }
-
-protected:
-    Model* m_model = nullptr;
-    OutputManager* _outputManager = nullptr;
-};
-
-class ModelChainDialogAdapter : public wxPGEditorDialogAdapter
-{
-public:
-    ModelChainDialogAdapter(Model* model) :
-        wxPGEditorDialogAdapter(), m_model(model)
-    {
-    }
-    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-                              wxPGProperty* property) override
-    {
-        ModelChainDialog dlg(propGrid);
-        dlg.Set(m_model, m_model->GetModelManager());
-        if (dlg.ShowModal() == wxID_OK) {
-            wxVariant v(dlg.Get());
-            SetValue(v);
-            return true;
-        }
-        return false;
-    }
-
-protected:
-    Model* m_model = nullptr;
-};
-
-class PopupDialogProperty : public wxStringProperty
-{
-public:
-    PopupDialogProperty(Model* m,
-                        OutputManager* om,
-                        const wxString& label,
-                        const wxString& name,
-                        const wxString& value,
-                        int type) :
-        wxStringProperty(label, name, value), m_model(m), m_tp(type), _outputManager(om)
-    {
-    }
-    // Set editor to have button
-    virtual const wxPGEditor* DoGetEditorClass() const override
-    {
-        return wxPGEditor_TextCtrlAndButton;
-    }
-    // Set what happens on button click
-    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override
-    {
-        switch (m_tp) {
-        case 1:
-            return new StrandNodeNamesDialogAdapter(m_model);
-        case 2:
-            return new FacesDialogAdapter(m_model, _outputManager);
-        case 3:
-            return new DimmingCurveDialogAdapter(m_model);
-        case 4:
-            return new StatesDialogAdapter(m_model, _outputManager);
-        case 5:
-            return new SubModelsDialogAdapter(m_model, _outputManager);
-        case 6:
-            return new AliasDialogAdapter(m_model);
-        default:
-            break;
-        }
-        return nullptr;
-    }
-
-protected:
-    Model* m_model = nullptr;
-    OutputManager* _outputManager = nullptr;
-    int m_tp = 0;
-};
-
-class StartChannelDialogAdapter : public wxPGEditorDialogAdapter
-{
-public:
-    StartChannelDialogAdapter(Model* model, std::string preview) :
-        wxPGEditorDialogAdapter(), m_model(model), _preview(preview)
-    {
-    }
-    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-                              wxPGProperty* property) override
-    {
-        StartChannelDialog dlg(propGrid);
-        dlg.Set(property->GetValue().GetString(), m_model->GetModelManager(), _preview, m_model);
-        if (dlg.ShowModal() == wxID_OK) {
-            wxVariant v(dlg.Get());
-            SetValue(v);
-            return true;
-        }
-        return false;
-    }
-
-protected:
-    Model* m_model = nullptr;
-    std::string _preview;
-};
-
-class StartChannelProperty : public wxStringProperty
-{
-public:
-    StartChannelProperty(Model* m,
-                         int strand,
-                         const wxString& label,
-                         const wxString& name,
-                         const wxString& value,
-                         std::string preview) :
-        wxStringProperty(label, name, value), m_model(m), _preview(preview), m_strand(strand)
-    {
-    }
-
-    // Set editor to have button
-    virtual const wxPGEditor* DoGetEditorClass() const override
-    {
-        return wxPGEditor_TextCtrlAndButton;
-    }
-
-    // Set what happens on button click
-    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override
-    {
-        return new StartChannelDialogAdapter(m_model, _preview);
-    }
-
-protected:
-    Model* m_model = nullptr;
-    std::string _preview;
-    int m_strand = 0;
-};
-
-class ModelChainProperty : public wxStringProperty
-{
-public:
-    ModelChainProperty(Model* m,
-                       const wxString& label,
-                       const wxString& name,
-                       const wxString& value) :
-        wxStringProperty(label, name, value), m_model(m)
-    {
-    }
-    // Set editor to have button
-    virtual const wxPGEditor* DoGetEditorClass() const override
-    {
-        return wxPGEditor_TextCtrlAndButton;
-    }
-    // Set what happens on button click
-    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override
-    {
-        return new ModelChainDialogAdapter(m_model);
-    }
-
-protected:
-    Model* m_model = nullptr;
-};
 
 std::vector<std::string> Model::GetLayoutGroups(const ModelManager& mm)
 {
@@ -516,7 +176,7 @@ void Model::SetControllerName(const std::string& controller, bool skip_work)
 
 bool Model::RenameController(const std::string& oldName, const std::string& newName)
 {
-    wxASSERT(newName != "");
+    assert(newName != "");
 
     bool changed = false;
 
@@ -559,77 +219,115 @@ void Model::SetStartChannel(std::string const& startChannel)
     IncrementChangeCount();
 }
 
-void Model::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
+void Model::ClearIndividualStartChannels()
 {
-    UpdateTypeProperties(grid);
+    _hasIndivChans = false;
+    _indivStartChannels.clear();
+}
 
-    if (grid->GetPropertyByName("Controller") != nullptr) {
-        grid->GetPropertyByName("Controller")->Enable(outputManager->GetAutoLayoutControllerNames().size() > 0);
-    }
-
-    if (HasOneString(DisplayAs) && grid->GetPropertyByName("ModelStartChannel") != nullptr) {
-        grid->GetPropertyByName("ModelStartChannel")->Enable(GetControllerName() == "" || _controller == 0);
+void Model::GetSerialProtocolSpeeds(const std::string& protocol, std::vector<std::string>& cs, int& idxs) const {
+    if (protocol == "dmx" || Contains(protocol, "DMX")) {
+        cs.push_back("250000");
+    } else if (protocol == "renard" || protocol == "Renard") {
+        cs.push_back("19200");
+        cs.push_back("38400");
+        cs.push_back("57600");
+        cs.push_back("115200");
+    } else if (protocol == "lor" || protocol == "LOR") {
+        cs.push_back("19200");
+        cs.push_back("57600");
+        cs.push_back("115200");
+        cs.push_back("500000");
+        cs.push_back("1000000");
     } else {
-        if (grid->GetPropertyByName("ModelIndividualStartChannels") != nullptr) {
-            grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(GetNumStrings() > 1 && (GetControllerName() == "" || _controller == 0));
-            if (GetNumStrings() > 1 && (GetControllerName() != "" && _controller != 0)) {
-                grid->GetPropertyByName("ModelIndividualStartChannels")->SetHelpString("Individual start channels cannot be set if you have assigned a model to a controller rather than using start channels.");
-            } else {
-                grid->GetPropertyByName("ModelIndividualStartChannels")->SetHelpString("");
-            }
-        }
-        if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr) {
-            grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable(GetControllerName() == "" || _controller == 0);
-        }
+        cs.push_back("19200");
+        cs.push_back("57600");
+        cs.push_back("115200");
+        cs.push_back("250000");
+        cs.push_back("500000");
+        cs.push_back("1000000");
     }
 
-    if (grid->GetPropertyByName("ModelChain") != nullptr) {
-        grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0 && _controller != 0);
-    }
+    int protocolSpeed = GetControllerProtocolSpeed();
 
-    UpdateControllerProperties(grid);
-
-    if (grid->GetPropertyByName("ModelStringType") != nullptr) {
-        int i = grid->GetPropertyByName("ModelStringType")->GetValue().GetLong();
-        if (NODE_TYPES[i] == "Single Color" || NODE_TYPES[i] == "Single Color Intensity" || NODE_TYPES[i] == "Node Single Color") {
-            if (grid->GetPropertyByName("ModelStringColor") != nullptr) {
-                grid->GetPropertyByName("ModelStringColor")->Enable();
-            }
-            if (NODE_TYPES[i] == "Node Single Color") {
-                grid->GetPropertyByName("ModelStringType")->SetHelpString("This represents a string of single color LEDS which are individually controlled. These are very uncommon.");
-            } else {
-                grid->GetPropertyByName("ModelStringType")->SetHelpString("");
-            }
-        } else {
-            if (grid->GetPropertyByName("ModelStringColor") != nullptr) {
-                grid->GetPropertyByName("ModelStringColor")->Enable(false);
-            }
+    // now work out the index
+    int i = 0;
+    for (const auto& it : cs) {
+        if ((int)std::strtol(it.c_str(), nullptr, 10) == protocolSpeed) {
+            idxs = i;
+            break;
         }
-    }
-
-    if (grid->GetPropertyByName("ModelRGBWHandling") != nullptr) {
-        grid->GetPropertyByName("ModelRGBWHandling")->Enable(!(HasSingleChannel(StringType) || GetNodeChannelCount(StringType) != 4));
+        ++i;
     }
 }
 
-void Model::ColourClashingChains(wxPGProperty* p)
+void Model::GetControllerProtocols(std::vector<std::string>& cp, int& idx)
 {
-    if (p == nullptr)
-        return;
+    auto caps = GetControllerCaps();
+    Controller* c = GetController();
+    std::string protocol = GetControllerProtocol();
+    if (c) {
+        ControllerSerial* cs = dynamic_cast<ControllerSerial*>(c);
+        if (cs) {
+            cp.push_back(cs->GetProtocol());
+            idx = 0;
+            return;
+        }
+    }
+    std::string protocolLC = Lower(protocol);
 
-    std::string tip;
-    if (GetControllerName() != "" && _controller != 0 && GetControllerProtocol() != "" && GetControllerPort() != 0 && p->IsEnabled()) {
-        if (!modelManager.IsValidControllerModelChain(this, tip)) {
-            p->SetHelpString(tip);
-            p->SetBackgroundColour(*wxRED);
-        } else {
-            p->SetHelpString("");
-            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+    if (caps == nullptr) {
+        for (const auto& it : GetAllPixelTypes(true, false)) {
+            cp.push_back(it);
         }
     } else {
-        p->SetHelpString("");
-        p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        auto controllerProtocols = caps->GetAllProtocols();
+        for (const auto& it : GetAllPixelTypes(controllerProtocols, true, true, true)) {
+            cp.push_back(it);
+        }
     }
+
+    // if this protocol is not supported by the controller ... choose a compatible one if one exists ... otherwise we blank it out
+    if (std::find(begin(cp), end(cp), protocol) == end(cp) && std::find(begin(cp), end(cp), protocolLC) == end(cp)) {
+        // not in the list ... maybe there is a compatible protocol we can choose
+        std::string np = "";
+        if (caps != nullptr) {
+            auto controllerProtocols = caps->GetAllProtocols();
+            if (::IsPixelProtocol(protocol)) {
+                np = ChooseBestControllerPixel(controllerProtocols, protocol);
+            } else {
+                np = ChooseBestControllerSerial(controllerProtocols, protocol);
+            }
+        }
+        if (protocol != np)
+            SetControllerProtocol(np);
+    }
+
+    // now work out the index
+    int i = 0;
+    for (const auto& it : cp) {
+        if (it == protocol || it == protocolLC) {
+            idx = i;
+            break;
+        }
+        i++;
+    }
+}
+
+std::vector<std::string> Model::GetSmartRemoteValues(int smartRemoteCount) const
+{
+    std::vector<std::string> res;
+    auto caps = GetControllerCaps();
+    bool hinkspix = (caps && caps->GetVendor() == "HinksPix");
+
+    for (int i = 0; i < smartRemoteCount; ++i) {
+        if (hinkspix) {
+            res.push_back(std::to_string(i));
+        } else {
+            res.push_back(std::string(1, char(65 + i)));
+        }
+    }
+    return res;
 }
 
 uint32_t Model::ApplyLowDefinition(uint32_t val) const
@@ -745,741 +443,6 @@ void Model::SetAliases(const std::list<std::string>& aliases)
     IncrementChangeCount();
 }
 
-void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxStopWatch sw;
-
-    auto layoutGroupsList = Model::GetLayoutGroups(modelManager);
-    LAYOUT_GROUPS.clear();
-    for (const auto& g : layoutGroupsList) {
-        LAYOUT_GROUPS.Add(wxString(g));
-    }
-
-    wxPGProperty* sp;
-
-    wxPGProperty* p;
-    grid->Append(new wxPropertyCategory(DisplayAsTypeToString(DisplayAs), "ModelType"));
-
-    AddTypeProperties(grid, outputManager);
-
-    if (SupportsLowDefinitionRender()) {
-        p = grid->Append(new wxUIntProperty("Low Definition Factor", "LowDefinition", _lowDefFactor));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 100);
-        p->SetEditor("SpinCtrl");
-    }
-
-    _controller = 0;
-    CONTROLLERS.clear();
-    CONTROLLERS.Add(USE_START_CHANNEL);
-    CONTROLLERS.Add(NO_CONTROLLER);
-
-    if (GetControllerName() == NO_CONTROLLER) {
-        _controller = 1;
-    }
-
-    for (const auto& it : outputManager->GetAutoLayoutControllerNames()) {
-        if (GetControllerName() == it) {
-            _controller = CONTROLLERS.size();
-        }
-        CONTROLLERS.Add(it);
-    }
-
-    if (CONTROLLERS.size() > 1) {
-        p = grid->Append(new wxEnumProperty("Controller", "Controller", CONTROLLERS, wxArrayInt(), _controller));
-        p->Enable(CONTROLLERS.size() > 0);
-    }
-
-    if (HasOneString(DisplayAs)) {
-        p = grid->Append(new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelStartChannel, modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
-        p->Enable(GetControllerName() == "" || _controller == 0);
-    } else {
-        p = grid->Append(new wxBoolProperty("Indiv Start Chans", "ModelIndividualStartChannels", _hasIndivChans));
-        p->SetAttribute("UseCheckbox", true);
-        p->Enable(GetNumStrings() > 1 && (GetControllerName() == "" || _controller == 0));
-        if (GetNumStrings() > 1 && (GetControllerName() != "" && _controller != 0)) {
-            p->SetHelpString("Individual start channels cannot be set if you have assigned a model to a controller rather than using start channels.");
-        } else {
-            p->SetHelpString("");
-        }
-        sp = grid->AppendIn(p, new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelStartChannel, modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
-        sp->Enable(GetControllerName() == "" || _controller == 0);
-        if (_hasIndivChans) {
-            int c = GetNumStrings();
-            // ensure _indivStartChannels matches the current string count
-            while ((int)_indivStartChannels.size() < c) {
-                _indivStartChannels.push_back(ComputeStringStartChannel(_indivStartChannels.size()));
-            }
-            while ((int)_indivStartChannels.size() > c) {
-                _indivStartChannels.pop_back();
-            }
-            for (int x = 0; x < c; ++x) {
-                std::string nm = StartChanAttrName(x);
-                std::string val = _indivStartChannels[x];
-                if (x == 0) {
-                    sp->SetLabel(nm);
-                    sp->SetValue(val);
-                } else {
-                    sp = grid->AppendIn(p, new StartChannelProperty(this, x, nm, nm, val, modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
-                }
-            }
-        } else {
-            // remove per strand start channels if individual isnt selected
-            _indivStartChannels.clear();
-        }
-    }
-
-    if (CONTROLLERS.size() > 1 && GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0 && _controller != 0) {
-        p = grid->Append(new ModelChainProperty(this, "Model Chain", "ModelChain", GetModelChain() == "" ? _("Beginning").ToStdString() : GetModelChain()));
-        p->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0 && _controller != 0);
-    }
-
-    int shadowModelFor = 0;
-    OTHERMODELLIST.clear();
-    OTHERMODELLIST.Add("");
-
-    for (const auto& it : modelManager) {
-        auto da = it.second->GetDisplayAs();
-        if (da != DisplayAsType::ModelGroup && it.first != GetName()) {
-            if (GetShadowModelFor() == it.first) {
-                shadowModelFor = OTHERMODELLIST.size();
-            }
-            OTHERMODELLIST.Add(it.first);
-        }
-    }
-
-    grid->Append(new wxEnumProperty("Shadow Model For", "ShadowModelFor", OTHERMODELLIST, wxArrayInt(), shadowModelFor));
-
-    int layout_group_number = 0;
-    for (int grp = 0; grp < LAYOUT_GROUPS.Count(); ++grp) {
-        if (LAYOUT_GROUPS[grp] == layout_group) {
-            layout_group_number = grp;
-            break;
-        }
-    }
-
-    grid->Append(new wxStringProperty("Description", "Description", description));
-    grid->Append(new wxEnumProperty("Preview", "ModelLayoutGroup", LAYOUT_GROUPS, wxArrayInt(), layout_group_number));
-
-    p = grid->Append(new PopupDialogProperty(this, outputManager, "Strand/Node Names", "ModelStrandNodeNames", CLICK_TO_EDIT, 1));
-    grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(this, outputManager, "Faces", "ModelFaces", CLICK_TO_EDIT, 2));
-    grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(this, outputManager, "Dimming Curves", "ModelDimmingCurves", CLICK_TO_EDIT, 3));
-    grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(this, outputManager, "States", "ModelStates", CLICK_TO_EDIT, 4));
-    grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(this, outputManager, "SubModels", "SubModels", CLICK_TO_EDIT, 5));
-    grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(this, outputManager, "Aliases", "Aliases", CLICK_TO_EDIT, 6));
-    grid->LimitPropertyEditing(p);
-    p->SetHelpString("Aliases are used in mapping to provide alternate names for this model which might match a model in a sequence you are importing from. To use it use the Auto Map button.");
-
-    auto modelGroups = modelManager.GetGroupsContainingModel(this);
-    if (modelGroups.size() > 0) {
-        std::string mgs;
-        std::string mgscr;
-        for (const auto& it : modelGroups) {
-            if (mgs != "") {
-                mgs += ", ";
-                mgscr += "\n";
-            }
-            mgs += it;
-            mgscr += it;
-        }
-        p = grid->Append(new wxStringProperty("In Model Groups", "MGS", mgs));
-        p->SetHelpString(mgscr);
-        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-        p->ChangeFlag(wxPGFlags::ReadOnly, true);
-    }
-
-    AddControllerProperties(grid);
-
-    p = grid->Append(new wxPropertyCategory("String Properties", "ModelStringProperties"));
-    int i = NODE_TYPES.Index(StringType);
-    if (i == wxNOT_FOUND) {
-        i = NODE_TYPES.Index("Single Color");
-    }
-    grid->AppendIn(p, new wxEnumProperty("String Type", "ModelStringType", NODE_TYPES, wxArrayInt(), i));
-    if (NODE_TYPES[i] == "Single Color" || NODE_TYPES[i] == "Single Color Intensity" || NODE_TYPES[i] == "Node Single Color") {
-        // get the color
-        wxColor v;
-        if (StringType == "Single Color Red") {
-            v = *wxRED;
-        } else if (StringType == "Single Color Green" || StringType == "G") {
-            v = *wxGREEN;
-        } else if (StringType == "Single Color Blue" || StringType == "B") {
-            v = *wxBLUE;
-        } else if (StringType == "Single Color White" || StringType == "W") {
-            v = *wxWHITE;
-        } else if (StringType == "Single Color Custom" || StringType == "Single Color Intensity" || StringType == "Node Single Color") {
-            v = xlColorToWxColour(customColor);
-        } else if (StringType[0] == '#') {
-            v = xlColorToWxColour(xlColor(StringType));
-        }
-        grid->AppendIn(p, new wxColourProperty("Color", "ModelStringColor", v));
-        if (NODE_TYPES[i] == "Node Single Color") {
-            grid->GetPropertyByName("ModelStringType")->SetHelpString("This represents a string of single color LEDS which are individually controlled. These are very uncommon.");
-        }
-    } else if (NODE_TYPES[i] == "Superstring") {
-        if (superStringColours.size() == 0) {
-            superStringColours.push_back(xlRED);
-        }
-        sp = grid->AppendIn(p, new wxIntProperty("Colours", "SuperStringColours", superStringColours.size()));
-        sp->SetAttribute("Min", 1);
-        sp->SetAttribute("Max", 32);
-        sp->SetEditor("SpinCtrl");
-        for (int i = 0; i < superStringColours.size(); ++i) {
-            grid->AppendIn(p, new wxColourProperty(wxString::Format("Colour %d", i + 1), wxString::Format("SuperStringColour%d", i), xlColorToWxColour(superStringColours[i])));
-        }
-    } else {
-        sp = grid->AppendIn(p, new wxColourProperty("Color", "ModelStringColor", *wxRED));
-        sp->Enable(false);
-    }
-    sp = grid->AppendIn(p, new wxEnumProperty("RGBW Color Handling", "ModelRGBWHandling", RGBW_HANDLING, wxArrayInt(), rgbwHandlingType));
-    if (HasSingleChannel(StringType) || GetNodeChannelCount(StringType) < 4) {
-        sp->Enable(false);
-    }
-
-    p = grid->Append(new wxPropertyCategory("Appearance", "ModelAppearance"));
-    sp = grid->AppendIn(p, new wxBoolProperty("Active", "Active", IsActive()));
-    sp->SetHelpString("If unchecked the model will not be shown in the layout screen.");
-    sp->SetAttribute("UseCheckbox", true);
-    sp = grid->AppendIn(p, new wxUIntProperty("Pixel Size", "ModelPixelSize", pixelSize));
-    sp->SetAttribute("Min", 1);
-    sp->SetAttribute("Max", 300);
-    sp->SetEditor("SpinCtrl");
-    sp->SetHelpString("By increasing the pixel size, the appearance of the element can be made to display a bigger size.");
-
-    sp = grid->AppendIn(p, new wxEnumProperty("Pixel Style", "ModelPixelStyle", PIXEL_STYLES, wxArrayInt(), (int)_pixelStyle));
-    sp->SetHelpString("A visual representation of a pixel.");
-    sp = grid->AppendIn(p, new wxUIntProperty("Transparency", "ModelPixelTransparency", transparency));
-    sp->SetHelpString("Adjust how opaque the element is on the display.");
-    sp->SetAttribute("Min", 0);
-    sp->SetAttribute("Max", 100);
-    sp->SetEditor("SpinCtrl");
-    sp = grid->AppendIn(p, new wxUIntProperty("Black Transparency", "ModelPixelBlackTransparency", blackTransparency));
-    sp->SetHelpString("Adjust how transparent the element is on the display.");
-    sp->SetAttribute("Min", 0);
-    sp->SetAttribute("Max", 100);
-    sp->SetEditor("SpinCtrl");
-    sp = grid->AppendIn(p, new wxColourProperty("Tag Color", "ModelTagColour", GetTagColour()));
-    sp->SetHelpString("A visual color assigned to the model in the model list.");
-    UpdateControllerProperties(grid);
-    DisableUnusedProperties(grid);
-
-    if (sw.Time() > 500)
-        logger_base.debug("        Model::AddProperties took %lums", sw.Time());
-}
-
-void Model::ClearIndividualStartChannels()
-{
-    _hasIndivChans = false;
-    _indivStartChannels.clear();
-}
-
-void Model::GetSerialProtocolSpeeds(const std::string& protocol, std::vector<std::string>& cs, int& idxs) const {
-    if (protocol == "dmx" || Contains(protocol, "DMX")) {
-        cs.push_back("250000");
-    } else if (protocol == "renard" || protocol == "Renard") {
-        cs.push_back("19200");
-        cs.push_back("38400");
-        cs.push_back("57600");
-        cs.push_back("115200");
-    } else if (protocol == "lor" || protocol == "LOR") {
-        cs.push_back("19200");
-        cs.push_back("57600");
-        cs.push_back("115200");
-        cs.push_back("500000");
-        cs.push_back("1000000");
-    } else {
-        cs.push_back("19200");
-        cs.push_back("57600");
-        cs.push_back("115200");
-        cs.push_back("250000");
-        cs.push_back("500000");
-        cs.push_back("1000000");
-    }
-
-    int protocolSpeed = GetControllerProtocolSpeed();
-
-    // now work out the index
-    int i = 0;
-    for (const auto& it : cs) {
-        if ((int)std::strtol(it.c_str(), nullptr, 10) == protocolSpeed) {
-            idxs = i;
-            break;
-        }
-        ++i;
-    }
-}
-
-void Model::GetControllerProtocols(std::vector<std::string>& cp, int& idx)
-{
-    auto caps = GetControllerCaps();
-    Controller* c = GetController();
-    std::string protocol = GetControllerProtocol();
-    if (c) {
-        ControllerSerial* cs = dynamic_cast<ControllerSerial*>(c);
-        if (cs) {
-            cp.push_back(cs->GetProtocol());
-            idx = 0;
-            return;
-        }
-    }
-    std::string protocolLC = Lower(protocol);
-
-    if (caps == nullptr) {
-        for (const auto& it : GetAllPixelTypes(true, false)) {
-            cp.push_back(it);
-        }
-    } else {
-        auto controllerProtocols = caps->GetAllProtocols();
-        for (const auto& it : GetAllPixelTypes(controllerProtocols, true, true, true)) {
-            cp.push_back(it);
-        }
-    }
-
-    // if this protocol is not supported by the controller ... choose a compatible one if one exists ... otherwise we blank it out
-    if (std::find(begin(cp), end(cp), protocol) == end(cp) && std::find(begin(cp), end(cp), protocolLC) == end(cp)) {
-        // not in the list ... maybe there is a compatible protocol we can choose
-        std::string np = "";
-        if (caps != nullptr) {
-            auto controllerProtocols = caps->GetAllProtocols();
-            if (::IsPixelProtocol(protocol)) {
-                np = ChooseBestControllerPixel(controllerProtocols, protocol);
-            } else {
-                np = ChooseBestControllerSerial(controllerProtocols, protocol);
-            }
-        }
-        if (protocol != np)
-            SetControllerProtocol(np);
-    }
-
-    // now work out the index
-    int i = 0;
-    for (const auto& it : cp) {
-        if (it == protocol || it == protocolLC) {
-            idx = i;
-            break;
-        }
-        i++;
-    }
-}
-
-std::vector<std::string> Model::GetSmartRemoteValues(int smartRemoteCount) const
-{
-    std::vector<std::string> res;
-    auto caps = GetControllerCaps();
-    bool hinkspix = (caps && caps->GetVendor() == "HinksPix");
-
-    for (int i = 0; i < smartRemoteCount; ++i) {
-        if (hinkspix) {
-            res.push_back(std::to_string(i));
-        } else {
-            res.push_back(std::string(1, char(65 + i)));
-        }
-    }
-    return res;
-}
-
-void Model::AddControllerProperties(wxPropertyGridInterface* grid)
-{
-    auto caps = GetControllerCaps();
-
-    wxString protocol = GetControllerProtocol();
-
-    wxPGProperty* p = grid->Append(new wxPropertyCategory("Controller Connection", "ModelControllerConnectionProperties"));
-
-    wxPGProperty* sp = grid->AppendIn(p, new wxUIntProperty("Port", "ModelControllerConnectionPort", GetControllerPort(1)));
-    sp->SetAttribute("Min", 0);
-    if (caps == nullptr || protocol == "") {
-        sp->SetAttribute("Max", MOST_CONTROLLER_PORTS_WE_EXPECT);
-    } else {
-        if (IsSerialProtocol()) {
-            sp->SetAttribute("Max", caps->GetMaxSerialPort());
-        } else if (IsPixelProtocol()) {
-            sp->SetAttribute("Max", caps->GetMaxPixelPort());
-        } else if (IsLEDPanelMatrixProtocol()) {
-            sp->SetAttribute("Max", caps->GetMaxLEDPanelMatrixPort());
-        } else if (IsVirtualMatrixProtocol()) {
-            sp->SetAttribute("Max", caps->GetMaxVirtualMatrixPort());
-        } else if (IsPWMProtocol()) {
-            sp->SetAttribute("Max", caps->GetMaxPWMPort());
-        } else {
-            sp->SetAttribute("Max", MOST_CONTROLLER_PORTS_WE_EXPECT);
-        }
-    }
-    sp->SetEditor("SpinCtrl");
-
-    std::vector<std::string> cp;
-    int idx = -1;
-    GetControllerProtocols(cp, idx);
-
-    std::vector<std::string> cs;
-    int idxs = -1;
-    if (idx >= 0 && idx < (int)cp.size()) {
-        GetSerialProtocolSpeeds(cp[idx], cs, idxs);
-    }
-
-    if (IsPixelProtocol()) {
-        int smartRemoteCount = 15;
-        if (caps != nullptr) {
-            smartRemoteCount = caps->GetSmartRemoteCount();
-        }
-        if (smartRemoteCount != 0) {
-            int sr = GetSmartRemote();
-
-            sp = grid->AppendIn(p, new wxBoolProperty("Use Smart Remote", "UseSmartRemote", IsCtrlPropertySet(CtrlProps::USE_SMART_REMOTE)));
-            sp->SetAttribute("UseCheckbox", true);
-            p->SetHelpString("Enable Smart Remote for this Model.");
-
-            if (IsCtrlPropertySet(CtrlProps::USE_SMART_REMOTE)) {
-                if (GetSmartRemote() != 0) {
-                    auto const& srTypes = GetSmartRemoteTypes();
-                    if (srTypes.size() > 1) {
-                        wxArrayString srlist;
-                        for (auto const& typ : srTypes) {
-                            srlist.Add(typ);
-                        }
-                        grid->AppendIn(p, new wxEnumProperty("Smart Remote Type", "SmartRemoteType", srlist, wxArrayInt(), GetSmartRemoteTypeIndex(GetSmartRemoteType())));
-                    } else {
-                        std::string type = GetSmartRemoteType();
-                        auto smt = grid->AppendIn(p, new wxStringProperty("Smart Remote Type", "SmartRemoteType", type));
-                        smt->ChangeFlag(wxPGFlags::ReadOnly, true);
-                        smt->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-                    }
-                }
-
-                wxArrayString srv;
-                for (const auto& v : GetSmartRemoteValues(smartRemoteCount)) srv.Add(wxString(v));
-                grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", srv, wxArrayInt(), sr - 1));
-
-                if (GetNumPhysicalStrings() > 1) {
-                    sp = grid->AppendIn(p, new wxUIntProperty("Max Cascade Remotes", "MaxCascadeRemotes", GetSRMaxCascade()));
-                    sp->SetAttribute("Min", 1);
-                    sp->SetAttribute("Max", smartRemoteCount);
-                    p->SetHelpString("This is the number of smart remotes on a chain to use so if start is B and this is 2 then B and C remotes will be used.");
-                    sp->SetEditor("SpinCtrl");
-
-                    sp = grid->AppendIn(p, new wxBoolProperty("Cascade On Port", "CascadeOnPort", GetSRCascadeOnPort()));
-                    sp->SetAttribute("UseCheckbox", true);
-                    p->SetHelpString("When selected order is 1A 1B 1C etc. When not selected order is 1A 2A 3A 4A 1B etc.");
-                }
-            }
-        }
-    }
-
-    if (cp.size() > 0) {
-        wxArrayString cpWx;
-        for (const auto& s : cp) cpWx.Add(wxString(s));
-        sp = grid->AppendIn(p, new wxEnumProperty("Protocol", "ModelControllerConnectionProtocol", cpWx, wxArrayInt(), idx));
-        if (cp.size() == 1 && idx == 0) {
-            grid->DisableProperty(sp);
-        }
-    }
-
-    if (IsSerialProtocol()) {
-        sp = grid->AppendIn(p, new wxUIntProperty(protocol + " Channel", "ModelControllerConnectionDMXChannel", GetControllerDMXChannel()));
-        sp->SetAttribute("Min", 1);
-        if (caps == nullptr) {
-            sp->SetAttribute("Max", 512);
-        } else {
-            sp->SetAttribute("Max", caps->GetMaxSerialPortChannels());
-        }
-        sp->SetEditor("SpinCtrl");
-        if (idx >= 0 && idx < (int)cp.size() && (cp[idx] != "dmx" || Contains(protocol, "DMX"))) {
-            // non dmx protocols support speeds
-            wxArrayString csWx;
-            for (const auto& s : cs) csWx.Add(wxString(s));
-            sp = grid->AppendIn(p, new wxEnumProperty("Speed", "ModelControllerConnectionSpeed", csWx, wxArrayInt(), idxs));
-            if (cs.size() == 1 && idxs == 0) {
-                grid->DisableProperty(sp);
-            }
-        }
-
-    } else if (IsPWMProtocol()) {
-        if (!IsDmxDisplayType(DisplayAs)) { //DMX models handle this themselves
-            auto sp2 = grid->AppendIn(sp, new wxFloatProperty("Gamma", "ModelControllerConnectionPixelGamma", GetControllerGamma()));
-            sp2->SetAttribute("Min", 0.1);
-            sp2->SetAttribute("Max", 5.0);
-            sp2->SetAttribute("Precision", 1);
-            sp2->SetAttribute("Step", 0.1);
-            sp2->SetEditor("SpinCtrl");
-            
-            sp2 = grid->AppendIn(sp, new wxUIntProperty("Brightness", "ModelControllerConnectionPixelBrightness", GetControllerBrightness()));
-            sp2->SetAttribute("Min", 0);
-            sp2->SetAttribute("Max", 100);
-            sp2->SetEditor("SpinCtrl");
-        }
-    } else if (IsPixelProtocol()) {
-        if (caps == nullptr || caps->SupportsPixelPortNullPixels()) {
-            sp = grid->AppendIn(p, new wxBoolProperty("Set Start Null Pixels", "ModelControllerConnectionPixelSetNullNodes", IsCtrlPropertySet(CtrlProps::START_NULLS_ACTIVE)));
-            sp->SetAttribute("UseCheckbox", true);
-            auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Start Null Pixels", "ModelControllerConnectionPixelNullNodes", GetControllerStartNulls()));
-            sp2->SetAttribute("Min", 0);
-            sp2->SetAttribute("Max", 100);
-            sp2->SetEditor("SpinCtrl");
-            if (!IsCtrlPropertySet(CtrlProps::START_NULLS_ACTIVE)) {
-                grid->DisableProperty(sp2);
-                grid->Collapse(sp);
-            }
-        }
-
-        if (caps == nullptr || caps->SupportsPixelPortEndNullPixels()) {
-            sp = grid->AppendIn(p, new wxBoolProperty("Set End Null Pixels", "ModelControllerConnectionPixelSetEndNullNodes", IsCtrlPropertySet(CtrlProps::END_NULLS_ACTIVE)));
-            sp->SetAttribute("UseCheckbox", true);
-            auto sp2 = grid->AppendIn(sp, new wxUIntProperty("End Null Pixels", "ModelControllerConnectionPixelEndNullNodes", GetControllerEndNulls()));
-            sp2->SetAttribute("Min", 0);
-            sp2->SetAttribute("Max", 100);
-            sp2->SetEditor("SpinCtrl");
-            if (!IsCtrlPropertySet(CtrlProps::END_NULLS_ACTIVE)) {
-                grid->DisableProperty(sp2);
-                grid->Collapse(sp);
-            }
-        }
-
-        if (caps == nullptr || caps->SupportsPixelPortBrightness()) {
-            sp = grid->AppendIn(p, new wxBoolProperty("Set Brightness", "ModelControllerConnectionPixelSetBrightness", IsCtrlPropertySet(CtrlProps::BRIGHTNESS_ACTIVE)));
-            sp->SetAttribute("UseCheckbox", true);
-            auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Brightness", "ModelControllerConnectionPixelBrightness", GetControllerBrightness()));
-            sp2->SetAttribute("Min", 0);
-            sp2->SetAttribute("Max", 100);
-            sp2->SetEditor("SpinCtrl");
-            if (!IsCtrlPropertySet(CtrlProps::BRIGHTNESS_ACTIVE)) {
-                grid->DisableProperty(sp2);
-                grid->Collapse(sp);
-            }
-        }
-
-        if (caps == nullptr || caps->SupportsPixelPortGamma()) {
-            sp = grid->AppendIn(p, new wxBoolProperty("Set Gamma", "ModelControllerConnectionPixelSetGamma", IsCtrlPropertySet(CtrlProps::GAMMA_ACTIVE)));
-            sp->SetAttribute("UseCheckbox", true);
-            auto sp2 = grid->AppendIn(sp, new wxFloatProperty("Gamma", "ModelControllerConnectionPixelGamma", GetControllerGamma()));
-            sp2->SetAttribute("Min", 0.1);
-            sp2->SetAttribute("Max", 5.0);
-            sp2->SetAttribute("Precision", 1);
-            sp2->SetAttribute("Step", 0.1);
-            sp2->SetEditor("SpinCtrl");
-            if (!IsCtrlPropertySet(CtrlProps::GAMMA_ACTIVE)) {
-                grid->DisableProperty(sp2);
-                grid->Collapse(sp);
-            }
-        }
-
-        if (caps == nullptr || caps->SupportsPixelPortColourOrder()) {
-            sp = grid->AppendIn(p, new wxBoolProperty("Set Color Order", "ModelControllerConnectionPixelSetColorOrder", IsCtrlPropertySet(CtrlProps::COLOR_ORDER_ACTIVE)));
-            sp->SetAttribute("UseCheckbox", true);
-            wxArrayString colorOrderChoices;
-            for (const auto& co : CONTROLLER_COLORORDER) colorOrderChoices.Add(wxString(co));
-            int cidx = colorOrderChoices.Index(GetControllerColorOrder());
-            auto sp2 = grid->AppendIn(sp, new wxEnumProperty("Color Order", "ModelControllerConnectionPixelColorOrder", colorOrderChoices, wxArrayInt(), cidx < 0 ? 0 : cidx));
-            if (!IsCtrlPropertySet(CtrlProps::COLOR_ORDER_ACTIVE)) {
-                grid->DisableProperty(sp2);
-                grid->Collapse(sp);
-            }
-        }
-
-        if (caps == nullptr || caps->SupportsPixelPortDirection()) {
-            sp = grid->AppendIn(p, new wxBoolProperty("Set Pixel Direction", "ModelControllerConnectionPixelSetDirection", IsCtrlPropertySet(CtrlProps::REVERSE_ACTIVE)));
-            sp->SetAttribute("UseCheckbox", true);
-            auto sp2 = grid->AppendIn(sp, new wxEnumProperty("Direction", "ModelControllerConnectionPixelDirection", CONTROLLER_DIRECTION, wxArrayInt(), GetControllerReverse()));
-            if (!IsCtrlPropertySet(CtrlProps::REVERSE_ACTIVE)) {
-                grid->DisableProperty(sp2);
-                grid->Collapse(sp);
-            }
-        }
-
-        if (caps == nullptr || caps->SupportsPixelPortGrouping()) {
-            sp = grid->AppendIn(p, new wxBoolProperty("Set Group Count", "ModelControllerConnectionPixelSetGroupCount", IsCtrlPropertySet(CtrlProps::GROUP_COUNT_ACTIVE)));
-            sp->SetAttribute("UseCheckbox", true);
-            auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Group Count", "ModelControllerConnectionPixelGroupCount", GetControllerGroupCount()));
-            sp2->SetAttribute("Min", 1);
-            sp2->SetAttribute("Max", 500);
-            sp2->SetEditor("SpinCtrl");
-            if (!IsCtrlPropertySet(CtrlProps::GROUP_COUNT_ACTIVE)) {
-                grid->DisableProperty(sp2);
-                grid->Collapse(sp);
-            }
-        }
-
-        if (caps == nullptr || caps->SupportsPixelZigZag()) {
-            sp = grid->AppendIn(p, new wxBoolProperty("Set Zig Zag", "ModelControllerConnectionPixelSetZigZag", IsCtrlPropertySet(CtrlProps::ZIG_ZAG_ACTIVE)));
-            sp->SetAttribute("UseCheckbox", true);
-            auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Zig Zag", "ModelControllerConnectionPixelZigZag", GetControllerZigZag()));
-            sp2->SetAttribute("Min", 0);
-            sp2->SetAttribute("Max", 1000);
-            sp2->SetEditor("SpinCtrl");
-            if (!IsCtrlPropertySet(CtrlProps::ZIG_ZAG_ACTIVE)) {
-                grid->DisableProperty(sp2);
-                grid->Collapse(sp);
-            }
-        }
-
-        if (caps == nullptr || caps->SupportsTs()) {
-            sp = grid->AppendIn(p, new wxBoolProperty("Set Smart Ts", "ModelControllerConnectionPixelSetTs", IsCtrlPropertySet(CtrlProps::TS_ACTIVE)));
-            sp->SetAttribute("UseCheckbox", true);
-            auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Smart Ts", "ModelControllerConnectionPixelTs", GetSmartTs()));
-            sp2->SetAttribute("Min", 0);
-            sp2->SetAttribute("Max", 20);
-            sp2->SetEditor("SpinCtrl");
-            if (!IsCtrlPropertySet(CtrlProps::TS_ACTIVE)) {
-                grid->DisableProperty(sp2);
-                grid->Collapse(sp);
-            }
-        }
-    }
-}
-
-void Model::UpdateControllerProperties(wxPropertyGridInterface* grid)
-{
-    auto caps = GetControllerCaps();
-
-    auto p = grid->GetPropertyByName("ModelControllerConnectionPort");
-    if (p != nullptr) {
-        if (GetControllerName() != "" && _controller != 0 && GetControllerPort(1) == 0) {
-            if (caps != nullptr && caps->GetMaxPixelPort() == 0 && caps->GetMaxSerialPort() == 0) {
-                // we let this be 0
-            } else {
-                p->SetHelpString("When using controller name instead of start channels then port must be specified if the controller has ports.");
-                p->SetBackgroundColour(*wxRED);
-            }
-        } else {
-            p->SetHelpString("");
-            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-        }
-    }
-
-    p = grid->GetPropertyByName("ModelControllerConnectionProtocol");
-    if (p != nullptr) {
-        if (GetControllerName() != "" && _controller != 0 && (GetControllerPort() == 0 || GetControllerProtocol() == "")) {
-            p->SetHelpString("When using controller name instead of start channels then protocol must be specified.");
-            p->SetBackgroundColour(*wxRED);
-        } else {
-            p->SetHelpString("");
-            grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-        }
-    }
-
-    if (grid->GetPropertyByName("ModelChain") != nullptr) {
-        ColourClashingChains(grid->GetPropertyByName("ModelChain"));
-    }
-
-    if (IsPixelProtocol()) {
-        if (grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes") != nullptr) {
-            if (!IsCtrlPropertySet(CtrlProps::START_NULLS_ACTIVE)) {
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes")->SetExpanded(false);
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes.ModelControllerConnectionPixelNullNodes")->Enable(false);
-            } else {
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes")->SetExpanded(true);
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetNullNodes.ModelControllerConnectionPixelNullNodes")->Enable();
-            }
-        }
-
-        if (grid->GetPropertyByName("ModelControllerConnectionPixelSetEndNullNodes") != nullptr) {
-            if (!IsCtrlPropertySet(CtrlProps::END_NULLS_ACTIVE)) {
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetEndNullNodes")->SetExpanded(false);
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetEndNullNodes.ModelControllerConnectionPixelEndNullNodes")->Enable(false);
-            } else {
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetEndNullNodes")->SetExpanded(true);
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetEndNullNodes.ModelControllerConnectionPixelEndNullNodes")->Enable();
-            }
-        }
-
-        if (grid->GetPropertyByName("ModelControllerConnectionPixelSetBrightness") != nullptr) {
-            if (!IsCtrlPropertySet(CtrlProps::BRIGHTNESS_ACTIVE)) {
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetBrightness")->SetExpanded(false);
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetBrightness.ModelControllerConnectionPixelBrightness")->Enable(false);
-            } else {
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetBrightness")->SetExpanded(true);
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetBrightness.ModelControllerConnectionPixelBrightness")->Enable();
-            }
-        }
-
-        if (grid->GetPropertyByName("ModelControllerConnectionPixelSetGamma") != nullptr) {
-            if (!IsCtrlPropertySet(CtrlProps::GAMMA_ACTIVE)) {
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetGamma")->SetExpanded(false);
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetGamma.ModelControllerConnectionPixelGamma")->Enable(false);
-            } else {
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetGamma")->SetExpanded(true);
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetGamma.ModelControllerConnectionPixelGamma")->Enable();
-            }
-        }
-
-        if (grid->GetPropertyByName("ModelControllerConnectionPixelSetColorOrder") != nullptr) {
-            if (!IsCtrlPropertySet(CtrlProps::COLOR_ORDER_ACTIVE)) {
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetColorOrder")->SetExpanded(false);
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetColorOrder.ModelControllerConnectionPixelColorOrder")->Enable(false);
-            } else {
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetColorOrder")->SetExpanded(true);
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetColorOrder.ModelControllerConnectionPixelColorOrder")->Enable();
-            }
-        }
-
-        if (grid->GetPropertyByName("ModelControllerConnectionPixelSetDirection") != nullptr) {
-            if (!IsCtrlPropertySet(CtrlProps::REVERSE_ACTIVE)) {
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetDirection")->SetExpanded(false);
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetDirection.ModelControllerConnectionPixelDirection")->Enable(false);
-            } else {
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetDirection")->SetExpanded(true);
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetDirection.ModelControllerConnectionPixelDirection")->Enable();
-            }
-        }
-
-        if (grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount") != nullptr) {
-            if (!IsCtrlPropertySet(CtrlProps::GROUP_COUNT_ACTIVE)) {
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount")->SetExpanded(false);
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount.ModelControllerConnectionPixelGroupCount")->Enable(false);
-            } else {
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount")->SetExpanded(true);
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetGroupCount.ModelControllerConnectionPixelGroupCount")->Enable();
-            }
-        }
-
-        if (grid->GetPropertyByName("ModelControllerConnectionPixelSetZigZag") != nullptr) {
-            if (!IsCtrlPropertySet(CtrlProps::ZIG_ZAG_ACTIVE)) {
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetZigZag")->SetExpanded(false);
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetZigZag.ModelControllerConnectionPixelZigZag")->Enable(false);
-            } else {
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetZigZag")->SetExpanded(true);
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetZigZag.ModelControllerConnectionPixelZigZag")->Enable();
-            }
-        }
-
-        if (grid->GetPropertyByName("ModelControllerConnectionPixelSetTs") != nullptr) {
-            if (!IsCtrlPropertySet(CtrlProps::TS_ACTIVE)) {
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetTs")->SetExpanded(false);
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetTs.ModelControllerConnectionPixelTs")->Enable(false);
-            } else {
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetTs")->SetExpanded(true);
-                grid->GetPropertyByName("ModelControllerConnectionPixelSetTs.ModelControllerConnectionPixelTs")->Enable();
-            }
-        }
-    }
-    grid->RefreshGrid();
-}
-
-static wxString GetColorString(wxPGProperty* p, xlColor& xc)
-{
-    wxString tp = "Single Color Custom";
-    if (p != nullptr) {
-        wxColour c;
-        c << p->GetValue();
-        if (c == *wxRED) {
-            tp = "Single Color Red";
-        } else if (c == *wxBLUE) {
-            tp = "Single Color Blue";
-        } else if (c == *wxGREEN) {
-            tp = "Single Color Green";
-        } else if (c == *wxWHITE) {
-            tp = "Single Color White";
-        } else {
-            xc = wxColourToXlColor(c);
-        }
-    }
-    return tp;
-}
 
 std::string Model::GetIndividualStartChannel(size_t s) const
 {
@@ -1487,630 +450,6 @@ std::string Model::GetIndividualStartChannel(size_t s) const
     return _indivStartChannels[s];
 }
 
-int Model::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    auto caps = GetControllerCaps();
-
-    modelManager.GetXLightsFrame()->AddTraceMessage("Model::OnPropertyGridChange : " + event.GetPropertyName() + " : " + (event.GetValue().GetType() == "string" ? event.GetValue().GetString() : "N/A") + " : " + (event.GetValue().GetType() == "long" ? std::to_string(event.GetValue().GetLong()) : "N/A"));
-
-    if (HandleLayerSizePropertyChange(grid, event)) {
-        return 0;
-    }
-
-    if (event.GetPropertyName() == "ModelPixelSize") {
-        pixelSize = event.GetValue().GetLong();
-        AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE, "Model::OnPropertyGridChange::ModelPixelSize");
-        IncrementChangeCount();
-        return 0;
-    } else if (event.GetPropertyName() == "ModelPixelStyle") {
-        _pixelStyle = (PIXEL_STYLE)event.GetValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE, "Model::OnPropertyGridChange::ModelPixelStyle");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelPixelTransparency") {
-        transparency = event.GetValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE, "Model::OnPropertyGridChange::ModelPixelTransparency");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelPixelBlackTransparency") {
-        blackTransparency = event.GetValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE, "Model::OnPropertyGridChange::ModelPixelBlackTransparency");
-        return 0;
-    } else if (event.GetPropertyName() == "LowDefinition") {
-        _lowDefFactor = event.GetValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "Model::OnPropertyGridChange::LowDefinition");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelTagColour") {
-        _modelTagColour << event.GetProperty()->GetValue();
-        _modelTagColourString = _modelTagColour.GetAsString();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelTagColour");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelStrandNodeNames") {
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::OnPropertyGridChange::ModelStrandNames");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelDimmingCurves") {
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::OnPropertyGridChange::ModelDimmingCurves");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelChain") {
-        std::string modelChain = event.GetValue().GetString();
-        if (modelChain == "Beginning") {
-            modelChain = "";
-        }
-        SetModelChain(modelChain);
-        if (modelChain != "") {
-            _hasIndivChans = false;
-            AdjustStringProperties(grid, GetNumStrings());
-            if (grid->GetPropertyByName("ModelStartChannel") != nullptr) {
-                grid->GetPropertyByName("ModelStartChannel")->SetValue(ModelStartChannel);
-                grid->GetPropertyByName("ModelStartChannel")->Enable(false);
-            } else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr) {
-                grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable(false);
-                grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(false);
-                grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->SetValue(ModelStartChannel);
-            }
-        } else {
-            SetStartChannel("1");
-            if (grid->GetPropertyByName("ModelStartChannel") != nullptr) {
-                grid->GetPropertyByName("ModelStartChannel")->Enable();
-            } else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr) {
-                grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable();
-                grid->GetPropertyByName("ModelIndividualStartChannels")->Enable();
-            }
-        }
-        UpdateControllerProperties(grid);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID |
-                    OutputModelManager::WORK_RGBEFFECTS_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
-                    OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "Model::OnPropertyGridChange::ModelChain");
-        return 0;
-    } else if (event.GetPropertyName() == "ShadowModelFor") {
-        if (GetShadowModelFor() != OTHERMODELLIST[event.GetValue().GetInteger()]) {
-            SetShadowModelFor(OTHERMODELLIST[event.GetValue().GetInteger()]);
-        }
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::Controller");
-        return 0;
-    } else if (event.GetPropertyName() == "Controller") {
-        if (GetControllerName() != CONTROLLERS[event.GetValue().GetInteger()]) {
-            SetControllerName(CONTROLLERS[event.GetValue().GetInteger()]);
-            if (GetControllerPort() != 0 && IsPixelProtocol()) {
-                SetModelChain(">" + modelManager.GetLastModelOnPort(CONTROLLERS[event.GetValue().GetInteger()], GetControllerPort(), GetName(), GetControllerProtocol()));
-            } else {
-                SetModelChain("");
-            }
-        }
-        if (GetControllerName() == "") {
-            SetModelChain("");
-            // dont set start channel to one. that way model holds its previously calculated start channel
-            if (grid->GetPropertyByName("ModelStartChannel") != nullptr) {
-                grid->GetPropertyByName("ModelStartChannel")->Enable();
-            } else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr) {
-                grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable();
-                grid->GetPropertyByName("ModelIndividualStartChannels")->Enable();
-            }
-        } else {
-            _hasIndivChans = false;
-            AdjustStringProperties(grid, GetNumStrings());
-            if (grid->GetPropertyByName("ModelStartChannel") != nullptr) {
-                grid->GetPropertyByName("ModelStartChannel")->SetValue(ModelStartChannel);
-                grid->GetPropertyByName("ModelStartChannel")->Enable(false);
-            } else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr) {
-                grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->Enable(false);
-                grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(false);
-                grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->SetValue(ModelStartChannel);
-            }
-        }
-        if (grid->GetPropertyByName("ModelChain") != nullptr) {
-            grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && _controller != 0);
-        }
-        UpdateControllerProperties(grid);
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE |
-                    OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::Controller");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPort") {
-        bool protocolChanged = false;
-        if (GetControllerPort() != event.GetValue().GetLong()) {
-            SetControllerPort(event.GetValue().GetLong());
-
-            if (GetControllerPort(1) > 0 && GetControllerProtocol() == "") {
-                if (caps == nullptr) {
-                    SetControllerProtocol(GetAllPixelTypes()[1]);
-                } else {
-                    if (caps->GetPixelProtocols().size() > 0) {
-                        SetControllerProtocol(caps->GetPixelProtocols().front());
-                    } else if (caps->GetSerialProtocols().size() > 0) {
-                        SetControllerProtocol(caps->GetSerialProtocols().front());
-                    } else if (caps->SupportsVirtualMatrix()) {
-                        SetControllerProtocol("Virtual Matrix");
-                    } else if (caps->SupportsLEDPanelMatrix()) {
-                        SetControllerProtocol("LED Panel Matrix");
-                    } else if (caps->SupportsPWM()) {
-                        SetControllerProtocol("PWM");
-                    }
-                }
-                protocolChanged = true;
-            }
-
-            if (GetControllerName() != "" && _controller != 0) {
-                if (grid->GetPropertyByName("ModelStartChannel") != nullptr) {
-                    grid->GetPropertyByName("ModelStartChannel")->SetValue(ModelStartChannel);
-                } else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr) {
-                    grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->SetValue(ModelStartChannel);
-                }
-                if (IsPixelProtocol()) {
-                    // we only do this for pixels as dmx have the channel to base it off
-                    // when the port changes we have to assume any existing model chain will break
-                    SetModelChain(">" + modelManager.GetLastModelOnPort(GetControllerName(), event.GetValue().GetLong(), GetName(), GetControllerProtocol()));
-                } else {
-                    SetModelChain("Beginning");
-                }
-            }
-        }
-
-        if (grid->GetPropertyByName("ModelChain") != nullptr) {
-            grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0 && _controller != 0);
-        }
-
-        UpdateControllerProperties(grid);
-        if (protocolChanged) {
-            // need to refresh to add protocol specific options
-            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelControllerConnectionPort");
-        }
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE |
-                    OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelControllerConnectionPort");
-        return 0;
-    } else if (event.GetPropertyName() == "Active") {
-        SetActive(event.GetValue().GetBool());
-        IncrementChangeCount();
-        return 0;
-    } else if (event.GetPropertyName() == "UseSmartRemote") {
-        auto usr = event.GetValue().GetBool();
-        if (!usr) {
-            ClearControllerProperty(CtrlProps::USE_SMART_REMOTE);
-            SetSmartRemote(0);
-        } else {
-            SetControllerProperty(CtrlProps::USE_SMART_REMOTE);
-            SetSmartRemote(1);
-        }
-        return 0;
-    } else if (event.GetPropertyName() == "SmartRemote") {
-        int sr = wxAtoi(event.GetValue().GetString());
-        SetSmartRemote(sr + 1);
-        return 0;
-    } else if (event.GetPropertyName() == "CascadeOnPort") {
-        SetSRCascadeOnPort(event.GetValue().GetBool());
-        return 0;
-    } else if (event.GetPropertyName() == "MaxCascadeRemotes") {
-        SetSRMaxCascade(event.GetValue().GetLong());
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionSpeed") {
-        int sel = -1;
-        std::vector<std::string> cs;
-        GetSerialProtocolSpeeds(GetControllerProtocol(), cs, sel);
-        SetControllerSerialProtocolSpeed((int)std::strtol(cs[event.GetValue().GetLong()].c_str(), nullptr, 10));
-        return 0;
-    } else if (event.GetPropertyName() == "SmartRemoteType") {
-        SetSmartRemoteType(GetSmartRemoteTypeName(wxAtoi(event.GetValue().GetString())));
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionProtocol") {
-        std::vector<std::string> cp;
-        int idx;
-        GetControllerProtocols(cp, idx);
-        std::string oldProtocol = GetControllerProtocol();
-
-        // This may be why i see some crashes here
-        if (event.GetValue().GetLong() >= cp.size()) {
-            logger_base.crit("Protocol being set is not in the controller protocols which has %d protocols.", (int)cp.size());
-            return 0;
-        }
-
-        SetControllerProtocol(cp[event.GetValue().GetLong()]);
-
-        if (GetControllerName() != "" && _controller != 0) {
-            if (grid->GetPropertyByName("ModelStartChannel") != nullptr) {
-                grid->GetPropertyByName("ModelStartChannel")->SetValue(ModelStartChannel);
-            } else if (grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel") != nullptr) {
-                grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel")->SetValue(ModelStartChannel);
-            }
-        }
-        if (grid->GetPropertyByName("ModelChain") != nullptr) {
-            grid->GetPropertyByName("ModelChain")->Enable(GetControllerName() != "" && GetControllerProtocol() != "" && GetControllerPort() != 0 && _controller != 0);
-        }
-
-        UpdateControllerProperties(grid);
-        std::string newProtocol = GetControllerProtocol();
-
-        if (!::IsPixelProtocol(newProtocol)) {
-            if (_controllerConnection.GetDMXChannel() == -1) {
-                _controllerConnection.SetDMXChannel(1);
-            }
-        }
-        if (
-            // FIXME-Matrix
-            (::IsSerialProtocol(newProtocol) && ::IsPixelProtocol(oldProtocol)) ||
-            (::IsSerialProtocol(oldProtocol) && ::IsPixelProtocol(newProtocol)) ||
-            (oldProtocol == "" && newProtocol != "") ||
-            (newProtocol == "" && oldProtocol != "")) {
-            // if we switch between a DMX and pixel protocol we need to rebuild the properties
-            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelControllerConnectionProtocol");
-        }
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionProtocol");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionDMXChannel") {
-        SetControllerDMXChannel((int)event.GetValue().GetLong());
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetBrightness") {
-        wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
-        grid->EnableProperty(prop, event.GetValue().GetBool());
-        if (event.GetValue().GetBool()) {
-            SetControllerProperty(CtrlProps::BRIGHTNESS_ACTIVE);
-            prop->SetValueFromInt(GetControllerBrightness());
-            grid->Expand(event.GetProperty());
-        } else {
-            ClearControllerProperty(CtrlProps::BRIGHTNESS_ACTIVE);
-            grid->Collapse(event.GetProperty());
-        }
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetBrightness");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetBrightness.ModelControllerConnectionPixelBrightness") {
-        SetControllerBrightness((int)event.GetValue().GetLong());
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelBrightness");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetGamma") {
-        wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
-        grid->EnableProperty(prop, event.GetValue().GetBool());
-        if (event.GetValue().GetBool()) {
-            SetControllerProperty(CtrlProps::GAMMA_ACTIVE);
-            prop->SetValue(GetControllerGamma());
-            grid->Expand(event.GetProperty());
-        } else {
-           ClearControllerProperty(CtrlProps::GAMMA_ACTIVE);
-           grid->Collapse(event.GetProperty());
-        }
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetGamma");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetGamma.ModelControllerConnectionPixelGamma") {
-        SetControllerGamma((float)event.GetValue().GetDouble());
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelGamma");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetDirection") {
-        wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
-        grid->EnableProperty(prop, event.GetValue().GetBool());
-        if (event.GetValue().GetBool()) {
-            SetControllerProperty(CtrlProps::REVERSE_ACTIVE);
-            prop->SetValueFromInt(GetControllerReverse());
-            grid->Expand(event.GetProperty());
-        } else {
-            ClearControllerProperty(CtrlProps::REVERSE_ACTIVE);
-            grid->Collapse(event.GetProperty());
-        }
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetDirection");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetDirection.ModelControllerConnectionPixelDirection") {
-        SetControllerReverse((int)event.GetValue().GetLong());
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelDirection");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetColorOrder") {
-        wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
-        grid->EnableProperty(prop, event.GetValue().GetBool());
-        if (event.GetValue().GetBool()) {
-            SetControllerProperty(CtrlProps::COLOR_ORDER_ACTIVE);
-            prop->SetValueFromString(GetControllerColorOrder());
-            grid->Expand(event.GetProperty());
-        } else {
-            ClearControllerProperty(CtrlProps::COLOR_ORDER_ACTIVE);
-            grid->Collapse(event.GetProperty());
-        }
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetColorOrder");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetColorOrder.ModelControllerConnectionPixelColorOrder") {
-        SetControllerColorOrder(CONTROLLER_COLORORDER[event.GetValue().GetLong()]);
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelColorOrder");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetNullNodes") {
-        wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
-        grid->EnableProperty(prop, event.GetValue().GetBool());
-        if (event.GetValue().GetBool()) {
-            SetControllerProperty(CtrlProps::START_NULLS_ACTIVE);
-            prop->SetValueFromInt(GetControllerStartNulls());
-            grid->Expand(event.GetProperty());
-        } else {
-            ClearControllerProperty(CtrlProps::START_NULLS_ACTIVE);
-            grid->Collapse(event.GetProperty());
-        }
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetNullNodes");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetEndNullNodes") {
-        wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
-        grid->EnableProperty(prop, event.GetValue().GetBool());
-        if (event.GetValue().GetBool()) {
-            SetControllerProperty(CtrlProps::END_NULLS_ACTIVE);
-            prop->SetValueFromInt(GetControllerEndNulls());
-            grid->Expand(event.GetProperty());
-        } else {
-            ClearControllerProperty(CtrlProps::END_NULLS_ACTIVE);
-            grid->Collapse(event.GetProperty());
-        }
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetEndNullNodes");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetNullNodes.ModelControllerConnectionPixelNullNodes") {
-        SetControllerStartNulls((int)event.GetValue().GetLong());
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelNullNodes");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetEndNullNodes.ModelControllerConnectionPixelEndNullNodes") {
-        SetControllerEndNulls((int)event.GetValue().GetLong());
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelEndNullNodes");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetGroupCount") {
-        wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
-        grid->EnableProperty(prop, event.GetValue().GetBool());
-        if (event.GetValue().GetBool()) {
-            SetControllerProperty(CtrlProps::GROUP_COUNT_ACTIVE);
-            prop->SetValueFromInt(GetControllerGroupCount());
-            grid->Expand(event.GetProperty());
-        } else {
-            ClearControllerProperty(CtrlProps::GROUP_COUNT_ACTIVE);
-            grid->Collapse(event.GetProperty());
-        }
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetGroupCount");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetGroupCount.ModelControllerConnectionPixelGroupCount") {
-        SetControllerGroupCount((int)event.GetValue().GetLong());
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelGroupCount");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetZigZag") {
-        wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
-        grid->EnableProperty(prop, event.GetValue().GetBool());
-        if (event.GetValue().GetBool()) {
-            SetControllerProperty(CtrlProps::ZIG_ZAG_ACTIVE);
-            prop->SetValueFromInt(GetControllerZigZag());
-            grid->Expand(event.GetProperty());
-        } else {
-            ClearControllerProperty(CtrlProps::ZIG_ZAG_ACTIVE);
-            grid->Collapse(event.GetProperty());
-        }
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetZigZag");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetZigZag.ModelControllerConnectionPixelZigZag") {
-        SetControllerZigZag((int)event.GetValue().GetLong());
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelZigZag");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetTs") {
-        wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());
-        grid->EnableProperty(prop, event.GetValue().GetBool());
-        if (event.GetValue().GetBool()) {
-            SetControllerProperty(CtrlProps::TS_ACTIVE);
-            prop->SetValueFromInt(GetSmartTs());
-            grid->Expand(event.GetProperty());
-        } else {
-            ClearControllerProperty(CtrlProps::TS_ACTIVE);
-            grid->Collapse(event.GetProperty());
-        }
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelSetTs");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetTs.ModelControllerConnectionPixelTs") {
-        SetSmartRemoteTs((int)event.GetValue().GetLong());
-        AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionPixelTs");
-        return 0;
-    } else if (event.GetPropertyName() == "SubModels") {
-        // We cant know which subModels changed so increment all their change counts to ensure anything using them knows they may have changed
-        for (auto& it : GetSubModels()) {
-            it->IncrementChangeCount();
-        }
-        IncrementChangeCount();
-        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-        wxPostEvent(modelManager.GetXLightsFrame(), eventForceRefresh);
-        AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
-                    OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
-                    OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::SubModels");
-
-        return 0;
-    } else if (event.GetPropertyName() == "Description") {
-        description = event.GetValue().GetString();
-        SetDescription(description);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::Description");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelFaces") {
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelFaces");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelStates") {
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelStates");
-        return 0;
-    } else if (event.GetPropertyName() == "Aliases") {
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::Aliases");
-        return 0;
-    } else if (event.GetPropertyName().StartsWith("SuperStringColours")) {
-        IncrementChangeCount();
-        SetSuperStringColours(event.GetValue().GetLong());
-        return 0;
-    } else if (event.GetPropertyName().StartsWith("SuperStringColour")) {
-        int index = wxAtoi(event.GetPropertyName().substr(17));
-        wxColor wc;
-        wc << event.GetValue();
-        IncrementChangeCount();
-        SetSuperStringColour(index, wxColourToXlColor(wc));
-        return 0;
-    } else if (event.GetPropertyName() == "ModelStringColor" || event.GetPropertyName() == "ModelStringType" || event.GetPropertyName() == "ModelRGBWHandling") {
-        wxPGProperty* p2 = grid->GetPropertyByName("ModelStringType");
-        int i = p2->GetValue().GetLong();
-        if (NODE_TYPES[i] == "Single Color" || NODE_TYPES[i] == "Single Color Intensity" || NODE_TYPES[i] == "Node Single Color") {
-            wxPGProperty* p = grid->GetPropertyByName("ModelStringColor");
-            xlColor c;
-            wxString tp = GetColorString(p, c);
-            if (NODE_TYPES[i] == "Single Color Intensity") {
-                tp = "Single Color Intensity";
-            } else if (NODE_TYPES[i] == "Node Single Color" && p != nullptr) {
-                tp = "Node Single Color";
-                wxColor cc;
-                cc << p->GetValue();
-                c = wxColourToXlColor(cc);
-            }
-            if (p != nullptr)
-                p->Enable();
-            if (tp == "Single Color Custom" || tp == "Single Color Intensity" || tp == "Node Single Color") {
-                xlColor xc = c;
-                SetCustomColor(xc);
-            }
-            SetStringType(tp);
-        } else {
-            SetStringType(NODE_TYPES[i]);
-            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelStringType");
-        }
-        if (GetNodeChannelCount(GetStringType()) > 3) {
-            p2 = grid->GetPropertyByName("ModelRGBWHandling");
-            SetRGBWHandling(RGBW_HANDLING[p2->GetValue().GetLong()]);
-        }
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML |
-                    OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelStringType");
-        if (event.GetPropertyName() == "ModelStringType") {
-            AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID |
-                        OutputModelManager::WORK_RELOAD_MODELLIST |
-                        OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                        OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
-                        OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelStringType");
-        }
-        return 0;
-    } else if (event.GetPropertyName() == "ModelStartChannel" || event.GetPropertyName() == "ModelIndividualStartChannels.ModelStartChannel") {
-        wxString val = event.GetValue().GetString();
-
-        if ((val.StartsWith("@") || val.StartsWith("#") || val.StartsWith(">") || val.StartsWith("!")) && !val.Contains(":")) {
-            val = val + ":1";
-            event.GetProperty()->SetValue(val);
-        }
-
-        SetStartChannel(val);
-        SetControllerName("");
-        if (_hasIndivChans) {
-            SetIndividualStartChannel(0, val);
-        }
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                    OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelStartChannel");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
-        int c = GetNumStrings();
-        _hasIndivChans = event.GetValue().GetBool();
-        if (_hasIndivChans) {
-            _indivStartChannels.resize(c);
-            for (int x = 0; x < c; ++x) {
-                SetIndividualStartChannel(x, ComputeStringStartChannel(x));
-            }
-        } else {
-            _indivStartChannels.clear();
-        }
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
-                    OutputModelManager::WORK_RELOAD_PROPERTYGRID |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                    OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelIndividualStartChannels");
-        return 0;
-    } else if (event.GetPropertyName().StartsWith("ModelIndividualStartChannels.")) {
-        wxString str = event.GetPropertyName();
-        str = str.SubString(str.Find(".") + 1, str.length());
-
-        wxString val = event.GetValue().GetString();
-        if ((val.StartsWith("@") || val.StartsWith("#") || val.StartsWith(">") || val.StartsWith("!")) && !val.Contains(":")) {
-            val = val + ":1";
-            event.GetProperty()->SetValue(val);
-        }
-        std::string text = str.ToStdString();
-        int s = ExtractTrailingInt(text);
-        if (s < 1) s = 1;
-        if (s > GetNumStrings()) s = GetNumStrings();
-        if (s >= 1 && (s - 1) < (int)_indivStartChannels.size()) {
-            _indivStartChannels[s-1] = val;
-        }
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                    OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelIndividualStartChannels2");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelLayoutGroup") {
-        SetLayoutGroup(LAYOUT_GROUPS[event.GetValue().GetLong()]);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
-                    OutputModelManager::WORK_RELOAD_ALLMODELS |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::OnPropertyGridChange::ModelLayoutGroup");
-        return 0;
-    }
-
-    int i = GetModelScreenLocation().OnPropertyGridChange(grid, event);
-    IncrementChangeCount();
-    AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "Model::OnPropertyGridChange::ModelLayoutGroup");
-
-    return i;
-}
-
-void Model::AdjustStringProperties(wxPropertyGridInterface* grid, int newNum)
-{
-    wxPropertyGrid* pg = static_cast<wxPropertyGrid*>(grid);
-    wxPGProperty* p = grid->GetPropertyByName("ModelIndividualStartChannels");
-    if (p != nullptr) {
-        pg->Freeze();
-        p->Enable(GetControllerName() == "" || _controller == 0);
-        bool adv = p->GetValue().GetBool();
-        if (adv) {
-            int count = p->GetChildCount();
-            while (count > newNum) {
-                count--;
-                wxString nm = StartChanAttrName(count);
-                wxPGProperty* sp = grid->GetPropertyByName("ModelIndividualStartChannels." + nm);
-                if (sp != nullptr) {
-                    grid->DeleteProperty(sp);
-                }
-                _indivStartChannels.pop_back();
-            }
-            while (count < newNum) {
-                wxString nm = StartChanAttrName(count);
-                std::string val = ComputeStringStartChannel(count);
-                SetIndividualStartChannel(count, val);
-                grid->AppendIn(p, new StartChannelProperty(this, count, nm, nm, val, modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
-                p->Enable(GetControllerName() == "" || _controller == 0);
-                count++;
-            }
-        } else if (p->GetChildCount() > 1) {
-            int count = p->GetChildCount();
-            for (int x = 1; x < count; ++x) {
-                wxString nm = StartChanAttrName(x);
-                wxPGProperty* sp = grid->GetPropertyByName("ModelIndividualStartChannels." + nm);
-                if (sp != nullptr) {
-                    grid->DeleteProperty(sp);
-                }
-            }
-        }
-        wxPGProperty* sp = grid->GetPropertyByName("ModelIndividualStartChannels.ModelStartChannel");
-        if (sp != nullptr) {
-            if (adv) {
-                sp->SetLabel(StartChanAttrName(0));
-            } else {
-                sp->SetLabel("Start Channel");
-            }
-        }
-        p->Enable(GetNumStrings() > 1 && (GetControllerName() == "" || _controller == 0 || GetModelChain() == ""));
-        pg->Thaw();
-        pg->RefreshGrid();
-    }
-}
 
 void Model::WriteFaceInfo(wxXmlNode* rootXml, const FaceStateData& faceInfo) {
     if (!faceInfo.empty()) {
@@ -2164,13 +503,13 @@ void Model::UpdateFaceInfoNodes()
                         int start, end;
                         if (valstr.Contains("-")) {
                             int idx = valstr.Index('-');
-                            start = wxAtoi(valstr.Left(idx));
-                            end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
+                            start = (int)std::strtol(valstr.Left(idx).c_str(), nullptr, 10);
+                            end = (int)std::strtol(valstr.Right(valstr.size() - idx - 1).c_str(), nullptr, 10);
                             if (end < start) {
                                 std::swap(start, end);
                             }
                         } else {
-                            start = end = wxAtoi(valstr);
+                            start = end = (int)std::strtol(valstr.c_str(), nullptr, 10);
                         }
                         if (start > end) {
                             start = end;
@@ -2203,13 +542,13 @@ void Model::UpdateStateInfoNodes()
                         int start, end;
                         if (valstr.Contains("-")) {
                             int idx = valstr.Index('-');
-                            start = wxAtoi(valstr.Left(idx));
-                            end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
+                            start = (int)std::strtol(valstr.Left(idx).c_str(), nullptr, 10);
+                            end = (int)std::strtol(valstr.Right(valstr.size() - idx - 1).c_str(), nullptr, 10);
                             if (end < start) {
                                 std::swap(start, end);
                             }
                         } else {
-                            start = end = wxAtoi(valstr);
+                            start = end = (int)std::strtol(valstr.c_str(), nullptr, 10);
                         }
                         if (start > end) {
                             start = end;
@@ -2588,12 +927,12 @@ std::list<int> Model::ParseFaceNodes(std::string channels)
         int start, end;
         if (valstr.Contains("-")) {
             int idx = valstr.Index('-');
-            start = wxAtoi(valstr.Left(idx));
-            end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
+            start = (int)std::strtol(valstr.Left(idx).c_str(), nullptr, 10);
+            end = (int)std::strtol(valstr.Right(valstr.size() - idx - 1).c_str(), nullptr, 10);
             if (end < start)
                 std::swap(start, end);
         } else {
-            start = end = wxAtoi(valstr);
+            start = end = (int)std::strtol(valstr.c_str(), nullptr, 10);
         }
         if (start > end) {
             start = end;
@@ -2911,13 +1250,13 @@ int Model::FindNodeAtXY(int bufx, int bufy)
             return i;
         }
     }
-    wxASSERT(false);
+    assert(false);
     return -1;
 }
 
 void Model::GetNodeChannelValues(size_t nodenum, unsigned char* buf)
 {
-    wxASSERT(nodenum < Nodes.size()); // trying to catch an error i can see in crash reports
+    assert(nodenum < Nodes.size()); // trying to catch an error i can see in crash reports
     if (nodenum < Nodes.size()) {
         Nodes[nodenum]->GetForChannels(buf);
     }
@@ -2925,7 +1264,7 @@ void Model::GetNodeChannelValues(size_t nodenum, unsigned char* buf)
 
 void Model::SetNodeChannelValues(size_t nodenum, const unsigned char* buf)
 {
-    wxASSERT(nodenum < Nodes.size()); // trying to catch an error i can see in crash reports
+    assert(nodenum < Nodes.size()); // trying to catch an error i can see in crash reports
     if (nodenum < Nodes.size()) {
         Nodes[nodenum]->SetFromChannels(buf);
     }
@@ -2933,7 +1272,7 @@ void Model::SetNodeChannelValues(size_t nodenum, const unsigned char* buf)
 
 xlColor Model::GetNodeColor(size_t nodenum) const
 {
-    wxASSERT(nodenum < Nodes.size()); // trying to catch an error i can see in crash reports
+    assert(nodenum < Nodes.size()); // trying to catch an error i can see in crash reports
     xlColor color;
     if (nodenum < Nodes.size()) {
         Nodes[nodenum]->GetColor(color);
@@ -2952,7 +1291,7 @@ const xlColor &Model::GetNodeMaskColor(size_t nodenum) const
 
 void Model::SetNodeColor(size_t nodenum, const xlColor& c)
 {
-    wxASSERT(nodenum < Nodes.size()); // trying to catch an error i can see in crash reports
+    assert(nodenum < Nodes.size()); // trying to catch an error i can see in crash reports
     if (nodenum < Nodes.size()) {
         Nodes[nodenum]->SetColor(c);
     }
@@ -3474,7 +1813,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         for (int x = firstNode; x < newNodes.size(); ++x) {
             if (newNodes[x] == nullptr) {
                 logger_base.crit("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
-                wxASSERT(false);
+                assert(false);
             }
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, cnt, 0);
@@ -3487,7 +1826,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         for (int x = firstNode; x < newNodes.size(); ++x) {
             if (newNodes[x] == nullptr) {
                 logger_base.crit("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
-                wxASSERT(false);
+                assert(false);
             }
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, 0, 0);
@@ -3516,7 +1855,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
             } else {
                 if (newNodes[x] == nullptr) {
                     logger_base.crit("AAA Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
-                    wxASSERT(false);
+                    assert(false);
                 }
                 for (auto& it2 : newNodes[x]->Coords) {
                     SetCoords(it2, strand, cnt, -1, bufferHt, strandLen);
@@ -3548,7 +1887,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
             } else {
                 if (newNodes[x] == nullptr) {
                     logger_base.crit("BBB Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
-                    wxASSERT(false);
+                    assert(false);
                 }
                 for (auto& it2 : newNodes[x]->Coords) {
                     SetCoords(it2, cnt, strand, bufferWi, -1, strandLen);
@@ -3600,7 +1939,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         for (int x = firstNode; x < newNodes.size(); ++x) {
             if (newNodes[x] == nullptr) {
                 logger_base.crit("CCC Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
-                wxASSERT(false);
+                assert(false);
             }
             for (auto& it2 : newNodes[x]->Coords) {
                 float sx = it2.screenX;
@@ -3723,7 +2062,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
             for (int x = firstNode; x < newNodes.size(); ++x) {
                 if (newNodes[x] == nullptr) {
                     logger_base.crit("DDD Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
-                    wxASSERT(false);
+                    assert(false);
                 }
                 for (auto& it2 : newNodes[x]->Coords) {
                     // grab the previously transformed coordinate
@@ -3954,49 +2293,6 @@ size_t Model::GetNodeChannelCount(const std::string& nodeType) const
     return 3;
 }
 
-void Model::AddLayerSizeProperty(wxPropertyGridInterface* grid)
-{
-    wxPGProperty* psn = grid->Append(new wxUIntProperty("Layers", "Layers", GetLayerSizeCount()));
-    psn->SetAttribute("Min", 1);
-    psn->SetAttribute("Max", 100);
-    psn->SetEditor("SpinCtrl");
-
-    if (GetLayerSizeCount() > 1) {
-        for (int i = 0; i < GetLayerSizeCount(); ++i) {
-            wxString id = wxString::Format("Layer%d", i);
-            wxString nm = wxString::Format("Layer %d", i + 1);
-            if (i == 0)
-                nm = "Inside";
-            else if (i == GetLayerSizeCount() - 1)
-                nm = "Outside";
-
-            wxPGProperty* pls = grid->AppendIn(psn, new wxUIntProperty(nm, id, GetLayerSize(i)));
-            pls->SetAttribute("Min", 1);
-            pls->SetAttribute("Max", 1000);
-            pls->SetEditor("SpinCtrl");
-        }
-    }
-}
-
-bool Model::HandleLayerSizePropertyChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    if ("Layers" == event.GetPropertyName()) {
-        SetLayerSizeCount(event.GetValue().GetLong());
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::HandleLayerSizePropertyChange::Layers");
-        IncrementChangeCount();
-        OnLayerSizesChange(true);
-        return true;
-    } else if (event.GetPropertyName().StartsWith("Layers.Layer")) {
-        int layer = wxAtoi(event.GetPropertyName().AfterLast('r'));
-        SetLayerSize(layer, event.GetValue().GetLong());
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "Model::HandleLayerSizePropertyChange::Layer");
-        IncrementChangeCount();
-        OnLayerSizesChange(false);
-        return true;
-    }
-    return false;
-}
 
 bool Model::ContainsChannel(uint32_t startChannel, uint32_t endChannel) const
 {
@@ -4021,35 +2317,6 @@ bool Model::ContainsChannel(const std::string& submodelName, uint32_t startChann
     return sm->ContainsChannel(startChannel, endChannel);
 }
 
-void Model::HandlePropertyGridRightClick(wxPropertyGridEvent& event, wxMenu& mnu)
-{
-    wxString name = event.GetPropertyName();
-
-    if (name.StartsWith("Layers.")) {
-        layerSizeMenu = wxAtoi(event.GetPropertyName().AfterLast('r'));
-        if (GetLayerSizeCount() != 1) {
-            mnu.Append(ID_LAYERSIZE_DELETE, "Delete");
-        }
-        mnu.Append(ID_LAYERSIZE_INSERT, "Insert");
-    }
-}
-
-void Model::HandlePropertyGridContextMenu(wxCommandEvent& event)
-{
-    if (event.GetId() == ID_LAYERSIZE_DELETE) {
-        DeleteLayerSize(layerSizeMenu);
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::HandlePropertyGridContextMenu::Delete");
-        IncrementChangeCount();
-        OnLayerSizesChange(true);
-    } else if (event.GetId() == ID_LAYERSIZE_INSERT) {
-        InsertLayerSizeBefore(layerSizeMenu);
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::HandlePropertyGridContextMenu::Insert");
-        IncrementChangeCount();
-        OnLayerSizesChange(true);
-    }
-}
 
 uint32_t Model::GetChannelForNode(int strandIndex, int node) const
 {
@@ -4064,7 +2331,7 @@ uint32_t Model::GetChannelForNode(int strandIndex, int node) const
     size_t n = nodesOnPriorStrands + node;
 
     if (n >= Nodes.size()) {
-        wxASSERT(false);
+        assert(false);
         return -1;
     }
 
@@ -4482,7 +2749,7 @@ void Model::ImportSuperStringColours(wxXmlNode* root)
     bool found = true;
     int index = 0;
     while (found) {
-        auto an = wxString::Format("SuperStringColour%d", index);
+        auto an = std::format("SuperStringColour{}", index);
         if (root->HasAttribute(an)) {
             superStringColours.push_back(xlColor(root->GetAttribute(an)));
         } else {
@@ -4545,19 +2812,19 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
     html += "<tr><td>Display As:</td><td>" + DisplayAsTypeToString(DisplayAs) + "</td></tr>";
     html += "<tr><td>String Type:</td><td>" + StringType + "</td></tr>";
     html += "<tr><td>Start Corner:</td><td>" + direction + "</td></tr>";
-    html += wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>", (int)NodeCount);
-    html += wxString::Format("<tr><td>Height:</td><td>%d</td></tr>", BufferHt);
+    html += std::format("<tr><td>Total nodes:</td><td>{}</td></tr>", NodeCount);
+    html += std::format("<tr><td>Height:</td><td>{}</td></tr>", BufferHt);
 
     if (c != nullptr) {
-        html += wxString::Format("<tr><td>Controller:</td><td>%s</td></tr>", c->GetLongDescription());
+        html += std::format("<tr><td>Controller:</td><td>{}</td></tr>", c->GetLongDescription());
     }
 
     if (GetControllerProtocol() != "") {
-        html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", GetControllerProtocol().c_str());
+        html += std::format("<tr><td>Pixel protocol:</td><td>{}</td></tr>", GetControllerProtocol());
         if (GetNumStrings() == 1) {
-            html += wxString::Format("<tr><td>Controller Connection:</td><td>%d</td></tr>", GetControllerPort(1));
+            html += std::format("<tr><td>Controller Connection:</td><td>{}</td></tr>", GetControllerPort(1));
         } else {
-            html += wxString::Format("<tr><td>Controller Connections:</td><td>%d-%d</td></tr>", GetControllerPort(1), GetControllerPort(GetNumPhysicalStrings()));
+            html += std::format("<tr><td>Controller Connections:</td><td>{}-{}</td></tr>", GetControllerPort(1), GetControllerPort(GetNumPhysicalStrings()));
         }
     }
     html += "</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
@@ -4576,13 +2843,13 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
                 html += "<td>&nbsp&nbsp&nbsp</td>";
             } else {
                 int s = Nodes[n - 1]->StringNum + 1;
-                wxString bgcolor = (s % 2 == 1) ? "#ADD8E6" : "#90EE90";
+                std::string bgcolor = (s % 2 == 1) ? "#ADD8E6" : "#90EE90";
                 if (IsDarkMode())
                     bgcolor = (s % 2 == 1) ? "#3F7C85" : "#962B09";
                 while (n > NodesPerString()) {
                     n -= NodesPerString();
                 }
-                html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ds%d</td>", n, s);
+                html += std::format("<td bgcolor='{}'>n{}s{}</td>", bgcolor, n, s);
             }
         }
         html += "</tr>";
@@ -5335,15 +3602,6 @@ void Model::RecalcStartChannels()
     modelManager.RecalcStartChannels();
 }
 
-void Model::AddSizeLocationProperties(wxPropertyGridInterface* grid)
-{
-    GetModelScreenLocation().AddSizeLocationProperties(grid);
-}
-
-void Model::AddDimensionProperties(wxPropertyGridInterface* grid)
-{
-    GetModelScreenLocation().AddDimensionProperties(grid);
-}
 
 std::string Model::GetDimension() const
 {
@@ -5556,13 +3814,13 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                     wxString modelName = doc.GetRoot()->GetAttribute("name", "");
 
                     if (doc.GetRoot()->GetAttribute("widthmm", "") != "") {
-						widthmm = wxAtoi(doc.GetRoot()->GetAttribute("widthmm", ""));
+						widthmm = (int)std::strtol(doc.GetRoot()->GetAttribute("widthmm", "").c_str(), nullptr, 10);
 					}
                     if (doc.GetRoot()->GetAttribute("heightmm", "") != "") {
-						heightmm = wxAtoi(doc.GetRoot()->GetAttribute("heightmm", ""));
+						heightmm = (int)std::strtol(doc.GetRoot()->GetAttribute("heightmm", "").c_str(), nullptr, 10);
 					}
                     if (doc.GetRoot()->GetAttribute("depthmm", "") != "") {
-						depthmm = wxAtoi(doc.GetRoot()->GetAttribute("depthmm", ""));
+						depthmm = (int)std::strtol(doc.GetRoot()->GetAttribute("depthmm", "").c_str(), nullptr, 10);
 					}
 
 #ifdef __WXMSW__
@@ -5794,7 +4052,7 @@ std::string Model::CreateBufferAsSubmodel() const
     child->AddAttribute("type", "ranges");
 
     for (int x = 0; x < (int)nodearray.size(); ++x) {
-        child->AddAttribute(wxString::Format("line%d", x), CompressNodes(Join(nodearray[x], ",")));
+        child->AddAttribute(std::format("line{}", x), CompressNodes(Join(nodearray[x], ",")));
     }
 
     wxXmlDocument new_doc;
@@ -5817,13 +4075,13 @@ std::list<std::string> Model::CheckModelSettings()
             int maxBrightness = -100;
             for (auto& it : dimmingInfo) {
                 maxGamma = std::max(maxGamma, (float)wxAtof(it.second["gamma"]));
-                maxBrightness = std::max(maxBrightness, wxAtoi(it.second["brightness"]));
+                maxBrightness = std::max(maxBrightness, (int)std::strtol(it.second["brightness"].c_str(), nullptr, 10));
             }
             if (maxGamma == 0.0) {
-                res.push_back(wxString::Format("    ERR: Model %s has a dimming curve gamma of 0.0 ... this will essentially blank the model so no effects will ever show on it.", GetName()));
+                res.push_back(std::format("    ERR: Model {} has a dimming curve gamma of 0.0 ... this will essentially blank the model so no effects will ever show on it.", GetName()));
             }
             if (maxBrightness == -100) {
-                res.push_back(wxString::Format("    ERR: Model %s has a dimming curve brightness of -100 ... this will essentially blank the model so no effects will ever show on it.", GetName()));
+                res.push_back(std::format("    ERR: Model {} has a dimming curve brightness of -100 ... this will essentially blank the model so no effects will ever show on it.", GetName()));
             }
         }
     }
@@ -6276,14 +4534,7 @@ void Model::deleteUIObjects()
     uiObjectsInvalid = false;
 }
 
-bool wxDropPatternProperty::ValidateValue(wxVariant& value, wxPGValidationInfo& validationInfo) const
-{
-    for (auto c : value.GetString()) {
-        if ((c < '0' || c > '9') && c != ',' && c != '-')
-            return false;
-    }
-    return true;
-}
+// wxDropPatternProperty::ValidateValue moved to ui/modelproperties/PropertyGridHelpers.cpp
 
 std::string Model::GetAttributesAsJSON() const
 {

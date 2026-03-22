@@ -19,9 +19,6 @@ public:
     DmxGeneral(const ModelManager &manager);
     virtual ~DmxGeneral();
 
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
-
     void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
 
 protected:

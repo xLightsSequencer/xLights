@@ -8,13 +8,10 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
 
 #include "DmxGeneral.h"
 #include "../ModelScreenLocation.h"
-#include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../RenderBuffer.h"
 #include "../../xLightsVersion.h"
@@ -33,25 +30,6 @@ DmxGeneral::DmxGeneral(const ModelManager &manager)
 
 DmxGeneral::~DmxGeneral()
 {
-}
-
-void DmxGeneral::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    DmxModel::AddTypeProperties(grid, outputManager);
-
-    if (nullptr != color_ability) {
-        ControllerCaps *caps = GetControllerCaps();
-        color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
-    }
-}
-
-int DmxGeneral::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    return DmxModel::OnPropertyGridChange(grid, event);
 }
 
 void DmxGeneral::InitModel()

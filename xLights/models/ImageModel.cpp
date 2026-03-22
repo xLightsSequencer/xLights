@@ -8,10 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
 #include <format>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
 
 #include "ImageModel.h"
 #include "ModelScreenLocation.h"
@@ -71,102 +69,6 @@ void ImageModel::InitRenderBufferNodes(const std::string &type, const std::strin
     newNodes.push_back(NodeBaseClassPtr(node));
 }
 
-void ImageModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-	wxPGProperty *p = grid->Append(new wxImageFileProperty("Image",
-                                             "Image",
-                                             _imageFile));
-    p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
-                                        ";*.webp"
-        "|All files (*.*)|*.*");
-
-    p = grid->Append(new wxUIntProperty("Off Brightness", "OffBrightness", _offBrightness));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 200);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxBoolProperty("Read White As Alpha",
-        "WhiteAsAlpha",
-        _whiteAsAlpha));
-    p->SetAttribute("UseCheckbox", true);
-}
-
-void ImageModel::DisableUnusedProperties(wxPropertyGridInterface *grid)
-{
-    wxPGProperty* p = grid->GetPropertyByName("ModelFaces");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelDimmingCurves");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelStates");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelStrandNodeNames");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("SubModels");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelPixelSize");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelPixelStyle");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelPixelBlackTransparency");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-}
-
-int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-
-    IncrementChangeCount();
-    if ("Image" == event.GetPropertyName()) {
-        for (auto it = _images.begin(); it != _images.end(); ++it) {
-            delete it->second;
-        }
-        _images.clear();
-        _imageFile = event.GetValue().GetString();
-        ObtainAccessToURL(_imageFile);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::Image");
-        return 0;
-    } else if ("WhiteAsAlpha" == event.GetPropertyName()) {
-        _whiteAsAlpha = event.GetValue();
-        for (auto it = _images.begin(); it != _images.end(); ++it) {
-            delete it->second;
-        }
-        _images.clear();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::WhiteAsAlpha");
-        return 0;
-    } else if ("OffBrightness" == event.GetPropertyName()) {
-        _offBrightness = event.GetValue().GetInteger();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::OffBrightness");
-        return 0;
-    }
-
-    return Model::OnPropertyGridChange(grid, event);
-}
-
 void ImageModel::InitModel()
 {
     parm2 = 1;
@@ -193,6 +95,12 @@ void ImageModel::SetImageFile(const std::string & imageFile)
 {
     ObtainAccessToURL(imageFile);
     _imageFile = FixFile("", imageFile);
+}
+void ImageModel::ClearImageCache() {
+    for (auto it = _images.begin(); it != _images.end(); ++it) {
+        delete it->second;
+    }
+    _images.clear();
 }
 
 void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
@@ -536,7 +444,7 @@ std::list<std::string> ImageModel::CheckModelSettings()
 
 int ImageModel::GetChannelValue(int channel)
 {
-    wxASSERT(channel == 0);
+    assert(channel == 0);
 
     xlColor c;
     Nodes[channel]->GetColor(c);

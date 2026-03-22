@@ -8,12 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-
 #include "DmxShutterAbility.h"
-#include "../BaseObject.h"
 #include "../../Color.h"
 
 DmxShutterAbility::DmxShutterAbility()
@@ -22,46 +17,6 @@ DmxShutterAbility::DmxShutterAbility()
 
 DmxShutterAbility::~DmxShutterAbility()
 {
-}
-
-void DmxShutterAbility::AddShutterTypeProperties(wxPropertyGridInterface *grid) {
-
-    auto p = grid->Append(new wxPropertyCategory("Shutter Properties", "DmxShutterProperties"));
-    
-    p = grid->Append(new wxUIntProperty("Shutter Channel", "DmxShutterChannel", shutter_channel));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 512);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxIntProperty("Shutter Open Threshold", "DmxShutterOpen", shutter_threshold));
-    p->SetAttribute("Min", -255);
-    p->SetAttribute("Max", 255);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxIntProperty("Shutter On Value", "DmxShutterOnValue", shutter_on_value));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 255);
-    p->SetEditor("SpinCtrl");
-}
-
-int DmxShutterAbility::OnShutterPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base) {
-
-     if ("DmxShutterChannel" == event.GetPropertyName()) {
-         shutter_channel = (int)event.GetPropertyValue().GetLong();
-         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxShutterAbility::OnPropertyGridChange::DMXShutterChannel");
-         return 0;
-     }
-     else if ("DmxShutterOpen" == event.GetPropertyName()) {
-         shutter_threshold = (int)event.GetPropertyValue().GetLong();
-         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxShutterAbility::OnPropertyGridChange::DMXShutterOpen");
-         return 0;
-     } 
-     else if ("DmxShutterOnValue" == event.GetPropertyName()) {
-         shutter_on_value = (int)event.GetPropertyValue().GetLong();
-         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxShutterAbility::OnPropertyGridChange::DmxShutterOnValue");
-         return 0;
-     }
-     return -1;
 }
 
 bool DmxShutterAbility::IsShutterOpen(const std::vector<NodeBaseClassPtr> &Nodes) const {

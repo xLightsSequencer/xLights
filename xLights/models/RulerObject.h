@@ -30,12 +30,7 @@ public:
 
     virtual void InitModel() override;
 
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {}
-
     void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
-
-    [[nodiscard]] int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
 
     [[nodiscard]] virtual bool Draw(ModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* solid, xlGraphicsProgram* transparent, bool allowSelected = false) override;
 

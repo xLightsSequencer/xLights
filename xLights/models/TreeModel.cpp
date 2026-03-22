@@ -8,13 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/tokenzr.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-#include <wx/msgdlg.h>
-#include <wx/log.h>
-#include <wx/filedlg.h>
+#include <cassert>
 
 #include "../XmlSerializer/FileSerializingVisitor.h"
 
@@ -37,12 +31,6 @@ TreeModel::TreeModel(const ModelManager &manager) : MatrixModel(manager)
 TreeModel::~TreeModel()
 {
 }
-
-static const char* TREE_DIRECTION_VALUES[] = {
-    "Horizontal",
-    "Vertical"
-};
-static wxPGChoices TREE_DIRECTIONS(wxArrayString(2, TREE_DIRECTION_VALUES));
 
 void TreeModel::InitModel() {
     if (_firstStrand < 0) {
@@ -232,106 +220,6 @@ void TreeModel::SetTreeCoord(long _degrees)
     screenLocation.SetRenderSize(RenderWi, RenderHt, RenderWi);
 }
 
-int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if (event.GetPropertyName() == "TreeStyle") {
-        _treeType = event.GetPropertyValue().GetLong();
-        wxPGProperty *p = grid->GetPropertyByName("TreeDegrees");
-        if (p != nullptr) {
-            p->Enable(_treeType == 0);
-        }
-        p = grid->GetPropertyByName("TreeRotation");
-        if (p != nullptr) {
-            p->Enable(_treeType == 0);
-        }
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "TreeModel::OnPropertyGridChange::TreeStyle");
-        return 0;
-    } else if (event.GetPropertyName() == "TreeDegrees") {
-        _degrees = (int)event.GetPropertyValue().GetLong();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "TreeModel::OnPropertyGridChange::TreeDegrees");
-        return 0;
-    } else if (event.GetPropertyName() == "TreeRotation") {
-        _rotation = (float)event.GetPropertyValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "TreeModel::OnPropertyGridChange::TreeRotation");
-        return 0;
-    } else if (event.GetPropertyName() == "TreeSpiralRotations") {
-        _spiralRotations = (float)event.GetPropertyValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "TreeModel::OnPropertyGridChange::TreeSpiralRotations");
-        return 0;
-    } else if (event.GetPropertyName() == "TreeBottomTopRatio") {
-        _botTopRatio = (float)event.GetPropertyValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "TreeModel::OnPropertyGridChange::TreeBottomTopRatio");
-        return 0;
-    } else if (event.GetPropertyName() == "TreePerspective") {
-        _perspective = (float)(event.GetPropertyValue().GetDouble()/10.0);
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "TreeModel::OnPropertyGridChange::TreePerspective");
-        return 0;
-    } else if ("StrandDir" == event.GetPropertyName()) {
-        _vMatrix =  event.GetPropertyValue().GetBool();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "TreeModel::OnPropertyGridChange::StrandDir");
-        return 0;
-    }
-    return MatrixModel::OnPropertyGridChange(grid, event);
-}
-
-static const char* TREE_STYLES_VALUES[] = {
-    "Round",
-    "Flat",
-    "Ribbon"
-};
-
-static wxPGChoices TREE_STYLES(wxArrayString(3, TREE_STYLES_VALUES));
-
-void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
-    grid->Append(new wxEnumProperty("Type", "TreeStyle", TREE_STYLES, _treeType));
-
-    wxPGProperty *p = grid->Append(new wxUIntProperty("Degrees", "TreeDegrees", _treeType == 0 ? _degrees : 180));
-    p->SetAttribute("Min", "1");
-    p->SetAttribute("Max", "360");
-    p->SetEditor("SpinCtrl");
-    p->Enable(_treeType == 0);
-
-    p = grid->Append(new wxFloatProperty("Rotation", "TreeRotation", _treeType == 0 ? _rotation : 3));
-    p->SetAttribute("Min", "-360");
-    p->SetAttribute("Max", "360");
-    p->SetAttribute("Precision", 2);
-    p->SetAttribute("Step", 0.1);
-    p->SetEditor("SpinCtrl");
-    p->Enable(_treeType == 0);
-
-    p = grid->Append(new wxFloatProperty("Spiral Wraps", "TreeSpiralRotations", _treeType == 0 ? _spiralRotations : 0.0));
-    p->SetAttribute("Min", "-200");
-    p->SetAttribute("Max", "200");
-    p->SetAttribute("Precision", 2);
-    p->SetEditor("SpinCtrl");
-    p->Enable(_treeType == 0);
-
-    p = grid->Append(new wxFloatProperty("Bottom/Top Ratio", "TreeBottomTopRatio", _treeType == 0 ? _botTopRatio : 6.0));
-    p->SetAttribute("Min", "-50");
-    p->SetAttribute("Max", "50");
-    p->SetAttribute("Step", 0.5);
-    p->SetAttribute("Precision", 2);
-    p->SetEditor("SpinCtrl");
-    p->Enable(_treeType == 0);
-
-    p = grid->Append(new wxFloatProperty("Perspective", "TreePerspective", _treeType == 0 ? _perspective*10 : 2));
-    p->SetAttribute("Min", "0");
-    p->SetAttribute("Max", "10");
-    p->SetAttribute("Precision", 2);
-    p->SetAttribute("Step", 0.1);
-    p->SetEditor("SpinCtrl");
-    p->Enable(_treeType == 0);
-
-    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", HasAlternateNodes()));
-    p->SetEditor("CheckBox");
-    p->Enable(_noZigZag == false);
-
-    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", IsNoZigZag()));
-    p->SetEditor("CheckBox");
-    p->Enable(_alternateNodes == false);
-
-    grid->Append(new wxEnumProperty("Strand Direction", "StrandDir", TREE_DIRECTIONS, _vMatrix ? 1 : 0));
-}
-
 #define SCALE_FACTOR_3D (1.1)
 
 // Helper function to build 3D custom model data from node coordinates
@@ -380,10 +268,10 @@ static std::vector<std::vector<std::vector<int>>> BuildTreeCustomModelData(
         int xx = SCALE_FACTOR_3D * w * (n->Coords[0].screenX - minx) / w;
         int yy = (SCALE_FACTOR_3D * h) - (SCALE_FACTOR_3D * h * (n->Coords[0].screenY - miny) / h);
         int zz = SCALE_FACTOR_3D * d * (maxz - n->Coords[0].screenZ) / d;
-        wxASSERT(xx >= 0 && xx < width);
-        wxASSERT(yy >= 0 && yy < height);
-        wxASSERT(zz >= 0 && zz < depth);
-        wxASSERT(data[zz][yy][xx] == -1);
+        assert(xx >= 0 && xx < width);
+        assert(yy >= 0 && yy < height);
+        assert(zz >= 0 && zz < depth);
+        assert(data[zz][yy][xx] == -1);
         data[zz][yy][xx] = i++;
     }
 

@@ -8,11 +8,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
 #include "ModelScreenLocation.h"
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
@@ -689,7 +687,7 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
             point = glm::vec3(0.0f, 0.0f, saved_position.z);
             break;
         default:
-            wxASSERT(false);
+            assert(false);
             break;
         }
     } else {
@@ -722,7 +720,7 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
                     }
                 break;
         default:
-            wxASSERT(false);
+            assert(false);
             break;
         }
     }

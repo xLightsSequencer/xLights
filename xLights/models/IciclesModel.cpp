@@ -8,14 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 
 #include "IciclesModel.h"
-#include "../OutputModelManager.h"
-#include "../xLightsVersion.h"
-#include "../xLightsMain.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
 IciclesModel::IciclesModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
@@ -105,76 +99,6 @@ void IciclesModel::InitModel()
     screenLocation.SetRenderSize(width, _maxH);
 }
 
-static const char* LEFT_RIGHT_VALUES[] = { "Green Square", "Blue Square" };
-static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES));
-
-void IciclesModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "IciclesStrings", parm1));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-    p->SetHelpString("This is typically the number of connections from the prop to your controller.");
-
-    if (SingleNode) {
-        p = grid->Append(new wxUIntProperty("Lights/String", "IciclesLights", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 2000);
-        p->SetEditor("SpinCtrl");
-    } else {
-        p = grid->Append(new wxUIntProperty("Nodes/String", "IciclesLights", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 2000);
-        p->SetEditor("SpinCtrl");
-        p->SetHelpString("This is typically the total number of pixels per #String.");
-    }
-
-    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", HasAlternateNodes()));
-    p->SetEditor("CheckBox");
-
-    grid->Append(new wxDropPatternProperty("Drop Pattern", "IciclesDrops", _dropPatternString));
-
-    grid->Append(new wxEnumProperty("Starting Location", "IciclesStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
-}
-
-int IciclesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if ("IciclesStrings" == event.GetPropertyName()) {
-        parm1 = static_cast<int>(event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "IciclesModel::OnPropertyGridChange::IciclesStrings");
-        return 0;
-    } else if ("IciclesLights" == event.GetPropertyName()) {
-        parm2 = static_cast<int>(event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "IciclesModel::OnPropertyGridChange::IciclesStrings");
-        return 0;
-    } else if ("IciclesDrops" == event.GetPropertyName()) {
-        SetDropPattern(event.GetPropertyValue().GetString());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "IciclesModel::OnPropertyGridChange::IciclesDrops");
-        return 0;
-    } else if ("IciclesStart" == event.GetPropertyName()) {
-        SetDirection(event.GetValue().GetLong() == 0 ? "L" : "R");
-        SetIsLtoR(event.GetValue().GetLong() == 0);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "IciclesModel::OnPropertyGridChange::IciclesStart");
-        return 0;
-    } else if ("AlternateNodes" == event.GetPropertyName()) {
-        SetAlternateNodes(event.GetPropertyValue().GetBool());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "IciclesModel::OnPropertyGridChange::AlternateNodes");
-        return 0;
-    }
-    return Model::OnPropertyGridChange(grid, event);
-}
-
 void IciclesModel::SetDropPattern(const std::string & pattern)
 {
     _dropPatternString = pattern;
@@ -204,8 +128,3 @@ std::string IciclesModel::GetDimension() const
     return static_cast<TwoPointScreenLocation>(screenLocation).GetDimension(1.0);
 }
 
-void IciclesModel::AddDimensionProperties(wxPropertyGridInterface* grid)
-{
-    // the height does not make sense for icicles
-    static_cast<TwoPointScreenLocation>(screenLocation).AddDimensionProperties(grid, 1.0);
-}

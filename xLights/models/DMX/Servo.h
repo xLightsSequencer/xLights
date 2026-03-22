@@ -16,22 +16,15 @@
 #include "../PWMOutput.h"
 #include <map>
 
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
 class BaseObject;
-class wxXmlNode;
 
 class Servo
 {
 public:
     Servo(const std::string& _name, bool _is2d);
     virtual ~Servo();
-    
+
     void Init(BaseObject* base);
-    
-    void AddTypeProperties(wxPropertyGridInterface* grid, bool pwm);
-    
-    int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base, bool locked);
     
     int GetChannel() const { return channel; }
     int GetMinLimit() const { return min_limit; }
@@ -46,7 +39,8 @@ public:
     bool IsRotate() const;
     void FillMotionMatrix(float servo_pos, glm::mat4& motion_matrix);
     float GetPosition(int channel_value);
-    bool Is16Bit() { return _16bit; }
+    bool Is16Bit() const { return _16bit; }
+    bool Is2D() const { return is_2d; }
     
     void SetChannel(int chan) { channel = chan; }
     void SetMinLimit(int val) { min_limit = val; }
@@ -71,9 +65,9 @@ public:
     void SetScaledPivotOffsetX(float val) { pivot_offset_x = val / offset_scale; }
     void SetScaledPivotOffsetY(float val) { pivot_offset_y = val / offset_scale; }
     void SetScaledPivotOffsetZ(float val) { pivot_offset_z = val / offset_scale; }
-    float GetScaledPivotOffsetX() { return pivot_offset_x * offset_scale; }
-    float GetScaledPivotOffsetY() { return pivot_offset_y * offset_scale; }
-    float GetScaledPivotOffsetZ() { return pivot_offset_z * offset_scale; }
+    float GetScaledPivotOffsetX() const { return pivot_offset_x * offset_scale; }
+    float GetScaledPivotOffsetY() const { return pivot_offset_y * offset_scale; }
+    float GetScaledPivotOffsetZ() const { return pivot_offset_z * offset_scale; }
     
     void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const;
     

@@ -8,10 +8,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-
 #include "../OutputModelManager.h"
 #include "CandyCaneModel.h"
 #include "ModelScreenLocation.h"
@@ -31,144 +27,6 @@ CandyCaneModel::~CandyCaneModel()
 {
 }
 
-static const char *LEFT_RIGHT_VALUES[] = {
-    "Green Square", 
-    "Blue Square"
-};
-static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES));
-
-void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Canes", "CandyCaneCount", parm1));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 20);
-    p->SetEditor("SpinCtrl");
-    if (SingleNode) {
-        p = grid->Append(new wxUIntProperty("Lights Per Cane", "CandyCaneNodes", parm3));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 250);
-        p->SetEditor("SpinCtrl");
-    } else {
-        p = grid->Append(new wxUIntProperty("Nodes Per Cane", "CandyCaneNodes", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 250);
-        p->SetEditor("SpinCtrl");
-    }
-    p = grid->Append(new wxUIntProperty("Lights Per Node", "CandyCaneLights", parm3));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 250);
-    p->SetEditor("SpinCtrl");
-    if (SingleNode) {
-        p->Hide(true);
-    }
-    p = grid->Append(new wxFloatProperty("Height", "CandyCaneHeight", _caneheight));
-    p->SetAttribute("Precision", 2);
-    p->SetAttribute("Step", 0.1);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxIntProperty("Cane Rotation", "CandyCaneSkew", screenLocation.GetAngle()));
-    p->SetAttribute("Min", -180 );
-    p->SetAttribute("Max", 180);
-    p->SetEditor("SpinCtrl");
-
-	p = grid->Append(new wxBoolProperty("Reverse", "CandyCaneReverse", _reverse));
-	p->SetEditor("CheckBox");
-    p->Enable(!_sticks);
-
-	p = grid->Append(new wxBoolProperty("Sticks", "CandyCaneSticks", _sticks));
-	p->SetEditor("CheckBox");
-
-    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", HasAlternateNodes()));
-    p->SetEditor("CheckBox");
-    if (SingleNode) {
-        p->Enable(false);
-    }
-
-    grid->Append(new wxEnumProperty("Starting Location", "CandyCaneStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
-}
-
-void CandyCaneModel::UpdateTypeProperties(wxPropertyGridInterface* grid) {
-    if (SingleNode) {
-        grid->GetPropertyByName("CandyCaneLights")->Hide(true);
-        grid->GetPropertyByName("AlternateNodes")->Enable(false);
-    }
-    else
-    {
-        grid->GetPropertyByName("CandyCaneLights")->Hide(false);
-        grid->GetPropertyByName("AlternateNodes")->Enable();
-    }
-
-    grid->GetPropertyByName("CandyCaneReverse")->Enable(!_sticks);
-}
-
-int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if ("CandyCaneCount" == event.GetPropertyName()) {
-        parm1 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
-        AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CandyCaneModel::OnPropertyGridChange::CandyCaneCount");
-        return 0;
-    } else if ("CandyCaneNodes" == event.GetPropertyName()) {
-        parm2 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
-        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CandyCaneModel::OnPropertyGridChange::CandyCaneNodes");
-        return 0;
-    } else if ("CandyCaneLights" == event.GetPropertyName()) {
-        parm3 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneLights");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CandyCaneModel::OnPropertyGridChange::CandyCaneLights");
-        return 0;
-    } else if ("CandyCaneReverse" == event.GetPropertyName()) {
-        _reverse = event.GetPropertyValue().GetBool() ? true : false;
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneReverse");
-        return 0;
-    } else if ("CandyCaneSkew" == event.GetPropertyName()) {
-        screenLocation.SetAngle(event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneSkew");
-        return 0;
-    } else if ("CandyCaneHeight" == event.GetPropertyName()) {
-        _caneheight = event.GetPropertyValue().GetDouble();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneHeight");
-        return 0;
-    } else if ("CandyCaneSticks" == event.GetPropertyName()) {
-        _sticks = event.GetPropertyValue().GetBool() ? true : false;
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
-        AddASAPWork(OutputModelManager::WORK_UPDATE_PROPERTYGRID, "CandyCaneModel::OnPropertyGridChange::CandyCaneSticks");
-        return 0;
-    } else if ("AlternateNodes" == event.GetPropertyName()) {
-        SetAlternateNodes(event.GetPropertyValue().GetBool() ? true : false);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::AlternateNodes");
-        return 0;
-    } else if ("CandyCaneStart" == event.GetPropertyName()) {
-        SetDirection(event.GetValue().GetLong() == 0 ? "L" : "R");
-        SetIsLtoR(event.GetValue().GetLong() == 0);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CandyCaneModel::OnPropertyGridChange::CandyCaneStart");
-    } else if (event.GetPropertyName() == "ModelStringType") {
-        wxPGProperty *p = grid->GetPropertyByName("CandyCaneLights");
-        p->Hide(SingleNode);
-        p = grid->GetPropertyByName("CandyCaneNodes");
-        if (SingleNode) {
-            p->SetLabel("Lights Per Cane");
-        } else {
-            p->SetLabel("Nodes Per Cane");
-        }
-    }
-    return Model::OnPropertyGridChange(grid, event);
-}
 
 bool CandyCaneModel::IsNodeFirst(int n) const
 {
@@ -182,16 +40,6 @@ std::string CandyCaneModel::GetDimension() const
         return GetModelScreenLocation().GetDimension(6.0 / parm1);
     }
     return GetModelScreenLocation().GetDimension(6.0);
-}
-
-void CandyCaneModel::AddDimensionProperties(wxPropertyGridInterface* grid)
-{
-    if (parm1 != 0) {
-        GetModelScreenLocation().AddDimensionProperties(grid, 6.0 / parm1);
-    }
-    else {
-        GetModelScreenLocation().AddDimensionProperties(grid, 6.0);
-    }
 }
 
 void CandyCaneModel::GetBufferSize(const std::string &tp, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const {

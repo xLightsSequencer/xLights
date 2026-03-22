@@ -32,10 +32,6 @@ class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
                                           float *boundingBox = nullptr) override;
         virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
     
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) override;
-        [[nodiscard]] virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
-
         [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return false; }
         [[nodiscard]] virtual bool SupportsWiringView() const override { return false; }
         [[nodiscard]] virtual int GetNumPhysicalStrings() const override { return 1; }
@@ -49,6 +45,7 @@ class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetImageFile(const std::string & imageFile);
         void SetWhiteAsAlpha(bool alpha) { _whiteAsAlpha = alpha; }
         void SetOffBrightness(int brightness) { _offBrightness = brightness; }
+        void ClearImageCache();
 
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 

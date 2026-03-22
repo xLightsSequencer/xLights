@@ -16,9 +16,6 @@
 #include "../../graphics/tiny_obj_loader.h"
 #include "../../Color.h"
 
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
-class wxXmlNode;
 class BaseObject;
 
 class ModelPreview;
@@ -35,11 +32,6 @@ public:
     void Init(BaseObject* base, bool set_size);
     bool GetExists(BaseObject* base, xlGraphicsContext *ctx);
     bool HasObjFile() const { return !_objFile.empty(); }
-
-    void AddTypeProperties(wxPropertyGridInterface* grid);
-    void UpdateTypeProperties(wxPropertyGridInterface* grid) {}
-
-    int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event, BaseObject* base, bool locked);
 
     void Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram,
             glm::mat4& base_matrix, glm::mat4& motion_matrix,
@@ -84,6 +76,7 @@ public:
     void SetBrightness(float bright) { brightness = bright; }
 
     void SetObjFile(const std::string& file) { _objFile = file; }
+    void NotifyObjFileChanged() { obj_loaded = false; obj_exists = false; if (controls_size) { recalc_size = true; } }
     void SetScaleX(float val) { scalex = val; }
     void SetScaleY(float val) { scaley = val; }
     void SetScaleZ(float val) { scalez = val; }

@@ -8,16 +8,10 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-
 #include "DmxColorAbilityWheel.h"
-#include "../BaseObject.h"
 #include "../Model.h"
 #include "../Node.h"
 #include "../../Color.h"
-#include "../../ui/wxUtilities.h"
 
 DmxColorAbilityWheel::DmxColorAbilityWheel() :
     DmxColorAbility()
@@ -84,98 +78,6 @@ bool DmxColorAbilityWheel::IsValidModelSettings(Model* m) const
 
     return (wheel_channel < nodeCount + 1 &&
             dimmer_channel < nodeCount + 1);
-}
-
-void DmxColorAbilityWheel::AddColorTypeProperties(wxPropertyGridInterface *grid, bool pwm) const {
-
-    wxPGProperty* p = grid->Append(new wxUIntProperty("Color Wheel Channel", "DmxColorWheelChannel", wheel_channel));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 512);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("Dimmer Channel", "DmxDimmerChannel", dimmer_channel));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 512);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("Color Wheel Delay(ms)", "DmxColorWheelDelay", wheel_delay));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 10000);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("Color Wheel Size", "DmxColorWheelSize", colors.size()));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", MAX_COLORS);
-    p->SetEditor("SpinCtrl");
-
-    int index = 0;
-    for (auto const& col : colors) {
-        grid->AppendIn(p,
-                       new wxColourProperty(wxString::Format("Color %d", 1 + index),
-                                            wxString::Format("DmxColorWheelColor%d", index), xlColorToWxColour(col.color)));
-        auto sp = grid->AppendIn(p,
-            new wxUIntProperty(wxString::Format("Color %d DMX", 1 + index),
-                wxString::Format("DmxColorWheelDMX%d", index), col.dmxValue));
-        sp->SetAttribute("Min", 0);
-        sp->SetAttribute("Max", 255);
-        sp->SetEditor("SpinCtrl");
-
-        ++index;
-    }
-}
-
-int DmxColorAbilityWheel::OnColorPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base) {
-
-    if ("DmxColorWheelChannel" == event.GetPropertyName()) {
-        wheel_channel = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelChannel");
-        return 0;
-    } else if ("DmxDimmerChannel" == event.GetPropertyName()) {
-        dimmer_channel = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxDimmerChannel");
-        return 0;
-    } else if ("DmxColorWheelDelay" == event.GetPropertyName()) {
-        wheel_delay = (int)event.GetPropertyValue().GetLong();
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelDelay");
-        return 0;
-    } else if ("DmxColorWheelSize" == event.GetPropertyName()) {
-
-        int colorSize = (int)event.GetPropertyValue().GetInteger();
-        // if new color size is less than num of colors, remove unneeded colors
-        while (colorSize < colors.size()) {
-            colors.pop_back();
-        }
-        // if color size is greater than  num of colors, add needed colors
-        int diff = colorSize - colors.size();
-        for (int i = 0; i < diff; i++) {
-            auto const lastValue = (colors.back().dmxValue + 50) % 255;
-            colors.emplace_back(xlRED, lastValue);
-        }
-        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                          OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelSize");
-        return 0;
-    } else if (event.GetPropertyName().StartsWith("DmxColorWheelSize.DmxColorWheelDMX")) {
-        int dxmVal = (int)event.GetPropertyValue().GetInteger();
-        wxString namekey = event.GetPropertyName();
-        namekey.Replace("DmxColorWheelSize.DmxColorWheelDMX", "");
-        int index = wxAtoi(namekey);
-        if (index >= 0 && index < colors.size()) {
-            colors[index].dmxValue = dxmVal;
-            base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelDMX");
-        }
-    }
-    else if (event.GetPropertyName().StartsWith("DmxColorWheelSize.DmxColorWheelColor") ){
-        wxColour wheeleColour = *wxBLACK;
-        wheeleColour << event.GetProperty()->GetValue();
-        wxString namekey = event.GetPropertyName();
-        namekey.Replace("DmxColorWheelSize.DmxColorWheelColor", "");
-        int index = wxAtoi(namekey);
-        if (index >= 0 && index<colors.size()) {
-            colors[index].color = wxColourToXlColor(wheeleColour);
-            base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxColorAbility::OnColorPropertyGridChange::DmxColorWheelColor");
-        }
-    }
-    return -1;
 }
 
 xlColor DmxColorAbilityWheel::GetBeamColor( const std::vector<NodeBaseClassPtr>& Nodes) const

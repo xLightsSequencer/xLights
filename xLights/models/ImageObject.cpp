@@ -9,10 +9,6 @@
  **************************************************************/
 
 #include <format>
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-
 #include "ImageObject.h"
 #include "UtilFunctions.h"
 #include "ModelPreview.h"
@@ -45,52 +41,11 @@ void ImageObject::InitModel()
     screenLocation.SetRenderSize(width, height, 10.0f);
 }
 
-void ImageObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-	wxPGProperty *p = grid->Append(new wxImageFileProperty("Image",
-                                             "Image",
-                                             _imageFile));
-    p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
-                                        ";*.webp"
-                                        "|All files (*.*)|*.*");
-
-    p = grid->Append(new wxUIntProperty("Transparency", "Transparency", transparency));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-    p = grid->Append(new wxUIntProperty("Brightness", "Brightness", (int)brightness));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-}
-
-int ImageObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if ("Image" == event.GetPropertyName()) {
-        for (auto it = _images.begin(); it != _images.end(); ++it) {
-            delete it->second;
-        }
-        _images.clear();
-        _imageFile = event.GetValue().GetString();
-        ObtainAccessToURL(_imageFile);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ImageObject::OnPropertyGridChange::Image");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ImageObject::OnPropertyGridChange::Image");
-        return 0;
-    } else if ("Transparency" == event.GetPropertyName()) {
-        transparency = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ImageObject::OnPropertyGridChange::Transparency");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ImageObject::OnPropertyGridChange::Transparency");
-        return 0;
-    } else if ("Brightness" == event.GetPropertyName()) {
-        brightness = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ImageObject::OnPropertyGridChange::Brightness");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ImageObject::OnPropertyGridChange::Brightness");
-        return 0;
+void ImageObject::ClearImages() {
+    for (auto it = _images.begin(); it != _images.end(); ++it) {
+        delete it->second;
     }
-
-    return ViewObject::OnPropertyGridChange(grid, event);
+    _images.clear();
 }
 
 bool ImageObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {

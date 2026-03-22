@@ -14,10 +14,8 @@
 #include "../../graphics/xlGraphicsAccumulators.h"
 #include <glm/glm.hpp>
 
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
 class BaseObject;
-
+class wxXmlNode;
 class ModelPreview;
 
 class DmxImage
@@ -30,11 +28,6 @@ public:
 
     void Init(BaseObject* base);
     bool GetExists() { return obj_exists; }
-
-    void AddTypeProperties(wxPropertyGridInterface* grid);
-    void UpdateTypeProperties(wxPropertyGridInterface* grid) {}
-
-    int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base, bool locked);
 
     void Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *pg,
               glm::mat4 &motion_matrix,
@@ -59,6 +52,12 @@ public:
     float GetOffsetZ() const { return offset_z; }
 
     void SetImageFile(const std::string& file) { _imageFile = file; }
+    void NotifyImageFileChanged() {
+        for (auto it = _images.begin(); it != _images.end(); ++it) { delete it->second; }
+        _images.clear();
+        obj_exists = false;
+        image_selected = true;
+    }
     void SetScaleX(float val) { scalex = val; }
     void SetScaleY(float val) { scaley = val; }
     void SetScaleZ(float val) { scalez = val; }

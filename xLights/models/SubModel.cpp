@@ -12,10 +12,6 @@
 #include "ModelManager.h"
 #include "ModelGroup.h"
 
-#include <wx/xml/xml.h>
-#include <wx/tokenzr.h>
-#include <wx/propgrid/propgrid.h>
-
 #include <log4cpp/Category.hh>
 
 static const std::string DEFAULT("Default");
@@ -107,60 +103,6 @@ SubModel::SubModel(Model *newParent, const SubModel* source) :
 
 bool SubModel::IsXYBufferStyle() { return _bufferStyle == KEEP_XY; }
 
-void SubModel::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    wxPGProperty* p = grid->Append(new wxStringProperty("SubModel Type", "SMT", _type));
-    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p->ChangeFlag(wxPGFlags::ReadOnly, true);
-
-    p = grid->Append(new wxStringProperty("SubModel Layout", "SML", _layout));
-    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p->ChangeFlag(wxPGFlags::ReadOnly, true);
-
-    p = grid->Append(new wxStringProperty("SubModel Buffer Style", "SMBS", _bufferStyle));
-    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p->ChangeFlag(wxPGFlags::ReadOnly, true);
-
-    p = grid->Append(new wxStringProperty("SubModel", "SMN", _propertyGridDisplay));
-    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    p->ChangeFlag(wxPGFlags::ReadOnly, true);
-
-    auto modelGroups = parent->GetModelManager().GetGroupsContainingModel(this);
-    if (modelGroups.size() > 0) {
-        std::string mgs;
-        std::string mgscr;
-        for (const auto& it : modelGroups) {
-            if (mgs != "") {
-                mgs += ", ";
-                mgscr += "\n";
-            }
-            mgs += it;
-            mgscr += it;
-        }
-        p = grid->Append(new wxStringProperty("In Model Groups", "MGS", mgs));
-        p->SetHelpString(mgscr);
-        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-        p->ChangeFlag(wxPGFlags::ReadOnly, true);
-    }
-    auto smaliases = parent->GetSubModel(this->GetName())->GetAliases();
-    if (smaliases.size() > 0) {
-        std::string sma;
-        std::string smacr;
-        for (const auto& it : smaliases) {
-            if (sma != "") {
-                sma += ", ";
-                smacr += "\n";
-            }
-            sma += it;
-            smacr += it;
-        }
-        p = grid->Append(new wxStringProperty("SubModel Aliases", "SMA", sma));
-        p->SetHelpString(smacr);
-        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-        p->ChangeFlag(wxPGFlags::ReadOnly, true);
-    }
-  
-}
 
 static const std::string VERT_PER_STRAND("Vertical Per Strand");
 static const std::string HORIZ_PER_STRAND("Horizontal Per Strand");

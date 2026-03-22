@@ -38,10 +38,6 @@ public:
     void DrawModel(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool is3d, bool active, const xlColor *c);
 
 
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
-    virtual void DisableUnusedProperties(wxPropertyGridInterface* grid) override;
-
     bool Is16Bit() const { return _16bit; }
     bool IsMeshOnly() const { return mesh_only; }
     bool HasJaw() const { return has_jaw; }

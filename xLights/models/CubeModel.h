@@ -36,9 +36,6 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         [[nodiscard]] virtual std::string ChannelLayoutHtml(OutputManager * outputManager) override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        [[nodiscard]] virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
-
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
         [[nodiscard]] std::string GetCubeStyle() const;
@@ -51,6 +48,12 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetStrandStyle(const std::string & style);
         void SetCubeStrings(int strings) { _cubeStrings = strings; }
         void SetCubeStart(const std::string & start);
+        [[nodiscard]] int GetCubeStartIndex() const { return _cubeStart; }
+        [[nodiscard]] int GetCubeStyleIndex() const { return _cubeStyle; }
+        [[nodiscard]] int GetStrandStyleIndex() const { return _strandStyle; }
+        void SetCubeStartIndex(int idx) { _cubeStart = idx; }
+        void SetCubeStyleIndex(int idx) { _cubeStyle = idx; }
+        void SetStrandStyleIndex(int idx) { _strandStyle = idx; }
         void SetStrandPerLayer(bool val) { _strandPerLayer = val; }
 
     protected:

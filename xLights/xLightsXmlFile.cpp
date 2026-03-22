@@ -527,40 +527,6 @@ static wxString GetSetting(const wxString& setting, const wxString& text)
     return "";
 }
 
-//deletes the setting from "text" and returns what the value was
-static wxString DeleteSetting(const wxString& setting, wxString& text)
-{
-    wxString settings = text;
-    while (!settings.IsEmpty()) {
-        wxString before = settings.BeforeFirst(',');
-        if (before.Contains(setting)) {
-            wxString val = before.AfterLast('=');
-            text.Replace(before, "");
-            text.Replace(",,", ",");
-            return val;
-        }
-        settings = settings.AfterFirst(',');
-    }
-    return "";
-}
-
-//replaces the setting from "text" and returns what the value was
-static wxString ReplaceSetting(const wxString& setting, wxString& text, const wxString& newData)
-{
-    wxString settings = text;
-    while (!settings.IsEmpty()) {
-        wxString before = settings.BeforeFirst(',');
-        if (before.Contains(setting)) {
-            wxString val = before.AfterLast('=');
-            text.Replace(before, setting + "=" + newData);
-            return val;
-        }
-        settings = settings.AfterFirst(',');
-    }
-    return "";
-}
-
-
 wxXmlNode* xLightsXmlFile::AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxString& node_data)
 {
     wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, node_name);

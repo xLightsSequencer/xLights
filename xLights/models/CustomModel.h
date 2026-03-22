@@ -30,8 +30,6 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] virtual int GetStrandLength(int strand) const override;
         [[nodiscard]] virtual int MapToNodeIndex(int strand, int node) const override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        [[nodiscard]] virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
         [[nodiscard]] virtual std::list<std::string> GetFileReferences() override;
         [[nodiscard]] virtual bool CleanupFileLocations(xLightsFrame* frame) override;

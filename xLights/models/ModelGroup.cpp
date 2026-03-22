@@ -8,9 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/wx.h>
-#include <wx/xml/xml.h>
-#include <wx/sstream.h>
+#include <cassert>
 
 #include "ModelGroup.h"
 #include "ModelManager.h"
@@ -172,7 +170,7 @@ bool ModelGroup::DirectlyContainsModel(std::string const& m) const
 
 bool ModelGroup::ContainsModelOrSubmodel(const Model* m) const
 {
-    wxASSERT(m->GetDisplayAs() != DisplayAsType::ModelGroup);
+    assert(m->GetDisplayAs() != DisplayAsType::ModelGroup);
 
     std::list<const Model*> visited;
     visited.push_back(this);
@@ -197,7 +195,7 @@ bool ModelGroup::ContainsModelOrSubmodel(const Model* m) const
 
 bool ModelGroup::ContainsModel(const Model* m) const
 {
-    wxASSERT(m->GetDisplayAs() != DisplayAsType::ModelGroup);
+    assert(m->GetDisplayAs() != DisplayAsType::ModelGroup);
 
     std::list<const Model*> visited;
     visited.push_back(this);
@@ -1086,12 +1084,12 @@ static inline void SetCoords(NodeBaseClass::CoordStruct &it2, int x, int y, int 
 //            m->InitRenderBufferNodes("Single Line", "2D", "None", nodesSingleLine, x, y);
 //            totalSingleLine += nodesSingleLine.size();
 
-//            wxASSERT(nodesDefault.size() == nodesSingleLine.size());
+//            assert(nodesDefault.size() == nodesSingleLine.size());
 //        }
 //    }
-//    wxASSERT(mgNodesDefault.size() == mgNodesPerPreview.size());
-//    wxASSERT(mgNodesDefault.size() == totalPerModelDefault);
-//    wxASSERT(mgNodesDefault.size() == totalSingleLine);
+//    assert(mgNodesDefault.size() == mgNodesPerPreview.size());
+//    assert(mgNodesDefault.size() == totalPerModelDefault);
+//    assert(mgNodesDefault.size() == totalSingleLine);
 //}
 
 void ModelGroup::InitRenderBufferNodes(const std::string& tp,
@@ -1401,7 +1399,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string& tp,
         if (deep) {
             for (const auto& it : GetFlatModels(false, true)) {
                 Model* m = it;
-                wxASSERT(m != nullptr);
+                assert(m != nullptr);
                 if (!m->IsActive()) continue;
                 int start = Nodes.size();
                 int x, y;

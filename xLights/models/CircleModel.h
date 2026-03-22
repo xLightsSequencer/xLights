@@ -23,8 +23,6 @@ class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] virtual int GetNumStrands() const override;
         [[nodiscard]] virtual bool AllNodesAllocated() const override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        [[nodiscard]] virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return true; }
         [[nodiscard]] virtual bool SupportsWiringView() const override { return true; }
 

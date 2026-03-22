@@ -44,8 +44,6 @@
 
 class wxXmlNode;
 class ModelPreview;
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
 class wxCursor;
 class PreviewCamera;
 
@@ -140,9 +138,6 @@ protected:
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) = 0;
     virtual void UpdateBoundingBox(float width, float height, float depth);
 
-    virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const = 0;
-    virtual void AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor = 1.0) const = 0;
-    virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) = 0;
     virtual bool IsCenterBased() const = 0;
     virtual float GetVScaleFactor() const {return 1.0;}
 
@@ -288,6 +283,8 @@ protected:
     virtual glm::vec3 GetHandlePosition(int handle) const;
     glm::vec3 GetRotationAngles() const { return angles; }
     glm::mat4 GetModelMatrix() const { return ModelMatrix; }
+
+    friend class ScreenLocationPropertyHelper;
 
 protected:
     ModelScreenLocation(int points);

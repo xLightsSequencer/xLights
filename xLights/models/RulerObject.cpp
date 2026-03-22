@@ -9,10 +9,6 @@
  **************************************************************/
 
 #include <format>
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-
 #include "RulerObject.h"
 #include "ModelPreview.h"
 #include "Model.h"
@@ -41,37 +37,6 @@ void RulerObject::InitModel() {
     screenLocation.SetRenderSize(std::abs(start.x - end.x), std::abs(start.y - end.y), std::abs(start.z - end.z));
 }
 
-static const char *UNITS_VALUES[] = {
-    "Meters", "Centimeters", "Millimeters", "Yards", "Feet",
-    "Inches"};
-static wxArrayString RULER_UNITS(6, UNITS_VALUES);
-
-void RulerObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-	wxPGProperty* p = grid->Append(new wxEnumProperty("Units", "Units", RULER_UNITS, wxArrayInt(), _units));
-
-    p = grid->Append(new wxFloatProperty("Real Length", "Length", _realLength));
-    p->SetAttribute("Precision", 2);
-    p->SetAttribute("Step", 0.5);
-    p->SetAttribute("Min", 0.01);
-    p->SetEditor("SpinCtrl");
-}
-
-int RulerObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if ("Units" == event.GetPropertyName()) {
-        _units = (int)event.GetPropertyValue().GetLong();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "RulerObject::OnPropertyGridChange::Units");
-        return 0;
-    }
-    else if ("Length" == event.GetPropertyName()) {
-        _realLength = event.GetPropertyValue().GetDouble();
-        if (_realLength < 0.01) _realLength = 0.01f;
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "GridlinesObject::OnPropertyGridChange::GridWidth");
-        return 0;
-    }
-
-    return ViewObject::OnPropertyGridChange(grid, event);
-}
 
 bool RulerObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);

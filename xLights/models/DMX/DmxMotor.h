@@ -12,10 +12,7 @@
 
 #include <string>
 #include <glm/glm.hpp>
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
 class BaseObject;
-class wxXmlNode;
 
 class DmxMotor
 {
@@ -26,10 +23,6 @@ protected:
         virtual ~DmxMotor();
 
         void Init();
-
-        void AddTypeProperties(wxPropertyGridInterface* grid);
-
-        int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event, BaseObject* base, bool locked);
 
         std::string GetName() const { return base_name; }
         int GetChannelCoarse() const { return channel_coarse; }

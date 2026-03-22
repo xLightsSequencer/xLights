@@ -12,19 +12,11 @@
 
 #include "../Model.h"
 
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
-class BaseObject;
-class wxXmlNode;
-
 class DmxBeamAbility
 {
     public:
         DmxBeamAbility();
         virtual ~DmxBeamAbility();
-
-        void AddBeamTypeProperties(wxPropertyGridInterface *grid);
-        int OnBeamPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base);
 
         [[nodiscard]] float GetBeamLength() const { return beam_length; }
         [[nodiscard]] float GetDefaultBeamLength() const { return default_beam_length; }

@@ -27,8 +27,6 @@ public:
                                       float *boundingBox = nullptr) override;
     virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
 
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
     virtual std::list<std::string> CheckModelSettings() override;
 
     Servo* GetAxis(int num) { return num < num_servos ? servos[num].get() : servos[0].get(); }
@@ -45,6 +43,7 @@ public:
     void SetIs16Bit(bool val) { _16bit = val; }
     void SetBrightness(float val) {brightness = val; }
     void SetTransparency(int val) {transparency = val; }
+    void SetUpdateNodeNames(bool val) { update_node_names = val; }
 
     DmxImage* CreateStaticImage(const std::string& name, int idx);
     DmxImage* CreateMotionImage(const std::string& name, int idx);

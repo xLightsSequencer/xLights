@@ -39,11 +39,6 @@ public:
 
     virtual void SetStringStartChannels(int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
 
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
-    virtual int OnPropertyGridSelection(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
-    virtual void OnPropertyGridItemCollapsed(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
-    virtual void OnPropertyGridItemExpanded(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual bool IsNodeFirst(int node) const override;
 
     bool HasAlternateNodes() const { return _alternateNodes; }
@@ -55,6 +50,8 @@ public:
     void SetDropPattern(const std::string & pattern);
 
     bool AreSegsExpanded() const { return _segsCollapsed; }
+    void SetSegsCollapsed(bool val) { _segsCollapsed = val; }
+    void SetRawSegmentSize(int idx, int val) { _polyLineSizes[idx] = val; }
 
     void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 

@@ -9,8 +9,6 @@
  **************************************************************/
 
 #include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 #include <wx/sstream.h>
 
 #include "MhFeature.h"

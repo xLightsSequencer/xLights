@@ -35,9 +35,6 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform, std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;
     
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
-
         virtual bool ModelSupportsLayerSizes() const override { return true; }
         virtual void OnLayerSizesChange(bool countChanged) override;
         float GetStarRatio() const { return _starRatio; }

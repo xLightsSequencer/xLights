@@ -8,13 +8,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/msgdlg.h>
-#include <wx/log.h>
-#include <wx/filedlg.h>
-
 #include "ArchesModel.h"
 #include "ModelScreenLocation.h"
 #include "xLightsVersion.h"
@@ -37,159 +30,6 @@ ArchesModel::~ArchesModel()
 }
 
 
-static const char *LEFT_RIGHT_VALUES[] = {
-    "Green Square", 
-    "Blue Square"
-};
-static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES));
-
-static const char* LEFT_RIGHT_INSIDE_OUTSIDE_VALUES[] = {
-    "Green Square Inside",
-    "Green Square Outside",
-    "Blue Square Inside",
-    "Blue Square Outside"
-};
-static wxPGChoices LEFT_RIGHT_INSIDE_OUTSIDE(wxArrayString(4, LEFT_RIGHT_INSIDE_OUTSIDE_VALUES));
-
-void ArchesModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    wxPGProperty* p = grid->Append(new wxBoolProperty("Layered Arches", "LayeredArches", GetLayerSizeCount() != 0));
-    p->SetEditor("CheckBox");
-
-    if (GetLayerSizeCount() == 0) {
-        p = grid->Append(new wxUIntProperty("# Arches", "ArchesCount", parm1));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 100);
-        p->SetEditor("SpinCtrl");
-
-        p = grid->Append(new wxUIntProperty("Nodes Per Arch", "ArchesNodes", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 1000);
-        p->SetEditor("SpinCtrl");
-    } else {
-        p = grid->Append(new wxUIntProperty("Nodes", "ArchesNodes", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 10000);
-        p->SetEditor("SpinCtrl");
-
-        AddLayerSizeProperty(grid);
-
-        p = grid->Append(new wxUIntProperty("Hollow %", "Hollow", _hollow));
-        p->SetAttribute("Min", 0);
-        p->SetAttribute("Max", 95);
-        p->SetEditor("SpinCtrl");
-
-        p = grid->Append(new wxBoolProperty("Zig-Zag Layers", "ZigZag", _zigzag));
-        p->SetEditor("CheckBox");
-    }
-
-    p = grid->Append(new wxUIntProperty("Lights Per Node", "ArchesLights", parm3));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 250);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("Arc Degrees", "ArchesArc", _arc));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 180);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxIntProperty("Arch Tilt", "ArchesSkew", screenLocation.GetAngle()));
-    p->SetAttribute("Min", -180);
-    p->SetAttribute("Max", 180);
-    p->SetEditor("SpinCtrl");
-
-    if (GetLayerSizeCount() == 0) {
-        p = grid->Append(new wxIntProperty("Gap Between Arches", "ArchesGap", _gap));
-        p->SetAttribute("Min", 0);
-        p->SetAttribute("Max", 500);
-        p->SetEditor("SpinCtrl");
-    }
-
-    if (GetLayerSizeCount() != 0) {
-        grid->Append(new wxEnumProperty("Starting Location", "ArchesStart", LEFT_RIGHT_INSIDE_OUTSIDE, (IsLtoR ? 0 : 2) + (isBotToTop ? 1 : 0)));
-    } else {
-        grid->Append(new wxEnumProperty("Starting Location", "ArchesStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
-    }
-}
-
-int ArchesModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    if ("ArchesCount" == event.GetPropertyName()) {
-        SetParm1((int)event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
-                    OutputModelManager::WORK_UPDATE_PROPERTYGRID |
-                    OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ArchesModel::OnPropertyGridChange::ArchesCount");
-        return 0;
-    } else if ("ArchesNodes" == event.GetPropertyName()) {
-        SetParm2((int)event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ArchesModel::OnPropertyGridChange::ArchesNodes");
-        return 0;
-    } else if ("ArchesLights" == event.GetPropertyName()) {
-        SetParm3((int)event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesLights");
-        return 0;
-    } else if ("ArchesArc" == event.GetPropertyName()) {
-        SetArc((int)event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesArc");
-        return 0;
-    } else if ("ArchesSkew" == event.GetPropertyName()) {
-        screenLocation.SetAngle(event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesSkew");
-        return 0;
-    } else if ("LayeredArches" == event.GetPropertyName()) {
-        if (event.GetPropertyValue().GetBool()) {
-            parm1 = 1;
-            SetLayerSizeCount(1);
-            SetLayerSize(0, parm2);
-        } else {
-            SetLayerSizeCount(0);
-        }
-        OnLayerSizesChange(true);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ArchesModel::HandleLayerSizePropertyChange::LayeredArches");
-        return 0;
-    } else if ("ZigZag" == event.GetPropertyName()) {
-        _zigzag = event.GetPropertyValue().GetBool();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesZigZag");
-        return 0;
-    } else if ("Hollow" == event.GetPropertyName()) {
-        _hollow = event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesHollow");
-        return 0;
-    } else if ("ArchesGap" == event.GetPropertyName()) {
-        _gap = event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesGap");
-        return 0;
-    } else if ("ArchesStart" == event.GetPropertyName()) {
-        int value = event.GetValue().GetLong();
-        if (GetLayerSizeCount() != 0) {
-            SetDirection((value == 0 || value == 1) ? "L" : "R");
-            SetStartSide((value == 0 || value == 2) ? "T" : "B");
-            SetIsBtoT(value != 0 && value != 2);
-        } else {
-            SetDirection(value == 0 ? "L" : "R");
-        }
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "ArchesModel::OnPropertyGridChange::ArchesStart");
-        return 0;
-    }
-
-    return Model::OnPropertyGridChange(grid, event);
-}
 
 void ArchesModel::GetBufferSize(const std::string &tp, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi, int stagger) const {
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
@@ -500,15 +340,6 @@ std::string ArchesModel::GetDimension() const
         return GetModelScreenLocation().GetDimension(1.0 / parm1);
     }
     return GetModelScreenLocation().GetDimension(1.0);
-}
-
-void ArchesModel::AddDimensionProperties(wxPropertyGridInterface* grid)
-{
-    if (GetLayerSizeCount() == 0 && parm1 != 0) {
-        GetModelScreenLocation().AddDimensionProperties(grid, 1.0 / parm1);
-    } else {
-        GetModelScreenLocation().AddDimensionProperties(grid, 1.0);
-    }
 }
 
 void ArchesModel::OnLayerSizesChange(bool countChanged)

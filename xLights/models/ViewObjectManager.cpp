@@ -8,6 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <format>
+
 #include <wx/xml/xml.h>
 #include <wx/msgdlg.h>
 
@@ -289,7 +291,7 @@ bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool promp
             if (name.empty()) continue;
             auto curr = GetObject(name);
             if (curr != nullptr && !curr->IsFromBase()) {
-                if (wxMessageBox(wxString::Format("Object %s found that clashes with base show directory. Do you want to take the base show directory version?", name),
+                if (wxMessageBox(std::format("Object {} found that clashes with base show directory. Do you want to take the base show directory version?", name.ToStdString()),
                                  "Object clash", wxICON_QUESTION | wxYES_NO, xlights) == wxYES) {
                     curr->SetFromBase(true);
                 }

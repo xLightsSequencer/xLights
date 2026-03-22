@@ -5,7 +5,13 @@
 #include "ServiceManager.h"
 #include <wx/propgrid/propgrid.h>
 #include <wx/choice.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/sizer.h>
 
+#include <nlohmann/json.hpp>
+
+#include "../utils/string_utils.h"
 #include "xLights-Swift.h"
 #include "AppleIntelligence.h"
 

@@ -24,10 +24,6 @@ public:
 
     virtual void InitModel() override;
 
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {}
-
-    int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
     virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
 
@@ -36,8 +32,10 @@ public:
     virtual std::list<std::string> CheckModelSettings() override;
 
     void SetImageFile(const std::string & imageFile);
+    void SetImageFileDirect(const std::string& file) { _imageFile = file; }
     void SetTransparency(int val) { transparency = val; }
     void SetBrightness(float val) { brightness = val; }
+    void ClearImages();
 
     const std::string& GetImageFile() const { return _imageFile; }
     int GetTransparency() const { return transparency; }

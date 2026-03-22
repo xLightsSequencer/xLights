@@ -8,8 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
+#include <format>
 #include <wx/xml/xml.h>
 
 #include <glm/mat4x4.hpp>
@@ -26,7 +25,6 @@
 #include "DmxPresetAbility.h"
 #include "DmxShutterAbility.h"
 #include "../ModelScreenLocation.h"
-#include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../RenderBuffer.h"
 #include "../../xLightsVersion.h"
@@ -104,9 +102,9 @@ public:
     dmxPoint3(float x_, float y_, float z_, float pan_angle_, float tilt_angle_ = 0, float nod_angle_ = 0.0)
         : x(x_), y(y_), z(z_)
     {
-        float pan_angle = wxDegToRad(pan_angle_);
-        float tilt_angle = wxDegToRad(tilt_angle_);
-        float nod_angle = wxDegToRad(nod_angle_);
+        float pan_angle = glm::radians(pan_angle_);
+        float tilt_angle = glm::radians(tilt_angle_);
+        float nod_angle = glm::radians(nod_angle_);
 
         glm::vec4 position = glm::vec4(glm::vec3(x_, y_, z_), 1.0);
 
@@ -120,12 +118,6 @@ public:
     }
 };
 
-static wxPGChoices DMX_COLOR_TYPES(wxArrayString(4, DMX_COLOR_TYPES_VALUES));
-
-static wxPGChoices DMX_STYLES;
-
-static wxPGChoices DMX_FIXTURES;
-
 enum DMX_STYLE {
     DMX_STYLE_MOVING_HEAD_TOP,
     DMX_STYLE_MOVING_HEAD_SIDE,
@@ -134,137 +126,6 @@ enum DMX_STYLE {
     DMX_STYLE_MOVING_HEAD_SIDE_BARS,
     DMX_STYLE_MOVING_HEAD_3D
 };
-
-void DmxMovingHead::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    if (DMX_STYLES.GetCount() == 0) {
-        DMX_STYLES.Add("Moving Head Top");
-        DMX_STYLES.Add("Moving Head Side");
-        DMX_STYLES.Add("Moving Head Bars");
-        DMX_STYLES.Add("Moving Head Top Bars");
-        DMX_STYLES.Add("Moving Head Side Bars");
-        DMX_STYLES.Add("Moving Head 3D");
-    }
-
-    grid->Append(new wxEnumProperty("DMX Style", "DmxStyle", DMX_STYLES, dmx_style_val));
-
-    if (DMX_FIXTURES.GetCount() == 0) {
-        DMX_FIXTURES.Add("MH1");
-        DMX_FIXTURES.Add("MH2");
-        DMX_FIXTURES.Add("MH3");
-        DMX_FIXTURES.Add("MH4");
-        DMX_FIXTURES.Add("MH5");
-        DMX_FIXTURES.Add("MH6");
-        DMX_FIXTURES.Add("MH7");
-        DMX_FIXTURES.Add("MH8");
-    }
-
-    grid->Append(new wxEnumProperty("Fixture", "DmxFixture", DMX_FIXTURES, fixture_val));
-
-    DmxModel::AddTypeProperties(grid, outputManager);
-
-    wxPGProperty* p = grid->Append(new wxBoolProperty("Hide Body", "HideBody", hide_body));
-    p->SetAttribute("UseCheckbox", true);
-
-    pan_motor->AddTypeProperties(grid);
-    tilt_motor->AddTypeProperties(grid);
-
-    grid->Append(new wxPropertyCategory("Color Properties", "DmxColorAbility"));
-    int selected = 3; // show Unused if not selected
-    if (nullptr != color_ability) {
-        selected = DMX_COLOR_TYPES.Index(color_ability->GetTypeName());
-    }
-    grid->Append(new wxEnumProperty("Color Type", "DmxColorType", DMX_COLOR_TYPES, selected));
-    if (nullptr != color_ability) {
-        ControllerCaps *caps = GetControllerCaps();
-        color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
-    }
-    grid->Collapse("DmxColorAbility");
-
-    dimmer_ability->AddDimmerTypeProperties(grid);
-    shutter_ability->AddShutterTypeProperties(grid);
-    beam_ability->AddBeamTypeProperties(grid);
-    grid->Collapse("DmxDimmerProperties");
-    grid->Collapse("DmxShutterProperties");
-    grid->Collapse("DmxBeamProperties");
-
-    grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
-}
-
-int DmxMovingHead::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    if (pan_motor->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
-        return 0;
-    }
-
-    if (tilt_motor->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
-        return 0;
-    }
-
-    if (shutter_ability->OnShutterPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    if (dimmer_ability->OnDimmerPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    if (beam_ability->OnBeamPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    if ("DmxStyle" == event.GetPropertyName()) {
-        dmx_style_val = event.GetPropertyValue().GetLong();
-        if (dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP) {
-            dmx_style = "Moving Head Top";
-        } else if (dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE) {
-            dmx_style = "Moving Head Side";
-        } else if (dmx_style_val == DMX_STYLE_MOVING_HEAD_BARS) {
-            dmx_style = "Moving Head Bars";
-        } else if (dmx_style_val == DMX_STYLE_MOVING_HEAD_TOP_BARS) {
-            dmx_style = "Moving Head TopBars";
-        } else if (dmx_style_val == DMX_STYLE_MOVING_HEAD_SIDE_BARS) {
-            dmx_style = "Moving Head SideBars";
-        } else if (dmx_style_val == DMX_STYLE_MOVING_HEAD_3D) {
-            dmx_style = "Moving Head 3D";
-        }
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::DMXStyle");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMovingHead::OnPropertyGridChange::DMXStyle");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHead::OnPropertyGridChange::DMXStyle");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "DmxMovingHead::OnPropertyGridChange::DMXStyle");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHead::OnPropertyGridChange::DMXStyle");
-        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DmxMovingHead::OnPropertyGridChange::DMXStyle");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMovingHead::OnPropertyGridChange::DMXStyle");
-        return 0;
-    } else if ("HideBody" == event.GetPropertyName()) {
-        hide_body = event.GetPropertyValue().GetBool();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::HideBody");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHead::OnPropertyGridChange::HideBody");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHead::OnPropertyGridChange::HideBody");
-        return 0;
-    }
-    else if ("DmxColorType" == event.GetPropertyName()) {
-        int color_type = event.GetPropertyValue().GetInteger();
-        InitColorAbility(color_type);
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMovingHead::OnPropertyGridChange::DmxColorType");
-        return 0;
-    } else if ("DmxFixture" == event.GetPropertyName()) {
-        fixture_val = event.GetPropertyValue().GetLong();
-        dmx_fixture = FixtureIDtoString(fixture_val);
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHead::OnPropertyGridChange::DmxFixture");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHead::OnPropertyGridChange::DmxFixture");
-        return 0;
-    }
-
-    return DmxModel::OnPropertyGridChange(grid, event);
-}
 
 void DmxMovingHead::InitModel() {
     DmxModel::InitModel();
@@ -425,19 +286,19 @@ std::list<std::string> DmxMovingHead::CheckModelSettings()
     int nodeCount = Nodes.size();
 
     if (pan_motor->GetChannelCoarse() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s pan motor coarse is assigned to channel %d but the model only has %d channels.", GetName(), pan_motor->GetChannelCoarse(), nodeCount));
+        res.push_back(std::format("    ERR: Model {} pan motor coarse is assigned to channel {} but the model only has {} channels.", GetName(), pan_motor->GetChannelCoarse(), nodeCount));
     }
 
     if (pan_motor->GetChannelFine() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s pan motor fine is assigned to channel %d but the model only has %d channels.", GetName(), pan_motor->GetChannelFine(), nodeCount));
+        res.push_back(std::format("    ERR: Model {} pan motor fine is assigned to channel {} but the model only has {} channels.", GetName(), pan_motor->GetChannelFine(), nodeCount));
     }
 
     if (tilt_motor->GetChannelCoarse() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s tilt motor coarse is assigned to channel %d but the model only has %d channels.", GetName(), tilt_motor->GetChannelCoarse(), nodeCount));
+        res.push_back(std::format("    ERR: Model {} tilt motor coarse is assigned to channel {} but the model only has {} channels.", GetName(), tilt_motor->GetChannelCoarse(), nodeCount));
     }
 
     if (tilt_motor->GetChannelFine() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s tilt motor fine is assigned to channel %d but the model only has %d channels.", GetName(), tilt_motor->GetChannelFine(), nodeCount));
+        res.push_back(std::format("    ERR: Model {} tilt motor fine is assigned to channel {} but the model only has {} channels.", GetName(), tilt_motor->GetChannelFine(), nodeCount));
     }
 
     res.splice(res.end(), DmxModel::CheckModelSettings());

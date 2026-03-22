@@ -18,14 +18,9 @@
 #include <glm/mat3x3.hpp>
 
 class xLightsFrame;
-class wxPropertyGridInterface;
 class wxXmlNode;
 class ModelScreenLocation;
 class ModelPreview;
-class OutputManager;
-class wxPropertyGridEvent;
-class wxMenu;
-class wxCommandEvent;
 
 class BaseObject
 {
@@ -33,14 +28,6 @@ public:
     BaseObject();
     virtual ~BaseObject();
 
-    virtual void AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) = 0;
-    virtual void UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) = 0;
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) = 0;
-    virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) = 0;
-    virtual void AddSizeLocationProperties(wxPropertyGridInterface* grid) = 0;
-    virtual void AddDimensionProperties(wxPropertyGridInterface* grid) = 0;
-    virtual void HandlePropertyGridRightClick(wxPropertyGridEvent& event, wxMenu& mnu) {}
-    virtual void HandlePropertyGridContextMenu(wxCommandEvent& event) {}
     virtual std::string GetDimension() const = 0;
 
     virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const = 0;
@@ -108,7 +95,7 @@ public:
 
 	void AddOffset(double deltax, double deltay, double deltaz);
     void RotateAboutPoint(glm::vec3 position, glm::vec3 angle);
-    [[nodiscard]] bool Scale(const glm::vec3& factor);
+    bool Scale(const glm::vec3& factor);
 
     [[nodiscard]] bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
 

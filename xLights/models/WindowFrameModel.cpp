@@ -8,9 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
+#include <cassert>
 
 #include "WindowFrameModel.h"
 #include "ModelScreenLocation.h"
@@ -158,8 +156,8 @@ void WindowFrameModel::InitFrame()
     if (bottom == 0) bot_incr = -(width - 1);
     else if (bottom + wadj + 1 != 0) bot_incr = -1.0 * (float)(width + wadj) / (float)(bottom + wadj + 1);
 
-    wxASSERT(top_incr >= 1.0);
-    wxASSERT(bot_incr <= -1.0);
+    assert(top_incr >= 1.0);
+    assert(bot_incr <= -1.0);
 
     int lengths[] = { left + hadj, top + wadj, left + hadj , bottom + wadj };
     float xscreenincr[] = { 0, top_screenincr, 0, bot_screenincr };
@@ -345,16 +343,16 @@ void WindowFrameModel::InitFrame()
     size_t loops = GetNodeCount();
     size_t coordCount = 1;
     if (SingleNode) {
-        wxASSERT(GetNodeCount() == 1);
+        assert(GetNodeCount() == 1);
         coordCount = GetCoordCount(0);
         loops = coordCount;
     }
     else {
-        wxASSERT(GetCoordCount(0) == 1); // only one coord supported by this code
+        assert(GetCoordCount(0) == 1); // only one coord supported by this code
     }
 
     for (size_t n = 0; n < loops; n++) {
-        wxASSERT(curLen > 0);
+        assert(curLen > 0);
 
         Nodes[nd]->ActChan = chan;
 
@@ -400,76 +398,3 @@ void WindowFrameModel::InitFrame()
     }
 }
 
-static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = { 
-        "Top Left",
-        "Top Right",
-        "Bottom Left",
-        "Bottom Right"
-};
-static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(4, TOP_BOT_LEFT_RIGHT_VALUES));
-
-static const char* CLOCKWISE_ANTI_VALUES[] = {
-        "Clockwise",
-        "Counter Clockwise"
-};
-static wxPGChoices CLOCKWISE_ANTI(wxArrayString(2, CLOCKWISE_ANTI_VALUES));
-
-void WindowFrameModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Lights Top", "WFTopCount", parm1));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 1000);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("# Lights Left/Right", "WFLeftRightCount", parm2));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 1000);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("# Lights Bottom", "WFBottomCount", parm3));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 1000);
-    p->SetEditor("SpinCtrl");
-
-    grid->Append(new wxEnumProperty("Starting Location", "WFStartLocation", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
-
-    grid->Append(new wxEnumProperty("Direction", "WFDirection", CLOCKWISE_ANTI, _rotation));
-}
-
-int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if ("WFTopCount" == event.GetPropertyName()) {
-        parm1 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST, "WindowFrameModel::OnPropertyGridChange::WFTopCount");
-        return 0;
-    } else if ("WFLeftRightCount" == event.GetPropertyName()) {
-        parm2 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST, "WindowFrameModel::OnPropertyGridChange::WFLeftRightCount");
-        return 0;
-    } else if ("WFBottomCount" == event.GetPropertyName()) {
-        parm3 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST, "WindowFrameModel::OnPropertyGridChange::WFBottomCount");
-        return 0;
-    } else if ("WFStartLocation" == event.GetPropertyName()) {
-        long val = event.GetValue().GetLong();
-        SetDirection((val == 0 || val == 2) ? "L" : "R");
-        SetStartSide((val == 0 || val == 1) ? "T" : "B");
-        SetIsLtoR(val == 0 || val == 2);
-        SetIsBtoT(val >= 2);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFStartLocation");
-        return 0;
-    } else if ("WFDirection" == event.GetPropertyName()) {
-        _rotation = event.GetValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFDirection");
-        return 0;
-    }
-
-    return Model::OnPropertyGridChange(grid, event);
-}

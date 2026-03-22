@@ -8,8 +8,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
 
 #include "BaseObject.h"
 #include "ModelScreenLocation.h"

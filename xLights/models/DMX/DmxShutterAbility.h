@@ -12,19 +12,11 @@
 
 #include "../Model.h"
 
-class wxPropertyGridInterface;
-class wxPropertyGridEvent;
-class BaseObject;
-class wxXmlNode;
-
 class DmxShutterAbility
 {
     public:
         DmxShutterAbility();
         virtual ~DmxShutterAbility();
-
-        void AddShutterTypeProperties(wxPropertyGridInterface *grid);
-        int OnShutterPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event, BaseObject* base);
 
         bool IsShutterOpen(const std::vector<NodeBaseClassPtr> &Nodes) const;
 

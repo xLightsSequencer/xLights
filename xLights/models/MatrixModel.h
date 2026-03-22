@@ -24,8 +24,6 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return true; }
         [[nodiscard]] virtual bool SupportsWiringView() const override { return true; }
 
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        [[nodiscard]] virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         [[nodiscard]] virtual std::list<std::string> CheckModelSettings() override;
 
         // we cant do low def on single node matrices
@@ -42,8 +40,6 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetVertical(bool val) { _vMatrix = val; }
 
     protected:
-        virtual void AddStyleProperties(wxPropertyGridInterface *grid);
-    
         virtual void InitModel() override;
         void InitSingleChannelModel();
 

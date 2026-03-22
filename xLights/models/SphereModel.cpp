@@ -8,13 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/tokenzr.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-#include <wx/msgdlg.h>
-#include <wx/log.h>
-#include <wx/filedlg.h>
+#include <cassert>
 
 #include "../XmlSerializer/FileSerializingVisitor.h"
 
@@ -105,83 +99,6 @@ void SphereModel::SetSphereCoord() {
     screenLocation.SetRenderSize(RenderMx, RenderMx, RenderMx);
 }
 
-int SphereModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if (event.GetPropertyName() == "StartLatitude") {
-        _startLatitude = (int)event.GetPropertyValue().GetLong();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::OnPropertyGridChange::StartLatitude");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::OnPropertyGridChange::StartLatitude");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SphereModel::OnPropertyGridChange::StartLatitude");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SphereModel::OnPropertyGridChange::StartLatitude");
-        return 0;
-    }
-    else if (event.GetPropertyName() == "EndLatitude") {
-        _endLatitude = (int)event.GetPropertyValue().GetLong();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::OnPropertyGridChange::EndLatitude");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::OnPropertyGridChange::EndLatitude");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SphereModel::OnPropertyGridChange::EndLatitude");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SphereModel::OnPropertyGridChange::EndLatitude");
-        return 0;
-    }
-    else if (event.GetPropertyName() == "Degrees") {
-        _sphereDegrees = (int)event.GetPropertyValue().GetLong();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::OnPropertyGridChange::Degrees");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::OnPropertyGridChange::Degrees");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SphereModel::OnPropertyGridChange::Degrees");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SphereModel::OnPropertyGridChange::Degrees");
-        return 0;
-    } else if (event.GetPropertyName() == "AlternateNodes") {
-        SetAlternateNodes(event.GetPropertyValue().GetBool());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::OnPropertyGridChange::AlternateNodes");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::OnPropertyGridChange::AlternateNodes");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SphereModel::OnPropertyGridChange::AlternateNodes");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SphereModel::OnPropertyGridChange::AlternateNodes");
-        grid->GetPropertyByName("NoZig")->Enable(event.GetPropertyValue().GetBool() == false);
-        return 0;
-    } else if (event.GetPropertyName() == "NoZig") {
-        SetNoZigZag(event.GetPropertyValue().GetBool());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SphereModel::OnPropertyGridChange::NoZig");
-        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SphereModel::OnPropertyGridChange::NoZig");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SphereModel::OnPropertyGridChange::NoZig");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SphereModel::OnPropertyGridChange::NoZig");
-        grid->GetPropertyByName("AlternateNodes")->Enable(event.GetPropertyValue().GetBool() == false);
-        return 0;
-    }
-
-    return MatrixModel::OnPropertyGridChange(grid, event);
-}
-
-void SphereModel::AddStyleProperties(wxPropertyGridInterface *grid) {
-
-    wxPGProperty* p = grid->Append(new wxIntProperty("Degrees", "Degrees", _sphereDegrees));
-    p->SetAttribute("Min", "45");
-    p->SetAttribute("Max", "360");
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxIntProperty("Southern Latitude", "StartLatitude", _startLatitude));
-    p->SetAttribute("Min", "-89");
-    p->SetAttribute("Max", "-1");
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("Northern Latitude", "EndLatitude", _endLatitude));
-    p->SetAttribute("Min", "1");
-    p->SetAttribute("Max", "89");
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", HasAlternateNodes()));
-    p->SetEditor("CheckBox");
-    if (SingleNode) {
-        p->Enable(_noZigZag == false);
-    }
-
-    p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", IsNoZigZag()));
-    p->SetEditor("CheckBox");
-    if (SingleNode) {
-        p->Enable(_alternateNodes == false);
-    }
-}
-
 void SphereModel::ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const
 {
     float minx = 99999;
@@ -230,10 +147,10 @@ void SphereModel::ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const
         int xx = (scaleFactor3D * (float)BufferWi) * (n->Coords[0].screenX - minx) / w;
         int yy = (scaleFactor3D * (float)BufferHt) - (scaleFactor3D * (float)BufferHt * (n->Coords[0].screenY - miny) / h);
         int zz = (scaleFactor3D * (float)BufferWi) * (n->Coords[0].screenZ - minz) / d;
-        wxASSERT(xx >= 0 && xx < scaleFactor3D * BufferWi + 1);
-        wxASSERT(yy >= 0 && yy < scaleFactor3D * BufferHt + 1);
-        wxASSERT(zz >= 0 && zz < scaleFactor3D * BufferWi + 1);
-        wxASSERT(data[zz][yy][xx] == -1);
+        assert(xx >= 0 && xx < scaleFactor3D * BufferWi + 1);
+        assert(yy >= 0 && yy < scaleFactor3D * BufferHt + 1);
+        assert(zz >= 0 && zz < scaleFactor3D * BufferWi + 1);
+        assert(data[zz][yy][xx] == -1);
         data[zz][yy][xx] = i++;
     }
 

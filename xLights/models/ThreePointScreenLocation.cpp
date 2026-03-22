@@ -11,9 +11,6 @@
 #include <format>
 #include "ThreePointScreenLocation.h"
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
@@ -65,18 +62,6 @@ void ThreePointScreenLocation::Init() {
     rotatex = wxAtof(node->GetAttribute("RotateX", "0"));*/
 }
 
-void ThreePointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const
-{
-    TwoPointScreenLocation::AddDimensionProperties(propertyEditor, 1.0);
-    float width = RulerObject::Measure(origin, point2);
-    wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Height (%s)", RulerObject::GetUnitDescription()), "RealHeight", 
-                                                                     (width * height) / 2.0 * factor
-                                                                    ));
-    prop->ChangeFlag(wxPGFlags::ReadOnly, true);
-    prop->SetAttribute("Precision", 2);
-    prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-}
-
 std::string ThreePointScreenLocation::GetDimension(float factor) const
 {
     if (RulerObject::GetRuler() == nullptr) return "";
@@ -95,67 +80,6 @@ float ThreePointScreenLocation::GetRealHeight() const
 {
     float width = RulerObject::Measure(origin, point2);
     return (width * height) / 2.0 * 1.0;
-}
-
-void ThreePointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
-    TwoPointScreenLocation::AddSizeLocationProperties(propertyEditor);
-    wxPGProperty *prop = propertyEditor->Append(new wxFloatProperty("Height", "ModelHeight", height));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.1);
-    prop->SetEditor("SpinCtrl");
-    if (supportsShear) {
-        prop = propertyEditor->Append(new wxFloatProperty("Shear", "ModelShear", shear));
-        prop->SetAttribute("Precision", 2);
-        prop->SetAttribute("Step", 0.1);
-        prop->SetEditor("SpinCtrl");
-    }
-    prop = propertyEditor->Append(new wxFloatProperty("RotateX", "RotateX", rotatex));
-    prop->SetAttribute("Min", "-180");
-    prop->SetAttribute("Max", "180");
-    prop->SetAttribute("Precision", 8);
-    prop->SetAttribute("Step", 1);
-    prop->SetEditor("SpinCtrl");
-}
-
-int ThreePointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    wxString name = event.GetPropertyName();
-    if (!_locked && "ModelHeight" == name) {
-        height = event.GetValue().GetDouble();
-        if (std::abs(height) < 0.01f) {
-            if (height < 0.0f) {
-                height = -0.01f;
-            }
-            else {
-                height = 0.01f;
-            }
-        }
-        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "ThreePointScreenLocation::OnPropertyGridChange::ModelHeight");
-        return 0;
-    }
-    else if (_locked && "ModelHeight" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "ModelShear" == name) {
-        shear = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "ThreePointScreenLocation::OnPropertyGridChange::ModelShear");
-        return 0;
-    }
-    else if (_locked && "ModelShear" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "RotateX" == name) {
-        rotatex = event.GetValue().GetDouble();
-        AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "TwoPointScreenLocation::OnPropertyGridChange::RotateX");
-        return 0;
-    }
-    else if (_locked && "RotateX" == name) {
-        event.Veto();
-        return 0;
-    }
-
-    return TwoPointScreenLocation::OnPropertyGridChange(grid, event);
 }
 
 inline float toRadians(int degrees) {

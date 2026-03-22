@@ -8,10 +8,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cstdlib>
+
 #include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/sstream.h>
 
 #include "MhChannel.h"
 #include <glm/gtc/type_ptr.hpp>
@@ -22,8 +21,8 @@ MhChannel::MhChannel(wxXmlNode* node, const std::string& pretty_name)
 }
 
 void MhChannel::Init() {
-    channel_coarse = wxAtoi(node_xml->GetAttribute("ChannelCoarse", "0"));
-    channel_fine = wxAtoi(node_xml->GetAttribute("ChannelFine", "0"));
+    channel_coarse = (int)std::strtol(node_xml->GetAttribute("ChannelCoarse", "0").ToStdString().c_str(), nullptr, 10);
+    channel_fine = (int)std::strtol(node_xml->GetAttribute("ChannelFine", "0").ToStdString().c_str(), nullptr, 10);
     
     wxXmlNode* n = node_xml->GetChildren();
     while (n != nullptr) {
@@ -81,6 +80,6 @@ void MhChannel::MhRange::SetRangeMax(std::string& val) {
 }
 
 void MhChannel::MhRange::Init() {
-    min = wxAtoi(range_node->GetAttribute("Min", "0"));
-    max = wxAtoi(range_node->GetAttribute("Max", "255"));
+    min = (int)std::strtol(range_node->GetAttribute("Min", "0").ToStdString().c_str(), nullptr, 10);
+    max = (int)std::strtol(range_node->GetAttribute("Max", "255").ToStdString().c_str(), nullptr, 10);
 }

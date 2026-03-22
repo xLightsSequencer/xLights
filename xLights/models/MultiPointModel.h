@@ -29,13 +29,12 @@ public:
     virtual int GetNumPhysicalStrings() const override;
     virtual void DeleteHandle(int handle) override;
 
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual int OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
-    virtual int OnPropertyGridSelection(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) override;
     virtual bool IsNodeFirst(int node) const override;
     
     virtual int GetNumStrings() const override{ return _strings; }
     float GetModelHeight() const { return _height; }
+    int GetNumPoints() const { return screenLocation.GetNumPoints(); }
+    void SetNumPoints(int points) { screenLocation.SetNumPoints(points); }
     void SetNumStrings(int strings) { _strings = strings; }
     void SetModelHeight(float height) { _height = height; }
 

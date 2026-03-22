@@ -17,9 +17,6 @@ public:
     ThreePointScreenLocation();
     virtual ~ThreePointScreenLocation();
     virtual void Init() override;
-    virtual void AddDimensionProperties(wxPropertyGridInterface* grid, float factor = 1.0) const override;
-    virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
-    virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) override;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) override;
     virtual std::string GetDimension(float factor = 1.0) const override;
@@ -64,6 +61,8 @@ public:
     virtual void SetAxisTool(MSLTOOL mode) override;
     virtual void SetActiveAxis(MSLAXIS axis) override;
     virtual bool IsXYTransHandle() const override { return active_handle == SHEAR_HANDLE; }
+
+    friend class ScreenLocationPropertyHelper;
 
 private:
     bool modelHandleHeight = false;

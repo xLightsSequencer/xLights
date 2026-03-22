@@ -25,12 +25,9 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         virtual int GetNumPhysicalStrings() const override { return 1; }
 
         virtual int GetLightsPerNode() const override { return parm3; } // default to one unless a model supports this
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
         virtual std::string GetDimension() const override;
-        virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override;
 
         virtual bool ModelSupportsLayerSizes() const override { return true; }
         virtual void OnLayerSizesChange(bool countChanged) override;

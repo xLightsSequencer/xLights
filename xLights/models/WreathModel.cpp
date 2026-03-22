@@ -8,9 +8,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 #include "WreathModel.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
@@ -63,62 +60,4 @@ void WreathModel::InitWreath() {
     }
 }
 
-static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = { "Top Ctr-CCW", "Top Ctr-CW", "Bottom Ctr-CW", "Bottom Ctr-CCW" };
-static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(4, TOP_BOT_LEFT_RIGHT_VALUES));
-
-void WreathModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "WreathStringCount", parm1));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 640);
-    p->SetEditor("SpinCtrl");
-    p->SetHelpString("This is typically the number of connections from the prop to your controller.");
-
-    if (SingleNode) {
-        p = grid->Append(new wxUIntProperty("Lights/String", "WreathLightCount", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 640);
-        p->SetEditor("SpinCtrl");
-    } else {
-        p = grid->Append(new wxUIntProperty("Nodes/String", "WreathLightCount", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 640);
-        p->SetEditor("SpinCtrl");
-        p->SetHelpString("This is typically the total number of pixels per #String.");
-    }
-
-    grid->Append(new wxEnumProperty("Starting Location", "WreathStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
-}
-
-int WreathModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if ("WreathStringCount" == event.GetPropertyName()) {
-        parm1 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        //AdjustStringProperties(grid, parm1);
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "WreathModel::OnPropertyGridChange::WreathStringCount");
-        return 0;
-    } else if ("WreathLightCount" == event.GetPropertyName()) {
-        parm2 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "WreathModel::OnPropertyGridChange::WreathLightCount");
-        return 0;
-    } else if ("WreathStart" == event.GetPropertyName()) {
-        long val = event.GetValue().GetLong();
-        SetDirection(val == 0 || val == 2 ? "L" : "R");
-        SetStartSide(val == 0 || val == 1 ? "T" : "B");
-        SetIsLtoR(val == 0 || val == 2);
-        SetIsBtoT(val >= 2);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "WreathModel::OnPropertyGridChange::WreathStart");
-        return 0;
-    }
-
-    return Model::OnPropertyGridChange(grid, event);
-}
 

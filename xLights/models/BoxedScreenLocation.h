@@ -43,9 +43,6 @@ public:
     virtual void UpdateBoundingBox(float width, float height, float depth) override;
 
     virtual std::string GetDimension(float factor = 1.0) const override;
-    virtual void AddDimensionProperties(wxPropertyGridInterface* grid, float factor = 1.0) const override;
-    virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
-    virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
     virtual bool IsCenterBased() const override {return true;};
 
     virtual glm::vec2 GetScreenOffset(ModelPreview* preview) const override;

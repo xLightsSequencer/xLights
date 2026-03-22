@@ -39,6 +39,7 @@
 #include "outputs/Controller.h"
 #include "outputs/ControllerEthernet.h"
 #include "outputs/Output.h"
+#include "ExternalHooks.h"
 
 #include <log4cpp/Category.hh>
 #include <cmath>

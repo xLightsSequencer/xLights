@@ -8,8 +8,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
 #include <wx/stdpaths.h>
 
@@ -30,8 +28,6 @@
 #include "DmxShutterAbility.h"
 #include "Mesh.h"
 #include "MovingHeads/MhFeature.h"
-#include "MovingHeads/MhFeatureDialog.h"
-#include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
@@ -55,8 +51,8 @@ public:
     dmxPoint3(float x_, float y_, float z_, float pan_angle_, float tilt_angle_ = 0)
         : x(x_), y(y_), z(z_)
     {
-        float pan_angle = wxDegToRad(pan_angle_);
-        float tilt_angle = wxDegToRad(tilt_angle_);
+        float pan_angle = glm::radians(pan_angle_);
+        float tilt_angle = glm::radians(tilt_angle_);
 
         glm::vec4 position = glm::vec4(glm::vec3(x_, y_, z_), 1.0);
 
@@ -68,8 +64,6 @@ public:
         z = model_position.z;
     }
 };
-
-static wxPGChoices DMX_COLOR_TYPES(wxArrayString(4, DMX_COLOR_TYPES_VALUES));
 
 DmxMovingHeadAdv::DmxMovingHeadAdv(const ModelManager &manager) :
     DmxMovingHeadComm(manager)
@@ -135,212 +129,6 @@ Mesh* DmxMovingHeadAdv::CreateHeadMesh(const std::string& name)
 {
     head_mesh = std::make_unique<Mesh>(name);
     return head_mesh.get();
-}
-
-static wxPGChoices DMX_FIXTURES;
-
-static const std::string CLICK_TO_EDIT("--Click To Edit--");
-class MhConfigDialogAdapter : public wxPGEditorDialogAdapter
-{
-public:
-    MhConfigDialogAdapter(DmxMovingHeadAdv* model, std::vector<std::unique_ptr<MhFeature>>& _features, wxXmlNode* _node_xml) :
-        wxPGEditorDialogAdapter(), m_model(model), features(_features), node_xml(_node_xml)
-    {
-    }
-    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-                              wxPGProperty* WXUNUSED(property)) override
-    {
-        MhFeatureDialog dlg(features, node_xml, propGrid);
-
-        if (dlg.ShowModal() == wxID_OK) {
-            bool changed = true;
-
-            if (changed) {
-                m_model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::MhConfigDialogAdapter");
-                m_model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMovingHeadAdv::MhConfigDialogAdapter");
-                m_model->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::MhConfigDialogAdapter");
-                m_model->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMovingHeadAdv::MhConfigDialogAdapter");
-            }
-
-            wxVariant v(CLICK_TO_EDIT);
-            SetValue(v);
-            return true;
-        }
-        return false;
-    }
-
-protected:
-    DmxMovingHeadAdv* m_model;
-    std::vector<std::unique_ptr<MhFeature>>& features;
-    wxXmlNode* node_xml;
-};
-
-class MhPopupDialogProperty : public wxStringProperty
-{
-public:
-    MhPopupDialogProperty(DmxMovingHeadAdv* m,
-                          std::vector<std::unique_ptr<MhFeature>>& _features,
-                          wxXmlNode* _node_xml,
-                          const wxString& label,
-                          const wxString& name,
-                          const wxString& value,
-                          int type) :
-        wxStringProperty(label, name, value), m_model(m), features(_features), features_xml_node(_node_xml), m_tp(type)
-    {
-    }
-    // Set editor to have button
-    virtual const wxPGEditor* DoGetEditorClass() const override
-    {
-        return wxPGEditor_TextCtrlAndButton;
-    }
-    // Set what happens on button click
-    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override
-    {
-        switch (m_tp) {
-        case 1:
-            return new MhConfigDialogAdapter(m_model, features, features_xml_node);
-        default:
-            break;
-        }
-        return nullptr;
-    }
-
-protected:
-    DmxMovingHeadAdv* m_model = nullptr;
-    std::vector<std::unique_ptr<MhFeature>>& features;
-    wxXmlNode* features_xml_node;
-    int m_tp;
-};
-
-
-void DmxMovingHeadAdv::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    // Disable until features are active
-    //auto p = grid->Append(new MhPopupDialogProperty(this, features, features_xml_node, "Moving Head Config", "MHConfig", CLICK_TO_EDIT, 1));
-    //grid->LimitPropertyEditing(p);
-
-    if (DMX_FIXTURES.GetCount() == 0) {
-        DMX_FIXTURES.Add("MH1");
-        DMX_FIXTURES.Add("MH2");
-        DMX_FIXTURES.Add("MH3");
-        DMX_FIXTURES.Add("MH4");
-        DMX_FIXTURES.Add("MH5");
-        DMX_FIXTURES.Add("MH6");
-        DMX_FIXTURES.Add("MH7");
-        DMX_FIXTURES.Add("MH8");
-    }
-
-    grid->Append(new wxEnumProperty("Fixture", "DmxFixture", DMX_FIXTURES, fixture_val));
-
-    DmxModel::AddTypeProperties(grid, outputManager);
-
-    pan_motor->AddTypeProperties(grid);
-    tilt_motor->AddTypeProperties(grid);
-
-    grid->Append(new wxPropertyCategory("Color Properties", "DmxColorAbility"));
-    int selected = 3; // show Unused if not selected
-    if (nullptr != color_ability) {
-        selected = DMX_COLOR_TYPES.Index(color_ability->GetTypeName());
-    }
-    grid->Append(new wxEnumProperty("Color Type", "DmxColorType", DMX_COLOR_TYPES, selected));
-    if (nullptr != color_ability) {
-        ControllerCaps *caps = GetControllerCaps();
-        color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
-    }
-    grid->Collapse("DmxColorAbility");
-
-    dimmer_ability->AddDimmerTypeProperties(grid);
-    shutter_ability->AddShutterTypeProperties(grid);
-    beam_ability->AddBeamTypeProperties(grid);
-    grid->Collapse("DmxDimmerProperties");
-    grid->Collapse("DmxShutterProperties");
-    grid->Collapse("DmxBeamProperties");
-
-    base_mesh->AddTypeProperties(grid);
-    yoke_mesh->AddTypeProperties(grid);
-    head_mesh->AddTypeProperties(grid);
-
-    grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
-}
-
-void DmxMovingHeadAdv::DisableUnusedProperties(wxPropertyGridInterface* grid)
-{
-    // rotation around the Z axis causes issues when the pan and tilt rotations are applied
-    // users should be able to achieve any desired position with only X and Y rotations
-    auto p = grid->GetPropertyByName("c");
-    if (p != nullptr) {
-        p->Hide(true);
-    }
-    p = grid->GetPropertyByName("YokeMeshRotateZ");
-    if (p != nullptr) {
-        p->Hide(true);
-    }
-    p = grid->GetPropertyByName("HeadMeshRotateZ");
-    if (p != nullptr) {
-        p->Hide(true);
-    }
-
-    DmxModel::DisableUnusedProperties(grid);
-}
-
-int DmxMovingHeadAdv::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    std::string name = event.GetPropertyName().ToStdString();
-
-    if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    if (dimmer_ability->OnDimmerPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    if (shutter_ability->OnShutterPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    if (beam_ability->OnBeamPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    if ("DmxFixture" == event.GetPropertyName()) {
-        fixture_val = event.GetPropertyValue().GetLong();
-        dmx_fixture = FixtureIDtoString(fixture_val); 
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DmxFixture");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DmxFixture");
-        return 0;
-    }
-    else if ("DmxColorType" == event.GetPropertyName()) {
-        int color_type = event.GetPropertyValue().GetInteger();
-        InitColorAbility(color_type);
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMovingHeadAdv::OnPropertyGridChange::DmxColorType");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMovingHeadAdv::OnPropertyGridChange::DmxColorType");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMovingHeadAdv::OnPropertyGridChange::DmxColorType");
-        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxMovingHeadAdv::OnPropertyGridChange::DmxColorType");
-        return 0;
-    }
-
-    if (pan_motor->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
-        return 0;
-    }
-
-    if (tilt_motor->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
-        return 0;
-    }
-
-    if (base_mesh->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
-        return 0;
-    }
-
-    if (yoke_mesh->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
-        return 0;
-    }
-
-    if (head_mesh->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked()) == 0) {
-        return 0;
-    }
-
-    return DmxModel::OnPropertyGridChange(grid, event);
 }
 
 void DmxMovingHeadAdv::MapChannelName(std::vector<std::string>& array, int chan, std::string name)

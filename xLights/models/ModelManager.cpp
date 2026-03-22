@@ -8,11 +8,11 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
 #include <cmath>
 #include <format>
 
 #include <wx/msgdlg.h>
-#include <wx/stdpaths.h>
 #include <wx/xml/xml.h>
 
 #include "ArchesModel.h"
@@ -214,17 +214,17 @@ bool ModelManager::IsModelOverlapping(const Model* model) const
     int32_t start = model->GetFirstChannel(); // model->GetNumberFromChannelString(model->ModelStartChannel);
     int32_t end = start + model->GetChanCount() - 1;
     // int32_t sstart = model->GetFirstChannel() + 1;
-    // wxASSERT(sstart == start);
+    // assert(sstart == start);
     // int32_t send = model->GetLastChannel() + 1;
-    // wxASSERT(send == end);
+    // assert(send == end);
     for (const auto& it : *this) {
         if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && it.second->GetName() != model->GetName()) {
             int32_t s = it.second->GetFirstChannel(); // GetNumberFromChannelString(it->second->ModelStartChannel);
             int32_t e = s + it.second->GetChanCount() - 1;
             // int32_t ss = it->second->GetFirstChannel() + 1;
-            // wxASSERT(ss == s);
+            // assert(ss == s);
             // int32_t se = it->second->GetLastChannel() + 1;
-            // wxASSERT(se == e);
+            // assert(se == e);
             if (start <= e && end >= s)
                 return true;
         }
@@ -851,7 +851,7 @@ bool ModelManager::ReworkStartChannel() const
 
                     if (!pushed && (*itcc).second.size() > 0) {
                         // chain is broken ... so just put the rest in in the original order
-                        // wxASSERT(false);
+                        // assert(false);
                         logger_zcpp.error("    Model chain is broken so just stuffing the remaining %d models in in their original order.", (*itcc).second.size());
                         while ((*itcc).second.size() > 0) {
                             sortedmodels.push_back(itcc->second.front());
@@ -1148,7 +1148,7 @@ bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH)
                     ModelGroup* mg = dynamic_cast<ModelGroup*>(model);
                     if (mg != nullptr) {
                         bool reset = mg->RebuildBuffers();
-                        wxASSERT(reset);
+                        assert(reset);
                         models[model->name] = model;
                     }
                 }
@@ -1163,7 +1163,7 @@ bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH)
         std::string name = it->GetAttribute("name").ToStdString();
         std::string msg = "Could not process model group " + name + " likely due to model groups loops. See Check Sequence for details.";
         DisplayWarning(msg);
-        wxASSERT(false);
+        assert(false);
         Model* model = factory.Deserialize(it, xlights, false);
         if (model != nullptr) {
             model->GetModelScreenLocation().previewW = previewW;
@@ -1171,7 +1171,7 @@ bool ModelManager::LoadGroups(wxXmlNode* groupNode, int previewW, int previewH)
             ModelGroup* mg = dynamic_cast<ModelGroup*>(model);
             if (mg != nullptr) {
                 bool reset = mg->RebuildBuffers();
-                wxASSERT(!reset);
+                assert(!reset);
                 models[model->name] = model;
             }
         }
@@ -1332,7 +1332,7 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         parm2 = 80;
         dynamic_cast<IciclesModel*>(model)->SetDropPattern("3,4,5,4");
     } else {
-        DisplayError(wxString::Format("'%s' is not a valid model type for a model", type));
+        DisplayError(std::format("'{}' is not a valid model type for a model", type));
         return nullptr;
     }
 
@@ -1876,7 +1876,7 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
             if (name.empty()) continue;
             auto curr = GetModel(name);
             if (curr != nullptr && !curr->IsFromBase()) {
-                if (wxMessageBox(wxString::Format("Model %s found that clashes with base show directory. Do you want to take the base show directory version?", name),
+                if (wxMessageBox(std::format("Model {} found that clashes with base show directory. Do you want to take the base show directory version?", name.ToStdString()),
                                  "Model clash", wxICON_QUESTION | wxYES_NO, xlights) == wxYES) {
                     curr->SetFromBase(true);
                 }
@@ -1889,7 +1889,7 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
                 if (name.empty()) continue;
                 auto curr = GetModel(name);
                 if (curr != nullptr && !curr->IsFromBase()) {
-                    if (wxMessageBox(wxString::Format("Model Group %s found that clashes with base show directory. Do you want to take the base show directory version?", name),
+                    if (wxMessageBox(std::format("Model Group {} found that clashes with base show directory. Do you want to take the base show directory version?", name.ToStdString()),
                                      "Model group clash", wxICON_QUESTION | wxYES_NO, xlights) == wxYES) {
                         curr->SetFromBase(true);
                     }

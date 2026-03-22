@@ -36,6 +36,7 @@ class wxStaticText;
 #include "ControllerConnectionDialog.h"
 #include "xlPropertyGrid.h"
 
+#include <memory>
 #include <vector>
 #include <list>
 #include <map>
@@ -45,6 +46,8 @@ class ModelPreview;
 class BaseObject;
 class Model;
 class ModelGroup;
+class ModelPropertyAdapter;
+class ViewObjectPropertyAdapter;
 class ModelGroupPanel;
 class ViewObjectPanel;
 class ViewObject;
@@ -457,6 +460,8 @@ class LayoutPanel: public wxPanel
         xlPropertyGrid *propertyEditor = nullptr;
         bool updatingProperty = false;
         BaseObject *selectedBaseObject = nullptr;
+        std::unique_ptr<ModelPropertyAdapter> _propertyAdapter;
+        std::unique_ptr<ViewObjectPropertyAdapter> _viewObjectAdapter;
         BaseObject *highlightedBaseObject = nullptr;
         wxTreeListItem selectedPrimaryTreeItem = nullptr;
         bool selectionLatched = false;

@@ -21,9 +21,6 @@ class DmxMovingHead : public DmxMovingHeadComm
         DmxMovingHead(const ModelManager &manager);
         virtual ~DmxMovingHead();
 
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
-
         virtual void DisplayModelOnWindow(ModelPreview* preview, xlGraphicsContext *ctx,
                                       xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
                                       const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
@@ -40,8 +37,10 @@ class DmxMovingHead : public DmxMovingHeadComm
 
         void SetHideBody(bool val) { hide_body = val; }
         void SetDmxStyle(const std::string& val) { dmx_style = val; }
+        void SetDmxStyleVal(int val) { dmx_style_val = val; }
         [[nodiscard]] bool GetHideBody() { return hide_body; }
         [[nodiscard]] const std::string& GetDmxStyle() { return dmx_style; }
+        [[nodiscard]] int GetDmxStyleVal() const { return dmx_style_val; }
 
         [[nodiscard]] std::string const& GetDMXStyle() const { return dmx_style; }
         [[nodiscard]] bool GetHideBody() const { return hide_body; }

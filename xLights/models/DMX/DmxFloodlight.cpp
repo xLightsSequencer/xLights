@@ -8,8 +8,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
 
 #include "DmxFloodlight.h"
@@ -17,7 +15,6 @@
 #include "DmxColorAbilityRGB.h"
 #include "DmxPresetAbility.h"
 #include "DmxShutterAbility.h"
-#include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../UtilFunctions.h"
 #include "../../xLightsMain.h"
@@ -35,53 +32,6 @@ DmxFloodlight::DmxFloodlight(const ModelManager &manager)
 
 DmxFloodlight::~DmxFloodlight()
 {
-}
-
-void DmxFloodlight::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-
-    DmxModel::AddTypeProperties(grid, outputManager);
-    ControllerCaps *caps = GetControllerCaps();
-    color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
-    shutter_ability->AddShutterTypeProperties(grid);
-    beam_ability->AddBeamTypeProperties(grid);
-    grid->Collapse("DmxShutterProperties");
-    grid->Collapse("DmxBeamProperties");
-
-    grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
-}
-
-void DmxFloodlight::DisableUnusedProperties(wxPropertyGridInterface* grid)
-{
-    // disable these because the size of the object is determined by the size of the bounding box
-    wxPGProperty* p = grid->GetPropertyByName("ModelPixelSize");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelPixelStyle");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    DmxModel::DisableUnusedProperties(grid);
-}
-
-int DmxFloodlight::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    if (color_ability->OnColorPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    if (shutter_ability->OnShutterPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    if (beam_ability->OnBeamPropertyGridChange(grid, event, this) == 0) {
-        return 0;
-    }
-
-    return DmxModel::OnPropertyGridChange(grid, event);
 }
 
 void DmxFloodlight::InitModel()

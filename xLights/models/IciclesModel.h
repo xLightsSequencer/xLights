@@ -18,12 +18,9 @@ public:
     IciclesModel(const ModelManager &manager);
     virtual ~IciclesModel();
     
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    [[nodiscard]] virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
     [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return true; }
     [[nodiscard]] virtual bool SupportsWiringView() const override { return true; }
     [[nodiscard]] virtual std::string GetDimension() const override;
-    virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override;
     [[nodiscard]] bool HasAlternateNodes() const { return _alternateNodes; }
     [[nodiscard]] std::string GetDropPattern() const { return _dropPatternString; }
     void SetDropPattern(const std::string & pattern);

@@ -33,10 +33,6 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;
 
-        virtual void AddDimensionProperties(wxPropertyGridInterface* grid) override {}
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) override;
-        virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual std::string GetDimension() const override { return ""; }
 
         [[nodiscard]] bool HasBeamAbility() const { return nullptr != beam_ability ; }
@@ -62,9 +58,10 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual std::vector<PWMOutput> GetPWMOutputs() const override;
         virtual void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const;
+        void UpdateChannelCount(int num_channels, bool do_work);
+
     protected:
         virtual void InitModel() override;
-        void UpdateChannelCount(int num_channels, bool do_work);
 
         virtual int GetChannelValue( int channel, bool bits16);
         int GetChannelValue(int channel_coarse, int channel_fine);

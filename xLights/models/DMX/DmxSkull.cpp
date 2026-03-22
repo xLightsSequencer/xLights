@@ -8,8 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/editors.h>
+#include <format>
 #include <wx/stdpaths.h>
 
 #include <glm/mat4x4.hpp>
@@ -20,9 +19,7 @@
 #include "DmxSkull.h"
 #include "Mesh.h"
 #include "Servo.h"
-#include "SkullConfigDialog.h"
 #include "DmxColorAbilityRGB.h"
-#include "../../controllers/ControllerCaps.h"
 #include "../../ModelPreview.h"
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
@@ -96,9 +93,9 @@ public:
     dmxPoint3(float x_, float y_, float z_, int cx_, int cy_, float scale_, float pan_angle_, float tilt_angle_, float nod_angle_ = 0.0)
         : x(x_), y(y_), z(z_)
     {
-        float pan_angle = wxDegToRad(pan_angle_);
-        float tilt_angle = wxDegToRad(tilt_angle_);
-        float nod_angle = wxDegToRad(nod_angle_);
+        float pan_angle = glm::radians(pan_angle_);
+        float tilt_angle = glm::radians(tilt_angle_);
+        float nod_angle = glm::radians(nod_angle_);
 
         glm::vec4 position = glm::vec4(glm::vec3(x_, y_, z_), 1.0);
 
@@ -123,9 +120,9 @@ public:
     dmxPoint3d(float x_, float y_, float z_, float cx_, float cy_, float cz_, float scale_, float pan_angle_, float tilt_angle_, float nod_angle_ = 0.0) :
         x(x_), y(y_), z(z_)
     {
-        float pan_angle = wxDegToRad(pan_angle_);
-        float tilt_angle = wxDegToRad(tilt_angle_);
-        float nod_angle = wxDegToRad(nod_angle_);
+        float pan_angle = glm::radians(pan_angle_);
+        float tilt_angle = glm::radians(tilt_angle_);
+        float nod_angle = glm::radians(nod_angle_);
 
         glm::vec4 position = glm::vec4(glm::vec3(x_, y_, z_), 1.0);
 
@@ -142,321 +139,6 @@ public:
 };
 
 
-
-static const std::string CLICK_TO_EDIT("--Click To Edit--");
-class SkullConfigDialogAdapter : public wxPGEditorDialogAdapter
-{
-public:
-    SkullConfigDialogAdapter(DmxSkull* model) :
-        wxPGEditorDialogAdapter(), m_model(model)
-    {
-    }
-    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-                              wxPGProperty* WXUNUSED(property)) override
-    {
-        SkullConfigDialog dlg(propGrid);
-
-        dlg.CheckBox_16bits->SetValue(m_model->Is16Bit());
-        dlg.CheckBox_Jaw->SetValue(m_model->HasJaw());
-        dlg.CheckBox_Pan->SetValue(m_model->HasPan());
-        dlg.CheckBox_Tilt->SetValue(m_model->HasTilt());
-        dlg.CheckBox_Nod->SetValue(m_model->HasNod());
-        dlg.CheckBox_EyeLR->SetValue(m_model->HasEyeLR());
-        dlg.CheckBox_EyeUD->SetValue(m_model->HasEyeUD());
-        dlg.CheckBox_Color->SetValue(m_model->HasColor());
-        dlg.CheckBox_Skulltronix->SetValue(false); // always startout unchecked because selecting this overwrites all the channels
-
-        if (dlg.ShowModal() == wxID_OK) {
-            bool changed = false;
-
-            // Direct comparison with member variables using existing setters
-            if (dlg.CheckBox_Jaw->GetValue() != m_model->HasJaw()) {
-                m_model->SetHasJaw(dlg.CheckBox_Jaw->GetValue());
-                changed = true;
-            }
-            if (dlg.CheckBox_Pan->GetValue() != m_model->HasPan()) {
-                m_model->SetHasPan(dlg.CheckBox_Pan->GetValue());
-                changed = true;
-            }
-            if (dlg.CheckBox_Tilt->GetValue() != m_model->HasTilt()) {
-                m_model->SetHasTilt(dlg.CheckBox_Tilt->GetValue());
-                changed = true;
-            }
-            if (dlg.CheckBox_Nod->GetValue() != m_model->HasNod()) {
-                m_model->SetHasNod(dlg.CheckBox_Nod->GetValue());
-                changed = true;
-            }
-            if (dlg.CheckBox_EyeLR->GetValue() != m_model->HasEyeLR()) {
-                m_model->SetHasEyeLR(dlg.CheckBox_EyeLR->GetValue());
-                changed = true;
-            }
-            if (dlg.CheckBox_EyeUD->GetValue() != m_model->HasEyeUD()) {
-                m_model->SetHasEyeUD(dlg.CheckBox_EyeUD->GetValue());
-                changed = true;
-            }
-            if (dlg.CheckBox_Color->GetValue() != m_model->HasColor()) {
-                m_model->SetHasColor(dlg.CheckBox_Color->GetValue());
-                changed = true;
-            }
-            if (dlg.CheckBox_16bits->GetValue() != m_model->Is16Bit()) {
-                m_model->SetIs16Bit(dlg.CheckBox_16bits->GetValue());
-                changed = true;
-            }
-
-            if (dlg.CheckBox_Skulltronix->GetValue()) {
-                m_model->SetSkulltronix();
-                changed = true;
-            }
-
-            if (changed) {
-                // TODO - Make the default node names dynamic when selected servos is changed
-                m_model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::SkullConfigDialogAdapter");
-                m_model->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxSkull::SkullConfigDialogAdapter");
-                m_model->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkull::SkullConfigDialogAdapter");
-                m_model->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "DmxSkull::SkullConfigDialogAdapter");
-            }
-
-            wxVariant v(CLICK_TO_EDIT);
-            SetValue(v);
-            return true;
-        }
-        return false;
-    }
-
-protected:
-    DmxSkull* m_model;
-};
-
-class SkullPopupDialogProperty : public wxStringProperty
-{
-public:
-    SkullPopupDialogProperty(DmxSkull* m,
-                             const wxString& label,
-                             const wxString& name,
-                             const wxString& value,
-                             int type) :
-        wxStringProperty(label, name, value), m_model(m), m_tp(type)
-    {
-    }
-    // Set editor to have button
-    virtual const wxPGEditor* DoGetEditorClass() const override
-    {
-        return wxPGEditor_TextCtrlAndButton;
-    }
-    // Set what happens on button click
-    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override
-    {
-        switch (m_tp) {
-        case 1:
-            return new SkullConfigDialogAdapter(m_model);
-        default:
-            break;
-        }
-        return nullptr;
-    }
-
-protected:
-    DmxSkull* m_model = nullptr;
-    int m_tp;
-};
-
-void DmxSkull::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    DmxModel::AddTypeProperties(grid, outputManager);
-
-    wxPGProperty* p = grid->Append(new SkullPopupDialogProperty(this, "Skull Config", "SkullConfig", CLICK_TO_EDIT, 1));
-    grid->LimitPropertyEditing(p);
-
-    p = grid->Append(new wxBoolProperty("Mesh Only", "MeshOnly", mesh_only));
-    p->SetAttribute("UseCheckbox", true);
-
-    ControllerCaps *caps = GetControllerCaps();
-    bool doPWM = IsPWMProtocol() && caps != nullptr && caps->SupportsPWM();
-    
-    if (has_jaw && jaw_servo != nullptr) {
-        jaw_servo->AddTypeProperties(grid, doPWM);
-    }
-    if (has_pan && pan_servo != nullptr) {
-        pan_servo->AddTypeProperties(grid, doPWM);
-    }
-    if (has_tilt && tilt_servo != nullptr) {
-        tilt_servo->AddTypeProperties(grid, doPWM);
-    }
-    if (has_nod && nod_servo != nullptr) {
-        nod_servo->AddTypeProperties(grid, doPWM);
-    }
-    if (has_eye_ud && eye_ud_servo != nullptr) {
-        eye_ud_servo->AddTypeProperties(grid, doPWM);
-    }
-    if (has_eye_lr && eye_lr_servo != nullptr) {
-        eye_lr_servo->AddTypeProperties(grid, doPWM);
-    }
-
-    grid->Append(new wxPropertyCategory("Orientation Properties", "OrientProperties"));
-
-    if (has_jaw) {
-        p = grid->Append(new wxIntProperty("Jaw Orientation", "DmxJawOrient", jaw_orient));
-        p->SetAttribute("Min", -360);
-        p->SetAttribute("Max", 360);
-        p->SetEditor("SpinCtrl");
-    }
-
-    if (has_pan) {
-        p = grid->Append(new wxIntProperty("Pan Orientation", "DmxPanOrient", pan_orient));
-        p->SetAttribute("Min", -360);
-        p->SetAttribute("Max", 360);
-        p->SetEditor("SpinCtrl");
-    }
-
-    if (has_tilt) {
-        p = grid->Append(new wxIntProperty("Tilt Orientation", "DmxTiltOrient", tilt_orient));
-        p->SetAttribute("Min", -360);
-        p->SetAttribute("Max", 360);
-        p->SetEditor("SpinCtrl");
-    }
-
-    if (has_nod) {
-        p = grid->Append(new wxIntProperty("Nod Orientation", "DmxNodOrient", nod_orient));
-        p->SetAttribute("Min", -360);
-        p->SetAttribute("Max", 360);
-        p->SetEditor("SpinCtrl");
-    }
-
-    if (has_eye_ud) {
-        p = grid->Append(new wxIntProperty("Eye Up/Down Orientation", "DmxEyeUDOrient", eye_ud_orient));
-        p->SetAttribute("Min", -360);
-        p->SetAttribute("Max", 360);
-        p->SetEditor("SpinCtrl");
-    }
-
-    if (has_eye_lr) {
-        p = grid->Append(new wxIntProperty("Eye Left/Right Orientation", "DmxEyeLROrient", eye_lr_orient));
-        p->SetAttribute("Min", -360);
-        p->SetAttribute("Max", 360);
-        p->SetEditor("SpinCtrl");
-    }
-
-    if (has_color) {
-        grid->Append(new wxPropertyCategory("Color Properties", "ColorProperties"));
-
-        p = grid->Append(new wxUIntProperty("Eye Brightness Channel", "DmxEyeBrtChannel", eye_brightness_channel));
-        p->SetAttribute("Min", 0);
-        p->SetAttribute("Max", 512);
-        p->SetEditor("SpinCtrl");
-        if (nullptr != color_ability) {
-            ControllerCaps *caps = GetControllerCaps();
-            color_ability->AddColorTypeProperties(grid, IsPWMProtocol() && caps && caps->SupportsPWM());
-        }
-    }
-
-    grid->Append(new wxPropertyCategory("Common Properties", "CommonProperties"));
-}
-
-int DmxSkull::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    if ("MeshOnly" == event.GetPropertyName()) {
-        mesh_only = event.GetValue().GetBool();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::OnPropertyGridChange::MeshOnly");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkull::OnPropertyGridChange::MeshOnly");
-        return 0;
-    }
-
-    if (has_color) {
-        if (nullptr != color_ability && color_ability->OnColorPropertyGridChange(grid, event, this) == 0) {
-            return 0;
-        }
-    }
-
-    if (has_jaw) {
-        if (jaw_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked() || IsFromBase()) == 0) {
-            return 0;
-        }
-        if ("DmxJawOrient" == event.GetPropertyName()) {
-            jaw_orient = (int)event.GetPropertyValue().GetLong();
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::OnPropertyGridChange::DmxJawOrient");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkull::OnPropertyGridChange::DmxJawOrient");
-            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkull::OnPropertyGridChange::DmxJawOrient");
-            return 0;
-        }
-    }
-
-    if (has_pan) {
-        if (pan_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked() || IsFromBase()) == 0) {
-            return 0;
-        }
-        if ("DmxPanOrient" == event.GetPropertyName()) {
-            pan_orient = (int)event.GetPropertyValue().GetLong();
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::OnPropertyGridChange::DMXPanOrient");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkull::OnPropertyGridChange::DMXPanOrient");
-            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkull::OnPropertyGridChange::DMXPanOrient");
-            return 0;
-        }
-    }
-
-    if (has_tilt) {
-        if (tilt_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked() || IsFromBase()) == 0) {
-            return 0;
-        }
-        if ("DmxTiltOrient" == event.GetPropertyName()) {
-            tilt_orient = (int)event.GetPropertyValue().GetLong();
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::OnPropertyGridChange::DMXTiltOrient");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkull::OnPropertyGridChange::DMXTiltOrient");
-            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkull::OnPropertyGridChange::DMXTiltOrient");
-            return 0;
-        }
-    }
-
-    if (has_nod) {
-        if (nod_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked() || IsFromBase()) == 0) {
-            return 0;
-        }
-        if ("DmxNodOrient" == event.GetPropertyName()) {
-            nod_orient = (int)event.GetPropertyValue().GetLong();
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::OnPropertyGridChange::DMXNodOrient");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkull::OnPropertyGridChange::DMXNodOrient");
-            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkull::OnPropertyGridChange::DMXNodOrient");
-            return 0;
-        }
-    }
-
-    if (has_eye_ud) {
-        if (eye_ud_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked() || IsFromBase()) == 0) {
-            return 0;
-        }
-        if ("DmxEyeUDOrient" == event.GetPropertyName()) {
-            eye_ud_orient = (int)event.GetPropertyValue().GetLong();
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::OnPropertyGridChange::DmxEyeUDOrient");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkull::OnPropertyGridChange::DmxEyeUDOrient");
-            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkull::OnPropertyGridChange::DmxEyeUDOrient");
-            return 0;
-        }
-    }
-
-    if (has_eye_lr) {
-        if (eye_lr_servo->OnPropertyGridChange(grid, event, this, GetModelScreenLocation().IsLocked() || IsFromBase()) == 0) {
-            return 0;
-        }
-        if ("DmxEyeLROrient" == event.GetPropertyName()) {
-            eye_lr_orient = (int)event.GetPropertyValue().GetLong();
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::OnPropertyGridChange::DmxEyeLROrient");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkull::OnPropertyGridChange::DmxEyeLROrient");
-            AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxSkull::OnPropertyGridChange::DmxEyeLROrient");
-            return 0;
-        }
-    }
-
-    if (has_color) {
-        if ("DmxEyeBrtChannel" == event.GetPropertyName()) {
-            eye_brightness_channel = (int)event.GetPropertyValue().GetLong();
-            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxSkull::OnPropertyGridChange::DMXEyeBrtChannel");
-            AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxSkull::OnPropertyGridChange::DMXEyeBrtChannel");
-            AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxSkull::OnPropertyGridChange::DMXEyeBrtChannel");
-            return 0;
-        }
-    }
-
-    return DmxModel::OnPropertyGridChange(grid, event);
-}
 
 std::unique_ptr<Servo> DmxSkull::CreateServo(const std::string& name, int type, const std::string& style)
 {
@@ -710,26 +392,26 @@ std::list<std::string> DmxSkull::CheckModelSettings()
     int nodeCount = Nodes.size();
 
     if (has_color && eye_brightness_channel > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s eye brightness channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), eye_brightness_channel, nodeCount));
+        res.push_back(std::format("    ERR: Model {} eye brightness channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), eye_brightness_channel, nodeCount));
     }
 
     if (has_jaw && jaw_servo->GetChannel() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s jaw servo channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), jaw_servo->GetChannel(), nodeCount));
+        res.push_back(std::format("    ERR: Model {} jaw servo channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), jaw_servo->GetChannel(), nodeCount));
     }
     if (has_pan && pan_servo->GetChannel() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s pan servo channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), pan_servo->GetChannel(), nodeCount));
+        res.push_back(std::format("    ERR: Model {} pan servo channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), pan_servo->GetChannel(), nodeCount));
     }
     if (has_tilt && tilt_servo->GetChannel() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s tilt servo channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), tilt_servo->GetChannel(), nodeCount));
+        res.push_back(std::format("    ERR: Model {} tilt servo channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), tilt_servo->GetChannel(), nodeCount));
     }
     if (has_nod && nod_servo->GetChannel() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s nod servo channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), nod_servo->GetChannel(), nodeCount));
+        res.push_back(std::format("    ERR: Model {} nod servo channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), nod_servo->GetChannel(), nodeCount));
     }
     if (has_eye_ud && eye_ud_servo->GetChannel() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s eye up/down servo channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), eye_ud_servo->GetChannel(), nodeCount));
+        res.push_back(std::format("    ERR: Model {} eye up/down servo channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), eye_ud_servo->GetChannel(), nodeCount));
     }
     if (has_eye_lr && eye_lr_servo->GetChannel() > nodeCount) {
-        res.push_back(wxString::Format("    ERR: Model %s eye left/right servo channel refers to a channel (%d) not present on the model which only has %d channels.", GetName(), eye_lr_servo->GetChannel(), nodeCount));
+        res.push_back(std::format("    ERR: Model {} eye left/right servo channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), eye_lr_servo->GetChannel(), nodeCount));
     }
 
     res.splice(res.end(), DmxModel::CheckModelSettings());
@@ -889,28 +571,6 @@ void DmxSkull::SetupSkulltronix()
     SetNodeNames(",,,,,,,Power,Jaw,-Jaw Fine,Nod,-Nod Fine,Pan,-Pan Fine,Eye UD,-Eye UD Fine,Eye LR,-Eye LR Fine,Tilt,-Tilt Fine,-Torso,-Torso Fine,Eye Brightness,Eye Red,Eye Green,Eye Blue", true);
     setup_skulltronix = false;
 }
-
-void DmxSkull::DisableUnusedProperties(wxPropertyGridInterface* grid)
-{
-    // disable string type properties.  Only Single Color White allowed.
-    wxPGProperty* p = grid->GetPropertyByName("ModelStringType");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelStringColor");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    p = grid->GetPropertyByName("ModelDimmingCurves");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
-
-    // Don't remove ModelStates ... these can be used for DMX devices that use a value range to set a colour or behaviour
-}
-
 
 void DmxSkull::GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const {
     if (has_jaw) {

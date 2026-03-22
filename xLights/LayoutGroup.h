@@ -11,7 +11,11 @@
  **************************************************************/
 
 #include <string>
+
+#include <wx/wx.h>
+#include <wx/config.h>
 #include <wx/xml/xml.h>
+#include <wx/menu.h>
 
 class xLightsFrame;
 class Model;

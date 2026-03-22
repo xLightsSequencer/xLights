@@ -8,21 +8,19 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
+#include <cstdlib>
 #include <wx/wx.h>
 #include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 
 #include <format>
 #include <vector>
 
 #include "CustomModel.h"
-#include "../CustomModelDialog.h"
 #include "../xLightsMain.h"
 #include "../xLightsVersion.h"
 #include "outputs/Controller.h"
 #include "UtilFunctions.h"
-#include "../ExternalHooks.h"
 #include "outputs/OutputManager.h"
 #include "../ModelPreview.h"
 #include "RulerObject.h"
@@ -48,214 +46,6 @@ CustomModel::~CustomModel()
     _locations.clear();
 }
 
-static const std::string CLICK_TO_EDIT("--Click To Edit--");
-class CustomModelDialogAdapter : public wxPGEditorDialogAdapter
-{
-public:
-    CustomModelDialogAdapter(CustomModel* model, OutputManager* om) :
-        wxPGEditorDialogAdapter(), m_model(model), _outputManager(om)
-    {
-    }
-    virtual bool DoShowDialog(wxPropertyGrid* propGrid,
-        wxPGProperty* WXUNUSED(property)) override
-    {
-        m_model->SaveDisplayDimensions();
-        auto oldAutoSave = m_model->GetModelManager().GetXLightsFrame()->_suspendAutoSave;
-        m_model->GetModelManager().GetXLightsFrame()->_suspendAutoSave = true; // because we will tamper with model we need to suspend autosave
-        CustomModelDialog dlg(propGrid, _outputManager);
-        dlg.Setup(m_model);
-        bool res = false;
-        if (dlg.ShowModal() == wxID_OK) {
-            dlg.Save(m_model);
-            m_model->RestoreDisplayDimensions();
-            wxVariant v(CLICK_TO_EDIT);
-            SetValue(v);
-            res = true;
-        }
-        else {
-            m_model->RestoreDisplayDimensions();
-            wxVariant v(CLICK_TO_EDIT);
-            SetValue(v);
-            m_model->GetModelManager().GetXLightsFrame()->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CustomModel::CancelCustomData");
-        }
-        m_model->GetModelManager().GetXLightsFrame()->_suspendAutoSave = oldAutoSave;
-        return res;
-    }
-protected:
-    CustomModel* m_model = nullptr;
-    OutputManager* _outputManager = nullptr;
-};
-
-class CustomModelProperty : public wxStringProperty
-{
-public:
-    CustomModelProperty(CustomModel* m,
-        OutputManager* om,
-        const wxString& label,
-        const wxString& name,
-        const wxString& value) :
-        wxStringProperty(label, name, value), m_model(m), _outputManager(om)
-    {
-    }
-    // Set editor to have button
-    virtual const wxPGEditor* DoGetEditorClass() const override
-    {
-        return wxPGEditor_TextCtrlAndButton;
-    }
-    // Set what happens on button click
-    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override
-    {
-        return new CustomModelDialogAdapter(m_model, _outputManager);
-    }
-protected:
-    CustomModel* m_model = nullptr;
-    OutputManager* _outputManager = nullptr;
-};
-
-void CustomModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    wxPGProperty* p = grid->Append(new CustomModelProperty(this, outputManager, "Model Data", "CustomData", CLICK_TO_EDIT));
-    grid->LimitPropertyEditing(p);
-
-    p = grid->Append(new wxUIntProperty("# Strings", "CustomModelStrings", _strings));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-    p->SetHelpString("This is typically the number of connections from the prop to your controller.");
-
-    if (_strings == 1) {
-        // cant set start node
-    }
-    else {
-        wxString nm = StartNodeAttrName(0);
-
-        p = grid->Append(new wxStringProperty("Start Nodes", "ModelIndividualStartNodes", ""));
-        wxPGProperty* psn = grid->AppendIn(p, new wxUIntProperty(nm, nm, _hasIndivNodes ? _indivStartNodes[0] : 1));
-        psn->SetAttribute("Min", 1);
-        psn->SetAttribute("Max", (int)GetNodeCount());
-        psn->SetEditor("SpinCtrl");
-
-        if (_hasIndivNodes) {
-            int c = _strings;
-            for (int x = 0; x < c; ++x) {
-                nm = StartNodeAttrName(x);
-                int v = _indivStartNodes[x];
-                if (v < 1) v = ComputeStringStartNode(x);
-                if (v > NodesPerString()) v = NodesPerString();
-                if (x == 0) {
-                    psn->SetValue(v);
-                }
-                else {
-                    grid->AppendIn(p, new wxUIntProperty(nm, nm, v));
-                }
-            }
-        }
-        else {
-            psn->Enable(false);
-        }
-    }
-
-    wxStopWatch sw;
-    p = grid->Append(new wxImageFileProperty("Background Image", "CustomBkgImage", _custom_background));
-
-    if (sw.Time() > 500)
-        logger_base.debug("        Adding background image property (%s) to model %s really slow: %lums", (const char*)_custom_background.c_str(), (const char*)name.c_str(), sw.Time());
-
-    p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
-                                        ";*.webp"
-                                        "|All files (*.*)|*.*");
-}
-
-int CustomModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    if ("CustomData" == event.GetPropertyName()) {
-        if (grid->GetPropertyByName("CustomBkgImage")->GetValue() != _custom_background) {
-            grid->GetPropertyByName("CustomBkgImage")->SetValue(wxVariant(_custom_background));
-        }
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CustomModel::OnPropertyGridChange::CustomData");
-        return 0;
-    } else if ("CustomBkgImage" == event.GetPropertyName()) {
-        _custom_background = event.GetValue().GetString();
-        ObtainAccessToURL(_custom_background);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::CustomBkgImage");
-        return 0;
-    } else if ("CustomModelStrings" == event.GetPropertyName()) {
-        int old_string_count = _strings;
-        _strings = event.GetValue().GetInteger();
-        _hasIndivNodes = _strings > 1;
-        if (_strings != old_string_count && _hasIndivNodes) {
-            _indivStartNodes.resize(_strings);
-            for (int x = 0; x < _strings; x++) {
-                _indivStartNodes[x] = ComputeStringStartNode(x);
-            }
-        }
-        if (_strings != old_string_count && _hasIndivChans) {
-            _indivStartChannels.resize(_strings);
-            for (int x = 0; x < _strings; x++) {
-                _indivStartChannels[x] = ComputeStringStartChannel(x);
-            }
-        }
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CustomModel::OnPropertyGridChange::CustomModelStrings");
-        return 0;
-    } else if (event.GetPropertyName().StartsWith("ModelIndividualStartNodes.NodeStart")) {
-        wxString s = event.GetPropertyName().substr(strlen("ModelIndividualStartNodes.NodeStart"));
-        int string = wxAtoi(s) - 1;
-        int value = event.GetValue().GetInteger();
-        if (value < 1) value = 1;
-        if (value > NodesPerString()) value = NodesPerString();
-        _indivStartNodes[string] = value;
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes2");
-        return 0;
-    } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
-        // When first switching to individual start channels, use _indivStartNodes
-        // to compute initial start channel defaults based on node positions
-        _hasIndivChans = event.GetValue().GetBool();
-        if (_hasIndivChans && _hasIndivNodes && !_indivStartNodes.empty()) {
-            int c = GetNumStrings();
-            _indivStartChannels.resize(c);
-            int32_t modelStartChannel = GetNumberFromChannelString(ModelStartChannel);
-            int chanPerNode = GetNodeChannelCount(StringType);
-            for (int x = 0; x < c; ++x) {
-                if (x == 0) {
-                    _indivStartChannels[x] = ModelStartChannel;
-                } else {
-                    int node = _indivStartNodes[x];
-                    int32_t startChannel = modelStartChannel + (node - 1) * chanPerNode;
-                    _indivStartChannels[x] = std::to_string(startChannel);
-                }
-            }
-        } else if (_hasIndivChans) {
-            int c = GetNumStrings();
-            _indivStartChannels.resize(c);
-            for (int x = 0; x < c; ++x) {
-                SetIndividualStartChannel(x, ComputeStringStartChannel(x));
-            }
-        } else {
-            _indivStartChannels.clear();
-        }
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_RELOAD_PROPERTYGRID |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CustomModel::OnPropertyGridChange::ModelIndividualStartChannels");
-        return 0;
-    }
-    return Model::OnPropertyGridChange(grid, event);
-}
 
 std::tuple<int, int, int> FindNode(int node, const std::vector<std::vector<std::vector<int>>>& locations)
 {
@@ -268,7 +58,7 @@ std::tuple<int, int, int> FindNode(int node, const std::vector<std::vector<std::
             }
         }
     }
-    wxASSERT(false);
+    assert(false);
     return { -1,-1,-1 };
 }
 
@@ -514,7 +304,7 @@ void CustomModel::GetBufferSize(const std::string& tp, const std::string& camera
         BufferHi = height * depth;
     }
     else {
-        wxASSERT(false);
+        assert(false);
     }
 
     AdjustForTransform(transform, BufferWi, BufferHi);
@@ -527,7 +317,7 @@ void CustomModel::InitRenderBufferNodes(const std::string& tp, const std::string
     int depth = _depth;
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
 
-    wxASSERT(width > 0 && height > 0 && depth > 0);
+    assert(width > 0 && height > 0 && depth > 0);
 
     int startNodeSize = Nodes.size();
     Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi, stagger);
@@ -641,7 +431,7 @@ void CustomModel::InitRenderBufferNodes(const std::string& tp, const std::string
         }
     }
     else {
-        wxASSERT(false);
+        assert(false);
     }
 }
 
@@ -1212,7 +1002,7 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
                                 std::list<xlPoint> points;
                                 for (wxXmlNode* n4 = n3->GetChildren(); n4 != nullptr; n4 = n4->GetNext()) {
                                     if (n4->GetName() == "DrawPoint") {
-                                        points.push_back(xlPoint(wxAtoi(n4->GetAttribute("X", "-5")) / 5, wxAtoi(n4->GetAttribute("Y", "-1")) / 5));
+                                        points.push_back(xlPoint((int)std::strtol(n4->GetAttribute("X", "-5").ToStdString().c_str(), nullptr, 10) / 5, (int)std::strtol(n4->GetAttribute("Y", "-1").ToStdString().c_str(), nullptr, 10) / 5));
                                     }
                                 }
                                 chs.push_back(points);
@@ -1308,8 +1098,8 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
                 int x = (float)it->x * divisor;
                 int y = (float)it->y * divisor;
 
-                wxASSERT(x >= 0 && x < maxx);
-                wxASSERT(y >= 0 && y < maxy);
+                assert(x >= 0 && x < maxx);
+                assert(y >= 0 && y < maxy);
 
                 data[y * maxx + x] = c;
             }

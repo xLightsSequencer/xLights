@@ -7,8 +7,8 @@
  * Copyright claimed based on commit dates recorded in Github
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
+#include <cassert>
 #include <format>
-#include <wx/xml/xml.h>
 #include "../utils/string_utils.h"
 #include <wx/cursor.h>
 
@@ -151,7 +151,7 @@ bool TerrainScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, 
                 va->AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUETRANSLUCENT);
                 break;
             default:
-                wxASSERT(false);
+                assert(false);
                 break;
             }
         }

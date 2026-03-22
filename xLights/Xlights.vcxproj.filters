@@ -750,14 +750,14 @@
     <ClCompile Include="preferences\RandomEffectsSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
-    <ClCompile Include="models\DMX\ServoConfigDialog.cpp">
-      <Filter>Models\DMX</Filter>
+    <ClCompile Include="ui\modelproperties\adapters\ServoConfigDialog.cpp">
+      <Filter>UI\ModelProperties\Adapters</Filter>
     </ClCompile>
     <ClCompile Include="models\DMX\DmxSkull.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
-    <ClCompile Include="models\DMX\SkullConfigDialog.cpp">
-      <Filter>Models\DMX</Filter>
+    <ClCompile Include="ui\modelproperties\adapters\SkullConfigDialog.cpp">
+      <Filter>UI\ModelProperties\Adapters</Filter>
     </ClCompile>
     <ClCompile Include="controllers\ControllerCaps.cpp">
       <Filter>Controllers</Filter>
@@ -1002,6 +1002,126 @@
     <ClCompile Include="ui\wxUtilities.cpp">
       <Filter>ui</Filter>
     </ClCompile>
+    <ClCompile Include="ui\modelproperties\ModelPropertyAdapter.cpp">
+      <Filter>ui\modelproperties</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\ModelPropertyManager.cpp">
+      <Filter>ui\modelproperties</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\MatrixPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\PropertyGridHelpers.cpp">
+      <Filter>ui\modelproperties</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\ScreenLocationPropertyHelper.cpp">
+      <Filter>ui\modelproperties</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\helpers\DmxAbilityPropertyHelpers.cpp">
+      <Filter>ui\modelproperties\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\helpers\DmxComponentPropertyHelpers.cpp">
+      <Filter>ui\modelproperties\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\ArchesPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\CandyCanePropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\ChannelBlockPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\CirclePropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\CubePropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\IciclesPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\SingleLinePropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\SpherePropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\SpinnerPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\StarPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\TreePropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\WindowFramePropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\WreathPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\ImagePropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\CustomPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\PolyLinePropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\MultiPointPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\DmxPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\DmxGeneralPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\DmxFloodlightPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\DmxMovingHeadPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\DmxMovingHeadAdvPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\DmxSkullPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\DmxServoPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\DmxServo3dPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\SubModelPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\MeshObjectPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\ImageObjectPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\GridlinesObjectPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\TerrainObjectPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\adapters\RulerObjectPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\ViewObjectPropertyAdapter.cpp">
+      <Filter>ui\modelproperties</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\modelproperties\ViewObjectPropertyManager.cpp">
+      <Filter>ui\modelproperties</Filter>
+    </ClCompile>
     <ClCompile Include="DuplicateDialog.cpp" />
     <ClCompile Include="models\DMX\DmxColorAbilityCMY.cpp">
       <Filter>Models\DMX</Filter>
@@ -1052,13 +1172,7 @@
     <ClCompile Include="models\DMX\MovingHeads\MhChannel.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
-    <ClCompile Include="models\DMX\MovingHeads\MhChannelDialog.cpp">
-      <Filter>Models\DMX</Filter>
-    </ClCompile>
     <ClCompile Include="models\DMX\MovingHeads\MhFeature.cpp">
-      <Filter>Models\DMX</Filter>
-    </ClCompile>
-    <ClCompile Include="models\DMX\MovingHeads\MhFeatureDialog.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
     <ClCompile Include="effects\MovingHeadPanels\MHRgbPickerPanel.cpp">
@@ -1922,14 +2036,14 @@
     <ClInclude Include="preferences\RandomEffectsSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
-    <ClInclude Include="models\DMX\ServoConfigDialog.h">
-      <Filter>Models\DMX</Filter>
+    <ClInclude Include="ui\modelproperties\adapters\ServoConfigDialog.h">
+      <Filter>UI\ModelProperties\Adapters</Filter>
     </ClInclude>
     <ClInclude Include="models\DMX\DmxSkull.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
-    <ClInclude Include="models\DMX\SkullConfigDialog.h">
-      <Filter>Models\DMX</Filter>
+    <ClInclude Include="ui\modelproperties\adapters\SkullConfigDialog.h">
+      <Filter>UI\ModelProperties\Adapters</Filter>
     </ClInclude>
     <ClInclude Include="controllers\ControllerCaps.h">
       <Filter>Controllers</Filter>
@@ -2195,6 +2309,126 @@
     <ClInclude Include="ui\wxUtilities.h">
       <Filter>ui</Filter>
     </ClInclude>
+    <ClInclude Include="ui\modelproperties\ModelPropertyAdapter.h">
+      <Filter>ui\modelproperties</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\ModelPropertyManager.h">
+      <Filter>ui\modelproperties</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\MatrixPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\ArchesPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\CandyCanePropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\ChannelBlockPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\CirclePropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\CubePropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\CustomPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\PolyLinePropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\MultiPointPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\DmxPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\DmxGeneralPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\DmxFloodlightPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\DmxMovingHeadPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\DmxMovingHeadAdvPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\DmxSkullPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\DmxServoPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\DmxServo3dPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\SubModelPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\MeshObjectPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\ImageObjectPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\GridlinesObjectPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\TerrainObjectPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\RulerObjectPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\ViewObjectPropertyAdapter.h">
+      <Filter>ui\modelproperties</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\ViewObjectPropertyManager.h">
+      <Filter>ui\modelproperties</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\IciclesPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\ImagePropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\SingleLinePropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\SpherePropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\SpinnerPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\StarPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\TreePropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\WindowFramePropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\adapters\WreathPropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\PropertyGridHelpers.h">
+      <Filter>ui\modelproperties</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\ScreenLocationPropertyHelper.h">
+      <Filter>ui\modelproperties</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\helpers\DmxAbilityPropertyHelpers.h">
+      <Filter>ui\modelproperties\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\modelproperties\helpers\DmxComponentPropertyHelpers.h">
+      <Filter>ui\modelproperties\helpers</Filter>
+    </ClInclude>
     <ClInclude Include="controllers\FPPUploadProgressDialog.h">
       <Filter>Controllers</Filter>
     </ClInclude>
@@ -2225,9 +2459,7 @@
     <ClInclude Include="models\DMX\DmxMotorBase.h" />
     <ClInclude Include="models\DMX\DmxMotorPanTilt.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhChannel.h" />
-    <ClInclude Include="models\DMX\MovingHeads\MhChannelDialog.h" />
     <ClInclude Include="models\DMX\MovingHeads\MhFeature.h" />
-    <ClInclude Include="models\DMX\MovingHeads\MhFeatureDialog.h" />
     <ClInclude Include="models\DMX\DmxDimmerAbility.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
@@ -2382,6 +2614,15 @@
     </Filter>
     <Filter Include="ui">
       <UniqueIdentifier>{a3b2c1d0-1234-5678-abcd-ef0123456789}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ui\modelproperties">
+      <UniqueIdentifier>{b4c3d2e1-2345-6789-bcde-f01234567890}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ui\modelproperties\adapters">
+      <UniqueIdentifier>{c5d4e3f2-3456-789a-cdef-012345678901}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ui\modelproperties\helpers">
+      <UniqueIdentifier>{d6e5f4a3-4567-89ab-def0-123456789012}</UniqueIdentifier>
     </Filter>
     <Filter Include="utils">
       <UniqueIdentifier>{c1416434-1c5e-4d35-9335-0e5286dca853}</UniqueIdentifier>

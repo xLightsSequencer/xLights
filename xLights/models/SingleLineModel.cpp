@@ -9,9 +9,6 @@
  **************************************************************/
 
 #include "SingleLineModel.h"
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
 
 #include "ModelScreenLocation.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
@@ -181,69 +178,4 @@ void SingleLineModel::InitLine() {
     }
 }
 
-static const char* LEFT_RIGHT_VALUES[] = { "Green Square", "Blue Square" };
-static wxPGChoices LEFT_RIGHT(wxArrayString(2, LEFT_RIGHT_VALUES));
-
-void SingleLineModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "SingleLineCount", parm1));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-    p->SetHelpString("This is typically the number of connections from the prop to your controller.");
-
-    if (SingleNode) {
-        p = grid->Append(new wxUIntProperty("Lights/String", "SingleLineNodes", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 10000);
-        p->SetEditor("SpinCtrl");
-    } else {
-        p = grid->Append(new wxUIntProperty("Nodes/String", "SingleLineNodes", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 10000);
-        p->SetEditor("SpinCtrl");
-        p->SetHelpString("This is typically the total number of pixels per #String.");
-
-        p = grid->Append(new wxUIntProperty("Lights/Node", "SingleLineLights", parm3));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 300);
-        p->SetEditor("SpinCtrl");
-    }
-
-    grid->Append(new wxEnumProperty("Starting Location", "SingleLineStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
-}
-
-int SingleLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    IncrementChangeCount();
-    if ("SingleLineCount" == event.GetPropertyName()) {
-        parm1 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "SingleLineModel::OnPropertyGridChange::SingleLineCount");
-        return 0;
-    } else if ("SingleLineNodes" == event.GetPropertyName()) {
-        parm2 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "SingleLineModel::OnPropertyGridChange::SingleLineNodes");
-        return 0;
-    } else if ("SingleLineLights" == event.GetPropertyName()) {
-        parm3 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "SingleLineModel::OnPropertyGridChange::SingleLineLights");
-        return 0;
-    } else if ("SingleLineStart" == event.GetPropertyName()) {
-        SetDirection(event.GetValue().GetLong() == 0 ? "L" : "R");
-        SetIsLtoR(event.GetValue().GetLong() == 0);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "SingleLineModel::OnPropertyGridChange::SingleLineStart");
-        return 0;
-    }
-
-    return Model::OnPropertyGridChange(grid, event);
-}
 

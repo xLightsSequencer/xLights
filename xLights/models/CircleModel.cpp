@@ -8,19 +8,10 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-#include <wx/log.h>
-#include <wx/filedlg.h>
 
 #include "CircleModel.h"
 #include "ModelScreenLocation.h"
 #include "../OutputModelManager.h"
-#include "xLightsVersion.h"
-#include "../xLightsMain.h"
-#include "../UtilFunctions.h"
-#include "../ModelPreview.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
 CircleModel::CircleModel(const ModelManager& manager) : ModelWithScreenLocation(manager)
@@ -73,100 +64,6 @@ void CircleModel::InitModel()
     InitCircle();
     SetCircleCoord();
     screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
-}
-
-static const char* CIRCLE_START_LOCATION_VALUES[] = { 
-        "Top Outer-CCW",
-        "Top Outer-CW",
-        "Top Inner-CCW",
-        "Top Inner-CW",
-        "Bottom Outer-CCW",
-        "Bottom Outer-CW",
-        "Bottom Inner-CCW",
-        "Bottom Inner-CW"
-};
-
-static wxPGChoices CIRCLE_START_LOCATION(wxArrayString(8, CIRCLE_START_LOCATION_VALUES));
-
-void CircleModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-
-    wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "CircleStringCount", parm1));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-    p->SetHelpString("This is typically the number of connections from the prop to your controller.");
-
-    if (SingleNode) {
-        p = grid->Append(new wxUIntProperty("Lights/String", "CircleLightCount", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 2000);
-        p->SetEditor("SpinCtrl");
-    }
-    else {
-        p = grid->Append(new wxUIntProperty("Nodes/String", "CircleLightCount", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 2000);
-        p->SetEditor("SpinCtrl");
-        p->SetHelpString("This is typically the total number of pixels per #String.");
-    }
-
-    p = grid->Append(new wxUIntProperty("Center %", "CircleCenterPercent", parm3));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-
-    AddLayerSizeProperty(grid);
-
-    int start = IsLtoR ? 1 : 0;
-    if (_insideOut) {
-        start += 2;
-    }
-    if (isBotToTop) {
-        start += 4;
-    }
-    grid->Append(new wxEnumProperty("Starting Location", "CircleStart", CIRCLE_START_LOCATION, start));
-}
-
-int CircleModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    if ("CircleStringCount" == event.GetPropertyName()) {
-        parm1 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CircleModel::OnPropertyGridChange::CircleStringCount");
-        return 0;
-    }
-    else if ("CircleLightCount" == event.GetPropertyName()) {
-        parm2 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CircleModel::OnPropertyGridChange::CircleLightCount");
-        return 0;
-    }
-    else if ("CircleCenterPercent" == event.GetPropertyName()) {
-        parm3 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CircleModel::OnPropertyGridChange::CircleCenterPercent");
-        return 0;
-    }
-    else if ("CircleStart" == event.GetPropertyName()) {
-        int v = event.GetValue().GetLong();
-        SetDirection(v & 0x1 ? "L" : "R");
-        SetStartSide(v < 4 ? "T" : "B");
-        SetIsLtoR(v & 0x1);
-        SetIsBtoT(v >= 4);
-        _insideOut = ( v & 0x2 ? "1" : "0");
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CircleModel::OnPropertyGridChange::CircleStart");
-        return 0;
-    }
-
-    return Model::OnPropertyGridChange(grid, event);
 }
 
 int CircleModel::maxSize() {

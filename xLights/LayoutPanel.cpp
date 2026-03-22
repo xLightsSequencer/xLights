@@ -75,6 +75,10 @@
 #include "SubModelsDialog.h"
 #include "xlColourData.h"
 #include "xlPropertyGrid.h"
+#include "ui/modelproperties/ModelPropertyManager.h"
+#include "ui/modelproperties/ViewObjectPropertyManager.h"
+#include "ui/modelproperties/ViewObjectPropertyAdapter.h"
+#include "ui/modelproperties/ModelPropertyAdapter.h"
 
 #include "LayoutUtils.h"
 
@@ -925,7 +929,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 else {
                     if (selectedModel != nullptr) {
                         selectedModel->SaveDisplayDimensions();
-                        int i = selectedModel->OnPropertyGridChange(propertyEditor, event);
+                        int i = _propertyAdapter->OnPropertyGridChange(propertyEditor, event);
                         if ((i & GRIDCHANGE_SUPPRESS_HOLDSIZE) == 0 &&
                             (dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(selectedModel) != nullptr ||
                                 dynamic_cast<ModelWithScreenLocation<ThreePointScreenLocation>*>(selectedModel) != nullptr)) {
@@ -979,7 +983,7 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
             //    int a = 0;
             } else {
                 CreateUndoPoint("ModelProperty", selectedModel->name, name, event.GetProperty()->GetValue().GetString().ToStdString());
-                selectedModel->OnPropertyGridChanging(propertyEditor, event);
+                _propertyAdapter->OnPropertyGridChanging(propertyEditor, event);
             }
         } else {
             ViewObject* selectedObject = dynamic_cast<ViewObject*>(selectedBaseObject);
@@ -1005,7 +1009,7 @@ void LayoutPanel::OnPropertyGridSelection(wxPropertyGridEvent& event) {
         if( editing_models ) {
             Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
             if( selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
-                int segment = selectedModel->OnPropertyGridSelection(propertyEditor, event);
+                int segment = _propertyAdapter->OnPropertyGridSelection(propertyEditor, event);
                 selectedModel->GetBaseObjectScreenLocation().SelectSegment(segment);
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPropertyGridSelection");
             }
@@ -1018,7 +1022,7 @@ void LayoutPanel::OnPropertyGridItemCollapsed(wxPropertyGridEvent& event) {
         if( editing_models ) {
             Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
             if( selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
-                selectedModel->OnPropertyGridItemCollapsed(propertyEditor, event);
+                _propertyAdapter->OnPropertyGridItemCollapsed(propertyEditor, event);
             }
         }
     }
@@ -1029,7 +1033,7 @@ void LayoutPanel::OnPropertyGridItemExpanded(wxPropertyGridEvent& event) {
         if( editing_models ) {
             Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
             if( selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
-                selectedModel->OnPropertyGridItemExpanded(propertyEditor, event);
+                _propertyAdapter->OnPropertyGridItemExpanded(propertyEditor, event);
             }
         }
     }
@@ -1039,7 +1043,9 @@ void LayoutPanel::OnPropertyGridRightClick(wxPropertyGridEvent& event)
 {
     if (selectedBaseObject != nullptr) {
         wxMenu mnu;
-        selectedBaseObject->HandlePropertyGridRightClick(event, mnu);
+        if (_propertyAdapter) {
+            _propertyAdapter->HandlePropertyGridRightClick(event, mnu);
+        }
         if (mnu.GetMenuItemCount() != 0) {
             mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridContextMenu, nullptr, this);
             PopupMenu(&mnu);
@@ -1050,7 +1056,9 @@ void LayoutPanel::OnPropertyGridRightClick(wxPropertyGridEvent& event)
 void LayoutPanel::OnPropertyGridContextMenu(wxCommandEvent& event)
 {
     if (selectedBaseObject != nullptr) {
-        selectedBaseObject->HandlePropertyGridContextMenu(event);
+        if (_propertyAdapter) {
+            _propertyAdapter->HandlePropertyGridContextMenu(event);
+        }
     }
 }
 
@@ -1088,7 +1096,11 @@ void LayoutPanel::updatePropertyGrid()
 {
     if (selectedBaseObject == nullptr || propertyEditor == nullptr || ModelsSelectedCount() > 1) return;
 
-    selectedBaseObject->UpdateProperties(propertyEditor, xlights->GetOutputManager());
+    if (_propertyAdapter) {
+        _propertyAdapter->UpdateProperties(propertyEditor, xlights->GetOutputManager());
+    } else if (_viewObjectAdapter) {
+        _viewObjectAdapter->UpdateProperties(propertyEditor, xlights->GetOutputManager());
+    }
 }
 
 void LayoutPanel::ClearSelectedModelGroup()
@@ -2388,6 +2400,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 
     highlightedBaseObject = nullptr;
     selectedBaseObject = nullptr;
+    _propertyAdapter.reset();
     selectionLatched = false;
     selectedPrimaryTreeItem = nullptr;
     selectedTreeGroups.clear();
@@ -2569,6 +2582,19 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
     if (!frozen) propertyEditor->Freeze();
     clearPropGrid();
 
+    // Create a property adapter for the model or view object
+    Model* model = dynamic_cast<Model*>(base_object);
+    if (model != nullptr) {
+        _propertyAdapter = ModelPropertyManager::CreateAdapter(*model);
+        _viewObjectAdapter.reset();
+    } else if (auto* viewObj = dynamic_cast<ViewObject*>(base_object)) {
+        _viewObjectAdapter = ViewObjectPropertyManager::CreateAdapter(*viewObj);
+        _propertyAdapter.reset();
+    } else {
+        _propertyAdapter.reset();
+        _viewObjectAdapter.reset();
+    }
+
     //propertyEditor->Enable(true);
 
     if( editing_models ) {
@@ -2582,7 +2608,11 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
         propertyEditor->Append(new wxStringProperty("Name", "ObjectName", base_object->name));
     }
 
-    base_object->AddProperties(propertyEditor, xlights->GetOutputManager());
+    if (_propertyAdapter) {
+        _propertyAdapter->AddProperties(propertyEditor, xlights->GetOutputManager());
+    } else if (_viewObjectAdapter) {
+        _viewObjectAdapter->AddProperties(propertyEditor, xlights->GetOutputManager());
+    }
     if (dynamic_cast<SubModel*>(base_object) == nullptr) {
 
         wxPGProperty* p2;
@@ -2590,7 +2620,11 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
         if (RulerObject::GetRuler() != nullptr) {
             p2 = propertyEditor->Append(new wxPropertyCategory("Dimensions", "Dimensions"));
 
-            base_object->AddDimensionProperties(propertyEditor);
+            if (_propertyAdapter) {
+                _propertyAdapter->AddDimensionProperties(propertyEditor);
+            } else if (_viewObjectAdapter) {
+                _viewObjectAdapter->AddDimensionProperties(propertyEditor);
+            }
             if (!dimensionsVisible) {
                 propertyEditor->Collapse(p2);
             }
@@ -2601,7 +2635,11 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
         }
 
         p2 = propertyEditor->Append(new wxPropertyCategory("Size/Location", "ModelSize"));
-        base_object->AddSizeLocationProperties(propertyEditor);
+        if (_propertyAdapter) {
+            _propertyAdapter->AddSizeLocationProperties(propertyEditor);
+        } else if (_viewObjectAdapter) {
+            _viewObjectAdapter->AddSizeLocationProperties(propertyEditor);
+        }
         if (!sizeVisible) {
             propertyEditor->Collapse(p2);
         }
@@ -3616,12 +3654,6 @@ void LayoutPanel::FinalizeModel()
         if (b != nullptr && (b->GetModelType() == "Import Custom" || b->GetModelType() == "Download"))
         {
             xlights->AddTraceMessage("LayoutPanel::FinalizeModel We were downloading or importing.");
-            float min_x = (float)(_newModel->GetBaseObjectScreenLocation().GetLeft());
-            float max_x = (float)(_newModel->GetBaseObjectScreenLocation().GetRight());
-            float min_y = (float)(_newModel->GetBaseObjectScreenLocation().GetBottom());
-            float max_y = (float)(_newModel->GetBaseObjectScreenLocation().GetTop());
-            float min_z = (float)(_newModel->GetBaseObjectScreenLocation().GetFront());
-            float max_z = (float)(_newModel->GetBaseObjectScreenLocation().GetBack());
             bool cancelled = false;
             auto pos = _newModel->GetBaseObjectScreenLocation().GetWorldPosition();
 

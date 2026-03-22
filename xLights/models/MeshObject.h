@@ -27,10 +27,6 @@ public:
 
     virtual void InitModel() override;
 
-    virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-    virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override {}
-
-    int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
     virtual bool Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected = false) override;
 
@@ -39,17 +35,20 @@ public:
     virtual std::list<std::string> CheckModelSettings() override;
 
     void SetObjectFile(const std::string & objFile);
+    void SetObjFile(const std::string& file) { _objFile = file; }
     void SetMeshOnly(bool val) { mesh_only = val; }
-    void SetBrightness(int val) {brightness = val; }
+    void SetBrightness(int val) { brightness = val; }
+    void SetObjLoaded(bool val) { obj_loaded = val; }
 
     const std::string GetObjFile() const { return _objFile; }
     bool IsMeshOnly() const { return mesh_only; }
     int GetBrightness() const { return brightness; }
+
+    void checkAccessToFile(const std::string &url);
     
     void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
 protected:
-    void checkAccessToFile(const std::string &url);
     void loadObject(xlGraphicsContext *ctx);
 
 private:

@@ -21,9 +21,6 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual int NodesPerString() const override;
 
-        virtual void AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) override;
-        virtual void UpdateTypeProperties(wxPropertyGridInterface* grid) override;
-        virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
             std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi, int stagger, bool deep = false) const override;
         virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
@@ -47,8 +44,10 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void InitModel() override;
         virtual int MapToNodeIndex(int strand, int node) const override;
         virtual int CalcChannelsPerString() override;
+    public:
         int EncodeStartLocation();
         void DecodeStartLocation(int sl);
+    protected:
         void SetSpinnerCoord();
 
         int _hollow = 20;

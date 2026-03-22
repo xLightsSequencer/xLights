@@ -8,11 +8,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/regex.h>
-
 #include <algorithm>
 #include <format>
 #include <filesystem>
@@ -56,68 +51,6 @@ void MeshObject::SetObjectFile(const std::string & objFile)
     checkAccessToFile(_objFile);
 }
 
-void MeshObject::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-	wxPGProperty *p = grid->Append(new wxFileProperty("ObjFile",
-                                             "ObjFile",
-                                             _objFile));
-    p->SetAttribute(wxPG_FILE_WILDCARD, "Wavefront files|*.obj|All files (*.*)|*.*");
-
-    p = grid->Append(new wxUIntProperty("Brightness", "Brightness", brightness));
-    p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxBoolProperty("Mesh Only", "MeshOnly", mesh_only));
-    p->SetAttribute("UseCheckbox", true);
-}
-
-int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if ("ObjFile" == event.GetPropertyName()) {
-        obj_loaded = false;
-        _objFile = event.GetValue().GetString();
-        auto mtfs = xlMesh::GetMaterialFilenamesFromOBJ(_objFile, false);
-        bool hasSpaces = false;
-        std::filesystem::path path(_objFile);
-        for (auto &mtf : mtfs) {
-            if (mtf.find(' ') != std::string::npos) {
-                std::filesystem::path mtlpath(path);
-                mtlpath.replace_filename(mtf);
-                if (std::filesystem::exists(mtlpath)) {
-                    // has spaces, but is found so we can fix it
-                    hasSpaces = true;
-                }
-            }
-        }
-        if (hasSpaces) {
-            if (wxMessageBox("The OBJ file contains materials with spaces in the filename.  This will prevent the materials from working.  Should we attempt to fix the file?",
-                         "Files with spaces",
-                             wxYES_NO | wxCENTRE | wxICON_WARNING) == wxYES) {
-                
-                xlMesh::FixMaterialFilenamesInOBJ(_objFile);
-            }
-        }
-        checkAccessToFile(_objFile);
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MeshObject::OnPropertyGridChange::ObjFile");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MeshObject::OnPropertyGridChange::ObjFile");
-        return 0;
-    } else if ("Brightness" == event.GetPropertyName()) {
-        brightness = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MeshObject::OnPropertyGridChange::Brightness");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MeshObject::OnPropertyGridChange::Brightness");
-        return 0;
-    } else if ("MeshOnly" == event.GetPropertyName()) {
-        mesh_only = event.GetValue().GetBool();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "MeshObject::OnPropertyGridChange::MeshOnly");
-        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "MeshObject::OnPropertyGridChange::MeshOnly");
-        return 0;
-    }
-
-    return ViewObject::OnPropertyGridChange(grid, event);
-}
 
 bool MeshObject::CleanupFileLocations(xLightsFrame* frame)
 {
@@ -182,12 +115,12 @@ std::list<std::string> MeshObject::CheckModelSettings()
                     wxFileName fn3 = wxFileName(mtf2);
                     if (!FileExists(fn3)) {
                         // still not there so report the warning
-                        res.push_back(wxString::Format("    WARN: Mesh object '%s' is missing material file '%s'.", GetName(), fn2.GetFullPath()).ToStdString());
+                        res.push_back(std::format("    WARN: Mesh object '{}' is missing material file '{}'.", GetName(), fn2.GetFullPath().ToStdString()));
                     }
                 }
             }
         } else {
-            res.push_back(wxString::Format("    WARN: Mesh object '%s' does not have a material file '%s'.", GetName(), fn.GetFullPath()).ToStdString());
+            res.push_back(std::format("    WARN: Mesh object '{}' does not have a material file '{}'.", GetName(), fn.GetFullPath().ToStdString()));
         }
 
         std::string base_path = fn.GetPath();
@@ -207,7 +140,7 @@ std::list<std::string> MeshObject::CheckModelSettings()
                     if (!FileExists(tex2)) {
                         wxFileName tex3(fn.GetPath() + wxFileName::GetPathSeparator() + fn.GetName() + wxFileName::GetPathSeparator() + m.diffuse_texname);
                         if (!FileExists(tex3)) {
-                            res.push_back(wxString::Format("    ERR: Mesh object '%s' cant find texture file '%s'", GetName(), tex.GetFullPath()).ToStdString());
+                            res.push_back(std::format("    ERR: Mesh object '{}' cant find texture file '{}'", GetName(), tex.GetFullPath().ToStdString()));
                         }
                     }
                 }

@@ -19,6 +19,7 @@
 #include "UtilFunctions.h"
 #include "models/ViewObject.h"
 #include "xLightsMain.h"
+#include "ui/modelproperties/ViewObjectPropertyAdapter.h"
 #include <log4cpp/Category.hh>
 
 //(*InternalHeaders(ViewObjectPanel)
@@ -515,7 +516,7 @@ void ViewObjectPanel::OnPropertyGridChange(wxPropertyGrid *propertyEditor, wxPro
                                                                            OutputModelManager::WORK_RELOAD_OBJECTLIST, "ViewObjectPanel::OnPropertyGridChange::ObjectName");
             }
         } else {
-            int i = mSelectedObject->OnPropertyGridChange(propertyEditor, event);
+            int i = layoutPanel->_viewObjectAdapter->OnPropertyGridChange(propertyEditor, event);
             wxASSERT(i == 0 || i == GRIDCHANGE_SUPPRESS_HOLDSIZE);
         }
     }

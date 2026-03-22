@@ -953,18 +953,14 @@
 		<Unit filename="models/DMX/Mesh.h" />
 		<Unit filename="models/DMX/MovingHeads/MhChannel.cpp" />
 		<Unit filename="models/DMX/MovingHeads/MhChannel.h" />
-		<Unit filename="models/DMX/MovingHeads/MhChannelDialog.cpp" />
-		<Unit filename="models/DMX/MovingHeads/MhChannelDialog.h" />
 		<Unit filename="models/DMX/MovingHeads/MhFeature.cpp" />
 		<Unit filename="models/DMX/MovingHeads/MhFeature.h" />
-		<Unit filename="models/DMX/MovingHeads/MhFeatureDialog.cpp" />
-		<Unit filename="models/DMX/MovingHeads/MhFeatureDialog.h" />
 		<Unit filename="models/DMX/Servo.cpp" />
 		<Unit filename="models/DMX/Servo.h" />
-		<Unit filename="models/DMX/ServoConfigDialog.cpp" />
-		<Unit filename="models/DMX/ServoConfigDialog.h" />
-		<Unit filename="models/DMX/SkullConfigDialog.cpp" />
-		<Unit filename="models/DMX/SkullConfigDialog.h" />
+		<Unit filename="ui/modelproperties/adapters/ServoConfigDialog.cpp" />
+		<Unit filename="ui/modelproperties/adapters/ServoConfigDialog.h" />
+		<Unit filename="ui/modelproperties/adapters/SkullConfigDialog.cpp" />
+		<Unit filename="ui/modelproperties/adapters/SkullConfigDialog.h" />
 		<Unit filename="models/DmxModel.h" />
 		<Unit filename="models/GridlinesObject.cpp" />
 		<Unit filename="models/GridlinesObject.h" />
@@ -1161,6 +1157,86 @@
 		<Unit filename="support/VectorMath.h" />
 		<Unit filename="tmGridCell.cpp" />
 		<Unit filename="tmGridCell.h" />
+		<Unit filename="ui/modelproperties/PropertyGridHelpers.cpp" />
+		<Unit filename="ui/modelproperties/PropertyGridHelpers.h" />
+		<Unit filename="ui/modelproperties/ScreenLocationPropertyHelper.cpp" />
+		<Unit filename="ui/modelproperties/ScreenLocationPropertyHelper.h" />
+		<Unit filename="ui/modelproperties/helpers/DmxAbilityPropertyHelpers.cpp" />
+		<Unit filename="ui/modelproperties/helpers/DmxAbilityPropertyHelpers.h" />
+		<Unit filename="ui/modelproperties/helpers/DmxComponentPropertyHelpers.cpp" />
+		<Unit filename="ui/modelproperties/helpers/DmxComponentPropertyHelpers.h" />
+		<Unit filename="ui/modelproperties/ModelPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/ModelPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/ModelPropertyManager.cpp" />
+		<Unit filename="ui/modelproperties/ModelPropertyManager.h" />
+		<Unit filename="ui/modelproperties/adapters/ArchesPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/ArchesPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/CandyCanePropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/CandyCanePropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/ChannelBlockPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/ChannelBlockPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/CirclePropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/CirclePropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/CubePropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/CubePropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/IciclesPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/IciclesPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/MatrixPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/MatrixPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/SingleLinePropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/SingleLinePropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/SpherePropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/SpherePropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/SpinnerPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/SpinnerPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/StarPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/StarPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/TreePropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/TreePropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/WindowFramePropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/WindowFramePropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/WreathPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/WreathPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/ImagePropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/ImagePropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/CustomPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/CustomPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/PolyLinePropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/PolyLinePropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/MultiPointPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/MultiPointPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/DmxPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/DmxPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/DmxGeneralPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/DmxGeneralPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/DmxFloodlightPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/DmxFloodlightPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/DmxMovingHeadPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/DmxMovingHeadPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/DmxMovingHeadAdvPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/DmxMovingHeadAdvPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/DmxSkullPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/DmxSkullPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/DmxServoPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/DmxServoPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/DmxServo3dPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/DmxServo3dPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/SubModelPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/SubModelPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/MeshObjectPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/MeshObjectPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/ImageObjectPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/ImageObjectPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/GridlinesObjectPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/GridlinesObjectPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/TerrainObjectPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/TerrainObjectPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/adapters/RulerObjectPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/adapters/RulerObjectPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/ViewObjectPropertyAdapter.cpp" />
+		<Unit filename="ui/modelproperties/ViewObjectPropertyAdapter.h" />
+		<Unit filename="ui/modelproperties/ViewObjectPropertyManager.cpp" />
+		<Unit filename="ui/modelproperties/ViewObjectPropertyManager.h" />
 		<Unit filename="ui/wxUtilities.cpp" />
 		<Unit filename="ui/wxUtilities.h" />
 		<Unit filename="utils/Curl.cpp" />
@@ -1296,8 +1372,6 @@
 		<Unit filename="wxsmith/MediaImportOptionsDialog.wxs" />
 		<Unit filename="wxsmith/MeteorsPanel.wxs" />
 		<Unit filename="wxsmith/MetronomeLabelDialog.wxs" />
-		<Unit filename="wxsmith/MhChannelDialog.wxs" />
-		<Unit filename="wxsmith/MhFeatureDialog.wxs" />
 		<Unit filename="wxsmith/ModelChainDialog.wxs" />
 		<Unit filename="wxsmith/ModelDimmingCurveDialog.wxs" />
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
@@ -1491,8 +1565,8 @@
 					<wxDialog wxs="wxsmith/SeqElementMismatchDialog.wxs" src="SeqElementMismatchDialog.cpp" hdr="SeqElementMismatchDialog.h" fwddecl="0" i18n="1" name="SeqElementMismatchDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SeqExportDialog.wxs" src="SeqExportDialog.cpp" hdr="SeqExportDialog.h" fwddecl="0" i18n="1" name="SeqExportDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SeqSettingsDialog.wxs" src="SeqSettingsDialog.cpp" hdr="SeqSettingsDialog.h" fwddecl="0" i18n="1" name="SeqSettingsDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ServoConfigDialog.wxs" src="models/DMX/ServoConfigDialog.cpp" hdr="models/DMX/ServoConfigDialog.h" fwddecl="0" i18n="1" name="ServoConfigDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/SkullConfigDialog.wxs" src="models/DMX/SkullConfigDialog.cpp" hdr="models/DMX/SkullConfigDialog.h" fwddecl="0" i18n="1" name="SkullConfigDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ServoConfigDialog.wxs" src="ui/modelproperties/adapters/ServoConfigDialog.cpp" hdr="ui/modelproperties/adapters/ServoConfigDialog.h" fwddecl="0" i18n="1" name="ServoConfigDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SkullConfigDialog.wxs" src="ui/modelproperties/adapters/SkullConfigDialog.cpp" hdr="ui/modelproperties/adapters/SkullConfigDialog.h" fwddecl="0" i18n="1" name="SkullConfigDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SevenSegmentDialog.wxs" src="SevenSegmentDialog.cpp" hdr="SevenSegmentDialog.h" fwddecl="0" i18n="1" name="SevenSegmentDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ShaderDownloadDialog.wxs" src="ShaderDownloadDialog.cpp" hdr="ShaderDownloadDialog.h" fwddecl="0" i18n="1" name="ShaderDownloadDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SplashDialog.wxs" src="SplashDialog.cpp" hdr="SplashDialog.h" fwddecl="0" i18n="1" name="SplashDialog" language="CPP" />

@@ -8,12 +8,10 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cassert>
 #include <format>
 #include "PolyPointScreenLocation.h"
 
-#include <wx/xml/xml.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 
 #include "../ModelPreview.h"
 #include "Shapes.h"
@@ -463,7 +461,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
 
 wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int& handle, int x, int y) const
 {
-    wxASSERT(!preview->Is3D());
+    assert(!preview->Is3D());
 
     wxCursor return_value = wxCURSOR_DEFAULT;
 
@@ -1682,30 +1680,6 @@ wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, 
     return wxCURSOR_SIZING;
 }
 
-void PolyPointScreenLocation::AddDimensionProperties(wxPropertyGridInterface* propertyEditor, float factor) const
-{
-    float len = 0;
-    auto last = mPos[0].AsVector();
-    for (int i = 1; i < mPos.size(); i++) {
-        len += RulerObject::Measure(last, mPos[i].AsVector());
-        last = mPos[i].AsVector();
-    }
-    wxPGProperty* prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Length (%s)", RulerObject::GetUnitDescription()), "RealLength", len));
-    prop->ChangeFlag(wxPGFlags::ReadOnly, true);
-    prop->SetAttribute("Precision", 2);
-    prop->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-    
-    last = mPos[0].AsVector();
-    for (int i = 1; i < mPos.size(); i++) {
-        len = RulerObject::Measure(last, mPos[i].AsVector());
-        last = mPos[i].AsVector();
-
-        auto seg = wxString::Format("Segment %d (%s)", i, RulerObject::GetUnitDescription());
-        prop = propertyEditor->Append(new wxFloatProperty(seg, "REAL" + seg, len));
-        prop->SetAttribute("Precision", 2);
-    }
-}
-
 std::string PolyPointScreenLocation::GetDimension(float factor) const
 {
     if (RulerObject::GetRuler() == nullptr) return "";
@@ -1715,130 +1689,7 @@ std::string PolyPointScreenLocation::GetDimension(float factor) const
         len += RulerObject::Measure(last, mPos[i].AsVector());
         last = mPos[i].AsVector();
     }
-    return wxString::Format("Length %s", RulerObject::PrescaledMeasureDescription(len)).ToStdString();
-}
-
-void PolyPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
-
-    wxPGProperty *prop = propertyEditor->Append(new wxBoolProperty("Locked", "Locked", _locked));
-    prop->SetAttribute("UseCheckbox", 1);
-    prop = propertyEditor->Append(new wxFloatProperty("X1", "ModelX1", mPos[0].x + worldPos_x));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxGREEN);
-    prop = propertyEditor->Append(new wxFloatProperty("Y1", "ModelY1", mPos[0].y + worldPos_y));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxGREEN);
-    prop = propertyEditor->Append(new wxFloatProperty("Z1", "ModelZ1", mPos[0].z + worldPos_z));
-    prop->SetAttribute("Precision", 2);
-    prop->SetAttribute("Step", 0.5);
-    prop->SetEditor("SpinCtrl");
-    prop->SetTextColour(*wxGREEN);
-
-    for( int i = 1; i < num_points; ++i ) {
-        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("X%d",i+1), wxString::Format("ModelX%d",i+1), mPos[i].x + worldPos_x));
-        prop->SetAttribute("Precision", 2);
-        prop->SetAttribute("Step", 0.5);
-        prop->SetEditor("SpinCtrl");
-        prop->SetTextColour(BlueOrLightBlue());
-        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Y%d", i+1), wxString::Format("ModelY%d", i+1), mPos[i].y + worldPos_y));
-        prop->SetAttribute("Precision", 2);
-        prop->SetAttribute("Step", 0.5);
-        prop->SetEditor("SpinCtrl");
-        prop->SetTextColour(BlueOrLightBlue());
-        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Z%d", i+1), wxString::Format("ModelZ%d", i+1), mPos[i].z + worldPos_z));
-        prop->SetAttribute("Precision", 2);
-        prop->SetAttribute("Step", 0.5);
-        prop->SetEditor("SpinCtrl");
-        prop->SetTextColour(BlueOrLightBlue());
-    }
-}
-
-int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    std::string name = event.GetPropertyName().ToStdString();
-    if (StartsWith(name, "REALSegment ")) {
-        if (_locked)
-        {
-            event.Veto();
-            return 0;
-        }
-        else {
-            auto o = name.find(" ", 12);
-            wxASSERT(o != std::string::npos);
-
-            selected_handle = wxAtoi(name.substr(12, o - 12)) - 1;
-
-            wxASSERT(selected_handle + 1 < mPos.size());
-
-            float oldLen = 0.0f;
-            oldLen = RulerObject::UnMeasure(RulerObject::Measure(mPos[selected_handle].AsVector(), mPos[selected_handle + 1].AsVector()));
-            float len = RulerObject::UnMeasure(event.GetValue().GetDouble());
-
-            float dx = (mPos[selected_handle + 1].x - mPos[selected_handle].x) * len / oldLen - (mPos[selected_handle + 1].x - mPos[selected_handle].x);
-            float dy = (mPos[selected_handle + 1].y - mPos[selected_handle].y) * len / oldLen - (mPos[selected_handle + 1].y - mPos[selected_handle].y);
-            float dz = (mPos[selected_handle + 1].z - mPos[selected_handle].z) * len / oldLen - (mPos[selected_handle + 1].z - mPos[selected_handle].z);
-
-            // if this resulted in a divide by zero then set it to one ... setting it to zero leaves you stuck unable to change it further ... this will be weird but fixable
-            if (isnan(dx))
-                dx = 1.0f;
-            if (isnan(dy))
-                dy = 1.0f;
-            if (isnan(dz))
-                dz = 1.0f;
-
-            for (auto i = selected_handle + 1; i < mPos.size(); i++) {
-                    mPos[i].x += dx;
-                    mPos[i].y += dy;
-                    mPos[i].z += dz;
-                }
-
-            AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::REALSegment");
-            return 0;
-        }
-    }
-    else if( name.length() > 6 ) {
-        selected_handle = wxAtoi(name.substr(6, name.length()-6)) - 1;
-        selected_segment = -1;
-        if (!_locked && name.find("ModelX") != std::string::npos) {
-            mPos[selected_handle].x = event.GetValue().GetDouble() - worldPos_x;
-            AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::ModelX");
-            return 0;
-        }
-        else if (_locked && name.find("ModelX") != std::string::npos) {
-            event.Veto();
-            return 0;
-        }
-        else if (!_locked && name.find("ModelY") != std::string::npos) {
-            mPos[selected_handle].y = event.GetValue().GetDouble() - worldPos_y;
-            AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::ModelY");
-            return 0;
-        }
-        else if (_locked && name.find("ModelY") != std::string::npos) {
-            event.Veto();
-            return 0;
-        }
-        else if (!_locked && name.find("ModelZ") != std::string::npos) {
-            mPos[selected_handle].z = event.GetValue().GetDouble() - worldPos_z;
-            AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE, "PolyPointScreenLocation::OnPropertyGridChange::ModelZ");
-            return 0;
-        }
-        else if (_locked && name.find("ModelZ") != std::string::npos) {
-            event.Veto();
-            return 0;
-        }
-    }
-    else if ("Locked" == name)
-    {
-        _locked = event.GetValue().GetBool();
-        AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyPointScreenLocation::OnPropertyGridChange::Locked");
-        return 0;
-    }
-
-    return 0;
+    return std::format("Length {}", RulerObject::PrescaledMeasureDescription(len));
 }
 
 void PolyPointScreenLocation::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) {

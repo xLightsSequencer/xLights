@@ -8,12 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-#include <wx/log.h>
-#include <wx/filedlg.h>
-#include <wx/msgdlg.h>
+#include <cassert>
+#include <format>
 
 #include "../XmlSerializer/FileSerializingVisitor.h"
 
@@ -92,9 +88,7 @@ static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = {
         "Back Top Left",
         "Back Top Right"
 };
-static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(8, TOP_BOT_LEFT_RIGHT_VALUES));
-
-static const char* CUBE_STYLES_VALUES[] = { 
+static const char* CUBE_STYLES_VALUES[] = {
         "Vertical Front/Back",
         "Vertical Left/Right",
         "Horizontal Front/Back",
@@ -103,14 +97,11 @@ static const char* CUBE_STYLES_VALUES[] = {
         "Stacked Left/Right"
 };
 
-static wxPGChoices CUBE_STYLES(wxArrayString(6, CUBE_STYLES_VALUES));
-
-static const char* STRAND_STYLES_VALUES[] = { 
+static const char* STRAND_STYLES_VALUES[] = {
         "Zig Zag",
         "No Zig Zag",
         "Aternate Pixel"
 };
-static wxPGChoices STRAND_STYLES(wxArrayString(3, STRAND_STYLES_VALUES));
 
 CubeModel::CubeModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
@@ -125,55 +116,26 @@ CubeModel::~CubeModel()
 
 int CubeModel::CalcTransformationIndex() const
 {
-    const wxString style = GetStrandStyle();
-    bool leftright = style.Contains("Left");
-    bool horizontal = style.Contains("Horizontal");
-    bool stacked = style.Contains("Stacked");
-    return (_cubeStart * CUBE_STYLES.GetCount()) + (horizontal << 1) + (stacked << 2) + leftright;
-}
-
-void CubeModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    grid->Append(new wxEnumProperty("Starting Location", "CubeStart", TOP_BOT_LEFT_RIGHT, _cubeStart));
-    grid->Append(new wxEnumProperty("Direction", "CubeStyle", CUBE_STYLES, _cubeStyle));
-    grid->Append(new wxEnumProperty("Strand Style", "StrandPerLine", STRAND_STYLES, _strandStyle));
-    auto p = grid->Append(new wxBoolProperty("Layers All Start in Same Place", "StrandPerLayer", IsStrandPerLayer()));
-    p->SetAttribute("UseCheckbox", true);
-
-    p = grid->Append(new wxUIntProperty("Width", "CubeWidth", parm1));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("Height", "CubeHeight", parm2));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("Depth", "CubeDepth", parm3));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 100);
-    p->SetEditor("SpinCtrl");
-
-    p = grid->Append(new wxUIntProperty("# Strings", "CubeStrings", _cubeStrings));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 1000);
-    p->SetEditor("SpinCtrl");
-    p->SetHelpString("This is typically the number of connections from the prop to your controller.");
+    const std::string style = GetStrandStyle();
+    bool leftright = Contains(style, "Left");
+    bool horizontal = Contains(style, "Horizontal");
+    bool stacked = Contains(style, "Stacked");
+    return (_cubeStart * std::size(CUBE_STYLES_VALUES)) + (horizontal << 1) + (stacked << 2) + leftright;
 }
 
 std::string CubeModel::GetCubeStart() const
 {
-    return TOP_BOT_LEFT_RIGHT.GetLabel(_cubeStart);
+    if (_cubeStart >= 0 && _cubeStart < (int)std::size(TOP_BOT_LEFT_RIGHT_VALUES)) {
+        return TOP_BOT_LEFT_RIGHT_VALUES[_cubeStart];
+    }
+    return TOP_BOT_LEFT_RIGHT_VALUES[0];
 }
 
 void CubeModel::SetCubeStart(const std::string & start)
 {
     _cubeStart = 0;
-    for (size_t i = 0; i < TOP_BOT_LEFT_RIGHT.GetCount(); i++)
-    {
-        if (start == TOP_BOT_LEFT_RIGHT.GetLabel(i))
-        {
+    for (size_t i = 0; i < std::size(TOP_BOT_LEFT_RIGHT_VALUES); i++) {
+        if (start == TOP_BOT_LEFT_RIGHT_VALUES[i]) {
             _cubeStart = i;
             return;
         }
@@ -182,16 +144,17 @@ void CubeModel::SetCubeStart(const std::string & start)
 
 std::string CubeModel::GetCubeStyle() const
 {
-    return CUBE_STYLES.GetLabel(_cubeStyle);
+    if (_cubeStyle >= 0 && _cubeStyle < (int)std::size(CUBE_STYLES_VALUES)) {
+        return CUBE_STYLES_VALUES[_cubeStyle];
+    }
+    return CUBE_STYLES_VALUES[0];
 }
 
 void CubeModel::SetCubeStyle(const std::string & style)
 {
     _cubeStyle = 0;
-    for (size_t i = 0; i < CUBE_STYLES.GetCount(); i++)
-    {
-        if (style == CUBE_STYLES.GetLabel(i))
-        {
+    for (size_t i = 0; i < std::size(CUBE_STYLES_VALUES); i++) {
+        if (style == CUBE_STYLES_VALUES[i]) {
             _cubeStyle = i;
             return;
         }
@@ -200,75 +163,21 @@ void CubeModel::SetCubeStyle(const std::string & style)
 
 std::string CubeModel::GetStrandStyle() const
 {
-    return STRAND_STYLES.GetLabel(_strandStyle);
+    if (_strandStyle >= 0 && _strandStyle < (int)std::size(STRAND_STYLES_VALUES)) {
+        return STRAND_STYLES_VALUES[_strandStyle];
+    }
+    return STRAND_STYLES_VALUES[0];
 }
 
 void CubeModel::SetStrandStyle(const std::string & style)
 {
     _strandStyle = 0;
-    for (size_t i = 0; i < STRAND_STYLES.GetCount(); i++)
-    {
-        if (style == STRAND_STYLES.GetLabel(i))
-        {
+    for (size_t i = 0; i < std::size(STRAND_STYLES_VALUES); i++) {
+        if (style == STRAND_STYLES_VALUES[i]) {
             _strandStyle = i;
             return;
         }
     }
-}
-
-int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if ("CubeStart" == event.GetPropertyName()) {
-        _cubeStart = static_cast<int>(event.GetValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CubeModel::OnPropertyGridChange::CubeStart");
-        return 0;
-    } else if ("CubeStyle" == event.GetPropertyName()) {
-        _cubeStyle = static_cast<int>(event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CubeModel::OnPropertyGridChange::CubeStyle");
-        return 0;
-    } else if ("StrandPerLine" == event.GetPropertyName()) {
-        _strandStyle =static_cast<int>(event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CubeModel::OnPropertyGridChange::StrandPerLine");
-        return 0;
-    } else if ("StrandPerLayer" == event.GetPropertyName()) {
-        _strandPerLayer = event.GetPropertyValue().GetBool();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CubeModel::OnPropertyGridChange::StrandPerLayer");
-        return 0;
-    } else if ("CubeWidth" == event.GetPropertyName()) {
-        parm1 = static_cast<int>(event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CubeModel::OnPropertyGridChange::CubeWidth");
-        return 0;
-    } else if ("CubeHeight" == event.GetPropertyName()) {
-        parm2 = static_cast<int>(event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CubeModel::OnPropertyGridChange::CubeHeight");
-        return 0;
-    } else if ("CubeDepth" == event.GetPropertyName()) {
-        parm3 = static_cast<int>(event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CubeModel::OnPropertyGridChange::CubeDepth");
-        return 0;
-    } else if ("CubeStrings" == event.GetPropertyName()) {
-        _cubeStrings = static_cast<int>(event.GetPropertyValue().GetLong());
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CubeModel::OnPropertyGridChange::CubeStrings");
-        return 0;
-    }
-
-    return Model::OnPropertyGridChange(grid, event);
 }
 
 void CubeModel::FlipX(std::tuple<int, int, int>& pt, int width) const
@@ -425,7 +334,7 @@ std::vector<std::tuple<int, int, int>> CubeModel::BuildCube() const
         RotateZ90Degrees(node, zr, w, h);
         if (abs(zr) == 1) std::swap(w, h);
 
-        wxASSERT(w == parm1 && h == parm2 && d == parm3);
+        assert(w == parm1 && h == parm2 && d == parm3);
 
         if(xf > 0) FlipX(node, w);
 
@@ -475,7 +384,7 @@ void CubeModel::DumpNodes(std::vector<std::tuple<int,int,int>> nodes, int width,
         {
             for (int x  = 0; x < width; x++)
             {
-                out += wxString::Format("%d ", FindNodeIndex(nodes, x, y, z));
+                out += std::format("{} ", FindNodeIndex(nodes, x, y, z));
             }
             out += "\n";
         }
@@ -618,7 +527,7 @@ void CubeModel::GetBufferSize(const std::string& tp, const std::string& camera, 
     }
     else
     {
-        wxASSERT(false);
+        assert(false);
     }
 
     AdjustForTransform(transform, BufferWi, BufferHi);
@@ -651,11 +560,11 @@ void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& 
 
     if (SingleNode || SingleChannel)
     {
-        wxASSERT(Nodes.size() - oldNodes == 1);
+        assert(Nodes.size() - oldNodes == 1);
     }
     else
     {
-        wxASSERT(Nodes.size() - oldNodes == width * height * depth);
+        assert(Nodes.size() - oldNodes == width * height * depth);
     }
 
     if (SingleChannel || SingleNode)
@@ -880,7 +789,7 @@ void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& 
     }
     else
     {
-        wxASSERT(false);
+        assert(false);
     }
 }
 
@@ -974,21 +883,21 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
     html += "<tr><td>Display As:</td><td>" + DisplayAsTypeToString(DisplayAs) + "</td></tr>";
     html += "<tr><td>String Type:</td><td>" + StringType + "</td></tr>";
     html += "<tr><td>Start Corner:</td><td>" + direction + "</td></tr>";
-    html += wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>", static_cast<int>(NodeCount));
-    html += wxString::Format("<tr><td>Width:</td><td>%d</td></tr>", parm1);
-    html += wxString::Format("<tr><td>Height:</td><td>%d</td></tr>", parm2);
-    html += wxString::Format("<tr><td>Depth:</td><td>%d</td></tr>", parm3);
+    html += std::format("<tr><td>Total nodes:</td><td>{}</td></tr>", NodeCount);
+    html += std::format("<tr><td>Width:</td><td>{}</td></tr>", parm1);
+    html += std::format("<tr><td>Height:</td><td>{}</td></tr>", parm2);
+    html += std::format("<tr><td>Depth:</td><td>{}</td></tr>", parm3);
 
     if (c != nullptr) {
-        html += wxString::Format("<tr><td>Controller:</td><td>%s</td></tr>", c->GetLongDescription());
+        html += std::format("<tr><td>Controller:</td><td>{}</td></tr>", c->GetLongDescription());
     }
 
     if (GetControllerProtocol() != "") {
-        html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", GetControllerProtocol().c_str());
+        html += std::format("<tr><td>Pixel protocol:</td><td>{}</td></tr>", GetControllerProtocol());
         if (GetNumStrings() == 1) {
-            html += wxString::Format("<tr><td>Controller Connection:</td><td>%d</td></tr>", GetControllerPort());
+            html += std::format("<tr><td>Controller Connection:</td><td>{}</td></tr>", GetControllerPort());
         } else {
-            html += wxString::Format("<tr><td>Controller Connections:</td><td>%d-%d</td></tr>", GetControllerPort(), GetControllerPort() + GetNumPhysicalStrings() - 1);
+            html += std::format("<tr><td>Controller Connections:</td><td>{}-{}</td></tr>", GetControllerPort(), GetControllerPort() + GetNumPhysicalStrings() - 1);
         }
     }
     html += "</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
@@ -1004,10 +913,10 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
             int index = FindNodeIndex(locations, x, y, z);
             int string = index / nodesPerString + 1;
             int nodenum = index % nodesPerString + 1;
-            wxString bgcolor = string % 2 == 1 ? "#ADD8E6" : "#90EE90";
+            std::string bgcolor = string % 2 == 1 ? "#ADD8E6" : "#90EE90";
             if( IsDarkMode() )
                 bgcolor = string % 2 == 1 ? "#3f7c85" : "#962B09";
-            html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ds%d</td>", nodenum, string);
+            html += std::format("<td bgcolor='{}'>n{}s{}</td>", bgcolor, nodenum, string);
         }
         html += "</tr>";
     }
@@ -1059,7 +968,7 @@ void CubeModel::ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const
     if (!psp.empty()) attrs.Add("PixelSpacing", psp);
     attrs.Add("CustomModel", CustomModel::ToCustomModel(data));
     attrs.Add("CustomModelCompressed", CustomModel::ToCompressed(data));
-    attrs.Add("SourceVersion", xlights_version_string.ToStdString());
+    attrs.Add("SourceVersion", std::string(xlights_version_string));
     visitor.AddSuperStrings(*this, attrs);
 
     visitor.WriteOpenTag("custommodel", attrs);

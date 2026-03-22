@@ -42,9 +42,6 @@ public:
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) override;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) override;
 
-    virtual void AddDimensionProperties(wxPropertyGridInterface* grid, float factor = 1.0) const override;
-    virtual void AddSizeLocationProperties(wxPropertyGridInterface* grid) const override;
-    virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
     virtual std::string GetDimension(float factor = 1.0) const override;
 
     virtual glm::vec2 GetScreenOffset(ModelPreview* preview) const override;
@@ -96,6 +93,8 @@ public:
 
     glm::vec3 GetPoint1() const { return origin; }
     glm::vec3 GetPoint2() const { return point2; }
+
+    friend class ScreenLocationPropertyHelper;
 
 protected:
     float x2 = 0.0f;

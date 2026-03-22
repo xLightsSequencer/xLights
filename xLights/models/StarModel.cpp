@@ -8,14 +8,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
-#include <wx/xml/xml.h>
-#include <wx/filedlg.h>
-#include <wx/file.h>
-#include <wx/log.h>
-#include <wx/msgdlg.h>
-
 #include "StarModel.h"
 #include "../xLightsVersion.h"
 #include "../xLightsMain.h"
@@ -238,7 +230,7 @@ void StarModel::InitModel()
     // It needs more testing and late november is not a good time to be doing it. So throwing an assertion in
     // If this fires for us a lot when there is nothing wrong with our models then we will know the code is bad and we wont implement it.
     // Maybe you can help fix the condition at that time ... rather than just commenting out the assert.
-    // wxASSERT(starSizes.size() <= Nodes.size());
+    // assert(starSizes.size() <= Nodes.size());
     //if (starSizes.size() > Nodes.size())
     //{
     //    starSizes.resize(Nodes.size());
@@ -491,118 +483,6 @@ void StarModel::InitModel()
     screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
 }
 
-static const char* TOP_BOT_LEFT_RIGHT_VALUES[] = { 
-        "Top Ctr-CCW",
-        "Top Ctr-CW",
-        "Top Ctr-CCW Inside",
-        "Top Ctr-CW Inside",
-        "Bottom Ctr-CW",
-        "Bottom Ctr-CCW",
-        "Bottom Ctr-CW Inside",
-        "Bottom Ctr-CCW Inside",
-        "Left Bottom-CW",
-        "Left Bottom-CCW",
-        "Right Bottom-CW",
-        "Right Bottom-CCW"
-};
-
-static wxPGChoices TOP_BOT_LEFT_RIGHT(wxArrayString(12, TOP_BOT_LEFT_RIGHT_VALUES));
-
-void StarModel::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager)
-{
-    wxPGProperty* p = grid->Append(new wxUIntProperty("# Strings", "StarStringCount", parm1));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 640);
-    p->SetEditor("SpinCtrl");
-    p->SetHelpString("This is typically the number of connections from the prop to your controller.");
-
-    if (SingleNode) {
-        p = grid->Append(new wxUIntProperty("Lights/String", "StarLightCount", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 10000);
-        p->SetEditor("SpinCtrl");
-    } else {
-        p = grid->Append(new wxUIntProperty("Nodes/String", "StarLightCount", parm2));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", 10000);
-        p->SetEditor("SpinCtrl");
-        p->SetHelpString("This is typically the total number of pixels per #String.");
-    }
-
-    p = grid->Append(new wxUIntProperty("# Points", "StarStrandCount", parm3));
-    p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 250);
-    p->SetEditor("SpinCtrl");
-
-    int ssl = 0;
-    for (size_t i = 0; i < TOP_BOT_LEFT_RIGHT.GetCount(); i++) {
-        if (TOP_BOT_LEFT_RIGHT[i].GetText() == _starStartLocation) {
-            ssl = i;
-            break;
-        }
-    }
-
-    grid->Append(new wxEnumProperty("Starting Location", "StarStart", TOP_BOT_LEFT_RIGHT, ssl));
-    AddLayerSizeProperty(grid);
-
-    p = grid->Append(new wxFloatProperty("Outer to Inner Ratio", "StarRatio", _starRatio));
-    p->SetAttribute("Precision", 2);
-    p->SetAttribute("Step", 0.1);
-    p->SetEditor("SpinCtrl");
-
-    if (GetLayerSizeCount() > 1) {
-        p = grid->Append(new wxUIntProperty("Inner Layer %", "StarCenterPercent", _innerPercent));
-        p->SetAttribute("Min", 0);
-        p->SetAttribute("Max", 100);
-        p->SetEditor("SpinCtrl");
-    }
-}
-
-int StarModel::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event)
-{
-    if ("StarStringCount" == event.GetPropertyName()) {
-        parm1 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "StarModel::OnPropertyGridChange::StarStringCount");
-        return 0;
-    } else if ("StarLightCount" == event.GetPropertyName()) {
-        parm2 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "StarModel::OnPropertyGridChange::StarLightCount");
-        return 0;
-    } else if ("StarStrandCount" == event.GetPropertyName()) {
-        parm3 = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
-                    OutputModelManager::WORK_RELOAD_MODELLIST |
-                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "StarModel::OnPropertyGridChange::StarStrandCount");
-        return 0;
-    } else if ("StarStart" == event.GetPropertyName()) {
-        _starStartLocation = TOP_BOT_LEFT_RIGHT_VALUES[event.GetValue().GetLong()];
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "StarModel::OnPropertyGridChange::StarStart");
-        return 0;
-    } else if ("StarCenterPercent" == event.GetPropertyName()) {
-        _innerPercent = (int)event.GetPropertyValue().GetLong();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "StarModel::OnPropertyGridChange::CircleCenterPercent");
-        return 0;
-    } else if ("StarRatio" == event.GetPropertyName()) {
-        _starRatio = event.GetValue().GetDouble();
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "StarModel::OnPropertyGridChange::StarRatio");
-        return 0;
-    }
-
-    return Model::OnPropertyGridChange(grid, event);
-}
 
 void StarModel::OnLayerSizesChange(bool countChanged)
 {
