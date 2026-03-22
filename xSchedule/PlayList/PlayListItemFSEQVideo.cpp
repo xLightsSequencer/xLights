@@ -17,7 +17,7 @@
 #include "PlayerFrame.h"
 #include "PlayerWindow.h"
 #include "../../xLights/AudioManager.h"
-#include "../../xLights/FSEQFile.h"
+#include "../../xLights/render/FSEQFile.h"
 #include "../../xLights/UtilFunctions.h"
 #include "../../xLights/VideoReader.h"
 #include "../../xLights/outputs/OutputManager.h"

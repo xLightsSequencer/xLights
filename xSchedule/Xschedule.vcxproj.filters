@@ -452,7 +452,7 @@
       <Filter>Events</Filter>
     </ClCompile>
     <ClCompile Include="EventStatePanel.cpp" />
-    <ClCompile Include="..\xLights\FSEQFile.cpp" />
+    <ClCompile Include="..\xLights\render\FSEQFile.cpp" />
     <ClCompile Include="ConfigureTest.cpp" />
     <ClCompile Include="SyncOSC.cpp" />
     <ClCompile Include="SyncManager.cpp" />
@@ -1025,7 +1025,7 @@
       <Filter>Events</Filter>
     </ClInclude>
     <ClInclude Include="EventStatePanel.h" />
-    <ClInclude Include="..\xLights\FSEQFile.h" />
+    <ClInclude Include="..\xLights\render\FSEQFile.h" />
     <ClInclude Include="ConfigureTest.h" />
     <ClInclude Include="SyncOSC.h" />
     <ClInclude Include="SyncManager.h" />

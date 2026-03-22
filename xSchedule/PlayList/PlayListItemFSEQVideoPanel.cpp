@@ -13,7 +13,7 @@
 #include "PlayListItemFSEQVideo.h"
 #include "VideoWindowPositionDialog.h"
 #include "../../xLights/AudioManager.h"
-#include "../../xLights/FSEQFile.h"
+#include "../../xLights/render/FSEQFile.h"
 #include "../../xLights/outputs/OutputManager.h"
 #include "../ScheduleManager.h"
 #include "../xScheduleMain.h"

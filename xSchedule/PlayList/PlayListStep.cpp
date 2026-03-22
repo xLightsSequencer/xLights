@@ -44,7 +44,7 @@
 #include "../ScheduleManager.h"
 #include "../ReentrancyCounter.h"
 #include "../../xLights/UtilFunctions.h"
-#include "../../xLights/FSEQFile.h"
+#include "../../xLights/render/FSEQFile.h"
 #include "../ScheduleOptions.h"
 
 #include <wx/filename.h>
