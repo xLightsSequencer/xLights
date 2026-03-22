@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <cassert>
+#include <cmath>
 #include <string>
 #include <list>
 
