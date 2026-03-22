@@ -6,8 +6,6 @@
 
 #include <string>
 
-constexpr const char* completions_api = "/completions";
-
 bool GenericClient::IsAvailable() const {
     return !base_url.empty() && !_enabledTypes.empty();
 }

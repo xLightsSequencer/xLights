@@ -583,17 +583,17 @@ void BaseSerializingVisitor::Visit(const ControllerConnection& cc) {
     if (cc.IsPropertySet(CtrlProps::END_NULLS_ACTIVE))
         attrs.Add(XmlNodeKeys::EndNullAttribute, std::to_string(cc.GetEndNulls()));
     if (cc.IsPropertySet(CtrlProps::BRIGHTNESS_ACTIVE))
-        attrs.Add(XmlNodeKeys::DCBrightnessAttribute, std::to_string(cc.GetBrightness()));
+        attrs.Add(XmlNodeKeys::BrightnessAttribute, std::to_string(cc.GetBrightness()));
     if (cc.IsPropertySet(CtrlProps::GAMMA_ACTIVE))
         attrs.Add(XmlNodeKeys::GammaAttribute, FloatToString(cc.GetGamma()));
     if (cc.IsPropertySet(CtrlProps::COLOR_ORDER_ACTIVE))
         attrs.Add(XmlNodeKeys::ColorOrderAttribute, cc.GetColorOrder());
     if (cc.IsPropertySet(CtrlProps::REVERSE_ACTIVE))
-        attrs.Add(XmlNodeKeys::CReverseAttribute, std::to_string(cc.GetReverse()));
+        attrs.Add(XmlNodeKeys::ReverseAttribute, std::to_string(cc.GetReverse()));
     if (cc.IsPropertySet(CtrlProps::GROUP_COUNT_ACTIVE))
         attrs.Add(XmlNodeKeys::GroupCountAttribute, std::to_string(cc.GetGroupCount()));
     if (cc.IsPropertySet(CtrlProps::ZIG_ZAG_ACTIVE))
-        attrs.Add(XmlNodeKeys::CZigZagAttribute, std::to_string(cc.GetZigZag()));
+        attrs.Add(XmlNodeKeys::ZigZagAttribute, std::to_string(cc.GetZigZag()));
 
     WriteOpenTag(XmlNodeKeys::CtrlConnectionName, attrs, true);
 }
@@ -632,7 +632,7 @@ void BaseSerializingVisitor::Visit(const ArchesModel& model) {
     if (model.GetGap()) {
         attrs.Add(XmlNodeKeys::GapAttribute, std::to_string(model.GetGap()));
     }
-    attrs.Add(XmlNodeKeys::CArcAttribute, std::to_string(model.GetArc()));
+    attrs.Add(XmlNodeKeys::ArcAttribute, std::to_string(model.GetArc()));
     attrs.Add(XmlNodeKeys::LayerSizesAttribute, model.SerialiseLayerSizes());
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);

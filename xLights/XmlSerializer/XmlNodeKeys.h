@@ -32,27 +32,29 @@ namespace XmlNodeKeys {
 
     // Shared (by some) Attributes
     constexpr auto ArcAttribute            = "Arc";
-    constexpr auto CArcAttribute           = "arc";
     constexpr auto AlternateNodesAttribute = "AlternateNodes";
-    constexpr auto BrightnessAttribute     = "Brightness";      //should fix
-    constexpr auto DCBrightnessAttribute   = "brightness";      //should fix
+    constexpr auto BrightnessAttribute     = "Brightness";
     constexpr auto LayerSizesAttribute     = "LayerSizes";
-    constexpr auto StarSizesAttribute      = "starSizes";
-    constexpr auto ZigZagAttribute         = "ZigZag";      //fix it
-    constexpr auto CZigZagAttribute        = "zigZag";      //fix it
+    constexpr auto ZigZagAttribute         = "ZigZag";
     constexpr auto CustomColorsAttribute   = "CustomColors";
     constexpr auto TypeAttribute           = "type";
     constexpr auto StateTypeAttribute      = "Type";
-    constexpr auto CReverseAttribute       = "reverse";     //fix it
-    constexpr auto ReverseAttribute        = "Reverse";     //fix it
+    constexpr auto ReverseAttribute        = "Reverse";
     constexpr auto PointDataAttribute      = "PointData";
+
+    // Legacy attribute names.   Supported for reading older files, but not written
+    constexpr auto Parm1Attribute           = "parm1";      // Legacy - used only for reading old files
+    constexpr auto Parm2Attribute           = "parm2";      // Legacy - used only for reading old files
+    constexpr auto Parm3Attribute           = "parm3";      // Legacy - used only for reading old files
+    constexpr auto CReverseAttribute        = "reverse";    // Legacy - used only for reading old files
+    constexpr auto StarSizesAttribute       = "starSizes";  // Legacy - used only for reading old files
+    constexpr auto CZigZagAttribute         = "zigZag";     // Legacy - used only for reading old files
+    constexpr auto CArcAttribute            = "arc";        // Legacy - used only for reading old files
+    constexpr auto DCBrightnessAttribute    = "brightness"; // Legacy - used only for reading old files
 
     // Common Model Attributes
     constexpr auto StartSideAttribute       = "StartSide";
     constexpr auto DirAttribute             = "Dir";
-    constexpr auto Parm1Attribute           = "parm1";  // Legacy - used only for reading old files
-    constexpr auto Parm2Attribute           = "parm2";  // Legacy - used only for reading old files
-    constexpr auto Parm3Attribute           = "parm3";  // Legacy - used only for reading old files
 
     // Model-specific parameter attributes (replace generic parm1/parm2/parm3)
     // Common across multiple model types

@@ -59,6 +59,19 @@
 
 using namespace XmlSerialize;
 
+// Helper to read an attribute, falling back to a legacy attribute name
+static wxString GetAttrWithLegacyFallback(wxXmlNode* node, const char* newAttr, const char* legacyAttr, const wxString& defaultVal = wxString()) {
+    if (node->HasAttribute(newAttr)) {
+        return node->GetAttribute(newAttr, defaultVal);
+    }
+    return node->GetAttribute(legacyAttr, defaultVal);
+}
+
+// Helper to check if either the new or legacy attribute name exists
+static bool HasAttrOrLegacy(wxXmlNode* node, const char* newAttr, const char* legacyAttr) {
+    return node->HasAttribute(newAttr) || node->HasAttribute(legacyAttr);
+}
+
 // Helper to read a new named attribute, falling back to a legacy parm attribute
 static long ReadAttrWithParmFallback(wxXmlNode* node, const char* newAttr, const char* parmAttr, const char* defaultVal) {
     if (node->HasAttribute(newAttr)) {
@@ -148,24 +161,24 @@ void XmlDeserializingModelFactory::DeserializeControllerConnection(Model* model,
     cc.SetProtocol(ccNode->GetAttribute(XmlNodeKeys::ProtocolAttribute, xlEMPTY_STRING).ToStdString());
     cc.SetSerialProtocolSpeed(std::stoi(ccNode->GetAttribute(XmlNodeKeys::ProtocolSpeedAttribute, std::to_string(CtrlDefs::DEFAULT_PROTOCOL_SPEED)).ToStdString()));
     cc.SetCtrlPort(std::stoi(ccNode->GetAttribute(XmlNodeKeys::PortAttribute, std::to_string(CtrlDefs::DEFAULT_PORT)).ToStdString()));
-    cc.SetBrightness(std::stoi(ccNode->GetAttribute(XmlNodeKeys::DCBrightnessAttribute, std::to_string(CtrlDefs::DEFAULT_BRIGHTNESS)).ToStdString()));
+    cc.SetBrightness(std::stoi(GetAttrWithLegacyFallback(ccNode, XmlNodeKeys::BrightnessAttribute, XmlNodeKeys::DCBrightnessAttribute, std::to_string(CtrlDefs::DEFAULT_BRIGHTNESS)).ToStdString()));
     cc.SetStartNulls(std::stoi(ccNode->GetAttribute(XmlNodeKeys::StartNullAttribute, std::to_string(CtrlDefs::DEFAULT_NULLS)).ToStdString()));
     cc.SetEndNulls(std::stoi(ccNode->GetAttribute(XmlNodeKeys::EndNullAttribute, std::to_string(CtrlDefs::DEFAULT_NULLS)).ToStdString()));
     cc.SetColorOrder(ccNode->GetAttribute(XmlNodeKeys::ColorOrderAttribute, CtrlDefs::DEFAULT_COLOR_ORDER).ToStdString());
     cc.SetGroupCount(std::stoi(ccNode->GetAttribute(XmlNodeKeys::GroupCountAttribute, std::to_string(CtrlDefs::DEFAULT_GROUP_COUNT)).ToStdString()));
     cc.SetGamma(std::stof(ccNode->GetAttribute(XmlNodeKeys::GammaAttribute, std::to_string(CtrlDefs::DEFAULT_GAMMA)).ToStdString()));
-    cc.SetReverse(std::stoi(ccNode->GetAttribute(XmlNodeKeys::CReverseAttribute, std::to_string(CtrlDefs::DEFAULT_REVERSE)).ToStdString()));
-    cc.SetZigZag(std::stoi(ccNode->GetAttribute(XmlNodeKeys::CZigZagAttribute, std::to_string(CtrlDefs::DEFAULT_ZIGZAG)).ToStdString()));
+    cc.SetReverse(std::stoi(GetAttrWithLegacyFallback(ccNode, XmlNodeKeys::ReverseAttribute, XmlNodeKeys::CReverseAttribute, std::to_string(CtrlDefs::DEFAULT_REVERSE)).ToStdString()));
+    cc.SetZigZag(std::stoi(GetAttrWithLegacyFallback(ccNode, XmlNodeKeys::ZigZagAttribute, XmlNodeKeys::CZigZagAttribute, std::to_string(CtrlDefs::DEFAULT_ZIGZAG)).ToStdString()));
 
     // Set all the property checkbox active states
     cc.UpdateProperty(CtrlProps::START_NULLS_ACTIVE, ccNode->HasAttribute(XmlNodeKeys::StartNullAttribute));
     cc.UpdateProperty(CtrlProps::END_NULLS_ACTIVE,   ccNode->HasAttribute(XmlNodeKeys::EndNullAttribute));
-    cc.UpdateProperty(CtrlProps::BRIGHTNESS_ACTIVE,  ccNode->HasAttribute(XmlNodeKeys::DCBrightnessAttribute));
+    cc.UpdateProperty(CtrlProps::BRIGHTNESS_ACTIVE,  HasAttrOrLegacy(ccNode, XmlNodeKeys::BrightnessAttribute, XmlNodeKeys::DCBrightnessAttribute));
     cc.UpdateProperty(CtrlProps::GAMMA_ACTIVE,       ccNode->HasAttribute(XmlNodeKeys::GammaAttribute));
     cc.UpdateProperty(CtrlProps::COLOR_ORDER_ACTIVE, ccNode->HasAttribute(XmlNodeKeys::ColorOrderAttribute));
-    cc.UpdateProperty(CtrlProps::REVERSE_ACTIVE,     ccNode->HasAttribute(XmlNodeKeys::CReverseAttribute));
+    cc.UpdateProperty(CtrlProps::REVERSE_ACTIVE,     HasAttrOrLegacy(ccNode, XmlNodeKeys::ReverseAttribute, XmlNodeKeys::CReverseAttribute));
     cc.UpdateProperty(CtrlProps::GROUP_COUNT_ACTIVE, ccNode->HasAttribute(XmlNodeKeys::GroupCountAttribute));
-    cc.UpdateProperty(CtrlProps::ZIG_ZAG_ACTIVE,     ccNode->HasAttribute(XmlNodeKeys::CZigZagAttribute));
+    cc.UpdateProperty(CtrlProps::ZIG_ZAG_ACTIVE,     HasAttrOrLegacy(ccNode, XmlNodeKeys::ZigZagAttribute, XmlNodeKeys::CZigZagAttribute));
     cc.UpdateProperty(CtrlProps::TS_ACTIVE,          ccNode->HasAttribute(XmlNodeKeys::SmartRemoteTsAttribute));
 
     // Set all the Smart Remote values
@@ -426,8 +439,8 @@ Model* XmlDeserializingModelFactory::DeserializeArches(wxXmlNode* node, xLightsF
     model->SetZigZag(node->GetAttribute(XmlNodeKeys::ZigZagAttribute).ToStdString() == "true");
     if (node->HasAttribute(XmlNodeKeys::HollowAttribute)) { model->SetHollow(std::stoi(node->GetAttribute(XmlNodeKeys::HollowAttribute).ToStdString())); }
     if (node->HasAttribute(XmlNodeKeys::GapAttribute)) { model->SetGap(std::stoi(node->GetAttribute(XmlNodeKeys::GapAttribute).ToStdString())); }
-    if (node->HasAttribute(XmlNodeKeys::CArcAttribute)) {
-        model->SetArc(std::stoi(node->GetAttribute(XmlNodeKeys::CArcAttribute).ToStdString()));
+    if (HasAttrOrLegacy(node, XmlNodeKeys::ArcAttribute, XmlNodeKeys::CArcAttribute)) {
+        model->SetArc(std::stoi(GetAttrWithLegacyFallback(node, XmlNodeKeys::ArcAttribute, XmlNodeKeys::CArcAttribute).ToStdString()));
     }
     model->DeserializeLayerSizes(node->GetAttribute(XmlNodeKeys::LayerSizesAttribute).ToStdString(), false);
     if (node->HasAttribute(XmlNodeKeys::ArchesSkewAttribute)) {
@@ -742,7 +755,7 @@ Model* XmlDeserializingModelFactory::DeserializeStar(wxXmlNode* node, xLightsFra
 
     // convert old star sizes to new Layer sizes setting
     std::string layer_sizes = xlEMPTY_STRING;
-    if (node->GetAttribute("starSizes", "") != "") {
+    if (node->HasAttribute(XmlNodeKeys::StarSizesAttribute)) {
         layer_sizes = node->GetAttribute(XmlNodeKeys::StarSizesAttribute, "");
     } else {
         layer_sizes = node->GetAttribute(XmlNodeKeys::LayerSizesAttribute, "");
