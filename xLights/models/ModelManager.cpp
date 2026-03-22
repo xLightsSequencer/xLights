@@ -557,6 +557,9 @@ bool ModelManager::RecalcStartChannels() const
                 modelsDone.emplace(it.first);
                 auto oldsc = it.second->GetFirstChannel();
                 it.second->UpdateChannels();
+                for (auto* sm : it.second->GetSubModels()) {
+                    sm->Setup();
+                }
                 if (oldsc != it.second->GetFirstChannel()) {
                     changed = true;
                 }
@@ -589,6 +592,9 @@ bool ModelManager::RecalcStartChannels() const
                         modelsDone.emplace(it.first);
                         auto oldsc = it.second->GetFirstChannel();
                         it.second->UpdateChannels();
+                        for (auto* sm : it.second->GetSubModels()) {
+                            sm->Setup();
+                        }
                         if (oldsc != it.second->GetFirstChannel()) {
                             changed = true;
                         }
@@ -613,6 +619,9 @@ bool ModelManager::RecalcStartChannels() const
                 modelsDone.emplace(it.first);
                 auto oldsc = it.second->GetFirstChannel();
                 it.second->UpdateChannels();
+                for (auto* sm : it.second->GetSubModels()) {
+                    sm->Setup();
+                }
                 if (oldsc != it.second->GetFirstChannel()) {
                     changed = true;
                 }
