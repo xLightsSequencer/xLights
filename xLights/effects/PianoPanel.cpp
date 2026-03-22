@@ -30,7 +30,7 @@
 #include "PianoPanel.h"
 #include "EffectPanelUtils.h"
 #include "../utils/string_utils.h"
-#include "../sequencer/Effect.h"
+#include "../render/Effect.h"
 #include "PianoEffect.h"
 #include "UtilFunctions.h"
 

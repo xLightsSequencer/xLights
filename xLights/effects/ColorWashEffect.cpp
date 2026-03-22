@@ -10,10 +10,10 @@
 
 #include "ColorWashEffect.h"
 #include "ColorWashPanel.h"
-#include "../sequencer/Effect.h"
-#include "../sequencer/EffectLayer.h"
-#include "../sequencer/Element.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/EffectLayer.h"
+#include "../render/Element.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../../include/ColorWash.xpm"
 

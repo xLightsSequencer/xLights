@@ -13,8 +13,8 @@
 
 #include <format>
 #include <Box2D/Box2D.h>
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../AudioManager.h"
 #include "../UtilFunctions.h"

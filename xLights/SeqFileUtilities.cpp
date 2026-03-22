@@ -38,7 +38,7 @@
 #include "VsaImportDialog.h"
 #include "xLightsImportChannelMapDialog.h"
 #include "xLightsMain.h"
-#include "sequencer/SequenceMedia.h"
+#include "render/SequenceMedia.h"
 #include <wx/textdlg.h>
 #include "xLightsVersion.h"
 #include "models/DMX/DmxModel.h"

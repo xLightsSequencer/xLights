@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "RenderCache.h"
-#include "sequencer/SequenceElements.h"
+#include "SequenceElements.h"
 #include "RenderBuffer.h"
 #include "models/Model.h"
 

@@ -13,7 +13,7 @@
 #include "wx/wx.h"
 
 #include "graphics/xlGraphicsBase.h"
-#include "sequencer/Effect.h"
+#include "render/Effect.h"
 
 class Model;  // forward declaration
 

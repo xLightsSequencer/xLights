@@ -73,8 +73,8 @@
 
 #include "ShaderEffect.h"
 #include "ShaderPanel.h"
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"

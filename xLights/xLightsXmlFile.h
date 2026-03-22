@@ -12,7 +12,7 @@
 
 #include <wx/filename.h>
 #include <wx/xml/xml.h>
-#include "sequencer/SequenceElements.h"
+#include "render/SequenceElements.h"
 #include "DataLayer.h"
 #include "AudioManager.h"
 #include "Vixen3.h"

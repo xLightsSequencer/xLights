@@ -10,11 +10,11 @@
 
 #include "SelectPanel.h"
 
-#include "sequencer/SequenceElements.h"
+#include "render/SequenceElements.h"
 #include "sequencer/EffectsGrid.h"
 #include "sequencer/MainSequencer.h"
-#include "sequencer/Effect.h"
-#include "sequencer/Element.h"
+#include "render/Effect.h"
+#include "render/Element.h"
 #include "UtilFunctions.h"
 #include "Color.h"
 #include "ui/wxUtilities.h"

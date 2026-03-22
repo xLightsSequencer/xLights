@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "RenderableEffect.h"
-#include "../RenderBuffer.h"
+#include "../render/RenderBuffer.h"
 
 #define LINES_SPEED_MIN 1
 #define LINES_SPEED_MAX 10

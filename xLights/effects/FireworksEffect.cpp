@@ -13,13 +13,13 @@
 
 #include <format>
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../AudioManager.h"
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
-#include "../sequencer/SequenceElements.h"
+#include "../render/SequenceElements.h"
 
 #include "../../include/fireworks-16.xpm"
 #include "../../include/fireworks-24.xpm"

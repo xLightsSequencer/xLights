@@ -13,7 +13,7 @@
 
 #include "nlohmann/json.hpp"
 
-#include "../FSEQFile.h"
+#include "../render/FSEQFile.h"
 #include "../outputs/Controller.h"
 #include "../outputs/ControllerEthernet.h"
 #include "../LayoutPanel.h"

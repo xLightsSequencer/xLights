@@ -1,7 +1,7 @@
 
 #include "MetalComputeUtilities.hpp"
-#include "../../PixelBuffer.h"
-#include "../../RenderBuffer.h"
+#include "../../render/PixelBuffer.h"
+#include "../../render/RenderBuffer.h"
 
 #include <MetalPerformanceShaders/MetalPerformanceShaders.h>
 

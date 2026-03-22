@@ -25,7 +25,7 @@
 #include "EffectTimingDialog.h"
 #include "EffectsGrid.h"
 #include "MainSequencer.h"
-#include "PixelBuffer.h"
+#include "../render/PixelBuffer.h"
 #include "RowHeading.h"
 #include "SequenceElements.h"
 #include "TimeLine.h"

@@ -40,7 +40,7 @@
 #include "ExternalHooks.h"
 #include "ConvertDialog.h"
 #include "ManageMediaPanel.h"
-#include "sequencer/SequenceElements.h"
+#include "render/SequenceElements.h"
 #include "ui/wxUtilities.h"
 
 

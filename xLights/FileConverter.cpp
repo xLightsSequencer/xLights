@@ -32,7 +32,7 @@
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
 
-#include "FSEQFile.h"
+#include "render/FSEQFile.h"
 #include "FileConverter.h"
 #include "UtilFunctions.h"
 #include "outputs/OutputManager.h"

@@ -17,7 +17,7 @@
 #endif
 
 #include "RenderBuffer.h"
-#include "sequencer/Effect.h"
+#include "Effect.h"
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
 #include "UtilFunctions.h"

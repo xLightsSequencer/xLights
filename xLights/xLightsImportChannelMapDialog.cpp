@@ -21,7 +21,7 @@
 #include <wx/stdpaths.h>
 
 #include "xLightsImportChannelMapDialog.h"
-#include "sequencer/SequenceElements.h"
+#include "render/SequenceElements.h"
 #include "xLightsMain.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"

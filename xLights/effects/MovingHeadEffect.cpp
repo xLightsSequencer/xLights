@@ -21,10 +21,10 @@
 #include <format>
 
 #include "../utils/string_utils.h"
-#include "../sequencer/Effect.h"
-#include "../sequencer/Element.h"
-#include "../sequencer/SequenceElements.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/Element.h"
+#include "../render/SequenceElements.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
 #include "../models/DMX/DmxDimmerAbility.h"

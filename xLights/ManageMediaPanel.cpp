@@ -9,11 +9,11 @@
  **************************************************************/
 
 #include "ManageMediaPanel.h"
-#include "sequencer/SequenceMedia.h"
-#include "sequencer/SequenceElements.h"
-#include "sequencer/Element.h"
-#include "sequencer/EffectLayer.h"  // also defines NodeLayer
-#include "sequencer/Effect.h"
+#include "render/SequenceMedia.h"
+#include "render/SequenceElements.h"
+#include "render/Element.h"
+#include "render/EffectLayer.h"  // also defines NodeLayer
+#include "render/Effect.h"
 #include "UtilClasses.h"
 #include "xLightsMain.h"
 #include "ai/AIImageDialog.h"

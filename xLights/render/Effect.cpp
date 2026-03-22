@@ -17,7 +17,7 @@
 #include "../UtilFunctions.h"
 #include "../ValueCurve.h"
 #include "../UtilClasses.h"
-#include "../RenderCache.h"
+#include "RenderCache.h"
 #include "../models/Model.h"
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"

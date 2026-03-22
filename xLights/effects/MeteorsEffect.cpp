@@ -11,8 +11,8 @@
 #include "MeteorsEffect.h"
 #include "MeteorsPanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../AudioManager.h"
 #include "../models/Model.h"

@@ -11,7 +11,7 @@
 #include "FireworksPanel.h"
 #include "EffectPanelUtils.h"
 #include "../utils/string_utils.h"
-#include "../sequencer/Effect.h"
+#include "../render/Effect.h"
 #include "FireworksEffect.h"
 
 //(*InternalHeaders(FireworksPanel)

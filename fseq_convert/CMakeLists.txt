@@ -48,8 +48,8 @@ ENDIF()
 
 set(SRC_FILES
     fseq_convert.cpp
-    ../xLights/FSEQFile.cpp
-    ../xLights/FSEQFile.h
+    ../xLights/render/FSEQFile.cpp
+    ../xLights/render/FSEQFile.h
     )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})

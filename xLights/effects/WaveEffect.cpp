@@ -13,8 +13,8 @@
 
 #include <cstdlib>
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
 

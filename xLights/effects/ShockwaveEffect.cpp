@@ -12,10 +12,10 @@
 #include "ShockwavePanel.h"
 #include <cmath>
 
-#include "../RenderBuffer.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
-#include "../sequencer/Effect.h"
+#include "../render/Effect.h"
 
 #include "../../include/shockwave-16.xpm"
 #include "../../include/shockwave-24.xpm"

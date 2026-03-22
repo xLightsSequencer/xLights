@@ -14,7 +14,7 @@
 
 #include "git_version.h"
 
-#include "FSEQFile.h"
+#include "render/FSEQFile.h"
 
 static int fseqMajVersion = 2;
 static int fseqMinVersion = 0;

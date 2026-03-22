@@ -32,7 +32,7 @@
 
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
-#include "../FSEQFile.h"
+#include "../render/FSEQFile.h"
 #include "../Parallel.h"
 #include "../Discovery.h"
 #include "Falcon.h"

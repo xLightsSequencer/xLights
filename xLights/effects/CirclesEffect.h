@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "RenderableEffect.h"
-#include "../RenderBuffer.h"
+#include "../render/RenderBuffer.h"
 #include <cmath>
 
 static const int MAX_RGB_BALLS = 20;

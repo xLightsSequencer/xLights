@@ -15,8 +15,8 @@
 
 #include <map>
 
-#include "sequencer/Element.h"
-#include "sequencer/Effect.h"
+#include "render/Element.h"
+#include "render/Effect.h"
 
 class xLightsFrame;
 

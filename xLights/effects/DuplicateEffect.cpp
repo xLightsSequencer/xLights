@@ -13,12 +13,12 @@
 
 #include "DuplicateEffect.h"
 #include "DuplicatePanel.h"
-#include "../RenderBuffer.h"
+#include "../render/RenderBuffer.h"
 #include "UtilFunctions.h"
 #include "../models/Model.h"
 #include "../models/ModelManager.h"
 #include "../xLightsMain.h"
-#include "../sequencer/SequenceElements.h"
+#include "../render/SequenceElements.h"
 #include "../xLightsApp.h"
 
 #include "../../include/Duplicate_64.xpm"

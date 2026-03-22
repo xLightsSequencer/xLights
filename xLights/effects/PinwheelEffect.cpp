@@ -11,8 +11,8 @@
 #include "PinwheelEffect.h"
 #include "PinwheelPanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 
 #include "../../include/pinwheel-16.xpm"

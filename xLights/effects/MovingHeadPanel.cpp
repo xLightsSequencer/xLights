@@ -19,8 +19,8 @@
 #include "../xLightsMain.h"
 #include "../xLightsVersion.h"
 #include "../sequencer/MainSequencer.h"
-#include "../sequencer/Effect.h"
-#include "../sequencer/Element.h"
+#include "../render/Effect.h"
+#include "../render/Element.h"
 #include "../models/ModelGroup.h"
 #include "xLightsApp.h"
 #include <wx/stdpaths.h>

@@ -22,7 +22,7 @@
 
 #include <vector>
 
-#include "PixelBuffer.h"
+#include "render/PixelBuffer.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"
 #include "effects/EffectPanelUtils.h"

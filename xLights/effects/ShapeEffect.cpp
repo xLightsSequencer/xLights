@@ -15,11 +15,11 @@
 #include <format>
 #include "TextEffect.h" // FontMapLock
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../models/Model.h"
-#include "../sequencer/SequenceElements.h"
+#include "../render/SequenceElements.h"
 #include "UtilFunctions.h"
 #include "AudioManager.h"
 #include "../ExternalHooks.h"

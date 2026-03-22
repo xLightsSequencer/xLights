@@ -12,7 +12,7 @@
 
 #include "OffEffect.h"
 #include "OffPanel.h"
-#include "../RenderBuffer.h"
+#include "../render/RenderBuffer.h"
 #include "UtilFunctions.h"
 #include "models/Model.h"
 

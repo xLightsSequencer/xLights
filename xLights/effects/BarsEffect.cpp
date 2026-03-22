@@ -11,9 +11,9 @@
 #include "BarsEffect.h"
 #include "BarsPanel.h"
 
-#include "../RenderBuffer.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
-#include "../sequencer/Effect.h"
+#include "../render/Effect.h"
 
 #include "../../include/bars-16.xpm"
 #include "../../include/bars-24.xpm"

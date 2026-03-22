@@ -12,7 +12,7 @@
 #include "sequencer/DragEffectBitmapButton.h"
 #include "BitmapCache.h"
 #include "UtilFunctions.h"
-#include "sequencer/SequenceElements.h"
+#include "render/SequenceElements.h"
 #include "xLightsMain.h"
 #include "sequencer/MainSequencer.h"
 

@@ -19,7 +19,7 @@
 #include <wx/colordlg.h>
 
 #include "LMSImportChannelMapDialog.h"
-#include "sequencer/SequenceElements.h"
+#include "render/SequenceElements.h"
 #include "xLightsMain.h"
 #include "models/Model.h"
 #include "xlColourData.h"

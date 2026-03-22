@@ -23,9 +23,9 @@
 
 #include "PicturesEffect.h"
 #include "PicturesPanel.h"
-#include "../sequencer/Effect.h"
-#include "../sequencer/SequenceMedia.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/SequenceMedia.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "assist/xlGridCanvasPictures.h"
 #include "assist/PicturesAssistPanel.h"

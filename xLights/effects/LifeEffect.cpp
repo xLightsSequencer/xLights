@@ -11,8 +11,8 @@
 #include "LifeEffect.h"
 #include "LifePanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 
 #include "../../include/life-16.xpm"

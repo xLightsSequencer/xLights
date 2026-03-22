@@ -19,10 +19,10 @@
 #include "TextPanel.h"
 #include <wx/checkbox.h>
 
-#include "../sequencer/Effect.h"
-#include "../sequencer/Element.h"
+#include "../render/Effect.h"
+#include "../render/Element.h"
 #include "../sequencer/EffectsGrid.h"
-#include "../RenderBuffer.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../models/Model.h"
 #include "../UtilFunctions.h"

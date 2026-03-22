@@ -12,7 +12,7 @@
 
 #include "wx/wx.h"
 #include "../../xlGridCanvas.h"
-#include "../../sequencer/Effect.h"
+#include "../../render/Effect.h"
 
 class xlGridCanvasEmpty : public xlGridCanvas
 {

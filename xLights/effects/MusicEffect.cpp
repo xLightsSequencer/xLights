@@ -11,10 +11,10 @@
 #include "MusicPanel.h"
 #include "MusicEffect.h"
 #include "../AudioManager.h"
-#include "../sequencer/SequenceElements.h"
+#include "../render/SequenceElements.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../models/Model.h"
 #include "../UtilFunctions.h"

@@ -12,7 +12,7 @@
 #include "EffectPanelUtils.h"
 #include "../utils/string_utils.h"
 #include "ShapeEffect.h"
-#include "RenderBuffer.h"
+#include "../render/RenderBuffer.h"
 #include "../CharMapDialog.h"
 
 //(*InternalHeaders(ShapePanel)

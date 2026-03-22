@@ -17,13 +17,13 @@
 
 #include "../../ExternalHooks.h"
 #include "UtilFunctions.h"
-#include "../../sequencer/SequenceMedia.h"
+#include "../../render/SequenceMedia.h"
 #include "../../ManageMediaPanel.h"
 #include "../../xLightsMain.h"
 #include <wx/textdlg.h>
-#include "../../sequencer/EffectLayer.h"
-#include "../../sequencer/Element.h"
-#include "../../sequencer/SequenceElements.h"
+#include "../../render/EffectLayer.h"
+#include "../../render/Element.h"
+#include "../../render/SequenceElements.h"
 
 static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
                                                ";*.webp"

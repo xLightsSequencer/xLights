@@ -20,7 +20,7 @@
 
 #include "../../FlickerFreeBitmapButton.h"
 #include "xlGridCanvasPictures.h"
-#include "../../sequencer/Effect.h"
+#include "../../render/Effect.h"
 #include "ColorPanel.h"
 
 class xlColorPicker;

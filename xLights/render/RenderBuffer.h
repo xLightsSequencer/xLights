@@ -23,7 +23,7 @@
 #include <wx/image.h>
 #include <wx/textfile.h>
 
-#include "../include/globals.h"
+#include "../../include/globals.h"
 
 #include "Color.h"
 #include "ColorCurve.h"

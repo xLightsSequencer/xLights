@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include "MovingHeadDimmerPanel.h"
-#include "../../sequencer/Element.h"
+#include "../../render/Element.h"
 
 #include <wx/dcbuffer.h>
 #include <wx/graphics.h>

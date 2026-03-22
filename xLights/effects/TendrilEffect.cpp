@@ -11,8 +11,8 @@
 #include "TendrilEffect.h"
 #include "TendrilPanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../AudioManager.h"
 #include "../ui/wxUtilities.h"

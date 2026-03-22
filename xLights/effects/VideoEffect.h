@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "RenderableEffect.h"
-#include "../RenderBuffer.h"
+#include "../render/RenderBuffer.h"
 
 #define VIDEO_SPEED_MIN -1000
 #define VIDEO_SPEED_MAX 1000

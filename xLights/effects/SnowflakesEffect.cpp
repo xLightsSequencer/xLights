@@ -11,8 +11,8 @@
 #include "SnowflakesEffect.h"
 #include "SnowflakesPanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 
 #include "../../include/snowflakes-16.xpm"

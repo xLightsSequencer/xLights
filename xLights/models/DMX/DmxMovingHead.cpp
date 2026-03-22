@@ -26,7 +26,7 @@
 #include "DmxShutterAbility.h"
 #include "../ModelScreenLocation.h"
 #include "../../ModelPreview.h"
-#include "../../RenderBuffer.h"
+#include "../../render/RenderBuffer.h"
 #include "../../xLightsVersion.h"
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"

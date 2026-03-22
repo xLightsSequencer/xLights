@@ -66,7 +66,7 @@
 
 #include "../common/xlBaseApp.h"
 #include "outputs/OutputManager.h"
-#include "PixelBuffer.h"
+#include "render/PixelBuffer.h"
 #include "SequenceData.h"
 #include "effects/EffectManager.h"
 #include "models/ModelManager.h"
@@ -80,7 +80,7 @@
 #include "PhonemeDictionary.h"
 #include "xLightsXmlFile.h"
 #include "sequencer/EffectsGrid.h"
-#include "RenderCache.h"
+#include "render/RenderCache.h"
 #include "outputs/ZCPP.h"
 #include "OutputModelManager.h"
 #include "models/Model.h"

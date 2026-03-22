@@ -9,8 +9,8 @@
  **************************************************************/
 
 #include "EffectTimingDialog.h"
-#include "sequencer/Effect.h"
-#include "sequencer/EffectLayer.h"
+#include "render/Effect.h"
+#include "render/EffectLayer.h"
 
 //(*InternalHeaders(EffectTimingDialog)
 #include <wx/font.h>

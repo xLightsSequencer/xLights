@@ -60,7 +60,7 @@
 #include <log4cpp/Category.hh>
 #include "ControllerUploadData.h"
 #include "FPPUploadProgressDialog.h"
-#include "../FSEQFile.h"
+#include "../render/FSEQFile.h"
 #include "../Discovery.h"
 #include "../utils/CurlManager.h"
 #include "../utils/ip_utils.h"

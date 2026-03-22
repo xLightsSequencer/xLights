@@ -9,10 +9,10 @@
  **************************************************************/
 
 #include "CopyFormat1.h"
-#include "sequencer/Effect.h"
+#include "render/Effect.h"
 
 #include <wx/wx.h>
-#include "sequencer/EffectLayer.h"
+#include "render/EffectLayer.h"
 
 CopyFormat1::~CopyFormat1()
 {

@@ -11,7 +11,7 @@
 #include "SketchEffect.h"
 
 #include "BulkEditControls.h"
-#include "RenderBuffer.h"
+#include "../render/RenderBuffer.h"
 #include "SketchEffectDrawing.h"
 #include "SketchPanel.h"
 #include "../UtilFunctions.h"

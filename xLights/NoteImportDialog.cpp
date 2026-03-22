@@ -21,7 +21,7 @@
 #include <wx/textfile.h>
 
 #include "MIDI/MidiFile.h"
-#include "sequencer/SequenceElements.h"
+#include "render/SequenceElements.h"
 #include "MusicXML.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"

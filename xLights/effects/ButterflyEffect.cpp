@@ -12,8 +12,8 @@
 
 #include "ButterflyPanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 
 #include "../../include/butterfly-16.xpm"

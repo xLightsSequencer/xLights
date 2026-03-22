@@ -13,14 +13,14 @@
 
 #include "StateEffect.h"
 #include "StatePanel.h"
-#include "../RenderBuffer.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
 #include "../models/Model.h"
 #include "../models/ModelGroup.h"
 #include "../models/SubModel.h"
-#include "../sequencer/Effect.h"
-#include "../sequencer/SequenceElements.h"
+#include "../render/Effect.h"
+#include "../render/SequenceElements.h"
 
 #include "../utils/string_utils.h"
 

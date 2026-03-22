@@ -47,7 +47,7 @@
 #include "../ModelPreview.h"
 #include "../Pixels.h"
 #include "../controllers/ControllerCaps.h"
-#include "../sequencer/Element.h"
+#include "../render/Element.h"
 #include "../xLightsMain.h"
 #include "DMX/DmxFloodArea.h"
 #include "DMX/DmxFloodlight.h"

@@ -25,7 +25,7 @@
 
 #include "models/DisplayAsType.h"
 #include "ViewsModelsPanel.h"
-#include "sequencer/SequenceElements.h"
+#include "render/SequenceElements.h"
 #include "xLightsMain.h"
 #include "SequenceViewManager.h"
 #include "UtilFunctions.h"

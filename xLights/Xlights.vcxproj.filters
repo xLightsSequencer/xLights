@@ -71,11 +71,17 @@
     <ClCompile Include="outputs\TestPreset.cpp" />
     <ClCompile Include="PerspectivesPanel.cpp" />
     <ClCompile Include="PhonemeDictionary.cpp" />
-    <ClCompile Include="PixelBuffer.cpp" />
+    <ClCompile Include="render\PixelBuffer.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
     <ClCompile Include="PreviewPane.cpp" />
     <ClCompile Include="RenameTextDialog.cpp" />
-    <ClCompile Include="Render.cpp" />
-    <ClCompile Include="RenderBuffer.cpp" />
+    <ClCompile Include="render\Render.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="render\RenderBuffer.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
     <ClCompile Include="RenderProgressDialog.cpp" />
     <ClCompile Include="ResizeImageDialog.cpp" />
     <ClCompile Include="SaveChangesDialog.cpp" />
@@ -155,7 +161,9 @@
     <ClCompile Include="ViewpointDialog.cpp" />
     <ClCompile Include="ViewpointMgr.cpp" />
     <ClCompile Include="LyricUserDictDialog.cpp" />
-    <ClCompile Include="RenderCache.cpp" />
+    <ClCompile Include="render\RenderCache.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
     <ClCompile Include="Parallel.cpp" />
     <ClCompile Include="models\ObjectManager.cpp" />
     <ClCompile Include="models\ViewObjectManager.cpp" />
@@ -163,7 +171,9 @@
     <ClCompile Include="NodeSelectGrid.cpp" />
     <ClCompile Include="MultiControllerUploadDialog.cpp" />
     <ClCompile Include="wxModelGridCellRenderer.cpp" />
-    <ClCompile Include="FSEQFile.cpp" />
+    <ClCompile Include="render\FSEQFile.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
     <ClCompile Include="PathGenerationDialog.cpp" />
     <ClCompile Include="RemapDMXChannelsDialog.cpp" />
     <ClCompile Include="LOREdit.cpp" />
@@ -813,20 +823,20 @@
     <ClCompile Include="sequencer\DragEffectBitmapButton.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
-    <ClCompile Include="sequencer\Effect.cpp">
-      <Filter>sequencer</Filter>
+    <ClCompile Include="render\Effect.cpp">
+      <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="sequencer\EffectDropTarget.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
-    <ClCompile Include="sequencer\EffectLayer.cpp">
-      <Filter>sequencer</Filter>
+    <ClCompile Include="render\EffectLayer.cpp">
+      <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="sequencer\EffectsGrid.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
-    <ClCompile Include="sequencer\Element.cpp">
-      <Filter>sequencer</Filter>
+    <ClCompile Include="render\Element.cpp">
+      <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="sequencer\MainSequencer.cpp">
       <Filter>sequencer</Filter>
@@ -834,11 +844,11 @@
     <ClCompile Include="sequencer\RowHeading.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
-    <ClCompile Include="sequencer\SequenceElements.cpp">
-      <Filter>sequencer</Filter>
+    <ClCompile Include="render\SequenceElements.cpp">
+      <Filter>render</Filter>
     </ClCompile>
-    <ClCompile Include="sequencer\SequenceMedia.cpp">
-      <Filter>sequencer</Filter>
+    <ClCompile Include="render\SequenceMedia.cpp">
+      <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="sequencer\tabSequencer.cpp">
       <Filter>sequencer</Filter>
@@ -1337,10 +1347,14 @@
     <ClInclude Include="outputs\TestPreset.h" />
     <ClInclude Include="PerspectivesPanel.h" />
     <ClInclude Include="PhonemeDictionary.h" />
-    <ClInclude Include="PixelBuffer.h" />
+    <ClInclude Include="render\PixelBuffer.h">
+      <Filter>render</Filter>
+    </ClInclude>
     <ClInclude Include="PreviewPane.h" />
     <ClInclude Include="RenameTextDialog.h" />
-    <ClInclude Include="RenderBuffer.h" />
+    <ClInclude Include="render\RenderBuffer.h">
+      <Filter>render</Filter>
+    </ClInclude>
     <ClInclude Include="RenderCommandEvent.h" />
     <ClInclude Include="RenderProgressDialog.h" />
     <ClInclude Include="ResizeImageDialog.h" />
@@ -1420,7 +1434,9 @@
     <ClInclude Include="VendorMusicHelpers.h" />
     <ClInclude Include="JukeboxPanel.h" />
     <ClInclude Include="LinkJukeboxButtonDialog.h" />
-    <ClInclude Include="RenderUtils.h" />
+    <ClInclude Include="render\RenderUtils.h">
+      <Filter>render</Filter>
+    </ClInclude>
     <ClInclude Include="DissolveTransitionPattern.h" />
     <ClInclude Include="OpenGLShaders.h" />
     <ClInclude Include="effects\assist\AssistPanel.h" />
@@ -1433,7 +1449,9 @@
     <ClInclude Include="ViewpointDialog.h" />
     <ClInclude Include="ViewpointMgr.h" />
     <ClInclude Include="LyricUserDictDialog.h" />
-    <ClInclude Include="RenderCache.h" />
+    <ClInclude Include="render\RenderCache.h">
+      <Filter>render</Filter>
+    </ClInclude>
     <ClInclude Include="Parallel.h" />
     <ClInclude Include="models\ObjectManager.h" />
     <ClInclude Include="models\ViewObjectManager.h" />
@@ -1442,7 +1460,9 @@
     <ClInclude Include="models\tiny_obj_loader.h" />
     <ClInclude Include="MultiControllerUploadDialog.h" />
     <ClInclude Include="wxModelGridCellRenderer.h" />
-    <ClInclude Include="FSEQFile.h" />
+    <ClInclude Include="render\FSEQFile.h">
+      <Filter>render</Filter>
+    </ClInclude>
     <ClInclude Include="PathGenerationDialog.h" />
     <ClInclude Include="RemapDMXChannelsDialog.h" />
     <ClInclude Include="LOREdit.h" />
@@ -2096,20 +2116,20 @@
     <ClInclude Include="sequencer\DragEffectBitmapButton.h">
       <Filter>sequencer</Filter>
     </ClInclude>
-    <ClInclude Include="sequencer\Effect.h">
-      <Filter>sequencer</Filter>
+    <ClInclude Include="render\Effect.h">
+      <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="sequencer\EffectDropTarget.h">
       <Filter>sequencer</Filter>
     </ClInclude>
-    <ClInclude Include="sequencer\EffectLayer.h">
-      <Filter>sequencer</Filter>
+    <ClInclude Include="render\EffectLayer.h">
+      <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="sequencer\EffectsGrid.h">
       <Filter>sequencer</Filter>
     </ClInclude>
-    <ClInclude Include="sequencer\Element.h">
-      <Filter>sequencer</Filter>
+    <ClInclude Include="render\Element.h">
+      <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="sequencer\ElementLayers.h">
       <Filter>sequencer</Filter>
@@ -2120,11 +2140,11 @@
     <ClInclude Include="sequencer\RowHeading.h">
       <Filter>sequencer</Filter>
     </ClInclude>
-    <ClInclude Include="sequencer\SequenceElements.h">
-      <Filter>sequencer</Filter>
+    <ClInclude Include="render\SequenceElements.h">
+      <Filter>render</Filter>
     </ClInclude>
-    <ClInclude Include="sequencer\SequenceMedia.h">
-      <Filter>sequencer</Filter>
+    <ClInclude Include="render\SequenceMedia.h">
+      <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="sequencer\TimeLine.h">
       <Filter>sequencer</Filter>
@@ -2596,6 +2616,9 @@
     </Filter>
     <Filter Include="sequencer">
       <UniqueIdentifier>{3f511f30-f755-4c36-bc33-eaba751cc83e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="render">
+      <UniqueIdentifier>{a1b2c3d4-e5f6-7890-abcd-ef1234567890}</UniqueIdentifier>
     </Filter>
     <Filter Include="cad">
       <UniqueIdentifier>{1096ad9f-b290-43d7-9267-5716023074ad}</UniqueIdentifier>

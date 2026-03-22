@@ -11,8 +11,8 @@
 #include "PlasmaEffect.h"
 #include "PlasmaPanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 
 #include "../../include/plasma-16.xpm"

@@ -19,7 +19,7 @@
 #include "UtilFunctions.h"
 #include "AudioManager.h"
 #include "ExternalHooks.h"
-#include "sequencer/SequenceElements.h"
+#include "render/SequenceElements.h"
 
 #include <log4cpp/Category.hh>
 

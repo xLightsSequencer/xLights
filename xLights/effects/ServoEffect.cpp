@@ -19,7 +19,7 @@
 #include "../utils/string_utils.h"
 
 #include <format>
-#include "../RenderBuffer.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../UtilFunctions.h"
 #include "../models/DMX/DmxColorAbility.h"
@@ -31,9 +31,9 @@
 #include "../models/DMX/DmxSkull.h"
 #include "../models/DMX/Servo.h"
 #include "../models/ModelGroup.h"
-#include "../sequencer/Effect.h"
-#include "../sequencer/Element.h"
-#include "../sequencer/SequenceElements.h"
+#include "../render/Effect.h"
+#include "../render/Element.h"
+#include "../render/SequenceElements.h"
 
 ServoEffect::ServoEffect(int id) :
     RenderableEffect(id, "Servo", servo_16, servo_24, servo_32, servo_48, servo_64) {

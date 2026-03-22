@@ -13,9 +13,9 @@
 #pragma once
 
 #include <string>
-#include "sequencer/Element.h"
-#include "sequencer/Effect.h"
-#include "sequencer/EffectLayer.h"
+#include "render/Element.h"
+#include "render/Effect.h"
+#include "render/EffectLayer.h"
 
 class RenderCommandEvent;
 class SelectedEffectChangedEvent;

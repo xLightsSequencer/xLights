@@ -11,8 +11,8 @@
 #include "FillEffect.h"
 #include "FillPanel.h"
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../models/Model.h"
 #include "../UtilFunctions.h"

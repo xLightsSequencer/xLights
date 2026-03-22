@@ -30,7 +30,7 @@
 #include "xLightsMain.h"
 #include "xLightsVersion.h"
 #include "sequencer/MainSequencer.h"
-#include "sequencer/SequenceElements.h"
+#include "render/SequenceElements.h"
 
 #include <log4cpp/Category.hh>
 

@@ -29,6 +29,7 @@
 					<Add option='-D__cdecl=&quot;&quot;' />
 					<Add directory="include" />
 					<Add directory="sequencer" />
+					<Add directory="render" />
 					<Add directory="../xLights" />
 					<Add directory="effects" />
 					<Add directory="effects/" />
@@ -85,6 +86,7 @@
 					<Add option="-D__cdecl=&apos;&apos;" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
+					<Add directory="render" />
 					<Add directory="../xLights" />
 					<Add directory="effects" />
 					<Add directory="effects/" />
@@ -253,8 +255,8 @@
 		<Unit filename="ExportModelSelect.h" />
 		<Unit filename="ExportSettings.cpp" />
 		<Unit filename="ExportSettings.h" />
-		<Unit filename="FSEQFile.cpp" />
-		<Unit filename="FSEQFile.h" />
+		<Unit filename="render/FSEQFile.cpp" />
+		<Unit filename="render/FSEQFile.h" />
 		<Unit filename="FileConverter.cpp" />
 		<Unit filename="FileConverter.h" />
 		<Unit filename="FindDataPanel.cpp" />
@@ -362,8 +364,8 @@
 		<Unit filename="PerspectivesPanel.h" />
 		<Unit filename="PhonemeDictionary.cpp" />
 		<Unit filename="PhonemeDictionary.h" />
-		<Unit filename="PixelBuffer.cpp" />
-		<Unit filename="PixelBuffer.h" />
+		<Unit filename="render/PixelBuffer.cpp" />
+		<Unit filename="render/PixelBuffer.h" />
 		<Unit filename="PixelTestDialog.cpp" />
 		<Unit filename="PixelTestDialog.h" />
 		<Unit filename="Pixels.cpp" />
@@ -374,11 +376,11 @@
 		<Unit filename="RemapDMXChannelsDialog.h" />
 		<Unit filename="RenameTextDialog.cpp" />
 		<Unit filename="RenameTextDialog.h" />
-		<Unit filename="Render.cpp" />
-		<Unit filename="RenderBuffer.cpp" />
-		<Unit filename="RenderBuffer.h" />
-		<Unit filename="RenderCache.cpp" />
-		<Unit filename="RenderCache.h" />
+		<Unit filename="render/Render.cpp" />
+		<Unit filename="render/RenderBuffer.cpp" />
+		<Unit filename="render/RenderBuffer.h" />
+		<Unit filename="render/RenderCache.cpp" />
+		<Unit filename="render/RenderCache.h" />
 		<Unit filename="RenderCommandEvent.h" />
 		<Unit filename="RenderProgressDialog.cpp" />
 		<Unit filename="RenderProgressDialog.h" />
@@ -1121,24 +1123,24 @@
 		</Unit>
 		<Unit filename="sequencer/DragEffectBitmapButton.cpp" />
 		<Unit filename="sequencer/DragEffectBitmapButton.h" />
-		<Unit filename="sequencer/Effect.cpp" />
-		<Unit filename="sequencer/Effect.h" />
+		<Unit filename="render/Effect.cpp" />
+		<Unit filename="render/Effect.h" />
 		<Unit filename="sequencer/EffectDropTarget.cpp" />
 		<Unit filename="sequencer/EffectDropTarget.h" />
-		<Unit filename="sequencer/EffectLayer.cpp" />
-		<Unit filename="sequencer/EffectLayer.h" />
+		<Unit filename="render/EffectLayer.cpp" />
+		<Unit filename="render/EffectLayer.h" />
 		<Unit filename="sequencer/EffectsGrid.cpp" />
 		<Unit filename="sequencer/EffectsGrid.h" />
-		<Unit filename="sequencer/Element.cpp" />
-		<Unit filename="sequencer/Element.h" />
+		<Unit filename="render/Element.cpp" />
+		<Unit filename="render/Element.h" />
 		<Unit filename="sequencer/MainSequencer.cpp" />
 		<Unit filename="sequencer/MainSequencer.h" />
 		<Unit filename="sequencer/RowHeading.cpp" />
 		<Unit filename="sequencer/RowHeading.h" />
-		<Unit filename="sequencer/SequenceElements.cpp" />
-		<Unit filename="sequencer/SequenceElements.h" />
-		<Unit filename="sequencer/SequenceMedia.cpp" />
-		<Unit filename="sequencer/SequenceMedia.h" />
+		<Unit filename="render/SequenceElements.cpp" />
+		<Unit filename="render/SequenceElements.h" />
+		<Unit filename="render/SequenceMedia.cpp" />
+		<Unit filename="render/SequenceMedia.h" />
 		<Unit filename="sequencer/TimeLine.cpp" />
 		<Unit filename="sequencer/TimeLine.h" />
 		<Unit filename="sequencer/UndoManager.cpp" />

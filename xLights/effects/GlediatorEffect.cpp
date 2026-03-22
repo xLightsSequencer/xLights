@@ -14,14 +14,14 @@
 #include <cstdlib>
 #include <format>
 
-#include "../sequencer/SequenceElements.h"
+#include "../render/SequenceElements.h"
 #include "../utils/string_utils.h"
 
 #include <wx/filename.h>
 #include <wx/filepicker.h>
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../models/Model.h"
 #include "../xLightsXmlFile.h"

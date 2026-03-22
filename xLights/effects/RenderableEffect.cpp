@@ -13,12 +13,12 @@
 #include <cstdlib>
 #include <format>
 
-#include "../sequencer/Effect.h"
+#include "../render/Effect.h"
 #include "EffectManager.h"
 #include "assist/xlGridCanvasEmpty.h"
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
-#include "../sequencer/SequenceElements.h"
+#include "../render/SequenceElements.h"
 
 #include <wx/fontpicker.h>
 #include <wx/filepicker.h>
@@ -28,7 +28,7 @@
 #include <sstream>
 #include "../UtilFunctions.h"
 #include "../ValueCurveButton.h"
-#include "PixelBuffer.h"
+#include "../render/PixelBuffer.h"
 #include "FanEffect.h"
 #include "SpiralsEffect.h"
 #include "PinwheelEffect.h"

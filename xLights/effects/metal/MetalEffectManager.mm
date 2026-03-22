@@ -1,7 +1,7 @@
 #include "../EffectManager.h"
 #include "../../GPURenderUtils.h"
-#include "../../PixelBuffer.h"
-#include "../../RenderBuffer.h"
+#include "../../render/PixelBuffer.h"
+#include "../../render/RenderBuffer.h"
 #include "MetalComputeUtilities.hpp"
 
 #include "MetalEffects.hpp"

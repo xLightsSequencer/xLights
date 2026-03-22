@@ -23,7 +23,7 @@
 //*)
 
 #include <nlohmann/json.hpp>
-#include "../FSEQFile.h"
+#include "../render/FSEQFile.h"
 
 class ModelManager;
 class OutputManager;

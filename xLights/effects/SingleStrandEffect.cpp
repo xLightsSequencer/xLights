@@ -10,10 +10,10 @@
 
 #include "SingleStrandEffect.h"
 #include "SingleStrandPanel.h"
-#include "../sequencer/Effect.h"
-#include "../sequencer/EffectLayer.h"
-#include "../sequencer/Element.h"
-#include "../RenderBuffer.h"
+#include "../render/Effect.h"
+#include "../render/EffectLayer.h"
+#include "../render/Element.h"
+#include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 
 #define XLIGHTS_FX 
