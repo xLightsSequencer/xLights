@@ -20,7 +20,7 @@
 #include <mutex>
 #include "wx/xml/xml.h"
 #include "wx/filename.h"
-#include "UndoManager.h"
+#include "../sequencer/UndoManager.h"
 
 class xLightsXmlFile;  // forward declaration needed due to circular dependency
 class SequenceViewManager;

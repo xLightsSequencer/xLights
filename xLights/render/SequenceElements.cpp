@@ -16,7 +16,7 @@
 #include <algorithm>
 
 #include "SequenceElements.h"
-#include "TimeLine.h"
+#include "../sequencer/TimeLine.h"
 #include "../xLightsMain.h"
 #include "../LyricsDialog.h"
 #include "../xLightsXmlFile.h"

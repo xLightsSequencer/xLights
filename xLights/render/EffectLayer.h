@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "Effect.h"
-#include "UndoManager.h"
+#include "../sequencer/UndoManager.h"
 #include "../effects/EffectManager.h"
 #include "wx/wx.h"
 #include <atomic>

@@ -1143,6 +1143,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="EditAliasesDialog.h" />
     <ClInclude Include="EditSubmodelAliasesDialog.h" />
     <ClInclude Include="effects\AdjustEffect.h" />
+    <ClInclude Include="MIDI\Binasc.h" />
     <ClInclude Include="ui\effectpanels\AdjustPanel.h" />
     <ClInclude Include="ui\effectpanels\assist\AssistPanel.h" />
     <ClInclude Include="ui\effectpanels\assist\PicturesAssistPanel.h" />

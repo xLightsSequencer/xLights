@@ -706,7 +706,7 @@ void HinksPixExportDialog::UploadSchedules(ControllerEthernet* controller) {
         schedule.saveAsFile(temp_schedule);
         hixpix->UploadFileToController(temp_schedule, schedule.getFileName(), updateProg, wxDateTime::Now());
     }
-    bool anyEnabledItems = std::any_of(m_schedules.cbegin(), m_schedules.cend(),
+    bool const anyEnabledItems = std::any_of(m_schedules.cbegin(), m_schedules.cend(),
                                        [](auto const& b) {
                                            return b.hasEnabledItems();
                                        });
