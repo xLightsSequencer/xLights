@@ -197,13 +197,18 @@ bool VendorMusicDialog::DlgInit(std::string hash, std::string showFolder)
     return false;
 }
 
-wxXmlDocument* VendorMusicDialog::GetXMLFromURL(wxURI url, std::string& filename) const
+pugi::xml_document* VendorMusicDialog::GetXMLFromURL(wxURI url, std::string& filename) const
 {
     filename = "";
     wxFileName fn = wxFileName(VendorMusicDialog::GetCache().GetFile(url, CACHEFOR::CACHETIME_SESSION));
     if (fn.Exists()) {
         filename = fn.GetFullPath();
-        return new wxXmlDocument(fn.GetFullPath());
+        auto doc = new pugi::xml_document();
+        if (!doc->load_file(fn.GetFullPath().mb_str())) {
+            delete doc;
+            return nullptr;
+        }
+        return doc;
     }
 
     return nullptr;
@@ -216,31 +221,32 @@ bool VendorMusicDialog::LoadTree(std::string hash)
     //const std::string vendorlink = "http://127.0.0.1:3000/xlights_vendors.xml";
 
     std::string filename;
-    wxXmlDocument* vd = GetXMLFromURL(wxURI(vendorlink), filename);
-    if (vd == nullptr || !vd->IsOk()) {
+    pugi::xml_document* vd = GetXMLFromURL(wxURI(vendorlink), filename);
+    if (vd == nullptr || !vd->document_element()) {
+        delete vd;
         vd = GetXMLFromURL(wxURI(vendorlinkbackup), filename);
     }
-    if (vd != nullptr && vd->IsOk()) {
-        wxXmlNode* root = vd->GetRoot();
+    if (vd != nullptr && vd->document_element()) {
+        pugi::xml_node root = vd->document_element();
 
-        for (auto v = root->GetChildren(); v != nullptr; v = v->GetNext()) {
-            if (v->GetName().Lower() == "musicvendor") {
+        for (pugi::xml_node v = root.first_child(); v; v = v.next_sibling()) {
+            if (::Lower(v.name()) == "musicvendor") {
                 int max = -1;
                 std::string url = "";
 
-                for (auto link = v->GetChildren(); link != nullptr; link = link->GetNext()) {
-                    if (link->GetName().Lower() == "link") {
-                        url = link->GetNodeContent().ToStdString();
-                    } else if (link->GetName().Lower() == "maxitems") {
-                        max = wxAtoi(link->GetNodeContent());
+                for (pugi::xml_node link = v.first_child(); link; link = link.next_sibling()) {
+                    if (::Lower(link.name()) == "link") {
+                        url = link.text().get();
+                    } else if (::Lower(link.name()) == "maxitems") {
+                        max = link.text().as_int();
                     }
                 }
 
                 if (url != "") {
                     std::string vfilename;
-                    wxXmlDocument* d = GetXMLFromURL(wxURI(url), vfilename);
+                    pugi::xml_document* d = GetXMLFromURL(wxURI(url), vfilename);
                     if (d != nullptr) {
-                        MSLVendor* mv = new MSLVendor(d, max, &VendorMusicDialog::GetCache());
+                        MSLVendor* mv = new MSLVendor(*d, max, &VendorMusicDialog::GetCache());
                         _vendors.push_back(mv);
                         delete d;
                     }

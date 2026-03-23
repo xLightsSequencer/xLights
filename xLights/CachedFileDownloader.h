@@ -17,7 +17,7 @@
 #include <mutex>
 
 class wxProgressDialog;
-class wxXmlNode;
+#include <pugixml.hpp>
 
 typedef enum
 {
@@ -34,7 +34,7 @@ class FileCacheItem
     std::string _fileName;
 
 public:
-    FileCacheItem(wxXmlNode* n);
+    FileCacheItem(pugi::xml_node n);
     FileCacheItem(wxURI url, CACHEFOR cacheFor, const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100, bool keepProgress = false);
     void Save(wxFile& f);
     virtual ~FileCacheItem() {}

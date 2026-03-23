@@ -14,7 +14,7 @@
 #include <map>
 #include "Color.h"
 #include <wx/wx.h>
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 class Model;
 
@@ -93,13 +93,13 @@ struct LOREditEffect
 };
 
 class LOREdit {
-    wxXmlDocument& _input_xml;
+    pugi::xml_document& _input_xml;
     int _frequency = 20;
 
-    std::vector<LOREditEffect> GetChannelEffectsForNode(int targetRow, int targetCol, int targetColor, wxXmlNode* prop, int offset) const;
+    std::vector<LOREditEffect> GetChannelEffectsForNode(int targetRow, int targetCol, int targetColor, pugi::xml_node prop, int offset) const;
 
     public:
-    LOREdit(wxXmlDocument &input_xml, int frequency);
+    LOREdit(pugi::xml_document &input_xml, int frequency);
     virtual ~LOREdit() {};
 
     std::vector<std::string> GetTimingTracks() const;
@@ -114,7 +114,7 @@ class LOREdit {
     std::vector<LOREditEffect> GetChannelEffects(const std::string& model, int channel, Model* m, int offset) const;
     std::vector<LOREditEffect> GetChannelEffects(const std::string& model, int channel, int nodes, int offset) const;
     std::vector<LOREditEffect> GetChannelEffects(const std::string& model, int targetRow, int targetCol, int targetColor, int offset) const;
-    std::vector<LOREditEffect> AddEffects(wxXmlNode* track, bool left, int offset) const;
+    std::vector<LOREditEffect> AddEffects(pugi::xml_node track, bool left, int offset) const;
     static void GetLayers(const std::string& settings, int& ll1, int& ll2);
 
     static std::string GetColor(const std::string& settings);

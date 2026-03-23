@@ -695,12 +695,12 @@ void EffectTreeDialog::OnTreeCtrl1BeginDrag(wxTreeEvent& event)
     }
 }
 
-void EffectTreeDialog::AddEffect(wxXmlNode* ele, wxTreeItemId curGroupID)
+void EffectTreeDialog::AddEffect(pugi::xml_node ele, wxTreeItemId curGroupID)
 {
-    wxString name = ele->GetAttribute("name");
-    wxString settings = ele->GetAttribute("settings");
-    wxString version = ele->GetAttribute("version", "0000");
-    wxString xlVer = ele->GetAttribute("xLightsVersion", "4.0");
+    wxString name = ele.attribute("name").as_string();
+    wxString settings = ele.attribute("settings").as_string();
+    wxString version = ele.attribute("version").as_string("0000");
+    wxString xlVer = ele.attribute("xLightsVersion").as_string("4.0");
     if (!name.IsEmpty())
     {
         if (NameCollissionInGroup(curGroupID, name)) {
@@ -721,9 +721,9 @@ void EffectTreeDialog::AddEffect(wxXmlNode* ele, wxTreeItemId curGroupID)
     }
 }
 
-void EffectTreeDialog::AddGroup(wxXmlNode* ele, wxTreeItemId curGroupID)
+void EffectTreeDialog::AddGroup(pugi::xml_node ele, wxTreeItemId curGroupID)
 {
-    wxString name = ele->GetAttribute("name");
+    wxString name = ele.attribute("name").as_string();
 
     if (NameCollissionInGroup(curGroupID, name)) {
         DisplayError(wxString::Format("Group '%s' already exists at '%s'", name, GetFullPathOfGroup(curGroupID)), this);
@@ -739,13 +739,13 @@ void EffectTreeDialog::AddGroup(wxXmlNode* ele, wxTreeItemId curGroupID)
         wxTreeItemId nextGroupID = TreeCtrl1->AppendItem(curGroupID, name, -1, -1, new MyTreeItemData(newGroup));
         TreeCtrl1->SetItemHasChildren(nextGroupID);
 
-        for (wxXmlNode *ele2 = ele->GetChildren(); ele2 != nullptr; ele2 = ele2->GetNext())
+        for (pugi::xml_node ele2 = ele.first_child(); ele2; ele2 = ele2.next_sibling())
         {
-            if (ele2->GetName() == "effect")
+            if (std::string_view(ele2.name()) == "effect")
             {
                 AddEffect(ele2, nextGroupID);
             }
-            else if (ele2->GetName() == "effectGroup")
+            else if (std::string_view(ele2.name()) == "effectGroup")
             {
                 AddGroup(ele2, nextGroupID);
             }
@@ -790,8 +790,8 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
             name_and_path.SetPath(fDir);
             wxString file_to_import = name_and_path.GetFullPath();
 
-            wxXmlDocument input_xml;
-            if (!input_xml.Load(file_to_import)) {
+            pugi::xml_document input_xml;
+            if (!input_xml.load_file(file_to_import.mb_str())) {
                 static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 logger_base.warn("EffectTreeDialog::Unable to load %s to import presets.", (const char *)file_to_import.c_str());
                 ValidateWindow();
@@ -800,13 +800,13 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
 
             bool presetFound = false;
 
-            wxXmlNode* input_root = input_xml.GetRoot();
+            pugi::xml_node input_root = input_xml.document_element();
 
-            if (name_and_path.GetExt().Lower() == "xpreset" || input_root->GetName() == "preset")
+            if (name_and_path.GetExt().Lower() == "xpreset" || std::string_view(input_root.name()) == "preset")
             {
-                for (wxXmlNode *ele = input_root->GetChildren(); ele != nullptr; ele = ele->GetNext())
+                for (pugi::xml_node ele = input_root.first_child(); ele; ele = ele.next_sibling())
                 {
-                    if (ele->GetName() == "effectGroup")
+                    if (std::string_view(ele.name()) == "effectGroup")
                     {
                         AddGroup(ele, insertPoint);
                         presetFound = true;
@@ -820,13 +820,13 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
             }
             else
             {
-                for (wxXmlNode* e = input_root->GetChildren(); e != nullptr; e = e->GetNext())
+                for (pugi::xml_node e = input_root.first_child(); e; e = e.next_sibling())
                 {
-                    if (e->GetName() == "effects")
+                    if (std::string_view(e.name()) == "effects")
                     {
-                        for (wxXmlNode *ele = e->GetChildren(); ele != nullptr; ele = ele->GetNext())
+                        for (pugi::xml_node ele = e.first_child(); ele; ele = ele.next_sibling())
                         {
-                            if (ele->GetName() == "effectGroup")
+                            if (std::string_view(ele.name()) == "effectGroup")
                             {
                                 AddGroup(ele, insertPoint);
                                 presetFound = true;

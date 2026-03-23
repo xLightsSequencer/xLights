@@ -80,7 +80,7 @@ public:
 
     void DownloadXModel();
 
-    MModelWiring(wxXmlNode* n, MModel* m, int widthMM, int heightMM, int depthMM)
+    MModelWiring(pugi::xml_node n, MModel* m, int widthMM, int heightMM, int depthMM)
     {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         _model = m;
@@ -88,20 +88,20 @@ public:
         _modelHeightMM = heightMM;
         _modelDepthMM = depthMM;
 
-        for (wxXmlNode* l = n->GetChildren(); l != nullptr; l = l->GetNext()) {
-            if (l->GetType() != wxXmlNodeType::wxXML_COMMENT_NODE) {
-                wxString nn = l->GetName().Lower().ToStdString();
+        for (pugi::xml_node l = n.first_child(); l; l = l.next_sibling()) {
+            if (l.type() != pugi::node_comment) {
+                std::string nn = ::Lower(l.name());
                 if (nn == "name") {
-                    _name = l->GetNodeContent().ToStdString();
+                    _name = l.text().get();
                 }
                 else if (nn == "description") {
-                    _wiringDescription = l->GetNodeContent().ToStdString();
+                    _wiringDescription = l.text().get();
                 }
                 else if (nn == "xmodellink") {
-                    _xmodelLink = wxURI(l->GetNodeContent());
+                    _xmodelLink = wxURI(l.text().get());
                 }
                 else if (nn == "imagefile") {
-                    _images.push_back(wxURI(l->GetNodeContent()));
+                    _images.push_back(wxURI(l.text().get()));
                 }
                 else {
                     logger_base.warn("MModelWiring: Error processing vendor xml: %s ", (const char*)nn.c_str());
@@ -247,56 +247,56 @@ public:
         }
     }
 
-    MModel(wxXmlNode* n, MVendor* vendor)
+    MModel(pugi::xml_node n, MVendor* vendor)
     {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         _vendor = vendor;
 
-        for (wxXmlNode* l = n->GetChildren(); l != nullptr; l = l->GetNext()) {
-            if (l->GetType() != wxXmlNodeType::wxXML_COMMENT_NODE) {
-                wxString nn = l->GetName().Lower().ToStdString();
+        for (pugi::xml_node l = n.first_child(); l; l = l.next_sibling()) {
+            if (l.type() != pugi::node_comment) {
+                std::string nn = ::Lower(l.name());
                 if (nn == "id") {
-                    _id = l->GetNodeContent().ToStdString();
+                    _id = l.text().get();
                 }
                 else if (nn == "categoryid") {
-                    _categoryIds.push_back(l->GetNodeContent().ToStdString());
+                    _categoryIds.push_back(l.text().get());
                 }
                 else if (nn == "name") {
-                    _name = l->GetNodeContent().ToStdString();
+                    _name = l.text().get();
                 }
                 else if (nn == "type") {
-                    _type = l->GetNodeContent().ToStdString();
+                    _type = l.text().get();
                 }
                 else if (nn == "material") {
-                    _material = l->GetNodeContent().ToStdString();
+                    _material = l.text().get();
                 }
                 else if (nn == "thickness") {
-                    _thickness = l->GetNodeContent().ToStdString();
+                    _thickness = l.text().get();
                 }
                 else if (nn == "width") {
-                    _width = l->GetNodeContent().ToStdString();
+                    _width = l.text().get();
                 }
                 else if (nn == "height") {
-                    _height = l->GetNodeContent().ToStdString();
+                    _height = l.text().get();
                 } else if (nn == "depth") {
-                    _depth = l->GetNodeContent().ToStdString();
+                    _depth = l.text().get();
                 } else if (nn == "pixelcount") {
-                    _pixelCount = l->GetNodeContent().ToStdString();
+                    _pixelCount = l.text().get();
                 }
                 else if (nn == "pixelspacing") {
-                    _pixelSpacing = l->GetNodeContent().ToStdString();
+                    _pixelSpacing = l.text().get();
                 }
                 else if (nn == "pixeldescription") {
-                    _pixelDescription = l->GetNodeContent().ToStdString();
+                    _pixelDescription = l.text().get();
                 }
                 else if (nn == "notes") {
-                    _notes = l->GetNodeContent().ToStdString();
+                    _notes = l.text().get();
                 }
                 else if (nn == "weblink") {
-                    _webpage = wxURI(l->GetNodeContent());
+                    _webpage = wxURI(l.text().get());
                 }
                 else if (nn == "imagefile") {
-                    _images.push_back(wxURI(l->GetNodeContent()));
+                    _images.push_back(wxURI(l.text().get()));
                 }
                 else if (nn == "wiring") {
                     // dont handle this until we have processed all the other properties
@@ -309,9 +309,9 @@ public:
         }
 
         // now we can handle wiring
-        for (wxXmlNode* l = n->GetChildren(); l != nullptr; l = l->GetNext()) {
-            if (l->GetType() != wxXmlNodeType::wxXML_COMMENT_NODE) {
-                wxString nn = l->GetName().Lower().ToStdString();
+        for (pugi::xml_node l = n.first_child(); l; l = l.next_sibling()) {
+            if (l.type() != pugi::node_comment) {
+                std::string nn = ::Lower(l.name());
                 if (nn == "wiring") {
                     _wiring.push_back(new MModelWiring(l, this, InterpretSize(_width), InterpretSize(_height), InterpretSize(_depth)));
 
@@ -411,20 +411,26 @@ void MModelWiring::DownloadXModel()
         _xmodelFile = VendorModelDialog::GetCache().GetFile(_xmodelLink, CACHEFOR::CACHETIME_LONG, ext);
 
         if (ext == "xmodel") {
-            wxXmlDocument d;
-            d.Load(_xmodelFile.GetFullPath());
-            if (d.IsOk()) {
-                wxXmlNode* root = d.GetRoot();
-                if (root->GetAttribute("PixelType", "") == "" && _model->_pixelDescription != "") {
-                    root->AddAttribute("PixelType", _model->_pixelDescription);
+            pugi::xml_document d;
+            d.load_file(_xmodelFile.GetFullPath().mb_str());
+            pugi::xml_node root = d.document_element();
+            if (root) {
+                bool changed = false;
+                if (!root.attribute("PixelType") && _model->_pixelDescription != "") {
+                    root.append_attribute("PixelType") = _model->_pixelDescription.c_str();
+                    changed = true;
                 }
-                if (root->GetAttribute("PixelMinimumSpacingInches", "") == "" && wxAtoi(_model->_pixelSpacing) != 0) {
-                    root->AddAttribute("PixelMinimumSpacingInches", wxString::Format("%d", wxAtoi(_model->_pixelSpacing)));
+                if (!root.attribute("PixelMinimumSpacingInches") && wxAtoi(_model->_pixelSpacing) != 0) {
+                    root.append_attribute("PixelMinimumSpacingInches") = wxAtoi(_model->_pixelSpacing);
+                    changed = true;
                 }
-                if (root->GetAttribute("PixelCount", "") == "" && wxAtoi(_model->_pixelCount) != 0) {
-                    root->AddAttribute("PixelCount", wxString::Format("%d", wxAtoi(_model->_pixelCount)));
+                if (!root.attribute("PixelCount") && wxAtoi(_model->_pixelCount) != 0) {
+                    root.append_attribute("PixelCount") = wxAtoi(_model->_pixelCount);
+                    changed = true;
                 }
-                d.Save(_xmodelFile.GetFullPath());
+                if (changed) {
+                    d.save_file(_xmodelFile.GetFullPath().mb_str());
+                }
             }
         }
     }
@@ -448,12 +454,12 @@ std::string MModelWiring::GetDescription()
 
 class MVendorCategory
 {
-    void ParseCategories(wxXmlNode* n)
+    void ParseCategories(pugi::xml_node n)
     {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        for (wxXmlNode* l = n->GetChildren(); l != nullptr; l = l->GetNext()) {
-            if (l->GetType() != wxXmlNodeType::wxXML_COMMENT_NODE) {
-                wxString nn = l->GetName().Lower().ToStdString();
+        for (pugi::xml_node l = n.first_child(); l; l = l.next_sibling()) {
+            if (l.type() != pugi::node_comment) {
+                std::string nn = ::Lower(l.name());
                 if (nn == "category") {
                     _categories.push_back(new MVendorCategory(l, this, _vendor));
 
@@ -484,7 +490,7 @@ class MVendorCategory
 
     MVendor* GetVendor() const { return _vendor; }
 
-    MVendorCategory(wxXmlNode* n, MVendorCategory* parent, MVendor* vendor);
+    MVendorCategory(pugi::xml_node n, MVendorCategory* parent, MVendor* vendor);
     virtual ~MVendorCategory()
     {
         for (auto& it : _categories) {
@@ -522,13 +528,13 @@ public:
         return res;
     }
 
-    void ParseCategories(wxXmlNode* n)
+    void ParseCategories(pugi::xml_node n)
     {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-        for (wxXmlNode* l = n->GetChildren(); l != nullptr; l = l->GetNext()) {
-            if (l->GetType() != wxXmlNodeType::wxXML_COMMENT_NODE) {
-                wxString nn = l->GetName().Lower().ToStdString();
+        for (pugi::xml_node l = n.first_child(); l; l = l.next_sibling()) {
+            if (l.type() != pugi::node_comment) {
+                std::string nn = ::Lower(l.name());
                 if (nn == "category") {
                     _categories.push_back(new MVendorCategory(l, nullptr, this));
                 }
@@ -578,48 +584,48 @@ public:
         _name = name;
     }
 
-    MVendor(wxXmlDocument* doc, int maxModels)
+    MVendor(pugi::xml_document& doc, int maxModels)
     {
         static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         _maxModels = maxModels;
 
-        if (doc->IsOk()) {
-            wxXmlNode* root = doc->GetRoot();
-            wxString nn = root->GetName().Lower();
+        pugi::xml_node root = doc.document_element();
+        if (root) {
+            std::string nn = ::Lower(root.name());
             if (nn == "modelinventory") {
-                for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext()) {
-                    if (e->GetType() != wxXmlNodeType::wxXML_COMMENT_NODE) {
-                        nn = e->GetName().Lower();
+                for (pugi::xml_node e = root.first_child(); e; e = e.next_sibling()) {
+                    if (e.type() != pugi::node_comment) {
+                        nn = ::Lower(e.name());
                         if (nn == "vendor") {
-                            for (wxXmlNode* v = e->GetChildren(); v != nullptr; v = v->GetNext()) {
-                                if (v->GetType() != wxXmlNodeType::wxXML_COMMENT_NODE) {
-                                    nn = v->GetName().Lower();
+                            for (pugi::xml_node v = e.first_child(); v; v = v.next_sibling()) {
+                                if (v.type() != pugi::node_comment) {
+                                    nn = ::Lower(v.name());
                                     if (nn == "name") {
-                                        _name = v->GetNodeContent().ToStdString();
+                                        _name = v.text().get();
                                     }
                                     else if (nn == "contact") {
-                                        _contact = v->GetNodeContent().ToStdString();
+                                        _contact = v.text().get();
                                     }
                                     else if (nn == "email") {
-                                        _email = v->GetNodeContent().ToStdString();
+                                        _email = v.text().get();
                                     }
                                     else if (nn == "phone") {
-                                        _phone = v->GetNodeContent().ToStdString();
+                                        _phone = v.text().get();
                                     }
                                     else if (nn == "website") {
-                                        _website = wxURI(v->GetNodeContent().ToStdString());
+                                        _website = wxURI(v.text().get());
                                     }
                                     else if (nn == "facebook") {
-                                        _facebook = wxURI(v->GetNodeContent().ToStdString());
+                                        _facebook = wxURI(v.text().get());
                                     }
                                     else if (nn == "twitter") {
-                                        _twitter = v->GetNodeContent().ToStdString();
+                                        _twitter = v.text().get();
                                     }
                                     else if (nn == "notes") {
-                                        _notes = v->GetNodeContent().ToStdString();
+                                        _notes = v.text().get();
                                     }
                                     else if (nn == "logolink") {
-                                        wxURI logo(v->GetNodeContent().ToStdString());
+                                        wxURI logo(v.text().get());
                                         _logoFile = wxFileName(VendorModelDialog::GetCache().GetFile(logo, CACHEFOR::CACHETIME_LONG));
                                     }
                                     else {
@@ -634,8 +640,8 @@ public:
                         }
                         else if (nn == "models") {
                             int models = 0;
-                            for (wxXmlNode* m = e->GetChildren(); m != nullptr; m = m->GetNext()) {
-                                nn = m->GetName().Lower();
+                            for (pugi::xml_node m = e.first_child(); m; m = m.next_sibling()) {
+                                nn = ::Lower(m.name());
                                 if (nn == "model") {
                                     models++;
                                     if (maxModels < 1 || models < _maxModels) {
@@ -668,27 +674,27 @@ public:
     }
 };
 
-MVendorCategory::MVendorCategory(wxXmlNode* n, MVendorCategory* parent, MVendor* vendor)
+MVendorCategory::MVendorCategory(pugi::xml_node n, MVendorCategory* parent, MVendor* vendor)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     _vendor = vendor;
     _parent = parent;
-    for (wxXmlNode* e = n->GetChildren(); e != nullptr; e = e->GetNext()) {
+    for (pugi::xml_node e = n.first_child(); e; e = e.next_sibling()) {
         // ignore comment nodes
-        if (e->GetType() != wxXmlNodeType::wxXML_COMMENT_NODE) {
-            wxString nn = e->GetName().Lower();
+        if (e.type() != pugi::node_comment) {
+            std::string nn = ::Lower(e.name());
             if (nn == "id") {
-                _id = e->GetNodeContent().ToStdString();
+                _id = e.text().get();
             }
             else if (nn == "name") {
-                _name = e->GetNodeContent().ToStdString();
+                _name = e.text().get();
             }
             else if (nn == "categories") {
                 ParseCategories(e);
             }
             else {
-                logger_base.warn("MVendorCategory: Error processing vendor xml: %s : %s : %s : %s", (const char*)vendor->_name.c_str(), (const char*)(parent != nullptr ? parent->_name.c_str() : _("").c_str()), (const char*)nn.c_str(), (const char*)GetPath().c_str());
+                logger_base.warn("MVendorCategory: Error processing vendor xml: %s : %s : %s : %s", (const char*)vendor->_name.c_str(), (const char*)(parent != nullptr ? parent->_name.c_str() : ""), (const char*)nn.c_str(), (const char*)GetPath().c_str());
                 wxASSERT(false);
             }
         }
@@ -951,13 +957,18 @@ bool VendorModelDialog::FindModelFile(const std::string &vendor, const std::stri
     return false;
 }
 
-wxXmlDocument* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high, bool keepProgress) const
+pugi::xml_document* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high, bool keepProgress) const
 {
     filename = "";
     wxFileName fn = wxFileName(VendorModelDialog::GetCache().GetFile(url, CACHEFOR::CACHETIME_SESSION, "", prog, low, high, keepProgress));
     if (FileExists(fn)) {
         filename = fn.GetFullPath();
-        return new wxXmlDocument(filename);
+        auto doc = new pugi::xml_document();
+        if (!doc->load_file(filename.c_str())) {
+            delete doc;
+            return nullptr;
+        }
+        return doc;
     }
 
     return nullptr;
@@ -974,38 +985,39 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
     std::string filename;
     if (prog != nullptr)
         prog->Update(low, "Downloading vendor list");
-    wxXmlDocument* vd = GetXMLFromURL(wxURI(vendorlink), filename, prog, low, high, true);
-    if (prog != nullptr) 
+    pugi::xml_document* vd = GetXMLFromURL(wxURI(vendorlink), filename, prog, low, high, true);
+    if (prog != nullptr)
         prog->Update(high, "Parsing vendor list");
 
-    if (vd == nullptr || !vd->IsOk()) {
+    if (vd == nullptr || !vd->document_element()) {
+        delete vd;
         vd = GetXMLFromURL(wxURI(vendorlinkbackup), filename, prog, low, high, true);
     }
 
-    if (vd != nullptr && vd->IsOk()) {
-        wxXmlNode* root = vd->GetRoot();
+    if (vd != nullptr && vd->document_element()) {
+        pugi::xml_node root = vd->document_element();
 
-        for (auto v = root->GetChildren(); v != nullptr; v = v->GetNext())
+        for (pugi::xml_node v = root.first_child(); v; v = v.next_sibling())
         {
-            if (v->GetName().Lower() == "vendor")
+            if (::Lower(v.name()) == "vendor")
             {
                 int maxModels = -1;
                 std::string url = "";
                 std::string name = "";
 
-                for (auto link = v->GetChildren(); link != nullptr; link = link->GetNext())
+                for (pugi::xml_node link = v.first_child(); link; link = link.next_sibling())
                 {
-                    if (link->GetName().Lower() == "link")
+                    if (::Lower(link.name()) =="link")
                     {
-                        url = link->GetNodeContent().ToStdString();
+                        url = link.text().get();
                     }
-                    else if (link->GetName().Lower() == "maxmodels")
+                    else if (::Lower(link.name()) =="maxmodels")
                     {
-                        maxModels = wxAtoi(link->GetNodeContent());
+                        maxModels = link.text().as_int();
                     }
-                    else if (link->GetName().Lower() == "name")
+                    else if (::Lower(link.name()) =="name")
                     {
-                        name =link->GetNodeContent();
+                        name = link.text().get();
                     }
                 }
 
@@ -1022,15 +1034,16 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
                         std::string vfilename;
                         if (prog != nullptr)
                             prog->Update(low, "Downloading " + name + " data.");
-                        wxXmlDocument* d = GetXMLFromURL(wxURI(url), vfilename, prog, low, high, true);
-                        if (d != nullptr && d->IsOk()) {
+                        pugi::xml_document* d = GetXMLFromURL(wxURI(url), vfilename, prog, low, high, true);
+                        if (d != nullptr && d->document_element()) {
                             if (prog != nullptr)
                                 prog->Update(high, "Parsing " + name + " data.");
-                            MVendor* mv = new MVendor(d, maxModels);
+                            MVendor* mv = new MVendor(*d, maxModels);
                             _vendors.push_back(mv);
                             delete d;
                             logger_base.debug("Vendor %s downloaded.", (const char*)name.c_str());
                         } else {
+                            delete d;
                             logger_base.debug("Vendor %s failed to download or validate.", (const char*)name.c_str());
                         }
                     }

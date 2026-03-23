@@ -1710,7 +1710,7 @@ void xLightsImportChannelMapDialog::LoadXMapMapping(wxString const& filename, bo
         LoadJSONMapping(filename, hideWarnings);
         return;
     }
-    int count = wxAtoi(text.ReadLine());
+    int count = (int)std::strtol(text.ReadLine().mb_str(), nullptr, 10);
     for (int x = 0; x < count; ++x) {
         std::string mn = text.ReadLine().ToStdString();
         if (TreeContainsModel(mn) == nullptr) {
@@ -3504,70 +3504,71 @@ void xLightsImportChannelMapDialog::OnCheckBoxImportMediaClick(wxCommandEvent& e
 
 void xLightsImportChannelMapDialog::LoadRgbEffectsFile() {
 
-    if (_xsqPkg->GetRgbEffectsFile().IsOk()) {
-        wxXmlNode* grpNode = nullptr;
-        wxXmlNode* modelNode = nullptr;
+    if (_xsqPkg->HasRGBEffects()) {
+        pugi::xml_node grpNode;
+        pugi::xml_node modelNode;
 
-        for (wxXmlNode* node = _xsqPkg->GetRgbEffectsFile().GetRoot()->GetChildren(); node != nullptr; node = node->GetNext()) {
-            if (node->GetName() == "modelGroups") {
+        for (pugi::xml_node node = _xsqPkg->GetRgbEffectsFile().document_element().first_child(); node; node = node.next_sibling()) {
+            std::string_view nname = node.name();
+            if (nname == XmlNodeKeys::GroupsNodeName) {
                 grpNode = node;
                 break;
             }
-            if (node->GetName() == "models") {
+            if (nname == XmlNodeKeys::ModelsNodeName) {
                 modelNode = node;
             }
         }
 
         if (grpNode) {
-            for (wxXmlNode* node = grpNode->GetChildren(); node != nullptr; node = node->GetNext()) {
-                if (auto mm = GetImportChannel(node->GetAttribute("name")); mm) {
-                    mm->type = "ModelGroup";
-                    mm->groupModels = node->GetAttribute("models");
+            for (pugi::xml_node node = grpNode.first_child(); node; node = node.next_sibling()) {
+                if (auto mm = GetImportChannel(node.attribute(XmlNodeKeys::NameAttribute).as_string()); mm) {
+                    mm->type = XmlNodeKeys::ModelGroupType;
+                    mm->groupModels = node.attribute(XmlNodeKeys::mgModelsAttribute).as_string();
                     mm->nodeCount = 1000; // just hardcode a large value
                 }
             }
         }
         if (modelNode) {
-            for (wxXmlNode* node = modelNode->GetChildren(); node != nullptr; node = node->GetNext()) {
-                if (auto mm = GetImportChannel(node->GetAttribute("name")); mm) {
-                    mm->type = node->GetAttribute("DisplayAs");
+            for (pugi::xml_node node = modelNode.first_child(); node; node = node.next_sibling()) {
+                if (auto mm = GetImportChannel(node.attribute(XmlNodeKeys::NameAttribute).as_string()); mm) {
+                    mm->type = node.attribute(XmlNodeKeys::DisplayAsAttribute).as_string();
                     bool singingFace = false;
-                    if (mm->type == "Custom") {
-                        for (wxXmlNode* nodechildren = node->GetChildren(); nodechildren != nullptr; nodechildren = nodechildren->GetNext()) {
-                            if (nodechildren->GetName() == "faceInfo") {
+                    if (mm->type == XmlNodeKeys::CustomType) {
+                        for (pugi::xml_node nodechildren = node.first_child(); nodechildren; nodechildren = nodechildren.next_sibling()) {
+                            if (std::string_view(nodechildren.name()) == XmlNodeKeys::FaceNodeName) {
                                 singingFace = true;
                             }
                         }
                     }
-                    bool spiralTree = node->GetAttribute("TreeSpiralRotations", "0") != "0";
-                    bool sticks = node->GetAttribute("CandyCaneSticks", "false") == "true";
-                    std::string dropPattern = node->GetAttribute("DropPattern", "");
+                    bool spiralTree = std::string_view(node.attribute(XmlNodeKeys::TreeSpiralRotationsAttribute).as_string("0")) != "0";
+                    bool sticks = std::string_view(node.attribute(XmlNodeKeys::CCSticksAttribute).as_string("false")) == "true";
+                    std::string dropPattern = node.attribute(XmlNodeKeys::DropPatternAttribute).as_string();
                     mm->modelClass = Model::DetermineClass(mm->type, singingFace, spiralTree, sticks, dropPattern);
-                    // Extract structural dimensions from XML attributes
-                    // Support both old format (param1/param2/param3) and new format (model-specific attrs)
-                    auto getAttr = [&node](const std::string& newName, const std::string& oldName, const std::string& defVal = "1") -> int {
-                        std::string val = node->GetAttribute(newName, "");
-                        if (val.empty()) val = node->GetAttribute(oldName, defVal);
-                        return wxAtoi(val);
+                    // Extract structural dimensions from XML attributes.
+                    // Reads new named attribute first, falls back to legacy parm1/parm2/parm3.
+                    auto getAttr = [&node](const char* newName, const char* oldName, int defVal = 1) -> int {
+                        auto attr = node.attribute(newName);
+                        if (!attr.empty()) return attr.as_int(defVal);
+                        return node.attribute(oldName).as_int(defVal);
                     };
 
-                    if (mm->type == "Channel Block") {
-                        mm->nodeCount = getAttr("NumChannels", "param1");
-                    } else if (mm->type == "Cube") {
-                        int w = getAttr("CubeWidth", "param1");
-                        int h = getAttr("CubeHeight", "param2");
-                        int d = getAttr("CubeDepth", "param3");
+                    if (mm->type == XmlNodeKeys::ChannelBlockType) {
+                        mm->nodeCount = getAttr(XmlNodeKeys::NumChannelsAttribute, XmlNodeKeys::Parm1Attribute);
+                    } else if (mm->type == XmlNodeKeys::CubeType) {
+                        int w = getAttr(XmlNodeKeys::CubeWidthAttribute, XmlNodeKeys::Parm1Attribute);
+                        int h = getAttr(XmlNodeKeys::CubeHeightAttribute, XmlNodeKeys::Parm2Attribute);
+                        int d = getAttr(XmlNodeKeys::CubeDepthAttribute, XmlNodeKeys::Parm3Attribute);
                         mm->nodeCount = w * h * d;
                         mm->width = w;
                         mm->height = h;
-                    } else if (mm->type == "Custom") {
-                        auto data = XmlSerialize::ParseCustomModel(node->GetAttribute("CustomModel", ""));
+                    } else if (mm->type == XmlNodeKeys::CustomType) {
+                        auto data = XmlSerialize::ParseCustomModel(node.attribute(XmlNodeKeys::CustomModelAttribute).as_string());
                         int count = 0;
                         int maxRow = 0;
                         int maxCol = 0;
-                        for (int l = 0; l < data.size(); l++) {
-                            for (int r = 0; r < data[l].size(); r++) {
-                                for (int c = 0; c < data[l][r].size(); c++) {
+                        for (int l = 0; l < (int)data.size(); l++) {
+                            for (int r = 0; r < (int)data[l].size(); r++) {
+                                for (int c = 0; c < (int)data[l][r].size(); c++) {
                                     if (data[l][r][c] != 0) {
                                         ++count;
                                         if (r + 1 > maxRow) maxRow = r + 1;
@@ -3577,61 +3578,62 @@ void xLightsImportChannelMapDialog::LoadRgbEffectsFile() {
                             }
                         }
                         mm->nodeCount = count;
-                        mm->width = wxAtoi(node->GetAttribute("CustomWidth", std::to_string(maxCol)));
-                        mm->height = wxAtoi(node->GetAttribute("CustomHeight", std::to_string(maxRow)));
-                        mm->strandCount = wxAtoi(node->GetAttribute("NumStrings", node->GetAttribute("param1", "1")));
-                    } else if (mm->type.find("Matrix") != std::string::npos || mm->type.find("Tree") != std::string::npos) {
-                        int strings = getAttr("NumStrings", "param1");
-                        int nodesPerString = getAttr("NodesPerString", "param2");
+                        mm->width = node.attribute(XmlNodeKeys::CustomWidthAttribute).as_int(maxCol);
+                        mm->height = node.attribute(XmlNodeKeys::CustomHeightAttribute).as_int(maxRow);
+                        mm->strandCount = getAttr(XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute);
+                    } else if (mm->type.find(XmlNodeKeys::MatrixType) != std::string::npos || mm->type.find(XmlNodeKeys::TreeType) != std::string::npos) {
+                        int strings = getAttr(XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute);
+                        int nodesPerString = getAttr(XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute);
                         mm->nodeCount = strings * nodesPerString;
                         mm->strandCount = strings;
                         mm->width = strings;
                         mm->height = nodesPerString;
-                    } else if (mm->type == "Arches") {
-                        int numArches = getAttr("NumArches", "param1");
-                        int nodesPerArch = getAttr("NodesPerArch", "param2");
+                    } else if (mm->type == XmlNodeKeys::ArchesType) {
+                        int numArches = getAttr(XmlNodeKeys::NumArchesAttribute, XmlNodeKeys::Parm1Attribute);
+                        int nodesPerArch = getAttr(XmlNodeKeys::NodesPerArchAttribute, XmlNodeKeys::Parm2Attribute);
                         mm->nodeCount = numArches * nodesPerArch;
                         mm->strandCount = numArches;
-                    } else if (mm->type == "Candy Canes") {
-                        int numCanes = getAttr("NumCanes", "param1");
-                        int nodesPerCane = getAttr("NodesPerCane", "param2");
+                    } else if (mm->type == XmlNodeKeys::CandyCaneType) {
+                        int numCanes = getAttr(XmlNodeKeys::NumCanesAttribute, XmlNodeKeys::Parm1Attribute);
+                        int nodesPerCane = getAttr(XmlNodeKeys::NodesPerCaneAttribute, XmlNodeKeys::Parm2Attribute);
                         mm->nodeCount = numCanes * nodesPerCane;
                         mm->strandCount = numCanes;
-                    } else if (mm->type == "Icicles") {
-                        int strings = getAttr("NumStrings", "param1");
-                        int nodesPerString = getAttr("NodesPerString", "param2");
+                    } else if (mm->type == XmlNodeKeys::IciclesType) {
+                        int strings = getAttr(XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute);
+                        int nodesPerString = getAttr(XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute);
                         mm->nodeCount = strings * nodesPerString;
                         mm->strandCount = strings;
                     } else {
-                        int p1 = getAttr("NumStrings", "param1");
-                        int p2 = getAttr("NodesPerString", "param2");
+                        int p1 = getAttr(XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute);
+                        int p2 = getAttr(XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute);
                         mm->nodeCount = p1 * p2;
                         mm->strandCount = p1;
                     }
                 }
                 // Collect submodel names, aliases, and mark submodel channels
-                auto parentChannel = GetImportChannel(node->GetAttribute("name"));
-                for (wxXmlNode* n = node->GetChildren(); n != nullptr; n = n->GetNext()) {
-                    if (n->GetName() == "subModel") {
-                        std::string subName = n->GetAttribute("name");
+                auto parentChannel = GetImportChannel(node.attribute(XmlNodeKeys::NameAttribute).as_string());
+                for (pugi::xml_node n = node.first_child(); n; n = n.next_sibling()) {
+                    std::string_view nname2 = n.name();
+                    if (nname2 == XmlNodeKeys::SubModelNodeName) {
+                        std::string subName = n.attribute(XmlNodeKeys::NameAttribute).as_string();
                         if (parentChannel) {
                             parentChannel->subModelNames.push_back(subName);
                         }
-                        if (auto subChannel = GetImportChannel(node->GetAttribute("name") + "/" + subName); subChannel) {
+                        if (auto subChannel = GetImportChannel(std::string(node.attribute(XmlNodeKeys::NameAttribute).as_string()) + "/" + subName); subChannel) {
                             subChannel->type = "SubModel";
                             // Collect aliases for the submodel
-                            for (wxXmlNode* a = n->GetChildren(); a != nullptr; a = a->GetNext()) {
-                                if (a->GetName() == "alias") {
-                                    std::string aliasName = a->GetAttribute("name");
+                            for (pugi::xml_node a = n.first_child(); a; a = a.next_sibling()) {
+                                if (std::string_view(a.name()) == XmlNodeKeys::AliasNodeName) {
+                                    std::string aliasName = a.attribute(XmlNodeKeys::NameAttribute).as_string();
                                     if (!aliasName.empty()) {
                                         subChannel->aliases.push_back(aliasName);
                                     }
                                 }
                             }
                         }
-                    } else if (n->GetName() == "alias") {
+                    } else if (nname2 == XmlNodeKeys::AliasNodeName) {
                         if (parentChannel) {
-                            std::string aliasName = n->GetAttribute("name");
+                            std::string aliasName = n.attribute(XmlNodeKeys::NameAttribute).as_string();
                             if (!aliasName.empty()) {
                                 parentChannel->aliases.push_back(aliasName);
                             }
@@ -3680,14 +3682,13 @@ void xLightsImportChannelMapDialog::loadMapHintsFile(wxString const& filename) {
     //  <Map ToRegex"" FromModel="" />
     // </MapHints>
 
-    wxXmlDocument doc;
-    doc.Load(filename);
-    if (doc.IsOk()) {
-        for (wxXmlNode* n = doc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
-            if (n->GetName().Lower() == "map") {
-                auto toRegex = n->GetAttribute("ToRegex");
-                auto fromModel = n->GetAttribute("FromModel");
-                auto applyTo = n->GetAttribute("ApplyTo", "B");
+    pugi::xml_document doc;
+    if (doc.load_file(filename.mb_str())) {
+        for (pugi::xml_node n = doc.document_element().first_child(); n; n = n.next_sibling()) {
+            if (wxString(n.name()).Lower() == "map") {
+                wxString toRegex = n.attribute("ToRegex").as_string();
+                wxString fromModel = n.attribute("FromModel").as_string();
+                wxString applyTo = n.attribute("ApplyTo").as_string("B");
                 if (toRegex != "" && fromModel != "") {
                     DoAutoMap(regex, regex, norm, toRegex, fromModel, applyTo, false);
                 }

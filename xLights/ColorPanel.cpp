@@ -688,16 +688,16 @@ void ColorPanel::LoadPalettes(wxDir& directory, bool subdirs)
     for (auto &filename : files) {
         if (FileExists(filename)) {
             wxFileName fn(filename);
-            wxXmlDocument svg;
-            svg.Load(filename);
+            pugi::xml_document svg;
+            svg.load_file(filename.mb_str());
 
-            if (svg.IsOk()) {
+            if (svg.document_element()) {
                 wxString pal;
                 int cols = 0;
-                for (auto n = svg.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
-                    if (n->GetName() == "rect") {
-                        if (n->HasAttribute("fill")) {
-                            pal += n->GetAttribute("fill") + ",";
+                for (pugi::xml_node n = svg.document_element().first_child(); n; n = n.next_sibling()) {
+                    if (std::string_view(n.name()) == "rect") {
+                        if (n.attribute("fill")) {
+                            pal += wxString(n.attribute("fill").as_string()) + ",";
                             cols++;
                         }
                     }

@@ -34,7 +34,7 @@
 #include <vector>
 #include <map>
 #include "Color.h"
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 class Model;
 class xLightsFrame;
@@ -87,10 +87,10 @@ struct S5Model {
     wxString customGrid;
     std::vector<S5Point> points;
 
-    bool ParseXML(wxXmlNode* m);
+    bool ParseXML(pugi::xml_node m);
 private:
-    void ParseParms(wxXmlNode* p);
-    void ParsePoints(wxXmlNode* p);
+    void ParseParms(pugi::xml_node p);
+    void ParsePoints(pugi::xml_node p);
 };
 
 struct S5Group {
@@ -99,7 +99,7 @@ struct S5Group {
     wxString arrangement;
     std::vector<wxString> modelIds;
 
-    bool ParseXML(wxXmlNode* g);
+    bool ParseXML(pugi::xml_node g);
 };
 
 class LORPreview {
@@ -118,11 +118,11 @@ private:
 
     //private functions
     wxString FindLORPreviewFile();
-    wxArrayString GetPreviews(wxXmlNode* root) const;
+    wxArrayString GetPreviews(pugi::xml_node root) const;
     Model* CreateModel(S5Model const& model, wxString const& startChan, int previewW, int previewH, bool& error);
 
-    bool LoadPreview(wxXmlNode* root, wxString const& name);
-    bool ReadPreview(wxXmlNode* preview);
+    bool LoadPreview(pugi::xml_node root, wxString const& name);
+    bool ReadPreview(pugi::xml_node preview);
 
     wxString DecodeTreeType(wxString const& value) const;
     void SetStartChannel(S5Model const& model, Model* xModel, bool doMultiString);

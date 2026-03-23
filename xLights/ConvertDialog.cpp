@@ -13,7 +13,7 @@
 #include <wx/base64.h>
 #include <wx/confbase.h>
 #include <wx/wfstream.h>
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 #include <wx/filename.h>
 
 //(*InternalHeaders(ConvertDialog)
@@ -339,30 +339,27 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
     wxString ChannelName, TestName;
     int32_t ChannelColor;
     long TotalTime = SeqData.TotalTime();
-    wxXmlDocument doc;
-    wxXmlNode* root = new wxXmlNode(wxXML_ELEMENT_NODE, "Program");
-    doc.SetRoot(root);
+    pugi::xml_document doc;
+    pugi::xml_node root = doc.append_child("Program");
 
-    // add nodes to root in reverse order
-    wxXmlNode *node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "EventValues");
-    new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, SeqData.base64_encode());
+    // add nodes to root in reverse order (prepend produces correct Vixen element ordering)
+    pugi::xml_node node = root.prepend_child("EventValues");
+    node.append_child(pugi::node_pcdata).set_value(SeqData.base64_encode().ToStdString().c_str());
 
-    node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Audio");
-    node->AddAttribute("filename", mediaFilename);
-    node->AddAttribute("duration", string_format("%ld", TotalTime));
-    new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, "Music");
-    wxXmlNode *chparent = new wxXmlNode(wxXML_ELEMENT_NODE, "Channels");
-    root->AddChild(chparent);
+    node = root.prepend_child("Audio");
+    node.append_attribute("filename") = mediaFilename.c_str();
+    node.append_attribute("duration") = (long long)TotalTime;
+    node.append_child(pugi::node_pcdata).set_value("Music");
+    pugi::xml_node chparent = root.append_child("Channels");
 
     for (size_t ch = 0; ch < SeqData.NumChannels(); ch++)
     {
         SetStatusText(string_format("Status: Channel %d ", (int)ch));
 
-        node = new wxXmlNode(wxXML_ELEMENT_NODE, "Channel");
-        node->AddAttribute("output", string_format("%d", (int)ch));
-        node->AddAttribute("id", "0");
-        node->AddAttribute("enabled", "True");
-        chparent->AddChild(node);
+        node = chparent.append_child("Channel");
+        node.append_attribute("output") = (int)ch;
+        node.append_attribute("id") = "0";
+        node.append_attribute("enabled") = "True";
 
         // KW - not sure why this was this way but now test tab is removed I need to remove it
         //		if (ch < CheckListBoxTestChannels->GetCount())
@@ -408,26 +405,26 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
             // default to white
             ChannelColor = 0xffffffff;
         }
-        node->AddAttribute("color", string_format("%d", (int)ChannelColor));
-        new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, ChannelName);
+        node.append_attribute("color") = (int)ChannelColor;
+        node.append_child(pugi::node_pcdata).set_value(ChannelName.ToUTF8().data());
     }
 
-    node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "AudioDevice");
-    new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, "-1");
+    node = root.prepend_child("AudioDevice");
+    node.append_child(pugi::node_pcdata).set_value("-1");
 
-    node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "MaximumLevel");
-    new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, "255");
+    node = root.prepend_child("MaximumLevel");
+    node.append_child(pugi::node_pcdata).set_value("255");
 
-    node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "MinimumLevel");
-    new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, "0");
+    node = root.prepend_child("MinimumLevel");
+    node.append_child(pugi::node_pcdata).set_value("0");
 
-    node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "EventPeriodInMilliseconds");
-    new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%d", (int)SeqData.FrameTime()));
+    node = root.prepend_child("EventPeriodInMilliseconds");
+    node.append_child(pugi::node_pcdata).set_value(string_format("%d", (int)SeqData.FrameTime()).c_str());
 
-    node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Time");
-    new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%ld", (long)TotalTime));
+    node = root.prepend_child("Time");
+    node.append_child(pugi::node_pcdata).set_value(string_format("%ld", (long)TotalTime).c_str());
 
-    return doc.Save(filename);
+    return doc.save_file(filename.mb_str());
 }
 
 void ConvertDialog::WriteVirFile(const wxString& filename) const
@@ -442,21 +439,20 @@ void ConvertDialog::WriteHLSFile(const wxString& filename) const
 
 bool ConvertDialog::WriteLedBlinkyFile(const wxString& filename)
 {
-    wxXmlDocument doc;
-    wxXmlNode* root = new wxXmlNode(wxXML_ELEMENT_NODE, "LEDAnimation");
-    doc.SetRoot(root);
+    pugi::xml_document doc;
+    pugi::xml_node root = doc.append_child("LEDAnimation");
 
     for (size_t frame = 1; frame <= SeqData.NumFrames(); frame++) {
-        wxXmlNode *fr_node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Frame");
-        fr_node->AddAttribute("Number", string_format("%d", (int)frame));
-        fr_node->AddAttribute("Duration", string_format("%d", (int)SeqData.FrameTime()));
+        pugi::xml_node fr_node = root.prepend_child("Frame");
+        fr_node.append_attribute("Number") = (int)frame;
+        fr_node.append_attribute("Duration") = (int)SeqData.FrameTime();
 
-        wxXmlNode *int_node = new wxXmlNode(fr_node, wxXML_ELEMENT_NODE, "Intensity");
-        int_node->AddAttribute("LedHwType", "6");
-        int_node->AddAttribute("Id", "1");
-        wxXmlNode *st_node = new wxXmlNode(fr_node, wxXML_ELEMENT_NODE, "State");
-        st_node->AddAttribute("LedHwType", "6");
-        st_node->AddAttribute("Id", "1");
+        pugi::xml_node st_node = fr_node.prepend_child("State");
+        st_node.append_attribute("LedHwType") = "6";
+        st_node.append_attribute("Id") = "1";
+        pugi::xml_node int_node = fr_node.prepend_child("Intensity");
+        int_node.append_attribute("LedHwType") = "6";
+        int_node.append_attribute("Id") = "1";
         wxString intensity_values = "";
         wxString state_values = "";
         for (size_t ch = 0; ch < SeqData.NumChannels(); ch++) {
@@ -470,11 +466,11 @@ bool ConvertDialog::WriteLedBlinkyFile(const wxString& filename)
                 state_values += string_format("%d", 1) + ",";
             }
         }
-        int_node->AddAttribute("Value", intensity_values);
-        st_node->AddAttribute("Value", state_values);
+        int_node.append_attribute("Value") = intensity_values.ToUTF8().data();
+        st_node.append_attribute("Value") = state_values.ToUTF8().data();
     }
 
-    return doc.Save(filename);
+    return doc.save_file(filename.mb_str());
 }
 
 void ConvertDialog::WriteLSPFile(const wxString& filename) const
@@ -688,38 +684,31 @@ bool ConvertDialog::LoadVixenProfile(const wxString& ProfileName, wxArrayInt& Vi
         _parent->ConversionError(wxString("Unable to find Vixen profile: ") + fn.GetFullPath() + wxString("\n\nMake sure a copy is in your xLights directory"));
         return false;
     }
-    wxXmlDocument doc(fn.GetFullPath());
-    if (doc.IsOk())
+    pugi::xml_document doc;
+    if (doc.load_file(fn.GetFullPath().mb_str()))
     {
         VixChannels.clear();
-        wxXmlNode* root = doc.GetRoot();
-        for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext())
+        pugi::xml_node root = doc.document_element();
+        for (pugi::xml_node e = root.first_child(); e; e = e.next_sibling())
         {
-            tag = e->GetName();
+            tag = e.name();
             if (tag == wxString("ChannelObjects"))
             {
-                for (wxXmlNode* p = e->GetChildren(); p != nullptr; p = p->GetNext())
+                for (pugi::xml_node p = e.first_child(); p; p = p.next_sibling())
                 {
-                    if (p->GetName() == wxString("Channel"))
+                    if (std::string_view(p.name()) == "Channel")
                     {
-                        if (p->HasAttribute("output"))
-                        {
-                            tempstr = p->GetAttribute("output", "0");
+                        if (p.attribute("output")) {
+                            tempstr = p.attribute("output").as_string("0");
                             OutputChannel = atol(tempstr.c_str());
                             VixChannels.push_back(OutputChannel);
                         }
-                        if (p->HasAttribute("name"))
-                        {
-                            VixChannelNames.push_back(p->GetAttribute("name"));
+                        if (p.attribute("name")) {
+                            VixChannelNames.push_back(p.attribute("name").as_string());
                         }
                         else
                         {
-                            if (p->GetChildren() != nullptr) {
-                                VixChannelNames.push_back(p->GetChildren()->GetContent());
-                            }
-                            else {
-                                VixChannelNames.push_back(p->GetContent());
-                            }
+                            VixChannelNames.push_back(p.text().get());
                         }
                     }
                 }

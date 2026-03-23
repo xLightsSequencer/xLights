@@ -24,7 +24,7 @@
 #include <wx/treectrl.h>
 //*)
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 #include <wx/filename.h>
 #include <list>
 #include <string>
@@ -41,7 +41,7 @@ class ShaderDownloadDialog: public wxDialog
     int _currImage = -1;
     wxImage _shaderImage;
 
-    wxXmlDocument* GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high) const;
+    pugi::xml_document* GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high) const;
     bool LoadTree(wxProgressDialog* prog, int low = 0, int high = 100);
     void AddShaders(wxTreeItemId v, MShader* vendor);
     void ValidateWindow();

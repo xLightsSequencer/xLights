@@ -11,7 +11,7 @@
 #include "EffectListDialog.h"
 #include <wx/msgdlg.h>
 #include <wx/textdlg.h>
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 #include "UtilFunctions.h"
 
@@ -113,11 +113,11 @@ void EffectListDialog::OnButton_RenameClick(wxCommandEvent& event)
     }
     while (DlgResult == wxID_OK && !ok);
     if (DlgResult != wxID_OK) return;
-    wxXmlNode* e=(wxXmlNode*)ListBox1->GetClientData(sel);
-    e->DeleteAttribute("name");
-    e->AddAttribute("name",NewName);
+    pugi::xml_node e(static_cast<pugi::xml_node_struct*>(ListBox1->GetClientData(sel)));
+    e.remove_attribute("name");
+    e.append_attribute("name") = NewName.ToStdString().c_str();
     ListBox1->Delete(sel);
-    ListBox1->Append(NewName, e);
+    ListBox1->Append(NewName, e.internal_object());
 }
 
 void EffectListDialog::OnButton_DeleteClick(wxCommandEvent& event)
@@ -128,9 +128,8 @@ void EffectListDialog::OnButton_DeleteClick(wxCommandEvent& event)
         DisplayError(_("Select an item before clicking the Delete button"), this);
         return;
     }
-    wxXmlNode* e=(wxXmlNode*)ListBox1->GetClientData(sel);
+    pugi::xml_node e(static_cast<pugi::xml_node_struct*>(ListBox1->GetClientData(sel)));
     ListBox1->Delete(sel);
-    wxXmlNode* p=e->GetParent();
-    if (p) p->RemoveChild(e);
-    delete e;
+    pugi::xml_node p = e.parent();
+    if (p) p.remove_child(e);
 }

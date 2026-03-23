@@ -666,32 +666,32 @@ static bool parse_model(const wxString& want_model)
     if (model_xy.find((const char*)want_model.c_str()) != model_xy.end()) return true; //already have info
 
     wxFileName pgoFile;
-    wxXmlDocument pgoXml;
+    pugi::xml_document pgoXml;
     pgoFile.AssignDir(xLightsFrame::CurrentDir);
     pgoFile.SetFullName(_(XLIGHTS_PGOFACES_FILE));
     if (!FileExists(pgoFile)) return false;
-    if (!pgoXml.Load(pgoFile.GetFullPath())) return false;
-    wxXmlNode* root = pgoXml.GetRoot();
-    if (!root || (root->GetName() != "papagayo")) return false;
+    if (!pgoXml.load_file(pgoFile.GetFullPath().mb_str())) return false;
+    pugi::xml_node root = pgoXml.document_element();
+    if (!root || (std::string_view(root.name()) != "papagayo")) return false;
     for (int compat = 0; compat < 2; ++compat)
     {
-        wxXmlNode* Presets = xLightsFrame::FindNode(pgoXml.GetRoot(), compat? wxT("corofaces"): wxT("presets"), wxT("Name"), wxEmptyString, false); //kludge: backwards compatible with current settings
+        pugi::xml_node Presets = xLightsFrame::FindNode(pgoXml.document_element(), compat? "corofaces": "presets", "Name", "", false); //kludge: backwards compatible with current settings
         if (!Presets) continue; //should be there if seq was generated in this folder
         //group name is not available, so use first occurrence of model in *any* group:
         //NOTE: assumes phoneme/face mapping is consistent for any given model across groups, which should be the case since the lights don't move
-        for (wxXmlNode* group = Presets->GetChildren(); group != nullptr; group = group->GetNext())
+        for (pugi::xml_node group = Presets.first_child(); group; group = group.next_sibling())
         {
-            for (wxXmlNode* voice = group->GetChildren(); voice != nullptr; voice = voice->GetNext())
+            for (pugi::xml_node voice = group.first_child(); voice; voice = voice.next_sibling())
             {
-                wxString voice_name = NoInactive(voice->GetAttribute(wxT("name")));
+                wxString voice_name = NoInactive(voice.attribute("name").as_string());
                 if (voice_name != want_model) continue;
                 //XmlNode getting trashed later, so save it here
                 std::unordered_map<std::string, std::string>& map = model_xy[(const char*)want_model.c_str()];
                 map.clear();
-                for (wxXmlAttribute* attrp = voice->GetAttributes(); attrp; attrp = attrp->GetNext())
+                for (pugi::xml_attribute attrp = voice.first_attribute(); attrp; attrp = attrp.next_attribute())
                 {
-                    wxString value = attrp->GetValue();
-                    if (!value.empty()) map[(const char*)attrp->GetName().c_str()] = (const char*)value.c_str();
+                    std::string value = attrp.as_string();
+                    if (!value.empty()) map[attrp.name()] = value;
                 }
                 return true;
             }

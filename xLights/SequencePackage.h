@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include <wx/filename.h>
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 #include <map>
 
@@ -63,7 +63,7 @@ class SequencePackage {
         std::string GetTempShowFolder() const;
         SeqPkgImportOptions* GetImportOptions();
         wxFileName& GetXsqFile();
-        wxXmlDocument& GetRgbEffectsFile();
+        pugi::xml_document& GetRgbEffectsFile();
         std::string GetTempDir() const;
 
         std::string FixAndImportMedia(Effect* mappedEffect, EffectLayer *target);
@@ -80,7 +80,7 @@ class SequencePackage {
         std::string     _xsqName;
         wxFileName      _pkgFile;
         wxFileName      _tempDir;
-        wxXmlDocument   _rgbEffects;
+        pugi::xml_document _rgbEffects;
         wxFileName      _xlNetworks;
         wxFileName _xlEffects;
         wxFileName _pkgRoot;

@@ -10,7 +10,7 @@
 
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 #include <wx/log.h>
 #include <wx/time.h>
 #include <wx/dir.h>
@@ -219,9 +219,9 @@ void SequencePackage::Extract()
                         _xsqName = fnOutput.GetName();
                     } else if (ext == "xml") {
                         if (fnOutput.GetName() == "xlights_rgbeffects") {
-                            wxXmlDocument rgbEffects;
-                            if (rgbEffects.Load(fnOutput.GetFullPath())) {
-                                _rgbEffects = rgbEffects;
+                            pugi::xml_document rgbEffects;
+                            if (rgbEffects.load_file(fnOutput.GetFullPath().mb_str())) {
+                                _rgbEffects = std::move(rgbEffects);
                                 _xlEffects = fnOutput.GetFullPath();
                                 _pkgRoot = fnOutput.GetPath();
                                 _hasRGBEffects = true;
@@ -229,9 +229,9 @@ void SequencePackage::Extract()
                         } else if (fnOutput.GetName() == "xlights_networks") {
                             _xlNetworks = fnOutput;
                         } else {
-                            wxXmlDocument doc;
-                            if (doc.Load(fnOutput.GetFullPath())) {
-                                if (doc.GetRoot()->GetName() == "xsequence") {
+                            pugi::xml_document doc;
+                            if (doc.load_file(fnOutput.GetFullPath().mb_str())) {
+                                if (std::string_view(doc.document_element().name()) == "xsequence") {
                                     _xsqFile = fnOutput;
                                     _xsqName = fnOutput.GetName();
                                 }
@@ -270,10 +270,10 @@ void SequencePackage::FindRGBEffectsFile()
 {
     wxString showDir = wxPathOnly(_xsqFile.GetFullPath());
     if( wxFile::Exists(showDir + wxFileName::GetPathSeparator() + "xlights_rgbeffects.xml")) {
-        wxXmlDocument rgbEffects;
-        if (rgbEffects.Load(showDir + wxFileName::GetPathSeparator() + "xlights_rgbeffects.xml")) {
+        pugi::xml_document rgbEffects;
+        if (rgbEffects.load_file((showDir + wxFileName::GetPathSeparator() + "xlights_rgbeffects.xml").mb_str())) {
             _xlEffects = showDir + wxFileName::GetPathSeparator() + "xlights_rgbeffects.xml";
-            _rgbEffects = rgbEffects;
+            _rgbEffects = std::move(rgbEffects);
             _hasRGBEffects = true;
         }
     }
@@ -284,7 +284,7 @@ bool SequencePackage::IsValid() const
     if (_xsqOnly) {
         return _xsqFile.IsOk() && FileExists(_xsqFile);
     } else {
-        return _xsqFile.IsOk() && FileExists(_xsqFile) && _rgbEffects.IsOk();
+        return _xsqFile.IsOk() && FileExists(_xsqFile) && _hasRGBEffects;
     }
 }
 
@@ -313,7 +313,7 @@ wxFileName& SequencePackage::GetXsqFile()
     return _xsqFile;
 }
 
-wxXmlDocument& SequencePackage::GetRgbEffectsFile()
+pugi::xml_document& SequencePackage::GetRgbEffectsFile()
 {
     return _rgbEffects;
 }
@@ -452,39 +452,38 @@ void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer* target, 
         return;
     }
 
-    wxXmlDocument srcRgbEffects;
-    if (_rgbEffects.IsOk()) {
-        wxXmlNode* modelsNode = nullptr;
-        for (wxXmlNode* node = _rgbEffects.GetRoot()->GetChildren(); node != nullptr; node = node->GetNext()) {
-            if (node->GetName() == "models") {
+    if (_hasRGBEffects) {
+        pugi::xml_node modelsNode;
+        for (pugi::xml_node node = _rgbEffects.document_element().first_child(); node; node = node.next_sibling()) {
+            if (std::string_view(node.name()) == "models") {
                 modelsNode = node;
                 break;
             }
         }
 
-        if (modelsNode != nullptr) {
-            wxXmlNode* modelNode = nullptr;
-            for (wxXmlNode* model = modelsNode->GetChildren(); model != nullptr; model = model->GetNext()) {
-                if (model->GetAttribute("name") == srcModelName) {
+        if (modelsNode) {
+            pugi::xml_node modelNode;
+            for (pugi::xml_node model = modelsNode.first_child(); model; model = model.next_sibling()) {
+                if (std::string_view(model.attribute("name").as_string()) == srcModelName) {
                     modelNode = model;
                     break;
                 }
             }
 
-            if (modelNode != nullptr) {
+            if (modelNode) {
                 // find faceInfo node
-                for (wxXmlNode* modelChild = modelNode->GetChildren(); modelChild != nullptr; modelChild = modelChild->GetNext()) {
-                    if (modelChild->GetName() == "faceInfo") {
-                        wxString name = modelChild->GetAttribute("Name", "");
-                        wxString type = modelChild->GetAttribute("Type", "");
+                for (pugi::xml_node modelChild = modelNode.first_child(); modelChild; modelChild = modelChild.next_sibling()) {
+                    if (std::string_view(modelChild.name()) == "faceInfo") {
+                        wxString name = modelChild.attribute("Name").as_string();
+                        wxString type = modelChild.attribute("Type").as_string();
 
                         // only import if type is matrix
                         if ((name == faceName || faceName == "Default") && type == "Matrix") {
                             std::map<std::string, std::string> faceAttributes;
 
-                            for (wxXmlAttribute* attr = modelChild->GetAttributes(); attr != nullptr; attr = attr->GetNext()) {
-                                wxString attrName = attr->GetName();
-                                wxString attrValue = attr->GetValue();
+                            for (pugi::xml_attribute attr = modelChild.first_attribute(); attr; attr = attr.next_attribute()) {
+                                wxString attrName = attr.name();
+                                wxString attrValue = attr.as_string();
 
                                 // import files
                                 if (attrName.Left(5) == "Mouth" || attrName.Left(4) == "Eyes") {

@@ -13,7 +13,7 @@
 #include "ExternalHooks.h"
 #include "UtilFunctions.h"
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 #include <string>
 #include <map>
 #include <log4cpp/Category.hh>
@@ -59,17 +59,19 @@ std::string SpecialOptions::GetOption(const std::string& option, const std::stri
     if (!__loaded)
     {
         logger_base.debug("Loading special options from " + file);
-        wxXmlDocument doc;
-        doc.Load(file);
-        if (doc.IsOk() && doc.GetRoot() != nullptr)
+        pugi::xml_document doc;
+        auto result = doc.load_file(file.c_str());
+        if (result && doc.document_element())
         {
             __loaded = true;
-            for (wxXmlNode* n = doc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext())
+            for (pugi::xml_node n = doc.document_element().first_child(); n; n = n.next_sibling())
             {
-                if (n->GetName().Lower() == "option")
+                std::string nodeName = n.name();
+                std::transform(nodeName.begin(), nodeName.end(), nodeName.begin(), ::tolower);
+                if (nodeName == "option")
                 {
-                    std::string name = n->GetAttribute("name").Trim(false).Trim(true);
-                    std::string value = n->GetAttribute("value");
+                    std::string name = Trim(n.attribute("name").as_string());
+                    std::string value = n.attribute("value").as_string();
                     if (name != "")
                     {
                         __cache[name] = value;

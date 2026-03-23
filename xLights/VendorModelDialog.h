@@ -26,7 +26,7 @@
 #include <wx/treectrl.h>
 //*)
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 #include <wx/filename.h>
 #include <list>
 #include <string>
@@ -51,7 +51,7 @@ class VendorModelDialog: public wxDialog
 	int _modelHeightMM = -1;
 	int _modelDepthMM = -1;
 
-    [[nodiscard]] wxXmlDocument* GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high, bool keepProgress) const;
+    [[nodiscard]] pugi::xml_document* GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high, bool keepProgress) const;
     [[nodiscard]] bool LoadTree(wxProgressDialog* prog, int low = 0, int high = 100);
     void AddHierachy(wxTreeItemId v, MVendor* vendor, std::list<MVendorCategory*> categories);
     void AddModels(wxTreeItemId v, MVendor* vendor, std::string categoryId);

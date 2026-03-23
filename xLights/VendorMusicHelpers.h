@@ -10,7 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 #include <wx/uri.h>
 #include <wx/filename.h>
 #include <wx/treebase.h>
@@ -20,7 +20,7 @@ class MSLVendor;
 
 class MSLVendorCategory
 {
-    void ParseCategories(wxXmlNode *n);
+    void ParseCategories(pugi::xml_node n);
 
 public:
     std::string _id;
@@ -31,7 +31,7 @@ public:
 
     std::string GetPath() const;
     MSLVendor* GetVendor() const { return _vendor; }
-    MSLVendorCategory(wxXmlNode* n, MSLVendorCategory* parent, MSLVendor* vendor);
+    MSLVendorCategory(pugi::xml_node n, MSLVendorCategory* parent, MSLVendor* vendor);
     virtual ~MSLVendorCategory();
 };
 
@@ -55,7 +55,7 @@ public:
     MSLVendor* _vendor;
     wxFileName _downloadFile;
 
-    MSLSequenceLyric(wxXmlNode* n, MSLVendor* vendor);
+    MSLSequenceLyric(pugi::xml_node n, MSLVendor* vendor);
     virtual ~MSLSequenceLyric() { }
 
     std::string GetType() const;
@@ -86,9 +86,9 @@ public:
     std::list<MSLSequenceLyric*> GetSequenceLyrics(std::string hash = "");
     std::string PadTitle(std::string t) const;
     std::string GetDescription() const;
-    MSLVendor(wxXmlDocument* doc, int max, CachedFileDownloader* cache);
+    MSLVendor(pugi::xml_document& doc, int max, CachedFileDownloader* cache);
     virtual ~MSLVendor();
-    void ParseCategories(wxXmlNode *n);
+    void ParseCategories(pugi::xml_node n);
 };
 
 class MSLVendorBaseTreeItemData : public wxTreeItemData

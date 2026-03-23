@@ -9,7 +9,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 #include "KeyBindings.h"
 #include "xLightsVersion.h"
@@ -1017,54 +1017,45 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
 
     if (FileExists(fileName)) {
         logger_base.debug("Loading keybindings.");
-        wxXmlDocument doc;
-        if (doc.Load(fileName.GetFullPath())) {
+        pugi::xml_document doc;
+        if (doc.load_file(fileName.GetFullPath().mb_str())) {
             _bindings.clear();
-            wxXmlNode *root = doc.GetRoot();
-            wxXmlNode *child = root->GetChildren();
+            pugi::xml_node root = doc.document_element();
 
-            while (child != nullptr) {
-                if ("keybinding" == child->GetName()) {
-                    std::string type = child->GetAttribute("type").ToStdString();
+            for (pugi::xml_node child = root.first_child(); child; child = child.next_sibling()) {
+                if (std::string_view(child.name()) == "keybinding") {
+                    std::string type = child.attribute("type").as_string();
                     bool disabled = false;
-                    std::string k = child->GetAttribute("keycode").ToStdString();
-                    std::string oldk = child->GetAttribute("key").ToStdString();
-                    bool control = child->GetAttribute("control", "FALSE") == "TRUE";
-                    bool alt = child->GetAttribute("alt", "FALSE") == "TRUE";
-                    bool shift = child->GetAttribute("shift", "FALSE") == "TRUE";
-                    bool rcontrol = child->GetAttribute("rawControl", "FALSE") == "TRUE";
+                    std::string k = child.attribute("keycode").as_string();
+                    std::string oldk = child.attribute("key").as_string();
+                    bool control = std::string_view(child.attribute("control").as_string("FALSE")) == "TRUE";
+                    bool alt = std::string_view(child.attribute("alt").as_string("FALSE")) == "TRUE";
+                    bool shift = std::string_view(child.attribute("shift").as_string("FALSE")) == "TRUE";
+                    bool rcontrol = std::string_view(child.attribute("rawControl").as_string("FALSE")) == "TRUE";
                     if (!oldk.empty()) {
                         k = oldk;
                         if (k[0] >= 'A' && k[0] <= 'Z') shift = true; else shift = false;
                     }
                     if (k == "") disabled = true;
                     if (type == "EFFECT") {
-                        std::string effect = child->GetAttribute("effect").ToStdString();
-                        std::string settings = "";
-                        if (child->GetChildren() != nullptr) {
-                            settings = child->GetChildren()->GetContent().ToStdString();
-                        }
+                        std::string effect = child.attribute("effect").as_string();
+                        std::string settings = child.text().get();
                         if (effect != "")
                         {
-                            _bindings.emplace_back(KeyBinding(k, disabled, effect, settings, child->GetAttribute("xLightsVersion", "4.0"), control, alt, shift, rcontrol));
+                            _bindings.emplace_back(KeyBinding(k, disabled, effect, settings, child.attribute("xLightsVersion").as_string("4.0"), control, alt, shift, rcontrol));
                         }
                     } else if (type == "PRESET") {
-                        std::string presetName = child->GetAttribute("effect").ToStdString();
+                        std::string presetName = child.attribute("effect").as_string();
                         _bindings.emplace_back(KeyBinding(disabled, k, presetName, control, alt, shift, rcontrol));
                     } else if (type == "APPLYSETTING") {
-						std::string settings = "";
-						if (child->GetChildren() != nullptr) {
-							settings = child->GetChildren()->GetContent().ToStdString();
-						}
-						if (settings != "")	{
-							_bindings.emplace_back(KeyBinding(disabled, k, settings, child->GetAttribute("xLightsVersion", "4.0"), control, alt, shift, rcontrol));
-						}
+                        std::string settings = child.text().get();
+                        if (settings != "") {
+                            _bindings.emplace_back(KeyBinding(disabled, k, settings, child.attribute("xLightsVersion").as_string("4.0"), control, alt, shift, rcontrol));
+                        }
                     } else {
                         _bindings.emplace_back(KeyBinding(k, disabled, type, control, alt, shift, rcontrol));
                     }
                 }
-
-                child = child->GetNext();
             }
 
             // add in the missing essential key bindings if not present
@@ -1144,9 +1135,8 @@ void KeyBindingMap::Save(const wxFileName &fileName) const noexcept
 
     logger_base.debug("Saving keybindings.");
 
-    wxXmlDocument doc;
-    wxXmlNode *root = new wxXmlNode(wxXML_ELEMENT_NODE, "keybindings");
-    doc.SetRoot(root);
+    pugi::xml_document doc;
+    pugi::xml_node root = doc.append_child("keybindings");
 
     bool corrupt = false;
     for (const auto& binding : _bindings) {
@@ -1169,33 +1159,32 @@ void KeyBindingMap::Save(const wxFileName &fileName) const noexcept
 
         wxKeyCode key = binding.GetKey();
 
-        wxXmlNode *child = new wxXmlNode(wxXML_ELEMENT_NODE, "keybinding");
+        pugi::xml_node child = root.append_child("keybinding");
 
         if (binding.IsDisabled()) {
-            child->AddAttribute("keycode", "");
+            child.append_attribute("keycode") = "";
         } else {
-            child->AddAttribute("keycode", KeyBinding::EncodeKey(key, binding.RequiresShift()));
+            child.append_attribute("keycode") = KeyBinding::EncodeKey(key, binding.RequiresShift()).c_str();
         }
-        child->AddAttribute("alt", binding.RequiresAlt() ? "TRUE" : "FALSE");
-        child->AddAttribute("control", binding.RequiresControl() ? "TRUE" : "FALSE");
+        child.append_attribute("alt") = binding.RequiresAlt() ? "TRUE" : "FALSE";
+        child.append_attribute("control") = binding.RequiresControl() ? "TRUE" : "FALSE";
         if (binding.RequiresRawControl()) {
-            child->AddAttribute("rawControl", "TRUE");
+            child.append_attribute("rawControl") = "TRUE";
         }
-        child->AddAttribute("shift", binding.RequiresShift() ? "TRUE" : "FALSE");
-        child->AddAttribute("type", binding.GetType());
+        child.append_attribute("shift") = binding.RequiresShift() ? "TRUE" : "FALSE";
+        child.append_attribute("type") = binding.GetType().c_str();
         if (binding.GetType() == "EFFECT") {
-            child->AddAttribute("effect", binding.GetEffectName());
-            child->AddAttribute("xLightsVersion", binding.GetEffectDataVersion());
-            child->AddChild(new wxXmlNode(wxXML_TEXT_NODE, "", binding.GetEffectString()));
+            child.append_attribute("effect") = binding.GetEffectName().c_str();
+            child.append_attribute("xLightsVersion") = binding.GetEffectDataVersion().c_str();
+            child.text().set(binding.GetEffectString().c_str());
         } else if (binding.GetType() == "PRESET") {
-            child->AddAttribute("effect", binding.GetEffectName());
+            child.append_attribute("effect") = binding.GetEffectName().c_str();
         } else if (binding.GetType() == "APPLYSETTING") {
-            child->AddAttribute("xLightsVersion", binding.GetEffectDataVersion());
-            child->AddChild(new wxXmlNode(wxXML_TEXT_NODE, "", binding.GetEffectString()));
+            child.append_attribute("xLightsVersion") = binding.GetEffectDataVersion().c_str();
+            child.text().set(binding.GetEffectString().c_str());
         }
-        root->AddChild(child);
     }
-    doc.Save(fileName.GetFullPath());
+    doc.save_file(fileName.GetFullPath().mb_str());
 
     logger_base.debug("Keybindings saved.");
 }

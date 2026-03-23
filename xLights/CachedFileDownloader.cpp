@@ -17,18 +17,17 @@
 #include <wx/sstream.h>
 #include <log4cpp/Category.hh>
 #include <wx/dir.h>
-#include <wx/xml/xml.h>
 #include <wx/progdlg.h>
 
 #include <memory>
 
 #define LONGCACHEDAYS 5
 
-FileCacheItem::FileCacheItem(wxXmlNode* n)
+FileCacheItem::FileCacheItem(pugi::xml_node n)
 {
-    _url = n->GetAttribute("URI", "");
-    _fileName = n->GetAttribute("FileName", "");
-    _cacheFor = (CACHEFOR)wxAtoi(n->GetAttribute("CacheFor", "0"));
+    _url = n.attribute("URI").as_string();
+    _fileName = n.attribute("FileName").as_string();
+    _cacheFor = (CACHEFOR)n.attribute("CacheFor").as_int(0);
 }
 
 FileCacheItem::FileCacheItem(wxURI url, CACHEFOR cacheFor, const wxString& forceType, wxProgressDialog* prog, int low, int high, bool keepProgress)
@@ -197,17 +196,20 @@ void CachedFileDownloader::LoadCache()
 
     if (FileExists(_cacheFile) && wxFileName(_cacheFile).GetSize() > 0)
     {
-        wxXmlDocument d;
-        d.Load(_cacheFile);
-        if (d.IsOk())
+        pugi::xml_document d;
+        if (d.load_file(_cacheFile.c_str()))
         {
-            wxXmlNode* root = d.GetRoot();
-            if (root != nullptr && root->GetName().Lower() == "filecache")
+            pugi::xml_node root = d.document_element();
+            std::string rootName = root.name();
+            std::transform(rootName.begin(), rootName.end(), rootName.begin(), ::tolower);
+            if (root && rootName == "filecache")
             {
                 logger_base.debug("   Cache opened.");
-                for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
+                for (pugi::xml_node n = root.first_child(); n; n = n.next_sibling())
                 {
-                    if (n->GetName().Lower() == "item")
+                    std::string nName = n.name();
+                    std::transform(nName.begin(), nName.end(), nName.begin(), ::tolower);
+                    if (nName == "item")
                         _cacheItems.push_back(new FileCacheItem(n));
                 }
                 logger_base.debug("   %d items loaded.", _cacheItems.size());

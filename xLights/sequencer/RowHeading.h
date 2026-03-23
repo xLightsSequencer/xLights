@@ -11,7 +11,7 @@
  **************************************************************/
 
 #include "wx/window.h"
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 #include "SequenceElements.h"
 #include "wx/wx.h"
 #include "../Color.h"
@@ -60,7 +60,7 @@ private:
     void leftDoubleClick(wxMouseEvent &event);
     void OnLayerPopup(wxCommandEvent& event);
     std::vector<std::string> ParseTags(const wxString& tagString);
-    void DrawHeading(wxPaintDC* dc, wxXmlNode* model, int width, int row);
+    void DrawHeading(wxPaintDC* dc, pugi::xml_node model, int width, int row);
     bool HitTestCollapseExpand(int row, int x, bool* IsCollapsed);
     bool HitTestTimingActive(int row, int x, bool* IsActive);
     void BreakdownTimingPhrases(TimingElement* element);

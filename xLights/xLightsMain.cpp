@@ -3130,13 +3130,11 @@ void xLightsFrame::OnGrid1KillFocus(wxFocusEvent& event)
 void xLightsFrame::OntxtCtrlSparkleFreqText(wxCommandEvent& event)
 {}
 
-static void AddNonDupAttr(wxXmlNode* node, const wxString& name, const wxString& value)
+static void AddNonDupAttr(pugi::xml_node node, const std::string& name, const std::string& value)
 {
-    wxString junk;
-    if (node->GetAttribute(name, &junk))
-        node->DeleteAttribute(name); // kludge: avoid dups
+    node.remove_attribute(name.c_str()); // remove if exists to avoid dups
     if (!value.empty())
-        node->AddAttribute(name, value);
+        node.append_attribute(name.c_str()) = value.c_str();
 }
 
 ModelGroup* xLightsFrame::GetSelectedModelGroup() const
@@ -3152,40 +3150,18 @@ void xLightsFrame::LoadJukebox(wxXmlNode* node)
 }
 
 // sigh; a function like this should have been built into wxWidgets
-wxXmlNode* xLightsFrame::FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create /*= false*/)
+pugi::xml_node xLightsFrame::FindNode(pugi::xml_node parent, const std::string& tag, const std::string& attr, const std::string& value, bool create /*= false*/)
 {
-#if 0
-    static struct
-    {
-        std::unordered_map<const char*, wxXmlNode*> nodes;
-        std::string parent, child;
-    } cached_names;
-
-    if (parent->GetName() != cached_names.parent) //reload cache
-    {
-        cached_names.nodes.clear();
-        for (wxXmlNode* node = parent->GetChildren(); node != nullptr; node = node->GetNext())
-            cached_names.nodes[node->GetName()] = node;
-        cached_names.parent = parent;
-    }
-    if (cached_names.nodes.find(tag) == cached_names.nodes.end()) //not found
-    {
-        if (!create) return 0;
-        parent->AddChild(cached_names.nodes[tag] = new wxXmlNode(wxXML_ELEMENT_NODE, tag));
-    }
-    return cached_names.nodes[tag];
-#endif // 0
-    for (wxXmlNode* node = parent->GetChildren(); node != nullptr; node = node->GetNext()) {
-        if (!tag.empty() && (node->GetName() != tag))
+    for (pugi::xml_node node = parent.first_child(); node; node = node.next_sibling()) {
+        if (!tag.empty() && (node.name() != tag))
             continue;
-        if (!value.empty() && (node->GetAttribute(attr) != value))
+        if (!value.empty() && (node.attribute(attr.c_str()).as_string() != value))
             continue;
         return node;
     }
     if (!create)
-        return 0;                                                // CAUTION: this will give null ptr exc if caller does not check
-    wxXmlNode* retnode = new wxXmlNode(wxXML_ELEMENT_NODE, tag); // NOTE: assumes !tag.empty()
-    parent->AddChild(retnode);
+        return pugi::xml_node(); // null/empty node
+    pugi::xml_node retnode = parent.append_child(tag.c_str()); // NOTE: assumes !tag.empty()
     if (!value.empty())
         AddNonDupAttr(retnode, attr, value);
     return retnode;
@@ -9862,68 +9838,55 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
             //    </items>
             // </xaudio>
 
-            wxXmlDocument doc(filename);
+            pugi::xml_document doc;
+            doc.load_file(filename.mb_str());
 
-            if (doc.IsOk()) {
-                for (wxXmlNode* r = doc.GetRoot(); r != nullptr; r = r->GetNext()) {
-                    for (wxXmlNode* n = r->GetChildren(); n != nullptr; n = n->GetNext()) {
-                        auto name = n->GetName().Lower();
-                        if (name == "targetfile") {
-                            if (n->GetChildren() != nullptr) {
-                                targetFile.SetFullName(n->GetChildren()->GetContent());
-                            }
-                        } else if (name == "items") {
-                            for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
-                                name = nn->GetName().Lower();
-                                if (name == "item") {
-                                    std::string sourcefile = "";
-                                    double start = 0;
-                                    double length = 0;
-                                    double sourceoffset = 0;
-                                    double fadein = 0;
-                                    bool fadeincrossfade = false;
-                                    double fadeout = 0;
-                                    bool fadeoutcrossfade = false;
-                                    double volume = 1;
+            if (doc.document_element()) {
+                pugi::xml_node r = doc.document_element();
+                for (pugi::xml_node n = r.first_child(); n; n = n.next_sibling()) {
+                    std::string name = n.name();
+                    std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+                    if (name == "targetfile") {
+                        targetFile.SetFullName(n.text().get());
+                    } else if (name == "items") {
+                        for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
+                            name = nn.name();
+                            std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+                            if (name == "item") {
+                                std::string sourcefile = "";
+                                double start = 0;
+                                double length = 0;
+                                double sourceoffset = 0;
+                                double fadein = 0;
+                                bool fadeincrossfade = false;
+                                double fadeout = 0;
+                                bool fadeoutcrossfade = false;
+                                double volume = 1;
 
-                                    for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
-                                        name = nnn->GetName().Lower();
-                                        if (name == "file") {
-                                            if (nnn->GetChildren() != nullptr) {
-                                                sourcefile = nnn->GetChildren()->GetContent();
-                                            }
-                                        } else if (name == "targettime") {
-                                            if (nnn->GetChildren() != nullptr) {
-                                                start = std::atof(nnn->GetChildren()->GetContent().c_str());
-                                            }
-                                        } else if (name == "length") {
-                                            if (nnn->GetChildren() != nullptr) {
-                                                length = std::atof(nnn->GetChildren()->GetContent().c_str());
-                                            }
-                                        } else if (name == "sourcetime") {
-                                            if (nnn->GetChildren() != nullptr) {
-                                                sourceoffset = std::atof(nnn->GetChildren()->GetContent().c_str());
-                                            }
-                                        } else if (name == "fadeinsecs") {
-                                            if (nnn->GetChildren() != nullptr) {
-                                                fadein = std::atof(nnn->GetChildren()->GetContent().c_str());
-                                            }
-                                        } else if (name == "fadeoutsecs") {
-                                            if (nnn->GetChildren() != nullptr) {
-                                                fadeout = std::atof(nnn->GetChildren()->GetContent().c_str());
-                                            }
-                                        } else if (name == "fadeincrossfade") {
-                                            fadeincrossfade = true;
-                                        } else if (name == "fadeoutcrossfade") {
-                                            fadeoutcrossfade = true;
-                                        } else if (name == "gain") {
-                                            if (nnn->GetChildren() != nullptr) {
-                                                volume = std::atof(nnn->GetChildren()->GetContent().c_str());
-                                            }
-                                        }
+                                for (pugi::xml_node nnn = nn.first_child(); nnn; nnn = nnn.next_sibling()) {
+                                    name = nnn.name();
+                                    std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+                                    if (name == "file") {
+                                        sourcefile = nnn.text().get();
+                                    } else if (name == "targettime") {
+                                        start = std::atof(nnn.text().get());
+                                    } else if (name == "length") {
+                                        length = std::atof(nnn.text().get());
+                                    } else if (name == "sourcetime") {
+                                        sourceoffset = std::atof(nnn.text().get());
+                                    } else if (name == "fadeinsecs") {
+                                        fadein = std::atof(nnn.text().get());
+                                    } else if (name == "fadeoutsecs") {
+                                        fadeout = std::atof(nnn.text().get());
+                                    } else if (name == "fadeincrossfade") {
+                                        fadeincrossfade = true;
+                                    } else if (name == "fadeoutcrossfade") {
+                                        fadeoutcrossfade = true;
+                                    } else if (name == "gain") {
+                                        volume = std::atof(nnn.text().get());
                                     }
-                                    edits.push_back(musicEdit(sourcefile, start, length, sourceoffset, fadein, fadeout, volume, fadeincrossfade, fadeoutcrossfade));
                                 }
+                                edits.push_back(musicEdit(sourcefile, start, length, sourceoffset, fadein, fadeout, volume, fadeincrossfade, fadeoutcrossfade));
                             }
                         }
                     }

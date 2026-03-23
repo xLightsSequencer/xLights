@@ -474,14 +474,14 @@ public:
 
     EffectManager &GetEffectManager() { return effectManager; }
 
-    bool ImportSuperStar(Element *el, wxXmlDocument &doc, int x_size, int y_size,
+    bool ImportSuperStar(Element *el, pugi::xml_document &doc, int x_size, int y_size,
                          int x_offset, int y_offset,
                          int imageResizeType, const wxSize &modelSize, const wxString& layerBlend,
                          const wxString& defaultGroupName = {});
-    bool ImportLMS(wxXmlDocument &doc, const wxFileName &filename);
-    bool ImportLPE(wxXmlDocument &doc, const wxFileName &filename);
+    bool ImportLMS(pugi::xml_document &doc, const wxFileName &filename);
+    bool ImportLPE(pugi::xml_document &doc, const wxFileName &filename);
     bool ImportVixen3(const wxFileName &filename);
-    bool ImportS5(wxXmlDocument &doc, const wxFileName &filename);
+    bool ImportS5(pugi::xml_document &doc, const wxFileName &filename);
 
     void SuspendRender(bool suspend) { _suspendRender = suspend; }
     bool IsRenderSuspended() const { return _suspendRender; }
@@ -1980,7 +1980,7 @@ public:
 
     ModelGroup* GetSelectedModelGroup() const;
     void LoadJukebox(wxXmlNode* node);
-    static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
+    static pugi::xml_node FindNode(pugi::xml_node parent, const std::string& tag, const std::string& attr, const std::string& value, bool create = false);
     TimingPanel* GetLayerBlendingPanel() const { return timingPanel; }
 
     int GetPlayStatus() const { return playType; }

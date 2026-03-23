@@ -32,7 +32,6 @@ class OutputManager;
 //*)
 
 
-#include <wx/xml/xml.h>
 #include <wx/progdlg.h>
 #include <wx/dcmemory.h>
 

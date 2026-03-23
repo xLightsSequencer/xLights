@@ -622,18 +622,19 @@ void MovingHeadPanel::LoadMHPreset(const std::string& fn)
         DisplayError("Failure loading MH preset file " + fn + ".");
         return;
     }
-    wxXmlDocument doc(fn);
+    pugi::xml_document doc;
+    doc.load_file(fn.c_str());
 
-    if (doc.IsOk())
+    if (doc.document_element())
     {
-        wxXmlNode* root = doc.GetRoot();
+        pugi::xml_node root = doc.document_element();
 
-        if (root->GetName() == "mhpreset")
+        if (std::string_view(root.name()) == "mhpreset")
         {
             wxArrayString heads;
             for( int i = 1; i <=8; ++i ) {
-                wxString label = wxString::Format("data%i", i);
-                wxString data = root->GetAttribute(label);
+                std::string label = "data" + std::to_string(i);
+                wxString data = root.attribute(label.c_str()).as_string();
                 heads.Add(data);
             }
             wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)FlexGridSizerPresets->GetItemCount());
@@ -646,9 +647,9 @@ void MovingHeadPanel::LoadMHPreset(const std::string& fn)
             FlexGridSizerPresets->Add(presetBtn, 1, wxALL, 5);
             Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnButtonPresetClick);
         }
-        else if (root->GetName() == "mhpathpreset")
+        else if (std::string_view(root.name()) == "mhpathpreset")
         {
-            std::string data = root->GetAttribute("data");
+            std::string data = root.attribute("data").as_string();
             wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)FlexGridSizerPathPresets->GetItemCount());
             long id = wxNewId();
             MHPathPresetBitmapButton* presetBtn = new MHPathPresetBitmapButton(PanelPathing, id, wxNullBitmap, wxDefaultPosition, wxSize(48, 48), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);
@@ -659,9 +660,9 @@ void MovingHeadPanel::LoadMHPreset(const std::string& fn)
             FlexGridSizerPathPresets->Add(presetBtn, 1, wxALL, 5);
             Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnButtonPathPresetClick);
         }
-        else if (root->GetName() == "mhdimmerpreset")
+        else if (std::string_view(root.name()) == "mhdimmerpreset")
         {
-            std::string data = root->GetAttribute("data");
+            std::string data = root.attribute("data").as_string();
             wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)FlexGridSizerDimmerPresets->GetItemCount());
             long id = wxNewId();
             MHDimmerPresetBitmapButton* presetBtn = new MHDimmerPresetBitmapButton(PanelDimmer, id, wxNullBitmap, wxDefaultPosition, wxSize(48, 48), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);

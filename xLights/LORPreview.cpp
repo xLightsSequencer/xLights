@@ -43,37 +43,37 @@
 #include <wx/wx.h>
 #include <wx/gdicmn.h>
 
-bool S5Model::ParseXML( wxXmlNode* m ) {
-    id                 = m->GetAttribute( "id" );
-    name               = m->GetAttribute( "Name" );
-    bulbShape          = m->GetAttribute( "BulbShape" );
-    deviceType         = m->GetAttribute( "DeviceType" );
-    individualChannels = m->GetAttribute( "IndividualChannels" ) == "True";
-    previewBulbSize    = wxAtoi( m->GetAttribute( "PreviewBulbSize", "2" ) );
-    rgbOrder           = m->GetAttribute( "RgbOrder" );
-    separateIds        = m->GetAttribute( "SeparateIds" ) == "True";
-    startLocation      = m->GetAttribute( "StartLocation", "n/a" );
-    stringType         = m->GetAttribute( "StringType" );
-    traditionalColors  = m->GetAttribute( "TraditionalColors" );
-    traditionalType    = m->GetAttribute( "TraditionalType" );
-    channelGrid        = m->GetAttribute( "ChannelGrid" );
-    opacity            = wxAtoi( m->GetAttribute( "Opacity", "0" ) );
+bool S5Model::ParseXML( pugi::xml_node m ) {
+    id                 = m.attribute( "id" ).as_string();
+    name               = m.attribute( "Name" ).as_string();
+    bulbShape          = m.attribute( "BulbShape" ).as_string();
+    deviceType         = m.attribute( "DeviceType" ).as_string();
+    individualChannels = std::string_view(m.attribute( "IndividualChannels" ).as_string()) == "True";
+    previewBulbSize    = m.attribute( "PreviewBulbSize" ).as_int(2);
+    rgbOrder           = m.attribute( "RgbOrder" ).as_string();
+    separateIds        = std::string_view(m.attribute( "SeparateIds" ).as_string()) == "True";
+    startLocation      = m.attribute( "StartLocation" ).as_string("n/a");
+    stringType         = m.attribute( "StringType" ).as_string();
+    traditionalColors  = m.attribute( "TraditionalColors" ).as_string();
+    traditionalType    = m.attribute( "TraditionalType" ).as_string();
+    channelGrid        = m.attribute( "ChannelGrid" ).as_string();
+    opacity            = m.attribute( "Opacity" ).as_int(0);
 
     ParseParms( m );
 
-    for( wxXmlNode* shape = m->GetChildren(); shape != nullptr; shape = shape->GetNext() ) {
-        if( shape->GetName() == "shape" ) {
-            shapeName = shape->GetAttribute( "ShapeName" );
+    for( pugi::xml_node shape = m.first_child(); shape; shape = shape.next_sibling() ) {
+        if( std::string_view(shape.name()) == "shape" ) {
+            shapeName = shape.attribute( "ShapeName" ).as_string();
             //custom model
-            customWidth  = shape->GetAttribute( "CustomWidth", "5" );
-            customHeight = shape->GetAttribute( "CustomHeight", "5" );
-            customGrid   = shape->GetAttribute( "CustomGrid" );
+            customWidth  = shape.attribute( "CustomWidth" ).as_string("5");
+            customHeight = shape.attribute( "CustomHeight" ).as_string("5");
+            customGrid   = shape.attribute( "CustomGrid" ).as_string();
             //only non line/point models have these
-            offset.x = wxAtof( shape->GetAttribute( "OffsetX", "0.0" ) );
-            offset.y = wxAtof( shape->GetAttribute( "OffsetY", "0.0" ) );
-            scale.x  = wxAtof( shape->GetAttribute( "ScaleX", "1.0" ) );
-            scale.y  = wxAtof( shape->GetAttribute( "ScaleY", "1.0" ) );
-            radians  = wxAtof( shape->GetAttribute( "Radians", "0.0" ) );
+            offset.x = shape.attribute( "OffsetX" ).as_float(0.0f);
+            offset.y = shape.attribute( "OffsetY" ).as_float(0.0f);
+            scale.x  = shape.attribute( "ScaleX" ).as_float(1.0f);
+            scale.y  = shape.attribute( "ScaleY" ).as_float(1.0f);
+            radians  = shape.attribute( "Radians" ).as_float(0.0f);
             ParsePoints( shape );
         }
     }
@@ -81,33 +81,33 @@ bool S5Model::ParseXML( wxXmlNode* m ) {
     return true;
 }
 
-void S5Model::ParseParms( wxXmlNode* p ) {
+void S5Model::ParseParms( pugi::xml_node p ) {
     for( int i = 1; i < 100; i++ ) { //I, Scott, avoid while loops, so just loop 100 times is probably enough
-        wxString const parmname = wxString::Format( "Parm%d", i );
-        if( p->HasAttribute( parmname ) ) {
-            parms.emplace_back( wxAtoi( p->GetAttribute( parmname, "0" ) ) );
+        std::string parmname = "Parm" + std::to_string(i);
+        if( p.attribute( parmname.c_str() ) ) {
+            parms.emplace_back( p.attribute( parmname.c_str() ).as_int(0) );
         } else {
             break;
         }
     }
 }
 
-void S5Model::ParsePoints( wxXmlNode* p ) {
-    for( wxXmlNode* pp = p->GetChildren(); pp != nullptr; pp = pp->GetNext() ) {
-        if( pp->GetName() == "point" ) {
-            points.emplace_back( wxAtof( pp->GetAttribute( "x", "0.0" ) ),
-                                 wxAtof( pp->GetAttribute( "y", "0.0" ) ) );
+void S5Model::ParsePoints( pugi::xml_node p ) {
+    for( pugi::xml_node pp = p.first_child(); pp; pp = pp.next_sibling() ) {
+        if( std::string_view(pp.name()) == "point" ) {
+            points.emplace_back( pp.attribute( "x" ).as_float(0.0f),
+                                 pp.attribute( "y" ).as_float(0.0f) );
         }
     }
 }
 
-bool S5Group::ParseXML( wxXmlNode* g ) {
-    id          = g->GetAttribute( "id" );
-    name        = g->GetAttribute( "Name" );
-    arrangement = g->GetAttribute( "Arrangement" );
-    for( wxXmlNode* m = g->GetChildren(); m != nullptr; m = m->GetNext() ) {
-        if( m->GetName() == "member" ) {
-            modelIds.push_back( m->GetAttribute( "id" ) );
+bool S5Group::ParseXML( pugi::xml_node g ) {
+    id          = g.attribute( "id" ).as_string();
+    name        = g.attribute( "Name" ).as_string();
+    arrangement = g.attribute( "Arrangement" ).as_string();
+    for( pugi::xml_node m = g.first_child(); m; m = m.next_sibling() ) {
+        if( std::string_view(m.name()) == "member" ) {
+            modelIds.push_back( m.attribute( "id" ).as_string() );
         }
     }
     return true;
@@ -134,23 +134,22 @@ bool LORPreview::LoadPreviewFile() {
     auto const previewfileName = FindLORPreviewFile();
 
     if (FileExists( previewfileName )) {
-        wxXmlDocument d;
-        d.Load( previewfileName );
-        if( d.IsOk() ) {
-            wxXmlNode* root = d.GetRoot();
-            if( root != nullptr ) {
-                if (root->GetName() == "PreviewClass") {
-                    return ReadPreview(root);
-                }
-                wxArrayString const previews = GetPreviews( root );
-                wxSingleChoiceDialog dlg( xlights, "", "Select Preview", previews );
-                if( dlg.ShowModal() == wxID_OK ) {
-                    auto previewName = dlg.GetStringSelection();
-                    return LoadPreview( root, previewName );
-                }
-            }
-        } else {
+        pugi::xml_document d;
+        if (!d.load_file( previewfileName.mb_str() )) {
             logger_base.warn( "LOR S5 Preview file could not be loaded." );
+            return false;
+        }
+        pugi::xml_node root = d.document_element();
+        if( root ) {
+            if (std::string_view(root.name()) == "PreviewClass") {
+                return ReadPreview(root);
+            }
+            wxArrayString const previews = GetPreviews( root );
+            wxSingleChoiceDialog dlg( xlights, "", "Select Preview", previews );
+            if( dlg.ShowModal() == wxID_OK ) {
+                auto previewName = dlg.GetStringSelection();
+                return LoadPreview( root, previewName );
+            }
         }
     } else {
         logger_base.warn( "LOR S5 Preview file not fould." );
@@ -159,11 +158,11 @@ bool LORPreview::LoadPreviewFile() {
     return false;
 }
 
-bool LORPreview::LoadPreview( wxXmlNode* root, wxString const& name ) {
-    if( root != nullptr ) {
-        for( wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext() ) {
-            if( n->GetName() == "PreviewClass" ) {
-                if( n->GetAttribute( "Name" ) == name ) {
+bool LORPreview::LoadPreview( pugi::xml_node root, wxString const& name ) {
+    if( root ) {
+        for( pugi::xml_node n = root.first_child(); n; n = n.next_sibling() ) {
+            if( std::string_view(n.name()) == "PreviewClass" ) {
+                if( wxString(n.attribute( "Name" ).as_string()) == name ) {
                     return ReadPreview( n );
                 }
             }
@@ -172,14 +171,14 @@ bool LORPreview::LoadPreview( wxXmlNode* root, wxString const& name ) {
     return false;
 }
 
-bool LORPreview::ReadPreview( wxXmlNode* preview ) {
+bool LORPreview::ReadPreview( pugi::xml_node preview ) {
     int previewWidth  = xlights->AllModels.GetPreviewWidth();
     int previewHeight = xlights->AllModels.GetPreviewHeight();
 
     std::vector< S5Model > _S5Models;
 
-    for( wxXmlNode* e = preview->GetChildren(); e != nullptr; e = e->GetNext() ) {
-        if( e->GetName() == "PropClass" ) {
+    for( pugi::xml_node e = preview.first_child(); e; e = e.next_sibling() ) {
+        if( std::string_view(e.name()) == "PropClass" ) {
             std::string startChannel = xlights->AllModels.GenerateNewStartChannel();
             S5Model model;
             bool error;
@@ -187,7 +186,7 @@ bool LORPreview::ReadPreview( wxXmlNode* preview ) {
             _S5Models.push_back( model );
             Model* xModel = CreateModel( model, startChannel, previewWidth, previewHeight, error );
             xlights->AllModels.AddModel( xModel );
-        } else if( e->GetName() == "PropGroup" ) {
+        } else if( std::string_view(e.name()) == "PropGroup" ) {
             S5Group group;
             group.ParseXML( e );
             CreateGroup( group, _S5Models );
@@ -203,10 +202,10 @@ Model* LORPreview::LoadModelFile( wxString const& modelFile, wxString const& sta
 
     S5Model model;
 
-    wxXmlDocument doc;
-    if (wxFileExists(modelFile) && doc.Load( modelFile ) && doc.IsOk()) {
-        for( wxXmlNode* e = doc.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext() ) {
-            if( e->GetName() == "PropClass" ) {
+    pugi::xml_document doc;
+    if (wxFileExists(modelFile) && doc.load_file(modelFile.mb_str())) {
+        for( pugi::xml_node e = doc.document_element().first_child(); e; e = e.next_sibling() ) {
+            if( std::string_view(e.name()) == "PropClass" ) {
                 model.ParseXML( e );
                 break;
             }
@@ -1033,13 +1032,13 @@ wxString LORPreview::FindLORPreviewFile()
                             wxFD_FILE_MUST_EXIST | wxFD_OPEN );
 }
 
-wxArrayString LORPreview::GetPreviews( wxXmlNode* root ) const
+wxArrayString LORPreview::GetPreviews( pugi::xml_node root ) const
 {
     wxArrayString previews;
-    if( root != nullptr ) {
-        for( wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext() ) {
-            if( n->GetName() == "PreviewClass" ) {
-                previews.emplace_back( n->GetAttribute( "Name" ) );
+    if( root ) {
+        for( pugi::xml_node n = root.first_child(); n; n = n.next_sibling() ) {
+            if( std::string_view(n.name()) == "PreviewClass" ) {
+                previews.emplace_back( n.attribute( "Name" ).as_string() );
             }
         }
     }

@@ -70,30 +70,31 @@ public:
         return _webpage;
     }
 
-    MShader(wxXmlNode* n)
+    MShader(pugi::xml_node n)
     {
-        for (wxXmlNode* l = n->GetChildren(); l != nullptr; l = l->GetNext()) {
-            wxString nn = l->GetName().Lower().ToStdString();
+        for (pugi::xml_node l = n.first_child(); l; l = l.next_sibling()) {
+            std::string nn = l.name();
+            std::transform(nn.begin(), nn.end(), nn.begin(), ::tolower);
             if (nn == "name") {
-                _name = l->GetNodeContent().ToStdString();
+                _name = l.text().get();
             }
             else if (nn == "link") {
-                _webpage = l->GetNodeContent().ToStdString();
+                _webpage = l.text().get();
             }
             else if (nn == "download") {
-                _download = l->GetNodeContent().ToStdString();
+                _download = l.text().get();
             }
             else if (nn == "image") {
-                _imageURL = l->GetNodeContent().ToStdString();
+                _imageURL = l.text().get();
             }
             else if (nn == "id") {
-                _id = l->GetNodeContent().ToStdString();
+                _id = l.text().get();
             }
             else if (nn == "rating") {
-                _rating = wxAtoi(l->GetNodeContent().ToStdString());
+                _rating = l.text().as_int();
             }
             else if (nn == "comment") {
-                _comment = l->GetNodeContent().ToStdString();
+                _comment = l.text().get();
             }
             else {
                 wxASSERT(false);
@@ -347,14 +348,19 @@ bool ShaderDownloadDialog::DlgInit(wxProgressDialog* prog, int low, int high)
     return false;
 }
 
-wxXmlDocument* ShaderDownloadDialog::GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high) const
+pugi::xml_document* ShaderDownloadDialog::GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high) const
 {
     filename = "";
     wxFileName fn = wxFileName(ShaderDownloadDialog::GetCache().GetFile(url, CACHEFOR::CACHETIME_SESSION, "", prog, low, high));
     if (FileExists(fn))
     {
         filename = fn.GetFullPath();
-        return new wxXmlDocument(fn.GetFullPath());
+        auto doc = new pugi::xml_document();
+        if (!doc->load_file(fn.GetFullPath().mb_str())) {
+            delete doc;
+            return nullptr;
+        }
+        return doc;
     }
 
     return nullptr;
@@ -366,24 +372,26 @@ bool ShaderDownloadDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 
     bool rc = true;
     std::string filename;
-    wxXmlDocument* vd = GetXMLFromURL(wxURI(shaderlink), filename, prog, low, high);
-    if (vd != nullptr && vd->IsOk())
+    pugi::xml_document* vd = GetXMLFromURL(wxURI(shaderlink), filename, prog, low, high);
+    if (vd != nullptr && vd->document_element())
     {
-        wxXmlNode* root = vd->GetRoot();
+        pugi::xml_node root = vd->document_element();
 
-        for (auto v = root->GetChildren(); v != nullptr; v = v->GetNext())
+        for (pugi::xml_node v = root.first_child(); v; v = v.next_sibling())
         {
-            if (v->GetName().Lower() == "shader")
+            std::string vname = v.name();
+            std::transform(vname.begin(), vname.end(), vname.begin(), ::tolower);
+            if (vname == "shader")
             {
                 _shaders.push_back(new MShader(v));
             }
-            else if (v->GetName().Lower() == "downloadmaster")
+            else if (vname == "downloadmaster")
             {
-                MShader::__downloadPattern = v->GetNodeContent().ToStdString();
+                MShader::__downloadPattern = v.text().get();
             }
-            else if (v->GetName().Lower() == "linkmaster")
+            else if (vname == "linkmaster")
             {
-                MShader::__webpagePattern = v->GetNodeContent().ToStdString();
+                MShader::__webpagePattern = v.text().get();
             }
         }
     }

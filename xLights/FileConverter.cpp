@@ -16,7 +16,6 @@
 #include <wx/arrstr.h>
 #include <wx/file.h>
 #include <wx/filename.h>
-#include <wx/xml/xml.h>
 #include <wx/mstream.h>
 
 #ifndef LINUX
@@ -1106,41 +1105,36 @@ bool FileConverter::LoadVixenProfile(ConvertParameters& params, const wxString& 
         params.ConversionError(wxString("Unable to find Vixen profile: ") + fn.GetFullPath() + wxString("\n\nMake sure a copy is in your xLights directory"));
         return false;
     }
-    wxXmlDocument doc(fn.GetFullPath());
-    if (doc.IsOk())
+    pugi::xml_document doc;
+    if (doc.load_file(fn.GetFullPath().mb_str()))
     {
         VixChannels.clear();
-        wxXmlNode* root = doc.GetRoot();
-        for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext())
+        pugi::xml_node root = doc.document_element();
+        for (pugi::xml_node e = root.first_child(); e; e = e.next_sibling())
         {
-            tag = e->GetName();
+            tag = e.name();
             if (tag == wxString("ChannelObjects"))
             {
-                for (wxXmlNode* p = e->GetChildren(); p != nullptr; p = p->GetNext())
+                for (pugi::xml_node p = e.first_child(); p; p = p.next_sibling())
                 {
-                    if (p->GetName() == wxString("Channel"))
+                    if (std::string_view(p.name()) == "Channel")
                     {
-                        if (p->HasAttribute("output"))
+                        if (p.attribute("output"))
                         {
-                            tempstr = p->GetAttribute("output", "0");
+                            tempstr = p.attribute("output").as_string("0");
                             OutputChannel = atol(tempstr.c_str());
                             VixChannels.push_back(OutputChannel);
                         }
-                        if (p->HasAttribute("name"))
+                        if (p.attribute("name"))
                         {
-                            VixChannelNames.push_back(p->GetAttribute("name"));
+                            VixChannelNames.push_back(p.attribute("name").as_string());
                         }
                         else
                         {
-                            if (p->GetChildren() != NULL) {
-                                VixChannelNames.push_back(p->GetChildren()->GetContent());
-                            }
-                            else {
-                                VixChannelNames.push_back(p->GetContent());
-                            }
+                            VixChannelNames.push_back(p.text().get());
                         }
-                        if (p->HasAttribute("color")) {
-                            int chanColor = wxAtoi(p->GetAttribute("color")) & 0xFFFFFF;
+                        if (p.attribute("color")) {
+                            int chanColor = p.attribute("color").as_int() & 0xFFFFFF;
                             xlColor c(chanColor, false);
                             VixChannelColors.push_back(c);
                         }

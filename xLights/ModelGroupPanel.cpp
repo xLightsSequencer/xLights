@@ -16,7 +16,6 @@
  //*)
 
 #include <wx/artprov.h>
-#include <wx/xml/xml.h>
 #include <wx/time.h>
 #include <regex>
 

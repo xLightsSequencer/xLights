@@ -1035,7 +1035,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     return settings;
 }
 
-LOREdit::LOREdit(wxXmlDocument& input_xml, int frequency) : _input_xml(input_xml), _frequency(frequency)
+LOREdit::LOREdit(pugi::xml_document& input_xml, int frequency) : _input_xml(input_xml), _frequency(frequency)
 {
 
 }
@@ -1045,11 +1045,11 @@ std::vector<std::string> LOREdit::GetTimingTracks() const
 {
     std::vector<std::string> res;
 
-    for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "TimingGrids") {
-            for (wxXmlNode* timing = e->GetChildren(); timing != nullptr; timing = timing->GetNext()) {
-                if (timing->GetName() == "TimingGridFree") {
-                    res.push_back(timing->GetAttribute("name", "").ToStdString());
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        if (std::string_view(e.name()) == "TimingGrids") {
+            for (pugi::xml_node timing = e.first_child(); timing; timing = timing.next_sibling()) {
+                if (std::string_view(timing.name()) == "TimingGridFree") {
+                    res.push_back(timing.attribute("name").as_string());
                 }
             }
         }
@@ -1062,18 +1062,18 @@ std::vector<std::string> LOREdit::GetTimingTracks() const
 std::vector<std::pair<uint32_t, uint32_t>> LOREdit::GetTimings(const std::string& timingTrackName, int offset) const
 {
     std::vector<std::pair<uint32_t, uint32_t>> res;
-    for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "TimingGrids") {
-            for (wxXmlNode* timing = e->GetChildren(); timing != nullptr; timing = timing->GetNext()) {
-                if (timing->GetName() == "TimingGridFree") {
-                    if (timing->GetAttribute("name", "") == timingTrackName) {
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        if (std::string_view(e.name()) == "TimingGrids") {
+            for (pugi::xml_node timing = e.first_child(); timing; timing = timing.next_sibling()) {
+                if (std::string_view(timing.name()) == "TimingGridFree") {
+                    if (std::string_view(timing.attribute("name").as_string()) == timingTrackName) {
                         int lastMS = offset;
                         if (lastMS < 0) lastMS = 0;
-                        for (wxXmlNode* t = timing->GetChildren(); t != nullptr; t = t->GetNext())
+                        for (pugi::xml_node t = timing.first_child(); t; t = t.next_sibling())
                         {
-                            if (t->GetName() == "timing")
+                            if (std::string_view(t.name()) == "timing")
                             {
-                                int time = wxAtoi(t->GetAttribute("centisecond")) * 10 + offset;
+                                int time = t.attribute("centisecond").as_int() * 10 + offset;
                                 int adjTime = TimeLine::RoundToMultipleOfPeriod(time, _frequency);
                                 if (adjTime > lastMS)
                                 {
@@ -1094,12 +1094,12 @@ std::vector<std::pair<uint32_t, uint32_t>> LOREdit::GetTimings(const std::string
 // that can then be used out to work out channel sequencing mapping
 std::map<int, std::string> LOREdit::GetModelStrands(const std::string& model) const
 {
-    for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "PreviewClass") {
-            for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "PropClass") {
-                    if (prop->GetAttribute("Name") == model) {
-                        wxString const grid = prop->GetAttribute("ChannelGrid");
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        if (std::string_view(e.name()) == "PreviewClass") {
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                if (std::string_view(prop.name()) == "PropClass") {
+                    if (std::string_view(prop.attribute("Name").as_string()) == model) {
+                        wxString const grid = prop.attribute("ChannelGrid").as_string();
                         if(grid.IsEmpty()) return { { 1, "" } };
                         wxArrayString strands = wxSplit(grid, ';');
                         int strandCnts = 1;
@@ -1122,29 +1122,31 @@ std::map<int, std::string> LOREdit::GetModelStrands(const std::string& model) co
 int LOREdit::GetModelLayers(const std::string& model) const
 {
     int count = 0;
-    for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
-            for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
-                    std::string name = prop->GetAttribute("name").ToStdString();
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string eName = e.name();
+        if (eName == "SequenceProps" || eName == "ArchivedProps") {
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
                     if (name == "")
                     {
-                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
-                            if (ap->GetName() == "PropClass")
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass")
                             {
-                                name = ap->GetAttribute("Name");
+                                name = ap.attribute("Name").as_string();
                             }
                         }
                     }
                     if (name == model) {
-                        for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
-                            if (tc->GetName() == "track") {
+                        for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                            if (std::string_view(tc.name()) == "track") {
                                 int l1 = 0;
                                 int l2 = 0;
-                                for (wxXmlNode* ef = tc->GetChildren(); (l1 == 0 || l2 == 0) && ef != nullptr; ef = ef->GetNext()) {
+                                for (pugi::xml_node ef = tc.first_child(); (l1 == 0 || l2 == 0) && ef; ef = ef.next_sibling()) {
                                     int ll1 = 0;
                                     int ll2 = 0;
-                                    GetLayers(ef->GetAttribute("settings"), ll1, ll2);
+                                    GetLayers(ef.attribute("settings").as_string(), ll1, ll2);
                                     if (ll1 == 1) l1 = 1;
                                     if (ll2 == 1) l2 = 1;
                                 }
@@ -1167,25 +1169,27 @@ int LOREdit::GetModelChannels(const std::string& model, int& rows, int& cols) co
     rows = 0;
     cols = 0;
     int count = 0;
-    for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr && !match; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e && !match; e = e.next_sibling()) {
+        std::string eName = e.name();
+        if (eName == "SequenceProps" || eName == "ArchivedProps") {
             // look for a match first
-            for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
-                    std::string name = prop->GetAttribute("name").ToStdString();
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
                     if (name == "") {
-                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
-                            if (ap->GetName() == "PropClass") {
-                                name = ap->GetAttribute("Name");
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass") {
+                                name = ap.attribute("Name").as_string();
                             }
                         }
                     }
                     if (name == model) {
-                        for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
-                            if (tc->GetName() == "channel") {
-                                if (tc->GetChildren() != nullptr) {
-                                    rows = std::max(rows, wxAtoi(tc->GetAttribute("row", "0")) + 1);
-                                    cols = std::max(cols, wxAtoi(tc->GetAttribute("col", "0")) + 1);
+                        for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                            if (std::string_view(tc.name()) == "channel") {
+                                if (tc.first_child()) {
+                                    rows = std::max(rows, tc.attribute("row").as_int(0) + 1);
+                                    cols = std::max(cols, tc.attribute("col").as_int(0) + 1);
                                     count++;
                                     match = true;
                                 }
@@ -1197,22 +1201,23 @@ int LOREdit::GetModelChannels(const std::string& model, int& rows, int& cols) co
             }
             if (!match) {
                 // no match so try a starts with
-                for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                    if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
-                        std::string name = prop->GetAttribute("name").ToStdString();
+                for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                    std::string propName = prop.name();
+                    if (propName == "SeqProp" || propName == "ArchiveProp") {
+                        std::string name = prop.attribute("name").as_string();
                         if (name == "") {
-                            for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
-                                if (ap->GetName() == "PropClass") {
-                                    name = ap->GetAttribute("Name");
+                            for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                                if (std::string_view(ap.name()) == "PropClass") {
+                                    name = ap.attribute("Name").as_string();
                                 }
                             }
                         }
                         if (StartsWith(model, name)) {
-                            for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
-                                if (tc->GetName() == "channel") {
-                                    if (tc->GetChildren() != nullptr) {
-                                        rows = std::max(rows, wxAtoi(tc->GetAttribute("row", "0")) + 1);
-                                        cols = std::max(cols, wxAtoi(tc->GetAttribute("col", "0")) + 1);
+                            for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                                if (std::string_view(tc.name()) == "channel") {
+                                    if (tc.first_child()) {
+                                        rows = std::max(rows, tc.attribute("row").as_int(0) + 1);
+                                        cols = std::max(cols, tc.attribute("col").as_int(0) + 1);
                                         count++;
                                     }
                                 }
@@ -1237,28 +1242,30 @@ int LOREdit::GetModelChannels(const std::string& model, int& rows, int& cols) co
 // assumes you cant have both channel and track sequencing on the same model ... this may not be true
 loreditType LOREdit::GetSequencingType(const std::string& model) const
 {
-    for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string eName = e.name();
+        if (eName == "SequenceProps" || eName == "ArchivedProps") {
             // check first for exact name matches
-            for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
-                    std::string name = prop->GetAttribute("name").ToStdString();
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
                     if (name == "")
                     {
-                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
-                            if (ap->GetName() == "PropClass")
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass")
                             {
-                                name = ap->GetAttribute("Name");
+                                name = ap.attribute("Name").as_string();
                             }
                         }
                     }
                     if (model == name)
                     {
-                        for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
-                            if (tc->GetName() == "channel" && tc->GetChildren() != nullptr) {
+                        for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                            if (std::string_view(tc.name()) == "channel" && tc.first_child()) {
                                 return loreditType::CHANNELS;
                             }
-                            if (tc->GetName() == "track" && tc->GetChildren() != nullptr)
+                            if (std::string_view(tc.name()) == "track" && tc.first_child())
                             {
                                 return loreditType::TRACKS;
                             }
@@ -1267,22 +1274,23 @@ loreditType LOREdit::GetSequencingType(const std::string& model) const
                 }
             }
             // now check for starts with (for some decorated names)
-            for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
-                    std::string name = prop->GetAttribute("name").ToStdString();
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
                     if (name == "") {
-                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
-                            if (ap->GetName() == "PropClass") {
-                                name = ap->GetAttribute("Name");
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass") {
+                                name = ap.attribute("Name").as_string();
                             }
                         }
                     }
-                    if (StartsWith(model,name)) {
-                        for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
-                            if (tc->GetName() == "channel" && tc->GetChildren() != nullptr) {
+                    if (StartsWith(model, name)) {
+                        for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                            if (std::string_view(tc.name()) == "channel" && tc.first_child()) {
                                 return loreditType::CHANNELS;
                             }
-                            if (tc->GetName() == "track" && tc->GetChildren() != nullptr) {
+                            if (std::string_view(tc.name()) == "track" && tc.first_child()) {
                                 return loreditType::TRACKS;
                             }
                         }
@@ -1297,24 +1305,27 @@ loreditType LOREdit::GetSequencingType(const std::string& model) const
 std::vector<std::string> LOREdit::GetModelsWithEffects() const
 {
     std::vector<std::string> res;
-    for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
-            for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
-                    std::string name = prop->GetAttribute("name").ToStdString();
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string eName = e.name();
+        if (eName == "SequenceProps" || eName == "ArchivedProps") {
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
                     if (name == "")
                     {
-                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
-                            if (ap->GetName() == "PropClass")
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass")
                             {
-                                name = ap->GetAttribute("Name");
+                                name = ap.attribute("Name").as_string();
                             }
                         }
                     }
                     if (name != "")
                     {
-                        for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
-                            if ((tc->GetName() == "channel" || tc->GetName() == "track") && tc->GetChildren() != nullptr) {
+                        for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                            std::string tcName = tc.name();
+                            if ((tcName == "channel" || tcName == "track") && tc.first_child()) {
                                 res.push_back(name);
                                 break;
                             }
@@ -1334,31 +1345,33 @@ std::vector<std::string> LOREdit::GetNodesWithEffects() const
     int standIndex = 1;;
     std::vector<std::string> res;
     std::map<int, std::string> strands;
-    for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
-            for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
-                    std::string name = prop->GetAttribute("name").ToStdString();
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string eName = e.name();
+        if (eName == "SequenceProps" || eName == "ArchivedProps") {
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
                     if (name == "") {
-                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
-                            if (ap->GetName() == "PropClass") {
-                                name = ap->GetAttribute("Name");
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass") {
+                                name = ap.attribute("Name").as_string();
                             }
                         }
                     }
                     if (name != "") {
-                        for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
-                            if (tc->GetName() == "channel" && tc->GetChildren() != nullptr) {
+                        for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                            if (std::string_view(tc.name()) == "channel" && tc.first_child()) {
                                 if (lastName != name) {
                                     standIndex = 0;
                                     strands = GetModelStrands(name);
                                     lastName = name;
                                 }
                                 standIndex++;
-                                if (tc->GetName() == "channel" && tc->GetChildren() != nullptr) {
-                                    int row = wxAtoi(tc->GetAttribute("row", "0"));
-                                    int col = wxAtoi(tc->GetAttribute("col", "0"));
-                                    int colour = wxAtoi(tc->GetAttribute("color", "0"));
+                                {
+                                    int row = tc.attribute("row").as_int(0);
+                                    int col = tc.attribute("col").as_int(0);
+                                    int colour = tc.attribute("color").as_int(0);
                                     res.push_back(name + "[" + std::to_string(row) + "," + std::to_string(col) + ","
                                         + std::to_string(colour) + "][" + strands[standIndex] + "]");
                                 }
@@ -1392,16 +1405,16 @@ void LOREdit::GetLayers(const std::string& settings, int& ll1, int& ll2)
     }
 }
 
-std::vector<LOREditEffect> LOREdit::AddEffects(wxXmlNode* track, bool left, int offset) const
+std::vector<LOREditEffect> LOREdit::AddEffects(pugi::xml_node track, bool left, int offset) const
 {
     std::vector<LOREditEffect> res;
 
-    for (wxXmlNode* ef = track->GetChildren(); ef != nullptr; ef = ef->GetNext()) {
+    for (pugi::xml_node ef = track.first_child(); ef; ef = ef.next_sibling()) {
         LOREditEffect effect;
         effect.left = left;
-        effect.startMS = wxAtoi(ef->GetAttribute("startCentisecond")) * 10 + offset;
-        effect.endMS = wxAtoi(ef->GetAttribute("endCentisecond")) * 10 + offset;
-        int si = wxAtoi(ef->GetAttribute("intensity", "9999"));
+        effect.startMS = ef.attribute("startCentisecond").as_int() * 10 + offset;
+        effect.endMS = ef.attribute("endCentisecond").as_int() * 10 + offset;
+        int si = ef.attribute("intensity").as_int(9999);
         if (si != 9999)
         {
             effect.startColour = xlWHITE;
@@ -1411,14 +1424,14 @@ std::vector<LOREditEffect> LOREdit::AddEffects(wxXmlNode* track, bool left, int 
         }
         else
         {
-            effect.startIntensity = wxAtoi(ef->GetAttribute("startIntensity", "100"));
-            effect.endIntensity = wxAtoi(ef->GetAttribute("endIntensity", "100"));
+            effect.startIntensity = ef.attribute("startIntensity").as_int(100);
+            effect.endIntensity = ef.attribute("endIntensity").as_int(100);
             effect.startColour = xlWHITE;
             effect.endColour = xlWHITE;
         }
         effect.type = loreditType::TRACKS;
 
-        auto s = ef->GetAttribute("settings");
+        wxString s = ef.attribute("settings").as_string();
         auto ss = wxSplit(s, '|');
         
         if (ss.size() >= 7)
@@ -1474,32 +1487,34 @@ std::vector<LOREditEffect> LOREdit::GetTrackEffects(const std::string& model, in
 {
     std::vector<LOREditEffect> res;
 
-    for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
-            for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
-                    std::string name = prop->GetAttribute("name").ToStdString();
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string eName = e.name();
+        if (eName == "SequenceProps" || eName == "ArchivedProps") {
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
                     if (name == "")
                     {
-                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
-                            if (ap->GetName() == "PropClass")
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass")
                             {
-                                name = ap->GetAttribute("Name");
+                                name = ap.attribute("Name").as_string();
                             }
                         }
                     }
                     if (name == model)
                     {
                         int tcount = 0;
-                        for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
-                            if ((tc->GetName() == "track")) {
-                                if (tc->GetChildren() != nullptr)
+                        for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                            if (std::string_view(tc.name()) == "track") {
+                                if (tc.first_child())
                                 {
                                     int l1 = 0;
                                     int l2 = 0;
-                                    for (wxXmlNode* ef = tc->GetChildren(); (l1 == 0 || l2 == 0) && ef != nullptr; ef = ef->GetNext()) {
+                                    for (pugi::xml_node ef = tc.first_child(); (l1 == 0 || l2 == 0) && ef; ef = ef.next_sibling()) {
                                         int ll1, ll2;
-                                        GetLayers(ef->GetAttribute("settings"), ll1, ll2);
+                                        GetLayers(ef.attribute("settings").as_string(), ll1, ll2);
                                         if (ll1 == 1) l1 = 1;
                                         if (ll2 == 1) l2 = 1;
                                     }
@@ -1528,29 +1543,29 @@ std::vector<LOREditEffect> LOREdit::GetTrackEffects(const std::string& model, in
     return res;
 }
 
-std::vector<LOREditEffect> LOREdit::GetChannelEffectsForNode(int targetRow, int targetCol, int targetColor, wxXmlNode* prop, int offset) const
+std::vector<LOREditEffect> LOREdit::GetChannelEffectsForNode(int targetRow, int targetCol, int targetColor, pugi::xml_node prop, int offset) const
 {
     std::vector<LOREditEffect> res;
 
-    for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
-        if ((tc->GetName() == "channel")) {
-            int row = wxAtoi(tc->GetAttribute("row", "0"));
-            int col = wxAtoi(tc->GetAttribute("col", "0"));
-            int colour = wxAtoi(tc->GetAttribute("color", "0"));
+    for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+        if (std::string_view(tc.name()) == "channel") {
+            int row = tc.attribute("row").as_int(0);
+            int col = tc.attribute("col").as_int(0);
+            int colour = tc.attribute("color").as_int(0);
 
             if ((targetRow == -1 && targetCol == -1 && targetColor == -1) || // map regardless
                 (row == targetRow && col == targetCol && targetColor == -1) || // map because the node matches
                 (row == 0 && col == 0 && colour == targetCol && targetRow == 0 && targetColor == -1) ||
                 (row == targetRow && col == targetCol && colour == targetColor)) {//match stand/color
-                for (wxXmlNode* ef = tc->GetChildren(); ef != nullptr; ef = ef->GetNext()) {
+                for (pugi::xml_node ef = tc.first_child(); ef; ef = ef.next_sibling()) {
                     LOREditEffect effect;
-                    effect.pixelChannels = prop->GetAttribute("EnablePixelChannels", "0") == "1";
-                    effect.startMS = wxAtoi(ef->GetAttribute("startCentisecond")) * 10 + offset;
-                    effect.endMS = wxAtoi(ef->GetAttribute("endCentisecond")) * 10 + offset;
-                    int si = wxAtoi(ef->GetAttribute("intensity", "9999"));
+                    effect.pixelChannels = std::string_view(prop.attribute("EnablePixelChannels").as_string("0")) == "1";
+                    effect.startMS = ef.attribute("startCentisecond").as_int() * 10 + offset;
+                    effect.endMS = ef.attribute("endCentisecond").as_int() * 10 + offset;
+                    int si = ef.attribute("intensity").as_int(9999);
                     if (si != 9999) {
                         if (si < 0) {
-                            if (ef->GetAttribute("settings") == "DMX_INTENSITY") {
+                            if (std::string_view(ef.attribute("settings").as_string()) == "DMX_INTENSITY") {
                                 effect.startIntensity = 255;
                                 effect.endIntensity = 255;
                             }
@@ -1569,10 +1584,10 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffectsForNode(int targetRow, int 
                         }
                     }
                     else {
-                        si = wxAtoi(ef->GetAttribute("startIntensity", "9999"));
+                        si = ef.attribute("startIntensity").as_int(9999);
                         if (si != 9999) {
                             if (si < 0) {
-                                if (ef->GetAttribute("settings") == "DMX_INTENSITY") {
+                                if (std::string_view(ef.attribute("settings").as_string()) == "DMX_INTENSITY") {
                                     effect.startIntensity = 255;
                                     effect.endIntensity = 255;
                                 }
@@ -1581,19 +1596,19 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffectsForNode(int targetRow, int 
                                     effect.endIntensity = 100;
                                 }
                                 effect.startColour = xlColor((si & 0xFF0000) >> 16, (si & 0xFF00) >> 8, si & 0xFF);
-                                int ei = wxAtoi(ef->GetAttribute("endIntensity", "-1"));
+                                int ei = ef.attribute("endIntensity").as_int(-1);
                                 effect.endColour = xlColor((ei & 0xFF0000) >> 16, (ei & 0xFF00) >> 8, ei & 0xFF);
                             }
                             else {
                                 effect.startIntensity = si;
-                                effect.endIntensity = wxAtoi(ef->GetAttribute("endIntensity", "100"));
+                                effect.endIntensity = ef.attribute("endIntensity").as_int(100);
                                 effect.startColour = xlWHITE;
                                 effect.endColour = xlWHITE;
                             }
                         }
                     }
                     effect.type = loreditType::CHANNELS;
-                    effect.effectType = ef->GetAttribute("settings");
+                    effect.effectType = ef.attribute("settings").as_string();
                     res.push_back(effect);
                 }
                 return res;
@@ -1646,17 +1661,19 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
     int targetRow = bufy;
     int targetCol = bufx;
 
-    for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
-            for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
-                    std::string name = prop->GetAttribute("name").ToStdString();
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string eName = e.name();
+        if (eName == "SequenceProps" || eName == "ArchivedProps") {
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
                     if (name == "")
                     {
-                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
-                            if (ap->GetName() == "PropClass")
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass")
                             {
-                                name = ap->GetAttribute("Name");
+                                name = ap.attribute("Name").as_string();
                             }
                         }
                     }
@@ -1688,15 +1705,17 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
 std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, int targetRow, int targetCol, int targetColor, int offset) const
 {
     std::vector<LOREditEffect> res;
-    for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
-            for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
-                    std::string name = prop->GetAttribute("name").ToStdString();
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string eName = e.name();
+        if (eName == "SequenceProps" || eName == "ArchivedProps") {
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
                     if (name == "") {
-                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
-                            if (ap->GetName() == "PropClass") {
-                                name = ap->GetAttribute("Name");
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass") {
+                                name = ap.attribute("Name").as_string();
                             }
                         }
                     }
@@ -1742,40 +1761,42 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
         if (channel >= cols) return res;
     }
 
-    for (wxXmlNode* e = _input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
-            for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
-                    std::string name = prop->GetAttribute("name").ToStdString();
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string eName = e.name();
+        if (eName == "SequenceProps" || eName == "ArchivedProps") {
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
                     if (name == "")
                     {
-                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
-                            if (ap->GetName() == "PropClass")
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass")
                             {
-                                name = ap->GetAttribute("Name");
+                                name = ap.attribute("Name").as_string();
                             }
                         }
                     }
                     if (name == model)
                     {
-                        for (wxXmlNode* tc = prop->GetChildren(); tc != nullptr; tc = tc->GetNext()) {
-                            if ((tc->GetName() == "channel")) {
-                                int row = wxAtoi(tc->GetAttribute("row", "0"));
-                                int col = wxAtoi(tc->GetAttribute("col", "0"));
+                        for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                            if (std::string_view(tc.name()) == "channel") {
+                                int row = tc.attribute("row").as_int(0);
+                                int col = tc.attribute("col").as_int(0);
 
                                 if (row == targetRow && col == targetCol)
                                 {
-                                    for (wxXmlNode* ef = tc->GetChildren(); ef != nullptr; ef = ef->GetNext()) {
+                                    for (pugi::xml_node ef = tc.first_child(); ef; ef = ef.next_sibling()) {
                                         LOREditEffect effect;
-                                        effect.pixelChannels = prop->GetAttribute("EnablePixelChannels", "0") == "1";
-                                        effect.startMS = wxAtoi(ef->GetAttribute("startCentisecond")) * 10 + offset;
-                                        effect.endMS = wxAtoi(ef->GetAttribute("endCentisecond")) * 10 + offset;
-                                        int si = wxAtoi(ef->GetAttribute("intensity", "9999"));
+                                        effect.pixelChannels = std::string_view(prop.attribute("EnablePixelChannels").as_string("0")) == "1";
+                                        effect.startMS = ef.attribute("startCentisecond").as_int() * 10 + offset;
+                                        effect.endMS = ef.attribute("endCentisecond").as_int() * 10 + offset;
+                                        int si = ef.attribute("intensity").as_int(9999);
                                         if (si != 9999)
                                         {
                                             if (si < 0)
                                             {
-                                                if (ef->GetAttribute("settings") == "DMX_INTENSITY")
+                                                if (std::string_view(ef.attribute("settings").as_string()) == "DMX_INTENSITY")
                                                 {
                                                     effect.startIntensity = 255;
                                                     effect.endIntensity = 255;
@@ -1798,12 +1819,12 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
                                         }
                                         else
                                         {
-                                            si = wxAtoi(ef->GetAttribute("startIntensity", "9999"));
+                                            si = ef.attribute("startIntensity").as_int(9999);
                                             if (si != 9999)
                                             {
                                                 if (si < 0)
                                                 {
-                                                    if (ef->GetAttribute("settings") == "DMX_INTENSITY")
+                                                    if (std::string_view(ef.attribute("settings").as_string()) == "DMX_INTENSITY")
                                                     {
                                                         effect.startIntensity = 255;
                                                         effect.endIntensity = 255;
@@ -1814,20 +1835,20 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
                                                         effect.endIntensity = 100;
                                                     }
                                                     effect.startColour = xlColor((si & 0xFF0000) >> 16, (si & 0xFF00) >> 8, si & 0xFF);
-                                                    int ei = wxAtoi(ef->GetAttribute("endIntensity", "-1"));
+                                                    int ei = ef.attribute("endIntensity").as_int(-1);
                                                     effect.endColour = xlColor((ei & 0xFF0000) >> 16, (ei & 0xFF00) >> 8, ei & 0xFF);
                                                 }
                                                 else
                                                 {
                                                     effect.startIntensity = si;
-                                                    effect.endIntensity = wxAtoi(ef->GetAttribute("endIntensity", "100"));
+                                                    effect.endIntensity = ef.attribute("endIntensity").as_int(100);
                                                     effect.startColour = xlWHITE;
                                                     effect.endColour = xlWHITE;
                                                 }
                                             }
                                         }
                                         effect.type = loreditType::CHANNELS;
-                                        effect.effectType = ef->GetAttribute("settings");
+                                        effect.effectType = ef.attribute("settings").as_string();
                                         res.push_back(effect);
                                     }
                                     return res;

@@ -23,7 +23,7 @@
 #include <wx/treectrl.h>
 //*)
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 #include <wx/filename.h>
 #include <list>
 #include <string>
@@ -43,7 +43,7 @@ class MatrixFaceDownloadDialog: public wxDialog
     int _width;
     int _height;
 
-    wxXmlDocument* GetXMLFromURL(wxURI url, std::string& filename) const;
+    pugi::xml_document* GetXMLFromURL(wxURI url, std::string& filename) const;
     bool LoadTree();
     void AddHierachy(wxTreeItemId v, std::list<MFaceCategory*> categories);
     void AddFaces(wxTreeItemId v, std::string categoryId);

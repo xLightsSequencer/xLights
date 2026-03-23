@@ -97,7 +97,7 @@ public:
         return ok;
     }
 
-    MFace(wxXmlNode* n)
+    MFace(pugi::xml_node n)
     {
         // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -106,63 +106,63 @@ public:
 		_minwidth = -1;
 		_minheight = -1;
 
-        for (wxXmlNode* l = n->GetChildren(); l != nullptr; l = l->GetNext())
+        for (pugi::xml_node l = n.first_child(); l; l = l.next_sibling())
         {
-            if (l->GetType() != wxXML_COMMENT_NODE)
+            if (l.type() != pugi::node_comment)
             {
-                wxString nn = l->GetName().Lower().ToStdString();
+                std::string nn = ::Lower(l.name());
                 if (nn == "name")
                 {
-                    _name = l->GetNodeContent().ToStdString();
+                    _name = l.text().get();
                 }
                 else if (nn == "description")
                 {
-                    _description = l->GetNodeContent().ToStdString();
+                    _description = l.text().get();
                 }
                 else if (nn == "artist")
                 {
-                    _artist = l->GetNodeContent().ToStdString();
+                    _artist = l.text().get();
                 }
                 else if (nn == "copyright")
                 {
-                    _copyright = l->GetNodeContent().ToStdString();
+                    _copyright = l.text().get();
                 }
                 else if (nn == "facelink")
                 {
-                    _faceLink = wxURI(l->GetNodeContent());
+                    _faceLink = wxURI(l.text().get());
                 }
                 else if (nn == "faceimage")
                 {
-                    _image = wxURI(l->GetNodeContent());
+                    _image = wxURI(l.text().get());
                 }
                 else if (nn == "id")
                 {
-                    _id = l->GetNodeContent().ToStdString();
+                    _id = l.text().get();
                     //logger_base.debug("Face id %s", (const char *)_id.c_str());
                 }
                 else if (nn == "categoryid")
                 {
-                    _categoryIds.push_back(l->GetNodeContent().ToStdString());
+                    _categoryIds.push_back(l.text().get());
                 }
                 else if (nn == "width")
                 {
-                    _width = wxAtoi(l->GetNodeContent());
+                    _width = l.text().as_int();
                 }
                 else if (nn == "height")
                 {
-                    _height = wxAtoi(l->GetNodeContent());
+                    _height = l.text().as_int();
                 }
                 else if (nn == "minwidth")
                 {
-                    _minwidth = wxAtoi(l->GetNodeContent());
+                    _minwidth = l.text().as_int();
                 }
                 else if (nn == "minheight")
                 {
-                    _minheight = wxAtoi(l->GetNodeContent());
+                    _minheight = l.text().as_int();
                 }
                 else if (nn == "notes")
                 {
-                    _notes = l->GetNodeContent().ToStdString();
+                    _notes = l.text().get();
                 }
                 else
                 {
@@ -244,11 +244,11 @@ public:
 
 class MFaceCategory
 {
-    void ParseCategories(wxXmlNode *n)
+    void ParseCategories(pugi::xml_node n)
     {
-        for (wxXmlNode* l = n->GetChildren(); l != nullptr; l = l->GetNext())
+        for (pugi::xml_node l = n.first_child(); l; l = l.next_sibling())
         {
-            wxString nn = l->GetName().Lower().ToStdString();
+            std::string nn = ::Lower(l.name());
             if (nn == "category")
             {
                 _categories.push_back(new MFaceCategory(l, this));
@@ -274,19 +274,19 @@ class MFaceCategory
         }
     }
 
-    MFaceCategory(wxXmlNode* n, MFaceCategory* parent)
+    MFaceCategory(pugi::xml_node n, MFaceCategory* parent)
     {
         _parent = parent;
-        for (wxXmlNode* e = n->GetChildren(); e != nullptr; e = e->GetNext())
+        for (pugi::xml_node e = n.first_child(); e; e = e.next_sibling())
         {
-            wxString nn = e->GetName().Lower();
+            std::string nn = ::Lower(e.name());
             if (nn == "id")
             {
-                _id = e->GetNodeContent().ToStdString();
+                _id = e.text().get();
             }
             else if (nn == "name")
             {
-                _name = e->GetNodeContent().ToStdString();
+                _name = e.text().get();
             }
             else if (nn == "categories")
             {
@@ -439,14 +439,19 @@ bool MatrixFaceDownloadDialog::DlgInit(int width, int height)
     return false;
 }
 
-wxXmlDocument* MatrixFaceDownloadDialog::GetXMLFromURL(wxURI url, std::string& filename) const
+pugi::xml_document* MatrixFaceDownloadDialog::GetXMLFromURL(wxURI url, std::string& filename) const
 {
     filename = "";
     wxFileName fn = wxFileName(MatrixFaceDownloadDialog::GetCache().GetFile(url, CACHEFOR::CACHETIME_SESSION));
     if (FileExists(fn))
     {
         filename = fn.GetFullPath();
-        return new wxXmlDocument(fn.GetFullPath());
+        auto doc = new pugi::xml_document();
+        if (!doc->load_file(fn.GetFullPath().mb_str())) {
+            delete doc;
+            return nullptr;
+        }
+        return doc;
     }
 
     return nullptr;
@@ -472,14 +477,14 @@ bool MatrixFaceDownloadDialog::LoadTree()
     const std::string facelink = "https://raw.githubusercontent.com/xLightsSequencer/xLights/refs/heads/master/download/xlights_faces.xml";
 
     std::string filename;
-    wxXmlDocument* vd = GetXMLFromURL(wxURI(facelink), filename);
-    if (vd != nullptr && vd->IsOk())
+    pugi::xml_document* vd = GetXMLFromURL(wxURI(facelink), filename);
+    if (vd != nullptr && vd->document_element())
     {
-        wxXmlNode* root = vd->GetRoot();
+        pugi::xml_node root = vd->document_element();
 
-        for (auto v = root->GetChildren(); v != nullptr; v = v->GetNext())
+        for (pugi::xml_node v = root.first_child(); v; v = v.next_sibling())
         {
-            if (v->GetName().Lower() == "face")
+            if (::Lower(v.name()) == "face")
             {
                 MFace* f = new MFace(v);
                 if (!CheckBox_FilterUnsuitable->IsChecked() || f->IsMinimumSizeOK(_width, _height))
@@ -491,11 +496,11 @@ bool MatrixFaceDownloadDialog::LoadTree()
                     delete f;
                 }
             }
-			else if (v->GetName().Lower() == "categories")
+			else if (::Lower(v.name()) == "categories")
 			{
-                for (wxXmlNode* l = v->GetChildren(); l != nullptr; l = l->GetNext())
+                for (pugi::xml_node l = v.first_child(); l; l = l.next_sibling())
                 {
-                    wxString nn = l->GetName().Lower().ToStdString();
+                    std::string nn = ::Lower(l.name());
                     if (nn == "category")
                     {
                         _categories.push_back(new MFaceCategory(l, nullptr));

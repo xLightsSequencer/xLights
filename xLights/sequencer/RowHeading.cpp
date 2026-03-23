@@ -2100,7 +2100,7 @@ void RowHeading::SetSequenceElements(SequenceElements* elements)
     mSequenceElements = elements;
 }
 
-void RowHeading::DrawHeading(wxPaintDC* dc, wxXmlNode* model,int width,int row)
+void RowHeading::DrawHeading(wxPaintDC* dc, pugi::xml_node model, int width, int row)
 {
 }
 

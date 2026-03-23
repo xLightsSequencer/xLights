@@ -15,6 +15,8 @@
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
 
+#include <pugixml.hpp>
+
 #include "BufferPanel.h"
 #include "ConvertLogDialog.h"
 #include "DataLayer.h"
@@ -1550,12 +1552,12 @@ void MapToStrandName(const std::string& name, std::vector<std::string>& strands)
     }
 }
 
-void ReadHLSData(wxXmlNode* chand, std::vector<unsigned char>& data)
+void ReadHLSData(pugi::xml_node chand, std::vector<unsigned char>& data)
 {
-    for (wxXmlNode* chani = chand->GetChildren(); chani != nullptr; chani = chani->GetNext()) {
-        if ("IlluminationData" == chani->GetName()) {
-            for (wxXmlNode* block = chani->GetChildren(); block != nullptr; block = block->GetNext()) {
-                wxString vals = block->GetChildren()->GetContent();
+    for (pugi::xml_node chani = chand.first_child(); chani; chani = chani.next_sibling()) {
+        if (std::string_view(chani.name()) == "IlluminationData") {
+            for (pugi::xml_node block = chani.first_child(); block; block = block.next_sibling()) {
+                wxString vals = block.text().get();
                 int offset = wxAtoi(vals.SubString(0, vals.Find("-")));
                 vals = vals.SubString(vals.Find("-") + 1, vals.size());
                 while (!vals.IsEmpty()) {
@@ -1571,26 +1573,26 @@ void ReadHLSData(wxXmlNode* chand, std::vector<unsigned char>& data)
     }
 }
 
-void MapHLSChannelInformation(xLightsFrame* xlights, EffectLayer* layer, wxXmlNode* tuniv, int frames, int frameTime,
+void MapHLSChannelInformation(xLightsFrame* xlights, EffectLayer* layer, pugi::xml_node tuniv, int frames, int frameTime,
                               const wxString& cn, wxColor color, Model& mc, bool byStrand, bool eraseExisting)
 {
     if (cn == "") {
         return;
     }
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxXmlNode* redNode = nullptr;
-    wxXmlNode* greenNode = nullptr;
-    wxXmlNode* blueNode = nullptr;
+    pugi::xml_node redNode;
+    pugi::xml_node greenNode;
+    pugi::xml_node blueNode;
 
-    for (wxXmlNode* univ = tuniv->GetChildren(); univ != nullptr; univ = univ->GetNext()) {
-        if (univ->GetName() == "Universe") {
-            for (wxXmlNode* channels = univ->GetChildren(); channels != nullptr; channels = channels->GetNext()) {
-                if (channels->GetName() == "Channels") {
-                    for (wxXmlNode* chand = channels->GetChildren(); chand != nullptr; chand = chand->GetNext()) {
-                        if (chand->GetName() == "ChannelData") {
-                            for (wxXmlNode* chani = chand->GetChildren(); chani != nullptr; chani = chani->GetNext()) {
-                                if (chani->GetName() == "ChanInfo") {
-                                    wxString info = chani->GetChildren()->GetContent();
+    for (pugi::xml_node univ = tuniv.first_child(); univ; univ = univ.next_sibling()) {
+        if (std::string_view(univ.name()) == "Universe") {
+            for (pugi::xml_node channels = univ.first_child(); channels; channels = channels.next_sibling()) {
+                if (std::string_view(channels.name()) == "Channels") {
+                    for (pugi::xml_node chand = channels.first_child(); chand; chand = chand.next_sibling()) {
+                        if (std::string_view(chand.name()) == "ChannelData") {
+                            for (pugi::xml_node chani = chand.first_child(); chani; chani = chani.next_sibling()) {
+                                if (std::string_view(chani.name()) == "ChanInfo") {
+                                    wxString info = chani.text().get();
                                     if (info == cn + ", Normal") {
                                         // single channel, easy
                                         redNode = chand;
@@ -1609,7 +1611,7 @@ void MapHLSChannelInformation(xLightsFrame* xlights, EffectLayer* layer, wxXmlNo
             }
         }
     }
-    if (redNode == nullptr) {
+    if (!redNode) {
         printf("Did not map %s\n", (const char*)cn.c_str());
         logger_base.info("Did not map " + cn);
         return;
@@ -1619,7 +1621,7 @@ void MapHLSChannelInformation(xLightsFrame* xlights, EffectLayer* layer, wxXmlNo
     std::vector<unsigned char> blueData(frames);
     std::vector<xlColor> colors(frames);
     ReadHLSData(redNode, redData);
-    if (greenNode != nullptr) {
+    if (greenNode) {
         ReadHLSData(greenNode, greenData);
         ReadHLSData(blueNode, blueData);
         for (int x = 0; x < frames; x++) {
@@ -2032,12 +2034,8 @@ void xLightsFrame::ImportVix(const wxFileName& filename)
 
 void xLightsFrame::ImportHLS(const wxFileName& filename)
 {
-    wxFileName xml_file(filename);
-    wxXmlDocument input_xml;
-    wxString xml_doc = xml_file.GetFullPath();
-    wxFileInputStream fin(xml_doc);
-
-    if (!input_xml.Load(fin))
+    pugi::xml_document input_xml;
+    if (!input_xml.load_file(filename.GetFullPath().mb_str()))
         return;
 
     LMSImportChannelMapDialog dlg(this, filename);
@@ -2053,23 +2051,23 @@ void xLightsFrame::ImportHLS(const wxFileName& filename)
      */
     int frames = 0;
     int frameTime = 0;
-    wxXmlNode* totalUniverses = nullptr;
-    for (wxXmlNode* tuniv = input_xml.GetRoot()->GetChildren(); tuniv != nullptr; tuniv = tuniv->GetNext()) {
-        if (tuniv->GetName() == "NumberOfTimeCells") {
-            frames = wxAtoi(tuniv->GetChildren()->GetContent());
-        } else if (tuniv->GetName() == "MilliSecPerTimeUnit") {
-            frameTime = wxAtoi(tuniv->GetChildren()->GetContent());
-        } else if (tuniv->GetName() == "TotalUniverses") {
+    pugi::xml_node totalUniverses;
+    for (pugi::xml_node tuniv = input_xml.document_element().first_child(); tuniv; tuniv = tuniv.next_sibling()) {
+        if (std::string_view(tuniv.name()) == "NumberOfTimeCells") {
+            frames = tuniv.text().as_int();
+        } else if (std::string_view(tuniv.name()) == "MilliSecPerTimeUnit") {
+            frameTime = tuniv.text().as_int();
+        } else if (std::string_view(tuniv.name()) == "TotalUniverses") {
             totalUniverses = tuniv;
-            for (wxXmlNode* univ = tuniv->GetChildren(); univ != nullptr; univ = univ->GetNext()) {
-                if (univ->GetName() == "Universe") {
-                    for (wxXmlNode* channels = univ->GetChildren(); channels != nullptr; channels = channels->GetNext()) {
-                        if (channels->GetName() == "Channels") {
-                            for (wxXmlNode* chand = channels->GetChildren(); chand != nullptr; chand = chand->GetNext()) {
-                                if (chand->GetName() == "ChannelData") {
-                                    for (wxXmlNode* chani = chand->GetChildren(); chani != nullptr; chani = chani->GetNext()) {
-                                        if (chani->GetName() == "ChanInfo") {
-                                            std::string info = chani->GetChildren()->GetContent().ToStdString();
+            for (pugi::xml_node univ = tuniv.first_child(); univ; univ = univ.next_sibling()) {
+                if (std::string_view(univ.name()) == "Universe") {
+                    for (pugi::xml_node channels = univ.first_child(); channels; channels = channels.next_sibling()) {
+                        if (std::string_view(channels.name()) == "Channels") {
+                            for (pugi::xml_node chand = channels.first_child(); chand; chand = chand.next_sibling()) {
+                                if (std::string_view(chand.name()) == "ChannelData") {
+                                    for (pugi::xml_node chani = chand.first_child(); chani; chani = chani.next_sibling()) {
+                                        if (std::string_view(chani.name()) == "ChanInfo") {
+                                            std::string info = chani.text().get();
                                             if (info.find(", Normal") != info.npos) {
                                                 std::string name = info.substr(0, info.find(", Normal"));
                                                 dlg.channelNames.push_back(name);
@@ -2191,12 +2189,8 @@ void xLightsFrame::ImportHLS(const wxFileName& filename)
 
 void xLightsFrame::ImportLMS(const wxFileName& filename)
 {
-    wxFileName xml_file(filename);
-    wxXmlDocument input_xml;
-    wxString xml_doc = xml_file.GetFullPath();
-    wxFileInputStream fin(xml_doc);
-
-    if (!input_xml.Load(fin))
+    pugi::xml_document input_xml;
+    if (!input_xml.load_file(filename.GetFullPath().mb_str()))
         return;
     ImportLMS(input_xml, filename);
     SetStatusText(wxString::Format("'%s' imported.", filename.GetPath()));
@@ -2204,12 +2198,8 @@ void xLightsFrame::ImportLMS(const wxFileName& filename)
 
 void xLightsFrame::ImportLPE(const wxFileName& filename)
 {
-    wxFileName xml_file(filename);
-    wxXmlDocument input_xml;
-    wxString xml_doc = xml_file.GetFullPath();
-    wxFileInputStream fin(xml_doc);
-
-    if (!input_xml.Load(fin))
+    pugi::xml_document input_xml;
+    if (!input_xml.load_file(filename.GetFullPath().mb_str()))
         return;
     ImportLPE(input_xml, filename);
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath()));
@@ -2217,48 +2207,35 @@ void xLightsFrame::ImportLPE(const wxFileName& filename)
 
 void xLightsFrame::ImportS5(const wxFileName& filename)
 {
-    wxFileName xml_file(filename);
-    wxXmlDocument input_xml;
-    wxString xml_doc = xml_file.GetFullPath();
-    wxFileInputStream fin(xml_doc);
-
-    if (!input_xml.Load(fin))
+    pugi::xml_document input_xml;
+    if (!input_xml.load_file(filename.GetFullPath().mb_str()))
         return;
     ImportS5(input_xml, filename);
     SetStatusText(wxString::Format("'%s' imported.", filename.GetPath()));
 }
 
-void AdjustAllTimings(wxXmlNode* input_xml, int offset)
+void AdjustAllTimings(pugi::xml_node node, int offset)
 {
-    if (input_xml->HasAttribute("startCentisecond")) {
-        int i = wxAtoi(input_xml->GetAttribute("startCentisecond"));
-        input_xml->DeleteAttribute("startCentisecond");
-        input_xml->AddAttribute("startCentisecond", wxString::Format(wxT("%i"), i + offset));
+    if (auto attr = node.attribute("startCentisecond")) {
+        attr.set_value(attr.as_int() + offset);
     }
-    if (input_xml->HasAttribute("endCentisecond")) {
-        int i = wxAtoi(input_xml->GetAttribute("endCentisecond"));
-        input_xml->DeleteAttribute("endCentisecond");
-        input_xml->AddAttribute("endCentisecond", wxString::Format(wxT("%i"), i + offset));
+    if (auto attr = node.attribute("endCentisecond")) {
+        attr.set_value(attr.as_int() + offset);
     }
-    if (input_xml->GetName() == "flowy") {
-        if (input_xml->HasAttribute("startTime")) {
-            int i = wxAtoi(input_xml->GetAttribute("startTime"));
-            input_xml->DeleteAttribute("startTime");
-            input_xml->AddAttribute("startTime", wxString::Format("%d", i + offset));
+    std::string nodeName = node.name();
+    if (nodeName == "flowy") {
+        if (auto attr = node.attribute("startTime")) {
+            attr.set_value(attr.as_int() + offset);
         }
-        if (input_xml->HasAttribute("endTime")) {
-            int i = wxAtoi(input_xml->GetAttribute("endTime"));
-            input_xml->DeleteAttribute("endTime");
-            input_xml->AddAttribute("endTime", wxString::Format("%d", i + offset));
+        if (auto attr = node.attribute("endTime")) {
+            attr.set_value(attr.as_int() + offset);
         }
-    } else if (input_xml->GetName() == "state1" || input_xml->GetName() == "state2") {
-        if (input_xml->HasAttribute("time")) {
-            int i = wxAtoi(input_xml->GetAttribute("time"));
-            input_xml->DeleteAttribute("time");
-            input_xml->AddAttribute("time", wxString::Format("%d", i + offset));
+    } else if (nodeName == "state1" || nodeName == "state2") {
+        if (auto attr = node.attribute("time")) {
+            attr.set_value(attr.as_int() + offset);
         }
     }
-    for (wxXmlNode* chan = input_xml->GetChildren(); chan != nullptr; chan = chan->GetNext()) {
+    for (pugi::xml_node chan = node.first_child(); chan; chan = chan.next_sibling()) {
         AdjustAllTimings(chan, offset);
     }
 }
@@ -2297,19 +2274,31 @@ void xLightsFrame::ImportSuperStar(const wxFileName& filename)
 
     // read v3 xml file into temporary document
     wxFileName xml_file(filename);
-    wxXmlDocument input_xml;
     wxString xml_doc = xml_file.GetFullPath();
     wxFileInputStream fin(xml_doc);
     FixXMLInputStream bufIn(fin);
 
-    if (!input_xml.Load(bufIn)) {
+    // Read the fixed-up stream into a buffer for pugixml
+    std::vector<char> xmlBuffer;
+    {
+        char chunk[4096];
+        while (!bufIn.Eof()) {
+            bufIn.Read(chunk, sizeof(chunk));
+            size_t bytesRead = bufIn.LastRead();
+            if (bytesRead == 0) break;
+            xmlBuffer.insert(xmlBuffer.end(), chunk, chunk + bytesRead);
+        }
+    }
+
+    pugi::xml_document input_xml;
+    if (!input_xml.load_buffer(xmlBuffer.data(), xmlBuffer.size())) {
         DisplayError("Problem loading superstar file.");
         return;
     }
 
     if (dlg.TimeAdjSpinCtrl->GetValue() != 0) {
         int offset = dlg.TimeAdjSpinCtrl->GetValue();
-        AdjustAllTimings(input_xml.GetRoot(), offset / 10);
+        AdjustAllTimings(input_xml.document_element(), offset / 10);
     }
 
     Element* model = nullptr;
@@ -2352,23 +2341,23 @@ void xLightsFrame::ImportSuperStar(const wxFileName& filename)
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
 
-bool findRGB(wxXmlNode* e, wxXmlNode* chan, wxXmlNode*& rchannel, wxXmlNode*& gchannel, wxXmlNode*& bchannel)
+bool findRGB(pugi::xml_node e, pugi::xml_node chan, pugi::xml_node& rchannel, pugi::xml_node& gchannel, pugi::xml_node& bchannel)
 {
-    wxString idxs[3];
+    std::string idxs[3];
     int cnt = 0;
-    for (wxXmlNode* n = chan->GetChildren(); n != nullptr; n = n->GetNext()) {
-        if (n->GetName() == "channels") {
-            for (wxXmlNode* n2 = n->GetChildren(); n2 != nullptr; n2 = n2->GetNext()) {
-                if (n2->GetName() == "channel" && cnt < 3) {
-                    idxs[cnt] = n2->GetAttribute("savedIndex");
+    for (pugi::xml_node n = chan.first_child(); n; n = n.next_sibling()) {
+        if (std::string_view(n.name()) == "channels") {
+            for (pugi::xml_node n2 = n.first_child(); n2; n2 = n2.next_sibling()) {
+                if (std::string_view(n2.name()) == "channel" && cnt < 3) {
+                    idxs[cnt] = n2.attribute("savedIndex").as_string();
                     cnt++;
                 }
             }
         }
     }
-    for (wxXmlNode* ch = e->GetChildren(); ch != nullptr; ch = ch->GetNext()) {
-        if (ch->GetName() == "channel") {
-            wxString idx = ch->GetAttribute("savedIndex");
+    for (pugi::xml_node ch = e.first_child(); ch; ch = ch.next_sibling()) {
+        if (std::string_view(ch.name()) == "channel") {
+            std::string idx = ch.attribute("savedIndex").as_string();
             if (idx == idxs[0]) {
                 rchannel = ch;
             }
@@ -2383,24 +2372,24 @@ bool findRGB(wxXmlNode* e, wxXmlNode* chan, wxXmlNode*& rchannel, wxXmlNode*& gc
     return true;
 }
 
-void GetRGBTimes(wxXmlNode* re, int& startms, int& endms)
+void GetRGBTimes(pugi::xml_node re, int& startms, int& endms)
 {
-    if (re != nullptr) {
-        startms = wxAtoi(re->GetAttribute("startCentisecond")) * 10;
-        endms = wxAtoi(re->GetAttribute("endCentisecond")) * 10;
+    if (re) {
+        startms = re.attribute("startCentisecond").as_int() * 10;
+        endms = re.attribute("endCentisecond").as_int() * 10;
     } else {
         startms = 9999999;
         endms = 9999999;
     }
 }
-void GetIntensities(wxXmlNode* re, int& starti, int& endi)
+void GetIntensities(pugi::xml_node re, int& starti, int& endi)
 {
-    wxString intensity = re->GetAttribute("intensity", "-1");
-    if (intensity == "-1") {
-        starti = wxAtoi(re->GetAttribute("startIntensity"));
-        endi = wxAtoi(re->GetAttribute("endIntensity"));
+    int intensity = re.attribute("intensity").as_int(-1);
+    if (intensity == -1) {
+        starti = re.attribute("startIntensity").as_int();
+        endi = re.attribute("endIntensity").as_int();
     } else {
-        starti = endi = wxAtoi(intensity);
+        starti = endi = intensity;
     }
 }
 
@@ -2412,11 +2401,11 @@ public:
     bool shimmer;
 };
 
-void FillData(wxXmlNode* nd, RGBData& data)
+void FillData(pugi::xml_node nd, RGBData& data)
 {
     GetIntensities(nd, data.starti, data.endi);
     GetRGBTimes(nd, data.startms, data.endms);
-    data.shimmer = nd->GetAttribute("type") == "shimmer";
+    data.shimmer = std::string_view(nd.attribute("type").as_string()) == "shimmer";
 }
 void Insert(int x, std::vector<RGBData>& v, int startms)
 {
@@ -2512,35 +2501,35 @@ bool GetRGBEffectData(RGBData& red, RGBData& green, RGBData& blue, xlColor& sc, 
     return red.shimmer | blue.shimmer | green.shimmer;
 }
 
-void LoadRGBData(EffectManager& effectManager, EffectLayer* layer, wxXmlNode* rchannel, wxXmlNode* gchannel, wxXmlNode* bchannel)
+void LoadRGBData(EffectManager& effectManager, EffectLayer* layer, pugi::xml_node rchannel, pugi::xml_node gchannel, pugi::xml_node bchannel)
 {
     std::vector<RGBData> red, green, blue;
-    while (rchannel != nullptr) {
+    while (rchannel) {
         int startms, endms;
         GetRGBTimes(rchannel, startms, endms);
         if (startms < endms) {
             red.resize(red.size() + 1);
             FillData(rchannel, red[red.size() - 1]);
         }
-        rchannel = rchannel->GetNext();
+        rchannel = rchannel.next_sibling();
     }
-    while (gchannel != nullptr) {
+    while (gchannel) {
         int startms, endms;
         GetRGBTimes(gchannel, startms, endms);
         if (startms < endms) {
             green.resize(green.size() + 1);
             FillData(gchannel, green[green.size() - 1]);
         }
-        gchannel = gchannel->GetNext();
+        gchannel = gchannel.next_sibling();
     }
-    while (bchannel != nullptr) {
+    while (bchannel) {
         int startms, endms;
         GetRGBTimes(bchannel, startms, endms);
         if (startms < endms) {
             blue.resize(blue.size() + 1);
             FillData(bchannel, blue[blue.size() - 1]);
         }
-        bchannel = bchannel->GetNext();
+        bchannel = bchannel.next_sibling();
     }
     // have the data, now need to split it so common start/end times
     for (size_t x = 0; x < red.size() || x < green.size() || x < blue.size(); x++) {
@@ -2586,17 +2575,17 @@ void LoadRGBData(EffectManager& effectManager, EffectLayer* layer, wxXmlNode* rc
     }
 }
 
-void MapRGBEffects(EffectManager& effectManager, EffectLayer* layer, wxXmlNode* rchannel, wxXmlNode* gchannel, wxXmlNode* bchannel)
+void MapRGBEffects(EffectManager& effectManager, EffectLayer* layer, pugi::xml_node rchannel, pugi::xml_node gchannel, pugi::xml_node bchannel)
 {
-    wxXmlNode* re = rchannel->GetChildren();
-    while (re != nullptr && "effect" != re->GetName())
-        re = re->GetNext();
-    wxXmlNode* ge = gchannel->GetChildren();
-    while (ge != nullptr && "effect" != ge->GetName())
-        ge = ge->GetNext();
-    wxXmlNode* be = bchannel->GetChildren();
-    while (be != nullptr && "effect" != be->GetName())
-        be = be->GetNext();
+    pugi::xml_node re = rchannel.first_child();
+    while (re && std::string_view(re.name()) != "effect")
+        re = re.next_sibling();
+    pugi::xml_node ge = gchannel.first_child();
+    while (ge && std::string_view(ge.name()) != "effect")
+        ge = ge.next_sibling();
+    pugi::xml_node be = bchannel.first_child();
+    while (be && std::string_view(be.name()) != "effect")
+        be = be.next_sibling();
     LoadRGBData(effectManager, layer, re, ge, be);
 }
 
@@ -2608,7 +2597,7 @@ std::string Scale255To100(wxString s, bool doscale)
     return s.ToStdString();
 }
 
-void MapOnEffects(EffectManager& effectManager, EffectLayer* layer, wxXmlNode* channel, int chancountpernode, const wxColor& color)
+void MapOnEffects(EffectManager& effectManager, EffectLayer* layer, pugi::xml_node channel, int chancountpernode, const wxColor& color)
 {
     std::string palette = "C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1";
     if (chancountpernode > 1) {
@@ -2616,17 +2605,17 @@ void MapOnEffects(EffectManager& effectManager, EffectLayer* layer, wxXmlNode* c
         palette = "C_BUTTON_Palette1=" + (std::string)color1 + ",C_CHECKBOX_Palette1=1";
     }
 
-    for (wxXmlNode* ch = channel->GetChildren(); ch != nullptr; ch = ch->GetNext()) {
-        if (ch->GetName() == "effect") {
-            std::string type = ch->GetAttribute("type", "");
+    for (pugi::xml_node ch = channel.first_child(); ch; ch = ch.next_sibling()) {
+        if (std::string_view(ch.name()) == "effect") {
+            std::string type = ch.attribute("type").as_string();
             bool doscale = (type == "DMX intensity");
-            int starttime = (wxAtoi(ch->GetAttribute("startCentisecond"))) * 10;
-            int endtime = (wxAtoi(ch->GetAttribute("endCentisecond"))) * 10;
-            std::string intensity = ch->GetAttribute("intensity", "-1").ToStdString();
+            int starttime = ch.attribute("startCentisecond").as_int() * 10;
+            int endtime = ch.attribute("endCentisecond").as_int() * 10;
+            std::string intensity = ch.attribute("intensity").as_string("-1");
             std::string starti, endi;
             if (intensity == "-1") {
-                starti = Scale255To100(ch->GetAttribute("startIntensity"), doscale);
-                endi = Scale255To100(ch->GetAttribute("endIntensity"), doscale);
+                starti = Scale255To100(wxString(ch.attribute("startIntensity").as_string()), doscale);
+                endi = Scale255To100(wxString(ch.attribute("endIntensity").as_string()), doscale);
             } else {
                 starti = endi = Scale255To100(intensity, doscale);
             }
@@ -2658,7 +2647,7 @@ void MapOnEffects(EffectManager& effectManager, EffectLayer* layer, wxXmlNode* c
                     }
                     settings += "E_TEXTCTRL_Eff_On_End=" + endi;
                 }
-                if (("intensity" != ch->GetAttribute("type")) && ("DMX intensity" != ch->GetAttribute("type"))) {
+                if (type != "intensity" && type != "DMX intensity") {
                     if (!settings.empty()) {
                         settings += ",";
                     }
@@ -2670,7 +2659,7 @@ void MapOnEffects(EffectManager& effectManager, EffectLayer* layer, wxXmlNode* c
     }
 }
 
-bool MapChannelInformation(EffectManager& effectManager, EffectLayer* layer, wxXmlDocument& input_xml, const wxString& nm, const wxColor& color, const Model& mc, bool eraseExisting)
+bool MapChannelInformation(EffectManager& effectManager, EffectLayer* layer, pugi::xml_document& input_xml, const wxString& nm, const wxColor& color, const Model& mc, bool eraseExisting)
 {
     if ("" == nm) {
         return false;
@@ -2679,19 +2668,20 @@ bool MapChannelInformation(EffectManager& effectManager, EffectLayer* layer, wxX
     if (eraseExisting)
         layer->DeleteAllEffects();
 
-    wxXmlNode* channel = nullptr;
-    wxXmlNode* rchannel = nullptr;
-    wxXmlNode* gchannel = nullptr;
-    wxXmlNode* bchannel = nullptr;
-    for (wxXmlNode* e = input_xml.GetRoot()->GetChildren(); channel == nullptr && e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "channels") {
-            for (wxXmlNode* chan = e->GetChildren(); channel == nullptr && chan != nullptr; chan = chan->GetNext()) {
-                std::string unit = chan->GetAttribute("unit");
-                std::string circuit = chan->GetAttribute("circuit");
-                std::string dedupname = chan->GetAttribute("name") + "_Unit_" + unit + "_Circuit_" + circuit;
-                if ((chan->GetName() == "channel" || chan->GetName() == "rgbChannel") && (nm == chan->GetAttribute("name") || nm == dedupname)) {
+    pugi::xml_node channel;
+    pugi::xml_node rchannel;
+    pugi::xml_node gchannel;
+    pugi::xml_node bchannel;
+    for (pugi::xml_node e = input_xml.document_element().first_child(); !channel && e; e = e.next_sibling()) {
+        if (std::string_view(e.name()) == "channels") {
+            for (pugi::xml_node chan = e.first_child(); !channel && chan; chan = chan.next_sibling()) {
+                std::string unit = chan.attribute("unit").as_string();
+                std::string circuit = chan.attribute("circuit").as_string();
+                std::string dedupname = std::string(chan.attribute("name").as_string()) + "_Unit_" + unit + "_Circuit_" + circuit;
+                std::string chanName = chan.name();
+                if ((chanName == "channel" || chanName == "rgbChannel") && (nm == chan.attribute("name").as_string() || nm == dedupname)) {
                     channel = chan;
-                    if (chan->GetName() == "rgbChannel" && !findRGB(e, chan, rchannel, gchannel, bchannel)) {
+                    if (chanName == "rgbChannel" && !findRGB(e, chan, rchannel, gchannel, bchannel)) {
                         return false;
                     }
                     break;
@@ -2699,10 +2689,10 @@ bool MapChannelInformation(EffectManager& effectManager, EffectLayer* layer, wxX
             }
         }
     }
-    if (channel == nullptr) {
+    if (!channel) {
         return false;
     }
-    if (channel->GetName() == "rgbChannel") {
+    if (std::string_view(channel.name()) == "rgbChannel") {
         MapRGBEffects(effectManager, layer, rchannel, gchannel, bchannel);
     } else {
         MapOnEffects(effectManager, layer, channel, mc.GetChanCountPerNode(), color);
@@ -2710,7 +2700,7 @@ bool MapChannelInformation(EffectManager& effectManager, EffectLayer* layer, wxX
     return true;
 }
 
-void MapCCRModel(int& node, const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, wxXmlDocument& input_xml, EffectManager& effectManager, bool eraseExisting)
+void MapCCRModel(int& node, const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, pugi::xml_document& input_xml, EffectManager& effectManager, bool eraseExisting)
 {
     wxString ccrName = m->_mapping;
 
@@ -2741,7 +2731,7 @@ void MapCCRModel(int& node, const std::vector<std::string>& channelNames, ModelE
     }
 }
 
-void MapCCRStrand(const std::vector<std::string>& channelNames, StrandElement* se, xLightsImportModelNode* s, Model* mc, wxXmlDocument& input_xml, EffectManager& effectManager, bool eraseExisting)
+void MapCCRStrand(const std::vector<std::string>& channelNames, StrandElement* se, xLightsImportModelNode* s, Model* mc, pugi::xml_document& input_xml, EffectManager& effectManager, bool eraseExisting)
 {
     int node = 0;
     wxString ccrName = s->_mapping;
@@ -2769,7 +2759,7 @@ void MapCCRStrand(const std::vector<std::string>& channelNames, StrandElement* s
     }
 }
 
-void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, wxXmlDocument& input_xml, EffectManager& effectManager, bool eraseExisting)
+void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, pugi::xml_document& input_xml, EffectManager& effectManager, bool eraseExisting)
 {
     if (mc->GetDisplayAs() == DisplayAsType::ModelGroup) {
         ModelGroup* mg = (ModelGroup*)mc;
@@ -2783,26 +2773,26 @@ void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, x
     }
 }
 
-bool xLightsFrame::ImportLMS(wxXmlDocument& input_xml, const wxFileName& filename)
+bool xLightsFrame::ImportLMS(pugi::xml_document& input_xml, const wxFileName& filename)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     xLightsImportChannelMapDialog dlg(this, filename, true, true, true, true, false);
     dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
     std::vector<std::string> timingTrackNames;
-    std::map<std::string, wxXmlNode*> timingTracks;
+    std::map<std::string, pugi::xml_node> timingTracks;
 
-    for (wxXmlNode* e = input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "channels") {
-            for (wxXmlNode* chan = e->GetChildren(); chan != nullptr; chan = chan->GetNext()) {
-                if (chan->GetName() == "channel" || chan->GetName() == "rgbChannel") {
-                    std::string name = chan->GetAttribute("name").ToStdString();
-                    if (chan->GetName() == "rgbChannel") {
+    for (pugi::xml_node e = input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        if (std::string_view(e.name()) == "channels") {
+            for (pugi::xml_node chan = e.first_child(); chan; chan = chan.next_sibling()) {
+                if (std::string_view(chan.name()) == "channel" || std::string_view(chan.name()) == "rgbChannel") {
+                    std::string name = chan.attribute("name").as_string();
+                    if (std::string_view(chan.name()) == "rgbChannel") {
                         dlg.channelColors[name] = xlBLACK;
                     } else {
-                        std::string color = chan->GetAttribute("color").ToStdString();
-                        std::string unit = chan->GetAttribute("unit").ToStdString();
-                        std::string circuit = chan->GetAttribute("circuit").ToStdString();
+                        std::string color = chan.attribute("color").as_string();
+                        std::string unit = chan.attribute("unit").as_string();
+                        std::string circuit = chan.attribute("circuit").as_string();
                         if (dlg.GetImportChannel(name)) {
                             name += "_Unit_" + unit + "_Circuit_" + circuit;
                         }
@@ -2810,7 +2800,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument& input_xml, const wxFileName& filenam
                     }
 
                     bool ccr = false;
-                    if (chan->GetName() == "rgbChannel") {
+                    if (std::string_view(chan.name()) == "rgbChannel") {
                         int idxDP = name.find("-P");
                         int idxUP = name.find(" P");
                         int idxSP = name.find(" p");
@@ -2839,12 +2829,12 @@ bool xLightsFrame::ImportLMS(wxXmlDocument& input_xml, const wxFileName& filenam
                     }
                 }
             }
-        } else if (e->GetName() == "timingGrids") {
-            for (wxXmlNode* timing = e->GetChildren(); timing != nullptr; timing = timing->GetNext()) {
-                if (timing->GetName() == "timingGrid") {
-                    wxString type = timing->GetAttribute("type", "");
+        } else if (std::string_view(e.name()) == "timingGrids") {
+            for (pugi::xml_node timing = e.first_child(); timing; timing = timing.next_sibling()) {
+                if (std::string_view(timing.name()) == "timingGrid") {
+                    std::string type = timing.attribute("type").as_string();
                     if (type != "fixed") {
-                        std::string name = timing->GetAttribute("name", "").ToStdString();
+                        std::string name = timing.attribute("name").as_string();
                         if (name != "") {
                             timingTrackNames.push_back(name);
                             timingTracks[name] = timing;
@@ -2867,7 +2857,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument& input_xml, const wxFileName& filenam
 
     if (dlg.TimeAdjustSpinCtrl->GetValue() != 0) {
         int offset = dlg.TimeAdjustSpinCtrl->GetValue();
-        AdjustAllTimings(input_xml.GetRoot(), offset / 10);
+        AdjustAllTimings(input_xml.document_element(), offset / 10);
     }
 
     for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {
@@ -2885,9 +2875,9 @@ bool xLightsFrame::ImportLMS(wxXmlDocument& input_xml, const wxFileName& filenam
             int offset = dlg.TimeAdjustSpinCtrl->GetValue();
             EffectLayer* targetLayer = target->GetEffectLayer(0);
             long last = offset;
-            for (wxXmlNode* t = timingTracks[name]->GetChildren(); t != nullptr; t = t->GetNext()) {
-                if (t->GetName() == "timing") {
-                    int time = wxAtoi(t->GetAttribute("centisecond")) * 10 + offset;
+            for (pugi::xml_node t = timingTracks[name].first_child(); t; t = t.next_sibling()) {
+                if (std::string_view(t.name()) == "timing") {
+                    int time = t.attribute("centisecond").as_int() * 10 + offset;
                     int adjTime = TimeLine::RoundToMultipleOfPeriod(time, CurrentSeqXmlFile->GetFrequency());
                     if (adjTime > last) {
                         targetLayer->AddEffect(0, "", "", "", last, adjTime, false, false);
@@ -2989,27 +2979,29 @@ bool xLightsFrame::ImportLMS(wxXmlDocument& input_xml, const wxFileName& filenam
     return true;
 }
 
-bool LPEHasEffects(const wxXmlDocument& input_xml, const wxString& model, int layer, bool left)
+bool LPEHasEffects(const pugi::xml_document& input_xml, const wxString& model, int layer, bool left)
 {
-    for (wxXmlNode* e = input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
-            for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
-                    std::string name = prop->GetAttribute("name").ToStdString();
+    for (pugi::xml_node e = input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string ename = e.name();
+        if (ename == "SequenceProps" || ename == "ArchivedProps") {
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string pname = prop.name();
+                if (pname == "SeqProp" || pname == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
                     if (name == "") {
-                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
-                            if (ap->GetName() == "PropClass") {
-                                name = ap->GetAttribute("Name");
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass") {
+                                name = ap.attribute("Name").as_string();
                             }
                         }
                     }
                     if (name == model) {
-                        for (wxXmlNode* track = prop->GetChildren(); track != nullptr; track = track->GetNext()) {
-                            int id = wxAtoi(track->GetAttribute("id"));
+                        for (pugi::xml_node track = prop.first_child(); track; track = track.next_sibling()) {
+                            int id = track.attribute("id").as_int();
                             if (id == layer) {
-                                for (wxXmlNode* eff = track->GetChildren(); eff != nullptr; eff = eff->GetNext()) {
-                                    if (eff->GetName() == "effect" && eff->GetAttribute("type") == "pixelEffect") {
-                                        wxString settings = eff->GetAttribute("pixelEffect");
+                                for (pugi::xml_node eff = track.first_child(); eff; eff = eff.next_sibling()) {
+                                    if (std::string_view(eff.name()) == "effect" && std::string_view(eff.attribute("type").as_string()) == "pixelEffect") {
+                                        wxString settings = eff.attribute("pixelEffect").as_string();
                                         wxArrayString as = wxSplit(settings, '|');
                                         if (as.size() == 7) {
                                             wxString s;
@@ -3061,21 +3053,21 @@ wxString MapLPEEffectType(const wxString& effect)
     return effect.Capitalize();
 }
 
-wxXmlNode* FindLastLPEEffectNode(wxXmlNode* effect, int start_centisecond, int end_centisecond, int end_intensity, int intensityChange, const wxString& settings, int& fadeInCS, int& fadeOutCS)
+pugi::xml_node FindLastLPEEffectNode(pugi::xml_node effect, int start_centisecond, int end_centisecond, int end_intensity, int intensityChange, const wxString& settings, int& fadeInCS, int& fadeOutCS)
 {
     int originalIntensity = end_intensity - intensityChange;
 
     fadeInCS = 0;
     fadeOutCS = 0;
 
-    wxXmlNode* res = effect;
-    wxXmlNode* n = effect->GetNext();
-    while (n != nullptr) {
-        int newstartCentisecond = wxAtoi(n->GetAttribute("startCentisecond"));
-        // int newendCentisecond = wxAtoi(n->GetAttribute("endCentisecond"));
-        int newstartIntensity = wxAtoi(n->GetAttribute("startIntensity", "100"));
-        int newendIntensity = wxAtoi(n->GetAttribute("endIntensity", "100"));
-        wxString newsettings = n->GetAttribute("pixelEffect", "");
+    pugi::xml_node res = effect;
+    pugi::xml_node n = effect.next_sibling();
+    while (n) {
+        int newstartCentisecond = n.attribute("startCentisecond").as_int();
+        // int newendCentisecond = n.attribute("endCentisecond").as_int();
+        int newstartIntensity = n.attribute("startIntensity").as_int(100);
+        int newendIntensity = n.attribute("endIntensity").as_int(100);
+        wxString newsettings = n.attribute("pixelEffect").as_string();
         if (settings != newsettings) {
             break;
         }
@@ -3097,13 +3089,13 @@ wxXmlNode* FindLastLPEEffectNode(wxXmlNode* effect, int start_centisecond, int e
         }
 
         res = n;
-        n = n->GetNext();
+        n = n.next_sibling();
     }
 
     // handle effects that are all fade in or all fade out
     // I use 5-95 as a proxy for 0-100 to maximise the use of fade in/out
-    int newendCentisecond = wxAtoi(res->GetAttribute("endCentisecond"));
-    int newendIntensity = wxAtoi(res->GetAttribute("endIntensity", "100"));
+    int newendCentisecond = res.attribute("endCentisecond").as_int();
+    int newendIntensity = res.attribute("endIntensity").as_int(100);
     if (fadeOutCS == 0 && fadeInCS == 0 && originalIntensity < newendIntensity && newendIntensity > 95 && originalIntensity < 5) {
         // all fade in
         fadeInCS = newendCentisecond;
@@ -3767,41 +3759,43 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
     return settings;
 }
 
-void MapLPE(const EffectManager& effect_manager, int i, EffectLayer* layer, const wxXmlDocument& input_xml, const wxString& model, bool left, int frequency, bool eraseExisting)
+void MapLPE(const EffectManager& effect_manager, int i, EffectLayer* layer, const pugi::xml_document& input_xml, const wxString& model, bool left, int frequency, bool eraseExisting)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (eraseExisting)
         layer->DeleteAllEffects();
 
-    for (wxXmlNode* e = input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
-            for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
-                    std::string name = prop->GetAttribute("name").ToStdString();
+    for (pugi::xml_node e = input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string ename = e.name();
+        if (ename == "SequenceProps" || ename == "ArchivedProps") {
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string pname = prop.name();
+                if (pname == "SeqProp" || pname == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
                     if (name == "") {
-                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
-                            if (ap->GetName() == "PropClass") {
-                                name = ap->GetAttribute("Name");
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass") {
+                                name = ap.attribute("Name").as_string();
                             }
                         }
                     }
                     if (name == model) {
-                        for (wxXmlNode* track = prop->GetChildren(); track != nullptr; track = track->GetNext()) {
-                            int id = wxAtoi(track->GetAttribute("id"));
+                        for (pugi::xml_node track = prop.first_child(); track; track = track.next_sibling()) {
+                            int id = track.attribute("id").as_int();
                             if (id == i) {
                                 // now to add effects
-                                for (wxXmlNode* effect = track->GetChildren(); effect != nullptr; effect = effect->GetNext()) {
-                                    wxString type = effect->GetAttribute("type");
+                                for (pugi::xml_node effect = track.first_child(); effect; effect = effect.next_sibling()) {
+                                    wxString type = effect.attribute("type").as_string();
 
-                                    if (effect->GetName() != "effect" || type != "pixelEffect") {
-                                        logger_base.warn("LPE import node %s type %s not known.", (const char*)effect->GetName().c_str(), (const char*)type.c_str());
+                                    if (std::string_view(effect.name()) != "effect" || type != "pixelEffect") {
+                                        logger_base.warn("LPE import node %s type %s not known.", effect.name(), (const char*)type.c_str());
                                     } else {
-                                        int startCentisecond = wxAtoi(effect->GetAttribute("startCentisecond"));
-                                        int endCentisecond = wxAtoi(effect->GetAttribute("endCentisecond"));
-                                        int startIntensity = wxAtoi(effect->GetAttribute("startIntensity", "100"));
-                                        int endIntensity = wxAtoi(effect->GetAttribute("endIntensity", "100"));
-                                        wxString settings = effect->GetAttribute("pixelEffect", "");
+                                        int startCentisecond = effect.attribute("startCentisecond").as_int();
+                                        int endCentisecond = effect.attribute("endCentisecond").as_int();
+                                        int startIntensity = effect.attribute("startIntensity").as_int(100);
+                                        int endIntensity = effect.attribute("endIntensity").as_int(100);
+                                        wxString settings = effect.attribute("pixelEffect").as_string();
                                         wxArrayString settingsArray = wxSplit(settings, '|');
                                         wxString sideSettings;
                                         if (left) {
@@ -3829,10 +3823,10 @@ void MapLPE(const EffectManager& effect_manager, int i, EffectLayer* layer, cons
                                             } else {
                                                 // skip over the multiple nodes PE creates when fading isnt perfectly even
                                                 int fadeInCS, fadeOutCS;
-                                                wxXmlNode* lastnode = FindLastLPEEffectNode(effect, startCentisecond, endCentisecond, endIntensity, endIntensity - startIntensity, settings, fadeInCS, fadeOutCS);
+                                                pugi::xml_node lastnode = FindLastLPEEffectNode(effect, startCentisecond, endCentisecond, endIntensity, endIntensity - startIntensity, settings, fadeInCS, fadeOutCS);
                                                 if (lastnode != effect) {
-                                                    endCentisecond = wxAtoi(lastnode->GetAttribute("endCentisecond"));
-                                                    endIntensity = wxAtoi(lastnode->GetAttribute("endIntensity", "100"));
+                                                    endCentisecond = lastnode.attribute("endCentisecond").as_int();
+                                                    endIntensity = lastnode.attribute("endIntensity").as_int(100);
                                                     effect = lastnode;
                                                 }
 
@@ -3890,7 +3884,7 @@ void MapLPE(const EffectManager& effect_manager, int i, EffectLayer* layer, cons
     }
 }
 
-void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxXmlDocument& input_xml, const wxString& mapping, int frequency, bool eraseExisting)
+void MapLPEEffects(const EffectManager& effectManager, Element* model, const pugi::xml_document& input_xml, const wxString& mapping, int frequency, bool eraseExisting)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -4212,7 +4206,7 @@ void MapS5Effects(const EffectManager& effectManager, SubModelElement* se, const
     }
 }
 
-bool xLightsFrame::ImportS5(wxXmlDocument& input_xml, const wxFileName& filename)
+bool xLightsFrame::ImportS5(pugi::xml_document& input_xml, const wxFileName& filename)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -4358,7 +4352,7 @@ bool xLightsFrame::ImportS5(wxXmlDocument& input_xml, const wxFileName& filename
     return true;
 }
 
-bool xLightsFrame::ImportLPE(wxXmlDocument& input_xml, const wxFileName& filename)
+bool xLightsFrame::ImportLPE(pugi::xml_document& input_xml, const wxFileName& filename)
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -4374,17 +4368,18 @@ bool xLightsFrame::ImportLPE(wxXmlDocument& input_xml, const wxFileName& filenam
     dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
     std::vector<std::string> timingTrackNames;
-    std::map<std::string, wxXmlNode*> timingTracks;
 
-    for (wxXmlNode* e = input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "SequenceProps" || e->GetName() == "ArchivedProps") {
-            for (wxXmlNode* prop = e->GetChildren(); prop != nullptr; prop = prop->GetNext()) {
-                if (prop->GetName() == "SeqProp" || prop->GetName() == "ArchiveProp") {
-                    std::string name = prop->GetAttribute("name").ToStdString();
+    for (pugi::xml_node e = input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string ename = e.name();
+        if (ename == "SequenceProps" || ename == "ArchivedProps") {
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string pname = prop.name();
+                if (pname == "SeqProp" || pname == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
                     if (name == "") {
-                        for (wxXmlNode* ap = prop->GetChildren(); ap != nullptr; ap = ap->GetNext()) {
-                            if (ap->GetName() == "PropClass") {
-                                name = ap->GetAttribute("Name");
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass") {
+                                name = ap.attribute("Name").as_string();
                             }
                         }
                     }
@@ -4408,7 +4403,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument& input_xml, const wxFileName& filenam
 
     if (dlg.TimeAdjustSpinCtrl->GetValue() != 0) {
         int offset = dlg.TimeAdjustSpinCtrl->GetValue();
-        AdjustAllTimings(input_xml.GetRoot(), offset / 10);
+        AdjustAllTimings(input_xml.document_element(), offset / 10);
     }
 
     for (size_t i = 0; i < dlg._dataModel->GetChildCount(); ++i) {
@@ -4771,7 +4766,7 @@ void ScaleImage(wxImage& img, int type,
 }
 
 wxString CreateSceneImage(const std::string& imagePfx, const std::string& postFix,
-                          wxXmlNode* element, int numCols,
+                          pugi::xml_node element, int numCols,
                           int numRows, bool reverse, bool rotate, const xlColor& color, int y_offset,
                           int resizeType, const wxSize& modelSize,
                           SequenceMedia* media)
@@ -4784,10 +4779,10 @@ wxString CreateSceneImage(const std::string& imagePfx, const std::string& postFi
             i.SetAlpha(x, y, wxALPHA_TRANSPARENT);
         }
     }
-    for (wxXmlNode* e = element->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "element") {
-            int x = wxAtoi(e->GetAttribute("ribbonIndex"));
-            int y = wxAtoi(e->GetAttribute("pixelIndex")) - y_offset;
+    for (pugi::xml_node e = element.first_child(); e; e = e.next_sibling()) {
+        if (std::string_view(e.name()) == "element") {
+            int x = e.attribute("ribbonIndex").as_int();
+            int y = e.attribute("pixelIndex").as_int() - y_offset;
             if (rotate) {
                 std::swap(x, y);
             }
@@ -4800,7 +4795,7 @@ wxString CreateSceneImage(const std::string& imagePfx, const std::string& postFi
             }
         }
     }
-    std::string name = imagePfx + "/s" + element->GetAttribute("savedIndex").ToStdString() + postFix + ".png";
+    std::string name = imagePfx + "/s" + element.attribute("savedIndex").as_string() + postFix + ".png";
     ImageInfo im;
     im.Set(0, 0, numCols, numRows, name);
     ScaleImage(i, resizeType, modelSize, numCols, numRows, im, false);
@@ -4810,9 +4805,9 @@ wxString CreateSceneImage(const std::string& imagePfx, const std::string& postFi
     return name;
 }
 
-bool IsPartOfModel(wxXmlNode* element, int num_rows, int num_columns, bool& isFull, wxRect& rect, bool reverse)
+bool IsPartOfModel(pugi::xml_node element, int num_rows, int num_columns, bool& isFull, wxRect& rect, bool reverse)
 {
-    if (element == nullptr)
+    if (!element)
         return false;
 
     std::vector<std::vector<bool>> data(num_columns, std::vector<bool>(num_rows));
@@ -4821,10 +4816,10 @@ bool IsPartOfModel(wxXmlNode* element, int num_rows, int num_columns, bool& isFu
     int minCol = 9999999;
     int minRow = 9999999;
     isFull = true;
-    for (wxXmlNode* e = element->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "element") {
-            int x = wxAtoi(e->GetAttribute("ribbonIndex"));
-            int y = wxAtoi(e->GetAttribute("pixelIndex"));
+    for (pugi::xml_node e = element.first_child(); e; e = e.next_sibling()) {
+        if (std::string_view(e.name()) == "element") {
+            int x = e.attribute("ribbonIndex").as_int();
+            int y = e.attribute("pixelIndex").as_int();
             if (reverse) {
                 std::swap(x, y);
             }
@@ -4865,7 +4860,7 @@ bool IsPartOfModel(wxXmlNode* element, int num_rows, int num_columns, bool& isFu
     return true;
 }
 
-bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int x_size, int y_size,
+bool xLightsFrame::ImportSuperStar(Element* model, pugi::xml_document& input_xml, int x_size, int y_size,
                                    int x_offset, int y_offset,
                                    int imageResizeType, const wxSize& modelSize, const wxString& layerBlend,
                                    const wxString& defaultGroupName)
@@ -4875,7 +4870,7 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
     bool reverse_rows = false;
     bool reverse_xy = false;
     bool layout_defined = false;
-    wxXmlNode* input_root = input_xml.GetRoot();
+    pugi::xml_node input_root = input_xml.document_element();
     EffectLayer* layer = model->AddEffectLayer();
     std::map<int, ImageInfo> imageInfo;
     std::string imagePfx;
@@ -4899,34 +4894,35 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
     if (layerBlend != "Normal") {
         blend_string = ",T_CHOICE_LayerMethod=" + layerBlend + ",";
     }
-    for (wxXmlNode* e = input_root->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if ("imageActions" == e->GetName()) {
-            for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext()) {
-                if ("imageAction" == element->GetName()) {
-                    int layer_index = wxAtoi(element->GetAttribute("layer"));
+    for (pugi::xml_node e = input_root.first_child(); e; e = e.next_sibling()) {
+        std::string ename = e.name();
+        if ("imageActions" == ename) {
+            for (pugi::xml_node element = e.first_child(); element; element = element.next_sibling()) {
+                if ("imageAction" == std::string_view(element.name())) {
+                    int layer_index = element.attribute("layer").as_int();
                     if (layer_index > 0)
                         layer_index--;
-                    if (layer_index >= reserved.size()) {
+                    if (layer_index >= (int)reserved.size()) {
                         reserved.resize(layer_index + 1, false);
                     }
                     reserved[layer_index] = true;
                 }
             }
-        } else if ("scenes" == e->GetName() || "images" == e->GetName()) {
-            for (wxXmlNode* element = e->GetChildren(); (element != nullptr) && ("" == imagePfx); element = element->GetNext()) {
-                if ("image" == element->GetName() || "scene" == element->GetName()) {
+        } else if ("scenes" == ename || "images" == ename) {
+            for (pugi::xml_node element = e.first_child(); element && ("" == imagePfx); element = element.next_sibling()) {
+                std::string elemname = element.name();
+                if ("image" == elemname || "scene" == elemname) {
                     if (!promptForPrefix()) return false;
                 }
             }
-        } else if (e->GetName() == "layouts") {
-            wxXmlNode* element = e->GetChildren();
-            wxString attr;
-            element->GetAttribute("visualizationMode", &attr);
+        } else if (ename == "layouts") {
+            pugi::xml_node element = e.first_child();
+            std::string attr;
+            attr = element.attribute("visualizationMode").as_string();
             if (attr == "false") {
-                element->GetAttribute("nbrOfRibbons", &attr);
-                attr.ToDouble(&num_columns);
+                num_columns = element.attribute("nbrOfRibbons").as_double();
                 num_rows = 50.0;
-                element->GetAttribute("ribbonLength", &attr);
+                attr = element.attribute("ribbonLength").as_string();
                 if (attr == "half") {
                     num_rows /= 2.0;
                     num_columns *= 2.0;
@@ -4935,7 +4931,7 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
                 num_rows = (double)y_size;
                 num_columns = (double)x_size;
             }
-            element->GetAttribute("ribbonOrientation", &attr);
+            attr = element.attribute("ribbonOrientation").as_string();
             if (attr == "horizontal") {
                 reverse_xy = true;
                 std::swap(num_columns, num_rows);
@@ -4945,27 +4941,28 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
             layout_defined = true;
         }
     }
-    for (wxXmlNode* e = input_root->GetChildren(); e != nullptr; e = e->GetNext()) {
-        if (e->GetName() == "morphs") {
+    for (pugi::xml_node e = input_root.first_child(); e; e = e.next_sibling()) {
+        std::string ename = e.name();
+        if (ename == "morphs") {
             if (!layout_defined) {
                 DisplayError("The layouts section was not found in the SuperStar file!", this);
                 return false;
             }
-            for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext()) {
+            for (pugi::xml_node element = e.first_child(); element; element = element.next_sibling()) {
                 wxString name_attr;
                 wxString acceleration;
                 wxString state1_time, state2_time, ramp_time_ext;
-                element->GetAttribute("name", &name_attr);
-                element->GetAttribute("acceleration", &acceleration);
-                std::string attr = element->GetAttribute("layer").ToStdString();
+                name_attr = element.attribute("name").as_string();
+                acceleration = element.attribute("acceleration").as_string();
+                std::string attr = element.attribute("layer").as_string();
                 double layer_val = atof(attr.c_str());
                 int layer_index = (int)layer_val;
-                wxXmlNode* state1 = element->GetChildren();
-                wxXmlNode* state2 = state1->GetNext();
-                wxXmlNode* ramp = state2->GetNext();
-                state1->GetAttribute("time", &state1_time);
-                state2->GetAttribute("time", &state2_time);
-                ramp->GetAttribute("timeExt", &ramp_time_ext);
+                pugi::xml_node state1 = element.first_child();
+                pugi::xml_node state2 = state1.next_sibling();
+                pugi::xml_node ramp = state2.next_sibling();
+                state1_time = state1.attribute("time").as_string();
+                state2_time = state2.attribute("time").as_string();
+                ramp_time_ext = ramp.attribute("timeExt").as_string();
                 int start_time = wxAtoi(state1_time) * 10;
                 int end_time = wxAtoi(state2_time) * 10;
                 int ramp_time = wxAtoi(ramp_time_ext) * 10;
@@ -4975,84 +4972,84 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
                 settings += acceleration + ",";
                 wxString duration = wxString::Format("E_SLIDER_MorphDuration=%d,", (int)head_duration);
                 settings += duration;
-                attr = state2->GetAttribute("trailLen");
+                attr = state2.attribute("trailLen").as_string();
                 settings += "E_SLIDER_MorphEndLength=" + attr + ",";
-                attr = state1->GetAttribute("trailLen");
+                attr = state1.attribute("trailLen").as_string();
                 settings += "E_SLIDER_MorphStartLength=" + attr + ",";
                 if (!reverse_xy)
-                    attr = state2->GetAttribute("x1");
+                    attr = state2.attribute("x1").as_string();
                 else
-                    attr = state2->GetAttribute("y1");
+                    attr = state2.attribute("y1").as_string();
                 if (!CalcPercentage(attr, num_columns, false, x_offset))
                     continue;
                 settings += "E_SLIDER_Morph_End_X1=" + attr + ",";
                 if (!reverse_xy)
-                    attr = state2->GetAttribute("x2");
+                    attr = state2.attribute("x2").as_string();
                 else
-                    attr = state2->GetAttribute("y2");
+                    attr = state2.attribute("y2").as_string();
                 if (!CalcPercentage(attr, num_columns, false, x_offset))
                     continue;
                 settings += "E_SLIDER_Morph_End_X2=" + attr + ",";
                 if (!reverse_xy)
-                    attr = state2->GetAttribute("y1");
+                    attr = state2.attribute("y1").as_string();
                 else
-                    attr = state2->GetAttribute("x1");
+                    attr = state2.attribute("x1").as_string();
                 if (!CalcPercentage(attr, num_rows, reverse_rows, y_offset))
                     continue;
                 settings += "E_SLIDER_Morph_End_Y1=" + attr + ",";
                 if (!reverse_xy)
-                    attr = state2->GetAttribute("y2");
+                    attr = state2.attribute("y2").as_string();
                 else
-                    attr = state2->GetAttribute("x2");
+                    attr = state2.attribute("x2").as_string();
                 if (!CalcPercentage(attr, num_rows, reverse_rows, y_offset))
                     continue;
                 settings += "E_SLIDER_Morph_End_Y2=" + attr + ",";
                 if (!reverse_xy)
-                    attr = state1->GetAttribute("x1");
+                    attr = state1.attribute("x1").as_string();
                 else
-                    attr = state1->GetAttribute("y1");
+                    attr = state1.attribute("y1").as_string();
                 if (!CalcPercentage(attr, num_columns, false, x_offset))
                     continue;
                 settings += "E_SLIDER_Morph_Start_X1=" + attr + ",";
                 if (!reverse_xy)
-                    attr = state1->GetAttribute("x2");
+                    attr = state1.attribute("x2").as_string();
                 else
-                    attr = state1->GetAttribute("y2");
+                    attr = state1.attribute("y2").as_string();
                 if (!CalcPercentage(attr, num_columns, false, x_offset))
                     continue;
                 settings += "E_SLIDER_Morph_Start_X2=" + attr + ",";
                 if (!reverse_xy)
-                    attr = state1->GetAttribute("y1");
+                    attr = state1.attribute("y1").as_string();
                 else
-                    attr = state1->GetAttribute("x1");
+                    attr = state1.attribute("x1").as_string();
                 if (!CalcPercentage(attr, num_rows, reverse_rows, y_offset))
                     continue;
                 settings += "E_SLIDER_Morph_Start_Y1=" + attr + ",";
                 if (!reverse_xy)
-                    attr = state1->GetAttribute("y2");
+                    attr = state1.attribute("y2").as_string();
                 else
-                    attr = state1->GetAttribute("x2");
+                    attr = state1.attribute("x2").as_string();
                 if (!CalcPercentage(attr, num_rows, reverse_rows, y_offset))
                     continue;
                 settings += "E_SLIDER_Morph_Start_Y2=" + attr + ",";
-                std::string sRed = state1->GetAttribute("red").ToStdString();
-                std::string sGreen = state1->GetAttribute("green").ToStdString();
-                std::string sBlue = state1->GetAttribute("blue").ToStdString();
+                std::string sRed = state1.attribute("red").as_string();
+                std::string sGreen = state1.attribute("green").as_string();
+                std::string sBlue = state1.attribute("blue").as_string();
                 std::string color = GetColorString(sRed, sGreen, sBlue).ToStdString();
                 std::string palette = "C_BUTTON_Palette1=" + (std::string)color + ",";
-                sRed = state2->GetAttribute("red");
-                sGreen = state2->GetAttribute("green");
-                sBlue = state2->GetAttribute("blue");
+                sRed = state2.attribute("red").as_string();
+                sGreen = state2.attribute("green").as_string();
+                sBlue = state2.attribute("blue").as_string();
                 color = GetColorString(sRed, sGreen, sBlue);
                 palette += "C_BUTTON_Palette2=" + color + ",";
-                sRed = ramp->GetAttribute("red1");
-                sGreen = ramp->GetAttribute("green1");
-                sBlue = ramp->GetAttribute("blue1");
+                sRed = ramp.attribute("red1").as_string();
+                sGreen = ramp.attribute("green1").as_string();
+                sBlue = ramp.attribute("blue1").as_string();
                 color = GetColorString(sRed, sGreen, sBlue);
                 palette += "C_BUTTON_Palette3=" + color + ",";
-                sRed = ramp->GetAttribute("red2");
-                sGreen = ramp->GetAttribute("green2");
-                sBlue = ramp->GetAttribute("blue2");
+                sRed = ramp.attribute("red2").as_string();
+                sGreen = ramp.attribute("green2").as_string();
+                sBlue = ramp.attribute("blue2").as_string();
                 color = GetColorString(sRed, sGreen, sBlue);
                 palette += "C_BUTTON_Palette4=" + color + ",";
                 palette += "C_BUTTON_Palette5=#FFFFFF,C_BUTTON_Palette6=#000000,C_CHECKBOX_Palette1=1,C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=1,C_CHECKBOX_Palette4=1,";
@@ -5063,18 +5060,18 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
                 layer = FindOpenLayer(model, layer_index, start_time, end_time, reserved);
                 layer->AddEffect(0, "Morph", settings, palette, start_time, end_time, false, false);
             }
-        } else if ("images" == e->GetName()) {
-            for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext()) {
-                if ("image" == element->GetName()) {
-                    for (wxXmlNode* i = element->GetChildren(); i != nullptr; i = i->GetNext()) {
-                        if ("pixe" == i->GetName()) {
-                            wxString data = i->GetAttribute("s");
-                            int w = wxAtoi(element->GetAttribute("width"));
-                            int h = wxAtoi(element->GetAttribute("height"));
+        } else if ("images" == ename) {
+            for (pugi::xml_node element = e.first_child(); element; element = element.next_sibling()) {
+                if ("image" == std::string_view(element.name())) {
+                    for (pugi::xml_node i = element.first_child(); i; i = i.next_sibling()) {
+                        if ("pixe" == std::string_view(i.name())) {
+                            wxString data = i.attribute("s").as_string();
+                            int w = element.attribute("width").as_int();
+                            int h = element.attribute("height").as_int();
 
-                            int idx = wxAtoi(element->GetAttribute("savedIndex"));
-                            int xOffset = wxAtoi(element->GetAttribute("xOffset"));
-                            int yOffset = wxAtoi(element->GetAttribute("yOffset"));
+                            int idx = element.attribute("savedIndex").as_int();
+                            int xOffset = element.attribute("xOffset").as_int();
+                            int yOffset = element.attribute("yOffset").as_int();
 
                             unsigned char* bytes = (unsigned char*)malloc(w * h * 3);
                             unsigned char* alpha = (unsigned char*)malloc(w * h);
@@ -5119,14 +5116,14 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
                     }
                 }
             }
-        } else if ("flowys" == e->GetName()) {
-            for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext()) {
-                if ("flowy" == element->GetName()) {
+        } else if ("flowys" == ename) {
+            for (pugi::xml_node element = e.first_child(); element; element = element.next_sibling()) {
+                if ("flowy" == std::string_view(element.name())) {
                     std::string centerX, centerY;
-                    int startms = wxAtoi(element->GetAttribute("startTime")) * 10;
-                    int endms = wxAtoi(element->GetAttribute("endTime")) * 10;
-                    wxString type = element->GetAttribute("flowyType");
-                    wxString color_string = element->GetAttribute("Colors");
+                    int startms = element.attribute("startTime").as_int() * 10;
+                    int endms = element.attribute("endTime").as_int() * 10;
+                    wxString type = element.attribute("flowyType").as_string();
+                    wxString color_string = element.attribute("Colors").as_string();
                     std::string color;
                     std::string palette = "C_BUTTON_Palette1=" + (std::string)color + ",";
                     int cnt = 1;
@@ -5153,22 +5150,22 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
                         cnt++;
                     }
 
-                    int layer_index = wxAtoi(element->GetAttribute("layer"));
-                    int acceleration = wxAtoi(element->GetAttribute("acceleration"));
+                    int layer_index = element.attribute("layer").as_int();
+                    int acceleration = element.attribute("acceleration").as_int();
                     if (!reverse_xy)
-                        centerX = element->GetAttribute("centerX").ToStdString();
+                        centerX = element.attribute("centerX").as_string();
                     else
-                        centerX = element->GetAttribute("centerY").ToStdString();
+                        centerX = element.attribute("centerY").as_string();
                     if (!CalcPercentage(centerX, num_columns, false, x_offset))
                         continue;
                     if (!reverse_xy)
-                        centerY = element->GetAttribute("centerY").ToStdString();
+                        centerY = element.attribute("centerY").as_string();
                     else
-                        centerY = element->GetAttribute("centerX").ToStdString();
+                        centerY = element.attribute("centerX").as_string();
                     if (!CalcPercentage(centerY, num_rows, reverse_rows, y_offset))
                         continue;
-                    int startAngle = wxAtoi(element->GetAttribute("startAngle"));
-                    int endAngle = wxAtoi(element->GetAttribute("endAngle"));
+                    int startAngle = element.attribute("startAngle").as_int();
+                    int endAngle = element.attribute("endAngle").as_int();
                     if (reverse_xy) {
                         startAngle -= 90;
                         endAngle -= 90;
@@ -5182,30 +5179,30 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
                     int revolutions = std::abs(endAngle - startAngle);
                     if (revolutions == 0)
                         revolutions = 3; // algorithm needs non-zero value until we figure out better way to draw effect
-                    int startRadius = wxAtoi(element->GetAttribute("startRadius"));
-                    int endRadius = wxAtoi(element->GetAttribute("endRadius"));
+                    int startRadius = element.attribute("startRadius").as_int();
+                    int endRadius = element.attribute("endRadius").as_int();
                     if (type == "Spiral") {
-                        int tailms = wxAtoi(element->GetAttribute("tailTimeLength")) * 10;
+                        int tailms = element.attribute("tailTimeLength").as_int() * 10;
                         endms += tailms;
                         double duration = (1.0 - (double)tailms / ((double)endms - (double)startms)) * 100.0;
-                        int startWidth = wxAtoi(element->GetAttribute("startDotSize"));
-                        int endWidth = wxAtoi(element->GetAttribute("endDotSize"));
+                        int startWidth = element.attribute("startDotSize").as_int();
+                        int endWidth = element.attribute("endDotSize").as_int();
                         std::string settings = "E_CHECKBOX_Galaxy_Reverse=" + wxString::Format("%d", endAngle < startAngle).ToStdString() + ",E_CHECKBOX_Galaxy_Blend_Edges=1" + ",E_CHECKBOX_Galaxy_Inward=1" + ",E_NOTEBOOK_Galaxy=Start,E_SLIDER_Galaxy_Accel=" + wxString::Format("%d", acceleration).ToStdString() + ",E_SLIDER_Galaxy_CenterX=" + centerX + ",E_SLIDER_Galaxy_CenterY=" + centerY + ",E_SLIDER_Galaxy_Duration=" + wxString::Format("%d", (int)duration).ToStdString() + ",E_SLIDER_Galaxy_End_Radius=" + wxString::Format("%d", endRadius).ToStdString() + ",E_SLIDER_Galaxy_End_Width=" + wxString::Format("%d", endWidth).ToStdString() + ",E_SLIDER_Galaxy_Revolutions=" + wxString::Format("%d", revolutions).ToStdString() + ",E_SLIDER_Galaxy_Start_Angle=" + wxString::Format("%d", startAngle).ToStdString() + ",E_SLIDER_Galaxy_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString() + ",E_SLIDER_Galaxy_Start_Width=" + wxString::Format("%d", startWidth).ToStdString() + blend_string;
 
                         layer = FindOpenLayer(model, layer_index, startms, endms, reserved);
                         layer->AddEffect(0, "Galaxy", settings, palette, startms, endms, false, false);
                     } else if (type == "Shockwave") {
-                        int startWidth = wxAtoi(element->GetAttribute("headWidth"));
-                        int endWidth = wxAtoi(element->GetAttribute("tailWidth"));
+                        int startWidth = element.attribute("headWidth").as_int();
+                        int endWidth = element.attribute("tailWidth").as_int();
                         std::string settings = "E_CHECKBOX_Shockwave_Blend_Edges=1,E_NOTEBOOK_Shockwave=Position,E_SLIDER_Shockwave_Accel=" + wxString::Format("%d", acceleration).ToStdString() + ",E_SLIDER_Shockwave_CenterX=" + centerX + ",E_SLIDER_Shockwave_CenterY=" + centerY + ",E_SLIDER_Shockwave_End_Radius=" + wxString::Format("%d", endRadius).ToStdString() + ",E_SLIDER_Shockwave_End_Width=" + wxString::Format("%d", endWidth).ToStdString() + ",E_SLIDER_Shockwave_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString() + ",E_SLIDER_Shockwave_Start_Width=" + wxString::Format("%d", startWidth).ToStdString() + blend_string;
                         layer = FindOpenLayer(model, layer_index, startms, endms, reserved);
                         layer->AddEffect(0, "Shockwave", settings, palette, startms, endms, false, false);
                     } else if (type == "Fan") {
-                        int revolutionsPerSecond = wxAtoi(element->GetAttribute("revolutionsPerSecond"));
-                        int blades = wxAtoi(element->GetAttribute("blades"));
-                        int blade_width = wxAtoi(element->GetAttribute("width"));
-                        int elementAngle = wxAtoi(element->GetAttribute("elementAngle"));
-                        int elementStepAngle = wxAtoi(element->GetAttribute("elementStepAngle"));
+                        int revolutionsPerSecond = element.attribute("revolutionsPerSecond").as_int();
+                        int blades = element.attribute("blades").as_int();
+                        int blade_width = element.attribute("width").as_int();
+                        int elementAngle = element.attribute("elementAngle").as_int();
+                        int elementStepAngle = element.attribute("elementStepAngle").as_int();
                         int numElements = elementAngle / elementStepAngle;
                         numElements = std::max(1, numElements);
                         numElements = std::min(numElements, 4);
@@ -5220,19 +5217,19 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
                     }
                 }
             }
-        } else if ("scenes" == e->GetName()) {
-            for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext()) {
-                if ("scene" == element->GetName()) {
-                    wxString startms = element->GetAttribute("startCentisecond") + "0";
-                    wxString endms = element->GetAttribute("endCentisecond") + "0";
-                    wxString type = element->GetAttribute("type");
-                    int layer_index = wxAtoi(element->GetAttribute("layer"));
-                    xlColor startc = GetColor(element->GetAttribute("red1").ToStdString(),
-                                              element->GetAttribute("green1").ToStdString(),
-                                              element->GetAttribute("blue1").ToStdString());
-                    xlColor endc = GetColor(element->GetAttribute("red2").ToStdString(),
-                                            element->GetAttribute("green2").ToStdString(),
-                                            element->GetAttribute("blue2").ToStdString());
+        } else if ("scenes" == ename) {
+            for (pugi::xml_node element = e.first_child(); element; element = element.next_sibling()) {
+                if ("scene" == std::string_view(element.name())) {
+                    wxString startms = wxString(element.attribute("startCentisecond").as_string()) + "0";
+                    wxString endms = wxString(element.attribute("endCentisecond").as_string()) + "0";
+                    wxString type = element.attribute("type").as_string();
+                    int layer_index = element.attribute("layer").as_int();
+                    xlColor startc = GetColor(element.attribute("red1").as_string(),
+                                              element.attribute("green1").as_string(),
+                                              element.attribute("blue1").as_string());
+                    xlColor endc = GetColor(element.attribute("red2").as_string(),
+                                            element.attribute("green2").as_string(),
+                                            element.attribute("blue2").as_string());
                     while (model->GetEffectLayerCount() < layer_index) {
                         model->AddEffectLayer();
                     }
@@ -5312,7 +5309,7 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
                             int time = wxAtoi(endms) - wxAtoi(startms);
                             int ft = _seqData.FrameTime();
                             int numFrames = time / ft;
-                            std::string animName = imagePfx + "/s" + element->GetAttribute("savedIndex").ToStdString() + ".png";
+                            std::string animName = imagePfx + "/s" + element.attribute("savedIndex").as_string() + ".png";
                             std::vector<wxImage> animFrames;
                             animFrames.reserve(numFrames);
                             for (int x = 0; x < numFrames; x++) {
@@ -5327,10 +5324,10 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
                                 for (int cx = 0; cx < num_columns; cx++)
                                     for (int cy = 0; cy < num_rows; cy++)
                                         img.SetAlpha(cx, cy, wxALPHA_TRANSPARENT);
-                                for (wxXmlNode* e2 = element->GetChildren(); e2; e2 = e2->GetNext()) {
-                                    if (e2->GetName() == "element") {
-                                        int px = wxAtoi(e2->GetAttribute("ribbonIndex"));
-                                        int py = wxAtoi(e2->GetAttribute("pixelIndex")) - y_offset;
+                                for (pugi::xml_node e2 = element.first_child(); e2; e2 = e2.next_sibling()) {
+                                    if (std::string_view(e2.name()) == "element") {
+                                        int px = e2.attribute("ribbonIndex").as_int();
+                                        int py = e2.attribute("pixelIndex").as_int() - y_offset;
                                         if (reverse_xy) std::swap(px, py);
                                         if (px < num_columns && py >= 0 && py < num_rows) {
                                             img.SetRGB(px, py, color.Red(), color.Green(), color.Blue());
@@ -5372,19 +5369,19 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
                     }
                 }
             }
-        } else if ("textActions" == e->GetName()) {
-            for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext()) {
-                if ("textAction" == element->GetName()) {
-                    wxString startms = element->GetAttribute("startCentisecond") + "0";
-                    wxString endms = element->GetAttribute("endCentisecond") + "0";
-                    std::string text = element->GetAttribute("text").ToStdString();
-                    wxString fontName = element->GetAttribute("fontName");
-                    int fontSize = wxAtoi(element->GetAttribute("fontCapsHeight", "6"));
-                    int fontCellWidth = wxAtoi(element->GetAttribute("fontCellWidth", "6"));
-                    int fontCellHeight = wxAtoi(element->GetAttribute("fontCellHeight", "6"));
-                    wxString colorType = element->GetAttribute("colorType", "chooseColor");
-                    int fCI = wxAtoi(element->GetAttribute("firstColorIndex", "0"));
-                    wxString mask = element->GetAttribute("maskType");
+        } else if ("textActions" == ename) {
+            for (pugi::xml_node element = e.first_child(); element; element = element.next_sibling()) {
+                if ("textAction" == std::string_view(element.name())) {
+                    wxString startms = wxString(element.attribute("startCentisecond").as_string()) + "0";
+                    wxString endms = wxString(element.attribute("endCentisecond").as_string()) + "0";
+                    std::string text = element.attribute("text").as_string();
+                    wxString fontName = element.attribute("fontName").as_string();
+                    int fontSize = element.attribute("fontCapsHeight").as_int(6);
+                    int fontCellWidth = element.attribute("fontCellWidth").as_int(6);
+                    int fontCellHeight = element.attribute("fontCellHeight").as_int(6);
+                    wxString colorType = element.attribute("colorType").as_string("chooseColor");
+                    int fCI = element.attribute("firstColorIndex").as_int(0);
+                    wxString mask = element.attribute("maskType").as_string();
                     bool use_xl_font = true;
                     wxString xl_font_name = wxString::Format("%d-%dx%d %s", fontSize, fontCellWidth, fontCellHeight, fontName);
                     xl_font_name.Replace('_', ' ');
@@ -5400,25 +5397,25 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
                         fontSize += 4;
                     }
 
-                    int rotation = wxAtoi(element->GetAttribute("rotation", "90"));
+                    int rotation = element.attribute("rotation").as_int(90);
                     if (reverse_xy) {
                         rotation -= 90;
                     }
-                    // int direction = wxAtoi(element->GetAttribute("direction", "0"));
-                    int xStart = wxAtoi(element->GetAttribute("xStart", "0"));
-                    int yStart = wxAtoi(element->GetAttribute("yStart", "0"));
-                    int xEnd = wxAtoi(element->GetAttribute("xEnd", "0"));
-                    int yEnd = wxAtoi(element->GetAttribute("yEnd", "0"));
+                    // int direction = element.attribute("direction").as_int(0);
+                    int xStart = element.attribute("xStart").as_int(0);
+                    int yStart = element.attribute("yStart").as_int(0);
+                    int xEnd = element.attribute("xEnd").as_int(0);
+                    int yEnd = element.attribute("yEnd").as_int(0);
                     if (reverse_xy) {
                         std::swap(xStart, yStart);
                         std::swap(xEnd, yEnd);
                     }
 
-                    xlColor color = GetColor(element->GetAttribute("red").ToStdString(),
-                                             element->GetAttribute("green").ToStdString(),
-                                             element->GetAttribute("blue").ToStdString());
+                    xlColor color = GetColor(element.attribute("red").as_string(),
+                                             element.attribute("green").as_string(),
+                                             element.attribute("blue").as_string());
 
-                    int layer_index = wxAtoi(element->GetAttribute("layer"));
+                    int layer_index = element.attribute("layer").as_int();
                     while (model->GetEffectLayerCount() < layer_index) {
                         model->AddEffectLayer();
                     }
@@ -5516,20 +5513,20 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
                 }
             }
 
-        } else if ("imageActions" == e->GetName()) {
-            for (wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext()) {
-                if ("imageAction" == element->GetName()) {
+        } else if ("imageActions" == ename) {
+            for (pugi::xml_node element = e.first_child(); element; element = element.next_sibling()) {
+                if ("imageAction" == std::string_view(element.name())) {
                     //<imageAction name="Image Action 14" colorType="nativeColor" maskType="normal" rotation="0" direction="8"
                     //  stopAtEdge="0" layer="3" xStart="-1" yStart="0" xEnd="0" yEnd="0" startCentisecond="115" endCentisecond="145"
                     //  preRampTime="0" rampTime="0" fadeToBright="0" fadeFromBright="0" imageIndex="5" savedIndex="0">
 
-                    wxString name = element->GetAttribute("name");
-                    int idx = wxAtoi(element->GetAttribute("imageIndex"));
-                    int startms = wxAtoi(element->GetAttribute("startCentisecond")) * 10;
-                    int endms = wxAtoi(element->GetAttribute("endCentisecond")) * 10;
-                    int layer_index = wxAtoi(element->GetAttribute("layer"));
-                    int rampDownTime = wxAtoi(element->GetAttribute("rampTime")) * 10;
-                    int rampUpTime = wxAtoi(element->GetAttribute("preRampTime")) * 10;
+                    wxString name = element.attribute("name").as_string();
+                    int idx = element.attribute("imageIndex").as_int();
+                    int startms = element.attribute("startCentisecond").as_int() * 10;
+                    int endms = element.attribute("endCentisecond").as_int() * 10;
+                    int layer_index = element.attribute("layer").as_int();
+                    int rampDownTime = element.attribute("rampTime").as_int() * 10;
+                    int rampUpTime = element.attribute("preRampTime").as_int() * 10;
                     while (model->GetEffectLayerCount() <= layer_index) {
                         model->AddEffectLayer();
                     }
@@ -5546,10 +5543,10 @@ bool xLightsFrame::ImportSuperStar(Element* model, wxXmlDocument& input_xml, int
                         rampDownTimeString = wxString::Format("%lf", fade);
                     }
 
-                    int startx = wxAtoi(element->GetAttribute("xStart"));
-                    int starty = wxAtoi(element->GetAttribute("yStart"));
-                    int endx = wxAtoi(element->GetAttribute("xEnd"));
-                    int endy = wxAtoi(element->GetAttribute("yEnd"));
+                    int startx = element.attribute("xStart").as_int();
+                    int starty = element.attribute("yStart").as_int();
+                    int endx = element.attribute("xEnd").as_int();
+                    int endy = element.attribute("yEnd").as_int();
                     if (reverse_xy) {
                         std::swap(startx, starty);
                         std::swap(endx, endy);
@@ -5638,9 +5635,9 @@ void AddLSPEffect(EffectLayer* layer, int pos, int epos, int in, int out, int ef
     layer->AddEffect(0, effect, settings, palette, start_time, end_time, false, false);
 }
 
-void MapLSPEffects(EffectLayer* layer, wxXmlNode* node, const wxColor& c)
+void MapLSPEffects(EffectLayer* layer, pugi::xml_node node, const wxColor& c)
 {
-    if (node == nullptr) {
+    if (!node) {
         return;
     }
     int eff = -1;
@@ -5648,26 +5645,26 @@ void MapLSPEffects(EffectLayer* layer, wxXmlNode* node, const wxColor& c)
 
     int bst = 0, ben = 0;
 
-    for (wxXmlNode* cnd = node->GetChildren(); cnd != nullptr; cnd = cnd->GetNext()) {
-        if (cnd->GetName() == "Tracks") {
-            for (wxXmlNode* cnnd = cnd->GetChildren(); cnnd != nullptr; cnnd = cnnd->GetNext()) {
-                if (cnnd->GetName() == "Track") {
-                    for (wxXmlNode* ind = cnnd->GetChildren(); ind != nullptr; ind = ind->GetNext()) {
-                        if (ind->GetName() == "Intervals") {
-                            for (wxXmlNode* ti = ind->GetChildren(); ti != nullptr; ti = ti->GetNext()) {
-                                if (ti->GetName() == "TimeInterval") {
-                                    int neff = wxAtoi(ti->GetAttribute("eff", "4"));
+    for (pugi::xml_node cnd = node.first_child(); cnd; cnd = cnd.next_sibling()) {
+        if (std::string_view(cnd.name()) == "Tracks") {
+            for (pugi::xml_node cnnd = cnd.first_child(); cnnd; cnnd = cnnd.next_sibling()) {
+                if (std::string_view(cnnd.name()) == "Track") {
+                    for (pugi::xml_node ind = cnnd.first_child(); ind; ind = ind.next_sibling()) {
+                        if (std::string_view(ind.name()) == "Intervals") {
+                            for (pugi::xml_node ti = ind.first_child(); ti; ti = ti.next_sibling()) {
+                                if (std::string_view(ti.name()) == "TimeInterval") {
+                                    int neff = ti.attribute("eff").as_int(4);
                                     if (eff != -1 && neff != 7) {
-                                        int npos = wxAtoi(ti->GetAttribute("pos", "1"));
+                                        int npos = ti.attribute("pos").as_int(1);
                                         AddLSPEffect(layer, pos, npos, in, out, eff, c, bst, ben);
                                     }
                                     if (neff != 7) {
-                                        pos = wxAtoi(ti->GetAttribute("pos", "1"));
+                                        pos = ti.attribute("pos").as_int(1);
                                         eff = neff;
-                                        in = wxAtoi(ti->GetAttribute("in", "1"));
-                                        out = wxAtoi(ti->GetAttribute("out", "1"));
-                                        bst = wxAtoi(ti->GetAttribute("bst", "0"));
-                                        ben = wxAtoi(ti->GetAttribute("ben", "0"));
+                                        in = ti.attribute("in").as_int(1);
+                                        out = ti.attribute("out").as_int(1);
+                                        bst = ti.attribute("bst").as_int(0);
+                                        ben = ti.attribute("ben").as_int(0);
                                     }
                                 }
                             }
@@ -5679,13 +5676,13 @@ void MapLSPEffects(EffectLayer* layer, wxXmlNode* node, const wxColor& c)
     }
 }
 
-void MapLSPStrand(StrandElement* layer, wxXmlNode* node, const wxColor& c)
+void MapLSPStrand(StrandElement* layer, pugi::xml_node node, const wxColor& c)
 {
     int nodeNum = 0;
-    for (wxXmlNode* nd = node->GetChildren(); nd != nullptr; nd = nd->GetNext()) {
-        if (nd->GetName() == "Channels") {
-            for (wxXmlNode* cnd = nd->GetChildren(); cnd != nullptr; cnd = cnd->GetNext()) {
-                if (cnd->GetName() == "Channel") {
+    for (pugi::xml_node nd = node.first_child(); nd; nd = nd.next_sibling()) {
+        if (std::string_view(nd.name()) == "Channels") {
+            for (pugi::xml_node cnd = nd.first_child(); cnd; cnd = cnd.next_sibling()) {
+                if (std::string_view(cnd.name()) == "Channel") {
                     EffectLayer* el = layer->GetNodeLayer(nodeNum, true);
                     MapLSPEffects(el, cnd, c);
                     nodeNum++;
@@ -5713,38 +5710,51 @@ void xLightsFrame::ImportLSP(const wxFileName& filename)
     wxZipInputStream zin(fin);
     wxZipEntry* ent = zin.GetNextEntry();
 
-    wxXmlDocument seq_xml;
-    std::map<wxString, wxXmlDocument> cont_xml;
-    std::map<wxString, wxXmlNode*> nodes;
-    std::map<wxString, wxXmlNode*> strandNodes;
+    pugi::xml_document seq_xml;
+    std::map<wxString, pugi::xml_document> cont_xml;
+    std::map<wxString, pugi::xml_node> nodes;
+    std::map<wxString, pugi::xml_node> strandNodes;
 
     while (ent != nullptr) {
+        // Read zip entry into buffer for pugixml
+        std::vector<char> xmlBuffer;
+        {
+            char chunk[4096];
+            while (!zin.Eof()) {
+                zin.Read(chunk, sizeof(chunk));
+                size_t bytesRead = zin.LastRead();
+                if (bytesRead == 0) break;
+                xmlBuffer.insert(xmlBuffer.end(), chunk, chunk + bytesRead);
+            }
+        }
+
         if (ent->GetName() == "Sequence") {
-            seq_xml.Load(zin);
+            seq_xml.load_buffer(xmlBuffer.data(), xmlBuffer.size());
         } else {
             std::string id("1");
-            wxXmlDocument& doc = cont_xml[ent->GetName()];
+            pugi::xml_document& doc = cont_xml[ent->GetName()];
 
-            if (doc.Load(zin)) {
-                for (wxXmlNode* nd = doc.GetRoot()->GetChildren(); nd != nullptr; nd = nd->GetNext()) {
-                    if (nd->GetName() == "ControllerName") {
-                        id = nd->GetChildren()->GetContent();
+            if (doc.load_buffer(xmlBuffer.data(), xmlBuffer.size())) {
+                pugi::xml_node root = doc.document_element();
+                for (pugi::xml_node nd = root.first_child(); nd; nd = nd.next_sibling()) {
+                    if (std::string_view(nd.name()) == "ControllerName") {
+                        id = nd.text().get();
                     }
                 }
-                strandNodes[id] = doc.GetRoot();
+                strandNodes[id] = root;
                 dlg.ccrNames.push_back(id);
-                for (wxXmlNode* nd = doc.GetRoot()->GetChildren(); nd != nullptr; nd = nd->GetNext()) {
-                    if (nd->GetName() == "Channels") {
-                        for (wxXmlNode* cnd = nd->GetChildren(); cnd != nullptr; cnd = cnd->GetNext()) {
-                            if (cnd->GetName() == "Channel") {
+                for (pugi::xml_node nd = root.first_child(); nd; nd = nd.next_sibling()) {
+                    if (std::string_view(nd.name()) == "Channels") {
+                        for (pugi::xml_node cnd = nd.first_child(); cnd; cnd = cnd.next_sibling()) {
+                            if (std::string_view(cnd.name()) == "Channel") {
                                 std::string cname;
-                                for (wxXmlNode* cnnd = cnd->GetChildren(); cnnd != nullptr; cnnd = cnnd->GetNext()) {
-                                    if (cnnd->GetName() == "Tracks") {
-                                        for (wxXmlNode* tnd = cnnd->GetChildren(); tnd != nullptr; tnd = tnd->GetNext()) {
-                                            if (tnd->GetName() == "Track") {
-                                                for (wxXmlNode* tnd2 = tnd->GetChildren(); tnd2 != nullptr; tnd2 = tnd2->GetNext()) {
-                                                    if (tnd2->GetName() == "Name") {
-                                                        cname = tnd2->GetChildren()->GetContent();
+                                for (pugi::xml_node cnnd = cnd.first_child(); cnnd; cnnd = cnnd.next_sibling()) {
+                                    if (std::string_view(cnnd.name()) == "Tracks") {
+                                        for (pugi::xml_node tnd = cnnd.first_child(); tnd; tnd = tnd.next_sibling()) {
+                                            if (std::string_view(tnd.name()) == "Track") {
+                                                for (pugi::xml_node tnd2 = tnd.first_child(); tnd2; tnd2 = tnd2.next_sibling()) {
+                                                    if (std::string_view(tnd2.name()) == "Name") {
+                                                        cname = tnd2.text().get();
                                                     }
                                                 }
                                             }

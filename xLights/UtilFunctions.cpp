@@ -765,73 +765,6 @@ std::string EscapeRegex(const std::string& s) {
     return safe;
 }
 
-wxString GetXmlNodeAttribute(wxXmlNode* parent, const std::string& path, const std::string& attribute, const std::string& def) {
-    wxXmlNode* curr = parent;
-    auto pe = wxSplit(path, '/');
-
-    for (const auto& it : pe) {
-        for (wxXmlNode* n = curr->GetChildren(); n != nullptr; n = n->GetNext()) {
-            if (n->GetName() == it) {
-                if (it == pe.back()) {
-                    return n->GetAttribute(attribute);
-                }
-
-                curr = n;
-                break;
-            }
-        }
-    }
-
-    return def;
-}
-
-wxString GetXmlNodeContent(wxXmlNode* parent, const std::string& path, const std::string& def) {
-    wxXmlNode* curr = parent;
-    auto pe = wxSplit(path, '/');
-
-    for (const auto& it : pe) {
-        for (wxXmlNode* n = curr->GetChildren(); n != nullptr; n = n->GetNext()) {
-            if (n->GetName() == it) {
-                if (it == pe.back()) {
-                    if (n->GetChildren() != nullptr)
-                        return n->GetChildren()->GetContent();
-                    return def;
-                }
-
-                curr = n;
-                break;
-            }
-        }
-    }
-
-    return def;
-}
-
-std::vector<std::string> GetXmlNodeListContent(wxXmlNode* parent, const std::string& path, const std::string& listNodeName) {
-    std::vector<std::string> res;
-
-    wxXmlNode* curr = parent;
-    auto pe = wxSplit(path, '/');
-
-    for (const auto& it : pe) {
-        for (wxXmlNode* n = curr->GetChildren(); n != nullptr; n = n->GetNext()) {
-            if (n->GetName() == it) {
-                curr = n;
-                break;
-            }
-        }
-    }
-
-    if (curr != nullptr) {
-        for (wxXmlNode* n = curr->GetChildren(); n != nullptr; n = n->GetNext()) {
-            if (n->GetName() == listNodeName && n->GetChildren() != nullptr) {
-                res.push_back(n->GetChildren()->GetContent());
-            }
-        }
-    }
-
-    return res;
-}
 
 bool DoesXmlNodeExist(pugi::xml_node parent, const std::string& path) {
     pugi::xml_node curr = parent;
@@ -931,12 +864,6 @@ std::vector<std::string> GetXmlNodeListContent(pugi::xml_node parent, const std:
     return res;
 }
 
-void SetXmlNodeAttribute(wxXmlNode* node, wxString const& property, wxString const& value) {
-    if (node->HasAttribute(property)) {
-        node->DeleteAttribute(property);
-    }
-    node->AddAttribute(property, value);
-}
 
 void SetXmlNodeAttribute(pugi::xml_node node, const std::string& property, const std::string& value) {
     auto attr = node.attribute(property);

@@ -12,7 +12,7 @@
 
 #include <wx/colour.h>
 #include <wx/gdicmn.h>
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 #include <map>
 #include <cmath>
@@ -237,7 +237,6 @@ public:
 
 class Vixen3 {
 
-    wxXmlDocument _doc;
     std::string _filename;
     std::string _systemFile;
     std::map<std::string, std::list<VixenTiming>> _timingData;
@@ -245,8 +244,8 @@ class Vixen3 {
     std::map<std::string, std::list<VixenEffect>> _effectData;
     bool _systemFound = false;
 
-    void ProcessNode(wxXmlNode* n, std::map<std::string, std::string>& models);
-    std::vector<VixenColor> ProcessColorData(wxXmlNode* n);
+    void ProcessNode(pugi::xml_node n, std::map<std::string, std::string>& models);
+    std::vector<VixenColor> ProcessColorData(pugi::xml_node n);
 
     public:
 

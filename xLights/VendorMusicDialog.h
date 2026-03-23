@@ -24,7 +24,7 @@
 #include <wx/treectrl.h>
 //*)
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 #include <wx/filename.h>
 #include <list>
 #include <string>
@@ -38,7 +38,7 @@ class VendorMusicDialog: public wxDialog
     std::string _showFolder;
     wxImage _vendorImage;
 
-    wxXmlDocument* GetXMLFromURL(wxURI url, std::string& filename) const;
+    pugi::xml_document* GetXMLFromURL(wxURI url, std::string& filename) const;
     bool LoadTree(std::string hash);
     bool AddSequenceLyric(wxTreeItemId v, MSLVendor* vendor, std::string hash);
     bool AddSequenceLyricInCategory(wxTreeItemId v, MSLVendor* vendor, std::string category);

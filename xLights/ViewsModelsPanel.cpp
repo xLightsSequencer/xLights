@@ -15,7 +15,7 @@
 #include <wx/string.h>
 //*)
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 #include <wx/dnd.h>
 
 #include "../include/model-16.xpm"
@@ -2719,12 +2719,11 @@ void ViewsModelsPanel::ImportRGBEffectsView()
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Importing View From: %s", (const char*)filename.c_str());
 
-    wxXmlDocument doc;
-    doc.Load(filename);
-    if (doc.IsOk()) {
-        wxXmlNode* views = nullptr;
-        for (wxXmlNode* node = doc.GetRoot()->GetChildren(); node != nullptr; node = node->GetNext()) {
-            if (node->GetName() == "views") {
+    pugi::xml_document doc;
+    if (doc.load_file(filename.mb_str())) {
+        pugi::xml_node views;
+        for (pugi::xml_node node = doc.document_element().first_child(); node; node = node.next_sibling()) {
+            if (std::string_view(node.name()) == "views") {
                 views = node;
                 break;
             }
@@ -2734,9 +2733,9 @@ void ViewsModelsPanel::ImportRGBEffectsView()
             std::map<wxString, wxString> viewMap;
             wxArrayString viewList;
 
-            for (wxXmlNode* node = views->GetChildren(); node != nullptr; node = node->GetNext()) {
-                wxString const view_name = node->GetAttribute("name");
-                wxString const view_models = node->GetAttribute("models");
+            for (pugi::xml_node node = views.first_child(); node; node = node.next_sibling()) {
+                wxString const view_name = node.attribute("name").as_string();
+                wxString const view_models = node.attribute("models").as_string();
                 viewMap.insert({ view_name , view_models });
                 viewList.emplace_back(view_name);
             }
@@ -2772,13 +2771,12 @@ void ViewsModelsPanel::ImportSequenceMasterView()
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Importing Master View From: %s", (const char*)filename.c_str());
 
-    wxXmlDocument doc;
-    doc.Load(filename);
-    if (doc.IsOk()) {
+    pugi::xml_document doc;
+    if (doc.load_file(filename.mb_str())) {
 
-        wxXmlNode* dispElements = nullptr;
-        for (wxXmlNode* node = doc.GetRoot()->GetChildren(); node != nullptr; node = node->GetNext()) {
-            if (node->GetName() == "DisplayElements") {
+        pugi::xml_node dispElements;
+        for (pugi::xml_node node = doc.document_element().first_child(); node; node = node.next_sibling()) {
+            if (std::string_view(node.name()) == "DisplayElements") {
                 dispElements = node;
                 break;
             }
@@ -2788,9 +2786,9 @@ void ViewsModelsPanel::ImportSequenceMasterView()
             wxArrayString modelList;
             wxArrayString timingList;
 
-            for (wxXmlNode* node = dispElements->GetChildren(); node != nullptr; node = node->GetNext()) {
-                wxString const elem_name = node->GetAttribute("name");
-                wxString const elem_type = node->GetAttribute("type");
+            for (pugi::xml_node node = dispElements.first_child(); node; node = node.next_sibling()) {
+                wxString const elem_name = node.attribute("name").as_string();
+                wxString const elem_type = node.attribute("type").as_string();
 
                 if (elem_type == "timing") {
                     timingList.emplace_back(elem_name);

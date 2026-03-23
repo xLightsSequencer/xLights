@@ -255,7 +255,7 @@ bool TipOfTheDayDialog::IsLevelGreaterOrEqualTo(const std::string& act, const st
     return false;
 }
 
-bool TipOfTheDayDialog::GetTODAtLevel(wxXmlDocument& doc, TODTracker& tracker, const std::string& level)
+bool TipOfTheDayDialog::GetTODAtLevel(pugi::xml_document& doc, TODTracker& tracker, const std::string& level)
 {
     uint32_t unvisited = 0;
     uint32_t of = 0;
@@ -269,14 +269,14 @@ bool TipOfTheDayDialog::GetTODAtLevel(wxXmlDocument& doc, TODTracker& tracker, c
         #define PLAT "UNKNOWN"
     #endif
 
-    for (auto n = doc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
-        if (n->GetName() == "tip") {
-            auto url = n->GetAttribute("url", "");
+    for (pugi::xml_node n = doc.document_element().first_child(); n; n = n.next_sibling()) {
+        if (std::string_view(n.name()) == "tip") {
+            std::string url = n.attribute("url").as_string();
             if (url != "") {
-                auto exclude = n->GetAttribute("exclude", "");
+                std::string exclude = n.attribute("exclude").as_string();
 
                 if (!Contains(exclude, PLAT)) {
-                    auto tiplevel = n->GetAttribute("level", "Beginner");
+                    std::string tiplevel = n.attribute("level").as_string("Beginner");
 
                     if (level == tiplevel) {
                         ++of;
@@ -299,13 +299,13 @@ bool TipOfTheDayDialog::GetTODAtLevel(wxXmlDocument& doc, TODTracker& tracker, c
 
     uint32_t choice = rand01() * (unvisited - 1);
 
-    auto n = doc.GetRoot()->GetChildren();
+    pugi::xml_node n = doc.document_element().first_child();
     do {
-        auto url = n->GetAttribute("url", "");
+        std::string url = n.attribute("url").as_string();
         if (url != "") {
-            auto exclude = n->GetAttribute("exclude", "");
+            std::string exclude = n.attribute("exclude").as_string();
             if (!Contains(exclude, PLAT)) {
-                auto tiplevel = n->GetAttribute("level", "Beginner");
+                std::string tiplevel = n.attribute("level").as_string("Beginner");
                 if (tracker.GetVisited(url) == 0 && level == tiplevel) {
                     if (choice == 0) {
                         tracker.AddVisited(url);
@@ -322,8 +322,8 @@ bool TipOfTheDayDialog::GetTODAtLevel(wxXmlDocument& doc, TODTracker& tracker, c
                 }
             }
         }
-        n = n->GetNext();
-    } while (n != nullptr);
+        n = n.next_sibling();
+    } while (n);
 
     return false;
 }
@@ -334,7 +334,7 @@ bool TipOfTheDayDialog::DoTipOfDay(bool force)
 
     logger_base.debug("Getting tip of the day");
 
-    wxXmlDocument doc;
+    pugi::xml_document doc;
 #ifdef USE_GITHUB_HOSTED_TOD
     _thread = nullptr;
 #else
@@ -366,7 +366,7 @@ bool TipOfTheDayDialog::DoTipOfDay(bool force)
         return false;
     } else {
         logger_base.debug("Loading tip of the day xml file %s.", (const char*)file.c_str());
-        if (!doc.Load(file)) {
+        if (!doc.load_file(file.c_str())) {
             logger_base.warn("Error loading xml file: %s", (const char*)file.c_str());
             return false;
         }

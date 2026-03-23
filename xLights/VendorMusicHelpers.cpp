@@ -35,36 +35,36 @@ std::string MSLSequenceLyric::GetExt() const
     return wxFileName(_downloadFile.GetFullName()).GetExt();
 }
 
-MSLSequenceLyric::MSLSequenceLyric(wxXmlNode* n, MSLVendor* vendor)
+MSLSequenceLyric::MSLSequenceLyric(pugi::xml_node n, MSLVendor* vendor)
 {
 	_vendor = vendor;
 
-	for (wxXmlNode* l = n->GetChildren(); l != nullptr; l = l->GetNext())
+	for (pugi::xml_node l = n.first_child(); l; l = l.next_sibling())
 	{
-		wxString nn = l->GetName().Lower().ToStdString();
+		std::string nn = Lower(l.name());
 		if (nn == "hash")
 		{
-			_hashes.push_back(l->GetNodeContent().ToStdString());
+			_hashes.push_back(l.text().get());
 		}
         else if (nn == "categoryid")
         {
-            _categoryIds.push_back(l->GetNodeContent().ToStdString());
+            _categoryIds.push_back(l.text().get());
         }
         else if (nn == "creator")
 		{
-			_creator = l->GetNodeContent().ToStdString();
+			_creator = l.text().get();
 		}
 		else if (nn == "title")
 		{
-			_title = l->GetNodeContent().ToStdString();
+			_title = l.text().get();
 		}
 		else if (nn == "artist")
 		{
-			_artist = l->GetNodeContent().ToStdString();
+			_artist = l.text().get();
 		}
 		else if (nn == "notes")
 		{
-			_notes = l->GetNodeContent().ToStdString();
+			_notes = l.text().get();
 		}
 		else if (nn == "sequence")
 		{
@@ -76,19 +76,19 @@ MSLSequenceLyric::MSLSequenceLyric(wxXmlNode* n, MSLVendor* vendor)
 		}
 		else if (nn == "weblink")
 		{
-			_webpage = wxURI(l->GetNodeContent());
+			_webpage = wxURI(l.text().get());
 		}
 		else if (nn == "video")
 		{
-			_video = wxURI(l->GetNodeContent());
+			_video = wxURI(l.text().get());
 		}
 		else if (nn == "music")
 		{
-			_music = wxURI(l->GetNodeContent());
+			_music = wxURI(l.text().get());
 		}
 		else if (nn == "download")
 		{
-			_download = wxURI(l->GetNodeContent());
+			_download = wxURI(l.text().get());
 		}
 		else
 		{
@@ -249,59 +249,59 @@ bool compare_seq_lyrics(const MSLSequenceLyric* first, const MSLSequenceLyric* s
 	return Lower(first->_title) < Lower(second->_title);
 }
 
-MSLVendor::MSLVendor(wxXmlDocument* doc, int max, CachedFileDownloader* cache)
+MSLVendor::MSLVendor(pugi::xml_document& doc, int max, CachedFileDownloader* cache)
 {
 	_max = max;
 
-	if (doc->IsOk())
+	pugi::xml_node root = doc.document_element();
+	if (root)
 	{
-		wxXmlNode* root = doc->GetRoot();
-		wxString nn = root->GetName().Lower();
+		std::string nn = Lower(root.name());
 		if (nn == "musicinventory")
 		{
-			for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext())
+			for (pugi::xml_node e = root.first_child(); e; e = e.next_sibling())
 			{
-				nn = e->GetName().Lower();
+				nn = Lower(e.name());
 				if (nn == "vendor")
 				{
-					for (wxXmlNode* v = e->GetChildren(); v != nullptr; v = v->GetNext())
+					for (pugi::xml_node v = e.first_child(); v; v = v.next_sibling())
 					{
-						nn = v->GetName().Lower();
+						nn = Lower(v.name());
 						if (nn == "name")
 						{
-							_name = v->GetNodeContent().ToStdString();
+							_name = v.text().get();
 						}
                         else if (nn == "contact")
 						{
-							_contact = v->GetNodeContent().ToStdString();
+							_contact = v.text().get();
 						}
 						else if (nn == "email")
 						{
-							_email = v->GetNodeContent().ToStdString();
+							_email = v.text().get();
 						}
 						else if (nn == "phone")
 						{
-							_phone = v->GetNodeContent().ToStdString();
+							_phone = v.text().get();
 						}
 						else if (nn == "website")
 						{
-							_website = wxURI(v->GetNodeContent().ToStdString());
+							_website = wxURI(v.text().get());
 						}
 						else if (nn == "facebook")
 						{
-							_facebook = wxURI(v->GetNodeContent().ToStdString());
+							_facebook = wxURI(v.text().get());
 						}
 						else if (nn == "twitter")
 						{
-							_twitter = v->GetNodeContent().ToStdString();
+							_twitter = v.text().get();
 						}
 						else if (nn == "notes")
 						{
-							_notes = v->GetNodeContent().ToStdString();
+							_notes = v.text().get();
 						}
 						else if (nn == "logolink")
 						{
-							 wxURI logo(v->GetNodeContent().ToStdString());
+							 wxURI logo(v.text().get());
 							 _logoFile = wxFileName(cache->GetFile(logo, CACHEFOR::CACHETIME_LONG));
 						}
 						else
@@ -317,9 +317,9 @@ MSLVendor::MSLVendor(wxXmlDocument* doc, int max, CachedFileDownloader* cache)
                 else if (nn == "music")
 				{
 					int items = 0;
-					for (wxXmlNode* m = e->GetChildren(); m != nullptr; m = m->GetNext())
+					for (pugi::xml_node m = e.first_child(); m; m = m.next_sibling())
 					{
-						nn = m->GetName().Lower();
+						nn = Lower(m.name());
 						if (nn == "song")
 						{
 							items++;
@@ -354,11 +354,11 @@ MSLVendor::~MSLVendor()
 	}
 }
 
-void MSLVendor::ParseCategories(wxXmlNode* n)
+void MSLVendor::ParseCategories(pugi::xml_node n)
 {
-    for (wxXmlNode* l = n->GetChildren(); l != nullptr; l = l->GetNext())
+    for (pugi::xml_node l = n.first_child(); l; l = l.next_sibling())
     {
-        wxString nn = l->GetName().Lower().ToStdString();
+        std::string nn = Lower(l.name());
         if (nn == "category")
         {
             _categories.push_back(new MSLVendorCategory(l, nullptr, this));
@@ -366,11 +366,11 @@ void MSLVendor::ParseCategories(wxXmlNode* n)
     }
 }
 
-void MSLVendorCategory::ParseCategories(wxXmlNode *n)
+void MSLVendorCategory::ParseCategories(pugi::xml_node n)
 {
-    for (wxXmlNode* l = n->GetChildren(); l != nullptr; l = l->GetNext())
+    for (pugi::xml_node l = n.first_child(); l; l = l.next_sibling())
     {
-        wxString nn = l->GetName().Lower().ToStdString();
+        std::string nn = Lower(l.name());
         if (nn == "category")
         {
             _categories.push_back(new MSLVendorCategory(l, this, _vendor));
@@ -390,20 +390,20 @@ std::string MSLVendorCategory::GetPath() const
     }
 }
 
-MSLVendorCategory::MSLVendorCategory(wxXmlNode* n, MSLVendorCategory* parent, MSLVendor* vendor)
+MSLVendorCategory::MSLVendorCategory(pugi::xml_node n, MSLVendorCategory* parent, MSLVendor* vendor)
 {
     _vendor = vendor;
     _parent = parent;
-    for (wxXmlNode* e = n->GetChildren(); e != nullptr; e = e->GetNext())
+    for (pugi::xml_node e = n.first_child(); e; e = e.next_sibling())
     {
-        wxString nn = e->GetName().Lower();
+        std::string nn = Lower(e.name());
         if (nn == "id")
         {
-            _id = e->GetNodeContent().ToStdString();
+            _id = e.text().get();
         }
         else if (nn == "name")
         {
-            _name = e->GetNodeContent().ToStdString();
+            _name = e.text().get();
         }
         else if (nn == "categories")
         {

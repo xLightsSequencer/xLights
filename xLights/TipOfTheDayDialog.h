@@ -18,7 +18,7 @@
 #include <wx/sizer.h>
 //*)
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 //#define USE_WEBVIEW_FOR_TOD
 
@@ -35,7 +35,7 @@ class TipOfTheDayDialog: public wxDialog
     TipOfDayThread* _thread = nullptr;
     
     const std::string &GetTODXMLFile() const { return todFileLocation; }
-    bool GetTODAtLevel(wxXmlDocument& doc, TODTracker& tracker, const std::string& level);
+    bool GetTODAtLevel(pugi::xml_document& doc, TODTracker& tracker, const std::string& level);
     std::string todFileLocation;
     
 	public:

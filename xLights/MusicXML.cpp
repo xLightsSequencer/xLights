@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "MusicXML.h"
-#include <wx/xml/xml.h>
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
 #include <wx/log.h>
@@ -18,7 +17,7 @@
 
 bool MusicXML::IsOk()
 {
-    return _doc.IsOk();
+    return _loaded;
 }
 
 void MusicXmlNote::Dump()
@@ -53,7 +52,14 @@ MusicXML::MusicXML(std::string file)
                 if (ent != nullptr)
                 {
                     logger_base.info("    Found in zip file %s ... loading", (const char*)ent->GetName().c_str());
-                    _doc.Load(zin);
+                    // Read zip entry into buffer for pugixml
+                    std::string buf;
+                    char chunk[4096];
+                    while (!zin.Eof()) {
+                        size_t read = zin.Read(chunk, sizeof(chunk)).LastRead();
+                        buf.append(chunk, read);
+                    }
+                    _loaded = _doc.load_buffer(buf.data(), buf.size());
                 }
             }
         }
@@ -61,7 +67,7 @@ MusicXML::MusicXML(std::string file)
         if (!IsOk())
         {
             logger_base.info("    Not a zip file %s ... loading as xml", (const char*)file.c_str());
-            _doc.Load(file);
+            _loaded = (bool)_doc.load_file(file.c_str());
         }
 
         if (!IsOk())
@@ -92,45 +98,45 @@ std::list<MusicXmlNote> MusicXML::GetNotes(std::string track)
 
     std::list<MusicXmlNote> res;
 
-    wxXmlNode* root = _doc.GetRoot();
+    pugi::xml_node root = _doc.document_element();
 
     int tempo = 60;
     int divisions = 100;
 
-    if (root->GetName() == "score-partwise")
+    if (std::string_view(root.name()) == "score-partwise")
     {
-        for (wxXmlNode* n1 = root->GetChildren(); n1 != nullptr; n1 = n1->GetNext())
+        for (pugi::xml_node n1 = root.first_child(); n1; n1 = n1.next_sibling())
         {
-            if (n1->GetName() == "part" && (n1->GetAttribute("id").ToStdString() == partid || track == "All"))
+            if (std::string_view(n1.name()) == "part" && (std::string_view(n1.attribute("id").as_string()) == partid || track == "All"))
             {
                 int current = 0;
-                for (wxXmlNode* n2 = n1->GetChildren(); n2 != nullptr; n2 = n2->GetNext())
+                for (pugi::xml_node n2 = n1.first_child(); n2; n2 = n2.next_sibling())
                 {
-                    if (n2->GetName() == "measure")
+                    if (std::string_view(n2.name()) == "measure")
                     {
-                        for (wxXmlNode* n3 = n2->GetChildren(); n3 != nullptr; n3 = n3->GetNext())
+                        for (pugi::xml_node n3 = n2.first_child(); n3; n3 = n3.next_sibling())
                         {
-                            if (n3->GetName() == "direction")
+                            if (std::string_view(n3.name()) == "direction")
                             {
-                                for (wxXmlNode* n4 = n3->GetChildren(); n4 != nullptr; n4 = n4->GetNext())
+                                for (pugi::xml_node n4 = n3.first_child(); n4; n4 = n4.next_sibling())
                                 {
-                                    if (n4->GetName() == "sound" && n4->HasAttribute("tempo"))
+                                    if (std::string_view(n4.name()) == "sound" && n4.attribute("tempo"))
                                     {
-                                        tempo = wxAtoi(n4->GetAttribute("tempo"));
+                                        tempo = n4.attribute("tempo").as_int();
                                     }
                                 }
                             }
-                            else if (n3->GetName() == "attributes")
+                            else if (std::string_view(n3.name()) == "attributes")
                             {
-                                for (wxXmlNode* n4 = n3->GetChildren(); n4 != nullptr; n4 = n4->GetNext())
+                                for (pugi::xml_node n4 = n3.first_child(); n4; n4 = n4.next_sibling())
                                 {
-                                    if (n4->GetName() == "divisions")
+                                    if (std::string_view(n4.name()) == "divisions")
                                     {
-                                        divisions = wxAtoi(n4->GetNodeContent().ToStdString());
+                                        divisions = n4.text().as_int();
                                     }
                                 }
                             }
-                            else if(n3->GetName() == "note")
+                            else if(std::string_view(n3.name()) == "note")
                             {
                                 MusicXmlNote note(n3, current);
                                 res.push_back(note);
@@ -168,24 +174,24 @@ std::list<std::string> MusicXML::GetTracks()
     if (IsOk())
     {
         _parts.clear();
-        wxXmlNode* root = _doc.GetRoot();
+        pugi::xml_node root = _doc.document_element();
 
-        if (root->GetName() == "score-partwise")
+        if (std::string_view(root.name()) == "score-partwise")
         {
-            for (wxXmlNode* n1 = root->GetChildren(); n1 != nullptr; n1= n1->GetNext())
+            for (pugi::xml_node n1 = root.first_child(); n1; n1 = n1.next_sibling())
             {
-                if (n1->GetName() == "part-list")
+                if (std::string_view(n1.name()) == "part-list")
                 {
-                    for (wxXmlNode* n2 = n1->GetChildren(); n2 != nullptr; n2 = n2->GetNext())
+                    for (pugi::xml_node n2 = n1.first_child(); n2; n2 = n2.next_sibling())
                     {
-                        if (n2->GetName() == "score-part")
+                        if (std::string_view(n2.name()) == "score-part")
                         {
-                            std::string id = n2->GetAttribute("id").ToStdString();
-                            for (wxXmlNode* n3 = n2->GetChildren(); n3 != nullptr; n3 = n3->GetNext())
+                            std::string id = n2.attribute("id").as_string();
+                            for (pugi::xml_node n3 = n2.first_child(); n3; n3 = n3.next_sibling())
                             {
-                                if (n3->GetName() == "part-name")
+                                if (std::string_view(n3.name()) == "part-name")
                                 {
-                                    std::string pn = n3->GetNodeContent().ToStdString();
+                                    std::string pn = n3.text().get();
                                     if (pn == "")
                                     {
                                         _parts[id] = id;
@@ -209,29 +215,29 @@ std::list<std::string> MusicXML::GetTracks()
     return res;
 }
 
-MusicXmlNote::MusicXmlNote(wxXmlNode* node, int s) : duration(0), durationMS(0), midi(0), start(0), startMS(0)
+MusicXmlNote::MusicXmlNote(pugi::xml_node node, int s) : duration(0), durationMS(0), midi(0), start(0), startMS(0)
 {
     start = s;
-    for (wxXmlNode* n1 = node->GetChildren(); n1 != nullptr; n1 = n1->GetNext())
+    for (pugi::xml_node n1 = node.first_child(); n1; n1 = n1.next_sibling())
     {
-        if (n1->GetName() == "pitch")
+        if (std::string_view(n1.name()) == "pitch")
         {
-            wxString Note = "";
+            std::string Note = "";
             int Octave = 4;
             int Adjust = 0;
-            for (wxXmlNode* n2 = n1->GetChildren(); n2 != nullptr; n2 = n2->GetNext())
+            for (pugi::xml_node n2 = n1.first_child(); n2; n2 = n2.next_sibling())
             {
-                if (n2->GetName() == "step")
+                if (std::string_view(n2.name()) == "step")
                 {
-                    Note = n2->GetNodeContent();
+                    Note = n2.text().get();
                 }
-                else if (n2->GetName() == "octave")
+                else if (std::string_view(n2.name()) == "octave")
                 {
-                    Octave = wxAtoi(n2->GetNodeContent());
+                    Octave = n2.text().as_int();
                 }
-                else if (n2->GetName() == "alter")
+                else if (std::string_view(n2.name()) == "alter")
                 {
-                    Adjust = wxAtoi(n2->GetNodeContent());
+                    Adjust = n2.text().as_int();
                 }
             }
 
@@ -266,11 +272,11 @@ MusicXmlNote::MusicXmlNote(wxXmlNode* node, int s) : duration(0), durationMS(0),
             midi += Adjust;
             midi += (Octave + 1) * 12;
         }
-        else if (n1->GetName() == "duration")
+        else if (std::string_view(n1.name()) == "duration")
         {
-            duration = wxAtoi(n1->GetNodeContent());
+            duration = n1.text().as_int();
         }
-        else if (n1->GetName() == "rest")
+        else if (std::string_view(n1.name()) == "rest")
         {
             midi = -1;
         }

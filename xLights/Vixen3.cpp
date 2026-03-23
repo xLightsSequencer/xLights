@@ -424,15 +424,15 @@ std::string VixenEffect::GetXLightsType() const
     return "Off";
 }
 
-void Vixen3::ProcessNode(wxXmlNode* n, std::map<std::string, std::string>& models)
+void Vixen3::ProcessNode(pugi::xml_node n, std::map<std::string, std::string>& models)
 {
-    auto name = n->GetAttribute("name");
-    auto id = n->GetAttribute("id");
+    std::string name = n.attribute("name").as_string();
+    std::string id = n.attribute("id").as_string();
     models[id] = name;
 
-    for (wxXmlNode *m = n->GetChildren(); m != nullptr; m = m->GetNext())
+    for (pugi::xml_node m = n.first_child(); m; m = m.next_sibling())
     {
-        if (m->GetName() == "Node")
+        if (std::string_view(m.name()) == "Node")
         {
             ProcessNode(m, models);
         }
@@ -477,22 +477,21 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
 
     if (FileExists(_systemFile))
     {
-        wxXmlDocument sysDoc(_systemFile);
+        pugi::xml_document sysDoc;
+        sysDoc.load_file(_systemFile.c_str());
 
-        for (wxXmlNode *m = sysDoc.GetRoot(); m != nullptr; m = m->GetNext())
+        pugi::xml_node sysRoot = sysDoc.document_element();
+        if (sysRoot && std::string_view(sysRoot.name()) == "SystemConfig")
         {
-            if (m->GetName() == "SystemConfig")
+            for (pugi::xml_node mm = sysRoot.first_child(); mm; mm = mm.next_sibling())
             {
-                for (wxXmlNode *mm = m->GetChildren(); mm != nullptr; mm = mm->GetNext())
+                if (std::string_view(mm.name()) == "Nodes")
                 {
-                    if (mm->GetName() == "Nodes")
+                    for (pugi::xml_node mmm = mm.first_child(); mmm; mmm = mmm.next_sibling())
                     {
-                        for (wxXmlNode *mmm = mm->GetChildren(); mmm != nullptr; mmm = mmm->GetNext())
+                        if (std::string_view(mmm.name()) == "Node")
                         {
-                            if (mmm->GetName() == "Node")
-                            {
-                                ProcessNode(mmm, models);
-                            }
+                            ProcessNode(mmm, models);
                         }
                     }
                 }
@@ -500,38 +499,39 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
         }
     }
 
-    wxXmlDocument doc(filename);
+    pugi::xml_document doc;
+    doc.load_file(filename.c_str());
 
-    std::map<std::string, wxXmlNode*> effectSettings;
+    std::map<std::string, pugi::xml_node> effectSettings;
     int unnamed = 1;
-    for (wxXmlNode *n = doc.GetRoot(); n != nullptr; n = n->GetNext())
+    pugi::xml_node docRoot = doc.document_element();
+    if (docRoot && std::string_view(docRoot.name()) == "TimedSequenceData")
     {
-        if (n->GetName() == "TimedSequenceData")
         {
-            for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext())
+            for (pugi::xml_node nn = docRoot.first_child(); nn; nn = nn.next_sibling())
             {
-                if (nn->GetName() == "MarkCollections")
+                if (std::string_view(nn.name()) == "MarkCollections")
                 {
-                    for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
+                    for (pugi::xml_node nnn = nn.first_child(); nnn; nnn = nnn.next_sibling())
                     {
-                        if (nnn->GetName() == "MarkCollection")
+                        if (std::string_view(nnn.name()) == "MarkCollection")
                         {
                             std::string name;
                             std::list<VixenTiming> timing;
-                            for (wxXmlNode* nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext())
+                            for (pugi::xml_node nnnn = nnn.first_child(); nnnn; nnnn = nnnn.next_sibling())
                             {
-                                if (nnnn->GetName() == "Name")
+                                if (std::string_view(nnnn.name()) == "Name")
                                 {
-                                    name = nnnn->GetChildren()->GetContent();
+                                    name = nnnn.text().get();
                                 }
-                                else if (nnnn->GetName() == "Marks")
+                                else if (std::string_view(nnnn.name()) == "Marks")
                                 {
                                     float last = 0;
-                                    for (wxXmlNode* nnnnn = nnnn->GetChildren(); nnnnn != nullptr; nnnnn = nnnnn->GetNext())
+                                    for (pugi::xml_node nnnnn = nnnn.first_child(); nnnnn; nnnnn = nnnnn.next_sibling())
                                     {
-                                        if (nnnnn->GetName() == "d3p1:duration")
+                                        if (std::string_view(nnnnn.name()) == "d3p1:duration")
                                         {
-                                            auto markTime = nnnnn->GetChildren()->GetContent();
+                                            auto markTime = wxString(nnnnn.text().get());
                                             if (markTime.StartsWith("PT"))
                                             {
                                                 markTime = markTime.AfterFirst('T');
@@ -559,47 +559,41 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                         }
                     }
                 }
-                else if (nn->GetName() == "LabeledMarkCollections")
+                else if (std::string_view(nn.name()) == "LabeledMarkCollections")
                 {
-                    for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
+                    for (pugi::xml_node nnn = nn.first_child(); nnn; nnn = nnn.next_sibling())
                     {
-                        if (nnn->GetName() == "d1p1:anyType")
+                        if (std::string_view(nnn.name()) == "d1p1:anyType")
                         {
                             std::list<VixenTiming> timing;
-                            std::string name = ""; 
+                            std::string name = "";
                             std::string type = "Generic";
 
-                            for (wxXmlNode* nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext())
+                            for (pugi::xml_node nnnn = nnn.first_child(); nnnn; nnnn = nnnn.next_sibling())
                             {
-                                if (nnnn->GetName() == "d2p1:Name")
+                                if (std::string_view(nnnn.name()) == "d2p1:Name")
                                 {
-                                    if (nnnn->GetChildren() != nullptr)
-                                    {
-                                        name = nnnn->GetChildren()->GetContent().ToStdString();
-                                    }
+                                    name = nnnn.text().get();
                                 }
-                                else if (nnnn->GetName() == "d2p1:CollectionType")
+                                else if (std::string_view(nnnn.name()) == "d2p1:CollectionType")
                                 {
-                                    if (nnnn->GetChildren() != nullptr)
-                                    {
-                                        type = nnnn->GetChildren()->GetContent().ToStdString();
-                                    }
+                                    type = nnnn.text().get();
                                 }
-                                else if (nnnn->GetName() == "d2p1:Marks")
+                                else if (std::string_view(nnnn.name()) == "d2p1:Marks")
                                 {
                                     float last = 0;
-                                    for (wxXmlNode* nnnnn = nnnn->GetChildren(); nnnnn != nullptr; nnnnn = nnnnn->GetNext())
+                                    for (pugi::xml_node nnnnn = nnnn.first_child(); nnnnn; nnnnn = nnnnn.next_sibling())
                                     {
                                         float duration = 0;
                                         float end = 0;
                                         std::string label = "";
-                                        if (nnnnn->GetName() == "d1p1:anyType")
+                                        if (std::string_view(nnnnn.name()) == "d1p1:anyType")
                                         {
-                                            for (wxXmlNode* nnnnnn = nnnnn->GetChildren(); nnnnnn != nullptr; nnnnnn = nnnnnn->GetNext())
+                                            for (pugi::xml_node nnnnnn = nnnnn.first_child(); nnnnnn; nnnnnn = nnnnnn.next_sibling())
                                             {
-                                                if (nnnnnn->GetName() == "d2p1:StartTime")
+                                                if (std::string_view(nnnnnn.name()) == "d2p1:StartTime")
                                                 {
-                                                    wxString markTime = nnnnnn->GetChildren()->GetContent();
+                                                    wxString markTime = nnnnnn.text().get();
                                                     if (markTime.StartsWith("PT"))
                                                     {
                                                         markTime = markTime.AfterFirst('T');
@@ -621,9 +615,9 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
 
                                                     end = mins * 60 + secs;
                                                 }
-                                                else if (nnnnnn->GetName() == "d2p1:Duration")
+                                                else if (std::string_view(nnnnnn.name()) == "d2p1:Duration")
                                                 {
-                                                    wxString markTime = nnnnnn->GetChildren()->GetContent();
+                                                    wxString markTime = nnnnnn.text().get();
                                                     if (markTime.StartsWith("PT"))
                                                     {
                                                         markTime = markTime.AfterFirst('T');
@@ -645,12 +639,9 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
 
                                                     duration = mins * 60 + secs;
                                                 }
-                                                else if (nnnnnn->GetName() == "d2p1:Text")
+                                                else if (std::string_view(nnnnnn.name()) == "d2p1:Text")
                                                 {
-                                                    if (nnnnnn->GetChildren() != nullptr)
-                                                    {
-                                                        label = nnnnnn->GetChildren()->GetContent().ToStdString();
-                                                    }
+                                                    label = nnnnnn.text().get();
                                                 }
                                             }
                                             if (label == "")
@@ -706,25 +697,25 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                         }
                     }
                 }
-                else if (nn->GetName() == "_effectNodeSurrogates" && models.size() > 0)
+                else if (std::string_view(nn.name()) == "_effectNodeSurrogates" && models.size() > 0)
                 {
-                    for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
+                    for (pugi::xml_node nnn = nn.first_child(); nnn; nnn = nnn.next_sibling())
                     {
-                        if (nnn->GetName() == "EffectNodeSurrogate")
+                        if (std::string_view(nnn.name()) == "EffectNodeSurrogate")
                         {
-                            wxString effectSettingId;
-                            wxString modelId;
+                            std::string effectSettingId;
+                            std::string modelId;
                             float start = 0.0;
                             float duration = 0.0;
-                            for (wxXmlNode* nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext())
+                            for (pugi::xml_node nnnn = nnn.first_child(); nnnn; nnnn = nnnn.next_sibling())
                             {
-                                if (nnnn->GetName() == "InstanceId")
+                                if (std::string_view(nnnn.name()) == "InstanceId")
                                 {
-                                    effectSettingId = nnnn->GetChildren()->GetContent();
+                                    effectSettingId = nnnn.text().get();
                                 }
-                                else if (nnnn->GetName() == "StartTime")
+                                else if (std::string_view(nnnn.name()) == "StartTime")
                                 {
-                                    auto markTime = nnnn->GetChildren()->GetContent();
+                                    wxString markTime = nnnn.text().get();
                                     if (markTime.StartsWith("PT"))
                                     {
                                         markTime = markTime.AfterFirst('T');
@@ -742,9 +733,9 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                     }
                                     start = mins * 60.0 + secs;
                                 }
-                                else if (nnnn->GetName() == "TimeSpan")
+                                else if (std::string_view(nnnn.name()) == "TimeSpan")
                                 {
-                                    auto markTime = nnnn->GetChildren()->GetContent();
+                                    wxString markTime = nnnn.text().get();
                                     if (markTime.StartsWith("PT"))
                                     {
                                         markTime = markTime.AfterFirst('T');
@@ -762,26 +753,26 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                     }
                                     duration = mins * 60.0 + secs;
                                 }
-                                else if (nnnn->GetName() == "TargetNodes")
+                                else if (std::string_view(nnnn.name()) == "TargetNodes")
                                 {
-                                    for (wxXmlNode* nnnnn = nnnn->GetChildren(); nnnnn != nullptr; nnnnn = nnnnn->GetNext())
+                                    for (pugi::xml_node nnnnn = nnnn.first_child(); nnnnn; nnnnn = nnnnn.next_sibling())
                                     {
-                                        if (nnnnn->GetName() == "ChannelNodeReferenceSurrogate")
+                                        if (std::string_view(nnnnn.name()) == "ChannelNodeReferenceSurrogate")
                                         {
-                                            for (wxXmlNode* nnnnnn = nnnnn->GetChildren(); nnnnnn != nullptr; nnnnnn = nnnnnn->GetNext())
+                                            for (pugi::xml_node nnnnnn = nnnnn.first_child(); nnnnnn; nnnnnn = nnnnnn.next_sibling())
                                             {
-                                                if (nnnnnn->GetName() == "NodeId")
+                                                if (std::string_view(nnnnnn.name()) == "NodeId")
                                                 {
-                                                    modelId = nnnnnn->GetChildren()->GetContent();
+                                                    modelId = nnnnnn.text().get();
                                                 }
                                             }
                                         }
                                     }
                                 }
                             }
-                            VixenEffect ve(start, start + duration, effectSettingId.ToStdString());
+                            VixenEffect ve(start, start + duration, effectSettingId);
 
-                            auto m = models.find(modelId.ToStdString());
+                            auto m = models.find(modelId);
 
                             if (m != models.end())
                             {
@@ -795,24 +786,24 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                         }
                     }
                 }
-                else if (nn->GetName() == "_dataModels" && models.size() > 0)
+                else if (std::string_view(nn.name()) == "_dataModels" && models.size() > 0)
                 {
-                    for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
+                    for (pugi::xml_node nnn = nn.first_child(); nnn; nnn = nnn.next_sibling())
                     {
-                        if (nnn->GetName() == "d1p1:anyType")
+                        if (std::string_view(nnn.name()) == "d1p1:anyType")
                         {
-                            auto type = nnn->GetAttribute("i:type", "");
+                            std::string type = nnn.attribute("i:type").as_string();
                             if (type != "")
                             {
-                                wxString id;
-                                for (wxXmlNode* nnnn = nnn->GetChildren(); id == "" && nnnn != nullptr; nnnn = nnnn->GetNext())
+                                std::string id;
+                                for (pugi::xml_node nnnn = nnn.first_child(); id.empty() && nnnn; nnnn = nnnn.next_sibling())
                                 {
-                                    if (nnnn->GetName() == "ModuleInstanceId")
+                                    if (std::string_view(nnnn.name()) == "ModuleInstanceId")
                                     {
-                                        id = nnnn->GetChildren()->GetContent();
+                                        id = nnnn.text().get();
                                     }
                                 }
-                                effectSettings[id.ToStdString()] = nnn;
+                                effectSettings[id] = nnn;
                             }
                         }
                     }
@@ -833,43 +824,44 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                 std::vector<std::vector<VixenColor>> palleteStatic;
                 std::vector<std::vector<VixenColor>> palleteDefault;
                 
-                e->type = es->second->GetAttribute("i:type").AfterFirst(':').ToStdString();
-                for (auto n = es->second->GetChildren(); n != nullptr; n = n->GetNext())
+                e->type = wxString(es->second.attribute("i:type").as_string()).AfterFirst(':').ToStdString();
+                for (pugi::xml_node n = es->second.first_child(); n; n = n.next_sibling())
                 {
-                    if (n->GetName() == "TargetPositioning" && n->GetChildren() != nullptr) {
-                        e->settings[n->GetName().ToStdString()] = n->GetChildren()->GetContent().ToStdString();
-                    } else if (n->GetName().StartsWith("d2p1:") && n->GetChildren() != nullptr) {
-                        auto nm = n->GetName().AfterFirst(':');
-                        
+                    wxString nName(n.name());
+                    if (nName == "TargetPositioning" && n.first_child()) {
+                        e->settings[std::string(n.name())] = n.text().get();
+                    } else if (nName.StartsWith("d2p1:") && n.first_child()) {
+                        wxString nm = nName.AfterFirst(':');
+
                         if (nm == "NutcrackerData") {
-                            for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
-                                auto nm2 = nn->GetName().AfterFirst(':');
-                                if (nn->GetChildren() != nullptr) {
+                            for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
+                                wxString nm2 = wxString(nn.name()).AfterFirst(':');
+                                if (nn.first_child()) {
                                     // Process color palette
                                     if (nm2 == "Palette") {
                                         std::vector<int> knownColor;
-                                        for (auto nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
-                                            auto nm3 = nnn->GetName().AfterFirst(':');
-                                            if (nnn->GetChildren() != nullptr) {
+                                        for (pugi::xml_node nnn = nn.first_child(); nnn; nnn = nnn.next_sibling()) {
+                                            wxString nm3 = wxString(nnn.name()).AfterFirst(':');
+                                            if (nnn.first_child()) {
                                                 if (nm3 == "_colors") {
-                                                    for (auto nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
-                                                        auto nm4 = nnnn->GetName().AfterFirst(':');
+                                                    for (pugi::xml_node nnnn = nnn.first_child(); nnnn; nnnn = nnnn.next_sibling()) {
+                                                        wxString nm4 = wxString(nnnn.name()).AfterFirst(':');
                                                         if (nm4 == "Color") {
-                                                            for (auto nnnnn = nnnn->GetChildren(); nnnnn != nullptr; nnnnn = nnnnn->GetNext()) {
-                                                                auto nm5 = nnnnn->GetName().AfterFirst(':');
+                                                            for (pugi::xml_node nnnnn = nnnn.first_child(); nnnnn; nnnnn = nnnnn.next_sibling()) {
+                                                                wxString nm5 = wxString(nnnnn.name()).AfterFirst(':');
                                                                 if (nm5 == "knownColor") {
                                                                     // Finally, got the color
-                                                                    knownColor.push_back(wxAtoi(nnnnn->GetChildren()->GetContent()));
+                                                                    knownColor.push_back(nnnnn.text().as_int());
                                                                 }
                                                             }
                                                         }
                                                     }
                                                 } else if (nm3 == "_colorsActive") {
                                                     auto index = 0;
-                                                    for (auto nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
-                                                        auto nm4 = nnnn->GetName().AfterFirst(':');
+                                                    for (pugi::xml_node nnnn = nnn.first_child(); nnnn; nnnn = nnnn.next_sibling()) {
+                                                        wxString nm4 = wxString(nnnn.name()).AfterFirst(':');
                                                         if (nm4 == "boolean") {
-                                                            if (nnnn->GetChildren()->GetContent() == "true") {
+                                                            if (std::string_view(nnnn.text().get()) == "true") {
                                                                 uint32_t argb = VixenEffect::KNOWN_COLOR[knownColor.at(index)];
                                                                 char r = (argb & 0x00FF0000) >> 16;
                                                                 char g = (argb & 0x0000FF00) >> 8;
@@ -883,12 +875,12 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                             }
                                         }
                                     } else {
-                                        e->settings[nm2.ToStdString()] = nn->GetChildren()->GetContent().ToStdString();
+                                        e->settings[nm2.ToStdString()] = nn.text().get();
                                     }
                                 }
                             }
                         } else {
-                            e->settings[nm.ToStdString()] = n->GetChildren()->GetContent().ToStdString();
+                            e->settings[nm.ToStdString()] = n.text().get();
                         }
 
                         // Color for SetLevel
@@ -896,16 +888,16 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                             int r = 0;
                             int g = 0;
                             int b = 0;
-                            for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
-                                auto nm2 = nn->GetName().AfterFirst(':');
+                            for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
+                                wxString nm2 = wxString(nn.name()).AfterFirst(':');
                                 if (nm2 == "_r") {
-                                    r = 255.0 * wxAtof(nn->GetChildren()->GetContent());
+                                    r = 255.0 * wxAtof(nn.text().get());
                                 }
                                 else if (nm2 == "_g") {
-                                    g = 255.0 * wxAtof(nn->GetChildren()->GetContent());
+                                    g = 255.0 * wxAtof(nn.text().get());
                                 }
                                 else if (nm2 == "_b") {
-                                    b = 255.0 * wxAtof(nn->GetChildren()->GetContent());
+                                    b = 255.0 * wxAtof(nn.text().get());
                                 }
                             }
                             palleteDefault.push_back({ VixenColor(wxColor(r, g, b), 0) });
@@ -915,7 +907,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                         // - StaticColor
                         // - GradientThroughWHoleEffect
                         else if (nm == "ColorHandling") {
-                            colorHandling = n->GetChildren()->GetContent();
+                            colorHandling = n.text().get();
                         }
 
                         // Colors for the following:
@@ -924,14 +916,14 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                         // Head/Fill:          Morph
                         // MeterColorGradient: VetricalMeter VUMeter Waveform
                         else if (nm == "ColorGradient" || nm == "Gradient" || nm == "HeadColor" || nm == "FillColor" || nm == "MeterColorGradient") {
-                            for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
-                                auto nm2 = nn->GetName().AfterFirst(':');
+                            for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
+                                wxString nm2 = wxString(nn.name()).AfterFirst(':');
                                 if (nm2 == "_colors") {
                                     palleteDefault.push_back(ProcessColorData(nn));
                                 }
                             }
-                        } 
-                        
+                        }
+
                         // Colors for the following:
                         // Colors:                                   Strobe Picture
                         // Colors->ColorGradient:                    Bars Balls Circles Garland Life Liquid Meteors Plasma Snowstorm Spiral Spirograph Wave
@@ -939,18 +931,18 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                         // GradientColors->ColorGradient:            Countdown
                         // ColorGradients->ColorGradient:            Fireworks
                         else if (nm == "Colors" || nm == "GradientColors" || nm == "ColorGradients") {
-                            for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
-                                auto nm2 = nn->GetName().AfterFirst(':');
+                            for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
+                                wxString nm2 = wxString(nn.name()).AfterFirst(':');
                                 if (nm2 == "_colors") {
                                     palleteDefault.push_back(ProcessColorData(nn));
-                                } else if (nm2 == "ColorGradient" || "GradientLevelPair") { 
-                                    for (auto nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
-                                        auto nm3 = nnn->GetName().AfterFirst(':');
+                                } else if (nm2 == "ColorGradient" || nm2 == "GradientLevelPair") {
+                                    for (pugi::xml_node nnn = nn.first_child(); nnn; nnn = nnn.next_sibling()) {
+                                        wxString nm3 = wxString(nnn.name()).AfterFirst(':');
                                         if (nm3 == "_colors") {
                                             palleteDefault.push_back(ProcessColorData(nnn));
                                         } else if (nm3 == "ColorGradient") {
-                                            for (auto nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
-                                                auto nm4 = nnnn->GetName().AfterFirst(':');
+                                            for (pugi::xml_node nnnn = nnn.first_child(); nnnn; nnnn = nnnn.next_sibling()) {
+                                                wxString nm4 = wxString(nnnn.name()).AfterFirst(':');
                                                 if (nm4 == "_colors") {
                                                     palleteDefault.push_back(ProcessColorData(nnnn));
                                                 }
@@ -959,16 +951,16 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                     }
                                 }
                             }
-                        } 
+                        }
 
                         // Colors for the following:
                         // Twinkle
                         else if (nm == "StaticColor") {
-                            for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
-                                auto nm2 = nn->GetName().AfterFirst(':');
+                            for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
+                                wxString nm2 = wxString(nn.name()).AfterFirst(':');
                                 if (nm2 == "value") {
                                     unsigned long argb;
-                                    nn->GetChildren()->GetContent().ToULong(&argb);
+                                    wxString(nn.text().get()).ToULong(&argb);
                                     char r = (argb & 0x00FF0000) >> 16;
                                     char g = (argb & 0x0000FF00) >> 8;
                                     char b = (argb & 0x000000FF);
@@ -979,20 +971,20 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
 
                         // Brightness curve
                         else if (nm == "LevelCurve") {
-                            for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
-                                auto nm2 = nn->GetName().AfterFirst(':');
+                            for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
+                                wxString nm2 = wxString(nn.name()).AfterFirst(':');
                                 if (nm2 == "Points") {
-                                    for (auto nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
-                                        auto nm3 = nnn->GetName().AfterFirst(':');
+                                    for (pugi::xml_node nnn = nn.first_child(); nnn; nnn = nnn.next_sibling()) {
+                                        wxString nm3 = wxString(nnn.name()).AfterFirst(':');
                                         if (nm3 == "PointPair") {
                                             double x = 0;
                                             double y = 0;
-                                            for (auto nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
-                                                auto nm4 = nnnn->GetName();
+                                            for (pugi::xml_node nnnn = nnn.first_child(); nnnn; nnnn = nnnn.next_sibling()) {
+                                                std::string nm4 = nnnn.name();
                                                 if (nm4 == "X") {
-                                                    x = wxAtoi(nnnn->GetChildren()->GetContent());
+                                                    x = nnnn.text().as_int();
                                                 } else if (nm4 == "Y") {
-                                                    y = wxAtoi(nnnn->GetChildren()->GetContent());
+                                                    y = nnnn.text().as_int();
                                                 }
                                             }
                                             e->levelCurve.push_back(wxRealPoint(x, y));
@@ -1013,33 +1005,33 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
     }
 }
 
-std::vector<VixenColor> Vixen3::ProcessColorData(wxXmlNode* n)
+std::vector<VixenColor> Vixen3::ProcessColorData(pugi::xml_node n)
 {
     std::vector<VixenColor> vColor;
 
-    for (auto nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext()) {
-        auto nm3 = nn->GetName().AfterFirst(':');
+    for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
+        wxString nm3 = wxString(nn.name()).AfterFirst(':');
         if (nm3 == "ColorPoint") {
             double x = 0;
             double y = 0;
             double z = 0;
             double position = 0;
 
-            for (auto nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext()) {
-                auto nm4 = nnn->GetName().AfterFirst(':');
+            for (pugi::xml_node nnn = nn.first_child(); nnn; nnn = nnn.next_sibling()) {
+                wxString nm4 = wxString(nnn.name()).AfterFirst(':');
                 if (nm4 == "_color") {
-                    for (auto nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext()) {
-                        auto nm5 = nnnn->GetName().AfterFirst(':');
+                    for (pugi::xml_node nnnn = nnn.first_child(); nnnn; nnnn = nnnn.next_sibling()) {
+                        wxString nm5 = wxString(nnnn.name()).AfterFirst(':');
                         if (nm5 == "_x") {
-                            x = wxAtof(nnnn->GetChildren()->GetContent());
+                            x = wxAtof(nnnn.text().get());
                         } else if (nm5 == "_y") {
-                            y = wxAtof(nnnn->GetChildren()->GetContent());
+                            y = wxAtof(nnnn.text().get());
                         } else if (nm5 == "_z") {
-                            z = wxAtof(nnnn->GetChildren()->GetContent());
+                            z = wxAtof(nnnn.text().get());
                         }
                     }
                 } else if (nm4 == "_position") {
-                    position = wxAtof(nnn->GetChildren()->GetContent());
+                    position = wxAtof(nnn.text().get());
                 }
             }
             vColor.push_back(VixenColor(ConvertXYZToColour(x, y, z), position));

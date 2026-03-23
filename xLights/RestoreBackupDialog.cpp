@@ -19,7 +19,7 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <wx/string.h>
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 #include <log4cpp/Category.hh>
 
@@ -37,21 +37,21 @@ struct BController {
 
     BController()
     {}
-    BController(wxXmlNode* node)
+    BController(pugi::xml_node node)
     {
         ParseXML(node);
     }
 
-    void ParseXML(wxXmlNode* node)
+    void ParseXML(pugi::xml_node node)
     {
-        Name = node->GetAttribute("Name");
-        Type = node->GetAttribute("Type", "");
-        Protocol = node->GetAttribute("Protocol");
-        if (node->HasAttribute("IP")) {
-            IPCom = node->GetAttribute("IP");
+        Name = node.attribute("Name").as_string();
+        Type = node.attribute("Type").as_string();
+        Protocol = node.attribute("Protocol").as_string();
+        if (node.attribute("IP")) {
+            IPCom = node.attribute("IP").as_string();
         }
-        if (node->HasAttribute("Port")) {
-            IPCom = node->GetAttribute("Port");
+        if (node.attribute("Port")) {
+            IPCom = node.attribute("Port").as_string();
         }
     }
 
@@ -69,17 +69,17 @@ struct BModel {
 
     BModel()
     {}
-    BModel(wxXmlNode* node)
+    BModel(pugi::xml_node node)
     {
         ParseXML(node);
     }
 
-    void ParseXML(wxXmlNode* node)
+    void ParseXML(pugi::xml_node node)
     {
-        Name = node->GetAttribute("name");
-        Type = node->GetAttribute("DisplayAs", "");
-        Layout = node->GetAttribute("LayoutGroup");
-        StartChanel = node->GetAttribute("StartChannel");
+        Name = node.attribute("name").as_string();
+        Type = node.attribute("DisplayAs").as_string();
+        Layout = node.attribute("LayoutGroup").as_string();
+        StartChanel = node.attribute("StartChannel").as_string();
     }
 
     [[nodiscard]] wxString ToString() const
@@ -343,12 +343,10 @@ std::vector<BController> RestoreBackupDialog::LoadNetworkFile(wxString const& fo
     networkFile.AssignDir(folder);
     networkFile.SetFullName(_(XLIGHTS_NETWORK_FILE));
     if (networkFile.FileExists()) {
-        wxXmlDocument doc;
-        doc.Load(networkFile.GetFullPath());
-
-        if (doc.IsOk()) {
-            for (auto e = doc.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
-                if (e->GetName() == "Controller") {
+        pugi::xml_document doc;
+        if (doc.load_file(networkFile.GetFullPath().mb_str())) {
+            for (pugi::xml_node e = doc.document_element().first_child(); e; e = e.next_sibling()) {
+                if (std::string_view(e.name()) == "Controller") {
                     controllers.emplace_back(e);
                 }
             }
@@ -376,21 +374,19 @@ std::vector<BModel> RestoreBackupDialog::LoadRGBEffectsFile(wxString const& fold
     modelFile.AssignDir(folder);
     modelFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
     if (modelFile.FileExists()) {
-        wxXmlDocument doc;
-        doc.Load(modelFile.GetFullPath());
-
-        if (doc.IsOk()) {
-            wxXmlNode* root = doc.GetRoot();
-            if (root->GetName() == "xrgb") {
-                for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext()) {
-                    if (e->GetName() == "models") {
-                        for (wxXmlNode* model = e->GetChildren(); model != nullptr; model = model->GetNext()) {
-                            if (model->GetName() == "model") {
+        pugi::xml_document doc;
+        if (doc.load_file(modelFile.GetFullPath().mb_str())) {
+            pugi::xml_node root = doc.document_element();
+            if (std::string_view(root.name()) == "xrgb") {
+                for (pugi::xml_node e = root.first_child(); e; e = e.next_sibling()) {
+                    if (std::string_view(e.name()) == "models") {
+                        for (pugi::xml_node model = e.first_child(); model; model = model.next_sibling()) {
+                            if (std::string_view(model.name()) == "model") {
                                 models.emplace_back(model);
                             }
                         }
                     }
-                    if (e->GetName() == "effects") {
+                    if (std::string_view(e.name()) == "effects") {
                         break;
                     }
                 }

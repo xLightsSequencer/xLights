@@ -19,7 +19,7 @@
 #include <wx/timer.h>
 #include <wx/treectrl.h>
 //*)
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 #include <wx/filename.h>
 #include <wx/dnd.h>
 
@@ -128,8 +128,8 @@ class EffectTreeDialog : public wxDialog
         void OnGridPopup(wxCommandEvent& event);
         void AddTreeElementsRecursive(EffectPresetGroup& group, wxTreeItemId curGroupID);
         void ApplyEffect(bool dblClick=false);
-        void AddEffect(wxXmlNode* ele, wxTreeItemId curGroupID);
-        void AddGroup(wxXmlNode* ele, wxTreeItemId curGroupID);
+        void AddEffect(pugi::xml_node ele, wxTreeItemId curGroupID);
+        void AddGroup(pugi::xml_node ele, wxTreeItemId curGroupID);
         void EffectsFileDirty();
         int GetOptimalPreviewSize();
     
