@@ -25,6 +25,8 @@
 #include <time.h>
 #include <fstream>
 
+#include <pugixml.hpp>
+
 #include "ExternalHooks.h"
 #include "UtilFunctions.h"
 #include "xLightsVersion.h"
