@@ -14,13 +14,9 @@
 #include "../render/RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../AudioManager.h"
-#include "../ui/wxUtilities.h"
 
-#include <wx/graphics.h>
-#if wxUSE_GRAPHICS_CONTEXT == 0
-  #error Please refer to README.windows to make necessary changes to wxWidgets setup.h file.
-  #error You will also need to rebuild wxWidgets once the change is made.
-#endif
+#include <cmath>
+#include <algorithm>
 
 #include "../../include/tendril-16.xpm"
 #include "../../include/tendril-24.xpm"
@@ -163,7 +159,7 @@ void ATendril::Update(const xlPoint& target, int tunemovement, int width, int he
         } else {
             node->vy *= 1.0 + (float)(height - _lastHeight) * 2.0 * tunemovement / 20.0;
             if (node->vy == 0)
-                node->vx = 0.01 * ySign;
+                node->vy = 0.01 * ySign;
         }
 
         node->vx += (target.x - node->x) * spring;
@@ -202,35 +198,68 @@ void ATendril::Update(const xlPoint& target, int tunemovement, int width, int he
     _lastHeight = height;
 }
 
-void ATendril::Draw(PathDrawingContext* gc, xlColor colour, int thickness)
+void ATendril::Draw(RenderBuffer& buffer, xlColor colour, int thickness)
 {
-    wxPen pen(xlColorToWxColour(colour), thickness);
-    gc->SetPen(pen);
+    if (_nodes.size() < 3) return;
 
-    wxGraphicsPath path = gc->CreatePath();
-    path.MoveToPoint(_nodes.front()->x, _nodes.front()->y);
+    // Evaluate a quadratic Bezier at parameter t
+    auto bezier = [](float t, float p0, float p1, float p2) -> float {
+        float mt = 1.0f - t;
+        return mt * mt * p0 + 2.0f * mt * t * p1 + t * t * p2;
+    };
 
-    std::list<TendrilNode*>::const_iterator ci = _nodes.begin();
+    float radius = thickness * 0.5f;
+
+    // Draw a quadratic Bezier segment by stamping AA circles along the curve.
+    // This naturally handles joins and tight turns with consistent width.
+    // skipFirst: avoid double-stamping shared endpoints between chained segments
+    auto drawSegment = [&](float x0, float y0, float cx, float cy, float x1, float y1, bool skipFirst) {
+        int steps = std::max(4, (int)(std::max(std::abs(x1 - x0), std::abs(y1 - y0)) * 2 + 1));
+        int start = skipFirst ? 1 : 0;
+        float px = x0, py = y0;
+        for (int i = start; i <= steps; ++i) {
+            float t = (float)i / steps;
+            float nx = bezier(t, x0, cx, x1);
+            float ny = bezier(t, y0, cy, y1);
+            if (thickness <= 1) {
+                if (i > 0) {
+                    buffer.DrawAALine(px, py, nx, ny, colour);
+                }
+            } else {
+                buffer.DrawAACircle(nx, ny, radius, colour);
+            }
+            px = nx;
+            py = ny;
+        }
+    };
+
+    float x0 = _nodes.front()->x;
+    float y0 = _nodes.front()->y;
+
+    auto ci = _nodes.begin();
     ++ci; // move to second node
 
-    std::list<TendrilNode*>::const_iterator ci_second_last = _nodes.end();
+    auto ci_second_last = _nodes.end();
     --ci_second_last;
     --ci_second_last;
 
+    bool first = true;
     for (; ci != ci_second_last; ++ci) {
         TendrilNode* a = *ci;
-        std::list<TendrilNode*>::const_iterator cinext = ci;
+        auto cinext = ci;
         ++cinext;
         TendrilNode* b = *cinext;
-        float x = (a->x + b->x) * 0.5;
-        float y = (a->y + b->y) * 0.5;
-        path.AddQuadCurveToPoint(a->x, a->y, x, y);
+        float ex = (a->x + b->x) * 0.5f;
+        float ey = (a->y + b->y) * 0.5f;
+        drawSegment(x0, y0, a->x, a->y, ex, ey, !first);
+        first = false;
+        x0 = ex;
+        y0 = ey;
     }
 
     TendrilNode* a = *ci;
     TendrilNode* b = *(++ci);
-    path.AddQuadCurveToPoint(a->x, a->y, b->x, b->y);
-    gc->StrokePath(path);
+    drawSegment(x0, y0, a->x, a->y, b->x, b->y, true);
 }
 
 xlPoint ATendril::LastLocation()
@@ -357,10 +386,10 @@ void Tendril::Update(int x, int y, int tunemovement, size_t width, size_t height
     Update(pt, tunemovement, width, height);
 }
 
-void Tendril::Draw(PathDrawingContext* gc, xlColor colour, int thickness)
+void Tendril::Draw(RenderBuffer& buffer, xlColor colour, int thickness)
 {
     for (const auto& ci : _tendrils) {
-        ci->Draw(gc, colour, thickness);
+        ci->Draw(buffer, colour, thickness);
     }
 }
 
@@ -446,7 +475,6 @@ void TendrilEffect::Render(RenderBuffer& buffer, const std::string& movement,
                            float tension, int trails, int length, int xoffset, int yoffset, int manualx, int manualy)
 {
     float oset = buffer.GetEffectTimeIntervalPosition();
-    buffer.GetPathDrawingContext()->Clear();
 
     if (friction < 0.4f) {
         friction = 0.4f;
@@ -587,9 +615,11 @@ void TendrilEffect::Render(RenderBuffer& buffer, const std::string& movement,
     case 3:
         // circles
         _mv2 = std::min(buffer.BufferWi, buffer.BufferHt) / 2; // radius
+        break;
     case 7:
         // circle movement based on music
         _mv2 = std::min(buffer.BufferWi, buffer.BufferHt) / 2; // max radius
+        break;
     }
 
     const double PI = 3.141592653589793238463;
@@ -775,20 +805,6 @@ void TendrilEffect::Render(RenderBuffer& buffer, const std::string& movement,
     }
 
     if (_tendril != nullptr) {
-        _tendril->Draw(buffer.GetPathDrawingContext(), colour, thickness);
-    }
-    wxImage* image = buffer.GetPathDrawingContext()->FlushAndGetImage();
-    bool hasAlpha = image->HasAlpha();
-
-    xlColor c;
-    for (int y = 0; y < std::min(buffer.BufferHt, image->GetHeight()); ++y) {
-        for (int x = 0; x < std::min(buffer.BufferWi, image->GetWidth()); ++x) {
-            if (hasAlpha) {
-                c.Set(image->GetRed(x, y), image->GetGreen(x, y), image->GetBlue(x, y), image->GetAlpha(x, y));
-            } else {
-                c.Set(image->GetRed(x, y), image->GetGreen(x, y), image->GetBlue(x, y), 255);
-            }
-            buffer.SetPixel(x, y, c);
-        }
+        _tendril->Draw(buffer, colour, thickness);
     }
 }

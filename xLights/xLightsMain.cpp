@@ -2095,7 +2095,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     ShaderEffect::SetBackgroundRender(bgShaders);
 #endif
 
-    DrawingContext::Initialize(this);
+    TextDrawingContext::Initialize(this);
 
     MenuItem_File_Save->Enable(true);
     MenuItem_File_Save->SetItemLabel("Save Setup\tCTRL-s");
@@ -2159,7 +2159,7 @@ xLightsFrame::~xLightsFrame()
     EffectSettingsTimer.Stop();
     OutputTimer.Stop();
     RenderStatusTimer.Stop();
-    DrawingContext::CleanUp();
+    TextDrawingContext::CleanUp();
 
     if (_pingTimer != nullptr) {
         _pingTimer->Stop();

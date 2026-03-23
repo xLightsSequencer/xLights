@@ -139,6 +139,4 @@ private:
     void Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int emoji, int emojiTone, wxFontInfo& font) const;
     void Drawellipse(RenderBuffer& buffer, int xc, int yc, double radius, int multipler, xlColor color, int thickness, double rotation = 0) const;
     void DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
-    bool areSame(double a, double b, float eps) const;
-    bool areCollinear(const xlPointD& a, const xlPointD& b, const xlPointD& c, double eps) const;
 };

@@ -30,6 +30,8 @@
 #include "../../include/vumeter-64.xpm"
 
 #include "nanosvg/src/nanosvg.h"
+#include "nanosvg/src/nanosvgrast.h"
+#include "nanosvgrast_impl.h"
 
 #include <algorithm>
 
@@ -277,6 +279,10 @@ public:
             nsvgDelete(_svgImage);
             _svgImage = nullptr;
         }
+        if (_svgRasterizer != nullptr) {
+            nsvgDeleteRasterizer(_svgRasterizer);
+            _svgRasterizer = nullptr;
+        }
     };
     void InitialiseSVG(const std::string filename)
     {
@@ -297,6 +303,13 @@ public:
     {
         return _svgImage;
     }
+    NSVGrasterizer* GetRasterizer()
+    {
+        if (_svgRasterizer == nullptr) {
+            _svgRasterizer = nsvgCreateRasterizer();
+        }
+        return _svgRasterizer;
+    }
 
 	std::list<int> _timingmarks; // collection of recent timing marks ... used for sweep
 	int _lasttimingmark; // last time we saw a timing mark ... used for pulse
@@ -308,6 +321,8 @@ public:
     int _colourindex = 0;
     int _nCount = 0;
     NSVGimage* _svgImage = nullptr;
+    NSVGrasterizer* _svgRasterizer = nullptr;
+    std::vector<uint8_t> _rasterBuf;
     std::string _svgFilename;
     float _svgScaleBase = 1.0f;
     int _lastDirection { 1 };
@@ -1881,158 +1896,12 @@ void VUMeterEffect::DrawTree(RenderBuffer &buffer, int xc, int yc, double radius
 	}
 }
 
-static inline xlPointD ScaleMovePoint(const xlPointD pt, const xlPointD imageCentre, const xlPointD centre, float factor, float scaleTo)
-{
-    return centre + ((pt - imageCentre) * factor * scaleTo * 10);
-}
-
-static inline uint8_t GetSVGRed(uint32_t colour)
-{
-    return (colour);
-}
-
-static inline uint8_t GetSVGGreen(uint32_t colour)
-{
-    return (colour >> 8);
-}
-
-static inline uint8_t GetSVGBlue(uint32_t colour)
-{
-    return (colour >> 16);
-}
-
-static inline uint8_t GetSVGAlpha(uint32_t colour)
-{
-    return (colour >> 24);
-}
-
-static inline uint32_t GetSVGExAlpha(uint32_t colour)
-{
-    return (colour & 0xFFFFFF);
-}
-
-static inline bool areSame(double a, double b, float eps)
-{
-    return std::fabs(a - b) < eps;
-}
-
-static inline bool areCollinear(const xlPointD& a, const xlPointD& b, const xlPointD& c, double eps)
-{
-    // use dot product to determine if point are in a strait line
-    auto [a_x, a_y] = a;
-    auto [b_x, b_y] = b;
-    auto [c_x, c_y] = c;
-
-    auto test = (b_x - a_x) * (c_y - a_y) - (c_x - a_x) * (b_y - a_y);
-    return std::abs(test) < eps;
-}
-
 void VUMeterEffect::DrawSVG(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, NSVGimage* svgFile, int thickness)
 {
     VUMeterRenderCache* cache = (VUMeterRenderCache*)buffer.infoCache[id];
-
-    auto image = svgFile;
-    if (image == nullptr) {
-        for (size_t x = 0; x < buffer.BufferWi; ++x) {
-            for (size_t y = 0; y < buffer.BufferHt; ++y) {
-                buffer.SetPixel(x, y, xlRED);
-            }
-        }
-    } else {
-        auto context = buffer.GetPathDrawingContext();
-        context->Clear();
-
-        xlPointD centre((float)xc, (float)yc);
-        xlPointD imageCentre((float)image->width / 2.0, (float)image->height / 2.0);
-
-        for (NSVGshape* shape = image->shapes; shape != nullptr; shape = shape->next) {
-            if (GetSVGExAlpha(shape->fill.color) != 0) {
-                if (shape->fill.type == 0) {
-                    context->SetBrush(wxNullBrush);
-                } else if (shape->fill.type == 1) {
-                    wxColor bc(GetSVGRed(shape->fill.color), GetSVGGreen(shape->fill.color), GetSVGBlue(shape->fill.color), /*shape->opacity * */ GetSVGAlpha(shape->fill.color) * color.alpha / 255);
-                    wxBrush brush(bc, wxBrushStyle::wxBRUSHSTYLE_SOLID);
-                    context->SetBrush(brush);
-                } else {
-                    // these are gradients and I know they are not right
-                    if (shape->fill.gradient->nstops == 2) {
-                        wxColor c1(GetSVGRed(shape->fill.gradient->stops[0].color), GetSVGGreen(shape->fill.gradient->stops[0].color), GetSVGBlue(shape->fill.gradient->stops[0].color), /*shape->opacity * */ GetSVGAlpha(shape->fill.gradient->stops[0].color) * color.alpha / 255);
-                        wxColor c2(GetSVGRed(shape->fill.gradient->stops[1].color), GetSVGGreen(shape->fill.gradient->stops[1].color), GetSVGBlue(shape->fill.gradient->stops[1].color), /*shape->opacity * */ GetSVGAlpha(shape->fill.gradient->stops[1].color) * color.alpha / 255);
-                        wxGraphicsBrush brush = context->CreateLinearGradientBrush(0, buffer.BufferHt, 0, 0, c1, c2);
-                        context->SetBrush(brush);
-                    } else {
-                        wxGraphicsGradientStops stops;
-                        for (size_t i = 0; i < shape->fill.gradient->nstops; ++i) {
-                            wxColor sc(GetSVGRed(shape->fill.gradient->stops[i].color), GetSVGGreen(shape->fill.gradient->stops[i].color), GetSVGBlue(shape->fill.gradient->stops[i].color), /*shape->opacity * */ GetSVGAlpha(shape->fill.gradient->stops[i].color) * color.alpha / 255);
-                            if (i == 0) {
-                                stops.SetStartColour(sc);
-                            } else if (i == shape->fill.gradient->nstops - 1) {
-                                stops.SetEndColour(sc);
-                            } else {
-                                stops.Add(sc, 1.0 - shape->fill.gradient->stops[i].offset);
-                            }
-                        }
-                        wxGraphicsBrush brush = context->CreateLinearGradientBrush(0, buffer.BufferHt, 0, 0, stops);
-                        context->SetBrush(brush);
-                    }
-                }
-            }
-
-            if (shape->stroke.type == 0) {
-                context->SetPen(wxNullPen);
-            } else if (shape->stroke.type == 1) {
-                wxColor pc(GetSVGRed(shape->stroke.color), GetSVGGreen(shape->stroke.color), GetSVGBlue(shape->stroke.color), /*shape->opacity * */ GetSVGAlpha(shape->stroke.color) * color.alpha / 255);
-                wxPen pen(pc, thickness);
-                context->SetPen(pen);
-            } else {
-                // we dont fo gradient lines yet
-            }
-
-            for (NSVGpath* path = shape->paths; path != nullptr; path = path->next) {
-                wxGraphicsPath cpath = context->CreatePath();
-                for (int i = 0; i < path->npts - 1; i += 3) {
-                    float* p = &path->pts[i * 2];
-                    auto ih = image->height;
-                    xlPointD start = ScaleMovePoint(xlPointD(p[0], ih - p[1]), imageCentre, centre, cache->_svgScaleBase, radius);
-                    xlPointD cp1 = ScaleMovePoint(xlPointD(p[2], ih - p[3]), imageCentre, centre, cache->_svgScaleBase, radius);
-                    xlPointD cp2 = ScaleMovePoint(xlPointD(p[4], ih - p[5]), imageCentre, centre, cache->_svgScaleBase, radius);
-                    xlPointD end = ScaleMovePoint(xlPointD(p[6], ih - p[7]), imageCentre, centre, cache->_svgScaleBase, radius);
-
-                    if (i == 0)
-                        cpath.MoveToPoint(start.x, start.y);
-
-                    if (areCollinear(start, cp1, end, 0.001f) && areCollinear(start, cp2, end, 0.001f)) { // check if its a straight line
-                        cpath.AddLineToPoint(end.x, end.y);
-                    } else if (areSame(end.x, cp2.x, 0.001f) && areSame(end.y, cp2.y, 0.001f)) { // check if control points2 is the end
-                        cpath.AddQuadCurveToPoint(cp1.x, cp1.y, end.x, end.y);
-                    } else {
-                        cpath.AddCurveToPoint(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
-                    }
-                }
-                if (path->closed) {
-                    cpath.CloseSubpath();
-                    context->FillPath(cpath, wxPolygonFillMode::wxODDEVEN_RULE);
-                }
-                context->StrokePath(cpath);
-            }
-        }
-
-        wxImage* image = buffer.GetPathDrawingContext()->FlushAndGetImage();
-        bool hasAlpha = image->HasAlpha();
-
-        xlColor cc;
-        for (int y = 0; y < buffer.BufferHt; ++y) {
-            for (int x = 0; x < buffer.BufferWi; ++x) {
-                if (hasAlpha) {
-                    cc = xlColor(image->GetRed(x, y), image->GetGreen(x, y), image->GetBlue(x, y), image->GetAlpha(x, y));
-                    cc = cc.AlphaBlend(buffer.GetPixel(x, y));
-                } else {
-                    cc.Set(image->GetRed(x, y), image->GetGreen(x, y), image->GetBlue(x, y), 255);
-                }
-                buffer.SetPixel(x, y, cc);
-            }
-        }
-    }
+    RasterizeSVGToBuffer(cache->GetRasterizer(), svgFile,
+                         cache->_rasterBuf, buffer,
+                         xc, yc, radius, cache->_svgScaleBase, color);
 }
 
 void VUMeterEffect::DrawCrucifix(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness)

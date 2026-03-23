@@ -764,6 +764,8 @@
 		<Unit filename="ui/effectpanels/PlasmaPanel.h" />
 		<Unit filename="effects/RenderableEffect.cpp" />
 		<Unit filename="effects/RenderableEffect.h" />
+		<Unit filename="effects/nanosvgrast_impl.cpp" />
+		<Unit filename="effects/nanosvgrast_impl.h" />
 		<Unit filename="effects/RippleEffect.cpp" />
 		<Unit filename="effects/RippleEffect.h" />
 		<Unit filename="ui/effectpanels/RipplePanel.cpp" />

@@ -64,7 +64,7 @@ class ATendril
 	~ATendril();
 	ATendril(float friction, int size, float dampening, float tension, float spring, const xlPoint& start);
     void Update(const xlPoint& target, int tunemovement, int width, int height);
-	void Draw(PathDrawingContext* gc, xlColor colour, int thickness);
+	void Draw(RenderBuffer& buffer, xlColor colour, int thickness);
 	xlPoint LastLocation();
 };
 
@@ -79,7 +79,7 @@ class Tendril
 	void UpdateRandomMove(int tunemovement, int width, int height);
     void Update(const xlPoint& target, int tunemovement, size_t width, size_t height);
     void Update(int x, int y, int tunemovement, size_t width, size_t height);
-    void Draw(PathDrawingContext* gc, xlColor colour, int thickness);
+    void Draw(RenderBuffer& buffer, xlColor colour, int thickness);
 };
 
 class TendrilEffect : public RenderableEffect
@@ -88,12 +88,6 @@ public:
     TendrilEffect(int id);
     virtual ~TendrilEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
-#ifdef LINUX
-    virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override
-    {
-        return false;
-    }
-#endif
     virtual bool AppropriateOnNodes() const override
     {
         return false;

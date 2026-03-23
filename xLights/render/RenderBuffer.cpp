@@ -81,9 +81,8 @@ private:
 };
 
 static ContextPool<TextDrawingContext> *TEXT_CONTEXT_POOL = nullptr;
-static ContextPool<PathDrawingContext> *PATH_CONTEXT_POOL = nullptr;
 
-void DrawingContext::Initialize(wxWindow *parent) {
+void TextDrawingContext::Initialize(wxWindow *parent) {
     if (TEXT_CONTEXT_POOL == nullptr) {
         TEXT_CONTEXT_POOL = new ContextPool<TextDrawingContext>([parent]() {
             // atomic reference counting, can create this on background thread
@@ -91,36 +90,12 @@ void DrawingContext::Initialize(wxWindow *parent) {
         });
         //TEXT_CONTEXT_POOL->PreAlloc(10);
     }
-    if (PATH_CONTEXT_POOL == nullptr) {
-        PATH_CONTEXT_POOL = new ContextPool<PathDrawingContext>([parent]() {
-            // atomic reference counting, can create this on background thread
-            return new PathDrawingContext(10, 10 ,false);
-        });
-        //PATH_CONTEXT_POOL->PreAlloc(5);
-    }
 }
 
-void DrawingContext::CleanUp() {
+void TextDrawingContext::CleanUp() {
     if (TEXT_CONTEXT_POOL != nullptr) {
         delete TEXT_CONTEXT_POOL;
         TEXT_CONTEXT_POOL = nullptr;
-    }
-    if (PATH_CONTEXT_POOL != nullptr) {
-        delete PATH_CONTEXT_POOL;
-        PATH_CONTEXT_POOL = nullptr;
-    }
-}
-
-PathDrawingContext* PathDrawingContext::GetContext() {
-    if (PATH_CONTEXT_POOL != nullptr) {
-        return PATH_CONTEXT_POOL->GetContext();
-    }
-    return nullptr;
-}
-
-void PathDrawingContext::ReleaseContext(PathDrawingContext* pdc) {
-    if (PATH_CONTEXT_POOL != nullptr) {
-        return PATH_CONTEXT_POOL->ReleaseContext(pdc);
     }
 }
 
@@ -249,18 +224,23 @@ public:
     {}
 };
 
-DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared, bool alpha) : nullBitmap(wxNullBitmap)
+TextDrawingContext::TextDrawingContext(int BufferWi, int BufferHt, bool allowShared) : nullBitmap(wxNullBitmap)
 {
+#ifdef LINUX
+    // Linux does text rendering on main thread so using the shared stuff is fine
+    allowShared = true;
+#endif
+
     gc = nullptr;
     dc = nullptr;
+    fontStyle = 0;
+    fontSize = 0;
     unshare(nullBitmap);
     image = new wxImage(BufferWi > 0 ? BufferWi : 1, BufferHt > 0 ? BufferHt : 1);
-    if (alpha) {
-        image->SetAlpha();
-        for(wxCoord x=0; x<BufferWi; x++) {
-            for(wxCoord y=0; y<BufferHt; y++) {
-                image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
-            }
+    image->SetAlpha();
+    for(wxCoord x=0; x<BufferWi; x++) {
+        for(wxCoord y=0; y<BufferHt; y++) {
+            image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
         }
     }
     bitmap = new wxBitmap(*image);
@@ -306,7 +286,7 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared, boo
     bitmap = nullptr;
 }
 
-DrawingContext::~DrawingContext() {
+TextDrawingContext::~TextDrawingContext() {
     if (gc != nullptr) {
         delete gc;
     }
@@ -321,31 +301,7 @@ DrawingContext::~DrawingContext() {
     }
 }
 
-
-PathDrawingContext::PathDrawingContext(int BufferWi, int BufferHt, bool allowShared)
-    : DrawingContext(BufferWi, BufferHt, allowShared, true) {}
-
-PathDrawingContext::~PathDrawingContext() {}
-
-
-
-TextDrawingContext::TextDrawingContext(int BufferWi, int BufferHt, bool allowShared)
-#ifdef __WXMSW__
-    : DrawingContext(BufferWi, BufferHt, allowShared, true)
-#elif defined(__WXOSX__)
-    : DrawingContext(BufferWi, BufferHt, allowShared, true)
-#elif defined(LINUX)
-    // Linux does text rendering on main thread so using the shared stuff is fine
-    : DrawingContext(BufferWi, BufferHt, true, true)
-#endif
-{
-    fontStyle = 0;
-    fontSize = 0;
-}
-
-TextDrawingContext::~TextDrawingContext() {}
-
-void DrawingContext::ResetSize(int BufferWi, int BufferHt) {
+void TextDrawingContext::ResetSize(int BufferWi, int BufferHt) {
     if (bitmap != nullptr) {
         delete bitmap;
         bitmap = nullptr;
@@ -354,17 +310,15 @@ void DrawingContext::ResetSize(int BufferWi, int BufferHt) {
         delete image;
     }
     image = new wxImage(BufferWi > 0 ? BufferWi : 1, BufferHt > 0 ? BufferHt : 1);
-    if (AllowAlphaChannel()) {
-        image->SetAlpha();
-        for(wxCoord x=0; x<BufferWi; x++) {
-            for(wxCoord y=0; y<BufferHt; y++) {
-                image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
-            }
+    image->SetAlpha();
+    for(wxCoord x=0; x<BufferWi; x++) {
+        for(wxCoord y=0; y<BufferHt; y++) {
+            image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
         }
     }
 }
 
-size_t DrawingContext::GetWidth() const
+size_t TextDrawingContext::GetWidth() const
 {
     if (gc != nullptr) {
         wxDouble w = 0, h = 0;
@@ -376,7 +330,7 @@ size_t DrawingContext::GetWidth() const
     return 0;
 }
 
-size_t DrawingContext::GetHeight() const
+size_t TextDrawingContext::GetHeight() const
 {
     if (gc != nullptr) {
         wxDouble w = 0, h = 0;
@@ -388,58 +342,26 @@ size_t DrawingContext::GetHeight() const
     return 0;
 }
 
-void DrawingContext::Clear()
+void TextDrawingContext::Clear()
 {
-    if (dc != nullptr)
-    {
+    if (gc != nullptr) {
+        delete gc;
+        gc = nullptr;
+    }
+
+    if (dc != nullptr) {
         dc->SelectObject(nullBitmap);
         if (bitmap != nullptr) {
             delete bitmap;
         }
         image->Clear();
 
-        if (AllowAlphaChannel()) {
-            image->SetAlpha();
-            memset(image->GetAlpha(), wxIMAGE_ALPHA_TRANSPARENT, image->GetWidth() * image->GetHeight());
-            bitmap = new wxBitmap(*image, 32);
-        }
-        else {
-            bitmap = new wxBitmap(*image);
-        }
+        image->SetAlpha();
+        memset(image->GetAlpha(), wxIMAGE_ALPHA_TRANSPARENT, image->GetWidth() * image->GetHeight());
+        bitmap = new wxBitmap(*image, 32);
+
         dc->SelectObject(*bitmap);
     }
-}
-
-void PathDrawingContext::Clear() {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (gc != nullptr) {
-        delete gc;
-        gc = nullptr;
-    }
-    DrawingContext::Clear();
-    gc = wxGraphicsContext::Create(*dc);
-
-    if (gc == nullptr)
-    {
-        logger_base.error("PathDrawingContext DC creation failed.");
-        return;
-    }
-
-    gc->SetAntialiasMode(wxANTIALIAS_NONE);
-    gc->SetInterpolationQuality(wxInterpolationQuality::wxINTERPOLATION_FAST);
-    gc->SetCompositionMode(wxCompositionMode::wxCOMPOSITION_SOURCE);
-}
-
-void TextDrawingContext::Clear()
-{
-
-    if (gc != nullptr) {
-        delete gc;
-        gc = nullptr;
-    }
-
-    DrawingContext::Clear();
 
 #ifdef __WXMSW__
     // must use the Direct2D renderer to get the color emoji's
@@ -474,11 +396,7 @@ void TextDrawingContext::SetOverlayMode(bool b) {
     gc->SetCompositionMode(b ? wxCompositionMode::wxCOMPOSITION_OVER : wxCompositionMode::wxCOMPOSITION_SOURCE);
 }
 
-bool TextDrawingContext::AllowAlphaChannel() {
-    return true;
-}
-
-wxImage *DrawingContext::FlushAndGetImage() {
+wxImage *TextDrawingContext::FlushAndGetImage() {
     if (gc != nullptr) {
         gc->Flush();
         delete gc;
@@ -490,23 +408,6 @@ wxImage *DrawingContext::FlushAndGetImage() {
     return image;
 }
 
-void PathDrawingContext::SetPen(wxPen &pen) {
-    if (gc != nullptr)
-        gc->SetPen(pen);
-}
-
-void PathDrawingContext::SetBrush(wxBrush& brush)
-{
-    if (gc != nullptr)
-        gc->SetBrush(brush);
-}
-
-void PathDrawingContext::SetBrush(wxGraphicsBrush& brush)
-{
-    if (gc != nullptr)
-        gc->SetBrush(brush);
-}
-
 void TextDrawingContext::SetPen(wxPen& pen)
 {
     if (gc != nullptr) {
@@ -514,21 +415,6 @@ void TextDrawingContext::SetPen(wxPen& pen)
     } else {
         dc->SetPen(pen);
     }
-}
-
-wxGraphicsPath PathDrawingContext::CreatePath()
-{
-    return gc->CreatePath();
-}
-
-void PathDrawingContext::StrokePath(wxGraphicsPath& path)
-{
-    gc->StrokePath(path);
-}
-
-void PathDrawingContext::FillPath(wxGraphicsPath& path, wxPolygonFillMode fillStyle)
-{
-    gc->FillPath(path, fillStyle);
 }
 
 void TextDrawingContext::SetFont(const wxFontInfo& font, const xlColor& color)
@@ -729,7 +615,6 @@ RenderBuffer::RenderBuffer(xLightsFrame *f, PixelBufferClass *p, const Model *m)
     _nodeBuffer = false;
     frameTimeInMs = 50;
     _textDrawingContext = nullptr;
-    _pathDrawingContext = nullptr;
     isTransformed = false;
 }
 
@@ -741,9 +626,6 @@ RenderBuffer::~RenderBuffer()
     if (_textDrawingContext != nullptr) {
         TextDrawingContext::ReleaseContext(_textDrawingContext);
     }
-    if (_pathDrawingContext != nullptr) {
-        PathDrawingContext::ReleaseContext(_pathDrawingContext);
-    }
     for (auto& it : infoCache) {
         delete it.second;
         it.second = nullptr;
@@ -752,20 +634,6 @@ RenderBuffer::~RenderBuffer()
         GPURenderUtils::cleanUp(this);
         gpuRenderData = nullptr;
     }
-}
-
-PathDrawingContext * RenderBuffer::GetPathDrawingContext()
-{
-    if (_pathDrawingContext == nullptr)
-    {
-        _pathDrawingContext = PathDrawingContext::GetContext();
-        _pathDrawingContext->ResetSize(BufferWi, BufferHt);
-    } else if (_pathDrawingContext->GetWidth() != BufferWi || _pathDrawingContext->GetHeight() != BufferHt) {
-        // varying subbuffers the size may have changed
-        _pathDrawingContext->ResetSize(BufferWi, BufferHt);
-    }
-
-    return _pathDrawingContext;
 }
 
 TextDrawingContext* RenderBuffer::GetTextDrawingContext()
@@ -783,9 +651,6 @@ TextDrawingContext* RenderBuffer::GetTextDrawingContext()
 
 void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform, bool nodeBuffer)
 {
-    if (_pathDrawingContext != nullptr && (BufferHt != newBufferHt || BufferWi != newBufferWi)) {
-        _pathDrawingContext->ResetSize(newBufferWi, newBufferHt);
-    }
     if (_textDrawingContext != nullptr && (BufferHt != newBufferHt || BufferWi != newBufferWi)) {
         _textDrawingContext->ResetSize(newBufferWi, newBufferHt);
     }
@@ -1119,6 +984,114 @@ void RenderBuffer::DrawBox(int x1, int y1, int x2, int y2, const xlColor& color,
     for (int x = x1; x <= x2; x++) {
         for (int y = y1; y <= y2; y++) {
             SetPixel(x, y, color, wrap, useAlpha);
+        }
+    }
+}
+
+// Xiaolin Wu's anti-aliased line algorithm
+// Uses direct color blending with background rather than alpha, so overlapping
+// draws don't accumulate.
+void RenderBuffer::DrawAALine(const float x0, const float y0, const float x1, const float y1, const xlColor& color)
+{
+    auto plot = [&](int ix, int iy, float brightness) {
+        if (brightness <= 0.0f) return;
+        brightness = std::min(brightness, 1.0f);
+        xlColor bg = GetPixel(ix, iy);
+        uint8_t r = (uint8_t)(bg.red + (color.red - bg.red) * brightness);
+        uint8_t g = (uint8_t)(bg.green + (color.green - bg.green) * brightness);
+        uint8_t b = (uint8_t)(bg.blue + (color.blue - bg.blue) * brightness);
+        SetPixel(ix, iy, xlColor(r, g, b));
+    };
+
+    bool steep = std::abs(y1 - y0) > std::abs(x1 - x0);
+    float ax0 = x0, ay0 = y0, ax1 = x1, ay1 = y1;
+    if (steep) { std::swap(ax0, ay0); std::swap(ax1, ay1); }
+    if (ax0 > ax1) { std::swap(ax0, ax1); std::swap(ay0, ay1); }
+
+    float dx = ax1 - ax0;
+    float dy = ay1 - ay0;
+    float gradient = (dx < 0.001f) ? 1.0f : dy / dx;
+
+    // first endpoint
+    float xend = std::round(ax0);
+    float yend = ay0 + gradient * (xend - ax0);
+    float xgap = 1.0f - (ax0 + 0.5f - std::floor(ax0 + 0.5f));
+    int xpxl1 = (int)xend;
+    int ypxl1 = (int)std::floor(yend);
+    if (steep) {
+        plot(ypxl1, xpxl1, (1.0f - (yend - ypxl1)) * xgap);
+        plot(ypxl1 + 1, xpxl1, (yend - ypxl1) * xgap);
+    } else {
+        plot(xpxl1, ypxl1, (1.0f - (yend - ypxl1)) * xgap);
+        plot(xpxl1, ypxl1 + 1, (yend - ypxl1) * xgap);
+    }
+    float intery = yend + gradient;
+
+    // second endpoint
+    xend = std::round(ax1);
+    yend = ay1 + gradient * (xend - ax1);
+    xgap = ax1 + 0.5f - std::floor(ax1 + 0.5f);
+    int xpxl2 = (int)xend;
+    int ypxl2 = (int)std::floor(yend);
+    if (steep) {
+        plot(ypxl2, xpxl2, (1.0f - (yend - ypxl2)) * xgap);
+        plot(ypxl2 + 1, xpxl2, (yend - ypxl2) * xgap);
+    } else {
+        plot(xpxl2, ypxl2, (1.0f - (yend - ypxl2)) * xgap);
+        plot(xpxl2, ypxl2 + 1, (yend - ypxl2) * xgap);
+    }
+
+    // main loop
+    for (int x = xpxl1 + 1; x < xpxl2; ++x) {
+        int iy = (int)std::floor(intery);
+        float frac = intery - iy;
+        if (steep) {
+            plot(iy, x, 1.0f - frac);
+            plot(iy + 1, x, frac);
+        } else {
+            plot(x, iy, 1.0f - frac);
+            plot(x, iy + 1, frac);
+        }
+        intery += gradient;
+    }
+}
+
+// Anti-aliased filled circle using distance from center for edge smoothing.
+// Uses direct color blending with background rather than alpha, so overlapping
+// draws don't accumulate.
+void RenderBuffer::DrawAACircle(const float cx, const float cy, const float radius, const xlColor& color)
+{
+    int r = (int)std::ceil(radius + 1.0f);
+    int ixc = (int)std::round(cx);
+    int iyc = (int)std::round(cy);
+    int xmin = std::max(0, ixc - r);
+    int xmax = std::min(BufferWi - 1, ixc + r);
+    int ymin = std::max(0, iyc - r);
+    int ymax = std::min(BufferHt - 1, iyc + r);
+
+    float outer = radius + 0.75f;
+    float outer2 = outer * outer;
+    float inner = std::max(0.0f, radius - 0.75f);
+    float inner2 = inner * inner;
+
+    for (int y = ymin; y <= ymax; ++y) {
+        float dy = (float)y - cy;
+        float dy2 = dy * dy;
+        for (int x = xmin; x <= xmax; ++x) {
+            float dx = (float)x - cx;
+            float d2 = dx * dx + dy2;
+            if (d2 > outer2) continue;
+            if (d2 <= inner2) {
+                SetPixel(x, y, color);
+            } else {
+                float d = std::sqrt(d2);
+                float coverage = std::max(0.0f, std::min(1.0f, (outer - d) / (outer - inner)));
+                xlColor bg = GetPixel(x, y);
+                uint8_t cr = (uint8_t)(bg.red + (color.red - bg.red) * coverage);
+                uint8_t cg = (uint8_t)(bg.green + (color.green - bg.green) * coverage);
+                uint8_t cb = (uint8_t)(bg.blue + (color.blue - bg.blue) * coverage);
+                SetPixel(x, y, xlColor(cr, cg, cb));
+            }
         }
     }
 }
@@ -1688,7 +1661,6 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &b
 
     pixels = &pixelVector[0];
     _textDrawingContext = buffer._textDrawingContext;
-    _pathDrawingContext = buffer._pathDrawingContext;
     gpuRenderData = nullptr;
 }
 
@@ -1696,7 +1668,6 @@ void RenderBuffer::Forget()
 {
     // Forget some stuff as this is a fake render buffer and we dont want it destroyed
     _textDrawingContext = nullptr;
-    _pathDrawingContext = nullptr;
 }
 
 void RenderBuffer::SetPixelDMXModel(int x, int y, const xlColor& color)

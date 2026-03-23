@@ -816,6 +816,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="effects\PlasmaEffect.cpp" />
     <ClCompile Include="ui\effectpanels\PlasmaPanel.cpp" />
     <ClCompile Include="effects\RenderableEffect.cpp" />
+    <ClCompile Include="effects\nanosvgrast_impl.cpp" />
     <ClCompile Include="effects\RippleEffect.cpp" />
     <ClCompile Include="ui\effectpanels\RipplePanel.cpp" />
     <ClCompile Include="effects\ShimmerEffect.cpp" />
@@ -1377,6 +1378,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="effects\PlasmaEffect.h" />
     <ClInclude Include="ui\effectpanels\PlasmaPanel.h" />
     <ClInclude Include="effects\RenderableEffect.h" />
+    <ClInclude Include="effects\nanosvgrast_impl.h" />
     <ClInclude Include="effects\RippleEffect.h" />
     <ClInclude Include="ui\effectpanels\RipplePanel.h" />
     <ClInclude Include="effects\ShimmerEffect.h" />

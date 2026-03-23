@@ -73,64 +73,6 @@ class MetalRenderBufferComputeData;
 class PixelBufferClass;
 
 
-class DrawingContext {
-protected:
-    DrawingContext(int BufferWi, int BufferHt, bool allowShared, bool alpha);
-    virtual ~DrawingContext();
-
-public:
-    static void Initialize(wxWindow *parent);
-    static void CleanUp();
-
-    void ResetSize(int BufferWi, int BufferHt);
-    size_t GetWidth() const;
-    size_t GetHeight() const;
-    virtual void Clear();
-    virtual wxImage *FlushAndGetImage();
-    virtual bool AllowAlphaChannel() { return true;};
-protected:
-    wxImage *image;
-    wxBitmap *bitmap;
-    wxBitmap nullBitmap;
-    wxMemoryDC *dc;
-    wxGraphicsContext *gc;
-};
-
-class PathDrawingContext : public DrawingContext {
-public:
-    PathDrawingContext(int BufferWi, int BufferHt, bool allowShared);
-    virtual ~PathDrawingContext();
-
-    static PathDrawingContext* GetContext();
-    static void ReleaseContext(PathDrawingContext* pdc);
-
-    virtual void Clear() override;
-
-    void SetPen(wxPen& pen);
-    void SetBrush(wxBrush& brush);
-    void SetBrush(wxGraphicsBrush& brush);
-    wxGraphicsBrush CreateLinearGradientBrush(wxDouble x1, wxDouble y1, wxDouble x2, wxDouble y2, const wxGraphicsGradientStops& stops) const
-    {
-        if (gc != nullptr)
-            return gc->CreateLinearGradientBrush(x1, y1, x2, y2, stops);
-
-        return wxGraphicsBrush();
-    }
-    wxGraphicsBrush CreateLinearGradientBrush(wxDouble x1, wxDouble y1, wxDouble x2, wxDouble y2, const wxColour& c1, const wxColour& c2) const
-    {
-        if (gc != nullptr)
-            return gc->CreateLinearGradientBrush(x1, y1, x2, y2, c1, c2);
-
-        return wxGraphicsBrush();
-    }
-
-    wxGraphicsPath CreatePath();
-    void StrokePath(wxGraphicsPath& path);
-    void FillPath(wxGraphicsPath& path, wxPolygonFillMode fillStyle);
-
-private:
-};
-
 constexpr char WIN_NATIVE_EMOJI_FONT[] = "Segoe UI Emoji";
 constexpr char OSX_NATIVE_EMOJI_FONT[] = "Apple Color Emoji";
 constexpr char LINUX_NATIVE_EMOJI_FONT[] = "Noto Color Emoji";
@@ -143,10 +85,13 @@ constexpr char NATIVE_EMOJI_FONT[] = "Apple Color Emoji";
 constexpr char NATIVE_EMOJI_FONT[] = "Noto Color Emoji";
 #endif
 
-class TextDrawingContext : public DrawingContext {
+class TextDrawingContext {
 public:
     TextDrawingContext(int BufferWi, int BufferHt, bool allowShared);
-    virtual ~TextDrawingContext();
+    ~TextDrawingContext();
+
+    static void Initialize(wxWindow *parent);
+    static void CleanUp();
 
     static TextDrawingContext* GetContext();
     static void ReleaseContext(TextDrawingContext* pdc);
@@ -154,8 +99,11 @@ public:
     static const wxFontInfo& GetTextFont(const std::string& fnt);
     static const wxFontInfo& GetShapeFont(const std::string& fnt);
 
-    virtual void Clear() override;
-    virtual bool AllowAlphaChannel() override;
+    void ResetSize(int BufferWi, int BufferHt);
+    size_t GetWidth() const;
+    size_t GetHeight() const;
+    void Clear();
+    wxImage *FlushAndGetImage();
 
     void SetPen(wxPen& pen);
 
@@ -167,6 +115,11 @@ public:
 
     void SetOverlayMode(bool b = true);
 private:
+    wxImage *image;
+    wxBitmap *bitmap;
+    wxBitmap nullBitmap;
+    wxMemoryDC *dc;
+    wxGraphicsContext *gc;
     wxString fontName;
     int fontStyle;
     int fontSize;
@@ -512,6 +465,8 @@ public:
     void DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb, bool wrap = false);
     void DrawCircle(int xc, int yc, int r, const xlColor& color, bool filled = false, bool wrap = false);
     void DrawLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool useAlpha = false);
+    void DrawAALine(const float x0, const float y0, const float x1, const float y1, const xlColor& color);
+    void DrawAACircle(const float cx, const float cy, const float radius, const xlColor& color);
     void DrawThickLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, int thickness, bool useAlpha = false);
     void DrawThickLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool direction);
 
@@ -539,7 +494,6 @@ public:
     float GetEffectTimeIntervalPosition() const;
     float GetEffectTimeIntervalPosition(float cycles) const;
 
-    PathDrawingContext * GetPathDrawingContext();
     TextDrawingContext * GetTextDrawingContext();
 
     void CopyPixelsToDisplayListX(Effect *eff, int y, int sx, int ex, int inc = 1);
@@ -605,7 +559,6 @@ private:
     const Model *model;
     friend class PixelBufferClass;
     std::vector<NodeBaseClassPtr> Nodes;
-    PathDrawingContext *_pathDrawingContext = nullptr;
     TextDrawingContext *_textDrawingContext = nullptr;
 
     void SetPixelDMXModel(int x, int y, const xlColor& color);

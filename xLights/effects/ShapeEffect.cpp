@@ -26,6 +26,8 @@
 #include "../xLightsMain.h" 
 
 #include "nanosvg/src/nanosvg.h"
+#include "nanosvg/src/nanosvgrast.h"
+#include "nanosvgrast_impl.h"
 
 #include <regex>
 #include <log4cpp/Category.hh>
@@ -35,7 +37,6 @@
 #include "../../include/shape-32.xpm"
 #include "../../include/shape-48.xpm"
 #include "../../include/shape-64.xpm"
-#include "../ui/wxUtilities.h"
 
 #define REPEATTRIGGER 20
 
@@ -200,6 +201,10 @@ public:
             nsvgDelete(_svgImage);
             _svgImage = nullptr;
         }
+        if (_svgRasterizer != nullptr) {
+            nsvgDeleteRasterizer(_svgRasterizer);
+            _svgRasterizer = nullptr;
+        }
     }
 
     std::list<ShapeData*> _shapes;
@@ -207,6 +212,8 @@ public:
     int _sinceLastTriggered = 0;
     wxFontInfo _font;
     NSVGimage* _svgImage = nullptr;
+    NSVGrasterizer* _svgRasterizer = nullptr;
+    std::vector<uint8_t> _rasterBuf;
     std::string _svgFilename;
     float _svgScaleBase = 1.0f;
     std::string _filterLabel;
@@ -276,6 +283,14 @@ public:
     NSVGimage* GetImage()
     {
         return _svgImage;
+    }
+
+    NSVGrasterizer* GetRasterizer()
+    {
+        if (_svgRasterizer == nullptr) {
+            _svgRasterizer = nsvgCreateRasterizer();
+        }
+        return _svgRasterizer;
     }
 
     void DeleteShapes()
@@ -588,7 +603,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     if (Object_To_Draw == RENDER_SHAPE_EMOJI || Object_To_Draw == RENDER_SHAPE_SVG) {
         if (buffer.BufferWi <= 0 || buffer.BufferHt <= 0 || buffer.BufferWi > 15000) {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.error("Shape Effect (Emoji): Invalid buffer size: width=%d, height=%d", buffer.BufferWi, buffer.BufferHt);
+            logger_base.error("Shape Effect (Emoji/SVG): Invalid buffer size: width=%d, height=%d", buffer.BufferWi, buffer.BufferHt);
             return;
         }
         auto context = buffer.GetTextDrawingContext();
@@ -739,22 +754,6 @@ void ShapeEffect::Drawcircle(RenderBuffer &buffer, int xc, int yc, double radius
         }
         radius -= interpolation;
     }
-}
-
-bool ShapeEffect::areSame(double a, double b, float eps) const
-{
-    return std::fabs(a - b) < eps;
-}
-
-bool ShapeEffect::areCollinear(const xlPointD& a, const xlPointD& b, const xlPointD& c, double eps) const
-{
-    // use dot product to determine if point are in a strait line
-    auto [a_x, a_y] = a;
-    auto [b_x, b_y] = b;
-    auto [c_x, c_y] = c;
-
-    auto test = (b_x - a_x) * (c_y - a_y) - (c_x - a_x) * (b_y - a_y);
-    return std::abs(test) < eps;
 }
 
 void ShapeEffect::Drawellipse(RenderBuffer& buffer, int xc, int yc, double radius, int multipler, xlColor color, int thickness, double rotation) const
@@ -1188,144 +1187,11 @@ void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius,
     context->SetOverlayMode(false);
 }
 
-static inline xlPointD ScaleMovePoint(const xlPointD pt, const xlPointD imageCentre, const xlPointD centre, float factor, float scaleTo)
-{
-    return centre + ((pt - imageCentre) * factor * scaleTo * 10);
-}
-
-static inline uint8_t GetSVGRed(uint32_t colour)
-{
-    return (colour);
-}
-
-static inline uint8_t GetSVGGreen(uint32_t colour)
-{
-    return (colour >> 8);
-}
-
-static inline uint8_t GetSVGBlue(uint32_t colour)
-{
-    return (colour >> 16);
-}
-
-static inline uint8_t GetSVGAlpha(uint32_t colour)
-{
-    return (colour >> 24);
-}
-
 void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const
 {
-    auto image = cache->GetImage();
-    if (image == nullptr) {
-        for (size_t x = 0; x < buffer.BufferWi; ++x) {
-            for (size_t y = 0; y < buffer.BufferHt; ++y) {
-                buffer.SetPixel(x, y, xlRED);
-            }
-        }
-    } else {
-        auto context = buffer.GetPathDrawingContext();
-        context->Clear();
-
-        xlPointD centre((float)xc, (float)yc);
-        xlPointD imageCentre((float)image->width / 2.0, (float)image->height / 2.0);
-
-        for (NSVGshape* shape = image->shapes; shape != nullptr; shape = shape->next) {
-
-            wxGraphicsPath cpath = context->CreatePath();
-            for (NSVGpath* path = shape->paths; path != nullptr; path = path->next) {
-                for (int i = 0; i < path->npts - 1; i += 3) {
-                    float* p = &path->pts[i * 2];
-                    auto ih = image->height;
-                    xlPointD start = ScaleMovePoint(xlPointD(p[0], ih - p[1]), imageCentre, centre, cache->_svgScaleBase, radius);
-                    xlPointD cp1 = ScaleMovePoint(xlPointD(p[2], ih - p[3]), imageCentre, centre, cache->_svgScaleBase, radius);
-                    xlPointD cp2 = ScaleMovePoint(xlPointD(p[4], ih - p[5]), imageCentre, centre, cache->_svgScaleBase, radius);
-                    xlPointD end = ScaleMovePoint(xlPointD(p[6], ih - p[7]), imageCentre, centre, cache->_svgScaleBase, radius);
-
-                    if (i == 0) cpath.MoveToPoint(start.x, start.y);
-
-                    if (areCollinear(start, cp1, end, 0.001f) && areCollinear(start, cp2, end, 0.001f)) { // check if its a straight line
-                        cpath.AddLineToPoint(end.x, end.y);
-                    } else if (areSame(end.x, cp2.x, 0.001f) && areSame(end.y, cp2.y, 0.001f)) { // check if control points2 is the end
-                        cpath.AddQuadCurveToPoint(cp1.x, cp1.y, end.x, end.y);
-                    } else {
-                        cpath.AddCurveToPoint(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
-                    }
-                }
-                if (path->closed) {
-                    cpath.CloseSubpath();
-                }
-            }
-
-            // Fill setup: Use SVG's gradient with ABGR extraction
-            if (shape->fill.type == NSVG_PAINT_LINEAR_GRADIENT && shape->fill.gradient->nstops >= 2) {
-                wxGraphicsGradientStops stops;
-                for (size_t i = 0; i < shape->fill.gradient->nstops; ++i) {
-                    uint32_t c = shape->fill.gradient->stops[i].color;
-                    // Extract ABGR (NanoSVG's order)
-                    uint8_t a = (c >> 24) & 0xFF;
-                    uint8_t b = (c >> 16) & 0xFF;  // Blue
-                    uint8_t g = (c >> 8) & 0xFF;   // Green
-                    uint8_t r = c & 0xFF;          // Red
-                    wxColor sc(r, g, b, a * color.alpha / 255);
-                    if (i == 0) {
-                        stops.SetStartColour(sc);
-                    } else if (i == shape->fill.gradient->nstops - 1) {
-                        stops.SetEndColour(sc);
-                    } else {
-                        stops.Add(sc, shape->fill.gradient->stops[i].offset);
-                    }
-                }
-
-                float minX = shape->bounds[0], maxX = shape->bounds[2];
-                float minY = shape->bounds[1], maxY = shape->bounds[3];
-                xlPointD gstart(minX, (minY + maxY) / 2.0);
-                xlPointD gend(maxX, (minY + maxY) / 2.0);
-                gstart = ScaleMovePoint(xlPointD(gstart.x, image->height - gstart.y), imageCentre, centre, cache->_svgScaleBase, radius);
-                gend = ScaleMovePoint(xlPointD(gend.x, image->height - gend.y), imageCentre, centre, cache->_svgScaleBase, radius);
-
-                wxGraphicsBrush brush = context->CreateLinearGradientBrush(gstart.x, gstart.y, gend.x, gend.y, stops);
-                context->SetBrush(brush);
-            } else if (shape->fill.type == NSVG_PAINT_COLOR) {
-                wxColor bc(GetSVGRed(shape->fill.color), GetSVGGreen(shape->fill.color), GetSVGBlue(shape->fill.color), GetSVGAlpha(shape->fill.color) * color.alpha / 255);
-                wxBrush brush(bc, wxBrushStyle::wxBRUSHSTYLE_SOLID);
-                context->SetBrush(brush);
-            } else {
-                wxBrush brush(xlColorToWxColour(color), wxBrushStyle::wxBRUSHSTYLE_SOLID);
-                context->SetBrush(brush);
-            }
-
-            if (shape->stroke.type == NSVG_PAINT_NONE) {
-                context->SetPen(wxNullPen);
-            } else if (shape->stroke.type == NSVG_PAINT_COLOR) {
-                wxColor pc(GetSVGRed(shape->stroke.color), GetSVGGreen(shape->stroke.color), GetSVGBlue(shape->stroke.color), GetSVGAlpha(shape->stroke.color) * color.alpha / 255);
-                wxPen pen(pc, thickness);
-                context->SetPen(pen);
-            } else {
-                // Fallback to effect color if stroke type is unexpected
-                wxPen pen(xlColorToWxColour(color), thickness);
-                context->SetPen(pen);
-            }
-
-            context->FillPath(cpath, shape->fillRule == NSVG_FILLRULE_EVENODD ? wxODDEVEN_RULE : wxWINDING_RULE);
-            context->StrokePath(cpath);
-        }
-
-        wxImage* image = buffer.GetPathDrawingContext()->FlushAndGetImage();
-        bool hasAlpha = image->HasAlpha();
-
-        xlColor cc;
-        for (int y = 0; y < buffer.BufferHt; ++y) {
-            for (int x = 0; x < buffer.BufferWi; ++x) {
-                if (hasAlpha) {
-                    cc = xlColor(image->GetRed(x, y), image->GetGreen(x, y), image->GetBlue(x, y), image->GetAlpha(x, y));
-                    cc = cc.AlphaBlend(buffer.GetPixel(x, y));
-                } else {
-                    cc.Set(image->GetRed(x, y), image->GetGreen(x, y), image->GetBlue(x, y), 255);
-                }
-                buffer.SetPixel(x, y, cc);
-            }
-        }
-    }
+    RasterizeSVGToBuffer(cache->GetRasterizer(), cache->GetImage(),
+                         cache->_rasterBuf, buffer,
+                         xc, yc, radius, cache->_svgScaleBase, color);
 }
 
 void ShapeEffect::Drawcandycane(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const

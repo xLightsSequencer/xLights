@@ -460,6 +460,9 @@
     <ClCompile Include="controllers\Pixlite16.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
+    <ClCompile Include="effects\nanosvgrast_impl.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
     <ClCompile Include="effects\RippleEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
@@ -1845,6 +1848,9 @@
       <Filter>Effects</Filter>
     </ClInclude>
     <ClInclude Include="effects\RenderableEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="effects\nanosvgrast_impl.h">
       <Filter>Effects</Filter>
     </ClInclude>
     <ClInclude Include="effects\GlediatorEffect.h">
