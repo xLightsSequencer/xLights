@@ -13,7 +13,9 @@
 #include <wx/wx.h>
 #include <wx/socket.h>
 #include <wx/filename.h>
+#ifndef xlDO
 #include <pugixml.hpp>
+#endif
 #include <nlohmann/json.hpp>
 
 #include "utils/string_utils.h"
@@ -54,12 +56,14 @@ std::string RemoveUnsafeXmlChars(const std::string& s);
 std::string EscapeCSV(const std::string& s);
 std::string EscapeRegex(const std::string& s);
 inline bool isOdd(int n) { return n % 2 != 0; }
+#ifndef xlDO
 bool DoesXmlNodeExist(pugi::xml_node parent, const std::string& path);
 std::string GetXmlNodeContent(pugi::xml_node parent, const std::string& path, const std::string& def = "");
 std::string GetXmlNodeAttribute(pugi::xml_node parent, const std::string& path, const std::string& attribute, const std::string& def = "");
 std::vector<std::string> GetXmlNodeListContent(pugi::xml_node parent, const std::string& path, const std::string& listNodeName);
 void SetXmlNodeAttribute(pugi::xml_node node, const std::string& property, const std::string& value);
 void DownloadVamp();
+#endif
 bool IsFileInShowDir(const wxString& showDir, const std::string filename);
 void SetFixFileDirectories(const std::list<std::string>& dirs);
 void SetFixFileShowDir(const wxString& ShowDir);
