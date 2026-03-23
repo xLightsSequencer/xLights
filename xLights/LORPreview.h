@@ -33,6 +33,9 @@
 
 #include <vector>
 #include <map>
+#include <wx/arrstr.h>
+#include <wx/gdicmn.h>
+#include <wx/string.h>
 #include "Color.h"
 #include <pugixml.hpp>
 

@@ -2,6 +2,7 @@
 #include <wx/sstream.h>
 #include <wx/config.h>
 #include <wx/regex.h>
+#include <wx/xml/xml.h>
 
 #ifdef __WXMSW__
 #include <iphlpapi.h>
@@ -263,7 +264,7 @@ void PingWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 		if (_why != "") {
 			results.push_back({ "Why", _why });
 		}
-		results.push_back({ "Network", wxString::Format("%d.%d.%d.0", ip1, ip2, ip3)});
+		results.push_back({ "Network", wxString::Format("%d.%d.%d.0", ip1, ip2, ip3).ToStdString()});
 		results.push_back({ "Network Type", privateNetwork ? "Private" : "Public" });
 
 		auto const& result = IPOutput::Ping(_ip, _proxy);
@@ -354,10 +355,10 @@ void HTTPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 			results.push_back({ "IP", _ip });
 			results.push_back({ "Type", "HTTP" });
 			if (_proxy != "") {
-				results.push_back({ "Web", wxString::Format("Via proxy %s OK on port %d", _proxy, _port) });
+				results.push_back({ "Web", wxString::Format("Via proxy %s OK on port %d", _proxy, _port).ToStdString() });
 			}
 			else {
-				results.push_back({ "Web", wxString::Format("Direct OK on port %d", _port) });
+				results.push_back({ "Web", wxString::Format("Direct OK on port %d", _port).ToStdString() });
 			}
 
 			try {
@@ -471,12 +472,12 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
                                     std::string iface = ww.value("interface", "");
                                     if (iface == label) {
                                         int strength = ww.value("level", 0);
-                                        wifiStrength = wxString::Format(" (%d - %s)", strength, DecodeWifiStrength(strength));
+                                        wifiStrength = wxString::Format(" (%d - %s)", strength, DecodeWifiStrength(strength)).ToStdString();
                                         break;
                                     }
-                                    
+
                                 }
-                                results.push_back({ wxString::Format("IP %d", ii++), label + " : " + iip + " " + wifiStrength });
+                                results.push_back({ wxString::Format("IP %d", ii++).ToStdString(), label + " : " + iip + " " + wifiStrength });
                                 workManager.AddIP(iip, "");
                             }
                         }
@@ -498,7 +499,7 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
                         std::string gateway = root.value("GATEWAY", "");
                         std::string address = root.value("CurrentAddress", "");
                         auto n = wxString::Format("%s %s IP : %s Gateway : %s", it, dhcp, address, gateway);
-                        results.push_back({ wxString::Format("Net %d", iii++), n });
+                        results.push_back({ wxString::Format("Net %d", iii++).ToStdString(), n.ToStdString() });
                     }
                 } catch (const std::exception&) {
                 }
@@ -516,7 +517,7 @@ void FPPWork::DoWork(WorkManager& workManager, wxSocketClient* client)
                     for (const auto& p : root) {
                         if (p.is_string()) {
                             std::string proxyIP = p.get<std::string>();
-                            results.push_back({ wxString::Format("Proxying %d", c++), proxyIP });
+                            results.push_back({ wxString::Format("Proxying %d", c++).ToStdString(), proxyIP });
                             workManager.AddIP(proxyIP, "FPP Proxied", _ip);
                             workManager.AddClassDSubnet(proxyIP, _ip);
                             std::list<std::pair<std::string, std::string>> pres;
@@ -655,30 +656,30 @@ void FalconWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 						p = wxAtoi(n->GetChildren()->GetContent());
 					}
 					else if (n->GetName() == "fv") {
-						results.push_back({ "Firmware Version", n->GetChildren()->GetContent() });
+						results.push_back({ "Firmware Version", n->GetChildren()->GetContent().ToStdString() });
 					}
 					else if (n->GetName() == "v1") {
-						results.push_back({ "V1", n->GetChildren()->GetContent() });
+						results.push_back({ "V1", n->GetChildren()->GetContent().ToStdString() });
 					}
 					else if (n->GetName() == "v2") {
-						results.push_back({ "V2", n->GetChildren()->GetContent() });
+						results.push_back({ "V2", n->GetChildren()->GetContent().ToStdString() });
 					}
 					else if (n->GetName() == "t1") {
-						results.push_back({ "Processor Temp", n->GetChildren()->GetContent() + "C"});
+						results.push_back({ "Processor Temp", (n->GetChildren()->GetContent() + "C").ToStdString()});
 					}
 					else if (n->GetName() == "t2") {
-						results.push_back({ "Temp1", n->GetChildren()->GetContent() + "C" });
+						results.push_back({ "Temp1", (n->GetChildren()->GetContent() + "C").ToStdString() });
 					}
 					else if (n->GetName() == "t3") {
-						results.push_back({ "Temp2", n->GetChildren()->GetContent() + "C" });
+						results.push_back({ "Temp2", (n->GetChildren()->GetContent() + "C").ToStdString() });
 					}
 					else if (n->GetName() == "n") {
-						results.push_back({ "Name", n->GetChildren()->GetContent() });
+						results.push_back({ "Name", n->GetChildren()->GetContent().ToStdString() });
 					}
 				}
 			}
 			if (k0 != 0 || k1 != 0 || k2 != 0) {
-				results.push_back({ "Banks", wxString::Format("%d:%d:%d", k0, k1, k2) });
+				results.push_back({ "Banks", wxString::Format("%d:%d:%d", k0, k1, k2).ToStdString() });
 			}
 
 			int model;
@@ -777,7 +778,7 @@ void xScheduleWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 		logger_base.debug("    xSchedule found");
 		results.push_back({ "IP", _ip });
 		results.push_back({ "Type", "xSchedule" });
-		results.push_back({ "Port", wxString::Format("%d", _port) });
+		results.push_back({ "Port", wxString::Format("%d", _port).ToStdString() });
         nlohmann::json defaultValue = "";
         try {
             auto root = nlohmann::json::parse(xs);
@@ -1101,7 +1102,7 @@ void ComputerWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 			workManager.AddWork(new xScheduleWork(it, 8080));
 			workManager.AddWork(new xScheduleWork(it, 8081));
 			workManager.AddClassDSubnet(it);
-			results.push_back({ wxString::Format("Local IP %d", i++), it });
+			results.push_back({ wxString::Format("Local IP %d", i++).ToStdString(), it });
 		}
 	}
 
@@ -1123,7 +1124,7 @@ void ComputerWork::DoWork(WorkManager& workManager, wxSocketClient* client)
 						//strcpy_s(szMaskIp, sizeof(szMaskIp), inet_ntoa(IpAddr));
 						auto ip = std::string(szDestIp);
 						workManager.AddClassDSubnet(ip);
-						results.push_back({ wxString::Format("Static Route %d", i + 1), ip });
+						results.push_back({ wxString::Format("Static Route %d", i + 1).ToStdString(), ip });
 					}
 				}
 			}
