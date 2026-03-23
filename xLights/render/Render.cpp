@@ -2009,7 +2009,6 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
     Element* el = _sequenceElements.GetElement(model);
     if (el == nullptr)
         return false;
-    // TODO:  Zero-based was removed from the RenderJob call....do we need to do something to adjust for that
     RenderJob* job = new RenderJob(dynamic_cast<ModelElement*>(el), _seqData, this);
     wxASSERT(job != nullptr);
     SequenceData* data = job->createExportBuffer();
@@ -2025,11 +2024,18 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
         }
     }
     Model* m2 = GetModel(model);
+    // firstChan is the absolute 0-based channel of node 0; subtract it from nstart
+    // so that node data is packed at the start of the export buffer (index 0),
+    // matching what RenderModelOnImage/FillImage expect when reading from framedata[0].
+    // Previously RenderJob accepted a zero-based offset parameter that did this
+    // implicitly; now we must do it explicitly here.
+    int firstChan = m2->NodeStartChannel(0);
     for (size_t frame = 0; frame < _seqData.NumFrames(); ++frame) {
         for (size_t x = 0; x < job->getBuffer()->GetNodeCount(); ++x) {
             //chan in main buffer
             int ostart = m2->NodeStartChannel(x);
-            int nstart = job->getBuffer()->NodeStartChannel(x);
+            //chan in export buffer, relative to model start so data begins at index 0
+            int nstart = ostart - firstChan;
             //copy to render buffer for export
             job->getBuffer()->SetNodeChannelValues(x, &_seqData[frame][ostart]);
             job->getBuffer()->GetNodeChannelValues(x, &((*data)[frame][nstart]));
