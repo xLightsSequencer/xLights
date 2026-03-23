@@ -766,7 +766,7 @@ std::string EscapeRegex(const std::string& s) {
 }
 
 
-bool DoesXmlNodeExist(pugi::xml_node parent, const std::string& path) {
+bool DoesXmlNodeExist(const pugi::xml_node &parent, const std::string& path) {
     pugi::xml_node curr = parent;
     std::vector<std::string> pe;
     Split(path, '/', pe);
@@ -789,7 +789,7 @@ bool DoesXmlNodeExist(pugi::xml_node parent, const std::string& path) {
     return false;
 }
 
-std::string GetXmlNodeContent(pugi::xml_node parent, const std::string& path, const std::string& def) {
+std::string GetXmlNodeContent(const pugi::xml_node &parent, const std::string& path, const std::string& def) {
     pugi::xml_node curr = parent;
     std::vector<std::string> pe;
     Split(path, '/', pe);
@@ -812,7 +812,7 @@ std::string GetXmlNodeContent(pugi::xml_node parent, const std::string& path, co
     return def;
 }
 
-std::string GetXmlNodeAttribute(pugi::xml_node parent, const std::string& path, const std::string& attribute, const std::string& def) {
+std::string GetXmlNodeAttribute(const pugi::xml_node &parent, const std::string& path, const std::string& attribute, const std::string& def) {
     pugi::xml_node curr = parent;
     std::vector<std::string> pe;
     Split(path, '/', pe);
@@ -835,7 +835,7 @@ std::string GetXmlNodeAttribute(pugi::xml_node parent, const std::string& path, 
     return def;
 }
 
-std::vector<std::string> GetXmlNodeListContent(pugi::xml_node parent, const std::string& path, const std::string& listNodeName) {
+std::vector<std::string> GetXmlNodeListContent(const pugi::xml_node &parent, const std::string& path, const std::string& listNodeName) {
     std::vector<std::string> res;
     pugi::xml_node curr = parent;
     std::vector<std::string> pe;
@@ -865,7 +865,7 @@ std::vector<std::string> GetXmlNodeListContent(pugi::xml_node parent, const std:
 }
 
 
-void SetXmlNodeAttribute(pugi::xml_node node, const std::string& property, const std::string& value) {
+void SetXmlNodeAttribute(pugi::xml_node &node, const std::string& property, const std::string& value) {
     auto attr = node.attribute(property);
     if (!attr) {
         attr = node.append_attribute(property);
