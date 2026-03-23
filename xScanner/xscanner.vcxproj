@@ -189,6 +189,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\dependencies\pugixml\src\pugixml.cpp" />
     <ClCompile Include="..\common\xlBaseApp.cpp" />
     <ClCompile Include="..\xLights\automation\automation.cpp" />
     <ClCompile Include="..\xLights\controllers\BaseController.cpp" />
