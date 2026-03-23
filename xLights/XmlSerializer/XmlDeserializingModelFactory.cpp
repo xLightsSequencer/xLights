@@ -729,14 +729,31 @@ Model* XmlDeserializingModelFactory::DeserializeSphere(pugi::xml_node node, xLig
     model->SetNoZigZag(std::string_view(node.attribute(XmlNodeKeys::NoZigZagAttribute).as_string("false")) == "true");
     std::string version = node.attribute(XmlNodeKeys::versionNumberAttribute).as_string();
     if (version.empty() || std::strtol(version.c_str(), nullptr, 10) < 8) {
-        // sphere scale was adjusted to be "round". Previously, on half the size was considered for X and Z, but
-        // full size for Y.
-        auto mtrx = model->GetModelScreenLocation().GetScaleMatrix();
-        mtrx.x *= 1.1f; // to account for the 90% space or 1.8 in the code
-        mtrx.z *= 1.1f;
-        mtrx.x /= 2.0f; // x and z scale now need to be half
-        mtrx.z /= 2.0f;
-        model->GetModelScreenLocation().SetScaleMatrix(mtrx);
+        // Sphere scaling was fixed to be truly round. Previously:
+        //   Hradius = BufferHt / (1.8 * 1.8 * 2)  (used for X and Z)
+        //   Vradius = BufferHt / (1.8 * 2)         (used for Y)
+        // Now all axes use: radius = max(BufferHt, BufferWi) / (1.8 * 2)
+        //
+        // To preserve visual size we need:
+        //   scaleX,Z *= BufferHt / (1.8 * max(BufferHt, BufferWi))
+        //   scaleY   *= BufferHt / max(BufferHt, BufferWi)
+        int nodesPerString = model->GetNodesPerString();
+        int strandsPerString = model->GetStrandsPerString();
+        if (strandsPerString < 1) strandsPerString = 1;
+        if (strandsPerString > nodesPerString) strandsPerString = nodesPerString;
+        int pixelsPerStrand = (strandsPerString > 0) ? nodesPerString / strandsPerString : nodesPerString;
+        int numStrands = model->GetNumStrings() * strandsPerString;
+        int bufferHt = pixelsPerStrand;
+        int bufferWi = numStrands;
+        int mx = std::max(bufferHt, bufferWi);
+        if (mx > 0) {
+            float htOverMax = (float)bufferHt / (float)mx;
+            auto mtrx = model->GetModelScreenLocation().GetScaleMatrix();
+            mtrx.x *= htOverMax / 1.8f;
+            mtrx.z *= htOverMax / 1.8f;
+            mtrx.y *= htOverMax;
+            model->GetModelScreenLocation().SetScaleMatrix(mtrx);
+        }
     }
 
     model->Setup();
