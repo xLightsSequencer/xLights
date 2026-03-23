@@ -10,23 +10,10 @@
 
 #include <wx/file.h>
 #include <wx/image.h>
-#include "xlGLCanvas.h"
-#include "UtilFunctions.h"
-#include "../../ExternalHooks.h"
-#include "xlOGL3GraphicsContext.h"
-
-BEGIN_EVENT_TABLE(xlGLCanvas, wxGLCanvas)
-    EVT_SIZE(xlGLCanvas::Resized)
-    EVT_ERASE_BACKGROUND(xlGLCanvas::OnEraseBackGround)  // Override to do nothing on this event
-END_EVENT_TABLE()
-
 #include <wx/log.h>
 #include <wx/config.h>
 #include <wx/msgdlg.h>
 #include <log4cpp/Category.hh>
-#include "../xlMesh.h"
-#include "DrawGLUtils.h"
-
 
 #ifndef __WXMAC__
 #ifdef _MSC_VER
@@ -64,12 +51,28 @@ static bool hasOpenGL3FramebufferObjects()
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
+#include "OpenGL/gl3.h"
+#define __gl_h_
+
 #include "GL/glext.h"
 static bool hasOpenGL3FramebufferObjects()
 {
     return true;
 }
 #endif
+
+#include "xlGLCanvas.h"
+#include "UtilFunctions.h"
+#include "../../ExternalHooks.h"
+#include "xlOGL3GraphicsContext.h"
+
+BEGIN_EVENT_TABLE(xlGLCanvas, wxGLCanvas)
+    EVT_SIZE(xlGLCanvas::Resized)
+    EVT_ERASE_BACKGROUND(xlGLCanvas::OnEraseBackGround)  // Override to do nothing on this event
+END_EVENT_TABLE()
+
+#include "../xlMesh.h"
+#include "DrawGLUtils.h"
 
 
 

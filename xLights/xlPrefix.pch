@@ -1,4 +1,6 @@
 #ifdef __cplusplus
+#ifndef NO_PCH
+
 #include <vector>
 #include <map>
 #include <list>
@@ -9,12 +11,13 @@
 #include <numeric>
 #include <mutex>
 #include <thread>
-
-#ifdef __WXMAC__
-#include "OpenGL/gl3.h"
-#define __gl_h_
-#endif
-
+#include <stdint.h>
+#include <format>
+#include <memory>
+#include <cmath>
+#include <cassert>
+#include <cstdlib>
+#include <sstream>
 
 #include <log4cpp/Category.hh>
 
@@ -47,7 +50,7 @@
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 
-#include <wx/xml/xml.h>
+#include <pugixml.hpp>
 
 #include "Color.h"
 #include "UtilFunctions.h"
@@ -57,4 +60,5 @@
 #include "models/Model.h"
 #include "effects/RenderableEffect.h"
 
+#endif
 #endif

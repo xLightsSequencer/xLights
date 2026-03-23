@@ -41,6 +41,14 @@ When adding new `.cpp`/`.h` files, the following project files must be updated m
 
 The macOS Xcode project (`macOS/xLights.xcodeproj/project.pbxproj`) may also need updating — some directories use `PBXFileSystemSynchronizedRootGroup` (auto-discovered), others require manual `PBXFileReference`/`PBXBuildFile` entries. Check on a case-by-case basis.
 
+### Verifying Changes
+After making code changes (especially during code reviews), always do a build to make sure nothing is broken. On macOS, use:
+```bash
+xcodebuild                    # Normal iterative build (fast, uses PCH)
+xcodebuild GCC_PREPROCESSOR_DEFINITIONS='$(inherited) NO_PCH '   # Final verification only
+```
+The `NO_PCH` flag disables pre-compiled headers, making the macOS build closer to Linux/Windows behavior and helping catch missing `#include` directives that the PCH would otherwise mask. However, disabling PCH significantly slows the build, so use it only as a final verification before committing — not for iterative development.
+
 ## Architecture
 
 ### Core Application (`xLights/`)

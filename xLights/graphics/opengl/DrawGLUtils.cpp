@@ -11,6 +11,11 @@
 #include <wx/wx.h>
 
 #ifdef __WXMAC__
+    // OpenGL is marked deprecated in OSX so we'll turn off the deprecation warnings for this file
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
+
     // we NEED OpenGL 1.1 for this file
     #undef __gl_h_
     #define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
