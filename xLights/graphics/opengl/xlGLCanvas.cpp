@@ -17,8 +17,10 @@
 
 #ifndef __WXMAC__
 #ifdef _MSC_VER
+#include "GL\gl.h"
 #include "GL\glext.h"
 #else
+    #include <GL/gl.h>
     #include <GL/glext.h>
 #endif
 
