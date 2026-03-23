@@ -29,6 +29,7 @@
 					<Add directory="../xSchedule" />
 					<Add directory="../include" />
 					<Add directory="../xLights" />
+					<Add directory="../dependencies/pugixml/src" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd -lcurl" />
@@ -66,6 +67,7 @@
 					<Add directory="../xSchedule" />
 					<Add directory="../include" />
 					<Add directory="../xLights" />
+					<Add directory="../dependencies/pugixml/src" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd -lcurl" />
@@ -91,6 +93,7 @@
 		<ResourceCompiler>
 			<Add directory="$(#wx)/include" />
 		</ResourceCompiler>
+		<Unit filename="../dependencies/pugixml/src/pugixml.cpp" />
 		<Unit filename="../common/xlBaseApp.cpp" />
 		<Unit filename="../common/xlBaseApp.h" />
 		<Unit filename="../common/xlStackWalker.h" />

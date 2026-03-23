@@ -276,13 +276,13 @@ std::string DecodeOS(wxOperatingSystemId o)
 void DumpConfig()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    std::string versionStr = "Version: " + xlights_version_string.ToStdString();
+    std::string versionStr = "Version: " + xlights_version_string;
     if (IsFromAppStore()) {
         versionStr += " - App Store";
     }
     logger_base.info(versionStr);
-    logger_base.info("Bits: " + std::string(GetBitness().c_str()));
-    logger_base.info("Build Date: " + std::string(xlights_build_date.c_str()));
+    logger_base.info("Bits: " + GetBitness());
+    logger_base.info("Build Date: " + xlights_build_date);
     logger_base.info("WX Version: " + std::string(wxString( wxVERSION_STRING).c_str()));
 
     logger_base.info("Machine configuration:");

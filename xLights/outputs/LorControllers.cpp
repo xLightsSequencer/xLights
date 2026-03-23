@@ -11,6 +11,8 @@
 
 #include "LorControllers.h"
 
+#include <algorithm>
+#include <cstdint>
 #include <numeric>
 
 #pragma region Construtors and Destructors

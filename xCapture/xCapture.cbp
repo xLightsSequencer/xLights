@@ -29,6 +29,7 @@
 					<Add directory="../xCapture" />
 					<Add directory="../include" />
 					<Add directory="../xLights" />
+					<Add directory="../dependencies/pugixml/src" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
@@ -61,6 +62,7 @@
 					<Add directory="../xCapture" />
 					<Add directory="../include" />
 					<Add directory="../xLights" />
+					<Add directory="../dependencies/pugixml/src" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
@@ -89,6 +91,7 @@
 		<Unit filename="../xLights/JobPool.h" />
 		<Unit filename="../xLights/TraceLog.cpp" />
 		<Unit filename="../xLights/TraceLog.h" />
+		<Unit filename="../dependencies/pugixml/src/pugixml.cpp" />
 		<Unit filename="../xLights/UtilFunctions.cpp" />
 		<Unit filename="../xLights/UtilFunctions.h" />
 		<Unit filename="../xLights/utils/Curl.cpp" />

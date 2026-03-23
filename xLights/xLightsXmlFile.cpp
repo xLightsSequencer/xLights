@@ -1161,7 +1161,7 @@ void xLightsXmlFile::SetImageDir(const wxString& dir)
 
 void xLightsXmlFile::UpdateVersion()
 {
-    UpdateVersion(xlights_version_string.ToStdString());
+    UpdateVersion(xlights_version_string);
 }
 
 void xLightsXmlFile::UpdateVersion(const std::string& version)

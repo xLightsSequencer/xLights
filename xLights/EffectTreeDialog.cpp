@@ -873,7 +873,7 @@ void EffectTreeDialog::OnbtExportClick(wxCommandEvent& event)
     }
 
     BaseSerializingVisitor::AttrCollector attr;
-    attr.Add("SourceVersion", xlights_version_string.ToStdString());
+    attr.Add("SourceVersion", xlights_version_string);
     visitor.WriteOpenTag("preset", attr);
 
     bool presetFound = false;

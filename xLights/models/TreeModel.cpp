@@ -304,7 +304,7 @@ void TreeModel::ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const
     if (!psp.empty()) attrs.Add("PixelSpacing", psp);
     attrs.Add("CustomModel", CustomModel::ToCustomModel(data));
     attrs.Add("CustomModelCompressed", CustomModel::ToCompressed(data));
-    attrs.Add("SourceVersion", xlights_version_string.ToStdString());
+    attrs.Add("SourceVersion", xlights_version_string);
     visitor.AddSuperStrings(*this, attrs);
 
     visitor.WriteOpenTag("custommodel", attrs);

@@ -8,14 +8,13 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/wx.h>
 #include "xLightsVersion.h"
 
-static const wxString BITS_32 = "32bit";
-static const wxString BITS_64 = "64bit";
-static const wxString BITS_UNKNOWN = "";
+static const std::string BITS_32 = "32bit";
+static const std::string BITS_64 = "64bit";
+static const std::string BITS_UNKNOWN = "";
 
-const wxString &GetBitness()
+const std::string &GetBitness()
 {
     if (sizeof(size_t) == 4) {
         return BITS_32;
@@ -26,7 +25,7 @@ const wxString &GetBitness()
 }
 
 
-wxString GetDisplayVersionString() {
+std::string GetDisplayVersionString() {
 #ifndef __WXOSX__
     return xlights_version_string + " " + GetBitness();
 #else

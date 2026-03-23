@@ -36,6 +36,7 @@
 					<Add directory="../include" />
 					<Add directory="../../include" />
 					<Add directory="../../xLights" />
+					<Add directory="../../dependencies/pugixml/src" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd" />
@@ -78,6 +79,7 @@
 					<Add directory="../include" />
 					<Add directory="../../include" />
 					<Add directory="../../xLights" />
+					<Add directory="../../dependencies/pugixml/src" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd" />
@@ -104,6 +106,7 @@
 		<Unit filename="../../common/xlBaseApp.cpp" />
 		<Unit filename="../../common/xlBaseApp.h" />
 		<Unit filename="../../common/xlStackWalker.h" />
+		<Unit filename="../../dependencies/pugixml/src/pugixml.cpp" />
 		<Unit filename="../../xLights/UtilFunctions.cpp" />
 		<Unit filename="../../xLights/UtilFunctions.h" />
 		<Unit filename="../../xLights/xLightsTimer.cpp" />

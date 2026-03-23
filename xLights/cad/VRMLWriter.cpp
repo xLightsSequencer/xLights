@@ -20,7 +20,7 @@ void VRMLWriter::WriteHeader()
     m_file << "#VRML V2.0 utf8\n"
         << "WorldInfo {\n"
         << "  title \"Exported triangle mesh to VRML97\"\n"
-        << "  info [\"Created by xLights "<< xlights_version_string.ToStdString() <<"\"]\n"
+        << "  info [\"Created by xLights "<< xlights_version_string <<"\"]\n"
         << "}\n";
 }
 

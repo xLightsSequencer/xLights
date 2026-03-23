@@ -9190,7 +9190,7 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
 
             dialog->urlVersion = urlVersion;
             dialog->downloadUrl = downloadURL;
-            dialog->StaticTextUpdateLabel->SetLabel(wxT("You are currently running xLights " + xlights_version_string + "\n" + "Whereas the current release is " + urlVersion));
+            dialog->StaticTextUpdateLabel->SetLabel("You are currently running xLights " + xlights_version_string + "\n" + "Whereas the current release is " + urlVersion);
             dialog->Show();
         }
     } else {

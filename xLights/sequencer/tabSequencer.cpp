@@ -4074,7 +4074,7 @@ EffectPreset* xLightsFrame::CreateEffectPreset(EffectPresetGroup* parent, const 
     return _effectPresetManager.AddPreset(parent, name,
                                           copy_data.ToStdString(),
                                           XLIGHTS_RGBEFFECTS_VERSION,
-                                          xlights_version_string.ToStdString());
+                                          xlights_version_string);
 }
 
 void xLightsFrame::UpdateEffectPreset(EffectPreset* preset)
@@ -4083,7 +4083,7 @@ void xLightsFrame::UpdateEffectPreset(EffectPreset* preset)
     mainSequencer->GetSelectedEffectsData(copy_data);
     _effectPresetManager.UpdatePresetSettings(preset,
                                               copy_data.ToStdString(),
-                                              xlights_version_string.ToStdString());
+                                              xlights_version_string);
 }
 
 std::vector<std::string> xLightsFrame::GetPresets() const
