@@ -8,12 +8,12 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-// Single translation unit that provides the nanosvg rasterizer implementation.
-// All other files that need nanosvgrast.h should include it WITHOUT defining
-// NANOSVGRAST_IMPLEMENTATION — this file provides it for the linker.
-#define NANOSVGRAST_IMPLEMENTATION
-#include "nanosvg/src/nanosvgrast.h"
+// NanoSVG implementation is provided by wxWidgets (wxmsw33ud_core.lib via bmpsvg.obj)
+// This file provides the wrapper function RasterizeSVGToBuffer for use in effects.
+// Do NOT define NANOSVGRAST_IMPLEMENTATION here as it would conflict with wxWidgets.
+
 #include "nanosvg/src/nanosvg.h"
+#include "nanosvg/src/nanosvgrast.h"
 
 #include "nanosvgrast_impl.h"
 #include "../render/RenderBuffer.h"
