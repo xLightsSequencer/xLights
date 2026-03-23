@@ -14,7 +14,7 @@
 #include "ModelScreenLocation.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 WindowFrameModel::WindowFrameModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
@@ -107,7 +107,7 @@ void WindowFrameModel::GetCoordinates(int side, bool clockwise, bool LtoR, bool 
 // _bottomNodes=Nodes on Bottom
 void WindowFrameModel::InitFrame()
 {
-    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //
 
     SetNodeCount(1, _topNodes + 2 * _sideNodes + _bottomNodes, rgbOrder);
 
@@ -366,7 +366,7 @@ void WindowFrameModel::InitFrame()
             chan += ChanIncr;
         }
 
-        //logger_base.debug("Node %d (%0.3f,%0.3f) -> %d, %d", n, x, y, Nodes[n]->Coords[c].bufX, Nodes[n]->Coords[c].bufY);
+        //spdlog::debug("Node {} ({:.3f},{:.3f}) -> {}, {}", n, x, y, Nodes[n]->Coords[c].bufX, Nodes[n]->Coords[c].bufY);
         Nodes[nd]->Coords[cd].screenX = screenx;
         Nodes[nd]->Coords[cd].screenY = screeny;
 

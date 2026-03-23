@@ -28,7 +28,7 @@
 #include <wx/artprov.h>
 #include <wx/filename.h>
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 //(*IdInit(BufferSizeDialog)
 const long BufferSizeDialog::ID_STATICTEXT1 = wxNewId();
@@ -409,14 +409,14 @@ void BufferSizeDialog::SaveBufferPreset(wxString const& name)
 
 void BufferSizeDialog::LoadBufferPreset(wxString const& name)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (name.IsEmpty())
         return;
 
     const wxString filename = FindBufferPreset(name);
 
-    logger_base.debug("Loading buffer file %s.", (const char*)filename.c_str());
+    spdlog::debug("Loading buffer file {}.", (const char*)filename.c_str());
 
     pugi::xml_document doc;
     if (FileExists(filename) && doc.load_file(filename.ToStdString().c_str())) {
@@ -447,11 +447,11 @@ void BufferSizeDialog::LoadBufferPreset(wxString const& name)
             ValueCurve_XC->NotifyChange();
             ValueCurve_YC->NotifyChange();
             ValidateWindow();
-            logger_base.debug("buffer file loaded.");
+            spdlog::debug("buffer file loaded.");
             return;
         }
     }
-    logger_base.warn("buffer file load failed.");
+    spdlog::warn("buffer file load failed.");
     wxMessageBox("Unable to load buffer file.");
 }
 

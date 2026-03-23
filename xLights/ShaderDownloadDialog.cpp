@@ -27,7 +27,7 @@
 #include "CachedFileDownloader.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include "utils/Curl.h"
 #undef min
@@ -156,7 +156,7 @@ public:
 
     void DownloadFS()
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
 
         if (xLightsFrame::CurrentDir == "") {
             wxMessageBox("Show folder invalid. Shader download aborted.");
@@ -182,7 +182,7 @@ public:
                     else if (strcmp(token, "<!") == 0) {
                         wxRemoveFile(fn);
                         fn = "";
-                        logger_base.debug("Shader file download failed and returned a non fs file.");
+                        spdlog::debug("Shader file download failed and returned a non fs file.");
                     }
                     else if (strcmp(token, "{\\\"")) {
                         wxString newFile = xLightsFrame::CurrentDir + "/Shaders/" + _name + ".json";
@@ -192,7 +192,7 @@ public:
                         if (!ff.IsOpened()) {
                             wxRemoveFile(fn);
                             fn = "";
-                            logger_base.debug("Shader file download failed load fs file.");
+                            spdlog::debug("Shader file download failed load fs file.");
                         }
                         else {
                             wxString json;
@@ -208,12 +208,12 @@ public:
                                     fff.Write(shader);
                                     fff.Close();
                                 } else {
-                                    logger_base.debug("Shader file download failed load to create fs file.");
+                                    spdlog::debug("Shader file download failed load to create fs file.");
                                 }
                             } catch (std::exception& e) {
                                 wxRemoveFile(fn);
                                 fn = "";
-                                logger_base.debug("Shader file download failed load fs file. Error: %s, JSON: %s", 
+                                spdlog::debug("Shader file download failed load fs file. Error: {}, JSON: {}", 
                                     e.what(), json.ToStdString().c_str());
                                 return;
                             }
@@ -222,7 +222,7 @@ public:
                     else {
                         wxRemoveFile(fn);
                         fn = "";
-                        logger_base.debug("Shader file download failed and returned a non fs file.");
+                        spdlog::debug("Shader file download failed and returned a non fs file.");
                     }
                 }
 

@@ -30,7 +30,7 @@
 #include "controllers/Falcon.h"
 #endif
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include "utils/CurlManager.h"
 
@@ -342,8 +342,7 @@ Discovery::CurlData::~CurlData() {
 }
 
 void Discovery::AddCurl(const std::string &host, const std::string &url, std::function<bool(int rc, const std::string &buffer, const std::string &errorBuffer)>&& callback) {
-    static log4cpp::Category& logger_curl = log4cpp::Category::getInstance(std::string("log_curl"));
-
+    auto logger = spdlog::get("curl");
     std::string furl = "http://" + host + url;
     Discovery::CurlData *data = https[host];
     if (data == nullptr) {
@@ -360,10 +359,10 @@ void Discovery::AddCurl(const std::string &host, const std::string &url, std::fu
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 3000L);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 10000L);
 
-    logger_curl.info("Discovery Adding CURL - URL: %s    Method: GET", furl.c_str());
+    logger->info("Discovery Adding CURL - URL: {}    Method: GET", furl.c_str());
 
     int authStatus = data->authStatus;
-    CurlManager::INSTANCE.addCURL(furl, curl, [this, url, furl, host, callback, authStatus, data](CURL* c) {
+    CurlManager::INSTANCE.addCURL(furl, curl, [this, url, furl, host, callback, authStatus, data, logger](CURL* c) {
         if (finished) {
             return;
         }
@@ -372,7 +371,7 @@ void Discovery::AddCurl(const std::string &host, const std::string &url, std::fu
         curl_easy_getinfo(c, CURLINFO_PRIVATE, &cpd);
         curl_easy_getinfo(c, CURLINFO_RESPONSE_CODE, &rc);
 
-        logger_curl.info("    Discovery CURL Callback - URL: %s  RC: %d    Size: %d", furl.c_str(), rc, cpd ? cpd->resp.size() : -1);
+        logger->info("    Discovery CURL Callback - URL: {}  RC: {}    Size: {}", furl.c_str(), rc, cpd ? cpd->resp.size() : -1);
         if (rc == 401) {
             if (HandleAuth(host, c, authStatus) || authStatus != data->authStatus) {
                 data->urls.erase(furl);
@@ -380,7 +379,7 @@ void Discovery::AddCurl(const std::string &host, const std::string &url, std::fu
                     return callback(rc, buffer, errorBuffer);
                 });
             } else {
-                logger_curl.info("    Discovery CURL Callback - Unauthorized");
+                logger->info("    Discovery CURL Callback - Unauthorized");
             }
         } else {
             std::string resp(reinterpret_cast<char*>(cpd->resp.data()), cpd->resp.size());

@@ -30,12 +30,12 @@
 
 #include "../../include/glediator-16.xpm"
 #include "../../include/glediator-64.xpm"
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 #include "../UtilFunctions.h"
 
 GlediatorReader::GlediatorReader(const std::string& filename, const wxSize& size)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _filename = filename;
     _size = size;
@@ -48,19 +48,19 @@ GlediatorReader::GlediatorReader(const std::string& filename, const wxSize& size
 
         if (_frames * GetBufferSize() != _f.Length())
         {
-            logger_base.warn("Opening glediator file %s size (%d,%d) looks suspicious as it does not match file size %ld.", (const char *)_filename.c_str(), _size.x, _size.y, (long)_f.Length());
+            spdlog::warn("Opening glediator file {} size ({},{}) looks suspicious as it does not match file size {}.", (const char *)_filename.c_str(), _size.x, _size.y, (long)_f.Length());
         }
     }
     else
     {
-        logger_base.warn("Failed to open file %s", (const char *)_filename.c_str());
+        spdlog::warn("Failed to open file {}", (const char *)_filename.c_str());
     }
 
 }
 
 CSVReader::CSVReader(const std::string& filename)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _line = -1;
     _filename = filename;
@@ -73,7 +73,7 @@ CSVReader::CSVReader(const std::string& filename)
     }
     else
     {
-        logger_base.warn("Failed to open file %s", (const char *)_filename.c_str());
+        spdlog::warn("Failed to open file {}", (const char *)_filename.c_str());
     }
 }
 
@@ -278,7 +278,7 @@ public:
 
 void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::string glediatorFilename = SettingsMap["FILEPICKERCTRL_Glediator_Filename"];
     std::string durationTreatment = SettingsMap["CHOICE_Glediator_DurationTreatment"];
@@ -319,7 +319,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
 
                 if (_csvReader == nullptr)
                 {
-                    logger_base.warn("GlediatorEffect: Failed to load csv file %s.", (const char *)glediatorFilename.c_str());
+                    spdlog::warn("GlediatorEffect: Failed to load csv file {}.", (const char *)glediatorFilename.c_str());
                 }
                 else
                 {
@@ -330,7 +330,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                         float speedFactor = (float)glediatorFrames / (float)effectFrames;
                         _frameMS = ((float)buffer.frameTimeInMs * speedFactor);
                     }
-                    logger_base.debug("Glediator effect length: %d, glediator length: %d, duration treatment: %s.",
+                    spdlog::debug("Glediator effect length: {}, glediator length: {}, duration treatment: {}.",
                         (int)(((float)(buffer.curEffEndPer - buffer.curEffStartPer + 1)) * _frameMS), 
                         (int)((float)glediatorFrames * _frameMS),
                         (const char *)durationTreatment.c_str());
@@ -343,7 +343,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
 
                 if (_glediatorReader == nullptr)
                 {
-                    logger_base.warn("GlediatorEffect: Failed to load glediator file %s.", (const char *)glediatorFilename.c_str());
+                    spdlog::warn("GlediatorEffect: Failed to load glediator file {}.", (const char *)glediatorFilename.c_str());
                 }
                 else
                 {
@@ -354,7 +354,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                         float speedFactor = (float)glediatorFrames / (float)effectFrames;
                         _frameMS = ((float)buffer.frameTimeInMs * speedFactor);
                     }
-                    logger_base.debug("Glediator effect length: %d, glediator length: %d, duration treatment: %s.",
+                    spdlog::debug("Glediator effect length: {}, glediator length: {}, duration treatment: {}.",
                         (int)(((float)(buffer.curEffEndPer - buffer.curEffStartPer + 1)) * _frameMS), 
                         (int)((float)_glediatorReader->GetFrameCount() * _frameMS),
                         (const char *)durationTreatment.c_str());
@@ -363,7 +363,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         }
         else
         {
-            logger_base.warn("GlediatorEffect: Glediator file '%s' not found.", (const char *)glediatorFilename.c_str());
+            spdlog::warn("GlediatorEffect: Glediator file '{}' not found.", (const char *)glediatorFilename.c_str());
         }
     }
 
@@ -378,7 +378,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
             // jump back to start and try to read frame again
             _loops++;
             frame = (float)((buffer.curPeriod - buffer.curEffStartPer) - _loops * frameCount) * _frameMS / (float)buffer.frameTimeInMs;
-            logger_base.debug("Glediator effect loop #%d at frame %d.", _loops, buffer.curPeriod - buffer.curEffStartPer);
+            spdlog::debug("Glediator effect loop #{} at frame {}.", _loops, buffer.curPeriod - buffer.curEffStartPer);
         }
 
         if (frame >= frameCount)
@@ -424,7 +424,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
             // jump back to start and try to read frame again
             _loops++;
             frame = (float)((buffer.curPeriod - buffer.curEffStartPer) - _loops * (_glediatorReader->GetFrameCount())) * _frameMS / (float)buffer.frameTimeInMs;
-            logger_base.debug("Glediator effect loop #%d at frame %d.", _loops, buffer.curPeriod - buffer.curEffStartPer);
+            spdlog::debug("Glediator effect loop #{} at frame {}.", _loops, buffer.curPeriod - buffer.curEffStartPer);
         }
 
         if (frame >= _glediatorReader->GetFrameCount())

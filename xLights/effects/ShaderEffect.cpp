@@ -89,7 +89,7 @@
 
 #include <wx/regex.h>
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include <fstream>
 #include <map>
@@ -369,7 +369,6 @@ public:
 class GLContextInfo {
 public:
     GLContextInfo(xlGLCanvas* win) : _canvas(nullptr), _context(nullptr) {
-        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         //we need a valid context to get the ARB
         win->SetCurrentGLContext();
         wxDEFINE_WGL_FUNC(wglCreateContextAttribsARB);
@@ -393,7 +392,7 @@ public:
            newAttrs.PlatformDefaults().OGLVersion(3, 1).CoreProfile().EndList();
            _context = wglCreateContextAttribsARB(_hdc, shared, newAttrs.GetGLAttrs());
         }
-        logger_opengl.debug("ShaderEffect Thread %d created open gl context 0x%llx.", wxThread::GetCurrentId(), (uint64_t)_context);
+        spdlog::debug("ShaderEffect Thread {} created open gl context {:X}.", wxThread::GetCurrentId(), (uint64_t)_context);
 
         //now unset this as current on the main thread
         UnsetCurrent();
@@ -404,29 +403,27 @@ public:
         //delete _canvas;
     }
     void SetCurrent() {
-        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         for (int x = 0; x < 10; x++) {
             if (wglMakeCurrent(_hdc, _context)) {
-                logger_opengl.debug("ShaderEffect Thread %d given open gl context 0x%llx.", wxThread::GetCurrentId(), (uint64_t)_context);
+                spdlog::debug("ShaderEffect Thread {} given open gl context {:X}.", wxThread::GetCurrentId(), (uint64_t)_context);
                 return;
             }
             wxMilliSleep(1);
         }
         wxASSERT(false);
-        logger_opengl.error("ShaderEffect unable to give thread %d open gl context 0x%llx.", wxThread::GetCurrentId(), (uint64_t)_context);
+        spdlog::error("ShaderEffect unable to give thread {} open gl context {:X}.", wxThread::GetCurrentId(), (uint64_t)_context);
     }
     void UnsetCurrent() {
-        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         for (int x = 0; x < 10; x++) {
             if (wglMakeCurrent(_hdc, nullptr))
             {
-                logger_opengl.debug("ShaderEffect Thread %d has no current GL Context.", wxThread::GetCurrentId());
+                spdlog::error("ShaderEffect unable to give thread {} open gl context {:X}.", wxThread::GetCurrentId(), (uint64_t)_context);
                 return;
             }
             wxMilliSleep(1);
         }
         wxASSERT(false);
-        logger_opengl.error("ShaderEffect Thread %d tried to set no current GL Context but failed.", wxThread::GetCurrentId());
+        spdlog::error("ShaderEffect Thread {} tried to set no current GL Context but failed.", wxThread::GetCurrentId());
     }
 
     HGLRC _context;
@@ -448,7 +445,6 @@ public:
     }
 
     GLContextInfo *GetContext(xlGLCanvas *parent) {
-        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         // This seems odd but manually releasing the lock causes hard crashes on Visual Studio
         bool contextsEmpty = false;
         {
@@ -464,15 +460,14 @@ public:
             std::unique_lock<std::mutex> locker(lock);
             GLContextInfo *ret = contexts.front();
             contexts.pop();
-            logger_opengl.debug("Shader opengl context taken from pool 0x%llx", (uint64_t)ret);
+            spdlog::debug("Shader opengl context taken from pool 0x{:#x}", (uint64_t)ret);
             return ret;
         }
     }
     void ReleaseContext(GLContextInfo *pctx) {
-        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         std::unique_lock<std::mutex> locker(lock);
         contexts.push(pctx);
-        logger_opengl.debug("Shader opengl context released 0x%llx", (uint64_t)pctx);
+        spdlog::debug("Shader opengl context released 0x{:#x}", (uint64_t)pctx);
     }
 
     GLContextInfo *create(xlGLCanvas *canv) {
@@ -906,8 +901,8 @@ void adjustWGLContext(WXGLContext ctx) {
                                       (const char *)rendn,
                                       (const char *)vend);
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info(configs);
+    
+    spdlog::info(configs);
     WXGLUnsetCurrentContext();
 }
 WXGLContext createContext() {
@@ -978,8 +973,8 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
                                           (const char *)rend,
                                           (const char *)vend);
 
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info(configs);
+        
+        spdlog::info(configs);
     } else {
         // we still need to grab the gl context to this thread
         cache->glContextInfo->SetCurrent();
@@ -996,12 +991,12 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
 
 void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     // Bail out right away if we don't have the necessary OpenGL support
     if (!OpenGLShaders::HasFramebufferObjects() || !OpenGLShaders::HasShaderSupport()) {
         setRenderBufferAll(buffer, xlCYAN);
-        logger_base.error("ShaderEffect::Render() - missing OpenGL support!!");
+        spdlog::error("ShaderEffect::Render() - missing OpenGL support!!");
         return;
     }
 
@@ -1056,7 +1051,7 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
             cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""), mSequenceElements);
             programId = programIdForShaderCode(_shaderConfig, cache);
         } else {
-            logger_base.warn("Could not create/set OpenGL Context for ShaderEffect.  ShaderEffect disabled.");
+            spdlog::warn("Could not create/set OpenGL Context for ShaderEffect.  ShaderEffect disabled.");
         }
     } else {
         if (!contextSet) {
@@ -1130,22 +1125,22 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     int colourIndex = 0;
     if (!si->SetUniform2f("RENDERSIZE", buffer.BufferWi, buffer.BufferHt)) {
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasRendersize()) {
-            logger_base.warn("Unable to bind to RENDERSIZE\n%s", (const char*)_shaderConfig->GetCode().c_str());
+            spdlog::warn("Unable to bind to RENDERSIZE\n{}", (const char*)_shaderConfig->GetCode().c_str());
         }
     }
     if (!si->SetUniform2f("XL_OFFSET", offsetX, offsetY)) {
-        logger_base.warn("Unable to bind to XL_OFFSET");
+        spdlog::warn("Unable to bind to XL_OFFSET");
     }
     if (!si->SetUniform1f("XL_ZOOM", zoom)) {
-        logger_base.warn("Unable to bind to XL_ZOOM");
+        spdlog::warn("Unable to bind to XL_ZOOM");
     }
     if (!si->SetUniform1f("XL_DURATION", (GLfloat)((buffer.GetEndTimeMS() - buffer.GetStartTimeMS()) / 1000.0))) {
         // This may just have been optimized out of the shader program.  If it cannot be set, it is not worth logging.
-        //logger_base.warn("Unable to bind to XL_DURATION");
+        //spdlog::warn("Unable to bind to XL_DURATION");
     }
     if (!si->SetUniform1f("TIME", (GLfloat)(_timeMS) / 1000.0)) {
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasTime()) {
-            logger_base.warn("Unable to bind to TIME\n%s", (const char*)_shaderConfig->GetCode().c_str());
+            spdlog::warn("Unable to bind to TIME\n{}", (const char*)_shaderConfig->GetCode().c_str());
         }
     }
     si->SetUniform1f("TIMEDELTA", (GLfloat)(buffer.frameTimeInMs /1000.f));
@@ -1229,12 +1224,12 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
                 break;
             }
             default:
-                logger_base.warn("No binding supported for %s ... we have more work to do.", (const char*)it._name.c_str());
+                spdlog::warn("No binding supported for {} ... we have more work to do.", (const char*)it._name.c_str());
                 break;
             }
         } else {
             if (buffer.curPeriod == buffer.curEffStartPer)
-                logger_base.warn("Unable to bind to %s", (const char*)it._name.c_str());
+                spdlog::warn("Unable to bind to {}", (const char*)it._name.c_str());
         }
     }
 
@@ -1265,7 +1260,7 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
     unsigned& s_vertexArrayId, unsigned& s_vertexBufferId, unsigned& s_rbId, unsigned& s_fbId,
     unsigned& s_rbTex, int& s_rbWidth, int& s_rbHeight)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!s_shadersInit) {
         VertexTex vt[4] =
@@ -1286,17 +1281,17 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
         LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, 0));
         GLenum err = glGetError();
         if (err != GL_NO_ERROR) {
-           logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error with vertex array - %d", err );
+           spdlog::error( "ShaderEffect::sizeForRenderBuffer() - Error with vertex array - {}", err );
         }
 
         createOpenGLRenderBuffer(rb.BufferWi, rb.BufferHt, &s_rbId, &s_fbId);
         if ((err = glGetError()) != GL_NO_ERROR) {
-           logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error creating framebuffer - %d", err );
+           spdlog::error( "ShaderEffect::sizeForRenderBuffer() - Error creating framebuffer - {}", err );
         }
 
         s_rbTex = RenderBufferTexture(rb.BufferWi, rb.BufferHt);
         if ((err = glGetError()) != GL_NO_ERROR) {
-           logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error creating renderbuffer texture - %d", err );
+           spdlog::error( "ShaderEffect::sizeForRenderBuffer() - Error creating renderbuffer texture - {}", err );
         }
 
         s_rbWidth = rb.BufferWi;
@@ -1317,11 +1312,11 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
         createOpenGLRenderBuffer(rb.BufferWi, rb.BufferHt, &s_rbId, &s_fbId);
         GLenum err = glGetError();
         if (err != GL_NO_ERROR) {
-           logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error recreating framebuffer - %d", err );
+           spdlog::error( "ShaderEffect::sizeForRenderBuffer() - Error recreating framebuffer - {}", err );
         }
         s_rbTex = RenderBufferTexture(rb.BufferWi, rb.BufferHt);;
         if ((err = glGetError()) != GL_NO_ERROR) {
-           logger_base.error( "ShaderEffect::sizeForRenderBuffer() - Error recreating renderbuffer texture - %d", err );
+           spdlog::error( "ShaderEffect::sizeForRenderBuffer() - Error recreating renderbuffer texture - {}", err );
         }
 
         s_rbWidth = rb.BufferWi;
@@ -1331,10 +1326,10 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
 
 unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg, ShaderRenderCache *cache)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (cfg == nullptr) {
-        logger_base.error("ShaderEffect::programIdForShaderCode() - NULL ShaderConfig!");
+        spdlog::error("ShaderEffect::programIdForShaderCode() - NULL ShaderConfig!");
         return 0u;
     }
 
@@ -1353,9 +1348,9 @@ unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg, ShaderRenderCac
             unsigned programId = shaderInfo->programIds.front();
             shaderInfo->programIds.pop_front();
             if (!glIsProgram(programId)) {
-                logger_base.error("ShaderEffect::programIdForShaderCode() - program id %u is not a shader program!", programId);
+                spdlog::error("ShaderEffect::programIdForShaderCode() - program id {} is not a shader program!", programId);
             } else {
-                //logger_base.debug("ShaderEffect::programIdForShaderCode() - shader program %s unchanged -- id %u", (const char*)cfg->GetFilename().c_str(), programId);
+                //spdlog::debug("ShaderEffect::programIdForShaderCode() - shader program {} unchanged -- id {}", (const char*)cfg->GetFilename().c_str(), programId);
                 cache->SetProgramId(programId, shaderInfo);
                 return programId;
             }
@@ -1366,11 +1361,11 @@ unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg, ShaderRenderCac
     unsigned programId = OpenGLShaders::compile(vsSrc, fragmentShaderSrc, cfg->GetFilename());
     if (programId == 0u) {
         lock.lock();
-        logger_base.error("ShaderEffect::programIdForShaderCode() - failed to compile shader program %s", (const char *)cfg->GetFilename().c_str());
+        spdlog::error("ShaderEffect::programIdForShaderCode() - failed to compile shader program {}", (const char *)cfg->GetFilename().c_str());
         ShaderRenderCache::failedShaders.emplace(fragmentShaderSrc);
         lock.unlock();
     } else {
-        logger_base.debug("ShaderEffect::programIdForShaderCode() - fragment shader %s compiled successfully", (const char*)cfg->GetFilename().c_str());
+        spdlog::debug("ShaderEffect::programIdForShaderCode() - fragment shader {} compiled successfully", (const char*)cfg->GetFilename().c_str());
         if (shaderInfo == nullptr) {
             lock.lock();
             shaderInfo = ShaderRenderCache::shaderMap[fragmentShaderSrc];
@@ -1403,7 +1398,7 @@ std::string SafeValueOption(std::string value)
 
 ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code, const std::string& json, SequenceElements* sequenceElements) :
     _filename(filename) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     /*
     std::string canvasImgName;
     std::string audioFFTName;
@@ -1422,7 +1417,7 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
             try {
                 return std::stod(item.at(name).get<std::string>());
             } catch (std::exception const& ex) {
-                logger_base.warn("Error parsing shader Property : %s.", (const char*)ex.what());
+                spdlog::warn("Error parsing shader Property : {}.", (const char*)ex.what());
             }
         }
         return defaultVal;
@@ -1442,14 +1437,14 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
             try {
                 defaultX = std::stod(item.at(name)[0].get<std::string>());
             } catch (std::exception const& ex) {
-                logger_base.warn("Error parsing shader Property : %s.", (const char*)ex.what());
+                spdlog::warn("Error parsing shader Property : {}.", (const char*)ex.what());
             }
         }
         if (item.at(name)[1].is_string()) {
             try {
                 defaultY = std::stod(item.at(name)[1].get<std::string>());
             } catch (std::exception const& ex) {
-                logger_base.warn("Error parsing shader Property : %s.", (const char*)ex.what());
+                spdlog::warn("Error parsing shader Property : {}.", (const char*)ex.what());
             }
         }
         return wxRealPoint(defaultX, defaultY);
@@ -1567,12 +1562,12 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
                 } else if (type == "audioFFT") {
                     if (input.contains("NAME")) {
                         audioFFTName = input["NAME"].get<std::string>();
-                        logger_base.info("ShaderEffect - found audioFFT shader with name '%s'", static_cast<const char*>(audioFFTName.c_str()));
+                        spdlog::info("ShaderEffect - found audioFFT shader with name '{}'", static_cast<const char*>(audioFFTName.c_str()));
                     }
                 } else if (type == "text") {
                     // ignore these
                     if (input.contains("NAME")) {
-                        logger_base.warn("ShaderEffect - found text property with name '%s' ... ignored", static_cast<const char*>(input["NAME"].get<std::string>().c_str()));
+                        spdlog::warn("ShaderEffect - found text property with name '{}' ... ignored", static_cast<const char*>(input["NAME"].get<std::string>().c_str()));
                     }
                 } else if (type == "event") {
                     // ignore these
@@ -1595,7 +1590,7 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
                         }
                     }
                 } else {
-                    logger_base.warn("Unknown type parsing shader JSON : %s.", (const char*)type.c_str());
+                    spdlog::warn("Unknown type parsing shader JSON : {}.", (const char*)type.c_str());
                     wxASSERT(false);
                 }
             }
@@ -1608,9 +1603,9 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
             }
         }
     } catch (const nlohmann::json::exception& e) {
-        logger_base.warn("Error parsing shader JSON :  %s %s.", (const char*)filename.c_str(), (const char*)e.what());
+        spdlog::warn("Error parsing shader JSON :  {} {}.", (const char*)filename.c_str(), (const char*)e.what());
     } catch (std::exception& ex) {
-        logger_base.warn("Error parsing shader JSON :  %s %s.", (const char*)filename.c_str(), (const char*)ex.what());
+        spdlog::warn("Error parsing shader JSON :  {} {}.", (const char*)filename.c_str(), (const char*)ex.what());
     }*/
 
     wxJSONReader reader;
@@ -1721,12 +1716,12 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
         } else if (type == "audioFFT") {
             if (inputs[i].HasMember("NAME")) {
                 audioFFTName = inputs[i]["NAME"].AsString().ToStdString();
-                logger_base.info("ShaderEffect - found audioFFT shader with name '%s'", audioFFTName.c_str());
+                spdlog::info("ShaderEffect - found audioFFT shader with name '{}'", audioFFTName.c_str());
             }
         } else if (type == "text") {
             // ignore these
             if (inputs[i].HasMember("NAME")) {
-                logger_base.warn("ShaderEffect - found text property with name '%s' ... ignored", static_cast<const char*>(inputs[i]["NAME"].AsString().c_str()));
+                spdlog::warn("ShaderEffect - found text property with name '{}' ... ignored", static_cast<const char*>(inputs[i]["NAME"].AsString().c_str()));
             }
         } else if (type == "event") {
             // ignore these
@@ -1749,7 +1744,7 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
                 }
             }
         } else {
-            logger_base.warn("Unknown type parsing shader JSON : %s.", type.c_str());
+            spdlog::warn("Unknown type parsing shader JSON : {}.", type.c_str());
             wxASSERT(false);
         }
     }
@@ -1835,7 +1830,7 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
     for (auto c : code) {
         if ((int)c < 32 || (int)c > 127) {
             if (c != 13 && c != 10 && c != 9)
-                logger_base.debug("%d 0x%x %c", i, (int)c, c);
+                spdlog::debug("{} {:X} {}", i, (int)c, c);
             wxASSERT(false);
         }
         i++;

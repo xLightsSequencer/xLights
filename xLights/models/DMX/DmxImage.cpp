@@ -17,7 +17,7 @@
 #include "../../ModelPreview.h"
 #include "../../xLightsMain.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -63,11 +63,11 @@ void DmxImage::Draw(BaseObject* base, ModelPreview* preview, xlGraphicsProgram *
                     float pivot_offset_x, float pivot_offset_y, bool rotation, bool use_pivot)
 {
     bool exists = false;
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_images.find(preview->GetName().ToStdString()) == _images.end()) {
         if (FileExists(_imageFile)) {
-            logger_base.debug("Loading image model %s file %s for preview %s.",
+            spdlog::debug("Loading image model {} file {} for preview {}.",
                 (const char*)base->GetName().c_str(),
                 (const char*)_imageFile.c_str(),
                 (const char*)preview->GetName().c_str());

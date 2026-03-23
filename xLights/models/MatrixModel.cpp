@@ -18,7 +18,7 @@
 #include "../ModelPreview.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 MatrixModel::MatrixModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
@@ -144,7 +144,7 @@ void MatrixModel::InitModel() {
 // _strandsPerString=strands per string
 void MatrixModel::InitVMatrix(int firstExportStrand)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     int stringnum, segmentnum;
     if (_strandsPerString > _nodesPerString) {
         _strandsPerString = _nodesPerString;
@@ -245,7 +245,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
             }
             CopyBufCoord2ScreenCoord();
         } else {
-            logger_base.debug("Building low definition buffer at %d%%", _lowDefFactor);
+            spdlog::debug("Building low definition buffer at {}%", _lowDefFactor);
 
             int xoffset = NumStrands / 2;
             int yoffset = PixelsPerStrand / 2;
@@ -299,7 +299,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
 // _nodesPerString=pixels per string
 // _strandsPerString=strands per string
 void MatrixModel::InitHMatrix() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     int idx,stringnum,segmentnum,xincr;
     if (_strandsPerString > _nodesPerString) {
         _strandsPerString = _nodesPerString;
@@ -387,7 +387,7 @@ void MatrixModel::InitHMatrix() {
             }
             CopyBufCoord2ScreenCoord();
         } else {
-            logger_base.debug("Building low definition buffer at %d%%", _lowDefFactor);
+            spdlog::debug("Building low definition buffer at {}%", _lowDefFactor);
 
             int xoffset = PixelsPerStrand / 2;
             int yoffset = NumStrands / 2;

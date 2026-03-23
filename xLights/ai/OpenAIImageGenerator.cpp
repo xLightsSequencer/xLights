@@ -5,7 +5,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include <wx/mstream.h>
 #include <wx/base64.h>
@@ -49,13 +49,12 @@ void OpenAIImageGenerator::generateImage(const std::string& prompt,
         { "Content-Type", "application/json" }
     };
 
-    static log4cpp::Category& logger = log4cpp::Category::getInstance("log_base");
-    logger.debug("OpenAI image request: %s", jsonBody.c_str());
+    spdlog::debug("OpenAI image request: {}", jsonBody.c_str());
 
     int httpCode {0};
     std::string const response = Curl::HTTPSPost(endpoint, jsonBody, "", "", "JSON", 120, headers, &httpCode);
 
-    logger.debug("OpenAI image response code: %d, body length: %zu", httpCode, response.size());
+    spdlog::debug("OpenAI image response code: {}, body length: {}", httpCode, response.size());
 
     if (httpCode != 200) {
         cb(wxBitmap(), "OpenAI API error " + std::to_string(httpCode) + ": " + response.substr(0, 300));
@@ -66,7 +65,7 @@ void OpenAIImageGenerator::generateImage(const std::string& prompt,
     try {
         root = nlohmann::json::parse(response);
     } catch (const std::exception& e) {
-        logger.error("OpenAI image JSON parse failed: %s", e.what());
+        spdlog::error("OpenAI image JSON parse failed: {}", e.what());
         cb(wxBitmap(), "Invalid response from OpenAI");
         return;
     }
@@ -81,7 +80,7 @@ void OpenAIImageGenerator::generateImage(const std::string& prompt,
         }
     } catch (...) {
         std::string errMsg = "No image data found";
-        logger.error("OpenAI image: %s", errMsg.c_str());
+        spdlog::error("OpenAI image: {}", errMsg.c_str());
         cb(wxBitmap(), "OpenAI: " + errMsg);
         return;
     }
@@ -108,7 +107,7 @@ void OpenAIImageGenerator::generateImage(const std::string& prompt,
         return;
     }
 
-    logger.debug("Generated image size: %dx%d", wxImg.GetWidth(), wxImg.GetHeight());
+    spdlog::debug("Generated image size: {}x{}", wxImg.GetWidth(), wxImg.GetHeight());
     wxBitmap bmp(wxImg);
     cb(bmp, "");
 }

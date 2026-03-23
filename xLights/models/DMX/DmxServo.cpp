@@ -23,7 +23,7 @@
 #include "../../xLightsMain.h"
 #include "../../UtilFunctions.h"
 #include "../../XmlSerializer/XmlNodeKeys.h"
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 #include "../../ModelPreview.h"
 
 static const int SUPPORTED_SERVOS = 24;

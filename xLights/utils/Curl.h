@@ -21,7 +21,7 @@
 #include <string>
 #include <algorithm>
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 class Curl {
 public:

@@ -15,7 +15,7 @@
 #include <wx/wx.h>
 #include <wx/protocol/http.h>
 #include <wx/sstream.h>
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 #include <wx/dir.h>
 #include <wx/progdlg.h>
 
@@ -52,10 +52,10 @@ void FileCacheItem::Download(const wxString& forceType, wxProgressDialog* prog, 
 
 void FileCacheItem::Delete() const
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (Exists())
     {
-        logger_base.debug("Removing cached URL %s.", (const char*)_url.BuildURI().c_str());
+        spdlog::debug("Removing cached URL {}.", _url.BuildURI().ToStdString());
         wxRemoveFile(_fileName);
     }
 }
@@ -71,9 +71,7 @@ bool FileCacheItem::operator==(const wxURI& url) const
 // A major constraint of this function is that it does not support https
 bool FileCacheItem::DownloadURL(wxURI url, wxFileName filename, wxProgressDialog* prog, int low, int high, bool keepProgress)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    logger_base.debug("Making request to '%s' -> %s.", (const char*)url.BuildURI().c_str(), (const char*)filename.GetFullPath().c_str());
+    spdlog::debug("Making request to '{}' -> {}.", url.BuildURI().ToStdString(), filename.GetFullPath().ToStdString());
     return Curl::HTTPSGetFile(url.BuildURI().ToStdString(), filename.GetFullPath().ToStdString(), "", "", 600, prog, keepProgress);
 }
 
@@ -108,7 +106,7 @@ std::string FileCacheItem::DownloadURLToTemp(wxURI url, const wxString& forceTyp
 
 void FileCacheItem::PurgeIfAged() const
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!Exists()) return;
 
@@ -121,7 +119,7 @@ void FileCacheItem::PurgeIfAged() const
     case CACHETIME_DAY:
         if (wxDateTime::Now().GetDateOnly() != modified.GetDateOnly())
         {
-            logger_base.debug("%s purged from file cache because it was not created today.", (const char *)_url.BuildURI().c_str());
+            spdlog::debug("{} purged from file cache because it was not created today.", _url.BuildURI().ToStdString());
             Delete();
         }
         break;
@@ -132,7 +130,7 @@ void FileCacheItem::PurgeIfAged() const
         wxTimeSpan age = wxDateTime::Now() - modified;
         if (age.GetDays() > LONGCACHEDAYS)
         {
-            logger_base.debug("%s purged from file cache because it was more than %d days old: %d.", (const char *)_url.BuildURI().c_str(), LONGCACHEDAYS, age.GetDays());
+            spdlog::debug("{} purged from file cache because it was more than {} days old: {}.", _url.BuildURI().ToStdString(), LONGCACHEDAYS, age.GetDays());
             Delete();
         }
         break;
@@ -141,15 +139,13 @@ void FileCacheItem::PurgeIfAged() const
 
 void CachedFileDownloader::SaveCache()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     std::lock_guard<std::recursive_mutex> lock(_cacheItemsLock);
     if (!Initialize())
     {
         return;
     }
 
-    logger_base.debug("Saving File Cache %s.", (const char *)_cacheFile.c_str());
+    spdlog::debug("Saving File Cache {}.", _cacheFile);
 
     wxFile f;
     if (f.Create(_cacheFile, true) && f.IsOpened())
@@ -172,18 +168,16 @@ void CachedFileDownloader::SaveCache()
         lit = "</filecache>";
         f.Write(lit.c_str(), lit.size());
         f.Close();
-        logger_base.debug("    File Cache %d items saved.", i);
+        spdlog::debug("    File Cache {} items saved.", i);
     }
     else
     {
-        logger_base.warn("    Problem saving File Cache.");
+        spdlog::warn("    Problem saving File Cache.");
     }
 }
 
 void CachedFileDownloader::LoadCache()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     std::lock_guard<std::recursive_mutex> lock(_cacheItemsLock);
     _cacheItems.clear();
 
@@ -192,7 +186,7 @@ void CachedFileDownloader::LoadCache()
         return;
     }
 
-    logger_base.debug("Loading File Cache %s.", (const char *)_cacheFile.c_str());
+    spdlog::debug("Loading File Cache {}.", _cacheFile);
 
     if (FileExists(_cacheFile) && wxFileName(_cacheFile).GetSize() > 0)
     {
@@ -204,7 +198,7 @@ void CachedFileDownloader::LoadCache()
             std::transform(rootName.begin(), rootName.end(), rootName.begin(), ::tolower);
             if (root && rootName == "filecache")
             {
-                logger_base.debug("   Cache opened.");
+                spdlog::debug("   Cache opened.");
                 for (pugi::xml_node n = root.first_child(); n; n = n.next_sibling())
                 {
                     std::string nName = n.name();
@@ -212,17 +206,17 @@ void CachedFileDownloader::LoadCache()
                     if (nName == "item")
                         _cacheItems.push_back(new FileCacheItem(n));
                 }
-                logger_base.debug("   %d items loaded.", _cacheItems.size());
+                spdlog::debug("   {} items loaded.", _cacheItems.size());
             }
         }
         else
         {
-            logger_base.warn("File Cache was invalid.");
+            spdlog::warn("File Cache was invalid.");
         }
     }
     else
     {
-        logger_base.warn("File Cache does not exist.");
+        spdlog::warn("File Cache does not exist.");
     }
 }
 
@@ -260,14 +254,14 @@ bool CachedFileDownloader::Initialize() {
     if (_initialised) {
         return _enabled;
     }
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     _initialised = true;
 
     #ifdef LINUX
     // On linux we disable caching because GetTempDir() fails spectacularly probably due to
     // a lack of wxWidgets initialisation when creating static objects
     _cacheFile="";
-    logger_base.warn("CachedFileDownloaded disabled on Linux.");
+    spdlog::warn("CachedFileDownloaded disabled on Linux.");
     #else
     if (_cacheDir == "" || !wxDirExists(_cacheDir))
     {
@@ -281,7 +275,7 @@ bool CachedFileDownloader::Initialize() {
     }
     else
     {
-        logger_base.warn("CachedFileDownloaded unable to find a temp directory to use. Caching disabled.");
+        spdlog::warn("CachedFileDownloaded unable to find a temp directory to use. Caching disabled.");
     }
     #endif // LINUX
 
@@ -298,9 +292,7 @@ CachedFileDownloader::~CachedFileDownloader()
 
 void CachedFileDownloader::ClearCache()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    logger_base.debug("File Cache cleared.");
+    spdlog::debug("File Cache cleared.");
     std::lock_guard<std::recursive_mutex> lock(_cacheItemsLock);
     for (const auto& it :  _cacheItems)
     {
@@ -310,9 +302,7 @@ void CachedFileDownloader::ClearCache()
 
 void CachedFileDownloader::PurgeAgedItems()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    logger_base.debug("File Cache purging aged items.");
+    spdlog::debug("File Cache purging aged items.");
     std::lock_guard<std::recursive_mutex> lock(_cacheItemsLock);
     for (const auto& it : _cacheItems)
     {
@@ -330,7 +320,7 @@ int CachedFileDownloader::size() {
 
 std::string CachedFileDownloader::GetFile(wxURI url, CACHEFOR cacheFor, const wxString& forceType, wxProgressDialog* prog, int low, int high, bool keepProgress)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     std::lock_guard<std::recursive_mutex> lock(_cacheItemsLock);
     if (!Initialize())
     {
@@ -341,19 +331,19 @@ std::string CachedFileDownloader::GetFile(wxURI url, CACHEFOR cacheFor, const wx
     FileCacheItem* fci = Find(url);
     if (fci == nullptr)
     {
-        logger_base.debug("File Cache downloading file %s.", (const char *)url.BuildURI().c_str());
+        spdlog::debug("File Cache downloading file {}.", url.BuildURI().ToStdString());
         fci = new FileCacheItem(url, cacheFor, forceType, prog, low, high, keepProgress);
         _cacheItems.push_back(fci);
     }
     else if (!fci->Exists())
     {
-        logger_base.debug("File Cache re-downloading file %s.", (const char *)url.BuildURI().c_str());
+        spdlog::debug("File Cache re-downloading file {}.", url.BuildURI().ToStdString());
         fci->Download(forceType, prog, low, high, keepProgress);
     }
 
     if (fci->GetFileName() == "")
     {
-        logger_base.debug("File Cache file %s could not be retrieved.", (const char *)url.BuildURI().c_str());
+        spdlog::debug("File Cache file {} could not be retrieved.", url.BuildURI().ToStdString());
     }
 
     if (prog != nullptr)

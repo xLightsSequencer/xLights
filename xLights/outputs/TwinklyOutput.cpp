@@ -14,7 +14,7 @@
 #include "../UtilFunctions.h"
 
 #include "../utils/Curl.h"
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 #include <wx/base64.h>
 #include <wx/protocol/http.h>
 #include <wx/sstream.h>
@@ -164,7 +164,7 @@ void TwinklyOutput::Close()
 #pragma region Frame Handling
 void TwinklyOutput::StartFrame(long msec)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!_enabled) {
         return;
@@ -177,7 +177,7 @@ void TwinklyOutput::StartFrame(long msec)
     if (_datagram == nullptr && OutputManager::IsRetryOpen()) {
         OpenDatagram();
         if (_ok) {
-            logger_base.debug("TwinklyOutput: Open retry successful");
+            spdlog::debug("TwinklyOutput: Open retry successful");
         }
     }
 
@@ -299,12 +299,12 @@ void TwinklyOutput::AllOff()
 
 bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path, nlohmann::json& result, const char* body)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Twinkly: Invoke " + method + " http://" + _ip + (_httpPort == 80
+    
+    spdlog::debug("Twinkly: Invoke " + method + " http://" + _ip + (_httpPort == 80
                           ? ""
-                          : wxString::Format(":%d", _httpPort)) + path);
+                          : std::to_string(_httpPort)) + path);
     if (body != nullptr)
-        logger_base.debug("         '%s'", body);
+        spdlog::debug("         '{}'", body);
 
     wxString bod;
     if (body != nullptr) {
@@ -321,23 +321,23 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
     std::string httpResponse = Curl::HTTPSPost("http://" + _ip + (_httpPort == 80 ? "" : wxString::Format(":%d", _httpPort)) + path, bod, "", "", "JSON", HTTP_TIMEOUT, customHeaders, &responseCode);
 
     if (responseCode != 200) {
-        logger_base.error("Twinkly: Error %d : %s", responseCode, (const char*)httpResponse.c_str());
+        spdlog::error("Twinkly: Error {} : {}", responseCode, httpResponse);
     }
 
     try {
         result = nlohmann::json::parse(httpResponse, nullptr, false);
         if (result.is_discarded()) {
-            logger_base.error("Twinkly: Returned json is not valid: " + httpResponse + "'");
+            spdlog::error("Twinkly: Returned json is not valid: " + httpResponse + "'");
             return false;
         }
         // int32_t code;
         if (!result.contains("code") && result.at("code").get<int>() != 1000) {
-            logger_base.error("Twinkly: Server returned: " + std::to_string(result.at("code").get<int>()));
+            spdlog::error("Twinkly: Server returned: " + std::to_string(result.at("code").get<int>()));
             return false;
         }
     } catch (const nlohmann::json::parse_error& e) {
-        logger_base.error("Twinkly: Returned json is not valid: " + httpResponse + "'");
-        logger_base.error("Twinkly: JSON parse error: %s", e.what());
+        spdlog::error("Twinkly: Returned json is not valid: " + httpResponse + "'");
+        spdlog::error("Twinkly: JSON parse error: {}", e.what());
         return false;
     }
     return true;
@@ -345,7 +345,7 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
 
 bool TwinklyOutput::ReloadToken()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     m_token = "";
 
     // get token
@@ -354,13 +354,13 @@ bool TwinklyOutput::ReloadToken()
         return false;
     }
     if (!reply.contains("authentication_token")) {
-        logger_base.error("Invalid authentication token");
+        spdlog::error("Invalid authentication token");
         return false;
     }
     auto token = reply.at("authentication_token").get<std::string>();
     auto decoded = wxBase64Decode(token);
     if (decoded.GetDataLen() != TOKEN_SIZE) {
-        logger_base.error("Invalid authentication token");
+        spdlog::error("Invalid authentication token");
         return false;
     }
 
@@ -378,7 +378,7 @@ bool TwinklyOutput::ReloadToken()
 #pragma region UDP
 void TwinklyOutput::OpenDatagram()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_datagram != nullptr)
         return;
@@ -392,13 +392,13 @@ void TwinklyOutput::OpenDatagram()
 
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
-        logger_base.error("Twinkly: %s Error opening datagram.", (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("Twinkly: {} Error opening datagram.",localaddr.IPAddress().ToStdString());
     } else if (!_datagram->IsOk()) {
-        logger_base.error("Twinkly: %s Error opening datagram. Network may not be connected? OK : FALSE", (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("Twinkly: {} Error opening datagram. Network may not be connected? OK : FALSE", localaddr.IPAddress().ToStdString());
         delete _datagram;
         _datagram = nullptr;
     } else if (_datagram->Error()) {
-        logger_base.error("Twinkly: %s Error creating Twinkly datagram => %d : %s.", (const char*)localaddr.IPAddress().c_str(), _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str());
+        spdlog::error("Twinkly: {} Error creating Twinkly datagram => {} : {}.", localaddr.IPAddress().ToStdString(), (int)_datagram->LastError(), DecodeIPError(_datagram->LastError()));
         delete _datagram;
         _datagram = nullptr;
     }
@@ -407,7 +407,7 @@ void TwinklyOutput::OpenDatagram()
 
 bool TwinklyOutput::GetLayout(const std::string& ip, std::vector<std::tuple<float, float, float>>& result, bool& is3D, uint16_t httpPort)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     #ifdef TEST_TWINKLY_FORMAT
     std::string httpResponse = "{\"source\":\"3d\",\"synthesized\":false,\"uuid\":\"18040665-6CCE-4402-F257-66BF76027922\",\"coordinates\":[{\"x\":0.930176,\"y\":0.055054,\"z\":-1.000000},\
@@ -666,11 +666,11 @@ bool TwinklyOutput::GetLayout(const std::string& ip, std::vector<std::tuple<floa
     std::string httpResponse = Curl::HTTPSGet("http://" + ip + (httpPort == 80 ? "" : wxString::Format(":%d", httpPort)) + "/xled/v1/led/layout/full", "", "", HTTP_TIMEOUT, customHeaders, &responseCode);
 
     if (responseCode != 200) {
-        logger_base.error("Twinkly: Error %d : %s", responseCode, (const char*)httpResponse.c_str());
+        spdlog::error("Twinkly: Error {} : {}", responseCode, (const char*)httpResponse.c_str());
         return false;
     }
 
-    logger_base.debug("%s", (const char*)httpResponse.c_str());
+    spdlog::debug("{}", (const char*)httpResponse.c_str());
     #endif
 
     nlohmann::json jsonDoc;
@@ -678,12 +678,12 @@ bool TwinklyOutput::GetLayout(const std::string& ip, std::vector<std::tuple<floa
         jsonDoc = nlohmann::json::parse(httpResponse);
         // int32_t code;
         if (!jsonDoc.contains("code") && jsonDoc.at("code").get<int>() != 1000) {
-            logger_base.error("Twinkly: Server returned: " + std::to_string(jsonDoc.at("code").get<int>()));
+            spdlog::error("Twinkly: Server returned: " + std::to_string(jsonDoc.at("code").get<int>()));
             return false;
         }
     } catch (const nlohmann::json::parse_error& e) {
-        logger_base.error("Twinkly: Returned json is not valid: " + httpResponse + "'");
-        logger_base.error("Twinkly: JSON parse error: %s", e.what());
+        spdlog::error("Twinkly: Returned json is not valid: " + httpResponse + "'");
+        spdlog::error("Twinkly: JSON parse error: {}", e.what());
         return false;
     }
 
@@ -708,7 +708,7 @@ bool TwinklyOutput::GetLayout(std::vector<std::tuple<float, float, float>>& resu
 #ifndef EXCLUDENETWORKUI
 nlohmann::json TwinklyOutput::Query(const std::string& ip, uint8_t type, const std::string& localIP)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     nlohmann::json val;
 
@@ -732,21 +732,21 @@ nlohmann::json TwinklyOutput::Query(const std::string& ip, uint8_t type, const s
         localaddr.Hostname(localIP);
     }
 
-    logger_base.debug(" Twinkly query using %s", (const char*)localaddr.IPAddress().c_str());
+    spdlog::debug(" Twinkly query using {}", (const char*)localaddr.IPAddress().c_str());
     wxDatagramSocket* datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
 
     if (datagram == nullptr) {
-        logger_base.error("Error initialising Twinkly query datagram.");
+        spdlog::error("Error initialising Twinkly query datagram.");
     } else if (!datagram->IsOk()) {
-        logger_base.error("Error initialising Twinkly query datagram ... is network connected? OK : FALSE");
+        spdlog::error("Error initialising Twinkly query datagram ... is network connected? OK : FALSE");
         delete datagram;
         datagram = nullptr;
     } else if (datagram->Error()) {
-        logger_base.error("Error creating Twinkly query datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
+        spdlog::error("Error creating Twinkly query datagram => {} : {}.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
         delete datagram;
         datagram = nullptr;
     } else {
-        logger_base.info("Twinkly query datagram opened successfully.");
+        spdlog::info("Twinkly query datagram opened successfully.");
     }
 
     wxIPV4address remoteaddr;
@@ -755,12 +755,12 @@ nlohmann::json TwinklyOutput::Query(const std::string& ip, uint8_t type, const s
 
     // bail if we dont have a datagram to use
     if (datagram != nullptr) {
-        logger_base.info("Twinkly sending query packet.");
+        spdlog::info("Twinkly sending query packet.");
         datagram->SendTo(remoteaddr, &packet, sizeof(packet));
         if (datagram->Error()) {
-            logger_base.error("Error sending Twinkly query datagram => %d : %s.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
+            spdlog::error("Error sending Twinkly query datagram => {} : {}.", datagram->LastError(), (const char*)DecodeIPError(datagram->LastError()).c_str());
         } else {
-            logger_base.info("Twinkly sent query packet. Sleeping for 1 second.");
+            spdlog::info("Twinkly sent query packet. Sleeping for 1 second.");
 
             // give the controllers 2 seconds to respond
             wxMilliSleep(1000);
@@ -771,28 +771,28 @@ nlohmann::json TwinklyOutput::Query(const std::string& ip, uint8_t type, const s
 
             while (lastread > 0) {
                 wxStopWatch sw;
-                logger_base.debug("Trying to read Twinkly query response packet.");
+                spdlog::debug("Trying to read Twinkly query response packet.");
                 memset(&response, 0x00, sizeof(response));
                 datagram->Read(&response, sizeof(response));
                 lastread = datagram->LastReadCount();
 
                 if (lastread > 0) {
-                    logger_base.debug(" Read done. %d bytes %ldms", lastread, sw.Time());
+                    spdlog::debug(" Read done. {} bytes {}ms", lastread, sw.Time());
 
                     if (response[0] == 0x01 && response[1] == 'd' && response[2] == 'i') {
                         // getting my own QUERY request, ignore
                     } else if (response[4] == 'O' && response[5] == 'K') {
-                        logger_base.debug(" Valid response.");
-                        logger_base.debug((const char*)&response[6]);
+                        spdlog::debug(" Valid response.");
+                        spdlog::debug((const char*)&response[6]);
                     }
                 }
-                logger_base.info("Twinkly Query Done looking for response.");
+                spdlog::info("Twinkly Query Done looking for response.");
             }
         }
         datagram->Close();
         delete datagram;
     }
-    logger_base.info("Twinkly Query Finished.");
+    spdlog::info("Twinkly Query Finished.");
 
     return val;
 }
@@ -800,10 +800,10 @@ nlohmann::json TwinklyOutput::Query(const std::string& ip, uint8_t type, const s
 
 void TwinklyOutput::PrepareDiscovery(Discovery& discovery)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     discovery.AddBroadcast(DISCOVERY_PORT, [&discovery](wxDatagramSocket* socket, uint8_t* response, int len) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
         if (response[0] == 0x01 && response[1] == 'd' && response[2] == 'i') {
             // getting my own QUERY request, ignore
             return;
@@ -813,8 +813,8 @@ void TwinklyOutput::PrepareDiscovery(Discovery& discovery)
         // OK
         // Name of the controller
         if (response[4] == 'O' && response[5] == 'K') {
-            logger_base.debug(" Valid Twinkly Status Response.");
-            logger_base.debug((const char*)&response[6]);
+            spdlog::debug(" Valid Twinkly Status Response.");
+            spdlog::debug((const char*)&response[6]);
 
             wxIPV4address add;
             socket->GetPeer(add);
@@ -823,7 +823,7 @@ void TwinklyOutput::PrepareDiscovery(Discovery& discovery)
             if (dd == nullptr) {
                 ControllerEthernet* controller = new ControllerEthernet(discovery.GetOutputManager(), false);
                 controller->SetProtocol(OUTPUT_TWINKLY);
-                logger_base.debug("   IP %s", (const char*)ip.c_str());
+                spdlog::debug("   IP {}", (const char*)ip.c_str());
                 controller->SetAutoSize(false, nullptr); // output model manager not required when setting it to false
                 controller->SetIP(ip);
                 controller->SetId(1);
@@ -841,7 +841,7 @@ void TwinklyOutput::PrepareDiscovery(Discovery& discovery)
         }
     });
 
-    logger_base.info("Sending Twinkly Discovery.");
+    spdlog::info("Sending Twinkly Discovery.");
     uint8_t packet[9];
     memset(&packet, 0x00, sizeof(packet));
     packet[0] = 0x01;

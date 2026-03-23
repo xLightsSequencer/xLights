@@ -26,7 +26,7 @@
 #include "utils/Curl.h"
 #include "utils/ip_utils.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #pragma region Private Functions
 void IPOutput::SaveAttr(pugi::xml_node node) {

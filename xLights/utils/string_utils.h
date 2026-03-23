@@ -183,7 +183,7 @@ extern const wxString xlEMPTY_WXSTRING;
 
     inline std::string Capitalise(const std::string& input) noexcept
     {
-        std::string res = "";
+        std::string res;
         char last = ' ';
         for (const auto c : input)
         {
@@ -203,10 +203,18 @@ extern const wxString xlEMPTY_WXSTRING;
 
     inline std::string Lower(const std::string& input) noexcept
     {
-        std::string res = "";
+        std::string res;
         for (const auto c : input)
         {
             res += ::tolower(c);
+        }
+        return res;
+    }
+
+    inline std::string Upper(const std::string& input) noexcept {
+        std::string res;
+        for (const auto c : input) {
+            res += ::toupper(c);
         }
         return res;
     }

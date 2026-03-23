@@ -30,7 +30,7 @@
 #include "../TraceLog.h"
 #include "../UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 static const std::string STR_EMPTY("");
 static const std::string STR_NAME("name");
@@ -125,7 +125,7 @@ int SequenceElements::GetSequenceEnd() const
 
 EffectLayer* SequenceElements::GetEffectLayer(const Row_Information_Struct *s) const
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (s == nullptr) {
         return nullptr;
     }
@@ -136,7 +136,7 @@ EffectLayer* SequenceElements::GetEffectLayer(const Row_Information_Struct *s) c
     else if (s->nodeIndex == -1) {
         SubModelElement *se = dynamic_cast<SubModelElement*>(e);
         if (se == nullptr) {
-            logger_base.error("Expected a SubModelElment be found %d", e->GetType());
+            spdlog::error("Expected a SubModelElment be found {}", (int)e->GetType());
             return nullptr;
         }
         return se->GetEffectLayer(s->layerIndex);
@@ -144,8 +144,8 @@ EffectLayer* SequenceElements::GetEffectLayer(const Row_Information_Struct *s) c
     else {
         StrandElement *me = dynamic_cast<StrandElement*>(e);
         if (me == nullptr) {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.error("Expected a StrandElement be found %d", e->GetType());
+            
+            spdlog::error("Expected a StrandElement be found {}", (int)e->GetType());
             return nullptr;
         }
         return me->GetNodeLayer(s->nodeIndex);
@@ -191,7 +191,7 @@ static Element* CreateElement(SequenceElements *se, const std::string &name, con
 Element* SequenceElements::AddElement(const std::string &name, const std::string &type,
     bool visible, bool collapsed, bool active, bool selected, bool renderDisabled)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (!ElementExists(name)) {
         Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, xframe, renderDisabled);
 
@@ -200,7 +200,7 @@ Element* SequenceElements::AddElement(const std::string &name, const std::string
         IncrementChangeCount(el);
         return el;
     }
-    logger_base.error("SequenceElements::AddElement %s failed.", (const char *)name.c_str());
+    spdlog::error("SequenceElements::AddElement {} failed.", name);
     return nullptr;
 }
 
@@ -208,7 +208,7 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
     const std::string &type,
     bool visible, bool collapsed, bool active, bool selected, bool renderDisabled)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (!ElementExists(name) && index <= mAllViews[MASTER_VIEW].size())
     {
         Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, xframe, renderDisabled);
@@ -217,7 +217,7 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
         IncrementChangeCount(el);
         return el;
     }
-    logger_base.error("SequenceElements::AddElement #2 %s failed.", (const char *)name.c_str());
+    spdlog::error("SequenceElements::AddElement #2 {} failed.", (const char *)name.c_str());
     return nullptr;
 }
 
@@ -638,7 +638,7 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
     const std::vector<std::string>& colorPalettes,
     bool importing)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     int loaded = 0;
     for (wxXmlNode* effect = effectLayerNode->GetChildren(); effect != nullptr; effect = effect->GetNext()) {
@@ -659,7 +659,7 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
 
             if (startTime >= endTime) {
                 // effects should not have negative or zero duration ... if they do we drop them
-                logger_base.warn("Effect dropped as its start time was greater than or equal to its end time : '%s' : %s Layer %d Start %d End %d.", 
+                spdlog::warn("Effect dropped as its start time was greater than or equal to its end time : '{}' : {} Layer {} Start {} End {}.", 
                     (const char*)effect->GetAttribute(STR_NAME).c_str(), 
                     (const char*)effectLayer->GetParentElement()->GetName().c_str(), 
                     effectLayer->GetLayerNumber(), 
@@ -677,7 +677,7 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
                     if (effect->GetAttribute(STR_REF) != STR_EMPTY) {
                         int ref = wxAtoi(effect->GetAttribute(STR_REF));
                         if (ref >= effectStrings.size()) {
-                            logger_base.warn("Effect string not found for effect %s between %d and %d. Settings ignored.", (const char*)effectName.c_str(), (int)startTime, (int)endTime);
+                            spdlog::warn("Effect string not found for effect {} between {} and {}. Settings ignored.", (const char*)effectName.c_str(), (int)startTime, (int)endTime);
                             settings = "";
                         } else {
                             settings = effectStrings[ref];
@@ -701,7 +701,7 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
                 std::string pal = STR_EMPTY;
                 if (palette != -1) {
                     if (palette >= colorPalettes.size()) {
-                        logger_base.warn("Color palette not found for effect %s between %d and %d. Palette ignored.", 
+                        spdlog::warn("Color palette not found for effect {} between {} and {}. Palette ignored.", 
                             (const char*)effectName.c_str(), (int)startTime, (int)endTime);
                         pal = "";
                     } else {
@@ -712,7 +712,7 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
                     effectLayer->AddEffect(id, effectName, settings, pal,
                                            startTime, endTime, EFFECT_NOT_SELECTED, bProtected, false, importing);
                 } else {
-                    logger_base.warn("Random effect not loaded on element %s layer %d (%0.02f-%0.02f)", (const char*)effectLayer->GetParentElement()->GetName().c_str(), effectLayer->GetLayerNumber(), startTime / 1000, endTime / 1000);
+                    spdlog::warn("Random effect not loaded on element {} layer {} ({:.2f}-{:.2f})", (const char*)effectLayer->GetParentElement()->GetName().c_str(), effectLayer->GetLayerNumber(), startTime / 1000, endTime / 1000);
                 }
             }
         }
@@ -732,7 +732,7 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
 
 bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxString& ShowDir, bool importing)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     renderDependency.clear();
 
@@ -856,7 +856,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                                 int newinterval = TimeLine::RoundToMultipleOfPeriod(interval, mFrequency);
                                 if (newinterval == 0)
                                     newinterval = 1000 / mFrequency;
-                                logger_base.warn("Timing interval of %dms not a multiple of frame time so changed to %dms.", interval, newinterval);
+                                spdlog::warn("Timing interval of {}ms not a multiple of frame time so changed to {}ms.", interval, newinterval);
                                 interval = newinterval;
                             }
                             dynamic_cast<TimingElement*>(element)->SetFixedTiming(interval);
@@ -900,7 +900,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                                             se->SetName(effectLayerNode->GetAttribute(STR_NAME).Trim(true).Trim(false).ToStdString());
                                         }
                                     } else {
-                                        logger_base.error("Element %s was not a model element: %s. This typically happens when a timing track is created with the same name as a model.", (const char*)element->GetName().c_str());
+                                        spdlog::error("Element {} was not a model element. This typically happens when a timing track is created with the same name as a model.", element->GetName());
                                     }
                                 }
                                 if (effectLayer != nullptr) {
@@ -931,16 +931,16 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
         }
     }
 
-    logger_base.debug("Sequencer file loaded.");
+    spdlog::debug("Sequencer file loaded.");
 
     return true;
 }
 
 void SequenceElements::PrepareViews(xLightsXmlFile& xml_file)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (_viewsManager == nullptr) {
-        logger_base.crit("SequenceElements::PrepareViews called when _viewsManager was null ... this will crash");
+        spdlog::critical("SequenceElements::PrepareViews called when _viewsManager was null ... this will crash");
     }
 
     // Select view and set current view models as visible
@@ -1157,9 +1157,9 @@ void addSubModelElement(SubModelElement* elem,
     std::vector<Row_Information_Struct>& mRowInformation,
     int& rowIndex, xLightsFrame* xframe,
     std::vector <Element*>& elements) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (elem == nullptr) {
-        logger_base.error("addSubModelElement attempted to add null element.");
+        spdlog::error("addSubModelElement attempted to add null element.");
         return;
     }
 
@@ -1196,10 +1196,10 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
     std::vector <Element*>& elements,
     bool submodel)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (elem == nullptr) {
-        logger_base.error("addModelElement attempted to add null element.");
+        spdlog::error("addModelElement attempted to add null element.");
         return;
     }
 
@@ -1231,7 +1231,7 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
     }
     Model* cls = xframe->GetModel(elem->GetModelName());
     if (cls == nullptr) {
-        logger_base.error("addModelElement model not found %s.", (const char*)elem->GetModelName().c_str());
+        spdlog::error("addModelElement model not found {}.", (const char*)elem->GetModelName().c_str());
         return;
     }
     elem->Init(*cls);

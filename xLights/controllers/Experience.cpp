@@ -25,7 +25,7 @@
 #include <wx/regex.h>
 #include <wx/sstream.h>
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #pragma region Private Functions
 bool Experience::GetJSONData(std::string const& url, nlohmann::json& val) const {
@@ -35,8 +35,8 @@ bool Experience::GetJSONData(std::string const& url, nlohmann::json& val) const 
             val = nlohmann::json::parse(sval);
             return true;
         } catch (nlohmann::json::parse_error& e) {
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.warn("Experience Outputs Upload: Failed to parse JSON from %s: %s", (const char*)url.c_str(), e.what());
+            
+            spdlog::warn("Experience Outputs Upload: Failed to parse JSON from {}: {}", (const char*)url.c_str(), e.what());
         }
     }
     return false;
@@ -48,11 +48,11 @@ std::string Experience::PostJSONToURL(std::string const& url, nlohmann::json con
 #pragma endregion
 
 bool Experience::UploadSequence(std::string const& seq, std::string const& file, std::function<bool(int, std::string)> progress) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
     std::string url = "http://" + baseIP + _baseUrl + "/upload";
-    logger_base.debug("Uploading to URL: %s", (const char*)url.c_str());
+    spdlog::debug("Uploading to URL: {}", (const char*)url.c_str());
 
     wxFileName fn(file);
     return Curl::HTTPUploadFile(url, seq, fn.GetFullName().ToStdString(), progress);
@@ -67,8 +67,8 @@ bool Experience::DecodeFirmwareInformation(std::string const& firmware) {
         _firmwareBuild = wxAtoi(firmware_regex.GetMatch(firmware, 4));
         return true;
     }
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Experience Outputs Upload: Failed to Parse Firmware %s", (const char*)firmware.c_str());
+    
+    spdlog::debug("Experience Outputs Upload: Failed to Parse Firmware {}", (const char*)firmware.c_str());
     return false;
 }
 
@@ -81,8 +81,8 @@ bool Experience::DecodeModelInformation(std::string const& model) {
     } else if (!model.empty()) {
         _controllerModel = model;
     }
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Experience Outputs Upload: Failed to Parse model %s", (const char*)model.c_str());
+    
+    spdlog::debug("Experience Outputs Upload: Failed to Parse model {}", (const char*)model.c_str());
     return false;
 }
 
@@ -143,20 +143,20 @@ wxString Experience::EncodeColorOrder(std::string const& colorOrder) const
 #pragma region Constructors and Destructors
 Experience::Experience(std::string const& ip, std::string const& proxy) :
     BaseController(ip, proxy) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     nlohmann::json data;
 
     // Get Controller Info
     if (!GetJSONData(GetStateURL(), data)) {
-        logger_base.error("Error connecting to Genius controller on %s.", (const char*)_ip.c_str());
+        spdlog::error("Error connecting to Genius controller on {}.", (const char*)_ip.c_str());
         return;
     }
 
     nlohmann::json config;
 
     if (!GetJSONData(GetConfigURL(), config)) {
-        logger_base.error("Error connecting to Genius controller on %s.", (const char*)_ip.c_str());
+        spdlog::error("Error connecting to Genius controller on {}.", (const char*)_ip.c_str());
         return;
     }
 
@@ -175,10 +175,10 @@ Experience::Experience(std::string const& ip, std::string const& proxy) :
         DecodeModelInformation(controller_model);
         DecodeFirmwareInformation(ToWXString(_version));
         _connected = true;
-        logger_base.debug("Connected to Genius controller model %s v%s.", (const char*)controller_model.c_str(), (const char*)GetVersionStr().c_str());
+        spdlog::debug("Connected to Genius controller model {} v{}.", (const char*)controller_model.c_str(), (const char*)GetVersionStr().c_str());
     } else {
         _connected = false;
-        logger_base.error("Error connecting to Genius controller on %s.", (const char*)_ip.c_str());
+        spdlog::error("Error connecting to Genius controller on {}.", (const char*)_ip.c_str());
         DisplayError(wxString::Format("Error connecting to Genius controller on %s.", _ip).ToStdString());
     }
 
@@ -192,8 +192,8 @@ Experience::Experience(std::string const& ip, std::string const& proxy) :
 #pragma region Getters and Setters
 
 int32_t Experience::SetInputUniverses(nlohmann::json& data, Controller* controller) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Experience Inputs Upload: Uploading to %s", (const char*)_ip.c_str());
+    
+    spdlog::debug("Experience Inputs Upload: Uploading to {}", (const char*)_ip.c_str());
     int32_t startChannel{ -1 };
     auto eth = dynamic_cast<ControllerEthernet*>(controller);
     if (eth == nullptr) {
@@ -270,11 +270,11 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Experience Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+    
+    spdlog::debug("Experience Outputs Upload: Uploading to {}", (const char*)_ip.c_str());
 
     progress.Update(0, "Scanning models");
-    logger_base.info("Scanning models.");
+    spdlog::info("Scanning models.");
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
@@ -283,7 +283,7 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     auto rules = ControllerCaps::GetControllerConfig(controller);
     const bool success = cud.Check(rules, check);
 
-    logger_base.debug(check);
+    spdlog::debug(check);
 
     cud.Dump();
     if (!success) {
@@ -297,30 +297,30 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     int const defaultGamma = EncodeGamma(controller->GetDefaultGammaUnderFullControl());
 
     bool const has_eFuses = _has_efuses || Lower(rules->GetCustomPropertyByPath("eFuses", "false")) == "true";
-    logger_base.info("Initializing Pixel Output Information.");
+    spdlog::info("Initializing Pixel Output Information.");
     progress.Update(10, "Initializing Pixel Output Information.");
 
     nlohmann::json stringData;
 
     // get controller data from API
     if (!GetJSONData(GetConfigURL(), stringData)) {
-        logger_base.error("Error connecting to Genius controller on %s.", (const char*)_ip.c_str());
+        spdlog::error("Error connecting to Genius controller on {}.", (const char*)_ip.c_str());
         return false;
     }
 
-    logger_base.info("Initializing Universe Input Information.");
+    spdlog::info("Initializing Universe Input Information.");
     progress.Update(20, "Initializing Universe Input Information.");
     int32_t const startChannel = SetInputUniverses(stringData, controller);
 
     if (-1 == startChannel) {
-        logger_base.error("Error Calculating Universe Input Information.");
+        spdlog::error("Error Calculating Universe Input Information.");
         return false;
     }
 
     bool unsupportedFeatures { false };
     std::string unsupportedMessage;
 
-    logger_base.info("Figuring Out Pixel Output Information.");
+    spdlog::info("Figuring Out Pixel Output Information.");
     progress.Update(30, "Figuring Out Pixel Output Information.");
     //loop to setup string outputs
     for (int p = 1; p <= GetNumberOfPixelOutputs(); p++) {
@@ -500,7 +500,7 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
         return false;
     }
 
-    logger_base.info("Figuring Out DMX Output Information.");
+    spdlog::info("Figuring Out DMX Output Information.");
     progress.Update(50, "Figuring Out DMX Output Information.");
 
     for (int sp = 1; sp <= GetNumberOfSerial(); sp++) {
@@ -529,7 +529,7 @@ bool Experience::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
         }
     }
 
-    logger_base.info("Uploading Output Information.");
+    spdlog::info("Uploading Output Information.");
     progress.Update(70, "Uploading String Output Information.");
 
     PostJSONToURL(GetConfigURL(), stringData);

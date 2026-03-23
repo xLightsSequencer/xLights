@@ -11,20 +11,20 @@
 #include <vector>
 #include <string>
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 bool claude::IsAvailable() const {
     return !api_key.empty() && !_enabledTypes.empty();
 }
 
 void claude::SaveSettings() const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     _sm->setServiceSetting("ClaudeModel", claudeModel);
     _sm->setSecretServiceToken("ClaudeApiKey", api_key);
     for (auto t : GetTypes()) {
         _sm->setServiceSetting(std::string("ClaudeEnable_") + aiType::TypeSettingsSuffix(t), IsEnabledForType(t));
     }
-    logger_base.info("Claude settings saved successfully");
+    spdlog::info("Claude settings saved successfully");
 }
 
 void claude::LoadSettings() {
@@ -68,7 +68,7 @@ void claude::SetSetting(const std::string& key, const wxVariant& value) {
 static std::pair<std::string, bool> CallAnthropicAPI(const std::string& base_url, const std::string& api_key, const std::string& model,
                                     const nlohmann::json& messages, int max_tokens, const std::string& serviceName,
                                     const std::string& system_prompt = "") {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     nlohmann::json requestJson;
     requestJson["model"] = model;
@@ -85,12 +85,12 @@ static std::pair<std::string, bool> CallAnthropicAPI(const std::string& base_url
         { "anthropic-version", "2023-06-01" }
     };
 
-    logger_base.debug("%s: %s", serviceName.c_str(), request.c_str());
+    spdlog::debug("{}: {}", serviceName, request);
 
     int responseCode = 0;
     std::string response = Curl::HTTPSPost(base_url + "/messages", request, "", "", "JSON", 120, customHeaders, &responseCode);
 
-    logger_base.debug("%s Response %d: %s", serviceName.c_str(), responseCode, response.c_str());
+    spdlog::debug("{} Response {}: {}", serviceName, responseCode, response);
 
     if (responseCode != 200) {
         // Try to extract error message from response
@@ -105,7 +105,7 @@ static std::pair<std::string, bool> CallAnthropicAPI(const std::string& base_url
                 errorMsg += " - " + response.substr(0, 200);
             }
         }
-        logger_base.error("%s", errorMsg.c_str());
+        spdlog::error("{}", errorMsg);
         return { errorMsg, false };
     }
 
@@ -136,19 +136,19 @@ static std::string StripCodeFences(const std::string& text) {
 }
 
 static std::string ExtractTextContent(const std::string& response, const std::string& serviceName) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     nlohmann::json root;
     try {
         root = nlohmann::json::parse(response);
     } catch (const std::exception&) {
-        logger_base.error("%s: Invalid JSON response: %s", serviceName.c_str(), response.c_str());
+        spdlog::error("{}: Invalid JSON response: {}", serviceName, response);
         return "";
     }
 
     auto content = root["content"];
     if (content.is_null() || !content.is_array() || content.empty()) {
-        logger_base.error("%s: No content in response", serviceName.c_str());
+        spdlog::error("{}: No content in response", serviceName);
         return "";
     }
 
@@ -158,12 +158,12 @@ static std::string ExtractTextContent(const std::string& response, const std::st
         }
     }
 
-    logger_base.error("%s: No text block in response content", serviceName.c_str());
+    spdlog::error("{}: No text block in response content", serviceName);
     return "";
 }
 
 std::pair<std::string, bool> claude::CallLLM(const std::string& prompt) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (api_key.empty()) {
         wxMessageBox("You must set a Claude API Key in the Preferences on the Services Panel", "Error", wxICON_ERROR);
@@ -186,12 +186,12 @@ std::pair<std::string, bool> claude::CallLLM(const std::string& prompt) const {
         return { "Claude: No text in response", false };
     }
 
-    logger_base.debug("Claude: %s", text.c_str());
+    spdlog::debug("Claude: {}", text);
     return { text, true };
 }
 
 aiBase::AIColorPalette claude::GenerateColorPalette(const std::string& prompt) const {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     aiBase::AIColorPalette ret;
 
     if (api_key.empty()) {
@@ -238,7 +238,7 @@ aiBase::AIColorPalette claude::GenerateColorPalette(const std::string& prompt) c
         }
         ret.error = "Response does not contain 'colors' array.";
     } catch (const std::exception& ex) {
-        logger_base.error("Claude color palette parse error: %s", ex.what());
+        spdlog::error("Claude color palette parse error: {}", ex.what());
         ret.error = "Failed to parse color palette response.";
     }
 
@@ -250,7 +250,7 @@ aiBase::AIModelMappingResult claude::GenerateModelMapping(
     const std::vector<MappingModelInfo>& targetModels,
     const std::map<std::string, std::string>& existingMappings) const {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     AIModelMappingResult result;
 
     if (api_key.empty()) {
@@ -338,7 +338,7 @@ aiBase::AIModelMappingResult claude::GenerateModelMapping(
     prompt += "{\"mappings\": [{\"targetModel\": \"target name\", \"sourceModel\": \"source name\"}, ...]}\n";
     prompt += "Only include targets that have a reasonable match. Do not explain your reasoning.";
 
-    logger_base.debug("Claude mapping prompt size: %zu chars", prompt.size());
+    spdlog::debug("Claude mapping prompt size: {} chars", prompt.size());
 
     nlohmann::json messages = nlohmann::json::array();
     nlohmann::json userMsg;
@@ -358,7 +358,7 @@ aiBase::AIModelMappingResult claude::GenerateModelMapping(
         return result;
     }
 
-    logger_base.debug("Claude mapping response: %s", text.c_str());
+    spdlog::debug("Claude mapping response: {}", text);
 
     text = StripCodeFences(text);
 
@@ -391,11 +391,11 @@ aiBase::AIModelMappingResult claude::GenerateModelMapping(
                     result.mappings[targetModel] = sourceModel;
                 }
             } else {
-                logger_base.debug("Claude mapping skipped invalid: '%s' -> '%s'", targetModel.c_str(), sourceModel.c_str());
+                spdlog::debug("Claude mapping skipped invalid: '{}' -> '{}'", targetModel, sourceModel);
             }
         }
     } catch (const std::exception& e) {
-        logger_base.error("Claude mapping parse error: %s", e.what());
+        spdlog::error("Claude mapping parse error: {}", e.what());
         result.error = "Failed to parse mapping response: " + std::string(e.what());
     }
 

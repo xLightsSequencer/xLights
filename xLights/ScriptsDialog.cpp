@@ -27,7 +27,7 @@
 #endif
 #include "ExternalHooks.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 #include <wx/mimetype.h>
 #include <wx/stdpaths.h>
 #include <wx/txtstrm.h>
@@ -144,7 +144,7 @@ void ScriptsDialog::OnListRClick(wxContextMenuEvent& event)
 
 void ScriptsDialog::OnPopup(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (event.GetId() == ID_MCU_VIEWSCRIPT) {
         int sel = ListBoxScripts->GetSelection();
         if (sel == wxNOT_FOUND) {
@@ -166,7 +166,7 @@ void ScriptsDialog::OnPopup(wxCommandEvent& event)
             wxUnsetEnv("LD_PRELOAD");
             wxExecute(command);
         } else {
-            logger_base.warn("Unable to open script as no program can open the file %s.", (const char*)filePath.c_str());
+            spdlog::warn("Unable to open script as no program can open the file {}.", (const char*)filePath.c_str());
         }
     }else if (event.GetId() == ID_MCU_VIEWSCRIPTFOLDER) {
         int sel = ListBoxScripts->GetSelection();
@@ -187,7 +187,7 @@ void ScriptsDialog::OnListBoxScriptsDClick(wxCommandEvent& event)
 void ScriptsDialog::LoadScriptDir()
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxString scriptFolder = _runner->GetUserScriptFolder();
 
@@ -196,12 +196,12 @@ void ScriptsDialog::LoadScriptDir()
     }
     _scripts.clear();
 
-    logger_base.info("Scanning User Script folder: %s", (const char*)scriptFolder.c_str());
+    spdlog::info("Scanning User Script folder: {}", (const char*)scriptFolder.c_str());
     if (wxDir::Exists(scriptFolder)) {
         ProcessScriptDir(scriptFolder);
     }
 
-    logger_base.info("Scanning System Script folder: %s", (const char*)scriptFolder.c_str());
+    spdlog::info("Scanning System Script folder: {}", (const char*)scriptFolder.c_str());
     scriptFolder = LuaRunner::GetSystemScriptFolder();
     if (wxDir::Exists(scriptFolder)) {
         ProcessScriptDir(scriptFolder);
@@ -263,13 +263,13 @@ void ScriptsDialog::Run_Selected_Script()
 void ScriptsDialog::Run_Lua_Script(wxString const& filepath) const
 {
     wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
 
     auto LogMessage = [&](std::string const& message) {
         TextCtrl_Log->AppendText(message);
         TextCtrl_Log->AppendText("\n");
-        logger_base.info("%s", (const char*)message.c_str());
+        spdlog::info("{}", (const char*)message.c_str());
     };
     _runner->Run_Script(filepath, LogMessage);
 }
@@ -278,13 +278,13 @@ void ScriptsDialog::Run_Python_Script(wxString const& filepath) const
 {
 #if defined(PYTHON_RUNNER)
     wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
 
     auto LogMessage = [&](std::string const& message) {
         TextCtrl_Log->AppendText(message);
         TextCtrl_Log->AppendText("\n");
-        logger_base.info("%s", (const char*)message.c_str());
+        spdlog::info("{}", (const char*)message.c_str());
     };
     _pyrunner->Run_Script(filepath, LogMessage);
 #endif

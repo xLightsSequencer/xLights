@@ -28,7 +28,7 @@
 
 #include "nlohmann/json.hpp"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
@@ -832,8 +832,8 @@ FPPConnectDialog::~FPPConnectDialog()
 void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Scanning folder for sequences for FPP upload: %s", (const char *)dir.c_str());
+    
+    spdlog::info("Scanning folder for sequences for FPP upload: {}", (const char *)dir.c_str());
 
     wxDir directory;
     directory.Open(dir);
@@ -936,7 +936,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
                     if (!FileExists(mediaName)) {
                         const wxString fixedMN = FixFile(frame->CurrentDir, mediaName);
                         if (!FileExists(fixedMN)) {
-                            logger_base.info("Could not find media: %s ", mediaName.c_str());
+                            spdlog::info("Could not find media: {} ", mediaName.c_str());
                             mediaName = "";
                         } else {
                             mediaName = ToUTF8(fixedMN);
@@ -944,7 +944,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
                     }
                 }
             }
-            logger_base.debug("XML:  %s   IsSeq:  %d    FSEQ:  %s   Media:  %s", (const char*)file.c_str(), isSequence, (const char*)fseqName.c_str(), (const char*)mediaName.c_str());
+            spdlog::debug("XML:  {}   IsSeq:  {}    FSEQ:  {}   Media:  {}", (const char*)file.c_str(), isSequence, (const char*)fseqName.c_str(), (const char*)mediaName.c_str());
             if (isSequence) {
 
                 // where you have show folders within show folders and sequences with the same name
@@ -979,7 +979,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
         wxFileName fn(filename);
         wxString file = fn.GetFullName();
 
-        logger_base.debug("ESEQ:  %s", (const char*)file.c_str());
+        spdlog::debug("ESEQ:  {}", (const char*)file.c_str());
 
         // The eseq may already be in the list
         bool found = false;
@@ -1161,7 +1161,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 }
 
 void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
     int pw, ph;
     frame->GetLayoutPreview()->GetVirtualCanvasSize(pw, ph);
@@ -1339,7 +1339,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                                 FSEQFile::FrameData *f = seq->getFrame(frame);
                                 if (f != nullptr) {
                                     if (!f->readFrame(&frames[lastBuffered][0], frames[lastBuffered].size())) {
-                                        logger_base.error("FPPConnect FSEQ file corrupt.");
+                                        spdlog::error("FPPConnect FSEQ file corrupt.");
                                     }
                                     delete f;
                                 }
@@ -1380,7 +1380,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                                     std::string rowStr = std::to_string(row);
                                     if (!GetCheckValue(MEDIA_COL + rowStr)) {
                                         if (m2 != "") {
-                                            logger_base.debug("Media file %s not uploaded because media checkbox not selected.", (const char*)m2.c_str());
+                                            spdlog::debug("Media file {} not uploaded because media checkbox not selected.", (const char*)m2.c_str());
                                         }
                                         m2 = "";
                                     }
@@ -1393,7 +1393,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                                     cancelled |= !falcon.UploadSequence(inst->GetTempFile(), fseq, inst->mode == "remote" ? "" : m2, updateProg);
                                 }
                                 else {
-                                    logger_base.debug("Upload failed as FxxV4 is not connected.");
+                                    spdlog::debug("Upload failed as FxxV4 is not connected.");
                                     cancelled = true;
                                 }
                                 inst->ClearTempFile();
@@ -1413,7 +1413,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                                     };
                                     cancelled |= !genius.UploadSequence(inst->GetTempFile(), fseq, updateProg);
                                 } else {
-                                    logger_base.debug("Upload failed as Genius is not connected.");
+                                    spdlog::debug("Upload failed as Genius is not connected.");
                                     cancelled = true;
                                 }
                                 inst->ClearTempFile();
@@ -1483,7 +1483,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
     if (messages != "") {
         xlframe->SetStatusText("FPP Connect Upload had errors or warnings", 0);
         wxMessageBox(messages, "Problems Uploading", wxOK | wxCENTRE, this);
-        logger_base.warn("FPP Connect Upload had errors or warnings:\n" + messages);
+        spdlog::warn("FPP Connect Upload had errors or warnings:\n" + messages);
         prgs->EndModal(2);
     } else {
         if (cancelled) {

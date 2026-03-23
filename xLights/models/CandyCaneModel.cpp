@@ -13,7 +13,7 @@
 #include "ModelScreenLocation.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 CandyCaneModel::CandyCaneModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
@@ -189,7 +189,7 @@ static void rotate_point(float cx,float cy, float angle, float &x, float &y)
 
 void CandyCaneModel::SetCaneCoord() {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     int NumCanes = _numCanes;
     size_t SegmentsPerCane = _nodesPerCane;
@@ -237,7 +237,7 @@ void CandyCaneModel::SetCaneCoord() {
                     for (size_t c = 0; c < CoordCount; c++) {
                         if (node == -1)
                         {
-                            logger_base.error("Candy Cane buffer x,y %d, %d not found.", i, y);
+                            spdlog::error("Candy Cane buffer x,y {}, {} not found.", i, y);
                         }
                         else
                         {
@@ -293,7 +293,7 @@ void CandyCaneModel::SetCaneCoord() {
                     for (size_t c = 0; c < CoordCount; c++) {
                         if (node == -1)
                         {
-                            logger_base.error("Candy Cane buffer x,y %d, %d not found.", i, y);
+                            spdlog::error("Candy Cane buffer x,y {}, {} not found.", i, y);
                         }
                         else
                         {
@@ -349,7 +349,7 @@ void CandyCaneModel::SetCaneCoord() {
                         double x2 = cos(aangle) * widthPerCane / 2 * screenLocation.GetMHeight();
                         if (node == -1)
                         {
-                            logger_base.error("Candy Cane buffer x,y %d, %d not found.", i, curLight);
+                            spdlog::error("Candy Cane buffer x,y {}, {} not found.", i, curLight);
                         }
                         else
                         {

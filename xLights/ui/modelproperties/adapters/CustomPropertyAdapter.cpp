@@ -20,7 +20,7 @@
 #include "../../../ExternalHooks.h"
 #include "../../../xLightsMain.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 static const std::string CLICK_TO_EDIT("--Click To Edit--");
 
@@ -88,7 +88,7 @@ CustomPropertyAdapter::CustomPropertyAdapter(Model& model)
     : ModelPropertyAdapter(model), _custom(static_cast<CustomModel&>(model)) {}
 
 void CustomPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxPGProperty* p = grid->Append(new CustomModelProperty(&_custom, outputManager, "Model Data", "CustomData", CLICK_TO_EDIT));
     grid->LimitPropertyEditing(p);
@@ -132,7 +132,7 @@ void CustomPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, Out
     p = grid->Append(new wxImageFileProperty("Background Image", "CustomBkgImage", _custom.GetCustomBackground()));
 
     if (sw.Time() > 500)
-        logger_base.debug("        Adding background image property (%s) to model %s really slow: %lums", (const char*)_custom.GetCustomBackground().c_str(), (const char*)_custom.GetName().c_str(), sw.Time());
+        spdlog::debug("        Adding background image property ({}) to model {} really slow: {}ms", (const char*)_custom.GetCustomBackground().c_str(), (const char*)_custom.GetName().c_str(), sw.Time());
 
     p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
                                         ";*.webp"

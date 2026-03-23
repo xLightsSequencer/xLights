@@ -19,7 +19,7 @@
 #ifndef EXCLUDENETWORKUI
 #include "../models/ModelManager.h"
 #endif
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include "../Discovery.h"
 
@@ -33,7 +33,7 @@ bool ArtNetOutput::__initialised = false;
 #pragma region Private Functions
 void ArtNetOutput::OpenDatagram() {
 
-    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_datagram != nullptr) return;
 
@@ -52,17 +52,17 @@ void ArtNetOutput::OpenDatagram() {
     }
     _datagram = new wxDatagramSocket(localaddr, flags);
     if (_datagram == nullptr) {
-        logger_base.error("Error initialising Artnet datagram for %s %d:%d:%d. %s", (const char*)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("Error initialising Artnet datagram for {} {}:{}:{}. {}", (const char*)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), (const char*)localaddr.IPAddress().c_str());
         _ok = false;
     }
     else if (!_datagram->IsOk()) {
-        logger_base.error("Error initialising Artnet datagram for %s %d:%d:%d. %s OK : FALSE", (const char*)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("Error initialising Artnet datagram for {} {}:{}:{}. {} OK : FALSE", (const char*)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), (const char*)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;
     }
     else if (_datagram->Error()) {
-        logger_base.error("Error creating Artnet datagram => %d : %s. %s", _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("Error creating Artnet datagram => {} : {}. {}", _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;
@@ -109,13 +109,13 @@ ArtNetOutput::~ArtNetOutput() {
 #pragma region Static Functions
 void ArtNetOutput::SendSync(const std::string& localIP) {
 
-    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     static uint8_t syncdata[ARTNET_SYNCPACKET_LEN];
     static wxIPV4address syncremoteAddr;
     static wxDatagramSocket* syncdatagram = nullptr;
 
     if (!__initialised) {
-        logger_base.debug("Initialising artNet Sync.");
+        spdlog::debug("Initialising artNet Sync.");
 
         __initialised = true;
         memset(syncdata, 0x00, sizeof(syncdata));
@@ -150,17 +150,17 @@ void ArtNetOutput::SendSync(const std::string& localIP) {
 
         syncdatagram = new wxDatagramSocket(localaddr, flags);
         if (syncdatagram == nullptr) {
-            logger_base.error("Error initialising Artnet sync datagram. %s", (const char*)localaddr.IPAddress().c_str());
+            spdlog::error("Error initialising Artnet sync datagram. {}", (const char*)localaddr.IPAddress().c_str());
             return;
         }
         else if (!syncdatagram->IsOk()) {
-            logger_base.error("Error initialising Artnet sync datagram ... is network connected? %s OK : FALSE", (const char*)localaddr.IPAddress().c_str());
+            spdlog::error("Error initialising Artnet sync datagram ... is network connected? {} OK : FALSE", (const char*)localaddr.IPAddress().c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;
         }
         else if (syncdatagram->Error()) {
-            logger_base.error("Error creating Artnet sync datagram => %d : %s. %s", syncdatagram->LastError(), (const char*)DecodeIPError(syncdatagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
+            spdlog::error("Error creating Artnet sync datagram => {} : {}. {}", syncdatagram->LastError(), (const char*)DecodeIPError(syncdatagram->LastError()).c_str(), (const char*)localaddr.IPAddress().c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;
@@ -170,7 +170,7 @@ void ArtNetOutput::SendSync(const std::string& localIP) {
         // I should use the net mask but i cant find a good way to do that
         //syncremoteAddr.BroadcastAddress();
         wxString ipaddrWithUniv = wxString::Format("%d.%d.%d.%d", __ip1, __ip2, __ip3, 255);
-        logger_base.debug("artNet Sync broadcasting to %s.", (const char*)ipaddrWithUniv.c_str());
+        spdlog::debug("artNet Sync broadcasting to {}.", (const char*)ipaddrWithUniv.c_str());
         syncremoteAddr.Hostname(ipaddrWithUniv);
         syncremoteAddr.Service(ARTNET_PORT);
     }
@@ -196,13 +196,13 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
     packet[13] = 0x00; //Critical messages Only
 
     discovery.AddBroadcast(ARTNET_PORT, [&discovery](wxDatagramSocket* socket, uint8_t *buffer, int len) {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
         if (buffer[0] == 'A' && buffer[1] == 'r' && buffer[2] == 't' && buffer[3] == '-' && buffer[9] == 0x21) {
-            logger_base.debug(" ArtNET Valid response.");
+            spdlog::debug(" ArtNET Valid response.");
             uint32_t channels = 510;
 
             auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[10], (int)buffer[11], (int)buffer[12], (int)buffer[13]);
-            logger_base.debug("     From %s.", (const char *)ip.c_str());
+            spdlog::debug("     From {}.", (const char *)ip.c_str());
 
             // We cant use Get IP as controller may have responded to multiple discovery requests
             ControllerEthernet* existing = nullptr;
@@ -213,7 +213,7 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
             }
 
             if (existing != nullptr) {
-                logger_base.debug("        Existing.");
+                spdlog::debug("        Existing.");
                 // a second response from this controller
                 for (uint8_t i = 0; i < 4; i++) {
                     if ((buffer[174 + i] & 0x80) != 0) {
@@ -222,16 +222,16 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
                         int u = GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190]);
                         if (u == existing->GetOutputs().back()->GetUniverse() + 1) {
                             existing->AddOutput();
-                            logger_base.info("        ArtNet adding extra universe (%d) to %s : %d.", GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190 + i]), (const char*)ip.c_str(), existing->GetOutputCount());
+                            spdlog::info("        ArtNet adding extra universe ({}) to {} : {}.", GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190 + i]), (const char*)ip.c_str(), existing->GetOutputCount());
                         }
                         else                             {
-                            logger_base.info("        ArtNet ignoring universe %d as it was not sequential.", u);
+                            spdlog::info("        ArtNet ignoring universe {} as it was not sequential.", u);
                         }
                     }
                 }
             }
             else {
-                logger_base.info("        ArtNET Discovery adding controller %s.", (const char*)ip.c_str());
+                spdlog::info("        ArtNET Discovery adding controller {}.", (const char*)ip.c_str());
                 ControllerEthernet* c = new ControllerEthernet(discovery.GetOutputManager(), false);
                 c->SetProtocol(OUTPUT_ARTNET);
                 c->SetName(std::string((char*)&buffer[26]));
@@ -245,10 +245,10 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
                             int u = GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190]);
                             if (u == c->GetOutputs().back()->GetUniverse() + 1) {
                                 c->AddOutput();
-                                logger_base.info("    ArtNet adding extra universe (%d) to %s : %d.", GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190 + i]), (const char*)ip.c_str(), c->GetOutputCount());
+                                spdlog::info("    ArtNet adding extra universe ({}) to {} : {}.", GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190 + i]), (const char*)ip.c_str(), c->GetOutputCount());
                             }
                             else {
-                                logger_base.info("        ArtNet ignoring universe %d as it was not sequential.", u);
+                                spdlog::info("        ArtNet ignoring universe {} as it was not sequential.", u);
                             }
                         }
                     }
@@ -260,7 +260,7 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
             }
         } else {
             // non discovery response packet
-            logger_base.info("ArtNet Discovery strange packet received.");
+            spdlog::info("ArtNet Discovery strange packet received.");
         }
     });
     discovery.SendBroadcastData(ARTNET_PORT, packet, sizeof(packet));
@@ -300,7 +300,7 @@ std::string ArtNetOutput::GetExport() const {
 #pragma region Start and Stop
 bool ArtNetOutput::Open() {
 
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!_enabled) return true;
     if (!ip_utils::IsIPValid(GetResolvedIP())) return false;
@@ -356,7 +356,7 @@ bool ArtNetOutput::Open() {
     }
 
     __initialised = false;
-    logger_base.debug("Artnet broadcast address %d.%d.%d.255", __ip1, __ip2, __ip3);
+    spdlog::debug("Artnet broadcast address {}.{}.{}.255", __ip1, __ip2, __ip3);
 
     _data[16] = (uint8_t)(_channels >> 8);  // Property value count (high)
     _data[17] = (uint8_t)(_channels & 0xff);  // Property value count (low)
@@ -376,14 +376,14 @@ void ArtNetOutput::Close() {
 #pragma region Frame Handling
 void ArtNetOutput::StartFrame(long msec) {
 
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!_enabled) return;
 
     if (_datagram == nullptr && OutputManager::IsRetryOpen()) {
         OpenDatagram();
         if (_ok) {
-            logger_base.debug("ArtNetOutput: Open retry successful");
+            spdlog::debug("ArtNetOutput: Open retry successful");
         }
     }
 

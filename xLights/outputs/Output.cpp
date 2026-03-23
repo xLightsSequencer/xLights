@@ -36,7 +36,7 @@
 #include "../utils/ip_utils.h"
 #include "Controller.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #pragma region Private Functions
 void Output::SaveAttr(pugi::xml_node node) {
@@ -107,7 +107,7 @@ pugi::xml_node Output::Save(pugi::xml_node parent) {
 #pragma region Static Functions
 Output* Output::Create(Controller* c, pugi::xml_node node, std::string showDir) {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::string type = node.attribute("NetworkType").as_string("");
     if (type.ends_with(" Ethernet") && type[0] == 'S' && type[1] == 'y') { type = OUTPUT_xxxETHERNET; }
@@ -169,7 +169,7 @@ Output* Output::Create(Controller* c, pugi::xml_node node, std::string showDir) 
         return new TwinklyOutput(node, c && c->IsActive());
     }
 
-    logger_base.warn("Unknown network type %s ignored.", type.c_str());
+    spdlog::warn("Unknown network type {} ignored.", type.c_str());
     wxASSERT(false);
     return nullptr;
 }

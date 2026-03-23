@@ -25,7 +25,7 @@
 #include <wx/artprov.h>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 //(*IdInit(ValueCurvesPanel)
 const long ValueCurvesPanel::ID_SCROLLEDWINDOW1 = wxNewId();
@@ -39,8 +39,7 @@ END_EVENT_TABLE()
 
 int ValueCurvesPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("ValueCurvesPanel Scanning directory for *.xvc files: %s.", (const char*)directory.GetNameWithSep().c_str());
+    spdlog::info("ValueCurvesPanel Scanning directory for *.xvc files: {}.", directory.GetNameWithSep().ToStdString());
 
     int added = 0;
     int count = 0;
@@ -73,11 +72,11 @@ int ValueCurvesPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
                 GridSizer1->Add(bmb);
                 added++;
             } else {
-                logger_base.warn("ValueCurvesPanel::ProcessPresetDir Unable to load " + fn.GetFullPath());
+                spdlog::warn("ValueCurvesPanel::ProcessPresetDir Unable to load " + fn.GetFullPath().ToStdString());
             }
         }
     }
-    logger_base.info("    Found %d.", count);
+    spdlog::info("    Found {}.", count);
 
     if (subdirs) {
         wxString filename;
@@ -94,7 +93,7 @@ int ValueCurvesPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
 
 void ValueCurvesPanel::UpdateValueCurveButtons(bool reload) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (reload)
     {
@@ -151,7 +150,7 @@ void ValueCurvesPanel::UpdateValueCurveButtons(bool reload) {
     }
     else
     {
-        logger_base.info("Directory for *.xvc files not found: %s.", (const char*)d.c_str());
+        spdlog::info("Directory for *.xvc files not found: {}.",d.ToStdString());
     }
 
     wxStandardPaths stdp = wxStandardPaths::Get();
@@ -168,7 +167,7 @@ void ValueCurvesPanel::UpdateValueCurveButtons(bool reload) {
     }
     else
     {
-        logger_base.info("Directory for *.xvc files not found: %s.", (const char*)d.c_str());
+        spdlog::info("Directory for *.xvc files not found: {}.", d.ToStdString());
     }
 
     if (added != 0 && xLightsApp::GetFrame() != nullptr)

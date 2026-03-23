@@ -31,7 +31,7 @@
 #include "UtilFunctions.h"
 #include "models/ModelGroup.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 // This event is fired when a model is dropped between lists
 wxDEFINE_EVENT(EVT_VMDROP, wxCommandEvent);
@@ -293,7 +293,7 @@ ViewsModelsPanel::~ViewsModelsPanel()
 
 void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     ListCtrlModels->Freeze();
     ListCtrlNonModels->Freeze();
 
@@ -318,7 +318,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
     }
 
     if (itemSize == 0) {
-        logger_base.crit("ViewsModelsPanel::Populate models ... itemSize = 0 ... this is going to crash.");
+        spdlog::critical("ViewsModelsPanel::Populate models ... itemSize = 0 ... this is going to crash.");
     }
 
     int visibileM = ListCtrlModels->GetRect().GetHeight() / itemSize - 1;
@@ -714,9 +714,9 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
                 Element* ee = (Element*)ListCtrlNonModels->GetItemData(i);
                 if (ee != nullptr && ee->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
 #ifdef TRACEMOVES
-                    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                    logger_base.debug("Timing count in models list: %d", GetTimingCount());
-                    logger_base.debug("Adding '%s' to %d '%s'", (const char*)ListCtrlNonModels->GetItemText(i, 1).c_str(),
+                    
+                    spdlog::debug("Timing count in models list: {}", GetTimingCount());
+                    spdlog::debug("Adding '{}' to {} '{}'", (const char*)ListCtrlNonModels->GetItemText(i, 1).c_str(),
                         p + selcnt, (const char*)(_sequenceElements->GetElement(p + selcnt) == nullptr) ? "N/A" : _sequenceElements->GetElement(p + selcnt)->GetName().c_str());
 #endif
 
@@ -832,7 +832,7 @@ void ViewsModelsPanel::Clear()
 
 void ViewsModelsPanel::Initialize()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_seqData == nullptr || _seqData->NumFrames() == 0) {
         Clear();
@@ -840,10 +840,10 @@ void ViewsModelsPanel::Initialize()
     }
 
     if (_sequenceElements == nullptr) {
-        logger_base.crit("ViewsModelsPanel::Initialize _sequenceElements was null ... this is going to crash.");
+        spdlog::critical("ViewsModelsPanel::Initialize _sequenceElements was null ... this is going to crash.");
     }
     if (_sequenceViewManager == nullptr) {
-        logger_base.crit("ViewsModelsPanel::Initialize _sequenceViewManager was null ... this is going to crash.");
+        spdlog::critical("ViewsModelsPanel::Initialize _sequenceViewManager was null ... this is going to crash.");
     }
 
     _sequenceElements->SetViewsManager(_sequenceViewManager);
@@ -2349,9 +2349,9 @@ void ViewsModelsPanel::MoveSelectedModelsTo(int indexTo)
             }
 
 #ifdef TRACEMOVES
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.debug("Timing count in models list: %d", GetTimingCount());
-            logger_base.debug("Moving from %d '%s' to %d '%s'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
+            
+            spdlog::debug("Timing count in models list: {}", GetTimingCount());
+            spdlog::debug("Moving from {} '{}' to {} '{}'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
                 to, (const char*)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
 #endif
 
@@ -2453,9 +2453,9 @@ void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
                 firstsel = to;
             }
 #ifdef TRACEMOVES
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.debug("Timing count in models list: %d", GetTimingCount());
-            logger_base.debug("Moving from %d '%s' to %d '%s'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
+            
+            spdlog::debug("Timing count in models list: {}", GetTimingCount());
+            spdlog::debug("Moving from {} '{}' to {} '{}'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
                 to, (const char*)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
 #endif
 
@@ -2523,9 +2523,9 @@ void ViewsModelsPanel::OnButton_TopClick(wxCommandEvent& event)
             }
 
 #ifdef TRACEMOVES
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.debug("Timing count in models list: %d", timing_count);
-            logger_base.debug("Moving from %d '%s' to %d '%s'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
+            
+            spdlog::debug("Timing count in models list: {}", timing_count);
+            spdlog::debug("Moving from {} '{}' to {} '{}'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
                 to, (const char*)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
 #endif
 
@@ -2716,8 +2716,8 @@ void ViewsModelsPanel::ImportRGBEffectsView()
 
     if (filename.IsEmpty()) return;
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Importing View From: %s", (const char*)filename.c_str());
+    
+    spdlog::debug("Importing View From: {}", (const char*)filename.c_str());
 
     pugi::xml_document doc;
     if (doc.load_file(filename.mb_str())) {
@@ -2768,8 +2768,8 @@ void ViewsModelsPanel::ImportSequenceMasterView()
 
     if (filename.IsEmpty()) return;
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Importing Master View From: %s", (const char*)filename.c_str());
+    
+    spdlog::debug("Importing Master View From: {}", (const char*)filename.c_str());
 
     pugi::xml_document doc;
     if (doc.load_file(filename.mb_str())) {
@@ -2805,10 +2805,10 @@ void ViewsModelsPanel::ImportSequenceMasterView()
 }
 
 void ViewsModelsPanel::ImportViewData(std::map<wxString, wxArrayString> const& views, wxArrayString const& timings) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (views.empty()) {
-        logger_base.debug("No Views Selected to Import");
+        spdlog::debug("No Views Selected to Import");
         return;
     }
 
@@ -2817,10 +2817,10 @@ void ViewsModelsPanel::ImportViewData(std::map<wxString, wxArrayString> const& v
 		Element* elem = _sequenceElements->GetElement(tim);
 		if (elem && elem->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
 			newtimings.push_back(elem->GetName());
-			logger_base.debug("Timing Found: %s", (const char*)tim.c_str());
+			spdlog::debug("Timing Found: {}", (const char*)tim.c_str());
 		}
 		else {
-			logger_base.debug("Timing Not Found: %s", (const char*)tim.c_str());
+			spdlog::debug("Timing Not Found: {}", (const char*)tim.c_str());
 		}
 	}
 
@@ -2830,21 +2830,21 @@ void ViewsModelsPanel::ImportViewData(std::map<wxString, wxArrayString> const& v
     {
         auto const sel_view = CreateUniqueName(name);
         lastView = sel_view;
-		logger_base.debug("Importing View: %s", (const char*)sel_view.c_str());
+		spdlog::debug("Importing View: {}", (const char*)sel_view.c_str());
 		wxArrayString new_models;
 		for (auto const& new_mod : models) {//check if models exists
 			Model* m = _xlFrame->GetModel(new_mod);
 			if (m != nullptr) {
 				new_models.Add(new_mod);
-				logger_base.debug("Model Found: %s", (const char*)new_mod.c_str());
+				spdlog::debug("Model Found: {}", (const char*)new_mod.c_str());
 			}
 			else {
-				logger_base.debug("Model Not Found: %s", (const char*)new_mod.c_str());
+				spdlog::debug("Model Not Found: {}", (const char*)new_mod.c_str());
 			}
 		}
 		auto const new_sel_models = wxJoin(new_models, ',');
 
-		logger_base.debug("Models Found: %s", (const char*)new_sel_models.c_str());
+		spdlog::debug("Models Found: {}", (const char*)new_sel_models.c_str());
 
 		SequenceView* view = _sequenceViewManager->AddView(sel_view);
 
@@ -2858,7 +2858,7 @@ void ViewsModelsPanel::ImportViewData(std::map<wxString, wxArrayString> const& v
 			_sequenceElements->SetTimingVisibility(view->GetName());
 		}
 		else {
-			logger_base.debug("No Timings Added to View");
+			spdlog::debug("No Timings Added to View");
 		}
     }
 
@@ -2926,9 +2926,9 @@ void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
             if (to < 0 || to > _sequenceElements->GetElementCount(currentView)) return;
 
 #ifdef TRACEMOVES
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.debug("Timing count in models list: %d", GetTimingCount());
-            logger_base.debug("Moving from %d '%s' to %d '%s'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
+            
+            spdlog::debug("Timing count in models list: {}", GetTimingCount());
+            spdlog::debug("Moving from {} '{}' to {} '{}'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
                 to, (const char*)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
 #endif
             if (lastsel < 0) {
@@ -2996,9 +2996,9 @@ void ViewsModelsPanel::OnButton_BottomClick(wxCommandEvent& event)
             if (to < 0 || to > _sequenceElements->GetElementCount(currentView)) return;
 
 #ifdef TRACEMOVES
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.debug("Timing count in models list: %d", timing_count);
-            logger_base.debug("Moving from %d '%s' to %d '%s'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
+            
+            spdlog::debug("Timing count in models list: {}", timing_count);
+            spdlog::debug("Moving from {} '{}' to {} '{}'", from, (const char*)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
                 to, (const char*)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
 #endif
 

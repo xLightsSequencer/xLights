@@ -12,7 +12,7 @@
 #include "xLightsMain.h"
 #include "XmlSerializer/XmlSerializingVisitor.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 #include "ui/wxUtilities.h"
 
 ColorManager::ColorManager(xLightsFrame* frame)
@@ -35,8 +35,8 @@ ColorManager* ColorManager::instance()
     if( pInstance == nullptr ) {
         // this should not be possible since the main application should
         // always have constructed this object before any clients need it
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.error("Color Manager instance was still a nullptr.");
+        
+        spdlog::error("Color Manager instance was still a nullptr.");
     }
     return pInstance;
 }

@@ -21,7 +21,7 @@
 #include "ExternalHooks.h"
 #include "xLightsMain.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 #include <wx/regex.h>
 
 //(*IdInit(ShowFolderSearchDialog)
@@ -136,7 +136,7 @@ wxString ShowFolderSearchDialog::FindLogFolder() const
 
 wxArrayString ShowFolderSearchDialog::FindLogFiles(wxString const& folder) const{
     wxArrayString files;
-    GetAllFilesInDir(folder, files, "xLights_l4cpp.log*", wxDIR_DEFAULT);
+    GetAllFilesInDir(folder, files, "xLights_spdlog*|xLights_l4cpp.log*", wxDIR_DEFAULT);
     files.Sort();
     return files;
 }

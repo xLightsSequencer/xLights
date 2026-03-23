@@ -21,7 +21,7 @@
 #include <wx/process.h>
 #include <wx/propgrid/propgrid.h>
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #pragma region Private Functions
 void E131Output::CreateMultiUniverses_CONVERT(int num) {
@@ -49,7 +49,7 @@ void E131Output::CreateMultiUniverses_CONVERT(int num) {
 
 void E131Output::OpenDatagram() {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_datagram != nullptr) return;
 
@@ -63,15 +63,15 @@ void E131Output::OpenDatagram() {
 
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
-        logger_base.error("E131Output: %s Error opening datagram.", (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("E131Output: {} Error opening datagram.", (const char*)localaddr.IPAddress().c_str());
     }
     else if (!_datagram->IsOk()) {
-        logger_base.error("E131Output: %s Error opening datagram. Network may not be connected? OK : FALSE", (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("E131Output: {} Error opening datagram. Network may not be connected? OK : FALSE", (const char*)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
     }
     else if (_datagram->Error()) {
-        logger_base.error("E131Output: %s Error creating E131 datagram => %d : %s.", (const char*)localaddr.IPAddress().c_str(), _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str());
+        spdlog::error("E131Output: {} Error creating E131 datagram => {} : {}.", (const char*)localaddr.IPAddress().c_str(), _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str());
         delete _datagram;
         _datagram = nullptr;
     }
@@ -148,7 +148,7 @@ pugi::xml_node E131Output::Save(pugi::xml_node parent) {
 #pragma region Static Functions
 void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     static uint8_t syncdata[E131_SYNCPACKET_LEN];
     static uint8_t syncSequenceNum = 0;
     static bool initialised = false;
@@ -158,7 +158,7 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
 
     if (!initialised) {
 
-        logger_base.debug("Initialising e131 Sync.");
+        spdlog::debug("Initialising e131 Sync.");
         initialised = true;
 
         memset(syncdata, 0x00, sizeof(syncdata));
@@ -216,15 +216,15 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
             syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
 
             if (syncdatagram == nullptr) {
-                logger_base.error("Error initialising E131 sync datagram. %s", (const char *)localaddr.IPAddress().c_str());
+                spdlog::error("Error initialising E131 sync datagram. {}", (const char *)localaddr.IPAddress().c_str());
             }
             else if (!syncdatagram->IsOk()) {
-                logger_base.error("Error initialising E131 sync datagram ... is network connected? OK : FALSE %s", (const char *)localaddr.IPAddress().c_str());
+                spdlog::error("Error initialising E131 sync datagram ... is network connected? OK : FALSE {}", (const char *)localaddr.IPAddress().c_str());
                 delete syncdatagram;
                 syncdatagram = nullptr;
             }
             else if (syncdatagram->Error()) {
-                logger_base.error("Error creating E131 sync datagram => %d : %s. %s", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
+                spdlog::error("Error creating E131 sync datagram => {} : {}. {}", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
                 delete syncdatagram;
                 syncdatagram = nullptr;
             }
@@ -234,7 +234,7 @@ void E131Output::SendSync(int syncUniverse, const std::string& localIP) {
             syncremoteAddr.Hostname(ipaddrWithUniv);
             syncremoteAddr.Service(E131_PORT);
 
-            logger_base.debug("e131 Sync sync universe changed to %d => %s:%d.", syncUniverse, (const char *)ipaddrWithUniv.c_str(), E131_PORT);
+            spdlog::debug("e131 Sync sync universe changed to {} => {}:{}.", syncUniverse, (const char *)ipaddrWithUniv.c_str(), E131_PORT);
         }
 
         syncdata[44] = syncSequenceNum++;   // sequence number
@@ -410,7 +410,7 @@ void E131Output::Close() {
 #pragma region Frame Handling
 void E131Output::StartFrame(long msec) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxASSERT(!IsOutputCollection_CONVERT());
 
@@ -422,7 +422,7 @@ void E131Output::StartFrame(long msec) {
     if (_datagram == nullptr && OutputManager::IsRetryOpen()) {
         OpenDatagram();
         if (_ok) {
-            logger_base.debug("E131Output: Open retry successful");
+            spdlog::debug("E131Output: Open retry successful");
         }
     }
 

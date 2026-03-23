@@ -40,21 +40,24 @@
 
 #include <map>
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #define DO_LOG_GL_MSG(a, ...) static_logger_opengl->error(a, ##__VA_ARGS__); printf(a, ##__VA_ARGS__); printf("\n")
 
 static bool isDebugEnabled = false;
 static bool isTraceDebugEnabled = false;
-static log4cpp::Category *static_logger_opengl = nullptr;
-static log4cpp::Category *static_logger_opengl_trace = nullptr;
+static std::shared_ptr<spdlog::logger> m_logger{ nullptr };
 void DrawGLUtils::SetupDebugLogging() {
-    if (!static_logger_opengl) {
-        static_logger_opengl = &log4cpp::Category::getInstance(std::string("log_opengl"));
-        static_logger_opengl_trace = &log4cpp::Category::getInstance(std::string("log_opengl_trace"));
-        isTraceDebugEnabled = static_logger_opengl_trace->isDebugEnabled();
-        isDebugEnabled = static_logger_opengl->isDebugEnabled() | isTraceDebugEnabled;
+    m_logger = spdlog::get("opengl");
+    if (!m_logger) {
+        m_logger = spdlog::default_logger();
     }
+    // if (!static_logger_opengl) {
+    // static_logger_opengl = &log4cpp::Category::getInstance(std::string("log_opengl"));
+    // static_logger_opengl_trace = &log4cpp::Category::getInstance(std::string("log_opengl_trace"));
+    // isTraceDebugEnabled = static_logger_opengl_trace->isDebugEnabled();
+    // isDebugEnabled = static_logger_opengl->isDebugEnabled() | isTraceDebugEnabled;
+    //}
 }
 
 void DrawGLUtils::DoLogGLError(const char* file, int line, const char* msg)
@@ -66,7 +69,7 @@ void DrawGLUtils::DoLogGLError(const char* file, int line, const char* msg)
     if (*f2 == '\\' || *f2 == '/') {
         f2++;
     }
-    static_logger_opengl_trace->debug("%s/%d - %s", f2, line, msg);
+    m_logger->error("{}/{} - {}", f2, line, msg);
 }
 
 void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
@@ -82,16 +85,16 @@ void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
             }
             if (isTraceDebugEnabled) {
                 if (msg) {
-                    static_logger_opengl_trace->debug("%s/%d - %s:   %X", f2, line, msg, er);
+                    m_logger->debug("{}/{} - {}:   {:X}", f2, line, msg, er);
                 } else {
-                    static_logger_opengl_trace->debug("%s/%d:   %X", f2, line, er);
+                    m_logger->debug("{}/{}:   {:X}", f2, line, er);
                 }
             }
             if (er) {
                 if (msg) {
-                    DO_LOG_GL_MSG("%s/%d - %s:   %X", f2, line, msg, er);
+                    m_logger->error("{}/{} - {}:   {:X}", f2, line, msg, er);
                 } else {
-                    DO_LOG_GL_MSG("%s/%d:   %X", f2, line, er);
+                    m_logger->error("{}/{}:   {:X}", f2, line, er);
                 }
             }
         }

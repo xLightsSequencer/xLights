@@ -24,7 +24,7 @@
 #include "CustomModel.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 static std::vector<std::tuple<int, int, int, int>> transformations =
 {
@@ -364,18 +364,18 @@ int CubeModel::FindNodeIndex(std::vector<std::tuple<int, int, int>> nodes, int x
 
 void CubeModel::DumpNode(const std::string desc, const std::tuple<int, int, int>& node, int width, int height, int depth) const
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     auto x = std::get<0>(node);
     auto y = std::get<1>(node);
     auto z = std::get<2>(node);
 
-    logger_base.debug("%s (%d,%d,%d) %dx%dx%d", (const char*)desc.c_str(), x, y, z, width, height, depth);
+    spdlog::debug("{} ({},{},{}) {}x{}x{}", (const char*)desc.c_str(), x, y, z, width, height, depth);
 }
 
 void CubeModel::DumpNodes(std::vector<std::tuple<int,int,int>> nodes, int width, int height, int depth) const
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     for (int z = 0; z < depth; z++)
     {
@@ -388,7 +388,7 @@ void CubeModel::DumpNodes(std::vector<std::tuple<int,int,int>> nodes, int width,
             }
             out += "\n";
         }
-        logger_base.debug("Layer: %d %s", z, (const char *)out.c_str());
+        spdlog::debug("Layer: {} {}", z, (const char *)out.c_str());
     }
 }
 

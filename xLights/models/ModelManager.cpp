@@ -60,7 +60,7 @@
 #include "outputs/Controller.h"
 #include "outputs/ControllerEthernet.h"
 #include "outputs/Output.h"
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
     _outputManager(outputManager),
@@ -234,8 +234,8 @@ bool ModelManager::IsModelOverlapping(const Model* model) const
 
 void ModelManager::LoadModels(pugi::xml_node modelNode, int previewW, int previewH)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("ModelManager loading models.");
+    
+    // spdlog::debug("ModelManager loading models.");
 
     _modelsLoading = true;
     clear();
@@ -256,7 +256,7 @@ void ModelManager::LoadModels(pugi::xml_node modelNode, int previewW, int previe
     };
     RunInAutoReleasePool([&]() {parallel_for(modelsToLoad, f);});
     // printf("%d Models loaded in %ldms", (int)modelsToLoad.size(), timer.Time());
-    logger_base.debug("Models loaded in %ldms", timer.Time());
+    spdlog::debug("Models loaded in {}ms", timer.Time());
     _modelsLoading = false;
 
     // Check all recorded shadow models actually exist
@@ -291,8 +291,8 @@ uint32_t ModelManager::GetLastChannel() const
 
 void ModelManager::ResetModelGroups() const
 {
-    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("ModelManager resetting groups.");
+    // 
+    // spdlog::debug("ModelManager resetting groups.");
 
     // This goes through all the model groups which hold model pointers and ensure their model pointers are correct
     std::lock_guard<std::recursive_mutex> lock(_modelMutex);
@@ -360,8 +360,8 @@ void ModelManager::ReplaceIPInStartChannels(const std::string& oldIP, const std:
 }
 
 void ModelManager::AddModelGroups(pugi::xml_node n, int w, int h, const std::string& mname, bool& merge, bool& ask) {
-    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("ModelManager adding groups.");
+    // 
+    // spdlog::debug("ModelManager adding groups.");
 
     std::string grpModels = n.attribute("models").as_string();
     if (grpModels.empty())
@@ -538,7 +538,7 @@ void ModelManager::AddModelGroups(pugi::xml_node n, int w, int h, const std::str
 
 bool ModelManager::RecalcStartChannels() const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     std::lock_guard<std::recursive_mutex> lock(_modelMutex);
 
     wxStopWatch sw;
@@ -633,7 +633,7 @@ bool ModelManager::RecalcStartChannels() const
     // xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "RecalcStartChannels");
 
     long end = sw.Time();
-    logger_base.debug("RecalcStartChannels takes %ldms.", end);
+    spdlog::debug("RecalcStartChannels takes {}ms.", end);
 
     if (countInvalid > 0) {
         DisplayStartChannelCalcWarning();
@@ -746,10 +746,8 @@ bool ModelManager::IsValidControllerModelChain(Model* m, std::string& tip) const
 
 bool ModelManager::ReworkStartChannel() const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static log4cpp::Category& logger_zcpp = log4cpp::Category::getInstance(std::string("log_zcpp"));
-    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
-    logger_work.debug("        ReworkStartChannel.");
+    auto work_logger = spdlog::get("work");
+    work_logger->debug("        ReworkStartChannel.");
 
     bool outputsChanged = false;
 
@@ -786,17 +784,17 @@ bool ModelManager::ReworkStartChannel() const
 
         // first of all fix any weirdness ...
         for (const auto& itcc : cmodels) {
-            logger_zcpp.debug("Fixing weirdness on %s - %s", (const char*)it->GetName().c_str(), (const char*)itcc.first.c_str());
-            logger_zcpp.debug("    Models at start:");
+            work_logger->debug("Fixing weirdness on {} - {}", (const char*)it->GetName().c_str(), (const char*)itcc.first.c_str());
+            work_logger->debug("    Models at start:");
 
             // build a list of model names on the port
             std::list<std::string> models;
             for (auto& itmm : itcc.second) {
-                logger_zcpp.debug("        %s Chained to '%s'", (const char*)itmm->GetName().c_str(), (const char*)itmm->GetModelChain().c_str());
+                work_logger->debug("        {} Chained to '{}'", (const char*)itmm->GetName().c_str(), (const char*)itmm->GetModelChain().c_str());
                 models.push_back(itmm->GetName());
             }
 
-            logger_zcpp.debug("    Fixing weirdness:");
+             work_logger->debug("    Fixing weirdness:");
 
             // If a model refers to a chained model not on the port then move it to beginning ... so next step can move it again
             bool beginningFound = false;
@@ -807,7 +805,7 @@ bool ModelManager::ReworkStartChannel() const
                 } else {
                     ch = ch.substr(1); // string off leading >
                     if (std::find(models.begin(), models.end(), ch) == models.end()) {
-                        logger_zcpp.debug("    Model %s set to beginning because the model it is chained to '%s' does not exist.", (const char*)itmm->GetName().c_str(), (const char*)ch.c_str());
+                        work_logger->debug("    Model {} set to beginning because the model it is chained to '{}' does not exist.", (const char*)itmm->GetName().c_str(), (const char*)ch.c_str());
                         itmm->SetModelChain("");
                         beginningFound = true;
                         outputsChanged = true;
@@ -817,7 +815,7 @@ bool ModelManager::ReworkStartChannel() const
 
             // If no model is set as beginning ... then just make the first one beginning
             if (!beginningFound) {
-                logger_zcpp.debug("    Model %s set to beginning because no other model was.", (const char*)itcc.second.front()->GetName().c_str());
+                work_logger->debug("    Model {} set to beginning because no other model was.", (const char*)itcc.second.front()->GetName().c_str());
                 itcc.second.front()->SetModelChain("");
                 outputsChanged = true;
             }
@@ -827,7 +825,7 @@ bool ModelManager::ReworkStartChannel() const
             // and let the user sort it out rather than creating loops
         }
 
-        logger_zcpp.debug("    Sorting models:");
+         work_logger->debug("    Sorting models:");
         int32_t ch = 1;
         std::list<Model*> allSortedModels;
         for (auto itcc = cmodels.begin(); itcc != cmodels.end(); ++itcc) {
@@ -855,7 +853,7 @@ bool ModelManager::ReworkStartChannel() const
                     if (!pushed && (*itcc).second.size() > 0) {
                         // chain is broken ... so just put the rest in in the original order
                         // assert(false);
-                        logger_zcpp.error("    Model chain is broken so just stuffing the remaining %d models in in their original order.", (*itcc).second.size());
+                        work_logger->error("    Model chain is broken so just stuffing the remaining {} models in in their original order.", (*itcc).second.size());
                         while ((*itcc).second.size() > 0) {
                             sortedmodels.push_back(itcc->second.front());
                             itcc->second.pop_front();
@@ -889,7 +887,7 @@ bool ModelManager::ReworkStartChannel() const
 
                 if ((*itcc).second.size() > 0) {
                     // models left over so stuff them on the end
-                    logger_zcpp.error("    DMX Model chain is broken or there are duplicate models so just stuffing the remaining %d models in in their original order.", (*itcc).second.size());
+                    work_logger->error("    DMX Model chain is broken or there are duplicate models so just stuffing the remaining {} models in in their original order.", (*itcc).second.size());
                     while ((*itcc).second.size() > 0) {
                         sortedmodels.push_back(itcc->second.front());
                         itcc->second.pop_front();
@@ -932,7 +930,7 @@ bool ModelManager::ReworkStartChannel() const
                         // because we have now moved a model off a controller we really need to do this all again
                         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ReworkStartChannel");
 
-                        logger_base.warn("Attempt to place a second model %s on led panel port when only one is allowed. Only the first model has been retained. The others have been removed.", (const char*)itm->GetName().c_str());
+                        spdlog::warn("Attempt to place a second model {} on led panel port when only one is allowed. Only the first model has been retained. The others have been removed.", (const char*)itm->GetName().c_str());
 
                     } else {
                         std::string osc = itm->ModelStartChannel;
@@ -992,7 +990,7 @@ bool ModelManager::ReworkStartChannel() const
                     }
                 }
 
-                logger_zcpp.debug("    Model %s on port %d chained to %s start channel %s.",
+                 work_logger->debug("    Model {} on port {} chained to {} start channel {}.",
                                   (const char*)itm->GetName().c_str(),
                                   itm->GetControllerPort(),
                                   (const char*)itm->GetModelChain().c_str(),
@@ -1005,7 +1003,7 @@ bool ModelManager::ReworkStartChannel() const
         if (it->IsAutoSize()) {
             auto eth = dynamic_cast<const ControllerEthernet*>(it);
             if (it->GetChannels() != std::max((int32_t)1, (int32_t)ch - 1) || (eth != nullptr && eth->SupportsUniversePerString())) {
-                logger_zcpp.debug("    Resizing output to %d channels.", std::max((int32_t)1, (int32_t)ch - 1));
+                work_logger->debug("    Resizing output to {} channels.", std::max((int32_t)1, (int32_t)ch - 1));
 
                 auto oldC = it->GetChannels();
                 // Set channel size won't always change the number of channels for some protocols
@@ -1089,8 +1087,8 @@ bool ModelManager::ModelHasNoDependencyOnNoController(Model* m, std::list<std::s
 
 bool ModelManager::LoadGroups(pugi::xml_node groupNode, int previewW, int previewH)
 {
-    // static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // logger_base.debug("ModelManager loading groups.");
+    // 
+    // spdlog::debug("ModelManager loading groups.");
     bool changed = false;
     std::list<pugi::xml_node> toBeDone;
     std::set<std::string> allModels;
@@ -1463,8 +1461,8 @@ std::vector<std::string> ModelManager::GetGroupsContainingModel(const Model* mod
 {
     std::vector<std::string> res;
     if (model == nullptr) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.error("ModelManager::GetGroupsContainingModel called with nullptr");
+        
+        spdlog::error("ModelManager::GetGroupsContainingModel called with nullptr");
         return res;
     }
 
@@ -1472,8 +1470,8 @@ std::vector<std::string> ModelManager::GetGroupsContainingModel(const Model* mod
         if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
             auto mg = dynamic_cast<ModelGroup*>(it.second);
             if (mg == nullptr) {
-                static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                logger_base.error("ModelManager::GetGroupsContainingModel - Model '%s' claims to be ModelGroup but cast failed", 
+                
+                spdlog::error("ModelManager::GetGroupsContainingModel - Model '{}' claims to be ModelGroup but cast failed", 
                     it.first.c_str());
                 continue;
             }
@@ -1759,7 +1757,7 @@ static bool MergeBaseIntoCurrentXml(pugi::xml_node currentModelsNode, pugi::xml_
                                     std::vector<std::string>& changedModels,
                                     std::vector<std::string>& changedGroups)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     bool changed = false;
 
     if (baseModelsNode && currentModelsNode) {
@@ -1776,7 +1774,7 @@ static bool MergeBaseIntoCurrentXml(pugi::xml_node currentModelsNode, pugi::xml_
                 SetXmlAttribute(copy, "FromBase", "1");
                 changedModels.push_back(name);
                 changed = true;
-                logger_base.debug("MergeBase: Adding model from base: '%s'.", name.c_str());
+                spdlog::debug("MergeBase: Adding model from base: '{}'.", name.c_str());
             } else if (std::string_view(local.attribute("FromBase").as_string()) == "1") {
                 // Model exists and came from base -- update if changed
                 if (IsXmlNodeChanged(local, bm)) {
@@ -1788,7 +1786,7 @@ static bool MergeBaseIntoCurrentXml(pugi::xml_node currentModelsNode, pugi::xml_
                     currentModelsNode.remove_child(local);
                     changedModels.push_back(name);
                     changed = true;
-                    logger_base.debug("MergeBase: Updating model from base: '%s'.", name.c_str());
+                    spdlog::debug("MergeBase: Updating model from base: '{}'.", name.c_str());
                 }
             }
             // If model exists locally without FromBase, skip silently
@@ -1809,7 +1807,7 @@ static bool MergeBaseIntoCurrentXml(pugi::xml_node currentModelsNode, pugi::xml_
                 SetXmlAttribute(copy, "FromBase", "1");
                 changedGroups.push_back(name);
                 changed = true;
-                logger_base.debug("MergeBase: Adding model group from base: '%s'.", name.c_str());
+                spdlog::debug("MergeBase: Adding model group from base: '{}'.", name.c_str());
             } else if (std::string_view(local.attribute("FromBase").as_string()) == "1") {
                 // Group exists and came from base -- merge model lists and update if changed
                 std::string baseModelList = bg.attribute("models").as_string();
@@ -1843,7 +1841,7 @@ static bool MergeBaseIntoCurrentXml(pugi::xml_node currentModelsNode, pugi::xml_
                     currentGroupsNode.remove_child(local);
                     changedGroups.push_back(name);
                     changed = true;
-                    logger_base.debug("MergeBase: Updating model group from base: '%s'.", name.c_str());
+                    spdlog::debug("MergeBase: Updating model group from base: '{}'.", name.c_str());
                 }
             }
             // If group exists locally without FromBase, skip silently

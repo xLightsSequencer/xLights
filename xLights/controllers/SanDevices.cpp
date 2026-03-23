@@ -25,13 +25,13 @@
 #include <wx/tokenzr.h>
 #include <wx/progdlg.h>
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #pragma region Dumps
 void SanDevicesOutput::Dump() const {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("    Group %d Output %d Port %d Uni %c StartChan %d Pixels %d GroupCount %d Rev %s ColorOrder %c Nulls %d Brightness %c Chase %s firstZig %d thenEvery %d Upload %s",
+    
+    spdlog::debug("    Group {} Output {} Port {} Uni {} StartChan {} Pixels {} GroupCount {} Rev {} ColorOrder {} Nulls {} Brightness {} Chase {} firstZig {} thenEvery {} Upload {}",
         group,
         output,
         stringport,
@@ -52,8 +52,8 @@ void SanDevicesOutput::Dump() const {
 
 void SanDevicesProtocol::Dump() const {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("    Group %d Protocol %c Timing %c Upload %s",
+    
+    spdlog::debug("    Group {} Protocol {} Timing {} Upload {}",
         getGroup(),
         getProtocol(),
         getTiming(),
@@ -62,8 +62,8 @@ void SanDevicesProtocol::Dump() const {
 
 void SanDevicesOutputV4::Dump() const {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("    Group %d outputSize %d Uni %c StartChan %d Pixels %d GroupCount %d Rev %s,%s,%s,%s ColorOrder %d Nulls %d,%d,%d,%d ZigZag %d Upload %s",
+    
+    spdlog::debug("    Group {} outputSize {} Uni {} StartChan {} Pixels {} GroupCount {} Rev {},{},{},{} ColorOrder {} Nulls {},{},{},{} ZigZag {} Upload {}",
         group,
         outputSize,
         universe,
@@ -129,13 +129,13 @@ protected:
 
 #pragma region SimpleHTTP
 wxInputStream* SimpleHTTP::GetInputStream(const wxString& path, wxString& startResult) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     MyHTTPStream* inp_stream = nullptr;
 
     m_lastError = wxPROTO_CONNERR; // all following returns share this type of error
     if (!m_addr) {
-        logger_base.error("SimpleHTTP::GetInputStream m_addr was null");
+        spdlog::error("SimpleHTTP::GetInputStream m_addr was null");
         return nullptr;
     }
 
@@ -148,7 +148,7 @@ wxInputStream* SimpleHTTP::GetInputStream(const wxString& path, wxString& startR
         return nullptr;
 #else
     if (!wxProtocol::Connect(*m_addr)) {
-        logger_base.error("SimpleHTTP::GetInputStream wxProtocol::Connect failed to %s.", (const char*)dynamic_cast<wxIPaddress*>(m_addr)->IPAddress().c_str());
+        spdlog::error("SimpleHTTP::GetInputStream wxProtocol::Connect failed to {}.", (const char*)dynamic_cast<wxIPaddress*>(m_addr)->IPAddress().c_str());
         return nullptr;
     }
 
@@ -289,14 +289,14 @@ bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMana
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Show();
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SanDevices Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+    
+    spdlog::debug("SanDevices Outputs Upload: Uploading to {}", (const char*)_ip.c_str());
 
     // Get universes based on IP
     std::list<Output*> outputs = controller->GetOutputs();
 
     progress.Update(0, "Scanning models");
-    logger_base.info("Scanning models.");
+    spdlog::info("Scanning models.");
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
@@ -305,7 +305,7 @@ bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMana
     auto rules = ControllerCaps::GetControllerConfig(controller);
     bool const success = cud.Check(rules, check);
 
-    logger_base.debug(check);
+    spdlog::debug(check);
 
     cud.Dump();
 
@@ -323,7 +323,7 @@ bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMana
     }
 
     progress.Update(30, "Reading Protocol Data from Controller.");
-    logger_base.info("Reading Protocol Data from Controller.");
+    spdlog::info("Reading Protocol Data from Controller.");
 
     _connected = ParseV4Webpage(_page);
     if (!_connected) {
@@ -333,7 +333,7 @@ bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMana
     }
 
     progress.Update(50, "Figuring Out Protocol and Output Information.");
-    logger_base.info("Figuring Out Protocol and Output Information.");
+    spdlog::info("Figuring Out Protocol and Output Information.");
     const int totalOutputGroups = GetNumberOfOutputGroups();
     const int outputPerGroups = GetOutputsPerGroup();
 
@@ -353,12 +353,12 @@ bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMana
                 const char protocol = EncodeStringPortProtocolV4(port->GetProtocol());
 
                 if (newPort->protocol != protocol) {
-                    logger_base.warn("SanDevices Outputs Upload: All The Protocols must be the same across a Output Group. Check Port %d-1 to %d-4", i, i);
+                    spdlog::warn("SanDevices Outputs Upload: All The Protocols must be the same across a Output Group. Check Port {}-1 to {}-4", i, i);
                     wxMessageBox(wxString::Format("All The Protocols must be the same across a Output Group. Check Port %d-1 to %d-4", i, i));
                     return false;
                 }
                 if (newPort->pixels != port->Pixels()) {
-                    logger_base.warn("SanDevices Outputs Upload: All The Pixel Lengths must be the same across a Output Group. Check Port %d-1 to %d-4", i, i);
+                    spdlog::warn("SanDevices Outputs Upload: All The Pixel Lengths must be the same across a Output Group. Check Port {}-1 to {}-4", i, i);
                     wxMessageBox(wxString::Format("All The Pixel Lengths must be the same across a Output Group. Check Port %d-1 to %d-4", i, i));
                     return false;
                 }
@@ -371,7 +371,7 @@ bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMana
         }
     }
     int p = 60;
-    logger_base.info("Sending Output Data to Controller.");
+    spdlog::info("Sending Output Data to Controller.");
     //spam the controller with web requests
     for (const auto& outputD : _outputDataV4) {
         progress.Update(p, "Sending Output Data to Controller.");
@@ -392,14 +392,14 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
     progress.Show();
 
     //bool success = true;
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SanDevices Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+    
+    spdlog::debug("SanDevices Outputs Upload: Uploading to {}", (const char*)_ip.c_str());
 
     // Get universes based on IP
     std::list<Output*> outputs = controller->GetOutputs();
 
     progress.Update(0, "Scanning models");
-    logger_base.info("Scanning models.");
+    spdlog::info("Scanning models.");
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
@@ -408,7 +408,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
     auto rules = ControllerCaps::GetControllerConfig(controller);
     const bool success = cud.Check(rules, check);
 
-    logger_base.debug(check);
+    spdlog::debug(check);
 
     cud.Dump();
     if (!success) {
@@ -422,7 +422,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
     if (page.empty()) { return false; }
 
     progress.Update(10, "Reading Protocol Data from Controller.");
-    logger_base.info("Reading Protocol Data from Controller.");
+    spdlog::info("Reading Protocol Data from Controller.");
 
     _connected = ParseV5MainWebpage(_page);
     if (!_connected) {
@@ -442,7 +442,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
         };
 
     progress.Update(20, "Figuring Out Protocol Information.");
-    logger_base.info("Figuring Out Protocol Information.");
+    spdlog::info("Figuring Out Protocol Information.");
     //loop to setup protocol setting
     for (int i = 1; i <= totalOutputGroups; i++) {
         SanDevicesProtocol* firstPort = nullptr;
@@ -450,7 +450,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
             const int outputNumber = EncodeXlightsOutput(i, j);
             if (cud.HasPixelPort(outputNumber) || cud.HasSerialPort(outputNumber)) {
                 if (cud.HasPixelPort(outputNumber) && cud.HasSerialPort(outputNumber)) {
-                    logger_base.warn("SanDevices Outputs Upload: Serial and Pixel Port on same output are Currently used, this in not Valid. Check Port %d-1 to %d-4", i, i);
+                    spdlog::warn("SanDevices Outputs Upload: Serial and Pixel Port on same output are Currently used, this in not Valid. Check Port {}-1 to {}-4", i, i);
                     wxMessageBox(wxString::Format("SanDevices Outputs Upload: Serial and Pixel Port on same output are Currently used, this in not Valid. Check Port %d-1 to %d-4", i, i));
                     return false;
                 }
@@ -463,7 +463,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
                 SanDevicesProtocol* newPort = new SanDevicesProtocol(i, EncodeStringPortProtocolV5(port->GetProtocol()));
                 if (newPort->getProtocol() != firstPort->getProtocol()) {
                     delete newPort;
-                    logger_base.warn("SanDevices Outputs Upload: All The Protocols must be the same across a Output Group. Check Port %d-1 to %d-4", i, i);
+                    spdlog::warn("SanDevices Outputs Upload: All The Protocols must be the same across a Output Group. Check Port {}-1 to {}-4", i, i);
                     wxMessageBox(wxString::Format("All The Protocols must be the same across a Output Group. Check Port %d-1 to %d-4", i, i));
                     return false;
                 }
@@ -476,7 +476,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
     }
 
     progress.Update(30, "Sending Protocol Data to Controller.");
-    logger_base.info("Sending Protocol Data to Controller.");
+    spdlog::info("Sending Protocol Data to Controller.");
 
     for (const auto& proro : _protocolData) {
         proro->Dump();
@@ -488,13 +488,13 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
     }
 
     progress.Update(50, "Getting Output Data from Controller.");
-    logger_base.info("Getting Output Data from Controller.");
+    spdlog::info("Getting Output Data from Controller.");
 
     const std::string page2 = SDGetURL("/H?");
     wxMilliSleep(3000);
 
     if (page2.empty()) {
-        logger_base.error("SanDevices Outputs Upload: SanDevices would not return current configuration.");
+        spdlog::error("SanDevices Outputs Upload: SanDevices would not return current configuration.");
         wxMessageBox("Error occurred trying to upload to SanDevices.", "Error", wxOK, parent);
         return false;
     }
@@ -507,7 +507,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
     }
 
     progress.Update(60, "Figuring Out Output Information.");
-    logger_base.info("Figuring Out Output Information.");
+    spdlog::info("Figuring Out Output Information.");
     //loop to setup string outputs
     for (int i = 1; i <= totalOutputGroups; i++) {
         for (int j = 1; j <= outputPerGroups; j++) {
@@ -527,7 +527,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
             }
         }
     }
-    logger_base.info("Sending Output Data to Controller.");
+    spdlog::info("Sending Output Data to Controller.");
     int p = 66;
     //spam the controller with web requests
     for (const auto& outputD : _outputData) {
@@ -640,24 +640,24 @@ const std::string DecodeProtocolError(wxProtocolError err)
 
 std::string SanDevices::SDGetURL(const std::string& url, bool logresult) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxString res;
 
     _http.SetMethod("GET");
     wxString startResult;
     wxInputStream* httpStream = _http.GetInputStream(_baseUrl + url, startResult);
-    logger_base.debug("Making request to SanDevices %s '%s' -> %d", (const char*)_ip.c_str(), (const char*)url.c_str(), _http.GetResponse());
+    spdlog::debug("Making request to SanDevices {} '{}' -> {}", (const char*)_ip.c_str(), (const char*)url.c_str(), _http.GetResponse());
 
     if (_http.GetError() == wxPROTO_NOERR) {
         wxStringOutputStream out_stream(&res);
         httpStream->Read(out_stream);
 
         if (logresult) {
-            logger_base.debug("Response from SanDevices '%s'.", (const char*)res.c_str());
+            spdlog::debug("Response from SanDevices '{}'.", (const char*)res.c_str());
         }
     }
     else {
-        logger_base.error("Unable to connect to SanDevices %s '%s' : %d %s.", (const char*)_ip.c_str(), (const char*)url.c_str(), _http.GetError(), (const char*)DecodeProtocolError(_http.GetError()).c_str());
+        spdlog::error("Unable to connect to SanDevices {} '{}' : {} {}.", (const char*)_ip.c_str(), (const char*)url.c_str(), _http.GetError(), (const char*)DecodeProtocolError(_http.GetError()).c_str());
         wxMessageBox(_T("Unable to connect!"));
         res = "";
     }
@@ -874,12 +874,12 @@ SanDevicesOutputV4* SanDevices::ExtractOutputDataV4(const std::string& page, int
 
 void SanDevices::UpdatePortDataV5(int group, int output, UDControllerPort* stringData, bool serial) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     SanDevicesOutput* sd = FindPortDataV5(group, output);
     if (sd != nullptr) {
         if (stringData->GetPort() != sd->stringport) {
-            logger_base.warn("SanDevices Outputs Upload: Error %d outputs. Attempt to upload to output %d.", stringData->GetPort(), sd->stringport);
+            spdlog::warn("SanDevices Outputs Upload: Error {} outputs. Attempt to upload to output {}.", stringData->GetPort(), sd->stringport);
         }
         const char newUniv = EncodeUniverse(stringData->GetUniverse());
         if (newUniv != sd->universe) {
@@ -1211,8 +1211,8 @@ char SanDevices::EncodeUniverseSize(int universesize) const {
     if (universesize == 510) { return 'A'; }
     if (universesize == 512) { return 'B'; }
     wxASSERT(false);
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SanDevices DecodeUniverseSize Upload: Invalid Universe Size %i", universesize);
+    
+    spdlog::debug("SanDevices DecodeUniverseSize Upload: Invalid Universe Size {}", universesize);
     return 'A';
 }
 
@@ -1321,7 +1321,7 @@ inline int SanDevices::EncodeControllerPortV5(const int group, const int subport
 #pragma region Constructors and Destructors
 SanDevices::SanDevices(const std::string& ip, const std::string& proxy) : BaseController(ip, proxy) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _http.SetMethod("GET");
     if (!_fppProxy.empty()) {
@@ -1340,14 +1340,14 @@ SanDevices::SanDevices(const std::string& ip, const std::string& proxy) : BaseCo
                 static wxRegEx modelregex("(Controller Model )(E\\d+)", wxRE_ADVANCED | wxRE_NEWLINE);
                 if (modelregex.Matches(wxString(_page))) {
                     _sdmodel = DecodeControllerType(modelregex.GetMatch(wxString(_page), 2).ToStdString());
-                    logger_base.info("Connected to SanDevices controller model %s.", (const char*)GetModel().c_str());
+                    spdlog::info("Connected to SanDevices controller model {}.", (const char*)GetModel().c_str());
                 }
                 static wxRegEx versionregex("(Firmware Version:\\<\\/th\\>\\<\\/td\\>\\<td\\>\\<\\/td\\>\\<td\\>)([0-9]+\\.[0-9]+)\\<\\/td\\>", wxRE_ADVANCED | wxRE_NEWLINE);
                 if (versionregex.Matches(wxString(_page))) {
                     _firmware = FirmwareVersion::Four;
                     _version = versionregex.GetMatch(wxString(_page), 2).ToStdString();
-                    logger_base.info("                                 firmware %d.", static_cast<int>(_firmware));
-                    logger_base.info("                                 version %s.", (const char*)_version.c_str());
+                    spdlog::info("                                 firmware {}.", static_cast<int>(_firmware));
+                    spdlog::info("                                 version {}.", (const char*)_version.c_str());
                     break;
                 }
                 // Firmware Version:</th></td><td>5.038</td>
@@ -1359,8 +1359,8 @@ SanDevices::SanDevices(const std::string& ip, const std::string& proxy) : BaseCo
                     if (version5regex.GetMatchCount() > 3) {
                         _version += version5regex.GetMatch(wxString(_page), 3).ToStdString();
                     }
-                    logger_base.info("                                 firmware %d.", static_cast<int>(_firmware));
-                    logger_base.info("                                 version %s.", (const char*)_version.c_str());
+                    spdlog::info("                                 firmware {}.", static_cast<int>(_firmware));
+                    spdlog::info("                                 version {}.", (const char*)_version.c_str());
                     break;
                 }
 
@@ -1370,13 +1370,13 @@ SanDevices::SanDevices(const std::string& ip, const std::string& proxy) : BaseCo
             else {
                 _http.Close();
                 _connected = false;
-                logger_base.error("Error connecting to SanDevices controller on %s.", (const char*)_ip.c_str());
+                spdlog::error("Error connecting to SanDevices controller on {}.", (const char*)_ip.c_str());
                 break;
             }
         }
     }
     else {
-        logger_base.error("Error connecting to SanDevices controller on %s.", (const char*)_ip.c_str());
+        spdlog::error("Error connecting to SanDevices controller on {}.", (const char*)_ip.c_str());
     }
 
     if (_connected) {
@@ -1407,7 +1407,7 @@ SanDevices::~SanDevices() {
 
 #pragma region Getters and Setters
 bool SanDevices::SetInputUniverses(Controller* controller, wxWindow* parent) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     const std::string page = _page;
 
     if (page.empty()) {
@@ -1417,7 +1417,7 @@ bool SanDevices::SetInputUniverses(Controller* controller, wxWindow* parent) {
     // Check Correct Page from Version 5 Firmware
     if (IsFirmware5()) {
         if (page.find("<H3>System Information: </H3>") == std::string::npos) {
-            logger_base.error("SanDevices Outputs Upload: SanDevices wouldn't switch web pages.");
+            spdlog::error("SanDevices Outputs Upload: SanDevices wouldn't switch web pages.");
             return false;
         }
     }
@@ -1544,13 +1544,13 @@ bool SanDevices::SetInputUniverses(Controller* controller, wxWindow* parent) {
 
     if (0 == t) { //multicast
         if (output > 72) {
-            logger_base.error("SanDevices Inputs Upload: More Than 7 Universes are assigned to One Controller, 7 is the MAX in Multicast Mode.");
+            spdlog::error("SanDevices Inputs Upload: More Than 7 Universes are assigned to One Controller, 7 is the MAX in Multicast Mode.");
             return false;
         }
     }
     else { //unicast or artnet
         if (output > 77) {
-            logger_base.error("SanDevices Inputs Upload: More Than 12 Universes are assigned to One Controller, 12 is the MAX for Sandevices.");
+            spdlog::error("SanDevices Inputs Upload: More Than 12 Universes are assigned to One Controller, 12 is the MAX for Sandevices.");
             return false;
         }
     }

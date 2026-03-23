@@ -15,7 +15,7 @@
 #include <wx/string.h>
 //*)
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 #include <wx/msgdlg.h>
 #include <wx/stopwatch.h>
 #include <wx/progdlg.h>
@@ -82,7 +82,6 @@ public:
 
     MModelWiring(pugi::xml_node n, MModel* m, int widthMM, int heightMM, int depthMM)
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         _model = m;
         _modelWidthMM = widthMM;
         _modelHeightMM = heightMM;
@@ -104,7 +103,7 @@ public:
                     _images.push_back(wxURI(l.text().get()));
                 }
                 else {
-                    logger_base.warn("MModelWiring: Error processing vendor xml: %s ", (const char*)nn.c_str());
+                    spdlog::warn("MModelWiring: Error processing vendor xml: {} ", (const char*)nn.c_str());
                     wxASSERT(false);
                 }
             }
@@ -143,7 +142,7 @@ public:
 
     [[nodiscard]] int InterpretSize(const std::string& size)
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        static 
 
         // strip out all spaces and tabs first
         std::string s = size;
@@ -223,7 +222,7 @@ public:
             }
         }
 
-        logger_base.warn("Unable to interpret size from '%s'", size.c_str());
+        spdlog::warn("Unable to interpret size from '{}'", size.c_str());
 
         return -1;
     }
@@ -249,7 +248,6 @@ public:
 
     MModel(pugi::xml_node n, MVendor* vendor)
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         _vendor = vendor;
 
         for (pugi::xml_node l = n.first_child(); l; l = l.next_sibling()) {
@@ -302,7 +300,7 @@ public:
                     // dont handle this until we have processed all the other properties
                 }
                 else {
-                    logger_base.warn("MModel: Error processing vendor xml: %s ", (const char*)nn.c_str());
+                    spdlog::warn("MModel: Error processing vendor xml: {} ", nn);
                     wxASSERT(false);
                 }
             }
@@ -456,7 +454,6 @@ class MVendorCategory
 {
     void ParseCategories(pugi::xml_node n)
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         for (pugi::xml_node l = n.first_child(); l; l = l.next_sibling()) {
             if (l.type() != pugi::node_comment) {
                 std::string nn = ::Lower(l.name());
@@ -465,7 +462,7 @@ class MVendorCategory
 
                 }
                 else {
-                    logger_base.warn("MVendorCategory: Error processing vendor categories xml: %s ", (const char*)nn.c_str());
+                    spdlog::warn("MVendorCategory: Error processing vendor categories xml: {} ", nn);
                 }
             }
         }
@@ -530,8 +527,6 @@ public:
 
     void ParseCategories(pugi::xml_node n)
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
         for (pugi::xml_node l = n.first_child(); l; l = l.next_sibling()) {
             if (l.type() != pugi::node_comment) {
                 std::string nn = ::Lower(l.name());
@@ -539,7 +534,7 @@ public:
                     _categories.push_back(new MVendorCategory(l, nullptr, this));
                 }
                 else {
-                    logger_base.warn("MVendor: Error processing vendor categories xml: %s ", (const char*)nn.c_str());
+                    spdlog::warn("MVendor: Error processing vendor categories xml: {} ", nn);
                     wxASSERT(false);
                 }
             }
@@ -586,7 +581,6 @@ public:
 
     MVendor(pugi::xml_document& doc, int maxModels)
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         _maxModels = maxModels;
 
         pugi::xml_node root = doc.document_element();
@@ -629,7 +623,7 @@ public:
                                         _logoFile = wxFileName(VendorModelDialog::GetCache().GetFile(logo, CACHEFOR::CACHETIME_LONG));
                                     }
                                     else {
-                                        logger_base.warn("MVendor: Error processing vendor xml: %s ", (const char*)nn.c_str());
+                                        spdlog::warn("MVendor: Error processing vendor xml: {} ", nn);
                                         wxASSERT(false);
                                     }
                                 }
@@ -651,7 +645,7 @@ public:
                             }
                         }
                         else {
-                            logger_base.warn("MVendor: Error processing vendor xml: %s ", (const char*)nn.c_str());
+                            spdlog::warn("MVendor: Error processing vendor xml: {} ", nn);
                             wxASSERT(false);
                         }
                     }
@@ -676,8 +670,6 @@ public:
 
 MVendorCategory::MVendorCategory(pugi::xml_node n, MVendorCategory* parent, MVendor* vendor)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     _vendor = vendor;
     _parent = parent;
     for (pugi::xml_node e = n.first_child(); e; e = e.next_sibling()) {
@@ -694,7 +686,7 @@ MVendorCategory::MVendorCategory(pugi::xml_node n, MVendorCategory* parent, MVen
                 ParseCategories(e);
             }
             else {
-                logger_base.warn("MVendorCategory: Error processing vendor xml: %s : %s : %s : %s", (const char*)vendor->_name.c_str(), (const char*)(parent != nullptr ? parent->_name.c_str() : ""), (const char*)nn.c_str(), (const char*)GetPath().c_str());
+                spdlog::warn("MVendorCategory: Error processing vendor xml: {} : {} : {} : {}", vendor->_name, (parent != nullptr ? parent->_name : ""), nn, GetPath());
                 wxASSERT(false);
             }
         }
@@ -976,8 +968,6 @@ pugi::xml_document* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& fil
 
 bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     const std::string vendorlink = "https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/xlights_vendors.xml";
     const std::string vendorlinkbackup = "https://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
     //const std::string vendorlink = "http://localhost/xlights_vendors.xml";
@@ -1026,7 +1016,7 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
                     MVendor* mv = new MVendor(name);
                     _vendors.push_back(mv);
 
-                    logger_base.debug("Vendor %s not downloaded as suppressed.", (const char*)name.c_str());
+                    spdlog::debug("Vendor {} not downloaded as suppressed.", name);
                 }
                 else
                 {
@@ -1041,15 +1031,15 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
                             MVendor* mv = new MVendor(*d, maxModels);
                             _vendors.push_back(mv);
                             delete d;
-                            logger_base.debug("Vendor %s downloaded.", (const char*)name.c_str());
+                            spdlog::debug("Vendor {} downloaded.", name);
                         } else {
                             delete d;
-                            logger_base.debug("Vendor %s failed to download or validate.", (const char*)name.c_str());
+                            spdlog::debug("Vendor {} failed to download or validate.", name);
                         }
                     }
                     else
                     {
-                        logger_base.debug("Vendor %s has no url for its models.", (const char*)name.c_str());
+                        spdlog::debug("Vendor {} has no url for its models.", name);
                     }
                 }
             }
@@ -1235,16 +1225,15 @@ void VendorModelDialog::OnButton_NextClick(wxCommandEvent& event)
 
 void VendorModelDialog::DownloadModel(MModelWiring* wiring)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     wiring->DownloadXModel();
     if (wiring->_xmodelFile.GetExt().Lower() == "zip") {
         // we need to open the zip ... place the files in the "modeldownload" folder in the show folder
-        logger_base.debug("    opening zipped model " + _modelFile);
+        spdlog::debug("    opening zipped model " + _modelFile);
 
         auto dir = _showFolder + GetPathSeparator() + "modeldownload";
         if (!wxDir::Exists(dir)) {
-            logger_base.debug("Creating modeldownload directory " + dir);
+            spdlog::debug("Creating modeldownload directory " + dir);
             wxMkdir(dir);
         }
 
@@ -1264,7 +1253,7 @@ void VendorModelDialog::DownloadModel(MModelWiring* wiring)
                         auto createdirs = [](const wxString& parent, const wxString& sub) {
                             auto d = parent + wxFileName::GetPathSeparator() + sub;
                             if (!wxDir::Exists(d)) {
-                                logger_base.debug("Creating modeldownload subdirectory " + d);
+                                spdlog::debug("Creating modeldownload subdirectory " + d.ToStdString());
                                 wxMkdir(d);
                             }
                             return d;
@@ -1290,24 +1279,24 @@ void VendorModelDialog::DownloadModel(MModelWiring* wiring)
                     }
 
                     if (!FileExists(file)) {
-                        logger_base.debug("        model file " + file + " downloaded.");
+                        spdlog::debug("        model file " + file.ToStdString() + " downloaded.");
                         wxFileOutputStream fout(file);
                         zin.Read(fout);
                     }
                     else {
-                        logger_base.warn("        skipping file " + file + " it already exists.");
+                        spdlog::warn("        skipping file " + file.ToStdString() + " it already exists.");
                     }
 
                     ent = zin.GetNextEntry();
                 }
             }
             else {
-                logger_base.error("Failed to open zip file.");
+                spdlog::error("Failed to open zip file.");
                 return;
             }
         }
         else {
-            logger_base.error("Failed to open zip file.");
+            spdlog::error("Failed to open zip file.");
             return;
         }
     }

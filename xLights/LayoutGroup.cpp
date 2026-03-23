@@ -16,7 +16,7 @@
 #include "PreviewPane.h"
 #include "ModelPreview.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 LayoutGroup::LayoutGroup(const std::string& name, xLightsFrame* xl)
     : mName(name), mScaleBackgroundImage(false), mBackgroundBrightness(100), mBackgroundAlpha(100), mPreviewHidden(true), mPreviewCreated(false),
@@ -151,8 +151,8 @@ void LayoutGroup::ShowPreview(bool show)
         ModelPreview* modelPreview = xlights->GetLayoutPreview();
         if (modelPreview == nullptr)
         {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.warn("LayoutGroup::ShowPreview GetLayoutPreview returned NULL");
+            
+            spdlog::warn("LayoutGroup::ShowPreview GetLayoutPreview returned NULL");
             return;
         }
 

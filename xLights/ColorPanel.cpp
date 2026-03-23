@@ -40,7 +40,7 @@
 #include <wx/stdpaths.h>
 #include <wx/regex.h>
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 #include "ui/wxUtilities.h"
 
 
@@ -1423,8 +1423,8 @@ void ColorPanel::SavePalette(bool saveAs)
 
         _loadedPalettes.push_back(pal);
     } else {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.error("Unable to create file %s.", (const char *)fn.c_str());
+        
+        spdlog::error("Unable to create file {}.", (const char *)fn.c_str());
     }
 
     LoadAllPalettes();

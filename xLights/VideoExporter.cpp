@@ -20,7 +20,7 @@ extern "C"
 #include <libswscale/swscale.h>
 }
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include <wx/progdlg.h>
 #include <wx/appprogress.h>
@@ -48,8 +48,8 @@ void my_av_log_callback(void* ptr, int level, const char* fmt, va_list vargs)
         }
     }
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("WriteVideoFile: lvl: %d msg: %s.", level, static_cast<const char*>(message));
+    
+    spdlog::debug("WriteVideoFile: lvl: {} msg: {}.", level, static_cast<const char*>(message));
 }
 
 namespace
@@ -294,8 +294,8 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
             ::avcodec_free_context(&_videoCodecContext);
             _videoCodecContext = nullptr;
         }
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("VideoExporter - Error opening video codec context: %d", status);
+        
+        spdlog::info("VideoExporter - Error opening video codec context: {}", status);
         return false;
     }
 
@@ -686,7 +686,7 @@ VideoExporter::VideoExporter(wxWindow* parent,
 
 bool VideoExporter::Export(wxAppProgressIndicator* appIndicator)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     bool status = true;
 
     int style = wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT;
@@ -709,17 +709,17 @@ bool VideoExporter::Export(wxAppProgressIndicator* appIndicator)
         initialize();
         auto ip = inputParams();
         auto op = outputParams();
-        logger_base.info("VideoExporter - exporting %d x %d video from %d x %d", op.width, op.height, ip.width, ip.height);
+        spdlog::info("VideoExporter - exporting {} x {} video from {} x {}", op.width, op.height, ip.width, ip.height);
 
         exportFrames(_frameCount);
         bool canceled = dlg.WasCancelled();
         if (canceled)
-            logger_base.info("VideoExporter - exporting was canceled");
+            spdlog::info("VideoExporter - exporting was canceled");
 
         if (!canceled)
             completeExport();
     } catch (const std::runtime_error& re) {
-        logger_base.error("Exception caught in VideoExporter - '%s'", (const char*)re.what());
+        spdlog::error("Exception caught in VideoExporter - '{}'", (const char*)re.what());
         status = false;
     }
     appIndicator->SetValue(0);

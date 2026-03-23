@@ -23,7 +23,10 @@
 #include <winerror.h>
 #include <d3d11_4.h>
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
+
+#include <map>
+#include <string>
 
 // All of this allows me to dynamically load the Direct X DLLs ensuring that on older platforms it still loads but hardware decoding wont work
 
@@ -58,7 +61,7 @@
     if (SUCCEEDED(hr)) {                \
         hr = fn;                        \
         if (FAILED(hr)) {               \
-            logger_base.error("---------- " msg " : 0x%08x : %s", hr, (const char*)WindowsHardwareVideoReader::DecodeMFError(hr).c_str()); \
+            spdlog::error("---------- " msg " : {:#08x}x : {}", hr, WindowsHardwareVideoReader::DecodeMFError(hr)); \
         }                               \
     }
 
@@ -68,7 +71,7 @@
     {                                                                                                                                                 \
         function##_ptr ffn = (function##_ptr)GetFunction(dll, #function);                                                                              \
         if (ffn == nullptr) {                                                                                                                         \
-            logger_base.error("---------- " msg " : 0x%08x : %s", hr, (const char*)WindowsHardwareVideoReader::DecodeMFError(E_NOINTERFACE).c_str()); \
+            spdlog::error("---------- " msg " : {:#08x}x : {}", hr, WindowsHardwareVideoReader::DecodeMFError(E_NOINTERFACE)); \
             hr = E_NOINTERFACE;                                                                                                                       \
         } else {                                                                                                                                      \
             SAFEEXEC(ffn(fn), msg);                                                                                                                   \
@@ -123,7 +126,7 @@ class WVHRStatic
 public:
     WVHRStatic()
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
 
         HRESULT hr = S_OK;
 
@@ -135,7 +138,7 @@ public:
         // we test load all the dlls to make sure hardware video decoding is possible ... if any fail then we wont try to hardware decode
         // this does not protect us against internal differences but I am hoping it means we can load and run on older platforms
         if (GetDLL("mfplat.dll") == nullptr || GetDLL("mfreadwrite.dll") == nullptr || GetDLL("d3d11.dll") == nullptr) {
-            logger_base.error("Failed to load mfplat.dll ... windows hardware debugging disabled.");
+            spdlog::error("Failed to load mfplat.dll ... windows hardware debugging disabled.");
         } else {
             DYNAMICCALL("mfplat.dll", MFStartup, MF_VERSION COMMA MFSTARTUP_FULL, "WHVD: Failed to initialise Media Framework");
             if (SUCCEEDED(hr)) {
@@ -146,7 +149,7 @@ public:
     virtual ~WVHRStatic()
     {
         if (_ok) {
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            
             HRESULT hr = S_OK;
             DYNAMICCALL("mfplat.dll", MFShutdown, , "WHVD: Failed to initialise Media Framework");
         }
@@ -162,10 +165,10 @@ WVHRStatic WindowsHardwareVideoReader::_init; // this initialises and de-initial
 
 WindowsHardwareVideoReader::WindowsHardwareVideoReader(const std::string& filename, bool wantAlpha, bool usenativeresolution, bool keepaspectratio, uint32_t maxwidth, uint32_t maxheight, AVPixelFormat pixelFormat)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
 #ifdef DETAILED_LOGGING
-    logger_base.debug("WHVD: Constructor: %s", (const char*)filename.c_str());
+    spdlog::debug("WHVD: Constructor: {}", (const char*)filename.c_str());
 #endif
 
     _pixelFormat = pixelFormat;
@@ -233,7 +236,7 @@ WindowsHardwareVideoReader::WindowsHardwareVideoReader(const std::string& filena
         wxASSERT(_reader != nullptr);
         wxASSERT(_deviceManager != nullptr);
 
-        logger_base.debug("WHVD: Hardware Video Decoder Initialised OK for video: %s", (const char*)filename.c_str());
+        spdlog::debug("WHVD: Hardware Video Decoder Initialised OK for video: {}", (const char*)filename.c_str());
     } else {
         SafeRelease(&_reader);
         SafeRelease(&_deviceManager);
@@ -244,7 +247,7 @@ WindowsHardwareVideoReader::WindowsHardwareVideoReader(const std::string& filena
     wxASSERT(attributes == nullptr);
 
 #ifdef DETAILED_LOGGING
-    logger_base.debug("WHVD: Constructor Done: %s", (const char*)filename.c_str());
+    spdlog::debug("WHVD: Constructor Done: {}", (const char*)filename.c_str());
 #endif
 }
 
@@ -255,9 +258,9 @@ uint8_t WindowsHardwareVideoReader::GetPixelBytes() const
 
 WindowsHardwareVideoReader::~WindowsHardwareVideoReader()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 #ifdef DETAILED_LOGGING
-    logger_base.debug("WHVD: Destructor.");
+    spdlog::debug("WHVD: Destructor.");
 #endif
     SafeRelease(&_reader);
     SafeRelease(&_deviceManager);
@@ -271,13 +274,13 @@ WindowsHardwareVideoReader::~WindowsHardwareVideoReader()
     }
 
 #ifdef DETAILED_LOGGING
-    logger_base.debug("WHVD: Destructor DONE.");
+    spdlog::debug("WHVD: Destructor DONE.");
 #endif
 }
 
 bool WindowsHardwareVideoReader::CanSeek() const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     bool res = false;
     HRESULT hr = S_OK;
 
@@ -296,7 +299,7 @@ bool WindowsHardwareVideoReader::CanSeek() const
             if ((flags & MFMEDIASOURCE_CAN_SEEK) &&
                 !(flags & MFMEDIASOURCE_HAS_SLOW_SEEK)) {
                 res = TRUE;
-                logger_base.debug("WHVD: Able to seek.");
+                spdlog::debug("WHVD: Able to seek.");
             }
         }
         PropVariantClear(&var);
@@ -306,7 +309,7 @@ bool WindowsHardwareVideoReader::CanSeek() const
 
 HRESULT WindowsHardwareVideoReader::SelectVideoStream(bool usenativeresolution, bool keepaspectratio)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     HRESULT hr = S_OK;
 
     // I need to get the native size of the video first
@@ -352,7 +355,7 @@ HRESULT WindowsHardwareVideoReader::SelectVideoStream(bool usenativeresolution, 
             }
 
             if (denominator == 0) {
-                logger_base.error("WHVD: Failed to get frame rate ");
+                spdlog::error("WHVD: Failed to get frame rate ");
             }
         }
 
@@ -376,7 +379,7 @@ HRESULT WindowsHardwareVideoReader::SelectVideoStream(bool usenativeresolution, 
 
                 if (!keepaspectratio) {
                     // we need to stretch pixels
-                    logger_base.info("Stretching pixels by %u/%u", _height * _nativeWidth, _width * _nativeHeight);
+                    spdlog::info("Stretching pixels by {}/{}", _height * _nativeWidth, _width * _nativeHeight);
                     SAFEEXEC(MFSetAttributeRatio(pType, MF_MT_PIXEL_ASPECT_RATIO, _height * _nativeWidth, _width * _nativeHeight), "WHVD: Failed to set target ratio");
                 }
             }
@@ -400,7 +403,7 @@ HRESULT WindowsHardwareVideoReader::SelectVideoStream(bool usenativeresolution, 
 
         if (SUCCEEDED(hr)) {
             if (!IsEqualGUID(subtype, MFVideoFormat_RGB32) && !IsEqualGUID(subtype, MFVideoFormat_ARGB32)) {
-                logger_base.error("WHVD: Invalid media subtype");
+                spdlog::error("WHVD: Invalid media subtype");
                 hr = E_UNEXPECTED;
             }
         }
@@ -419,7 +422,7 @@ bool WindowsHardwareVideoReader::IsOk() const
 
 bool WindowsHardwareVideoReader::Seek(uint32_t pos)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (_reader == nullptr || pos > GetDuration())
         return false;
 
@@ -435,7 +438,7 @@ bool WindowsHardwareVideoReader::Seek(uint32_t pos)
     }
 
 #ifdef DETAILED_LOGGING
-    logger_base.debug("WHVD: Seeking to %u", pos);
+    spdlog::debug("WHVD: Seeking to {}", pos);
 #endif
     SAFEEXEC(_reader->SetCurrentPosition(GUID_NULL, var), "WHVD: Failed to seek");
 
@@ -450,12 +453,12 @@ bool WindowsHardwareVideoReader::Seek(uint32_t pos)
             uint32_t lastPos = _curPos;
             AVFrame* frame = GetNextFrame(0xFFFFFFFF, 0xFFFFFFFF);
             if (frame == nullptr) {
-                logger_base.error("WHVD: GetNextFrame failed");
+                spdlog::error("WHVD: GetNextFrame failed");
                 PropVariantClear(&var);
                 return false;
             }
             if (!first && lastPos == _curPos) {
-                logger_base.error("WHVD: Seek failed.");
+                spdlog::error("WHVD: Seek failed.");
                 PropVariantClear(&var);
                 return false;
             }
@@ -530,27 +533,27 @@ std::string WindowsHardwareVideoReader::DecodeDXGIReason(HRESULT reason) const
 
 bool WindowsHardwareVideoReader::BitmapFromSample(IMFSample* sample, AVFrame* frame)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     bool res = false;
     HRESULT hr = S_OK;
 
 #ifdef DETAILED_LOGGING
-    logger_base.debug("WHVD: Get sample buffer");
+    spdlog::debug("WHVD: Get sample buffer");
 #endif
     IMFMediaBuffer* pBuffer = nullptr;
     SAFEEXEC(sample->ConvertToContiguousBuffer(&pBuffer), "WHVD: Failed to get sample buffer");
 
 #ifdef DETAILED_LOGGING
-    logger_base.debug("WHVD: lock buffer");
+    spdlog::debug("WHVD: lock buffer");
 #endif
     BYTE* pBitmapData = nullptr; // Bitmap data
     DWORD cbBitmapData = 0;      // Size of data, in bytes
     SAFEEXEC(pBuffer->Lock(&pBitmapData, nullptr, &cbBitmapData), "WHVD: Failed to lock buffer");
 
     if (FAILED(hr)) {
-        logger_base.error("Was reading video at %dms", _curPos);
+        spdlog::error("Was reading video at {}ms", _curPos);
         HRESULT reason = _device->GetDeviceRemovedReason();
-        logger_base.error("Device removed reason 0x%08x : %s", reason, (const char*)DecodeDXGIReason(reason).c_str());
+        spdlog::error("Device removed reason {:#08x}x : {}", reason, (const char*)DecodeDXGIReason(reason).c_str());
     }
 
     if (SUCCEEDED(hr)) {
@@ -571,13 +574,13 @@ bool WindowsHardwareVideoReader::BitmapFromSample(IMFSample* sample, AVFrame* fr
         }
         res = true;
 #ifdef DETAILED_LOGGING
-        logger_base.debug("WHVD: Unlock buffer");
+        spdlog::debug("WHVD: Unlock buffer");
 #endif
         SAFEEXEC(pBuffer->Unlock(), "WHVD: Failed to unlock buffer");
     }
 
 #ifdef DETAILED_LOGGING
-    logger_base.debug("WHVD: Release buffer");
+    spdlog::debug("WHVD: Release buffer");
 #endif
     SafeRelease(&pBuffer);
 
@@ -619,11 +622,11 @@ std::string WindowsHardwareVideoReader::DecodeReadFlags(DWORD flags) const
 
 AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t gracetime)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     HRESULT hr = S_OK;
 
 #ifdef DETAILED_LOGGING
-    logger_base.debug("WHVD: GetNextFrame %u.", timestampMS);
+    spdlog::debug("WHVD: GetNextFrame {}.", timestampMS);
 #endif
 
     if (_reader == nullptr || (timestampMS != 0xFFFFFFFF && timestampMS > GetDuration()))
@@ -632,7 +635,7 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
     if (timestampMS != 0xFFFFFFFF && timestampMS != 0 && _curPos > timestampMS && _curPos < timestampMS + GetFrameMS()) {
         // the last frame should be ok ... so just return it again
 #ifdef DETAILED_LOGGING
-        logger_base.debug("WHVD: Just returning last frame at %u.", _curPos);
+        spdlog::debug("WHVD: Just returning last frame at {}.", _curPos);
 #endif
         return _frame;
     }
@@ -649,14 +652,14 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
         wxASSERT(sample == nullptr);
 
 #ifdef DETAILED_LOGGING
-        logger_base.debug("WHVD: Reading sample");
+        spdlog::debug("WHVD: Reading sample");
 #endif
         DWORD dwFlags = 0;
         LONGLONG currentTime;
         SAFEEXEC(_reader->ReadSample((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, nullptr, &dwFlags, &currentTime, &sample), "WHVD: Failed to read frame");
 
 #ifdef DETAILED_LOGGING
-        logger_base.info("Read flags: 0x%08x : %s", dwFlags, (const char *)DecodeReadFlags(dwFlags).c_str());
+        spdlog::info("Read flags: {:#08x}x : {}", dwFlags, (const char *)DecodeReadFlags(dwFlags).c_str());
 #endif
 
         if (FAILED(hr)) {
@@ -665,24 +668,24 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
 
         if (dwFlags & MF_SOURCE_READERF_ENDOFSTREAM) {
 #ifdef DETAILED_LOGGING
-            logger_base.debug("WHVD: Release sample");
+            spdlog::debug("WHVD: Release sample");
 #endif
             SafeRelease(&sample);
-            logger_base.info("WHVD: Reached end of video");
+            spdlog::info("WHVD: Reached end of video");
             return nullptr;
         }
 
         if (SUCCEEDED(hr)) {
             _curPos = currentTime / TIME_DIV;
 #ifdef DETAILED_LOGGING
-            logger_base.debug("Read video at %ums", _curPos);
+            spdlog::debug("Read video at {}ms", _curPos);
 #endif
         }
 
         // we are not going to use this frame so we can let it go
         if (_curPos < timestampMS) {
 #ifdef DETAILED_LOGGING
-            logger_base.debug("WHVD: Release sample");
+            spdlog::debug("WHVD: Release sample");
 #endif
             SafeRelease(&sample);
         }
@@ -691,14 +694,14 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
 
     if (timestampMS != 0xFFFFFFFF && sample != nullptr) {
         if (!BitmapFromSample(sample, _frame)) {
-            logger_base.error("WHVD: Failed to extract the frame bitmap ... Media Foundations may be in a corrupt state.");
+            spdlog::error("WHVD: Failed to extract the frame bitmap ... Media Foundations may be in a corrupt state.");
         }
 #ifdef DETAILED_LOGGING
-        logger_base.debug("WHVD: Release sample");
+        spdlog::debug("WHVD: Release sample");
 #endif
         SafeRelease(&sample);
 #ifdef DETAILED_LOGGING
-        logger_base.debug("WHVD: GetNextFrame %u DONE.", timestampMS);
+        spdlog::debug("WHVD: GetNextFrame {} DONE.", timestampMS);
 #endif
         return _frame;
     }
@@ -706,7 +709,7 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
     SafeRelease(&sample);
 
 #ifdef DETAILED_LOGGING
-    logger_base.debug("WHVD: GetNextFrame %u DONE.", timestampMS);
+    spdlog::debug("WHVD: GetNextFrame {} DONE.", timestampMS);
 #endif
     return nullptr;
 }

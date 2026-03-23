@@ -28,7 +28,7 @@
 #include "../XmlSerializer/XmlSerializer.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 CustomModel::CustomModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
@@ -713,7 +713,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
     }
     maxn++;
     int chssize = (maxn + 1) * sizeof(int);
-    //logger_base.debug("    CheckSequence: Checking custom model %d nodes", maxn);
+    //spdlog::debug("    CheckSequence: Checking custom model {} nodes", maxn);
     int* chs = (int*)malloc(chssize);
     if (chs == nullptr) {
         res.push_back(std::format("    WARN: Could not check Custom model '{}' for missing nodes. Error allocating memory for {} nodes.", GetName(), maxn));
@@ -958,8 +958,8 @@ bool HasDuplicates(float divisor, std::list<std::list<xlPoint>> chs)
 {
     std::list<xlPoint> scaled;
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Checking for duplicates at scale %f.", divisor);
+    
+    spdlog::debug("Checking for duplicates at scale {}.", divisor);
 
     for (const auto& ch : chs) {
         for (const auto& it : ch) {
@@ -984,12 +984,12 @@ bool HasDuplicates(float divisor, std::list<std::list<xlPoint>> chs)
 
 bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     pugi::xml_document doc;
     pugi::xml_parse_result result = doc.load_file(filename.c_str());
 
     if (result) {
-        logger_base.debug("Loading LOR model %s.", (const char*)filename.c_str());
+        spdlog::debug("Loading LOR model {}.", (const char*)filename.c_str());
 
         pugi::xml_node root = doc.document_element();
 
@@ -1022,7 +1022,7 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "CustomModel::ImportLORModel");
 
         if (chs.size() == 0) {
-            logger_base.error("No model data found.");
+            spdlog::error("No model data found.");
             wxMessageBox("Unable to import model data.");
             return false;
         }
@@ -1085,7 +1085,7 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
         maxx = ((float)maxx * divisor) + 1;
         maxy = ((float)maxy * divisor) + 1;
 
-        logger_base.debug("Divisor chosen %f. Model dimensions %d,%d", divisor, maxx + 1, maxy + 1);
+        spdlog::debug("Divisor chosen {}. Model dimensions {},{}", divisor, maxx + 1, maxy + 1);
 
         _customWidth = maxx;
         _customHeight = maxy;
@@ -1125,7 +1125,7 @@ bool CustomModel::ImportLORModel(std::string const& filename, xLightsFrame* xlig
 
         _locations = XmlSerialize::ParseCustomModel(cm);
 
-        logger_base.debug("Model import done.");
+        spdlog::debug("Model import done.");
         return true;
     } else {
         DisplayError("Failure loading LOR model file.");

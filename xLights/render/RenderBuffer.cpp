@@ -27,7 +27,7 @@
 #include "GPURenderUtils.h"
 #include "BufferPanel.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 #include "Parallel.h"
 #include "ui/wxUtilities.h"
 
@@ -382,8 +382,8 @@ void TextDrawingContext::Clear()
 #endif
 
     if (gc == nullptr) {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.error("TextDrawingContext DC creation failed.");
+        
+        spdlog::error("TextDrawingContext DC creation failed.");
         return;
     }
 
@@ -499,9 +499,9 @@ const wxFontInfo& TextDrawingContext::GetTextFont(const std::string& FontString)
     FontMapLock locker;
 
     if (FONT_MAP_TXT.find(FontString) == FONT_MAP_TXT.end()) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
         if (!FontString.empty()) {
-            logger_base.debug("Loading font %s.", (const char*)FontString.c_str());
+            spdlog::debug("Loading font {}.", (const char*)FontString.c_str());
             wxFont font(FontString);
             font.SetNativeFontInfoUserDesc(FontString);
 
@@ -527,7 +527,7 @@ const wxFontInfo& TextDrawingContext::GetTextFont(const std::string& FontString)
             info.AntiAliased(false);
             info.Encoding(font.GetEncoding());
             FONT_MAP_TXT[FontString] = info;
-            logger_base.debug("    Added to font map.");
+            spdlog::debug("    Added to font map.");
         } else {
             wxFontInfo info(wxSize(0, 12));
             info.AntiAliased(false);

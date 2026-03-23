@@ -26,7 +26,7 @@
 
 #include <numeric>
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 static wxArrayString ACTIVETYPENAMES;
 
@@ -356,7 +356,7 @@ std::string Controller::DecodeActiveState(Controller::ACTIVESTATE state)
 
 Controller* Controller::Create(OutputManager* om, pugi::xml_node node, std::string showDir) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::string type = node.attribute("Type").as_string("");
 
@@ -370,7 +370,7 @@ Controller* Controller::Create(OutputManager* om, pugi::xml_node node, std::stri
         return new ControllerSerial(om, node, showDir);
     }
 
-    logger_base.warn("Unknown controller type %s ignored.", (const char*)type.c_str());
+    spdlog::warn("Unknown controller type {} ignored.", (const char*)type.c_str());
     wxASSERT(false);
     return nullptr;
 }

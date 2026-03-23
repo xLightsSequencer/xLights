@@ -16,7 +16,7 @@
 
 #include <wx/propgrid/propgrid.h>
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #define MINIMUM_MILLIS_AFTER_WRITE_BEFORE_CLOSE 100
 
@@ -267,12 +267,12 @@ void LOROptimisedOutput::SetOneChannel(int32_t channel, unsigned char data) {
 #define LOR_FORCE_SEND_FRAMES 20
 void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t size) {
 
-    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!_enabled || _serial == nullptr || !_ok) return;
 
     if (!TxEmpty()) {
-        logger_base.debug("    LOROptimisedOutput: SetManyChannels skipped due to transmit buffer stackup");
+        spdlog::debug("    LOROptimisedOutput: SetManyChannels skipped due to transmit buffer stackup");
         return;
     }
 
@@ -439,13 +439,13 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
             ++unit_id;
         }
     }
-    //logger_base.debug("    LOROptimisedOutput: Sent %d bytes", total_bytes_sent);
+    //spdlog::debug("    LOROptimisedOutput: Sent {} bytes", total_bytes_sent);
 }
 
 void LOROptimisedOutput::AllOff() {
 
-    //log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    //logger_base.debug("    LOROptimisedOutput: AllOff starting");
+    //
+    //spdlog::debug("    LOROptimisedOutput: AllOff starting");
 
     if (!_enabled) return;
 
@@ -494,7 +494,7 @@ void LOROptimisedOutput::AllOff() {
     SendHeartbeat();
     _lastheartbeat = _timer_msec;
 
-    //logger_base.debug("    LOROptimisedOutput: AllOff finished");
+    //spdlog::debug("    LOROptimisedOutput: AllOff finished");
 }
 #pragma endregion
 

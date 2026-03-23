@@ -30,7 +30,7 @@
 #include "graphics/opengl/xlGLCanvas.h"
 #include "../MetronomeLabelDialog.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 #include "../ui/wxUtilities.h"
 
 #define ICON_SPACE FromDIP(25)
@@ -220,8 +220,8 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
                        long style, const wxString &name):
                        wxWindow((wxWindow*)parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("                Creating RowHeading");
+    
+    spdlog::debug("                Creating RowHeading");
 
     DOUBLE_BUFFER(this);
 
@@ -637,7 +637,7 @@ std::vector<std::string> RowHeading::ParseTags(const wxString& tagString) {
 
 void RowHeading::OnLayerPopup(wxCommandEvent& event)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
     if (ri == nullptr || mSequenceElements == nullptr)
@@ -678,7 +678,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         }
     } else if (id == ID_ROW_MNU_DELETE_LAYER) {
-        logger_base.debug("RowHeading::OnLayerPopup Deleting layer.");
+        spdlog::debug("RowHeading::OnLayerPopup Deleting layer.");
         if (mSequenceElements->GetVisibleRowInformation(mSelectedRow) != nullptr) {
             int layerIndex = mSequenceElements->GetVisibleRowInformation(mSelectedRow)->layerIndex;
 
@@ -701,7 +701,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             }
         }
     } else if (id == ID_ROW_MNU_DELETE_LAYERS) {
-        logger_base.debug("RowHeading::OnLayerPopup Deleting layers.");
+        spdlog::debug("RowHeading::OnLayerPopup Deleting layers.");
         if (mSequenceElements->GetVisibleRowInformation(mSelectedRow) != nullptr) {
             int layerIndex = mSequenceElements->GetVisibleRowInformation(mSelectedRow)->layerIndex;
             int bottomLayer = element->GetEffectLayerCount();
@@ -746,7 +746,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             }
         }
     } else if (id == ID_ROW_MNU_DELETE_UNUSEDLAYERS) {
-        logger_base.debug("RowHeading::OnLayerPopup Deleting unused layers.");
+        spdlog::debug("RowHeading::OnLayerPopup Deleting unused layers.");
         bool deleted = false;
         for (int i = 0; i < element->GetEffectLayerCount(); ++i) {
             if (element->GetEffectLayer(i)->GetEffectCount() > 0) {
@@ -1150,7 +1150,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 
                 if (sel.size() > 0) {
                     wxFile f(filename);
-                    logger_base.info("Saving to xtiming file %s.", (const char*)filename.c_str());
+                    spdlog::info("Saving to xtiming file {}.", (const char*)filename.c_str());
                     if (!f.Create(filename, true) || !f.IsOpened()) {
                         DisplayError(wxString::Format("Unable to create file %s. Error %d", filename, f.GetLastError()).ToStdString());
                         return;
@@ -1181,7 +1181,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             }
         } else if (fn.GetExt().Lower() == "pgo") {
             wxFile f(filename);
-            logger_base.info("Saving to papagayo file %s.", (const char*)filename.c_str());
+            spdlog::info("Saving to papagayo file {}.", (const char*)filename.c_str());
             if (!f.Create(filename, true) || !f.IsOpened()) {
                 DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
                 return;
@@ -1492,7 +1492,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         }
     } else if (id == ID_ROW_MNU_SHOW_EFFECTS) {
-        logger_base.debug("RowHeading::OnLayerPopup Show effects.");
+        spdlog::debug("RowHeading::OnLayerPopup Show effects.");
         int view = mSequenceElements->GetCurrentView();
         for (int i = 0; i < mSequenceElements->GetElementCount(view); ++i) {
             Element* e = mSequenceElements->GetElement(i, view);
@@ -1505,7 +1505,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             }
         }
     } else if (id == ID_ROW_MNU_COLLAPSEALLMODELS) {
-        logger_base.debug("RowHeading::OnLayerPopup Collapse all models.");
+        spdlog::debug("RowHeading::OnLayerPopup Collapse all models.");
         int view = mSequenceElements->GetCurrentView();
 
         for (int i = 0; i < mSequenceElements->GetElementCount(view); ++i) {
@@ -1520,7 +1520,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     } else if (id == ID_ROW_MNU_COLLAPSEALLLAYERS) {
-        logger_base.debug("RowHeading::OnLayerPopup Collapse all layers.");
+        spdlog::debug("RowHeading::OnLayerPopup Collapse all layers.");
 
         int view = mSequenceElements->GetCurrentView();
         for (int i = 0; i < mSequenceElements->GetElementCount(view); ++i) {

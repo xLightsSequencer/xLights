@@ -35,7 +35,7 @@
 
 #include "UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #define MINFONTSIZE 8
 #define FONTSIZEINCREMENT 4

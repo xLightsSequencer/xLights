@@ -31,7 +31,7 @@
 #include "../Parallel.h"
 #include "ispc/VideoFunctions.ispc.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 VideoEffect::VideoEffect(int id) : RenderableEffect(id, "Video", video_16, video_24, video_32, video_48, video_64)
 {
@@ -234,7 +234,7 @@ public:
 void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
     double starttime, int cropLeft, int cropRight, int cropTop, int cropBottom, bool aspectratio, std::string durationTreatment, bool synchroniseAudio, bool transparentBlack, int transparentBlackLevel, double speed, uint32_t sampleSpacing)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (cropLeft > cropRight)
     {
@@ -307,7 +307,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
 
         if (buffer.BufferHt == 1)
         {
-            logger_base.warn("VideoEffect::Cannot render video onto a 1 pixel high model. Have you set it to single line?");
+            spdlog::warn("VideoEffect::Cannot render video onto a 1 pixel high model. Have you set it to single line?");
         }
         else if (FileExists(filename))
         {
@@ -321,7 +321,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
 
             if (_videoreader == nullptr)
             {
-                logger_base.warn("VideoEffect: Failed to load video file %s.", (const char *)filename.c_str());
+                spdlog::warn("VideoEffect: Failed to load video file {}.", (const char *)filename.c_str());
             }
             else
             {
@@ -330,7 +330,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
 
                 if (videolen == 0)
                 {
-                    logger_base.warn("VideoEffect: Video %s was read as 0 length.", (const char *)filename.c_str());
+                    spdlog::warn("VideoEffect: Video {} was read as 0 length.", (const char *)filename.c_str());
                 }
 
                 // read the first frame ... if i dont it thinks the first frame i read is the first frame
@@ -350,7 +350,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
 
                 if (starttime != 0)
                 {
-                    logger_base.debug("Video effect initialising ... seeking to start location for the video %f.", (float)starttime);
+                    spdlog::debug("Video effect initialising ... seeking to start location for the video {}.", (float)starttime);
                     _videoreader->Seek(starttime * 1000);
                 }
 
@@ -361,7 +361,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     float speedFactor = (float)videoFrames / (float)effectFrames;
                     _frameMS = (int)((float)buffer.frameTimeInMs * speedFactor);
                 }
-                logger_base.debug("Video effect length: %d, video length: %d, startoffset: %f, duration treatment: %s.",
+                spdlog::debug("Video effect length: {}, video length: {}, startoffset: {}, duration treatment: {}.",
                     (buffer.curEffEndPer - buffer.curEffStartPer + 1) * _frameMS, videolen, (float)starttime,
                     (const char *)durationTreatment.c_str());
             }
@@ -370,7 +370,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         {
             if (buffer.curPeriod == buffer.curEffStartPer)
             {
-                logger_base.warn("VideoEffect: Video file '%s' not found.", (const char *)filename.c_str());
+                spdlog::warn("VideoEffect: Video file '{}' not found.", (const char *)filename.c_str());
             }
         }
     }
@@ -435,7 +435,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
             {
                 frame = 0;
             }
-            logger_base.debug("Video effect loop #%d at frame %d to video frame %d.", _loops, buffer.curPeriod - buffer.curEffStartPer, frame);
+            spdlog::debug("Video effect loop #{} at frame {} to video frame {}.", _loops, buffer.curPeriod - buffer.curEffStartPer, frame);
 
             _videoreader->Seek(0);
             image = _videoreader->GetNextFrame(frame);

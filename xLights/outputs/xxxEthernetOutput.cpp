@@ -17,14 +17,14 @@
 #include "../UtilFunctions.h"
 #include "../utils/ip_utils.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 static const int32_t xxxCHANNELSPERPACKET = 1200;
 
 #pragma region Private Functions
 void xxxEthernetOutput::Heartbeat(int mode, const std::string& localIP) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     static wxLongLong __lastTime = 0;
     static wxIPV4address __remoteAddr;
@@ -59,7 +59,7 @@ void xxxEthernetOutput::Heartbeat(int mode, const std::string& localIP) {
 
         if (__datagram != nullptr) {
             if (!__datagram->IsOk() || __datagram->Error()) {
-                logger_base.error("xxxEthernetOutput: %s Error creating xxxEthernet heartbeat datagram => %d : %s.",
+                spdlog::error("xxxEthernetOutput: {} Error creating xxxEthernet heartbeat datagram => {} : {}.",
                     (const char*)localaddr.IPAddress().c_str(),
                     __datagram->LastError(),
                     (const char*)DecodeIPError(__datagram->LastError()).c_str());
@@ -68,7 +68,7 @@ void xxxEthernetOutput::Heartbeat(int mode, const std::string& localIP) {
             }
         }
         else {
-            logger_base.error("xxxEthernetOutput: %s Error creating xxxEthernet heartbeat datagram.",
+            spdlog::error("xxxEthernetOutput: {} Error creating xxxEthernet heartbeat datagram.",
                 (const char*)localaddr.IPAddress().c_str());
         }
     }
@@ -83,7 +83,7 @@ void xxxEthernetOutput::Heartbeat(int mode, const std::string& localIP) {
 
 void xxxEthernetOutput::OpenDatagram() {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (_datagram != nullptr) return;
 
@@ -97,15 +97,15 @@ void xxxEthernetOutput::OpenDatagram() {
 
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
     if (_datagram == nullptr) {
-        logger_base.error("xxxEthernetOutput: %s Error opening datagram.", (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("xxxEthernetOutput: {} Error opening datagram.", (const char*)localaddr.IPAddress().c_str());
     }
     else if (!_datagram->IsOk()) {
-        logger_base.error("xxxEthernetOutput: %s Error opening datagram. Network may not be connected? OK : FALSE", (const char*)localaddr.IPAddress().c_str());
+        spdlog::error("xxxEthernetOutput: {} Error opening datagram. Network may not be connected? OK : FALSE", (const char*)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
     }
     else if (_datagram->Error()) {
-        logger_base.error("xxxEthernetOutput: %s Error creating xxxEthernet datagram => %d : %s.", (const char*)localaddr.IPAddress().c_str(), _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str());
+        spdlog::error("xxxEthernetOutput: {} Error creating xxxEthernet datagram => {} : {}.", (const char*)localaddr.IPAddress().c_str(), _datagram->LastError(), (const char*)DecodeIPError(_datagram->LastError()).c_str());
         delete _datagram;
         _datagram = nullptr;
     }
@@ -216,14 +216,14 @@ void xxxEthernetOutput::Close() {
 #pragma region Frame Handling
 void xxxEthernetOutput::StartFrame(long msec) {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!_enabled) return;
 
     if (_datagram == nullptr && OutputManager::IsRetryOpen()) {
         OpenDatagram();
         if (_ok) {
-            logger_base.debug("xxxEthernetOutput: Open retry successful");
+            spdlog::debug("xxxEthernetOutput: Open retry successful");
         }
     }
 

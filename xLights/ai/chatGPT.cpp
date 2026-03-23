@@ -9,21 +9,21 @@
 #include <vector>
 #include <string>
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 bool chatGPT::IsAvailable() const {
     return !token.empty() && !_enabledTypes.empty();
 }
 
 void chatGPT::SaveSettings() const {
-	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+	
 	_sm->setServiceSetting("ChatGPTModel", model);
     _sm->setServiceSetting("ChatGPTImageModel", image_model);
     _sm->setSecretServiceToken("ChatGPTBearerToken", token);
     for (auto t : GetTypes()) {
         _sm->setServiceSetting(std::string("ChatGPTEnable_") + aiType::TypeSettingsSuffix(t), IsEnabledForType(t));
     }
-	logger_base.info("ChatGPT settings saved successfully");
+	spdlog::info("ChatGPT settings saved successfully");
 }
 
 void chatGPT::LoadSettings() {

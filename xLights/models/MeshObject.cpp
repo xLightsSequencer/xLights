@@ -18,7 +18,7 @@
 #include "../ExternalHooks.h"
 #include "xLightsMain.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -190,9 +190,9 @@ std::list<std::string> MeshObject::GetFileReferences()
 void MeshObject::loadObject(xlGraphicsContext *ctx)
 {
     if (FileExists(_objFile)) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
 
-        logger_base.debug("Loading mesh model '%s' file '%s'.",
+        spdlog::debug("Loading mesh model '{}' file '{}'.",
             (const char*)GetName().c_str(),
             (const char*)_objFile.c_str());
 

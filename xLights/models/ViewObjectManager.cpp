@@ -25,7 +25,7 @@
 #include "ModelGroup.h"
 #include "XmlSerializer/XmlSerializer.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 ViewObjectManager::ViewObjectManager(xLightsFrame* xl) : xlights(xl)
 {
@@ -216,7 +216,7 @@ static bool IsVOXmlNodeChanged(pugi::xml_node local, pugi::xml_node base)
 static bool MergeBaseIntoCurrentObjectsXml(pugi::xml_node currentObjectsNode, pugi::xml_node baseObjectsNode,
                                            std::vector<std::string>& changedObjects)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     bool changed = false;
 
     if (!baseObjectsNode || !currentObjectsNode) return false;
@@ -234,7 +234,7 @@ static bool MergeBaseIntoCurrentObjectsXml(pugi::xml_node currentObjectsNode, pu
             SetVOXmlAttribute(copy, "FromBase", "1");
             changedObjects.push_back(name);
             changed = true;
-            logger_base.debug("MergeBase: Adding view object from base: '%s'.", name.c_str());
+            spdlog::debug("MergeBase: Adding view object from base: '{}'.", name.c_str());
         } else if (std::string_view(local.attribute("FromBase").as_string()) == "1") {
             // Object exists and came from base -- update if changed
             if (IsVOXmlNodeChanged(local, bo)) {
@@ -244,7 +244,7 @@ static bool MergeBaseIntoCurrentObjectsXml(pugi::xml_node currentObjectsNode, pu
                 currentObjectsNode.remove_child(local);
                 changedObjects.push_back(name);
                 changed = true;
-                logger_base.debug("MergeBase: Updating view object from base: '%s'.", name.c_str());
+                spdlog::debug("MergeBase: Updating view object from base: '{}'.", name.c_str());
             }
         }
         // If object exists locally without FromBase, skip silently

@@ -43,7 +43,7 @@
 #include "../../ModelChainDialog.h"
 #include "../../StartChannelDialog.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #define MOST_STRINGS_WE_EXPECT 480
 #define MOST_CONTROLLER_PORTS_WE_EXPECT 128
@@ -270,7 +270,7 @@ protected:
 ModelPropertyAdapter::ModelPropertyAdapter(Model& model) : _model(model) {}
 
 void ModelPropertyAdapter::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxStopWatch sw;
 
     auto layoutGroupsList = Model::GetLayoutGroups(_model.GetModelManager());
@@ -497,7 +497,7 @@ void ModelPropertyAdapter::AddProperties(wxPropertyGridInterface* grid, OutputMa
     DisableUnusedProperties(grid);
 
     if (sw.Time() > 500)
-        logger_base.debug("        ModelPropertyAdapter::AddProperties took %lums", sw.Time());
+        spdlog::debug("        ModelPropertyAdapter::AddProperties took {}ms", sw.Time());
 }
 
 void ModelPropertyAdapter::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
@@ -1056,7 +1056,7 @@ void ModelPropertyAdapter::DisableUnusedProperties(wxPropertyGridInterface* grid
 
 
 int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     auto caps = _model.GetControllerCaps();
 
@@ -1272,7 +1272,7 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         std::string oldProtocol = _model.GetControllerProtocol();
 
         if (event.GetValue().GetLong() >= (long)cp.size()) {
-            logger_base.crit("Protocol being set is not in the controller protocols which has %d protocols.", (int)cp.size());
+            spdlog::critical("Protocol being set is not in the controller protocols which has {} protocols.", (int)cp.size());
             return 0;
         }
 

@@ -12,21 +12,24 @@
 #include "outputs/Controller.h"
 #include "xLightsMain.h"
 #include "OutputModelManager.h"
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #ifdef _DEBUG
 void OutputModelManager::Dump(const std::string& type, const std::list<std::pair<uint32_t, std::string>>& source)
 {
-    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    auto logger_work = spdlog::get("work");
 
-    logger_work.debug("    Dump explaining how we got here : %s", (const char*)type.c_str());
+    logger_work->debug("    Dump explaining how we got here : {}", type);
     for (const auto& it : source)
     {
-        logger_work.debug("          0x%04x  %s  %s", it.first, (const char*)DecodeWork(it.first).c_str(), (const char*)it.second.c_str());
+        logger_work->debug("          {:04X}  {}  {}", it.first, DecodeWork(it.first), it.second);
     }
-    if (_selectedModel != "") logger_work.debug("    Select model '%s'", (const char*)_selectedModel.c_str());
-    if (_selectedController != "") logger_work.debug("    Select controller '%s'", (const char*)_selectedController.c_str());
-    if (_modelToModelFromXml != nullptr) logger_work.debug("    Model to reload xml '%s'", (const char*)_modelToModelFromXml->GetName().c_str());
+    if (_selectedModel != "")
+        logger_work->debug("    Select model '{}'", _selectedModel);
+    if (_selectedController != "")
+        logger_work->debug("    Select controller '{}'", _selectedController);
+    if (_modelToModelFromXml != nullptr)
+        logger_work->debug("    Model to reload xml '{}'", _modelToModelFromXml->GetName());
 }
 
 std::string OutputModelManager::DecodeWork(uint32_t work)
@@ -176,7 +179,7 @@ std::string OutputModelManager::GetSelectedController()
 
 void OutputModelManager::AddImmediateWork(uint32_t work, const std::string& from, BaseObject* m, Controller* o, const std::string& selectedModel)
 {
-    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    auto logger_work = spdlog::get("work");
     if (work & WORK_RELOAD_MODEL_FROM_XML)
     {
         if (m == nullptr)
@@ -187,9 +190,9 @@ void OutputModelManager::AddImmediateWork(uint32_t work, const std::string& from
         }
     }
 #ifdef _DEBUG
-    logger_work.debug("Doing Immediate Work. Called from %s", (const char*)from.c_str());
+    logger_work->debug("Doing Immediate Work. Called from {}", from);
 #else
-    logger_work.debug("Doing Immediate Work.");
+    logger_work->debug("Doing Immediate Work.");
 #endif
     _frame->DoWork(work, "Immediate", m, selectedModel);
 }

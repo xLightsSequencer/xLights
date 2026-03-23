@@ -38,7 +38,7 @@
 #include <wx/stopwatch.h>
 #include "CachedFileDownloader.h"
 #include <wx/log.h>
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 #include "UtilFunctions.h"
 #include "ExternalHooks.h"
 
@@ -99,7 +99,7 @@ public:
 
     MFace(pugi::xml_node n)
     {
-        // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        // static 
 
         _width = -1;
 		_height = -1;
@@ -417,8 +417,7 @@ MatrixFaceDownloadDialog::MatrixFaceDownloadDialog(wxWindow* parent, wxWindowID 
 
     SetSize(800, 600);
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("File cache size: %d", GetCache().size());
+    spdlog::debug("File cache size: {}", GetCache().size());
 
     PopulateFacePanel((MFace*)nullptr);
 

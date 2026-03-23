@@ -222,7 +222,7 @@ END_EVENT_TABLE()
 #include "TempFileManager.h"
 #include "UtilFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 
 AIImageDialog::AIImageDialog(wxWindow* parent, aiBase* service, wxWindowID id)

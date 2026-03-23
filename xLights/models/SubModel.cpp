@@ -12,7 +12,7 @@
 #include "ModelManager.h"
 #include "ModelGroup.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 static const std::string DEFAULT("Default");
 static const std::string STACKED_STRANDS("Stacked Strands");

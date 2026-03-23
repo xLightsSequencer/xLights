@@ -13,7 +13,7 @@
 // Amazon Gift Cards - E-mail Delivery https://www.amazon.it/gp/product/B005VG4G3U/gcrnsts
 
 #include "wxhttpserver.h"
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 //#define DETAILED_LOGGING
 
@@ -41,7 +41,7 @@ HttpServer::~HttpServer()
 
 bool HttpServer::Start(const HttpContext &context)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxASSERT(!_server || (_server && _server->IsClosed()));
 
 	if (_server && _server->IsConnected())
@@ -53,7 +53,7 @@ bool HttpServer::Start(const HttpContext &context)
 	_address.Service(_context.Port);
 
 	wxLogMessage(_("starting server on %s:%u..."), _address.IPAddress(), _address.Service());
-    logger_base.info("starting server on %s:%u...", (const char *)_address.IPAddress().c_str(), _address.Service());
+    spdlog::info("starting server on {}:{}...", _address.IPAddress().ToStdString(), _address.Service());
 
 	// Create the socket
 	_server = new wxSocketServer(_address, wxSOCKET_REUSEADDR);
@@ -62,7 +62,7 @@ bool HttpServer::Start(const HttpContext &context)
     if (!_server->IsOk())
     {
         wxLogError(_("unable to start the server on the specified port"));
-        logger_base.error(_("unable to start the server on the specified port"));
+        spdlog::error("unable to start the server on the specified port");
     }
 	else
 	{
@@ -70,12 +70,12 @@ bool HttpServer::Start(const HttpContext &context)
         if (!_server->GetLocal(address))
         {
             wxLogError(_("unable to retrieve the address to which you are connected"));
-            logger_base.error(_("unable to retrieve the address to which you are connected"));
+            spdlog::error("unable to retrieve the address to which you are connected");
         }
         else
         {
             wxLogMessage(_("server running on %s:%u"), address.IPAddress(), address.Service());
-            logger_base.info("server running on %s:%u", (const char *)address.IPAddress().c_str(), address.Service());
+            spdlog::info("server running on {}:{}", address.IPAddress().ToStdString(), address.Service());
         }
 
 		// Setup the event handler and subscribe to connection events
@@ -89,7 +89,7 @@ bool HttpServer::Start(const HttpContext &context)
 
 bool HttpServer::Stop()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     
     if (!_server) return false;
 
@@ -105,7 +105,7 @@ bool HttpServer::Stop()
     _server = nullptr;
 
 	wxLogMessage(_("closed server on %s:%u"), _address.IPAddress(), _address.Service());
-    logger_base.debug("closed server on %s:%u", (const char*)_address.IPAddress().c_str(), _address.Service());
+    spdlog::debug("closed server on {}:{}", _address.IPAddress().ToStdString(), _address.Service());
 
 	return true;
 }
@@ -125,7 +125,7 @@ bool HttpServer::IsConnectionValid(HttpConnection* connection) const
 void HttpServer::OnServerEvent(wxSocketEvent& event)
 {
 #ifdef DETAILED_LOGGING
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 #endif
     wxStopWatch sw;
 
@@ -133,12 +133,12 @@ void HttpServer::OnServerEvent(wxSocketEvent& event)
     {
     case wxSOCKET_CONNECTION:
 #ifdef DETAILED_LOGGING
-        logger_base.info("OnServerEvent: wxSOCKET_CONNECTION");
+        spdlog::info("OnServerEvent: wxSOCKET_CONNECTION");
 #endif
         break;
     default:
 #ifdef DETAILED_LOGGING
-        logger_base.info("OnServerEvent: unexpected event %d", event.GetSocketEvent());
+        spdlog::info("OnServerEvent: unexpected event {}", (int)event.GetSocketEvent());
 #endif
         break;
     }
@@ -150,7 +150,7 @@ void HttpServer::OnServerEvent(wxSocketEvent& event)
     if (socket)
     {
 #ifdef DETAILED_LOGGING
-        logger_base.info("created socket client (socket %d)", socket->GetSocket());
+        spdlog::info("created socket client (socket {})", socket->GetSocket());
 #endif
 
         HttpConnection *connection = nullptr;
@@ -172,19 +172,19 @@ void HttpServer::OnServerEvent(wxSocketEvent& event)
     else
     {
 #ifdef DETAILED_LOGGING
-        logger_base.info("error, impossible to accept a new connection");
+        spdlog::info("error, impossible to accept a new connection");
 #endif
     }
 
 #ifdef DETAILED_LOGGING
-    logger_base.info("OnServerEvent Time %ld.", sw.Time());
+    spdlog::info("OnServerEvent Time {}.", sw.Time());
 #endif
 }
 
 void HttpServer::OnSocketEvent(wxSocketEvent& event)
 {
 #ifdef DETAILED_LOGGING
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 #endif
     wxStopWatch sw;
 
@@ -192,17 +192,17 @@ void HttpServer::OnSocketEvent(wxSocketEvent& event)
 	{
 	case wxSOCKET_INPUT:
 #ifdef DETAILED_LOGGING
-        logger_base.info("OnSocketEvent: wxSOCKET_INPUT");
+        spdlog::info("OnSocketEvent: wxSOCKET_INPUT");
 #endif
 		break;
 	case wxSOCKET_LOST:
 #ifdef DETAILED_LOGGING
-        logger_base.info("OnSocketEvent: wxSOCKET_LOST");
+        spdlog::info("OnSocketEvent: wxSOCKET_LOST");
 #endif
 		break;
 	default:
 #ifdef DETAILED_LOGGING
-        logger_base.info("OnServerEvent: unexpected event %d", event.GetSocketEvent());
+        spdlog::info("OnServerEvent: unexpected event {}", event.GetSocketEvent());
 #endif
 		break;
 	}
@@ -237,7 +237,7 @@ void HttpServer::OnSocketEvent(wxSocketEvent& event)
 			// here) after the socket has been deleted. Also, we might be doing some other thing with the socket at the same
 			// time; for example, we might be in the middle of a test or something. Destroy() takes care of all this for us.
 #ifdef DETAILED_LOGGING
-            logger_base.info("deleted socket client (socket %d)", socket->GetSocket());
+            spdlog::info("deleted socket client (socket {})", socket->GetSocket());
 #endif
 			socket->Destroy();
 			break;
@@ -247,6 +247,6 @@ void HttpServer::OnSocketEvent(wxSocketEvent& event)
 	}
 
 #ifdef DETAILED_LOGGING
-    logger_base.info("OnSocketEvent Time %ld.", sw.Time());
+    spdlog::info("OnSocketEvent Time {}.", sw.Time());
 #endif
 }

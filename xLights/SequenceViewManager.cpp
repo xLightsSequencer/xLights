@@ -15,7 +15,7 @@
 #include "UtilFunctions.h"
 #include "XmlSerializer/XmlSerializingVisitor.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #define MASTER_VIEW_NAME "Master View"
 

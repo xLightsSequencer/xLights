@@ -21,7 +21,7 @@
 #include "CustomModel.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 SphereModel::SphereModel(const ModelManager &manager) : MatrixModel(manager)
 {
@@ -43,7 +43,7 @@ void SphereModel::InitModel() {
 
 void SphereModel::SetSphereCoord() {
 
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //
 
     if (BufferWi < 1) return;
     if (BufferHt < 1) return; // June 27,2013. added check to not divide by zero
@@ -56,7 +56,7 @@ void SphereModel::SetSphereCoord() {
     double radians = toRadians(360);
     double radius = RenderMx / 2.0;
 
-    //logger_base.debug("Buffer %d,%d Render %f,%f Radius %f,%f",
+    //spdlog::debug("Buffer {},{} Render {},{} Radius {},{}",
     //    BufferWi, BufferHt,
     //    (float)RenderWi, (float)RenderHt,
     //    (float)Hradius, (float)Vradius);
@@ -66,13 +66,13 @@ void SphereModel::SetSphereCoord() {
     double HStartAngle = radians / 4.0 + 0.003 - remove / 2.0;
     double HAngleIncr = (-radians + remove - fudge) / (double)BufferWi;
 
-    //logger_base.debug("Horizontal Start %d: +%f x %d",
+    //spdlog::debug("Horizontal Start {}: +{} x {}",
     //    (int)toDegrees(HStartAngle), (float)toDegrees(HAngleIncr), BufferWi);
 
     double VStartAngle = toRadians(_startLatitude-90);
     double VAngleIncr = (toRadians(-1 * _startLatitude) + toRadians(_endLatitude)) / (BufferHt-1);
 
-    //logger_base.debug("Vertical Start %d: +%f x %d",
+    //spdlog::debug("Vertical Start {}: +{} x {}",
     //    (int)toDegrees(VStartAngle), (float)toDegrees(VAngleIncr), BufferHt);
 
     size_t NodeCount = GetNodeCount();
@@ -89,7 +89,7 @@ void SphereModel::SetSphereCoord() {
             Nodes[n]->Coords[c].screenZ = radius * sin(hangle) * sv;
             Nodes[n]->Coords[c].screenY = radius * cos(vangle);
 
-            //logger_base.debug("%d: %d,%d -> hangle %d vangle %d -> %f,%f,%f",
+            //spdlog::debug("{}: {},{} -> hangle {} vangle {} -> {},{},{}",
             //    n,
             //    (int)bufferX, (int)bufferY,
             //    (int)toDegrees(hangle), (int)toDegrees(vangle),

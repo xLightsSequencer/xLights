@@ -103,7 +103,7 @@ inline void AddSlowStorageWarning() {
 #elif __has_include(<log4cpp/Category.hh>)
 // compiling within xLights, use log4cpp
 #define PLATFORM_UNKNOWN
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 template<typename... Args>
 static void LogErr(int i, const char* fmt, Args... args) {
     static log4cpp::Category& fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -114,7 +114,7 @@ static void LogErr(int i, const char* fmt, Args... args) {
         buf[strlen(fmt) - 1] = 0;
         nfmt = buf;
     }
-    fseq_logger_base.error(nfmt, args...);
+    fseq_spdlog::error(nfmt, args...);
 }
 template<typename... Args>
 static void LogInfo(int i, const char* fmt, Args... args) {
@@ -126,7 +126,7 @@ static void LogInfo(int i, const char* fmt, Args... args) {
         buf[strlen(fmt) - 1] = 0;
         nfmt = buf;
     }
-    fseq_logger_base.info(nfmt, args...);
+    fseq_spdlog::info(nfmt, args...);
 }
 template<typename... Args>
 static void LogDebug(int i, const char* fmt, Args... args) {
@@ -138,7 +138,7 @@ static void LogDebug(int i, const char* fmt, Args... args) {
         buf[strlen(fmt) - 1] = 0;
         nfmt = buf;
     }
-    fseq_logger_base.debug(nfmt, args...);
+    fseq_spdlog::debug(nfmt, args...);
 }
 inline void AddSlowStorageWarning() {
 }

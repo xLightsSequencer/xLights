@@ -37,7 +37,7 @@
 #include "../../xLightsApp.h"
 #include "../../xLightsMain.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 //(*IdInit(PianoPanel)
 const long PianoPanel::ID_STATICTEXT_Piano_Type = wxNewId();

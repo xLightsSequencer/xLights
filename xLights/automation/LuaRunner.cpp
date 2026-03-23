@@ -14,7 +14,7 @@
 #include "UtilFunctions.h"
 #include "../ExternalHooks.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include <wx/stdpaths.h>
 
@@ -76,7 +76,7 @@ std::pair<std::list<std::string>, bool> LuaRunner::PromptSequences() const
 {
     std::list<std::string> sequenceList;
     bool forceHighDefinitionRender = false;
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     BatchRenderDialog dlg(_frame, _frame->GetOutputManager());
     dlg.SetTitle("Select Sequences");
@@ -88,7 +88,7 @@ std::pair<std::list<std::string>, bool> LuaRunner::PromptSequences() const
             if (FileExists(fname)) {
                 sequenceList.push_back(fname.GetFullPath());
             } else {
-                logger_base.info("PromptSequences: Sequence File not Found: %s.", (const char*)fname.GetFullPath().c_str());
+                spdlog::info("PromptSequences: Sequence File not Found: {}.", (const char*)fname.GetFullPath().c_str());
             }
         }
         if (dlg.CheckBox_ForceHighDefinition->IsChecked()) {
@@ -117,7 +117,7 @@ std::string LuaRunner::JoinString(sol::object const& list, char const& delimiter
 
 bool LuaRunner::Run_Script(std::string const& filepath, std::function<void(std::string const& msg)> SendResponse)
 { 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     sol::state lua;
     // open some common libraries
     lua.open_libraries(sol::lib::base, sol::lib::package, sol::lib::table, sol::lib::os, sol::lib::io, sol::lib::string, sol::lib::math );
@@ -155,8 +155,8 @@ bool LuaRunner::Run_Script(std::string const& filepath, std::function<void(std::
         // check if it's successfully loaded
         if (!lr.valid()) {
             sol::error err = lr;
-            logger_base.info("LuaRunner: Script is Invalid: %s.", (const char*)filepath.c_str());
-            logger_base.info("LuaRunner: Error: %s.", err.what());
+            spdlog::info("LuaRunner: Script is Invalid: {}.", (const char*)filepath.c_str());
+            spdlog::info("LuaRunner: Error: {}.", err.what());
             wxMessageBox("Script is Invalid: " + filepath + "\n\n" + err.what(), "Load Script Error", wxOK);
             return false;
         }
@@ -165,15 +165,15 @@ bool LuaRunner::Run_Script(std::string const& filepath, std::function<void(std::
         // check if it was done properly
         if (!result2.valid()) {
             sol::error err2 = result2;
-            logger_base.info("LuaRunner: Error Running Script: %s.", (const char*)filepath.c_str());
-            logger_base.info("LuaRunner: Error: %s.", err2.what());
+            spdlog::info("LuaRunner: Error Running Script: {}.", (const char*)filepath.c_str());
+            spdlog::info("LuaRunner: Error: {}.", err2.what());
             SendResponse(err2.what());
             wxMessageBox("Error Running Script: " + filepath + "\n\n" + err2.what(), "Script Error", wxOK);
             return false;
         }
     } catch (std::exception& e) {
-        logger_base.info("LuaRunner: Throw Running Script: %s.", (const char*)filepath.c_str());
-        logger_base.info("LuaRunner: Error: %s.", e.what());
+        spdlog::info("LuaRunner: Throw Running Script: {}.", (const char*)filepath.c_str());
+        spdlog::info("LuaRunner: Error: {}.", e.what());
         SendResponse(e.what());
         wxMessageBox(e.what(), "Error", wxOK);
         return false;
@@ -235,14 +235,14 @@ std::string LuaRunner::CommandtoString(std::string const& cmd, std::map<std::str
 
 sol::object LuaRunner::JSONToTable(std::string const& json, sol::this_state s) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     sol::state_view lua = s;
     try {
         nlohmann::json val = nlohmann::json::parse(json);
         return getObjectType(val, lua);
     } catch (std::exception&) {
     }
-    logger_base.info("LuaRunner: Could not Parse JSON: %s.", (const char*)json.c_str());
+    spdlog::info("LuaRunner: Could not Parse JSON: {}.", (const char*)json.c_str());
     return sol::make_object(lua, json);
 }
 

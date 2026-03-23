@@ -26,7 +26,7 @@
 #include "ExternalHooks.h"
 #include "XmlSerializer/FileSerializingVisitor.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 wxDEFINE_EVENT(EVT_EFFTREEDROP, wxCommandEvent);
 
@@ -378,7 +378,7 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
 {
     if (settings == "") return "0";
 
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static 
     //logger_base.debug("Name: %s", (const char *)name.c_str());
     //logger_base.debug("Settings: %s", (const char *)settings.c_str());
     int res = 0;
@@ -483,7 +483,7 @@ wxString EffectTreeDialog::ParseDuration(wxString name, wxString settings)
 {
     if (settings == "") return "0";
 
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static 
     //logger_base.debug("Name: %s", (const char *)name.c_str());
     //logger_base.debug("Settings: %s", (const char *)settings.c_str());
     int minstart = 99999999;
@@ -792,8 +792,7 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
 
             pugi::xml_document input_xml;
             if (!input_xml.load_file(file_to_import.mb_str())) {
-                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                logger_base.warn("EffectTreeDialog::Unable to load %s to import presets.", (const char *)file_to_import.c_str());
+                spdlog::warn("EffectTreeDialog::Unable to load {} to import presets.", file_to_import.ToStdString());
                 ValidateWindow();
                 return;
             }

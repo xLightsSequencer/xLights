@@ -32,7 +32,7 @@
 #include "../../xLightsMain.h"
 #include "../../render/SequenceElements.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 //(*IdInit(GuitarPanel)
 const wxWindowID GuitarPanel::ID_STATICTEXT_Guitar_Type = wxNewId();

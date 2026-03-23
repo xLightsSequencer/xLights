@@ -51,7 +51,7 @@
 #include "../XmlSerializer/XmlSerializer.h"
 #include "../XmlSerializer/GdtfParser.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include <algorithm>
 #include <iostream>
@@ -617,7 +617,7 @@ void Model::AddModelGroups(pugi::xml_node n, int w, int h, const std::string& na
 }
 
 void Model::ImportExtraModels(pugi::xml_node n, xLightsFrame* xlights, ModelPreview* modelPreview, const std::string& layoutGroup) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     int x = GetHcenterPos();
     int y = GetVcenterPos();
@@ -652,7 +652,7 @@ void Model::ImportExtraModels(pugi::xml_node n, xLightsFrame* xlights, ModelPrev
                         OutputModelManager::WORK_RELOAD_MODELLIST, "Model::ImportExtraModels");
             IncrementChangeCount();
         } else {
-            logger_base.error("Unable to import %s. Create failed.", m.name());
+            spdlog::error("Unable to import {}. Create failed.", m.name());
         }
     }
 }
@@ -1016,7 +1016,7 @@ void Model::UpdateChannels()
 
 void Model::Setup()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxStopWatch sw;
 
     StrobeRate = 0;
@@ -1045,7 +1045,7 @@ void Model::Setup()
     UpdateChannels();
     
     if (sw.Time() > 10) {
-        logger_base.debug("%s model %s took %lums to initialise.", DisplayAsTypeToString(DisplayAs).c_str(), (const char*)name.c_str(), sw.Time());
+        spdlog::debug("{} model {} took {}ms to initialise.", DisplayAsTypeToString(DisplayAs).c_str(), (const char*)name.c_str(), sw.Time());
     }
     for (auto &sm : subModels) {
         sm->Setup();
@@ -1683,15 +1683,15 @@ char GetPixelDump(int x, int y, std::vector<NodeBaseClassPtr>& newNodes)
 void Model::DumpBuffer(std::vector<NodeBaseClassPtr>& newNodes,
                        int bufferWi, int bufferHt) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    logger_base.debug("Dumping render buffer for '%s':", (const char*)GetFullName().c_str());
+    spdlog::debug("Dumping render buffer for '{}':", (const char*)GetFullName().c_str());
     for (int y = bufferHt - 1; y >= 0; y--) {
         std::string line = "";
         for (int x = 0; x < bufferWi; ++x) {
             line += GetPixelDump(x, y, newNodes);
         }
-        logger_base.debug(">    %s", (const char*)line.c_str());
+        spdlog::debug(">    {}", (const char*)line.c_str());
     }
 }
 
@@ -1780,7 +1780,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
                                   const std::string& transform,
                                   std::vector<NodeBaseClassPtr>& newNodes, int& bufferWi, int& bufferHt, int stagger, bool deep) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     std::string type = tp.starts_with("Per Model ") ? tp.substr(10) : tp;
     int firstNode = newNodes.size();
 
@@ -1788,7 +1788,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
     if (firstNode + Nodes.size() <= 0) {
         // This seems to happen when an effect is dropped on a strand with zero pixels
         // Like a polyline segment with no nodes
-        logger_base.warn("Model::InitRenderBufferNodes firstNode + Nodes.size() = %d. %s::'%s'. This commonly happens on a polyline segment with zero pixels or a custom model with no nodes but with effects dropped on it.", (int32_t)firstNode + Nodes.size(), DisplayAsTypeToString(DisplayAs).c_str(), (const char*)GetFullName().c_str());
+        spdlog::warn("Model::InitRenderBufferNodes firstNode + Nodes.size() = {}. {}::'{}'. This commonly happens on a polyline segment with zero pixels or a custom model with no nodes but with effects dropped on it.", (int32_t)firstNode + Nodes.size(), DisplayAsTypeToString(DisplayAs).c_str(), (const char*)GetFullName().c_str());
     }
 
     // Don't add model group nodes if its a 3D preview render buffer
@@ -1808,7 +1808,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         int cnt = 0;
         for (int x = firstNode; x < newNodes.size(); ++x) {
             if (newNodes[x] == nullptr) {
-                logger_base.crit("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                spdlog::critical("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                 assert(false);
             }
             for (auto& it2 : newNodes[x]->Coords) {
@@ -1821,7 +1821,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         bufferWi = 1;
         for (int x = firstNode; x < newNodes.size(); ++x) {
             if (newNodes[x] == nullptr) {
-                logger_base.crit("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                spdlog::critical("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                 assert(false);
             }
             for (auto& it2 : newNodes[x]->Coords) {
@@ -1850,7 +1850,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
                 cnt = 0;
             } else {
                 if (newNodes[x] == nullptr) {
-                    logger_base.crit("AAA Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                    spdlog::critical("AAA Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                     assert(false);
                 }
                 for (auto& it2 : newNodes[x]->Coords) {
@@ -1882,7 +1882,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
                 cnt = 0;
             } else {
                 if (newNodes[x] == nullptr) {
-                    logger_base.crit("BBB Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                    spdlog::critical("BBB Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                     assert(false);
                 }
                 for (auto& it2 : newNodes[x]->Coords) {
@@ -1934,7 +1934,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         outy.reserve(newNodes.size() - firstNode);
         for (int x = firstNode; x < newNodes.size(); ++x) {
             if (newNodes[x] == nullptr) {
-                logger_base.crit("CCC Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                spdlog::critical("CCC Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                 assert(false);
             }
             for (auto& it2 : newNodes[x]->Coords) {
@@ -1990,7 +1990,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
             int maxDimension = ((ModelGroup*)this)->GetGridSize();
             if (maxDimension != 0 && (maxX - minX > maxDimension || maxY - minY > maxDimension)) {
                 // we need to resize all the points by this amount
-                logger_base.warn("Model Group (%s), Actual Grid Size of %.0f exceeded the Max Grid Size of %d.",
+                spdlog::warn("Model Group ({}), Actual Grid Size of {} exceeded the Max Grid Size of {}.",
                     (const char*)GetFullName().c_str(), 
                     ((maxX - minX) > (maxY - minY) ? (maxX - minX) : (maxY - minY)), 
                     maxDimension);
@@ -2039,7 +2039,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         maxX /= factor;
         minY /= factor;
         maxY /= factor;
-        // logger_base.debug("Factor '%f':", factor);
+        // spdlog::debug("Factor '{}':", factor);
 
         float offx = minX;
         float offy = minY;
@@ -2057,7 +2057,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
             auto ity = outy.begin();
             for (int x = firstNode; x < newNodes.size(); ++x) {
                 if (newNodes[x] == nullptr) {
-                    logger_base.crit("DDD Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                    spdlog::critical("DDD Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                     assert(false);
                 }
                 for (auto& it2 : newNodes[x]->Coords) {
@@ -2100,20 +2100,20 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
     // Zero buffer sizes are bad
     // This can happen when a strand is zero length ... maybe also a custom model with no nodes
     if (bufferHt == 0) {
-        logger_base.warn("Model::InitRenderBufferNodes BufferHt was 0 ... overridden to be 1.");
+        spdlog::warn("Model::InitRenderBufferNodes BufferHt was 0 ... overridden to be 1.");
         bufferHt = 1;
     }
     if (bufferWi == 0) {
-        logger_base.warn("Model::InitRenderBufferNodes BufferWi was 0 ... overridden to be 1.");
+        spdlog::warn("Model::InitRenderBufferNodes BufferWi was 0 ... overridden to be 1.");
         bufferWi = 1;
     }
     if (bufferWi * bufferHt > 2100000) {
         if (bufferHt > 100000) {
-            logger_base.warn("Model::InitRenderBufferNodes BufferHt was overly large ... overridden to be 100000.");
+            spdlog::warn("Model::InitRenderBufferNodes BufferHt was overly large ... overridden to be 100000.");
             bufferHt = 100000;
         }
         if (bufferWi > 100000) {
-            logger_base.warn("Model::InitRenderBufferNodes BufferWi was overly large ... overridden to be 100000.");
+            spdlog::warn("Model::InitRenderBufferNodes BufferWi was overly large ... overridden to be 100000.");
             bufferWi = 100000;
         }
     }
@@ -3577,7 +3577,7 @@ int Model::GetStrandLength(int strand) const
 
 int Model::MapToNodeIndex(int strand, int node) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     // if ((DisplayAs == wxT("Vert Matrix") || DisplayAs == wxT("Horiz Matrix") || DisplayAs == wxT("Matrix")) && SingleChannel) {
     //     return node;
     // }
@@ -3589,7 +3589,7 @@ int Model::MapToNodeIndex(int strand, int node) const
     }
     int strandsPerStr = GetStrandsPerString();
     if (strandsPerStr == 0) {
-        logger_base.crit("Map node to index with illegal strandsPerString = 0.");
+        spdlog::critical("Map node to index with illegal strandsPerString = 0.");
         return node;
     }
     return (strand * NodesPerString() / strandsPerStr) + node;
@@ -3608,7 +3608,7 @@ std::string Model::GetDimension() const
 
 Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* modelPreview, pugi::xml_node node, xLightsFrame* xlights, bool& cancelled) const {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     // This code should work to import model with old formats as well as new Serializer formats
     auto n = node;
@@ -3742,7 +3742,7 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, ModelPreview* m
         if (model != nullptr) { delete model; }
         model = serializer.DeserializeModel(n, xlights, true);
         if (model == nullptr) {
-            logger_base.error("GetXlightsModel no code to convert to " + std::string(node.name()));
+            spdlog::error("GetXlightsModel no code to convert to " + std::string(node.name()));
             xlights->AddTraceMessage("GetXlightsModel no code to convert to " + std::string(node.name()));
             cancelled = true;
         }
@@ -4181,7 +4181,7 @@ int32_t Model::GetStringStartChan(int x) const
 
 void Model::SetModelChain(const std::string& modelChain)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     std::string mc = modelChain;
     if (!mc.empty() && mc != "Beginning" && !StartsWith(mc, ">")) {
@@ -4194,7 +4194,7 @@ void Model::SetModelChain(const std::string& modelChain)
     if (_modelChain == mc) return;
     _modelChain = mc;
 
-    logger_base.debug("Model '%s' chained to '%s'.", (const char*)GetName().c_str(), (const char*)mc.c_str());
+    spdlog::debug("Model '{}' chained to '{}'.", (const char*)GetName().c_str(), (const char*)mc.c_str());
     AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
                 OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                 OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |

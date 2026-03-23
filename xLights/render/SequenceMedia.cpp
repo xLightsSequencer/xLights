@@ -19,7 +19,7 @@
 #include <wx/filename.h>
 #include <wx/file.h>
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include "../UtilFunctions.h"
 #include "../ExternalHooks.h"
@@ -104,7 +104,7 @@ void ImageCacheEntry::LoadFromFile(const std::string& filepath) {
 
 
 int ImageCacheEntry::GetExifOrientation(wxMemoryBuffer& buffer) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     char *data = reinterpret_cast<char*>(buffer.GetData());
     int maxLen = buffer.GetDataLen();
@@ -144,7 +144,7 @@ int ImageCacheEntry::GetExifOrientation(wxMemoryBuffer& buffer) {
                 ((unsigned char)ldata[tiff_header + 2] << 8) | (unsigned char)ldata[tiff_header + 3];
 
             if (fortytwo != 42) {
-                logger_base.debug("Invalid TIFF header identifier in %s", (const char*)_filePath.c_str());
+                spdlog::debug("Invalid TIFF header identifier in {}", (const char*)_filePath.c_str());
                 return 1;
             }
 
@@ -276,8 +276,8 @@ void ImageCacheEntry::loadImage(wxMemoryBuffer &ins) {
     wxMemoryInputStream stream(ins.GetData(), ins.GetDataLen());
     i.SetLoadFlags(0);
     if (!i.LoadFile(stream, wxBITMAP_TYPE_ANY, 0)) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.error("Error loading image file: %s.", (const char*)_filePath.c_str());
+        
+        spdlog::error("Error loading image file: {}.", (const char*)_filePath.c_str());
         i.Create(5, 5, true);
     }
     _imageCount = 1;
@@ -667,7 +667,7 @@ bool SequenceMedia::RenameImage(const std::string& oldPath, const std::string& n
 
 bool SequenceMedia::LoadFromXml(wxXmlNode* node)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (node == nullptr || (node->GetName() != "SequenceMedia")) {
         return false;
@@ -683,7 +683,7 @@ bool SequenceMedia::LoadFromXml(wxXmlNode* node)
             if (entry->LoadFromXml(imageNode)) {
                 _imageCache[entry->GetFilePath()] = entry;
             } else {
-                logger_base.warn("Failed to load image entry from XML");
+                spdlog::warn("Failed to load image entry from XML");
             }
         }
     }
@@ -719,7 +719,7 @@ std::vector<std::string> SequenceMedia::GetImagePaths() const
 
 void SequenceMedia::RemoveUnusedImages()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     
     std::scoped_lock lock(_cacheMutex);
     
@@ -733,7 +733,7 @@ void SequenceMedia::RemoveUnusedImages()
     }
     
     for (const auto& path : toRemove) {
-        logger_base.debug("Removing unused image from cache: %s", path.c_str());
+        spdlog::debug("Removing unused image from cache: {}", path.c_str());
         _imageCache.erase(path);
     }
 }

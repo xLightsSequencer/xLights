@@ -21,7 +21,7 @@
 #include <wx/string.h>
 #include <pugixml.hpp>
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include "../xLights/UtilFunctions.h"
 
@@ -236,12 +236,12 @@ void RestoreBackupDialog::OnListBoxBackupsSelect(wxCommandEvent& event)
 void RestoreBackupDialog::ListBackupDir()
 {
     wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     StaticTextBackUpFolder->SetLabel("Backup Folder: " + _backupDir);
 
     if (!wxDir::Exists(_backupDir)) {
-        logger_base.info("Backup folder doesnt exist: %s", (const char*)_backupDir.c_str());
+        spdlog::info("Backup folder doesnt exist: {}", (const char*)_backupDir.c_str());
         StaticTextBackUpFolder->SetLabel(_backupDir + " Not Found");
         StaticTextBackUpFolder->SetForegroundColour(wxColor(*wxRED));
     }
@@ -250,7 +250,7 @@ void RestoreBackupDialog::ListBackupDir()
         ListBoxBackups->Delete(0);
     }
 
-    logger_base.info("Scanning Backup folder: %s", (const char*)_backupDir.c_str());
+    spdlog::info("Scanning Backup folder: {}", (const char*)_backupDir.c_str());
 
     wxDir directory;
     directory.Open(_backupDir);
@@ -337,7 +337,7 @@ void RestoreBackupDialog::PopulateSequenceList(wxString const& folder)
 std::vector<BController> RestoreBackupDialog::LoadNetworkFile(wxString const& folder) const
 {
     std::vector<BController> controllers;
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxFileName networkFile;
     // load network
     networkFile.AssignDir(folder);
@@ -351,10 +351,10 @@ std::vector<BController> RestoreBackupDialog::LoadNetworkFile(wxString const& fo
                 }
             }
         } else {
-            logger_base.warn("Error loading networks file: %s.", (const char*)networkFile.GetFullPath().c_str());
+            spdlog::warn("Error loading networks file: {}.", (const char*)networkFile.GetFullPath().c_str());
         }
     } else {
-        logger_base.warn("Network file not found: %s.", (const char*)networkFile.GetFullPath().c_str());
+        spdlog::warn("Network file not found: {}.", (const char*)networkFile.GetFullPath().c_str());
     }
 
     std::sort(controllers.begin(), controllers.end(), [](const auto& lhs, const auto& rhs) {
@@ -368,7 +368,7 @@ std::vector<BModel> RestoreBackupDialog::LoadRGBEffectsFile(wxString const& fold
 {
     std::vector<BModel> models;
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxFileName modelFile;
     // load rgb effects file
     modelFile.AssignDir(folder);
@@ -391,13 +391,13 @@ std::vector<BModel> RestoreBackupDialog::LoadRGBEffectsFile(wxString const& fold
                     }
                 }
             } else {
-                logger_base.warn("Error loading RGB Effects file: %s.", (const char*)modelFile.GetFullPath().c_str());
+                spdlog::warn("Error loading RGB Effects file: {}.", (const char*)modelFile.GetFullPath().c_str());
             }
         } else {
-            logger_base.warn("Error loading RGB Effects file: %s.", (const char*)modelFile.GetFullPath().c_str());
+            spdlog::warn("Error loading RGB Effects file: {}.", (const char*)modelFile.GetFullPath().c_str());
         }
     } else {
-        logger_base.warn("RGB Effects file not found: %s.", (const char*)modelFile.GetFullPath().c_str());
+        spdlog::warn("RGB Effects file not found: {}.", (const char*)modelFile.GetFullPath().c_str());
     }
     std::sort(models.begin(), models.end(), [](const auto& lhs, const auto& rhs) {
         return lhs.Name < rhs.Name;

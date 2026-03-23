@@ -29,7 +29,7 @@
 #include "models/ModelGroup.h"
 #include "ExternalHooks.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 BEGIN_EVENT_TABLE(ModelPreview, GRAPHICS_BASE_CLASS)
 	EVT_MOTION(ModelPreview::mouseMoved)
@@ -412,7 +412,7 @@ const std::vector<Model*> &ModelPreview::GetModels() {
 
 bool ModelPreview::ValidateModels(const std::vector<Model*>models, const ModelManager& mm)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     for (const auto& it : models) {
         if (it->GetDisplayAs() != DisplayAsType::SubModel) {
             bool found = false;
@@ -425,12 +425,12 @@ bool ModelPreview::ValidateModels(const std::vector<Model*>models, const ModelMa
             if (!found) {
                 // pointer to a non-existent model found ... not good
                 wxASSERT(false);
-                logger_base.error("Validating models in model preview %s found model that was not valid. This may crash!!!!", (const char*)GetName().c_str());
+                spdlog::error("Validating models in model preview {} found model that was not valid. This may crash!!!!", (const char*)GetName().c_str());
                 return false;
             }
         }
     }
-    //logger_base.debug("Validating models in model preview %s ALL OK", (const char*)GetName().c_str());
+    //spdlog::debug("Validating models in model preview {} ALL OK", (const char*)GetName().c_str());
     return true;
 }
 
@@ -1163,7 +1163,7 @@ void ModelPreview::SetPan(float deltax, float deltay, float deltaz)
 
 bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!fromPaint && !IsShownOnScreen()) return false;
     if (!mIsInitialized) {
@@ -1229,7 +1229,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         
         if (mBackgroundImageExists) {
             if (background == nullptr) {
-                logger_base.debug("Loading background image file %s for preview %s.",
+                spdlog::debug("Loading background image file {} for preview {}.",
                                   (const char *)mBackgroundImage.c_str(),
                                   (const char *)GetName().c_str());
                 wxImage image(mBackgroundImage);
@@ -1237,13 +1237,13 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
                     int orientation = GetExifOrientation(mBackgroundImage);
                     if (orientation != 1) {
                         image = ApplyOrientation(image, orientation);
-                        logger_base.debug("    Applied EXIF orientation %d to background image.", orientation);
+                        spdlog::debug("    Applied EXIF orientation {} to background image.", orientation);
                     }
                     backgroundSize.Set(image.GetWidth(), image.GetHeight());
                     background = currentContext->createTexture(image, mBackgroundImage, true);
-                    logger_base.debug("    Loaded.");
+                    spdlog::debug("    Loaded.");
                 } else {
-                    logger_base.debug("    Failed.");
+                    spdlog::debug("    Failed.");
                 }
             }
             if (background != nullptr) {

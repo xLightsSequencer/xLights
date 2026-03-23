@@ -16,7 +16,7 @@
 #include <pugixml.hpp>
 #include <string>
 #include <map>
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 
 std::string SpecialOptions::StashShowDir(const std::string& showDir)
@@ -29,7 +29,6 @@ std::string SpecialOptions::StashShowDir(const std::string& showDir)
 
 std::string SpecialOptions::GetOption(const std::string& option, const std::string& defaultValue )
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static bool __loaded = false;
     static std::map<std::string, std::string> __cache;
 
@@ -49,7 +48,7 @@ std::string SpecialOptions::GetOption(const std::string& option, const std::stri
         }
         else
         {
-            logger_base.debug("Special options file not found at " + file);
+            spdlog::debug("Special options file not found at " + file);
             __loaded = true;
         }
         __cache.clear();
@@ -58,7 +57,7 @@ std::string SpecialOptions::GetOption(const std::string& option, const std::stri
 
     if (!__loaded)
     {
-        logger_base.debug("Loading special options from " + file);
+        spdlog::debug("Loading special options from " + file);
         pugi::xml_document doc;
         auto result = doc.load_file(file.c_str());
         if (result && doc.document_element())
@@ -75,14 +74,14 @@ std::string SpecialOptions::GetOption(const std::string& option, const std::stri
                     if (name != "")
                     {
                         __cache[name] = value;
-                        logger_base.debug("   Option '" + name + "' = '" + value + "'");
+                        spdlog::debug("   Option '" + name + "' = '" + value + "'");
                     }
                 }
             }
         }
         else
         {
-            logger_base.error("Unable to load " + file + " invalid xml.");
+            spdlog::error("Unable to load " + file + " invalid xml.");
             return defaultValue;
         }
     }

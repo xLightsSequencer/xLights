@@ -23,7 +23,7 @@
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 #include "effects/DMXEffect.h"
 
 std::atomic_int EffectLayer::exclusive_index(0);
@@ -228,8 +228,8 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
             name = "Off";
         }
         if ((em->GetEffectIndex(name) == -1) && (name != "Random")) {
-            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.warn("Unknown effect: " + name + ". Not loaded. " + GetParentElement()->GetModelName());
+            
+            spdlog::warn("Unknown effect: " + name + ". Not loaded. " + GetParentElement()->GetModelName());
             return nullptr;
         }
     }
@@ -1192,21 +1192,21 @@ int EffectLayer::GetSelectedEffectCount(const std::string effectName)
 
 void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid, EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     for (int i = 0; i<mEffects.size(); i++)
     {
         RenderableEffect* eff1 = effectManager.GetEffect(effectName);
         if (eff1 == nullptr && effectName != "")
         {
-            logger_base.error("Effect not found: '%s'", (const char *)effectName.c_str());
+            spdlog::error("Effect not found: '{}'", (const char *)effectName.c_str());
             wxASSERT(false);
         }
         RenderableEffect* eff2 = effectManager.GetEffect(mEffects[i]->GetEffectName());
         if (eff2 == nullptr)
         {
             // this cant happen
-            logger_base.error("Effect not found when scanning effects: '%s'", (const char *)mEffects[i]->GetEffectName().c_str());
+            spdlog::error("Effect not found when scanning effects: '{}'", (const char *)mEffects[i]->GetEffectName().c_str());
             wxASSERT(false);
         }
         if ((effectName == "" || eff1 == nullptr || eff1->GetId() == eff2->GetId()) &&
@@ -1225,18 +1225,18 @@ void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& u
 
 void EffectLayer::ApplyButtonPressToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, const std::string id, EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
 {
-    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     for (int i = 0; i < mEffects.size(); i++) {
         RenderableEffect* eff1 = effectManager.GetEffect(effectName);
         if (eff1 == nullptr && effectName != "") {
-            logger_base.error("Effect not found: '%s'", (const char*)effectName.c_str());
+            spdlog::error("Effect not found: '{}'", (const char*)effectName.c_str());
             wxASSERT(false);
         }
         RenderableEffect* eff2 = effectManager.GetEffect(mEffects[i]->GetEffectName());
         if (eff2 == nullptr) {
             // this cant happen
-            logger_base.error("Effect not found when scanning effects: '%s'", (const char*)mEffects[i]->GetEffectName().c_str());
+            spdlog::error("Effect not found when scanning effects: '{}'", (const char*)mEffects[i]->GetEffectName().c_str());
             wxASSERT(false);
         }
         if ((effectName == "" || eff1 == nullptr || eff2 == nullptr || eff1->GetId() == eff2->GetId()) &&

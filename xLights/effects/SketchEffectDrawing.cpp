@@ -1,6 +1,6 @@
 #include "SketchEffectDrawing.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include <wx/graphics.h>
 
@@ -549,8 +549,8 @@ SketchEffectSketch SketchEffectSketch::SketchFromString(const std::string& sketc
                 }
             }
         } catch (...) {
-            static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.error("Error parsing sketch path : \"%s\"", path_str.c_str());
+            
+            spdlog::error("Error parsing sketch path : \"{}\"", path_str.c_str());
         }
 
         if (!path->segments().empty())

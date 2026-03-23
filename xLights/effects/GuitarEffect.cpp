@@ -28,7 +28,7 @@
 #include <string>
 #include <list>
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 class GuitarTiming
 {
@@ -454,7 +454,7 @@ public:
 
     void GeneratePossibleTimings(const std::string& type, uint8_t maxFrets)
     {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
 
         // if there are no notes it may be because the timings were set using SnnPnn
         if (_notes.size() == 0)
@@ -565,7 +565,7 @@ public:
 
         if (max != _notes.size())
         {
-            logger_base.warn("One or more notes not found on %s at %lu.", (const char*)type.c_str(), _startMS);
+            spdlog::warn("One or more notes not found on {} at {}.", (const char*)type.c_str(), _startMS);
         }
 
         bool allZero = false;
@@ -1099,14 +1099,12 @@ int GuitarEffect::ConvertNote(const std::string& note)
 
 std::list<NoteTiming*> GuitarEffect::LoadTimingTrack(const std::string& track, int intervalMS, const std::string& type, uint8_t maxFrets, uint8_t strings)
 {
-    static log4cpp::Category& logger_Guitardata = log4cpp::Category::getInstance(std::string("log_Guitardata"));
-
     std::list<NoteTiming*> res;
 
-    logger_Guitardata.debug("Loading timings from timing track " + track);
+    spdlog::debug("Loading timings from timing track " + track);
 
     if (mSequenceElements == nullptr) {
-        logger_Guitardata.debug("No timing tracks found.");
+        spdlog::debug("No timing tracks found.");
         return res;
     }
 
@@ -1114,7 +1112,7 @@ std::list<NoteTiming*> GuitarEffect::LoadTimingTrack(const std::string& track, i
     EffectLayer* el = GetTiming(track);
 
     if (el == nullptr) {
-        logger_Guitardata.debug("Timing track not found.");
+        spdlog::debug("Timing track not found.");
         return res;
     }
 

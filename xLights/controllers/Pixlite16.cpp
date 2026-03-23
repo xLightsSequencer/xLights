@@ -24,15 +24,18 @@
 #include "../Discovery.h"
 #include "../utils/Curl.h"
 
-#include <log4cpp/Category.hh>
+#include "../utils/string_utils.h"
+
+#include "spdlog/spdlog.h"
+
+#include <format>
 
 #define PIXLITE_PORT 49150
 
 #pragma region Encode and Decode
 int Pixlite16::DecodeStringPortProtocol(const std::string& protocol)
 {
-    wxString p(protocol);
-    p = p.Lower();
+    std::string p = Lower(protocol);
 
     if (p == "tls3001") return 0;
     if (p == "sm16716") return 1;
@@ -78,8 +81,7 @@ int Pixlite16::Mk3FrequencyForProtocol(const std::string& p)
 
 int Pixlite16::DecodeSerialOutputProtocol(const std::string& protocol)
 {
-    wxString p(protocol);
-    p = p.Lower();
+    std::string p = Lower(protocol);
     if (p == "dmx") return 0;
     return -1;
 }
@@ -801,7 +803,6 @@ int Pixlite16::PrepareV5Config(uint8_t* data) const
 
 int Pixlite16::PrepareV6Config(uint8_t* data) const
 {
-
     int pos = 0;
 
     data[pos++] = 'A';
@@ -948,8 +949,6 @@ void Pixlite16::CreateDiscovery(uint8_t* buffer)
 
 bool Pixlite16::GetConfig(wxIPV4address localAddr, std::string ip, const std::string& desiredip)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     bool res = false;
 
     memset(&_config, 0x00, sizeof(_config));
@@ -967,12 +966,12 @@ bool Pixlite16::GetConfig(wxIPV4address localAddr, std::string ip, const std::st
     auto discovery = new wxDatagramSocket(localAddr, flags); // dont use NOWAIT as it can result in dropped packets
 
     if (discovery == nullptr) {
-        logger_base.error("Error initialising PixLite/PixCon datagram.");
+        spdlog::error("Error initialising PixLite/PixCon datagram.");
     } else if (!discovery->IsOk()) {
-        logger_base.error("Error initialising PixLite/PixCon datagram ... is network connected? OK : FALSE");
+        spdlog::error("Error initialising PixLite/PixCon datagram ... is network connected? OK : FALSE");
         delete discovery;
     } else if (discovery->Error()) {
-        logger_base.error("Error creating PixLite/PixCon socket => %d : %s.", discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
+        spdlog::error("Error creating PixLite/PixCon socket => {} : {}.", (int)discovery->LastError(), DecodeIPError(discovery->LastError()));
         delete discovery;
     } else {
         discovery->SetTimeout(1);
@@ -984,11 +983,11 @@ bool Pixlite16::GetConfig(wxIPV4address localAddr, std::string ip, const std::st
 
         uint8_t discoveryData[12];
         Pixlite16::CreateDiscovery(discoveryData);
-        logger_base.debug("Sending discovery to pixlite: %s:%d.", (const char*)ip.c_str(), PIXLITE_PORT);
+        spdlog::debug("Sending discovery to pixlite: {}:{}.", ip, PIXLITE_PORT);
         discovery->SendTo(remoteAddr, discoveryData, sizeof(discoveryData));
 
         if (discovery->Error()) {
-            logger_base.error("PixLite/PixCon error sending to %s => %d : %s.", (const char*)ip.c_str(), discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
+            spdlog::error("PixLite/PixCon error sending to {} => {} : {}.", ip, (int)discovery->LastError(), DecodeIPError(discovery->LastError()));
         } else {
             uint32_t count = 0;
 #define SLP_TIME 100
@@ -998,7 +997,7 @@ bool Pixlite16::GetConfig(wxIPV4address localAddr, std::string ip, const std::st
             }
 
             if (!discovery->IsData()) {
-                logger_base.warn("No discovery responses.");
+                spdlog::warn("No discovery responses.");
             }
 
             // look through responses for one that matches my ip
@@ -1009,66 +1008,66 @@ bool Pixlite16::GetConfig(wxIPV4address localAddr, std::string ip, const std::st
                 discovery->RecvFrom(pixliteAddr, data, sizeof(data));
 
                 if (!discovery->Error() && data[10] == 0x02) {
-                    logger_base.debug("   Discover response from %s.", (const char*)pixliteAddr.IPAddress().c_str());
+                    spdlog::debug("   Discover response from {}.", pixliteAddr.IPAddress().ToStdString());
 
                     if (desiredip == pixliteAddr.IPAddress()) {
-                        logger_base.debug("   This is the one we wanted to see.");
+                        spdlog::debug("   This is the one we wanted to see.");
 
                         bool connected = false;
                         _config._protocolVersion = data[11];
-                        logger_base.debug("   Protocol version %d.", _config._protocolVersion);
+                        spdlog::debug("   Protocol version {}.", _config._protocolVersion);
                         switch (_config._protocolVersion) {
                         case 4:
                             connected = ParseV4Config(data, _config);
                             if (!connected) {
-                                logger_base.error("   Failed to parse v4 config packet.");
+                                spdlog::error("   Failed to parse v4 config packet.");
                             }
                             break;
                         case 5:
                             connected = ParseV5Config(data, _config);
                             if (!connected) {
-                                logger_base.error("   Failed to parse v5 config packet.");
+                                spdlog::error("   Failed to parse v5 config packet.");
                             }
                             break;
                         case 6:
                             connected = ParseV6Config(data, _config);
                             if (!connected) {
-                                logger_base.error("   Failed to parse v6 config packet.");
+                                spdlog::error("   Failed to parse v6 config packet.");
                             }
                             break;
                         case 8:
                             connected = ParseV8Config(data, _config);
                             if (!connected) {
-                                logger_base.error("   Failed to parse v8 config packet.");
+                                spdlog::error("   Failed to parse v8 config packet.");
                             }
                             break;
                         default:
-                            logger_base.error("Unsupported Pixlite protocol version: %d.", _config._protocolVersion);
+                            spdlog::error("Unsupported Pixlite protocol version: {}.", _config._protocolVersion);
                             wxASSERT(false);
                             break;
                         }
 
                         if (connected) {
-                            wxString rcvIP = wxString::Format("%i.%i.%i.%i", _config._currentIP[0], _config._currentIP[1], _config._currentIP[2], _config._currentIP[3]);
+                            std::string const rcvIP = std::format("{}.{}.{}.{}", _config._currentIP[0], _config._currentIP[1], _config._currentIP[2], _config._currentIP[3]);
 
-                            logger_base.debug("Found PixLite/PixCon controller on %s.", (const char*)rcvIP.c_str());
-                            logger_base.debug("    Model %s %.1f.", (const char*)_config._modelName.c_str(), (float)_config._hwRevision / 10.0);
-                            logger_base.debug("    Firmware %s.", (const char*)_config._firmwareVersion.c_str());
-                            logger_base.debug("    Nickname %s.", (const char*)_config._nickname.c_str());
-                            logger_base.debug("    Brand %d.", _config._brand);
+                            spdlog::debug("Found PixLite/PixCon controller on {}.", rcvIP);
+                            spdlog::debug("    Model {} {:.1f}.", _config._modelName, (float)_config._hwRevision / 10.0);
+                            spdlog::debug("    Firmware {}.", _config._firmwareVersion);
+                            spdlog::debug("    Nickname {}.", _config._nickname);
+                            spdlog::debug("    Brand {}.", _config._brand);
                             res = true;
                             break;
                         } else {
-                            logger_base.error("Unable to download PixLite/PixCon controller configuration from %s.", (const char*)ip.c_str());
+                            spdlog::error("Unable to download PixLite/PixCon controller configuration from {}.", ip);
                         }
                     }
                     if (!discovery->Error() && data[10] == 0x01) {
                         // ignore this ... this is the discovery we sent
                     } else {
-                        logger_base.debug("   Not the controller we wanted to see.");
+                        spdlog::debug("   Not the controller we wanted to see.");
                     }
                 } else if (discovery->Error()) {
-                    logger_base.error("Error reading PixLite/PixCon response => %d : %s.", discovery->LastError(), (const char*)DecodeIPError(discovery->LastError()).c_str());
+                    spdlog::error("Error reading PixLite/PixCon response => {} : {}.", (int)discovery->LastError(),DecodeIPError(discovery->LastError()));
                 }
             }
         }
@@ -1081,8 +1080,6 @@ bool Pixlite16::GetConfig(wxIPV4address localAddr, std::string ip, const std::st
 
 bool Pixlite16::GetConfig()
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     bool res = false;
     wxIPV4address localAddr;
 
@@ -1094,12 +1091,12 @@ bool Pixlite16::GetConfig()
     // if we had no luck broadcast to all adapters and see if we can find it
     if (!res)
     {
-        logger_base.warn("Trying broadcast to each adapter to see if we can find");
+        spdlog::warn("Trying broadcast to each adapter to see if we can find");
 
         for (const auto& lip : GetLocalIPs())
         {
             if (!res) {
-                logger_base.warn("   Trying %s.", (const char*)lip.c_str());
+                spdlog::warn("   Trying {}.", (const char*)lip.c_str());
                 localAddr.Hostname(lip);
                 res = GetConfig(localAddr, "255.255.255.255", _ip);
             }
@@ -1118,7 +1115,7 @@ bool Pixlite16::GetMK3Config()
             nlohmann::json jsonVal = nlohmann::json::parse(_mk3Ver);
 
             if (!jsonVal.is_null()) {
-                _mk3APIVersion = jsonVal["result"]["apiVer"][0]["maj"].get<std::string>() + "." + wxString::Format("%d", jsonVal["result"]["apiVer"][0]["min"][1].get<int>());
+                _mk3APIVersion = jsonVal["result"]["apiVer"][0]["maj"].get<std::string>() + "." + std::format("{}", jsonVal["result"]["apiVer"][0]["min"][1].get<int>());
                 _config._modelName = jsonVal["result"]["prodName"].get<std::string>();
                 _config._firmwareVersion = jsonVal["result"]["fwVer"].get<std::string>();
                 _config._nickname = jsonVal["result"]["nickname"].get<std::string>();
@@ -1209,8 +1206,8 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
     Pixlite16::CreateDiscovery(discoveryData);
 
     discovery.AddBroadcast(PIXLITE_PORT, [&discovery](wxDatagramSocket* socket, uint8_t* data, int len) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.error("    Advatech discovery packet type : %d.", data[10]);
+        
+        spdlog::error("    Advatech discovery packet type : {}.", data[10]);
         if (data[10] == 0x02) {
             Pixlite16::Config it;
             memset(&it, 0x00, sizeof(it));
@@ -1230,22 +1227,22 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
                 connected = ParseV8Config(data, it);
                 break;
             default:
-                logger_base.error("Unsupported protocol : %d.", it._protocolVersion);
+                spdlog::error("Unsupported protocol : {}.", it._protocolVersion);
                 wxASSERT(false);
                 break;
             }
 
             if (connected) {
-                wxString rcvIP = wxString::Format("%i.%i.%i.%i", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]);
+                auto const rcvIP = std::format("{}.{}.{}.{}", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]);
 
-                logger_base.debug("Found PixLite/PixCon controller on %s.", (const char*)rcvIP.c_str());
-                logger_base.debug("    Model %s %.1f.", (const char*)it._modelName.c_str(), (float)it._hwRevision / 10.0);
-                logger_base.debug("    Firmware %s.", (const char*)it._firmwareVersion.c_str());
-                logger_base.debug("    Nickname %s.", (const char*)it._nickname.c_str());
-                logger_base.debug("    Brand %d.", it._brand);
+                spdlog::debug("Found PixLite/PixCon controller on {}.",rcvIP);
+                spdlog::debug("    Model {} {:.1f}.", it._modelName, (float)it._hwRevision / 10.0);
+                spdlog::debug("    Firmware {}.", it._firmwareVersion);
+                spdlog::debug("    Nickname {}.", it._nickname);
+                spdlog::debug("    Brand {}.", it._brand);
 
                 auto eth = new ControllerEthernet(discovery.GetOutputManager(), false);
-                eth->SetIP(wxString::Format("%i.%i.%i.%i", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]).ToStdString());
+                eth->SetIP(std::format("{}.{}.{}.{}", it._currentIP[0], it._currentIP[1], it._currentIP[2], it._currentIP[3]));
                 eth->SetProtocol(OUTPUT_E131);
                 eth->SetName(it._nickname);
                 eth->EnsureUniqueId();
@@ -1318,14 +1315,14 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
     discoveryDataMK3[33] = 0x00;
 
     discovery.AddMulticast("239.255.251.2", 49151, [&discovery](wxDatagramSocket* socket, uint8_t* data, int len) {
-        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
 
         if (len >= 12 && data[0] == 'D' && data[1] == 'i' && data[2] == 's' && data[3] == 'c' && data[4] == 'P' && data[5] == 'r' && data[6] == 'o' && data[7] == 't' && data[8] == 0x21 && data[9] == 0x02) {
             uint16_t ver = (((uint16_t)data[10]) << 8) + data[11];
 
             // this code was referencing the 0x0101 spec so may not work for other versions
             if (ver != 0x0101) {
-                logger_base.debug("MK3 discovery protocol version 0x&04x unknown ... this may cause issues.");
+                spdlog::debug("MK3 discovery protocol version 0x&04x unknown ... this may cause issues.");
             }
 
             char cdata[8096];
@@ -1336,9 +1333,9 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
                 nlohmann::json jsonVal = nlohmann::json::parse(cdata);
 
                 if (!jsonVal.is_null()) {
-                    logger_base.debug("Found PixLite MK3 controller on %s.", (const char*)jsonVal["ipAddr"].get<std::string>().c_str());
-                    logger_base.debug("    Model %s %s.", (const char*)jsonVal["prodName"].get<std::string>().c_str(), (const char*)jsonVal["fwVer"].get<std::string>().c_str());
-                    logger_base.debug("    Nickname %s.", (const char*)jsonVal["nickname"].get<std::string>().c_str());
+                    spdlog::debug("Found PixLite MK3 controller on {}.", jsonVal["ipAddr"].get<std::string>());
+                    spdlog::debug("    Model {} {}.", jsonVal["prodName"].get<std::string>(), jsonVal["fwVer"].get<std::string>());
+                    spdlog::debug("    Nickname {}.", jsonVal["nickname"].get<std::string>());
 
                     std::string protocol = OUTPUT_E131;
 
@@ -1359,7 +1356,7 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
                     discovery.AddController(eth);
                 }
             } catch (std::exception &ex) {
-                logger_base.error("MK3 discovery JSON parse error: %s.", ex.what());
+                spdlog::error("MK3 discovery JSON parse error: {}.", ex.what());
             }
         }
     });
@@ -1368,8 +1365,7 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
 
 bool Pixlite16::SendMk3Config(bool logresult) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
+    // don't understand why someone would want to generate JSON by hand ... I guess its better than depending on a JSON library
     std::string request = "{\"req\":\"configChange\",\"id\":1,\"params\":{\"action\":\"save\",\"config\":{";
 
     bool expanded = _config._forceExpanded;
@@ -1384,15 +1380,15 @@ bool Pixlite16::SendMk3Config(bool logresult) const
     }
     pp = pp <= _config._numOutputs / 2 ? _config._numOutputs / 2 : _config._numOutputs;
 
-    request += wxString::Format("\"dev\": {\"nickname\":\"%s\"},", _config._nickname);
+    request += std::format("\"dev\": {{\"nickname\":\"{}\"}},", _config._nickname); // escape curly braces with double curly braces
 
     request += "\"pix\":{";
-    request += wxString::Format("\"dataSrc\":\"%s\",", _config._protocol == 0 ? "sACN" : "Art-Net");
-    request += wxString::Format("\"pixType\":\"%s\",", wxString(_config._protocolName).Upper());
+    request += std::format("\"dataSrc\":\"{}\",", _config._protocol == 0 ? "sACN" : "Art-Net");
+    request += std::format("\"pixType\":\"{}\",", Upper(_config._protocolName));
     if (Mk3FrequencyForProtocol(_config._protocolName) != 0) {
-        request += wxString::Format("\"freq\":%d,", Mk3FrequencyForProtocol(_config._protocolName));
+        request += std::format("\"freq\":{},", Mk3FrequencyForProtocol(_config._protocolName));
     }
-    request += wxString::Format("\"expand\":%s,", expanded ? "true" : "false");
+    request += std::format("\"expand\":{},", expanded ? "true" : "false");
     request += "\"inFormat\":\"8Bit\",\"pixsSpanUni\":true},";
 
     // pix port
@@ -1400,7 +1396,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     request += "\"pixCount\": [";
     for (uint8_t i = 0; i < pp; ++i) {
-        request += wxString::Format("%d", _config._outputPixels[i]);
+        request += std::format("{}", _config._outputPixels[i]);
         if (i != pp - 1) {
             request += ",";
         }
@@ -1408,7 +1404,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
     request += "],";
     request += "\"startUni\": [";
     for (uint8_t i = 0; i < pp; ++i) {
-        request += wxString::Format("%d", _config._outputUniverse[i]);
+        request += std::format("{}", _config._outputUniverse[i]);
         if (i != pp - 1) {
             request += ",";
         }
@@ -1417,7 +1413,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     request += "\"startCh\": [";
     for (uint8_t i = 0; i < pp; ++i) {
-        request += wxString::Format("%d", _config._outputStartChannel[i]);
+        request += std::format("{}", _config._outputStartChannel[i]);
         if (i != pp - 1) {
             request += ",";
         }
@@ -1426,7 +1422,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     request += "\"nullPix\": [";
     for (uint8_t i = 0; i < pp; ++i) {
-        request += wxString::Format("%d", _config._outputNullPixels[i]);
+        request += std::format("{}", _config._outputNullPixels[i]);
         if (i != pp - 1) {
             request += ",";
         }
@@ -1439,7 +1435,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
             request += "1";
         }
         else {
-            request += wxString::Format("%d", _config._outputZigZag[i]);
+            request += std::format("{}", _config._outputZigZag[i]);
         }
         if (i != pp - 1) {
             request += ",";
@@ -1449,7 +1445,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     request += "\"group\": [";
     for (uint8_t i = 0; i < pp; ++i) {
-        request += wxString::Format("%d", _config._outputGrouping[i]);
+        request += std::format("{}", _config._outputGrouping[i]);
         if (i != pp - 1) {
             request += ",";
         }
@@ -1458,7 +1454,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     request += "\"reverse\": [";
     for (uint8_t i = 0; i < pp; ++i) {
-        request += wxString::Format("%s", _config._outputReverse[i] ? "true" : "false");
+        request += std::format("{}", _config._outputReverse[i] ? "true" : "false");
         if (i != pp - 1) {
             request += ",";
         }
@@ -1467,7 +1463,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
     
     request += "\"colorOrder\": [";
     for (uint8_t i = 0; i < pp; ++i) {
-        request += wxString::Format("\"%s\"", DecodeColourOrder(_config._outputColourOrder[i]));
+        request += std::format("\"{}\"", DecodeColourOrder(_config._outputColourOrder[i]));
         if (i != pp - 1) {
             request += ",";
         }
@@ -1476,7 +1472,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     request += "\"intensity\": [";
     for (uint8_t i = 0; i < pp; ++i) {
-        request += wxString::Format("%d", _config._outputBrightness[i]);
+        request += std::format("{}", _config._outputBrightness[i]);
         if (i != pp - 1) {
             request += ",";
         }
@@ -1522,7 +1518,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
     if (!alloff) {
         request += ",\"uni\":[";
         for (uint8_t i = 0; i < _config._dmxUniverse.size(); ++i) {
-            request += wxString::Format("%d", _config._dmxUniverse[i]);
+            request += std::format("{}", _config._dmxUniverse[i]);
             if (i != _config._dmxUniverse.size() - 1) {
                 request += ",";
             }
@@ -1534,7 +1530,7 @@ bool Pixlite16::SendMk3Config(bool logresult) const
 
     request += "}}}";
 
-    logger_base.debug(request);
+    spdlog::debug(request);
 
     auto res = Curl::HTTPSPost("http://" + _ip + "/" + _mk3APIVersion, request, "", "", "JSON");
 
@@ -1546,20 +1542,18 @@ bool Pixlite16::SendMk3Config(bool logresult) const
             if (jsonVal.contains("result")) {
                 result = jsonVal["result"]["saved"].get<bool>() == true;
             } else if (jsonVal.contains("err")) {
-                logger_base.error(jsonVal["err"]["msg"].get<std::string>());
+                spdlog::error(jsonVal["err"]["msg"].get<std::string>());
             }
         }
     } catch (const std::exception& ex) {
-        logger_base.error(ex.what());
+        spdlog::error(ex.what());
     }
     return result;
 }
 
 bool Pixlite16::SendConfig(bool logresult) const
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (_mk3Ver != "") {
+    if (!_mk3Ver.empty()) {
         return SendMk3Config(logresult);
     }
 
@@ -1571,21 +1565,21 @@ bool Pixlite16::SendConfig(bool logresult) const
     auto config = new wxDatagramSocket(localAddr, wxSOCKET_BLOCK); // dont use NOWAIT as it can result in dropped packets
 
     if (config == nullptr) {
-        logger_base.error("Error initialising PixLite/PixCon config datagram.");
+        spdlog::error("Error initialising PixLite/PixCon config datagram.");
         return false;
     }
-    else if (!config->IsOk()) {
-        logger_base.error("Error initialising PixLite/PixCon config datagram ... is network connected? OK : FALSE");
+    if (!config->IsOk()) {
+        spdlog::error("Error initialising PixLite/PixCon config datagram ... is network connected? OK : FALSE");
         delete config;
         return false;
     }
-    else if (config->Error()) {
-        logger_base.error("Error creating PixLite/PixCon config datagram => %d : %s.", config->LastError(), (const char*)DecodeIPError(config->LastError()).c_str());
+    if (config->Error()) {
+        spdlog::error("Error creating PixLite/PixCon config datagram => {} : {}.", (int)config->LastError(), DecodeIPError(config->LastError()));
         delete config;
         return false;
     }
 
-    logger_base.debug("PixLite/PixCon sending config to %s.", (const char*)_ip.c_str());
+    spdlog::debug("PixLite/PixCon sending config to {}.", _ip);
     wxIPV4address toAddr;
     toAddr.Hostname(_ip);
     toAddr.Service(PIXLITE_PORT);
@@ -1608,7 +1602,7 @@ bool Pixlite16::SendConfig(bool logresult) const
         size = PrepareV8Config(data);
         break;
     default:
-        logger_base.error("Unsupported protocol : %d.", _protocolVersion);
+        spdlog::error("Unsupported protocol : {}.", _protocolVersion);
         wxASSERT(false);
         break;
     }
@@ -1625,53 +1619,52 @@ bool Pixlite16::SendConfig(bool logresult) const
 
 void Pixlite16::DumpConfiguration(Pixlite16::Config& config)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Dumping PixLite/PixCon configuration: Packet Version: %d.", config._protocolVersion);
-    logger_base.debug("    MAC %02x:%02x:%02x:%02x:%02x:%02x:", config._mac[0], config._mac[1], config._mac[2], config._mac[3], config._mac[4], config._mac[5]);
-    logger_base.debug("    Nickname %d : %s", config._nicknameLen, (const char*)config._nickname.c_str());
-    logger_base.debug("    Model Name %d : %s", config._modelNameLen, (const char*)config._modelName.c_str());
-    logger_base.debug("    Firmware Version %d : %s", config._firmwareVersionLen, (const char*)config._firmwareVersion.c_str());
-    logger_base.debug("    Brand : %d", config._brand);
-    logger_base.debug("    Hardware Revision : %d", config._hwRevision);
-    logger_base.debug("    Minimum Assistant Version : %d.%d.%d", config._minAssistantVer[0], config._minAssistantVer[1], config._minAssistantVer[2]);
-    logger_base.debug("    Current IP : %d.%d.%d.%d", config._currentIP[0], config._currentIP[1], config._currentIP[2], config._currentIP[3]);
-    logger_base.debug("    Subnet Mask : %d.%d.%d.%d", config._currentSubnetMask[0], config._currentSubnetMask[1], config._currentSubnetMask[2], config._currentSubnetMask[3]);
-    logger_base.debug("    DHCP : %d", config._dhcp);
-    logger_base.debug("    Static IP : %d.%d.%d.%d", config._staticIP[0], config._staticIP[1], config._staticIP[2], config._staticIP[3]);
-    logger_base.debug("    Static Subnet Mask : %d.%d.%d.%d", config._staticSubnetMask[0], config._staticSubnetMask[1], config._staticSubnetMask[2], config._staticSubnetMask[3]);
-    logger_base.debug("    Network Protocol : %d", config._protocol);
-    logger_base.debug("    Hold Last Frame : %d", config._holdLastFrame);
-    logger_base.debug("    Pixels on port can span universe : %d", config._pixelsCanBeSplit);
-    logger_base.debug("    Simple Config : %d (0 = simple)", config._simpleConfig);
-    logger_base.debug("    Max Pixels Per Output : %d", config._maxPixelsPerOutput);
-    logger_base.debug("    Num Pixel Outputs : %d but really %d", config._numOutputs, config._realOutputs);
-    logger_base.debug("    Pixel Outputs :");
+    spdlog::debug("Dumping PixLite/PixCon configuration: Packet Version: {}.", config._protocolVersion);
+    spdlog::debug("    MAC {:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}", config._mac[0], config._mac[1], config._mac[2], config._mac[3], config._mac[4], config._mac[5]);
+    spdlog::debug("    Nickname {} : {}", config._nicknameLen, config._nickname);
+    spdlog::debug("    Model Name {} : {}", config._modelNameLen, config._modelName);
+    spdlog::debug("    Firmware Version {} : {}", config._firmwareVersionLen, config._firmwareVersion);
+    spdlog::debug("    Brand : {}", config._brand);
+    spdlog::debug("    Hardware Revision : {}", config._hwRevision);
+    spdlog::debug("    Minimum Assistant Version : {}.{}.{}", config._minAssistantVer[0], config._minAssistantVer[1], config._minAssistantVer[2]);
+    spdlog::debug("    Current IP : {}.{}.{}.{}", config._currentIP[0], config._currentIP[1], config._currentIP[2], config._currentIP[3]);
+    spdlog::debug("    Subnet Mask : {}.{}.{}.{}", config._currentSubnetMask[0], config._currentSubnetMask[1], config._currentSubnetMask[2], config._currentSubnetMask[3]);
+    spdlog::debug("    DHCP : {}", config._dhcp);
+    spdlog::debug("    Static IP : {}.{}.{}.{}", config._staticIP[0], config._staticIP[1], config._staticIP[2], config._staticIP[3]);
+    spdlog::debug("    Static Subnet Mask : {}.{}.{}.{}", config._staticSubnetMask[0], config._staticSubnetMask[1], config._staticSubnetMask[2], config._staticSubnetMask[3]);
+    spdlog::debug("    Network Protocol : {}", config._protocol);
+    spdlog::debug("    Hold Last Frame : {}", config._holdLastFrame);
+    spdlog::debug("    Pixels on port can span universe : {}", config._pixelsCanBeSplit);
+    spdlog::debug("    Simple Config : {} (0 = simple)", config._simpleConfig);
+    spdlog::debug("    Max Pixels Per Output : {}", config._maxPixelsPerOutput);
+    spdlog::debug("    Num Pixel Outputs : {} but really {}", config._numOutputs, config._realOutputs);
+    spdlog::debug("    Pixel Outputs :");
     for (int i = 0; i < config._numOutputs; i++) {
-        logger_base.debug("        Pixel Output %d", i + 1);
-        logger_base.debug("            Pixels %d", config._outputPixels[i]);
-        logger_base.debug("            Universe/StartChannel %d/%d", config._outputUniverse[i], config._outputStartChannel[i]);
-        logger_base.debug("            Null Pixels %d", config._outputNullPixels[i]);
-        logger_base.debug("            Zig Zag %d", config._outputZigZag[i]);
-        logger_base.debug("            Brightness %d", config._outputBrightness[i]);
-        logger_base.debug("            Colour Order %d", config._outputColourOrder[i]);
-        logger_base.debug("            Reverse %d", config._outputReverse[i]);
-        logger_base.debug("            Grouping %d", config._outputGrouping[i]);
+        spdlog::debug("        Pixel Output {}", i + 1);
+        spdlog::debug("            Pixels {}", config._outputPixels[i]);
+        spdlog::debug("            Universe/StartChannel {}/{}", config._outputUniverse[i], config._outputStartChannel[i]);
+        spdlog::debug("            Null Pixels {}", config._outputNullPixels[i]);
+        spdlog::debug("            Zig Zag {}", config._outputZigZag[i]);
+        spdlog::debug("            Brightness {}", config._outputBrightness[i]);
+        spdlog::debug("            Colour Order {}", config._outputColourOrder[i]);
+        spdlog::debug("            Reverse {}", config._outputReverse[i]);
+        spdlog::debug("            Grouping {}", config._outputGrouping[i]);
     }
-    logger_base.debug("    Num DMX Outputs : %d but really %d", config._numDMX, config._realDMX);
+    spdlog::debug("    Num DMX Outputs : {} but really {}", config._numDMX, config._realDMX);
     for (int i = 0; i < config._numDMX; i++) {
-        logger_base.debug("        DMX Output %d", i + 1);
-        logger_base.debug("            On %d", config._dmxOn[i]);
-        logger_base.debug("            Universe %d", config._dmxUniverse[i]);
+        spdlog::debug("        DMX Output {}", i + 1);
+        spdlog::debug("            On {}", config._dmxOn[i]);
+        spdlog::debug("            Universe {}", config._dmxUniverse[i]);
     }
-    logger_base.debug("    Current Driver : %d ", config._currentDriver);
-    logger_base.debug("    Current Driver Type : %d ", config._currentDriverType);
-    logger_base.debug("    Current Driver Speed : %d ", config._currentDriverSpeed);
-    logger_base.debug("    Current Driver Expanded : %d ", config._currentDriverExpanded);
-    logger_base.debug("    Gamma : %.1f/%.1f/%.1f ", (float)config._gamma[0] / 10.0, (float)config._gamma[1] / 10.0, (float)config._gamma[2] / 10.0);
-    logger_base.debug("    Temperature : %.1f/%d ", (float)config._temperature / 10.0, config._maxTargetTemp);
-    logger_base.debug("    Voltage Banks : %d ", config._numBanks);
+    spdlog::debug("    Current Driver : {} ", config._currentDriver);
+    spdlog::debug("    Current Driver Type : {} ", config._currentDriverType);
+    spdlog::debug("    Current Driver Speed : {} ", config._currentDriverSpeed);
+    spdlog::debug("    Current Driver Expanded : {} ", config._currentDriverExpanded);
+    spdlog::debug("    Gamma : {:.1f}/{:.1f}/{:.1f} ", (float)config._gamma[0] / 10.0, (float)config._gamma[1] / 10.0, (float)config._gamma[2] / 10.0);
+    spdlog::debug("    Temperature : {:.1f}/{} ", (float)config._temperature / 10.0, config._maxTargetTemp);
+    spdlog::debug("    Voltage Banks : {} ", config._numBanks);
     for (int i = 0; i < config._numBanks; i++) {
-        logger_base.debug("        Voltage Bank %d : %.1f ", i + 1, (float)config._bankVoltage[i] / 10.0);
+        spdlog::debug("        Voltage Bank {} : {:.1f} ", i + 1, (float)config._bankVoltage[i] / 10.0);
     }
 }
 #pragma endregion
@@ -1679,31 +1672,29 @@ void Pixlite16::DumpConfiguration(Pixlite16::Config& config)
 #pragma region Constructors and Destructors
 Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "")
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     _connected = false;
-    logger_base.debug("Requesting pixlite configuration.");
+    spdlog::debug("Requesting pixlite configuration.");
     if (GetConfig()) {
-        logger_base.debug("*** Success connecting to PixLite/PixCon controller on %s.", (const char*)_ip.c_str());
+        spdlog::debug("*** Success connecting to PixLite/PixCon controller on {}.", _ip);
         _protocolVersion = _config._protocolVersion;
         _model = _config._modelName;
         _version = _config._firmwareVersion;
         _connected = true;
     }
     else {
-        logger_base.debug("Requesting pixlite MK3 configuration.");
+        spdlog::debug("Requesting pixlite MK3 configuration.");
         if (GetMK3Config()) {
            _model = _config._modelName;
            _version = _config._firmwareVersion;
             _connected = true;
-            logger_base.debug(_mk3Ver);
-            logger_base.debug(_mk3Config);
-            logger_base.debug(_mk3Constants);
+            spdlog::debug(_mk3Ver);
+            spdlog::debug(_mk3Config);
+            spdlog::debug(_mk3Constants);
         }
     }
 
     if (!_connected) {
-        logger_base.error("Error connecting to PixLite/PixCon controller on %s.", (const char*)_ip.c_str());
+        spdlog::error("Error connecting to PixLite/PixCon controller on {}.", _ip);
     }
 
     if (_connected) {
@@ -1714,12 +1705,12 @@ Pixlite16::Pixlite16(const std::string& ip) : BaseController(ip, "")
 
 #pragma region Getters and Setters
 #ifndef DISCOVERYONLY
-bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* parent)
+bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, wxWindow* /*parent*/)
 {
     //ResetStringOutputs(); // this shouldnt be used normally
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("PixLite/PixCon Outputs Upload: Uploading to %s", (const char*)_ip.c_str());
+    
+    spdlog::debug("PixLite/PixCon Outputs Upload: Uploading to {}", _ip);
 
     std::string check;
     UDController cud(controller, outputManager, allmodels, false);
@@ -1729,7 +1720,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
     cud.Dump();
 
-    logger_base.debug(check);
+    spdlog::debug(check);
 
     if (controller->IsFullxLightsControl()) {
 
@@ -1796,7 +1787,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                 UDControllerPort* port = cud.GetControllerPixelPort(pp);
 
                 if (port->Pixels() > maxPixels) {
-                    check += wxString::Format("ERR: String port %d has more pixels than this controller supports (%d when maximum is %d).\n", pp, port->Pixels(), maxPixels);
+                    check += std::format("ERR: String port {} has more pixels than this controller supports ({} when maximum is {}).\n", pp, port->Pixels(), maxPixels);
                     success = false;
                 }
 
@@ -1820,7 +1811,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
                 port->CreateVirtualStrings(true);
                 if (port->GetVirtualStringCount() > 1) {
-                    check += wxString::Format("WARN: String port %d has model settings that can't be uploaded.\n", pp);
+                    check += std::format("WARN: String port {} has model settings that can't be uploaded.\n", pp);
                 }
             }
         }

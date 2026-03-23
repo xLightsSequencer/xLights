@@ -17,7 +17,7 @@
 #include "ExternalHooks.h"
 #include "SequenceElements.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include <cassert>
 #include <cerrno>
@@ -1579,8 +1579,8 @@ void ValueCurve::LoadXVC(const std::string& fn)
 
 void ValueCurve::SaveXVC(const std::string& filename)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Saving to xvc file %s.", (const char *)filename.c_str());
+    
+    spdlog::info("Saving to xvc file {}.", (const char *)filename.c_str());
 
     std::ofstream f(filename);
     if (!f.is_open())

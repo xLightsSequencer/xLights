@@ -243,7 +243,7 @@ struct Schedule {
         Items.clear();
     }
 
-    void removePlaylist(wxString const& playlist)
+    void removePlaylist(std::string const& playlist)
     {
         Items.erase(std::remove_if(Items.begin(), Items.end(), [&playlist](auto const& it) { return it.Playlist == playlist; }), Items.end());
         //std::erase_if(Items, [&playlist](auto const& it) { return it.Playlist == playlist; });
@@ -450,11 +450,11 @@ private:
 
     void createModeFile(wxString const& drive, int mode) const;
 
-    bool Create_HinksPix_HSEQ_File(wxString const& fseqFile, wxString const& shortHSEQName, ControllerEthernet* hix, ControllerEthernet* slave1, ControllerEthernet* slave2, wxString& errorMsg);
+    bool Create_HinksPix_HSEQ_File(std::string const& fseqFile, std::string const& shortHSEQName, ControllerEthernet* hix, ControllerEthernet* slave1, ControllerEthernet* slave2, std::string& errorMsg);
 
-    [[nodiscard]] wxString createUniqueShortName(wxString const& fseqName, std::vector<wxString> const& names);
+    [[nodiscard]] std::string createUniqueShortName(std::string const& fseqName, std::vector<std::string> const& names);
 
-    bool Make_AU_From_ProcessedAudio(const std::vector<int16_t>& processedAudio, wxString const& AU_File, wxString& errorMsg);
+    bool Make_AU_From_ProcessedAudio(const std::vector<int16_t>& processedAudio, std::string const& AU_File, std::string& errorMsg);
 
     [[nodiscard]] int getMaxSlaveControllerUniverses(ControllerEthernet* controller) const;
 
@@ -487,13 +487,13 @@ private:
     
     [[nodiscard]] bool createTestFile(wxString const& drive) const;
 
-    [[nodiscard]] std::optional<std::reference_wrapper<PlayList>> GetPlayList(wxString const& name);
-    void DeletePlayList(wxString const& name);
+    [[nodiscard]] std::optional<std::reference_wrapper<PlayList>> GetPlayList(std::string const& name);
+    void DeletePlayList(std::string const& name);
 
-    [[nodiscard]] std::optional<std::reference_wrapper<Schedule>> GetSchedule(wxString const& day);
+    [[nodiscard]] std::optional<std::reference_wrapper<Schedule>> GetSchedule(std::string const& day);
 
-    void StoreToObjectPlayList(wxString const& playlist);
-    void RedrawPlayList(wxString const& new_playlist, bool save_old = true);
+    void StoreToObjectPlayList(std::string const& playlist);
+    void RedrawPlayList(std::string const& new_playlist, bool save_old = true);
     void StoreToObjectSchedule();
     void RedrawSchedules();
     bool CheckSchedules();

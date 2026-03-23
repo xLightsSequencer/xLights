@@ -20,7 +20,7 @@
 #include "../ExternalHooks.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include "../graphics/xlGraphicsAccumulators.h"
 #include "../graphics/xlGraphicsContext.h"

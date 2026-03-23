@@ -9,7 +9,7 @@
 #include <vector>
 #include <string>
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 #include <Color.h>
 
 bool ollama::IsAvailable() const {
@@ -71,10 +71,10 @@ void ollama::SetSetting(const std::string& key, const wxVariant& value) {
 
 std::pair<std::string, bool> ollama::CallLLM(const std::string& prompt) const {
 
-	static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+	
 
 	if (host.empty()) {
-		logger_base.error("ollama: host is empty");
+		spdlog::error("ollama: host is empty");
 		return {"ollama: host is empty", false};
     }
     std::string const url = (https ? "https://" : "http://") + host + ":" + std::to_string(port_num) + api;
@@ -92,11 +92,11 @@ std::pair<std::string, bool> ollama::CallLLM(const std::string& prompt) const {
 	*/
     std::string const request = "{ \"model\": \"" + model + "\", \"prompt\": \"" + JSONSafe(p) + "\",\"stream\": false }";
 
-    logger_base.debug("ollama: %s", request.c_str());
+    spdlog::debug("ollama: {}", request.c_str());
     int responseCode { 0 };	
 	std::string response = Curl::HTTPSPost(url, request, "", "", "JSON", 60 * 10, {}, &responseCode);
 
-    logger_base.debug("ollama Response %d: %s", responseCode, response.c_str());
+    spdlog::debug("ollama Response {}: {}", responseCode, response.c_str());
 
 	if (responseCode != 200) {
         return { response , false};
@@ -108,21 +108,21 @@ std::pair<std::string, bool> ollama::CallLLM(const std::string& prompt) const {
             response = resp_json.at("response").get<std::string>();
         }
     } catch (const std::exception& ex) {
-        logger_base.error("ollama: Invalid JSON response: %s", ex.what());
+        spdlog::error("ollama: Invalid JSON response: {}", ex.what());
         return { "ollama: Invalid JSON response", false };
     }
 
-	logger_base.debug("ollama: %s", response.c_str());
+	spdlog::debug("ollama: {}", response.c_str());
 
     return { response, true};
 }
 
 aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) const {
     
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     
     if (host.empty()) {
-        logger_base.error("ollama: host is empty");
+        spdlog::error("ollama: host is empty");
         return {};
     }
     std::string const url = (https ? "https://" : "http://") + host + ":" + std::to_string(port_num) + api;
@@ -178,11 +178,11 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
     // Create a wxString to store the JSON text
     auto json_payload_str = request_payload.dump(3);
 
-    logger_base.debug("ollama: %s", (const char *)json_payload_str.c_str());
+    spdlog::debug("ollama: {}", (const char *)json_payload_str.c_str());
     int responseCode{ 0 };
     std::string const response = Curl::HTTPSPost(url, json_payload_str, "", "", "JSON", 60 * 10, {}, &responseCode);
 
-    logger_base.debug("ollama Response %d: %s", responseCode, response.c_str());
+    spdlog::debug("ollama Response {}: {}", responseCode, response.c_str());
 
     if (responseCode != 200) {
         return {};
@@ -194,7 +194,7 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
         if (root.contains("response") && root["response"].is_string()) {
             auto const color_responce = root["response"].get<std::string>();
 
-            logger_base.debug("ollama Response %s", (const char*)color_responce.c_str());
+            spdlog::debug("ollama Response {}", (const char*)color_responce.c_str());
             try {
                 // Check if the response is valid JSON
                 nlohmann::json const color_root = nlohmann::json::parse(color_responce);
@@ -214,14 +214,14 @@ aiBase::AIColorPalette ollama::GenerateColorPalette(const std::string& prompt) c
                     return ret;
                 }
             } catch (const std::exception& ex) {
-                logger_base.error(ex.what());
+                spdlog::error(ex.what());
             }
-            logger_base.error("Response does not contain 'colors' array or is not in expected format.");
+            spdlog::error("Response does not contain 'colors' array or is not in expected format.");
         } else {
-            logger_base.error("Invalid response from Ollama API.");
+            spdlog::error("Invalid response from Ollama API.");
         }
     } catch (const std::exception& e) {
-        logger_base.error(e.what());
+        spdlog::error(e.what());
     }
     return {};
 }

@@ -13,7 +13,7 @@
 #include "ModelPreview.h"
 #include "Model.h"
 #include "../ExternalHooks.h"
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 #include "../ui/wxUtilities.h"
 
 TerrainObject::TerrainObject(const ViewObjectManager &manager)
@@ -71,7 +71,7 @@ void TerrainObject::ClearImages() {
 bool TerrainObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *solid, xlGraphicsProgram *transparent, bool allowSelected) {
     if (!IsActive()) { return true; }
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     bool exists = false;
 
     mtx.lock();
@@ -83,7 +83,7 @@ bool TerrainObject::Draw(ModelPreview* preview, xlGraphicsContext *ctx, xlGraphi
 
     if (_images.find(preview->GetName().ToStdString()) == _images.end()) {
         if (FileExists(_imageFile)) {
-            logger_base.debug("Loading image model %s file %s for preview %s.",
+            spdlog::debug("Loading image model {} file {} for preview {}.",
                 (const char *)GetName().c_str(),
                 (const char *)_imageFile.c_str(),
                 (const char *)preview->GetName().c_str());

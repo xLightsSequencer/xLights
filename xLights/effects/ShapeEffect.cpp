@@ -30,7 +30,7 @@
 #include "nanosvgrast_impl.h"
 
 #include <regex>
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include "../../include/shape-16.xpm"
 #include "../../include/shape-24.xpm"
@@ -602,8 +602,8 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 
     if (Object_To_Draw == RENDER_SHAPE_EMOJI || Object_To_Draw == RENDER_SHAPE_SVG) {
         if (buffer.BufferWi <= 0 || buffer.BufferHt <= 0 || buffer.BufferWi > 15000) {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.error("Shape Effect (Emoji/SVG): Invalid buffer size: width=%d, height=%d", buffer.BufferWi, buffer.BufferHt);
+            
+            spdlog::error("Shape Effect (Emoji/SVG): Invalid buffer size: width={}, height={}", buffer.BufferWi, buffer.BufferHt);
             return;
         }
         auto context = buffer.GetTextDrawingContext();

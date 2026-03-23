@@ -37,3 +37,7 @@
 [submodule "dependencies/pugixml"]
 	path = dependencies/pugixml
 	url = https://github.com/zeux/pugixml
+[submodule "dependencies/spdlog"]
+	path = dependencies/spdlog
+	url = https://github.com/gabime/spdlog.git
+	branch = v1.x

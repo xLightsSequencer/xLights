@@ -30,7 +30,7 @@
 
 #include "../../ExternalHooks.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 //(*InternalHeaders(MovingHeadPanel)
 #include <wx/bitmap.h>
@@ -565,8 +565,8 @@ void MovingHeadPanel::OnResize(wxSizeEvent& event)
 
 void MovingHeadPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("MovingHeadPanel Scanning directory for *.xmh files: %s.", (const char *)directory.GetNameWithSep().c_str());
+    
+    spdlog::info("MovingHeadPanel Scanning directory for *.xmh files: {}.", (const char *)directory.GetNameWithSep().c_str());
 
     auto existing = FlexGridSizerPresets->GetChildren();
     auto existing_path = FlexGridSizerPathPresets->GetChildren();
@@ -598,7 +598,7 @@ void MovingHeadPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
             }
         }
     }
-    logger_base.info("    Found %d.", count);
+    spdlog::info("    Found {}.", count);
 
     if (subdirs) {
         wxString filename;
@@ -686,7 +686,7 @@ void MovingHeadPanel::LoadMHPreset(const std::string& fn)
 
 void MovingHeadPanel::PopulatePresets()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxDir dir;
     if (wxDir::Exists(xLightsFrame::CurrentDir))
@@ -703,7 +703,7 @@ void MovingHeadPanel::PopulatePresets()
     }
     else
     {
-        logger_base.info("Directory for *.xmh files not found: %s.", (const char *)d.c_str());
+        spdlog::info("Directory for *.xmh files not found: {}.", (const char *)d.c_str());
     }
 
     wxStandardPaths stdp = wxStandardPaths::Get();
@@ -721,7 +721,7 @@ void MovingHeadPanel::PopulatePresets()
     }
     else
     {
-        logger_base.info("Directory for *.xmh files not found: %s.", (const char *)d.c_str());
+        spdlog::info("Directory for *.xmh files not found: {}.", (const char *)d.c_str());
     }
 }
 
@@ -788,8 +788,8 @@ void MovingHeadPanel::SavePreset(const wxArrayString& preset, bool is_path, bool
 
     wxFile f(filename);
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Saving to xcc file %s.", (const char *)filename.c_str());
+    
+    spdlog::info("Saving to xcc file {}.", (const char *)filename.c_str());
 
     bool replace_existing {false};
     if( f.Exists(filename) ) {

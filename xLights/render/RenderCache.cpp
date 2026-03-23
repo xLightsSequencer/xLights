@@ -13,7 +13,7 @@
 #include "RenderBuffer.h"
 #include "models/Model.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include <cassert>
 #include <cstdio>
@@ -43,9 +43,9 @@ static void RenderCacheLoadThreadEntry(RenderCache* cache)
 {
     std::unique_lock<std::mutex> lock(cache->GetLoadMutex());
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    logger_base.debug("Loading cache.");
+    spdlog::debug("Loading cache.");
 
     std::string cacheFolder = cache->GetCacheFolder();
     std::vector<std::string> files;
@@ -63,7 +63,7 @@ static void RenderCacheLoadThreadEntry(RenderCache* cache)
         // This means the render cache will be swapped out ... but I think that is still better than re-rendering
         // Abandon loading render cache if we use too much memory
         if (IsExcessiveMemoryUsage(3.0)) {
-            logger_base.warn("Render cache loading abandoned due to too much memory use.");
+            spdlog::warn("Render cache loading abandoned due to too much memory use.");
             break;
         }
 
@@ -72,11 +72,11 @@ static void RenderCacheLoadThreadEntry(RenderCache* cache)
             cache->AddCacheItem(rci);
         } else {
             delete rci;
-            logger_base.warn("Failed to load cache item %s.", (const char*)it.c_str());
+            spdlog::warn("Failed to load cache item {}.", (const char*)it.c_str());
         }
     }
 
-    logger_base.debug("Cache contained %d files.", (int)files.size());
+    spdlog::debug("Cache contained {} files.", (int)files.size());
     TraceLog::ClearTraceMessages();
 }
 
@@ -180,8 +180,7 @@ void RenderCache::LoadCache()
 void RenderCache::AddCacheItem(RenderCacheItem* rci)
 {
     if (rci != nullptr) {
-        static log4cpp::Category& logger_rcache = log4cpp::Category::getInstance(std::string("log_rendercache"));
-        logger_rcache.info("RenderCache item added " + rci->Description());
+        spdlog::info("RenderCache item added " + rci->Description());
         PerEffectCache *cache = GetPerEffectCache(rci->EffectName());
         std::unique_lock<std::shared_mutex> lock(cache->lock);
         cache->cache.push_back(rci);
@@ -190,8 +189,6 @@ void RenderCache::AddCacheItem(RenderCacheItem* rci)
 
 void RenderCache::SetSequence(const std::string& path, const std::string& sequenceFile)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     Close();
 
     if (path != "") {
@@ -209,11 +206,11 @@ void RenderCache::SetSequence(const std::string& path, const std::string& sequen
             {
                 if (GetBitness() == "32bit")
                 {
-                    logger_base.debug("Render cache disabled but NOT removing folder %s as this is the 32 bt version.", (const char *)_cacheFolder.c_str());
+                    spdlog::debug("Render cache disabled but NOT removing folder {} as this is the 32 bt version.", _cacheFolder);
                 }
                 else
                 {
-                    logger_base.debug("Render cache disabled so removing folder %s.", (const char *)_cacheFolder.c_str());
+                    spdlog::debug("Render cache disabled so removing folder {}.", _cacheFolder);
                     fs::remove_all(_cacheFolder, ec);
                 }
             }
@@ -231,16 +228,16 @@ void RenderCache::SetSequence(const std::string& path, const std::string& sequen
             std::string common = path + GetPathSeparator() + "RenderCache";
             if (!fs::exists(common, ec))
             {
-                logger_base.debug("Creating render cache folder %s.", (const char *)common.c_str());
+                spdlog::debug("Creating render cache folder {}.", common);
                 fs::create_directory(common, ec);
             }
 
-            logger_base.debug("Creating render cache folder %s.", (const char *)_cacheFolder.c_str());
+            spdlog::debug("Creating render cache folder {}.", _cacheFolder);
             fs::create_directory(_cacheFolder, ec);
         }
         else
         {
-            logger_base.debug("Opening render cache folder %s.", (const char *)_cacheFolder.c_str());
+            spdlog::debug("Opening render cache folder {}.", _cacheFolder);
         }
 
         LoadCache();
@@ -248,13 +245,12 @@ void RenderCache::SetSequence(const std::string& path, const std::string& sequen
 }
 
 void RenderCache::RemoveItem(RenderCacheItem *item) {
-    static log4cpp::Category& logger_rcache = log4cpp::Category::getInstance(std::string("log_rendercache"));
     PerEffectCache *c = GetPerEffectCache(item->EffectName());
     std::unique_lock<std::shared_mutex> lock(c->lock);
     auto &l = c->cache;
     for (auto it = l.begin(); it != l.end(); ++it) {
         if (item == *it) {
-            logger_rcache.info("RenderCache item removed " + (*it)->Description());
+            spdlog::info("RenderCache item removed " + (*it)->Description());
             l.erase(it);
             break;
         }
@@ -264,7 +260,7 @@ void RenderCache::RemoveItem(RenderCacheItem *item) {
 
 bool RenderCache::IsEffectOkForCaching(Effect* effect) const
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (!IsEnabled()) return false;
 
     bool locked = false;
@@ -294,7 +290,7 @@ bool RenderCache::IsEffectOkForCaching(Effect* effect) const
     // allow up to 3 times physical memory
     // This means the render cache will be swapped out ... but I think that is still better than re-rendering
     if (IsExcessiveMemoryUsage(3.0)) {
-        logger_base.error("RenderCache::IsEffectOkForCaching failed memory available test. This is a bad sign. Rendering will be really slow.");
+        spdlog::error("RenderCache::IsEffectOkForCaching failed memory available test. This is a bad sign. Rendering will be really slow.");
         return false;
     }
 
@@ -313,7 +309,6 @@ RenderCache::PerEffectCache* RenderCache::GetPerEffectCache(const std::string &s
 
 RenderCacheItem* RenderCache::GetItem(Effect* effect, RenderBuffer* buffer)
 {
-    static log4cpp::Category& logger_rcache = log4cpp::Category::getInstance(std::string("log_rendercache"));
     if (!IsEnabled()) return nullptr;
     if (_cacheFolder == "") return nullptr;
 
@@ -336,9 +331,9 @@ RenderCacheItem* RenderCache::GetItem(Effect* effect, RenderBuffer* buffer)
             //grab the write lock
             std::unique_lock<std::shared_mutex> ulock(cache->lock);
             l.erase(it);
-            logger_rcache.info("RenderCache GetItem found an existing render cache item for effect %s on model %s on layer %d at start time %dms.",
-                (const char*)effect->GetEffectName().c_str(),
-                (const char*)buffer->GetModelName().c_str(),
+            spdlog::info("RenderCache GetItem found an existing render cache item for effect {} on model {} on layer {} at start time {}ms.",
+                effect->GetEffectName(),
+                buffer->GetModelName(),
                 effect->GetParentEffectLayer()->GetLayerNumber(),
                 effect->GetStartTimeMS());
 
@@ -350,9 +345,9 @@ RenderCacheItem* RenderCache::GetItem(Effect* effect, RenderBuffer* buffer)
     }
     lock.unlock();
 
-    logger_rcache.info("RenderCache GetItem created a new render cache item for effect %s on model %s on layer %d at start time %dms.",
-        (const char*)effect->GetEffectName().c_str(),
-        (const char*)buffer->GetModelName().c_str(),
+    spdlog::info("RenderCache GetItem created a new render cache item for effect {} on model {} on layer {} at start time {}ms.",
+        effect->GetEffectName(),
+        buffer->GetModelName(),
         effect->GetParentEffectLayer()->GetLayerNumber(),
         effect->GetStartTimeMS());
 
@@ -361,18 +356,16 @@ RenderCacheItem* RenderCache::GetItem(Effect* effect, RenderBuffer* buffer)
 
 void RenderCache::Close()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (_cacheFolder == "") return;
 
-    logger_base.debug("Closing render cache folder %s.", (const char *)_cacheFolder.c_str());
+    spdlog::debug("Closing render cache folder {}.", _cacheFolder);
 
     // wait for the cache load thread to finish
     if (_loadThread.joinable()) {
         _loadThread.join();
     }
 
-    logger_base.debug("    Got lock.");
+    spdlog::debug("    Got lock.");
 
     Purge(nullptr, false);
     _cacheFolder = "";
@@ -383,7 +376,7 @@ void RenderCache::Close()
         a.second = nullptr;
     }
     _cache.clear();
-    logger_base.debug("    Closed.");
+    spdlog::debug("    Closed.");
 }
 
 static bool doOnEffectsInternal(Element *em, std::function<bool(Effect*)>& func) {
@@ -438,9 +431,9 @@ static bool findMatch(Element *em, RenderCacheItem* item) {
 
 void RenderCache::CleanupCache(SequenceElements* sequenceElements)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    logger_base.debug("Cleaning up the cache.");
+    spdlog::debug("Cleaning up the cache.");
 
     // clean up cache
     // Because effects are removed from the cache then if you go from cache enabled to cache disabled this wont actually
@@ -472,14 +465,14 @@ void RenderCache::CleanupCache(SequenceElements* sequenceElements)
             }
         }
     }
-    logger_base.debug("    Cleaned up %d items in the cache.", deleted);
+    spdlog::debug("    Cleaned up {} items in the cache.", deleted);
 
     for (int i = 0; i < sequenceElements->GetElementCount(); ++i) {
         Element* em = sequenceElements->GetElement(i);
         purgeCache(em, false);
     }
 
-    logger_base.debug("    Cache purge done.");
+    spdlog::debug("    Cache purge done.");
 }
 
 void RenderCache::SetRenderCacheFolder(const std::string& path)
@@ -490,11 +483,11 @@ void RenderCache::SetRenderCacheFolder(const std::string& path)
 
 void RenderCache::Purge(SequenceElements* sequenceElements, bool dodelete)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (dodelete && _cacheFolder != "")
     {
-        logger_base.debug("Purging render cache folder %s.", (const char *)_cacheFolder.c_str());
+        spdlog::debug("Purging render cache folder {}.", (const char *)_cacheFolder.c_str());
     }
 
     std::unique_lock<std::recursive_mutex> lock(_cacheLock);
@@ -620,7 +613,6 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, Effect* effect, Rende
 
 bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
 {
-    static log4cpp::Category& logger_rcache = log4cpp::Category::getInstance(std::string("log_rendercache"));
     if (_purged) return false;
 
     if (std::atoi(_properties.at("StartMS").c_str()) != effect->GetStartTimeMS()) return false;
@@ -642,7 +634,7 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
     int seqFPS = frame->_seqData.FrameTime();
 
     if (seqFPS != fps) {
-        logger_rcache.info("RenderCache no match because FPS %ld doesn't match expected %ld", fps, seqFPS);
+        spdlog::info("RenderCache no match because FPS {} doesn't match expected {}", fps, seqFPS);
         return false;
     }
 
@@ -660,21 +652,21 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
     // 8 is the number of predefined tags
     if (_properties.size() - 7 != effect->GetSettings().size() + effect->GetPaletteMap().size())
     {
-        logger_rcache.debug("RenderCache no match because number of properties is different.");
+        spdlog::debug("RenderCache no match because number of properties is different.");
         return false;
     }
 
     for (const auto& it : effect->GetSettings())
     {
         if (_properties.find(it.first) == _properties.end()) {
-            logger_rcache.debug("RenderCache no match because proprerty not present: " + it.first);
+            spdlog::debug("RenderCache no match because proprerty not present: " + it.first);
             return false;
         }
         else
         {
             if (_properties.at(it.first) != it.second)
             {
-                logger_rcache.debug("RenderCache no match because proprerty different: " + it.first);
+                spdlog::debug("RenderCache no match because proprerty different: " + it.first);
                 return false;
             }
         }
@@ -683,14 +675,14 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
     for (const auto& it : effect->GetPaletteMap())
     {
         if (_properties.find(it.first) == _properties.end()) {
-            logger_rcache.debug("RenderCache no match because pallette map not present: " + it.first);
+            spdlog::debug("RenderCache no match because pallette map not present: " + it.first);
             return false;
         }
         else
         {
             if (_properties.at(it.first) != it.second)
             {
-                logger_rcache.debug("RenderCache no match because pallette map different: " + it.first);
+                spdlog::debug("RenderCache no match because pallette map different: " + it.first);
                 return false;
             }
         }
@@ -701,14 +693,13 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
 
 void RenderCacheItem::Delete()
 {
-    static log4cpp::Category& logger_rcache = log4cpp::Category::getInstance(std::string("log_rendercache"));
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (!_purged && FileExists(_cacheFile)) {
         std::error_code ec;
         if (!fs::remove(_cacheFile, ec)) {
-            logger_base.warn("Unable to remove cache file " + _cacheFile);
+            spdlog::warn("Unable to remove cache file " + _cacheFile);
         } else {
-            logger_rcache.info("RenderCache removed file " + _cacheFile);
+            spdlog::info("RenderCache removed file " + _cacheFile);
         }
     }
     PurgeFrames();
@@ -717,14 +708,14 @@ void RenderCacheItem::Delete()
 
 void RenderCacheItem::AddFrame(RenderBuffer* buffer)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (buffer == nullptr) {
-        logger_base.error("RenderCacheItem::AddFrame was passed a null buffer");
+        spdlog::error("RenderCacheItem::AddFrame was passed a null buffer");
         return;
     }
     
     if (buffer->GetPixelCount() == 0) {
-        logger_base.error("RenderCacheItem::AddFrame was passed a buffer with no pixels in it");
+        spdlog::error("RenderCacheItem::AddFrame was passed a buffer with no pixels in it");
         return;
     }
 
@@ -738,7 +729,7 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
     // allow up to 3 times physical memory
     // This means the render cache will be swapped out ... but I think that is still better than re-rendering
     if (IsExcessiveMemoryUsage(3.0)) {
-        logger_base.error("RenderCacheItem::AddFrame failed memory available test. This is a bad sign. Rendering will be really slow.");
+        spdlog::error("RenderCacheItem::AddFrame failed memory available test. This is a bad sign. Rendering will be really slow.");
         PurgeFrames();
         return;
     }
@@ -751,7 +742,7 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
     } else {
         if (_frameSize[mname] != sizeof(xlColor) * buffer->GetPixelCount()) {
             // the buffer size has changed ... we dont support this.
-            logger_base.warn("RenderCacheItem::AddFrame buffer size changed ... we dont support this.");
+            spdlog::warn("RenderCacheItem::AddFrame buffer size changed ... we dont support this.");
             PurgeFrames();
             return;
         }
@@ -778,7 +769,7 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
 
     unsigned char* frameBuffer = (unsigned char *)malloc(_frameSize.at(mname));
     if (frameBuffer == nullptr) {
-        logger_base.warn("RenderCacheItem::AddFrame failed to allocate frameBuffer.");
+        spdlog::warn("RenderCacheItem::AddFrame failed to allocate frameBuffer.");
         PurgeFrames();
         assert(false);
         return;
@@ -797,7 +788,7 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
         // if multi models in this cache then only call save when none of them have null pointers at the end
         for (const auto& itm : _frames) {
             if (itm.second.size() == 0 || itm.second.back() == nullptr) {
-                //logger_base.warn("RenderCacheItem::AddFrame save abandoned due to null frame.");
+                //spdlog::warn("RenderCacheItem::AddFrame save abandoned due to null frame.");
                 return;
             }
         }
@@ -807,16 +798,15 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
 
 bool RenderCacheItem::GetFrame(RenderBuffer* buffer)
 {
-    static log4cpp::Category& logger_rcache = log4cpp::Category::getInstance(std::string("log_rendercache"));
     std::string mname = GetModelName(buffer);
     if (_frameSize.find(mname) == _frameSize.end()) {
-        logger_rcache.info("RenderCache::GetFrame on model " + mname + " failed due to number of frames difference.");
+        spdlog::info("RenderCache::GetFrame on model " + mname + " failed due to number of frames difference.");
         return false;
     }
 
     auto modelFrames = _frames[mname];
     if (_frameSize.at(mname) != (sizeof(xlColor) * buffer->GetPixelCount())) {
-        logger_rcache.info("RenderCache::GetFrame on model " + mname + " failed due to frame size difference.");
+        spdlog::info("RenderCache::GetFrame on model " + mname + " failed due to frame size difference.");
         return false;
     }
 
@@ -828,7 +818,7 @@ bool RenderCacheItem::GetFrame(RenderBuffer* buffer)
         return true;
     }
 
-    logger_rcache.info("RenderCache::GetFrame %d on model %s failed due to fall through.", frame, (const char*)mname.c_str());
+    spdlog::info("RenderCache::GetFrame {} on model {} failed due to fall through.", frame, mname);
     return false;
 }
 
@@ -847,8 +837,8 @@ void RenderCacheItem::Save()
         return;
     }
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    //logger_base.debug("Saving render cache file %s.", (const char *)_cacheFile.c_str());
+    
+    //spdlog::debug("Saving render cache file {}.", (const char *)_cacheFile.c_str());
 
     char zero = 0x00;
 
@@ -902,7 +892,7 @@ void RenderCacheItem::Save()
 
         remmap();
     } else {
-        logger_base.warn("    Failed to create file.");
+        spdlog::warn("    Failed to create file.");
     }
 }
 
@@ -916,7 +906,7 @@ bool RenderCacheItem::IsDone(RenderBuffer* buffer) const
 
 RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& filename) : _renderCache(renderCache)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     _mmap = nullptr;
     _mmapSize = 0;
@@ -945,7 +935,7 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& fi
 
             if (key == "") {
                 // file looks corrupt
-                logger_base.debug("Cache file %s appears corrupt.", (const char*)filename.c_str());
+                spdlog::debug("Cache file {} appears corrupt.", (const char*)filename.c_str());
                 _purged = true;
                 std::fclose(fp);
                 return;
@@ -1005,7 +995,7 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& fi
                 if (frameBuffer == nullptr) {
                     std::fclose(fp);
                     PurgeFrames();
-                    logger_base.debug("Render Cache Item file %s fails due to memory allocation issue.", (const char*)filename.c_str());
+                    spdlog::debug("Render Cache Item file {} fails due to memory allocation issue.", filename);
                     return;
                 }
 

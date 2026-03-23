@@ -47,7 +47,7 @@
 #endif
 #include "xLightsVersion.h"
 #include "ExternalHooks.h"
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 static const int MAX_READ_BLOCK_SIZE = 4096 * 1024;
 
@@ -61,8 +61,7 @@ void ConvertParameters::AppendConvertStatus(const wxString& msg, bool flushbuffe
     {
         convertLogDialog->AppendConvertStatus(msg + "\n", flushbuffer);
     }
-    static log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
-    logger_conversion.info("Convert Status: " + msg);
+    spdlog::info("Convert Status: " + msg.ToStdString());
 }
 
 
@@ -246,12 +245,12 @@ void mapLORInfo(const LORInfo &info, std::vector< std::vector<int> > *unitSizes)
 
 void FileConverter::ReadLorFile(ConvertParameters& params)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
-    logger_base.debug("ReadLorFile %s.", (const char *)params.inp_filename.c_str());
-    logger_base.debug("     Channels Off At End? %s.", toStr(params.channels_off_at_end ));
-    logger_base.debug("     Map Empty Channels? %s.", toStr(params.map_empty_channels));
-    logger_base.debug("     Map No Network Channels? %s.", toStr(params.map_no_network_channels));
+    spdlog::debug("ReadLorFile {}.", (const char *)params.inp_filename.c_str());
+    spdlog::debug("     Channels Off At End? {}.", toStr(params.channels_off_at_end ));
+    spdlog::debug("     Map Empty Channels? {}.", toStr(params.map_empty_channels));
+    spdlog::debug("     Map No Network Channels? {}.", toStr(params.map_no_network_channels));
 
     wxString NodeName, deviceType, networkAsString;
     wxArrayString context;
@@ -1528,15 +1527,14 @@ void FileConverter::ReadConductorFile(ConvertParameters& params)
 
 void FileConverter::ReadFalconFile(ConvertParameters& params)
 {
-    static log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
-
+    
     if (params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN) {
         params.xLightsFrm->ConversionInit();
     }
 
     FSEQFile *file = FSEQFile::openFSEQFile(params.inp_filename);
     if (!file) {
-        logger_conversion.debug("Unable to load sequence: %s.", (const char *)params.inp_filename.c_str());
+        spdlog::debug("Unable to load sequence: {}.", (const char*)params.inp_filename.c_str());
         params.PlayerError(wxString("Unable to load sequence:\n") + params.inp_filename);
         return;
     }
@@ -1598,7 +1596,7 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
             if (!data->readFrame(&params.seq_data[periodsRead][0], params.seq_data.NumChannels()))
             {
                 // fseq file corrupt
-                logger_conversion.error("FSEQ file seems to be corrupt.");
+                spdlog::error("FSEQ file seems to be corrupt.");
             }
         } else {
             if (data->readFrame(tmpBuf, numChannels))
@@ -1619,7 +1617,7 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
             else
             {
                 // fseq file corrupt
-                logger_conversion.error("FSEQ file seems to be corrupt.");
+                spdlog::error("FSEQ file seems to be corrupt.");
             }
         }
         delete data;
@@ -1701,8 +1699,7 @@ static int compressFile(std::vector<uint8_t> &data, const wxFileName &fn, void *
 }
 void FileConverter::WriteFalconPiFile(ConvertParameters& params)
 {
-    static log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
-    logger_conversion.debug("Start fseq write");
+    spdlog::debug("Start fseq write");
        
     const wxUint8 fType = params.xLightsFrm->_fseqVersion;
     int vMajor = 2;
@@ -1765,7 +1762,7 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
         for (auto &r : params.ranges) {
             V2FSEQFile* v2file = (V2FSEQFile*)file;
             v2file->m_sparseRanges.push_back(r);
-            logger_conversion.info("Sparse range - Start: %d  End: %d   Size: %d\n", r.first + 1, (r.first + r.second), r.second);
+            spdlog::info("Sparse range - Start: {}  End: {}   Size: {}\n", r.first + 1, (r.first + r.second), r.second);
         }
     }
     if (vMajor == 2 && params.elements) {
@@ -1923,5 +1920,5 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
     }
     file->finalize();
     delete file;
-    logger_conversion.debug("End fseq write");
+    spdlog::debug("End fseq write");
 }

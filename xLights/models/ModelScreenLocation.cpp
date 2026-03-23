@@ -27,7 +27,7 @@
 #include "../xLightsMain.h"
 #include "RulerObject.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #define BOUNDING_RECT_OFFSET        8
 
@@ -58,12 +58,11 @@ void rotate_point(float cx, float cy, float angle, float &x, float &y)
 // used to print matrix when debugging
 static void PrintMatrix(std::string name, glm::mat4& matrix)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Matrix Info: %s", name.c_str());
-    logger_base.debug("Row 0: %6.8f  %6.8f  %6.8f  %6.2f", matrix[0][0], matrix[0][1], matrix[0][2], matrix[0][3]);
-    logger_base.debug("Row 1: %6.8f  %6.8f  %6.8f  %6.2f", matrix[1][0], matrix[1][1], matrix[1][2], matrix[1][3]);
-    logger_base.debug("Row 2: %6.8f  %6.8f  %6.8f  %6.2f", matrix[2][0], matrix[2][1], matrix[2][2], matrix[2][3]);
-    logger_base.debug("Row 3: %6.2f  %6.2f  %6.2f  %6.2f", matrix[3][0], matrix[3][1], matrix[3][2], matrix[3][3]);
+    spdlog::debug("Matrix Info: {}", name.c_str());
+    spdlog::debug("Row 0: {:6.8f}  {:6.8f}  {:6.8f}  {:6.2f}", matrix[0][0], matrix[0][1], matrix[0][2], matrix[0][3]);
+    spdlog::debug("Row 1: {:6.8f}  {:6.8f}  {:6.8f}  {:6.2f}", matrix[1][0], matrix[1][1], matrix[1][2], matrix[1][3]);
+    spdlog::debug("Row 2: {:6.8f}  {:6.8f}  {:6.8f}  {:6.2f}", matrix[2][0], matrix[2][1], matrix[2][2], matrix[2][3]);
+    spdlog::debug("Row 3: {:6.2f}  {:6.2f}  {:6.2f}  {:6.2f}", matrix[3][0], matrix[3][1], matrix[3][2], matrix[3][3]);
 }
 
 glm::vec3 rotationMatrixToEulerAngles(const glm::mat3 &R)
@@ -92,10 +91,9 @@ glm::vec3 rotationMatrixToEulerAngles(const glm::mat3 &R)
 
 static void PrintRay(std::string name, glm::vec3& origin, glm::vec3& direction)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Ray Info: %s", name.c_str());
-    logger_base.debug("Ray Origin: %6.2f  %6.2f  %6.2f", origin.x, origin.y, origin.z);
-    logger_base.debug("Ray Direct: %6.2f  %6.2f  %6.2f", direction.x, direction.y, direction.z);
+    spdlog::debug("Ray Info: {}", name.c_str());
+    spdlog::debug("Ray Origin: {:6.2f}  {:6.2f}  {:6.2f}", origin.x, origin.y, origin.z);
+    spdlog::debug("Ray Direct: {:6.2f}  {:6.2f}  {:6.2f}", direction.x, direction.y, direction.z);
 }
 #pragma clang diagnostic pop
 
@@ -232,9 +230,9 @@ void ModelScreenLocation::MouseOverHandle(int handle)
 
 float ModelScreenLocation::GetAxisArrowLength(float zoom, int scale) const
 {
-    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //
     static float AXIS_ARROW_LENGTH = 60.0f;
-    //logger_base.debug("zoom %f scale %d", zoom, scale);
+    //spdlog::debug("zoom {} scale {}", zoom, scale);
     float rs = scale;
     rs /= 2.0;
     rs += 1.0;
@@ -646,7 +644,7 @@ void ModelScreenLocation::SetDefaultMatrices() const
 
 bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch) {
 
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     float zoom = preview->GetCameraZoomForHandles();
     int scale = preview->GetHandleScale();
 
@@ -741,7 +739,7 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
             drag_delta = intersect - saved_intersect;
         }
     } else {
-        logger_base.warn("ModelScreenLocation::DragHandle: Intersect not found!");
+        spdlog::warn("ModelScreenLocation::DragHandle: Intersect not found!");
     }
     return found;
 }

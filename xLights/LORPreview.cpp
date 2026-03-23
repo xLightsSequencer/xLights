@@ -36,7 +36,7 @@
 #include "ExternalHooks.h"
 #include "XmlSerializer/XmlSerializeFunctions.h"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
@@ -129,14 +129,13 @@ LORPreview::LORPreview( xLightsFrame* frame, wxString xLightsPreview ) :
 }
 
 bool LORPreview::LoadPreviewFile() {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance( std::string( "log_base" ) );
-
+    
     auto const previewfileName = FindLORPreviewFile();
 
     if (FileExists( previewfileName )) {
         pugi::xml_document d;
         if (!d.load_file( previewfileName.mb_str() )) {
-            logger_base.warn( "LOR S5 Preview file could not be loaded." );
+            spdlog::warn("LOR S5 Preview file could not be loaded.");
             return false;
         }
         pugi::xml_node root = d.document_element();
@@ -152,7 +151,7 @@ bool LORPreview::LoadPreviewFile() {
             }
         }
     } else {
-        logger_base.warn( "LOR S5 Preview file not fould." );
+        spdlog::warn("LOR S5 Preview file not fould.");
     }
 
     return false;
@@ -196,9 +195,8 @@ bool LORPreview::ReadPreview( pugi::xml_node preview ) {
 }
 
 Model* LORPreview::LoadModelFile( wxString const& modelFile, wxString const& startChan, int previewW, int previewH, bool& error ) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance( std::string( "log_base" ) );
 
-    logger_base.debug( "Loading LOR S5 Model file %s.", (const char*)modelFile.c_str() );
+    spdlog::debug("Loading LOR S5 Model file {}.", modelFile.ToStdString());
 
     S5Model model;
 
@@ -216,7 +214,6 @@ Model* LORPreview::LoadModelFile( wxString const& modelFile, wxString const& sta
 }
 
 Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan, int previewW, int previewH, bool& error ) {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance( std::string( "log_base" ) );
 
     bool supportsMultiString = false;
 
@@ -639,7 +636,7 @@ Model* LORPreview::CreateModel( S5Model const& model, wxString const& startChan,
         m = xlights->AllModels.CreateDefaultModel( "Single Line" );
         ScaleToPreview( model, m, previewW, previewH );
         error = true;
-        logger_base.debug( "Unknown LOR S5 Model type %s.", (const char*)model.shapeName.c_str() );
+        spdlog::debug("Unknown LOR S5 Model type {}.", model.shapeName.ToStdString());
     }
 
     //Decode Type, "Traditional" vs "RGB"

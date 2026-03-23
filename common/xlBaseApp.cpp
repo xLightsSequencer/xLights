@@ -24,9 +24,7 @@
 #include <execinfo.h>
 #endif
 
-#include <log4cpp/Category.hh>
-#include <log4cpp/PropertyConfigurator.hh>
-#include <log4cpp/Configurator.hh>
+#include "spdlog/spdlog.h"
 
 #include "ExternalHooks.h"
 #include "xLightsVersion.h"
@@ -46,10 +44,10 @@ xlCrashHandler::xlCrashHandler(std::string const& appName) :
 
 void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const& msg)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if (!isFatalException) {
-        logger_base.warn("Non fatal exception: %s", (const char*)msg.c_str());
+        spdlog::warn("Non fatal exception: {}", msg);
     } else {
         try {
 #if defined(_DEBUG)
@@ -59,7 +57,7 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
             // Protect against simultaneous crashes from different threads.
             std::unique_lock<std::mutex> lock(m_crashMutex);
 
-            logger_base.crit("Crashed: " + msg);
+            spdlog::critical("Crashed: " + msg);
 
             wxDebugReportCompress report;
             m_report = &report;
@@ -141,9 +139,9 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
 #endif
 
             report.AddText("backtrace.txt", backtrace_txt, "Backtrace");
-            logger_base.crit("%s", (const char*)backtrace_txt.c_str());
+            spdlog::critical("{}", backtrace_txt.ToStdString());
 
-            std::string const logFileName = m_appName + "_l4cpp.log";
+            std::string const logFileName = m_appName + "_spd.log";
 #ifdef __WXMSW__
             wxString dir;
             wxGetEnv("APPDATA", &dir);
@@ -169,7 +167,7 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
             }
 
             if (topFrame == nullptr) {
-                logger_base.crit("Unable to tell user about debug report. Crash report saved to %s.", (const char*)report.GetCompressedFileName().c_str());
+                spdlog::critical("Unable to tell user about debug report. Crash report saved to {}.", report.GetCompressedFileName().ToStdString());
             } else {
                 if (wxThread::IsMain()) {
                     topFrame->CreateDebugReport(this);
@@ -180,7 +178,7 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
             }
 #endif // (defined(_DEBUG))
         } catch (...) {
-            logger_base.crit("We had an exception within the HandleCrash() function.");
+            spdlog::critical("We had an exception within the HandleCrash() function.");
         }
     }
 
@@ -230,7 +228,7 @@ void xlCrashHandler::HandleUnhandledException()
 
 void xlCrashHandler::ProcessCrashReport(SendReportOptions sendOption)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     if ((sendOption == SendReportOptions::ALWAYS_SEND) || ((sendOption == SendReportOptions::ASK_USER_TO_SEND) && wxDebugReportPreviewStd().Show(*m_report)))
     {
@@ -243,13 +241,13 @@ void xlCrashHandler::ProcessCrashReport(SendReportOptions sendOption)
         m_report->Process();
     }
 
-    logger_base.crit("Created debug report: " + m_report->GetCompressedFileName());
+    spdlog::critical("Created debug report: " + m_report->GetCompressedFileName().ToStdString());
     m_crashDoneSignal.notify_all();
 }
 
 void xlCrashHandler::SendReport(std::string const& appName, std::string const& loc, wxDebugReportCompress& report)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
 
     wxHTTP http;
     http.Connect("dankulp.com");
@@ -300,8 +298,8 @@ void xlCrashHandler::SendReport(std::string const& appName, std::string const& l
     wxInputStream* is = http.GetInputStream("/" + loc + "/index.php");
     char buf[1024];
     is->Read(buf, 1024);
-    logger_base.debug("Sent debug log to server: %s", (const char*)fn.c_str());
-    logger_base.debug("%s", (const char*) buf);
+    spdlog::debug("Sent debug log to server: {}", fn.ToStdString());
+    spdlog::debug("{}", (const char*) buf);
     //printf("%s\n", buf);
     delete is;
     http.Close();

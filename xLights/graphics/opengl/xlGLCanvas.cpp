@@ -13,7 +13,7 @@
 #include <wx/log.h>
 #include <wx/config.h>
 #include <wx/msgdlg.h>
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #ifndef __WXMAC__
 #ifdef _MSC_VER
@@ -85,9 +85,6 @@ wxGLContext *xlGLCanvas::m_sharedContext = nullptr;
 
 static wxGLAttributes GetAttributes(int &zdepth, bool only2d) {
     DrawGLUtils::SetupDebugLogging();
-    
-    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-    
     wxGLAttributes atts;
     for (size_t x = only2d ? 5 : 0; x < 6; ++x) {
         atts.Reset();
@@ -100,13 +97,13 @@ static wxGLAttributes GetAttributes(int &zdepth, bool only2d) {
         }
         atts.EndList();
         if (wxGLCanvas::IsDisplaySupported(atts)) {
-            logger_opengl.debug("Depth of %d supported, using it", DEPTH_BUFFER_BITS[x]);
+            spdlog::debug("Depth of {} supported, using it", DEPTH_BUFFER_BITS[x]);
             zdepth = DEPTH_BUFFER_BITS[x];
             return atts;
         }
-        logger_opengl.debug("Depth of %d not supported", DEPTH_BUFFER_BITS[x]);
+        spdlog::debug("Depth of {} not supported", DEPTH_BUFFER_BITS[x]);
     }
-    logger_opengl.debug("Could not find an attribs thats working with MnRGBA\n");
+    spdlog::debug("Could not find an attribs thats working with MnRGBA\n");
     // didn't find a display, try without MinRGBA
     for (size_t x = only2d ? 5 : 0; x < 6; ++x) {
         atts.Reset();
@@ -118,13 +115,13 @@ static wxGLAttributes GetAttributes(int &zdepth, bool only2d) {
         }
         atts.EndList();
         if (wxGLCanvas::IsDisplaySupported(atts)) {
-            logger_opengl.debug("Depth of %d supported without MinRGBA, using it", DEPTH_BUFFER_BITS[x]);
+            spdlog::debug("Depth of {} supported without MinRGBA, using it", DEPTH_BUFFER_BITS[x]);
             zdepth = DEPTH_BUFFER_BITS[x];
             return atts;
         }
-        logger_opengl.debug("Depth of %d not supported without MinRGBA", DEPTH_BUFFER_BITS[x]);
+        spdlog::debug("Depth of {} not supported without MinRGBA", DEPTH_BUFFER_BITS[x]);
     }
-    logger_opengl.debug("Could not find an attribs thats working");
+    spdlog::debug("Could not find an attribs thats working");
     zdepth = 0;
     atts.Reset();
     atts.PlatformDefaults()
@@ -154,7 +151,7 @@ static wxGLAttributes GetAttributes(int &zdepth, bool only2d) {
         return atts;
     }
 
-    logger_opengl.debug("Could not find an attribs thats working, using platform defaults");
+    spdlog::debug("Could not find an attribs thats working, using platform defaults");
     atts.Reset();
     atts.PlatformDefaults()
         .Defaults()
@@ -172,13 +169,12 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint& pos,
     mWindowHeight(0),
     mWindowResized(false),
     mIsInitialized(false),
-    m_context(nullptr),
     _name(name.ToStdString()),
     m_zDepth(only2d ? 0 : tempZDepth),
-    is3d(!only2d)
+    is3d(!only2d),
+    m_logger(spdlog::get("opengl"))
 {
-    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("                    Creating GL Canvas for %s", (const char*)name.c_str());
+    m_logger->debug("                    Creating GL Canvas for {}", (const char*)name.c_str());
 
     this->GetGLCTXAttrs().PlatformDefaults();
 
@@ -249,17 +245,15 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent,
     mWindowHeight(0),
     mWindowResized(false),
     mIsInitialized(false),
-    m_context(nullptr),
     _name(name.ToStdString()),
-    m_zDepth(0)
+    m_logger(spdlog::get("opengl"))
 {
-    log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("                    Creating GL Canvas for %s", (const char*)name.c_str());
+    m_logger ->debug("                    Creating GL Canvas for {}", (const char*)name.c_str());
 
     this->GetGLCTXAttrs().PlatformDefaults();
 
 #ifdef __WXMSW__
-    int origPixelFormat = GetPixelFormat(m_hDC);
+    int const origPixelFormat = GetPixelFormat(m_hDC);
     PIXELFORMATDESCRIPTOR pfdOrig;
     DescribePixelFormat(m_hDC,
         origPixelFormat,
@@ -341,9 +335,7 @@ static const char* getStringForType(GLenum type)
 void CALLBACK DebugLog(GLenum source, GLenum type, GLuint id, GLenum severity,
     GLsizei length, const GLchar* message, const GLvoid* userParam)
 {
-    static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
-
-    logger_opengl.info("Type : %s; Source : %s; ID : %d; Severity : % s\n Message: %s",
+    spdlog::get("opengl")->info("Type : {}; Source : {}; ID : {}; Severity : {}\n Message: {}",
         getStringForType(type),
         getStringForSource(source),
         id,
@@ -353,9 +345,7 @@ void CALLBACK DebugLog(GLenum source, GLenum type, GLuint id, GLenum severity,
 
 void CALLBACK DebugLogAMD(GLuint id, GLenum category, GLenum severity, GLsizei length, const GLchar* message, void* userParam)
 {
-    static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
-
-    logger_opengl.info("%s; ID : %d; Severity : % s\n Message: %s",
+    spdlog::get("opengl")->info("{}; ID : {}; Severity : {}\n Message: {}",
         getStringForType(category),
         id,
         getStringForSeverity(severity),
@@ -365,18 +355,18 @@ void CALLBACK DebugLogAMD(GLuint id, GLenum category, GLenum severity, GLsizei l
 
 void AddDebugLog(xlGLCanvas* c)
 {
-    static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
     PFNGLDEBUGMESSAGECALLBACKARBPROC glDebugMessageCallbackARB = (PFNGLDEBUGMESSAGECALLBACKARBPROC)wglGetProcAddress("glDebugMessageCallbackARB");
     PFNGLDEBUGMESSAGECONTROLARBPROC glDebugMessageControlARB = (PFNGLDEBUGMESSAGECONTROLARBPROC)wglGetProcAddress("glDebugMessageControlARB");
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    auto logger = spdlog::get("opengl");
     if (glDebugMessageCallbackARB == nullptr) {
-        logger_opengl.debug("Did not find debug callback ARB, attempting 4.3");
+        logger->debug("Did not find debug callback ARB, attempting 4.3");
         glDebugMessageCallbackARB = (PFNGLDEBUGMESSAGECALLBACKARBPROC)wglGetProcAddress("glDebugMessageCallback");
         glDebugMessageControlARB = (PFNGLDEBUGMESSAGECONTROLARBPROC)wglGetProcAddress("glDebugMessageControl");
     }
 
     if (glDebugMessageCallbackARB != nullptr) {
-        logger_opengl.debug("Adding debug callback.  %X", glDebugMessageControlARB);
+        logger->debug("Adding debug callback.  {}", (int)glDebugMessageControlARB);
         LOG_GL_ERRORV(glDebugMessageCallbackARB(DebugLog, c));
         if (glDebugMessageControlARB != nullptr) {
             GLuint unusedIds = 0;
@@ -385,7 +375,7 @@ void AddDebugLog(xlGLCanvas* c)
     }
     PFNGLDEBUGMESSAGECALLBACKAMDPROC glDebugMessageCallbackAMD = (PFNGLDEBUGMESSAGECALLBACKAMDPROC)wglGetProcAddress("glDebugMessageCallbackAMD");
     if (glDebugMessageCallbackAMD != nullptr) {
-        logger_opengl.debug("Adding AMD debug callback");
+        logger->debug("Adding AMD debug callback");
         LOG_GL_ERRORV(glDebugMessageCallbackAMD(DebugLogAMD, c));
     }
     glEnable(GL_DEBUG_OUTPUT);
@@ -494,7 +484,6 @@ wxImage* xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
 
 void xlGLCanvas::SetCurrentGLContext()
 {
-    static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
     static bool errorDisplayed = false;
     glGetError();
     if (m_context == nullptr) {
@@ -502,7 +491,7 @@ void xlGLCanvas::SetCurrentGLContext()
         if (m_context == nullptr) {
             if (!errorDisplayed) {
                 errorDisplayed = true;
-                logger_opengl.error("Could not create GL context ... aborting.");
+                m_logger->error("Could not create GL context ... aborting.");
                 wxMessageBox("Critical error preparing context to draw on. Likely you need to update your video drivers.");
             }
             return;
@@ -512,8 +501,6 @@ void xlGLCanvas::SetCurrentGLContext()
 }
 
 void xlGLCanvas::CreateGLContext() {
-    static log4cpp::Category &logger_opengl_trace = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
-    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
     if (m_context == nullptr) {
         wxGLContext *base = m_sharedContext;
         //trying to detect OGL versions and stuff can result in unwanted logs
@@ -523,14 +510,14 @@ void xlGLCanvas::CreateGLContext() {
         
         wxGLContextAttrs atts;
         atts.PlatformDefaults().OGLVersion(3, 3).CoreProfile();
-        if (logger_opengl_trace.isDebugEnabled()) {
-            atts.ForwardCompatible().DebugCtx();
-        }
+        //if (logger_opengl_trace.isDebugEnabled()) {
+        //    atts.ForwardCompatible().DebugCtx();
+        //}
         atts.EndList();
         glGetError();
         LOG_GL_ERRORV(m_context = new wxGLContext(this, base, &atts));
         if (!m_context || !m_context->IsOK()) {
-            logger_opengl.debug("Could not create a valid CoreProfile context");
+            m_logger->debug("Could not create a valid CoreProfile context");
             if (m_context) {
                 LOG_GL_ERRORV(delete m_context);
             }
@@ -538,9 +525,9 @@ void xlGLCanvas::CreateGLContext() {
             
             wxGLContextAttrs atts2;
             atts2.PlatformDefaults().OGLVersion(2, 1);
-            if (logger_opengl_trace.isDebugEnabled()) {
-                atts2.ForwardCompatible().DebugCtx();
-            }
+            //if (logger_opengl_trace.isDebugEnabled()) {
+            //    atts2.ForwardCompatible().DebugCtx();
+            //}
             atts2.EndList();
             glGetError();
             LOG_GL_ERRORV(m_context = new wxGLContext(this, base, &atts2));
@@ -562,7 +549,7 @@ void xlGLCanvas::CreateGLContext() {
 
         
         if (m_context == nullptr) {
-            logger_opengl.error("Error creating GL context.");
+            m_logger->error("Error creating GL context.");
             m_context = m_sharedContext;
         } else if (m_sharedContext == nullptr) {
             //use this as the shared context, then create a new one.
@@ -584,7 +571,7 @@ void xlGLCanvas::CreateGLContext() {
             
             if (!xlOGL3GraphicsContext::InitializeSharedContext())
             {
-                logger_opengl.error("Failed to initialise shared OpenGL context.");
+                m_logger->error("Failed to initialise shared OpenGL context.");
             }
 
             m_context = nullptr;
@@ -594,8 +581,8 @@ void xlGLCanvas::CreateGLContext() {
             const GLubyte* str = glGetString(GL_VERSION);
             const GLubyte* rend = glGetString(GL_RENDERER);
             const GLubyte* vend = glGetString(GL_VENDOR);
-            wxString configs = wxString::Format("%s - glVer:  %s  (%s)(%s)",
-                (const char*)GetName().c_str(),
+            std::string configs = std::format("{} - glVer:  {}  ({})({})",
+                GetName().ToStdString(),
                 (const char*)str,
                 (const char*)rend,
                 (const char*)vend);
@@ -607,10 +594,10 @@ void xlGLCanvas::CreateGLContext() {
             } else {
                 isCoreProfile = false;
             }
-            logger_opengl.info(std::string(configs.c_str()));
-            printf("%s\n", (const char*)configs.c_str());
+            m_logger->info(configs);
+            printf("%s\n", configs);
             
-            if (logger_opengl.isDebugEnabled()) {
+            if (m_logger->level() == spdlog::level::level_enum::debug) {
                 AddDebugLog(this);
             }
             InitializeGLContext();

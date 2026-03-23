@@ -96,7 +96,7 @@ static bool canUseFramebufferObjects()
 #include "UtilFunctions.h"
 #include "OpenGLShaders.h"
 #include "graphics/opengl/DrawGLUtils.h"
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #include "TraceLog.h"
 using namespace TraceLog;
@@ -117,8 +117,8 @@ namespace
             std::vector<char> errorMessage( infoLogLength + 1 );
             char*             messagePtr = &errorMessage[0];
             glGetProgramInfoLog( programID, infoLogLength, NULL, messagePtr );
-            static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance( std::string( "log_opengl" ) );
-            logger_opengl.error( "shader-link failure %s: '%s'", filename.c_str(), messagePtr );
+            auto logger = spdlog::get("opengl");
+            logger->error("shader-link failure {}: '{}'", filename, messagePtr);
          }
       }
       return result == GL_TRUE;
@@ -143,8 +143,8 @@ namespace
              m += messagePtr;
              AddTraceMessage(m);
 
-            static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance( std::string( "log_opengl" ) );
-            logger_opengl.error( "shader-compile failure %s: '%s'", filename.c_str(), messagePtr );
+            auto logger = spdlog::get("opengl");
+            logger->error("shader-compile failure {}: '{}'", filename, messagePtr);
          }
       }
       return result == GL_TRUE;
@@ -210,9 +210,8 @@ unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::str
         LOG_GL_ERRORV(glDeleteShader(vertexShader));
         LOG_GL_ERRORV(glDeleteShader(fragmentShader));
 
-        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-
-        logger_opengl.error("%s", (const char*)PrepareShaderCodeForLogging(fragmentSource).c_str());
+        auto logger = spdlog::get("opengl");
+        logger->error(PrepareShaderCodeForLogging(fragmentSource));
         return 0;
     }
     AddTraceMessage("Compile successful");

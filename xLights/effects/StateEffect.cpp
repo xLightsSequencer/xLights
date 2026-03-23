@@ -26,7 +26,7 @@
 #include "../../include/state-16.xpm"
 #include "../../include/state-64.xpm"
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 StateEffect::StateEffect(int id) :
     RenderableEffect(id, "State", state_16, state_64, state_64, state_64, state_64) {
@@ -154,8 +154,8 @@ void StateEffect::RenderState(RenderBuffer& buffer,
         elements->AddRenderDependency(trackName, buffer.cur_model);
 
         if (buffer.isTransformed) {
-            log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.warn("State effect starting at %dms until %dms on model %s has a transformed buffer. This may not work as expected.", buffer.curEffStartPer * buffer.frameTimeInMs, buffer.curEffEndPer * buffer.frameTimeInMs, (const char*)buffer.cur_model.c_str());
+            
+            spdlog::warn("State effect starting at {}ms until {}ms on model {} has a transformed buffer. This may not work as expected.", buffer.curEffStartPer * buffer.frameTimeInMs, buffer.curEffEndPer * buffer.frameTimeInMs, (const char*)buffer.cur_model.c_str());
         }
     }
 

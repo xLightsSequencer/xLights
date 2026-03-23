@@ -32,7 +32,7 @@
 #include "../ExternalHooks.h"
 #include "../xLightsMain.h" 
 
-#include <log4cpp/Category.hh>
+#include "spdlog/spdlog.h"
 
 #define wrdebug(...)
 
